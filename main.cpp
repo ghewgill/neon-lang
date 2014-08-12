@@ -2,6 +2,9 @@
 #include <iostream>
 
 #include "ast.h"
+#include "compiler.h"
+#include "disassembler.h"
+#include "exec.h"
 #include "interpreter.h"
 #include "lexer.h"
 #include "parser.h"
@@ -42,4 +45,10 @@ int main(int /*argc*/, char */*argv*/[])
 
     ast = dump(parse(dump(tokenize("b := 4\na := abs(-5 * (3 + b))\nprint(a)"))));
     interpret(ast);
+
+    auto obj = compile(ast);
+
+    disassemble(obj);
+
+    exec(obj);
 }

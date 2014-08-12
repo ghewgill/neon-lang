@@ -81,6 +81,21 @@ void ScalarVariableReference::set(Environment &env, Value *value) const
     env.setVariable(name, value);
 }
 
+Value *FunctionReference::get(Environment &env) const
+{
+    return env.getVariable(name);
+}
+
+void FunctionReference::set(Environment &env, Value *value) const
+{
+    env.setVariable(name, value);
+}
+
+int VariableExpression::eval(Environment &env) const
+{
+    return static_cast<IntegerValue *>(var->get(env))->value;
+}
+
 int FunctionCall::eval(Environment &env) const
 {
     Value *v = func->get(env);

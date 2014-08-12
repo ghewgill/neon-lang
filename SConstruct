@@ -13,6 +13,10 @@ env.Append(CXXFLAGS=[
 
 env.Program("simple", [
     "ast.cpp",
+    "bytecode.cpp",
+    "compiler.cpp",
+    "disassembler.cpp",
+    "exec.cpp",
     "interpreter.cpp",
     "lexer.cpp",
     "main.cpp",

@@ -44,7 +44,7 @@ static const Expression *parseFactor(const std::vector<Token> &tokens, std::vect
                 ++i;
                 return new FunctionCall(ref, args);
             } else {
-                return ref;
+                return new VariableExpression(ref);
             }
         }
         default:
@@ -93,7 +93,12 @@ static const Expression *parseExpression(const std::vector<Token> &tokens, std::
 static const VariableReference *parseVariableReference(const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type == IDENTIFIER) {
-        VariableReference *ref = new ScalarVariableReference(tokens[i].text);
+        VariableReference *ref;
+        if (tokens[i].text == "abs" || tokens[i].text == "print") {
+            ref = new FunctionReference(tokens[i].text);
+        } else {
+            ref = new ScalarVariableReference(tokens[i].text);
+        }
         ++i;
         return ref;
     } else {
