@@ -1,3 +1,7 @@
 .sconsign.dblite
 *.o
 simple
+test_lexer
+test_parser
+test_interpreter
+test_compiler
