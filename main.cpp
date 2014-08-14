@@ -44,7 +44,7 @@ int main(int /*argc*/, char */*argv*/[])
     ast->dump();
 
     ast = dump(parse(dump(tokenize("b := 4\na := abs(-5 * (3 + b))\nprint(a)"))));
-    interpret(ast);
+    interpret(ast, std::cout);
 
     auto obj = compile(ast);
 

@@ -23,7 +23,7 @@ public:
     const int value;
 };
 
-typedef Value *(*BuiltinFunction)(const std::vector<Value *> &args);
+typedef Value *(*BuiltinFunction)(Environment &env, const std::vector<Value *> &args);
 
 class FunctionValue: public Value {
 public:
@@ -33,10 +33,13 @@ public:
 
 class Environment {
 public:
-    Environment(): parent(NULL) {}
+    Environment(std::ostream &stdout): stdout(stdout), parent(NULL) {}
+
+    std::ostream &stdout;
 
     Value *getVariable(const std::string &name);
     void setVariable(const std::string &name, Value *value);
+
     Environment *parent;
     std::map<std::string, Value *> variables;
 };
@@ -106,7 +109,7 @@ int FunctionCall::eval(Environment &env) const
             for (std::vector<const Expression *>::const_iterator i = args.begin(); i != args.end(); ++i) {
                 values.push_back(new IntegerValue((*i)->eval(env)));
             }
-            Value *r = f->function(values);
+            Value *r = f->function(env, values);
             if (r == NULL) {
                 return 0;
             } else if (r->type == INTEGER) {
@@ -142,7 +145,7 @@ void Program::interpret(Environment &env) const
     }
 }
 
-Value *f_abs(const std::vector<Value *> &args)
+Value *f_abs(Environment &env, const std::vector<Value *> &args)
 {
     switch (args[0]->type) {
         case INTEGER: {
@@ -155,12 +158,12 @@ Value *f_abs(const std::vector<Value *> &args)
     }
 }
 
-Value *f_print(const std::vector<Value *> &args)
+Value *f_print(Environment &env, const std::vector<Value *> &args)
 {
     switch (args[0]->type) {
         case INTEGER: {
             IntegerValue *v = static_cast<IntegerValue *>(args[0]);
-            printf("%d\n", v->value);
+            env.stdout << v->value << "\n";
             break;
         }
         default:
@@ -170,9 +173,9 @@ Value *f_print(const std::vector<Value *> &args)
     return NULL;
 }
 
-void interpret(const Program *program)
+void interpret(const Program *program, std::ostream &stdout)
 {
-    Environment env;
+    Environment env(stdout);
     env.setVariable("abs", new FunctionValue(f_abs));
     env.setVariable("print", new FunctionValue(f_print));
     program->interpret(env);
