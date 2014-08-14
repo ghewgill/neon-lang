@@ -11,7 +11,6 @@ std::string Token::tostring() const
     switch (type) {
         case NONE:        s << "NONE"; break;
         case END_OF_FILE: s << "END_OF_FILE"; break;
-        case KEYWORD:     s << "KEYWORD:" << value; break;
         case NUMBER:      s << "NUMBER:" << value; break;
         case IDENTIFIER:  s << "IDENTIFIER:" << text; break;
         case LPAREN:      s << "LPAREN"; break;
