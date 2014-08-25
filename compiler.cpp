@@ -7,7 +7,7 @@
 
 class Emitter {
     class Label {
-    public:
+        friend class Emitter;
         Label(): target(-1) {}
         std::vector<int> fixups;
         int target;
