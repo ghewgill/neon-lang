@@ -1,12 +1,16 @@
 #include "compiler.h"
 
+#include <assert.h>
+
 #include "ast.h"
 #include "opcode.h"
 
 class Emitter {
     class Label {
     public:
+        Label(): target(-1) {}
         std::vector<int> fixups;
+        int target;
     };
 public:
     void emit(unsigned char b);
@@ -76,21 +80,29 @@ Emitter::Label Emitter::create_label()
 void Emitter::emit_jump(unsigned char b, Label &label)
 {
     emit(b);
-    label.fixups.push_back(code.size());
-    emit(0);
-    emit(0);
-    emit(0);
-    emit(0);
+    if (label.target >= 0) {
+        emit(label.target >> 24);
+        emit(label.target >> 16);
+        emit(label.target >> 8);
+        emit(label.target);
+    } else {
+        label.fixups.push_back(code.size());
+        emit(0);
+        emit(0);
+        emit(0);
+        emit(0);
+    }
 }
 
 void Emitter::jump_target(Label &label)
 {
-    int here = code.size();
+    assert(label.target < 0);
+    label.target = code.size();
     for (auto offset: label.fixups) {
-        code[offset] = here >> 24;
-        code[offset+1] = here >> 16;
-        code[offset+2] = here >> 8;
-        code[offset+3] = here;
+        code[offset] = label.target >> 24;
+        code[offset+1] = label.target >> 16;
+        code[offset+2] = label.target >> 8;
+        code[offset+3] = label.target;
     }
 }
 
@@ -192,6 +204,20 @@ void IfStatement::generate(Emitter &emitter) const
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
+    emitter.jump_target(skip);
+}
+
+void WhileStatement::generate(Emitter &emitter) const
+{
+    auto top = emitter.create_label();
+    emitter.jump_target(top);
+    condition->generate(emitter);
+    auto skip = emitter.create_label();
+    emitter.emit_jump(JZ, skip);
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+    emitter.emit_jump(JUMP, top);
     emitter.jump_target(skip);
 }
 

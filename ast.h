@@ -224,12 +224,22 @@ public:
     }
 };
 
-class IfStatement: public Statement {
+class CompoundStatement: public Statement {
 public:
-    IfStatement(const Expression *condition, const std::vector<const Statement *> &statements): condition(condition), statements(statements) {}
+    CompoundStatement(const std::vector<const Statement *> &statements): statements(statements) {}
+
+    const std::vector<const Statement *> statements;
+
+    virtual void interpret(Environment &env) const;
+
+    virtual void dumpsubnodes(int depth) const;
+};
+
+class IfStatement: public CompoundStatement {
+public:
+    IfStatement(const Expression *condition, const std::vector<const Statement *> &statements): CompoundStatement(statements), condition(condition) {}
 
     const Expression *condition;
-    const std::vector<const Statement *> statements;
 
     virtual void interpret(Environment &env) const;
 
@@ -238,7 +248,21 @@ public:
     virtual std::string text() const {
         return "IfStatement(" + condition->text() + ")";
     }
-    virtual void dumpsubnodes(int depth) const;
+};
+
+class WhileStatement: public CompoundStatement {
+public:
+    WhileStatement(const Expression *condition, const std::vector<const Statement *> &statements): CompoundStatement(statements), condition(condition) {}
+
+    const Expression *condition;
+
+    virtual void interpret(Environment &env) const;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "WhileStatement(" + condition->text() + ")";
+    }
 };
 
 class Program: public AstNode {

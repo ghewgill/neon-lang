@@ -24,6 +24,7 @@ private:
     void disasm_MULI();
     void disasm_DIVI();
     void disasm_CALL();
+    void disasm_JUMP();
     void disasm_JZ();
 };
 
@@ -87,6 +88,13 @@ void Disassembler::disasm_CALL()
     index++;
 }
 
+void Disassembler::disasm_JUMP()
+{
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    printf("JUMP %d\n", val);
+}
+
 void Disassembler::disasm_JZ()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -108,6 +116,7 @@ void Disassembler::disassemble()
             case MULI:   disasm_MULI(); break;
             case DIVI:   disasm_DIVI(); break;
             case CALL:   disasm_CALL(); break;
+            case JUMP:   disasm_JUMP(); break;
             case JZ:     disasm_JZ(); break;
             default:
                 printf("disassembler: Unexpected opcode: %d\n", obj.code[index]);

@@ -11,6 +11,7 @@ enum {
     MULI,
     DIVI,
     CALL,
+    JUMP,
     JZ,
 };
 

@@ -60,4 +60,10 @@ int main(int /*argc*/, char */*argv*/[])
         auto obj = compile(parse(tokenize("a := 1\nIF a THEN print(1) END")));
         exec(obj);
     }
+
+    {
+        auto obj = compile(parse(tokenize("a := 5\nWHILE a DO print(a) a := a - 1 END")));
+        disassemble(obj);
+        exec(obj);
+    }
 }

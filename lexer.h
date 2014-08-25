@@ -20,6 +20,8 @@ enum TokenType {
     IF,
     THEN,
     END,
+    WHILE,
+    DO,
 };
 
 class Token {

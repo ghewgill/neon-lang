@@ -24,6 +24,8 @@ std::string Token::tostring() const
         case IF:          s << "IF"; break;
         case THEN:        s << "THEN"; break;
         case END:         s << "END"; break;
+        case WHILE:       s << "WHILE"; break;
+        case DO:          s << "DO"; break;
     }
     s << ">";
     return s.str();
@@ -70,6 +72,8 @@ std::vector<Token> tokenize(const std::string &source)
                  if (t.text == "IF") t.type = IF;
             else if (t.text == "THEN") t.type = THEN;
             else if (t.text == "END") t.type = END;
+            else if (t.text == "WHILE") t.type = WHILE;
+            else if (t.text == "DO") t.type = DO;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

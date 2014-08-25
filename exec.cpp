@@ -26,6 +26,7 @@ private:
     void exec_MULI();
     void exec_DIVI();
     void exec_CALL();
+    void exec_JUMP();
     void exec_JZ();
 };
 
@@ -113,6 +114,13 @@ void Executor::exec_CALL()
     }
 }
 
+void Executor::exec_JUMP()
+{
+    int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    ip = target;
+}
+
 void Executor::exec_JZ()
 {
     int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -136,6 +144,7 @@ void Executor::exec()
             case MULI:   exec_MULI(); break;
             case DIVI:   exec_DIVI(); break;
             case CALL:   exec_CALL(); break;
+            case JUMP:   exec_JUMP(); break;
             case JZ:     exec_JZ(); break;
             default:
                 printf("exec: Unexpected opcode: %d\n", obj.code[ip]);
