@@ -4,12 +4,19 @@
 #include "opcode.h"
 
 class Emitter {
+    class Label {
+    public:
+        std::vector<int> fixups;
+    };
 public:
     void emit(unsigned char b);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &s);
     unsigned int str(const std::string &s);
+    Label create_label();
+    void emit_jump(unsigned char b, Label &label);
+    void jump_target(Label &label);
 private:
     std::vector<unsigned char> code;
     std::vector<std::string> strings;
@@ -59,6 +66,32 @@ unsigned int Emitter::str(const std::string &s)
         i = strings.end() - 1;
     }
     return i - strings.begin();
+}
+
+Emitter::Label Emitter::create_label()
+{
+    return Label();
+}
+
+void Emitter::emit_jump(unsigned char b, Label &label)
+{
+    emit(b);
+    label.fixups.push_back(code.size());
+    emit(0);
+    emit(0);
+    emit(0);
+    emit(0);
+}
+
+void Emitter::jump_target(Label &label)
+{
+    int here = code.size();
+    for (auto offset: label.fixups) {
+        code[offset] = here >> 24;
+        code[offset+1] = here >> 16;
+        code[offset+2] = here >> 8;
+        code[offset+3] = here;
+    }
 }
 
 void ConstantExpression::generate(Emitter &emitter) const
@@ -149,6 +182,17 @@ void AssignmentStatement::generate(Emitter &emitter) const
 void ExpressionStatement::generate(Emitter &emitter) const
 {
     expr->generate(emitter);
+}
+
+void IfStatement::generate(Emitter &emitter) const
+{
+    condition->generate(emitter);
+    auto skip = emitter.create_label();
+    emitter.emit_jump(JZ, skip);
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+    emitter.jump_target(skip);
 }
 
 void Program::generate(Emitter &emitter) const

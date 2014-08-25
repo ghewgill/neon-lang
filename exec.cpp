@@ -26,6 +26,7 @@ private:
     void exec_MULI();
     void exec_DIVI();
     void exec_CALL();
+    void exec_JZ();
 };
 
 Executor::Executor(const Bytecode::bytecode &obj)
@@ -112,6 +113,16 @@ void Executor::exec_CALL()
     }
 }
 
+void Executor::exec_JZ()
+{
+    int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    int a = stack.top(); stack.pop();
+    if (a == 0) {
+        ip = target;
+    }
+}
+
 void Executor::exec()
 {
     while (ip < obj.code.size()) {
@@ -125,8 +136,9 @@ void Executor::exec()
             case MULI:   exec_MULI(); break;
             case DIVI:   exec_DIVI(); break;
             case CALL:   exec_CALL(); break;
+            case JZ:     exec_JZ(); break;
             default:
-                printf("Unexpected opcode: %d\n", obj.code[ip]);
+                printf("exec: Unexpected opcode: %d\n", obj.code[ip]);
                 abort();
         }
     }

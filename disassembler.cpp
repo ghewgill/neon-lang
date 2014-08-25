@@ -24,6 +24,7 @@ private:
     void disasm_MULI();
     void disasm_DIVI();
     void disasm_CALL();
+    void disasm_JZ();
 };
 
 Disassembler::Disassembler(const Bytecode::bytecode &obj)
@@ -86,9 +87,17 @@ void Disassembler::disasm_CALL()
     index++;
 }
 
+void Disassembler::disasm_JZ()
+{
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    printf("JZ %d\n", val);
+}
+
 void Disassembler::disassemble()
 {
     while (index < obj.code.size()) {
+        printf("%4lu ", index);
         switch (obj.code[index]) {
             case PUSHI:  disasm_PUSHI(); break;
             case LOADI:  disasm_LOADI(); break;
@@ -99,8 +108,9 @@ void Disassembler::disassemble()
             case MULI:   disasm_MULI(); break;
             case DIVI:   disasm_DIVI(); break;
             case CALL:   disasm_CALL(); break;
+            case JZ:     disasm_JZ(); break;
             default:
-                printf("Unexpected opcode: %d\n", obj.code[index]);
+                printf("disassembler: Unexpected opcode: %d\n", obj.code[index]);
                 abort();
         }
     }

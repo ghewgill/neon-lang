@@ -108,7 +108,24 @@ static const VariableReference *parseVariableReference(const std::vector<Token> 
 
 static const Statement *parseStatement(const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    if (tokens[i].type == IDENTIFIER) {
+    if (tokens[i].type == IF) {
+        ++i;
+        const Expression *cond = parseExpression(tokens, i);
+        if (tokens[i].type != THEN) {
+            error(tokens[i], "THEN expected");
+        }
+        ++i;
+        std::vector<const Statement *> statements;
+        while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+            const Statement *s = parseStatement(tokens, i);
+            statements.push_back(s);
+        }
+        if (tokens[i].type != END) {
+            error(tokens[i], "END expected");
+        }
+        ++i;
+        return new IfStatement(cond, statements);
+    } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(tokens, i);
         if (tokens[i].type == ASSIGN) {
             ++i;

@@ -138,6 +138,15 @@ void ExpressionStatement::interpret(Environment &env) const
     expr->eval(env);
 }
 
+void IfStatement::interpret(Environment &env) const
+{
+    if (condition->eval(env)) {
+        for (std::vector<const Statement *>::const_iterator i = statements.begin(); i != statements.end(); ++i) {
+            (*i)->interpret(env);
+        }
+    }
+}
+
 void Program::interpret(Environment &env) const
 {
     for (std::vector<const Statement *>::const_iterator i = statements.begin(); i != statements.end(); ++i) {

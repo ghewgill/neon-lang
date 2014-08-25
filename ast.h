@@ -224,6 +224,23 @@ public:
     }
 };
 
+class IfStatement: public Statement {
+public:
+    IfStatement(const Expression *condition, const std::vector<const Statement *> &statements): condition(condition), statements(statements) {}
+
+    const Expression *condition;
+    const std::vector<const Statement *> statements;
+
+    virtual void interpret(Environment &env) const;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "IfStatement(" + condition->text() + ")";
+    }
+    virtual void dumpsubnodes(int depth) const;
+};
+
 class Program: public AstNode {
 public:
     Program(const std::vector<const Statement *> &statements): statements(statements) {}

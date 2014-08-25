@@ -71,4 +71,16 @@ int main()
         auto *ce = dynamic_cast<const ConstantExpression *>(fc->args[0]);
         assert(ce->value == 1);
     }
+
+    {
+        auto *program = dump(parse(tokenize("IF a THEN print(a) END")));
+        assert(program->statements.size() == 1);
+        auto *is = dynamic_cast<const IfStatement *>(program->statements[0]);
+        auto *ve = dynamic_cast<const VariableExpression *>(is->condition);
+        auto *svr = dynamic_cast<const ScalarVariableReference *>(ve->var);
+        assert(svr->name == "a");
+        assert(is->statements.size() == 1);
+        auto *es = dynamic_cast<const ExpressionStatement *>(is->statements[0]);
+        assert(es != NULL);
+    }
 }

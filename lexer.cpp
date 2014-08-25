@@ -21,6 +21,9 @@ std::string Token::tostring() const
         case TIMES:       s << "TIMES"; break;
         case DIVIDE:      s << "DIVIDE"; break;
         case COMMA:       s << "COMMA"; break;
+        case IF:          s << "IF"; break;
+        case THEN:        s << "THEN"; break;
+        case END:         s << "END"; break;
     }
     s << ">";
     return s.str();
@@ -64,6 +67,9 @@ std::vector<Token> tokenize(const std::string &source)
                 j++;
             }
             t.text = source.substr(i, j-i);
+                 if (t.text == "IF") t.type = IF;
+            else if (t.text == "THEN") t.type = THEN;
+            else if (t.text == "END") t.type = END;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

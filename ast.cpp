@@ -30,6 +30,13 @@ std::string FunctionCall::text() const
     return s.str();
 }
 
+void IfStatement::dumpsubnodes(int depth) const
+{
+    for (std::vector<const Statement *>::const_iterator i = statements.begin(); i != statements.end(); ++i) {
+        (*i)->dump(depth+1);
+    }
+}
+
 void Program::dumpsubnodes(int depth) const
 {
     for (std::vector<const Statement *>::const_iterator i = statements.begin(); i != statements.end(); ++i) {

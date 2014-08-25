@@ -17,6 +17,9 @@ enum TokenType {
     TIMES,
     DIVIDE,
     COMMA,
+    IF,
+    THEN,
+    END,
 };
 
 class Token {

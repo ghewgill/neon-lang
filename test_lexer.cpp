@@ -13,8 +13,8 @@ static std::vector<Token> dump(const std::vector<Token> &tokens)
 
 int main()
 {
-    auto tokens = dump(tokenize("1 a ( ) := + - * / ,"));
-    assert(tokens.size() == 11);
+    auto tokens = dump(tokenize("1 a ( ) := + - * / , IF THEN END"));
+    assert(tokens.size() == 14);
     assert(tokens[0].type == NUMBER);
     assert(tokens[0].value == 1);
     assert(tokens[1].type == IDENTIFIER);
@@ -27,5 +27,8 @@ int main()
     assert(tokens[7].type == TIMES);
     assert(tokens[8].type == DIVIDE);
     assert(tokens[9].type == COMMA);
-    assert(tokens[10].type == END_OF_FILE);
+    assert(tokens[10].type == IF);
+    assert(tokens[11].type == THEN);
+    assert(tokens[12].type == END);
+    assert(tokens[13].type == END_OF_FILE);
 }
