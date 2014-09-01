@@ -1,3 +1,6 @@
+import os
+from SCons.Script.SConscript import SConsEnvironment
+
 env = Environment()
 
 env.Append(CXXFLAGS=[
@@ -24,14 +27,23 @@ env.Program("simple", [
     "util.cpp",
 ])
 
-env.Program([
+def UnitTest(env, target, source, **kwargs):
+    t = env.Program(target, source, **kwargs)
+    # see the following for the reason why this lambda is necessary:
+    # http://stackoverflow.com/questions/8219743/scons-addpostaction-causes-dependency-check-error-work-around
+    env.AddPostAction(t, lambda *_, **__: os.system(t[0].abspath))
+    env.Alias("test", t)
+    return t
+
+SConsEnvironment.UnitTest = UnitTest
+
+env.UnitTest("test_lexer", [
     "test_lexer.cpp",
     "lexer.cpp",
     "util.cpp",
 ])
-env.Command("test_lexer.out", "test_lexer", "./test_lexer")
 
-env.Program([
+env.UnitTest("test_parser", [
     "test_parser.cpp",
     "ast.cpp",
     "compiler.cpp",
@@ -40,9 +52,8 @@ env.Program([
     "lexer.cpp",
     "util.cpp",
 ])
-env.Command("test_parser.out", "test_parser", "./test_parser")
 
-env.Program([
+env.UnitTest("test_interpreter", [
     "test_interpreter.cpp",
     "ast.cpp",
     "compiler.cpp",
@@ -51,9 +62,8 @@ env.Program([
     "parser.cpp",
     "util.cpp",
 ])
-env.Command("test_interpreter.out", "test_interpreter", "./test_interpreter")
 
-env.Program([
+env.UnitTest("test_compiler", [
     "test_compiler.cpp",
     "ast.cpp",
     "bytecode.cpp",
@@ -64,4 +74,3 @@ env.Program([
     "parser.cpp",
     "util.cpp",
 ])
-env.Command("test_compiler.out", "test_compiler", "./test_compiler")
