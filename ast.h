@@ -13,9 +13,13 @@ class Emitter;
 
 class AstNode {
 public:
+    AstNode() {}
     void dump(int depth = 0) const;
     virtual std::string text() const = 0;
     virtual void dumpsubnodes(int depth) const {}
+private:
+    AstNode(const AstNode &);
+    AstNode &operator=(const AstNode &);
 };
 
 class Expression: public AstNode {
