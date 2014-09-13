@@ -20,7 +20,6 @@ env.Program("simple", [
     "compiler.cpp",
     "disassembler.cpp",
     "exec.cpp",
-    "interpreter.cpp",
     "lexer.cpp",
     "main.cpp",
     "parser.cpp",
@@ -47,19 +46,8 @@ env.UnitTest("test_parser", [
     "test_parser.cpp",
     "ast.cpp",
     "compiler.cpp",
-    "interpreter.cpp",
     "parser.cpp",
     "lexer.cpp",
-    "util.cpp",
-])
-
-env.UnitTest("test_interpreter", [
-    "test_interpreter.cpp",
-    "ast.cpp",
-    "compiler.cpp",
-    "interpreter.cpp",
-    "lexer.cpp",
-    "parser.cpp",
     "util.cpp",
 ])
 
@@ -69,7 +57,6 @@ env.UnitTest("test_compiler", [
     "bytecode.cpp",
     "compiler.cpp",
     "disassembler.cpp",
-    "interpreter.cpp",
     "lexer.cpp",
     "parser.cpp",
     "util.cpp",

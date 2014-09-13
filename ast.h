@@ -4,10 +4,6 @@
 #include <string>
 #include <vector>
 
-// Interpreter
-class Environment;
-class Value;
-
 // Compiler
 class Emitter;
 
@@ -24,8 +20,6 @@ private:
 
 class Expression: public AstNode {
 public:
-    virtual int eval(Environment &env) const = 0;
-
     virtual void generate(Emitter &emitter) const = 0;
 };
 
@@ -34,8 +28,6 @@ public:
     ConstantExpression(int value): value(value) {}
 
     const int value;
-
-    virtual int eval(Environment &env) const { return value; }
 
     virtual void generate(Emitter &emitter) const;
 
@@ -47,8 +39,6 @@ public:
     UnaryMinusExpression(const Expression *value): value(value) {}
 
     const Expression *const value;
-
-    virtual int eval(Environment &env) const { return -value->eval(env); }
 
     virtual void generate(Emitter &emitter) const;
 
@@ -64,8 +54,6 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual int eval(Environment &env) const { return left->eval(env) + right->eval(env); }
-
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -78,8 +66,6 @@ public:
     SubtractionExpression(const Expression *left, const Expression *right): left(left), right(right) {}
     const Expression *const left;
     const Expression *const right;
-
-    virtual int eval(Environment &env) const { return left->eval(env) - right->eval(env); }
 
     virtual void generate(Emitter &emitter) const;
 
@@ -94,8 +80,6 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual int eval(Environment &env) const { return left->eval(env) * right->eval(env); }
-
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -109,8 +93,6 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual int eval(Environment &env) const { return left->eval(env) / right->eval(env); }
-
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -120,9 +102,6 @@ public:
 
 class VariableReference {
 public:
-    virtual Value *get(Environment &env) const = 0;
-    virtual void set(Environment &env, Value *value) const = 0;
-
     virtual void generate(Emitter &emitter) const = 0;
 
     virtual std::string text() const = 0;
@@ -133,10 +112,6 @@ public:
     ScalarVariableReference(const std::string &name): name(name) {}
 
     const std::string name;
-
-    virtual int eval(Environment &env) const;
-    virtual Value *get(Environment &env) const;
-    virtual void set(Environment &env, Value *value) const;
 
     virtual void generate(Emitter &emitter) const;
 
@@ -151,9 +126,6 @@ public:
 
     const std::string name;
 
-    virtual Value *get(Environment &env) const;
-    virtual void set(Environment &env, Value *value) const;
-
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -166,8 +138,6 @@ public:
     VariableExpression(const VariableReference *var): var(var) {}
 
     const VariableReference *var;
-
-    virtual int eval(Environment &env) const;
 
     virtual void generate(Emitter &emitter) const;
 
@@ -183,8 +153,6 @@ public:
     const VariableReference *const func;
     const std::vector<const Expression *> args;
 
-    virtual int eval(Environment &env) const;
-
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -192,8 +160,6 @@ public:
 
 class Statement: public AstNode {
 public:
-    virtual void interpret(Environment &env) const = 0;
-
     virtual void generate(Emitter &emitter) const = 0;
 };
 
@@ -203,8 +169,6 @@ public:
 
     const VariableReference *const variable;
     const Expression *const expr;
-
-    virtual void interpret(Environment &env) const;
 
     virtual void generate(Emitter &emitter) const;
 
@@ -219,8 +183,6 @@ public:
 
     const Expression *const expr;
 
-    virtual void interpret(Environment &env) const;
-
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -234,8 +196,6 @@ public:
 
     const std::vector<const Statement *> statements;
 
-    virtual void interpret(Environment &env) const;
-
     virtual void dumpsubnodes(int depth) const;
 };
 
@@ -244,8 +204,6 @@ public:
     IfStatement(const Expression *condition, const std::vector<const Statement *> &statements): CompoundStatement(statements), condition(condition) {}
 
     const Expression *condition;
-
-    virtual void interpret(Environment &env) const;
 
     virtual void generate(Emitter &emitter) const;
 
@@ -260,8 +218,6 @@ public:
 
     const Expression *condition;
 
-    virtual void interpret(Environment &env) const;
-
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -274,8 +230,6 @@ public:
     Program(const std::vector<const Statement *> &statements): statements(statements) {}
 
     const std::vector<const Statement *> statements;
-
-    virtual void interpret(Environment &env) const;
 
     virtual void generate(Emitter &emitter) const;
 
