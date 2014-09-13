@@ -1,5 +1,6 @@
 #include "exec.h"
 
+#include <iostream>
 #include <stack>
 #include <stdlib.h>
 
@@ -8,10 +9,11 @@
 
 class Executor {
 public:
-    Executor(const Bytecode::bytecode &obj);
+    Executor(const Bytecode::bytecode &obj, std::ostream &out);
     void exec();
 private:
     const Bytecode obj;
+    std::ostream &out;
     Bytecode::bytecode::size_type ip;
     std::stack<int> stack;
     std::vector<int> vars;
@@ -30,8 +32,8 @@ private:
     void exec_JZ();
 };
 
-Executor::Executor(const Bytecode::bytecode &obj)
-  : obj(obj), ip(0)
+Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
+  : obj(obj), out(out), ip(0)
 {
 }
 
@@ -108,7 +110,7 @@ void Executor::exec_CALL()
         stack.push(abs(x));
     } else if (func == "print") {
         int x = stack.top(); stack.pop();
-        printf("%d\n", x);
+        out << x << std::endl;
     } else {
         abort();
     }
@@ -155,5 +157,5 @@ void Executor::exec()
 
 void exec(const Bytecode::bytecode &obj)
 {
-    Executor(obj).exec();
+    Executor(obj, std::cout).exec();
 }
