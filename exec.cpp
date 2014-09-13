@@ -104,7 +104,7 @@ void Executor::exec_DIVI()
 void Executor::exec_CALL()
 {
     ip++;
-    std::string func = obj.strtable[stack.top()]; stack.pop();
+    std::string func = obj.strtable.at(stack.top()); stack.pop();
     if (func == "abs") {
         int x = stack.top(); stack.pop();
         stack.push(abs(x));
