@@ -16,7 +16,7 @@ public:
     void emit(unsigned char b);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
-    unsigned int global(const std::string &s);
+    unsigned int global(const std::string &name);
     unsigned int str(const std::string &s);
     Label create_label();
     void emit_jump(unsigned char b, Label &label);
@@ -52,11 +52,11 @@ std::vector<unsigned char> Emitter::getObject()
     return obj;
 }
 
-unsigned int Emitter::global(const std::string &s)
+unsigned int Emitter::global(const std::string &name)
 {
-    auto i = find(globals.begin(), globals.end(), s);
+    auto i = find(globals.begin(), globals.end(), name);
     if (i == globals.end()) {
-        globals.push_back(s);
+        globals.push_back(name);
         i = globals.end() - 1;
     }
     return i - globals.begin();
@@ -106,6 +106,32 @@ void Emitter::jump_target(Label &label)
     }
 }
 
+int Type::declare(const std::string &name, Emitter &emitter) const
+{
+    return emitter.global(name);
+}
+
+int TypeFunction::declare(const std::string &name, Emitter &emitter) const
+{
+    return emitter.str(name);
+}
+
+void Variable::declare(Emitter &emitter)
+{
+    if (referenced) {
+        index = type->declare(name, emitter);
+    }
+}
+
+void Variable::generate(Emitter &emitter) const
+{
+    emitter.emit(PUSHI);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
+}
+
 void ConstantExpression::generate(Emitter &emitter) const
 {
     emitter.emit(PUSHI);
@@ -151,22 +177,7 @@ void DivisionExpression::generate(Emitter &emitter) const
 
 void ScalarVariableReference::generate(Emitter &emitter) const
 {
-    unsigned int index = emitter.global(name);
-    emitter.emit(PUSHI);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
-}
-
-void FunctionReference::generate(Emitter &emitter) const
-{
-    unsigned int index = emitter.str(name);
-    emitter.emit(PUSHI);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    var->generate(emitter);
 }
 
 void VariableExpression::generate(Emitter &emitter) const
@@ -221,8 +232,16 @@ void WhileStatement::generate(Emitter &emitter) const
     emitter.jump_target(skip);
 }
 
+void Scope::generate(Emitter &emitter) const
+{
+    for (auto v: vars) {
+        v.second->declare(emitter);
+    }
+}
+
 void Program::generate(Emitter &emitter) const
 {
+    Scope::generate(emitter);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }

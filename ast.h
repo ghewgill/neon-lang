@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,42 @@ public:
 private:
     AstNode(const AstNode &);
     AstNode &operator=(const AstNode &);
+};
+
+class Type: public AstNode {
+public:
+    virtual int declare(const std::string &name, Emitter &emitter) const;
+};
+
+class TypeNumber: public Type {
+public:
+    virtual std::string text() const { return "TypeNumber"; }
+};
+
+class TypeString: public Type {
+public:
+    virtual std::string text() const { return "TypeString"; }
+};
+
+class TypeFunction: public Type {
+public:
+    virtual int declare(const std::string &name, Emitter &emitter) const;
+
+    virtual std::string text() const { return "TypeFunction"; }
+};
+
+class Variable: public AstNode {
+public:
+    Variable(const std::string &name, const Type *type): name(name), type(type), referenced(false), index() {}
+    const std::string name;
+    const Type *type;
+    bool referenced;
+    int index;
+
+    virtual void declare(Emitter &emitter);
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "Variable(" + name + ", " + type->text() + ")"; }
 };
 
 class Expression: public AstNode {
@@ -109,27 +146,14 @@ public:
 
 class ScalarVariableReference: public VariableReference {
 public:
-    ScalarVariableReference(const std::string &name): name(name) {}
+    ScalarVariableReference(const Variable *var): var(var) {}
 
-    const std::string name;
-
-    virtual void generate(Emitter &emitter) const;
-
-    virtual std::string text() const {
-        return "ScalarVariableReference(" + name + ")";
-    }
-};
-
-class FunctionReference: public VariableReference {
-public:
-    FunctionReference(const std::string &name): name(name) {}
-
-    const std::string name;
+    const Variable *var;
 
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
-        return "FunctionReference(" + name + ")";
+        return "ScalarVariableReference(" + var->text() + ")";
     }
 };
 
@@ -225,11 +249,23 @@ public:
     }
 };
 
-class Program: public AstNode {
+class Scope: public AstNode {
 public:
-    Program(const std::vector<const Statement *> &statements): statements(statements) {}
+    Scope(Scope *parent): parent(parent) {}
 
-    const std::vector<const Statement *> statements;
+    virtual void generate(Emitter &emitter) const;
+
+    const Variable *lookupVariable(const std::string &name) const;
+
+    Scope *const parent;
+    std::map<std::string, Variable *> vars;
+};
+
+class Program: public Scope {
+public:
+    Program();
+
+    std::vector<const Statement *> statements;
 
     virtual void generate(Emitter &emitter) const;
 

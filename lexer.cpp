@@ -15,6 +15,7 @@ std::string Token::tostring() const
         case IDENTIFIER:  s << "IDENTIFIER:" << text; break;
         case LPAREN:      s << "LPAREN"; break;
         case RPAREN:      s << "RPAREN"; break;
+        case COLON:       s << "COLON"; break;
         case ASSIGN:      s << "ASSIGN"; break;
         case PLUS:        s << "PLUS"; break;
         case MINUS:       s << "MINUS"; break;
@@ -26,6 +27,7 @@ std::string Token::tostring() const
         case END:         s << "END"; break;
         case WHILE:       s << "WHILE"; break;
         case DO:          s << "DO"; break;
+        case VAR:         s << "VAR"; break;
     }
     s << ">";
     return s.str();
@@ -60,7 +62,8 @@ std::vector<Token> tokenize(const std::string &source)
                 t.type = ASSIGN;
                 i += 2;
             } else {
-                error(t, "':=' expected");
+                t.type = COLON;
+                i++;
             }
         } else if (isalpha(c)) {
             t.type = IDENTIFIER;
@@ -74,6 +77,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "END") t.type = END;
             else if (t.text == "WHILE") t.type = WHILE;
             else if (t.text == "DO") t.type = DO;
+            else if (t.text == "VAR") t.type = VAR;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

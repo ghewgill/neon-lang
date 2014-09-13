@@ -9,7 +9,7 @@
 int main()
 {
     {
-        auto obj = compile(parse(tokenize("a := 1")));
+        auto obj = compile(parse(tokenize("VAR a: number a := 1")));
         disassemble(obj);
         unsigned char expected[] = {
             0, 0,
@@ -21,7 +21,7 @@ int main()
     }
 
     {
-        auto obj = compile(parse(tokenize("a := 0\nIF a THEN print(1) END")));
+        auto obj = compile(parse(tokenize("VAR a: number a := 0\nIF a THEN print(1) END")));
         disassemble(obj);
         /*
         unsigned char expected[] = {

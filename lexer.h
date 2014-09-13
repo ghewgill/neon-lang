@@ -11,6 +11,7 @@ enum TokenType {
     IDENTIFIER,
     LPAREN,
     RPAREN,
+    COLON,
     ASSIGN,
     PLUS,
     MINUS,
@@ -22,6 +23,7 @@ enum TokenType {
     END,
     WHILE,
     DO,
+    VAR,
 };
 
 class Token {

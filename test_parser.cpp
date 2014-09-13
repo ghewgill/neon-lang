@@ -13,32 +13,32 @@ static const Program *dump(const Program *program)
 int main()
 {
     {
-        auto *program = dump(parse(tokenize("a := 1")));
+        auto *program = dump(parse(tokenize("VAR a: number a := 1")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
-        assert(svr->name == "a");
+        assert(svr->var->name == "a");
         auto *ce = dynamic_cast<const ConstantExpression *>(as->expr);
         assert(ce->value == 1);
     }
 
     {
-        auto *program = dump(parse(tokenize("a := -1")));
+        auto *program = dump(parse(tokenize("VAR a: number a := -1")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
-        assert(svr->name == "a");
+        assert(svr->var->name == "a");
         auto *ume = dynamic_cast<const UnaryMinusExpression *>(as->expr);
         auto *ce = dynamic_cast<const ConstantExpression *>(ume->value);
         assert(ce->value == 1);
     }
 
     {
-        auto *program = dump(parse(tokenize("a := 1 + 2")));
+        auto *program = dump(parse(tokenize("VAR a: number a := 1 + 2")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
-        assert(svr->name == "a");
+        assert(svr->var->name == "a");
         auto *ae = dynamic_cast<const AdditionExpression *>(as->expr);
         auto *ce = dynamic_cast<const ConstantExpression *>(ae->left);
         assert(ce->value == 1);
@@ -47,14 +47,14 @@ int main()
     }
 
     {
-        auto *program = dump(parse(tokenize("a := abs(1)")));
+        auto *program = dump(parse(tokenize("VAR a: number a := abs(1)")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
-        assert(svr->name == "a");
+        assert(svr->var->name == "a");
         auto *fc = dynamic_cast<const FunctionCall *>(as->expr);
-        auto *fr = dynamic_cast<const FunctionReference *>(fc->func);
-        assert(fr->name == "abs");
+        svr = dynamic_cast<const ScalarVariableReference *>(fc->func);
+        assert(svr->var->name == "abs");
         assert(fc->args.size() == 1);
         auto *ce = dynamic_cast<const ConstantExpression *>(fc->args[0]);
         assert(ce->value == 1);
@@ -65,20 +65,20 @@ int main()
         assert(program->statements.size() == 1);
         auto *es = dynamic_cast<const ExpressionStatement *>(program->statements[0]);
         auto *fc = dynamic_cast<const FunctionCall *>(es->expr);
-        auto *fr = dynamic_cast<const FunctionReference *>(fc->func);
-        assert(fr->name == "print");
+        auto *svr = dynamic_cast<const ScalarVariableReference *>(fc->func);
+        assert(svr->var->name == "print");
         assert(fc->args.size() == 1);
         auto *ce = dynamic_cast<const ConstantExpression *>(fc->args[0]);
         assert(ce->value == 1);
     }
 
     {
-        auto *program = dump(parse(tokenize("IF a THEN print(a) END")));
+        auto *program = dump(parse(tokenize("VAR a: number IF a THEN print(a) END")));
         assert(program->statements.size() == 1);
         auto *is = dynamic_cast<const IfStatement *>(program->statements[0]);
         auto *ve = dynamic_cast<const VariableExpression *>(is->condition);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(ve->var);
-        assert(svr->name == "a");
+        assert(svr->var->name == "a");
         assert(is->statements.size() == 1);
         auto *es = dynamic_cast<const ExpressionStatement *>(is->statements[0]);
         assert(es != NULL);

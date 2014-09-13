@@ -104,6 +104,13 @@ void Disassembler::disasm_JZ()
 
 void Disassembler::disassemble()
 {
+    printf("String table: [\n");
+    int i = 0;
+    for (auto s: obj.strtable) {
+        printf("  %4u %s\n", i, s.c_str());
+        i++;
+    }
+    printf("]\n");
     while (index < obj.code.size()) {
         printf("%4lu ", index);
         switch (obj.code[index]) {

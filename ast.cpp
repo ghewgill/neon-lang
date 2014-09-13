@@ -37,6 +37,32 @@ void CompoundStatement::dumpsubnodes(int depth) const
     }
 }
 
+const Variable *Scope::lookupVariable(const std::string &name) const
+{
+    const Scope *s = this;
+    while (s != nullptr) {
+        auto v = vars.find(name);
+        if (v != vars.end()) {
+            v->second->referenced = true;
+            return v->second;
+        }
+        s = s->parent;
+    }
+    return nullptr;
+}
+
+Program::Program()
+  : Scope(nullptr)
+{
+    static const char *Builtins[] = {
+        "abs",
+        "print",
+    };
+    for (auto f: Builtins) {
+        vars[f] = new Variable(f, new TypeFunction());
+    }
+}
+
 void Program::dumpsubnodes(int depth) const
 {
     for (std::vector<const Statement *>::const_iterator i = statements.begin(); i != statements.end(); ++i) {

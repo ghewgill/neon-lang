@@ -25,19 +25,25 @@ static const Program *dump(const Program *program)
 int main(int /*argc*/, char */*argv*/[])
 {
     {
-        std::string source = "a := 5";
+        std::string source = "VAR a: number a := 5";
 
         std::vector<Token> tokens = tokenize(source);
 
         dump(tokens);
 
-        assert(tokens.size() == 4);
-        assert(tokens[0].type == IDENTIFIER);
-        assert(tokens[0].text == "a");
-        assert(tokens[1].type == ASSIGN);
-        assert(tokens[2].type == NUMBER);
-        assert(tokens[2].value == 5);
-        assert(tokens[3].type == END_OF_FILE);
+        assert(tokens.size() == 8);
+        assert(tokens[0].type == VAR);
+        assert(tokens[1].type == IDENTIFIER);
+        assert(tokens[1].text == "a");
+        assert(tokens[2].type == COLON);
+        assert(tokens[3].type == IDENTIFIER);
+        assert(tokens[3].text == "number");
+        assert(tokens[4].type == IDENTIFIER);
+        assert(tokens[4].text == "a");
+        assert(tokens[5].type == ASSIGN);
+        assert(tokens[6].type == NUMBER);
+        assert(tokens[6].value == 5);
+        assert(tokens[7].type == END_OF_FILE);
 
         const Program *ast = parse(tokens);
 
@@ -45,7 +51,16 @@ int main(int /*argc*/, char */*argv*/[])
     }
 
     {
-        auto *ast = dump(parse(dump(tokenize("b := 4\na := abs(-5 * (3 + b))\nprint(a)"))));
+        auto t = tokenize("VAR a: number a := 42 print(a)");
+        auto p = parse(t);
+        dump(p);
+        auto c = compile(p);
+        disassemble(c);
+        exec(c);
+    }
+
+    {
+        auto *ast = dump(parse(dump(tokenize("VAR a: number VAR b: number b := 4\na := abs(-5 * (3 + b))\nprint(a)"))));
 
         auto obj = compile(ast);
 
@@ -55,12 +70,12 @@ int main(int /*argc*/, char */*argv*/[])
     }
 
     {
-        auto obj = compile(parse(tokenize("a := 1\nIF a THEN print(1) END")));
+        auto obj = compile(parse(tokenize("VAR a: number a := 1\nIF a THEN print(1) END")));
         exec(obj);
     }
 
     {
-        auto obj = compile(parse(tokenize("a := 5\nWHILE a DO print(a) a := a - 1 END")));
+        auto obj = compile(parse(tokenize("VAR a: number a := 5\nWHILE a DO print(a) a := a - 1 END")));
         disassemble(obj);
         exec(obj);
     }
