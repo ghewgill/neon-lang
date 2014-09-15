@@ -9,10 +9,10 @@ void AstNode::dump(int depth) const
     dumpsubnodes(depth);
 }
 
-std::string ConstantExpression::text() const
+std::string ConstantNumberExpression::text() const
 {
     std::stringstream s;
-    s << "ConstantExpression(" << value << ")";
+    s << "ConstantNumberExpression(" << value << ")";
     return s.str();
 }
 

@@ -18,7 +18,7 @@ int main()
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
         assert(svr->var->name == "a");
-        auto *ce = dynamic_cast<const ConstantExpression *>(as->expr);
+        auto *ce = dynamic_cast<const ConstantNumberExpression *>(as->expr);
         assert(ce->value == 1);
     }
 
@@ -29,7 +29,7 @@ int main()
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
         assert(svr->var->name == "a");
         auto *ume = dynamic_cast<const UnaryMinusExpression *>(as->expr);
-        auto *ce = dynamic_cast<const ConstantExpression *>(ume->value);
+        auto *ce = dynamic_cast<const ConstantNumberExpression *>(ume->value);
         assert(ce->value == 1);
     }
 
@@ -40,9 +40,9 @@ int main()
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
         assert(svr->var->name == "a");
         auto *ae = dynamic_cast<const AdditionExpression *>(as->expr);
-        auto *ce = dynamic_cast<const ConstantExpression *>(ae->left);
+        auto *ce = dynamic_cast<const ConstantNumberExpression *>(ae->left);
         assert(ce->value == 1);
-        ce = dynamic_cast<const ConstantExpression *>(ae->right);
+        ce = dynamic_cast<const ConstantNumberExpression *>(ae->right);
         assert(ce->value == 2);
     }
 
@@ -56,7 +56,7 @@ int main()
         svr = dynamic_cast<const ScalarVariableReference *>(fc->func);
         assert(svr->var->name == "abs");
         assert(fc->args.size() == 1);
-        auto *ce = dynamic_cast<const ConstantExpression *>(fc->args[0]);
+        auto *ce = dynamic_cast<const ConstantNumberExpression *>(fc->args[0]);
         assert(ce->value == 1);
     }
 
@@ -68,7 +68,7 @@ int main()
         auto *svr = dynamic_cast<const ScalarVariableReference *>(fc->func);
         assert(svr->var->name == "print");
         assert(fc->args.size() == 1);
-        auto *ce = dynamic_cast<const ConstantExpression *>(fc->args[0]);
+        auto *ce = dynamic_cast<const ConstantNumberExpression *>(fc->args[0]);
         assert(ce->value == 1);
     }
 

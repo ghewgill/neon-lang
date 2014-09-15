@@ -35,7 +35,7 @@ static const Expression *parseFactor(Scope *scope, const std::vector<Token> &tok
             return expr;
         }
         case NUMBER: {
-            return new ConstantExpression(tokens[i++].value);
+            return new ConstantNumberExpression(tokens[i++].value);
         }
         case MINUS: {
             ++i;

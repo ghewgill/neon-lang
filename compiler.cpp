@@ -132,7 +132,7 @@ void Variable::generate(Emitter &emitter) const
     emitter.emit(index);
 }
 
-void ConstantExpression::generate(Emitter &emitter) const
+void ConstantNumberExpression::generate(Emitter &emitter) const
 {
     emitter.emit(PUSHI);
     emitter.emit(value >> 24);

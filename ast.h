@@ -60,9 +60,9 @@ public:
     virtual void generate(Emitter &emitter) const = 0;
 };
 
-class ConstantExpression: public Expression {
+class ConstantNumberExpression: public Expression {
 public:
-    ConstantExpression(int value): value(value) {}
+    ConstantNumberExpression(int value): value(value) {}
 
     const int value;
 
