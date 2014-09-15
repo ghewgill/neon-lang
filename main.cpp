@@ -22,7 +22,7 @@ static const Program *dump(const Program *program)
     return program;
 }
 
-int main(int /*argc*/, char */*argv*/[])
+int main(int /*argc*/, char * /*argv*/[])
 {
     {
         std::string source = "VAR a: number a := 5";
