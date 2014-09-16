@@ -8,6 +8,7 @@ enum TokenType {
     NONE,
     END_OF_FILE,
     NUMBER,
+    STRING,
     IDENTIFIER,
     LPAREN,
     RPAREN,

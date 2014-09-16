@@ -61,19 +61,19 @@ int main()
     }
 
     {
-        auto *program = dump(parse(tokenize("print(1)")));
+        auto *program = dump(parse(tokenize("print(\"1\")")));
         assert(program->statements.size() == 1);
         auto *es = dynamic_cast<const ExpressionStatement *>(program->statements[0]);
         auto *fc = dynamic_cast<const FunctionCall *>(es->expr);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(fc->func);
         assert(svr->var->name == "print");
         assert(fc->args.size() == 1);
-        auto *ce = dynamic_cast<const ConstantNumberExpression *>(fc->args[0]);
-        assert(ce->value == 1);
+        auto *ce = dynamic_cast<const ConstantStringExpression *>(fc->args[0]);
+        assert(ce->value == "1");
     }
 
     {
-        auto *program = dump(parse(tokenize("VAR a: number IF a THEN print(a) END")));
+        auto *program = dump(parse(tokenize("VAR a: number IF a THEN print(str(a)) END")));
         assert(program->statements.size() == 1);
         auto *is = dynamic_cast<const IfStatement *>(program->statements[0]);
         auto *ve = dynamic_cast<const VariableExpression *>(is->condition);

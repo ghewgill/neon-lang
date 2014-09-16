@@ -3,8 +3,11 @@
 
 enum {
     PUSHI,
+    PUSHS,
     LOADI,
+    LOADS,
     STOREI,
+    STORES,
     NEGI,
     ADDI,
     SUBI,

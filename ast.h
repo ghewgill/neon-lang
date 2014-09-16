@@ -1,6 +1,7 @@
 #ifndef AST_H
 #define AST_H
 
+#include <assert.h>
 #include <map>
 #include <string>
 #include <vector>
@@ -22,21 +23,46 @@ private:
 class Type: public AstNode {
 public:
     virtual int declare(const std::string &name, Emitter &emitter) const;
+    virtual void genload(Emitter &emitter) const = 0;
+    virtual void genstore(Emitter &emitter) const = 0;
 };
+
+class TypeNone: public Type {
+public:
+    virtual void genload(Emitter &emitter) const {}
+    virtual void genstore(Emitter &emitter) const {}
+    virtual std::string text() const { return "TypeNone"; }
+};
+
+extern TypeNone *TYPE_NONE;
 
 class TypeNumber: public Type {
 public:
+    virtual void genload(Emitter &emitter) const;
+    virtual void genstore(Emitter &emitter) const;
     virtual std::string text() const { return "TypeNumber"; }
 };
 
+extern TypeNumber *TYPE_NUMBER;
+
 class TypeString: public Type {
 public:
+    virtual void genload(Emitter &emitter) const;
+    virtual void genstore(Emitter &emitter) const;
     virtual std::string text() const { return "TypeString"; }
 };
 
+extern TypeString *TYPE_STRING;
+
 class TypeFunction: public Type {
 public:
+    TypeFunction(const Type *returntype, const std::vector<const Type *> &args): returntype(returntype), args(args) {}
     virtual int declare(const std::string &name, Emitter &emitter) const;
+    virtual void genload(Emitter &emitter) const;
+    virtual void genstore(Emitter &emitter) const;
+
+    const Type *returntype;
+    const std::vector<const Type *> args;
 
     virtual std::string text() const { return "TypeFunction"; }
 };
@@ -57,12 +83,16 @@ public:
 
 class Expression: public AstNode {
 public:
+    Expression(const Type *type): type(type) {}
+
     virtual void generate(Emitter &emitter) const = 0;
+
+    const Type *type;
 };
 
 class ConstantNumberExpression: public Expression {
 public:
-    ConstantNumberExpression(int value): value(value) {}
+    ConstantNumberExpression(int value): Expression(TYPE_NUMBER), value(value) {}
 
     const int value;
 
@@ -71,9 +101,22 @@ public:
     virtual std::string text() const;
 };
 
+class ConstantStringExpression: public Expression {
+public:
+    ConstantStringExpression(const std::string &value): Expression(TYPE_STRING), value(value) {}
+
+    const std::string value;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const;
+};
+
 class UnaryMinusExpression: public Expression {
 public:
-    UnaryMinusExpression(const Expression *value): value(value) {}
+    UnaryMinusExpression(const Expression *value): Expression(value->type), value(value) {
+        assert(type == TYPE_NUMBER);
+    }
 
     const Expression *const value;
 
@@ -86,7 +129,10 @@ public:
 
 class AdditionExpression: public Expression {
 public:
-    AdditionExpression(const Expression *left, const Expression *right): left(left), right(right) {}
+    AdditionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+        assert(left->type == TYPE_NUMBER);
+        assert(right->type == TYPE_NUMBER);
+    }
 
     const Expression *const left;
     const Expression *const right;
@@ -100,7 +146,11 @@ public:
 
 class SubtractionExpression: public Expression {
 public:
-    SubtractionExpression(const Expression *left, const Expression *right): left(left), right(right) {}
+    SubtractionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+        assert(left->type == TYPE_NUMBER);
+        assert(right->type == TYPE_NUMBER);
+    }
+
     const Expression *const left;
     const Expression *const right;
 
@@ -113,7 +163,11 @@ public:
 
 class MultiplicationExpression: public Expression {
 public:
-    MultiplicationExpression(const Expression *left, const Expression *right): left(left), right(right) {}
+    MultiplicationExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+        assert(left->type == TYPE_NUMBER);
+        assert(right->type == TYPE_NUMBER);
+    }
+
     const Expression *const left;
     const Expression *const right;
 
@@ -126,7 +180,11 @@ public:
 
 class DivisionExpression: public Expression {
 public:
-    DivisionExpression(const Expression *left, const Expression *right): left(left), right(right) {}
+    DivisionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+        assert(left->type == TYPE_NUMBER);
+        assert(right->type == TYPE_NUMBER);
+    }
+
     const Expression *const left;
     const Expression *const right;
 
@@ -139,6 +197,10 @@ public:
 
 class VariableReference {
 public:
+    VariableReference(const Type *type): type(type) {}
+
+    const Type *type;
+
     virtual void generate(Emitter &emitter) const = 0;
 
     virtual std::string text() const = 0;
@@ -146,7 +208,7 @@ public:
 
 class ScalarVariableReference: public VariableReference {
 public:
-    ScalarVariableReference(const Variable *var): var(var) {}
+    ScalarVariableReference(const Variable *var): VariableReference(var->type), var(var) {}
 
     const Variable *var;
 
@@ -159,7 +221,7 @@ public:
 
 class VariableExpression: public Expression {
 public:
-    VariableExpression(const VariableReference *var): var(var) {}
+    VariableExpression(const VariableReference *var): Expression(var->type), var(var) {}
 
     const VariableReference *var;
 
@@ -172,7 +234,7 @@ public:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const VariableReference *func, const std::vector<const Expression *> &args): func(func), args(args) {}
+    FunctionCall(const VariableReference *func, const std::vector<const Expression *> &args): Expression(dynamic_cast<const TypeFunction *>(func->type)->returntype), func(func), args(args) {}
 
     const VariableReference *const func;
     const std::vector<const Expression *> args;
@@ -189,7 +251,9 @@ public:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(const VariableReference *variable, const Expression *expr): variable(variable), expr(expr) {}
+    AssignmentStatement(const VariableReference *variable, const Expression *expr): variable(variable), expr(expr) {
+        assert(variable->type == expr->type);
+    }
 
     const VariableReference *const variable;
     const Expression *const expr;
@@ -255,9 +319,11 @@ public:
 
     virtual void generate(Emitter &emitter) const;
 
+    const Type *lookupType(const std::string &name) const;
     const Variable *lookupVariable(const std::string &name) const;
 
     Scope *const parent;
+    std::map<std::string, Type *> types;
     std::map<std::string, Variable *> vars;
 };
 

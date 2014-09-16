@@ -51,7 +51,7 @@ int main(int /*argc*/, char * /*argv*/[])
     }
 
     {
-        auto t = tokenize("VAR a: number a := 42 print(a)");
+        auto t = tokenize("VAR a: number a := 42 print(str(a))");
         auto p = parse(t);
         dump(p);
         auto c = compile(p);
@@ -60,7 +60,7 @@ int main(int /*argc*/, char * /*argv*/[])
     }
 
     {
-        auto *ast = dump(parse(dump(tokenize("VAR a: number VAR b: number b := 4\na := abs(-5 * (3 + b))\nprint(a)"))));
+        auto *ast = dump(parse(dump(tokenize("VAR a: number VAR b: number b := 4\na := abs(-5 * (3 + b))\nprint(str(a))"))));
 
         auto obj = compile(ast);
 
@@ -70,12 +70,24 @@ int main(int /*argc*/, char * /*argv*/[])
     }
 
     {
-        auto obj = compile(parse(tokenize("VAR a: number a := 1\nIF a THEN print(1) END")));
+        auto obj = compile(parse(tokenize("VAR a: number a := 1\nIF a THEN print(\"1\") END")));
         exec(obj);
     }
 
     {
-        auto obj = compile(parse(tokenize("VAR a: number a := 5\nWHILE a DO print(a) a := a - 1 END")));
+        auto obj = compile(parse(tokenize("VAR a: number a := 5\nWHILE a DO print(str(a)) a := a - 1 END")));
+        disassemble(obj);
+        exec(obj);
+    }
+
+    {
+        auto obj = compile(parse(tokenize("VAR a: string a := \"hello world\" print(a)")));
+        disassemble(obj);
+        exec(obj);
+    }
+
+    {
+        auto obj = compile(parse(tokenize("VAR a: string VAR b: string a := \"hello \" b := \"world\" print(a + b)")));
         disassemble(obj);
         exec(obj);
     }

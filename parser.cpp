@@ -6,20 +6,48 @@
 static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 
-static const Type *parseType(const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type != IDENTIFIER) {
         error(tokens[i], "identifier expected");
     }
-    if (tokens[i].text == "number") {
-        ++i;
-        return new TypeNumber();
-    } else if (tokens[i].text == "string") {
-        ++i;
-        return new TypeString();
-    } else {
+    const Type *type = scope->lookupType(tokens[i].text);
+    if (type == nullptr) {
         error(tokens[i], "unknown type name");
     }
+    i++;
+    return type;
+}
+
+static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(ref->type);
+    if (ftype == nullptr) {
+        error(tokens[i], "not a function");
+    }
+    ++i;
+    std::vector<const Type *>::size_type a = 0;
+    std::vector<const Expression *> args;
+    while (true) {
+        const Expression *e = parseExpression(scope, tokens, i);
+        if (e->type != ftype->args[a]) {
+            error(tokens[i], "type mismatch");
+        }
+        args.push_back(e);
+        ++a;
+        if (tokens[i].type != COMMA) {
+            break;
+        }
+        ++i;
+    }
+    if (a < ftype->args.size()) {
+        error(tokens[i], "not enough arguments");
+    }
+    if (tokens[i].type != RPAREN) {
+        error(tokens[i], "')' or ',' expected");
+    }
+    ++i;
+    return new FunctionCall(ref, args);
 }
 
 static const Expression *parseFactor(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
@@ -37,28 +65,22 @@ static const Expression *parseFactor(Scope *scope, const std::vector<Token> &tok
         case NUMBER: {
             return new ConstantNumberExpression(tokens[i++].value);
         }
+        case STRING: {
+            return new ConstantStringExpression(tokens[i++].text);
+        }
         case MINUS: {
+            auto op = i;
             ++i;
-            return new UnaryMinusExpression(parseFactor(scope, tokens, i));
+            const Expression *factor = parseFactor(scope, tokens, i);
+            if (factor->type != TYPE_NUMBER) {
+                error(tokens[op], "number required for negation");
+            }
+            return new UnaryMinusExpression(factor);
         }
         case IDENTIFIER: {
             const VariableReference *ref = parseVariableReference(scope, tokens, i);
             if (tokens[i].type == LPAREN) {
-                ++i;
-                std::vector<const Expression *> args;
-                while (true) {
-                    const Expression *e = parseExpression(scope, tokens, i);
-                    args.push_back(e);
-                    if (tokens[i].type != COMMA) {
-                        break;
-                    }
-                    ++i;
-                }
-                if (tokens[i].type != RPAREN) {
-                    error(tokens[i], "')' or ',' expected");
-                }
-                ++i;
-                return new FunctionCall(ref, args);
+                return parseFunctionCall(ref, scope, tokens, i);
             } else {
                 return new VariableExpression(ref);
             }
@@ -73,14 +95,24 @@ static const Expression *parseTerm(Scope *scope, const std::vector<Token> &token
     const Expression *left = parseFactor(scope, tokens, i);
     switch (tokens[i].type) {
         case TIMES: {
+            auto op = i;
             ++i;
             const Expression *right = parseFactor(scope, tokens, i);
-            return new MultiplicationExpression(left, right);
+            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                return new MultiplicationExpression(left, right);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
         }
         case DIVIDE: {
+            auto op = i;
             ++i;
             const Expression *right = parseFactor(scope, tokens, i);
-            return new DivisionExpression(left, right);
+            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                return new DivisionExpression(left, right);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
         }
         default:
             return left;
@@ -92,14 +124,29 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
     const Expression *left = parseTerm(scope, tokens, i);
     switch (tokens[i].type) {
         case PLUS: {
+            auto op = i;
             ++i;
             const Expression *right = parseFactor(scope, tokens, i);
-            return new AdditionExpression(left, right);
+            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                return new AdditionExpression(left, right);
+            } else if (left->type == TYPE_STRING && right->type == TYPE_STRING) {
+                std::vector<const Expression *> args;
+                args.push_back(left);
+                args.push_back(right);
+                return new FunctionCall(new ScalarVariableReference(scope->lookupVariable("concat")), args);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
         }
         case MINUS: {
+            auto op = i;
             ++i;
             const Expression *right = parseFactor(scope, tokens, i);
-            return new SubtractionExpression(left, right);
+            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                return new SubtractionExpression(left, right);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
         }
         default:
             return left;
@@ -157,7 +204,7 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
             error(tokens[i], "colon expected");
         }
         ++i;
-        const Type *t = parseType(tokens, i);
+        const Type *t = parseType(scope, tokens, i);
         scope->vars[name] = new Variable(name, t);
         return nullptr;
     } else if (tokens[i].type == WHILE) {
@@ -182,25 +229,16 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope, tokens, i);
         if (tokens[i].type == ASSIGN) {
+            auto op = i;
             ++i;
             const Expression *expr = parseExpression(scope, tokens, i);
+            if (expr->type != ref->type) {
+                error(tokens[op], "type mismatch");
+            }
             return new AssignmentStatement(ref, expr);
         } else if (tokens[i].type == LPAREN) {
-            ++i;
-            std::vector<const Expression *> args;
-            while (true) {
-                const Expression *e = parseExpression(scope, tokens, i);
-                args.push_back(e);
-                if (tokens[i].type != COMMA) {
-                    break;
-                }
-                ++i;
-            }
-            if (tokens[i].type != RPAREN) {
-                error(tokens[i], ") or , expected");
-            }
-            ++i;
-            return new ExpressionStatement(new FunctionCall(ref, args));
+            const FunctionCall *fc = parseFunctionCall(ref, scope, tokens, i);
+            return new ExpressionStatement(fc);
         } else {
             error(tokens[i], "Unexpected");
         }

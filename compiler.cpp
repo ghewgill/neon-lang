@@ -111,6 +111,36 @@ int Type::declare(const std::string &name, Emitter &emitter) const
     return emitter.global(name);
 }
 
+void TypeNumber::genload(Emitter &emitter) const
+{
+    emitter.emit(LOADI);
+}
+
+void TypeNumber::genstore(Emitter &emitter) const
+{
+    emitter.emit(STOREI);
+}
+
+void TypeString::genload(Emitter &emitter) const
+{
+    emitter.emit(LOADS);
+}
+
+void TypeString::genstore(Emitter &emitter) const
+{
+    emitter.emit(STORES);
+}
+
+void TypeFunction::genload(Emitter &emitter) const
+{
+    assert(false);
+}
+
+void TypeFunction::genstore(Emitter &emitter) const
+{
+    assert(false);
+}
+
 int TypeFunction::declare(const std::string &name, Emitter &emitter) const
 {
     return emitter.str(name);
@@ -139,6 +169,16 @@ void ConstantNumberExpression::generate(Emitter &emitter) const
     emitter.emit(value >> 16);
     emitter.emit(value >> 8);
     emitter.emit(value);
+}
+
+void ConstantStringExpression::generate(Emitter &emitter) const
+{
+    emitter.emit(PUSHS);
+    int index = emitter.str(value);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
 }
 
 void UnaryMinusExpression::generate(Emitter &emitter) const
@@ -183,7 +223,7 @@ void ScalarVariableReference::generate(Emitter &emitter) const
 void VariableExpression::generate(Emitter &emitter) const
 {
     var->generate(emitter);
-    emitter.emit(LOADI);
+    var->type->genload(emitter);
 }
 
 void FunctionCall::generate(Emitter &emitter) const
@@ -199,7 +239,7 @@ void AssignmentStatement::generate(Emitter &emitter) const
 {
     expr->generate(emitter);
     variable->generate(emitter);
-    emitter.emit(STOREI);
+    variable->type->genstore(emitter);
 }
 
 void ExpressionStatement::generate(Emitter &emitter) const

@@ -3,6 +3,10 @@
 #include <iostream>
 #include <sstream>
 
+TypeNone *TYPE_NONE = new TypeNone();
+TypeNumber *TYPE_NUMBER = new TypeNumber();
+TypeString *TYPE_STRING = new TypeString();
+
 void AstNode::dump(int depth) const
 {
     std::cout << std::string(depth*2, ' ') << text() << "\n";
@@ -13,6 +17,13 @@ std::string ConstantNumberExpression::text() const
 {
     std::stringstream s;
     s << "ConstantNumberExpression(" << value << ")";
+    return s.str();
+}
+
+std::string ConstantStringExpression::text() const
+{
+    std::stringstream s;
+    s << "ConstantStringExpression(" << value << ")";
     return s.str();
 }
 
@@ -37,6 +48,19 @@ void CompoundStatement::dumpsubnodes(int depth) const
     }
 }
 
+const Type *Scope::lookupType(const std::string &name) const
+{
+    const Scope *s = this;
+    while (s != nullptr) {
+        auto t = types.find(name);
+        if (t != types.end()) {
+            return t->second;
+        }
+        s = s->parent;
+    }
+    return nullptr;
+}
+
 const Variable *Scope::lookupVariable(const std::string &name) const
 {
     const Scope *s = this;
@@ -54,12 +78,28 @@ const Variable *Scope::lookupVariable(const std::string &name) const
 Program::Program()
   : Scope(nullptr)
 {
-    static const char *Builtins[] = {
-        "abs",
-        "print",
+    types["number"] = TYPE_NUMBER;
+    types["string"] = TYPE_STRING;
+
+    static struct {
+        const char *name;
+        const Type *returntype;
+        const Type *args[10];
+    } BuiltinFunctions[] = {
+        {"abs",    TYPE_NUMBER, {TYPE_NUMBER}},
+        {"concat", TYPE_STRING, {TYPE_STRING, TYPE_STRING}},
+        {"print",  TYPE_NONE,   {TYPE_STRING}},
+        {"str",    TYPE_STRING, {TYPE_NUMBER}},
     };
-    for (auto f: Builtins) {
-        vars[f] = new Variable(f, new TypeFunction());
+    for (auto f: BuiltinFunctions) {
+        std::vector<const Type *> args;
+        for (auto a: f.args) {
+            if (a == nullptr) {
+                break;
+            }
+            args.push_back(a);
+        }
+        vars[f.name] = new Variable(f.name, new TypeFunction(f.returntype, args));
     }
 }
 

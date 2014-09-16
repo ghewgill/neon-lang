@@ -15,9 +15,12 @@ private:
     Bytecode::bytecode::size_type index;
 
     void disasm_PUSHI();
+    void disasm_PUSHS();
     void disasm_ADDROF();
     void disasm_LOADI();
+    void disasm_LOADS();
     void disasm_STOREI();
+    void disasm_STORES();
     void disasm_NEGI();
     void disasm_ADDI();
     void disasm_SUBI();
@@ -40,15 +43,34 @@ void Disassembler::disasm_PUSHI()
     printf("PUSHI %d\n", val);
 }
 
+void Disassembler::disasm_PUSHS()
+{
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    printf("PUSHS \"%s\"\n", obj.strtable[val].c_str());
+}
+
 void Disassembler::disasm_LOADI()
 {
     printf("LOADI\n");
     index++;
 }
 
+void Disassembler::disasm_LOADS()
+{
+    printf("LOADS\n");
+    index++;
+}
+
 void Disassembler::disasm_STOREI()
 {
     printf("STOREI\n");
+    index++;
+}
+
+void Disassembler::disasm_STORES()
+{
+    printf("STORES\n");
     index++;
 }
 
@@ -115,8 +137,11 @@ void Disassembler::disassemble()
         printf("%4lu ", index);
         switch (obj.code[index]) {
             case PUSHI:  disasm_PUSHI(); break;
+            case PUSHS:  disasm_PUSHS(); break;
             case LOADI:  disasm_LOADI(); break;
+            case LOADS:  disasm_LOADS(); break;
             case STOREI: disasm_STOREI(); break;
+            case STORES: disasm_STORES(); break;
             case NEGI:   disasm_NEGI(); break;
             case ADDI:   disasm_ADDI(); break;
             case SUBI:   disasm_SUBI(); break;
