@@ -1,0 +1,7 @@
+VAR a: string
+VAR b: string
+a := "hello "
+b := "world"
+print(a + b)
+
+%= hello world

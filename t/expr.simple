@@ -1,0 +1,7 @@
+VAR a: number
+VAR b: number
+b := 4
+a := abs(-5 * (3 + b))
+print(str(a))
+
+%= 35

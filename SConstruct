@@ -61,3 +61,5 @@ env.UnitTest("test_compiler", [
     "parser.cpp",
     "util.cpp",
 ])
+
+env.Command("dummy", ["simple", "run_test.py", Glob("t/*")], "python3 run_test.py t")

@@ -1,0 +1,12 @@
+VAR a: number
+a := 5
+WHILE a DO
+    print(str(a))
+    a := a - 1
+END
+
+%= 5
+%= 4
+%= 3
+%= 2
+%= 1

@@ -1,0 +1,3 @@
+print(42)
+
+%! type mismatch

@@ -1,0 +1,7 @@
+VAR a: number
+a := 1
+IF a THEN
+    print("one")
+END
+
+%= one
