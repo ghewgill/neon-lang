@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <iostream>
 
 #include "compiler.h"
 #include "disassembler.h"
@@ -10,7 +11,7 @@ int main()
 {
     {
         auto obj = compile(parse(tokenize("VAR a: number a := 1")));
-        disassemble(obj);
+        disassemble(obj, std::cout);
         unsigned char expected[] = {
             0, 0,
             PUSHI, 0, 0, 0, 1,
@@ -22,7 +23,7 @@ int main()
 
     {
         auto obj = compile(parse(tokenize("VAR a: number a := 0\nIF a THEN print(\"1\") END")));
-        disassemble(obj);
+        disassemble(obj, std::cout);
         /*
         unsigned char expected[] = {
             0, 0,

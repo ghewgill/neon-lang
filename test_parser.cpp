@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <iostream>
 #include <typeinfo>
 
 #include "ast.h"
@@ -6,7 +7,7 @@
 
 static const Program *dump(const Program *program)
 {
-    program->dump();
+    program->dump(std::cout);
     return program;
 }
 
