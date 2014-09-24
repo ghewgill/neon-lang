@@ -99,6 +99,10 @@ std::vector<Token> tokenize(const std::string &source)
                 }
                 t.text.push_back(c);
             }
+        } else if (c == '%') {
+            while (i < source.length() && source.at(i) != '\n') {
+                i++;
+            }
         } else if (isspace(c)) {
             while (i < source.length() && isspace(source.at(i))) {
                 if (source.at(i) == '\n') {

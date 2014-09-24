@@ -33,4 +33,10 @@ int main()
     assert(tokens[13].type == STRING);
     assert(tokens[13].text == "a");
     assert(tokens[14].type == END_OF_FILE);
+
+    tokens = dump(tokenize("a 1 % foo"));
+    assert(tokens.size() == 3);
+    assert(tokens[0].type == IDENTIFIER);
+    assert(tokens[1].type == NUMBER);
+    assert(tokens[2].type == END_OF_FILE);
 }
