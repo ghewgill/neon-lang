@@ -3,6 +3,6 @@
 
 #include <vector>
 
-void disassemble(const std::vector<unsigned char> &obj);
+void disassemble(const std::vector<unsigned char> &obj, std::ostream &out);
 
 #endif

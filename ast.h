@@ -12,9 +12,9 @@ class Emitter;
 class AstNode {
 public:
     AstNode() {}
-    void dump(int depth = 0) const;
+    void dump(std::ostream &out, int depth = 0) const;
     virtual std::string text() const = 0;
-    virtual void dumpsubnodes(int depth) const {}
+    virtual void dumpsubnodes(std::ostream &out, int depth) const {}
 private:
     AstNode(const AstNode &);
     AstNode &operator=(const AstNode &);
@@ -284,7 +284,7 @@ public:
 
     const std::vector<const Statement *> statements;
 
-    virtual void dumpsubnodes(int depth) const;
+    virtual void dumpsubnodes(std::ostream &out, int depth) const;
 };
 
 class IfStatement: public CompoundStatement {
@@ -336,7 +336,7 @@ public:
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const { return "Program"; }
-    virtual void dumpsubnodes(int depth) const;
+    virtual void dumpsubnodes(std::ostream &out, int depth) const;
 };
 
 #endif

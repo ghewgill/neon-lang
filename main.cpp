@@ -13,14 +13,14 @@
 static std::vector<Token> dump(const std::vector<Token> &tokens)
 {
     for (auto t: tokens) {
-        std::cout << t.tostring() << "\n";
+        std::cerr << t.tostring() << "\n";
     }
     return tokens;
 }
 
 static const Program *dump(const Program *program)
 {
-    program->dump();
+    program->dump(std::cerr);
     return program;
 }
 
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 
     auto bytecode = compile(ast);
     if (dump_bytecode) {
-        disassemble(bytecode);
+        disassemble(bytecode, std::cerr);
     }
 
     exec(bytecode);

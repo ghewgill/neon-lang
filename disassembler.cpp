@@ -1,5 +1,6 @@
 #include "disassembler.h"
 
+#include <ostream>
 #include <stdlib.h>
 #include <string>
 
@@ -8,9 +9,10 @@
 
 class Disassembler {
 public:
-    Disassembler(const Bytecode::bytecode &obj);
+    Disassembler(std::ostream &out, const Bytecode::bytecode &obj);
     void disassemble();
 private:
+    std::ostream &out;
     const Bytecode obj;
     Bytecode::bytecode::size_type index;
 
@@ -31,8 +33,8 @@ private:
     void disasm_JZ();
 };
 
-Disassembler::Disassembler(const Bytecode::bytecode &obj)
-  : obj(obj), index(0)
+Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
+  : out(out), obj(obj), index(0)
 {
 }
 
@@ -40,73 +42,73 @@ void Disassembler::disasm_PUSHI()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    printf("PUSHI %d\n", val);
+    out << "PUSHI " << val << "\n";
 }
 
 void Disassembler::disasm_PUSHS()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    printf("PUSHS \"%s\"\n", obj.strtable[val].c_str());
+    out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
 void Disassembler::disasm_LOADI()
 {
-    printf("LOADI\n");
+    out << "LOADI\n";
     index++;
 }
 
 void Disassembler::disasm_LOADS()
 {
-    printf("LOADS\n");
+    out << "LOADS\n";
     index++;
 }
 
 void Disassembler::disasm_STOREI()
 {
-    printf("STOREI\n");
+    out << "STOREI\n";
     index++;
 }
 
 void Disassembler::disasm_STORES()
 {
-    printf("STORES\n");
+    out << "STORES\n";
     index++;
 }
 
 void Disassembler::disasm_NEGI()
 {
-    printf("NEGI\n");
+    out << "NEGI\n";
     index++;
 }
 
 void Disassembler::disasm_ADDI()
 {
-    printf("ADDI\n");
+    out << "ADDI\n";
     index++;
 }
 
 void Disassembler::disasm_SUBI()
 {
-    printf("SUBI\n");
+    out << "SUBI\n";
     index++;
 }
 
 void Disassembler::disasm_MULI()
 {
-    printf("MULI\n");
+    out << "MULI\n";
     index++;
 }
 
 void Disassembler::disasm_DIVI()
 {
-    printf("DIVI\n");
+    out << "DIVI\n";
     index++;
 }
 
 void Disassembler::disasm_CALL()
 {
-    printf("CALL\n");
+    out << "CALL\n";
     index++;
 }
 
@@ -114,27 +116,27 @@ void Disassembler::disasm_JUMP()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    printf("JUMP %d\n", val);
+    out << "JUMP " << val << "\n";
 }
 
 void Disassembler::disasm_JZ()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    printf("JZ %d\n", val);
+    out << "JZ " << val << "\n";
 }
 
 void Disassembler::disassemble()
 {
-    printf("String table: [\n");
+    out << "String table: [\n";
     int i = 0;
     for (auto s: obj.strtable) {
-        printf("  %4u %s\n", i, s.c_str());
+        out << "  " << i << " " << s << "\n";
         i++;
     }
-    printf("]\n");
+    out << "[\n";
     while (index < obj.code.size()) {
-        printf("%4lu ", index);
+        out << index << " ";
         switch (obj.code[index]) {
             case PUSHI:  disasm_PUSHI(); break;
             case PUSHS:  disasm_PUSHS(); break;
@@ -151,13 +153,13 @@ void Disassembler::disassemble()
             case JUMP:   disasm_JUMP(); break;
             case JZ:     disasm_JZ(); break;
             default:
-                printf("disassembler: Unexpected opcode: %d\n", obj.code[index]);
+                out << "disassembler: Unexpected opcode: " << obj.code[index] << "\n";
                 abort();
         }
     }
 }
 
-void disassemble(const Bytecode::bytecode &obj)
+void disassemble(const Bytecode::bytecode &obj, std::ostream &out)
 {
-    Disassembler(obj).disassemble();
+    Disassembler(out, obj).disassemble();
 }

@@ -16,14 +16,24 @@ def run(fn):
 
     p = subprocess.Popen(["./simple", fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    if not expected_stderr:
-        assert p.returncode == 0, err
 
     out = out.decode()
     err = err.decode()
 
+    if not expected_stderr:
+        sys.stderr.write(err)
+        assert p.returncode == 0
+
     assert expected_stderr in err, (err, expected_stderr)
-    assert out == expected_stdout, (out, expected_stdout)
+    if out != expected_stdout:
+        print("*** EXPECTED OUTPUT")
+        print()
+        sys.stdout.write(expected_stdout)
+        print()
+        print("*** ACTUAL OUTPUT")
+        print()
+        sys.stdout.write(out)
+        sys.exit(1)
 
 def main():
     for a in sys.argv[1:]:

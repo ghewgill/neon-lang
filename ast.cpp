@@ -7,10 +7,10 @@ TypeNone *TYPE_NONE = new TypeNone();
 TypeNumber *TYPE_NUMBER = new TypeNumber();
 TypeString *TYPE_STRING = new TypeString();
 
-void AstNode::dump(int depth) const
+void AstNode::dump(std::ostream &out, int depth) const
 {
-    std::cout << std::string(depth*2, ' ') << text() << "\n";
-    dumpsubnodes(depth);
+    out << std::string(depth*2, ' ') << text() << "\n";
+    dumpsubnodes(out, depth);
 }
 
 std::string ConstantNumberExpression::text() const
@@ -41,10 +41,10 @@ std::string FunctionCall::text() const
     return s.str();
 }
 
-void CompoundStatement::dumpsubnodes(int depth) const
+void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
 {
     for (std::vector<const Statement *>::const_iterator i = statements.begin(); i != statements.end(); ++i) {
-        (*i)->dump(depth+1);
+        (*i)->dump(out, depth+1);
     }
 }
 
@@ -103,9 +103,9 @@ Program::Program()
     }
 }
 
-void Program::dumpsubnodes(int depth) const
+void Program::dumpsubnodes(std::ostream &out, int depth) const
 {
     for (std::vector<const Statement *>::const_iterator i = statements.begin(); i != statements.end(); ++i) {
-        (*i)->dump(depth+1);
+        (*i)->dump(out, depth+1);
     }
 }
