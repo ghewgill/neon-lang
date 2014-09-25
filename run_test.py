@@ -22,7 +22,7 @@ def run(fn):
 
     if not expected_stderr:
         sys.stderr.write(err)
-        assert p.returncode == 0
+        assert p.returncode == 0, p.returncode
 
     assert expected_stderr in err, (err, expected_stderr)
     if out != expected_stdout:

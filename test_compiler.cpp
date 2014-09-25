@@ -15,8 +15,7 @@ int main()
         unsigned char expected[] = {
             0, 0,
             PUSHI, 0, 0, 0, 1,
-            PUSHI, 0, 0, 0, 0,
-            STOREI,
+            STOREI, 0, 0, 0, 0,
         };
         assert(obj == std::vector<unsigned char>(expected, expected+sizeof(expected)));
     }

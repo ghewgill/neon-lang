@@ -111,34 +111,69 @@ int Type::declare(const std::string &name, Emitter &emitter) const
     return emitter.global(name);
 }
 
-void TypeNumber::genload(Emitter &emitter) const
+void TypeNumber::generate_load(Emitter &emitter, int index) const
 {
     emitter.emit(LOADI);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
 }
 
-void TypeNumber::genstore(Emitter &emitter) const
+void TypeNumber::generate_store(Emitter &emitter, int index) const
 {
     emitter.emit(STOREI);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
 }
 
-void TypeString::genload(Emitter &emitter) const
+void TypeNumber::generate_call(Emitter &emitter, int index) const
+{
+    assert(false);
+}
+
+void TypeString::generate_load(Emitter &emitter, int index) const
 {
     emitter.emit(LOADS);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
 }
 
-void TypeString::genstore(Emitter &emitter) const
+void TypeString::generate_store(Emitter &emitter, int index) const
 {
     emitter.emit(STORES);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
 }
 
-void TypeFunction::genload(Emitter &emitter) const
+void TypeString::generate_call(Emitter &emitter, int index) const
 {
     assert(false);
 }
 
-void TypeFunction::genstore(Emitter &emitter) const
+void TypeFunction::generate_load(Emitter &emitter, int index) const
 {
     assert(false);
+}
+
+void TypeFunction::generate_store(Emitter &emitter, int index) const
+{
+    assert(false);
+}
+
+void TypeFunction::generate_call(Emitter &emitter, int index) const
+{
+    emitter.emit(CALLP);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
 }
 
 int TypeFunction::declare(const std::string &name, Emitter &emitter) const
@@ -153,13 +188,19 @@ void Variable::declare(Emitter &emitter)
     }
 }
 
-void Variable::generate(Emitter &emitter) const
+void Variable::generate_load(Emitter &emitter) const
 {
-    emitter.emit(PUSHI);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    type->generate_load(emitter, index);
+}
+
+void Variable::generate_store(Emitter &emitter) const
+{
+    type->generate_store(emitter, index);
+}
+
+void Variable::generate_call(Emitter &emitter) const
+{
+    type->generate_call(emitter, index);
 }
 
 void ConstantNumberExpression::generate(Emitter &emitter) const
@@ -215,15 +256,24 @@ void DivisionExpression::generate(Emitter &emitter) const
     emitter.emit(DIVI);
 }
 
-void ScalarVariableReference::generate(Emitter &emitter) const
+void ScalarVariableReference::generate_load(Emitter &emitter) const
 {
-    var->generate(emitter);
+    var->generate_load(emitter);
+}
+
+void ScalarVariableReference::generate_store(Emitter &emitter) const
+{
+    var->generate_store(emitter);
+}
+
+void ScalarVariableReference::generate_call(Emitter &emitter) const
+{
+    var->generate_call(emitter);
 }
 
 void VariableExpression::generate(Emitter &emitter) const
 {
-    var->generate(emitter);
-    var->type->genload(emitter);
+    var->generate_load(emitter);
 }
 
 void FunctionCall::generate(Emitter &emitter) const
@@ -231,15 +281,13 @@ void FunctionCall::generate(Emitter &emitter) const
     for (auto arg: args) {
         arg->generate(emitter);
     }
-    func->generate(emitter);
-    emitter.emit(CALL);
+    func->generate_call(emitter);
 }
 
 void AssignmentStatement::generate(Emitter &emitter) const
 {
     expr->generate(emitter);
-    variable->generate(emitter);
-    variable->type->genstore(emitter);
+    variable->generate_store(emitter);
 }
 
 void ExpressionStatement::generate(Emitter &emitter) const

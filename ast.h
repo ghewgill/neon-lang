@@ -23,14 +23,17 @@ private:
 class Type: public AstNode {
 public:
     virtual int declare(const std::string &name, Emitter &emitter) const;
-    virtual void genload(Emitter &emitter) const = 0;
-    virtual void genstore(Emitter &emitter) const = 0;
+    virtual void generate_load(Emitter &emitter, int index) const = 0;
+    virtual void generate_store(Emitter &emitter, int index) const = 0;
+    virtual void generate_call(Emitter &emitter, int index) const = 0;
 };
 
 class TypeNone: public Type {
 public:
-    virtual void genload(Emitter &emitter) const {}
-    virtual void genstore(Emitter &emitter) const {}
+    virtual void generate_load(Emitter &emitter, int index) const {}
+    virtual void generate_store(Emitter &emitter, int index) const {}
+    virtual void generate_call(Emitter &emitter, int index) const {}
+
     virtual std::string text() const { return "TypeNone"; }
 };
 
@@ -38,8 +41,10 @@ extern TypeNone *TYPE_NONE;
 
 class TypeNumber: public Type {
 public:
-    virtual void genload(Emitter &emitter) const;
-    virtual void genstore(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter, int index) const;
+    virtual void generate_store(Emitter &emitter, int index) const;
+    virtual void generate_call(Emitter &emitter, int index) const;
+
     virtual std::string text() const { return "TypeNumber"; }
 };
 
@@ -47,8 +52,10 @@ extern TypeNumber *TYPE_NUMBER;
 
 class TypeString: public Type {
 public:
-    virtual void genload(Emitter &emitter) const;
-    virtual void genstore(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter, int index) const;
+    virtual void generate_store(Emitter &emitter, int index) const;
+    virtual void generate_call(Emitter &emitter, int index) const;
+
     virtual std::string text() const { return "TypeString"; }
 };
 
@@ -58,8 +65,9 @@ class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const Type *> &args): returntype(returntype), args(args) {}
     virtual int declare(const std::string &name, Emitter &emitter) const;
-    virtual void genload(Emitter &emitter) const;
-    virtual void genstore(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter, int index) const;
+    virtual void generate_store(Emitter &emitter, int index) const;
+    virtual void generate_call(Emitter &emitter, int index) const;
 
     const Type *returntype;
     const std::vector<const Type *> args;
@@ -76,7 +84,9 @@ public:
     int index;
 
     virtual void declare(Emitter &emitter);
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "Variable(" + name + ", " + type->text() + ")"; }
 };
@@ -201,7 +211,9 @@ public:
 
     const Type *type;
 
-    virtual void generate(Emitter &emitter) const = 0;
+    virtual void generate_load(Emitter &emitter) const = 0;
+    virtual void generate_store(Emitter &emitter) const = 0;
+    virtual void generate_call(Emitter &emitter) const = 0;
 
     virtual std::string text() const = 0;
 };
@@ -212,7 +224,9 @@ public:
 
     const Variable *var;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "ScalarVariableReference(" + var->text() + ")";

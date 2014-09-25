@@ -18,7 +18,6 @@ private:
 
     void disasm_PUSHI();
     void disasm_PUSHS();
-    void disasm_ADDROF();
     void disasm_LOADI();
     void disasm_LOADS();
     void disasm_STOREI();
@@ -28,7 +27,7 @@ private:
     void disasm_SUBI();
     void disasm_MULI();
     void disasm_DIVI();
-    void disasm_CALL();
+    void disasm_CALLP();
     void disasm_JUMP();
     void disasm_JZ();
 };
@@ -54,26 +53,30 @@ void Disassembler::disasm_PUSHS()
 
 void Disassembler::disasm_LOADI()
 {
-    out << "LOADI\n";
-    index++;
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "LOADI " << val << "\n";
 }
 
 void Disassembler::disasm_LOADS()
 {
-    out << "LOADS\n";
-    index++;
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "LOADS " << val << "\n";
 }
 
 void Disassembler::disasm_STOREI()
 {
-    out << "STOREI\n";
-    index++;
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "STOREI " << val << "\n";
 }
 
 void Disassembler::disasm_STORES()
 {
-    out << "STORES\n";
-    index++;
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "STORES " << val << "\n";
 }
 
 void Disassembler::disasm_NEGI()
@@ -106,10 +109,11 @@ void Disassembler::disasm_DIVI()
     index++;
 }
 
-void Disassembler::disasm_CALL()
+void Disassembler::disasm_CALLP()
 {
-    out << "CALL\n";
-    index++;
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "CALLP " << obj.strtable[val] << "\n";
 }
 
 void Disassembler::disasm_JUMP()
@@ -134,7 +138,7 @@ void Disassembler::disassemble()
         out << "  " << i << " " << s << "\n";
         i++;
     }
-    out << "[\n";
+    out << "]\n";
     while (index < obj.code.size()) {
         out << index << " ";
         switch (obj.code[index]) {
@@ -149,7 +153,7 @@ void Disassembler::disassemble()
             case SUBI:   disasm_SUBI(); break;
             case MULI:   disasm_MULI(); break;
             case DIVI:   disasm_DIVI(); break;
-            case CALL:   disasm_CALL(); break;
+            case CALLP:  disasm_CALLP(); break;
             case JUMP:   disasm_JUMP(); break;
             case JZ:     disasm_JZ(); break;
             default:

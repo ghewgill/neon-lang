@@ -13,7 +13,7 @@ enum {
     SUBI,
     MULI,
     DIVI,
-    CALL,
+    CALLP,
     JUMP,
     JZ,
 };

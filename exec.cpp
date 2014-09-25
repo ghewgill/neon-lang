@@ -30,7 +30,6 @@ private:
 
     void exec_PUSHI();
     void exec_PUSHS();
-    void exec_ADDROF();
     void exec_LOADI();
     void exec_LOADS();
     void exec_STOREI();
@@ -40,7 +39,7 @@ private:
     void exec_SUBI();
     void exec_MULI();
     void exec_DIVI();
-    void exec_CALL();
+    void exec_CALLP();
     void exec_JUMP();
     void exec_JZ();
 };
@@ -66,22 +65,22 @@ void Executor::exec_PUSHS()
 
 void Executor::exec_LOADI()
 {
-    ip++;
-    unsigned int addr = stack.top().intvalue; stack.pop();
+    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
     stack.push(StackEntry(vars.at(addr).intvalue));
 }
 
 void Executor::exec_LOADS()
 {
-    ip++;
-    unsigned int addr = stack.top().intvalue; stack.pop();
+    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
     stack.push(StackEntry(vars.at(addr).strvalue));
 }
 
 void Executor::exec_STOREI()
 {
-    ip++;
-    unsigned int addr = stack.top().intvalue; stack.pop();
+    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
     int val = stack.top().intvalue; stack.pop();
     if (vars.size() < addr+1) {
         vars.resize(addr+1);
@@ -91,8 +90,8 @@ void Executor::exec_STOREI()
 
 void Executor::exec_STORES()
 {
-    ip++;
-    unsigned int addr = stack.top().intvalue; stack.pop();
+    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
     std::string val = stack.top().strvalue; stack.pop();
     if (vars.size() < addr+1) {
         vars.resize(addr+1);
@@ -139,10 +138,11 @@ void Executor::exec_DIVI()
     stack.push(StackEntry(a / b));
 }
 
-void Executor::exec_CALL()
+void Executor::exec_CALLP()
 {
-    ip++;
-    std::string func = obj.strtable.at(stack.top().intvalue); stack.pop();
+    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    std::string func = obj.strtable.at(val);
     if (func == "abs") {
         int x = stack.top().intvalue; stack.pop();
         stack.push(StackEntry(abs(x)));
@@ -196,7 +196,7 @@ void Executor::exec()
             case SUBI:   exec_SUBI(); break;
             case MULI:   exec_MULI(); break;
             case DIVI:   exec_DIVI(); break;
-            case CALL:   exec_CALL(); break;
+            case CALLP:  exec_CALLP(); break;
             case JUMP:   exec_JUMP(); break;
             case JZ:     exec_JZ(); break;
             default:
