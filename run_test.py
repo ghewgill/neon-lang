@@ -41,7 +41,7 @@ def main():
             for fn in sorted(os.listdir(a)):
                 if fn.endswith(".simple"):
                     run(os.path.join(a, fn))
-        elif os.path.isreg(a):
+        elif os.path.isfile(a):
             run(a)
 
 main()

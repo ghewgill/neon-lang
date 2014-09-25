@@ -64,7 +64,7 @@ extern TypeString *TYPE_STRING;
 class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const Type *> &args): returntype(returntype), args(args) {}
-    virtual int declare(const std::string &name, Emitter &emitter) const;
+    virtual int declare(const std::string &name, Emitter &emitter) const { assert(false); }
     virtual void generate_load(Emitter &emitter, int index) const;
     virtual void generate_store(Emitter &emitter, int index) const;
     virtual void generate_call(Emitter &emitter, int index) const;
@@ -72,18 +72,37 @@ public:
     const Type *returntype;
     const std::vector<const Type *> args;
 
-    virtual std::string text() const { return "TypeFunction"; }
+    virtual std::string text() const { return "TypeFunction(...)"; }
 };
 
-class Variable: public AstNode {
+class TypePredefinedFunction: public TypeFunction {
 public:
-    Variable(const std::string &name, const Type *type): name(name), type(type), referenced(false), index() {}
+    TypePredefinedFunction(const Type *returntype, const std::vector<const Type *> &args): TypeFunction(returntype, args) {}
+    virtual int declare(const std::string &name, Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter, int index) const;
+    virtual void generate_store(Emitter &emitter, int index) const;
+    virtual void generate_call(Emitter &emitter, int index) const;
+
+    virtual std::string text() const { return "TypePredefinedFunction(...)"; }
+};
+
+class Name: public AstNode {
+public:
+    Name(const std::string &name, const Type *type): name(name), type(type), referenced(false) {}
     const std::string name;
     const Type *type;
     bool referenced;
+
+    virtual void predeclare(Emitter &emitter) {}
+    virtual void postdeclare(Emitter &emitter) {}
+};
+
+class Variable: public Name {
+public:
+    Variable(const std::string &name, const Type *type): Name(name, type), index() {}
     int index;
 
-    virtual void declare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter);
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -292,6 +311,17 @@ public:
     }
 };
 
+class ReturnStatement: public Statement {
+public:
+    ReturnStatement(const Expression *expr): expr(expr) {}
+
+    const Expression *const expr;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ReturnStatement(" + expr->text() + ")"; }
+};
+
 class CompoundStatement: public Statement {
 public:
     CompoundStatement(const std::vector<const Statement *> &statements): statements(statements) {}
@@ -327,24 +357,42 @@ public:
     }
 };
 
-class Scope: public AstNode {
+class Scope {
 public:
     Scope(Scope *parent): parent(parent) {}
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void predeclare(Emitter &emitter) const;
+    virtual void postdeclare(Emitter &emitter) const;
 
     const Type *lookupType(const std::string &name) const;
-    const Variable *lookupVariable(const std::string &name) const;
+    const Name *lookupName(const std::string &name) const;
 
     Scope *const parent;
     std::map<std::string, Type *> types;
-    std::map<std::string, Variable *> vars;
+    std::map<std::string, Name *> names;
 };
 
-class Program: public Scope {
+class Function: public Variable {
+public:
+    Function(const std::string &name, const Type *returntype, const std::vector<const Variable *> &args): Variable(name, makeFunctionType(returntype, args)), args(args) {}
+    const std::vector<const Variable *> args;
+
+    std::vector<const Statement *> statements;
+
+    const Type *makeFunctionType(const Type *returntype, const std::vector<const Variable *> &args);
+
+    virtual void predeclare(Emitter &emitter);
+    virtual void postdeclare(Emitter &emitter);
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "Function(" + name + ", " + type->text() + ")"; }
+};
+
+class Program: public AstNode {
 public:
     Program();
 
+    Scope *scope;
     std::vector<const Statement *> statements;
 
     virtual void generate(Emitter &emitter) const;

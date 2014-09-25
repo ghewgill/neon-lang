@@ -25,6 +25,8 @@ enum TokenType {
     WHILE,
     DO,
     VAR,
+    FUNCTION,
+    RETURN,
 };
 
 class Token {

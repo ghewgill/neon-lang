@@ -18,6 +18,8 @@ public:
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &name);
     unsigned int str(const std::string &s);
+    int next_function();
+    Label &function_label(int index);
     Label create_label();
     void emit_jump(unsigned char b, Label &label);
     void jump_target(Label &label);
@@ -25,6 +27,7 @@ private:
     std::vector<unsigned char> code;
     std::vector<std::string> strings;
     std::vector<std::string> globals;
+    std::vector<Label> functions;
 };
 
 void Emitter::emit(unsigned char b)
@@ -70,6 +73,18 @@ unsigned int Emitter::str(const std::string &s)
         i = strings.end() - 1;
     }
     return i - strings.begin();
+}
+
+int Emitter::next_function()
+{
+    auto i = functions.size();
+    functions.push_back(create_label());
+    return i;
+}
+
+Emitter::Label &Emitter::function_label(int index)
+{
+    return functions[index];
 }
 
 Emitter::Label Emitter::create_label()
@@ -169,6 +184,26 @@ void TypeFunction::generate_store(Emitter &emitter, int index) const
 
 void TypeFunction::generate_call(Emitter &emitter, int index) const
 {
+    emitter.emit_jump(CALLF, emitter.function_label(index));
+}
+
+int TypePredefinedFunction::declare(const std::string &name, Emitter &emitter) const
+{
+    return emitter.str(name);
+}
+
+void TypePredefinedFunction::generate_load(Emitter &emitter, int index) const
+{
+    assert(false);
+}
+
+void TypePredefinedFunction::generate_store(Emitter &emitter, int index) const
+{
+    assert(false);
+}
+
+void TypePredefinedFunction::generate_call(Emitter &emitter, int index) const
+{
     emitter.emit(CALLP);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
@@ -176,12 +211,7 @@ void TypeFunction::generate_call(Emitter &emitter, int index) const
     emitter.emit(index);
 }
 
-int TypeFunction::declare(const std::string &name, Emitter &emitter) const
-{
-    return emitter.str(name);
-}
-
-void Variable::declare(Emitter &emitter)
+void Variable::predeclare(Emitter &emitter)
 {
     if (referenced) {
         index = type->declare(name, emitter);
@@ -201,6 +231,29 @@ void Variable::generate_store(Emitter &emitter) const
 void Variable::generate_call(Emitter &emitter) const
 {
     type->generate_call(emitter, index);
+}
+
+void Function::predeclare(Emitter &emitter)
+{
+    if (referenced) {
+        index = emitter.next_function();
+    }
+}
+
+void Function::postdeclare(Emitter &emitter)
+{
+    if (referenced) {
+        // TODO scope->generate(emitter);
+        emitter.jump_target(emitter.function_label(index));
+        for (auto stmt: statements) {
+            stmt->generate(emitter);
+        }
+        emitter.emit(RET);
+    }
+}
+
+void Function::generate(Emitter &emitter) const
+{
 }
 
 void ConstantNumberExpression::generate(Emitter &emitter) const
@@ -306,6 +359,12 @@ void IfStatement::generate(Emitter &emitter) const
     emitter.jump_target(skip);
 }
 
+void ReturnStatement::generate(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    // TODO: jump to block exit
+}
+
 void WhileStatement::generate(Emitter &emitter) const
 {
     auto top = emitter.create_label();
@@ -320,19 +379,28 @@ void WhileStatement::generate(Emitter &emitter) const
     emitter.jump_target(skip);
 }
 
-void Scope::generate(Emitter &emitter) const
+void Scope::predeclare(Emitter &emitter) const
 {
-    for (auto v: vars) {
-        v.second->declare(emitter);
+    for (auto n: names) {
+        n.second->predeclare(emitter);
+    }
+}
+
+void Scope::postdeclare(Emitter &emitter) const
+{
+    for (auto n: names) {
+        n.second->postdeclare(emitter);
     }
 }
 
 void Program::generate(Emitter &emitter) const
 {
-    Scope::generate(emitter);
+    scope->predeclare(emitter);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
+    emitter.emit(RET);
+    scope->postdeclare(emitter);
 }
 
 std::vector<unsigned char> compile(const Program *p)

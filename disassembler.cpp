@@ -28,8 +28,10 @@ private:
     void disasm_MULI();
     void disasm_DIVI();
     void disasm_CALLP();
+    void disasm_CALLF();
     void disasm_JUMP();
     void disasm_JZ();
+    void disasm_RET();
 };
 
 Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
@@ -116,6 +118,13 @@ void Disassembler::disasm_CALLP()
     out << "CALLP " << obj.strtable[val] << "\n";
 }
 
+void Disassembler::disasm_CALLF()
+{
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "CALLF " << val << "\n";
+}
+
 void Disassembler::disasm_JUMP()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -128,6 +137,12 @@ void Disassembler::disasm_JZ()
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "JZ " << val << "\n";
+}
+
+void Disassembler::disasm_RET()
+{
+    out << "RET\n";
+    index++;
 }
 
 void Disassembler::disassemble()
@@ -154,8 +169,10 @@ void Disassembler::disassemble()
             case MULI:   disasm_MULI(); break;
             case DIVI:   disasm_DIVI(); break;
             case CALLP:  disasm_CALLP(); break;
+            case CALLF:  disasm_CALLF(); break;
             case JUMP:   disasm_JUMP(); break;
             case JZ:     disasm_JZ(); break;
+            case RET:    disasm_RET(); break;
             default:
                 out << "disassembler: Unexpected opcode: " << obj.code[index] << "\n";
                 abort();

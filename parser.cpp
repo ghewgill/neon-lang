@@ -23,28 +23,30 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(ref->type);
     if (ftype == nullptr) {
-        error(tokens[i], "not a function");
+        error(tokens[i-1], "not a function");
     }
     ++i;
     std::vector<const Type *>::size_type a = 0;
     std::vector<const Expression *> args;
-    while (true) {
-        const Expression *e = parseExpression(scope, tokens, i);
-        if (e->type != ftype->args[a]) {
-            error(tokens[i], "type mismatch");
+    if (tokens[i].type != RPAREN) {
+        while (true) {
+            const Expression *e = parseExpression(scope, tokens, i);
+            if (e->type != ftype->args[a]) {
+                error(tokens[i], "type mismatch");
+            }
+            args.push_back(e);
+            ++a;
+            if (tokens[i].type != COMMA) {
+                break;
+            }
+            ++i;
         }
-        args.push_back(e);
-        ++a;
-        if (tokens[i].type != COMMA) {
-            break;
+        if (tokens[i].type != RPAREN) {
+            error(tokens[i], "')' or ',' expected");
         }
-        ++i;
     }
     if (a < ftype->args.size()) {
         error(tokens[i], "not enough arguments");
-    }
-    if (tokens[i].type != RPAREN) {
-        error(tokens[i], "')' or ',' expected");
     }
     ++i;
     return new FunctionCall(ref, args);
@@ -133,7 +135,7 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
                 std::vector<const Expression *> args;
                 args.push_back(left);
                 args.push_back(right);
-                return new FunctionCall(new ScalarVariableReference(scope->lookupVariable("concat")), args);
+                return new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
             } else {
                 error(tokens[op], "type mismatch");
             }
@@ -153,12 +155,36 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
     }
 }
 
+static const Variable *parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    if (tokens[i].type != IDENTIFIER) {
+        error(tokens[i], "identifier expected");
+    }
+    std::string name = tokens[i].text;
+    if (scope->names.find(name) != scope->names.end()) {
+        error(tokens[i], "duplicate identifer: " + name);
+    }
+    ++i;
+    if (tokens[i].type != COLON) {
+        error(tokens[i], "colon expected");
+    }
+    ++i;
+    const Type *t = parseType(scope, tokens, i);
+    Variable *v = new Variable(name, t);
+    scope->names[name] = v;
+    return v;
+}
+
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type == IDENTIFIER) {
-        const Variable *var = scope->lookupVariable(tokens[i].text);
-        if (var == nullptr) {
+        const Name *name = scope->lookupName(tokens[i].text);
+        if (name == nullptr) {
             error(tokens[i], "variable not found: " + tokens[i].text);
+        }
+        const Variable *var = dynamic_cast<const Variable *>(name);
+        if (var == nullptr) {
+            error(tokens[i], "name is not a variable: " + tokens[i].text);
         }
         const VariableReference *ref = new ScalarVariableReference(var);
         ++i;
@@ -169,63 +195,124 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
     }
 }
 
+static const Statement *parseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
+static const Statement *parseVarStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
+
+static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(tokens[i], "identifier expected");
+    }
+    std::string name = tokens[i].text;
+    ++i;
+    if (tokens[i].type != LPAREN) {
+        error(tokens[i], "'(' expected");
+    }
+    ++i;
+    std::vector<const Variable *> args;
+    if (tokens[i].type != RPAREN) {
+        while (true) {
+            const Variable *v = parseVariableDeclaration(scope, tokens, i);
+            args.push_back(v);
+            if (tokens[i].type != COMMA) {
+                break;
+            }
+            ++i;
+        }
+        if (tokens[i].type != RPAREN) {
+            error(tokens[i], "')' or ',' expected");
+        }
+    }
+    ++i;
+    if (tokens[i].type != COLON) {
+        error(tokens[i], "':' expected");
+    }
+    ++i;
+    const Type *returntype = parseType(scope, tokens, i);
+    Function *function = new Function(name, returntype, args);
+    while (tokens[i].type != END) {
+        const Statement *s = parseStatement(scope, tokens, i);
+        if (s != nullptr) {
+            function->statements.push_back(s);
+        }
+    }
+    ++i;
+    scope->names[name] = function;
+    return nullptr;
+}
+
+static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    const Expression *cond = parseExpression(scope, tokens, i);
+    if (tokens[i].type != THEN) {
+        error(tokens[i], "THEN expected");
+    }
+    ++i;
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement(scope, tokens, i);
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(tokens[i], "END expected");
+    }
+    ++i;
+    return new IfStatement(cond, statements);
+}
+
+static const Statement *parseReturnStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    const Expression *expr = parseExpression(scope, tokens, i);
+    // TODO: check return type
+    return new ReturnStatement(expr);
+}
+
+static const Statement *parseVarStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    parseVariableDeclaration(scope, tokens, i);
+    return nullptr;
+}
+
+static const Statement *parseWhileStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    const Expression *cond = parseExpression(scope, tokens, i);
+    if (tokens[i].type != DO) {
+        error(tokens[i], "DO expected");
+    }
+    ++i;
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement(scope, tokens, i);
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(tokens[i], "END expected");
+    }
+    ++i;
+    return new WhileStatement(cond, statements);
+}
+
 static const Statement *parseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    if (tokens[i].type == IF) {
-        ++i;
-        const Expression *cond = parseExpression(scope, tokens, i);
-        if (tokens[i].type != THEN) {
-            error(tokens[i], "THEN expected");
-        }
-        ++i;
-        std::vector<const Statement *> statements;
-        while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement(scope, tokens, i);
-            if (s != nullptr) {
-                statements.push_back(s);
-            }
-        }
-        if (tokens[i].type != END) {
-            error(tokens[i], "END expected");
-        }
-        ++i;
-        return new IfStatement(cond, statements);
+    if (tokens[i].type == FUNCTION) {
+        return parseFunctionDefinition(scope, tokens, i);
+    } else if (tokens[i].type == IF) {
+        return parseIfStatement(scope, tokens, i);
+    } else if (tokens[i].type == RETURN) {
+        return parseReturnStatement(scope, tokens, i);
     } else if (tokens[i].type == VAR) {
-        ++i;
-        if (tokens[i].type != IDENTIFIER) {
-            error(tokens[i], "identifier expected");
-        }
-        std::string name = tokens[i].text;
-        if (scope->vars.find(name) != scope->vars.end()) {
-            error(tokens[i], "duplicate identifer: " + name);
-        }
-        ++i;
-        if (tokens[i].type != COLON) {
-            error(tokens[i], "colon expected");
-        }
-        ++i;
-        const Type *t = parseType(scope, tokens, i);
-        scope->vars[name] = new Variable(name, t);
-        return nullptr;
+        return parseVarStatement(scope, tokens, i);
     } else if (tokens[i].type == WHILE) {
-        ++i;
-        const Expression *cond = parseExpression(scope, tokens, i);
-        if (tokens[i].type != DO) {
-            error(tokens[i], "DO expected");
-        }
-        ++i;
-        std::vector<const Statement *> statements;
-        while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement(scope, tokens, i);
-            if (s != nullptr) {
-                statements.push_back(s);
-            }
-        }
-        if (tokens[i].type != END) {
-            error(tokens[i], "END expected");
-        }
-        ++i;
-        return new WhileStatement(cond, statements);
+        return parseWhileStatement(scope, tokens, i);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope, tokens, i);
         if (tokens[i].type == ASSIGN) {
@@ -252,7 +339,7 @@ const Program *parse(const std::vector<Token> &tokens)
     Program *program = new Program();
     std::vector<Token>::size_type i = 0;
     while (tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(program, tokens, i);
+        const Statement *s = parseStatement(program->scope, tokens, i);
         if (s != nullptr) {
             program->statements.push_back(s);
         }

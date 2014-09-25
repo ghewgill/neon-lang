@@ -16,6 +16,7 @@ int main()
             0, 0,
             PUSHI, 0, 0, 0, 1,
             STOREI, 0, 0, 0, 0,
+            RET,
         };
         assert(obj == std::vector<unsigned char>(expected, expected+sizeof(expected)));
     }

@@ -26,6 +26,7 @@ private:
     std::ostream &out;
     Bytecode::bytecode::size_type ip;
     std::stack<StackEntry> stack;
+    std::stack<Bytecode::bytecode::size_type> callstack;
     std::vector<StackEntry> vars;
 
     void exec_PUSHI();
@@ -40,8 +41,10 @@ private:
     void exec_MULI();
     void exec_DIVI();
     void exec_CALLP();
+    void exec_CALLF();
     void exec_JUMP();
     void exec_JZ();
+    void exec_RET();
 };
 
 Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
@@ -164,6 +167,14 @@ void Executor::exec_CALLP()
     }
 }
 
+void Executor::exec_CALLF()
+{
+    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    callstack.push(ip);
+    ip = val;
+}
+
 void Executor::exec_JUMP()
 {
     int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -181,9 +192,17 @@ void Executor::exec_JZ()
     }
 }
 
+void Executor::exec_RET()
+{
+    ip = callstack.top();
+    callstack.pop();
+}
+
 void Executor::exec()
 {
-    while (ip < obj.code.size()) {
+    callstack.push(0);
+    while (not callstack.empty() && ip < obj.code.size()) {
+        //std::cerr << "ip " << ip << " op " << (int)obj.code[ip] << "\n";
         switch (obj.code[ip]) {
             case PUSHI:  exec_PUSHI(); break;
             case PUSHS:  exec_PUSHS(); break;
@@ -197,8 +216,10 @@ void Executor::exec()
             case MULI:   exec_MULI(); break;
             case DIVI:   exec_DIVI(); break;
             case CALLP:  exec_CALLP(); break;
+            case CALLF:  exec_CALLF(); break;
             case JUMP:   exec_JUMP(); break;
             case JZ:     exec_JZ(); break;
+            case RET:    exec_RET(); break;
             default:
                 printf("exec: Unexpected opcode: %d\n", obj.code[ip]);
                 abort();

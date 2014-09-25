@@ -61,25 +61,34 @@ const Type *Scope::lookupType(const std::string &name) const
     return nullptr;
 }
 
-const Variable *Scope::lookupVariable(const std::string &name) const
+const Name *Scope::lookupName(const std::string &name) const
 {
     const Scope *s = this;
     while (s != nullptr) {
-        auto v = vars.find(name);
-        if (v != vars.end()) {
-            v->second->referenced = true;
-            return v->second;
+        auto n = names.find(name);
+        if (n != names.end()) {
+            n->second->referenced = true;
+            return n->second;
         }
         s = s->parent;
     }
     return nullptr;
 }
 
-Program::Program()
-  : Scope(nullptr)
+const Type *Function::makeFunctionType(const Type *returntype, const std::vector<const Variable *> &args)
 {
-    types["number"] = TYPE_NUMBER;
-    types["string"] = TYPE_STRING;
+    std::vector<const Type *> argtypes;
+    for (auto a: args) {
+        argtypes.push_back(a->type);
+    }
+    return new TypeFunction(returntype, argtypes);
+}
+
+Program::Program()
+  : scope(new Scope(nullptr))
+{
+    scope->types["number"] = TYPE_NUMBER;
+    scope->types["string"] = TYPE_STRING;
 
     static struct {
         const char *name;
@@ -99,7 +108,7 @@ Program::Program()
             }
             args.push_back(a);
         }
-        vars[f.name] = new Variable(f.name, new TypeFunction(f.returntype, args));
+        scope->names[f.name] = new Variable(f.name, new TypePredefinedFunction(f.returntype, args));
     }
 }
 

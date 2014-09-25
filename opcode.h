@@ -14,8 +14,10 @@ enum {
     MULI,
     DIVI,
     CALLP,
+    CALLF,
     JUMP,
     JZ,
+    RET,
 };
 
 #endif
