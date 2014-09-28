@@ -49,7 +49,7 @@ std::vector<Token> tokenize(const std::string &source)
         //printf("index %lu char %c\n", i, c);
         int startindex = i;
         Token t;
-        t.source = source.substr(linestart, lineend);
+        t.source = source.substr(linestart, lineend-linestart);
         t.line = line;
         t.column = column;
         t.type = NONE;
