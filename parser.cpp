@@ -231,8 +231,9 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
     ++i;
     const Type *returntype = parseType(scope, tokens, i);
     Function *function = new Function(name, returntype, args);
+    Scope *bodyscope = new Scope(scope);
     while (tokens[i].type != END) {
-        const Statement *s = parseStatement(scope, tokens, i);
+        const Statement *s = parseStatement(bodyscope, tokens, i);
         if (s != nullptr) {
             function->statements.push_back(s);
         }

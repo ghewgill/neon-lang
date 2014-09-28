@@ -52,8 +52,8 @@ const Type *Scope::lookupType(const std::string &name) const
 {
     const Scope *s = this;
     while (s != nullptr) {
-        auto t = types.find(name);
-        if (t != types.end()) {
+        auto t = s->types.find(name);
+        if (t != s->types.end()) {
             return t->second;
         }
         s = s->parent;
@@ -65,8 +65,8 @@ const Name *Scope::lookupName(const std::string &name) const
 {
     const Scope *s = this;
     while (s != nullptr) {
-        auto n = names.find(name);
-        if (n != names.end()) {
+        auto n = s->names.find(name);
+        if (n != s->names.end()) {
             n->second->referenced = true;
             return n->second;
         }

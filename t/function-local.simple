@@ -1,0 +1,16 @@
+VAR x: number
+VAR y: number
+x := 5
+y := 10
+
+FUNCTION sq(): number
+    VAR y: number
+    y := x * x
+    RETURN y
+END
+
+print(str(sq()))
+print(str(y))
+
+%= 25
+%= 10
