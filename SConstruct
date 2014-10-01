@@ -1,6 +1,10 @@
 import os
 from SCons.Script.SConscript import SConsEnvironment
 
+coverage = ARGUMENTS.get("coverage", 0)
+# This is needed on OS X because clang has a bug where this isn't included automatically.
+coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darwin/libclang_rt.profile_osx.a"] if coverage else [])
+
 env = Environment()
 
 env.Append(CXXFLAGS=[
@@ -14,6 +18,11 @@ env.Append(CXXFLAGS=[
     "-g",
 ])
 
+if coverage:
+    env.Append(CXXFLAGS=[
+        "--coverage", "-O0",
+    ])
+
 env.Program("simple", [
     "ast.cpp",
     "bytecode.cpp",
@@ -24,7 +33,8 @@ env.Program("simple", [
     "main.cpp",
     "parser.cpp",
     "util.cpp",
-])
+] + coverage_lib,
+)
 
 def UnitTest(env, target, source, **kwargs):
     t = env.Program(target, source, **kwargs)
@@ -40,7 +50,8 @@ env.UnitTest("test_lexer", [
     "test_lexer.cpp",
     "lexer.cpp",
     "util.cpp",
-])
+] + coverage_lib,
+)
 
 env.UnitTest("test_parser", [
     "test_parser.cpp",
@@ -49,7 +60,8 @@ env.UnitTest("test_parser", [
     "parser.cpp",
     "lexer.cpp",
     "util.cpp",
-])
+] + coverage_lib,
+)
 
 env.UnitTest("test_compiler", [
     "test_compiler.cpp",
@@ -60,6 +72,7 @@ env.UnitTest("test_compiler", [
     "lexer.cpp",
     "parser.cpp",
     "util.cpp",
-])
+] + coverage_lib,
+)
 
 env.Command("dummy", ["simple", "run_test.py", Glob("t/*")], "python3 run_test.py t")

@@ -1,5 +1,6 @@
 .sconsign.dblite
 *.o
+*.gc*
 simple
 test_lexer
 test_parser
