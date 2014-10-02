@@ -11,7 +11,7 @@ std::string Token::tostring() const
     switch (type) {
         case NONE:        s << "NONE"; break;
         case END_OF_FILE: s << "END_OF_FILE"; break;
-        case NUMBER:      s << "NUMBER:" << value; break;
+        case NUMBER:      s << "NUMBER:" << number_to_string(value); break;
         case STRING:      s << "STRING:" << text; break;
         case IDENTIFIER:  s << "IDENTIFIER:" << text; break;
         case LPAREN:      s << "LPAREN"; break;
@@ -86,11 +86,13 @@ std::vector<Token> tokenize(const std::string &source)
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
-            t.value = 0;
-            while (i < source.length() && isdigit(source.at(i))) {
-                t.value = t.value * 10 + (source.at(i) - '0');
-                i++;
+            auto j = i;
+            // TODO: decimal and exponent
+            while (j < source.length() && isdigit(source.at(j))) {
+                j++;
             }
+            t.value = number_from_string(source.substr(i, j-i));
+            i = j;
         } else if (c == '"') {
             i++;
             t.type = STRING;

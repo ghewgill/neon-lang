@@ -6,15 +6,16 @@
 #include <stdlib.h>
 
 #include "bytecode.h"
+#include "number.h"
 #include "opcode.h"
 
 class StackEntry {
 public:
     StackEntry() {}
-    StackEntry(int value): intvalue(value) {}
-    StackEntry(const std::string &value): strvalue(value) {}
-    int intvalue;
-    std::string strvalue;
+    StackEntry(Number value): number_value(value) {}
+    StackEntry(const std::string &value): string_value(value) {}
+    Number number_value;
+    std::string string_value;
 };
 
 class Executor {
@@ -54,8 +55,9 @@ Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
 
 void Executor::exec_PUSHI()
 {
-    int val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    ip += 5;
+    // TODO: endian
+    Number val = *reinterpret_cast<const Number *>(&obj.code[ip+1]);
+    ip += 1 + sizeof(val);
     stack.push(StackEntry(val));
 }
 
@@ -70,21 +72,21 @@ void Executor::exec_LOADI()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    stack.push(StackEntry(vars.at(addr).intvalue));
+    stack.push(StackEntry(vars.at(addr).number_value));
 }
 
 void Executor::exec_LOADS()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    stack.push(StackEntry(vars.at(addr).strvalue));
+    stack.push(StackEntry(vars.at(addr).string_value));
 }
 
 void Executor::exec_STOREI()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    int val = stack.top().intvalue; stack.pop();
+    Number val = stack.top().number_value; stack.pop();
     if (vars.size() < addr+1) {
         vars.resize(addr+1);
     }
@@ -95,7 +97,7 @@ void Executor::exec_STORES()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    std::string val = stack.top().strvalue; stack.pop();
+    std::string val = stack.top().string_value; stack.pop();
     if (vars.size() < addr+1) {
         vars.resize(addr+1);
     }
@@ -105,40 +107,40 @@ void Executor::exec_STORES()
 void Executor::exec_NEGI()
 {
     ip++;
-    int x = stack.top().intvalue; stack.pop();
-    stack.push(StackEntry(-x));
+    Number x = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_negate(x)));
 }
 
 void Executor::exec_ADDI()
 {
     ip++;
-    int b = stack.top().intvalue; stack.pop();
-    int a = stack.top().intvalue; stack.pop();
-    stack.push(StackEntry(a + b));
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_add(a, b)));
 }
 
 void Executor::exec_SUBI()
 {
     ip++;
-    int b = stack.top().intvalue; stack.pop();
-    int a = stack.top().intvalue; stack.pop();
-    stack.push(StackEntry(a - b));
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_subtract(a, b)));
 }
 
 void Executor::exec_MULI()
 {
     ip++;
-    int b = stack.top().intvalue; stack.pop();
-    int a = stack.top().intvalue; stack.pop();
-    stack.push(StackEntry(a * b));
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_multiply(a, b)));
 }
 
 void Executor::exec_DIVI()
 {
     ip++;
-    int b = stack.top().intvalue; stack.pop();
-    int a = stack.top().intvalue; stack.pop();
-    stack.push(StackEntry(a / b));
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_divide(a, b)));
 }
 
 void Executor::exec_CALLP()
@@ -147,20 +149,18 @@ void Executor::exec_CALLP()
     ip += 5;
     std::string func = obj.strtable.at(val);
     if (func == "abs") {
-        int x = stack.top().intvalue; stack.pop();
-        stack.push(StackEntry(abs(x)));
+        Number x = stack.top().number_value; stack.pop();
+        stack.push(StackEntry(number_abs(x)));
     } else if (func == "concat") {
-        std::string y = stack.top().strvalue; stack.pop();
-        std::string x = stack.top().strvalue; stack.pop();
+        std::string y = stack.top().string_value; stack.pop();
+        std::string x = stack.top().string_value; stack.pop();
         stack.push(StackEntry(x + y));
     } else if (func == "print") {
-        std::string x = stack.top().strvalue; stack.pop();
+        std::string x = stack.top().string_value; stack.pop();
         out << x << std::endl;
     } else if (func == "str") {
-        int x = stack.top().intvalue; stack.pop();
-        std::stringstream s;
-        s << x;
-        stack.push(StackEntry(s.str()));
+        Number x = stack.top().number_value; stack.pop();
+        stack.push(StackEntry(number_to_string(x)));
     } else {
         fprintf(stderr, "simple: function not found: %s\n", func.c_str());
         abort();
@@ -186,8 +186,8 @@ void Executor::exec_JZ()
 {
     int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    int a = stack.top().intvalue; stack.pop();
-    if (a == 0) {
+    Number a = stack.top().number_value; stack.pop();
+    if (number_is_zero(a)) {
         ip = target;
     }
 }

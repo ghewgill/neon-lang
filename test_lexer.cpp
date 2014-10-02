@@ -16,7 +16,7 @@ int main()
     auto tokens = dump(tokenize("1 a ( ) := + - * / , IF THEN END \"a\""));
     assert(tokens.size() == 15);
     assert(tokens[0].type == NUMBER);
-    assert(tokens[0].value == 1);
+    assert(number_is_equal(tokens[0].value, number_from_uint32(1)));
     assert(tokens[1].type == IDENTIFIER);
     assert(tokens[1].text == "a");
     assert(tokens[2].type == LPAREN);

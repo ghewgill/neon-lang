@@ -20,7 +20,7 @@ int main()
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
         assert(svr->var->name == "a");
         auto *ce = dynamic_cast<const ConstantNumberExpression *>(as->expr);
-        assert(ce->value == 1);
+        assert(number_is_equal(ce->value, number_from_uint32(1)));
     }
 
     {
@@ -31,7 +31,7 @@ int main()
         assert(svr->var->name == "a");
         auto *ume = dynamic_cast<const UnaryMinusExpression *>(as->expr);
         auto *ce = dynamic_cast<const ConstantNumberExpression *>(ume->value);
-        assert(ce->value == 1);
+        assert(number_is_equal(ce->value, number_from_uint32(1)));
     }
 
     {
@@ -42,9 +42,9 @@ int main()
         assert(svr->var->name == "a");
         auto *ae = dynamic_cast<const AdditionExpression *>(as->expr);
         auto *ce = dynamic_cast<const ConstantNumberExpression *>(ae->left);
-        assert(ce->value == 1);
+        assert(number_is_equal(ce->value, number_from_uint32(1)));
         ce = dynamic_cast<const ConstantNumberExpression *>(ae->right);
-        assert(ce->value == 2);
+        assert(number_is_equal(ce->value, number_from_uint32(2)));
     }
 
     {
@@ -58,7 +58,7 @@ int main()
         assert(svr->var->name == "abs");
         assert(fc->args.size() == 1);
         auto *ce = dynamic_cast<const ConstantNumberExpression *>(fc->args[0]);
-        assert(ce->value == 1);
+        assert(number_is_equal(ce->value, number_from_uint32(1)));
     }
 
     {

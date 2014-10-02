@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "number.h"
+
 // Compiler
 class Emitter;
 
@@ -121,9 +123,9 @@ public:
 
 class ConstantNumberExpression: public Expression {
 public:
-    ConstantNumberExpression(int value): Expression(TYPE_NUMBER), value(value) {}
+    ConstantNumberExpression(Number value): Expression(TYPE_NUMBER), value(value) {}
 
-    const int value;
+    const Number value;
 
     virtual void generate(Emitter &emitter) const;
 

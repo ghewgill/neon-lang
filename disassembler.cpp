@@ -5,6 +5,7 @@
 #include <string>
 
 #include "bytecode.h"
+#include "number.h"
 #include "opcode.h"
 
 class Disassembler {
@@ -41,9 +42,10 @@ Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
 
 void Disassembler::disasm_PUSHI()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
-    out << "PUSHI " << val << "\n";
+    // TODO: endian
+    Number val = *reinterpret_cast<const Number *>(&obj.code[index+1]);
+    index += 1 + sizeof(val);
+    out << "PUSHI " << number_to_string(val) << "\n";
 }
 
 void Disassembler::disasm_PUSHS()

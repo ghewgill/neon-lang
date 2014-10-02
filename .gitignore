@@ -6,3 +6,5 @@ test_lexer
 test_parser
 test_interpreter
 test_compiler
+
+external/IntelRDFPMathLib20U1/

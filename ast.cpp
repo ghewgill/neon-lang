@@ -16,7 +16,7 @@ void AstNode::dump(std::ostream &out, int depth) const
 std::string ConstantNumberExpression::text() const
 {
     std::stringstream s;
-    s << "ConstantNumberExpression(" << value << ")";
+    s << "ConstantNumberExpression(" << number_to_string(value) << ")";
     return s.str();
 }
 

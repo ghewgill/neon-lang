@@ -7,6 +7,12 @@ coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darw
 
 env = Environment()
 
+env.Command("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "external/IntelRDFPMathLib20U1.tar.gz", "cd external && tar zxvf IntelRDFPMathLib20U1.tar.gz")
+libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.a", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
+
+env.Append(CPPPATH=[
+    "external/IntelRDFPMathLib20U1/LIBRARY/src",
+])
 env.Append(CXXFLAGS=[
     "-Wall",
     "-Wextra",
@@ -17,6 +23,7 @@ env.Append(CXXFLAGS=[
     "-Wno-unused-parameter",
     "-g",
 ])
+env.Append(LIBS=[libbid])
 
 if coverage:
     env.Append(CXXFLAGS=[
@@ -31,6 +38,7 @@ env.Program("simple", [
     "exec.cpp",
     "lexer.cpp",
     "main.cpp",
+    "number.cpp",
     "parser.cpp",
     "util.cpp",
 ] + coverage_lib,
@@ -49,6 +57,7 @@ SConsEnvironment.UnitTest = UnitTest
 env.UnitTest("test_lexer", [
     "test_lexer.cpp",
     "lexer.cpp",
+    "number.cpp",
     "util.cpp",
 ] + coverage_lib,
 )
@@ -59,6 +68,7 @@ env.UnitTest("test_parser", [
     "compiler.cpp",
     "parser.cpp",
     "lexer.cpp",
+    "number.cpp",
     "util.cpp",
 ] + coverage_lib,
 )
@@ -70,6 +80,7 @@ env.UnitTest("test_compiler", [
     "compiler.cpp",
     "disassembler.cpp",
     "lexer.cpp",
+    "number.cpp",
     "parser.cpp",
     "util.cpp",
 ] + coverage_lib,

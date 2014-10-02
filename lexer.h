@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "number.h"
+
 enum TokenType {
     NONE,
     END_OF_FILE,
@@ -36,7 +38,7 @@ public:
     int column;
     TokenType type;
     std::string text;
-    int value;
+    Number value;
 
     std::string tostring() const;
 };

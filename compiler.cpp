@@ -259,10 +259,9 @@ void Function::generate(Emitter &emitter) const
 void ConstantNumberExpression::generate(Emitter &emitter) const
 {
     emitter.emit(PUSHI);
-    emitter.emit(value >> 24);
-    emitter.emit(value >> 16);
-    emitter.emit(value >> 8);
-    emitter.emit(value);
+    // TODO: endian
+    const unsigned char *v = reinterpret_cast<const unsigned char *>(&value);
+    emitter.emit(std::vector<unsigned char>(v, v+sizeof(value)));
 }
 
 void ConstantStringExpression::generate(Emitter &emitter) const
