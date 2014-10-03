@@ -30,17 +30,17 @@ private:
     std::stack<Bytecode::bytecode::size_type> callstack;
     std::vector<StackEntry> vars;
 
-    void exec_PUSHI();
+    void exec_PUSHN();
     void exec_PUSHS();
-    void exec_LOADI();
+    void exec_LOADN();
     void exec_LOADS();
-    void exec_STOREI();
+    void exec_STOREN();
     void exec_STORES();
-    void exec_NEGI();
-    void exec_ADDI();
-    void exec_SUBI();
-    void exec_MULI();
-    void exec_DIVI();
+    void exec_NEGN();
+    void exec_ADDN();
+    void exec_SUBN();
+    void exec_MULN();
+    void exec_DIVN();
     void exec_CALLP();
     void exec_CALLF();
     void exec_JUMP();
@@ -53,7 +53,7 @@ Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
 {
 }
 
-void Executor::exec_PUSHI()
+void Executor::exec_PUSHN()
 {
     // TODO: endian
     Number val = *reinterpret_cast<const Number *>(&obj.code[ip+1]);
@@ -68,7 +68,7 @@ void Executor::exec_PUSHS()
     stack.push(StackEntry(obj.strtable[val]));
 }
 
-void Executor::exec_LOADI()
+void Executor::exec_LOADN()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
@@ -82,7 +82,7 @@ void Executor::exec_LOADS()
     stack.push(StackEntry(vars.at(addr).string_value));
 }
 
-void Executor::exec_STOREI()
+void Executor::exec_STOREN()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
@@ -104,14 +104,14 @@ void Executor::exec_STORES()
     vars[addr] = val;
 }
 
-void Executor::exec_NEGI()
+void Executor::exec_NEGN()
 {
     ip++;
     Number x = stack.top().number_value; stack.pop();
     stack.push(StackEntry(number_negate(x)));
 }
 
-void Executor::exec_ADDI()
+void Executor::exec_ADDN()
 {
     ip++;
     Number b = stack.top().number_value; stack.pop();
@@ -119,7 +119,7 @@ void Executor::exec_ADDI()
     stack.push(StackEntry(number_add(a, b)));
 }
 
-void Executor::exec_SUBI()
+void Executor::exec_SUBN()
 {
     ip++;
     Number b = stack.top().number_value; stack.pop();
@@ -127,7 +127,7 @@ void Executor::exec_SUBI()
     stack.push(StackEntry(number_subtract(a, b)));
 }
 
-void Executor::exec_MULI()
+void Executor::exec_MULN()
 {
     ip++;
     Number b = stack.top().number_value; stack.pop();
@@ -135,7 +135,7 @@ void Executor::exec_MULI()
     stack.push(StackEntry(number_multiply(a, b)));
 }
 
-void Executor::exec_DIVI()
+void Executor::exec_DIVN()
 {
     ip++;
     Number b = stack.top().number_value; stack.pop();
@@ -204,17 +204,17 @@ void Executor::exec()
     while (not callstack.empty() && ip < obj.code.size()) {
         //std::cerr << "ip " << ip << " op " << (int)obj.code[ip] << "\n";
         switch (obj.code[ip]) {
-            case PUSHI:  exec_PUSHI(); break;
+            case PUSHN:  exec_PUSHN(); break;
             case PUSHS:  exec_PUSHS(); break;
-            case LOADI:  exec_LOADI(); break;
+            case LOADN:  exec_LOADN(); break;
             case LOADS:  exec_LOADS(); break;
-            case STOREI: exec_STOREI(); break;
+            case STOREN: exec_STOREN(); break;
             case STORES: exec_STORES(); break;
-            case NEGI:   exec_NEGI(); break;
-            case ADDI:   exec_ADDI(); break;
-            case SUBI:   exec_SUBI(); break;
-            case MULI:   exec_MULI(); break;
-            case DIVI:   exec_DIVI(); break;
+            case NEGN:   exec_NEGN(); break;
+            case ADDN:   exec_ADDN(); break;
+            case SUBN:   exec_SUBN(); break;
+            case MULN:   exec_MULN(); break;
+            case DIVN:   exec_DIVN(); break;
             case CALLP:  exec_CALLP(); break;
             case CALLF:  exec_CALLF(); break;
             case JUMP:   exec_JUMP(); break;

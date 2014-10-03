@@ -17,17 +17,17 @@ private:
     const Bytecode obj;
     Bytecode::bytecode::size_type index;
 
-    void disasm_PUSHI();
+    void disasm_PUSHN();
     void disasm_PUSHS();
-    void disasm_LOADI();
+    void disasm_LOADN();
     void disasm_LOADS();
-    void disasm_STOREI();
+    void disasm_STOREN();
     void disasm_STORES();
-    void disasm_NEGI();
-    void disasm_ADDI();
-    void disasm_SUBI();
-    void disasm_MULI();
-    void disasm_DIVI();
+    void disasm_NEGN();
+    void disasm_ADDN();
+    void disasm_SUBN();
+    void disasm_MULN();
+    void disasm_DIVN();
     void disasm_CALLP();
     void disasm_CALLF();
     void disasm_JUMP();
@@ -40,12 +40,12 @@ Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
 {
 }
 
-void Disassembler::disasm_PUSHI()
+void Disassembler::disasm_PUSHN()
 {
     // TODO: endian
     Number val = *reinterpret_cast<const Number *>(&obj.code[index+1]);
     index += 1 + sizeof(val);
-    out << "PUSHI " << number_to_string(val) << "\n";
+    out << "PUSHN " << number_to_string(val) << "\n";
 }
 
 void Disassembler::disasm_PUSHS()
@@ -55,11 +55,11 @@ void Disassembler::disasm_PUSHS()
     out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
-void Disassembler::disasm_LOADI()
+void Disassembler::disasm_LOADN()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "LOADI " << val << "\n";
+    out << "LOADN " << val << "\n";
 }
 
 void Disassembler::disasm_LOADS()
@@ -69,11 +69,11 @@ void Disassembler::disasm_LOADS()
     out << "LOADS " << val << "\n";
 }
 
-void Disassembler::disasm_STOREI()
+void Disassembler::disasm_STOREN()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "STOREI " << val << "\n";
+    out << "STOREN " << val << "\n";
 }
 
 void Disassembler::disasm_STORES()
@@ -83,33 +83,33 @@ void Disassembler::disasm_STORES()
     out << "STORES " << val << "\n";
 }
 
-void Disassembler::disasm_NEGI()
+void Disassembler::disasm_NEGN()
 {
-    out << "NEGI\n";
+    out << "NEGN\n";
     index++;
 }
 
-void Disassembler::disasm_ADDI()
+void Disassembler::disasm_ADDN()
 {
-    out << "ADDI\n";
+    out << "ADDN\n";
     index++;
 }
 
-void Disassembler::disasm_SUBI()
+void Disassembler::disasm_SUBN()
 {
-    out << "SUBI\n";
+    out << "SUBN\n";
     index++;
 }
 
-void Disassembler::disasm_MULI()
+void Disassembler::disasm_MULN()
 {
-    out << "MULI\n";
+    out << "MULN\n";
     index++;
 }
 
-void Disassembler::disasm_DIVI()
+void Disassembler::disasm_DIVN()
 {
-    out << "DIVI\n";
+    out << "DIVN\n";
     index++;
 }
 
@@ -159,17 +159,17 @@ void Disassembler::disassemble()
     while (index < obj.code.size()) {
         out << index << " ";
         switch (obj.code[index]) {
-            case PUSHI:  disasm_PUSHI(); break;
+            case PUSHN:  disasm_PUSHN(); break;
             case PUSHS:  disasm_PUSHS(); break;
-            case LOADI:  disasm_LOADI(); break;
+            case LOADN:  disasm_LOADN(); break;
             case LOADS:  disasm_LOADS(); break;
-            case STOREI: disasm_STOREI(); break;
+            case STOREN: disasm_STOREN(); break;
             case STORES: disasm_STORES(); break;
-            case NEGI:   disasm_NEGI(); break;
-            case ADDI:   disasm_ADDI(); break;
-            case SUBI:   disasm_SUBI(); break;
-            case MULI:   disasm_MULI(); break;
-            case DIVI:   disasm_DIVI(); break;
+            case NEGN:   disasm_NEGN(); break;
+            case ADDN:   disasm_ADDN(); break;
+            case SUBN:   disasm_SUBN(); break;
+            case MULN:   disasm_MULN(); break;
+            case DIVN:   disasm_DIVN(); break;
             case CALLP:  disasm_CALLP(); break;
             case CALLF:  disasm_CALLF(); break;
             case JUMP:   disasm_JUMP(); break;

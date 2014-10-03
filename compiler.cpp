@@ -128,7 +128,7 @@ int Type::declare(const std::string &name, Emitter &emitter) const
 
 void TypeNumber::generate_load(Emitter &emitter, int index) const
 {
-    emitter.emit(LOADI);
+    emitter.emit(LOADN);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);
@@ -137,7 +137,7 @@ void TypeNumber::generate_load(Emitter &emitter, int index) const
 
 void TypeNumber::generate_store(Emitter &emitter, int index) const
 {
-    emitter.emit(STOREI);
+    emitter.emit(STOREN);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);
@@ -258,7 +258,7 @@ void Function::generate(Emitter &emitter) const
 
 void ConstantNumberExpression::generate(Emitter &emitter) const
 {
-    emitter.emit(PUSHI);
+    emitter.emit(PUSHN);
     // TODO: endian
     const unsigned char *v = reinterpret_cast<const unsigned char *>(&value);
     emitter.emit(std::vector<unsigned char>(v, v+sizeof(value)));
@@ -277,35 +277,35 @@ void ConstantStringExpression::generate(Emitter &emitter) const
 void UnaryMinusExpression::generate(Emitter &emitter) const
 {
     value->generate(emitter);
-    emitter.emit(NEGI);
+    emitter.emit(NEGN);
 }
 
 void AdditionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(ADDI);
+    emitter.emit(ADDN);
 }
 
 void SubtractionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(SUBI);
+    emitter.emit(SUBN);
 }
 
 void MultiplicationExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(MULI);
+    emitter.emit(MULN);
 }
 
 void DivisionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
-    emitter.emit(DIVI);
+    emitter.emit(DIVN);
 }
 
 void ScalarVariableReference::generate_load(Emitter &emitter) const
