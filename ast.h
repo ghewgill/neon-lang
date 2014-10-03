@@ -41,6 +41,17 @@ public:
 
 extern TypeNone *TYPE_NONE;
 
+class TypeBoolean: public Type {
+public:
+    virtual void generate_load(Emitter &emitter, int index) const;
+    virtual void generate_store(Emitter &emitter, int index) const;
+    virtual void generate_call(Emitter &emitter, int index) const;
+
+    virtual std::string text() const { return "TypeBoolean"; }
+};
+
+extern TypeBoolean *TYPE_BOOLEAN;
+
 class TypeNumber: public Type {
 public:
     virtual void generate_load(Emitter &emitter, int index) const;
@@ -119,6 +130,17 @@ public:
     virtual void generate(Emitter &emitter) const = 0;
 
     const Type *type;
+};
+
+class ConstantBooleanExpression: public Expression {
+public:
+    ConstantBooleanExpression(bool value): Expression(TYPE_BOOLEAN), value(value) {}
+
+    const bool value;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const;
 };
 
 class ConstantNumberExpression: public Expression {

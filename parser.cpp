@@ -64,6 +64,14 @@ static const Expression *parseFactor(Scope *scope, const std::vector<Token> &tok
             ++i;
             return expr;
         }
+        case FALSE: {
+            ++i;
+            return new ConstantBooleanExpression(false);
+        }
+        case TRUE: {
+            ++i;
+            return new ConstantBooleanExpression(true);
+        }
         case NUMBER: {
             return new ConstantNumberExpression(tokens[i++].value);
         }

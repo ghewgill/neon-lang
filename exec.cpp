@@ -12,8 +12,10 @@
 class StackEntry {
 public:
     StackEntry() {}
+    StackEntry(bool value): boolean_value(value) {}
     StackEntry(Number value): number_value(value) {}
     StackEntry(const std::string &value): string_value(value) {}
+    bool boolean_value;
     Number number_value;
     std::string string_value;
 };
@@ -30,10 +32,13 @@ private:
     std::stack<Bytecode::bytecode::size_type> callstack;
     std::vector<StackEntry> vars;
 
+    void exec_PUSHB();
     void exec_PUSHN();
     void exec_PUSHS();
+    void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
+    void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
     void exec_NEGN();
@@ -53,6 +58,13 @@ Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
 {
 }
 
+void Executor::exec_PUSHB()
+{
+    bool val = obj.code[ip+1] != 0;
+    ip += 2;
+    stack.push(StackEntry(val));
+}
+
 void Executor::exec_PUSHN()
 {
     // TODO: endian
@@ -68,6 +80,13 @@ void Executor::exec_PUSHS()
     stack.push(StackEntry(obj.strtable[val]));
 }
 
+void Executor::exec_LOADB()
+{
+    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    stack.push(StackEntry(vars.at(addr).boolean_value));
+}
+
 void Executor::exec_LOADN()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -80,6 +99,17 @@ void Executor::exec_LOADS()
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     stack.push(StackEntry(vars.at(addr).string_value));
+}
+
+void Executor::exec_STOREB()
+{
+    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    bool val = stack.top().boolean_value; stack.pop();
+    if (vars.size() < addr+1) {
+        vars.resize(addr+1);
+    }
+    vars[addr] = StackEntry(val);
 }
 
 void Executor::exec_STOREN()
@@ -204,10 +234,13 @@ void Executor::exec()
     while (not callstack.empty() && ip < obj.code.size()) {
         //std::cerr << "ip " << ip << " op " << (int)obj.code[ip] << "\n";
         switch (obj.code[ip]) {
+            case PUSHB:  exec_PUSHB(); break;
             case PUSHN:  exec_PUSHN(); break;
             case PUSHS:  exec_PUSHS(); break;
+            case LOADB:  exec_LOADB(); break;
             case LOADN:  exec_LOADN(); break;
             case LOADS:  exec_LOADS(); break;
+            case STOREB: exec_STOREB(); break;
             case STOREN: exec_STOREN(); break;
             case STORES: exec_STORES(); break;
             case NEGN:   exec_NEGN(); break;
@@ -221,7 +254,7 @@ void Executor::exec()
             case JZ:     exec_JZ(); break;
             case RET:    exec_RET(); break;
             default:
-                printf("exec: Unexpected opcode: %d\n", obj.code[ip]);
+                fprintf(stderr, "exec: Unexpected opcode: %d\n", obj.code[ip]);
                 abort();
         }
     }

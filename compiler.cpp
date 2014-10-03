@@ -126,6 +126,29 @@ int Type::declare(const std::string &name, Emitter &emitter) const
     return emitter.global(name);
 }
 
+void TypeBoolean::generate_load(Emitter &emitter, int index) const
+{
+    emitter.emit(LOADB);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
+}
+
+void TypeBoolean::generate_store(Emitter &emitter, int index) const
+{
+    emitter.emit(STOREB);
+    emitter.emit(index >> 24);
+    emitter.emit(index >> 16);
+    emitter.emit(index >> 8);
+    emitter.emit(index);
+}
+
+void TypeBoolean::generate_call(Emitter &emitter, int index) const
+{
+    assert(false);
+}
+
 void TypeNumber::generate_load(Emitter &emitter, int index) const
 {
     emitter.emit(LOADN);
@@ -254,6 +277,12 @@ void Function::postdeclare(Emitter &emitter)
 
 void Function::generate(Emitter &emitter) const
 {
+}
+
+void ConstantBooleanExpression::generate(Emitter &emitter) const
+{
+    emitter.emit(PUSHB);
+    emitter.emit(value ? 1 : 0);
 }
 
 void ConstantNumberExpression::generate(Emitter &emitter) const

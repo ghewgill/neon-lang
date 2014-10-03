@@ -2,10 +2,13 @@
 #define OPCODE_H
 
 enum {
+    PUSHB,
     PUSHN,
     PUSHS,
+    LOADB,
     LOADN,
     LOADS,
+    STOREB,
     STOREN,
     STORES,
     NEGN,

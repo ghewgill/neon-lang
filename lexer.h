@@ -29,6 +29,8 @@ enum TokenType {
     VAR,
     FUNCTION,
     RETURN,
+    FALSE,
+    TRUE,
 };
 
 class Token {

@@ -1,6 +1,9 @@
 VAR a: boolean
+VAR s: string
 a := TRUE
-print(str(a))
+IF a THEN
+    s := "true"
+END
+print(s)
 
-% TODO
-%= TRUE
+%= true

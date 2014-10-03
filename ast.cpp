@@ -4,6 +4,7 @@
 #include <sstream>
 
 TypeNone *TYPE_NONE = new TypeNone();
+TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber();
 TypeString *TYPE_STRING = new TypeString();
 
@@ -11,6 +12,13 @@ void AstNode::dump(std::ostream &out, int depth) const
 {
     out << std::string(depth*2, ' ') << text() << "\n";
     dumpsubnodes(out, depth);
+}
+
+std::string ConstantBooleanExpression::text() const
+{
+    std::stringstream s;
+    s << "ConstantBooleanExpression(" << value << ")";
+    return s.str();
 }
 
 std::string ConstantNumberExpression::text() const
@@ -87,6 +95,7 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
 Program::Program()
   : scope(new Scope(nullptr))
 {
+    scope->types["boolean"] = TYPE_BOOLEAN;
     scope->types["number"] = TYPE_NUMBER;
     scope->types["string"] = TYPE_STRING;
 

@@ -31,6 +31,8 @@ std::string Token::tostring() const
         case VAR:         s << "VAR"; break;
         case FUNCTION:    s << "FUNCTION"; break;
         case RETURN:      s << "RETURN"; break;
+        case FALSE:       s << "FALSE"; break;
+        case TRUE:        s << "TRUE"; break;
     }
     s << ">";
     return s.str();
@@ -83,6 +85,8 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "VAR") t.type = VAR;
             else if (t.text == "FUNCTION") t.type = FUNCTION;
             else if (t.text == "RETURN") t.type = RETURN;
+            else if (t.text == "FALSE") t.type = FALSE;
+            else if (t.text == "TRUE") t.type = TRUE;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
