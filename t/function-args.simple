@@ -1,0 +1,8 @@
+FUNCTION sq(x: number): number
+    RETURN x * x
+END
+
+print(str(sq(5)))
+
+% TODO
+%= 25
