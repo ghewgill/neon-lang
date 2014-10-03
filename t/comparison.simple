@@ -1,0 +1,16 @@
+VAR a: number
+VAR b: number
+a := 4
+b := 5
+print(str(a < b))
+print(str(a <= b))
+print(str(a = b))
+print(str(a >= b))
+print(str(a > b))
+
+% TODO
+%= TRUE
+%= TRUE
+%= FALSE
+%= FALSE
+%= FALSE

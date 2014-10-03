@@ -1,0 +1,6 @@
+VAR a: boolean
+a := TRUE
+print(str(a))
+
+% TODO
+%= TRUE

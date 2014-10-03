@@ -1,0 +1,12 @@
+% TODO
+VAR a: number
+VAR b: number
+a := 4
+b := 5
+print(str(a = 4 and b = 5))
+print(str(a = 0 or b = 5))
+print(str(a = 0 and b = 0))
+
+%= TRUE
+%= TRUE
+%= FALSE

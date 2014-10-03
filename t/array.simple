@@ -1,0 +1,9 @@
+% TODO
+VAR a: number[10]
+a[0] := 4
+a[1] := 5
+print(str(a[0]))
+print(str(a[1]))
+
+%= 4
+%= 5

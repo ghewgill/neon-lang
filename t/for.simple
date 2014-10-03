@@ -1,0 +1,11 @@
+% TODO
+VAR a: number
+FOR a IN 1 TO 5
+    print(str(a))
+END
+
+%= 1
+%= 2
+%= 3
+%= 4
+%= 5

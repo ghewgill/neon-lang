@@ -1,0 +1,28 @@
+% TODO
+VAR a: number
+VAR s: string
+a := 0
+WHILE a < 10
+    CASE a
+        WHEN < 2
+            print(str(a) + " less than two")
+        WHEN 2
+            print(str(a) + " is two")
+        WHEN 3..5
+            print(str(a) + " three to five")
+        ELSE
+            print(str(a) + " is something else")
+    END
+    a := a + 1
+END
+
+%= 0 less than two
+%= 1 less than two
+%= 2 is two
+%= 3 three to five
+%= 4 three to five
+%= 5 three to five
+%= 6 is something else
+%= 7 is something else
+%= 8 is something else
+%= 9 is something else

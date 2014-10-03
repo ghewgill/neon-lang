@@ -1,0 +1,13 @@
+% TODO
+TYPE point
+    x: number
+    y: number
+END
+VAR a: point
+VAR b: point
+a.x := 4
+a.y := 5
+b := a
+print(str(b.x) + "," + str(b.y))
+
+%= 4,5
