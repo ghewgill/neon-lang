@@ -1,16 +1,16 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
-enum {
+enum Opcode {
     PUSHB,
     PUSHN,
     PUSHS,
-    LOADB,
-    LOADN,
-    LOADS,
-    STOREB,
-    STOREN,
-    STORES,
+    LOADGB,
+    LOADGN,
+    LOADGS,
+    STOREGB,
+    STOREGN,
+    STOREGS,
     NEGN,
     ADDN,
     SUBN,

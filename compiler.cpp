@@ -128,7 +128,7 @@ int Type::declare(const std::string &name, Emitter &emitter) const
 
 void TypeBoolean::generate_load(Emitter &emitter, int index) const
 {
-    emitter.emit(LOADB);
+    emitter.emit(LOADGB);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);
@@ -137,7 +137,7 @@ void TypeBoolean::generate_load(Emitter &emitter, int index) const
 
 void TypeBoolean::generate_store(Emitter &emitter, int index) const
 {
-    emitter.emit(STOREB);
+    emitter.emit(STOREGB);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);
@@ -151,7 +151,7 @@ void TypeBoolean::generate_call(Emitter &emitter, int index) const
 
 void TypeNumber::generate_load(Emitter &emitter, int index) const
 {
-    emitter.emit(LOADN);
+    emitter.emit(LOADGN);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);
@@ -160,7 +160,7 @@ void TypeNumber::generate_load(Emitter &emitter, int index) const
 
 void TypeNumber::generate_store(Emitter &emitter, int index) const
 {
-    emitter.emit(STOREN);
+    emitter.emit(STOREGN);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);
@@ -174,7 +174,7 @@ void TypeNumber::generate_call(Emitter &emitter, int index) const
 
 void TypeString::generate_load(Emitter &emitter, int index) const
 {
-    emitter.emit(LOADS);
+    emitter.emit(LOADGS);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);
@@ -183,7 +183,7 @@ void TypeString::generate_load(Emitter &emitter, int index) const
 
 void TypeString::generate_store(Emitter &emitter, int index) const
 {
-    emitter.emit(STORES);
+    emitter.emit(STOREGS);
     emitter.emit(index >> 24);
     emitter.emit(index >> 16);
     emitter.emit(index >> 8);

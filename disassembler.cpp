@@ -17,12 +17,15 @@ private:
     const Bytecode obj;
     Bytecode::bytecode::size_type index;
 
+    void disasm_PUSHB();
     void disasm_PUSHN();
     void disasm_PUSHS();
-    void disasm_LOADN();
-    void disasm_LOADS();
-    void disasm_STOREN();
-    void disasm_STORES();
+    void disasm_LOADGB();
+    void disasm_LOADGN();
+    void disasm_LOADGS();
+    void disasm_STOREGB();
+    void disasm_STOREGN();
+    void disasm_STOREGS();
     void disasm_NEGN();
     void disasm_ADDN();
     void disasm_SUBN();
@@ -40,6 +43,13 @@ Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
 {
 }
 
+void Disassembler::disasm_PUSHB()
+{
+    bool val = obj.code[index+1] != 0;
+    index += 2;
+    out << "PUSHB " << val << "\n";
+}
+
 void Disassembler::disasm_PUSHN()
 {
     // TODO: endian
@@ -55,32 +65,46 @@ void Disassembler::disasm_PUSHS()
     out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
-void Disassembler::disasm_LOADN()
+void Disassembler::disasm_LOADGB()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "LOADN " << val << "\n";
+    out << "LOADGB " << addr << "\n";
 }
 
-void Disassembler::disasm_LOADS()
+void Disassembler::disasm_LOADGN()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "LOADS " << val << "\n";
+    out << "LOADGN " << addr << "\n";
 }
 
-void Disassembler::disasm_STOREN()
+void Disassembler::disasm_LOADGS()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "STOREN " << val << "\n";
+    out << "LOADGS " << addr << "\n";
 }
 
-void Disassembler::disasm_STORES()
+void Disassembler::disasm_STOREGB()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "STORES " << val << "\n";
+    out << "STOREGB " << addr << "\n";
+}
+
+void Disassembler::disasm_STOREGN()
+{
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "STOREGN " << addr << "\n";
+}
+
+void Disassembler::disasm_STOREGS()
+{
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "STOREGS " << addr << "\n";
 }
 
 void Disassembler::disasm_NEGN()
@@ -122,23 +146,23 @@ void Disassembler::disasm_CALLP()
 
 void Disassembler::disasm_CALLF()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "CALLF " << val << "\n";
+    out << "CALLF " << addr << "\n";
 }
 
 void Disassembler::disasm_JUMP()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "JUMP " << val << "\n";
+    out << "JUMP " << addr << "\n";
 }
 
 void Disassembler::disasm_JZ()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "JZ " << val << "\n";
+    out << "JZ " << addr << "\n";
 }
 
 void Disassembler::disasm_RET()
@@ -158,26 +182,31 @@ void Disassembler::disassemble()
     out << "]\n";
     while (index < obj.code.size()) {
         out << index << " ";
-        switch (obj.code[index]) {
-            case PUSHN:  disasm_PUSHN(); break;
-            case PUSHS:  disasm_PUSHS(); break;
-            case LOADN:  disasm_LOADN(); break;
-            case LOADS:  disasm_LOADS(); break;
-            case STOREN: disasm_STOREN(); break;
-            case STORES: disasm_STORES(); break;
-            case NEGN:   disasm_NEGN(); break;
-            case ADDN:   disasm_ADDN(); break;
-            case SUBN:   disasm_SUBN(); break;
-            case MULN:   disasm_MULN(); break;
-            case DIVN:   disasm_DIVN(); break;
-            case CALLP:  disasm_CALLP(); break;
-            case CALLF:  disasm_CALLF(); break;
-            case JUMP:   disasm_JUMP(); break;
-            case JZ:     disasm_JZ(); break;
-            case RET:    disasm_RET(); break;
-            default:
-                out << "disassembler: Unexpected opcode: " << obj.code[index] << "\n";
-                abort();
+        auto last_index = index;
+        switch (static_cast<Opcode>(obj.code[index])) {
+            case PUSHB:   disasm_PUSHB(); break;
+            case PUSHN:   disasm_PUSHN(); break;
+            case PUSHS:   disasm_PUSHS(); break;
+            case LOADGB:  disasm_LOADGB(); break;
+            case LOADGN:  disasm_LOADGN(); break;
+            case LOADGS:  disasm_LOADGS(); break;
+            case STOREGB: disasm_STOREGB(); break;
+            case STOREGN: disasm_STOREGN(); break;
+            case STOREGS: disasm_STOREGS(); break;
+            case NEGN:    disasm_NEGN(); break;
+            case ADDN:    disasm_ADDN(); break;
+            case SUBN:    disasm_SUBN(); break;
+            case MULN:    disasm_MULN(); break;
+            case DIVN:    disasm_DIVN(); break;
+            case CALLP:   disasm_CALLP(); break;
+            case CALLF:   disasm_CALLF(); break;
+            case JUMP:    disasm_JUMP(); break;
+            case JZ:      disasm_JZ(); break;
+            case RET:     disasm_RET(); break;
+        }
+        if (index == last_index) {
+            out << "disassembler: Unexpected opcode: " << obj.code[index] << "\n";
+            abort();
         }
     }
 }
