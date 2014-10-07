@@ -108,6 +108,7 @@ Program::Program()
         {"concat", TYPE_STRING, {TYPE_STRING, TYPE_STRING}},
         {"print",  TYPE_NONE,   {TYPE_STRING}},
         {"str",    TYPE_STRING, {TYPE_NUMBER}},
+        {"strb",   TYPE_STRING, {TYPE_BOOLEAN}},
     };
     for (auto f: BuiltinFunctions) {
         std::vector<const Type *> args;

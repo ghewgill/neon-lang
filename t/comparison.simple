@@ -1,16 +1,28 @@
 VAR a: number
 VAR b: number
+VAR c: number
+
 a := 4
 b := 5
-print(str(a < b))
-print(str(a <= b))
-print(str(a = b))
-print(str(a >= b))
-print(str(a > b))
+c := 6
 
-% TODO
+print(strb(a < b))
 %= TRUE
+
+print(strb(a <= b))
 %= TRUE
+
+print(strb(a = b))
 %= FALSE
+
+print(strb(a # b))
+%= TRUE
+
+print(strb(a >= b))
 %= FALSE
+
+print(strb(a > b))
 %= FALSE
+
+%print(strb(a < b < c))
+%% TRUE

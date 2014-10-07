@@ -309,6 +309,36 @@ void UnaryMinusExpression::generate(Emitter &emitter) const
     emitter.emit(NEGN);
 }
 
+void DisjunctionExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(ORB);
+}
+
+void ConjunctionExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(ANDB);
+}
+
+void NumericComparisonExpression::generate(Emitter &emitter) const
+{
+    static const Opcode op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(op[comp]);
+}
+
+void StringComparisonExpression::generate(Emitter &emitter) const
+{
+    static const Opcode op[] = {EQS, NES, LTS, GTS, LES, GES};
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(op[comp]);
+}
+
 void AdditionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);

@@ -180,6 +180,74 @@ public:
     }
 };
 
+class DisjunctionExpression: public Expression {
+public:
+    DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+        assert(left->type == TYPE_BOOLEAN);
+        assert(right->type == TYPE_BOOLEAN);
+    }
+
+    const Expression *const left;
+    const Expression *const right;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "DisjunctionExpression(" + left->text() + "," + right->text() + ")";
+    }
+};
+
+class ConjunctionExpression: public Expression {
+public:
+    ConjunctionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+        assert(left->type == TYPE_BOOLEAN);
+        assert(right->type == TYPE_BOOLEAN);
+    }
+
+    const Expression *const left;
+    const Expression *const right;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ConjunctionExpression(" + left->text() + "," + right->text() + ")";
+    }
+};
+
+class ComparisonExpression: public Expression {
+public:
+    enum Comparison {
+        EQ, NE, LT, GT, LE, GE
+    };
+    ComparisonExpression(const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN), left(left), right(right), comp(comp) {}
+
+    const Expression *const left;
+    const Expression *const right;
+    const Comparison comp;
+};
+
+class NumericComparisonExpression: public ComparisonExpression {
+public:
+    NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "NumericComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
+class StringComparisonExpression: public ComparisonExpression {
+public:
+    StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "StringComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
 class AdditionExpression: public Expression {
 public:
     AdditionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {

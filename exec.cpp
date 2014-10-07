@@ -15,6 +15,7 @@ public:
     StackEntry(bool value): boolean_value(value) {}
     StackEntry(Number value): number_value(value) {}
     StackEntry(const std::string &value): string_value(value) {}
+    StackEntry(const char *value): string_value(value) {}
     bool boolean_value;
     Number number_value;
     std::string string_value;
@@ -46,6 +47,20 @@ private:
     void exec_SUBN();
     void exec_MULN();
     void exec_DIVN();
+    void exec_EQN();
+    void exec_NEN();
+    void exec_LTN();
+    void exec_GTN();
+    void exec_LEN();
+    void exec_GEN();
+    void exec_EQS();
+    void exec_NES();
+    void exec_LTS();
+    void exec_GTS();
+    void exec_LES();
+    void exec_GES();
+    void exec_ANDB();
+    void exec_ORB();
     void exec_CALLP();
     void exec_CALLF();
     void exec_JUMP();
@@ -173,6 +188,118 @@ void Executor::exec_DIVN()
     stack.push(StackEntry(number_divide(a, b)));
 }
 
+void Executor::exec_EQN()
+{
+    ip++;
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_is_equal(a, b)));
+}
+
+void Executor::exec_NEN()
+{
+    ip++;
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_is_not_equal(a, b)));
+}
+
+void Executor::exec_LTN()
+{
+    ip++;
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_is_less(a, b)));
+}
+
+void Executor::exec_GTN()
+{
+    ip++;
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_is_greater(a, b)));
+}
+
+void Executor::exec_LEN()
+{
+    ip++;
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_is_less_equal(a, b)));
+}
+
+void Executor::exec_GEN()
+{
+    ip++;
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(StackEntry(number_is_greater_equal(a, b)));
+}
+
+void Executor::exec_EQS()
+{
+    ip++;
+    std::string b = stack.top().string_value; stack.pop();
+    std::string a = stack.top().string_value; stack.pop();
+    stack.push(StackEntry(a == b));
+}
+
+void Executor::exec_NES()
+{
+    ip++;
+    std::string b = stack.top().string_value; stack.pop();
+    std::string a = stack.top().string_value; stack.pop();
+    stack.push(StackEntry(a != b));
+}
+
+void Executor::exec_LTS()
+{
+    ip++;
+    std::string b = stack.top().string_value; stack.pop();
+    std::string a = stack.top().string_value; stack.pop();
+    stack.push(StackEntry(a < b));
+}
+
+void Executor::exec_GTS()
+{
+    ip++;
+    std::string b = stack.top().string_value; stack.pop();
+    std::string a = stack.top().string_value; stack.pop();
+    stack.push(StackEntry(a > b));
+}
+
+void Executor::exec_LES()
+{
+    ip++;
+    std::string b = stack.top().string_value; stack.pop();
+    std::string a = stack.top().string_value; stack.pop();
+    stack.push(StackEntry(a <= b));
+}
+
+void Executor::exec_GES()
+{
+    ip++;
+    std::string b = stack.top().string_value; stack.pop();
+    std::string a = stack.top().string_value; stack.pop();
+    stack.push(StackEntry(a >= b));
+}
+
+void Executor::exec_ANDB()
+{
+    ip++;
+    bool b = stack.top().boolean_value; stack.pop();
+    bool a = stack.top().boolean_value; stack.pop();
+    stack.push(StackEntry(a && b));
+}
+
+void Executor::exec_ORB()
+{
+    ip++;
+    bool b = stack.top().boolean_value; stack.pop();
+    bool a = stack.top().boolean_value; stack.pop();
+    stack.push(StackEntry(a || b));
+}
+
 void Executor::exec_CALLP()
 {
     size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -191,6 +318,9 @@ void Executor::exec_CALLP()
     } else if (func == "str") {
         Number x = stack.top().number_value; stack.pop();
         stack.push(StackEntry(number_to_string(x)));
+    } else if (func == "strb") {
+        bool x = stack.top().boolean_value; stack.pop();
+        stack.push(StackEntry(x ? "TRUE" : "FALSE"));
     } else {
         fprintf(stderr, "simple: function not found: %s\n", func.c_str());
         abort();
@@ -249,6 +379,20 @@ void Executor::exec()
             case SUBN:    exec_SUBN(); break;
             case MULN:    exec_MULN(); break;
             case DIVN:    exec_DIVN(); break;
+            case EQN:     exec_EQN(); break;
+            case NEN:     exec_NEN(); break;
+            case LTN:     exec_LTN(); break;
+            case GTN:     exec_GTN(); break;
+            case LEN:     exec_LEN(); break;
+            case GEN:     exec_GEN(); break;
+            case EQS:     exec_EQS(); break;
+            case NES:     exec_NES(); break;
+            case LTS:     exec_LTS(); break;
+            case GTS:     exec_GTS(); break;
+            case LES:     exec_LES(); break;
+            case GES:     exec_GES(); break;
+            case ANDB:    exec_ANDB(); break;
+            case ORB:     exec_ORB(); break;
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
             case JUMP:    exec_JUMP(); break;

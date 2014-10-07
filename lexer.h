@@ -20,6 +20,12 @@ enum TokenType {
     MINUS,
     TIMES,
     DIVIDE,
+    EQUAL,
+    NOTEQUAL,
+    LESS,
+    GREATER,
+    LESSEQ,
+    GREATEREQ,
     COMMA,
     IF,
     THEN,
@@ -31,6 +37,8 @@ enum TokenType {
     RETURN,
     FALSE,
     TRUE,
+    AND,
+    OR,
 };
 
 class Token {

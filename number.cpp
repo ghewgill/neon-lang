@@ -56,6 +56,31 @@ bool number_is_equal(Number x, Number y)
     return x.x == y.x;
 }
 
+bool number_is_not_equal(Number x, Number y)
+{
+    return x.x != y.x;
+}
+
+bool number_is_less(Number x, Number y)
+{
+    return x.x < y.x;
+}
+
+bool number_is_greater(Number x, Number y)
+{
+    return x.x > y.x;
+}
+
+bool number_is_less_equal(Number x, Number y)
+{
+    return x.x <= y.x;
+}
+
+bool number_is_greater_equal(Number x, Number y)
+{
+    return x.x >= y.x;
+}
+
 std::string number_to_string(Number x)
 {
     std::string r = std::to_string(x.x);
@@ -142,6 +167,31 @@ bool number_is_zero(Number x)
 bool number_is_equal(Number x, Number y)
 {
     return bid64_quiet_equal(x.x, y.x) != 0;
+}
+
+bool number_is_not_equal(Number x, Number y)
+{
+    return bid64_quiet_not_equal(x.x, y.x);
+}
+
+bool number_is_less(Number x, Number y)
+{
+    return bid64_quiet_less(x.x, y.x);
+}
+
+bool number_is_greater(Number x, Number y)
+{
+    return bid64_quiet_greater(x.x, y.x);
+}
+
+bool number_is_less_equal(Number x, Number y)
+{
+    return bid64_quiet_less_equal(x.x, y.x);
+}
+
+bool number_is_greater_equal(Number x, Number y)
+{
+    return bid64_quiet_greater_equal(x.x, y.x);
 }
 
 std::string number_to_string(Number x)

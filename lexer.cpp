@@ -22,6 +22,12 @@ std::string Token::tostring() const
         case MINUS:       s << "MINUS"; break;
         case TIMES:       s << "TIMES"; break;
         case DIVIDE:      s << "DIVIDE"; break;
+        case EQUAL:       s << "EQUAL"; break;
+        case NOTEQUAL:    s << "NOTEQUAL"; break;
+        case LESS:        s << "LESS"; break;
+        case GREATER:     s << "GREATER"; break;
+        case LESSEQ:      s << "LESSEQ"; break;
+        case GREATEREQ:   s << "GREATEREQ"; break;
         case COMMA:       s << "COMMA"; break;
         case IF:          s << "IF"; break;
         case THEN:        s << "THEN"; break;
@@ -33,6 +39,8 @@ std::string Token::tostring() const
         case RETURN:      s << "RETURN"; break;
         case FALSE:       s << "FALSE"; break;
         case TRUE:        s << "TRUE"; break;
+        case AND:         s << "AND"; break;
+        case OR:          s << "OR"; break;
     }
     s << ">";
     return s.str();
@@ -61,8 +69,26 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '-') { t.type = MINUS; i++; }
         else if (c == '*') { t.type = TIMES; i++; }
         else if (c == '/') { t.type = DIVIDE; i++; }
+        else if (c == '=') { t.type = EQUAL; i++; }
+        else if (c == '#') { t.type = NOTEQUAL; i++; }
         else if (c == ',') { t.type = COMMA; i++; }
-        else if (c == ':') {
+        else if (c == '<') {
+            if (source.at(i+1) == '=') {
+                t.type = LESSEQ;
+                i += 2;
+            } else {
+                t.type = LESS;
+                i++;
+            }
+        } else if (c == '>') {
+            if (source.at(i+1) == '=') {
+                t.type = GREATEREQ;
+                i += 2;
+            } else {
+                t.type = GREATER;
+                i++;
+            }
+        } else if (c == ':') {
             if (source.at(i+1) == '=') {
                 t.type = ASSIGN;
                 i += 2;
@@ -87,6 +113,8 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "RETURN") t.type = RETURN;
             else if (t.text == "FALSE") t.type = FALSE;
             else if (t.text == "TRUE") t.type = TRUE;
+            else if (t.text == "AND") t.type = AND;
+            else if (t.text == "OR") t.type = OR;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

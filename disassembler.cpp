@@ -31,6 +31,20 @@ private:
     void disasm_SUBN();
     void disasm_MULN();
     void disasm_DIVN();
+    void disasm_EQN();
+    void disasm_NEN();
+    void disasm_LTN();
+    void disasm_GTN();
+    void disasm_LEN();
+    void disasm_GEN();
+    void disasm_EQS();
+    void disasm_NES();
+    void disasm_LTS();
+    void disasm_GTS();
+    void disasm_LES();
+    void disasm_GES();
+    void disasm_ANDB();
+    void disasm_ORB();
     void disasm_CALLP();
     void disasm_CALLF();
     void disasm_JUMP();
@@ -137,6 +151,91 @@ void Disassembler::disasm_DIVN()
     index++;
 }
 
+void Disassembler::disasm_EQN()
+{
+    out << "EQN\n";
+    index++;
+}
+
+void Disassembler::disasm_NEN()
+{
+    out << "NEN\n";
+    index++;
+}
+
+void Disassembler::disasm_LTN()
+{
+    out << "LTN\n";
+    index++;
+}
+
+void Disassembler::disasm_GTN()
+{
+    out << "GTN\n";
+    index++;
+}
+
+void Disassembler::disasm_LEN()
+{
+    out << "LEN\n";
+    index++;
+}
+
+void Disassembler::disasm_GEN()
+{
+    out << "GEN\n";
+    index++;
+}
+
+void Disassembler::disasm_EQS()
+{
+    out << "EQS\n";
+    index++;
+}
+
+void Disassembler::disasm_NES()
+{
+    out << "NES\n";
+    index++;
+}
+
+void Disassembler::disasm_LTS()
+{
+    out << "LTS\n";
+    index++;
+}
+
+void Disassembler::disasm_GTS()
+{
+    out << "GTS\n";
+    index++;
+}
+
+void Disassembler::disasm_LES()
+{
+    out << "LES\n";
+    index++;
+}
+
+void Disassembler::disasm_GES()
+{
+    out << "GES\n";
+    index++;
+}
+
+
+void Disassembler::disasm_ANDB()
+{
+    out << "ANDB\n";
+    index++;
+}
+
+void Disassembler::disasm_ORB()
+{
+    out << "ORB\n";
+    index++;
+}
+
 void Disassembler::disasm_CALLP()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -198,6 +297,20 @@ void Disassembler::disassemble()
             case SUBN:    disasm_SUBN(); break;
             case MULN:    disasm_MULN(); break;
             case DIVN:    disasm_DIVN(); break;
+            case EQN:     disasm_EQN(); break;
+            case NEN:     disasm_NEN(); break;
+            case LTN:     disasm_LTN(); break;
+            case GTN:     disasm_GTN(); break;
+            case LEN:     disasm_LEN(); break;
+            case GEN:     disasm_GEN(); break;
+            case EQS:     disasm_EQS(); break;
+            case NES:     disasm_NES(); break;
+            case LTS:     disasm_LTS(); break;
+            case GTS:     disasm_GTS(); break;
+            case LES:     disasm_LES(); break;
+            case GES:     disasm_GES(); break;
+            case ANDB:    disasm_ANDB(); break;
+            case ORB:     disasm_ORB(); break;
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
             case JUMP:    disasm_JUMP(); break;

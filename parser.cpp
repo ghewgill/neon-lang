@@ -52,7 +52,18 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
     return new FunctionCall(ref, args);
 }
 
-static const Expression *parseFactor(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+/*
+ * Operator precedence:
+ *
+ *  ^        exponentiation             parseExponentiation
+ *  * /      multiplication, division   parseMultiplication
+ *  + -      addition, subtraction      parseAddition
+ *  < = >    comparison                 parseComparison
+ *  and      conjunction                parseConjunction
+ *  or       disjunction                parseDisjunction
+ */
+
+static const Expression *parseAtom(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     switch (tokens[i].type) {
         case LPAREN: {
@@ -81,7 +92,7 @@ static const Expression *parseFactor(Scope *scope, const std::vector<Token> &tok
         case MINUS: {
             auto op = i;
             ++i;
-            const Expression *factor = parseFactor(scope, tokens, i);
+            const Expression *factor = parseAtom(scope, tokens, i);
             if (factor->type != TYPE_NUMBER) {
                 error(tokens[op], "number required for negation");
             }
@@ -100,14 +111,14 @@ static const Expression *parseFactor(Scope *scope, const std::vector<Token> &tok
     }
 }
 
-static const Expression *parseTerm(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+static const Expression *parseMultiplication(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    const Expression *left = parseFactor(scope, tokens, i);
+    const Expression *left = parseAtom(scope, tokens, i);
     switch (tokens[i].type) {
         case TIMES: {
             auto op = i;
             ++i;
-            const Expression *right = parseFactor(scope, tokens, i);
+            const Expression *right = parseAtom(scope, tokens, i);
             if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
                 return new MultiplicationExpression(left, right);
             } else {
@@ -117,7 +128,7 @@ static const Expression *parseTerm(Scope *scope, const std::vector<Token> &token
         case DIVIDE: {
             auto op = i;
             ++i;
-            const Expression *right = parseFactor(scope, tokens, i);
+            const Expression *right = parseAtom(scope, tokens, i);
             if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
                 return new DivisionExpression(left, right);
             } else {
@@ -129,14 +140,14 @@ static const Expression *parseTerm(Scope *scope, const std::vector<Token> &token
     }
 }
 
-static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+static const Expression *parseAddition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    const Expression *left = parseTerm(scope, tokens, i);
+    const Expression *left = parseMultiplication(scope, tokens, i);
     switch (tokens[i].type) {
         case PLUS: {
             auto op = i;
             ++i;
-            const Expression *right = parseFactor(scope, tokens, i);
+            const Expression *right = parseMultiplication(scope, tokens, i);
             if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
                 return new AdditionExpression(left, right);
             } else if (left->type == TYPE_STRING && right->type == TYPE_STRING) {
@@ -151,7 +162,7 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
         case MINUS: {
             auto op = i;
             ++i;
-            const Expression *right = parseFactor(scope, tokens, i);
+            const Expression *right = parseMultiplication(scope, tokens, i);
             if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
                 return new SubtractionExpression(left, right);
             } else {
@@ -161,6 +172,82 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
         default:
             return left;
     }
+}
+
+static const Expression *parseComparison(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    const Expression *left = parseAddition(scope, tokens, i);
+    switch (tokens[i].type) {
+        case EQUAL:
+        case NOTEQUAL:
+        case LESS:
+        case GREATER:
+        case LESSEQ:
+        case GREATEREQ: {
+            ComparisonExpression::Comparison comp;
+            switch (tokens[i].type) {
+                case EQUAL:     comp = ComparisonExpression::EQ; break;
+                case NOTEQUAL:  comp = ComparisonExpression::NE; break;
+                case LESS:      comp = ComparisonExpression::LT; break;
+                case GREATER:   comp = ComparisonExpression::GT; break;
+                case LESSEQ:    comp = ComparisonExpression::LE; break;
+                case GREATEREQ: comp = ComparisonExpression::GE; break;
+                default:
+                    error(tokens[i], "internal error");
+            }
+            auto op = i;
+            ++i;
+            const Expression *right = parseAddition(scope, tokens, i);
+            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                return new NumericComparisonExpression(left, right, comp);
+            } else if (left->type == TYPE_STRING && right->type == TYPE_STRING) {
+                return new StringComparisonExpression(left, right, comp);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
+        }
+        default:
+            return left;
+    }
+}
+
+static const Expression *parseConjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    const Expression *left = parseComparison(scope, tokens, i);
+    if (tokens[i].type == AND) {
+        auto op = i;
+        ++i;
+        const Expression *right = parseComparison(scope, tokens, i);
+        if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
+            return new ConjunctionExpression(left, right);
+        } else {
+            error(tokens[op], "type mismatch");
+        }
+    } else {
+        return left;
+    }
+}
+
+static const Expression *parseDisjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    const Expression *left = parseConjunction(scope, tokens, i);
+    if (tokens[i].type == OR) {
+        auto op = i;
+        ++i;
+        const Expression *right = parseConjunction(scope, tokens, i);
+        if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
+            return new DisjunctionExpression(left, right);
+        } else {
+            error(tokens[op], "type mismatch");
+        }
+    } else {
+        return left;
+    }
+}
+
+static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    return parseDisjunction(scope, tokens, i);
 }
 
 static const Variable *parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
