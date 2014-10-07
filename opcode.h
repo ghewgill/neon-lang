@@ -16,6 +16,7 @@ enum Opcode {
     SUBN,
     MULN,
     DIVN,
+    EXPN,
     EQN,
     NEN,
     LTN,

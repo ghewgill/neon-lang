@@ -367,6 +367,13 @@ void DivisionExpression::generate(Emitter &emitter) const
     emitter.emit(DIVN);
 }
 
+void ExponentiationExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(EXPN);
+}
+
 void ScalarVariableReference::generate_load(Emitter &emitter) const
 {
     var->generate_load(emitter);

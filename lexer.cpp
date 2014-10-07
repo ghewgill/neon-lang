@@ -22,6 +22,7 @@ std::string Token::tostring() const
         case MINUS:       s << "MINUS"; break;
         case TIMES:       s << "TIMES"; break;
         case DIVIDE:      s << "DIVIDE"; break;
+        case EXP:         s << "EXP"; break;
         case EQUAL:       s << "EQUAL"; break;
         case NOTEQUAL:    s << "NOTEQUAL"; break;
         case LESS:        s << "LESS"; break;
@@ -69,6 +70,7 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '-') { t.type = MINUS; i++; }
         else if (c == '*') { t.type = TIMES; i++; }
         else if (c == '/') { t.type = DIVIDE; i++; }
+        else if (c == '^') { t.type = EXP; i++; }
         else if (c == '=') { t.type = EQUAL; i++; }
         else if (c == '#') { t.type = NOTEQUAL; i++; }
         else if (c == ',') { t.type = COMMA; i++; }

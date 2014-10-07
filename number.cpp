@@ -32,6 +32,12 @@ Number number_divide(Number x, Number y)
     return r;
 }
 
+Number number_pow(Number x, Number y)
+{
+    Number r;
+    r.x = pow(x.x, y.x);
+}
+
 Number number_negate(Number x)
 {
     Number r;
@@ -145,6 +151,13 @@ Number number_divide(Number x, Number y)
     return r;
 }
 
+Number number_pow(Number x, Number y)
+{
+    Number r;
+    r.x = bid64_pow(x.x, y.x);
+    return r;
+}
+
 Number number_negate(Number x)
 {
     Number r;
@@ -203,10 +216,31 @@ std::string number_to_string(Number x)
     if (strlen(buf) >= 3 && strcmp(&buf[strlen(buf)-3], "E+0") == 0) {
         buf[strlen(buf)-3] = '\0';
     }
-    const char *r = buf;
+    char *r = buf;
     if (*r == '+') {
         r++;
     }
+
+    // TODO: This hack converts xxxx0000E-4 to just xxxx.
+    char *p = r + strlen(r);
+    while (p > r && isdigit(p[-1])) {
+        p--;
+    }
+    if (p > r && p[-1] == '-') {
+        p--;
+        if (p > r && p[-1] == 'E') {
+            p--;
+            int z = std::stoi(p+2);
+            while (z > 0 && p > r && p[-1] == '0') {
+                p--;
+                z--;
+            }
+            if (z == 0) {
+                *p = '\0';
+            }
+        }
+    }
+
 
     return r;
 }

@@ -316,6 +316,23 @@ public:
     }
 };
 
+class ExponentiationExpression: public Expression {
+public:
+    ExponentiationExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+        assert(left->type == TYPE_NUMBER);
+        assert(right->type == TYPE_NUMBER);
+    }
+
+    const Expression *const left;
+    const Expression *const right;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ExponentiationExpression(" + left->text() + "," + right->text() + ")";
+    }
+};
+
 class VariableReference {
 public:
     VariableReference(const Type *type): type(type) {}

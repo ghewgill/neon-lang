@@ -111,14 +111,31 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
     }
 }
 
-static const Expression *parseMultiplication(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+static const Expression *parseExponentiation(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseAtom(scope, tokens, i);
+    if (tokens[i].type == EXP) {
+        auto op = i;
+        ++i;
+        const Expression *right = parseAtom(scope, tokens, i);
+        if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+            return new ExponentiationExpression(left, right);
+        } else {
+            error(tokens[op], "type mismatch");
+        }
+    } else {
+        return left;
+    }
+}
+
+static const Expression *parseMultiplication(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    const Expression *left = parseExponentiation(scope, tokens, i);
     switch (tokens[i].type) {
         case TIMES: {
             auto op = i;
             ++i;
-            const Expression *right = parseAtom(scope, tokens, i);
+            const Expression *right = parseExponentiation(scope, tokens, i);
             if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
                 return new MultiplicationExpression(left, right);
             } else {
@@ -128,7 +145,7 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
         case DIVIDE: {
             auto op = i;
             ++i;
-            const Expression *right = parseAtom(scope, tokens, i);
+            const Expression *right = parseExponentiation(scope, tokens, i);
             if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
                 return new DivisionExpression(left, right);
             } else {

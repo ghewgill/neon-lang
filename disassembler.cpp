@@ -31,6 +31,7 @@ private:
     void disasm_SUBN();
     void disasm_MULN();
     void disasm_DIVN();
+    void disasm_EXPN();
     void disasm_EQN();
     void disasm_NEN();
     void disasm_LTN();
@@ -148,6 +149,12 @@ void Disassembler::disasm_MULN()
 void Disassembler::disasm_DIVN()
 {
     out << "DIVN\n";
+    index++;
+}
+
+void Disassembler::disasm_EXPN()
+{
+    out << "EXPN\n";
     index++;
 }
 
@@ -297,6 +304,7 @@ void Disassembler::disassemble()
             case SUBN:    disasm_SUBN(); break;
             case MULN:    disasm_MULN(); break;
             case DIVN:    disasm_DIVN(); break;
+            case EXPN:    disasm_EXPN(); break;
             case EQN:     disasm_EQN(); break;
             case NEN:     disasm_NEN(); break;
             case LTN:     disasm_LTN(); break;
