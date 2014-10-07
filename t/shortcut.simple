@@ -1,0 +1,16 @@
+% TODO
+FUNCTION a(): boolean
+    print("a")
+    return FALSE
+END
+
+FUNCTION b(): boolean
+    print("b")
+    return TRUE
+END
+
+IF a() AND b() THEN
+    print("hi")
+END
+
+%= a
