@@ -1,6 +1,9 @@
 import os
 from SCons.Script.SConscript import SConsEnvironment
 
+# Assume a UTF-8 capable terminal.
+os.putenv("PYTHONIOENCODING", "UTF-8")
+
 coverage = ARGUMENTS.get("coverage", 0)
 # This is needed on OS X because clang has a bug where this isn't included automatically.
 coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darwin/libclang_rt.profile_osx.a"] if coverage else [])

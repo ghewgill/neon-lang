@@ -6,7 +6,7 @@ import sys
 def run(fn):
     print ("Running {}...".format(fn))
 
-    src = open(fn).read()
+    src = open(fn, encoding="UTF-8").read()
 
     all_comments = re.findall("^%(.*)$", src, re.MULTILINE)
     todo = any("TODO" in x for x in all_comments)

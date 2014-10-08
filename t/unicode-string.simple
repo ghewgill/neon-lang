@@ -1,0 +1,35 @@
+VAR ar: string
+VAR el: string
+VAR en: string
+VAR is: string
+VAR ja: string
+VAR ko: string
+VAR ru: string
+VAR zh: string
+
+ar := "مرحبا العالم"
+el := "Γεια σας, τον κόσμο"
+en := "hello, world"
+is := "halló, heimur"
+ja := "こんにちは、世界中のみなさん"
+ko := "안녕하세요, 세계"
+ru := "привет, мир"
+zh := "你好世界"
+
+print(ar)
+print(el)
+print(en)
+print(is)
+print(ja)
+print(ko)
+print(ru)
+print(zh)
+
+%= مرحبا العالم
+%= Γεια σας, τον κόσμο
+%= hello, world
+%= halló, heimur
+%= こんにちは、世界中のみなさん
+%= 안녕하세요, 세계
+%= привет, мир
+%= 你好世界
