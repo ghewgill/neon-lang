@@ -31,6 +31,7 @@ enum Opcode {
     GES,
     ANDB,
     ORB,
+    NOTB,
     CALLP,
     CALLF,
     JUMP,

@@ -42,6 +42,7 @@ std::string Token::tostring() const
         case TRUE:        s << "TRUE"; break;
         case AND:         s << "AND"; break;
         case OR:          s << "OR"; break;
+        case NOT:         s << "NOT"; break;
     }
     s << ">";
     return s.str();
@@ -117,6 +118,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "TRUE") t.type = TRUE;
             else if (t.text == "AND") t.type = AND;
             else if (t.text == "OR") t.type = OR;
+            else if (t.text == "NOT") t.type = NOT;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

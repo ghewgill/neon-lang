@@ -180,6 +180,21 @@ public:
     }
 };
 
+class LogicalNotExpression: public Expression {
+public:
+    LogicalNotExpression(const Expression *value): Expression(value->type), value(value) {
+        assert(type == TYPE_BOOLEAN);
+    }
+
+    const Expression *const value;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "LogicalNotExpression(" + value->text() + ")";
+    }
+};
+
 class DisjunctionExpression: public Expression {
 public:
     DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {

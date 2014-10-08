@@ -12,3 +12,6 @@ print(strb(a = 0 OR b = 5))
 
 print(strb(a = 0 AND b = 0))
 %= FALSE
+
+print(strb(NOT (a = 0)))
+%= TRUE

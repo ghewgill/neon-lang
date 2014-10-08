@@ -46,6 +46,7 @@ private:
     void disasm_GES();
     void disasm_ANDB();
     void disasm_ORB();
+    void disasm_NOTB();
     void disasm_CALLP();
     void disasm_CALLF();
     void disasm_JUMP();
@@ -243,6 +244,12 @@ void Disassembler::disasm_ORB()
     index++;
 }
 
+void Disassembler::disasm_NOTB()
+{
+    out << "NOTB\n";
+    index++;
+}
+
 void Disassembler::disasm_CALLP()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -319,6 +326,7 @@ void Disassembler::disassemble()
             case GES:     disasm_GES(); break;
             case ANDB:    disasm_ANDB(); break;
             case ORB:     disasm_ORB(); break;
+            case NOTB:    disasm_NOTB(); break;
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
             case JUMP:    disasm_JUMP(); break;

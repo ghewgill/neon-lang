@@ -62,6 +62,7 @@ private:
     void exec_GES();
     void exec_ANDB();
     void exec_ORB();
+    void exec_NOTB();
     void exec_CALLP();
     void exec_CALLF();
     void exec_JUMP();
@@ -309,6 +310,13 @@ void Executor::exec_ORB()
     stack.push(StackEntry(a || b));
 }
 
+void Executor::exec_NOTB()
+{
+    ip++;
+    bool x = stack.top().boolean_value; stack.pop();
+    stack.push(StackEntry(not x));
+}
+
 void Executor::exec_CALLP()
 {
     size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -403,6 +411,7 @@ void Executor::exec()
             case GES:     exec_GES(); break;
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
+            case NOTB:    exec_NOTB(); break;
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
             case JUMP:    exec_JUMP(); break;

@@ -309,6 +309,12 @@ void UnaryMinusExpression::generate(Emitter &emitter) const
     emitter.emit(NEGN);
 }
 
+void LogicalNotExpression::generate(Emitter &emitter) const
+{
+    value->generate(emitter);
+    emitter.emit(NOTB);
+}
+
 void DisjunctionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);

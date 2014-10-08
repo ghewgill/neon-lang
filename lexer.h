@@ -40,6 +40,7 @@ enum TokenType {
     TRUE,
     AND,
     OR,
+    NOT,
 };
 
 class Token {

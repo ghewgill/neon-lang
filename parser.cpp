@@ -98,6 +98,15 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
             }
             return new UnaryMinusExpression(factor);
         }
+        case NOT: {
+            auto op = i;
+            ++i;
+            const Expression *atom = parseAtom(scope, tokens, i);
+            if (atom->type != TYPE_BOOLEAN) {
+                error(tokens[op], "boolean required for logical not");
+            }
+            return new LogicalNotExpression(atom);
+        }
         case IDENTIFIER: {
             const VariableReference *ref = parseVariableReference(scope, tokens, i);
             if (tokens[i].type == LPAREN) {
