@@ -1,0 +1,10 @@
+% TODO
+VAR a: number
+
+a := 0.3
+print(a)
+%= 0.3
+
+a := 3.3e33
+print(a)
+%= 3.3e33
