@@ -1,4 +1,5 @@
 import os
+import tarfile
 from SCons.Script.SConscript import SConsEnvironment
 
 # Assume a UTF-8 capable terminal.
@@ -10,7 +11,7 @@ coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darw
 
 env = Environment()
 
-env.Command("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "external/IntelRDFPMathLib20U1.tar.gz", "cd external && tar zxvf IntelRDFPMathLib20U1.tar.gz")
+env.Command("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "external/IntelRDFPMathLib20U1.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
 libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.a", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
 
 env.Append(CPPPATH=[
@@ -46,6 +47,8 @@ env.Program("simple", [
     "util.cpp",
 ] + coverage_lib,
 )
+
+env.Depends("number.h", libbid)
 
 def UnitTest(env, target, source, **kwargs):
     t = env.Program(target, source, **kwargs)
