@@ -36,6 +36,7 @@ Number number_pow(Number x, Number y)
 {
     Number r;
     r.x = pow(x.x, y.x);
+    return r;
 }
 
 Number number_negate(Number x)
