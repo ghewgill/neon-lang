@@ -11,5 +11,7 @@ FUNCTION foo()
     print(outer)
 END
 
+foo()
+
 %= one
 %= two
