@@ -422,12 +422,18 @@ void ExpressionStatement::generate(Emitter &emitter) const
 void IfStatement::generate(Emitter &emitter) const
 {
     condition->generate(emitter);
-    auto skip = emitter.create_label();
-    emitter.emit_jump(JZ, skip);
-    for (auto stmt: statements) {
+    auto else_label = emitter.create_label();
+    auto end_label = emitter.create_label();
+    emitter.emit_jump(JZ, else_label);
+    for (auto stmt: then_statements) {
         stmt->generate(emitter);
     }
-    emitter.jump_target(skip);
+    emitter.emit_jump(JUMP, end_label);
+    emitter.jump_target(else_label);
+    for (auto stmt: else_statements) {
+        stmt->generate(emitter);
+    }
+    emitter.jump_target(end_label);
 }
 
 void ReturnStatement::generate(Emitter &emitter) const

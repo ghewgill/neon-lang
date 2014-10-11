@@ -6,7 +6,6 @@ IF a THEN
 END
 %= one
 
-% TODO
 a := 0
 IF a THEN
     print("nonzero")

@@ -455,11 +455,13 @@ public:
     virtual void dumpsubnodes(std::ostream &out, int depth) const;
 };
 
-class IfStatement: public CompoundStatement {
+class IfStatement: public Statement {
 public:
-    IfStatement(const Expression *condition, const std::vector<const Statement *> &statements): CompoundStatement(statements), condition(condition) {}
+    IfStatement(const Expression *condition, const std::vector<const Statement *> &then_statements, const std::vector<const Statement *> &else_statements): condition(condition), then_statements(then_statements), else_statements(else_statements) {}
 
     const Expression *condition;
+    const std::vector<const Statement *> then_statements;
+    const std::vector<const Statement *> else_statements;
 
     virtual void generate(Emitter &emitter) const;
 

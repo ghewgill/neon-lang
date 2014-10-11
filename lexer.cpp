@@ -32,6 +32,7 @@ std::string Token::tostring() const
         case COMMA:       s << "COMMA"; break;
         case IF:          s << "IF"; break;
         case THEN:        s << "THEN"; break;
+        case ELSE:        s << "ELSE"; break;
         case END:         s << "END"; break;
         case WHILE:       s << "WHILE"; break;
         case DO:          s << "DO"; break;
@@ -108,6 +109,7 @@ std::vector<Token> tokenize(const std::string &source)
             t.text = source.substr(i, j-i);
                  if (t.text == "IF") t.type = IF;
             else if (t.text == "THEN") t.type = THEN;
+            else if (t.text == "ELSE") t.type = ELSE;
             else if (t.text == "END") t.type = END;
             else if (t.text == "WHILE") t.type = WHILE;
             else if (t.text == "DO") t.type = DO;

@@ -372,18 +372,28 @@ static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> 
         error(tokens[i], "THEN expected");
     }
     ++i;
-    std::vector<const Statement *> statements;
-    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+    std::vector<const Statement *> then_statements;
+    std::vector<const Statement *> else_statements;
+    while (tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement(scope, tokens, i);
         if (s != nullptr) {
-            statements.push_back(s);
+            then_statements.push_back(s);
+        }
+    }
+    if (tokens[i].type == ELSE) {
+        ++i;
+        while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+            const Statement *s = parseStatement(scope, tokens, i);
+            if (s != nullptr) {
+                else_statements.push_back(s);
+            }
         }
     }
     if (tokens[i].type != END) {
         error(tokens[i], "END expected");
     }
     ++i;
-    return new IfStatement(cond, statements);
+    return new IfStatement(cond, then_statements, else_statements);
 }
 
 static const Statement *parseReturnStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)

@@ -80,8 +80,8 @@ int main()
         auto *ve = dynamic_cast<const VariableExpression *>(is->condition);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(ve->var);
         assert(svr->var->name == "a");
-        assert(is->statements.size() == 1);
-        auto *es = dynamic_cast<const ExpressionStatement *>(is->statements[0]);
+        assert(is->then_statements.size() == 1);
+        auto *es = dynamic_cast<const ExpressionStatement *>(is->then_statements[0]);
         assert(es != NULL);
     }
 }

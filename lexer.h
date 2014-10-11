@@ -30,6 +30,7 @@ enum TokenType {
     COMMA,
     IF,
     THEN,
+    ELSE,
     END,
     WHILE,
     DO,
