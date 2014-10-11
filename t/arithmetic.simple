@@ -18,3 +18,7 @@ print(str(a / b))
 
 print(str(a ^ b))
 %= 1024
+
+% TODO
+print(str(a MOD b))
+%= 4

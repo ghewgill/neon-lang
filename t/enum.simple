@@ -1,0 +1,17 @@
+% TODO
+
+ENUM colour
+    red
+    orange
+    yellow
+    green
+    blue
+    indigo
+    violet
+END
+
+VAR a: colour
+
+a := colour.red
+print(str(a))
+%= red

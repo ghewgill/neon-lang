@@ -1,0 +1,14 @@
+% TODO
+
+VAR a: number
+a := 5
+WHILE a > 0 DO
+    print(a)
+    IF a = 3 THEN
+        BREAK
+    END
+END
+
+%= 5
+%= 4
+%= 3

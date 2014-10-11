@@ -1,0 +1,9 @@
+% TODO
+
+VAR a: number
+
+FUNCTION foo()
+    VAR a: number
+END
+
+%! name shadows outer

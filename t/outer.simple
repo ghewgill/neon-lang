@@ -1,0 +1,15 @@
+% TODO
+
+FUNCTION foo()
+    VAR outer: string
+        FUNCTION bar()
+            outer := "two"
+        END
+    outer := "one"
+    print(outer)
+    bar()
+    print(outer)
+END
+
+%= one
+%= two
