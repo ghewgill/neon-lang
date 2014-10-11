@@ -424,7 +424,7 @@ void IfStatement::generate(Emitter &emitter) const
     condition->generate(emitter);
     auto else_label = emitter.create_label();
     auto end_label = emitter.create_label();
-    emitter.emit_jump(JZ, else_label);
+    emitter.emit_jump(JF, else_label);
     for (auto stmt: then_statements) {
         stmt->generate(emitter);
     }
@@ -448,7 +448,7 @@ void WhileStatement::generate(Emitter &emitter) const
     emitter.jump_target(top);
     condition->generate(emitter);
     auto skip = emitter.create_label();
-    emitter.emit_jump(JZ, skip);
+    emitter.emit_jump(JF, skip);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }

@@ -66,7 +66,7 @@ private:
     void exec_CALLP();
     void exec_CALLF();
     void exec_JUMP();
-    void exec_JZ();
+    void exec_JF();
     void exec_RET();
 };
 
@@ -359,12 +359,12 @@ void Executor::exec_JUMP()
     ip = target;
 }
 
-void Executor::exec_JZ()
+void Executor::exec_JF()
 {
     int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    Number a = stack.top().number_value; stack.pop();
-    if (number_is_zero(a)) {
+    bool a = stack.top().boolean_value; stack.pop();
+    if (not a) {
         ip = target;
     }
 }
@@ -415,7 +415,7 @@ void Executor::exec()
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
             case JUMP:    exec_JUMP(); break;
-            case JZ:      exec_JZ(); break;
+            case JF:      exec_JF(); break;
             case RET:     exec_RET(); break;
         }
         if (ip == last_ip) {

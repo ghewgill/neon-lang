@@ -367,7 +367,11 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
 static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     ++i;
+    auto j = i;
     const Expression *cond = parseExpression(scope, tokens, i);
+    if (cond->type != TYPE_BOOLEAN) {
+        error(tokens[j], "boolean value expected");
+    }
     if (tokens[i].type != THEN) {
         error(tokens[i], "THEN expected");
     }
@@ -414,7 +418,11 @@ static const Statement *parseVarStatement(Scope *scope, const std::vector<Token>
 static const Statement *parseWhileStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     ++i;
+    auto j = i;
     const Expression *cond = parseExpression(scope, tokens, i);
+    if (cond->type != TYPE_BOOLEAN) {
+        error(tokens[j], "boolean value expected");
+    }
     if (tokens[i].type != DO) {
         error(tokens[i], "DO expected");
     }

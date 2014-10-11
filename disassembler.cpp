@@ -50,7 +50,7 @@ private:
     void disasm_CALLP();
     void disasm_CALLF();
     void disasm_JUMP();
-    void disasm_JZ();
+    void disasm_JF();
     void disasm_RET();
 };
 
@@ -271,11 +271,11 @@ void Disassembler::disasm_JUMP()
     out << "JUMP " << addr << "\n";
 }
 
-void Disassembler::disasm_JZ()
+void Disassembler::disasm_JF()
 {
     int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "JZ " << addr << "\n";
+    out << "JF " << addr << "\n";
 }
 
 void Disassembler::disasm_RET()
@@ -330,7 +330,7 @@ void Disassembler::disassemble()
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
             case JUMP:    disasm_JUMP(); break;
-            case JZ:      disasm_JZ(); break;
+            case JF:      disasm_JF(); break;
             case RET:     disasm_RET(); break;
         }
         if (index == last_index) {

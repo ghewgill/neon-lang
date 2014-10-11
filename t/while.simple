@@ -1,6 +1,6 @@
 VAR a: number
 a := 5
-WHILE a DO
+WHILE a > 0 DO
     print(str(a))
     a := a - 1
 END

@@ -35,7 +35,7 @@ enum Opcode {
     CALLP,
     CALLF,
     JUMP,
-    JZ,
+    JF,
     RET,
 };
 
