@@ -30,7 +30,18 @@ def run(fn):
                 return False
             assert p.returncode == 0, p.returncode
 
-    assert expected_stderr in err, (err, expected_stderr)
+    if expected_stderr not in err:
+        print("*** EXPECTED ERROR")
+        print()
+        sys.stdout.write(expected_stderr)
+        print()
+        print("*** ACTUAL ERROR")
+        print()
+        sys.stdout.write(err)
+        if todo:
+            return False
+        sys.exit(1)
+
     if out != expected_stdout:
         print("*** EXPECTED OUTPUT")
         print()
