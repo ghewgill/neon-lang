@@ -2,41 +2,41 @@
 #define OPCODE_H
 
 enum Opcode {
-    PUSHB,
-    PUSHN,
-    PUSHS,
-    LOADGB,
-    LOADGN,
-    LOADGS,
-    STOREGB,
-    STOREGN,
-    STOREGS,
-    NEGN,
-    ADDN,
-    SUBN,
-    MULN,
-    DIVN,
-    EXPN,
-    EQN,
-    NEN,
-    LTN,
-    GTN,
-    LEN,
-    GEN,
-    EQS,
-    NES,
-    LTS,
-    GTS,
-    LES,
-    GES,
-    ANDB,
-    ORB,
-    NOTB,
-    CALLP,
-    CALLF,
-    JUMP,
-    JF,
-    RET,
+    PUSHB,      // push boolean immediate
+    PUSHN,      // push number immediate
+    PUSHS,      // push string immediate
+    LOADGB,     // load global boolean
+    LOADGN,     // load global number
+    LOADGS,     // load global string
+    STOREGB,    // store global boolean
+    STOREGN,    // store global number
+    STOREGS,    // store global string
+    NEGN,       // negate number
+    ADDN,       // add number
+    SUBN,       // subtract number
+    MULN,       // multiply number
+    DIVN,       // divide number
+    EXPN,       // exponentiate number
+    EQN,        // compare equal number
+    NEN,        // compare unequal number
+    LTN,        // compare less number
+    GTN,        // compare greater number
+    LEN,        // compare less equal number
+    GEN,        // compare greater equal number
+    EQS,        // compare equal string
+    NES,        // compare unequal string
+    LTS,        // compare less string
+    GTS,        // compare greater string
+    LES,        // compare less equal string
+    GES,        // compare greater equal string
+    ANDB,       // and boolean
+    ORB,        // or boolean
+    NOTB,       // not boolean
+    CALLP,      // call predefined
+    CALLF,      // call function
+    JUMP,       // unconditional jump
+    JF,         // jump if false
+    RET,        // return
 };
 
 #endif
