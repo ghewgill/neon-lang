@@ -25,16 +25,16 @@ private:
 class Type: public AstNode {
 public:
     virtual int declare(const std::string &name, Emitter &emitter) const;
-    virtual void generate_load(Emitter &emitter, int index) const = 0;
-    virtual void generate_store(Emitter &emitter, int index) const = 0;
-    virtual void generate_call(Emitter &emitter, int index) const = 0;
+    virtual void generate_load(Emitter &emitter) const = 0;
+    virtual void generate_store(Emitter &emitter) const = 0;
+    virtual void generate_call(Emitter &emitter) const = 0;
 };
 
 class TypeNone: public Type {
 public:
-    virtual void generate_load(Emitter &emitter, int index) const {}
-    virtual void generate_store(Emitter &emitter, int index) const {}
-    virtual void generate_call(Emitter &emitter, int index) const {}
+    virtual void generate_load(Emitter &emitter) const {}
+    virtual void generate_store(Emitter &emitter) const {}
+    virtual void generate_call(Emitter &emitter) const {}
 
     virtual std::string text() const { return "TypeNone"; }
 };
@@ -43,9 +43,9 @@ extern TypeNone *TYPE_NONE;
 
 class TypeBoolean: public Type {
 public:
-    virtual void generate_load(Emitter &emitter, int index) const;
-    virtual void generate_store(Emitter &emitter, int index) const;
-    virtual void generate_call(Emitter &emitter, int index) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeBoolean"; }
 };
@@ -54,9 +54,9 @@ extern TypeBoolean *TYPE_BOOLEAN;
 
 class TypeNumber: public Type {
 public:
-    virtual void generate_load(Emitter &emitter, int index) const;
-    virtual void generate_store(Emitter &emitter, int index) const;
-    virtual void generate_call(Emitter &emitter, int index) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitterindex) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeNumber"; }
 };
@@ -65,9 +65,9 @@ extern TypeNumber *TYPE_NUMBER;
 
 class TypeString: public Type {
 public:
-    virtual void generate_load(Emitter &emitter, int index) const;
-    virtual void generate_store(Emitter &emitter, int index) const;
-    virtual void generate_call(Emitter &emitter, int index) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeString"; }
 };
@@ -78,25 +78,14 @@ class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const Type *> &args): returntype(returntype), args(args) {}
     virtual int declare(const std::string &name, Emitter &emitter) const { assert(false); }
-    virtual void generate_load(Emitter &emitter, int index) const;
-    virtual void generate_store(Emitter &emitter, int index) const;
-    virtual void generate_call(Emitter &emitter, int index) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     const Type *returntype;
     const std::vector<const Type *> args;
 
     virtual std::string text() const { return "TypeFunction(...)"; }
-};
-
-class TypePredefinedFunction: public TypeFunction {
-public:
-    TypePredefinedFunction(const Type *returntype, const std::vector<const Type *> &args): TypeFunction(returntype, args) {}
-    virtual int declare(const std::string &name, Emitter &emitter) const;
-    virtual void generate_load(Emitter &emitter, int index) const;
-    virtual void generate_store(Emitter &emitter, int index) const;
-    virtual void generate_call(Emitter &emitter, int index) const;
-
-    virtual std::string text() const { return "TypePredefinedFunction(...)"; }
 };
 
 class Name: public AstNode {
@@ -116,6 +105,7 @@ public:
     int index;
 
     virtual void predeclare(Emitter &emitter);
+    virtual void generate_address(Emitter &emitter) const;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -505,13 +495,25 @@ public:
 
     std::vector<const Statement *> statements;
 
-    const Type *makeFunctionType(const Type *returntype, const std::vector<const Variable *> &args);
+    static const Type *makeFunctionType(const Type *returntype, const std::vector<const Variable *> &args);
 
     virtual void predeclare(Emitter &emitter);
     virtual void postdeclare(Emitter &emitter);
     virtual void generate(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "Function(" + name + ", " + type->text() + ")"; }
+};
+
+class PredefinedFunction: public Variable {
+public:
+    PredefinedFunction(const std::string &name, const Type *type): Variable(name, type) {}
+    int name_index;
+
+    virtual void predeclare(Emitter &emitter);
+    virtual void generate_call(Emitter &emitter) const;
+
+    virtual std::string text() const { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
 };
 
 class Program: public AstNode {

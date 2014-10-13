@@ -136,112 +136,64 @@ int Type::declare(const std::string &name, Emitter &emitter) const
     return emitter.global(name);
 }
 
-void TypeBoolean::generate_load(Emitter &emitter, int index) const
+void TypeBoolean::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADGB);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    emitter.emit(LOADB);
 }
 
-void TypeBoolean::generate_store(Emitter &emitter, int index) const
+void TypeBoolean::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREGB);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    emitter.emit(STOREB);
 }
 
-void TypeBoolean::generate_call(Emitter &emitter, int index) const
+void TypeBoolean::generate_call(Emitter &emitter) const
 {
     assert(false);
 }
 
-void TypeNumber::generate_load(Emitter &emitter, int index) const
+void TypeNumber::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADGN);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    emitter.emit(LOADN);
 }
 
-void TypeNumber::generate_store(Emitter &emitter, int index) const
+void TypeNumber::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREGN);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    emitter.emit(STOREN);
 }
 
-void TypeNumber::generate_call(Emitter &emitter, int index) const
+void TypeNumber::generate_call(Emitter &emitter) const
 {
     assert(false);
 }
 
-void TypeString::generate_load(Emitter &emitter, int index) const
+void TypeString::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADGS);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    emitter.emit(LOADS);
 }
 
-void TypeString::generate_store(Emitter &emitter, int index) const
+void TypeString::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREGS);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    emitter.emit(STORES);
 }
 
-void TypeString::generate_call(Emitter &emitter, int index) const
+void TypeString::generate_call(Emitter &emitter) const
 {
     assert(false);
 }
 
-void TypeFunction::generate_load(Emitter &emitter, int index) const
+void TypeFunction::generate_load(Emitter &emitter) const
 {
     assert(false);
 }
 
-void TypeFunction::generate_store(Emitter &emitter, int index) const
+void TypeFunction::generate_store(Emitter &emitter) const
 {
     assert(false);
 }
 
-void TypeFunction::generate_call(Emitter &emitter, int index) const
-{
-    emitter.emit_jump(CALLF, emitter.function_label(index));
-}
-
-int TypePredefinedFunction::declare(const std::string &name, Emitter &emitter) const
-{
-    return emitter.str(name);
-}
-
-void TypePredefinedFunction::generate_load(Emitter &emitter, int index) const
+void TypeFunction::generate_call(Emitter &emitter) const
 {
     assert(false);
-}
-
-void TypePredefinedFunction::generate_store(Emitter &emitter, int index) const
-{
-    assert(false);
-}
-
-void TypePredefinedFunction::generate_call(Emitter &emitter, int index) const
-{
-    emitter.emit(CALLP);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
 }
 
 void Variable::predeclare(Emitter &emitter)
@@ -251,19 +203,24 @@ void Variable::predeclare(Emitter &emitter)
     }
 }
 
+void Variable::generate_address(Emitter &emitter) const
+{
+    emitter.emit(PUSHAG, index);
+}
+
 void Variable::generate_load(Emitter &emitter) const
 {
-    type->generate_load(emitter, index);
+    type->generate_load(emitter);
 }
 
 void Variable::generate_store(Emitter &emitter) const
 {
-    type->generate_store(emitter, index);
+    type->generate_store(emitter);
 }
 
 void Variable::generate_call(Emitter &emitter) const
 {
-    type->generate_call(emitter, index);
+    type->generate_call(emitter);
 }
 
 void Function::predeclare(Emitter &emitter)
@@ -287,6 +244,21 @@ void Function::postdeclare(Emitter &emitter)
 
 void Function::generate(Emitter &emitter) const
 {
+}
+
+void Function::generate_call(Emitter &emitter) const
+{
+    emitter.emit_jump(CALLF, emitter.function_label(index));
+}
+
+void PredefinedFunction::predeclare(Emitter &emitter)
+{
+    name_index = emitter.str(name);
+}
+
+void PredefinedFunction::generate_call(Emitter &emitter) const
+{
+    emitter.emit(CALLP, name_index);
 }
 
 void ConstantBooleanExpression::generate(Emitter &emitter) const
@@ -388,11 +360,13 @@ void ExponentiationExpression::generate(Emitter &emitter) const
 
 void ScalarVariableReference::generate_load(Emitter &emitter) const
 {
+    var->generate_address(emitter);
     var->generate_load(emitter);
 }
 
 void ScalarVariableReference::generate_store(Emitter &emitter) const
 {
+    var->generate_address(emitter);
     var->generate_store(emitter);
 }
 

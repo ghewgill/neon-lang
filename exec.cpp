@@ -12,13 +12,22 @@
 class StackEntry {
 public:
     StackEntry() {}
+    StackEntry(void *value): address_value(value) {}
     StackEntry(bool value): boolean_value(value) {}
     StackEntry(Number value): number_value(value) {}
     StackEntry(const std::string &value): string_value(value) {}
     StackEntry(const char *value): string_value(value) {}
+    void *address_value;
     bool boolean_value;
     Number number_value;
     std::string string_value;
+};
+
+class ActivationFrame {
+public:
+    ActivationFrame(size_t count): locals(count) {}
+    // TODO (for nested functions) std::vector<ActivationFrame *> outer;
+    std::vector<StackEntry> locals;
 };
 
 class Executor {
@@ -32,16 +41,21 @@ private:
     std::stack<StackEntry> stack;
     std::stack<Bytecode::bytecode::size_type> callstack;
     std::vector<StackEntry> globals;
+    std::vector<ActivationFrame> frames;
 
+    void exec_ENTER();
+    void exec_LEAVE();
     void exec_PUSHB();
     void exec_PUSHN();
     void exec_PUSHS();
-    void exec_LOADGB();
-    void exec_LOADGN();
-    void exec_LOADGS();
-    void exec_STOREGB();
-    void exec_STOREGN();
-    void exec_STOREGS();
+    void exec_PUSHAG();
+    void exec_PUSHAL();
+    void exec_LOADB();
+    void exec_LOADN();
+    void exec_LOADS();
+    void exec_STOREB();
+    void exec_STOREN();
+    void exec_STORES();
     void exec_NEGN();
     void exec_ADDN();
     void exec_SUBN();
@@ -75,6 +89,18 @@ Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
 {
 }
 
+void Executor::exec_ENTER()
+{
+    int val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    frames.push_back(ActivationFrame(val));
+}
+
+void Executor::exec_LEAVE()
+{
+    frames.pop_back();
+}
+
 void Executor::exec_PUSHB()
 {
     bool val = obj.code[ip+1] != 0;
@@ -97,58 +123,66 @@ void Executor::exec_PUSHS()
     stack.push(StackEntry(obj.strtable[val]));
 }
 
-void Executor::exec_LOADGB()
+void Executor::exec_PUSHAG()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    stack.push(StackEntry(globals.at(addr).boolean_value));
+    if (globals.size() < addr+1) {
+        globals.resize(addr+1);
+    }
+    stack.push(StackEntry(&globals.at(addr)));
 }
 
-void Executor::exec_LOADGN()
+void Executor::exec_PUSHAL()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    stack.push(StackEntry(globals.at(addr).number_value));
+    stack.push(StackEntry(&frames.back().locals.at(addr)));
 }
 
-void Executor::exec_LOADGS()
+void Executor::exec_LOADB()
 {
-    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    ip += 5;
-    stack.push(StackEntry(globals.at(addr).string_value));
+    ip++;
+    void *addr = stack.top().address_value; stack.pop();
+    stack.push(static_cast<StackEntry *>(addr)->boolean_value);
 }
 
-void Executor::exec_STOREGB()
+void Executor::exec_LOADN()
 {
-    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    ip += 5;
+    ip++;
+    void *addr = stack.top().address_value; stack.pop();
+    stack.push(static_cast<StackEntry *>(addr)->number_value);
+}
+
+void Executor::exec_LOADS()
+{
+    ip++;
+    void *addr = stack.top().address_value; stack.pop();
+    stack.push(static_cast<StackEntry *>(addr)->string_value);
+}
+
+void Executor::exec_STOREB()
+{
+    ip++;
+    void *addr = stack.top().address_value; stack.pop();
     bool val = stack.top().boolean_value; stack.pop();
-    if (globals.size() < addr+1) {
-        globals.resize(addr+1);
-    }
-    globals[addr] = StackEntry(val);
+    *static_cast<StackEntry *>(addr) = StackEntry(val);
 }
 
-void Executor::exec_STOREGN()
+void Executor::exec_STOREN()
 {
-    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    ip += 5;
+    ip++;
+    void *addr = stack.top().address_value; stack.pop();
     Number val = stack.top().number_value; stack.pop();
-    if (globals.size() < addr+1) {
-        globals.resize(addr+1);
-    }
-    globals[addr] = StackEntry(val);
+    *static_cast<StackEntry *>(addr) = StackEntry(val);
 }
 
-void Executor::exec_STOREGS()
+void Executor::exec_STORES()
 {
-    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    ip += 5;
+    ip++;
+    void *addr = stack.top().address_value; stack.pop();
     std::string val = stack.top().string_value; stack.pop();
-    if (globals.size() < addr+1) {
-        globals.resize(addr+1);
-    }
-    globals[addr] = val;
+    *static_cast<StackEntry *>(addr) = StackEntry(val);
 }
 
 void Executor::exec_NEGN()
@@ -382,15 +416,19 @@ void Executor::exec()
         //std::cerr << "ip " << ip << " op " << (int)obj.code[ip] << "\n";
         auto last_ip = ip;
         switch (static_cast<Opcode>(obj.code[ip])) {
+            case ENTER:   exec_ENTER(); break;
+            case LEAVE:   exec_LEAVE(); break;
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
-            case LOADGB:  exec_LOADGB(); break;
-            case LOADGN:  exec_LOADGN(); break;
-            case LOADGS:  exec_LOADGS(); break;
-            case STOREGB: exec_STOREGB(); break;
-            case STOREGN: exec_STOREGN(); break;
-            case STOREGS: exec_STOREGS(); break;
+            case PUSHAG:  exec_PUSHAG(); break;
+            case PUSHAL:  exec_PUSHAL(); break;
+            case LOADB:   exec_LOADB(); break;
+            case LOADN:   exec_LOADN(); break;
+            case LOADS:   exec_LOADS(); break;
+            case STOREB:  exec_STOREB(); break;
+            case STOREN:  exec_STOREN(); break;
+            case STORES:  exec_STORES(); break;
             case NEGN:    exec_NEGN(); break;
             case ADDN:    exec_ADDN(); break;
             case SUBN:    exec_SUBN(); break;

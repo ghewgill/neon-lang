@@ -2,15 +2,19 @@
 #define OPCODE_H
 
 enum Opcode {
+    ENTER,      // enter function scope
+    LEAVE,      // leave function scope
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate
-    LOADGB,     // load global boolean
-    LOADGN,     // load global number
-    LOADGS,     // load global string
-    STOREGB,    // store global boolean
-    STOREGN,    // store global number
-    STOREGS,    // store global string
+    PUSHAG,     // push address of global
+    PUSHAL,     // push address of local
+    LOADB,      // load boolean
+    LOADN,      // load number
+    LOADS,      // load string
+    STOREB,     // store boolean
+    STOREN,     // store number
+    STORES,     // store string
     NEGN,       // negate number
     ADDN,       // add number
     SUBN,       // subtract number

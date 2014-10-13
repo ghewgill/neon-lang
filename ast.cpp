@@ -118,7 +118,7 @@ Program::Program()
             }
             args.push_back(a);
         }
-        scope->names[f.name] = new Variable(f.name, new TypePredefinedFunction(f.returntype, args));
+        scope->names[f.name] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, args));
     }
 }
 

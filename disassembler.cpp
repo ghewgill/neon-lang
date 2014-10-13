@@ -17,15 +17,19 @@ private:
     const Bytecode obj;
     Bytecode::bytecode::size_type index;
 
+    void disasm_ENTER();
+    void disasm_LEAVE();
     void disasm_PUSHB();
     void disasm_PUSHN();
     void disasm_PUSHS();
-    void disasm_LOADGB();
-    void disasm_LOADGN();
-    void disasm_LOADGS();
-    void disasm_STOREGB();
-    void disasm_STOREGN();
-    void disasm_STOREGS();
+    void disasm_PUSHAG();
+    void disasm_PUSHAL();
+    void disasm_LOADB();
+    void disasm_LOADN();
+    void disasm_LOADS();
+    void disasm_STOREB();
+    void disasm_STOREN();
+    void disasm_STORES();
     void disasm_NEGN();
     void disasm_ADDN();
     void disasm_SUBN();
@@ -59,6 +63,19 @@ Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
 {
 }
 
+void Disassembler::disasm_ENTER()
+{
+    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "ENTER " << val << "\n";
+}
+
+void Disassembler::disasm_LEAVE()
+{
+    out << "LEAVE\n";
+    index++;
+}
+
 void Disassembler::disasm_PUSHB()
 {
     bool val = obj.code[index+1] != 0;
@@ -81,46 +98,54 @@ void Disassembler::disasm_PUSHS()
     out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
-void Disassembler::disasm_LOADGB()
+void Disassembler::disasm_PUSHAG()
 {
     int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "LOADGB " << addr << "\n";
+    out << "PUSHAG " << addr << "\n";
 }
 
-void Disassembler::disasm_LOADGN()
+void Disassembler::disasm_PUSHAL()
 {
     int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "LOADGN " << addr << "\n";
+    out << "PUSHAL " << addr << "\n";
 }
 
-void Disassembler::disasm_LOADGS()
+void Disassembler::disasm_LOADB()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
-    out << "LOADGS " << addr << "\n";
+    out << "LOADB\n";
+    index++;
 }
 
-void Disassembler::disasm_STOREGB()
+void Disassembler::disasm_LOADN()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
-    out << "STOREGB " << addr << "\n";
+    out << "LOADN\n";
+    index++;
 }
 
-void Disassembler::disasm_STOREGN()
+void Disassembler::disasm_LOADS()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
-    out << "STOREGN " << addr << "\n";
+    out << "LOADS\n";
+    index++;
 }
 
-void Disassembler::disasm_STOREGS()
+void Disassembler::disasm_STOREB()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
-    out << "STOREGS " << addr << "\n";
+    out << "STOREB\n";
+    index++;
+}
+
+void Disassembler::disasm_STOREN()
+{
+    out << "STOREN\n";
+    index++;
+}
+
+void Disassembler::disasm_STORES()
+{
+    out << "STORES\n";
+    index++;
 }
 
 void Disassembler::disasm_NEGN()
@@ -297,15 +322,19 @@ void Disassembler::disassemble()
         out << index << " ";
         auto last_index = index;
         switch (static_cast<Opcode>(obj.code[index])) {
+            case ENTER:   disasm_ENTER(); break;
+            case LEAVE:   disasm_LEAVE(); break;
             case PUSHB:   disasm_PUSHB(); break;
             case PUSHN:   disasm_PUSHN(); break;
             case PUSHS:   disasm_PUSHS(); break;
-            case LOADGB:  disasm_LOADGB(); break;
-            case LOADGN:  disasm_LOADGN(); break;
-            case LOADGS:  disasm_LOADGS(); break;
-            case STOREGB: disasm_STOREGB(); break;
-            case STOREGN: disasm_STOREGN(); break;
-            case STOREGS: disasm_STOREGS(); break;
+            case PUSHAG:  disasm_PUSHAG(); break;
+            case PUSHAL:  disasm_PUSHAL(); break;
+            case LOADB:   disasm_LOADB(); break;
+            case LOADN:   disasm_LOADN(); break;
+            case LOADS:   disasm_LOADS(); break;
+            case STOREB:  disasm_STOREB(); break;
+            case STOREN:  disasm_STOREN(); break;
+            case STORES:  disasm_STORES(); break;
             case NEGN:    disasm_NEGN(); break;
             case ADDN:    disasm_ADDN(); break;
             case SUBN:    disasm_SUBN(); break;
