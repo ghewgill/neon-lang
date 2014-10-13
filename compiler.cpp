@@ -14,6 +14,8 @@ class Emitter {
     };
 public:
     void emit(unsigned char b);
+    void emit_int(int value);
+    void emit(unsigned char b, int value);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &name);
@@ -33,6 +35,20 @@ private:
 void Emitter::emit(unsigned char b)
 {
     code.push_back(b);
+}
+
+void Emitter::emit_int(int value)
+{
+    emit(value >> 24);
+    emit(value >> 16);
+    emit(value >> 8);
+    emit(value);
+}
+
+void Emitter::emit(unsigned char b, int value)
+{
+    emit(b);
+    emit_int(value);
 }
 
 void Emitter::emit(const std::vector<unsigned char> &instr)
@@ -96,16 +112,10 @@ void Emitter::emit_jump(unsigned char b, Label &label)
 {
     emit(b);
     if (label.target >= 0) {
-        emit(label.target >> 24);
-        emit(label.target >> 16);
-        emit(label.target >> 8);
-        emit(label.target);
+        emit_int(label.target);
     } else {
         label.fixups.push_back(code.size());
-        emit(0);
-        emit(0);
-        emit(0);
-        emit(0);
+        emit_int(0);
     }
 }
 
@@ -295,12 +305,8 @@ void ConstantNumberExpression::generate(Emitter &emitter) const
 
 void ConstantStringExpression::generate(Emitter &emitter) const
 {
-    emitter.emit(PUSHS);
     int index = emitter.str(value);
-    emitter.emit(index >> 24);
-    emitter.emit(index >> 16);
-    emitter.emit(index >> 8);
-    emitter.emit(index);
+    emitter.emit(PUSHS, index);
 }
 
 void UnaryMinusExpression::generate(Emitter &emitter) const
