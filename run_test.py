@@ -64,15 +64,16 @@ def main():
     succeeded = 0
     failed = 0
     for a in sys.argv[1:]:
-        total += 1
         if os.path.isdir(a):
             for fn in sorted(os.listdir(a)):
                 if fn.endswith(".simple"):
+                    total += 1
                     if run(os.path.join(a, fn)):
                         succeeded += 1
                     else:
                         failed += 1
         elif os.path.isfile(a):
+            total += 1
             if run(a):
                 succeeded += 1
             else:
