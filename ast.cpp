@@ -56,19 +56,6 @@ void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
     }
 }
 
-const Type *Scope::lookupType(const std::string &name) const
-{
-    const Scope *s = this;
-    while (s != nullptr) {
-        auto t = s->types.find(name);
-        if (t != s->types.end()) {
-            return t->second;
-        }
-        s = s->parent;
-    }
-    return nullptr;
-}
-
 const Name *Scope::lookupName(const std::string &name) const
 {
     const Scope *s = this;
@@ -95,9 +82,9 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
 Program::Program()
   : scope(new Scope(nullptr))
 {
-    scope->types["boolean"] = TYPE_BOOLEAN;
-    scope->types["number"] = TYPE_NUMBER;
-    scope->types["string"] = TYPE_STRING;
+    scope->names["boolean"] = TYPE_BOOLEAN;
+    scope->names["number"] = TYPE_NUMBER;
+    scope->names["string"] = TYPE_STRING;
 
     static struct {
         const char *name;

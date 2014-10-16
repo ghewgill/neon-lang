@@ -11,9 +11,13 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
     if (tokens[i].type != IDENTIFIER) {
         error(tokens[i], "identifier expected");
     }
-    const Type *type = scope->lookupType(tokens[i].text);
-    if (type == nullptr) {
+    const Name *name = scope->lookupName(tokens[i].text);
+    if (name == nullptr) {
         error(tokens[i], "unknown type name");
+    }
+    const Type *type = dynamic_cast<const Type *>(name);
+    if (type == nullptr) {
+        error(tokens[i], "name is not a type");
     }
     i++;
     return type;
@@ -291,7 +295,7 @@ static const Variable *parseVariableDeclaration(Scope *scope, const std::vector<
     }
     ++i;
     const Type *t = parseType(scope, tokens, i);
-    Variable *v = new Variable(name, t);
+    Variable *v = new GlobalVariable(name, t);
     scope->names[name] = v;
     return v;
 }

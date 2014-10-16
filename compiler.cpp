@@ -196,29 +196,29 @@ void TypeFunction::generate_call(Emitter &emitter) const
     assert(false);
 }
 
-void Variable::predeclare(Emitter &emitter)
+void GlobalVariable::predeclare(Emitter &emitter)
 {
     if (referenced) {
         index = type->declare(name, emitter);
     }
 }
 
-void Variable::generate_address(Emitter &emitter) const
+void GlobalVariable::generate_address(Emitter &emitter) const
 {
     emitter.emit(PUSHAG, index);
 }
 
-void Variable::generate_load(Emitter &emitter) const
+void GlobalVariable::generate_load(Emitter &emitter) const
 {
     type->generate_load(emitter);
 }
 
-void Variable::generate_store(Emitter &emitter) const
+void GlobalVariable::generate_store(Emitter &emitter) const
 {
     type->generate_store(emitter);
 }
 
-void Variable::generate_call(Emitter &emitter) const
+void GlobalVariable::generate_call(Emitter &emitter) const
 {
     type->generate_call(emitter);
 }
@@ -226,7 +226,7 @@ void Variable::generate_call(Emitter &emitter) const
 void Function::predeclare(Emitter &emitter)
 {
     if (referenced) {
-        index = emitter.next_function();
+        entry_label = emitter.next_function();
     }
 }
 
@@ -234,7 +234,7 @@ void Function::postdeclare(Emitter &emitter)
 {
     if (referenced) {
         // TODO scope->generate(emitter);
-        emitter.jump_target(emitter.function_label(index));
+        emitter.jump_target(emitter.function_label(entry_label));
         for (auto stmt: statements) {
             stmt->generate(emitter);
         }
@@ -242,13 +242,9 @@ void Function::postdeclare(Emitter &emitter)
     }
 }
 
-void Function::generate(Emitter &emitter) const
-{
-}
-
 void Function::generate_call(Emitter &emitter) const
 {
-    emitter.emit_jump(CALLF, emitter.function_label(index));
+    emitter.emit_jump(CALLF, emitter.function_label(entry_label));
 }
 
 void PredefinedFunction::predeclare(Emitter &emitter)
