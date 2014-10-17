@@ -52,6 +52,7 @@ private:
     void disasm_ORB();
     void disasm_NOTB();
     void disasm_INDEXA();
+    void disasm_INDEXD();
     void disasm_CALLP();
     void disasm_CALLF();
     void disasm_JUMP();
@@ -282,6 +283,12 @@ void Disassembler::disasm_INDEXA()
     index++;
 }
 
+void Disassembler::disasm_INDEXD()
+{
+    out << "INDEXD\n";
+    index++;
+}
+
 void Disassembler::disasm_CALLP()
 {
     int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -364,6 +371,7 @@ void Disassembler::disassemble()
             case ORB:     disasm_ORB(); break;
             case NOTB:    disasm_NOTB(); break;
             case INDEXA:  disasm_INDEXA(); break;
+            case INDEXD:  disasm_INDEXD(); break;
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
             case JUMP:    disasm_JUMP(); break;

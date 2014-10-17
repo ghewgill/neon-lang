@@ -37,6 +37,7 @@ enum Opcode {
     ORB,        // or boolean
     NOTB,       // not boolean
     INDEXA,     // index array
+    INDEXD,     // index dictionary
     CALLP,      // call predefined
     CALLF,      // call function
     JUMP,       // unconditional jump

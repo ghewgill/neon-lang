@@ -118,6 +118,18 @@ public:
     virtual std::string text() const { return "TypeArray(" + elementtype->text() + ")"; }
 };
 
+class TypeDictionary: public Type {
+public:
+    TypeDictionary(const Type *elementtype): Type("dictionary"), elementtype(elementtype) {}
+    const Type *elementtype;
+
+    virtual void generate_load(Emitter &emitter) const { assert(false); }
+    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_call(Emitter &emitter) const { assert(false); }
+
+    virtual std::string text() const { return "TypeDictionary(" + elementtype->text() + ")"; }
+};
+
 class Variable: public Name {
 public:
     Variable(const std::string &name, const Type *type): Name(name, type) {}
@@ -407,6 +419,18 @@ public:
     virtual void generate_address(Emitter &emitter) const;
 
     virtual std::string text() const { return "ArrayReference(" + array->text() + ", " + index->text() + ")"; }
+};
+
+class DictionaryReference: public VariableReference {
+public:
+    DictionaryReference(const Type *type, const VariableReference *dict, const Expression *index): VariableReference(type), dict(dict), index(index) {}
+
+    const VariableReference *dict;
+    const Expression *index;
+
+    virtual void generate_address(Emitter &emitter) const;
+
+    virtual std::string text() const { return "DictionaryReference(" + dict->text() + ", " + index->text() + ")"; }
 };
 
 class VariableExpression: public Expression {

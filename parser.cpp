@@ -25,10 +25,31 @@ static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens
     return new TypeArray(elementtype);
 }
 
+static const Type *parseDictionaryType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    if (tokens[i].type != DICTIONARY) {
+        error(tokens[i], "DICTIONARY expected");
+    }
+    i++;
+    if (tokens[i].type != LESS) {
+        error(tokens[i], "'<' expected");
+    }
+    i++;
+    const Type *elementtype = parseType(scope, tokens, i);
+    if (tokens[i].type != GREATER) {
+        error(tokens[i], "'>' expected");
+    }
+    i++;
+    return new TypeDictionary(elementtype);
+}
+
 static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type == ARRAY) {
         return parseArrayType(scope, tokens, i);
+    }
+    if (tokens[i].type == DICTIONARY) {
+        return parseDictionaryType(scope, tokens, i);
     }
     if (tokens[i].type != IDENTIFIER) {
         error(tokens[i], "identifier expected");
@@ -339,17 +360,34 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
         while (true) {
             if (tokens[i].type == LBRACKET) {
                 const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
-                if (arraytype == nullptr) {
-                    error(tokens[i], "not an array");
+                const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
+                if (arraytype != nullptr) {
+                    ++i;
+                    const Expression *index = parseExpression(scope, tokens, i);
+                    if (index->type != TYPE_NUMBER) {
+                        error(tokens[i], "index must be a number");
+                    }
+                    if (tokens[i].type != RBRACKET) {
+                        error(tokens[i], "']' expected");
+                    }
+                    ++i;
+                    type = arraytype->elementtype;
+                    ref = new ArrayReference(type, ref, index);
+                } else if (dicttype != nullptr) {
+                    ++i;
+                    const Expression *index = parseExpression(scope, tokens, i);
+                    if (index->type != TYPE_STRING) {
+                        error(tokens[i], "index must be a string");
+                    }
+                    if (tokens[i].type != RBRACKET) {
+                        error(tokens[i], "']' expected");
+                    }
+                    ++i;
+                    type = dicttype->elementtype;
+                    ref = new DictionaryReference(type, ref, index);
+                } else {
+                    error(tokens[i], "not an array or dictionary");
                 }
-                ++i;
-                const Expression *index = parseExpression(scope, tokens, i);
-                if (tokens[i].type != RBRACKET) {
-                    error(tokens[i], "']' expected");
-                }
-                ++i;
-                type = arraytype->elementtype;
-                ref = new ArrayReference(type, ref, index);
             } else {
                 break;
             }

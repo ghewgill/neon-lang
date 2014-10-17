@@ -388,6 +388,13 @@ void ArrayReference::generate_address(Emitter &emitter) const
     emitter.emit(INDEXA);
 }
 
+void DictionaryReference::generate_address(Emitter &emitter) const
+{
+    dict->generate_address(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXD);
+}
+
 void VariableExpression::generate(Emitter &emitter) const
 {
     var->generate_load(emitter);

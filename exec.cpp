@@ -24,6 +24,7 @@ public:
     Number number_value;
     std::string string_value;
     std::vector<StackEntry> array_value;
+    std::map<std::string, StackEntry> dictionary_value;
 };
 
 class ActivationFrame {
@@ -81,6 +82,7 @@ private:
     void exec_ORB();
     void exec_NOTB();
     void exec_INDEXA();
+    void exec_INDEXD();
     void exec_CALLP();
     void exec_CALLF();
     void exec_JUMP();
@@ -370,6 +372,14 @@ void Executor::exec_INDEXA()
     stack.push(&addr->array_value.at(i));
 }
 
+void Executor::exec_INDEXD()
+{
+    ip++;
+    std::string index = stack.top().string_value; stack.pop();
+    StackEntry *addr = stack.top().address_value; stack.pop();
+    stack.push(&addr->dictionary_value[index]);
+}
+
 void Executor::exec_CALLP()
 {
     size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -470,6 +480,7 @@ void Executor::exec()
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(); break;
             case INDEXA:  exec_INDEXA(); break;
+            case INDEXD:  exec_INDEXD(); break;
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
             case JUMP:    exec_JUMP(); break;

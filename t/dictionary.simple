@@ -1,6 +1,5 @@
-% TODO
-VAR d: dictionary[string]
-
-d["hello"] = "world"
+VAR d: DICTIONARY<string>
+d["hello"] := "world"
 print(d["hello"])
+
 %= world
