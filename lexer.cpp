@@ -16,6 +16,8 @@ std::string Token::tostring() const
         case IDENTIFIER:  s << "IDENTIFIER:" << text; break;
         case LPAREN:      s << "LPAREN"; break;
         case RPAREN:      s << "RPAREN"; break;
+        case LBRACKET:    s << "LBRACKET"; break;
+        case RBRACKET:    s << "RBRACKET"; break;
         case COLON:       s << "COLON"; break;
         case ASSIGN:      s << "ASSIGN"; break;
         case PLUS:        s << "PLUS"; break;
@@ -44,6 +46,7 @@ std::string Token::tostring() const
         case AND:         s << "AND"; break;
         case OR:          s << "OR"; break;
         case NOT:         s << "NOT"; break;
+        case ARRAY:       s << "ARRAY"; break;
     }
     s << ">";
     return s.str();
@@ -68,6 +71,8 @@ std::vector<Token> tokenize(const std::string &source)
         t.type = NONE;
              if (c == '(') { t.type = LPAREN; i++; }
         else if (c == ')') { t.type = RPAREN; i++; }
+        else if (c == '[') { t.type = LBRACKET; i++; }
+        else if (c == ']') { t.type = RBRACKET; i++; }
         else if (c == '+') { t.type = PLUS; i++; }
         else if (c == '-') { t.type = MINUS; i++; }
         else if (c == '*') { t.type = TIMES; i++; }
@@ -121,6 +126,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "AND") t.type = AND;
             else if (t.text == "OR") t.type = OR;
             else if (t.text == "NOT") t.type = NOT;
+            else if (t.text == "ARRAY") t.type = ARRAY;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

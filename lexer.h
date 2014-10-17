@@ -14,6 +14,8 @@ enum TokenType {
     IDENTIFIER,
     LPAREN,
     RPAREN,
+    LBRACKET,
+    RBRACKET,
     COLON,
     ASSIGN,
     PLUS,
@@ -42,6 +44,7 @@ enum TokenType {
     AND,
     OR,
     NOT,
+    ARRAY,
 };
 
 class Token {

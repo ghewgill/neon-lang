@@ -45,7 +45,9 @@ bool number_is_less(Number x, Number y);
 bool number_is_greater(Number x, Number y);
 bool number_is_less_equal(Number x, Number y);
 bool number_is_greater_equal(Number x, Number y);
+bool number_is_integer(Number x);
 std::string number_to_string(Number x);
+uint32_t number_to_uint32(Number x);
 Number number_from_string(const std::string &s);
 Number number_from_uint32(uint32_t x);
 

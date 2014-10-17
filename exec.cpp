@@ -1,6 +1,8 @@
 #include "exec.h"
 
+#include <assert.h>
 #include <iostream>
+#include <map>
 #include <sstream>
 #include <stack>
 #include <stdlib.h>
@@ -12,15 +14,16 @@
 class StackEntry {
 public:
     StackEntry() {}
-    StackEntry(void *value): address_value(value) {}
+    StackEntry(StackEntry *value): address_value(value) {}
     StackEntry(bool value): boolean_value(value) {}
     StackEntry(Number value): number_value(value) {}
     StackEntry(const std::string &value): string_value(value) {}
     StackEntry(const char *value): string_value(value) {}
-    void *address_value;
+    StackEntry *address_value;
     bool boolean_value;
     Number number_value;
     std::string string_value;
+    std::vector<StackEntry> array_value;
 };
 
 class ActivationFrame {
@@ -77,6 +80,7 @@ private:
     void exec_ANDB();
     void exec_ORB();
     void exec_NOTB();
+    void exec_INDEXA();
     void exec_CALLP();
     void exec_CALLF();
     void exec_JUMP();
@@ -143,46 +147,46 @@ void Executor::exec_PUSHAL()
 void Executor::exec_LOADB()
 {
     ip++;
-    void *addr = stack.top().address_value; stack.pop();
-    stack.push(static_cast<StackEntry *>(addr)->boolean_value);
+    StackEntry *addr = stack.top().address_value; stack.pop();
+    stack.push(addr->boolean_value);
 }
 
 void Executor::exec_LOADN()
 {
     ip++;
-    void *addr = stack.top().address_value; stack.pop();
-    stack.push(static_cast<StackEntry *>(addr)->number_value);
+    StackEntry *addr = stack.top().address_value; stack.pop();
+    stack.push(addr->number_value);
 }
 
 void Executor::exec_LOADS()
 {
     ip++;
-    void *addr = stack.top().address_value; stack.pop();
-    stack.push(static_cast<StackEntry *>(addr)->string_value);
+    StackEntry *addr = stack.top().address_value; stack.pop();
+    stack.push(addr->string_value);
 }
 
 void Executor::exec_STOREB()
 {
     ip++;
-    void *addr = stack.top().address_value; stack.pop();
+    StackEntry *addr = stack.top().address_value; stack.pop();
     bool val = stack.top().boolean_value; stack.pop();
-    *static_cast<StackEntry *>(addr) = StackEntry(val);
+    *addr = StackEntry(val);
 }
 
 void Executor::exec_STOREN()
 {
     ip++;
-    void *addr = stack.top().address_value; stack.pop();
+    StackEntry *addr = stack.top().address_value; stack.pop();
     Number val = stack.top().number_value; stack.pop();
-    *static_cast<StackEntry *>(addr) = StackEntry(val);
+    *addr = StackEntry(val);
 }
 
 void Executor::exec_STORES()
 {
     ip++;
-    void *addr = stack.top().address_value; stack.pop();
+    StackEntry *addr = stack.top().address_value; stack.pop();
     std::string val = stack.top().string_value; stack.pop();
-    *static_cast<StackEntry *>(addr) = StackEntry(val);
+    *addr = StackEntry(val);
 }
 
 void Executor::exec_NEGN()
@@ -351,6 +355,21 @@ void Executor::exec_NOTB()
     stack.push(StackEntry(not x));
 }
 
+void Executor::exec_INDEXA()
+{
+    ip++;
+    Number index = stack.top().number_value; stack.pop();
+    StackEntry *addr = stack.top().address_value; stack.pop();
+    assert(number_is_integer(index));
+    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
+    assert(i >= 0);
+    if (i >= addr->array_value.size()) {
+        addr->array_value.resize(i+1);
+    }
+    assert(i < addr->array_value.size());
+    stack.push(&addr->array_value.at(i));
+}
+
 void Executor::exec_CALLP()
 {
     size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -450,6 +469,7 @@ void Executor::exec()
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(); break;
+            case INDEXA:  exec_INDEXA(); break;
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
             case JUMP:    exec_JUMP(); break;

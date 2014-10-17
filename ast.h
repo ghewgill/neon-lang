@@ -106,6 +106,18 @@ public:
     virtual std::string text() const { return "TypeFunction(...)"; }
 };
 
+class TypeArray: public Type {
+public:
+    TypeArray(const Type *elementtype): Type("array"), elementtype(elementtype) {}
+    const Type *elementtype;
+
+    virtual void generate_load(Emitter &emitter) const { assert(false); }
+    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_call(Emitter &emitter) const { assert(false); }
+
+    virtual std::string text() const { return "TypeArray(" + elementtype->text() + ")"; }
+};
+
 class Variable: public Name {
 public:
     Variable(const std::string &name, const Type *type): Name(name, type) {}
@@ -363,9 +375,10 @@ public:
 
     const Type *type;
 
-    virtual void generate_load(Emitter &emitter) const = 0;
-    virtual void generate_store(Emitter &emitter) const = 0;
-    virtual void generate_call(Emitter &emitter) const = 0;
+    virtual void generate_address(Emitter &emitter) const = 0;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const = 0;
 };
@@ -376,13 +389,24 @@ public:
 
     const Variable *var;
 
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_address(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "ScalarVariableReference(" + var->text() + ")";
     }
+};
+
+class ArrayReference: public VariableReference {
+public:
+    ArrayReference(const Type *type, const VariableReference *array, const Expression *index): VariableReference(type), array(array), index(index) {}
+
+    const VariableReference *array;
+    const Expression *index;
+
+    virtual void generate_address(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ArrayReference(" + array->text() + ", " + index->text() + ")"; }
 };
 
 class VariableExpression: public Expression {

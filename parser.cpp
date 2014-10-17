@@ -3,11 +3,33 @@
 #include "ast.h"
 #include "util.h"
 
+static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 
+static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    if (tokens[i].type != ARRAY) {
+        error(tokens[i], "ARRAY expected");
+    }
+    i++;
+    if (tokens[i].type != LESS) {
+        error(tokens[i], "'<' expected");
+    }
+    i++;
+    const Type *elementtype = parseType(scope, tokens, i);
+    if (tokens[i].type != GREATER) {
+        error(tokens[i], "'>' expected");
+    }
+    i++;
+    return new TypeArray(elementtype);
+}
+
 static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
+    if (tokens[i].type == ARRAY) {
+        return parseArrayType(scope, tokens, i);
+    }
     if (tokens[i].type != IDENTIFIER) {
         error(tokens[i], "identifier expected");
     }
@@ -312,8 +334,27 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
             error(tokens[i], "name is not a variable: " + tokens[i].text);
         }
         const VariableReference *ref = new ScalarVariableReference(var);
+        const Type *type = var->type;
         ++i;
-        // TODO: [ for array and . for struct
+        while (true) {
+            if (tokens[i].type == LBRACKET) {
+                const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
+                if (arraytype == nullptr) {
+                    error(tokens[i], "not an array");
+                }
+                ++i;
+                const Expression *index = parseExpression(scope, tokens, i);
+                if (tokens[i].type != RBRACKET) {
+                    error(tokens[i], "']' expected");
+                }
+                ++i;
+                type = arraytype->elementtype;
+                ref = new ArrayReference(type, ref, index);
+            } else {
+                break;
+            }
+            // TODO: [ for array and . for struct
+        }
         return ref;
     } else {
         error(tokens[i], "Identifier expected");

@@ -1,0 +1,6 @@
+% TODO
+VAR a: ARRAY<number>
+a[0] := 4
+print(str(a.size()))
+
+%= 1

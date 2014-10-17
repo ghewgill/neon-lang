@@ -36,6 +36,7 @@ enum Opcode {
     ANDB,       // and boolean
     ORB,        // or boolean
     NOTB,       // not boolean
+    INDEXA,     // index array
     CALLP,      // call predefined
     CALLF,      // call function
     JUMP,       // unconditional jump

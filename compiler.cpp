@@ -354,21 +354,38 @@ void ExponentiationExpression::generate(Emitter &emitter) const
     emitter.emit(EXPN);
 }
 
-void ScalarVariableReference::generate_load(Emitter &emitter) const
+void VariableReference::generate_load(Emitter &emitter) const
 {
-    var->generate_address(emitter);
-    var->generate_load(emitter);
+    generate_address(emitter);
+    type->generate_load(emitter);
 }
 
-void ScalarVariableReference::generate_store(Emitter &emitter) const
+void VariableReference::generate_store(Emitter &emitter) const
+{
+    generate_address(emitter);
+    type->generate_store(emitter);
+}
+
+void VariableReference::generate_call(Emitter &emitter) const
+{
+    assert(false);
+}
+
+void ScalarVariableReference::generate_address(Emitter &emitter) const
 {
     var->generate_address(emitter);
-    var->generate_store(emitter);
 }
 
 void ScalarVariableReference::generate_call(Emitter &emitter) const
 {
     var->generate_call(emitter);
+}
+
+void ArrayReference::generate_address(Emitter &emitter) const
+{
+    array->generate_address(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXA);
 }
 
 void VariableExpression::generate(Emitter &emitter) const
