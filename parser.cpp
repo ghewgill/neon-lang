@@ -325,7 +325,7 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
     return parseDisjunction(scope, tokens, i);
 }
 
-static const Variable *parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+static Variable *parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type != IDENTIFIER) {
         error(tokens[i], "identifier expected");
@@ -421,10 +421,11 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         error(tokens[i], "'(' expected");
     }
     ++i;
-    std::vector<const Variable *> args;
+    std::vector<Variable *> args;
+    Scope *newscope = new Scope(scope);
     if (tokens[i].type != RPAREN) {
         while (true) {
-            const Variable *v = parseVariableDeclaration(scope, tokens, i);
+            Variable *v = parseVariableDeclaration(newscope, tokens, i);
             args.push_back(v);
             if (tokens[i].type != COMMA) {
                 break;
@@ -440,10 +441,10 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         error(tokens[i], "':' expected");
     }
     ++i;
-    const Type *returntype = parseType(scope, tokens, i);
-    Function *function = new Function(name, returntype, scope, args);
+    const Type *returntype = parseType(newscope, tokens, i);
+    Function *function = new Function(name, returntype, newscope, args);
     while (tokens[i].type != END) {
-        const Statement *s = parseStatement(function->scope, tokens, i);
+        const Statement *s = parseStatement(newscope, tokens, i);
         if (s != nullptr) {
             function->statements.push_back(s);
         }

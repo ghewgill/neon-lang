@@ -70,7 +70,7 @@ const Name *Scope::lookupName(const std::string &name) const
     return nullptr;
 }
 
-const Type *Function::makeFunctionType(const Type *returntype, const std::vector<const Variable *> &args)
+const Type *Function::makeFunctionType(const Type *returntype, const std::vector<Variable *> &args)
 {
     std::vector<const Type *> argtypes;
     for (auto a: args) {

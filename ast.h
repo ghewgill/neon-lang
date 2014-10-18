@@ -564,14 +564,18 @@ public:
 
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, Scope *parentscope, const std::vector<const Variable *> &args): Variable(name, makeFunctionType(returntype, args)), scope(new Scope(parentscope)), args(args) {}
+    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<Variable *> &args): Variable(name, makeFunctionType(returntype, args)), scope(scope), args(args) {
+        for (auto v: args) {
+            scope->names[v->name] = v;
+        }
+    }
     Scope *scope;
-    const std::vector<const Variable *> args;
+    const std::vector<Variable *> args;
     int entry_label;
 
     std::vector<const Statement *> statements;
 
-    static const Type *makeFunctionType(const Type *returntype, const std::vector<const Variable *> &args);
+    static const Type *makeFunctionType(const Type *returntype, const std::vector<Variable *> &args);
 
     virtual void predeclare(Emitter &emitter);
     virtual void postdeclare(Emitter &emitter);

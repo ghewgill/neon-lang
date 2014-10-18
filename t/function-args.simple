@@ -4,5 +4,4 @@ END
 
 print(str(sq(5)))
 
-% TODO
 %= 25

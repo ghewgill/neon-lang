@@ -244,6 +244,10 @@ void Function::postdeclare(Emitter &emitter)
         scope->predeclare(emitter);
         emitter.jump_target(emitter.function_label(entry_label));
         emitter.emit(ENTER, scope->names.size());
+        for (auto a = args.rbegin(); a != args.rend(); ++a) {
+            (*a)->generate_address(emitter);
+            (*a)->generate_store(emitter);
+        }
         for (auto stmt: statements) {
             stmt->generate(emitter);
         }
