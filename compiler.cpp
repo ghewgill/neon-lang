@@ -131,11 +131,6 @@ void Emitter::jump_target(Label &label)
     }
 }
 
-int Type::declare(const std::string &name, Emitter &emitter) const
-{
-    return emitter.global(name);
-}
-
 void TypeBoolean::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADB);
@@ -196,10 +191,25 @@ void TypeFunction::generate_call(Emitter &emitter) const
     assert(false);
 }
 
+void Variable::generate_load(Emitter &emitter) const
+{
+    type->generate_load(emitter);
+}
+
+void Variable::generate_store(Emitter &emitter) const
+{
+    type->generate_store(emitter);
+}
+
+void Variable::generate_call(Emitter &emitter) const
+{
+    type->generate_call(emitter);
+}
+
 void GlobalVariable::predeclare(Emitter &emitter)
 {
     if (referenced) {
-        index = type->declare(name, emitter);
+        index = emitter.global(name);
     }
 }
 
@@ -208,19 +218,17 @@ void GlobalVariable::generate_address(Emitter &emitter) const
     emitter.emit(PUSHAG, index);
 }
 
-void GlobalVariable::generate_load(Emitter &emitter) const
+void LocalVariable::predeclare(Emitter &emitter)
 {
-    type->generate_load(emitter);
+    if (referenced) {
+        index = scope->count;
+        scope->count++;
+    }
 }
 
-void GlobalVariable::generate_store(Emitter &emitter) const
+void LocalVariable::generate_address(Emitter &emitter) const
 {
-    type->generate_store(emitter);
-}
-
-void GlobalVariable::generate_call(Emitter &emitter) const
-{
-    type->generate_call(emitter);
+    emitter.emit(PUSHAL, index);
 }
 
 void Function::predeclare(Emitter &emitter)
@@ -233,11 +241,13 @@ void Function::predeclare(Emitter &emitter)
 void Function::postdeclare(Emitter &emitter)
 {
     if (referenced) {
-        // TODO scope->generate(emitter);
+        scope->predeclare(emitter);
         emitter.jump_target(emitter.function_label(entry_label));
+        emitter.emit(ENTER, scope->names.size());
         for (auto stmt: statements) {
             stmt->generate(emitter);
         }
+        emitter.emit(LEAVE);
         emitter.emit(RET);
     }
 }

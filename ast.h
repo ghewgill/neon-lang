@@ -22,7 +22,22 @@ private:
     AstNode &operator=(const AstNode &);
 };
 
+class Name;
 class Type;
+
+class Scope {
+public:
+    Scope(Scope *parent): parent(parent) {}
+
+    virtual void predeclare(Emitter &emitter) const;
+    virtual void postdeclare(Emitter &emitter) const;
+
+    const Name *lookupName(const std::string &name) const;
+
+    Scope *const parent;
+    std::map<std::string, Name *> names;
+    int count;
+};
 
 class Name: public AstNode {
 public:
@@ -38,7 +53,6 @@ public:
 class Type: public Name {
 public:
     Type(const std::string &name): Name(name, nullptr) {}
-    virtual int declare(const std::string &name, Emitter &emitter) const;
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
@@ -95,7 +109,6 @@ extern TypeString *TYPE_STRING;
 class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const Type *> &args): Type("function"), returntype(returntype), args(args) {}
-    virtual int declare(const std::string &name, Emitter &emitter) const { assert(false); }
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -135,9 +148,9 @@ public:
     Variable(const std::string &name, const Type *type): Name(name, type) {}
 
     virtual void generate_address(Emitter &emitter) const = 0;
-    virtual void generate_load(Emitter &emitter) const = 0;
-    virtual void generate_store(Emitter &emitter) const = 0;
-    virtual void generate_call(Emitter &emitter) const = 0;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "Variable(" + name + ", " + type->text() + ")"; }
 };
@@ -149,11 +162,20 @@ public:
 
     virtual void predeclare(Emitter &emitter);
     virtual void generate_address(Emitter &emitter) const;
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
+};
+
+class LocalVariable: public Variable {
+public:
+    LocalVariable(const std::string &name, const Type *type, Scope *scope): Variable(name, type), scope(scope), index() {}
+    Scope *scope;
+    int index;
+
+    virtual void predeclare(Emitter &emitter);
+    virtual void generate_address(Emitter &emitter) const;
+
+    virtual std::string text() const { return "LocalVariable(" + name + ", " + type->text() + ")"; }
 };
 
 class Expression: public AstNode {
@@ -540,23 +562,10 @@ public:
     }
 };
 
-class Scope {
-public:
-    Scope(Scope *parent): parent(parent) {}
-
-    virtual void predeclare(Emitter &emitter) const;
-    virtual void postdeclare(Emitter &emitter) const;
-
-    const Type *lookupType(const std::string &name) const;
-    const Name *lookupName(const std::string &name) const;
-
-    Scope *const parent;
-    std::map<std::string, Name *> names;
-};
-
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, const std::vector<const Variable *> &args): Variable(name, makeFunctionType(returntype, args)), args(args) {}
+    Function(const std::string &name, const Type *returntype, Scope *parentscope, const std::vector<const Variable *> &args): Variable(name, makeFunctionType(returntype, args)), scope(new Scope(parentscope)), args(args) {}
+    Scope *scope;
     const std::vector<const Variable *> args;
     int entry_label;
 

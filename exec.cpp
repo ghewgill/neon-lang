@@ -105,6 +105,7 @@ void Executor::exec_ENTER()
 void Executor::exec_LEAVE()
 {
     frames.pop_back();
+    ip++;
 }
 
 void Executor::exec_PUSHB()

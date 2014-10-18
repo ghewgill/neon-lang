@@ -5,7 +5,9 @@ y := 10
 
 FUNCTION sq(): number
     VAR y: number
+    VAR z: number
     y := x * x
+    z := 999
     RETURN y
 END
 

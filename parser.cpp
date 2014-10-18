@@ -3,6 +3,8 @@
 #include "ast.h"
 #include "util.h"
 
+static Scope *g_GlobalScope; // TODO: sort of a hack, all this should probably be in a class
+
 static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
@@ -338,7 +340,12 @@ static const Variable *parseVariableDeclaration(Scope *scope, const std::vector<
     }
     ++i;
     const Type *t = parseType(scope, tokens, i);
-    Variable *v = new GlobalVariable(name, t);
+    Variable *v;
+    if (scope == g_GlobalScope) {
+        v = new GlobalVariable(name, t);
+    } else {
+        v = new LocalVariable(name, t, scope);
+    }
     scope->names[name] = v;
     return v;
 }
@@ -434,10 +441,9 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
     }
     ++i;
     const Type *returntype = parseType(scope, tokens, i);
-    Function *function = new Function(name, returntype, args);
-    Scope *bodyscope = new Scope(scope);
+    Function *function = new Function(name, returntype, scope, args);
     while (tokens[i].type != END) {
-        const Statement *s = parseStatement(bodyscope, tokens, i);
+        const Statement *s = parseStatement(function->scope, tokens, i);
         if (s != nullptr) {
             function->statements.push_back(s);
         }
@@ -560,6 +566,7 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
 const Program *parse(const std::vector<Token> &tokens)
 {
     Program *program = new Program();
+    g_GlobalScope = program->scope;
     std::vector<Token>::size_type i = 0;
     while (tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement(program->scope, tokens, i);
