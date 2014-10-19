@@ -11,27 +11,27 @@
 #include "number.h"
 #include "opcode.h"
 
-class StackEntry {
+class Variant {
 public:
-    StackEntry() {}
-    StackEntry(StackEntry *value): address_value(value) {}
-    StackEntry(bool value): boolean_value(value) {}
-    StackEntry(Number value): number_value(value) {}
-    StackEntry(const std::string &value): string_value(value) {}
-    StackEntry(const char *value): string_value(value) {}
-    StackEntry *address_value;
+    Variant() {}
+    Variant(Variant *value): address_value(value) {}
+    Variant(bool value): boolean_value(value) {}
+    Variant(Number value): number_value(value) {}
+    Variant(const std::string &value): string_value(value) {}
+    Variant(const char *value): string_value(value) {}
+    Variant *address_value;
     bool boolean_value;
     Number number_value;
     std::string string_value;
-    std::vector<StackEntry> array_value;
-    std::map<std::string, StackEntry> dictionary_value;
+    std::vector<Variant> array_value;
+    std::map<std::string, Variant> dictionary_value;
 };
 
 class ActivationFrame {
 public:
     ActivationFrame(size_t count): locals(count) {}
     // TODO (for nested functions) std::vector<ActivationFrame *> outer;
-    std::vector<StackEntry> locals;
+    std::vector<Variant> locals;
 };
 
 class Executor {
@@ -42,9 +42,9 @@ private:
     const Bytecode obj;
     std::ostream &out;
     Bytecode::bytecode::size_type ip;
-    std::stack<StackEntry> stack;
+    std::stack<Variant> stack;
     std::stack<Bytecode::bytecode::size_type> callstack;
-    std::vector<StackEntry> globals;
+    std::vector<Variant> globals;
     std::vector<ActivationFrame> frames;
 
     void exec_ENTER();
@@ -112,7 +112,7 @@ void Executor::exec_PUSHB()
 {
     bool val = obj.code[ip+1] != 0;
     ip += 2;
-    stack.push(StackEntry(val));
+    stack.push(Variant(val));
 }
 
 void Executor::exec_PUSHN()
@@ -120,14 +120,14 @@ void Executor::exec_PUSHN()
     // TODO: endian
     Number val = *reinterpret_cast<const Number *>(&obj.code[ip+1]);
     ip += 1 + sizeof(val);
-    stack.push(StackEntry(val));
+    stack.push(Variant(val));
 }
 
 void Executor::exec_PUSHS()
 {
     int val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    stack.push(StackEntry(obj.strtable[val]));
+    stack.push(Variant(obj.strtable[val]));
 }
 
 void Executor::exec_PUSHAG()
@@ -137,66 +137,66 @@ void Executor::exec_PUSHAG()
     if (globals.size() < addr+1) {
         globals.resize(addr+1);
     }
-    stack.push(StackEntry(&globals.at(addr)));
+    stack.push(Variant(&globals.at(addr)));
 }
 
 void Executor::exec_PUSHAL()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    stack.push(StackEntry(&frames.back().locals.at(addr)));
+    stack.push(Variant(&frames.back().locals.at(addr)));
 }
 
 void Executor::exec_LOADB()
 {
     ip++;
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     stack.push(addr->boolean_value);
 }
 
 void Executor::exec_LOADN()
 {
     ip++;
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     stack.push(addr->number_value);
 }
 
 void Executor::exec_LOADS()
 {
     ip++;
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     stack.push(addr->string_value);
 }
 
 void Executor::exec_STOREB()
 {
     ip++;
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     bool val = stack.top().boolean_value; stack.pop();
-    *addr = StackEntry(val);
+    *addr = Variant(val);
 }
 
 void Executor::exec_STOREN()
 {
     ip++;
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     Number val = stack.top().number_value; stack.pop();
-    *addr = StackEntry(val);
+    *addr = Variant(val);
 }
 
 void Executor::exec_STORES()
 {
     ip++;
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     std::string val = stack.top().string_value; stack.pop();
-    *addr = StackEntry(val);
+    *addr = Variant(val);
 }
 
 void Executor::exec_NEGN()
 {
     ip++;
     Number x = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_negate(x)));
+    stack.push(Variant(number_negate(x)));
 }
 
 void Executor::exec_ADDN()
@@ -204,7 +204,7 @@ void Executor::exec_ADDN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_add(a, b)));
+    stack.push(Variant(number_add(a, b)));
 }
 
 void Executor::exec_SUBN()
@@ -212,7 +212,7 @@ void Executor::exec_SUBN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_subtract(a, b)));
+    stack.push(Variant(number_subtract(a, b)));
 }
 
 void Executor::exec_MULN()
@@ -220,7 +220,7 @@ void Executor::exec_MULN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_multiply(a, b)));
+    stack.push(Variant(number_multiply(a, b)));
 }
 
 void Executor::exec_DIVN()
@@ -228,7 +228,7 @@ void Executor::exec_DIVN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_divide(a, b)));
+    stack.push(Variant(number_divide(a, b)));
 }
 
 void Executor::exec_EXPN()
@@ -236,7 +236,7 @@ void Executor::exec_EXPN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_pow(a, b)));
+    stack.push(Variant(number_pow(a, b)));
 }
 
 void Executor::exec_EQN()
@@ -244,7 +244,7 @@ void Executor::exec_EQN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_is_equal(a, b)));
+    stack.push(Variant(number_is_equal(a, b)));
 }
 
 void Executor::exec_NEN()
@@ -252,7 +252,7 @@ void Executor::exec_NEN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_is_not_equal(a, b)));
+    stack.push(Variant(number_is_not_equal(a, b)));
 }
 
 void Executor::exec_LTN()
@@ -260,7 +260,7 @@ void Executor::exec_LTN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_is_less(a, b)));
+    stack.push(Variant(number_is_less(a, b)));
 }
 
 void Executor::exec_GTN()
@@ -268,7 +268,7 @@ void Executor::exec_GTN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_is_greater(a, b)));
+    stack.push(Variant(number_is_greater(a, b)));
 }
 
 void Executor::exec_LEN()
@@ -276,7 +276,7 @@ void Executor::exec_LEN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_is_less_equal(a, b)));
+    stack.push(Variant(number_is_less_equal(a, b)));
 }
 
 void Executor::exec_GEN()
@@ -284,7 +284,7 @@ void Executor::exec_GEN()
     ip++;
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
-    stack.push(StackEntry(number_is_greater_equal(a, b)));
+    stack.push(Variant(number_is_greater_equal(a, b)));
 }
 
 void Executor::exec_EQS()
@@ -292,7 +292,7 @@ void Executor::exec_EQS()
     ip++;
     std::string b = stack.top().string_value; stack.pop();
     std::string a = stack.top().string_value; stack.pop();
-    stack.push(StackEntry(a == b));
+    stack.push(Variant(a == b));
 }
 
 void Executor::exec_NES()
@@ -300,7 +300,7 @@ void Executor::exec_NES()
     ip++;
     std::string b = stack.top().string_value; stack.pop();
     std::string a = stack.top().string_value; stack.pop();
-    stack.push(StackEntry(a != b));
+    stack.push(Variant(a != b));
 }
 
 void Executor::exec_LTS()
@@ -308,7 +308,7 @@ void Executor::exec_LTS()
     ip++;
     std::string b = stack.top().string_value; stack.pop();
     std::string a = stack.top().string_value; stack.pop();
-    stack.push(StackEntry(a < b));
+    stack.push(Variant(a < b));
 }
 
 void Executor::exec_GTS()
@@ -316,7 +316,7 @@ void Executor::exec_GTS()
     ip++;
     std::string b = stack.top().string_value; stack.pop();
     std::string a = stack.top().string_value; stack.pop();
-    stack.push(StackEntry(a > b));
+    stack.push(Variant(a > b));
 }
 
 void Executor::exec_LES()
@@ -324,7 +324,7 @@ void Executor::exec_LES()
     ip++;
     std::string b = stack.top().string_value; stack.pop();
     std::string a = stack.top().string_value; stack.pop();
-    stack.push(StackEntry(a <= b));
+    stack.push(Variant(a <= b));
 }
 
 void Executor::exec_GES()
@@ -332,7 +332,7 @@ void Executor::exec_GES()
     ip++;
     std::string b = stack.top().string_value; stack.pop();
     std::string a = stack.top().string_value; stack.pop();
-    stack.push(StackEntry(a >= b));
+    stack.push(Variant(a >= b));
 }
 
 void Executor::exec_ANDB()
@@ -340,7 +340,7 @@ void Executor::exec_ANDB()
     ip++;
     bool b = stack.top().boolean_value; stack.pop();
     bool a = stack.top().boolean_value; stack.pop();
-    stack.push(StackEntry(a && b));
+    stack.push(Variant(a && b));
 }
 
 void Executor::exec_ORB()
@@ -348,21 +348,21 @@ void Executor::exec_ORB()
     ip++;
     bool b = stack.top().boolean_value; stack.pop();
     bool a = stack.top().boolean_value; stack.pop();
-    stack.push(StackEntry(a || b));
+    stack.push(Variant(a || b));
 }
 
 void Executor::exec_NOTB()
 {
     ip++;
     bool x = stack.top().boolean_value; stack.pop();
-    stack.push(StackEntry(not x));
+    stack.push(Variant(not x));
 }
 
 void Executor::exec_INDEXA()
 {
     ip++;
     Number index = stack.top().number_value; stack.pop();
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     assert(number_is_integer(index));
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     assert(i >= 0);
@@ -377,7 +377,7 @@ void Executor::exec_INDEXD()
 {
     ip++;
     std::string index = stack.top().string_value; stack.pop();
-    StackEntry *addr = stack.top().address_value; stack.pop();
+    Variant *addr = stack.top().address_value; stack.pop();
     stack.push(&addr->dictionary_value[index]);
 }
 
@@ -388,20 +388,20 @@ void Executor::exec_CALLP()
     std::string func = obj.strtable.at(val);
     if (func == "abs") {
         Number x = stack.top().number_value; stack.pop();
-        stack.push(StackEntry(number_abs(x)));
+        stack.push(Variant(number_abs(x)));
     } else if (func == "concat") {
         std::string y = stack.top().string_value; stack.pop();
         std::string x = stack.top().string_value; stack.pop();
-        stack.push(StackEntry(x + y));
+        stack.push(Variant(x + y));
     } else if (func == "print") {
         std::string x = stack.top().string_value; stack.pop();
         out << x << std::endl;
     } else if (func == "str") {
         Number x = stack.top().number_value; stack.pop();
-        stack.push(StackEntry(number_to_string(x)));
+        stack.push(Variant(number_to_string(x)));
     } else if (func == "strb") {
         bool x = stack.top().boolean_value; stack.pop();
-        stack.push(StackEntry(x ? "TRUE" : "FALSE"));
+        stack.push(Variant(x ? "TRUE" : "FALSE"));
     } else {
         fprintf(stderr, "simple: function not found: %s\n", func.c_str());
         abort();
