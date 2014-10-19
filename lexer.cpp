@@ -132,13 +132,62 @@ std::vector<Token> tokenize(const std::string &source)
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
-            auto j = i;
-            // TODO: decimal and exponent
-            while (j < source.length() && isdigit(source.at(j))) {
-                j++;
+            if (c == '0' && not isdigit(source.at(i+1))) {
+                c = tolower(source.at(i+1));
+                if (isalpha(c) || c == '#') {
+                    long base;
+                    if (c == 'b') {
+                        base = 2;
+                        i += 2;
+                    } else if (c == 'o') {
+                        base = 8;
+                        i += 2;
+                    } else if (c == 'x') {
+                        base = 16;
+                        i += 2;
+                    } else if (c == '#') {
+                        i += 2;
+                        char *end = NULL;
+                        base = strtol(source.substr(i).c_str(), &end, 10);
+                        if (base < 2 || base > 36) {
+                            error(t, "invalid base");
+                        }
+                        auto j = i + (end - source.substr(i).c_str());
+                        if (source.at(j) != '#') {
+                            error(t, "'#' expected");
+                        }
+                        i = j + 1;
+                    }
+                    Number value = number_from_uint32(0);
+                    while (true) {
+                        c = tolower(source.at(i));
+                        if (c == '.') {
+                            error(t, "non-decimal fraction not supported");
+                        }
+                        if (not isalnum(c)) {
+                            break;
+                        }
+                        int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'z' ? c - 'a' + 10 : -1;
+                        if (d < 0) {
+                            error(t, "invalid digit for given base");
+                        }
+                        value = number_add(number_multiply(value, number_from_uint32(base)), number_from_uint32(d));
+                        i++;
+                    }
+                    t.value = value;
+                } else {
+                    t.value = number_from_uint32(0);
+                    i++;
+                }
+            } else {
+                auto j = i;
+                // TODO: decimal and exponent
+                while (j < source.length() && isdigit(source.at(j))) {
+                    j++;
+                }
+                t.value = number_from_string(source.substr(i, j-i));
+                i = j;
             }
-            t.value = number_from_string(source.substr(i, j-i));
-            i = j;
         } else if (c == '"') {
             i++;
             t.type = STRING;
