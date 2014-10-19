@@ -39,4 +39,11 @@ int main()
     assert(tokens[0].type == IDENTIFIER);
     assert(tokens[1].type == NUMBER);
     assert(tokens[2].type == END_OF_FILE);
+
+    tokens = dump(tokenize("a 1 %| foo bar %| nest |% |% baz"));
+    assert(tokens.size() == 4);
+    assert(tokens[0].type == IDENTIFIER);
+    assert(tokens[1].type == NUMBER);
+    assert(tokens[2].type == IDENTIFIER);
+    assert(tokens[3].type == END_OF_FILE);
 }

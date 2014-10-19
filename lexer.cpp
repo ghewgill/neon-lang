@@ -201,8 +201,23 @@ std::vector<Token> tokenize(const std::string &source)
                 t.text.push_back(c);
             }
         } else if (c == '%') {
-            while (i < source.length() && source.at(i) != '\n') {
-                i++;
+            if (source.at(i+1) == '|') {
+                int level = 0;
+                do {
+                    if (source.at(i) == '%' && source.at(i+1) == '|') {
+                        level++;
+                        i += 2;
+                    } else if (source.at(i) == '|' && source.at(i+1) == '%') {
+                        level--;
+                        i += 2;
+                    } else {
+                        i++;
+                    }
+                } while (level > 0);
+            } else {
+                while (i < source.length() && source.at(i) != '\n') {
+                    i++;
+                }
             }
         } else if (isspace(c)) {
             while (i < source.length() && isspace(source.at(i))) {
