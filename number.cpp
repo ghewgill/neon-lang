@@ -32,6 +32,13 @@ Number number_divide(Number x, Number y)
     return r;
 }
 
+Number number_modulo(Number x, Number y)
+{
+    Number r;
+    r.x = fmod(x.x, y.x);
+    return r;
+}
+
 Number number_pow(Number x, Number y)
 {
     Number r;
@@ -158,6 +165,14 @@ Number number_divide(Number x, Number y)
 {
     Number r;
     r.x = bid64_div(x.x, y.x);
+    // TODO: division by zero
+    return r;
+}
+
+Number number_modulo(Number x, Number y)
+{
+    Number r;
+    r.x = bid64_rem(x.x, y.x);
     // TODO: division by zero
     return r;
 }

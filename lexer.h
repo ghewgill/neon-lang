@@ -22,6 +22,7 @@ enum TokenType {
     MINUS,
     TIMES,
     DIVIDE,
+    MOD,
     EXP,
     EQUAL,
     NOTEQUAL,

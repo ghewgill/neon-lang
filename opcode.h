@@ -20,6 +20,7 @@ enum Opcode {
     SUBN,       // subtract number
     MULN,       // multiply number
     DIVN,       // divide number
+    MODN,       // modulo number
     EXPN,       // exponentiate number
     EQN,        // compare equal number
     NEN,        // compare unequal number

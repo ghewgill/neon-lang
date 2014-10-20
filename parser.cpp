@@ -104,12 +104,12 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
 /*
  * Operator precedence:
  *
- *  ^        exponentiation             parseExponentiation
- *  * /      multiplication, division   parseMultiplication
- *  + -      addition, subtraction      parseAddition
- *  < = >    comparison                 parseComparison
- *  and      conjunction                parseConjunction
- *  or       disjunction                parseDisjunction
+ *  ^        exponentiation                     parseExponentiation
+ *  * / MOD  multiplication, division, modulo   parseMultiplication
+ *  + -      addition, subtraction              parseAddition
+ *  < = >    comparison                         parseComparison
+ *  and      conjunction                        parseConjunction
+ *  or       disjunction                        parseDisjunction
  */
 
 static const Expression *parseAtom(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
@@ -206,6 +206,16 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
             const Expression *right = parseExponentiation(scope, tokens, i);
             if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
                 return new DivisionExpression(left, right);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
+        }
+        case MOD: {
+            auto op = i;
+            ++i;
+            const Expression *right = parseExponentiation(scope, tokens, i);
+            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                return new ModuloExpression(left, right);
             } else {
                 error(tokens[op], "type mismatch");
             }

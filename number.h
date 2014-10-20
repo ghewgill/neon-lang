@@ -35,6 +35,7 @@ Number number_add(Number x, Number y);
 Number number_subtract(Number x, Number y);
 Number number_multiply(Number x, Number y);
 Number number_divide(Number x, Number y);
+Number number_modulo(Number x, Number y);
 Number number_pow(Number x, Number y);
 Number number_negate(Number x);
 Number number_abs(Number x);

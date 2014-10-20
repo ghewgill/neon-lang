@@ -361,6 +361,13 @@ void DivisionExpression::generate(Emitter &emitter) const
     emitter.emit(DIVN);
 }
 
+void ModuloExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(MODN);
+}
+
 void ExponentiationExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);

@@ -24,6 +24,7 @@ std::string Token::tostring() const
         case MINUS:       s << "MINUS"; break;
         case TIMES:       s << "TIMES"; break;
         case DIVIDE:      s << "DIVIDE"; break;
+        case MOD:         s << "MOD"; break;
         case EXP:         s << "EXP"; break;
         case EQUAL:       s << "EQUAL"; break;
         case NOTEQUAL:    s << "NOTEQUAL"; break;
@@ -124,6 +125,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "RETURN") t.type = RETURN;
             else if (t.text == "FALSE") t.type = FALSE;
             else if (t.text == "TRUE") t.type = TRUE;
+            else if (t.text == "MOD") t.type = MOD;
             else if (t.text == "AND") t.type = AND;
             else if (t.text == "OR") t.type = OR;
             else if (t.text == "NOT") t.type = NOT;

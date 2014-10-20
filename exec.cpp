@@ -65,6 +65,7 @@ private:
     void exec_SUBN();
     void exec_MULN();
     void exec_DIVN();
+    void exec_MODN();
     void exec_EXPN();
     void exec_EQN();
     void exec_NEN();
@@ -229,6 +230,14 @@ void Executor::exec_DIVN()
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
     stack.push(Variant(number_divide(a, b)));
+}
+
+void Executor::exec_MODN()
+{
+    ip++;
+    Number b = stack.top().number_value; stack.pop();
+    Number a = stack.top().number_value; stack.pop();
+    stack.push(Variant(number_modulo(a, b)));
 }
 
 void Executor::exec_EXPN()
@@ -464,6 +473,7 @@ void Executor::exec()
             case SUBN:    exec_SUBN(); break;
             case MULN:    exec_MULN(); break;
             case DIVN:    exec_DIVN(); break;
+            case MODN:    exec_MODN(); break;
             case EXPN:    exec_EXPN(); break;
             case EQN:     exec_EQN(); break;
             case NEN:     exec_NEN(); break;
