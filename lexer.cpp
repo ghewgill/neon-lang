@@ -159,6 +159,8 @@ std::vector<Token> tokenize(const std::string &source)
                             error(t, "'#' expected");
                         }
                         i = j + 1;
+                    } else {
+                        error(t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
                     while (true) {

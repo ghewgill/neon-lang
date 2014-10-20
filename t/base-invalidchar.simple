@@ -1,0 +1,3 @@
+print(str(0z0))
+
+%! invalid base character
