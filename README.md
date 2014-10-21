@@ -53,9 +53,10 @@ Although this is well-defined, it is often counterintuitive for beginners. Consi
 
 ```python
 >>> a = 0.1
->>> a + a
-0.2
->>> a == 0.2
+>>> b = a + a + a
+>>> b
+0.3
+>>> b == 0.3
 False
 ```
 
