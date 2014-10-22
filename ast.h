@@ -86,7 +86,7 @@ class TypeNumber: public Type {
 public:
     TypeNumber(): Type("number") {}
     virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitterindex) const;
+    virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeNumber"; }
