@@ -1,0 +1,25 @@
+%|--------------------------------------------------------------------------|%
+%| Testing "FlowerBox Comments..."                                          |%
+%| Test Set     : comments.simple                                           |%
+%| Created On   : 2014-10-21                                                |%
+%| Updated On   : 2014-10-21                                                |%
+%| Created By   : Larry Frieson                                             |%
+%|--------------------------------------------------------------------------|%
+print("FlowerBox Comments ok.")
+%= FlowerBox Comments ok.
+
+% Regular Simple-Lang comments...
+print("Regular Comments ok.")
+
+%= Regular Comments ok.
+
+%|
+    %|
+        %|
+            Testing Nested Comments...
+        |%
+    |%
+|%
+
+print("Nested Comments ok.")
+%= Nested Comments ok.
