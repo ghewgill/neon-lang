@@ -47,6 +47,7 @@ enum TokenType {
     NOT,
     ARRAY,
     DICTIONARY,
+    TYPE,
 };
 
 class Token {

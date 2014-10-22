@@ -49,6 +49,7 @@ std::string Token::tostring() const
         case NOT:         s << "NOT"; break;
         case ARRAY:       s << "ARRAY"; break;
         case DICTIONARY:  s << "DICTIONARY"; break;
+        case TYPE:        s << "TYPE"; break;
     }
     s << ">";
     return s.str();
@@ -131,6 +132,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "NOT") t.type = NOT;
             else if (t.text == "ARRAY") t.type = ARRAY;
             else if (t.text == "DICTIONARY") t.type = DICTIONARY;
+            else if (t.text == "TYPE") t.type = TYPE;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

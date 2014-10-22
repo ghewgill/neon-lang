@@ -68,6 +68,23 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
     return type;
 }
 
+static const Statement *parseTypeDefinition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(tokens[i], "identifier expected");
+    }
+    std::string name = tokens[i].text;
+    ++i;
+    if (tokens[i].type != ASSIGN) {
+        error(tokens[i], "':=' expected");
+    }
+    ++i;
+    const Type *type = parseType(scope, tokens, i);
+    scope->names[name] = const_cast<Type *>(type); // TODO clean up when 'referenced' is fixed
+    return nullptr;
+}
+
 static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(ref->type);
@@ -543,7 +560,9 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
 
 static const Statement *parseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    if (tokens[i].type == FUNCTION) {
+    if (tokens[i].type == TYPE) {
+        return parseTypeDefinition(scope, tokens, i);
+    } else if (tokens[i].type == FUNCTION) {
         return parseFunctionDefinition(scope, tokens, i);
     } else if (tokens[i].type == IF) {
         return parseIfStatement(scope, tokens, i);
