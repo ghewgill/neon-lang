@@ -399,29 +399,41 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
     return parseDisjunction(scope, tokens, i);
 }
 
-static Variable *parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+static const std::vector<Variable *> parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    if (tokens[i].type != IDENTIFIER) {
-        error(tokens[i], "identifier expected");
+    std::vector<std::string> names;
+    while (true) {
+        if (tokens[i].type != IDENTIFIER) {
+            error(tokens[i], "identifier expected");
+        }
+        std::string name = tokens[i].text;
+        if (scope->names.find(name) != scope->names.end()) {
+            error(tokens[i], "duplicate identifer: " + name);
+        }
+        names.push_back(name);
+        ++i;
+        if (tokens[i].type != COMMA) {
+            break;
+        }
+        ++i;
     }
-    std::string name = tokens[i].text;
-    if (scope->names.find(name) != scope->names.end()) {
-        error(tokens[i], "duplicate identifer: " + name);
-    }
-    ++i;
     if (tokens[i].type != COLON) {
         error(tokens[i], "colon expected");
     }
     ++i;
     const Type *t = parseType(scope, tokens, i);
-    Variable *v;
-    if (scope == g_GlobalScope) {
-        v = new GlobalVariable(name, t);
-    } else {
-        v = new LocalVariable(name, t, scope);
+    std::vector<Variable *> r;
+    for (auto name: names) {
+        Variable *v;
+        if (scope == g_GlobalScope) {
+            v = new GlobalVariable(name, t);
+        } else {
+            v = new LocalVariable(name, t, scope);
+        }
+        scope->names[name] = v;
+        r.push_back(v);
     }
-    scope->names[name] = v;
-    return v;
+    return r;
 }
 
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
@@ -515,8 +527,8 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
     Scope *newscope = new Scope(scope);
     if (tokens[i].type != RPAREN) {
         while (true) {
-            Variable *v = parseVariableDeclaration(newscope, tokens, i);
-            args.push_back(v);
+            std::vector<Variable *> vars = parseVariableDeclaration(newscope, tokens, i);
+            std::copy(vars.begin(), vars.end(), std::back_inserter(args));
             if (tokens[i].type != COMMA) {
                 break;
             }

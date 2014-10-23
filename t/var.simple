@@ -1,0 +1,4 @@
+VAR a: number
+VAR b, c: number
+
+a := b
