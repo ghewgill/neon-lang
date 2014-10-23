@@ -1,0 +1,20 @@
+% TODO
+VAR b1, b2: boolean
+VAR n1, n2: number
+VAR s1, s2: string
+VAR a1, a2: ARRAY<string>
+VAR d1, d2: DICTIONARY<string>
+VAR r1, r2: RECORD x: number END
+
+print(strb(b2 = b1))
+print(strb(n2 = n1))
+print(strb(s2 = s1))
+print(strb(a2 = a1))
+print(strb(d2 = d1))
+print(strb(r2 = r1))
+%= TRUE
+%= TRUE
+%= TRUE
+%= TRUE
+%= TRUE
+%= TRUE
