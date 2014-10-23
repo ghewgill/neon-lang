@@ -1,5 +1,4 @@
-% TODO
-TYPE point
+TYPE point := RECORD
     x: number
     y: number
 END
@@ -7,7 +6,7 @@ VAR a: point
 VAR b: point
 a.x := 4
 a.y := 5
-b := a
-print(str(b.x) + "," + str(b.y))
+%b := a
+print(str(a.x) + "," + str(a.y))
 
 %= 4,5

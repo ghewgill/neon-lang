@@ -143,6 +143,18 @@ public:
     virtual std::string text() const { return "TypeDictionary(" + elementtype->text() + ")"; }
 };
 
+class TypeRecord: public Type {
+public:
+    TypeRecord(const std::map<std::string, std::pair<int, const Type *> > &fields): Type("record"), fields(fields) {}
+    const std::map<std::string, std::pair<int, const Type *> > fields;
+
+    virtual void generate_load(Emitter &emitter) const { assert(false); }
+    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_call(Emitter &emitter) const { assert(false); }
+
+    virtual std::string text() const { return "TypeRecord(...)"; }
+};
+
 class Variable: public Name {
 public:
     Variable(const std::string &name, const Type *type): Name(name, type) {}

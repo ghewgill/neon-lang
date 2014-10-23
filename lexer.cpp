@@ -49,7 +49,9 @@ std::string Token::tostring() const
         case NOT:         s << "NOT"; break;
         case ARRAY:       s << "ARRAY"; break;
         case DICTIONARY:  s << "DICTIONARY"; break;
+        case DOT:         s << "DOT"; break;
         case TYPE:        s << "TYPE"; break;
+        case RECORD:      s << "RECORD"; break;
     }
     s << ">";
     return s.str();
@@ -84,6 +86,7 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '=') { t.type = EQUAL; i++; }
         else if (c == '#') { t.type = NOTEQUAL; i++; }
         else if (c == ',') { t.type = COMMA; i++; }
+        else if (c == '.') { t.type = DOT; i++; }
         else if (c == '<') {
             if (source.at(i+1) == '=') {
                 t.type = LESSEQ;
@@ -133,6 +136,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "ARRAY") t.type = ARRAY;
             else if (t.text == "DICTIONARY") t.type = DICTIONARY;
             else if (t.text == "TYPE") t.type = TYPE;
+            else if (t.text == "RECORD") t.type = RECORD;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

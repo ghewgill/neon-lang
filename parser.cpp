@@ -45,6 +45,35 @@ static const Type *parseDictionaryType(Scope *scope, const std::vector<Token> &t
     return new TypeDictionary(elementtype);
 }
 
+static const Type *parseRecordType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    if (tokens[i].type != RECORD) {
+        error(tokens[i], "RECORD expected");
+    }
+    i++;
+    std::map<std::string, std::pair<int, const Type *> > fields;
+    int index = 0;
+    while (tokens[i].type != END) {
+        if (tokens[i].type != IDENTIFIER) {
+            error(tokens[i], "identifier expected");
+        }
+        std::string name = tokens[i].text;
+        if (fields.find(name) != fields.end()) {
+            error(tokens[i], "duplicate field: " + name);
+        }
+        ++i;
+        if (tokens[i].type != COLON) {
+            error(tokens[i], "colon expected");
+        }
+        ++i;
+        const Type *t = parseType(scope, tokens, i);
+        fields[name] = std::make_pair(index, t);
+        index++;
+    }
+    i++;
+    return new TypeRecord(fields);
+}
+
 static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type == ARRAY) {
@@ -52,6 +81,9 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
     }
     if (tokens[i].type == DICTIONARY) {
         return parseDictionaryType(scope, tokens, i);
+    }
+    if (tokens[i].type == RECORD) {
+        return parseRecordType(scope, tokens, i);
     }
     if (tokens[i].type != IDENTIFIER) {
         error(tokens[i], "identifier expected");
@@ -437,10 +469,26 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                 } else {
                     error(tokens[i], "not an array or dictionary");
                 }
+            } else if (tokens[i].type == DOT) {
+                const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
+                if (recordtype != nullptr) {
+                    ++i;
+                    if (tokens[i].type != IDENTIFIER) {
+                        error(tokens[i], "identifier expected");
+                    }
+                    std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
+                    if (f == recordtype->fields.end()) {
+                        error(tokens[i], "field not found");
+                    }
+                    ++i;
+                    type = f->second.second;
+                    ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                } else {
+                    error(tokens[i], "not a record");
+                }
             } else {
                 break;
             }
-            // TODO: [ for array and . for struct
         }
         return ref;
     } else {
