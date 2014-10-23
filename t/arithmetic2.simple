@@ -1,0 +1,11 @@
+VAR a: number
+a := 2
+
+print(str(a + a + a))
+%= 6
+
+print(str(a * a * a))
+%= 8
+
+print(str(a ^ a ^ a))
+%= 16

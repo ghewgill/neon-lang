@@ -189,90 +189,101 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
 static const Expression *parseExponentiation(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseAtom(scope, tokens, i);
-    if (tokens[i].type == EXP) {
-        auto op = i;
-        ++i;
-        const Expression *right = parseAtom(scope, tokens, i);
-        if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
-            return new ExponentiationExpression(left, right);
+    while (true) {
+        if (tokens[i].type == EXP) {
+            auto op = i;
+            ++i;
+            const Expression *right = parseAtom(scope, tokens, i);
+            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                left = new ExponentiationExpression(left, right);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
         } else {
-            error(tokens[op], "type mismatch");
+            return left;
         }
-    } else {
-        return left;
     }
 }
 
 static const Expression *parseMultiplication(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseExponentiation(scope, tokens, i);
-    switch (tokens[i].type) {
-        case TIMES: {
-            auto op = i;
-            ++i;
-            const Expression *right = parseExponentiation(scope, tokens, i);
-            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
-                return new MultiplicationExpression(left, right);
-            } else {
-                error(tokens[op], "type mismatch");
+    while (true) {
+        switch (tokens[i].type) {
+            case TIMES: {
+                auto op = i;
+                ++i;
+                const Expression *right = parseExponentiation(scope, tokens, i);
+                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                    left = new MultiplicationExpression(left, right);
+                } else {
+                    error(tokens[op], "type mismatch");
+                }
+                break;
             }
-        }
-        case DIVIDE: {
-            auto op = i;
-            ++i;
-            const Expression *right = parseExponentiation(scope, tokens, i);
-            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
-                return new DivisionExpression(left, right);
-            } else {
-                error(tokens[op], "type mismatch");
+            case DIVIDE: {
+                auto op = i;
+                ++i;
+                const Expression *right = parseExponentiation(scope, tokens, i);
+                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                    left = new DivisionExpression(left, right);
+                } else {
+                    error(tokens[op], "type mismatch");
+                }
+                break;
             }
-        }
-        case MOD: {
-            auto op = i;
-            ++i;
-            const Expression *right = parseExponentiation(scope, tokens, i);
-            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
-                return new ModuloExpression(left, right);
-            } else {
-                error(tokens[op], "type mismatch");
+            case MOD: {
+                auto op = i;
+                ++i;
+                const Expression *right = parseExponentiation(scope, tokens, i);
+                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                    left = new ModuloExpression(left, right);
+                } else {
+                    error(tokens[op], "type mismatch");
+                }
+                break;
             }
+            default:
+                return left;
         }
-        default:
-            return left;
     }
 }
 
 static const Expression *parseAddition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseMultiplication(scope, tokens, i);
-    switch (tokens[i].type) {
-        case PLUS: {
-            auto op = i;
-            ++i;
-            const Expression *right = parseMultiplication(scope, tokens, i);
-            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
-                return new AdditionExpression(left, right);
-            } else if (left->type == TYPE_STRING && right->type == TYPE_STRING) {
-                std::vector<const Expression *> args;
-                args.push_back(left);
-                args.push_back(right);
-                return new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
-            } else {
-                error(tokens[op], "type mismatch");
+    while (true) {
+        switch (tokens[i].type) {
+            case PLUS: {
+                auto op = i;
+                ++i;
+                const Expression *right = parseMultiplication(scope, tokens, i);
+                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                    left = new AdditionExpression(left, right);
+                } else if (left->type == TYPE_STRING && right->type == TYPE_STRING) {
+                    std::vector<const Expression *> args;
+                    args.push_back(left);
+                    args.push_back(right);
+                    left = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
+                } else {
+                    error(tokens[op], "type mismatch");
+                }
+                break;
             }
-        }
-        case MINUS: {
-            auto op = i;
-            ++i;
-            const Expression *right = parseMultiplication(scope, tokens, i);
-            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
-                return new SubtractionExpression(left, right);
-            } else {
-                error(tokens[op], "type mismatch");
+            case MINUS: {
+                auto op = i;
+                ++i;
+                const Expression *right = parseMultiplication(scope, tokens, i);
+                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                    left = new SubtractionExpression(left, right);
+                } else {
+                    error(tokens[op], "type mismatch");
+                }
+                break;
             }
+            default:
+                return left;
         }
-        default:
-            return left;
     }
 }
 
@@ -316,34 +327,38 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
 static const Expression *parseConjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseComparison(scope, tokens, i);
-    if (tokens[i].type == AND) {
-        auto op = i;
-        ++i;
-        const Expression *right = parseComparison(scope, tokens, i);
-        if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
-            return new ConjunctionExpression(left, right);
+    while (true) {
+        if (tokens[i].type == AND) {
+            auto op = i;
+            ++i;
+            const Expression *right = parseComparison(scope, tokens, i);
+            if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
+                left = new ConjunctionExpression(left, right);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
         } else {
-            error(tokens[op], "type mismatch");
+            return left;
         }
-    } else {
-        return left;
     }
 }
 
 static const Expression *parseDisjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseConjunction(scope, tokens, i);
-    if (tokens[i].type == OR) {
-        auto op = i;
-        ++i;
-        const Expression *right = parseConjunction(scope, tokens, i);
-        if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
-            return new DisjunctionExpression(left, right);
+    while (true) {
+        if (tokens[i].type == OR) {
+            auto op = i;
+            ++i;
+            const Expression *right = parseConjunction(scope, tokens, i);
+            if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
+                left = new DisjunctionExpression(left, right);
+            } else {
+                error(tokens[op], "type mismatch");
+            }
         } else {
-            error(tokens[op], "type mismatch");
+            return left;
         }
-    } else {
-        return left;
     }
 }
 
