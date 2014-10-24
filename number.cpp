@@ -243,38 +243,37 @@ std::string number_to_string(Number x)
 {
     char buf[40];
     bid64_to_string(buf, x.x);
+    std::string sbuf(buf);
 
     // TODO: This hack converts a canonical string like +42E+0 to just 42
-    if (strlen(buf) >= 3 && strcmp(&buf[strlen(buf)-3], "E+0") == 0) {
-        buf[strlen(buf)-3] = '\0';
+    if (sbuf.length() >= 3 && sbuf.substr(sbuf.length()-3) == "E+0") {
+        sbuf = sbuf.substr(0, sbuf.length()-3);
     }
-    char *r = buf;
-    if (*r == '+') {
-        r++;
+    if (sbuf.at(0) == '+') {
+        sbuf = sbuf.substr(1);
     }
 
     // TODO: This hack converts xxxx0000E-4 to just xxxx.
-    char *p = r + strlen(r);
-    while (p > r && isdigit(p[-1])) {
+    const char *p = sbuf.data() + sbuf.length();
+    while (p > sbuf.data() && isdigit(p[-1])) {
         p--;
     }
-    if (p > r && p[-1] == '-') {
+    if (p > sbuf.data() && p[-1] == '-') {
         p--;
-        if (p > r && p[-1] == 'E') {
+        if (p > sbuf.data() && p[-1] == 'E') {
             p--;
             int z = std::stoi(p+2);
-            while (z > 0 && p > r && p[-1] == '0') {
+            while (z > 0 && p > sbuf.data() && p[-1] == '0') {
                 p--;
                 z--;
             }
             if (z == 0) {
-                *p = '\0';
+                sbuf = sbuf.substr(0, p-sbuf.data());
             }
         }
     }
 
-
-    return r;
+    return sbuf;
 }
 
 uint32_t number_to_uint32(Number x)

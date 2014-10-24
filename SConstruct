@@ -1,4 +1,5 @@
 import os
+import sys
 import tarfile
 from SCons.Script.SConscript import SConsEnvironment
 
@@ -91,4 +92,4 @@ env.UnitTest("test_compiler", [
 ] + coverage_lib,
 )
 
-env.Command("dummy", ["simple", "run_test.py", Glob("t/*")], "python3 run_test.py t")
+env.Command("dummy", ["simple", "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")

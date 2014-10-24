@@ -1,3 +1,4 @@
+import codecs
 import os
 import re
 import subprocess
@@ -6,10 +7,13 @@ import sys
 def run(fn):
     print ("Running {}...".format(fn))
 
-    src = open(fn, encoding="UTF-8").read()
+    src = codecs.open(fn, encoding="UTF-8").read()
 
     all_comments = re.findall("^%(.*)$", src, re.MULTILINE)
     todo = any("TODO" in x for x in all_comments)
+    if any("SKIP" in x for x in all_comments):
+        print("skipped")
+        return True
 
     out_comments = re.findall("^%=\s*(.*)$", src, re.MULTILINE)
     expected_stdout = "".join([x + "\n" for x in out_comments])
@@ -32,11 +36,11 @@ def run(fn):
 
     if expected_stderr not in err:
         print("*** EXPECTED ERROR")
-        print()
+        print("")
         sys.stdout.write(expected_stderr)
-        print()
+        print("")
         print("*** ACTUAL ERROR")
-        print()
+        print("")
         sys.stdout.write(err)
         if todo:
             return False
@@ -44,18 +48,18 @@ def run(fn):
 
     if out != expected_stdout:
         print("*** EXPECTED OUTPUT")
-        print()
+        print("")
         sys.stdout.write(expected_stdout)
-        print()
+        print("")
         print("*** ACTUAL OUTPUT")
-        print()
+        print("")
         sys.stdout.write(out)
         if todo:
             return False
         sys.exit(1)
 
     if todo:
-        print("TODO comment exists, but test succeeded", file=sys.stderr)
+        sys.stderr.write("TODO comment exists, but test succeeded\n")
 
     return True
 

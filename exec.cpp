@@ -13,12 +13,14 @@
 
 class Variant {
 public:
-    Variant() {}
-    Variant(Variant *value): address_value(value) {}
-    Variant(bool value): boolean_value(value) {}
-    Variant(Number value): number_value(value) {}
-    Variant(const std::string &value): string_value(value) {}
-    Variant(const char *value): string_value(value) {}
+    Variant();
+    explicit Variant(const Variant &rhs);
+    explicit Variant(Variant *value);
+    explicit Variant(bool value);
+    explicit Variant(Number value);
+    explicit Variant(const std::string &value);
+    explicit Variant(const char *value);
+    Variant &operator=(const Variant &rhs);
     Variant *address_value;
     bool boolean_value;
     Number number_value;
@@ -26,6 +28,90 @@ public:
     std::vector<Variant> array_value;
     std::map<std::string, Variant> dictionary_value;
 };
+
+Variant::Variant()
+  : address_value(NULL),
+    boolean_value(false),
+    number_value(),
+    string_value(),
+    array_value(),
+    dictionary_value()
+{
+}
+
+Variant::Variant(const Variant &rhs)
+  : address_value(rhs.address_value),
+    boolean_value(rhs.boolean_value),
+    number_value(rhs.number_value),
+    string_value(rhs.string_value),
+    array_value(rhs.array_value),
+    dictionary_value(rhs.dictionary_value)
+{
+}
+
+Variant::Variant(Variant *value)
+  : address_value(value),
+    boolean_value(false),
+    number_value(),
+    string_value(),
+    array_value(),
+    dictionary_value()
+{
+}
+
+Variant::Variant(bool value)
+  : address_value(NULL),
+    boolean_value(value),
+    number_value(),
+    string_value(),
+    array_value(),
+    dictionary_value()
+{
+}
+
+Variant::Variant(Number value)
+  : address_value(NULL),
+    boolean_value(false),
+    number_value(value),
+    string_value(),
+    array_value(),
+    dictionary_value()
+{
+}
+
+Variant::Variant(const std::string &value)
+  : address_value(NULL),
+    boolean_value(false),
+    number_value(),
+    string_value(value),
+    array_value(),
+    dictionary_value()
+{
+}
+
+Variant::Variant(const char *value)
+  : address_value(NULL),
+    boolean_value(false),
+    number_value(),
+    string_value(value),
+    array_value(),
+    dictionary_value()
+{
+}
+
+Variant &Variant::operator=(const Variant &rhs)
+{
+    if (&rhs == this) {
+        return *this;
+    }
+    address_value = rhs.address_value;
+    boolean_value = rhs.boolean_value;
+    number_value = rhs.number_value;
+    string_value = rhs.string_value;
+    array_value = rhs.array_value;
+    dictionary_value = rhs.dictionary_value;
+    return *this;
+}
 
 class ActivationFrame {
 public:
@@ -92,7 +178,13 @@ private:
 };
 
 Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
-  : obj(obj), out(out), ip(0)
+  : obj(obj),
+    out(out),
+    ip(0),
+    stack(),
+    callstack(),
+    globals(),
+    frames()
 {
 }
 
@@ -152,21 +244,21 @@ void Executor::exec_LOADB()
 {
     ip++;
     Variant *addr = stack.top().address_value; stack.pop();
-    stack.push(addr->boolean_value);
+    stack.push(Variant(addr->boolean_value));
 }
 
 void Executor::exec_LOADN()
 {
     ip++;
     Variant *addr = stack.top().address_value; stack.pop();
-    stack.push(addr->number_value);
+    stack.push(Variant(addr->number_value));
 }
 
 void Executor::exec_LOADS()
 {
     ip++;
     Variant *addr = stack.top().address_value; stack.pop();
-    stack.push(addr->string_value);
+    stack.push(Variant(addr->string_value));
 }
 
 void Executor::exec_STOREB()
@@ -374,12 +466,12 @@ void Executor::exec_INDEXA()
     Variant *addr = stack.top().address_value; stack.pop();
     assert(number_is_integer(index));
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
-    assert(i >= 0);
+    // TODO: check for i >= 0 and throw exception if not
     if (i >= addr->array_value.size()) {
         addr->array_value.resize(i+1);
     }
     assert(i < addr->array_value.size());
-    stack.push(&addr->array_value.at(i));
+    stack.push(Variant(&addr->array_value.at(i)));
 }
 
 void Executor::exec_INDEXD()
@@ -387,7 +479,7 @@ void Executor::exec_INDEXD()
     ip++;
     std::string index = stack.top().string_value; stack.pop();
     Variant *addr = stack.top().address_value; stack.pop();
-    stack.push(&addr->dictionary_value[index]);
+    stack.push(Variant(&addr->dictionary_value[index]));
 }
 
 void Executor::exec_CALLP()
