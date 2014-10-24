@@ -1,5 +1,6 @@
 #include "compiler.h"
 
+#include <algorithm>
 #include <assert.h>
 
 #include "ast.h"
