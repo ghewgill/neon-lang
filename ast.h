@@ -217,6 +217,9 @@ public:
     virtual void generate(Emitter &emitter) const = 0;
 
     const Type *type;
+private:
+    Expression(const Expression &);
+    Expression &operator=(const Expression &);
 };
 
 class ConstantBooleanExpression: public Expression {
@@ -265,6 +268,9 @@ public:
     virtual std::string text() const {
         return "UnaryMinusExpression(" + value->text() + ")";
     }
+private:
+    UnaryMinusExpression(const UnaryMinusExpression &);
+    UnaryMinusExpression &operator=(const UnaryMinusExpression &);
 };
 
 class LogicalNotExpression: public Expression {
@@ -280,6 +286,9 @@ public:
     virtual std::string text() const {
         return "LogicalNotExpression(" + value->text() + ")";
     }
+private:
+    LogicalNotExpression(const LogicalNotExpression &);
+    LogicalNotExpression &operator=(const LogicalNotExpression &);
 };
 
 class DisjunctionExpression: public Expression {
@@ -297,6 +306,9 @@ public:
     virtual std::string text() const {
         return "DisjunctionExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    DisjunctionExpression(const DisjunctionExpression &);
+    DisjunctionExpression &operator=(const DisjunctionExpression &);
 };
 
 class ConjunctionExpression: public Expression {
@@ -314,6 +326,9 @@ public:
     virtual std::string text() const {
         return "ConjunctionExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    ConjunctionExpression(const ConjunctionExpression &);
+    ConjunctionExpression &operator=(const ConjunctionExpression &);
 };
 
 class ComparisonExpression: public Expression {
@@ -326,6 +341,9 @@ public:
     const Expression *const left;
     const Expression *const right;
     const Comparison comp;
+private:
+    ComparisonExpression(const ComparisonExpression &);
+    ComparisonExpression &operator=(const ComparisonExpression &);
 };
 
 class NumericComparisonExpression: public ComparisonExpression {
@@ -365,6 +383,9 @@ public:
     virtual std::string text() const {
         return "AdditionExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    AdditionExpression(const AdditionExpression &);
+    AdditionExpression &operator=(const AdditionExpression &);
 };
 
 class SubtractionExpression: public Expression {
@@ -382,6 +403,9 @@ public:
     virtual std::string text() const {
         return "SubtractionExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    SubtractionExpression(const SubtractionExpression &);
+    SubtractionExpression &operator=(const SubtractionExpression &);
 };
 
 class MultiplicationExpression: public Expression {
@@ -399,6 +423,9 @@ public:
     virtual std::string text() const {
         return "MultiplicationExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    MultiplicationExpression(const MultiplicationExpression &);
+    MultiplicationExpression &operator=(const MultiplicationExpression &);
 };
 
 class DivisionExpression: public Expression {
@@ -416,6 +443,9 @@ public:
     virtual std::string text() const {
         return "DivisionExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    DivisionExpression(const DivisionExpression &);
+    DivisionExpression &operator=(const DivisionExpression &);
 };
 
 class ModuloExpression: public Expression {
@@ -433,6 +463,9 @@ public:
     virtual std::string text() const {
         return "ModuloExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    ModuloExpression(const ModuloExpression &);
+    ModuloExpression &operator=(const ModuloExpression &);
 };
 
 class ExponentiationExpression: public Expression {
@@ -450,9 +483,12 @@ public:
     virtual std::string text() const {
         return "ExponentiationExpression(" + left->text() + "," + right->text() + ")";
     }
+private:
+    ExponentiationExpression(const ExponentiationExpression &);
+    ExponentiationExpression &operator=(const ExponentiationExpression &);
 };
 
-class VariableReference {
+class VariableReference: public AstNode {
 public:
     VariableReference(const Type *type): type(type) {}
 
@@ -515,6 +551,9 @@ public:
     virtual std::string text() const {
         return "VariableExpression(" + var->text() + ")";
     }
+private:
+    VariableExpression(const VariableExpression &);
+    VariableExpression &operator=(const VariableExpression &);
 };
 
 class FunctionCall: public Expression {
@@ -551,6 +590,9 @@ public:
     virtual std::string text() const {
         return "AssignmentStatement(" + variable->text() + ", " + expr->text() + ")";
     }
+private:
+    AssignmentStatement(const AssignmentStatement &);
+    AssignmentStatement &operator=(const AssignmentStatement &);
 };
 
 class ExpressionStatement: public Statement {
@@ -564,6 +606,9 @@ public:
     virtual std::string text() const {
         return "ExpressionStatement(" + expr->text() + ")";
     }
+private:
+    ExpressionStatement(const ExpressionStatement &);
+    ExpressionStatement &operator=(const ExpressionStatement &);
 };
 
 class ReturnStatement: public Statement {
@@ -575,6 +620,9 @@ public:
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const { return "ReturnStatement(" + expr->text() + ")"; }
+private:
+    ReturnStatement(const ReturnStatement &);
+    ReturnStatement &operator=(const ReturnStatement &);
 };
 
 class CompoundStatement: public Statement {
