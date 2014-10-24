@@ -80,7 +80,8 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
 }
 
 Program::Program()
-  : scope(new Scope(nullptr))
+  : scope(new Scope(nullptr)),
+    statements()
 {
     scope->names["boolean"] = TYPE_BOOLEAN;
     scope->names["number"] = TYPE_NUMBER;

@@ -14,6 +14,7 @@ class Emitter;
 class AstNode {
 public:
     AstNode() {}
+    virtual ~AstNode() {}
     void dump(std::ostream &out, int depth = 0) const;
     virtual std::string text() const = 0;
     virtual void dumpsubnodes(std::ostream &out, int depth) const {}
@@ -27,7 +28,8 @@ class Type;
 
 class Scope {
 public:
-    Scope(Scope *parent): parent(parent) {}
+    Scope(Scope *parent): parent(parent), names(), count(0) {}
+    virtual ~Scope() {}
 
     virtual void predeclare(Emitter &emitter) const;
     virtual void postdeclare(Emitter &emitter) const;
@@ -37,6 +39,9 @@ public:
     Scope *const parent;
     std::map<std::string, Name *> names;
     int count;
+private:
+    Scope(const Scope &);
+    Scope &operator=(const Scope &);
 };
 
 class Name: public AstNode {
@@ -48,6 +53,9 @@ public:
 
     virtual void predeclare(Emitter &emitter) {}
     virtual void postdeclare(Emitter &emitter) {}
+private:
+    Name(const Name &);
+    Name &operator=(const Name &);
 };
 
 class Type: public Name {
@@ -117,6 +125,9 @@ public:
     const std::vector<const Type *> args;
 
     virtual std::string text() const { return "TypeFunction(...)"; }
+private:
+    TypeFunction(const TypeFunction &);
+    TypeFunction &operator=(const TypeFunction &);
 };
 
 class TypeArray: public Type {
@@ -129,6 +140,9 @@ public:
     virtual void generate_call(Emitter &emitter) const { assert(false); }
 
     virtual std::string text() const { return "TypeArray(" + elementtype->text() + ")"; }
+private:
+    TypeArray(const TypeArray &);
+    TypeArray &operator=(const TypeArray &);
 };
 
 class TypeDictionary: public Type {
@@ -141,6 +155,9 @@ public:
     virtual void generate_call(Emitter &emitter) const { assert(false); }
 
     virtual std::string text() const { return "TypeDictionary(" + elementtype->text() + ")"; }
+private:
+    TypeDictionary(const TypeDictionary &);
+    TypeDictionary &operator=(const TypeDictionary &);
 };
 
 class TypeRecord: public Type {
@@ -188,6 +205,9 @@ public:
     virtual void generate_address(Emitter &emitter) const;
 
     virtual std::string text() const { return "LocalVariable(" + name + ", " + type->text() + ")"; }
+private:
+    LocalVariable(const LocalVariable &);
+    LocalVariable &operator=(const LocalVariable &);
 };
 
 class Expression: public AstNode {
@@ -507,6 +527,9 @@ public:
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
+private:
+    FunctionCall(const FunctionCall &);
+    FunctionCall &operator=(const FunctionCall &);
 };
 
 class Statement: public AstNode {
@@ -576,6 +599,9 @@ public:
     virtual std::string text() const {
         return "IfStatement(" + condition->text() + ")";
     }
+private:
+    IfStatement(const IfStatement &);
+    IfStatement &operator=(const IfStatement &);
 };
 
 class WhileStatement: public CompoundStatement {
@@ -589,11 +615,14 @@ public:
     virtual std::string text() const {
         return "WhileStatement(" + condition->text() + ")";
     }
+private:
+    WhileStatement(const WhileStatement &);
+    WhileStatement &operator=(const WhileStatement &);
 };
 
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<Variable *> &args): Variable(name, makeFunctionType(returntype, args)), scope(scope), args(args) {
+    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<Variable *> &args): Variable(name, makeFunctionType(returntype, args)), scope(scope), args(args), entry_label(-1), statements() {
         for (auto v: args) {
             scope->names[v->name] = v;
         }
@@ -614,11 +643,14 @@ public:
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "Function(" + name + ", " + type->text() + ")"; }
+private:
+    Function(const Function &);
+    Function &operator=(const Function &);
 };
 
 class PredefinedFunction: public Variable {
 public:
-    PredefinedFunction(const std::string &name, const Type *type): Variable(name, type) {}
+    PredefinedFunction(const std::string &name, const Type *type): Variable(name, type), name_index(-1) {}
     int name_index;
 
     virtual void predeclare(Emitter &emitter);
@@ -641,6 +673,9 @@ public:
 
     virtual std::string text() const { return "Program"; }
     virtual void dumpsubnodes(std::ostream &out, int depth) const;
+private:
+    Program(const Program &);
+    Program &operator=(const Program &);
 };
 
 #endif
