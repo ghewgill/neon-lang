@@ -1,6 +1,8 @@
 #include "bytecode.h"
 
 Bytecode::Bytecode(const std::vector<unsigned char> &obj)
+  : strtable(),
+    code()
 {
     unsigned int strtablesize = (obj[0] << 8) | obj[1];
     strtable = getstrtable(obj.begin() + 2, obj.begin() + 2 + strtablesize);
