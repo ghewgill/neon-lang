@@ -8,11 +8,12 @@
 class Emitter {
     class Label {
         friend class Emitter;
-        Label(): target(-1) {}
+        Label(): fixups(), target(-1) {}
         std::vector<int> fixups;
         int target;
     };
 public:
+    Emitter(): code(), strings(), globals(), functions() {}
     void emit(unsigned char b);
     void emit_int(int value);
     void emit(unsigned char b, int value);
@@ -73,7 +74,7 @@ std::vector<unsigned char> Emitter::getObject()
 
 unsigned int Emitter::global(const std::string &name)
 {
-    auto i = find(globals.begin(), globals.end(), name);
+    auto i = std::find(globals.begin(), globals.end(), name);
     if (i == globals.end()) {
         globals.push_back(name);
         i = globals.end() - 1;
@@ -83,7 +84,7 @@ unsigned int Emitter::global(const std::string &name)
 
 unsigned int Emitter::str(const std::string &s)
 {
-    auto i = find(strings.begin(), strings.end(), s);
+    auto i = std::find(strings.begin(), strings.end(), s);
     if (i == strings.end()) {
         strings.push_back(s);
         i = strings.end() - 1;

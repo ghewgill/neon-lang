@@ -23,7 +23,6 @@ env.Append(CXXFLAGS=[
     "-Wextra",
     "-Weffc++",
     "-Werror",
-    "-pedantic",
     "-Wno-unused-parameter",
     "-g",
 ])
