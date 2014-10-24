@@ -500,6 +500,9 @@ public:
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const = 0;
+private:
+    VariableReference(const VariableReference &);
+    VariableReference &operator=(const VariableReference &);
 };
 
 class ScalarVariableReference: public VariableReference {
@@ -514,6 +517,9 @@ public:
     virtual std::string text() const {
         return "ScalarVariableReference(" + var->text() + ")";
     }
+private:
+    ScalarVariableReference(const ScalarVariableReference &);
+    ScalarVariableReference &operator=(const ScalarVariableReference &);
 };
 
 class ArrayReference: public VariableReference {
@@ -526,6 +532,9 @@ public:
     virtual void generate_address(Emitter &emitter) const;
 
     virtual std::string text() const { return "ArrayReference(" + array->text() + ", " + index->text() + ")"; }
+private:
+    ArrayReference(const ArrayReference &);
+    ArrayReference &operator=(const ArrayReference &);
 };
 
 class DictionaryReference: public VariableReference {
@@ -538,6 +547,9 @@ public:
     virtual void generate_address(Emitter &emitter) const;
 
     virtual std::string text() const { return "DictionaryReference(" + dict->text() + ", " + index->text() + ")"; }
+private:
+    DictionaryReference(const DictionaryReference &);
+    DictionaryReference &operator=(const DictionaryReference &);
 };
 
 class VariableExpression: public Expression {
