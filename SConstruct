@@ -18,6 +18,7 @@ env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
 ])
 env.Append(CXXFLAGS=[
+    "-std=c++0x",
     "-Wall",
     "-Wextra",
     "-Weffc++",
