@@ -144,6 +144,31 @@ static const Statement *parseTypeDefinition(Scope *scope, const std::vector<Toke
     return nullptr;
 }
 
+static const Statement *parseConstantDefinition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(tokens[i], "identifier expected");
+    }
+    std::string name = tokens[i].text;
+    ++i;
+    if (tokens[i].type != COLON) {
+        error(tokens[i], "':' expected");
+    }
+    ++i;
+    const Type *type = parseType(scope, tokens, i);
+    if (tokens[i].type != ASSIGN) {
+        error(tokens[i], "':=' expected");
+    }
+    ++i;
+    const Expression *value = parseExpression(scope, tokens, i);
+    if (value->type != type) {
+        error(tokens[i], "type mismatch");
+    }
+    scope->names[name] = new Constant(name, value);
+    return nullptr;
+}
+
 static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(ref->type);
@@ -486,7 +511,12 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
     if (tokens[i].type == IDENTIFIER) {
         const Name *name = scope->lookupName(tokens[i].text);
         if (name == nullptr) {
-            error(tokens[i], "variable not found: " + tokens[i].text);
+            error(tokens[i], "name not found: " + tokens[i].text);
+        }
+        const Constant *cons = dynamic_cast<const Constant *>(name);
+        if (cons != nullptr) {
+            ++i;
+            return new ConstantReference(cons);
         }
         const Variable *var = dynamic_cast<const Variable *>(name);
         if (var == nullptr) {
@@ -682,6 +712,8 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
 {
     if (tokens[i].type == TYPE) {
         return parseTypeDefinition(scope, tokens, i);
+    } else if (tokens[i].type == CONST) {
+        return parseConstantDefinition(scope, tokens, i);
     } else if (tokens[i].type == FUNCTION) {
         return parseFunctionDefinition(scope, tokens, i);
     } else if (tokens[i].type == IF) {
@@ -700,6 +732,10 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
             const Expression *expr = parseExpression(scope, tokens, i);
             if (expr->type != ref->type) {
                 error(tokens[op], "type mismatch");
+            }
+            if (dynamic_cast<const ConstantReference *>(ref) != nullptr) {
+                // TODO: there is probably a better way to detect this.
+                error(tokens[op], "name is not a variable");
             }
             return new AssignmentStatement(ref, expr);
         } else if (tokens[i].type == LPAREN) {

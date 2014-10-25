@@ -1,7 +1,5 @@
-% TODO
-
 CONST a: number := 5
 
-print(a)
+print(str(a))
 
 %= 5

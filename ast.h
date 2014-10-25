@@ -234,6 +234,18 @@ private:
     Expression &operator=(const Expression &);
 };
 
+class Constant: public Name {
+public:
+    Constant(const std::string &name, const Expression *value): Name(name, value->type), value(value) {}
+
+    const Expression *value;
+
+    virtual std::string text() const { return "Constant(" + name + ", " + value->text() + ")"; }
+private:
+    Constant(const Constant &);
+    Constant &operator=(const Constant &);
+};
+
 class ConstantBooleanExpression: public Expression {
 public:
     ConstantBooleanExpression(bool value): Expression(TYPE_BOOLEAN), value(value) {}
@@ -526,6 +538,23 @@ public:
 private:
     VariableReference(const VariableReference &);
     VariableReference &operator=(const VariableReference &);
+};
+
+class ConstantReference: public VariableReference {
+public:
+    ConstantReference(const Constant *cons): VariableReference(cons->type), cons(cons) {}
+
+    const Constant *cons;
+
+    virtual void generate_address(Emitter &emitter) const {}
+    virtual void generate_load(Emitter &emitter) const { cons->value->generate(emitter); }
+
+    virtual std::string text() const {
+        return "ConstantReference(" + cons->text() + ")";
+    }
+private:
+    ConstantReference(const ConstantReference &);
+    ConstantReference &operator=(const ConstantReference &);
 };
 
 class ScalarVariableReference: public VariableReference {

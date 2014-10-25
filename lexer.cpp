@@ -53,6 +53,7 @@ std::string Token::tostring() const
         case TYPE:        s << "TYPE"; break;
         case RECORD:      s << "RECORD"; break;
         case ENUM:        s << "ENUM"; break;
+        case CONST:       s << "CONST"; break;
     }
     s << ">";
     return s.str();
@@ -139,6 +140,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "TYPE") t.type = TYPE;
             else if (t.text == "RECORD") t.type = RECORD;
             else if (t.text == "ENUM") t.type = ENUM;
+            else if (t.text == "CONST") t.type = CONST;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

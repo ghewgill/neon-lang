@@ -1,0 +1,5 @@
+CONST a: number := 5
+
+a := 6
+
+%! name is not a variable
