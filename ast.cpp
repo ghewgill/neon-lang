@@ -35,6 +35,13 @@ std::string ConstantStringExpression::text() const
     return s.str();
 }
 
+std::string ConstantEnumExpression::text() const
+{
+    std::stringstream s;
+    s << "ConstantEnumExpression(" << value << ")";
+    return s.str();
+}
+
 std::string FunctionCall::text() const
 {
     std::stringstream s;

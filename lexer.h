@@ -50,6 +50,7 @@ enum TokenType {
     DOT,
     TYPE,
     RECORD,
+    ENUM,
 };
 
 class Token {

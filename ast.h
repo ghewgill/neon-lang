@@ -172,6 +172,18 @@ public:
     virtual std::string text() const { return "TypeRecord(...)"; }
 };
 
+class TypeEnum: public Type {
+public:
+    TypeEnum(const std::map<std::string, int> &names): Type("enum"), names(names) {}
+    const std::map<std::string, int> names;
+
+    virtual void generate_load(Emitter &emitter) const { assert(false); }
+    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_call(Emitter &emitter) const { assert(false); }
+
+    virtual std::string text() const { return "TypeEnum(...)"; }
+};
+
 class Variable: public Name {
 public:
     Variable(const std::string &name, const Type *type): Name(name, type) {}
@@ -249,6 +261,17 @@ public:
     ConstantStringExpression(const std::string &value): Expression(TYPE_STRING), value(value) {}
 
     const std::string value;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const;
+};
+
+class ConstantEnumExpression: public Expression {
+public:
+    ConstantEnumExpression(const TypeEnum *type, int value): Expression(type), value(value) {}
+
+    const int value;
 
     virtual void generate(Emitter &emitter) const;
 

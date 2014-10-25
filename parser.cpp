@@ -74,6 +74,30 @@ static const Type *parseRecordType(Scope *scope, const std::vector<Token> &token
     return new TypeRecord(fields);
 }
 
+static const Type *parseEnumType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    if (tokens[i].type != ENUM) {
+        error(tokens[i], "ENUM expected");
+    }
+    i++;
+    std::map<std::string, int> names;
+    int index = 0;
+    while (tokens[i].type != END) {
+        if (tokens[i].type != IDENTIFIER) {
+            error(tokens[i], "identifier expected");
+        }
+        std::string name = tokens[i].text;
+        if (names.find(name) != names.end()) {
+            error(tokens[i], "duplicate enum: " + name);
+        }
+        i++;
+        names[name] = index;
+        index++;
+    }
+    i++;
+    return new TypeEnum(names);
+}
+
 static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type == ARRAY) {
@@ -84,6 +108,9 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
     }
     if (tokens[i].type == RECORD) {
         return parseRecordType(scope, tokens, i);
+    }
+    if (tokens[i].type == ENUM) {
+        return parseEnumType(scope, tokens, i);
     }
     if (tokens[i].type != IDENTIFIER) {
         error(tokens[i], "identifier expected");
@@ -206,11 +233,29 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
             return new LogicalNotExpression(atom);
         }
         case IDENTIFIER: {
-            const VariableReference *ref = parseVariableReference(scope, tokens, i);
-            if (tokens[i].type == LPAREN) {
-                return parseFunctionCall(ref, scope, tokens, i);
+            const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(scope->lookupName(tokens[i].text));
+            if (enumtype != nullptr) {
+                ++i;
+                if (tokens[i].type != DOT) {
+                    error(tokens[i], "'.' expected");
+                }
+                ++i;
+                if (tokens[i].type != IDENTIFIER) {
+                    error(tokens[i], "identifier expected");
+                }
+                auto name = enumtype->names.find(tokens[i].text);
+                if (name == enumtype->names.end()) {
+                    error(tokens[i], "identifier not member of enum: " + tokens[i].text);
+                }
+                ++i;
+                return new ConstantEnumExpression(enumtype, name->second);
             } else {
-                return new VariableExpression(ref);
+                const VariableReference *ref = parseVariableReference(scope, tokens, i);
+                if (tokens[i].type == LPAREN) {
+                    return parseFunctionCall(ref, scope, tokens, i);
+                } else {
+                    return new VariableExpression(ref);
+                }
             }
         }
         default:

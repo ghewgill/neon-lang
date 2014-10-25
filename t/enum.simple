@@ -1,6 +1,4 @@
-% TODO
-
-ENUM colour
+TYPE colour := ENUM
     red
     orange
     yellow
@@ -13,5 +11,6 @@ END
 VAR a: colour
 
 a := colour.red
+% TODO
 print(str(a))
 %= red
