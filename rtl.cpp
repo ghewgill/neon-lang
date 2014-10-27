@@ -13,26 +13,62 @@ static std::map<std::string, std::pair<Thunk, void *> > Functions;
 
 namespace rtl {
 
+Number abs(Number x)
+{
+    return number_abs(x);
+}
+
+std::string chr(Number x)
+{
+    assert(number_is_integer(x));
+    return std::string(1, number_to_uint32(x));
+}
+
 std::string concat(const std::string &a, const std::string &b)
 {
     return a + b;
 }
 
-std::string substring(const std::string &s, Number offset, Number length)
+std::string input(const std::string &prompt)
 {
-    assert(number_is_integer(offset));
-    assert(number_is_integer(length));
-    return s.substr(number_to_uint32(offset), number_to_uint32(length));
+    std::cout << prompt;
+    std::string r;
+    std::getline(std::cin, r);
+    return r;
+}
+
+Number max(Number a, Number b)
+{
+    if (number_is_greater(a, b)) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+Number min(Number a, Number b)
+{
+    if (number_is_less(a, b)) {
+        return a;
+    } else {
+        return b;
+    }
+}
+
+Number num(const std::string &s)
+{
+    return number_from_string(s.c_str());
+}
+
+Number ord(const std::string &s)
+{
+    assert(s.length() == 1);
+    return number_from_uint32(s.at(0));
 }
 
 void print(const std::string &s)
 {
     std::cout << s << "\n";
-}
-
-Number abs(Number x)
-{
-    return number_abs(x);
 }
 
 std::string str(Number x)
@@ -43,6 +79,13 @@ std::string str(Number x)
 std::string strb(bool x)
 {
     return x ? "TRUE" : "FALSE";
+}
+
+std::string substring(const std::string &s, Number offset, Number length)
+{
+    assert(number_is_integer(offset));
+    assert(number_is_integer(length));
+    return s.substr(number_to_uint32(offset), number_to_uint32(length));
 }
 
 } // namespace rtl

@@ -1,0 +1,32 @@
+print(str(abs(-4)))
+%= 4
+
+print(chr(65))
+%= A
+
+print(concat("hello", " world"))
+%= hello world
+
+print(str(max(45, 67)))
+%= 67
+
+print(str(min(45, 67)))
+%= 45
+
+print(str(num("45")))
+%= 45
+
+print(str(ord("B")))
+%= 66
+
+print("hello")
+%= hello
+
+print(str(5))
+%= 5
+
+print(strb(TRUE))
+%= TRUE
+
+print(substring("hello world", 2, 5))
+%= llo w
