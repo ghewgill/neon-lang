@@ -1,10 +1,14 @@
-% TODO
-VAR a: number
+print(str(0.3))
+%= 3E-1
 
-a := 0.3
-print(a)
-%= 0.3
+print(str(3.3e33))
+%= 33E+32
 
-a := 3.3e33
-print(a)
-%= 3.3e33
+print(str(3.3e-33))
+%= 33E-34
+
+print(str(0e33))
+%= 0E+33
+
+print(str(1.e33))
+%= 1E+33

@@ -144,7 +144,7 @@ std::vector<Token> tokenize(const std::string &source)
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
-            if (c == '0' && not isdigit(source.at(i+1))) {
+            if (c == '0' && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {
                 c = tolower(source.at(i+1));
                 if (isalpha(c) || c == '#') {
                     long base;
@@ -195,9 +195,23 @@ std::vector<Token> tokenize(const std::string &source)
                 }
             } else {
                 auto j = i;
-                // TODO: decimal and exponent
                 while (j < source.length() && isdigit(source.at(j))) {
                     j++;
+                }
+                if (j < source.length() && source.at(j) == '.') {
+                    j++;
+                    while (j < source.length() && isdigit(source.at(j))) {
+                        j++;
+                    }
+                }
+                if (j < source.length() && tolower(source.at(j)) == 'e') {
+                    j++;
+                    if (j < source.length() && (source.at(j) == '+' || source.at(j) == '-')) {
+                        j++;
+                    }
+                    while (j < source.length() && isdigit(source.at(j))) {
+                        j++;
+                    }
                 }
                 t.value = number_from_string(source.substr(i, j-i));
                 i = j;
