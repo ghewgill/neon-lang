@@ -34,9 +34,12 @@ if coverage:
         "--coverage", "-O0",
     ])
 
+env.Command(["thunks.inc", "functions.inc"], ["rtl.cpp", "make_thunks.py"], sys.executable + " make_thunks.py")
+
 env.Program("simple", [
     "ast.cpp",
     "bytecode.cpp",
+    "cell.cpp",
     "compiler.cpp",
     "disassembler.cpp",
     "exec.cpp",
@@ -44,6 +47,7 @@ env.Program("simple", [
     "main.cpp",
     "number.cpp",
     "parser.cpp",
+    "rtl.cpp",
     "util.cpp",
 ] + coverage_lib,
 )
@@ -71,10 +75,12 @@ env.UnitTest("test_lexer", [
 env.UnitTest("test_parser", [
     "test_parser.cpp",
     "ast.cpp",
+    "cell.cpp",
     "compiler.cpp",
     "parser.cpp",
     "lexer.cpp",
     "number.cpp",
+    "rtl.cpp",
     "util.cpp",
 ] + coverage_lib,
 )
@@ -83,11 +89,13 @@ env.UnitTest("test_compiler", [
     "test_compiler.cpp",
     "ast.cpp",
     "bytecode.cpp",
+    "cell.cpp",
     "compiler.cpp",
     "disassembler.cpp",
     "lexer.cpp",
     "number.cpp",
     "parser.cpp",
+    "rtl.cpp",
     "util.cpp",
 ] + coverage_lib,
 )

@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 
+#include "rtl.h"
+
 TypeNone *TYPE_NONE = new TypeNone();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber();
@@ -94,27 +96,7 @@ Program::Program()
     scope->names["number"] = TYPE_NUMBER;
     scope->names["string"] = TYPE_STRING;
 
-    static struct {
-        const char *name;
-        const Type *returntype;
-        const Type *args[10];
-    } BuiltinFunctions[] = {
-        {"abs",    TYPE_NUMBER, {TYPE_NUMBER}},
-        {"concat", TYPE_STRING, {TYPE_STRING, TYPE_STRING}},
-        {"print",  TYPE_NONE,   {TYPE_STRING}},
-        {"str",    TYPE_STRING, {TYPE_NUMBER}},
-        {"strb",   TYPE_STRING, {TYPE_BOOLEAN}},
-    };
-    for (auto f: BuiltinFunctions) {
-        std::vector<const Type *> args;
-        for (auto a: f.args) {
-            if (a == nullptr) {
-                break;
-            }
-            args.push_back(a);
-        }
-        scope->names[f.name] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, args));
-    }
+    rtl_init(scope);
 }
 
 void Program::dumpsubnodes(std::ostream &out, int depth) const

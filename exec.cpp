@@ -8,110 +8,10 @@
 #include <stdlib.h>
 
 #include "bytecode.h"
+#include "cell.h"
 #include "number.h"
 #include "opcode.h"
-
-class Variant {
-public:
-    Variant();
-    explicit Variant(const Variant &rhs);
-    explicit Variant(Variant *value);
-    explicit Variant(bool value);
-    explicit Variant(Number value);
-    explicit Variant(const std::string &value);
-    explicit Variant(const char *value);
-    Variant &operator=(const Variant &rhs);
-    Variant *address_value;
-    bool boolean_value;
-    Number number_value;
-    std::string string_value;
-    std::vector<Variant> array_value;
-    std::map<std::string, Variant> dictionary_value;
-};
-
-Variant::Variant()
-  : address_value(NULL),
-    boolean_value(false),
-    number_value(),
-    string_value(),
-    array_value(),
-    dictionary_value()
-{
-}
-
-Variant::Variant(const Variant &rhs)
-  : address_value(rhs.address_value),
-    boolean_value(rhs.boolean_value),
-    number_value(rhs.number_value),
-    string_value(rhs.string_value),
-    array_value(rhs.array_value),
-    dictionary_value(rhs.dictionary_value)
-{
-}
-
-Variant::Variant(Variant *value)
-  : address_value(value),
-    boolean_value(false),
-    number_value(),
-    string_value(),
-    array_value(),
-    dictionary_value()
-{
-}
-
-Variant::Variant(bool value)
-  : address_value(NULL),
-    boolean_value(value),
-    number_value(),
-    string_value(),
-    array_value(),
-    dictionary_value()
-{
-}
-
-Variant::Variant(Number value)
-  : address_value(NULL),
-    boolean_value(false),
-    number_value(value),
-    string_value(),
-    array_value(),
-    dictionary_value()
-{
-}
-
-Variant::Variant(const std::string &value)
-  : address_value(NULL),
-    boolean_value(false),
-    number_value(),
-    string_value(value),
-    array_value(),
-    dictionary_value()
-{
-}
-
-Variant::Variant(const char *value)
-  : address_value(NULL),
-    boolean_value(false),
-    number_value(),
-    string_value(value),
-    array_value(),
-    dictionary_value()
-{
-}
-
-Variant &Variant::operator=(const Variant &rhs)
-{
-    if (&rhs == this) {
-        return *this;
-    }
-    address_value = rhs.address_value;
-    boolean_value = rhs.boolean_value;
-    number_value = rhs.number_value;
-    string_value = rhs.string_value;
-    array_value = rhs.array_value;
-    dictionary_value = rhs.dictionary_value;
-    return *this;
-}
+#include "rtl.h"
 
 class ActivationFrame {
 public:
@@ -122,11 +22,10 @@ public:
 
 class Executor {
 public:
-    Executor(const Bytecode::bytecode &obj, std::ostream &out);
+    Executor(const Bytecode::bytecode &obj);
     void exec();
 private:
     const Bytecode obj;
-    std::ostream &out;
     Bytecode::bytecode::size_type ip;
     std::stack<Variant> stack;
     std::stack<Bytecode::bytecode::size_type> callstack;
@@ -177,9 +76,8 @@ private:
     void exec_RET();
 };
 
-Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
+Executor::Executor(const Bytecode::bytecode &obj)
   : obj(obj),
-    out(out),
     ip(0),
     stack(),
     callstack(),
@@ -487,26 +385,7 @@ void Executor::exec_CALLP()
     size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     std::string func = obj.strtable.at(val);
-    if (func == "abs") {
-        Number x = stack.top().number_value; stack.pop();
-        stack.push(Variant(number_abs(x)));
-    } else if (func == "concat") {
-        std::string y = stack.top().string_value; stack.pop();
-        std::string x = stack.top().string_value; stack.pop();
-        stack.push(Variant(x + y));
-    } else if (func == "print") {
-        std::string x = stack.top().string_value; stack.pop();
-        out << x << std::endl;
-    } else if (func == "str") {
-        Number x = stack.top().number_value; stack.pop();
-        stack.push(Variant(number_to_string(x)));
-    } else if (func == "strb") {
-        bool x = stack.top().boolean_value; stack.pop();
-        stack.push(Variant(x ? "TRUE" : "FALSE"));
-    } else {
-        fprintf(stderr, "simple: function not found: %s\n", func.c_str());
-        abort();
-    }
+    rtl_call(stack, func);
 }
 
 void Executor::exec_CALLF()
@@ -599,5 +478,5 @@ void Executor::exec()
 
 void exec(const Bytecode::bytecode &obj)
 {
-    Executor(obj, std::cout).exec();
+    Executor(obj).exec();
 }

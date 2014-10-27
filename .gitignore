@@ -1,4 +1,5 @@
 .sconsign.dblite
+*.inc
 *.o
 *.gc*
 simple
