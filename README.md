@@ -21,6 +21,16 @@ This implementation is also intended to demonstrate the following concepts of a 
 * Execution
 * Debugging
 
+## Prerequisites
+
+To build Simple, the following are required:
+
+- [Python 2.x](http://python.org)
+- [SCons](http://scons.org)
+- A C++11 compiler (a modern `gcc`, `clang`, or Visual Studio 2013 or later)
+
+Current master branch build status: [![Build Status](https://travis-ci.org/ghewgill/simple-lang.svg?branch=master)](https://travis-ci.org/ghewgill/simple-lang)
+
 ## Tutorial
 
 See [Simple Tutorial](doc/tutorial.md) for an introduction to the features of Simple.
