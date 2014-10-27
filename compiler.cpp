@@ -412,6 +412,17 @@ void ScalarVariableReference::generate_call(Emitter &emitter) const
     var->generate_call(emitter);
 }
 
+void StringReference::generate_load(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
+void StringReference::generate_store(Emitter &emitter) const
+{
+    store->generate(emitter);
+    str->generate_store(emitter);
+}
+
 void ArrayReference::generate_address(Emitter &emitter) const
 {
     array->generate_address(emitter);

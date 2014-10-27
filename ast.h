@@ -25,6 +25,7 @@ private:
 
 class Name;
 class Type;
+class FunctionCall;
 
 class Scope {
 public:
@@ -572,6 +573,26 @@ public:
 private:
     ScalarVariableReference(const ScalarVariableReference &);
     ScalarVariableReference &operator=(const ScalarVariableReference &);
+};
+
+class StringReference: public VariableReference {
+public:
+    StringReference(const VariableReference *str, const Expression *index);
+
+    const VariableReference *str;
+    const Expression *index;
+
+    const FunctionCall *load;
+    const FunctionCall *store;
+
+    virtual void generate_address(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+
+    virtual std::string text() const { return "StringReference(" + str->text() + ", " + index->text() + ")"; }
+private:
+    StringReference(const StringReference &);
+    StringReference &operator=(const StringReference &);
 };
 
 class ArrayReference: public VariableReference {

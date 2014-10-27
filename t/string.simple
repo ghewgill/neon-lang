@@ -1,6 +1,13 @@
-% TODO
-
 VAR a: string
+
 a := "hello world"
 print(a[4])
 %= o
+
+a[4] := "y"
+print(a)
+%= helly world
+
+a[4] := "ish"
+print(a)
+%= hellish world

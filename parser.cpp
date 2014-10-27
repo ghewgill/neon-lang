@@ -9,6 +9,29 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
 static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 
+StringReference::StringReference(const VariableReference *str, const Expression *index)
+  : VariableReference(TYPE_STRING),
+    str(str),
+    index(index),
+    load(nullptr),
+    store(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(new VariableExpression(str));
+        args.push_back(index);
+        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
+        load = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(g_GlobalScope->lookupName("substring"))), args);
+    }
+    {
+        std::vector<const Expression *> args;
+        args.push_back(new VariableExpression(str));
+        args.push_back(index);
+        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
+        store = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(g_GlobalScope->lookupName("splice"))), args);
+    }
+}
+
 static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type != ARRAY) {
@@ -553,6 +576,17 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                     ++i;
                     type = dicttype->elementtype;
                     ref = new DictionaryReference(type, ref, index);
+                } else if (type == TYPE_STRING) {
+                    ++i;
+                    const Expression *index = parseExpression(scope, tokens, i);
+                    if (index->type != TYPE_NUMBER) {
+                        error(tokens[i], "index must be a number");
+                    }
+                    if (tokens[i].type != RBRACKET) {
+                        error(tokens[i], "']' expected");
+                    }
+                    ++i;
+                    return new StringReference(ref, index);
                 } else {
                     error(tokens[i], "not an array or dictionary");
                 }

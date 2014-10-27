@@ -71,6 +71,12 @@ void print(const std::string &s)
     std::cout << s << "\n";
 }
 
+std::string splice(const std::string &t, const std::string &s, Number offset, Number length)
+{
+    uint32_t o = number_to_uint32(offset);
+    return s.substr(0, o) + t + s.substr(o + number_to_uint32(length));
+}
+
 std::string str(Number x)
 {
     return number_to_string(x);
