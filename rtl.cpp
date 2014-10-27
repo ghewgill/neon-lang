@@ -21,7 +21,7 @@ Number abs(Number x)
 std::string chr(Number x)
 {
     assert(number_is_integer(x));
-    return std::string(1, number_to_uint32(x));
+    return std::string(1, static_cast<char>(number_to_uint32(x)));
 }
 
 std::string concat(const std::string &a, const std::string &b)

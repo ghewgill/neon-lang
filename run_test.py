@@ -24,8 +24,8 @@ def run(fn):
     p = subprocess.Popen(["./simple", fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
 
-    out = out.decode()
-    err = err.decode()
+    out = out.decode().replace("\r\n", "\n")
+    err = err.decode().replace("\r\n", "\n")
 
     if not expected_stderr:
         sys.stderr.write(err)

@@ -1,6 +1,7 @@
 #ifndef NUMBER_H
 #define NUMBER_H
 
+#include <stdint.h>
 #include <string>
 
 #define NUMBER_DECIMAL
@@ -23,9 +24,17 @@ struct Number {
 #define DECIMAL_GLOBAL_ROUNDING 1
 #define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
 
+#ifndef _WCHAR_T_DEFINED
 #define _WCHAR_T_DEFINED
+#endif
 #include "bid_conf.h"
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#endif
 #include "bid_functions.h"
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 struct Number {
     Number(): x(0) {} // TODO: use whatever proper zero constant is appropriate

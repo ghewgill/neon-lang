@@ -1,5 +1,6 @@
 #include "lexer.h"
 
+#include <iso646.h>
 #include <sstream>
 
 #include "util.h"
@@ -71,7 +72,7 @@ std::vector<Token> tokenize(const std::string &source)
     while (i < source.length()) {
         char c = source.at(i);
         //printf("index %lu char %c\n", i, c);
-        int startindex = i;
+        auto startindex = i;
         Token t;
         t.source = source.substr(linestart, lineend-linestart);
         t.line = line;
@@ -147,7 +148,7 @@ std::vector<Token> tokenize(const std::string &source)
         } else if (isdigit(c)) {
             t.type = NUMBER;
             if (c == '0' && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {
-                c = tolower(source.at(i+1));
+                c = static_cast<char>(tolower(source.at(i+1)));
                 if (isalpha(c) || c == '#') {
                     long base;
                     if (c == 'b') {
@@ -175,8 +176,8 @@ std::vector<Token> tokenize(const std::string &source)
                         error(t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
-                    while (true) {
-                        c = tolower(source.at(i));
+                    for (;;) {
+                        c = static_cast<char>(tolower(source.at(i)));
                         if (c == '.') {
                             error(t, "non-decimal fraction not supported");
                         }
@@ -265,7 +266,7 @@ std::vector<Token> tokenize(const std::string &source)
         if (t.type != NONE) {
             tokens.push_back(t);
         }
-        column += (i - startindex);
+        column += static_cast<int>(i - startindex);
     }
     Token t;
     t.line = line + 1;

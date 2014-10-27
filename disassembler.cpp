@@ -59,6 +59,9 @@ private:
     void disasm_JUMP();
     void disasm_JF();
     void disasm_RET();
+private:
+    Disassembler(const Disassembler &);
+    Disassembler &operator=(const Disassembler &);
 };
 
 Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)

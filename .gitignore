@@ -1,6 +1,8 @@
 .sconsign.dblite
 *.inc
 *.o
+*.obj
+*.exe
 *.gc*
 simple
 test_lexer

@@ -1,6 +1,7 @@
 #include "exec.h"
 
 #include <assert.h>
+#include <iso646.h>
 #include <iostream>
 #include <map>
 #include <sstream>
@@ -74,6 +75,9 @@ private:
     void exec_JUMP();
     void exec_JF();
     void exec_RET();
+private:
+    Executor(const Executor &);
+    Executor &operator=(const Executor &);
 };
 
 Executor::Executor(const Bytecode::bytecode &obj)

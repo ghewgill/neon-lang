@@ -13,20 +13,31 @@ coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darw
 env = Environment()
 
 env.Command("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "external/IntelRDFPMathLib20U1.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
-libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.a", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
+if sys.platform == "win32":
+    libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.lib", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && nmake -fmakefile.mak CC=cl GLOBAL_RND=1 GLOBAL_FLAGS=1")
+else:
+    libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.a", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
 
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
 ])
-env.Append(CXXFLAGS=[
-    "-std=c++0x",
-    "-Wall",
-    "-Wextra",
-    "-Weffc++",
-    "-Werror",
-    "-Wno-unused-parameter",
-    "-g",
-])
+if sys.platform == "win32":
+    env.Append(CXXFLAGS=[
+        "/EHsc",
+        "/W4",
+        "/wd4100", # unreferenced formal parameter
+        "/WX",
+    ])
+else:
+    env.Append(CXXFLAGS=[
+        "-std=c++0x",
+        "-Wall",
+        "-Wextra",
+        "-Weffc++",
+        "-Werror",
+        "-Wno-unused-parameter",
+        "-g",
+    ])
 env.Append(LIBS=[libbid])
 
 if coverage:
@@ -36,7 +47,7 @@ if coverage:
 
 env.Command(["thunks.inc", "functions.inc"], ["rtl.cpp", "make_thunks.py"], sys.executable + " make_thunks.py")
 
-env.Program("simple", [
+simple = env.Program("simple", [
     "ast.cpp",
     "bytecode.cpp",
     "cell.cpp",
@@ -100,4 +111,4 @@ env.UnitTest("test_compiler", [
 ] + coverage_lib,
 )
 
-env.Command("dummy", ["simple", "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")
+env.Command("dummy", [simple, "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")

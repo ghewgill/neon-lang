@@ -226,33 +226,33 @@ bool number_is_equal(Number x, Number y)
 
 bool number_is_not_equal(Number x, Number y)
 {
-    return bid64_quiet_not_equal(x.x, y.x);
+    return bid64_quiet_not_equal(x.x, y.x) != 0;
 }
 
 bool number_is_less(Number x, Number y)
 {
-    return bid64_quiet_less(x.x, y.x);
+    return bid64_quiet_less(x.x, y.x) != 0;
 }
 
 bool number_is_greater(Number x, Number y)
 {
-    return bid64_quiet_greater(x.x, y.x);
+    return bid64_quiet_greater(x.x, y.x) != 0;
 }
 
 bool number_is_less_equal(Number x, Number y)
 {
-    return bid64_quiet_less_equal(x.x, y.x);
+    return bid64_quiet_less_equal(x.x, y.x) != 0;
 }
 
 bool number_is_greater_equal(Number x, Number y)
 {
-    return bid64_quiet_greater_equal(x.x, y.x);
+    return bid64_quiet_greater_equal(x.x, y.x) != 0;
 }
 
 bool number_is_integer(Number x)
 {
     BID_UINT64 i = bid64_round_integral_zero(x.x);
-    return bid64_quiet_equal(x.x, i);
+    return bid64_quiet_equal(x.x, i) != 0;
 }
 
 std::string number_to_string(Number x)

@@ -41,10 +41,10 @@ void Emitter::emit(unsigned char b)
 
 void Emitter::emit_int(int value)
 {
-    emit(value >> 24);
-    emit(value >> 16);
-    emit(value >> 8);
-    emit(value);
+    emit(static_cast<unsigned char>(value >> 24));
+    emit(static_cast<unsigned char>(value >> 16));
+    emit(static_cast<unsigned char>(value >> 8));
+    emit(static_cast<unsigned char>(value));
 }
 
 void Emitter::emit(unsigned char b, int value)
@@ -66,8 +66,8 @@ std::vector<unsigned char> Emitter::getObject()
         strtable.push_back(0);
     }
     std::vector<unsigned char> obj;
-    obj.push_back(strtable.size() >> 8);
-    obj.push_back(strtable.size());
+    obj.push_back(static_cast<unsigned char>(strtable.size() >> 8));
+    obj.push_back(static_cast<unsigned char>(strtable.size() & 0xff));
     std::copy(strtable.begin(), strtable.end(), std::back_inserter(obj));
     std::copy(code.begin(), code.end(), std::back_inserter(obj));
     return obj;
@@ -80,7 +80,7 @@ unsigned int Emitter::global(const std::string &name)
         globals.push_back(name);
         i = globals.end() - 1;
     }
-    return i - globals.begin();
+    return static_cast<unsigned int>(i - globals.begin());
 }
 
 unsigned int Emitter::str(const std::string &s)
@@ -90,14 +90,14 @@ unsigned int Emitter::str(const std::string &s)
         strings.push_back(s);
         i = strings.end() - 1;
     }
-    return i - strings.begin();
+    return static_cast<unsigned int>(i - strings.begin());
 }
 
 int Emitter::next_function()
 {
     auto i = functions.size();
     functions.push_back(create_label());
-    return i;
+    return static_cast<int>(i);
 }
 
 Emitter::Label &Emitter::function_label(int index)
@@ -116,7 +116,7 @@ void Emitter::emit_jump(unsigned char b, Label &label)
     if (label.target >= 0) {
         emit_int(label.target);
     } else {
-        label.fixups.push_back(code.size());
+        label.fixups.push_back(static_cast<int>(code.size()));
         emit_int(0);
     }
 }
@@ -124,12 +124,12 @@ void Emitter::emit_jump(unsigned char b, Label &label)
 void Emitter::jump_target(Label &label)
 {
     assert(label.target < 0);
-    label.target = code.size();
+    label.target = static_cast<int>(code.size());
     for (auto offset: label.fixups) {
-        code[offset] = label.target >> 24;
-        code[offset+1] = label.target >> 16;
-        code[offset+2] = label.target >> 8;
-        code[offset+3] = label.target;
+        code[offset] = static_cast<unsigned char>(label.target >> 24);
+        code[offset+1] = static_cast<unsigned char>(label.target >> 16);
+        code[offset+2] = static_cast<unsigned char>(label.target >> 8);
+        code[offset+3] = static_cast<unsigned char>(label.target);
     }
 }
 
@@ -245,7 +245,7 @@ void Function::postdeclare(Emitter &emitter)
     if (referenced) {
         scope->predeclare(emitter);
         emitter.jump_target(emitter.function_label(entry_label));
-        emitter.emit(ENTER, scope->names.size());
+        emitter.emit(ENTER, static_cast<int>(scope->names.size()));
         for (auto a = args.rbegin(); a != args.rend(); ++a) {
             (*a)->generate_address(emitter);
             (*a)->generate_store(emitter);
@@ -329,7 +329,7 @@ void ConjunctionExpression::generate(Emitter &emitter) const
 
 void NumericComparisonExpression::generate(Emitter &emitter) const
 {
-    static const Opcode op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(op[comp]);
@@ -337,7 +337,7 @@ void NumericComparisonExpression::generate(Emitter &emitter) const
 
 void StringComparisonExpression::generate(Emitter &emitter) const
 {
-    static const Opcode op[] = {EQS, NES, LTS, GTS, LES, GES};
+    static const unsigned char op[] = {EQS, NES, LTS, GTS, LES, GES};
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(op[comp]);
