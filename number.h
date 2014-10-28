@@ -12,7 +12,11 @@
 
 #if defined(NUMBER_DOUBLE)
 
-typedef struct { double x; } Number;
+struct Number {
+    Number(): x(0) {}
+    Number(double x): x(x) {}
+    double x;
+};
 
 #elif defined(NUMBER_DECIMAL)
 
@@ -23,7 +27,11 @@ typedef struct { double x; } Number;
 #include "bid_conf.h"
 #include "bid_functions.h"
 
-typedef struct { BID_UINT64 x; } Number;
+struct Number {
+    Number(): x(0) {} // TODO: use whatever proper zero constant is appropriate
+    Number(BID_UINT64 x): x(x) {}
+    BID_UINT64 x;
+};
 
 #else
 

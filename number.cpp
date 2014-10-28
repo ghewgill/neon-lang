@@ -6,58 +6,42 @@
 
 Number number_add(Number x, Number y)
 {
-    Number r;
-    r.x = x.x + y.x;
-    return r;
+    return x.x + y.x;
 }
 
 Number number_subtract(Number x, Number y)
 {
-    Number r;
-    r.x = x.x - y.x;
-    return r;
+    return x.x - y.x;
 }
 
 Number number_multiply(Number x, Number y)
 {
-    Number r;
-    r.x = x.x * y.x;
-    return r;
+    return x.x * y.x;
 }
 
 Number number_divide(Number x, Number y)
 {
-    Number r;
-    r.x = x.x / y.x;
-    return r;
+    return x.x / y.x;
 }
 
 Number number_modulo(Number x, Number y)
 {
-    Number r;
-    r.x = fmod(x.x, y.x);
-    return r;
+    return fmod(x.x, y.x);
 }
 
 Number number_pow(Number x, Number y)
 {
-    Number r;
-    r.x = pow(x.x, y.x);
-    return r;
+    return pow(x.x, y.x);
 }
 
 Number number_negate(Number x)
 {
-    Number r;
-    r.x = - x.x;
-    return r;
+    return - x.x;
 }
 
 Number number_abs(Number x)
 {
-    Number r;
-    r.x = fabs(x.x);
-    return r;
+    return fabs(x.x);
 }
 
 bool number_is_zero(Number x)
@@ -126,76 +110,56 @@ uint32_t number_to_uint32(Number x)
 
 Number number_from_string(const std::string &s)
 {
-    Number r;
-    r.x = stod(s);
-    return r;
+    return stod(s);
 }
 
 Number number_from_uint32(uint32_t x)
 {
-    Number r;
-    r.x = x;
-    return r;
+    return x;
 }
 
 #elif defined(NUMBER_DECIMAL)
 
 Number number_add(Number x, Number y)
 {
-    Number r;
-    r.x = bid64_add(x.x, y.x);
-    return r;
+    return bid64_add(x.x, y.x);
 }
 
 Number number_subtract(Number x, Number y)
 {
-    Number r;
-    r.x = bid64_sub(x.x, y.x);
-    return r;
+    return bid64_sub(x.x, y.x);
 }
 
 Number number_multiply(Number x, Number y)
 {
-    Number r;
-    r.x = bid64_mul(x.x, y.x);
-    return r;
+    return bid64_mul(x.x, y.x);
 }
 
 Number number_divide(Number x, Number y)
 {
-    Number r;
-    r.x = bid64_div(x.x, y.x);
     // TODO: division by zero
-    return r;
+    return bid64_div(x.x, y.x);
 }
 
 Number number_modulo(Number x, Number y)
 {
-    Number r;
-    r.x = bid64_rem(x.x, y.x);
     // TODO: division by zero
-    return r;
+    return bid64_rem(x.x, y.x);
 }
 
 Number number_pow(Number x, Number y)
 {
-    Number r;
-    r.x = bid64_pow(x.x, y.x);
-    return r;
+    return bid64_pow(x.x, y.x);
 }
 
 Number number_negate(Number x)
 {
-    Number r;
-    r.x = bid64_negate(x.x);
-    return r;
+    return bid64_negate(x.x);
 }
 
 Number number_abs(Number x)
 {
-    Number r;
-    r.x = bid64_abs(x.x);
-    return r;
+    return bid64_abs(x.x);
 }
 
 bool number_is_zero(Number x)
@@ -283,16 +247,12 @@ uint32_t number_to_uint32(Number x)
 
 Number number_from_string(const std::string &s)
 {
-    Number r;
-    r.x = bid64_from_string(const_cast<char *>(s.c_str()));
-    return r;
+    return bid64_from_string(const_cast<char *>(s.c_str()));
 }
 
 Number number_from_uint32(uint32_t x)
 {
-    Number r;
-    r.x = bid64_from_uint32(x);
-    return r;
+    return bid64_from_uint32(x);
 }
 
 #endif
