@@ -52,6 +52,7 @@ enum TokenType {
     RECORD,
     ENUM,
     CONST,
+    IMPORT,
 };
 
 class Token {

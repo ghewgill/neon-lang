@@ -185,6 +185,19 @@ public:
     virtual std::string text() const { return "TypeEnum(...)"; }
 };
 
+class TypeModule: public Type {
+public:
+    TypeModule(): Type("module") {}
+
+    virtual void generate_load(Emitter &emitter) const { assert(false); }
+    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_call(Emitter &emitter) const { assert(false); }
+
+    virtual std::string text() const { return "TypeModule(...)"; }
+};
+
+extern TypeModule *TYPE_MODULE;
+
 class Variable: public Name {
 public:
     Variable(const std::string &name, const Type *type): Name(name, type) {}
@@ -793,6 +806,20 @@ public:
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
+};
+
+class Module: public Name {
+public:
+    Module(Scope *scope, const std::string &name): Name(name, TYPE_MODULE), scope(new Scope(scope)) {}
+
+    Scope *scope;
+
+    virtual void predeclare(Emitter &emitter);
+
+    virtual std::string text() const { return "Module"; }
+private:
+    Module(const Module &);
+    Module &operator=(const Module &);
 };
 
 class Program: public AstNode {

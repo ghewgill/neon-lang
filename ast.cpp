@@ -9,6 +9,7 @@ TypeNone *TYPE_NONE = new TypeNone();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber();
 TypeString *TYPE_STRING = new TypeString();
+TypeModule *TYPE_MODULE = new TypeModule();
 
 void AstNode::dump(std::ostream &out, int depth) const
 {

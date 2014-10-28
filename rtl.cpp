@@ -114,6 +114,26 @@ void rtl_init(Scope *scope)
     }
 }
 
+void rtl_import(Scope *scope, const std::string &name)
+{
+    std::string prefix = name + "$";
+    Module *module = new Module(scope, name);
+    for (auto f: BuiltinFunctions) {
+        std::string qualified_name(f.name);
+        if (qualified_name.substr(0, prefix.length()) == prefix) {
+            std::vector<const Type *> args;
+            for (auto a: f.args) {
+                if (a == nullptr) {
+                    break;
+                }
+                args.push_back(a);
+            }
+            module->scope->names[qualified_name.substr(prefix.length())] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, args));
+        }
+    }
+    scope->names[name] = module;
+}
+
 void rtl_call(std::stack<Variant> &stack, const std::string &name)
 {
     auto f = Functions.find(name);

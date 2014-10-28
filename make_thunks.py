@@ -30,7 +30,7 @@ functions = dict()
 
 with open("rtl.cpp") as f:
     for s in f:
-        m = re.match("(\S+)\s+(\w+)\((.*?\))$", s)
+        m = re.match("(\S+)\s+([\w$]+)\((.*?\))$", s)
         if m is not None:
             rtype = m.group(1)
             name = m.group(2)

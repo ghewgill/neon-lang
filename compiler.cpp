@@ -512,6 +512,11 @@ void Scope::postdeclare(Emitter &emitter) const
     }
 }
 
+void Module::predeclare(Emitter &emitter)
+{
+    scope->predeclare(emitter);
+}
+
 void Program::generate(Emitter &emitter) const
 {
     scope->predeclare(emitter);

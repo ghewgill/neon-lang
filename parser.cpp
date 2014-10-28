@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include "ast.h"
+#include "rtl.h"
 #include "util.h"
 
 static Scope *g_GlobalScope; // TODO: sort of a hack, all this should probably be in a class
@@ -541,6 +542,15 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
             ++i;
             return new ConstantReference(cons);
         }
+        const Module *module = dynamic_cast<const Module *>(name);
+        if (module != nullptr) {
+            ++i;
+            if (tokens[i].type != DOT) {
+                error(tokens[i], "'.' expected");
+            }
+            ++i;
+            return parseVariableReference(module->scope, tokens, i);
+        }
         const Variable *var = dynamic_cast<const Variable *>(name);
         if (var == nullptr) {
             error(tokens[i], "name is not a variable: " + tokens[i].text);
@@ -742,9 +752,22 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
     return new WhileStatement(cond, statements);
 }
 
+static const Statement *parseImport(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(tokens[i], "identifier expected");
+    }
+    rtl_import(scope, tokens[i].text);
+    ++i;
+    return nullptr;
+}
+
 static const Statement *parseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    if (tokens[i].type == TYPE) {
+    if (tokens[i].type == IMPORT) {
+        return parseImport(scope, tokens, i);
+    } else if (tokens[i].type == TYPE) {
         return parseTypeDefinition(scope, tokens, i);
     } else if (tokens[i].type == CONST) {
         return parseConstantDefinition(scope, tokens, i);
