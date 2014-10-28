@@ -669,6 +669,47 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
     return new WhileStatement(cond, statements);
 }
 
+// Parsing of a Simple-Lang FOR statement: FOR a IN 1 TO 5...END
+static const Statement *parseForStatement(Scope *scope, const std::vector<Token> & tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    //auto j = i;
+    const VariableReference *var = parseVariableReference(scope, tokens, i);
+    if (var->type != TYPE_NUMBER) {
+        error(tokens[i], "expected identifier");
+    }
+    ++i;
+    if (tokens[i].type != IN) {
+        error(tokens[i], "IN expected");
+    }
+    ++i;
+    const Expression *start = parseExpression(scope, tokens, i);
+    if (start->type != TYPE_NUMBER) {
+        error(tokens[i], "Expression expected");
+    }
+    ++i;
+    if (tokens[i].type != TO) {
+        error(tokens[i], "TO expected");
+    }
+    ++i;
+    const Expression *end = parseExpression(scope, tokens, i);
+    if (end->type != TYPE_NUMBER) {
+        error(tokens[i], "Expression expected");
+    }
+    ++i;
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement(scope, tokens, i);
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(tokens[i], "END expected");
+    }
+    ++i;
+}
+
 static const Statement *parseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type == TYPE) {
@@ -683,6 +724,8 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
         return parseVarStatement(scope, tokens, i);
     } else if (tokens[i].type == WHILE) {
         return parseWhileStatement(scope, tokens, i);
+    } else if (tokens[i].type == FOR) {
+        return parseForStatement(scope, tokens, i);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope, tokens, i);
         if (tokens[i].type == ASSIGN) {
