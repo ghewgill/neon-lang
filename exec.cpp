@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <iso646.h>
 #include <map>
 #include <sstream>
 #include <stack>
@@ -10,6 +11,7 @@
 #include "bytecode.h"
 #include "number.h"
 #include "opcode.h"
+#include <iso646.h>
 
 class Variant {
 public:
@@ -124,6 +126,8 @@ class Executor {
 public:
     Executor(const Bytecode::bytecode &obj, std::ostream &out);
     void exec();
+
+    Executor &Executor::operator=(const Executor &rhs);
 private:
     const Bytecode obj;
     std::ostream &out;
@@ -186,6 +190,14 @@ Executor::Executor(const Bytecode::bytecode &obj, std::ostream &out)
     globals(),
     frames()
 {
+}
+
+Executor &Executor::operator=(const Executor &rhs)
+{
+    if (&rhs == this) {
+        return *this;
+    }
+    return *this;
 }
 
 void Executor::exec_ENTER()

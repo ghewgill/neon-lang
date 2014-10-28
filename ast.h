@@ -17,7 +17,7 @@ public:
     virtual ~AstNode() {}
     void dump(std::ostream &out, int depth = 0) const;
     virtual std::string text() const = 0;
-    virtual void dumpsubnodes(std::ostream &out, int depth) const {}
+    virtual void dumpsubnodes(std::ostream &, int) const {}
 private:
     AstNode(const AstNode &);
     AstNode &operator=(const AstNode &);
@@ -51,8 +51,8 @@ public:
     const Type *type;
     bool referenced;
 
-    virtual void predeclare(Emitter &emitter) {}
-    virtual void postdeclare(Emitter &emitter) {}
+    virtual void predeclare(Emitter &) {}
+    virtual void postdeclare(Emitter &) {}
 private:
     Name(const Name &);
     Name &operator=(const Name &);
@@ -69,9 +69,9 @@ public:
 class TypeNone: public Type {
 public:
     TypeNone(): Type("") {}
-    virtual void generate_load(Emitter &emitter) const {}
-    virtual void generate_store(Emitter &emitter) const {}
-    virtual void generate_call(Emitter &emitter) const {}
+    virtual void generate_load(Emitter &) const {}
+    virtual void generate_store(Emitter &) const {}
+    virtual void generate_call(Emitter &) const {}
 
     virtual std::string text() const { return "TypeNone"; }
 };
@@ -135,9 +135,9 @@ public:
     TypeArray(const Type *elementtype): Type("array"), elementtype(elementtype) {}
     const Type *elementtype;
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &) const { assert(false); }
+    virtual void generate_store(Emitter &) const { assert(false); }
+    virtual void generate_call(Emitter &) const { assert(false); }
 
     virtual std::string text() const { return "TypeArray(" + elementtype->text() + ")"; }
 private:
@@ -150,9 +150,9 @@ public:
     TypeDictionary(const Type *elementtype): Type("dictionary"), elementtype(elementtype) {}
     const Type *elementtype;
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &) const { assert(false); }
+    virtual void generate_store(Emitter &) const { assert(false); }
+    virtual void generate_call(Emitter &) const { assert(false); }
 
     virtual std::string text() const { return "TypeDictionary(" + elementtype->text() + ")"; }
 private:
@@ -165,9 +165,9 @@ public:
     TypeRecord(const std::map<std::string, std::pair<int, const Type *> > &fields): Type("record"), fields(fields) {}
     const std::map<std::string, std::pair<int, const Type *> > fields;
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &) const { assert(false); }
+    virtual void generate_store(Emitter &) const { assert(false); }
+    virtual void generate_call(Emitter &) const { assert(false); }
 
     virtual std::string text() const { return "TypeRecord(...)"; }
 };
@@ -680,6 +680,25 @@ private:
     WhileStatement &operator=(const WhileStatement &);
 };
 
+class ForStatement: public CompoundStatement {
+public:
+    ForStatement(const Variable *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): CompoundStatement(statements), var(var), start(start), end(end) {}
+
+    const Variable *var;
+    const Expression *start;
+    const Expression *end;
+    const Expression *step;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ForStatement(" + var->text() + ")";
+    }
+private:
+    ForStatement(const ForStatement &);
+    ForStatement &operator=(const ForStatement &);
+};
+
 class Function: public Variable {
 public:
     Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<Variable *> &args): Variable(name, makeFunctionType(returntype, args)), scope(scope), args(args), entry_label(-1), statements() {
@@ -697,9 +716,9 @@ public:
 
     virtual void predeclare(Emitter &emitter);
     virtual void postdeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const { assert(false); }
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_address(Emitter &) const { assert(false); }
+    virtual void generate_load(Emitter &) const { assert(false); }
+    virtual void generate_store(Emitter &) const { assert(false); }
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "Function(" + name + ", " + type->text() + ")"; }
@@ -714,9 +733,9 @@ public:
     int name_index;
 
     virtual void predeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const { assert(false); }
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_address(Emitter &) const { assert(false); }
+    virtual void generate_load(Emitter &) const { assert(false); }
+    virtual void generate_store(Emitter &) const { assert(false); }
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }

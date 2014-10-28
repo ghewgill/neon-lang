@@ -26,6 +26,7 @@ static const Program *dump(const Program *program)
 
 int main(int argc, char *argv[])
 {
+    argc;
     bool dump_tokens = false;
     bool dump_ast = false;
     bool dump_bytecode = false;

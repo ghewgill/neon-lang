@@ -2,8 +2,9 @@
 #define NUMBER_H
 
 #include <string>
+#include <stdint.h>
 
-#define NUMBER_DECIMAL
+#define NUMBER_DOUBLE
 
 // The Number type is defined as a struct below (containing a member
 // of the actual numeric type) so that the rest of the code doesn't
@@ -19,7 +20,9 @@ typedef struct { double x; } Number;
 #define DECIMAL_GLOBAL_ROUNDING 1
 #define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
 
+#ifndef _WCHAR_T_DEFINED
 #define _WCHAR_T_DEFINED
+#endif
 #include "bid_conf.h"
 #include "bid_functions.h"
 

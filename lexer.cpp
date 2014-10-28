@@ -1,7 +1,8 @@
 #include "lexer.h"
 
+#include <iso646.h>
 #include <sstream>
-
+#include <iso646.h>
 #include "util.h"
 
 std::string Token::tostring() const
@@ -52,6 +53,9 @@ std::string Token::tostring() const
         case DOT:         s << "DOT"; break;
         case TYPE:        s << "TYPE"; break;
         case RECORD:      s << "RECORD"; break;
+        case FOR:         s << "FOR"; break;
+        case IN:          s << "IN"; break;
+        case TO:          s << "TO"; break;
     }
     s << ">";
     return s.str();
@@ -137,11 +141,18 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "DICTIONARY") t.type = DICTIONARY;
             else if (t.text == "TYPE") t.type = TYPE;
             else if (t.text == "RECORD") t.type = RECORD;
+            else if (t.text == "FOR") t.type = FOR;
+            else if (t.text == "TO") t.type = TO;
+            else if (t.text == "IN") t.type = IN;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
             if (c == '0' && not isdigit(source.at(i+1))) {
-                c = tolower(source.at(i+1));
+<<<<<<< HEAD
+                c = static_cast<char>(tolower(source.at(i+1)));
+=======
+                c = (char)tolower(source.at(i+1));
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
                 if (isalpha(c) || c == '#') {
                     long base;
                     if (c == 'b') {
@@ -169,8 +180,12 @@ std::vector<Token> tokenize(const std::string &source)
                         error(t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
-                    while (true) {
-                        c = tolower(source.at(i));
+                    for (;;) {
+<<<<<<< HEAD
+                        c = static_cast<char>(tolower(source.at(i)));
+=======
+                        c = (char)tolower(source.at(i));
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
                         if (c == '.') {
                             error(t, "non-decimal fraction not supported");
                         }

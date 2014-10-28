@@ -127,7 +127,11 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
     std::vector<const Type *>::size_type a = 0;
     std::vector<const Expression *> args;
     if (tokens[i].type != RPAREN) {
-        while (true) {
+<<<<<<< HEAD
+        for (;;) {
+=======
+        for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
             const Expression *e = parseExpression(scope, tokens, i);
             if (e->type != ftype->args[a]) {
                 error(tokens[i], "type mismatch");
@@ -221,7 +225,11 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
 static const Expression *parseExponentiation(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseAtom(scope, tokens, i);
-    while (true) {
+<<<<<<< HEAD
+    for (;;) {
+=======
+    for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
         if (tokens[i].type == EXP) {
             auto op = i;
             ++i;
@@ -240,7 +248,11 @@ static const Expression *parseExponentiation(Scope *scope, const std::vector<Tok
 static const Expression *parseMultiplication(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseExponentiation(scope, tokens, i);
-    while (true) {
+<<<<<<< HEAD
+    for (;;) {
+=======
+    for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
         switch (tokens[i].type) {
             case TIMES: {
                 auto op = i;
@@ -284,7 +296,11 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
 static const Expression *parseAddition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseMultiplication(scope, tokens, i);
-    while (true) {
+<<<<<<< HEAD
+    for (;;) {
+=======
+    for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
         switch (tokens[i].type) {
             case PLUS: {
                 auto op = i;
@@ -359,7 +375,11 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
 static const Expression *parseConjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseComparison(scope, tokens, i);
-    while (true) {
+<<<<<<< HEAD
+    for (;;) {
+=======
+    for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
         if (tokens[i].type == AND) {
             auto op = i;
             ++i;
@@ -378,7 +398,11 @@ static const Expression *parseConjunction(Scope *scope, const std::vector<Token>
 static const Expression *parseDisjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     const Expression *left = parseConjunction(scope, tokens, i);
-    while (true) {
+<<<<<<< HEAD
+    for (;;) {
+=======
+    for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
         if (tokens[i].type == OR) {
             auto op = i;
             ++i;
@@ -402,7 +426,11 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
 static const std::vector<Variable *> parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     std::vector<std::string> names;
-    while (true) {
+<<<<<<< HEAD
+    for (;;) {
+=======
+    for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
         if (tokens[i].type != IDENTIFIER) {
             error(tokens[i], "identifier expected");
         }
@@ -450,7 +478,11 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
         const VariableReference *ref = new ScalarVariableReference(var);
         const Type *type = var->type;
         ++i;
-        while (true) {
+<<<<<<< HEAD
+        for (;;) {
+=======
+        for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
             if (tokens[i].type == LBRACKET) {
                 const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
                 const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
@@ -526,7 +558,11 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
     std::vector<Variable *> args;
     Scope *newscope = new Scope(scope);
     if (tokens[i].type != RPAREN) {
-        while (true) {
+<<<<<<< HEAD
+        for (;;) {
+=======
+        for(;;) {
+>>>>>>> 33d411a7804696a520d71707dd6f0ac2e9a49a47
             std::vector<Variable *> vars = parseVariableDeclaration(newscope, tokens, i);
             std::copy(vars.begin(), vars.end(), std::back_inserter(args));
             if (tokens[i].type != COMMA) {

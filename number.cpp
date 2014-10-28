@@ -1,7 +1,7 @@
 #include "number.h"
 
 #if defined(NUMBER_DOUBLE)
-
+#define trunc(x)    ((int)x)
 #include <math.h>
 
 Number number_add(Number x, Number y)
