@@ -44,6 +44,31 @@ Number number_abs(Number x)
     return fabs(x.x);
 }
 
+Number number_ceil(Number x)
+{
+    return ceil(x.x);
+}
+
+Number number_floor(Number x)
+{
+    return floor(x.x);
+}
+
+Number number_exp(Number x)
+{
+    return exp(x.x);
+}
+
+Number number_log(Number x)
+{
+    return log(x.x);
+}
+
+Number number_sqrt(Number x)
+{
+    return sqrt(x.x);
+}
+
 bool number_is_zero(Number x)
 {
     return x.x == 0;
@@ -160,6 +185,33 @@ Number number_negate(Number x)
 Number number_abs(Number x)
 {
     return bid64_abs(x.x);
+}
+
+Number number_ceil(Number x)
+{
+    // TODO: find proper ceil function to handle full range of decimal64
+    return bid64_from_int64(bid64_to_int64_ceil(x.x));
+}
+
+Number number_floor(Number x)
+{
+    // TODO: find proper floor function to handle full range of decimal64
+    return bid64_from_int64(bid64_to_int64_floor(x.x));
+}
+
+Number number_exp(Number x)
+{
+    return bid64_exp(x.x);
+}
+
+Number number_log(Number x)
+{
+    return bid64_log(x.x);
+}
+
+Number number_sqrt(Number x)
+{
+    return bid64_sqrt(x.x);
 }
 
 bool number_is_zero(Number x)

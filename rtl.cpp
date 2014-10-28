@@ -94,6 +94,31 @@ std::string substring(const std::string &s, Number offset, Number length)
     return s.substr(number_to_uint32(offset), number_to_uint32(length));
 }
 
+Number math$ceil(Number x)
+{
+    return number_ceil(x);
+}
+
+Number math$exp(Number x)
+{
+    return number_exp(x);
+}
+
+Number math$floor(Number x)
+{
+    return number_floor(x);
+}
+
+Number math$log(Number x)
+{
+    return number_log(x);
+}
+
+Number math$sqrt(Number x)
+{
+    return number_sqrt(x);
+}
+
 } // namespace rtl
 
 #include "thunks.inc"
