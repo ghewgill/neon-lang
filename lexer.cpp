@@ -247,6 +247,12 @@ std::vector<Token> tokenize(const std::string &source)
                     } else if (source.at(i) == '|' && source.at(i+1) == '%') {
                         level--;
                         i += 2;
+                    } else if (source.at(i) == '\n') {
+                        line++;
+                        column = 0;
+                        linestart = i+1;
+                        lineend = source.find('\n', i+1);
+                        i++;
                     } else {
                         i++;
                     }
