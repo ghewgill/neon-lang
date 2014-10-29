@@ -425,7 +425,7 @@ void Executor::exec_RET()
 
 void Executor::exec()
 {
-    callstack.push(0);
+    callstack.push(obj.code.size());
     while (not callstack.empty() && ip < obj.code.size()) {
         //std::cerr << "ip " << ip << " op " << (int)obj.code[ip] << "\n";
         auto last_ip = ip;
