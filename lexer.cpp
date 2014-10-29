@@ -232,9 +232,15 @@ std::vector<Token> tokenize(const std::string &source)
                 t.text.push_back(c);
             }
         } else if (c == '%') {
+            if (i+1 >= source.length()) {
+                break;
+            }
             if (source.at(i+1) == '|') {
                 int level = 0;
                 do {
+                    if (i+1 >= source.length()) {
+                        error(t, "Missing closing comment '|%'");
+                    }
                     if (source.at(i) == '%' && source.at(i+1) == '|') {
                         level++;
                         i += 2;

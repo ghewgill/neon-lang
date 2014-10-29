@@ -1,0 +1,3 @@
+%! Missing closing comment '|%'
+
+%| Block Comment, without proper ending comment token.%|%%
