@@ -15,7 +15,11 @@ public:
     explicit Variant(Number value);
     explicit Variant(const std::string &value);
     explicit Variant(const char *value);
+    explicit Variant(const std::vector<Variant> &value);
+    explicit Variant(const std::map<std::string, Variant> &value);
     Variant &operator=(const Variant &rhs);
+    bool operator==(const Variant &rhs) const;
+
     Variant *address_value;
     bool boolean_value;
     Number number_value;

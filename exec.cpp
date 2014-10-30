@@ -43,9 +43,13 @@ private:
     void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
+    void exec_LOADA();
+    void exec_LOADD();
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
+    void exec_STOREA();
+    void exec_STORED();
     void exec_NEGN();
     void exec_ADDN();
     void exec_SUBN();
@@ -53,6 +57,8 @@ private:
     void exec_DIVN();
     void exec_MODN();
     void exec_EXPN();
+    void exec_EQB();
+    void exec_NEB();
     void exec_EQN();
     void exec_NEN();
     void exec_LTN();
@@ -65,6 +71,10 @@ private:
     void exec_GTS();
     void exec_LES();
     void exec_GES();
+    void exec_EQA();
+    void exec_NEA();
+    void exec_EQD();
+    void exec_NED();
     void exec_ANDB();
     void exec_ORB();
     void exec_NOTB();
@@ -163,6 +173,20 @@ void Executor::exec_LOADS()
     stack.push(Variant(addr->string_value));
 }
 
+void Executor::exec_LOADA()
+{
+    ip++;
+    Variant *addr = stack.top().address_value; stack.pop();
+    stack.push(Variant(addr->array_value));
+}
+
+void Executor::exec_LOADD()
+{
+    ip++;
+    Variant *addr = stack.top().address_value; stack.pop();
+    stack.push(Variant(addr->dictionary_value));
+}
+
 void Executor::exec_STOREB()
 {
     ip++;
@@ -184,6 +208,22 @@ void Executor::exec_STORES()
     ip++;
     Variant *addr = stack.top().address_value; stack.pop();
     std::string val = stack.top().string_value; stack.pop();
+    *addr = Variant(val);
+}
+
+void Executor::exec_STOREA()
+{
+    ip++;
+    Variant *addr = stack.top().address_value; stack.pop();
+    std::vector<Variant> val = stack.top().array_value; stack.pop();
+    *addr = Variant(val);
+}
+
+void Executor::exec_STORED()
+{
+    ip++;
+    Variant *addr = stack.top().address_value; stack.pop();
+    std::map<std::string, Variant> val = stack.top().dictionary_value; stack.pop();
     *addr = Variant(val);
 }
 
@@ -240,6 +280,22 @@ void Executor::exec_EXPN()
     Number b = stack.top().number_value; stack.pop();
     Number a = stack.top().number_value; stack.pop();
     stack.push(Variant(number_pow(a, b)));
+}
+
+void Executor::exec_EQB()
+{
+    ip++;
+    bool b = stack.top().boolean_value; stack.pop();
+    bool a = stack.top().boolean_value; stack.pop();
+    stack.push(Variant(a == b));
+}
+
+void Executor::exec_NEB()
+{
+    ip++;
+    bool b = stack.top().boolean_value; stack.pop();
+    bool a = stack.top().boolean_value; stack.pop();
+    stack.push(Variant(a != b));
 }
 
 void Executor::exec_EQN()
@@ -336,6 +392,38 @@ void Executor::exec_GES()
     std::string b = stack.top().string_value; stack.pop();
     std::string a = stack.top().string_value; stack.pop();
     stack.push(Variant(a >= b));
+}
+
+void Executor::exec_EQA()
+{
+    ip++;
+    std::vector<Variant> b = stack.top().array_value; stack.pop();
+    std::vector<Variant> a = stack.top().array_value; stack.pop();
+    stack.push(Variant(a == b));
+}
+
+void Executor::exec_NEA()
+{
+    ip++;
+    std::vector<Variant> b = stack.top().array_value; stack.pop();
+    std::vector<Variant> a = stack.top().array_value; stack.pop();
+    stack.push(Variant(a != b));
+}
+
+void Executor::exec_EQD()
+{
+    ip++;
+    std::map<std::string, Variant> b = stack.top().dictionary_value; stack.pop();
+    std::map<std::string, Variant> a = stack.top().dictionary_value; stack.pop();
+    stack.push(Variant(a == b));
+}
+
+void Executor::exec_NED()
+{
+    ip++;
+    std::map<std::string, Variant> b = stack.top().dictionary_value; stack.pop();
+    std::map<std::string, Variant> a = stack.top().dictionary_value; stack.pop();
+    stack.push(Variant(a != b));
 }
 
 void Executor::exec_ANDB()
@@ -440,9 +528,13 @@ void Executor::exec()
             case LOADB:   exec_LOADB(); break;
             case LOADN:   exec_LOADN(); break;
             case LOADS:   exec_LOADS(); break;
+            case LOADA:   exec_LOADA(); break;
+            case LOADD:   exec_LOADD(); break;
             case STOREB:  exec_STOREB(); break;
             case STOREN:  exec_STOREN(); break;
             case STORES:  exec_STORES(); break;
+            case STOREA:  exec_STOREA(); break;
+            case STORED:  exec_STORED(); break;
             case NEGN:    exec_NEGN(); break;
             case ADDN:    exec_ADDN(); break;
             case SUBN:    exec_SUBN(); break;
@@ -450,6 +542,8 @@ void Executor::exec()
             case DIVN:    exec_DIVN(); break;
             case MODN:    exec_MODN(); break;
             case EXPN:    exec_EXPN(); break;
+            case EQB:     exec_EQB(); break;
+            case NEB:     exec_NEB(); break;
             case EQN:     exec_EQN(); break;
             case NEN:     exec_NEN(); break;
             case LTN:     exec_LTN(); break;
@@ -462,6 +556,10 @@ void Executor::exec()
             case GTS:     exec_GTS(); break;
             case LES:     exec_LES(); break;
             case GES:     exec_GES(); break;
+            case EQA:     exec_EQA(); break;
+            case NEA:     exec_NEA(); break;
+            case EQD:     exec_EQD(); break;
+            case NED:     exec_NED(); break;
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(); break;

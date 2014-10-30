@@ -1,4 +1,3 @@
-% TODO
 VAR b1, b2: Boolean
 VAR n1, n2: Number
 VAR s1, s2: String

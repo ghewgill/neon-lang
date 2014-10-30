@@ -437,10 +437,33 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
             auto op = i;
             ++i;
             const Expression *right = parseAddition(scope, tokens, i);
-            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+            if (left->type != right->type) {
+                error(tokens[op], "type mismatch");
+            }
+            if (left->type == TYPE_BOOLEAN) {
+                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                    error(tokens[op], "comparison not available for Boolean");
+                }
+                return new BooleanComparisonExpression(left, right, comp);
+            } else if (left->type == TYPE_NUMBER) {
                 return new NumericComparisonExpression(left, right, comp);
-            } else if (left->type == TYPE_STRING && right->type == TYPE_STRING) {
+            } else if (left->type == TYPE_STRING) {
                 return new StringComparisonExpression(left, right, comp);
+            } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
+                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                    error(tokens[op], "comparison not available for Array");
+                }
+                return new ArrayComparisonExpression(left, right, comp);
+            } else if (dynamic_cast<const TypeDictionary *>(left->type) != nullptr) {
+                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                    error(tokens[op], "comparison not available for Dictionary");
+                }
+                return new DictionaryComparisonExpression(left, right, comp);
+            } else if (dynamic_cast<const TypeRecord *>(left->type) != nullptr) {
+                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                    error(tokens[op], "comparison not available for Array");
+                }
+                return new ArrayComparisonExpression(left, right, comp);
             } else {
                 error(tokens[op], "type mismatch");
             }

@@ -193,6 +193,51 @@ void TypeFunction::generate_call(Emitter &emitter) const
     assert(false);
 }
 
+void TypeArray::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADA);
+}
+
+void TypeArray::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREA);
+}
+
+void TypeArray::generate_call(Emitter &emitter) const
+{
+    assert(false);
+}
+
+void TypeDictionary::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADD);
+}
+
+void TypeDictionary::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STORED);
+}
+
+void TypeDictionary::generate_call(Emitter &emitter) const
+{
+    assert(false);
+}
+
+void TypeRecord::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADA);
+}
+
+void TypeRecord::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREA);
+}
+
+void TypeRecord::generate_call(Emitter &emitter) const
+{
+    assert(false);
+}
+
 void Variable::generate_load(Emitter &emitter) const
 {
     type->generate_load(emitter);
@@ -327,6 +372,14 @@ void ConjunctionExpression::generate(Emitter &emitter) const
     emitter.emit(ANDB);
 }
 
+void BooleanComparisonExpression::generate(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQB, NEB};
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(op[comp]);
+}
+
 void NumericComparisonExpression::generate(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
@@ -338,6 +391,22 @@ void NumericComparisonExpression::generate(Emitter &emitter) const
 void StringComparisonExpression::generate(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQS, NES, LTS, GTS, LES, GES};
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(op[comp]);
+}
+
+void ArrayComparisonExpression::generate(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQA, NEA};
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(op[comp]);
+}
+
+void DictionaryComparisonExpression::generate(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQD, NED};
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(op[comp]);

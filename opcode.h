@@ -12,9 +12,13 @@ enum Opcode {
     LOADB,      // load boolean
     LOADN,      // load number
     LOADS,      // load string
+    LOADA,      // load array
+    LOADD,      // load dictionary
     STOREB,     // store boolean
     STOREN,     // store number
     STORES,     // store string
+    STOREA,     // store array
+    STORED,     // store dictionary
     NEGN,       // negate number
     ADDN,       // add number
     SUBN,       // subtract number
@@ -22,6 +26,8 @@ enum Opcode {
     DIVN,       // divide number
     MODN,       // modulo number
     EXPN,       // exponentiate number
+    EQB,        // compare equal boolean
+    NEB,        // compare unequal boolean
     EQN,        // compare equal number
     NEN,        // compare unequal number
     LTN,        // compare less number
@@ -34,6 +40,10 @@ enum Opcode {
     GTS,        // compare greater string
     LES,        // compare less equal string
     GES,        // compare greater equal string
+    EQA,        // compare equal array
+    NEA,        // compare unequal array
+    EQD,        // compare equal dictionary
+    NED,        // compare unequal dictionary
     ANDB,       // and boolean
     ORB,        // or boolean
     NOTB,       // not boolean

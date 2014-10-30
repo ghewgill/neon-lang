@@ -136,9 +136,9 @@ public:
     TypeArray(const Type *elementtype): Type("array"), elementtype(elementtype) {}
     const Type *elementtype;
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeArray(" + elementtype->text() + ")"; }
 private:
@@ -151,9 +151,9 @@ public:
     TypeDictionary(const Type *elementtype): Type("dictionary"), elementtype(elementtype) {}
     const Type *elementtype;
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeDictionary(" + elementtype->text() + ")"; }
 private:
@@ -166,9 +166,9 @@ public:
     TypeRecord(const std::map<std::string, std::pair<int, const Type *> > &fields): Type("record"), fields(fields) {}
     const std::map<std::string, std::pair<int, const Type *> > fields;
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeRecord(...)"; }
 };
@@ -395,6 +395,17 @@ private:
     ComparisonExpression &operator=(const ComparisonExpression &);
 };
 
+class BooleanComparisonExpression: public ComparisonExpression {
+public:
+    BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "BooleanComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
 class NumericComparisonExpression: public ComparisonExpression {
 public:
     NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
@@ -414,6 +425,28 @@ public:
 
     virtual std::string text() const {
         return "StringComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
+class ArrayComparisonExpression: public ComparisonExpression {
+public:
+    ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ArrayComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
+class DictionaryComparisonExpression: public ComparisonExpression {
+public:
+    DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "DictionaryComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
 

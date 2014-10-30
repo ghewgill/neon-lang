@@ -27,9 +27,13 @@ private:
     void disasm_LOADB();
     void disasm_LOADN();
     void disasm_LOADS();
+    void disasm_LOADA();
+    void disasm_LOADD();
     void disasm_STOREB();
     void disasm_STOREN();
     void disasm_STORES();
+    void disasm_STOREA();
+    void disasm_STORED();
     void disasm_NEGN();
     void disasm_ADDN();
     void disasm_SUBN();
@@ -37,6 +41,8 @@ private:
     void disasm_DIVN();
     void disasm_MODN();
     void disasm_EXPN();
+    void disasm_EQB();
+    void disasm_NEB();
     void disasm_EQN();
     void disasm_NEN();
     void disasm_LTN();
@@ -49,6 +55,10 @@ private:
     void disasm_GTS();
     void disasm_LES();
     void disasm_GES();
+    void disasm_EQA();
+    void disasm_NEA();
+    void disasm_EQD();
+    void disasm_NED();
     void disasm_ANDB();
     void disasm_ORB();
     void disasm_NOTB();
@@ -136,6 +146,18 @@ void Disassembler::disasm_LOADS()
     index++;
 }
 
+void Disassembler::disasm_LOADA()
+{
+    out << "LOADA\n";
+    index++;
+}
+
+void Disassembler::disasm_LOADD()
+{
+    out << "LOADD\n";
+    index++;
+}
+
 void Disassembler::disasm_STOREB()
 {
     out << "STOREB\n";
@@ -151,6 +173,18 @@ void Disassembler::disasm_STOREN()
 void Disassembler::disasm_STORES()
 {
     out << "STORES\n";
+    index++;
+}
+
+void Disassembler::disasm_STOREA()
+{
+    out << "STOREA\n";
+    index++;
+}
+
+void Disassembler::disasm_STORED()
+{
+    out << "STORED\n";
     index++;
 }
 
@@ -193,6 +227,18 @@ void Disassembler::disasm_MODN()
 void Disassembler::disasm_EXPN()
 {
     out << "EXPN\n";
+    index++;
+}
+
+void Disassembler::disasm_EQB()
+{
+    out << "EQB\n";
+    index++;
+}
+
+void Disassembler::disasm_NEB()
+{
+    out << "NEB\n";
     index++;
 }
 
@@ -268,6 +314,29 @@ void Disassembler::disasm_GES()
     index++;
 }
 
+void Disassembler::disasm_EQA()
+{
+    out << "EQA\n";
+    index++;
+}
+
+void Disassembler::disasm_NEA()
+{
+    out << "NEA\n";
+    index++;
+}
+
+void Disassembler::disasm_EQD()
+{
+    out << "EQD\n";
+    index++;
+}
+
+void Disassembler::disasm_NED()
+{
+    out << "NED\n";
+    index++;
+}
 
 void Disassembler::disasm_ANDB()
 {
@@ -356,9 +425,13 @@ void Disassembler::disassemble()
             case LOADB:   disasm_LOADB(); break;
             case LOADN:   disasm_LOADN(); break;
             case LOADS:   disasm_LOADS(); break;
+            case LOADA:   disasm_LOADA(); break;
+            case LOADD:   disasm_LOADD(); break;
             case STOREB:  disasm_STOREB(); break;
             case STOREN:  disasm_STOREN(); break;
             case STORES:  disasm_STORES(); break;
+            case STOREA:  disasm_STOREA(); break;
+            case STORED:  disasm_STORED(); break;
             case NEGN:    disasm_NEGN(); break;
             case ADDN:    disasm_ADDN(); break;
             case SUBN:    disasm_SUBN(); break;
@@ -366,6 +439,8 @@ void Disassembler::disassemble()
             case DIVN:    disasm_DIVN(); break;
             case MODN:    disasm_MODN(); break;
             case EXPN:    disasm_EXPN(); break;
+            case EQB:     disasm_EQB(); break;
+            case NEB:     disasm_NEB(); break;
             case EQN:     disasm_EQN(); break;
             case NEN:     disasm_NEN(); break;
             case LTN:     disasm_LTN(); break;
@@ -378,6 +453,10 @@ void Disassembler::disassemble()
             case GTS:     disasm_GTS(); break;
             case LES:     disasm_LES(); break;
             case GES:     disasm_GES(); break;
+            case EQA:     disasm_EQA(); break;
+            case NEA:     disasm_NEA(); break;
+            case EQD:     disasm_EQD(); break;
+            case NED:     disasm_NED(); break;
             case ANDB:    disasm_ANDB(); break;
             case ORB:     disasm_ORB(); break;
             case NOTB:    disasm_NOTB(); break;
