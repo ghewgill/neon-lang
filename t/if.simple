@@ -13,3 +13,14 @@ ELSE
     print("zero")
 END
 %= zero
+
+% TODO
+a := 1
+IF a = 0 THEN
+    print("zero")
+ELSIF a = 1 THEN
+    print("one")
+ELSE
+    print("many")
+END
+%= one
