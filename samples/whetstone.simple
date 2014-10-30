@@ -73,10 +73,10 @@ VAR L: Number
 FUNCTION PA(E: Array<Number>): Nothing
     J := 0
     WHILE J < 6 DO
-        E[1] = ( E[1] + E[2] + E[3] - E[4]) * T
-        E[2] = ( E[1] + E[2] - E[3] + E[4]) * T
-        E[3] = ( E[1] - E[2] + E[3] + E[4]) * T
-        E[4] = (-E[1] + E[2] + E[3] + E[4]) / T2
+        E[1] := ( E[1] + E[2] + E[3] - E[4]) * T
+        E[2] := ( E[1] + E[2] - E[3] + E[4]) * T
+        E[3] := ( E[1] - E[2] + E[3] + E[4]) * T
+        E[4] := (-E[1] + E[2] + E[3] + E[4]) / T2
         J := J + 1
     END
 END
