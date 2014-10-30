@@ -1,0 +1,8 @@
+% TODO
+
+FUNCTION foo(a: Array<String>): Nothing
+    % ...
+END
+
+VAR a: Array<String>
+foo(a)
