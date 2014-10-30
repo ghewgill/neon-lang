@@ -1,0 +1,9 @@
+% TODO
+
+FUNCTION foo(x: Number): Number
+    RETURN x + 1
+END
+
+foo(5)
+
+%! return value unused
