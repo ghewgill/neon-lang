@@ -1,0 +1,11 @@
+FUNCTION foo(x: Number): String
+    IF x = 0 THEN
+        RETURN "zero"
+    ELSE
+        RETURN "nonzero"
+    END
+END
+
+print(foo(0))
+
+%= zero

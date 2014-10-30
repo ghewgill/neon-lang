@@ -1,0 +1,7 @@
+% TODO
+
+FUNCTION foo(x: Number): Nothing
+    RETURN x
+END
+
+%! function does not return a value

@@ -1,0 +1,7 @@
+% TODO
+
+FUNCTION foo(x: Number): Number
+    print(str(x))
+END
+
+%! missing RETURN statement
