@@ -1,14 +1,14 @@
 import re
 
 AstFromCpp = {
-    "void": "TYPE_NONE",
+    "void": "TYPE_NOTHING",
     "bool": "TYPE_BOOLEAN",
     "Number": "TYPE_NUMBER",
     "std::string": "TYPE_STRING",
 }
 
 CppFromAst = {
-    "TYPE_NONE": "void",
+    "TYPE_NOTHING": "void",
     "TYPE_BOOLEAN": "bool",
     "TYPE_NUMBER": "Number",
     "TYPE_STRING": "std::string",
@@ -59,7 +59,7 @@ with open("thunks.inc", "w") as inc:
         print >>inc, "{"
         for i, a in reversed(list(enumerate(args))):
             print >>inc, "    {} a{} = stack.top().{}; stack.pop();".format(CppFromAst[a], i, CellField[a]);
-        if rtype != "TYPE_NONE":
+        if rtype != "TYPE_NOTHING":
             print >>inc, "    stack.push(Variant(reinterpret_cast<{} (*)({})>(func)({})));".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in args), ",".join("a{}".format(x) for x in range(len(args))))
         else:
             print >>inc, "    reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in args), ",".join("a{}".format(x) for x in range(len(args))))

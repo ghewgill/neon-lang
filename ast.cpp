@@ -5,7 +5,7 @@
 
 #include "rtl.h"
 
-TypeNone *TYPE_NONE = new TypeNone();
+TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber();
 TypeString *TYPE_STRING = new TypeString();
@@ -93,6 +93,7 @@ Program::Program()
   : scope(new Scope(nullptr)),
     statements()
 {
+    scope->names["Nothing"] = TYPE_NOTHING;
     scope->names["Boolean"] = TYPE_BOOLEAN;
     scope->names["Number"] = TYPE_NUMBER;
     scope->names["String"] = TYPE_STRING;

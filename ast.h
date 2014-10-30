@@ -67,17 +67,17 @@ public:
     virtual void generate_call(Emitter &emitter) const = 0;
 };
 
-class TypeNone: public Type {
+class TypeNothing: public Type {
 public:
-    TypeNone(): Type("") {}
+    TypeNothing(): Type("Nothing") {}
     virtual void generate_load(Emitter &emitter) const {}
     virtual void generate_store(Emitter &emitter) const {}
     virtual void generate_call(Emitter &emitter) const {}
 
-    virtual std::string text() const { return "TypeNone"; }
+    virtual std::string text() const { return "TypeNothing"; }
 };
 
-extern TypeNone *TYPE_NONE;
+extern TypeNothing *TYPE_NOTHING;
 
 class TypeBoolean: public Type {
 public:
