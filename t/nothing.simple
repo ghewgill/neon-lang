@@ -1,0 +1,5 @@
+% TODO
+
+VAR a: Nothing
+
+%! cannot declare variable with type 'Nothing'
