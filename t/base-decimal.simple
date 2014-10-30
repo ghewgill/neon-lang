@@ -1,4 +1,4 @@
-VAR a: number
+VAR a: Number
 a := 0x2a.0
 
 %! non-decimal fraction not supported

@@ -1,2 +1,2 @@
-VAR a: number
+VAR a: Number
 a := 5

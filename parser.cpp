@@ -36,7 +36,7 @@ StringReference::StringReference(const VariableReference *str, const Expression 
 static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type != ARRAY) {
-        error(tokens[i], "ARRAY expected");
+        error(tokens[i], "Array expected");
     }
     i++;
     if (tokens[i].type != LESS) {
@@ -54,7 +54,7 @@ static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens
 static const Type *parseDictionaryType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     if (tokens[i].type != DICTIONARY) {
-        error(tokens[i], "DICTIONARY expected");
+        error(tokens[i], "Dictionary expected");
     }
     i++;
     if (tokens[i].type != LESS) {

@@ -1,10 +1,10 @@
 % TODO
-FUNCTION a(): boolean
+FUNCTION a(): Boolean
     print("a")
     return FALSE
 END
 
-FUNCTION b(): boolean
+FUNCTION b(): Boolean
     print("b")
     return TRUE
 END

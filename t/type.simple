@@ -1,4 +1,4 @@
-TYPE Length := number
+TYPE Length := Number
 VAR a: Length
 a := 5
 print(str(a))

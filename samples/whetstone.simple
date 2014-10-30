@@ -62,15 +62,15 @@ IMPORT time
 %|
         COMMON T,T1,T2,E1(4),J,K,L
 |%
-VAR T: number
-VAR T1: number
-VAR T2: number
-VAR E1: ARRAY<number>
-VAR J: number
-VAR K: number
-VAR L: number
+VAR T: Number
+VAR T1: Number
+VAR T2: Number
+VAR E1: Array<Number>
+VAR J: Number
+VAR K: Number
+VAR L: Number
 
-FUNCTION PA(E: ARRAY<number>): Nothing
+FUNCTION PA(E: Array<Number>): Nothing
     J := 0
     WHILE J < 6 DO
         E[1] = ( E[1] + E[2] + E[3] - E[4]) * T
@@ -87,8 +87,8 @@ FUNCTION P0(): Nothing
     E1[L] := E1[J]
 END
 
-FUNCTION P3(X: number, Y: number, OUT Z: number)
-    VAR X1, Y1: number
+FUNCTION P3(X: Number, Y: Number, OUT Z: Number)
+    VAR X1, Y1: Number
 
     X1 := X
     Y1 := Y
@@ -109,17 +109,17 @@ END
 FUNCTION main(): Nothing
 
     % used in the FORTRAN version
-    VAR I: number
-    VAR N1, N2, N3, N4, N6, N7, N8, N9, N10, N11: number
-    VAR X1,X2,X3,X4,X,Y,Z: number
-    VAR LOOP: number
-    VAR II, JJ: number
+    VAR I: Number
+    VAR N1, N2, N3, N4, N6, N7, N8, N9, N10, N11: Number
+    VAR X1,X2,X3,X4,X,Y,Z: Number
+    VAR LOOP: Number
+    VAR II, JJ: Number
 
     % added for this version
-    VAR loopstart: number
-    VAR startsec, finisec: number
-    VAR KIPS: number
-    VAR continuous: boolean
+    VAR loopstart: Number
+    VAR startsec, finisec: Number
+    VAR KIPS: Number
+    VAR continuous: Boolean
 
     loopstart := 1000               % see the note about LOOP below
     continuous := 0

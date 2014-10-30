@@ -1,5 +1,5 @@
 % TODO
-VAR s: string
+VAR s: String
 s := "你好世界"
 
 print(ord(substring(s, 0, 1)))

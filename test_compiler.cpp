@@ -10,7 +10,7 @@
 int main()
 {
     {
-        auto obj = compile(parse(tokenize("VAR a: number a := 1")));
+        auto obj = compile(parse(tokenize("VAR a: Number a := 1")));
         disassemble(obj, std::cout);
         /*
         unsigned char expected[] = {
@@ -24,7 +24,7 @@ int main()
     }
 
     {
-        auto obj = compile(parse(tokenize("VAR a: number a := 0\nIF a # 0 THEN print(\"1\") END")));
+        auto obj = compile(parse(tokenize("VAR a: Number a := 0\nIF a # 0 THEN print(\"1\") END")));
         disassemble(obj, std::cout);
         /*
         unsigned char expected[] = {

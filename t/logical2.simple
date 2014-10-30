@@ -1,6 +1,6 @@
-VAR a: boolean
-VAR b: boolean
-VAR c: boolean
+VAR a: Boolean
+VAR b: Boolean
+VAR c: Boolean
 
 a := TRUE
 b := TRUE

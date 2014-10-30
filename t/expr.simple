@@ -1,5 +1,5 @@
-VAR a: number
-VAR b: number
+VAR a: Number
+VAR b: Number
 b := 4
 a := abs(-5 * (3 + b))
 print(str(a))

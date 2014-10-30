@@ -1,11 +1,11 @@
-VAR x: number
-VAR y: number
+VAR x: Number
+VAR y: Number
 x := 5
 y := 10
 
-FUNCTION sq(): number
-    VAR y: number
-    VAR z: number
+FUNCTION sq(): Number
+    VAR y: Number
+    VAR z: Number
     y := x * x
     z := 999
     RETURN y

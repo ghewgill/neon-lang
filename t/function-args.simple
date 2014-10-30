@@ -1,4 +1,4 @@
-FUNCTION sq(x: number): number
+FUNCTION sq(x: Number): Number
     RETURN x * x
 END
 

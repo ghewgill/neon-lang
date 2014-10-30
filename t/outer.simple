@@ -1,7 +1,7 @@
 % TODO
 
 FUNCTION foo()
-    VAR outer: string
+    VAR outer: String
         FUNCTION bar()
             outer := "two"
         END

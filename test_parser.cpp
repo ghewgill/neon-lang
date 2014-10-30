@@ -14,7 +14,7 @@ static const Program *dump(const Program *program)
 int main()
 {
     {
-        auto *program = dump(parse(tokenize("VAR a: number a := 1")));
+        auto *program = dump(parse(tokenize("VAR a: Number a := 1")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
@@ -24,7 +24,7 @@ int main()
     }
 
     {
-        auto *program = dump(parse(tokenize("VAR a: number a := -1")));
+        auto *program = dump(parse(tokenize("VAR a: Number a := -1")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
@@ -35,7 +35,7 @@ int main()
     }
 
     {
-        auto *program = dump(parse(tokenize("VAR a: number a := 1 + 2")));
+        auto *program = dump(parse(tokenize("VAR a: Number a := 1 + 2")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
@@ -48,7 +48,7 @@ int main()
     }
 
     {
-        auto *program = dump(parse(tokenize("VAR a: number a := abs(1)")));
+        auto *program = dump(parse(tokenize("VAR a: Number a := abs(1)")));
         assert(program->statements.size() == 1);
         auto *as = dynamic_cast<const AssignmentStatement *>(program->statements[0]);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(as->variable);
@@ -74,7 +74,7 @@ int main()
     }
 
     {
-        auto *program = dump(parse(tokenize("VAR a: number IF a # 0 THEN print(str(a)) END")));
+        auto *program = dump(parse(tokenize("VAR a: Number IF a # 0 THEN print(str(a)) END")));
         assert(program->statements.size() == 1);
         auto *is = dynamic_cast<const IfStatement *>(program->statements[0]);
         auto *ce = dynamic_cast<const ComparisonExpression *>(is->condition);

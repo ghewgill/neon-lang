@@ -81,7 +81,7 @@ extern TypeNone *TYPE_NONE;
 
 class TypeBoolean: public Type {
 public:
-    TypeBoolean(): Type("boolean") {}
+    TypeBoolean(): Type("Boolean") {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -93,7 +93,7 @@ extern TypeBoolean *TYPE_BOOLEAN;
 
 class TypeNumber: public Type {
 public:
-    TypeNumber(): Type("number") {}
+    TypeNumber(): Type("Number") {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -105,7 +105,7 @@ extern TypeNumber *TYPE_NUMBER;
 
 class TypeString: public Type {
 public:
-    TypeString(): Type("string") {}
+    TypeString(): Type("String") {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;

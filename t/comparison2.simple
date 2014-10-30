@@ -1,7 +1,7 @@
 % TODO
-VAR a: number
-VAR b: number
-VAR c: number
+VAR a: Number
+VAR b: Number
+VAR c: Number
 
 a := 2
 b := 3

@@ -1,9 +1,9 @@
-TYPE point := RECORD
-    x: number
-    y: number
+TYPE Point := RECORD
+    x: Number
+    y: Number
 END
-VAR a: point
-VAR b: point
+VAR a: Point
+VAR b: Point
 a.x := 4
 a.y := 5
 %b := a

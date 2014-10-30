@@ -1,4 +1,4 @@
-VAR d: DICTIONARY<string>
+VAR d: Dictionary<String>
 d["hello"] := "world"
 print(d["hello"])
 

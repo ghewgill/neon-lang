@@ -137,8 +137,8 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "AND") t.type = AND;
             else if (t.text == "OR") t.type = OR;
             else if (t.text == "NOT") t.type = NOT;
-            else if (t.text == "ARRAY") t.type = ARRAY;
-            else if (t.text == "DICTIONARY") t.type = DICTIONARY;
+            else if (t.text == "Array") t.type = ARRAY;
+            else if (t.text == "Dictionary") t.type = DICTIONARY;
             else if (t.text == "TYPE") t.type = TYPE;
             else if (t.text == "RECORD") t.type = RECORD;
             else if (t.text == "ENUM") t.type = ENUM;

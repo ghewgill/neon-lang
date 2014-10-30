@@ -1,4 +1,4 @@
-VAR a: number
+VAR a: Number
 a := 2
 
 print(str(a + a + a))

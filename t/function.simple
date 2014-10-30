@@ -1,7 +1,7 @@
-VAR x: number
+VAR x: Number
 x := 5
 
-FUNCTION sq(): number
+FUNCTION sq(): Number
     RETURN x * x
 END
 

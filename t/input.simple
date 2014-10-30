@@ -1,5 +1,5 @@
 % SKIP (requires stdin)
-VAR s: string
+VAR s: String
 
 s := input("Enter your name: ")
 print(s)

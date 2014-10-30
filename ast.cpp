@@ -93,9 +93,9 @@ Program::Program()
   : scope(new Scope(nullptr)),
     statements()
 {
-    scope->names["boolean"] = TYPE_BOOLEAN;
-    scope->names["number"] = TYPE_NUMBER;
-    scope->names["string"] = TYPE_STRING;
+    scope->names["Boolean"] = TYPE_BOOLEAN;
+    scope->names["Number"] = TYPE_NUMBER;
+    scope->names["String"] = TYPE_STRING;
 
     rtl_init(scope);
 }

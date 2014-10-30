@@ -1,5 +1,5 @@
-VAR a: boolean
-VAR s: string
+VAR a: Boolean
+VAR s: String
 a := TRUE
 IF a THEN
     s := "true"

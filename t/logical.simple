@@ -1,5 +1,5 @@
-VAR a: number
-VAR b: number
+VAR a: Number
+VAR b: Number
 
 a := 4
 b := 5

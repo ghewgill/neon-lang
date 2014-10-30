@@ -1,12 +1,12 @@
 % SKIP (unicode in python 2 run_test.py)
-VAR ar: string
-VAR el: string
-VAR en: string
-VAR is: string
-VAR ja: string
-VAR ko: string
-VAR ru: string
-VAR zh: string
+VAR ar: String
+VAR el: String
+VAR en: String
+VAR is: String
+VAR ja: String
+VAR ko: String
+VAR ru: String
+VAR zh: String
 
 ar := "مرحبا العالم"
 el := "Γεια σας, τον κόσμο"

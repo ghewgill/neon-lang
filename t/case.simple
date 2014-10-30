@@ -1,6 +1,6 @@
 % TODO
-VAR a: number
-VAR s: string
+VAR a: Number
+VAR s: String
 a := 0
 WHILE a < 10
     CASE a

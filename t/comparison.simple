@@ -1,6 +1,6 @@
-VAR a: number
-VAR b: number
-VAR c: number
+VAR a: Number
+VAR b: Number
+VAR c: Number
 
 a := 4
 b := 5

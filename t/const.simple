@@ -1,4 +1,4 @@
-CONST a: number := 5
+CONST a: Number := 5
 
 print(str(a))
 

@@ -1,6 +1,6 @@
 % TODO
 
-VAR a: number
+VAR a: Number
 a := 5
 WHILE a > 0 DO
     print(a)

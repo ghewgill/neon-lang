@@ -1,4 +1,4 @@
-VAR a: number
+VAR a: Number
 
 a := 1
 IF a # 0 THEN
