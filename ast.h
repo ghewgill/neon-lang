@@ -1032,17 +1032,18 @@ private:
 
 class ForStatement: public BaseLoopStatement {
 public:
-    ForStatement(int line, unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end) {
+    ForStatement(int line, unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const Expression *step, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end), step(step) {
     }
 
     const VariableReference *var;
     const Expression *start;
     const Expression *end;
+    const Expression *step;
 
     virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
-        return "ForStatement(" + var->text() + " = (" + start->text() + ".." + end->text() + ")";
+        return "ForStatement(" + var->text() + "(" + start->text() + " TO " + end->text() + " STEP " + step->text() + ")";
     }
 private:
     ForStatement(const ForStatement &);

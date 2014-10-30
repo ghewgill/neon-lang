@@ -49,6 +49,7 @@ enum TokenType {
     NOT,
     FOR,
     TO,
+    STEP,
     ARRAY,
     DICTIONARY,
     DOT,

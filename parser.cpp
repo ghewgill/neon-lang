@@ -1373,6 +1373,23 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
     if (not end->type->is_equivalent(TYPE_NUMBER)) {
         error(2115, tokens[i], "numeric expression expected");
     }
+
+    const Expression *step = nullptr;
+    if (tokens[i].type == STEP) {
+        ++i;
+        step = parseExpression(scope);
+        if (step->type != TYPE_NUMBER) {
+            error(2116, tokens[i], "numeric expression expected");
+        }
+        if (not step->is_constant) {
+            error(2117, tokens[i], "numeric expression must be constant");
+        }
+        if (number_is_zero(step->eval_number())) {
+            error(2161, tokens[i], "STEP value cannot be zero");
+        }
+    } else {
+        step = new ConstantNumberExpression(number_from_uint32(1));
+    }
     if (tokens[i].type != DO) {
         error(2118, tokens[i], "'DO' expected");
     }
@@ -1395,7 +1412,7 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
     }
     ++i;
     loops.top().pop_back();
-    return new ForStatement(line, loop_id, var, start, end, statements);
+    return new ForStatement(line, loop_id, var, start, end, step, statements);
 }
 
 const Statement *Parser::parseLoopStatement(Scope *scope, int line)
