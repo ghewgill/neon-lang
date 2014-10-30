@@ -30,7 +30,7 @@ functions = dict()
 
 with open("rtl.cpp") as f:
     for s in f:
-        m = re.match("(\S+)\s+([\w$]+)\((.*?\))$", s)
+        m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
         if m is not None:
             rtype = m.group(1)
             name = m.group(2)
@@ -39,13 +39,14 @@ with open("rtl.cpp") as f:
                 continue
             assert rtype in ["void", "bool", "Number", "std::string"], rtype
             args = []
-            for arg in argstr:
-                for a in arg.split():
-                    if a == "const":
-                        continue
-                    assert a in ["bool", "Number", "std::string"], (arg, a)
-                    break
-                args.append(a)   
+            if argstr[0]:
+                for arg in argstr:
+                    for a in arg.split():
+                        if a == "const":
+                            continue
+                        assert a in ["bool", "Number", "std::string"], (arg, a)
+                        break
+                    args.append(a)
             functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in args]]
 
 thunks = set()
