@@ -22,13 +22,14 @@ private:
     void disasm_PUSHB();
     void disasm_PUSHN();
     void disasm_PUSHS();
-    void disasm_PUSHAG();
-    void disasm_PUSHAL();
+    void disasm_PUSHPG();
+    void disasm_PUSHPL();
     void disasm_LOADB();
     void disasm_LOADN();
     void disasm_LOADS();
     void disasm_LOADA();
     void disasm_LOADD();
+    void disasm_LOADP();
     void disasm_STOREB();
     void disasm_STOREN();
     void disasm_STORES();
@@ -114,18 +115,18 @@ void Disassembler::disasm_PUSHS()
     out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
-void Disassembler::disasm_PUSHAG()
+void Disassembler::disasm_PUSHPG()
 {
     int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "PUSHAG " << addr << "\n";
+    out << "PUSHPG " << addr << "\n";
 }
 
-void Disassembler::disasm_PUSHAL()
+void Disassembler::disasm_PUSHPL()
 {
     int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "PUSHAL " << addr << "\n";
+    out << "PUSHPL " << addr << "\n";
 }
 
 void Disassembler::disasm_LOADB()
@@ -155,6 +156,12 @@ void Disassembler::disasm_LOADA()
 void Disassembler::disasm_LOADD()
 {
     out << "LOADD\n";
+    index++;
+}
+
+void Disassembler::disasm_LOADP()
+{
+    out << "LOADP\n";
     index++;
 }
 
@@ -420,13 +427,14 @@ void Disassembler::disassemble()
             case PUSHB:   disasm_PUSHB(); break;
             case PUSHN:   disasm_PUSHN(); break;
             case PUSHS:   disasm_PUSHS(); break;
-            case PUSHAG:  disasm_PUSHAG(); break;
-            case PUSHAL:  disasm_PUSHAL(); break;
+            case PUSHPG:  disasm_PUSHPG(); break;
+            case PUSHPL:  disasm_PUSHPL(); break;
             case LOADB:   disasm_LOADB(); break;
             case LOADN:   disasm_LOADN(); break;
             case LOADS:   disasm_LOADS(); break;
             case LOADA:   disasm_LOADA(); break;
             case LOADD:   disasm_LOADD(); break;
+            case LOADP:   disasm_LOADP(); break;
             case STOREB:  disasm_STOREB(); break;
             case STOREN:  disasm_STOREN(); break;
             case STORES:  disasm_STORES(); break;

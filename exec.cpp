@@ -38,13 +38,14 @@ private:
     void exec_PUSHB();
     void exec_PUSHN();
     void exec_PUSHS();
-    void exec_PUSHAG();
-    void exec_PUSHAL();
+    void exec_PUSHPG();
+    void exec_PUSHPL();
     void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
     void exec_LOADA();
     void exec_LOADD();
+    void exec_LOADP();
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
@@ -135,7 +136,7 @@ void Executor::exec_PUSHS()
     stack.push(Variant(obj.strtable[val]));
 }
 
-void Executor::exec_PUSHAG()
+void Executor::exec_PUSHPG()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
@@ -145,7 +146,7 @@ void Executor::exec_PUSHAG()
     stack.push(Variant(&globals.at(addr)));
 }
 
-void Executor::exec_PUSHAL()
+void Executor::exec_PUSHPL()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
@@ -185,6 +186,13 @@ void Executor::exec_LOADD()
     ip++;
     Variant *addr = stack.top().address_value; stack.pop();
     stack.push(Variant(addr->dictionary_value));
+}
+
+void Executor::exec_LOADP()
+{
+    ip++;
+    Variant *addr = stack.top().address_value; stack.pop();
+    stack.push(Variant(addr->address_value));
 }
 
 void Executor::exec_STOREB()
@@ -523,13 +531,14 @@ void Executor::exec()
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
-            case PUSHAG:  exec_PUSHAG(); break;
-            case PUSHAL:  exec_PUSHAL(); break;
+            case PUSHPG:  exec_PUSHPG(); break;
+            case PUSHPL:  exec_PUSHPL(); break;
             case LOADB:   exec_LOADB(); break;
             case LOADN:   exec_LOADN(); break;
             case LOADS:   exec_LOADS(); break;
             case LOADA:   exec_LOADA(); break;
             case LOADD:   exec_LOADD(); break;
+            case LOADP:   exec_LOADP(); break;
             case STOREB:  exec_STOREB(); break;
             case STOREN:  exec_STOREN(); break;
             case STORES:  exec_STORES(); break;

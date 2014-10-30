@@ -262,7 +262,7 @@ void GlobalVariable::predeclare(Emitter &emitter)
 
 void GlobalVariable::generate_address(Emitter &emitter) const
 {
-    emitter.emit(PUSHAG, index);
+    emitter.emit(PUSHPG, index);
 }
 
 void LocalVariable::predeclare(Emitter &emitter)
@@ -275,7 +275,7 @@ void LocalVariable::predeclare(Emitter &emitter)
 
 void LocalVariable::generate_address(Emitter &emitter) const
 {
-    emitter.emit(PUSHAL, index);
+    emitter.emit(PUSHPL, index);
 }
 
 void Function::predeclare(Emitter &emitter)

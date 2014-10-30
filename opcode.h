@@ -7,13 +7,14 @@ enum Opcode {
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate
-    PUSHAG,     // push address of global
-    PUSHAL,     // push address of local
+    PUSHPG,     // push pointer to global
+    PUSHPL,     // push pointer to local
     LOADB,      // load boolean
     LOADN,      // load number
     LOADS,      // load string
     LOADA,      // load array
     LOADD,      // load dictionary
+    LOADP,      // load pointer
     STOREB,     // store boolean
     STOREN,     // store number
     STORES,     // store string
