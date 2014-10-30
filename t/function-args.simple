@@ -2,6 +2,12 @@ FUNCTION sq(x: Number): Number
     RETURN x * x
 END
 
-print(str(sq(5)))
+FUNCTION add(x: Number, y: Number): Number
+    RETURN x + y
+END
 
+print(str(sq(5)))
 %= 25
+
+print(str(add(4, 5)))
+%= 9
