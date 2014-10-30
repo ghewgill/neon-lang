@@ -1,0 +1,35 @@
+% TODO
+FUNCTION in(IN a: Number): Nothing
+    print(str(a))
+    a := a + 1
+END
+
+FUNCTION inout(INOUT a: Number): Nothing
+    print(str(a))
+    a := a + 1
+END
+
+FUNCTION out(OUT a: Number): Nothing
+    print(str(a))
+    a := a + 1
+END
+
+VAR a: Number
+
+a := 5
+in(a)
+print(str(a))
+%= 5
+%= 5
+
+a := 5
+inout(a)
+print(str(a))
+%= 5
+%= 6
+
+a := 5
+out(a)
+print(str(a))
+%= 0
+%= 1
