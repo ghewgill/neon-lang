@@ -45,6 +45,8 @@ enum TokenType {
     AND,
     OR,
     NOT,
+    FOR,
+    TO,
     ARRAY,
     DICTIONARY,
     DOT,

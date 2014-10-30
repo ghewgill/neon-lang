@@ -953,6 +953,51 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
     return new CaseStatement(expr, clauses);
 }
 
+static const Statement *parseForStatement(Scope *scope, const std::vector<Token> & tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    const VariableReference *var = parseVariableReference(scope, tokens, i);
+    if (not var->type->is_equivalent(TYPE_NUMBER)) {
+        error(2112, tokens[i], "type mismatch");
+    }
+    if (tokens[i].type != IN) {
+        error(2121, tokens[i], "'IN' expected");
+    }
+    ++i;
+    const Expression *start = parseExpression(scope, tokens, i);
+    if (not start->type->is_equivalent(TYPE_NUMBER)) {
+        error(2113, tokens[i], "numeric expression expected");
+    }
+    if (tokens[i].type != TO) {
+        error(2114, tokens[i], "TO expected");
+    }
+    ++i;
+    const Expression *end = parseExpression(scope, tokens, i);
+    if (not end->type->is_equivalent(TYPE_NUMBER)) {
+        error(2115, tokens[i], "numeric expression expected");
+    }
+    if (tokens[i].type != DO) {
+        error(2118, tokens[i], "'DO' expected");
+    }
+    ++i;
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement(scope, tokens, i);
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(2119, tokens[i], "'END' expected");
+    }
+    ++i;
+    if (tokens[i].type != FOR) {
+        error(2120, tokens[i], "'END FOR' expected");
+    }
+    ++i;
+    return new ForStatement(var, start, end, statements);
+}
+
 static const Statement *parseImport(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     ++i;
@@ -984,6 +1029,8 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
         return parseWhileStatement(scope, tokens, i);
     } else if (tokens[i].type == CASE) {
         return parseCaseStatement(scope, tokens, i);
+    } else if (tokens[i].type == FOR) {
+        return parseForStatement(scope, tokens, i);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope, tokens, i);
         if (tokens[i].type == ASSIGN) {
