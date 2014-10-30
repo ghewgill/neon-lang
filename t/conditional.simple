@@ -1,0 +1,9 @@
+% TODO
+
+VAR a: Number
+VAR b: Number
+
+b := 5
+a := IF b = 5 THEN 1 ELSE 0 END
+print(str(a))
+%= 1
