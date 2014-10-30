@@ -60,6 +60,7 @@ def run(fn):
 
     if todo:
         sys.stderr.write("TODO comment exists, but test succeeded\n")
+        sys.exit(1)
 
     return True
 
