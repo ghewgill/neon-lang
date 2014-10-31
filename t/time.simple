@@ -1,0 +1,11 @@
+IMPORT time
+
+VAR a, b: Number
+
+a := time.now()
+b := time.now()
+%print(str(a))
+%print(str(b))
+print(strb(a < b))
+
+%= TRUE
