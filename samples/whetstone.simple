@@ -122,7 +122,7 @@ FUNCTION main(): Nothing
     VAR continuous: Boolean
 
     loopstart := 1000               % see the note about LOOP below
-    continuous := 0
+    continuous := FALSE
 
 %    II = 1;         /* start at the first arg (temp use of II here) */
 %    while (II < argc) {
@@ -144,14 +144,14 @@ C
 C       Start benchmark timing at this point.
 C
 |%
-        startsec = time.now()
+        startsec := time.now()
 
 %|
 C
 C       The actual benchmark starts here.
 C
 |%
-        T  := .499975
+        T  := 0.499975
         T1 := 0.50025
         T2 := 2.0
 %|
@@ -167,7 +167,7 @@ C
 
         JJ := 1
 
-        WHILE JJ < II DO
+        WHILE JJ <= II DO
             N1  := 0
             N2  := 12 * LOOP
             N3  := 14 * LOOP
@@ -237,7 +237,7 @@ C
 C       Module 4: Conditional jumps
 C
 |%
-            J = 1
+            J := 1
             FOR I := 1 TO N4 DO
                 IF J = 1 THEN
                     J := 2
@@ -378,6 +378,7 @@ C
 C      THIS IS THE END OF THE MAJOR LOOP.
 C
 |%
+            JJ := JJ + 1
         END
 
 %|
@@ -385,7 +386,7 @@ C
 C      Stop benchmark timing at this point.
 C
 |%
-        finisec = time.now()
+        finisec := time.now()
 
 %|
 C----------------------------------------------------------------
@@ -409,6 +410,7 @@ C--------------------------------------------------------------------
             print("Simple Converted Double Precision Whetstones: " + str(KIPS/1000.0) + " MIPS")
         ELSE
             print("Simple Converted Double Precision Whetstones: " + str(KIPS) + " KIPS")
+        END
 
     %END
 
