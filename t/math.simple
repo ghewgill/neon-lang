@@ -3,8 +3,20 @@ IMPORT math
 %print(str(math.pi))
 %%= 3.14
 
+print(str(math.acos(1)))
+%= 0
+
+print(str(math.asin(0)))
+%= 0
+
+print(str(math.atan(0)))
+%= 0
+
 print(str(math.ceil(5.5)))
 %= 6
+
+print(str(math.cos(0)))
+%= 1
 
 print(str(math.exp(0)))
 %= 1
@@ -15,5 +27,11 @@ print(str(math.floor(-5.5)))
 print(str(math.log(1)))
 %= 0
 
+print(str(math.sin(0)))
+%= 0
+
 print(str(math.sqrt(16)))
 %= 4
+
+print(str(math.tan(0)))
+%= 0

@@ -69,6 +69,36 @@ Number number_sqrt(Number x)
     return sqrt(x.x);
 }
 
+Number number_acos(Number x)
+{
+    return acos(x.x);
+}
+
+Number number_asin(Number x)
+{
+    return asin(x.x);
+}
+
+Number number_atan(Number x)
+{
+    return atan(x.x);
+}
+
+Number number_cos(Number x)
+{
+    return cos(x.x);
+}
+
+Number number_sin(Number x)
+{
+    return sin(x.x);
+}
+
+Number number_tan(Number x)
+{
+    return tan(x.x);
+}
+
 bool number_is_zero(Number x)
 {
     return x.x == 0;
@@ -214,6 +244,36 @@ Number number_sqrt(Number x)
     return bid64_sqrt(x.x);
 }
 
+Number number_acos(Number x)
+{
+    return bid64_acos(x.x);
+}
+
+Number number_asin(Number x)
+{
+    return bid64_asin(x.x);
+}
+
+Number number_atan(Number x)
+{
+    return bid64_atan(x.x);
+}
+
+Number number_cos(Number x)
+{
+    return bid64_cos(x.x);
+}
+
+Number number_sin(Number x)
+{
+    return bid64_sin(x.x);
+}
+
+Number number_tan(Number x)
+{
+    return bid64_tan(x.x);
+}
+
 bool number_is_zero(Number x)
 {
     return bid64_isZero(x.x) != 0;
@@ -287,6 +347,11 @@ std::string number_to_string(Number x)
                 sbuf = sbuf.substr(0, p-sbuf.data());
             }
         }
+    }
+
+    // TODO: This hack converts 0Exxxx to just 0.
+    if (sbuf.substr(0, 2) == "0E") {
+        sbuf = "0";
     }
 
     return sbuf;

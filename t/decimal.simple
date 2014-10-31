@@ -8,7 +8,7 @@ print(str(3.3e-33))
 %= 33E-34
 
 print(str(0e33))
-%= 0E+33
+%= 0
 
 print(str(1.e33))
 %= 1E+33

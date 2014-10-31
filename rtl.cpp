@@ -94,9 +94,29 @@ std::string substring(const std::string &s, Number offset, Number length)
     return s.substr(number_to_uint32(offset), number_to_uint32(length));
 }
 
+Number math$acos(Number x)
+{
+    return number_acos(x);
+}
+
+Number math$asin(Number x)
+{
+    return number_asin(x);
+}
+
+Number math$atan(Number x)
+{
+    return number_atan(x);
+}
+
 Number math$ceil(Number x)
 {
     return number_ceil(x);
+}
+
+Number math$cos(Number x)
+{
+    return number_cos(x);
 }
 
 Number math$exp(Number x)
@@ -114,9 +134,19 @@ Number math$log(Number x)
     return number_log(x);
 }
 
+Number math$sin(Number x)
+{
+    return number_sin(x);
+}
+
 Number math$sqrt(Number x)
 {
     return number_sqrt(x);
+}
+
+Number math$tan(Number x)
+{
+    return number_tan(x);
 }
 
 } // namespace rtl
