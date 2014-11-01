@@ -1,5 +1,3 @@
-% TODO
-
 VAR a: Nothing
 
-%! cannot declare variable with type 'Nothing'
+%! 'Nothing' type is not allowed here

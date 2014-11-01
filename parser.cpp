@@ -6,7 +6,7 @@
 
 static Scope *g_GlobalScope; // TODO: sort of a hack, all this should probably be in a class
 
-static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
+static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i, bool allow_nothing = false);
 static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 
@@ -122,7 +122,7 @@ static const Type *parseEnumType(Scope *scope, const std::vector<Token> &tokens,
     return new TypeEnum(names);
 }
 
-static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i, bool allow_nothing)
 {
     if (tokens[i].type == ARRAY) {
         return parseArrayType(scope, tokens, i);
@@ -146,6 +146,9 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
     const Type *type = dynamic_cast<const Type *>(name);
     if (type == nullptr) {
         error(tokens[i], "name is not a type");
+    }
+    if (not allow_nothing && type == TYPE_NOTHING) {
+        error(tokens[i], "'Nothing' type is not allowed here");
     }
     i++;
     return type;
@@ -718,7 +721,7 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         error(tokens[i], "':' expected");
     }
     ++i;
-    const Type *returntype = parseType(newscope, tokens, i);
+    const Type *returntype = parseType(newscope, tokens, i, true);
     Function *function = new Function(name, returntype, newscope, args);
     while (tokens[i].type != END) {
         const Statement *s = parseStatement(newscope, tokens, i);
