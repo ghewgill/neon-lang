@@ -59,6 +59,7 @@ std::string Token::tostring() const
         case IN:          s << "IN"; break;
         case OUT:         s << "OUT"; break;
         case INOUT:       s << "INOUT"; break;
+        case ELSIF:       s << "ELSIF"; break;
     }
     s << ">";
     return s.str();
@@ -150,6 +151,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "IN") t.type = IN;
             else if (t.text == "OUT") t.type = OUT;
             else if (t.text == "INOUT") t.type = INOUT;
+            else if (t.text == "ELSIF") t.type = ELSIF;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

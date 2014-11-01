@@ -796,16 +796,15 @@ public:
 
 class IfStatement: public Statement {
 public:
-    IfStatement(const Expression *condition, const std::vector<const Statement *> &then_statements, const std::vector<const Statement *> &else_statements): condition(condition), then_statements(then_statements), else_statements(else_statements) {}
+    IfStatement(const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): condition_statements(condition_statements), else_statements(else_statements) {}
 
-    const Expression *condition;
-    const std::vector<const Statement *> then_statements;
+    const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     const std::vector<const Statement *> else_statements;
 
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
-        return "IfStatement(" + condition->text() + ")";
+        return "IfStatement(" + condition_statements[0].first->text() + ")";
     }
 private:
     IfStatement(const IfStatement &);

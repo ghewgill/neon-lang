@@ -597,15 +597,19 @@ void ExpressionStatement::generate(Emitter &emitter) const
 
 void IfStatement::generate(Emitter &emitter) const
 {
-    condition->generate(emitter);
-    auto else_label = emitter.create_label();
     auto end_label = emitter.create_label();
-    emitter.emit_jump(JF, else_label);
-    for (auto stmt: then_statements) {
-        stmt->generate(emitter);
+    for (auto cs: condition_statements) {
+        const Expression *condition = cs.first;
+        const std::vector<const Statement *> &statements = cs.second;
+        condition->generate(emitter);
+        auto else_label = emitter.create_label();
+        emitter.emit_jump(JF, else_label);
+        for (auto stmt: statements) {
+            stmt->generate(emitter);
+        }
+        emitter.emit_jump(JUMP, end_label);
+        emitter.jump_target(else_label);
     }
-    emitter.emit_jump(JUMP, end_label);
-    emitter.jump_target(else_label);
     for (auto stmt: else_statements) {
         stmt->generate(emitter);
     }

@@ -77,15 +77,16 @@ int main()
         auto *program = dump(parse(tokenize("VAR a: Number IF a # 0 THEN print(str(a)) END")));
         assert(program->statements.size() == 1);
         auto *is = dynamic_cast<const IfStatement *>(program->statements[0]);
-        auto *ce = dynamic_cast<const ComparisonExpression *>(is->condition);
+        assert(is->condition_statements.size() == 1);
+        auto *ce = dynamic_cast<const ComparisonExpression *>(is->condition_statements[0].first);
         assert(ce->comp == ComparisonExpression::NE);
         auto *ve = dynamic_cast<const VariableExpression *>(ce->left);
         auto *svr = dynamic_cast<const ScalarVariableReference *>(ve->var);
         assert(svr->var->name == "a");
         auto *cne = dynamic_cast<const ConstantNumberExpression *>(ce->right);
         assert(number_is_zero(cne->value));
-        assert(is->then_statements.size() == 1);
-        auto *es = dynamic_cast<const ExpressionStatement *>(is->then_statements[0]);
+        assert(is->condition_statements[0].second.size() == 1);
+        auto *es = dynamic_cast<const ExpressionStatement *>(is->condition_statements[0].second[0]);
         assert(es != NULL);
     }
 }

@@ -708,24 +708,28 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
 
 static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    ++i;
-    auto j = i;
-    const Expression *cond = parseExpression(scope, tokens, i);
-    if (cond->type != TYPE_BOOLEAN) {
-        error(tokens[j], "boolean value expected");
-    }
-    if (tokens[i].type != THEN) {
-        error(tokens[i], "THEN expected");
-    }
-    ++i;
-    std::vector<const Statement *> then_statements;
+    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     std::vector<const Statement *> else_statements;
-    while (tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(scope, tokens, i);
-        if (s != nullptr) {
-            then_statements.push_back(s);
+    do {
+        ++i;
+        auto j = i;
+        const Expression *cond = parseExpression(scope, tokens, i);
+        if (cond->type != TYPE_BOOLEAN) {
+            error(tokens[j], "boolean value expected");
         }
-    }
+        if (tokens[i].type != THEN) {
+            error(tokens[i], "THEN expected");
+        }
+        ++i;
+        std::vector<const Statement *> statements;
+        while (tokens[i].type != ELSIF && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+            const Statement *s = parseStatement(scope, tokens, i);
+            if (s != nullptr) {
+                statements.push_back(s);
+            }
+        }
+        condition_statements.push_back(std::make_pair(cond, statements));
+    } while (tokens[i].type == ELSIF);
     if (tokens[i].type == ELSE) {
         ++i;
         while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
@@ -739,7 +743,7 @@ static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> 
         error(tokens[i], "END expected");
     }
     ++i;
-    return new IfStatement(cond, then_statements, else_statements);
+    return new IfStatement(condition_statements, else_statements);
 }
 
 static const Statement *parseReturnStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)

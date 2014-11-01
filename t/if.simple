@@ -14,7 +14,6 @@ ELSE
 END
 %= zero
 
-% TODO
 a := 1
 IF a = 0 THEN
     print("zero")
