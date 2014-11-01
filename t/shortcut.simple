@@ -1,12 +1,11 @@
-% TODO
 FUNCTION a(): Boolean
     print("a")
-    return FALSE
+    RETURN FALSE
 END
 
 FUNCTION b(): Boolean
     print("b")
-    return TRUE
+    RETURN TRUE
 END
 
 IF a() AND b() THEN
@@ -14,3 +13,10 @@ IF a() AND b() THEN
 END
 
 %= a
+
+IF b() OR a() THEN
+    print("hi")
+END
+
+%= b
+%= hi

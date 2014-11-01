@@ -70,6 +70,9 @@ private:
     void disasm_CALLF();
     void disasm_JUMP();
     void disasm_JF();
+    void disasm_JT();
+    void disasm_DUP();
+    void disasm_DROP();
     void disasm_RET();
 private:
     Disassembler(const Disassembler &);
@@ -410,6 +413,25 @@ void Disassembler::disasm_JF()
     out << "JF " << addr << "\n";
 }
 
+void Disassembler::disasm_JT()
+{
+    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "JT " << addr << "\n";
+}
+
+void Disassembler::disasm_DUP()
+{
+    out << "DUP\n";
+    index++;
+}
+
+void Disassembler::disasm_DROP()
+{
+    out << "DROP\n";
+    index++;
+}
+
 void Disassembler::disasm_RET()
 {
     out << "RET\n";
@@ -482,6 +504,9 @@ void Disassembler::disassemble()
             case CALLF:   disasm_CALLF(); break;
             case JUMP:    disasm_JUMP(); break;
             case JF:      disasm_JF(); break;
+            case JT:      disasm_JT(); break;
+            case DUP:     disasm_DUP(); break;
+            case DROP:    disasm_DROP(); break;
             case RET:     disasm_RET(); break;
         }
         if (index == last_index) {

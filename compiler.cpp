@@ -409,15 +409,23 @@ void ConditionalExpression::generate(Emitter &emitter) const
 void DisjunctionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
+    emitter.emit(DUP);
+    auto true_label = emitter.create_label();
+    emitter.emit_jump(JT, true_label);
+    emitter.emit(DROP);
     right->generate(emitter);
-    emitter.emit(ORB);
+    emitter.jump_target(true_label);
 }
 
 void ConjunctionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
+    emitter.emit(DUP);
+    auto false_label = emitter.create_label();
+    emitter.emit_jump(JF, false_label);
+    emitter.emit(DROP);
     right->generate(emitter);
-    emitter.emit(ANDB);
+    emitter.jump_target(false_label);
 }
 
 void BooleanComparisonExpression::generate(Emitter &emitter) const

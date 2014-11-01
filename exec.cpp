@@ -86,6 +86,9 @@ private:
     void exec_CALLF();
     void exec_JUMP();
     void exec_JF();
+    void exec_JT();
+    void exec_DUP();
+    void exec_DROP();
     void exec_RET();
 private:
     Executor(const Executor &);
@@ -522,6 +525,28 @@ void Executor::exec_JF()
     }
 }
 
+void Executor::exec_JT()
+{
+    int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    bool a = stack.top().boolean_value; stack.pop();
+    if (a) {
+        ip = target;
+    }
+}
+
+void Executor::exec_DUP()
+{
+    ip++;
+    stack.push(stack.top());
+}
+
+void Executor::exec_DROP()
+{
+    ip++;
+    stack.pop();
+}
+
 void Executor::exec_RET()
 {
     ip = callstack.top();
@@ -588,6 +613,9 @@ void Executor::exec()
             case CALLF:   exec_CALLF(); break;
             case JUMP:    exec_JUMP(); break;
             case JF:      exec_JF(); break;
+            case JT:      exec_JT(); break;
+            case DUP:     exec_DUP(); break;
+            case DROP:    exec_DROP(); break;
             case RET:     exec_RET(); break;
         }
         if (ip == last_ip) {

@@ -55,6 +55,9 @@ enum Opcode {
     CALLF,      // call function
     JUMP,       // unconditional jump
     JF,         // jump if false
+    JT,         // jump if true
+    DUP,        // duplicate
+    DROP,       // drop
     RET,        // return
 };
 
