@@ -867,6 +867,8 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
         } else if (tokens[i].type == LPAREN) {
             const FunctionCall *fc = parseFunctionCall(ref, scope, tokens, i);
             return new ExpressionStatement(fc);
+        } else if (tokens[i].type == EQUAL) {
+            error(tokens[i], "':=' expected");
         } else {
             error(tokens[i], "Unexpected");
         }
