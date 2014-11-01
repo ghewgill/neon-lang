@@ -80,13 +80,13 @@ const Name *Scope::lookupName(const std::string &name) const
     return nullptr;
 }
 
-const Type *Function::makeFunctionType(const Type *returntype, const std::vector<Variable *> &args)
+const Type *Function::makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params)
 {
-    std::vector<const Type *> argtypes;
-    for (auto a: args) {
-        argtypes.push_back(a->type);
+    std::vector<const ParameterType *> paramtypes;
+    for (auto p: params) {
+        paramtypes.push_back(new ParameterType(p->mode, p->type));
     }
-    return new TypeFunction(returntype, argtypes);
+    return new TypeFunction(returntype, paramtypes);
 }
 
 Program::Program()

@@ -20,6 +20,7 @@ enum Opcode {
     STORES,     // store string
     STOREA,     // store array
     STORED,     // store dictionary
+    STOREP,     // store pointer
     NEGN,       // negate number
     ADDN,       // add number
     SUBN,       // subtract number

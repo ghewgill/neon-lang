@@ -26,6 +26,8 @@ private:
 class Name;
 class Type;
 class FunctionCall;
+class FunctionParameter;
+class VariableReference;
 
 class Scope {
 public:
@@ -115,15 +117,27 @@ public:
 
 extern TypeString *TYPE_STRING;
 
+class ParameterType {
+public:
+    enum Mode {
+        IN,
+        INOUT,
+        OUT
+    };
+    ParameterType(Mode mode, const Type *type): mode(mode), type(type) {}
+    const Mode mode;
+    const Type *type;
+};
+
 class TypeFunction: public Type {
 public:
-    TypeFunction(const Type *returntype, const std::vector<const Type *> &args): Type("function"), returntype(returntype), args(args) {}
+    TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type("function"), returntype(returntype), params(params) {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
 
     const Type *returntype;
-    const std::vector<const Type *> args;
+    const std::vector<const ParameterType *> params;
 
     virtual std::string text() const { return "TypeFunction(...)"; }
 private:
@@ -236,10 +250,24 @@ private:
     LocalVariable &operator=(const LocalVariable &);
 };
 
+class FunctionParameter: public LocalVariable {
+public:
+    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope), mode(mode) {}
+    ParameterType::Mode mode;
+
+    virtual void generate_address(Emitter &emitter) const;
+
+    virtual std::string text() const { return "FunctionParameter(" + name + ", " + type->text() + ")"; }
+private:
+    FunctionParameter(const FunctionParameter &);
+    FunctionParameter &operator=(const FunctionParameter &);
+};
+
 class Expression: public AstNode {
 public:
     Expression(const Type *type): type(type) {}
 
+    virtual const VariableReference *get_reference() const { return nullptr; }
     virtual void generate(Emitter &emitter) const = 0;
 
     const Type *type;
@@ -677,6 +705,7 @@ public:
 
     const VariableReference *var;
 
+    virtual const VariableReference *get_reference() const { return var; }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -801,18 +830,18 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<Variable *> &args): Variable(name, makeFunctionType(returntype, args)), scope(scope), args(args), entry_label(-1), statements() {
-        for (auto v: args) {
+    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(-1), statements() {
+        for (auto v: params) {
             scope->names[v->name] = v;
         }
     }
     Scope *scope;
-    const std::vector<Variable *> args;
+    const std::vector<FunctionParameter *> params;
     int entry_label;
 
     std::vector<const Statement *> statements;
 
-    static const Type *makeFunctionType(const Type *returntype, const std::vector<Variable *> &args);
+    static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
 
     virtual void predeclare(Emitter &emitter);
     virtual void postdeclare(Emitter &emitter);

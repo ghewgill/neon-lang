@@ -167,14 +167,14 @@ Number time$now()
 void rtl_init(Scope *scope)
 {
     for (auto f: BuiltinFunctions) {
-        std::vector<const Type *> args;
-        for (auto a: f.args) {
-            if (a == nullptr) {
+        std::vector<const ParameterType *> params;
+        for (auto p: f.params) {
+            if (p == nullptr) {
                 break;
             }
-            args.push_back(a);
+            params.push_back(new ParameterType(ParameterType::IN, p));
         }
-        scope->names[f.name] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, args));
+        scope->names[f.name] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, params));
         Functions[f.name] = std::make_pair(f.thunk, f.func);
     }
 }
@@ -186,14 +186,14 @@ void rtl_import(Scope *scope, const std::string &name)
     for (auto f: BuiltinFunctions) {
         std::string qualified_name(f.name);
         if (qualified_name.substr(0, prefix.length()) == prefix) {
-            std::vector<const Type *> args;
-            for (auto a: f.args) {
-                if (a == nullptr) {
+            std::vector<const ParameterType *> params;
+            for (auto p: f.params) {
+                if (p == nullptr) {
                     break;
                 }
-                args.push_back(a);
+                params.push_back(new ParameterType(ParameterType::IN, p));
             }
-            module->scope->names[qualified_name.substr(prefix.length())] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, args));
+            module->scope->names[qualified_name.substr(prefix.length())] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, params));
         }
     }
     scope->names[name] = module;

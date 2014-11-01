@@ -34,36 +34,36 @@ with open("rtl.cpp") as f:
         if m is not None:
             rtype = m.group(1)
             name = m.group(2)
-            argstr = m.group(3).split(",")
+            paramstr = m.group(3).split(",")
             if name.startswith("rtl_"):
                 continue
             assert rtype in ["void", "bool", "Number", "std::string"], rtype
-            args = []
-            if argstr[0]:
-                for arg in argstr:
+            params = []
+            if paramstr[0]:
+                for arg in paramstr:
                     for a in arg.split():
                         if a == "const":
                             continue
                         assert a in ["bool", "Number", "std::string"], (arg, a)
                         break
-                    args.append(a)
-            functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in args]]
+                    params.append(a)
+            functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in params]]
 
 thunks = set()
 
-for name, rtype, args in functions.values():
-    thunks.add((rtype, tuple(args)))
+for name, rtype, params in functions.values():
+    thunks.add((rtype, tuple(params)))
 
 with open("thunks.inc", "w") as inc:
-    for rtype, args in thunks:
-        print >>inc, "static void thunk_{}_{}(std::stack<Variant> &stack, void *func)".format(rtype, "_".join(args))
+    for rtype, params in thunks:
+        print >>inc, "static void thunk_{}_{}(std::stack<Variant> &stack, void *func)".format(rtype, "_".join(params))
         print >>inc, "{"
-        for i, a in reversed(list(enumerate(args))):
+        for i, a in reversed(list(enumerate(params))):
             print >>inc, "    {} a{} = stack.top().{}; stack.pop();".format(CppFromAst[a], i, CellField[a]);
         if rtype != "TYPE_NOTHING":
-            print >>inc, "    stack.push(Variant(reinterpret_cast<{} (*)({})>(func)({})));".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in args), ",".join("a{}".format(x) for x in range(len(args))))
+            print >>inc, "    stack.push(Variant(reinterpret_cast<{} (*)({})>(func)({})));".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
         else:
-            print >>inc, "    reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in args), ",".join("a{}".format(x) for x in range(len(args))))
+            print >>inc, "    reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
         print >>inc, "}"
         print >>inc, ""
 
@@ -71,10 +71,10 @@ with open("functions.inc", "w") as inc:
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    const Type *returntype;"
-    print >>inc, "    const Type *args[10];"
+    print >>inc, "    const Type *params[10];"
     print >>inc, "    Thunk thunk;"
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
-    for name, rtype, args in functions.values():
-        print >>inc, "    {{\"{}\", {}, {{{}}}, {}, reinterpret_cast<void *>(rtl::{})}},".format(name, rtype, ",".join(args), "thunk_{}_{}".format(rtype, "_".join(args)), name)
+    for name, rtype, params in functions.values():
+        print >>inc, "    {{\"{}\", {}, {{{}}}, {}, reinterpret_cast<void *>(rtl::{})}},".format(name, rtype, ",".join(params), "thunk_{}_{}".format(rtype, "_".join(params)), name)
     print >>inc, "};";

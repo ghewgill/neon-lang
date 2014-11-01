@@ -51,6 +51,7 @@ private:
     void exec_STORES();
     void exec_STOREA();
     void exec_STORED();
+    void exec_STOREP();
     void exec_NEGN();
     void exec_ADDN();
     void exec_SUBN();
@@ -232,6 +233,14 @@ void Executor::exec_STORED()
     ip++;
     Variant *addr = stack.top().address_value; stack.pop();
     std::map<std::string, Variant> val = stack.top().dictionary_value; stack.pop();
+    *addr = Variant(val);
+}
+
+void Executor::exec_STOREP()
+{
+    ip++;
+    Variant *addr = stack.top().address_value; stack.pop();
+    Variant *val = stack.top().address_value; stack.pop();
     *addr = Variant(val);
 }
 
@@ -544,6 +553,7 @@ void Executor::exec()
             case STORES:  exec_STORES(); break;
             case STOREA:  exec_STOREA(); break;
             case STORED:  exec_STORED(); break;
+            case STOREP:  exec_STOREP(); break;
             case NEGN:    exec_NEGN(); break;
             case ADDN:    exec_ADDN(); break;
             case SUBN:    exec_SUBN(); break;

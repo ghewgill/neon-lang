@@ -56,6 +56,9 @@ std::string Token::tostring() const
         case ENUM:        s << "ENUM"; break;
         case CONST:       s << "CONST"; break;
         case IMPORT:      s << "IMPORT"; break;
+        case IN:          s << "IN"; break;
+        case OUT:         s << "OUT"; break;
+        case INOUT:       s << "INOUT"; break;
     }
     s << ">";
     return s.str();
@@ -144,6 +147,9 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "ENUM") t.type = ENUM;
             else if (t.text == "CONST") t.type = CONST;
             else if (t.text == "IMPORT") t.type = IMPORT;
+            else if (t.text == "IN") t.type = IN;
+            else if (t.text == "OUT") t.type = OUT;
+            else if (t.text == "INOUT") t.type = INOUT;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

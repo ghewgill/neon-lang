@@ -278,6 +278,20 @@ void LocalVariable::generate_address(Emitter &emitter) const
     emitter.emit(PUSHPL, index);
 }
 
+void FunctionParameter::generate_address(Emitter &emitter) const
+{
+    switch (mode) {
+        case ParameterType::IN:
+        case ParameterType::OUT:
+            emitter.emit(PUSHPL, index);
+            break;
+        case ParameterType::INOUT:
+            emitter.emit(PUSHPL, index);
+            emitter.emit(LOADP);
+            break;
+    }
+}
+
 void Function::predeclare(Emitter &emitter)
 {
     if (referenced) {
@@ -291,12 +305,33 @@ void Function::postdeclare(Emitter &emitter)
         scope->predeclare(emitter);
         emitter.jump_target(emitter.function_label(entry_label));
         emitter.emit(ENTER, static_cast<int>(scope->names.size()));
-        for (auto a = args.rbegin(); a != args.rend(); ++a) {
-            (*a)->generate_address(emitter);
-            (*a)->generate_store(emitter);
+        for (auto p = params.rbegin(); p != params.rend(); ++p) {
+            switch ((*p)->mode) {
+                case ParameterType::IN:
+                    (*p)->generate_address(emitter);
+                    (*p)->generate_store(emitter);
+                    break;
+                case ParameterType::INOUT:
+                    emitter.emit(PUSHPL, (*p)->index);
+                    emitter.emit(STOREP);
+                    break;
+                case ParameterType::OUT:
+                    break;
+            }
         }
         for (auto stmt: statements) {
             stmt->generate(emitter);
+        }
+        for (auto p = params.rbegin(); p != params.rend(); ++p) {
+            switch ((*p)->mode) {
+                case ParameterType::IN:
+                case ParameterType::INOUT:
+                    break;
+                case ParameterType::OUT:
+                    (*p)->generate_address(emitter);
+                    (*p)->generate_load(emitter);
+                    break;
+            }
         }
         emitter.emit(LEAVE);
         emitter.emit(RET);
@@ -513,10 +548,40 @@ void VariableExpression::generate(Emitter &emitter) const
 
 void FunctionCall::generate(Emitter &emitter) const
 {
-    for (auto arg: args) {
-        arg->generate(emitter);
+    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
+    // TODO: This is a ridiculous hack because the way we compile
+    // StringReference::store is not really legal. This assertion
+    // holds true for any other function call.
+    if (func->text() != "ScalarVariableReference(PredefinedFunction(splice, TypeFunction(...)))") {
+        assert(args.size() == ftype->params.size());
+    }
+    for (size_t i = 0; i < args.size(); i++) {
+        auto param = ftype->params[i];
+        auto arg = args[i];
+        switch (param->mode) {
+            case ParameterType::IN:
+                arg->generate(emitter);
+                break;
+            case ParameterType::INOUT:
+                arg->get_reference()->generate_address(emitter);
+                break;
+            case ParameterType::OUT:
+                break;
+        }
     }
     func->generate_call(emitter);
+    for (size_t i = 0; i < args.size(); i++) {
+        auto param = ftype->params[i];
+        auto arg = args[i];
+        switch (param->mode) {
+            case ParameterType::IN:
+            case ParameterType::INOUT:
+                break;
+            case ParameterType::OUT:
+                arg->get_reference()->generate_store(emitter);
+                break;
+        }
+    }
 }
 
 void AssignmentStatement::generate(Emitter &emitter) const

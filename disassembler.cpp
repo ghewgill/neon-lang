@@ -35,6 +35,7 @@ private:
     void disasm_STORES();
     void disasm_STOREA();
     void disasm_STORED();
+    void disasm_STOREP();
     void disasm_NEGN();
     void disasm_ADDN();
     void disasm_SUBN();
@@ -192,6 +193,12 @@ void Disassembler::disasm_STOREA()
 void Disassembler::disasm_STORED()
 {
     out << "STORED\n";
+    index++;
+}
+
+void Disassembler::disasm_STOREP()
+{
+    out << "STOREP\n";
     index++;
 }
 
@@ -440,6 +447,7 @@ void Disassembler::disassemble()
             case STORES:  disasm_STORES(); break;
             case STOREA:  disasm_STOREA(); break;
             case STORED:  disasm_STORED(); break;
+            case STOREP:  disasm_STOREP(); break;
             case NEGN:    disasm_NEGN(); break;
             case ADDN:    disasm_ADDN(); break;
             case SUBN:    disasm_SUBN(); break;

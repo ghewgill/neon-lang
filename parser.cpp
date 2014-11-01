@@ -200,16 +200,22 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
         error(tokens[i-1], "not a function");
     }
     ++i;
-    std::vector<const Type *>::size_type a = 0;
+    std::vector<const Type *>::size_type p = 0;
     std::vector<const Expression *> args;
     if (tokens[i].type != RPAREN) {
         for (;;) {
             const Expression *e = parseExpression(scope, tokens, i);
-            if (e->type != ftype->args[a]) {
+            if (ftype->params[p]->mode != ParameterType::IN) {
+                const VariableReference *ref = e->get_reference();
+                if (ref == nullptr) {
+                    error(tokens[i], "function call argument must be reference: " + e->text());
+                }
+            }
+            if (e->type != ftype->params[p]->type) {
                 error(tokens[i], "type mismatch");
             }
             args.push_back(e);
-            ++a;
+            ++p;
             if (tokens[i].type != COMMA) {
                 break;
             }
@@ -219,7 +225,7 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
             error(tokens[i], "')' or ',' expected");
         }
     }
-    if (a < ftype->args.size()) {
+    if (p < ftype->params.size()) {
         error(tokens[i], "not enough arguments");
     }
     ++i;
@@ -516,7 +522,9 @@ static const Expression *parseExpression(Scope *scope, const std::vector<Token> 
     return parseDisjunction(scope, tokens, i);
 }
 
-static const std::vector<Variable *> parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
+
+static const VariableInfo parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     std::vector<std::string> names;
     for (;;) {
@@ -539,18 +547,7 @@ static const std::vector<Variable *> parseVariableDeclaration(Scope *scope, cons
     }
     ++i;
     const Type *t = parseType(scope, tokens, i);
-    std::vector<Variable *> r;
-    for (auto name: names) {
-        Variable *v;
-        if (scope == g_GlobalScope) {
-            v = new GlobalVariable(name, t);
-        } else {
-            v = new LocalVariable(name, t, scope);
-        }
-        scope->names[name] = v;
-        r.push_back(v);
-    }
-    return r;
+    return make_pair(names, t);
 }
 
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
@@ -665,12 +662,23 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         error(tokens[i], "'(' expected");
     }
     ++i;
-    std::vector<Variable *> args;
+    std::vector<FunctionParameter *> args;
     Scope *newscope = new Scope(scope);
     if (tokens[i].type != RPAREN) {
         for (;;) {
-            std::vector<Variable *> vars = parseVariableDeclaration(newscope, tokens, i);
-            std::copy(vars.begin(), vars.end(), std::back_inserter(args));
+            ParameterType::Mode mode = ParameterType::IN;
+            switch (tokens[i].type) {
+                case IN:    mode = ParameterType::IN;       i++; break;
+                case INOUT: mode = ParameterType::INOUT;    i++; break;
+                case OUT:   mode = ParameterType::OUT;      i++; break;
+                default:
+                    break;
+            }
+            const VariableInfo vars = parseVariableDeclaration(newscope, tokens, i);
+            for (auto name: vars.first) {
+                FunctionParameter *fp = new FunctionParameter(name, vars.second, mode, newscope);
+                args.push_back(fp);
+            }
             if (tokens[i].type != COMMA) {
                 break;
             }
@@ -745,7 +753,16 @@ static const Statement *parseReturnStatement(Scope *scope, const std::vector<Tok
 static const Statement *parseVarStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     ++i;
-    parseVariableDeclaration(scope, tokens, i);
+    const VariableInfo vars = parseVariableDeclaration(scope, tokens, i);
+    for (auto name: vars.first) {
+        Variable *v;
+        if (scope == g_GlobalScope) {
+            v = new GlobalVariable(name, vars.second);
+        } else {
+            v = new LocalVariable(name, vars.second, scope);
+        }
+        scope->names[name] = v;
+    }
     return nullptr;
 }
 
