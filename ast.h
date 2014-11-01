@@ -368,6 +368,26 @@ private:
     LogicalNotExpression &operator=(const LogicalNotExpression &);
 };
 
+class ConditionalExpression: public Expression {
+public:
+    ConditionalExpression(const Expression *condition, const Expression *left, const Expression *right): Expression(left->type), condition(condition), left(left), right(right) {
+        assert(left->type == right->type);
+    }
+
+    const Expression *condition;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ConditionalExpression(" + condition->text() + "," + left->text() + "," + right->text() + ")";
+    }
+private:
+    ConditionalExpression(const ConditionalExpression &);
+    ConditionalExpression &operator=(const ConditionalExpression &);
+};
+
 class DisjunctionExpression: public Expression {
 public:
     DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {

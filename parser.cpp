@@ -241,6 +241,7 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
  *  < = >    comparison                         parseComparison
  *  and      conjunction                        parseConjunction
  *  or       disjunction                        parseDisjunction
+ *  if       conditional                        parseConditional
  */
 
 static const Expression *parseAtom(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
@@ -517,9 +518,33 @@ static const Expression *parseDisjunction(Scope *scope, const std::vector<Token>
     }
 }
 
+static const Expression *parseConditional(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    if (tokens[i].type == IF) {
+        ++i;
+        const Expression *cond = parseExpression(scope, tokens, i);
+        if (tokens[i].type != THEN) {
+            error(tokens[i], "'THEN' expected");
+        }
+        ++i;
+        const Expression *left = parseExpression(scope, tokens, i);
+        if (tokens[i].type != ELSE) {
+            error(tokens[i], "'ELSE' expected");
+        }
+        ++i;
+        const Expression *right = parseExpression(scope, tokens, i);
+        if (left->type != right->type) {
+            error(tokens[i], "type of THEN and ELSE must match");
+        }
+        return new ConditionalExpression(cond, left, right);
+    } else {
+        return parseDisjunction(scope, tokens, i);
+    }
+}
+
 static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
-    return parseDisjunction(scope, tokens, i);
+    return parseConditional(scope, tokens, i);
 }
 
 typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;

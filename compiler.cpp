@@ -393,6 +393,19 @@ void LogicalNotExpression::generate(Emitter &emitter) const
     emitter.emit(NOTB);
 }
 
+void ConditionalExpression::generate(Emitter &emitter) const
+{
+    condition->generate(emitter);
+    auto else_label = emitter.create_label();
+    emitter.emit_jump(JF, else_label);
+    left->generate(emitter);
+    auto end_label = emitter.create_label();
+    emitter.emit_jump(JUMP, end_label);
+    emitter.jump_target(else_label);
+    right->generate(emitter);
+    emitter.jump_target(end_label);
+}
+
 void DisjunctionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
