@@ -2,7 +2,7 @@
 
 VAR a: Number
 
-FUNCTION foo()
+FUNCTION foo(): Nothing
     VAR a: Number
 END
 

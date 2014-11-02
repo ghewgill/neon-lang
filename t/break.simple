@@ -3,7 +3,7 @@
 VAR a: Number
 a := 5
 WHILE a > 0 DO
-    print(a)
+    print(str(a))
     IF a = 3 THEN
         BREAK
     END

@@ -12,5 +12,5 @@ VAR a: colour
 
 a := colour.red
 % TODO
-print(str(a))
+print(a.to_string())
 %= red

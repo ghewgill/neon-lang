@@ -2,7 +2,7 @@
 VAR a: Number
 VAR s: String
 a := 0
-WHILE a < 10
+WHILE a < 10 DO
     CASE a
         WHEN < 2
             print(str(a) + " less than two")
