@@ -61,7 +61,7 @@ enum TokenType {
 
 class Token {
 public:
-    Token(): source(), line(0), column(0), type(), text(), value() {}
+    Token(): source(), line(0), column(0), type(NONE), text(), value() {}
     std::string source;
     int line;
     int column;

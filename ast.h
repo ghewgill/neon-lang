@@ -226,7 +226,7 @@ public:
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const std::string &name, const Type *type): Variable(name, type), index() {}
+    GlobalVariable(const std::string &name, const Type *type): Variable(name, type), index(-1) {}
     int index;
 
     virtual void predeclare(Emitter &emitter);
@@ -237,7 +237,7 @@ public:
 
 class LocalVariable: public Variable {
 public:
-    LocalVariable(const std::string &name, const Type *type, Scope *scope): Variable(name, type), scope(scope), index() {}
+    LocalVariable(const std::string &name, const Type *type, Scope *scope): Variable(name, type), scope(scope), index(-1) {}
     Scope *scope;
     int index;
 
