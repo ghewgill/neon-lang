@@ -60,6 +60,9 @@ std::string Token::tostring() const
         case OUT:         s << "OUT"; break;
         case INOUT:       s << "INOUT"; break;
         case ELSIF:       s << "ELSIF"; break;
+        case CASE:        s << "CASE"; break;
+        case WHEN:        s << "WHEN"; break;
+        case DOTDOT:      s << "DOTDOT"; break;
     }
     s << ">";
     return s.str();
@@ -94,7 +97,6 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '=') { t.type = EQUAL; i++; }
         else if (c == '#') { t.type = NOTEQUAL; i++; }
         else if (c == ',') { t.type = COMMA; i++; }
-        else if (c == '.') { t.type = DOT; i++; }
         else if (c == '<') {
             if (source.at(i+1) == '=') {
                 t.type = LESSEQ;
@@ -109,6 +111,14 @@ std::vector<Token> tokenize(const std::string &source)
                 i += 2;
             } else {
                 t.type = GREATER;
+                i++;
+            }
+        } else if (c == '.') {
+            if (source.at(i+1) == '.') {
+                t.type = DOTDOT;
+                i += 2;
+            } else {
+                t.type = DOT;
                 i++;
             }
         } else if (c == ':') {
@@ -152,6 +162,8 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "OUT") t.type = OUT;
             else if (t.text == "INOUT") t.type = INOUT;
             else if (t.text == "ELSIF") t.type = ELSIF;
+            else if (t.text == "CASE") t.type = CASE;
+            else if (t.text == "WHEN") t.type = WHEN;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
@@ -209,7 +221,7 @@ std::vector<Token> tokenize(const std::string &source)
                 while (j < source.length() && isdigit(source.at(j))) {
                     j++;
                 }
-                if (j < source.length() && source.at(j) == '.') {
+                if (j < source.length() && source.at(j) == '.' && source.at(j+1) != '.') {
                     j++;
                     while (j < source.length() && isdigit(source.at(j))) {
                         j++;

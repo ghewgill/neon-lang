@@ -847,6 +847,48 @@ private:
     WhileStatement &operator=(const WhileStatement &);
 };
 
+class CaseStatement: public Statement {
+public:
+    class WhenCondition {
+    public:
+        virtual ~WhenCondition() {}
+        virtual void generate(Emitter &emitter) const = 0;
+    };
+    class ComparisonWhenCondition: public WhenCondition {
+    public:
+        ComparisonWhenCondition(ComparisonExpression::Comparison comp, const Expression *expr): comp(comp), expr(expr) {}
+        ComparisonExpression::Comparison comp;
+        const Expression *expr;
+        virtual void generate(Emitter &emitter) const;
+    private:
+        ComparisonWhenCondition(const ComparisonWhenCondition &);
+        ComparisonWhenCondition &operator=(const ComparisonWhenCondition &);
+    };
+    class RangeWhenCondition: public WhenCondition {
+    public:
+        RangeWhenCondition(const Expression *low_expr, const Expression *high_expr): low_expr(low_expr), high_expr(high_expr) {}
+        const Expression *low_expr;
+        const Expression *high_expr;
+        virtual void generate(Emitter &emitter) const;
+    private:
+        RangeWhenCondition(const RangeWhenCondition &);
+        RangeWhenCondition &operator=(const RangeWhenCondition &);
+    };
+    CaseStatement(const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): expr(expr), clauses(clauses) {}
+
+    const Expression *expr;
+    const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "CaseStatement(" + expr->text() + ")";
+    }
+private:
+    CaseStatement(const CaseStatement &);
+    CaseStatement &operator=(const CaseStatement &);
+};
+
 class Function: public Variable {
 public:
     Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(-1), statements() {

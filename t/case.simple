@@ -1,18 +1,20 @@
-% TODO
 VAR a: Number
 VAR s: String
 a := 0
 WHILE a < 10 DO
     CASE a
-        WHEN < 2
-            print(str(a) + " less than two")
-        WHEN 2
-            print(str(a) + " is two")
-        WHEN 3..5
-            print(str(a) + " three to five")
+        WHEN < 2 DO
+            s := "less than two"
+        WHEN 2 DO
+            s := "is two"
+        WHEN 3..5 DO
+            s := "three to five"
+        WHEN 7, 9 DO
+            s := "seven or nine"
         ELSE
-            print(str(a) + " is something else")
+            s := "is something else"
     END
+    print(str(a) + " " + s)
     a := a + 1
 END
 
@@ -23,6 +25,6 @@ END
 %= 4 three to five
 %= 5 three to five
 %= 6 is something else
-%= 7 is something else
+%= 7 seven or nine
 %= 8 is something else
-%= 9 is something else
+%= 9 seven or nine

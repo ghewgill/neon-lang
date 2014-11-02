@@ -1,0 +1,11 @@
+% TODO
+
+VAR a: String
+
+a := "hello"
+CASE a
+    WHEN > "he" DO
+        print(a)
+END
+
+%= hello

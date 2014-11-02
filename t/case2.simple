@@ -1,0 +1,9 @@
+% TODO
+
+VAR a, b: Number
+
+CASE a
+    WHEN b DO
+END
+
+%! when condition must be constant

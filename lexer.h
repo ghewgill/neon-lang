@@ -57,6 +57,9 @@ enum TokenType {
     OUT,
     INOUT,
     ELSIF,
+    CASE,
+    WHEN,
+    DOTDOT,
 };
 
 class Token {

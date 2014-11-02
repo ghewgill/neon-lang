@@ -657,6 +657,56 @@ void WhileStatement::generate(Emitter &emitter) const
     emitter.jump_target(skip);
 }
 
+void CaseStatement::generate(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    auto end_label = emitter.create_label();
+    for (auto clause: clauses) {
+        auto &conditions = clause.first;
+        auto &statements = clause.second;
+        auto next_label = emitter.create_label();
+        if (not conditions.empty()) {
+            auto match_label = emitter.create_label();
+            for (auto *condition: conditions) {
+                condition->generate(emitter);
+                emitter.emit_jump(JT, match_label);
+            }
+            emitter.emit_jump(JUMP, next_label);
+            emitter.jump_target(match_label);
+        }
+        emitter.emit(DROP);
+        for (auto stmt: statements) {
+            stmt->generate(emitter);
+        }
+        emitter.emit_jump(JUMP, end_label);
+        emitter.jump_target(next_label);
+    }
+    emitter.jump_target(end_label);
+}
+
+void CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    emitter.emit(DUP);
+    expr->generate(emitter);
+    emitter.emit(op[comp]);
+}
+
+void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
+{
+    emitter.emit(DUP);
+    auto result_label = emitter.create_label();
+    low_expr->generate(emitter);
+    emitter.emit(GEN);
+    emitter.emit(DUP);
+    emitter.emit_jump(JF, result_label);
+    emitter.emit(DROP);
+    emitter.emit(DUP);
+    high_expr->generate(emitter);
+    emitter.emit(LEN);
+    emitter.jump_target(result_label);
+}
+
 void Scope::predeclare(Emitter &emitter) const
 {
     for (auto n: names) {

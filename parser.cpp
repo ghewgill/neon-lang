@@ -10,6 +10,20 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
 static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
 
+static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
+{
+    switch (token.type) {
+        case EQUAL:     return ComparisonExpression::EQ;
+        case NOTEQUAL:  return ComparisonExpression::NE;
+        case LESS:      return ComparisonExpression::LT;
+        case GREATER:   return ComparisonExpression::GT;
+        case LESSEQ:    return ComparisonExpression::LE;
+        case GREATEREQ: return ComparisonExpression::GE;
+        default:
+            error(token, "internal error");
+    }
+}
+
 StringReference::StringReference(const VariableReference *str, const Expression *index)
   : VariableReference(TYPE_STRING),
     str(str),
@@ -433,17 +447,7 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
         case GREATER:
         case LESSEQ:
         case GREATEREQ: {
-            ComparisonExpression::Comparison comp;
-            switch (tokens[i].type) {
-                case EQUAL:     comp = ComparisonExpression::EQ; break;
-                case NOTEQUAL:  comp = ComparisonExpression::NE; break;
-                case LESS:      comp = ComparisonExpression::LT; break;
-                case GREATER:   comp = ComparisonExpression::GT; break;
-                case LESSEQ:    comp = ComparisonExpression::LE; break;
-                case GREATEREQ: comp = ComparisonExpression::GE; break;
-                default:
-                    error(tokens[i], "internal error");
-            }
+            ComparisonExpression::Comparison comp = comparisonFromToken(tokens[i]);
             auto op = i;
             ++i;
             const Expression *right = parseAddition(scope, tokens, i);
@@ -824,6 +828,71 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
     return new WhileStatement(cond, statements);
 }
 
+static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+{
+    ++i;
+    const Expression *expr = parseExpression(scope, tokens, i);
+    std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
+    while (tokens[i].type == WHEN) {
+        std::vector<const CaseStatement::WhenCondition *> conditions;
+        do {
+            ++i;
+            switch (tokens[i].type) {
+                case EQUAL:
+                case NOTEQUAL:
+                case LESS:
+                case GREATER:
+                case LESSEQ:
+                case GREATEREQ: {
+                    auto op = tokens[i];
+                    ++i;
+                    const Expression *expr = parseExpression(scope, tokens, i);
+                    const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(comparisonFromToken(op), expr);
+                    conditions.push_back(cond);
+                    break;
+                }
+                default: {
+                    const Expression *expr = parseExpression(scope, tokens, i);
+                    if (tokens[i].type == DOTDOT) {
+                        ++i;
+                        const Expression *expr2 = parseExpression(scope, tokens, i);
+                        const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(expr, expr2);
+                        conditions.push_back(cond);
+                    } else {
+                        const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(ComparisonExpression::EQ, expr);
+                        conditions.push_back(cond);
+                    }
+                    break;
+                }
+            }
+        } while (tokens[i].type == COMMA);
+        if (tokens[i].type != DO) {
+            error(tokens[i], "'DO' expected");
+        }
+        ++i;
+        std::vector<const Statement *> statements;
+        while (tokens[i].type != WHEN && tokens[i].type != ELSE && tokens[i].type != END) {
+            const Statement *stmt = parseStatement(scope, tokens, i);
+            statements.push_back(stmt);
+        }
+        clauses.push_back(std::make_pair(conditions, statements));
+    }
+    std::vector<const Statement *> else_statements;
+    if (tokens[i].type == ELSE) {
+        ++i;
+        while (tokens[i].type != END) {
+            const Statement *stmt = parseStatement(scope, tokens, i);
+            else_statements.push_back(stmt);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(tokens[i], "'END' expected");
+    }
+    ++i;
+    clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));
+    return new CaseStatement(expr, clauses);
+}
+
 static const Statement *parseImport(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
 {
     ++i;
@@ -853,6 +922,8 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
         return parseVarStatement(scope, tokens, i);
     } else if (tokens[i].type == WHILE) {
         return parseWhileStatement(scope, tokens, i);
+    } else if (tokens[i].type == CASE) {
+        return parseCaseStatement(scope, tokens, i);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope, tokens, i);
         if (tokens[i].type == ASSIGN) {
