@@ -58,7 +58,7 @@ Number min(Number a, Number b)
 
 Number num(const std::string &s)
 {
-    return number_from_string(s.c_str());
+    return number_from_string(s);
 }
 
 Number ord(const std::string &s)
