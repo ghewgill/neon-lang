@@ -80,6 +80,16 @@ const Name *Scope::lookupName(const std::string &name) const
     return nullptr;
 }
 
+int Scope::nextIndex()
+{
+    return count++;
+}
+
+int Scope::getCount() const
+{
+    return count;
+}
+
 const Type *Function::makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params)
 {
     std::vector<const ParameterType *> paramtypes;

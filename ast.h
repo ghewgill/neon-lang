@@ -38,6 +38,8 @@ public:
     virtual void postdeclare(Emitter &emitter) const;
 
     const Name *lookupName(const std::string &name) const;
+    int nextIndex();
+    int getCount() const;
 
     Scope *const parent;
     std::map<std::string, Name *> names;

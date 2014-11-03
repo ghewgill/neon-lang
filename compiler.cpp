@@ -268,8 +268,7 @@ void GlobalVariable::generate_address(Emitter &emitter) const
 void LocalVariable::predeclare(Emitter &emitter)
 {
     if (referenced) {
-        index = scope->count;
-        scope->count++;
+        index = scope->nextIndex();
     }
 }
 
@@ -304,7 +303,7 @@ void Function::postdeclare(Emitter &emitter)
     if (referenced) {
         scope->predeclare(emitter);
         emitter.jump_target(emitter.function_label(entry_label));
-        emitter.emit(ENTER, static_cast<int>(scope->names.size()));
+        emitter.emit(ENTER, scope->getCount());
         for (auto p = params.rbegin(); p != params.rend(); ++p) {
             switch ((*p)->mode) {
                 case ParameterType::IN:
