@@ -1,0 +1,12 @@
+% TODO
+
+FUNCTION factorial(x: Number): Number
+    IF x = 0 THEN
+        RETURN 1
+    END
+    RETURN x * factorial(x - 1)
+END
+
+print(str(factorial(5))
+
+%= 120
