@@ -4,11 +4,11 @@ x := 5
 y := 10
 
 FUNCTION sq(): Number
-    VAR y: Number
+    VAR t: Number
     VAR z: Number
-    y := x * x
+    t := x * x
     z := 999
-    RETURN y
+    RETURN t
 END
 
 print(str(sq()))

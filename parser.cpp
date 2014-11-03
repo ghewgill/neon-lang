@@ -175,13 +175,16 @@ static const Statement *parseTypeDefinition(Scope *scope, const std::vector<Toke
         error(tokens[i], "identifier expected");
     }
     std::string name = tokens[i].text;
+    if (scope->lookupName(name) != nullptr) {
+        error(tokens[i], "name shadows outer");
+    }
     ++i;
     if (tokens[i].type != ASSIGN) {
         error(tokens[i], "':=' expected");
     }
     ++i;
     const Type *type = parseType(scope, tokens, i);
-    scope->names[name] = const_cast<Type *>(type); // TODO clean up when 'referenced' is fixed
+    scope->addName(name, const_cast<Type *>(type)); // TODO clean up when 'referenced' is fixed
     return nullptr;
 }
 
@@ -192,6 +195,9 @@ static const Statement *parseConstantDefinition(Scope *scope, const std::vector<
         error(tokens[i], "identifier expected");
     }
     std::string name = tokens[i].text;
+    if (scope->lookupName(name) != nullptr) {
+        error(tokens[i], "name shadows outer");
+    }
     ++i;
     if (tokens[i].type != COLON) {
         error(tokens[i], "':' expected");
@@ -206,7 +212,7 @@ static const Statement *parseConstantDefinition(Scope *scope, const std::vector<
     if (value->type != type) {
         error(tokens[i], "type mismatch");
     }
-    scope->names[name] = new Constant(name, value);
+    scope->addName(name, new Constant(name, value));
     return nullptr;
 }
 
@@ -564,11 +570,11 @@ static const VariableInfo parseVariableDeclaration(Scope *scope, const std::vect
             error(tokens[i], "identifier expected");
         }
         std::string name = tokens[i].text;
-        if (scope->names.find(name) != scope->names.end()) {
-            error(tokens[i], "duplicate identifer: " + name);
+        if (scope->lookupName(name) != nullptr) {
+            error(tokens[i], "name shadows outer");
         }
-        names.push_back(name);
         ++i;
+        names.push_back(name);
         if (tokens[i].type != COMMA) {
             break;
         }
@@ -689,6 +695,9 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         error(tokens[i], "identifier expected");
     }
     std::string name = tokens[i].text;
+    if (scope->lookupName(name) != nullptr) {
+        error(tokens[i], "name shadows outer");
+    }
     ++i;
     if (tokens[i].type != LPAREN) {
         error(tokens[i], "'(' expected");
@@ -710,6 +719,7 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
             for (auto name: vars.first) {
                 FunctionParameter *fp = new FunctionParameter(name, vars.second, mode, newscope);
                 args.push_back(fp);
+                newscope->addName(name, fp);
             }
             if (tokens[i].type != COMMA) {
                 break;
@@ -734,7 +744,7 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         }
     }
     ++i;
-    scope->names[name] = function;
+    scope->addName(name, function);
     return nullptr;
 }
 
@@ -797,7 +807,7 @@ static const Statement *parseVarStatement(Scope *scope, const std::vector<Token>
         } else {
             v = new LocalVariable(name, vars.second, scope);
         }
-        scope->names[name] = v;
+        scope->addName(name, v);
     }
     return nullptr;
 }

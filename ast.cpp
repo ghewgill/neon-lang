@@ -80,6 +80,20 @@ const Name *Scope::lookupName(const std::string &name) const
     return nullptr;
 }
 
+void Scope::addName(const std::string &name, Name *ref)
+{
+    if (lookupName(name) != nullptr) {
+        // If this error occurs, it means a new name was introduced
+        // but no check was made with lookupName() to see whether the
+        // name already exists yet. This error needs to be detected
+        // in the parsing stage so that we have a token available to
+        // pass to error().
+        fprintf(stderr, "compiler internal error: name presence not checked\n");
+        abort();
+    }
+    names[name] = ref;
+}
+
 int Scope::nextIndex()
 {
     return count++;
@@ -103,10 +117,10 @@ Program::Program()
   : scope(new Scope(nullptr)),
     statements()
 {
-    scope->names["Nothing"] = TYPE_NOTHING;
-    scope->names["Boolean"] = TYPE_BOOLEAN;
-    scope->names["Number"] = TYPE_NUMBER;
-    scope->names["String"] = TYPE_STRING;
+    scope->addName("Nothing", TYPE_NOTHING);
+    scope->addName("Boolean", TYPE_BOOLEAN);
+    scope->addName("Number", TYPE_NUMBER);
+    scope->addName("String", TYPE_STRING);
 
     rtl_init(scope);
 }

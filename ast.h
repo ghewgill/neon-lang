@@ -38,9 +38,11 @@ public:
     virtual void postdeclare(Emitter &emitter) const;
 
     const Name *lookupName(const std::string &name) const;
+    void addName(const std::string &name, Name *ref);
     int nextIndex();
     int getCount() const;
 
+private:
     Scope *const parent;
     std::map<std::string, Name *> names;
     int count;
@@ -893,11 +895,8 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(-1), statements() {
-        for (auto v: params) {
-            scope->names[v->name] = v;
-        }
-    }
+    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(-1), statements() {}
+
     Scope *scope;
     const std::vector<FunctionParameter *> params;
     int entry_label;

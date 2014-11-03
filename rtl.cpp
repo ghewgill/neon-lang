@@ -174,7 +174,7 @@ void rtl_init(Scope *scope)
             }
             params.push_back(new ParameterType(ParameterType::IN, p));
         }
-        scope->names[f.name] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, params));
+        scope->addName(f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
         Functions[f.name] = std::make_pair(f.thunk, f.func);
     }
 }
@@ -193,10 +193,10 @@ void rtl_import(Scope *scope, const std::string &name)
                 }
                 params.push_back(new ParameterType(ParameterType::IN, p));
             }
-            module->scope->names[qualified_name.substr(prefix.length())] = new PredefinedFunction(f.name, new TypeFunction(f.returntype, params));
+            module->scope->addName(qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
         }
     }
-    scope->names[name] = module;
+    scope->addName(name, module);
 }
 
 void rtl_call(std::stack<Cell> &stack, const std::string &name)

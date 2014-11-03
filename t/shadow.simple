@@ -1,5 +1,3 @@
-% TODO
-
 VAR a: Number
 
 FUNCTION foo(): Nothing
