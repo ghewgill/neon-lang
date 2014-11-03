@@ -6,26 +6,26 @@
 
 #include "number.h"
 
-class Variant {
+class Cell {
 public:
-    Variant();
-    explicit Variant(const Variant &rhs);
-    explicit Variant(Variant *value);
-    explicit Variant(bool value);
-    explicit Variant(Number value);
-    explicit Variant(const std::string &value);
-    explicit Variant(const char *value);
-    explicit Variant(const std::vector<Variant> &value);
-    explicit Variant(const std::map<std::string, Variant> &value);
-    Variant &operator=(const Variant &rhs);
-    bool operator==(const Variant &rhs) const;
+    Cell();
+    explicit Cell(const Cell &rhs);
+    explicit Cell(Cell *value);
+    explicit Cell(bool value);
+    explicit Cell(Number value);
+    explicit Cell(const std::string &value);
+    explicit Cell(const char *value);
+    explicit Cell(const std::vector<Cell> &value);
+    explicit Cell(const std::map<std::string, Cell> &value);
+    Cell &operator=(const Cell &rhs);
+    bool operator==(const Cell &rhs) const;
 
-    Variant *address_value;
+    Cell *address_value;
     bool boolean_value;
     Number number_value;
     std::string string_value;
-    std::vector<Variant> array_value;
-    std::map<std::string, Variant> dictionary_value;
+    std::vector<Cell> array_value;
+    std::map<std::string, Cell> dictionary_value;
 };
 
 #endif

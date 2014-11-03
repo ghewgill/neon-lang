@@ -8,7 +8,7 @@
 #include "cell.h"
 #include "number.h"
 
-typedef void (*Thunk)(std::stack<Variant> &stack, void *func);
+typedef void (*Thunk)(std::stack<Cell> &stack, void *func);
 
 static std::map<std::string, std::pair<Thunk, void *> > Functions;
 
@@ -199,7 +199,7 @@ void rtl_import(Scope *scope, const std::string &name)
     scope->names[name] = module;
 }
 
-void rtl_call(std::stack<Variant> &stack, const std::string &name)
+void rtl_call(std::stack<Cell> &stack, const std::string &name)
 {
     auto f = Functions.find(name);
     if (f == Functions.end()) {

@@ -56,12 +56,12 @@ for name, rtype, params in functions.values():
 
 with open("thunks.inc", "w") as inc:
     for rtype, params in thunks:
-        print >>inc, "static void thunk_{}_{}(std::stack<Variant> &stack, void *func)".format(rtype, "_".join(params))
+        print >>inc, "static void thunk_{}_{}(std::stack<Cell> &stack, void *func)".format(rtype, "_".join(params))
         print >>inc, "{"
         for i, a in reversed(list(enumerate(params))):
             print >>inc, "    {} a{} = stack.top().{}; stack.pop();".format(CppFromAst[a], i, CellField[a]);
         if rtype != "TYPE_NOTHING":
-            print >>inc, "    stack.push(Variant(reinterpret_cast<{} (*)({})>(func)({})));".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
+            print >>inc, "    stack.push(Cell(reinterpret_cast<{} (*)({})>(func)({})));".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
         else:
             print >>inc, "    reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
         print >>inc, "}"

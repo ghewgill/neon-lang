@@ -1,6 +1,6 @@
 #include "cell.h"
 
-Variant::Variant()
+Cell::Cell()
   : address_value(NULL),
     boolean_value(false),
     number_value(),
@@ -10,7 +10,7 @@ Variant::Variant()
 {
 }
 
-Variant::Variant(const Variant &rhs)
+Cell::Cell(const Cell &rhs)
   : address_value(rhs.address_value),
     boolean_value(rhs.boolean_value),
     number_value(rhs.number_value),
@@ -20,7 +20,7 @@ Variant::Variant(const Variant &rhs)
 {
 }
 
-Variant::Variant(Variant *value)
+Cell::Cell(Cell *value)
   : address_value(value),
     boolean_value(false),
     number_value(),
@@ -30,7 +30,7 @@ Variant::Variant(Variant *value)
 {
 }
 
-Variant::Variant(bool value)
+Cell::Cell(bool value)
   : address_value(NULL),
     boolean_value(value),
     number_value(),
@@ -40,7 +40,7 @@ Variant::Variant(bool value)
 {
 }
 
-Variant::Variant(Number value)
+Cell::Cell(Number value)
   : address_value(NULL),
     boolean_value(false),
     number_value(value),
@@ -50,7 +50,7 @@ Variant::Variant(Number value)
 {
 }
 
-Variant::Variant(const std::string &value)
+Cell::Cell(const std::string &value)
   : address_value(NULL),
     boolean_value(false),
     number_value(),
@@ -60,7 +60,7 @@ Variant::Variant(const std::string &value)
 {
 }
 
-Variant::Variant(const char *value)
+Cell::Cell(const char *value)
   : address_value(NULL),
     boolean_value(false),
     number_value(),
@@ -70,7 +70,7 @@ Variant::Variant(const char *value)
 {
 }
 
-Variant::Variant(const std::vector<Variant> &value)
+Cell::Cell(const std::vector<Cell> &value)
   : address_value(NULL),
     boolean_value(false),
     number_value(),
@@ -80,7 +80,7 @@ Variant::Variant(const std::vector<Variant> &value)
 {
 }
 
-Variant::Variant(const std::map<std::string, Variant> &value)
+Cell::Cell(const std::map<std::string, Cell> &value)
   : address_value(NULL),
     boolean_value(false),
     number_value(),
@@ -90,7 +90,7 @@ Variant::Variant(const std::map<std::string, Variant> &value)
 {
 }
 
-Variant &Variant::operator=(const Variant &rhs)
+Cell &Cell::operator=(const Cell &rhs)
 {
     if (&rhs == this) {
         return *this;
@@ -104,7 +104,7 @@ Variant &Variant::operator=(const Variant &rhs)
     return *this;
 }
 
-bool Variant::operator==(const Variant &rhs) const
+bool Cell::operator==(const Cell &rhs) const
 {
     // This currently compares everything (assuming that unused
     // values are initialised to default values). If in the future
