@@ -75,12 +75,14 @@ std::vector<Token> tokenize(const std::string &source)
 {
     auto inv = utf8::find_invalid(source.begin(), source.end());
     if (inv != source.end()) {
-        int line = 1 + std::count(source.begin(), inv, '\n');
+        int line = static_cast<int>(1 + std::count(source.begin(), inv, '\n'));
         auto bol = source.rfind('\n', inv-source.begin());
-        if (bol == std::string::npos) {
-            bol = -1;
+        if (bol != std::string::npos) {
+            bol++;
+        } else {
+            bol = 0;
         }
-        int column = inv - (source.begin() + bol);
+        int column = static_cast<int>(1 + inv - (source.begin() + bol));
         fprintf(stderr, "%d:%d invalid utf8 data in source\n", line, column);
         exit(1);
     }
