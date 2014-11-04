@@ -685,7 +685,18 @@ void CaseStatement::generate(Emitter &emitter) const
 
 void CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    static const unsigned char opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    static const unsigned char ops[] = {EQS, NES, LTS, GTS, LES, GES};
+    const unsigned char *op;
+    if (expr->type == TYPE_NUMBER) {
+        op = opn;
+    } else if (expr->type == TYPE_STRING) {
+        op = ops;
+    } else {
+        fprintf(stderr, "compiler internal error: when condition not number or string");
+        abort();
+    }
+
     emitter.emit(DUP);
     expr->generate(emitter);
     emitter.emit(op[comp]);
@@ -693,16 +704,28 @@ void CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) const
 
 void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
 {
+    static const unsigned char opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    static const unsigned char ops[] = {EQS, NES, LTS, GTS, LES, GES};
+    const unsigned char *op;
+    if (low_expr->type == TYPE_NUMBER) {
+        op = opn;
+    } else if (low_expr->type == TYPE_STRING) {
+        op = ops;
+    } else {
+        fprintf(stderr, "compiler internal error: when condition not number or string");
+        abort();
+    }
+
     emitter.emit(DUP);
     auto result_label = emitter.create_label();
     low_expr->generate(emitter);
-    emitter.emit(GEN);
+    emitter.emit(op[ComparisonExpression::GE]);
     emitter.emit(DUP);
     emitter.emit_jump(JF, result_label);
     emitter.emit(DROP);
     emitter.emit(DUP);
     high_expr->generate(emitter);
-    emitter.emit(LEN);
+    emitter.emit(op[ComparisonExpression::LE]);
     emitter.jump_target(result_label);
 }
 
