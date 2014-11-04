@@ -1,0 +1,10 @@
+% TODO
+
+VAR a: Number
+
+CASE a
+    WHEN 1 DO
+    WHEN 1 DO
+END
+
+%! overlapping when
