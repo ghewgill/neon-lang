@@ -2,7 +2,11 @@
 #include <iostream>
 #include <stack>
 #include <string>
+#include <time.h>
+
+#ifdef __GNUC__
 #include <sys/time.h>
+#endif
 
 #include "ast.h"
 #include "cell.h"
@@ -152,11 +156,16 @@ Number math$tan(Number x)
 
 Number time$now()
 {
+#ifdef __GNUC__
     struct timeval tv;
     if (gettimeofday(&tv, NULL) != 0) {
         return number_from_uint32(0);
     }
     return number_add(number_from_uint32(tv.tv_sec), number_divide(number_from_uint32(tv.tv_usec), number_from_uint32(1e6)));
+#else
+    time_t now = time(NULL);
+    return number_from_uint32(static_cast<uint32_t>(now)); // TODO: uint64
+#endif
 }
 
 } // namespace rtl
