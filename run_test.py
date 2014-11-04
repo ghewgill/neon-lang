@@ -7,7 +7,11 @@ import sys
 def run(fn):
     print ("Running {}...".format(fn))
 
-    src = codecs.open(fn, encoding="UTF-8").read().replace("\r\n", "\n")
+    try:
+        src = codecs.open(fn, encoding="UTF-8").read().replace("\r\n", "\n")
+    except UnicodeDecodeError:
+        # One test has invalid UTF-8 data, so read it as the default encoding.
+        src = open(fn).read().replace("\r\n", "\n")
 
     all_comments = re.findall("^%(.*)$", src, re.MULTILINE)
     todo = any("TODO" in x for x in all_comments)

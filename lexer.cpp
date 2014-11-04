@@ -1,7 +1,10 @@
 #include "lexer.h"
 
+#include <algorithm>
 #include <iso646.h>
 #include <sstream>
+
+#include <utf8.h>
 
 #include "util.h"
 
@@ -70,6 +73,17 @@ std::string Token::tostring() const
 
 std::vector<Token> tokenize(const std::string &source)
 {
+    auto inv = utf8::find_invalid(source.begin(), source.end());
+    if (inv != source.end()) {
+        int line = 1 + std::count(source.begin(), inv, '\n');
+        auto bol = source.rfind('\n', inv-source.begin());
+        if (bol == std::string::npos) {
+            bol = -1;
+        }
+        int column = inv - (source.begin() + bol);
+        fprintf(stderr, "%d:%d invalid utf8 data in source\n", line, column);
+        exit(1);
+    }
     int line = 1;
     int column = 1;
     std::vector<Token> tokens;
