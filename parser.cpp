@@ -845,6 +845,9 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
 {
     ++i;
     const Expression *expr = parseExpression(scope, tokens, i);
+    if (expr->type != TYPE_NUMBER && expr->type != TYPE_STRING) {
+        error(tokens[i], "CASE expression must be Number or String");
+    }
     std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
     while (tokens[i].type == WHEN) {
         std::vector<const CaseStatement::WhenCondition *> conditions;
@@ -859,20 +862,38 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                 case GREATEREQ: {
                     auto op = tokens[i];
                     ++i;
-                    const Expression *expr = parseExpression(scope, tokens, i);
-                    const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(comparisonFromToken(op), expr);
+                    const Expression *when = parseExpression(scope, tokens, i);
+                    if (when->type != expr->type) {
+                        error(tokens[i], "type mismatch");
+                    }
+                    if (not when->is_constant) {
+                        error(tokens[i], "WHEN condition must be constant");
+                    }
+                    const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(comparisonFromToken(op), when);
                     conditions.push_back(cond);
                     break;
                 }
                 default: {
-                    const Expression *expr = parseExpression(scope, tokens, i);
+                    const Expression *when = parseExpression(scope, tokens, i);
+                    if (when->type != expr->type) {
+                        error(tokens[i], "type mismatch");
+                    }
+                    if (not when->is_constant) {
+                        error(tokens[i], "WHEN condition must be constant");
+                    }
                     if (tokens[i].type == DOTDOT) {
                         ++i;
-                        const Expression *expr2 = parseExpression(scope, tokens, i);
-                        const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(expr, expr2);
+                        const Expression *when2 = parseExpression(scope, tokens, i);
+                        if (when2->type != expr->type) {
+                            error(tokens[i], "type mismatch");
+                        }
+                        if (not when2->is_constant) {
+                            error(tokens[i], "WHEN condition must be constant");
+                        }
+                        const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(when, when2);
                         conditions.push_back(cond);
                     } else {
-                        const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(ComparisonExpression::EQ, expr);
+                        const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(ComparisonExpression::EQ, when);
                         conditions.push_back(cond);
                     }
                     break;
