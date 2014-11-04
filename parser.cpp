@@ -25,7 +25,7 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
 }
 
 StringReference::StringReference(const VariableReference *str, const Expression *index)
-  : VariableReference(TYPE_STRING),
+  : VariableReference(TYPE_STRING, false),
     str(str),
     index(index),
     load(nullptr),
@@ -211,6 +211,9 @@ static const Statement *parseConstantDefinition(Scope *scope, const std::vector<
     const Expression *value = parseExpression(scope, tokens, i);
     if (value->type != type) {
         error(tokens[i], "type mismatch");
+    }
+    if (not value->is_constant) {
+        error(tokens[i], "value must be constant");
     }
     scope->addName(name, new Constant(name, value));
     return nullptr;

@@ -269,12 +269,13 @@ private:
 
 class Expression: public AstNode {
 public:
-    Expression(const Type *type): type(type) {}
+    Expression(const Type *type, bool is_constant): type(type), is_constant(is_constant) {}
 
     virtual const VariableReference *get_reference() const { return nullptr; }
     virtual void generate(Emitter &emitter) const = 0;
 
     const Type *type;
+    const bool is_constant;
 private:
     Expression(const Expression &);
     Expression &operator=(const Expression &);
@@ -294,7 +295,7 @@ private:
 
 class ConstantBooleanExpression: public Expression {
 public:
-    ConstantBooleanExpression(bool value): Expression(TYPE_BOOLEAN), value(value) {}
+    ConstantBooleanExpression(bool value): Expression(TYPE_BOOLEAN, true), value(value) {}
 
     const bool value;
 
@@ -305,7 +306,7 @@ public:
 
 class ConstantNumberExpression: public Expression {
 public:
-    ConstantNumberExpression(Number value): Expression(TYPE_NUMBER), value(value) {}
+    ConstantNumberExpression(Number value): Expression(TYPE_NUMBER, true), value(value) {}
 
     const Number value;
 
@@ -316,7 +317,7 @@ public:
 
 class ConstantStringExpression: public Expression {
 public:
-    ConstantStringExpression(const std::string &value): Expression(TYPE_STRING), value(value) {}
+    ConstantStringExpression(const std::string &value): Expression(TYPE_STRING, true), value(value) {}
 
     const std::string value;
 
@@ -327,7 +328,7 @@ public:
 
 class ConstantEnumExpression: public Expression {
 public:
-    ConstantEnumExpression(const TypeEnum *type, int value): Expression(type), value(value) {}
+    ConstantEnumExpression(const TypeEnum *type, int value): Expression(type, true), value(value) {}
 
     const int value;
 
@@ -338,7 +339,7 @@ public:
 
 class UnaryMinusExpression: public Expression {
 public:
-    UnaryMinusExpression(const Expression *value): Expression(value->type), value(value) {
+    UnaryMinusExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
         assert(type == TYPE_NUMBER);
     }
 
@@ -356,7 +357,7 @@ private:
 
 class LogicalNotExpression: public Expression {
 public:
-    LogicalNotExpression(const Expression *value): Expression(value->type), value(value) {
+    LogicalNotExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
         assert(type == TYPE_BOOLEAN);
     }
 
@@ -374,7 +375,7 @@ private:
 
 class ConditionalExpression: public Expression {
 public:
-    ConditionalExpression(const Expression *condition, const Expression *left, const Expression *right): Expression(left->type), condition(condition), left(left), right(right) {
+    ConditionalExpression(const Expression *condition, const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), condition(condition), left(left), right(right) {
         assert(left->type == right->type);
     }
 
@@ -394,7 +395,7 @@ private:
 
 class DisjunctionExpression: public Expression {
 public:
-    DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_BOOLEAN);
         assert(right->type == TYPE_BOOLEAN);
     }
@@ -414,7 +415,7 @@ private:
 
 class ConjunctionExpression: public Expression {
 public:
-    ConjunctionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    ConjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_BOOLEAN);
         assert(right->type == TYPE_BOOLEAN);
     }
@@ -437,7 +438,7 @@ public:
     enum Comparison {
         EQ, NE, LT, GT, LE, GE
     };
-    ComparisonExpression(const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN), left(left), right(right), comp(comp) {}
+    ComparisonExpression(const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right), comp(comp) {}
 
     const Expression *const left;
     const Expression *const right;
@@ -504,7 +505,7 @@ public:
 
 class AdditionExpression: public Expression {
 public:
-    AdditionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    AdditionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_NUMBER);
         assert(right->type == TYPE_NUMBER);
     }
@@ -524,7 +525,7 @@ private:
 
 class SubtractionExpression: public Expression {
 public:
-    SubtractionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    SubtractionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_NUMBER);
         assert(right->type == TYPE_NUMBER);
     }
@@ -544,7 +545,7 @@ private:
 
 class MultiplicationExpression: public Expression {
 public:
-    MultiplicationExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    MultiplicationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_NUMBER);
         assert(right->type == TYPE_NUMBER);
     }
@@ -564,7 +565,7 @@ private:
 
 class DivisionExpression: public Expression {
 public:
-    DivisionExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    DivisionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_NUMBER);
         assert(right->type == TYPE_NUMBER);
     }
@@ -584,7 +585,7 @@ private:
 
 class ModuloExpression: public Expression {
 public:
-    ModuloExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    ModuloExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_NUMBER);
         assert(right->type == TYPE_NUMBER);
     }
@@ -604,7 +605,7 @@ private:
 
 class ExponentiationExpression: public Expression {
 public:
-    ExponentiationExpression(const Expression *left, const Expression *right): Expression(left->type), left(left), right(right) {
+    ExponentiationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
         assert(left->type == TYPE_NUMBER);
         assert(right->type == TYPE_NUMBER);
     }
@@ -624,9 +625,10 @@ private:
 
 class VariableReference: public AstNode {
 public:
-    VariableReference(const Type *type): type(type) {}
+    VariableReference(const Type *type, bool is_constant): type(type), is_constant(is_constant) {}
 
     const Type *type;
+    const bool is_constant;
 
     virtual void generate_address(Emitter &emitter) const = 0;
     virtual void generate_load(Emitter &emitter) const;
@@ -641,7 +643,7 @@ private:
 
 class ConstantReference: public VariableReference {
 public:
-    ConstantReference(const Constant *cons): VariableReference(cons->type), cons(cons) {}
+    ConstantReference(const Constant *cons): VariableReference(cons->type, true), cons(cons) {}
 
     const Constant *cons;
 
@@ -658,7 +660,7 @@ private:
 
 class ScalarVariableReference: public VariableReference {
 public:
-    ScalarVariableReference(const Variable *var): VariableReference(var->type), var(var) {}
+    ScalarVariableReference(const Variable *var): VariableReference(var->type, false), var(var) {}
 
     const Variable *var;
 
@@ -695,7 +697,7 @@ private:
 
 class ArrayReference: public VariableReference {
 public:
-    ArrayReference(const Type *type, const VariableReference *array, const Expression *index): VariableReference(type), array(array), index(index) {}
+    ArrayReference(const Type *type, const VariableReference *array, const Expression *index): VariableReference(type, array->is_constant), array(array), index(index) {}
 
     const VariableReference *array;
     const Expression *index;
@@ -710,7 +712,7 @@ private:
 
 class DictionaryReference: public VariableReference {
 public:
-    DictionaryReference(const Type *type, const VariableReference *dict, const Expression *index): VariableReference(type), dict(dict), index(index) {}
+    DictionaryReference(const Type *type, const VariableReference *dict, const Expression *index): VariableReference(type, dict->is_constant), dict(dict), index(index) {}
 
     const VariableReference *dict;
     const Expression *index;
@@ -725,7 +727,7 @@ private:
 
 class VariableExpression: public Expression {
 public:
-    VariableExpression(const VariableReference *var): Expression(var->type), var(var) {}
+    VariableExpression(const VariableReference *var): Expression(var->type, var->is_constant), var(var) {}
 
     const VariableReference *var;
 
@@ -742,7 +744,7 @@ private:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const VariableReference *func, const std::vector<const Expression *> &args): Expression(dynamic_cast<const TypeFunction *>(func->type)->returntype), func(func), args(args) {}
+    FunctionCall(const VariableReference *func, const std::vector<const Expression *> &args): Expression(dynamic_cast<const TypeFunction *>(func->type)->returntype, false), func(func), args(args) {}
 
     const VariableReference *const func;
     const std::vector<const Expression *> args;

@@ -1,0 +1,6 @@
+CONST a: Number := 5
+CONST b: Number := a
+
+print(str(b))
+
+%= 5
