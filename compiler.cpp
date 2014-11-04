@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <iso646.h>
 
 #include "ast.h"
 #include "opcode.h"

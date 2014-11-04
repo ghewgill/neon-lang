@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include <iso646.h>
+
 #include "ast.h"
 #include "rtl.h"
 #include "util.h"
