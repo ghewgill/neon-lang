@@ -131,6 +131,9 @@ public:
     ParameterType(Mode mode, const Type *type): mode(mode), type(type) {}
     const Mode mode;
     const Type *type;
+private:
+    ParameterType(const ParameterType &);
+    ParameterType &operator=(const ParameterType &);
 };
 
 class TypeFunction: public Type {
