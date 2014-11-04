@@ -1,6 +1,7 @@
 import os
 import sys
 import tarfile
+import zipfile
 from SCons.Script.SConscript import SConsEnvironment
 
 # Assume a UTF-8 capable terminal.
@@ -18,8 +19,11 @@ if sys.platform == "win32":
 else:
     libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.a", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
 
+env.Command("external/utf8/source/utf8.h", "external/utf8_v2_3_4.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/utf8"))
+
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
+    "external/utf8/source",
 ])
 if sys.platform == "win32":
     env.Append(CXXFLAGS=[
