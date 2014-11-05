@@ -259,7 +259,7 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope), mode(mode) {}
+    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope), mode(mode) { referenced = true; }
     ParameterType::Mode mode;
 
     virtual void generate_address(Emitter &emitter) const;

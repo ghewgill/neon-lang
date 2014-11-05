@@ -1,0 +1,7 @@
+FUNCTION foo(x, y: Number): Number
+    RETURN x
+END
+
+print(str(foo(5, 6)))
+
+%= 5
