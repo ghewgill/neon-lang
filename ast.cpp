@@ -1,6 +1,7 @@
 #include "ast.h"
 
 #include <iostream>
+#include <iso646.h>
 #include <sstream>
 
 #include "rtl.h"
