@@ -68,6 +68,7 @@ private:
 class Type: public Name {
 public:
     Type(const std::string &name): Name(name, nullptr) {}
+    virtual bool is_equivalent(const Type *rhs) const { return this == rhs; }
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
@@ -157,6 +158,7 @@ public:
     TypeArray(const Type *elementtype): Type("array"), elementtype(elementtype) {}
     const Type *elementtype;
 
+    virtual bool is_equivalent(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -172,6 +174,7 @@ public:
     TypeDictionary(const Type *elementtype): Type("dictionary"), elementtype(elementtype) {}
     const Type *elementtype;
 
+    virtual bool is_equivalent(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -187,6 +190,7 @@ public:
     TypeRecord(const std::map<std::string, std::pair<int, const Type *> > &fields): Type("record"), fields(fields) {}
     const std::map<std::string, std::pair<int, const Type *> > fields;
 
+    virtual bool is_equivalent(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;

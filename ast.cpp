@@ -17,6 +17,51 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
+bool TypeArray::is_equivalent(const Type *rhs) const
+{
+    const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);
+    if (a == nullptr) {
+        return false;
+    }
+    return elementtype->is_equivalent(a->elementtype);
+}
+
+bool TypeDictionary::is_equivalent(const Type *rhs) const
+{
+    const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
+    if (d == nullptr) {
+        return false;
+    }
+    return elementtype->is_equivalent(d->elementtype);
+}
+
+bool TypeRecord::is_equivalent(const Type *rhs) const
+{
+    const TypeRecord *r = dynamic_cast<const TypeRecord *>(rhs);
+    if (r == nullptr) {
+        return false;
+    }
+    if (fields.size() != r->fields.size()) {
+        return false;
+    }
+    for (auto f: fields) {
+        auto g = r->fields.find(f.first);
+        // Check name.
+        if (g == r->fields.end()) {
+            return false;
+        }
+        // Check position.
+        if (f.second.first != g->second.first) {
+            return false;
+        }
+        // Check type.
+        if (not f.second.second->is_equivalent(g->second.second)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string ConstantBooleanExpression::text() const
 {
     std::stringstream s;

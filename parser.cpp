@@ -211,7 +211,7 @@ static const Statement *parseConstantDefinition(Scope *scope, const std::vector<
     }
     ++i;
     const Expression *value = parseExpression(scope, tokens, i);
-    if (value->type != type) {
+    if (not value->type->is_equivalent(type)) {
         error(tokens[i], "type mismatch");
     }
     if (not value->is_constant) {
@@ -239,7 +239,7 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
                     error(tokens[i], "function call argument must be reference: " + e->text());
                 }
             }
-            if (e->type != ftype->params[p]->type) {
+            if (not e->type->is_equivalent(ftype->params[p]->type)) {
                 error(tokens[i], "type mismatch");
             }
             args.push_back(e);
@@ -302,7 +302,7 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
             auto op = i;
             ++i;
             const Expression *factor = parseAtom(scope, tokens, i);
-            if (factor->type != TYPE_NUMBER) {
+            if (not factor->type->is_equivalent(TYPE_NUMBER)) {
                 error(tokens[op], "number required for negation");
             }
             return new UnaryMinusExpression(factor);
@@ -311,7 +311,7 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
             auto op = i;
             ++i;
             const Expression *atom = parseAtom(scope, tokens, i);
-            if (atom->type != TYPE_BOOLEAN) {
+            if (not atom->type->is_equivalent(TYPE_BOOLEAN)) {
                 error(tokens[op], "boolean required for logical not");
             }
             return new LogicalNotExpression(atom);
@@ -355,7 +355,7 @@ static const Expression *parseExponentiation(Scope *scope, const std::vector<Tok
             auto op = i;
             ++i;
             const Expression *right = parseAtom(scope, tokens, i);
-            if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+            if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                 left = new ExponentiationExpression(left, right);
             } else {
                 error(tokens[op], "type mismatch");
@@ -375,7 +375,7 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
                 auto op = i;
                 ++i;
                 const Expression *right = parseExponentiation(scope, tokens, i);
-                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new MultiplicationExpression(left, right);
                 } else {
                     error(tokens[op], "type mismatch");
@@ -386,7 +386,7 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
                 auto op = i;
                 ++i;
                 const Expression *right = parseExponentiation(scope, tokens, i);
-                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new DivisionExpression(left, right);
                 } else {
                     error(tokens[op], "type mismatch");
@@ -397,7 +397,7 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
                 auto op = i;
                 ++i;
                 const Expression *right = parseExponentiation(scope, tokens, i);
-                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new ModuloExpression(left, right);
                 } else {
                     error(tokens[op], "type mismatch");
@@ -419,9 +419,9 @@ static const Expression *parseAddition(Scope *scope, const std::vector<Token> &t
                 auto op = i;
                 ++i;
                 const Expression *right = parseMultiplication(scope, tokens, i);
-                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new AdditionExpression(left, right);
-                } else if (left->type == TYPE_STRING && right->type == TYPE_STRING) {
+                } else if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
                     std::vector<const Expression *> args;
                     args.push_back(left);
                     args.push_back(right);
@@ -435,7 +435,7 @@ static const Expression *parseAddition(Scope *scope, const std::vector<Token> &t
                 auto op = i;
                 ++i;
                 const Expression *right = parseMultiplication(scope, tokens, i);
-                if (left->type == TYPE_NUMBER && right->type == TYPE_NUMBER) {
+                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new SubtractionExpression(left, right);
                 } else {
                     error(tokens[op], "type mismatch");
@@ -462,17 +462,17 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
             auto op = i;
             ++i;
             const Expression *right = parseAddition(scope, tokens, i);
-            if (left->type != right->type) {
+            if (not left->type->is_equivalent(right->type)) {
                 error(tokens[op], "type mismatch");
             }
-            if (left->type == TYPE_BOOLEAN) {
+            if (left->type->is_equivalent(TYPE_BOOLEAN)) {
                 if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
                     error(tokens[op], "comparison not available for Boolean");
                 }
                 return new BooleanComparisonExpression(left, right, comp);
-            } else if (left->type == TYPE_NUMBER) {
+            } else if (left->type->is_equivalent(TYPE_NUMBER)) {
                 return new NumericComparisonExpression(left, right, comp);
-            } else if (left->type == TYPE_STRING) {
+            } else if (left->type->is_equivalent(TYPE_STRING)) {
                 return new StringComparisonExpression(left, right, comp);
             } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
                 if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
@@ -506,7 +506,7 @@ static const Expression *parseConjunction(Scope *scope, const std::vector<Token>
             auto op = i;
             ++i;
             const Expression *right = parseComparison(scope, tokens, i);
-            if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
+            if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
                 left = new ConjunctionExpression(left, right);
             } else {
                 error(tokens[op], "type mismatch");
@@ -525,7 +525,7 @@ static const Expression *parseDisjunction(Scope *scope, const std::vector<Token>
             auto op = i;
             ++i;
             const Expression *right = parseConjunction(scope, tokens, i);
-            if (left->type == TYPE_BOOLEAN && right->type == TYPE_BOOLEAN) {
+            if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
                 left = new DisjunctionExpression(left, right);
             } else {
                 error(tokens[op], "type mismatch");
@@ -551,7 +551,7 @@ static const Expression *parseConditional(Scope *scope, const std::vector<Token>
         }
         ++i;
         const Expression *right = parseExpression(scope, tokens, i);
-        if (left->type != right->type) {
+        if (not left->type->is_equivalent(right->type)) {
             error(tokens[i], "type of THEN and ELSE must match");
         }
         return new ConditionalExpression(cond, left, right);
@@ -628,7 +628,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                 if (arraytype != nullptr) {
                     ++i;
                     const Expression *index = parseExpression(scope, tokens, i);
-                    if (index->type != TYPE_NUMBER) {
+                    if (not index->type->is_equivalent(TYPE_NUMBER)) {
                         error(tokens[i], "index must be a number");
                     }
                     if (tokens[i].type != RBRACKET) {
@@ -640,7 +640,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                 } else if (dicttype != nullptr) {
                     ++i;
                     const Expression *index = parseExpression(scope, tokens, i);
-                    if (index->type != TYPE_STRING) {
+                    if (not index->type->is_equivalent(TYPE_STRING)) {
                         error(tokens[i], "index must be a string");
                     }
                     if (tokens[i].type != RBRACKET) {
@@ -652,7 +652,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                 } else if (type == TYPE_STRING) {
                     ++i;
                     const Expression *index = parseExpression(scope, tokens, i);
-                    if (index->type != TYPE_NUMBER) {
+                    if (not index->type->is_equivalent(TYPE_NUMBER)) {
                         error(tokens[i], "index must be a number");
                     }
                     if (tokens[i].type != RBRACKET) {
@@ -761,7 +761,7 @@ static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> 
         ++i;
         auto j = i;
         const Expression *cond = parseExpression(scope, tokens, i);
-        if (cond->type != TYPE_BOOLEAN) {
+        if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
             error(tokens[j], "boolean value expected");
         }
         if (tokens[i].type != THEN) {
@@ -822,7 +822,7 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
     ++i;
     auto j = i;
     const Expression *cond = parseExpression(scope, tokens, i);
-    if (cond->type != TYPE_BOOLEAN) {
+    if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
         error(tokens[j], "boolean value expected");
     }
     if (tokens[i].type != DO) {
@@ -847,7 +847,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
 {
     ++i;
     const Expression *expr = parseExpression(scope, tokens, i);
-    if (expr->type != TYPE_NUMBER && expr->type != TYPE_STRING) {
+    if (not expr->type->is_equivalent(TYPE_NUMBER) && not expr->type->is_equivalent(TYPE_STRING)) {
         error(tokens[i], "CASE expression must be Number or String");
     }
     std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
@@ -865,7 +865,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                     auto op = tokens[i];
                     ++i;
                     const Expression *when = parseExpression(scope, tokens, i);
-                    if (when->type != expr->type) {
+                    if (not when->type->is_equivalent(expr->type)) {
                         error(tokens[i], "type mismatch");
                     }
                     if (not when->is_constant) {
@@ -877,7 +877,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                 }
                 default: {
                     const Expression *when = parseExpression(scope, tokens, i);
-                    if (when->type != expr->type) {
+                    if (not when->type->is_equivalent(expr->type)) {
                         error(tokens[i], "type mismatch");
                     }
                     if (not when->is_constant) {
@@ -886,7 +886,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                     if (tokens[i].type == DOTDOT) {
                         ++i;
                         const Expression *when2 = parseExpression(scope, tokens, i);
-                        if (when2->type != expr->type) {
+                        if (not when2->type->is_equivalent(expr->type)) {
                             error(tokens[i], "type mismatch");
                         }
                         if (not when2->is_constant) {
@@ -966,7 +966,7 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
             auto op = i;
             ++i;
             const Expression *expr = parseExpression(scope, tokens, i);
-            if (expr->type != ref->type) {
+            if (not expr->type->is_equivalent(ref->type)) {
                 error(tokens[op], "type mismatch");
             }
             if (dynamic_cast<const ConstantReference *>(ref) != nullptr) {
