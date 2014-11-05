@@ -51,6 +51,14 @@ if coverage:
 
 env.Command(["thunks.inc", "functions.inc"], ["rtl.cpp", "make_thunks.py"], sys.executable + " make_thunks.py")
 
+if os.name == "posix":
+    rtl_platform = "rtl_posix.cpp"
+elif os.name == "nt":
+    rtl_platform = "rtl_win32.cpp"
+else:
+    print "Unsupported platform:", os.name
+    sys.exit(1)
+
 simple = env.Program("simple", [
     "ast.cpp",
     "bytecode.cpp",
@@ -62,7 +70,7 @@ simple = env.Program("simple", [
     "main.cpp",
     "number.cpp",
     "parser.cpp",
-    "rtl.cpp",
+    "rtl.cpp", rtl_platform,
     "util.cpp",
 ] + coverage_lib,
 )
@@ -95,7 +103,7 @@ env.UnitTest("test_parser", [
     "parser.cpp",
     "lexer.cpp",
     "number.cpp",
-    "rtl.cpp",
+    "rtl.cpp", rtl_platform,
     "util.cpp",
 ] + coverage_lib,
 )
@@ -110,7 +118,7 @@ env.UnitTest("test_compiler", [
     "lexer.cpp",
     "number.cpp",
     "parser.cpp",
-    "rtl.cpp",
+    "rtl.cpp", rtl_platform,
     "util.cpp",
 ] + coverage_lib,
 )

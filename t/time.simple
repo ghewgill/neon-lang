@@ -1,8 +1,12 @@
 IMPORT time
 
-VAR a, b: Number
+VAR a, b, i: Number
 
 a := time.now()
+i := 0
+WHILE i < 1000 DO
+    i := i + 1
+END
 b := time.now()
 %print(str(a))
 %print(str(b))
