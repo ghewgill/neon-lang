@@ -173,6 +173,11 @@ Number number_from_uint32(uint32_t x)
     return x;
 }
 
+Number number_from_uint64(uint64_t x)
+{
+    return x;
+}
+
 #elif defined(NUMBER_DECIMAL)
 
 Number number_add(Number x, Number y)
@@ -370,6 +375,11 @@ Number number_from_string(const std::string &s)
 Number number_from_uint32(uint32_t x)
 {
     return bid64_from_uint32(x);
+}
+
+Number number_from_uint64(uint64_t x)
+{
+    return bid64_from_uint64(x);
 }
 
 #endif
