@@ -201,28 +201,28 @@ std::vector<Token> tokenize(const std::string &source)
                         char *end = NULL;
                         base = strtol(source.substr(i).c_str(), &end, 10);
                         if (base < 2 || base > 36) {
-                            error(t, "invalid base");
+                            error(1001, t, "invalid base");
                         }
                         auto j = i + (end - source.substr(i).c_str());
                         if (source.at(j) != '#') {
-                            error(t, "'#' expected");
+                            error(1002, t, "'#' expected");
                         }
                         i = j + 1;
                     } else {
-                        error(t, "invalid base character");
+                        error(1003, t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
                     for (;;) {
                         c = static_cast<char>(tolower(source.at(i)));
                         if (c == '.') {
-                            error(t, "non-decimal fraction not supported");
+                            error(1004, t, "non-decimal fraction not supported");
                         }
                         if (not isalnum(c)) {
                             break;
                         }
                         int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'z' ? c - 'a' + 10 : -1;
                         if (d < 0) {
-                            error(t, "invalid digit for given base");
+                            error(1005, t, "invalid digit for given base");
                         }
                         value = number_add(number_multiply(value, number_from_uint32(base)), number_from_uint32(d));
                         i++;
@@ -275,7 +275,7 @@ std::vector<Token> tokenize(const std::string &source)
                 int level = 0;
                 do {
                     if (i+1 >= source.length()) {
-                        error(t, "Missing closing comment '|%'");
+                        error(1006, t, "Missing closing comment '|%'");
                     }
                     if (source.at(i) == '%' && source.at(i+1) == '|') {
                         level++;
@@ -309,7 +309,7 @@ std::vector<Token> tokenize(const std::string &source)
                 i++;
             }
         } else {
-            error(t, "Unexpected character");
+            error(1007, t, "Unexpected character");
         }
         if (t.type != NONE) {
             tokens.push_back(t);

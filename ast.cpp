@@ -133,7 +133,7 @@ void Scope::addName(const std::string &name, Name *ref)
         // but no check was made with lookupName() to see whether the
         // name already exists yet. This error needs to be detected
         // in the parsing stage so that we have a token available to
-        // pass to error().
+        // pass to the normal error function.
         fprintf(stderr, "compiler internal error: name presence not checked\n");
         abort();
     }

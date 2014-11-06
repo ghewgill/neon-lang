@@ -85,6 +85,8 @@ def UnitTest(env, target, source, **kwargs):
     env.Alias("test", t)
     return t
 
+env.Command("errors.txt", ["extract_errors.py"] + Glob("*.cpp"), sys.executable + " extract_errors.py")
+
 SConsEnvironment.UnitTest = UnitTest
 
 env.UnitTest("test_lexer", [
