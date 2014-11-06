@@ -125,4 +125,5 @@ env.UnitTest("test_compiler", [
 ] + coverage_lib,
 )
 
-env.Command("dummy", [simple, "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")
+env.Command("tests_normal", [simple, "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")
+env.Command("tests_error", [simple, "run_test.py", "errors.txt", Glob("t/errors/*")], sys.executable + " run_test.py --errors t/errors")

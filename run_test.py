@@ -4,6 +4,8 @@ import re
 import subprocess
 import sys
 
+errors = None
+
 def run(fn):
     print ("Running {}...".format(fn))
 
@@ -19,11 +21,19 @@ def run(fn):
         print("skipped")
         return True
 
-    out_comments = re.findall("^%=\s*(.*)$", src, re.MULTILINE)
-    expected_stdout = "".join([x + "\n" for x in out_comments])
+    expected_stdout = ""
+    expected_stderr = ""
 
-    err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
-    expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
+    if errors:
+        err = os.path.splitext(os.path.basename(fn))[0]
+        expected_stderr = err
+        del errors[err]
+    else:
+        out_comments = re.findall("^%=\s*(.*)$", src, re.MULTILINE)
+        expected_stdout = "".join([x + "\n" for x in out_comments])
+
+        err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
+        expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
 
     p = subprocess.Popen(["./simple", fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
@@ -69,6 +79,11 @@ def run(fn):
     return True
 
 def main():
+    global errors
+    for a in sys.argv[1:]:
+        if a == "--errors":
+            errors = dict(x.strip().split(" ", 1) for x in open("errors.txt"))
+
     total = 0
     succeeded = 0
     failed = 0
@@ -88,5 +103,10 @@ def main():
             else:
                 failed += 1
     print("{} tests, {} succeeded, {} failed".format(total, succeeded, failed))
+    if errors:
+        print "Untested errors:"
+        for number, message in sorted(errors.items()):
+            print number, message
+        # TODO: sys.exit(1)
 
 main()
