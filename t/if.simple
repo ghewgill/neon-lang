@@ -3,7 +3,7 @@ VAR a: Number
 a := 1
 IF a # 0 THEN
     print("one")
-END
+END IF
 %= one
 
 a := 0
@@ -11,7 +11,7 @@ IF a # 0 THEN
     print("nonzero")
 ELSE
     print("zero")
-END
+END IF
 %= zero
 
 a := 1
@@ -21,5 +21,5 @@ ELSIF a = 1 THEN
     print("one")
 ELSE
     print("many")
-END
+END IF
 %= one

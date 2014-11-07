@@ -4,12 +4,12 @@ FUNCTION foo(): Nothing
     VAR outer: String
         FUNCTION bar(): Nothing
             outer := "two"
-        END
+        END FUNCTION
     outer := "one"
     print(outer)
     bar()
     print(outer)
-END
+END FUNCTION
 
 foo()
 

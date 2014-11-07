@@ -6,8 +6,8 @@ WHILE a > 0 DO
     print(str(a))
     IF a = 3 THEN
         BREAK
-    END
-END
+    END IF
+END WHILE
 
 %= 5
 %= 4

@@ -9,7 +9,7 @@ FUNCTION sq(): Number
     t := x * x
     z := 999
     RETURN t
-END
+END FUNCTION
 
 print(str(sq()))
 print(str(y))

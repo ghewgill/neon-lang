@@ -2,6 +2,6 @@
 
 FUNCTION foo(x: Number): Nothing
     RETURN x
-END
+END FUNCTION
 
 %! function does not return a value

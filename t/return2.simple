@@ -3,8 +3,8 @@ FUNCTION foo(x: Number): String
         RETURN "zero"
     ELSE
         RETURN "nonzero"
-    END
-END
+    END IF
+END FUNCTION
 
 print(foo(0))
 

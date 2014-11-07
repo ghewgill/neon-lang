@@ -3,7 +3,7 @@ VAR s: String
 a := TRUE
 IF a THEN
     s := "true"
-END
+END IF
 print(s)
 
 %= true

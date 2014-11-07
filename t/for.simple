@@ -2,7 +2,7 @@
 VAR a: Number
 FOR a IN 1 TO 5
     print(str(a))
-END
+END FOR
 
 %= 1
 %= 2

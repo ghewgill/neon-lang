@@ -13,10 +13,10 @@ WHILE a < 10 DO
             s := "seven or nine"
         ELSE
             s := "is something else"
-    END
+    END CASE
     print(str(a) + " " + s)
     a := a + 1
-END
+END WHILE
 
 %= 0 less than two
 %= 1 less than two

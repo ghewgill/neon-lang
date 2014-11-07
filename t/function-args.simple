@@ -1,10 +1,10 @@
 FUNCTION sq(x: Number): Number
     RETURN x * x
-END
+END FUNCTION
 
 FUNCTION add(x: Number, y: Number): Number
     RETURN x + y
-END
+END FUNCTION
 
 print(str(sq(5)))
 %= 25

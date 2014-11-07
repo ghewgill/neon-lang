@@ -2,7 +2,7 @@
 
 FUNCTION foo(): Nothing
     VAR a: Number
-END
+END FUNCTION
 
 VAR a: Number
 

@@ -4,15 +4,15 @@ FUNCTION ping(n: Number): Nothing
     IF n > 0 THEN
         print("ping " + str(n))
         pong(n - 1)
-    END
-END
+    END IF
+END FUNCTION
 
 FUNCTION pong(n: Number): Nothing
-    if n > 0 THEN
+    IF n > 0 THEN
         print("pong " + str(n))
         ping(n - 1)
-    END
-END
+    END IF
+END FUNCTION
 
 ping(10)
 

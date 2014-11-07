@@ -1,17 +1,17 @@
 FUNCTION in(IN a: Number): Nothing
     print(str(a))
     a := a + 1
-END
+END FUNCTION
 
 FUNCTION inout(INOUT a: Number): Nothing
     print(str(a))
     a := a + 1
-END
+END FUNCTION
 
 FUNCTION out(OUT a: Number): Nothing
     print(str(a))
     a := a + 1
-END
+END FUNCTION
 
 VAR a: Number
 

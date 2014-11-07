@@ -3,7 +3,7 @@ x := 5
 
 FUNCTION sq(): Number
     RETURN x * x
-END
+END FUNCTION
 
 print(str(sq()))
 

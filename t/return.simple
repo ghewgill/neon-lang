@@ -2,6 +2,6 @@
 
 FUNCTION foo(x: Number): Number
     print(str(x))
-END
+END FUNCTION
 
 %! missing RETURN statement

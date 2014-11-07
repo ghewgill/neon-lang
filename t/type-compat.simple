@@ -1,6 +1,6 @@
 FUNCTION foo(a: Array<String>): Nothing
     % ...
-END
+END FUNCTION
 
 VAR a: Array<String>
 foo(a)

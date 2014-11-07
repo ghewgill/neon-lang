@@ -3,7 +3,7 @@ a := 5
 WHILE a > 0 DO
     print(str(a))
     a := a - 1
-END
+END WHILE
 
 %= 5
 %= 4

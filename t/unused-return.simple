@@ -1,6 +1,6 @@
 FUNCTION foo(x: Number): Number
     RETURN x + 1
-END
+END FUNCTION
 
 foo(5)
 

@@ -3,9 +3,9 @@
 FUNCTION factorial(x: Number): Number
     IF x = 0 THEN
         RETURN 1
-    END
+    END IF
     RETURN x * factorial(x - 1)
-END
+END FUNCTION
 
 print(str(factorial(5))
 

@@ -1,22 +1,22 @@
 FUNCTION a(): Boolean
     print("a")
     RETURN FALSE
-END
+END FUNCTION
 
 FUNCTION b(): Boolean
     print("b")
     RETURN TRUE
-END
+END FUNCTION
 
 IF a() AND b() THEN
     print("hi")
-END
+END IF
 
 %= a
 
 IF b() OR a() THEN
     print("hi")
-END
+END IF
 
 %= b
 %= hi

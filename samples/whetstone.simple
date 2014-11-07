@@ -78,16 +78,16 @@ FUNCTION PA(E: Array<Number>): Nothing
         E[3] := ( E[1] - E[2] + E[3] + E[4]) * T
         E[4] := (-E[1] + E[2] + E[3] + E[4]) / T2
         J := J + 1
-    END
-END
+    END WHILE
+END FUNCTION
 
 FUNCTION P0(): Nothing
     E1[J] := E1[K]
     E1[K] := E1[L]
     E1[L] := E1[J]
-END
+END FUNCTION
 
-FUNCTION P3(X: Number, Y: Number, OUT Z: Number)
+FUNCTION P3(X: Number, Y: Number, OUT Z: Number): Nothing
     VAR X1, Y1: Number
 
     X1 := X
@@ -95,7 +95,7 @@ FUNCTION P3(X: Number, Y: Number, OUT Z: Number)
     X1 := T * (X1 + Y1)
     Y1 := T * (X1 + Y1)
     Z  := (X1 + Y1) / T2
-END
+END FUNCTION
 
 %#ifdef PRINTOUT
 %void
@@ -193,7 +193,7 @@ C
                 X2 := (X1 + X2 - X3 + X4) * T
                 X3 := (X1 - X2 + X3 + X4) * T
                 X4 := (-X1+ X2 + X3 + X4) * T
-            END
+            END FOR
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N1,N1,N1,X1,X2,X3,X4);
 %#endif
@@ -213,7 +213,7 @@ C
                 E1[2] := ( E1[1] + E1[2] - E1[3] + E1[4]) * T
                 E1[3] := ( E1[1] - E1[2] + E1[3] + E1[4]) * T
                 E1[4] := (-E1[1] + E1[2] + E1[3] + E1[4]) * T
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N2,N3,N2,E1[1],E1[2],E1[3],E1[4]);
@@ -226,7 +226,7 @@ C
 |%
             FOR I := 1 TO N3 DO
                 PA(E1)
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N3,N2,N2,E1[1],E1[2],E1[3],E1[4]);
@@ -243,20 +243,20 @@ C
                     J := 2
                 ELSE
                     J := 3
-                END
+                END IF
 
                 IF J > 2 THEN
                     J := 0
                 ELSE
                     J := 1
-                END
+                END IF
 
                 IF J < 1 THEN
                     J := 1
                 ELSE
                     J := 0
-                END
-            END
+                END IF
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N4,J,J,X1,X2,X3,X4);
@@ -279,7 +279,7 @@ C
                 L := (L-K) * (K+J)
                 E1[L-1] := J + K + L
                 E1[K-1] := J * K * L
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N6,J,K,E1[1],E1[2],E1[3],E1[4]);
@@ -296,7 +296,7 @@ C
             FOR I := 1 TO N7 DO
                 X := T * math.atan(T2*math.sin(X)*math.cos(X)/(math.cos(X+Y)+math.cos(X-Y)-1.0))
                 Y := T * math.atan(T2*math.sin(Y)*math.cos(Y)/(math.cos(X+Y)+math.cos(X-Y)-1.0))
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N7,J,K,X,X,Y,Y);
@@ -313,7 +313,7 @@ C
 
             FOR I := 1 TO N8 DO
                 P3(X,Y,Z)
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N8,J,K,X,Y,Z,Z);
@@ -333,7 +333,7 @@ C
 
             FOR I := 1 TO N9 DO
                 P0()
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N9,J,K,E1[1],E1[2],E1[3],E1[4]);
@@ -352,7 +352,7 @@ C
                 K := J + K
                 J := K - J
                 K := K - J - J
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N10,J,K,X1,X2,X3,X4);
@@ -367,7 +367,7 @@ C
 
             FOR I := 1 TO N11 DO
                 X := math.sqrt(math.exp(math.log(X)/T1))
-            END
+            END FOR
 
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N11,J,K,X,X,X,X);
@@ -379,7 +379,7 @@ C      THIS IS THE END OF THE MAJOR LOOP.
 C
 |%
             JJ := JJ + 1
-        END
+        END WHILE
 
 %|
 C
@@ -401,7 +401,7 @@ C--------------------------------------------------------------------
         IF finisec-startsec <= 0 THEN
             print("Insufficient duration- Increase the LOOP count")
             RETURN
-        END
+        END IF
 
         print("Loops: " + str(LOOP) + ", Iterations: " + str(II) + ", Duration: " + str(finisec-startsec) + ".")
 
@@ -410,9 +410,9 @@ C--------------------------------------------------------------------
             print("Simple Converted Double Precision Whetstones: " + str(KIPS/1000.0) + " MIPS")
         ELSE
             print("Simple Converted Double Precision Whetstones: " + str(KIPS) + " KIPS")
-        END
+        END IF
 
-    %END
+    %END WHILE
 
 END
 

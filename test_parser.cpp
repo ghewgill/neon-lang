@@ -74,7 +74,7 @@ int main()
     }
 
     {
-        auto *program = dump(parse(tokenize("VAR a: Number IF a # 0 THEN print(str(a)) END")));
+        auto *program = dump(parse(tokenize("VAR a: Number IF a # 0 THEN print(str(a)) END IF")));
         assert(program->statements.size() == 1);
         auto *is = dynamic_cast<const IfStatement *>(program->statements[0]);
         assert(is->condition_statements.size() == 1);

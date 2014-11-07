@@ -111,6 +111,10 @@ static const Type *parseRecordType(Scope *scope, const std::vector<Token> &token
         index++;
     }
     i++;
+    if (tokens[i].type != RECORD) {
+        error(2100, tokens[i], "'RECORD' expected");
+    }
+    i++;
     return new TypeRecord(fields);
 }
 
@@ -133,6 +137,10 @@ static const Type *parseEnumType(Scope *scope, const std::vector<Token> &tokens,
         i++;
         names[name] = index;
         index++;
+    }
+    i++;
+    if (tokens[i].type != ENUM) {
+        error(2101, tokens[i], "'ENUM' expected");
     }
     i++;
     return new TypeEnum(names);
@@ -749,6 +757,10 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         }
     }
     ++i;
+    if (tokens[i].type != FUNCTION) {
+        error(2102, tokens[i], "'FUNCTION' expected");
+    }
+    ++i;
     scope->addName(name, function);
     return nullptr;
 }
@@ -788,6 +800,10 @@ static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> 
     }
     if (tokens[i].type != END) {
         error(2080, tokens[i], "END expected");
+    }
+    ++i;
+    if (tokens[i].type != IF) {
+        error(2103, tokens[i], "IF expected");
     }
     ++i;
     return new IfStatement(condition_statements, else_statements);
@@ -838,6 +854,10 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
     }
     if (tokens[i].type != END) {
         error(2083, tokens[i], "END expected");
+    }
+    ++i;
+    if (tokens[i].type != WHILE) {
+        error(2104, tokens[i], "WHILE expected");
     }
     ++i;
     return new WhileStatement(cond, statements);
@@ -923,6 +943,10 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
     }
     if (tokens[i].type != END) {
         error(2092, tokens[i], "'END' expected");
+    }
+    ++i;
+    if (tokens[i].type != CASE) {
+        error(2105, tokens[i], "CASE expected");
     }
     ++i;
     clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));

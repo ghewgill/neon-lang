@@ -1,6 +1,6 @@
 FUNCTION foo(x, y: Number): Number
     RETURN x
-END
+END FUNCTION
 
 print(str(foo(5, 6)))
 

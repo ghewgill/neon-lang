@@ -3,7 +3,7 @@ VAR n1, n2: Number
 VAR s1, s2: String
 VAR a1, a2: Array<String>
 VAR d1, d2: Dictionary<String>
-VAR r1, r2: RECORD x: Number END
+VAR r1, r2: RECORD x: Number END RECORD
 
 b2 := b1
 n2 := n1
