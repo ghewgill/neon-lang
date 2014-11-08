@@ -1,0 +1,4 @@
+VAR a: Number
+a := 0xabcdefg
+
+%! invalid digit
