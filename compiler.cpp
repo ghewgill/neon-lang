@@ -42,10 +42,10 @@ void Emitter::emit(unsigned char b)
 
 void Emitter::emit_int(int value)
 {
-    emit(static_cast<unsigned char>(value >> 24));
-    emit(static_cast<unsigned char>(value >> 16));
-    emit(static_cast<unsigned char>(value >> 8));
-    emit(static_cast<unsigned char>(value));
+    emit(static_cast<unsigned char>((value >> 24) & 0xff));
+    emit(static_cast<unsigned char>((value >> 16) & 0xff));
+    emit(static_cast<unsigned char>((value >> 8) & 0xff));
+    emit(static_cast<unsigned char>(value & 0xff));
 }
 
 void Emitter::emit(unsigned char b, int value)
