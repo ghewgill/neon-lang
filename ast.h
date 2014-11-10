@@ -911,6 +911,7 @@ public:
     class WhenCondition {
     public:
         virtual ~WhenCondition() {}
+        virtual bool overlaps(const WhenCondition *cond) const = 0;
         virtual void generate(Emitter &emitter) const = 0;
     };
     class ComparisonWhenCondition: public WhenCondition {
@@ -918,6 +919,7 @@ public:
         ComparisonWhenCondition(ComparisonExpression::Comparison comp, const Expression *expr): comp(comp), expr(expr) {}
         ComparisonExpression::Comparison comp;
         const Expression *expr;
+        virtual bool overlaps(const WhenCondition *cond) const;
         virtual void generate(Emitter &emitter) const;
     private:
         ComparisonWhenCondition(const ComparisonWhenCondition &);
@@ -928,6 +930,7 @@ public:
         RangeWhenCondition(const Expression *low_expr, const Expression *high_expr): low_expr(low_expr), high_expr(high_expr) {}
         const Expression *low_expr;
         const Expression *high_expr;
+        virtual bool overlaps(const WhenCondition *cond) const;
         virtual void generate(Emitter &emitter) const;
     private:
         RangeWhenCondition(const RangeWhenCondition &);

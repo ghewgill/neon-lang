@@ -1,5 +1,3 @@
-% TODO
-
 VAR a: Number
 
 CASE a
@@ -7,4 +5,4 @@ CASE a
     WHEN 1 DO
 END CASE
 
-%! overlapping when
+%! overlapping case

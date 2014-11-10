@@ -892,6 +892,18 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                         error(2086, tokens[i], "WHEN condition must be constant");
                     }
                     const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(comparisonFromToken(op), when);
+                    for (auto clause: clauses) {
+                        for (auto c: clause.first) {
+                            if (cond->overlaps(c)) {
+                                error(2106, tokens[i], "overlapping case condition");
+                            }
+                        }
+                    }
+                    for (auto c: conditions) {
+                        if (cond->overlaps(c)) {
+                            error(2107, tokens[i], "overlapping case condition");
+                        }
+                    }
                     conditions.push_back(cond);
                     break;
                 }
@@ -913,9 +925,33 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                             error(2090, tokens[i], "WHEN condition must be constant");
                         }
                         const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(when, when2);
+                        for (auto clause: clauses) {
+                            for (auto c: clause.first) {
+                                if (cond->overlaps(c)) {
+                                    error(2108, tokens[i], "overlapping case condition");
+                                }
+                            }
+                        }
+                        for (auto c: conditions) {
+                            if (cond->overlaps(c)) {
+                                error(2109, tokens[i], "overlapping case condition");
+                            }
+                        }
                         conditions.push_back(cond);
                     } else {
                         const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(ComparisonExpression::EQ, when);
+                        for (auto clause: clauses) {
+                            for (auto c: clause.first) {
+                                if (cond->overlaps(c)) {
+                                    error(2110, tokens[i], "overlapping case condition");
+                                }
+                            }
+                        }
+                        for (auto c: conditions) {
+                            if (cond->overlaps(c)) {
+                                error(2111, tokens[i], "overlapping case condition");
+                            }
+                        }
                         conditions.push_back(cond);
                     }
                     break;
@@ -951,6 +987,116 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
     ++i;
     clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));
     return new CaseStatement(expr, clauses);
+}
+
+namespace overlap {
+
+static bool operator==(const Number &x, const Number &y) { return number_is_equal(x, y); }
+static bool operator!=(const Number &x, const Number &y) { return number_is_not_equal(x, y); }
+static bool operator<(const Number &x, const Number &y) { return number_is_less(x, y); }
+static bool operator>(const Number &x, const Number &y) { return number_is_greater(x, y); }
+static bool operator<=(const Number &x, const Number &y) { return number_is_less_equal(x, y); }
+static bool operator>=(const Number &x, const Number &y) { return number_is_greater_equal(x, y); }
+
+template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, ComparisonExpression::Comparison comp2, const T &value2)
+{
+    switch (comp1) {
+        case ComparisonExpression::EQ:
+            switch (comp2) {
+                case ComparisonExpression::EQ:
+                    return value1 == value2;
+                case ComparisonExpression::NE:
+                    return value1 != value2;
+                case ComparisonExpression::LT:
+                    return value1 < value2;
+                case ComparisonExpression::GT:
+                    return value1 > value2;
+                case ComparisonExpression::LE:
+                    return value1 <= value2;
+                case ComparisonExpression::GE:
+                    return value1 >= value2;
+            }
+            break;
+        case ComparisonExpression::NE:
+            return false; // TODO
+        case ComparisonExpression::LT:
+            return false; // TODO
+        case ComparisonExpression::GT:
+            return false; // TODO
+        case ComparisonExpression::LE:
+            return false; // TODO
+        case ComparisonExpression::GE:
+            return false; // TODO
+    }
+    return false;
+}
+
+template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, const T &value2low, const T &value2high)
+{
+    return false; // TODO
+}
+
+template <typename T> bool check(const T &value1low, const T &value1high, const T &value2low, const T &value2high)
+{
+    return false; // TODO
+}
+
+} // namespace overlap
+
+bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond) const
+{
+    const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
+    const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
+    if (cwhen != nullptr) {
+        if (expr->type->is_equivalent(TYPE_NUMBER)) {
+            return overlap::check(comp, expr->eval_number(), cwhen->comp, cwhen->expr->eval_number());
+        } else if (expr->type->is_equivalent(TYPE_STRING)) {
+            return overlap::check(comp, expr->eval_string(), cwhen->comp, cwhen->expr->eval_string());
+        } else {
+            fprintf(stderr, "compiler internal error");
+            abort();
+        }
+    } else if (rwhen != nullptr) {
+        if (expr->type->is_equivalent(TYPE_NUMBER)) {
+            return overlap::check(comp, expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
+        } else if (expr->type->is_equivalent(TYPE_STRING)) {
+            return overlap::check(comp, expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
+        } else {
+            fprintf(stderr, "compiler internal error");
+            abort();
+        }
+    } else {
+        fprintf(stderr, "compiler internal error");
+        abort();
+    }
+}
+
+bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) const
+{
+    const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
+    const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
+    if (cwhen != nullptr) {
+        if (low_expr->type->is_equivalent(TYPE_NUMBER)) {
+            return overlap::check(cwhen->comp, cwhen->expr->eval_number(), low_expr->eval_number(), high_expr->eval_number());
+        } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
+            return overlap::check(cwhen->comp, cwhen->expr->eval_string(), low_expr->eval_string(), high_expr->eval_string());
+        } else {
+            fprintf(stderr, "compiler internal error");
+            abort();
+        }
+    } else if (rwhen != nullptr) {
+        if (low_expr->type->is_equivalent(TYPE_NUMBER)) {
+            return overlap::check(low_expr->eval_number(), high_expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
+        } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
+            return overlap::check(low_expr->eval_string(), high_expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
+        } else {
+            fprintf(stderr, "compiler internal error");
+            abort();
+        }
+    } else {
+        fprintf(stderr, "compiler internal error");
+        abort();
+    }
 }
 
 static const Statement *parseImport(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
