@@ -160,7 +160,8 @@ std::string number_to_string(Number x)
 
 uint32_t number_to_uint32(Number x)
 {
-    return trunc(x.x);
+    // TODO: handle out of range exception
+    return static_cast<uint32_t>(trunc(x.x));
 }
 
 Number number_from_string(const std::string &s)
@@ -175,7 +176,7 @@ Number number_from_uint32(uint32_t x)
 
 Number number_from_uint64(uint64_t x)
 {
-    return x;
+    return static_cast<double>(x);
 }
 
 #elif defined(NUMBER_DECIMAL)
