@@ -199,11 +199,11 @@ std::vector<Token> tokenize(const std::string &source)
                     } else if (c == '#') {
                         i += 2;
                         char *end = NULL;
-                        base = strtol(source.substr(i).c_str(), &end, 10);
+                        base = strtol(source.c_str() + i, &end, 10);
                         if (base < 2 || base > 36) {
                             error(1001, t, "invalid base");
                         }
-                        auto j = i + (end - source.substr(i).c_str());
+                        auto j = i + (end - (source.c_str() + i));
                         if (source.at(j) != '#') {
                             error(1002, t, "'#' expected");
                         }
