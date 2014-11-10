@@ -278,6 +278,8 @@ class Expression: public AstNode {
 public:
     Expression(const Type *type, bool is_constant): type(type), is_constant(is_constant) {}
 
+    virtual Number eval_number() const = 0;
+    virtual std::string eval_string() const = 0;
     virtual const VariableReference *get_reference() const { return nullptr; }
     virtual void generate(Emitter &emitter) const = 0;
 
@@ -306,6 +308,8 @@ public:
 
     const bool value;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -317,6 +321,8 @@ public:
 
     const Number value;
 
+    virtual Number eval_number() const { return value; }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -328,6 +334,8 @@ public:
 
     const std::string value;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { return value; }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -339,6 +347,8 @@ public:
 
     const int value;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -352,6 +362,8 @@ public:
 
     const Expression *const value;
 
+    virtual Number eval_number() const { return number_negate(value->eval_number()); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -370,6 +382,8 @@ public:
 
     const Expression *const value;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -390,6 +404,8 @@ public:
     const Expression *left;
     const Expression *right;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -410,6 +426,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -430,6 +448,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -459,6 +479,8 @@ class BooleanComparisonExpression: public ComparisonExpression {
 public:
     BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -470,6 +492,8 @@ class NumericComparisonExpression: public ComparisonExpression {
 public:
     NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -481,6 +505,8 @@ class StringComparisonExpression: public ComparisonExpression {
 public:
     StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -492,6 +518,8 @@ class ArrayComparisonExpression: public ComparisonExpression {
 public:
     ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -503,6 +531,8 @@ class DictionaryComparisonExpression: public ComparisonExpression {
 public:
     DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -520,6 +550,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { return number_add(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -540,6 +572,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { return number_subtract(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -560,6 +594,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { return number_multiply(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -580,6 +616,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { return number_divide(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -600,6 +638,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { return number_modulo(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -620,6 +660,8 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual Number eval_number() const { return number_pow(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -738,6 +780,8 @@ public:
 
     const VariableReference *var;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual const VariableReference *get_reference() const { return var; }
     virtual void generate(Emitter &emitter) const;
 
@@ -756,6 +800,8 @@ public:
     const VariableReference *const func;
     const std::vector<const Expression *> args;
 
+    virtual Number eval_number() const { assert(false); }
+    virtual std::string eval_string() const { assert(false); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
