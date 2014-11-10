@@ -1,12 +1,13 @@
 #ifndef AST_H
 #define AST_H
 
-#include <assert.h>
+#include <iso646.h>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "number.h"
+#include "util.h"
 
 // Compiler
 class Emitter;
@@ -203,9 +204,9 @@ public:
     TypeEnum(const std::map<std::string, int> &names): Type("enum"), names(names) {}
     const std::map<std::string, int> names;
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &emitter) const { internal_error("TypeEnum"); }
+    virtual void generate_store(Emitter &emitter) const { internal_error("TypeEnum"); }
+    virtual void generate_call(Emitter &emitter) const { internal_error("TypeEnum"); }
 
     virtual std::string text() const { return "TypeEnum(...)"; }
 };
@@ -214,9 +215,9 @@ class TypeModule: public Type {
 public:
     TypeModule(): Type("module") {}
 
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
-    virtual void generate_call(Emitter &emitter) const { assert(false); }
+    virtual void generate_load(Emitter &emitter) const { internal_error("TypeModule"); }
+    virtual void generate_store(Emitter &emitter) const { internal_error("TypeModule"); }
+    virtual void generate_call(Emitter &emitter) const { internal_error("TypeModule"); }
 
     virtual std::string text() const { return "TypeModule(...)"; }
 };
@@ -308,8 +309,8 @@ public:
 
     const bool value;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("ConstantBooleanExpression"); }
+    virtual std::string eval_string() const { internal_error("ConstantBooleanExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -322,7 +323,7 @@ public:
     const Number value;
 
     virtual Number eval_number() const { return value; }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("ConstantNumberExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -334,7 +335,7 @@ public:
 
     const std::string value;
 
-    virtual Number eval_number() const { assert(false); }
+    virtual Number eval_number() const { internal_error("ConstantStringExpression"); }
     virtual std::string eval_string() const { return value; }
     virtual void generate(Emitter &emitter) const;
 
@@ -347,8 +348,8 @@ public:
 
     const int value;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("ConstantEnumExpression"); }
+    virtual std::string eval_string() const { internal_error("ConstantEnumExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -357,13 +358,15 @@ public:
 class UnaryMinusExpression: public Expression {
 public:
     UnaryMinusExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
-        assert(type == TYPE_NUMBER);
+        if (not type->is_equivalent(TYPE_NUMBER)) {
+            internal_error("UnaryMinusExpression");
+        }
     }
 
     const Expression *const value;
 
     virtual Number eval_number() const { return number_negate(value->eval_number()); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("UnaryMinusExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -377,13 +380,15 @@ private:
 class LogicalNotExpression: public Expression {
 public:
     LogicalNotExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
-        assert(type == TYPE_BOOLEAN);
+        if (not type->is_equivalent(TYPE_BOOLEAN)) {
+            internal_error("LogicalNotExpression");
+        }
     }
 
     const Expression *const value;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("LogicalNotExpression"); }
+    virtual std::string eval_string() const { internal_error("LogicalNotExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -397,15 +402,17 @@ private:
 class ConditionalExpression: public Expression {
 public:
     ConditionalExpression(const Expression *condition, const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), condition(condition), left(left), right(right) {
-        assert(left->type == right->type);
+        if (not left->type->is_equivalent(right->type)) {
+            internal_error("ConditionalExpression");
+        }
     }
 
     const Expression *condition;
     const Expression *left;
     const Expression *right;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("ConditionalExpression"); }
+    virtual std::string eval_string() const { internal_error("ConditionalExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -419,15 +426,16 @@ private:
 class DisjunctionExpression: public Expression {
 public:
     DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_BOOLEAN);
-        assert(right->type == TYPE_BOOLEAN);
+        if (not left->type->is_equivalent(TYPE_BOOLEAN) || not right->type->is_equivalent(TYPE_BOOLEAN)) {
+            internal_error("DisjunctionExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("DisjunctionExpression"); }
+    virtual std::string eval_string() const { internal_error("DisjunctionExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -441,15 +449,16 @@ private:
 class ConjunctionExpression: public Expression {
 public:
     ConjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_BOOLEAN);
-        assert(right->type == TYPE_BOOLEAN);
+        if (not left->type->is_equivalent(TYPE_BOOLEAN) || not right->type->is_equivalent(TYPE_BOOLEAN)) {
+            internal_error("ConjunctionExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("ConjunctionExpression"); }
+    virtual std::string eval_string() const { internal_error("ConjunctionExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -479,8 +488,8 @@ class BooleanComparisonExpression: public ComparisonExpression {
 public:
     BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("BooleanComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("BooleanComparisonExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -492,8 +501,8 @@ class NumericComparisonExpression: public ComparisonExpression {
 public:
     NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("NumericComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("NumericComparisonExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -505,8 +514,8 @@ class StringComparisonExpression: public ComparisonExpression {
 public:
     StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("StringComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("StringComparisonExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -518,8 +527,8 @@ class ArrayComparisonExpression: public ComparisonExpression {
 public:
     ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("ArrayComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayComparisonExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -531,8 +540,8 @@ class DictionaryComparisonExpression: public ComparisonExpression {
 public:
     DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("DictionaryComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("DictionaryComparisonExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -543,15 +552,16 @@ public:
 class AdditionExpression: public Expression {
 public:
     AdditionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_NUMBER);
-        assert(right->type == TYPE_NUMBER);
+        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+            internal_error("AdditionExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
     virtual Number eval_number() const { return number_add(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("AdditionExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -565,15 +575,16 @@ private:
 class SubtractionExpression: public Expression {
 public:
     SubtractionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_NUMBER);
-        assert(right->type == TYPE_NUMBER);
+        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+            internal_error("SubtractionExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
     virtual Number eval_number() const { return number_subtract(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("SubtractionExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -587,15 +598,16 @@ private:
 class MultiplicationExpression: public Expression {
 public:
     MultiplicationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_NUMBER);
-        assert(right->type == TYPE_NUMBER);
+        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+            internal_error("MultiplicationExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
     virtual Number eval_number() const { return number_multiply(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("MultiplicationExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -609,15 +621,16 @@ private:
 class DivisionExpression: public Expression {
 public:
     DivisionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_NUMBER);
-        assert(right->type == TYPE_NUMBER);
+        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+            internal_error("DivisionExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
     virtual Number eval_number() const { return number_divide(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("DivisionExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -631,15 +644,16 @@ private:
 class ModuloExpression: public Expression {
 public:
     ModuloExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_NUMBER);
-        assert(right->type == TYPE_NUMBER);
+        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+            internal_error("ModuloExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
     virtual Number eval_number() const { return number_modulo(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("ModuloExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -653,15 +667,16 @@ private:
 class ExponentiationExpression: public Expression {
 public:
     ExponentiationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        assert(left->type == TYPE_NUMBER);
-        assert(right->type == TYPE_NUMBER);
+        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+            internal_error("ExponentiationExpression");
+        }
     }
 
     const Expression *const left;
     const Expression *const right;
 
     virtual Number eval_number() const { return number_pow(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual std::string eval_string() const { internal_error("ExponentiationExpression"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -734,7 +749,7 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
-    virtual void generate_address(Emitter &emitter) const { assert(false); }
+    virtual void generate_address(Emitter &emitter) const { internal_error("StringReference"); }
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
 
@@ -780,8 +795,8 @@ public:
 
     const VariableReference *var;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("VariableExpression"); }
+    virtual std::string eval_string() const { internal_error("VariableExpression"); }
     virtual const VariableReference *get_reference() const { return var; }
     virtual void generate(Emitter &emitter) const;
 
@@ -800,8 +815,8 @@ public:
     const VariableReference *const func;
     const std::vector<const Expression *> args;
 
-    virtual Number eval_number() const { assert(false); }
-    virtual std::string eval_string() const { assert(false); }
+    virtual Number eval_number() const { internal_error("FunctionCall"); }
+    virtual std::string eval_string() const { internal_error("FunctionCall"); }
     virtual void generate(Emitter &emitter) const;
 
     virtual std::string text() const;
@@ -818,7 +833,9 @@ public:
 class AssignmentStatement: public Statement {
 public:
     AssignmentStatement(const VariableReference *variable, const Expression *expr): variable(variable), expr(expr) {
-        assert(variable->type == expr->type);
+        if (not variable->type->is_equivalent(expr->type)) {
+            internal_error("AssignmentStatement");
+        }
     }
 
     const VariableReference *const variable;
@@ -965,9 +982,9 @@ public:
 
     virtual void predeclare(Emitter &emitter);
     virtual void postdeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const { assert(false); }
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_address(Emitter &emitter) const { internal_error("Function"); }
+    virtual void generate_load(Emitter &emitter) const { internal_error("Function"); }
+    virtual void generate_store(Emitter &emitter) const { internal_error("Function"); }
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "Function(" + name + ", " + type->text() + ")"; }
@@ -982,9 +999,9 @@ public:
     int name_index;
 
     virtual void predeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const { assert(false); }
-    virtual void generate_load(Emitter &emitter) const { assert(false); }
-    virtual void generate_store(Emitter &emitter) const { assert(false); }
+    virtual void generate_address(Emitter &emitter) const { internal_error("PredefinedFunction"); }
+    virtual void generate_load(Emitter &emitter) const { internal_error("PredefinedFunction"); }
+    virtual void generate_store(Emitter &emitter) const { internal_error("PredefinedFunction"); }
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }

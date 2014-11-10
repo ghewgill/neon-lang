@@ -146,7 +146,7 @@ void TypeBoolean::generate_store(Emitter &emitter) const
 
 void TypeBoolean::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeBoolean");
 }
 
 void TypeNumber::generate_load(Emitter &emitter) const
@@ -161,7 +161,7 @@ void TypeNumber::generate_store(Emitter &emitter) const
 
 void TypeNumber::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeNumber");
 }
 
 void TypeString::generate_load(Emitter &emitter) const
@@ -176,22 +176,22 @@ void TypeString::generate_store(Emitter &emitter) const
 
 void TypeString::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeString");
 }
 
 void TypeFunction::generate_load(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeFunction");
 }
 
 void TypeFunction::generate_store(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeFunction");
 }
 
 void TypeFunction::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeFunction");
 }
 
 void TypeArray::generate_load(Emitter &emitter) const
@@ -206,7 +206,7 @@ void TypeArray::generate_store(Emitter &emitter) const
 
 void TypeArray::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeArray");
 }
 
 void TypeDictionary::generate_load(Emitter &emitter) const
@@ -221,7 +221,7 @@ void TypeDictionary::generate_store(Emitter &emitter) const
 
 void TypeDictionary::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeDictionary");
 }
 
 void TypeRecord::generate_load(Emitter &emitter) const
@@ -236,7 +236,7 @@ void TypeRecord::generate_store(Emitter &emitter) const
 
 void TypeRecord::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("TypeRecord");
 }
 
 void Variable::generate_load(Emitter &emitter) const
@@ -524,7 +524,7 @@ void VariableReference::generate_store(Emitter &emitter) const
 
 void VariableReference::generate_call(Emitter &emitter) const
 {
-    assert(false);
+    internal_error("VariableReference");
 }
 
 void ScalarVariableReference::generate_address(Emitter &emitter) const

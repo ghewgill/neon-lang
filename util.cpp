@@ -11,3 +11,9 @@ void abort_error(const char *file, int line, int number, const Token &token, con
     fprintf(stderr, "Error S%d: %d:%d %s %s (%s:%d)\n", number, token.line, token.column, token.tostring().c_str(), message.c_str(), file, line);
     exit(1);
 }
+
+void abort_internal_error(const char *file, int line, const std::string &message)
+{
+    fprintf(stderr, "Compiler Internal Error: %s (%s:%d)\n", message.c_str(), file, line);
+    exit(1);
+}
