@@ -694,8 +694,7 @@ void CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) const
     } else if (expr->type == TYPE_STRING) {
         op = ops;
     } else {
-        fprintf(stderr, "compiler internal error: when condition not number or string");
-        abort();
+        internal_error("when condition not number or string");
     }
 
     emitter.emit(DUP);
@@ -713,8 +712,7 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
     } else if (low_expr->type == TYPE_STRING) {
         op = ops;
     } else {
-        fprintf(stderr, "compiler internal error: when condition not number or string");
-        abort();
+        internal_error("when condition not number or string");
     }
 
     emitter.emit(DUP);

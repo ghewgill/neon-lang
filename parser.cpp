@@ -1053,8 +1053,7 @@ bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond)
         } else if (expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(), cwhen->comp, cwhen->expr->eval_string());
         } else {
-            fprintf(stderr, "compiler internal error");
-            abort();
+            internal_error("ComparisonWhenCondition");
         }
     } else if (rwhen != nullptr) {
         if (expr->type->is_equivalent(TYPE_NUMBER)) {
@@ -1062,12 +1061,10 @@ bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond)
         } else if (expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
         } else {
-            fprintf(stderr, "compiler internal error");
-            abort();
+            internal_error("ComparisonWhenCondition");
         }
     } else {
-        fprintf(stderr, "compiler internal error");
-        abort();
+        internal_error("ComparisonWhenCondition");
     }
 }
 
@@ -1081,8 +1078,7 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
         } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_string(), low_expr->eval_string(), high_expr->eval_string());
         } else {
-            fprintf(stderr, "compiler internal error");
-            abort();
+            internal_error("RangeWhenCondition");
         }
     } else if (rwhen != nullptr) {
         if (low_expr->type->is_equivalent(TYPE_NUMBER)) {
@@ -1090,12 +1086,10 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
         } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(low_expr->eval_string(), high_expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
         } else {
-            fprintf(stderr, "compiler internal error");
-            abort();
+            internal_error("RangeWhenCondition");
         }
     } else {
-        fprintf(stderr, "compiler internal error");
-        abort();
+        internal_error("RangeWhenCondition");
     }
 }
 

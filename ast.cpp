@@ -134,8 +134,7 @@ void Scope::addName(const std::string &name, Name *ref)
         // name already exists yet. This error needs to be detected
         // in the parsing stage so that we have a token available to
         // pass to the normal error function.
-        fprintf(stderr, "compiler internal error: name presence not checked\n");
-        abort();
+        internal_error("name presence not checked");
     }
     names[name] = ref;
 }
