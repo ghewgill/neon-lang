@@ -148,7 +148,7 @@ std::vector<Token> tokenize(const std::string &source)
         } else if (isalpha(c)) {
             t.type = IDENTIFIER;
             std::string::size_type j = i;
-            while (j < source.length() && isalnum(source.at(j))) {
+            while (j < source.length() && (isalnum(source.at(j)) || source.at(j) == '_')) {
                 j++;
             }
             t.text = source.substr(i, j-i);
