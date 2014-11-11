@@ -497,6 +497,8 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
                     error(2049, tokens[op], "comparison not available for Array");
                 }
                 return new ArrayComparisonExpression(left, right, comp);
+            } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
+                return new NumericComparisonExpression(left, right, comp);
             } else {
                 error(2050, tokens[op], "type mismatch");
             }
@@ -867,8 +869,8 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
 {
     ++i;
     const Expression *expr = parseExpression(scope, tokens, i);
-    if (not expr->type->is_equivalent(TYPE_NUMBER) && not expr->type->is_equivalent(TYPE_STRING)) {
-        error(2084, tokens[i], "CASE expression must be Number or String");
+    if (not expr->type->is_equivalent(TYPE_NUMBER) && not expr->type->is_equivalent(TYPE_STRING) && dynamic_cast<const TypeEnum *>(expr->type) == nullptr) {
+        error(2084, tokens[i], "CASE expression must be Number, String, or ENUM");
     }
     std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
     while (tokens[i].type == WHEN) {

@@ -4,6 +4,7 @@ VAR s1, s2: String
 VAR a1, a2: Array<String>
 VAR d1, d2: Dictionary<String>
 VAR r1, r2: RECORD x: Number END RECORD
+VAR e1, e2: ENUM one two END ENUM
 
 print(strb(b2 = b1))
 print(strb(n2 = n1))
@@ -11,6 +12,8 @@ print(strb(s2 = s1))
 print(strb(a2 = a1))
 print(strb(d2 = d1))
 print(strb(r2 = r1))
+print(strb(e2 = e1))
+%= TRUE
 %= TRUE
 %= TRUE
 %= TRUE

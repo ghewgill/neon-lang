@@ -378,7 +378,7 @@ void ConstantEnumExpression::generate(Emitter &emitter) const
     emitter.emit(PUSHN);
     Number n = number_from_uint32(value);
     const unsigned char *v = reinterpret_cast<const unsigned char *>(&n);
-    emitter.emit(std::vector<unsigned char>(v, v+sizeof(value)));
+    emitter.emit(std::vector<unsigned char>(v, v+sizeof(n)));
 }
 
 void UnaryMinusExpression::generate(Emitter &emitter) const

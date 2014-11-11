@@ -1,4 +1,4 @@
-TYPE colour := ENUM
+TYPE Colour := ENUM
     red
     orange
     yellow
@@ -8,9 +8,9 @@ TYPE colour := ENUM
     violet
 END ENUM
 
-VAR a: colour
+VAR a: Colour
 
-a := colour.red
+a := Colour.red
 % TODO
 print(a.to_string())
 %= red

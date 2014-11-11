@@ -199,14 +199,10 @@ public:
     virtual std::string text() const { return "TypeRecord(...)"; }
 };
 
-class TypeEnum: public Type {
+class TypeEnum: public TypeNumber {
 public:
-    TypeEnum(const std::map<std::string, int> &names): Type("enum"), names(names) {}
+    TypeEnum(const std::map<std::string, int> &names): TypeNumber(), names(names) {}
     const std::map<std::string, int> names;
-
-    virtual void generate_load(Emitter &emitter) const { internal_error("TypeEnum"); }
-    virtual void generate_store(Emitter &emitter) const { internal_error("TypeEnum"); }
-    virtual void generate_call(Emitter &emitter) const { internal_error("TypeEnum"); }
 
     virtual std::string text() const { return "TypeEnum(...)"; }
 };
