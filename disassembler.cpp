@@ -510,7 +510,7 @@ void Disassembler::disassemble()
             case RET:     disasm_RET(); break;
         }
         if (index == last_index) {
-            out << "disassembler: Unexpected opcode: " << obj.code[index] << "\n";
+            out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";
             abort();
         }
     }
