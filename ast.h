@@ -344,7 +344,7 @@ public:
 
     const int value;
 
-    virtual Number eval_number() const { internal_error("ConstantEnumExpression"); }
+    virtual Number eval_number() const { return number_from_uint32(value); }
     virtual std::string eval_string() const { internal_error("ConstantEnumExpression"); }
     virtual void generate(Emitter &emitter) const;
 

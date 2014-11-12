@@ -689,7 +689,7 @@ void CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) const
     static const unsigned char opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
     static const unsigned char ops[] = {EQS, NES, LTS, GTS, LES, GES};
     const unsigned char *op;
-    if (expr->type == TYPE_NUMBER) {
+    if (expr->type == TYPE_NUMBER || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
         op = opn;
     } else if (expr->type == TYPE_STRING) {
         op = ops;
@@ -707,7 +707,7 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
     static const unsigned char opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
     static const unsigned char ops[] = {EQS, NES, LTS, GTS, LES, GES};
     const unsigned char *op;
-    if (low_expr->type == TYPE_NUMBER) {
+    if (low_expr->type == TYPE_NUMBER || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
         op = opn;
     } else if (low_expr->type == TYPE_STRING) {
         op = ops;

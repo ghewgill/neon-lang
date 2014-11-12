@@ -1050,7 +1050,7 @@ bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond)
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (expr->type->is_equivalent(TYPE_NUMBER)) {
+        if (expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(), cwhen->comp, cwhen->expr->eval_number());
         } else if (expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(), cwhen->comp, cwhen->expr->eval_string());
@@ -1058,7 +1058,7 @@ bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond)
             internal_error("ComparisonWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (expr->type->is_equivalent(TYPE_NUMBER)) {
+        if (expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
         } else if (expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
@@ -1075,7 +1075,7 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (low_expr->type->is_equivalent(TYPE_NUMBER)) {
+        if (low_expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_number(), low_expr->eval_number(), high_expr->eval_number());
         } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_string(), low_expr->eval_string(), high_expr->eval_string());
@@ -1083,7 +1083,7 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
             internal_error("RangeWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (low_expr->type->is_equivalent(TYPE_NUMBER)) {
+        if (low_expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(low_expr->eval_number(), high_expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
         } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
             return overlap::check(low_expr->eval_string(), high_expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
