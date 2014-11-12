@@ -1,12 +1,14 @@
 #include "bytecode.h"
 
 Bytecode::Bytecode(const std::vector<unsigned char> &obj)
-  : strtable(),
+  : global_size(0),
+    strtable(),
     code()
 {
-    unsigned int strtablesize = (obj[0] << 8) | obj[1];
-    strtable = getstrtable(obj.begin() + 2, obj.begin() + 2 + strtablesize);
-    code = bytecode(obj.begin() + 2 + strtablesize, obj.end());
+    global_size = (obj[0] << 8 | obj[1]);
+    unsigned int strtablesize = (obj[2] << 8) | obj[3];
+    strtable = getstrtable(obj.begin() + 4, obj.begin() + 4 + strtablesize);
+    code = bytecode(obj.begin() + 4 + strtablesize, obj.end());
 }
 
 std::vector<std::string> Bytecode::getstrtable(bytecode::const_iterator start, bytecode::const_iterator end)

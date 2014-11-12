@@ -10,6 +10,7 @@ public:
 
     typedef std::vector<unsigned char> bytecode;
 
+    size_t global_size;
     std::vector<std::string> strtable;
     bytecode code;
 

@@ -61,13 +61,15 @@ void Emitter::emit(const std::vector<unsigned char> &instr)
 
 std::vector<unsigned char> Emitter::getObject()
 {
+    std::vector<unsigned char> obj;
+    obj.push_back(static_cast<unsigned char>(globals.size() >> 8) & 0xff);
+    obj.push_back(static_cast<unsigned char>(globals.size() & 0xff));
     std::vector<unsigned char> strtable;
     for (auto s: strings) {
         std::copy(s.begin(), s.end(), std::back_inserter(strtable));
         strtable.push_back(0);
     }
-    std::vector<unsigned char> obj;
-    obj.push_back(static_cast<unsigned char>(strtable.size() >> 8));
+    obj.push_back(static_cast<unsigned char>(strtable.size() >> 8) & 0xff);
     obj.push_back(static_cast<unsigned char>(strtable.size() & 0xff));
     std::copy(strtable.begin(), strtable.end(), std::back_inserter(obj));
     std::copy(code.begin(), code.end(), std::back_inserter(obj));

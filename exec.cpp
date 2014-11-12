@@ -23,7 +23,7 @@ public:
 
 class Executor {
 public:
-    Executor(const Bytecode::bytecode &obj);
+    Executor(const Bytecode::bytecode &bytes);
     void exec();
 private:
     const Bytecode obj;
@@ -95,12 +95,12 @@ private:
     Executor &operator=(const Executor &);
 };
 
-Executor::Executor(const Bytecode::bytecode &obj)
-  : obj(obj),
+Executor::Executor(const Bytecode::bytecode &bytes)
+  : obj(bytes),
     ip(0),
     stack(),
     callstack(),
-    globals(),
+    globals(obj.global_size),
     frames()
 {
 }
@@ -144,9 +144,7 @@ void Executor::exec_PUSHPG()
 {
     size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    if (globals.size() < addr+1) {
-        globals.resize(addr+1);
-    }
+    assert(addr < globals.size());
     stack.push(Cell(&globals.at(addr)));
 }
 
