@@ -1,0 +1,6 @@
+%NOTE: This file is not "correct" Simple-Lang source code, but rather just enough to demonstrate a buffer error in the lexer, that this patch
+%      and series of tests attempts to correct.
+
+0x
+
+%! numeric constants must have at least one digit
