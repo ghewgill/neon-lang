@@ -114,7 +114,7 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '#') { t.type = NOTEQUAL; i++; }
         else if (c == ',') { t.type = COMMA; i++; }
         else if (c == '<') {
-            if (source.at(i+1) == '=') {
+            if (i+1 < source.length() && source.at(i+1) == '=') {
                 t.type = LESSEQ;
                 i += 2;
             } else {
@@ -122,7 +122,7 @@ std::vector<Token> tokenize(const std::string &source)
                 i++;
             }
         } else if (c == '>') {
-            if (source.at(i+1) == '=') {
+            if (i+1 < source.length() && source.at(i+1) == '=') {
                 t.type = GREATEREQ;
                 i += 2;
             } else {
@@ -130,7 +130,7 @@ std::vector<Token> tokenize(const std::string &source)
                 i++;
             }
         } else if (c == '.') {
-            if (source.at(i+1) == '.') {
+            if (i+1 < source.length() && source.at(i+1) == '.') {
                 t.type = DOTDOT;
                 i += 2;
             } else {
@@ -138,7 +138,7 @@ std::vector<Token> tokenize(const std::string &source)
                 i++;
             }
         } else if (c == ':') {
-            if (source.at(i+1) == '=') {
+            if (i+1 < source.length() && source.at(i+1) == '=') {
                 t.type = ASSIGN;
                 i += 2;
             } else {
@@ -183,7 +183,7 @@ std::vector<Token> tokenize(const std::string &source)
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
-            if (c == '0' && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {
+            if (c == '0' && (i+1 < source.length()) && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {
                 c = static_cast<char>(tolower(source.at(i+1)));
                 if (isalpha(c) || c == '#') {
                     long base;
@@ -212,7 +212,8 @@ std::vector<Token> tokenize(const std::string &source)
                         error(1003, t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
-                    for (;;) {
+                    auto start = i;
+                    while (i < source.length()) {
                         c = static_cast<char>(tolower(source.at(i)));
                         if (c == '.') {
                             error(1004, t, "non-decimal fraction not supported");
@@ -226,6 +227,9 @@ std::vector<Token> tokenize(const std::string &source)
                         }
                         value = number_add(number_multiply(value, number_from_uint32(base)), number_from_uint32(d));
                         i++;
+                    }
+                    if (i == start) {
+                        error(1008, t, "numeric constants must have at least one digit");
                     }
                     t.value = value;
                 } else {
