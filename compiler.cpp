@@ -129,10 +129,10 @@ void Emitter::jump_target(Label &label)
     assert(label.target < 0);
     label.target = static_cast<int>(code.size());
     for (auto offset: label.fixups) {
-        code[offset] = static_cast<unsigned char>(label.target >> 24);
-        code[offset+1] = static_cast<unsigned char>(label.target >> 16);
-        code[offset+2] = static_cast<unsigned char>(label.target >> 8);
-        code[offset+3] = static_cast<unsigned char>(label.target);
+        code[offset] = static_cast<unsigned char>((label.target >> 24) & 0xff);
+        code[offset+1] = static_cast<unsigned char>((label.target >> 16) & 0xff);
+        code[offset+2] = static_cast<unsigned char>((label.target >> 8) & 0xff);
+        code[offset+3] = static_cast<unsigned char>(label.target & 0xff);
     }
 }
 
