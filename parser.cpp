@@ -6,11 +6,54 @@
 #include "rtl.h"
 #include "util.h"
 
-static Scope *g_GlobalScope; // TODO: sort of a hack, all this should probably be in a class
+class Parser {
+public:
+    Parser(const std::vector<Token> &tokens);
 
-static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i, bool allow_nothing = false);
-static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
-static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
+    const std::vector<Token> tokens;
+    static Scope *global_scope; // TODO: static is a hack, used by StringReference constructor
+    std::vector<Token>::size_type i;
+
+    typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
+
+    const Type *parseArrayType(Scope *scope);
+    const Type *parseDictionaryType(Scope *scope);
+    const Type *parseRecordType(Scope *scope);
+    const Type *parseEnumType(Scope *scope);
+    const Type *parseType(Scope *scope, bool allow_nothing = false);
+    const Statement *parseTypeDefinition(Scope *scope);
+    const Statement *parseConstantDefinition(Scope *scope);
+    const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope);
+    const Expression *parseAtom(Scope *scope);
+    const Expression *parseExponentiation(Scope *scope);
+    const Expression *parseMultiplication(Scope *scope);
+    const Expression *parseAddition(Scope *scope);
+    const Expression *parseComparison(Scope *scope);
+    const Expression *parseConjunction(Scope *scope);
+    const Expression *parseDisjunction(Scope *scope);
+    const Expression *parseConditional(Scope *scope);
+    const Expression *parseExpression(Scope *scope);
+    const VariableInfo parseVariableDeclaration(Scope *scope);
+    const VariableReference *parseVariableReference(Scope *scope);
+    const Statement *parseFunctionDefinition(Scope *scope);
+    const Statement *parseIfStatement(Scope *scope);
+    const Statement *parseReturnStatement(Scope *scope);
+    const Statement *parseVarStatement(Scope *scope);
+    const Statement *parseWhileStatement(Scope *scope);
+    const Statement *parseCaseStatement(Scope *scope);
+    const Statement *parseForStatement(Scope *scope);
+    const Statement *parseImport(Scope *scope);
+    const Statement *parseStatement(Scope *scope);
+    const Program *parse();
+};
+
+Scope *Parser::global_scope;
+
+Parser::Parser(const std::vector<Token> &tokens)
+  : tokens(tokens),
+    i(0)
+{
+}
 
 static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
 {
@@ -38,18 +81,18 @@ StringReference::StringReference(const VariableReference *str, const Expression 
         args.push_back(new VariableExpression(str));
         args.push_back(index);
         args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        load = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(g_GlobalScope->lookupName("substring"))), args);
+        load = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("substring"))), args);
     }
     {
         std::vector<const Expression *> args;
         args.push_back(new VariableExpression(str));
         args.push_back(index);
         args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        store = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(g_GlobalScope->lookupName("splice"))), args);
+        store = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("splice"))), args);
     }
 }
 
-static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Type *Parser::parseArrayType(Scope *scope)
 {
     if (tokens[i].type != ARRAY) {
         error(2001, tokens[i], "Array expected");
@@ -59,7 +102,7 @@ static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens
         error(2002, tokens[i], "'<' expected");
     }
     i++;
-    const Type *elementtype = parseType(scope, tokens, i);
+    const Type *elementtype = parseType(scope);
     if (tokens[i].type != GREATER) {
         error(2003, tokens[i], "'>' expected");
     }
@@ -67,7 +110,7 @@ static const Type *parseArrayType(Scope *scope, const std::vector<Token> &tokens
     return new TypeArray(elementtype);
 }
 
-static const Type *parseDictionaryType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Type *Parser::parseDictionaryType(Scope *scope)
 {
     if (tokens[i].type != DICTIONARY) {
         error(2004, tokens[i], "Dictionary expected");
@@ -77,7 +120,7 @@ static const Type *parseDictionaryType(Scope *scope, const std::vector<Token> &t
         error(2005, tokens[i], "'<' expected");
     }
     i++;
-    const Type *elementtype = parseType(scope, tokens, i);
+    const Type *elementtype = parseType(scope);
     if (tokens[i].type != GREATER) {
         error(2006, tokens[i], "'>' expected");
     }
@@ -85,7 +128,7 @@ static const Type *parseDictionaryType(Scope *scope, const std::vector<Token> &t
     return new TypeDictionary(elementtype);
 }
 
-static const Type *parseRecordType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Type *Parser::parseRecordType(Scope *scope)
 {
     if (tokens[i].type != RECORD) {
         error(2007, tokens[i], "RECORD expected");
@@ -106,7 +149,7 @@ static const Type *parseRecordType(Scope *scope, const std::vector<Token> &token
             error(2010, tokens[i], "colon expected");
         }
         ++i;
-        const Type *t = parseType(scope, tokens, i);
+        const Type *t = parseType(scope);
         fields[name] = std::make_pair(index, t);
         index++;
     }
@@ -118,7 +161,7 @@ static const Type *parseRecordType(Scope *scope, const std::vector<Token> &token
     return new TypeRecord(fields);
 }
 
-static const Type *parseEnumType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Type *Parser::parseEnumType(Scope *scope)
 {
     if (tokens[i].type != ENUM) {
         error(2011, tokens[i], "ENUM expected");
@@ -146,19 +189,19 @@ static const Type *parseEnumType(Scope *scope, const std::vector<Token> &tokens,
     return new TypeEnum(names);
 }
 
-static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i, bool allow_nothing)
+const Type *Parser::parseType(Scope *scope, bool allow_nothing)
 {
     if (tokens[i].type == ARRAY) {
-        return parseArrayType(scope, tokens, i);
+        return parseArrayType(scope);
     }
     if (tokens[i].type == DICTIONARY) {
-        return parseDictionaryType(scope, tokens, i);
+        return parseDictionaryType(scope);
     }
     if (tokens[i].type == RECORD) {
-        return parseRecordType(scope, tokens, i);
+        return parseRecordType(scope);
     }
     if (tokens[i].type == ENUM) {
-        return parseEnumType(scope, tokens, i);
+        return parseEnumType(scope);
     }
     if (tokens[i].type != IDENTIFIER) {
         error(2014, tokens[i], "identifier expected");
@@ -178,7 +221,7 @@ static const Type *parseType(Scope *scope, const std::vector<Token> &tokens, std
     return type;
 }
 
-static const Statement *parseTypeDefinition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseTypeDefinition(Scope *scope)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -193,12 +236,12 @@ static const Statement *parseTypeDefinition(Scope *scope, const std::vector<Toke
         error(2020, tokens[i], "':=' expected");
     }
     ++i;
-    const Type *type = parseType(scope, tokens, i);
+    const Type *type = parseType(scope);
     scope->addName(name, const_cast<Type *>(type)); // TODO clean up when 'referenced' is fixed
     return nullptr;
 }
 
-static const Statement *parseConstantDefinition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseConstantDefinition(Scope *scope)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -213,12 +256,12 @@ static const Statement *parseConstantDefinition(Scope *scope, const std::vector<
         error(2023, tokens[i], "':' expected");
     }
     ++i;
-    const Type *type = parseType(scope, tokens, i);
+    const Type *type = parseType(scope);
     if (tokens[i].type != ASSIGN) {
         error(2024, tokens[i], "':=' expected");
     }
     ++i;
-    const Expression *value = parseExpression(scope, tokens, i);
+    const Expression *value = parseExpression(scope);
     if (not value->type->is_equivalent(type)) {
         error(2025, tokens[i], "type mismatch");
     }
@@ -229,7 +272,7 @@ static const Statement *parseConstantDefinition(Scope *scope, const std::vector<
     return nullptr;
 }
 
-static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scope *scope)
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(ref->type);
     if (ftype == nullptr) {
@@ -240,7 +283,7 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
     std::vector<const Expression *> args;
     if (tokens[i].type != RPAREN) {
         for (;;) {
-            const Expression *e = parseExpression(scope, tokens, i);
+            const Expression *e = parseExpression(scope);
             if (ftype->params[p]->mode != ParameterType::IN) {
                 const VariableReference *ref = e->get_reference();
                 if (ref == nullptr) {
@@ -280,12 +323,12 @@ static const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope
  *  if       conditional                        parseConditional
  */
 
-static const Expression *parseAtom(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseAtom(Scope *scope)
 {
     switch (tokens[i].type) {
         case LPAREN: {
             ++i;
-            const Expression *expr = parseExpression(scope, tokens, i);
+            const Expression *expr = parseExpression(scope);
             if (tokens[i].type != RPAREN) {
                 error(2032, tokens[i], ") expected");
             }
@@ -309,7 +352,7 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
         case MINUS: {
             auto op = i;
             ++i;
-            const Expression *factor = parseAtom(scope, tokens, i);
+            const Expression *factor = parseAtom(scope);
             if (not factor->type->is_equivalent(TYPE_NUMBER)) {
                 error(2033, tokens[op], "number required for negation");
             }
@@ -318,7 +361,7 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
         case NOT: {
             auto op = i;
             ++i;
-            const Expression *atom = parseAtom(scope, tokens, i);
+            const Expression *atom = parseAtom(scope);
             if (not atom->type->is_equivalent(TYPE_BOOLEAN)) {
                 error(2034, tokens[op], "boolean required for logical not");
             }
@@ -342,9 +385,9 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
                 ++i;
                 return new ConstantEnumExpression(enumtype, name->second);
             } else {
-                const VariableReference *ref = parseVariableReference(scope, tokens, i);
+                const VariableReference *ref = parseVariableReference(scope);
                 if (tokens[i].type == LPAREN) {
-                    return parseFunctionCall(ref, scope, tokens, i);
+                    return parseFunctionCall(ref, scope);
                 } else {
                     return new VariableExpression(ref);
                 }
@@ -355,14 +398,14 @@ static const Expression *parseAtom(Scope *scope, const std::vector<Token> &token
     }
 }
 
-static const Expression *parseExponentiation(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseExponentiation(Scope *scope)
 {
-    const Expression *left = parseAtom(scope, tokens, i);
+    const Expression *left = parseAtom(scope);
     for (;;) {
         if (tokens[i].type == EXP) {
             auto op = i;
             ++i;
-            const Expression *right = parseAtom(scope, tokens, i);
+            const Expression *right = parseAtom(scope);
             if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                 left = new ExponentiationExpression(left, right);
             } else {
@@ -374,15 +417,15 @@ static const Expression *parseExponentiation(Scope *scope, const std::vector<Tok
     }
 }
 
-static const Expression *parseMultiplication(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseMultiplication(Scope *scope)
 {
-    const Expression *left = parseExponentiation(scope, tokens, i);
+    const Expression *left = parseExponentiation(scope);
     for (;;) {
         switch (tokens[i].type) {
             case TIMES: {
                 auto op = i;
                 ++i;
-                const Expression *right = parseExponentiation(scope, tokens, i);
+                const Expression *right = parseExponentiation(scope);
                 if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new MultiplicationExpression(left, right);
                 } else {
@@ -393,7 +436,7 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
             case DIVIDE: {
                 auto op = i;
                 ++i;
-                const Expression *right = parseExponentiation(scope, tokens, i);
+                const Expression *right = parseExponentiation(scope);
                 if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new DivisionExpression(left, right);
                 } else {
@@ -404,7 +447,7 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
             case MOD: {
                 auto op = i;
                 ++i;
-                const Expression *right = parseExponentiation(scope, tokens, i);
+                const Expression *right = parseExponentiation(scope);
                 if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new ModuloExpression(left, right);
                 } else {
@@ -418,15 +461,15 @@ static const Expression *parseMultiplication(Scope *scope, const std::vector<Tok
     }
 }
 
-static const Expression *parseAddition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseAddition(Scope *scope)
 {
-    const Expression *left = parseMultiplication(scope, tokens, i);
+    const Expression *left = parseMultiplication(scope);
     for (;;) {
         switch (tokens[i].type) {
             case PLUS: {
                 auto op = i;
                 ++i;
-                const Expression *right = parseMultiplication(scope, tokens, i);
+                const Expression *right = parseMultiplication(scope);
                 if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new AdditionExpression(left, right);
                 } else if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
@@ -442,7 +485,7 @@ static const Expression *parseAddition(Scope *scope, const std::vector<Token> &t
             case MINUS: {
                 auto op = i;
                 ++i;
-                const Expression *right = parseMultiplication(scope, tokens, i);
+                const Expression *right = parseMultiplication(scope);
                 if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new SubtractionExpression(left, right);
                 } else {
@@ -456,9 +499,9 @@ static const Expression *parseAddition(Scope *scope, const std::vector<Token> &t
     }
 }
 
-static const Expression *parseComparison(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseComparison(Scope *scope)
 {
-    const Expression *left = parseAddition(scope, tokens, i);
+    const Expression *left = parseAddition(scope);
     switch (tokens[i].type) {
         case EQUAL:
         case NOTEQUAL:
@@ -469,7 +512,7 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
             ComparisonExpression::Comparison comp = comparisonFromToken(tokens[i]);
             auto op = i;
             ++i;
-            const Expression *right = parseAddition(scope, tokens, i);
+            const Expression *right = parseAddition(scope);
             if (not left->type->is_equivalent(right->type)) {
                 error(2045, tokens[op], "type mismatch");
             }
@@ -508,14 +551,14 @@ static const Expression *parseComparison(Scope *scope, const std::vector<Token> 
     }
 }
 
-static const Expression *parseConjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseConjunction(Scope *scope)
 {
-    const Expression *left = parseComparison(scope, tokens, i);
+    const Expression *left = parseComparison(scope);
     for (;;) {
         if (tokens[i].type == AND) {
             auto op = i;
             ++i;
-            const Expression *right = parseComparison(scope, tokens, i);
+            const Expression *right = parseComparison(scope);
             if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
                 left = new ConjunctionExpression(left, right);
             } else {
@@ -527,14 +570,14 @@ static const Expression *parseConjunction(Scope *scope, const std::vector<Token>
     }
 }
 
-static const Expression *parseDisjunction(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseDisjunction(Scope *scope)
 {
-    const Expression *left = parseConjunction(scope, tokens, i);
+    const Expression *left = parseConjunction(scope);
     for (;;) {
         if (tokens[i].type == OR) {
             auto op = i;
             ++i;
-            const Expression *right = parseConjunction(scope, tokens, i);
+            const Expression *right = parseConjunction(scope);
             if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
                 left = new DisjunctionExpression(left, right);
             } else {
@@ -546,38 +589,38 @@ static const Expression *parseDisjunction(Scope *scope, const std::vector<Token>
     }
 }
 
-static const Expression *parseConditional(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseConditional(Scope *scope)
 {
     if (tokens[i].type == IF) {
         ++i;
-        const Expression *cond = parseExpression(scope, tokens, i);
+        const Expression *cond = parseExpression(scope);
         if (tokens[i].type != THEN) {
             error(2053, tokens[i], "'THEN' expected");
         }
         ++i;
-        const Expression *left = parseExpression(scope, tokens, i);
+        const Expression *left = parseExpression(scope);
         if (tokens[i].type != ELSE) {
             error(2054, tokens[i], "'ELSE' expected");
         }
         ++i;
-        const Expression *right = parseExpression(scope, tokens, i);
+        const Expression *right = parseExpression(scope);
         if (not left->type->is_equivalent(right->type)) {
             error(2055, tokens[i], "type of THEN and ELSE must match");
         }
         return new ConditionalExpression(cond, left, right);
     } else {
-        return parseDisjunction(scope, tokens, i);
+        return parseDisjunction(scope);
     }
 }
 
-static const Expression *parseExpression(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Expression *Parser::parseExpression(Scope *scope)
 {
-    return parseConditional(scope, tokens, i);
+    return parseConditional(scope);
 }
 
 typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
 
-static const VariableInfo parseVariableDeclaration(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const VariableInfo Parser::parseVariableDeclaration(Scope *scope)
 {
     std::vector<std::string> names;
     for (;;) {
@@ -599,11 +642,11 @@ static const VariableInfo parseVariableDeclaration(Scope *scope, const std::vect
         error(2058, tokens[i], "colon expected");
     }
     ++i;
-    const Type *t = parseType(scope, tokens, i);
+    const Type *t = parseType(scope);
     return make_pair(names, t);
 }
 
-static const VariableReference *parseVariableReference(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const VariableReference *Parser::parseVariableReference(Scope *scope)
 {
     if (tokens[i].type == IDENTIFIER) {
         const Name *name = scope->lookupName(tokens[i].text);
@@ -622,7 +665,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                 error(2060, tokens[i], "'.' expected");
             }
             ++i;
-            return parseVariableReference(module->scope, tokens, i);
+            return parseVariableReference(module->scope);
         }
         const Variable *var = dynamic_cast<const Variable *>(name);
         if (var == nullptr) {
@@ -637,7 +680,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                 const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
                 if (arraytype != nullptr) {
                     ++i;
-                    const Expression *index = parseExpression(scope, tokens, i);
+                    const Expression *index = parseExpression(scope);
                     if (not index->type->is_equivalent(TYPE_NUMBER)) {
                         error(2062, tokens[i], "index must be a number");
                     }
@@ -649,7 +692,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                     ref = new ArrayReference(type, ref, index);
                 } else if (dicttype != nullptr) {
                     ++i;
-                    const Expression *index = parseExpression(scope, tokens, i);
+                    const Expression *index = parseExpression(scope);
                     if (not index->type->is_equivalent(TYPE_STRING)) {
                         error(2064, tokens[i], "index must be a string");
                     }
@@ -661,7 +704,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
                     ref = new DictionaryReference(type, ref, index);
                 } else if (type == TYPE_STRING) {
                     ++i;
-                    const Expression *index = parseExpression(scope, tokens, i);
+                    const Expression *index = parseExpression(scope);
                     if (not index->type->is_equivalent(TYPE_NUMBER)) {
                         error(2066, tokens[i], "index must be a number");
                     }
@@ -700,10 +743,7 @@ static const VariableReference *parseVariableReference(Scope *scope, const std::
     }
 }
 
-static const Statement *parseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
-static const Statement *parseVarStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i);
-
-static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseFunctionDefinition(Scope *scope)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -730,7 +770,7 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
                 default:
                     break;
             }
-            const VariableInfo vars = parseVariableDeclaration(newscope, tokens, i);
+            const VariableInfo vars = parseVariableDeclaration(newscope);
             for (auto name: vars.first) {
                 FunctionParameter *fp = new FunctionParameter(name, vars.second, mode, newscope);
                 args.push_back(fp);
@@ -750,10 +790,10 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
         error(2077, tokens[i], "':' expected");
     }
     ++i;
-    const Type *returntype = parseType(newscope, tokens, i, true);
+    const Type *returntype = parseType(newscope, true);
     Function *function = new Function(name, returntype, newscope, args);
     while (tokens[i].type != END) {
-        const Statement *s = parseStatement(newscope, tokens, i);
+        const Statement *s = parseStatement(newscope);
         if (s != nullptr) {
             function->statements.push_back(s);
         }
@@ -767,14 +807,14 @@ static const Statement *parseFunctionDefinition(Scope *scope, const std::vector<
     return nullptr;
 }
 
-static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseIfStatement(Scope *scope)
 {
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     std::vector<const Statement *> else_statements;
     do {
         ++i;
         auto j = i;
-        const Expression *cond = parseExpression(scope, tokens, i);
+        const Expression *cond = parseExpression(scope);
         if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
             error(2078, tokens[j], "boolean value expected");
         }
@@ -784,7 +824,7 @@ static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> 
         ++i;
         std::vector<const Statement *> statements;
         while (tokens[i].type != ELSIF && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement(scope, tokens, i);
+            const Statement *s = parseStatement(scope);
             if (s != nullptr) {
                 statements.push_back(s);
             }
@@ -794,7 +834,7 @@ static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> 
     if (tokens[i].type == ELSE) {
         ++i;
         while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement(scope, tokens, i);
+            const Statement *s = parseStatement(scope);
             if (s != nullptr) {
                 else_statements.push_back(s);
             }
@@ -811,21 +851,21 @@ static const Statement *parseIfStatement(Scope *scope, const std::vector<Token> 
     return new IfStatement(condition_statements, else_statements);
 }
 
-static const Statement *parseReturnStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseReturnStatement(Scope *scope)
 {
     ++i;
-    const Expression *expr = parseExpression(scope, tokens, i);
+    const Expression *expr = parseExpression(scope);
     // TODO: check return type
     return new ReturnStatement(expr);
 }
 
-static const Statement *parseVarStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseVarStatement(Scope *scope)
 {
     ++i;
-    const VariableInfo vars = parseVariableDeclaration(scope, tokens, i);
+    const VariableInfo vars = parseVariableDeclaration(scope);
     for (auto name: vars.first) {
         Variable *v;
-        if (scope == g_GlobalScope) {
+        if (scope == global_scope) {
             v = new GlobalVariable(name, vars.second);
         } else {
             v = new LocalVariable(name, vars.second, scope);
@@ -835,11 +875,11 @@ static const Statement *parseVarStatement(Scope *scope, const std::vector<Token>
     return nullptr;
 }
 
-static const Statement *parseWhileStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseWhileStatement(Scope *scope)
 {
     ++i;
     auto j = i;
-    const Expression *cond = parseExpression(scope, tokens, i);
+    const Expression *cond = parseExpression(scope);
     if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
         error(2081, tokens[j], "boolean value expected");
     }
@@ -849,7 +889,7 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
     ++i;
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(scope, tokens, i);
+        const Statement *s = parseStatement(scope);
         if (s != nullptr) {
             statements.push_back(s);
         }
@@ -865,10 +905,10 @@ static const Statement *parseWhileStatement(Scope *scope, const std::vector<Toke
     return new WhileStatement(cond, statements);
 }
 
-static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseCaseStatement(Scope *scope)
 {
     ++i;
-    const Expression *expr = parseExpression(scope, tokens, i);
+    const Expression *expr = parseExpression(scope);
     if (not expr->type->is_equivalent(TYPE_NUMBER) && not expr->type->is_equivalent(TYPE_STRING) && dynamic_cast<const TypeEnum *>(expr->type) == nullptr) {
         error(2084, tokens[i], "CASE expression must be Number, String, or ENUM");
     }
@@ -886,7 +926,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                 case GREATEREQ: {
                     auto op = tokens[i];
                     ++i;
-                    const Expression *when = parseExpression(scope, tokens, i);
+                    const Expression *when = parseExpression(scope);
                     if (not when->type->is_equivalent(expr->type)) {
                         error(2085, tokens[i], "type mismatch");
                     }
@@ -910,7 +950,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                     break;
                 }
                 default: {
-                    const Expression *when = parseExpression(scope, tokens, i);
+                    const Expression *when = parseExpression(scope);
                     if (not when->type->is_equivalent(expr->type)) {
                         error(2087, tokens[i], "type mismatch");
                     }
@@ -919,7 +959,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
                     }
                     if (tokens[i].type == DOTDOT) {
                         ++i;
-                        const Expression *when2 = parseExpression(scope, tokens, i);
+                        const Expression *when2 = parseExpression(scope);
                         if (not when2->type->is_equivalent(expr->type)) {
                             error(2089, tokens[i], "type mismatch");
                         }
@@ -966,7 +1006,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
         ++i;
         std::vector<const Statement *> statements;
         while (tokens[i].type != WHEN && tokens[i].type != ELSE && tokens[i].type != END) {
-            const Statement *stmt = parseStatement(scope, tokens, i);
+            const Statement *stmt = parseStatement(scope);
             statements.push_back(stmt);
         }
         clauses.push_back(std::make_pair(conditions, statements));
@@ -975,7 +1015,7 @@ static const Statement *parseCaseStatement(Scope *scope, const std::vector<Token
     if (tokens[i].type == ELSE) {
         ++i;
         while (tokens[i].type != END) {
-            const Statement *stmt = parseStatement(scope, tokens, i);
+            const Statement *stmt = parseStatement(scope);
             else_statements.push_back(stmt);
         }
     }
@@ -1095,10 +1135,10 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
     }
 }
 
-static const Statement *parseForStatement(Scope *scope, const std::vector<Token> & tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseForStatement(Scope *scope)
 {
     ++i;
-    const VariableReference *var = parseVariableReference(scope, tokens, i);
+    const VariableReference *var = parseVariableReference(scope);
     if (not var->type->is_equivalent(TYPE_NUMBER)) {
         error(2112, tokens[i], "type mismatch");
     }
@@ -1106,7 +1146,7 @@ static const Statement *parseForStatement(Scope *scope, const std::vector<Token>
         error(2121, tokens[i], "'IN' expected");
     }
     ++i;
-    const Expression *start = parseExpression(scope, tokens, i);
+    const Expression *start = parseExpression(scope);
     if (not start->type->is_equivalent(TYPE_NUMBER)) {
         error(2113, tokens[i], "numeric expression expected");
     }
@@ -1114,7 +1154,7 @@ static const Statement *parseForStatement(Scope *scope, const std::vector<Token>
         error(2114, tokens[i], "TO expected");
     }
     ++i;
-    const Expression *end = parseExpression(scope, tokens, i);
+    const Expression *end = parseExpression(scope);
     if (not end->type->is_equivalent(TYPE_NUMBER)) {
         error(2115, tokens[i], "numeric expression expected");
     }
@@ -1124,7 +1164,7 @@ static const Statement *parseForStatement(Scope *scope, const std::vector<Token>
     ++i;
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(scope, tokens, i);
+        const Statement *s = parseStatement(scope);
         if (s != nullptr) {
             statements.push_back(s);
         }
@@ -1140,7 +1180,7 @@ static const Statement *parseForStatement(Scope *scope, const std::vector<Token>
     return new ForStatement(var, start, end, statements);
 }
 
-static const Statement *parseImport(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseImport(Scope *scope)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -1151,34 +1191,34 @@ static const Statement *parseImport(Scope *scope, const std::vector<Token> &toke
     return nullptr;
 }
 
-static const Statement *parseStatement(Scope *scope, const std::vector<Token> &tokens, std::vector<Token>::size_type &i)
+const Statement *Parser::parseStatement(Scope *scope)
 {
     if (tokens[i].type == IMPORT) {
-        return parseImport(scope, tokens, i);
+        return parseImport(scope);
     } else if (tokens[i].type == TYPE) {
-        return parseTypeDefinition(scope, tokens, i);
+        return parseTypeDefinition(scope);
     } else if (tokens[i].type == CONST) {
-        return parseConstantDefinition(scope, tokens, i);
+        return parseConstantDefinition(scope);
     } else if (tokens[i].type == FUNCTION) {
-        return parseFunctionDefinition(scope, tokens, i);
+        return parseFunctionDefinition(scope);
     } else if (tokens[i].type == IF) {
-        return parseIfStatement(scope, tokens, i);
+        return parseIfStatement(scope);
     } else if (tokens[i].type == RETURN) {
-        return parseReturnStatement(scope, tokens, i);
+        return parseReturnStatement(scope);
     } else if (tokens[i].type == VAR) {
-        return parseVarStatement(scope, tokens, i);
+        return parseVarStatement(scope);
     } else if (tokens[i].type == WHILE) {
-        return parseWhileStatement(scope, tokens, i);
+        return parseWhileStatement(scope);
     } else if (tokens[i].type == CASE) {
-        return parseCaseStatement(scope, tokens, i);
+        return parseCaseStatement(scope);
     } else if (tokens[i].type == FOR) {
-        return parseForStatement(scope, tokens, i);
+        return parseForStatement(scope);
     } else if (tokens[i].type == IDENTIFIER) {
-        const VariableReference *ref = parseVariableReference(scope, tokens, i);
+        const VariableReference *ref = parseVariableReference(scope);
         if (tokens[i].type == ASSIGN) {
             auto op = i;
             ++i;
-            const Expression *expr = parseExpression(scope, tokens, i);
+            const Expression *expr = parseExpression(scope);
             if (not expr->type->is_equivalent(ref->type)) {
                 error(2094, tokens[op], "type mismatch");
             }
@@ -1188,7 +1228,7 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
             }
             return new AssignmentStatement(ref, expr);
         } else if (tokens[i].type == LPAREN) {
-            const FunctionCall *fc = parseFunctionCall(ref, scope, tokens, i);
+            const FunctionCall *fc = parseFunctionCall(ref, scope);
             if (fc->type != TYPE_NOTHING) {
                 error(2096, tokens[i], "return value unused");
             }
@@ -1203,16 +1243,20 @@ static const Statement *parseStatement(Scope *scope, const std::vector<Token> &t
     }
 }
 
-const Program *parse(const std::vector<Token> &tokens)
+const Program *Parser::parse()
 {
     Program *program = new Program();
-    g_GlobalScope = program->scope;
-    std::vector<Token>::size_type i = 0;
+    global_scope = program->scope;
     while (tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(program->scope, tokens, i);
+        const Statement *s = parseStatement(program->scope);
         if (s != nullptr) {
             program->statements.push_back(s);
         }
     }
     return program;
+}
+
+const Program *parse(const std::vector<Token> &tokens)
+{
+    return Parser(tokens).parse();
 }
