@@ -9,7 +9,7 @@
 class Cell {
 public:
     Cell();
-    explicit Cell(const Cell &rhs);
+    Cell(const Cell &rhs);
     explicit Cell(Cell *value);
     explicit Cell(bool value);
     explicit Cell(Number value);
