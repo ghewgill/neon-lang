@@ -792,6 +792,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
     ++i;
     const Type *returntype = parseType(newscope, true);
     Function *function = new Function(name, returntype, newscope, args);
+    scope->addName(name, function);
     while (tokens[i].type != END) {
         const Statement *s = parseStatement(newscope);
         if (s != nullptr) {
@@ -803,7 +804,6 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
         error(2102, tokens[i], "'FUNCTION' expected");
     }
     ++i;
-    scope->addName(name, function);
     return nullptr;
 }
 
