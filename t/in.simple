@@ -1,0 +1,19 @@
+% TODO
+
+VAR a: Array<Number>
+
+a[0] := 5
+a[1] := 6
+print(strb(5 IN a))
+%= TRUE
+print(strb(7 IN a))
+%= FALSE
+
+VAR d: Dictionary<Number>
+
+d["foo"] := 5
+d["bar"] := 6
+print(strb("foo" IN d))
+%= TRUE
+print(strb("baz" IN d))
+%= FALSE
