@@ -45,6 +45,9 @@ public:
     const Statement *parseImport(Scope *scope);
     const Statement *parseStatement(Scope *scope);
     const Program *parse();
+private:
+    Parser(const Parser &);
+    Parser &operator=(const Parser &);
 };
 
 Scope *Parser::global_scope;
