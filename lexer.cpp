@@ -51,6 +51,8 @@ std::string Token::tostring() const
         case AND:         s << "AND"; break;
         case OR:          s << "OR"; break;
         case NOT:         s << "NOT"; break;
+        case FOR:         s << "FOR"; break;
+        case TO:          s << "TO"; break;
         case ARRAY:       s << "ARRAY"; break;
         case DICTIONARY:  s << "DICTIONARY"; break;
         case DOT:         s << "DOT"; break;
@@ -167,6 +169,8 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "AND") t.type = AND;
             else if (t.text == "OR") t.type = OR;
             else if (t.text == "NOT") t.type = NOT;
+            else if (t.text == "FOR") t.type = FOR;
+            else if (t.text == "TO") t.type = TO;
             else if (t.text == "Array") t.type = ARRAY;
             else if (t.text == "Dictionary") t.type = DICTIONARY;
             else if (t.text == "TYPE") t.type = TYPE;

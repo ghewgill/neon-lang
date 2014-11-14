@@ -730,6 +730,36 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
     emitter.jump_target(result_label);
 }
 
+void ForStatement::generate(Emitter &emitter) const
+{
+    auto skip = emitter.create_label();
+    auto loop = emitter.create_label();
+
+    start->generate(emitter);
+    var->generate_store(emitter);
+    emitter.jump_target(loop);
+
+    end->generate(emitter);
+    var->generate_load(emitter);
+    emitter.emit(GEN);
+    emitter.emit_jump(JF, skip);
+
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+
+    emitter.emit(PUSHN);
+    Number n = number_from_uint32(1);
+    const unsigned char *v = reinterpret_cast<const unsigned char *>(&n);
+    emitter.emit(std::vector<unsigned char>(v, v+sizeof(n)));
+    var->generate_load(emitter);
+    emitter.emit(ADDN);
+    var->generate_store(emitter);
+    emitter.emit_jump(JUMP, loop);
+    
+    emitter.jump_target(skip);
+}
+
 void Scope::predeclare(Emitter &emitter) const
 {
     for (auto n: names) {

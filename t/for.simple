@@ -1,9 +1,65 @@
-% TODO
 VAR a: Number
-FOR a IN 1 TO 5
+VAR b: Number
+VAR c: Number
+b := 5
+c := 5
+
+FOR a IN 1 TO 5 DO
     print(str(a))
 END FOR
 
+%= 1
+%= 2
+%= 3
+%= 4
+%= 5
+
+FOR a IN 1 TO 10 DO
+    print(str(a))
+    a := a + 1
+END FOR
+
+%= 1
+%= 3
+%= 5
+%= 7
+%= 9
+
+FOR a IN -1 TO -5 DO
+    print(str(a))
+END FOR
+
+FOR a IN 0 TO 5 DO
+    print(str(a))
+END FOR
+
+%= 0
+%= 1
+%= 2
+%= 3
+%= 4
+%= 5
+
+% Note:  NOTHING is output from this this last loop.
+FOR a IN 1 TO 0 DO
+    print(str(a))
+END FOR
+
+FOR a IN 1 TO b DO
+    print(str(a))
+END FOR
+%= 1
+%= 2
+%= 3
+%= 4
+%= 5
+
+b := 1
+c := 5
+
+FOR a IN b TO c DO
+    print(str(a))
+END FOR
 %= 1
 %= 2
 %= 3

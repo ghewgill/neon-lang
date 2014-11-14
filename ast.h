@@ -919,6 +919,25 @@ private:
     WhileStatement &operator=(const WhileStatement &);
 };
 
+class ForStatement: public CompoundStatement {
+public:
+    ForStatement(const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): CompoundStatement(statements), var(var), start(start), end(end) {
+    }
+
+    const VariableReference *var;
+    const Expression *start;
+    const Expression *end;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ForStatement(" + var->text() + " = (" + start->text() + ".." + end->text() + ")";
+    }
+private:
+    ForStatement(const ForStatement &);
+    ForStatement &operator=(const ForStatement &);
+};
+
 class CaseStatement: public Statement {
 public:
     class WhenCondition {
