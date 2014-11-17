@@ -18,7 +18,7 @@ public:
     virtual ~AstNode() {}
     void dump(std::ostream &out, int depth = 0) const;
     virtual std::string text() const = 0;
-    virtual void dumpsubnodes(std::ostream &out, int depth) const {}
+    virtual void dumpsubnodes(std::ostream &/*out*/, int /*depth*/) const {}
 private:
     AstNode(const AstNode &);
     AstNode &operator=(const AstNode &);
@@ -59,8 +59,8 @@ public:
     const Type *type;
     bool referenced;
 
-    virtual void predeclare(Emitter &emitter) {}
-    virtual void postdeclare(Emitter &emitter) {}
+    virtual void predeclare(Emitter &) {}
+    virtual void postdeclare(Emitter &) {}
 private:
     Name(const Name &);
     Name &operator=(const Name &);
@@ -78,9 +78,9 @@ public:
 class TypeNothing: public Type {
 public:
     TypeNothing(): Type("Nothing") {}
-    virtual void generate_load(Emitter &emitter) const {}
-    virtual void generate_store(Emitter &emitter) const {}
-    virtual void generate_call(Emitter &emitter) const {}
+    virtual void generate_load(Emitter &) const {}
+    virtual void generate_store(Emitter &) const {}
+    virtual void generate_call(Emitter &) const {}
 
     virtual std::string text() const { return "TypeNothing"; }
 };
@@ -211,9 +211,9 @@ class TypeModule: public Type {
 public:
     TypeModule(): Type("module") {}
 
-    virtual void generate_load(Emitter &emitter) const { internal_error("TypeModule"); }
-    virtual void generate_store(Emitter &emitter) const { internal_error("TypeModule"); }
-    virtual void generate_call(Emitter &emitter) const { internal_error("TypeModule"); }
+    virtual void generate_load(Emitter &) const { internal_error("TypeModule"); }
+    virtual void generate_store(Emitter &) const { internal_error("TypeModule"); }
+    virtual void generate_call(Emitter &) const { internal_error("TypeModule"); }
 
     virtual std::string text() const { return "TypeModule(...)"; }
 };
@@ -707,7 +707,7 @@ public:
 
     const Constant *cons;
 
-    virtual void generate_address(Emitter &emitter) const {}
+    virtual void generate_address(Emitter &) const {}
     virtual void generate_load(Emitter &emitter) const { cons->value->generate(emitter); }
 
     virtual std::string text() const {
@@ -745,7 +745,7 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
-    virtual void generate_address(Emitter &emitter) const { internal_error("StringReference"); }
+    virtual void generate_address(Emitter &) const { internal_error("StringReference"); }
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
 
@@ -997,9 +997,9 @@ public:
 
     virtual void predeclare(Emitter &emitter);
     virtual void postdeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const { internal_error("Function"); }
-    virtual void generate_load(Emitter &emitter) const { internal_error("Function"); }
-    virtual void generate_store(Emitter &emitter) const { internal_error("Function"); }
+    virtual void generate_address(Emitter &) const { internal_error("Function"); }
+    virtual void generate_load(Emitter &) const { internal_error("Function"); }
+    virtual void generate_store(Emitter &) const { internal_error("Function"); }
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "Function(" + name + ", " + type->text() + ")"; }
@@ -1014,9 +1014,9 @@ public:
     int name_index;
 
     virtual void predeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const { internal_error("PredefinedFunction"); }
-    virtual void generate_load(Emitter &emitter) const { internal_error("PredefinedFunction"); }
-    virtual void generate_store(Emitter &emitter) const { internal_error("PredefinedFunction"); }
+    virtual void generate_address(Emitter &) const { internal_error("PredefinedFunction"); }
+    virtual void generate_load(Emitter &) const { internal_error("PredefinedFunction"); }
+    virtual void generate_store(Emitter &) const { internal_error("PredefinedFunction"); }
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }

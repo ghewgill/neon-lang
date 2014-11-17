@@ -29,6 +29,11 @@ int main(int argc, char *argv[])
     bool dump_ast = false;
     bool dump_bytecode = false;
 
+    if (argc < 2) {
+        fprintf(stderr, "Usage: %s filename.simple\n", argv[0]);
+        exit(1);
+    }
+
     std::ifstream inf(argv[1]);
     std::stringstream buf;
     buf << inf.rdbuf();

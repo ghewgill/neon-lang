@@ -164,7 +164,7 @@ const Type *Parser::parseRecordType(Scope *scope)
     return new TypeRecord(fields);
 }
 
-const Type *Parser::parseEnumType(Scope *scope)
+const Type *Parser::parseEnumType(Scope *)
 {
     if (tokens[i].type != ENUM) {
         error(2011, tokens[i], "ENUM expected");
@@ -1076,12 +1076,12 @@ template <typename T> bool check(ComparisonExpression::Comparison comp1, const T
     return false;
 }
 
-template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, const T &value2low, const T &value2high)
+template <typename T> bool check(ComparisonExpression::Comparison /*comp1*/, const T &/*value1*/, const T &/*value2low*/, const T &/*value2high*/)
 {
     return false; // TODO
 }
 
-template <typename T> bool check(const T &value1low, const T &value1high, const T &value2low, const T &value2high)
+template <typename T> bool check(const T &/*value1low*/, const T &/*value1high*/, const T &/*value2low*/, const T &/*value2high*/)
 {
     return false; // TODO
 }

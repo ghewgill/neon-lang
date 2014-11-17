@@ -29,7 +29,6 @@ if sys.platform == "win32":
     env.Append(CXXFLAGS=[
         "/EHsc",
         "/W4",
-        "/wd4100", # unreferenced formal parameter
         "/WX",
     ])
 else:

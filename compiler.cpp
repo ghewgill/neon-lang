@@ -146,7 +146,7 @@ void TypeBoolean::generate_store(Emitter &emitter) const
     emitter.emit(STOREB);
 }
 
-void TypeBoolean::generate_call(Emitter &emitter) const
+void TypeBoolean::generate_call(Emitter &) const
 {
     internal_error("TypeBoolean");
 }
@@ -161,7 +161,7 @@ void TypeNumber::generate_store(Emitter &emitter) const
     emitter.emit(STOREN);
 }
 
-void TypeNumber::generate_call(Emitter &emitter) const
+void TypeNumber::generate_call(Emitter &) const
 {
     internal_error("TypeNumber");
 }
@@ -176,22 +176,22 @@ void TypeString::generate_store(Emitter &emitter) const
     emitter.emit(STORES);
 }
 
-void TypeString::generate_call(Emitter &emitter) const
+void TypeString::generate_call(Emitter &) const
 {
     internal_error("TypeString");
 }
 
-void TypeFunction::generate_load(Emitter &emitter) const
+void TypeFunction::generate_load(Emitter &) const
 {
     internal_error("TypeFunction");
 }
 
-void TypeFunction::generate_store(Emitter &emitter) const
+void TypeFunction::generate_store(Emitter &) const
 {
     internal_error("TypeFunction");
 }
 
-void TypeFunction::generate_call(Emitter &emitter) const
+void TypeFunction::generate_call(Emitter &) const
 {
     internal_error("TypeFunction");
 }
@@ -206,7 +206,7 @@ void TypeArray::generate_store(Emitter &emitter) const
     emitter.emit(STOREA);
 }
 
-void TypeArray::generate_call(Emitter &emitter) const
+void TypeArray::generate_call(Emitter &) const
 {
     internal_error("TypeArray");
 }
@@ -221,7 +221,7 @@ void TypeDictionary::generate_store(Emitter &emitter) const
     emitter.emit(STORED);
 }
 
-void TypeDictionary::generate_call(Emitter &emitter) const
+void TypeDictionary::generate_call(Emitter &) const
 {
     internal_error("TypeDictionary");
 }
@@ -236,7 +236,7 @@ void TypeRecord::generate_store(Emitter &emitter) const
     emitter.emit(STOREA);
 }
 
-void TypeRecord::generate_call(Emitter &emitter) const
+void TypeRecord::generate_call(Emitter &) const
 {
     internal_error("TypeRecord");
 }
@@ -268,7 +268,7 @@ void GlobalVariable::generate_address(Emitter &emitter) const
     emitter.emit(PUSHPG, index);
 }
 
-void LocalVariable::predeclare(Emitter &emitter)
+void LocalVariable::predeclare(Emitter &)
 {
     if (referenced) {
         index = scope->nextIndex();
@@ -524,7 +524,7 @@ void VariableReference::generate_store(Emitter &emitter) const
     type->generate_store(emitter);
 }
 
-void VariableReference::generate_call(Emitter &emitter) const
+void VariableReference::generate_call(Emitter &) const
 {
     internal_error("VariableReference");
 }
