@@ -20,6 +20,24 @@ public:
     Cell &operator=(const Cell &rhs);
     bool operator==(const Cell &rhs) const;
 
+    Cell *address();
+    bool boolean();
+    Number number();
+    std::string &string();
+    std::vector<Cell> &array();
+    std::map<std::string, Cell> &dictionary();
+
+private:
+    enum {
+        cNone,
+        cAddress,
+        cBoolean,
+        cNumber,
+        cString,
+        cArray,
+        cDictionary
+    } type;
+
     Cell *address_value;
     bool boolean_value;
     Number number_value;

@@ -21,9 +21,9 @@ CppFromAstArg = {
 }
 
 CellField = {
-    "TYPE_BOOLEAN": "boolean_value",
-    "TYPE_NUMBER": "number_value",
-    "TYPE_STRING": "string_value",
+    "TYPE_BOOLEAN": "boolean()",
+    "TYPE_NUMBER": "number()",
+    "TYPE_STRING": "string()",
 }
 
 functions = dict()

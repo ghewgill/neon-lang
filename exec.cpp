@@ -82,7 +82,7 @@ template <> struct number_conversion<double  > { static double   convert_to_nati
 template <typename T> static void marshal_number(Cell &cell, void *&p, size_t &space)
 {
     T *a = reinterpret_cast<T *>(align(alignof(T), sizeof(T), p, space));
-    *a = number_conversion<T>::convert_to_native(cell.number_value);
+    *a = number_conversion<T>::convert_to_native(cell.number());
     p = a + 1;
     space -= sizeof(T);
 }
@@ -90,7 +90,7 @@ template <typename T> static void marshal_number(Cell &cell, void *&p, size_t &s
 static void marshal_pointer(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
-    *a = const_cast<char *>(cell.string_value.data());
+    *a = const_cast<char *>(cell.string().data());
     p = a + 1;
     space -= sizeof(void *);
 }
@@ -247,336 +247,336 @@ void Executor::exec_PUSHPL()
 void Executor::exec_LOADB()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    stack.push(Cell(addr->boolean_value));
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(addr->boolean()));
 }
 
 void Executor::exec_LOADN()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    stack.push(Cell(addr->number_value));
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(addr->number()));
 }
 
 void Executor::exec_LOADS()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    stack.push(Cell(addr->string_value));
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(addr->string()));
 }
 
 void Executor::exec_LOADA()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    stack.push(Cell(addr->array_value));
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(addr->array()));
 }
 
 void Executor::exec_LOADD()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    stack.push(Cell(addr->dictionary_value));
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(addr->dictionary()));
 }
 
 void Executor::exec_LOADP()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    stack.push(Cell(addr->address_value));
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(addr->address()));
 }
 
 void Executor::exec_STOREB()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    bool val = stack.top().boolean_value; stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    bool val = stack.top().boolean(); stack.pop();
     *addr = Cell(val);
 }
 
 void Executor::exec_STOREN()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    Number val = stack.top().number_value; stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    Number val = stack.top().number(); stack.pop();
     *addr = Cell(val);
 }
 
 void Executor::exec_STORES()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    std::string val = stack.top().string_value; stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    std::string val = stack.top().string(); stack.pop();
     *addr = Cell(val);
 }
 
 void Executor::exec_STOREA()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    std::vector<Cell> val = stack.top().array_value; stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    std::vector<Cell> val = stack.top().array(); stack.pop();
     *addr = Cell(val);
 }
 
 void Executor::exec_STORED()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    std::map<std::string, Cell> val = stack.top().dictionary_value; stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    std::map<std::string, Cell> val = stack.top().dictionary(); stack.pop();
     *addr = Cell(val);
 }
 
 void Executor::exec_STOREP()
 {
     ip++;
-    Cell *addr = stack.top().address_value; stack.pop();
-    Cell *val = stack.top().address_value; stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    Cell *val = stack.top().address(); stack.pop();
     *addr = Cell(val);
 }
 
 void Executor::exec_NEGN()
 {
     ip++;
-    Number x = stack.top().number_value; stack.pop();
+    Number x = stack.top().number(); stack.pop();
     stack.push(Cell(number_negate(x)));
 }
 
 void Executor::exec_ADDN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_add(a, b)));
 }
 
 void Executor::exec_SUBN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_subtract(a, b)));
 }
 
 void Executor::exec_MULN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_multiply(a, b)));
 }
 
 void Executor::exec_DIVN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_divide(a, b)));
 }
 
 void Executor::exec_MODN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_modulo(a, b)));
 }
 
 void Executor::exec_EXPN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_pow(a, b)));
 }
 
 void Executor::exec_EQB()
 {
     ip++;
-    bool b = stack.top().boolean_value; stack.pop();
-    bool a = stack.top().boolean_value; stack.pop();
+    bool b = stack.top().boolean(); stack.pop();
+    bool a = stack.top().boolean(); stack.pop();
     stack.push(Cell(a == b));
 }
 
 void Executor::exec_NEB()
 {
     ip++;
-    bool b = stack.top().boolean_value; stack.pop();
-    bool a = stack.top().boolean_value; stack.pop();
+    bool b = stack.top().boolean(); stack.pop();
+    bool a = stack.top().boolean(); stack.pop();
     stack.push(Cell(a != b));
 }
 
 void Executor::exec_EQN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_is_equal(a, b)));
 }
 
 void Executor::exec_NEN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_is_not_equal(a, b)));
 }
 
 void Executor::exec_LTN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_is_less(a, b)));
 }
 
 void Executor::exec_GTN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_is_greater(a, b)));
 }
 
 void Executor::exec_LEN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_is_less_equal(a, b)));
 }
 
 void Executor::exec_GEN()
 {
     ip++;
-    Number b = stack.top().number_value; stack.pop();
-    Number a = stack.top().number_value; stack.pop();
+    Number b = stack.top().number(); stack.pop();
+    Number a = stack.top().number(); stack.pop();
     stack.push(Cell(number_is_greater_equal(a, b)));
 }
 
 void Executor::exec_EQS()
 {
     ip++;
-    std::string b = stack.top().string_value; stack.pop();
-    std::string a = stack.top().string_value; stack.pop();
+    std::string b = stack.top().string(); stack.pop();
+    std::string a = stack.top().string(); stack.pop();
     stack.push(Cell(a == b));
 }
 
 void Executor::exec_NES()
 {
     ip++;
-    std::string b = stack.top().string_value; stack.pop();
-    std::string a = stack.top().string_value; stack.pop();
+    std::string b = stack.top().string(); stack.pop();
+    std::string a = stack.top().string(); stack.pop();
     stack.push(Cell(a != b));
 }
 
 void Executor::exec_LTS()
 {
     ip++;
-    std::string b = stack.top().string_value; stack.pop();
-    std::string a = stack.top().string_value; stack.pop();
+    std::string b = stack.top().string(); stack.pop();
+    std::string a = stack.top().string(); stack.pop();
     stack.push(Cell(a < b));
 }
 
 void Executor::exec_GTS()
 {
     ip++;
-    std::string b = stack.top().string_value; stack.pop();
-    std::string a = stack.top().string_value; stack.pop();
+    std::string b = stack.top().string(); stack.pop();
+    std::string a = stack.top().string(); stack.pop();
     stack.push(Cell(a > b));
 }
 
 void Executor::exec_LES()
 {
     ip++;
-    std::string b = stack.top().string_value; stack.pop();
-    std::string a = stack.top().string_value; stack.pop();
+    std::string b = stack.top().string(); stack.pop();
+    std::string a = stack.top().string(); stack.pop();
     stack.push(Cell(a <= b));
 }
 
 void Executor::exec_GES()
 {
     ip++;
-    std::string b = stack.top().string_value; stack.pop();
-    std::string a = stack.top().string_value; stack.pop();
+    std::string b = stack.top().string(); stack.pop();
+    std::string a = stack.top().string(); stack.pop();
     stack.push(Cell(a >= b));
 }
 
 void Executor::exec_EQA()
 {
     ip++;
-    std::vector<Cell> b = stack.top().array_value; stack.pop();
-    std::vector<Cell> a = stack.top().array_value; stack.pop();
+    std::vector<Cell> b = stack.top().array(); stack.pop();
+    std::vector<Cell> a = stack.top().array(); stack.pop();
     stack.push(Cell(a == b));
 }
 
 void Executor::exec_NEA()
 {
     ip++;
-    std::vector<Cell> b = stack.top().array_value; stack.pop();
-    std::vector<Cell> a = stack.top().array_value; stack.pop();
+    std::vector<Cell> b = stack.top().array(); stack.pop();
+    std::vector<Cell> a = stack.top().array(); stack.pop();
     stack.push(Cell(a != b));
 }
 
 void Executor::exec_EQD()
 {
     ip++;
-    std::map<std::string, Cell> b = stack.top().dictionary_value; stack.pop();
-    std::map<std::string, Cell> a = stack.top().dictionary_value; stack.pop();
+    std::map<std::string, Cell> b = stack.top().dictionary(); stack.pop();
+    std::map<std::string, Cell> a = stack.top().dictionary(); stack.pop();
     stack.push(Cell(a == b));
 }
 
 void Executor::exec_NED()
 {
     ip++;
-    std::map<std::string, Cell> b = stack.top().dictionary_value; stack.pop();
-    std::map<std::string, Cell> a = stack.top().dictionary_value; stack.pop();
+    std::map<std::string, Cell> b = stack.top().dictionary(); stack.pop();
+    std::map<std::string, Cell> a = stack.top().dictionary(); stack.pop();
     stack.push(Cell(a != b));
 }
 
 void Executor::exec_ANDB()
 {
     ip++;
-    bool b = stack.top().boolean_value; stack.pop();
-    bool a = stack.top().boolean_value; stack.pop();
+    bool b = stack.top().boolean(); stack.pop();
+    bool a = stack.top().boolean(); stack.pop();
     stack.push(Cell(a && b));
 }
 
 void Executor::exec_ORB()
 {
     ip++;
-    bool b = stack.top().boolean_value; stack.pop();
-    bool a = stack.top().boolean_value; stack.pop();
+    bool b = stack.top().boolean(); stack.pop();
+    bool a = stack.top().boolean(); stack.pop();
     stack.push(Cell(a || b));
 }
 
 void Executor::exec_NOTB()
 {
     ip++;
-    bool x = stack.top().boolean_value; stack.pop();
+    bool x = stack.top().boolean(); stack.pop();
     stack.push(Cell(not x));
 }
 
 void Executor::exec_INDEXA()
 {
     ip++;
-    Number index = stack.top().number_value; stack.pop();
-    Cell *addr = stack.top().address_value; stack.pop();
+    Number index = stack.top().number(); stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
     assert(number_is_integer(index));
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     // TODO: check for i >= 0 and throw exception if not
-    if (i >= addr->array_value.size()) {
-        addr->array_value.resize(i+1);
+    if (i >= addr->array().size()) {
+        addr->array().resize(i+1);
     }
-    assert(i < addr->array_value.size());
-    stack.push(Cell(&addr->array_value.at(i)));
+    assert(i < addr->array().size());
+    stack.push(Cell(&addr->array().at(i)));
 }
 
 void Executor::exec_INDEXD()
 {
     ip++;
-    std::string index = stack.top().string_value; stack.pop();
-    Cell *addr = stack.top().address_value; stack.pop();
-    stack.push(Cell(&addr->dictionary_value[index]));
+    std::string index = stack.top().string(); stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(&addr->dictionary()[index]));
 }
 
 void Executor::exec_CALLP()
@@ -606,7 +606,7 @@ void Executor::exec_JF()
 {
     int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    bool a = stack.top().boolean_value; stack.pop();
+    bool a = stack.top().boolean(); stack.pop();
     if (not a) {
         ip = target;
     }
@@ -616,7 +616,7 @@ void Executor::exec_JT()
 {
     int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
-    bool a = stack.top().boolean_value; stack.pop();
+    bool a = stack.top().boolean(); stack.pop();
     if (a) {
         ip = target;
     }

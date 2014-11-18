@@ -1,7 +1,10 @@
 #include "cell.h"
 
+#include <assert.h>
+
 Cell::Cell()
-  : address_value(NULL),
+  : type(cNone),
+    address_value(NULL),
     boolean_value(false),
     number_value(),
     string_value(),
@@ -11,7 +14,8 @@ Cell::Cell()
 }
 
 Cell::Cell(const Cell &rhs)
-  : address_value(rhs.address_value),
+  : type(rhs.type),
+    address_value(rhs.address_value),
     boolean_value(rhs.boolean_value),
     number_value(rhs.number_value),
     string_value(rhs.string_value),
@@ -21,7 +25,8 @@ Cell::Cell(const Cell &rhs)
 }
 
 Cell::Cell(Cell *value)
-  : address_value(value),
+  : type(cAddress),
+    address_value(value),
     boolean_value(false),
     number_value(),
     string_value(),
@@ -31,7 +36,8 @@ Cell::Cell(Cell *value)
 }
 
 Cell::Cell(bool value)
-  : address_value(NULL),
+  : type(cBoolean),
+    address_value(NULL),
     boolean_value(value),
     number_value(),
     string_value(),
@@ -41,7 +47,8 @@ Cell::Cell(bool value)
 }
 
 Cell::Cell(Number value)
-  : address_value(NULL),
+  : type(cNumber),
+    address_value(NULL),
     boolean_value(false),
     number_value(value),
     string_value(),
@@ -51,7 +58,8 @@ Cell::Cell(Number value)
 }
 
 Cell::Cell(const std::string &value)
-  : address_value(NULL),
+  : type(cString),
+    address_value(NULL),
     boolean_value(false),
     number_value(),
     string_value(value),
@@ -61,7 +69,8 @@ Cell::Cell(const std::string &value)
 }
 
 Cell::Cell(const char *value)
-  : address_value(NULL),
+  : type(cString),
+    address_value(NULL),
     boolean_value(false),
     number_value(),
     string_value(value),
@@ -71,7 +80,8 @@ Cell::Cell(const char *value)
 }
 
 Cell::Cell(const std::vector<Cell> &value)
-  : address_value(NULL),
+  : type(cArray),
+    address_value(NULL),
     boolean_value(false),
     number_value(),
     string_value(),
@@ -81,7 +91,8 @@ Cell::Cell(const std::vector<Cell> &value)
 }
 
 Cell::Cell(const std::map<std::string, Cell> &value)
-  : address_value(NULL),
+  : type(cDictionary),
+    address_value(NULL),
     boolean_value(false),
     number_value(),
     string_value(),
@@ -95,6 +106,7 @@ Cell &Cell::operator=(const Cell &rhs)
     if (&rhs == this) {
         return *this;
     }
+    type = rhs.type;
     address_value = rhs.address_value;
     boolean_value = rhs.boolean_value;
     number_value = rhs.number_value;
@@ -106,14 +118,69 @@ Cell &Cell::operator=(const Cell &rhs)
 
 bool Cell::operator==(const Cell &rhs) const
 {
-    // This currently compares everything (assuming that unused
-    // values are initialised to default values). If in the future
-    // the cell type remembers what type it holds, this can be
-    // improved.
-    return address_value == rhs.address_value
-        && boolean_value == rhs.boolean_value
-        && number_is_equal(number_value, rhs.number_value)
-        && string_value == rhs.string_value
-        && array_value == rhs.array_value
-        && dictionary_value == rhs.dictionary_value;
+    assert(type == rhs.type);
+    switch (type) {
+        case cNone:         return false;
+        case cAddress:      return address_value == rhs.address_value;
+        case cBoolean:      return boolean_value == rhs.boolean_value;
+        case cNumber:       return number_is_equal(number_value, rhs.number_value);
+        case cString:       return string_value == rhs.string_value;
+        case cArray:        return array_value == rhs.array_value;
+        case cDictionary:   return dictionary_value == rhs.dictionary_value;
+    }
+    return false;
+}
+
+Cell *Cell::address()
+{
+    if (type == cNone) {
+        type = cAddress;
+    }
+    assert(type == cAddress);
+    return address_value;
+}
+
+bool Cell::boolean()
+{
+    if (type == cNone) {
+        type = cBoolean;
+    }
+    assert(type == cBoolean);
+    return boolean_value;
+}
+
+Number Cell::number()
+{
+    if (type == cNone) {
+        type = cNumber;
+    }
+    assert(type == cNumber);
+    return number_value;
+}
+
+std::string &Cell::string()
+{
+    if (type == cNone) {
+        type = cString;
+    }
+    assert(type == cString);
+    return string_value;
+}
+
+std::vector<Cell> &Cell::array()
+{
+    if (type == cNone) {
+        type = cArray;
+    }
+    assert(type == cArray);
+    return array_value;
+}
+
+std::map<std::string, Cell> &Cell::dictionary()
+{
+    if (type == cNone) {
+        type = cDictionary;
+    }
+    assert(type == cDictionary);
+    return dictionary_value;
 }
