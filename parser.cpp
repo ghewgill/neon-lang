@@ -582,7 +582,7 @@ const Expression *Parser::parseComparison(Scope *scope)
                 return new DictionaryComparisonExpression(left, right, comp);
             } else if (dynamic_cast<const TypeRecord *>(left->type) != nullptr) {
                 if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                    error(2049, tokens[op], "comparison not available for Array");
+                    error(2049, tokens[op], "comparison not available for RECORD");
                 }
                 return new ArrayComparisonExpression(left, right, comp);
             } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
