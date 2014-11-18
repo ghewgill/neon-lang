@@ -154,11 +154,11 @@ std::vector<Token> tokenize(const std::string &source)
             }
         } else if (isalpha(c)) {
             t.type = IDENTIFIER;
-            std::string::size_type j = i;
-            while (j < source.length() && (isalnum(source.at(j)) || source.at(j) == '_')) {
-                j++;
+            auto const start = i;
+            while (i < source.length() && (isalnum(source.at(i)) || source.at(i) == '_')) {
+                i++;
             }
-            t.text = source.substr(i, j-i);
+            t.text = source.substr(start, i-start);
                  if (t.text == "IF") t.type = IF;
             else if (t.text == "THEN") t.type = THEN;
             else if (t.text == "ELSE") t.type = ELSE;
@@ -190,7 +190,6 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "CASE") t.type = CASE;
             else if (t.text == "WHEN") t.type = WHEN;
             else if (t.text == "EXTERNAL") t.type = EXTERNAL;
-            i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 < source.length()) && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {
@@ -213,16 +212,16 @@ std::vector<Token> tokenize(const std::string &source)
                         if (base < 2 || base > 36) {
                             error(1001, t, "invalid base");
                         }
-                        auto j = i + (end - (source.c_str() + i));
-                        if (source.at(j) != '#') {
+                        i += (end - (source.c_str() + i));
+                        if (source.at(i) != '#') {
                             error(1002, t, "'#' expected");
                         }
-                        i = j + 1;
+                        i++;
                     } else {
                         error(1003, t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
-                    auto start = i;
+                    const auto start = i;
                     while (i < source.length()) {
                         c = static_cast<char>(tolower(source.at(i)));
                         if (c == '.') {
@@ -247,27 +246,26 @@ std::vector<Token> tokenize(const std::string &source)
                     i++;
                 }
             } else {
-                auto j = i;
-                while (j < source.length() && isdigit(source.at(j))) {
-                    j++;
+                const auto start = i;
+                while (i < source.length() && isdigit(source.at(i))) {
+                    i++;
                 }
-                if (j < source.length() && source.at(j) == '.' && source.at(j+1) != '.') {
-                    j++;
-                    while (j < source.length() && isdigit(source.at(j))) {
-                        j++;
+                if (i < source.length() && source.at(i) == '.' && source.at(i+1) != '.') {
+                    i++;
+                    while (i < source.length() && isdigit(source.at(i))) {
+                        i++;
                     }
                 }
-                if (j < source.length() && tolower(source.at(j)) == 'e') {
-                    j++;
-                    if (j < source.length() && (source.at(j) == '+' || source.at(j) == '-')) {
-                        j++;
+                if (i < source.length() && tolower(source.at(i)) == 'e') {
+                    i++;
+                    if (i < source.length() && (source.at(i) == '+' || source.at(i) == '-')) {
+                        i++;
                     }
-                    while (j < source.length() && isdigit(source.at(j))) {
-                        j++;
+                    while (i < source.length() && isdigit(source.at(i))) {
+                        i++;
                     }
                 }
-                t.value = number_from_string(source.substr(i, j-i));
-                i = j;
+                t.value = number_from_string(source.substr(start, i-start));
             }
         } else if (c == '"') {
             i++;
