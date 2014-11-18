@@ -38,20 +38,30 @@ int main(int argc, char *argv[])
     std::stringstream buf;
     buf << inf.rdbuf();
 
-    auto tokens = tokenize(buf.str());
-    if (dump_tokens) {
-        dump(tokens);
-    }
+    try {
+        auto tokens = tokenize(buf.str());
+        if (dump_tokens) {
+            dump(tokens);
+        }
 
-    auto ast = parse(tokens);
-    if (dump_ast) {
-        dump(ast);
-    }
+        auto ast = parse(tokens);
+        if (dump_ast) {
+            dump(ast);
+        }
 
-    auto bytecode = compile(ast);
-    if (dump_bytecode) {
-        disassemble(bytecode, std::cerr);
-    }
+        auto bytecode = compile(ast);
+        if (dump_bytecode) {
+            disassemble(bytecode, std::cerr);
+        }
 
-    exec(bytecode);
+        exec(bytecode);
+
+    } catch (SourceError &error) {
+        fprintf(stderr, "%s\n", error.token.source.c_str());
+        fprintf(stderr, "%*s\n", error.token.column, "^");
+        fprintf(stderr, "Error S%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
+        exit(1);
+    } catch (InternalError &error) {
+        fprintf(stderr, "Compiler Internal Error: %s (%s:%d)\n", error.message.c_str(), error.file.c_str(), error.line);
+    }
 }
