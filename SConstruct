@@ -38,7 +38,6 @@ else:
         "-Wextra",
         "-Weffc++",
         "-Werror",
-        "-Wno-unused-parameter",
         "-g",
     ])
 env.Append(LIBS=[libbid])
