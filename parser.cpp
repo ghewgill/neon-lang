@@ -24,6 +24,7 @@ public:
     const Statement *parseTypeDefinition(Scope *scope);
     const Statement *parseConstantDefinition(Scope *scope);
     const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope);
+    const DictionaryLiteralExpression *parseDictionaryLiteral(Scope *scope);
     const Expression *parseAtom(Scope *scope);
     const Expression *parseExponentiation(Scope *scope);
     const Expression *parseMultiplication(Scope *scope);
@@ -35,7 +36,9 @@ public:
     const Expression *parseExpression(Scope *scope);
     const VariableInfo parseVariableDeclaration(Scope *scope);
     const VariableReference *parseVariableReference(Scope *scope);
+    void parseFunctionHeader(Scope *scope, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args);
     const Statement *parseFunctionDefinition(Scope *scope);
+    const Statement *parseExternalDefinition(Scope *scope);
     const Statement *parseIfStatement(Scope *scope);
     const Statement *parseReturnStatement(Scope *scope);
     const Statement *parseVarStatement(Scope *scope);
@@ -314,6 +317,31 @@ const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scop
     return new FunctionCall(ref, args);
 }
 
+const DictionaryLiteralExpression *Parser::parseDictionaryLiteral(Scope *scope)
+{
+    std::vector<std::pair<std::string, const Expression *>> elements;
+    const Type *elementtype = nullptr;
+    while (tokens[i].type == STRING) {
+        std::string key = tokens[i].text;
+        ++i;
+        if (tokens[i].type != COLON) {
+            error(2126, tokens[i], "':' expected");
+        }
+        ++i;
+        const Expression *element = parseExpression(scope);
+        if (elementtype == nullptr) {
+            elementtype = element->type;
+        } else if (not element->type->is_equivalent(elementtype)) {
+            error(2127, tokens[i], "type mismatch");
+        }
+        elements.push_back(std::make_pair(key, element));
+        if (tokens[i].type == COMMA) {
+            ++i;
+        }
+    }
+    return new DictionaryLiteralExpression(elementtype, elements);
+}
+
 /*
  * Operator precedence:
  *
@@ -337,6 +365,15 @@ const Expression *Parser::parseAtom(Scope *scope)
             }
             ++i;
             return expr;
+        }
+        case LBRACE: {
+            ++i;
+            const Expression *dict = parseDictionaryLiteral(scope);
+            if (tokens[i].type != RBRACE) {
+                error(2128, tokens[i], "'}' expected");
+            }
+            ++i;
+            return dict;
         }
         case FALSE: {
             ++i;
@@ -746,13 +783,13 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
     }
 }
 
-const Statement *Parser::parseFunctionDefinition(Scope *scope)
+void Parser::parseFunctionHeader(Scope *scope, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
         error(2073, tokens[i], "identifier expected");
     }
-    std::string name = tokens[i].text;
+    name = tokens[i].text;
     if (scope->lookupName(name) != nullptr) {
         error(2074, tokens[i], "name shadows outer");
     }
@@ -761,8 +798,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
         error(2075, tokens[i], "'(' expected");
     }
     ++i;
-    std::vector<FunctionParameter *> args;
-    Scope *newscope = new Scope(scope);
+    newscope = new Scope(scope);
     if (tokens[i].type != RPAREN) {
         for (;;) {
             ParameterType::Mode mode = ParameterType::IN;
@@ -793,7 +829,16 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
         error(2077, tokens[i], "':' expected");
     }
     ++i;
-    const Type *returntype = parseType(newscope, true);
+    returntype = parseType(newscope, true);
+}
+
+const Statement *Parser::parseFunctionDefinition(Scope *scope)
+{
+    std::string name;
+    const Type *returntype;
+    Scope *newscope;
+    std::vector<FunctionParameter *> args;
+    parseFunctionHeader(scope, name, returntype, newscope, args);
     Function *function = new Function(name, returntype, newscope, args);
     scope->addName(name, function);
     while (tokens[i].type != END) {
@@ -805,6 +850,73 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
     ++i;
     if (tokens[i].type != FUNCTION) {
         error(2102, tokens[i], "'FUNCTION' expected");
+    }
+    ++i;
+    return nullptr;
+}
+
+const Statement *Parser::parseExternalDefinition(Scope *scope)
+{
+    ++i;
+    if (tokens[i].type != FUNCTION) {
+        error(2122, tokens[i], "FUNCTION expected");
+    }
+    std::string name;
+    const Type *returntype;
+    Scope *newscope;
+    std::vector<FunctionParameter *> args;
+    parseFunctionHeader(scope, name, returntype, newscope, args);
+    if (tokens[i].type != LBRACE) {
+        error(2123, tokens[i], "{ expected");
+    }
+    ++i;
+    const DictionaryLiteralExpression *dict = parseDictionaryLiteral(scope);
+    if (not dict->is_constant) {
+        error(2124, tokens[i], "constant dictionary expected");
+    }
+    if (dynamic_cast<const TypeDictionary *>(dict->elementtype) == nullptr) {
+        error(2131, tokens[i], "top level dictionary element not dictionary");
+    }
+    for (auto elem: dict->dict) {
+        if (not dynamic_cast<const DictionaryLiteralExpression *>(elem.second)->elementtype->is_equivalent(TYPE_STRING)) {
+            error(2132, tokens[i], "sub level dictionary must have string elements");
+        }
+    }
+
+    auto klibrary = dict->dict.find("library");
+    if (klibrary == dict->dict.end()) {
+        error(2133, tokens[i], "\"library\" key not found");
+    }
+    auto &library_dict = dynamic_cast<const DictionaryLiteralExpression *>(klibrary->second)->dict;
+    auto kname = library_dict.find("name");
+    if (kname == library_dict.end()) {
+        error(2134, tokens[i], "\"name\" key not found in library");
+    }
+    std::string library_name = kname->second->eval_string();
+
+    auto ktypes = dict->dict.find("types");
+    if (ktypes == dict->dict.end()) {
+        error(2135, tokens[i], "\"types\" key not found");
+    }
+    auto &types_dict = dynamic_cast<const DictionaryLiteralExpression *>(ktypes->second)->dict;
+    std::map<std::string, std::string> param_types;
+    for (auto paramtype: types_dict) {
+        param_types[paramtype.first] = paramtype.second->eval_string();
+    }
+
+    ExternalFunction *function = new ExternalFunction(name, returntype, newscope, args, library_name, param_types);
+    scope->addName(name, function);
+
+    if (tokens[i].type != RBRACE) {
+        error(2125, tokens[i], "} expected");
+    }
+    ++i;
+    if (tokens[i].type != END) {
+        error(2129, tokens[i], "'END' expected");
+    }
+    ++i;
+    if (tokens[i].type != FUNCTION) {
+        error(2130, tokens[i], "'END FUNCTION' expected");
     }
     ++i;
     return nullptr;
@@ -1204,6 +1316,8 @@ const Statement *Parser::parseStatement(Scope *scope)
         return parseConstantDefinition(scope);
     } else if (tokens[i].type == FUNCTION) {
         return parseFunctionDefinition(scope);
+    } else if (tokens[i].type == EXTERNAL) {
+        return parseExternalDefinition(scope);
     } else if (tokens[i].type == IF) {
         return parseIfStatement(scope);
     } else if (tokens[i].type == RETURN) {

@@ -19,11 +19,14 @@ if sys.platform == "win32":
 else:
     libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.a", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
 
+libffi = SConscript("SConscript-libffi", exports=["env"])
+
 env.Command("external/utf8/source/utf8.h", "external/utf8_v2_3_4.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/utf8"))
 
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
     "external/utf8/source",
+    "external/lib/libffi-3.2.1/include",
 ])
 if sys.platform == "win32":
     env.Append(CXXFLAGS=[
@@ -40,7 +43,9 @@ else:
         "-Werror",
         "-g",
     ])
-env.Append(LIBS=[libbid])
+env.Append(LIBS=[libbid, libffi])
+if os.name == "posix":
+    env.Append(LIBS=["dl"])
 
 if coverage:
     env.Append(CXXFLAGS=[
@@ -74,6 +79,7 @@ simple = env.Program("simple", [
 )
 
 env.Depends("number.h", libbid)
+env.Depends("exec.cpp", libffi)
 
 def UnitTest(env, target, source, **kwargs):
     t = env.Program(target, source, **kwargs)
@@ -123,5 +129,11 @@ env.UnitTest("test_compiler", [
 ] + coverage_lib,
 )
 
-env.Command("tests_normal", [simple, "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")
+if sys.platform == "win32":
+    test_ffi = env.SharedLibrary("libtest_ffi", "test_ffi.c")
+else:
+    test_ffi = env.SharedLibrary("test_ffi", "test_ffi.c")
+
+tests = env.Command("tests_normal", [simple, "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")
+env.Depends(tests, test_ffi)
 env.Command("tests_error", [simple, "run_test.py", "errors.txt", Glob("t/errors/*")], sys.executable + " run_test.py --errors t/errors")

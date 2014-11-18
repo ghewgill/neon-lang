@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <iso646.h>
+#include <sstream>
 
 #include "ast.h"
 #include "opcode.h"
@@ -353,6 +354,26 @@ void PredefinedFunction::predeclare(Emitter &emitter)
 void PredefinedFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLP, name_index);
+}
+
+void ExternalFunction::predeclare(Emitter &emitter)
+{
+    std::stringstream ss;
+    ss << library_name << ":" << name << ":";
+    auto r = param_types.find("return");
+    if (r != param_types.end()) {
+        ss << r->second;
+    }
+    ss << ":";
+    for (auto param: params) {
+        ss << param_types.at(param->name) << ",";
+    }
+    external_index = emitter.str(ss.str());
+}
+
+void ExternalFunction::generate_call(Emitter &emitter) const
+{
+    emitter.emit(CALLE, external_index);
 }
 
 void ConstantBooleanExpression::generate(Emitter &emitter) const

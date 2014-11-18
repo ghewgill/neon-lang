@@ -16,6 +16,8 @@ enum TokenType {
     RPAREN,
     LBRACKET,
     RBRACKET,
+    LBRACE,
+    RBRACE,
     COLON,
     ASSIGN,
     PLUS,
@@ -62,6 +64,7 @@ enum TokenType {
     CASE,
     WHEN,
     DOTDOT,
+    EXTERNAL,
 };
 
 class Token {

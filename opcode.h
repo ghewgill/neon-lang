@@ -59,6 +59,7 @@ enum Opcode {
     DUP,        // duplicate
     DROP,       // drop
     RET,        // return
+    CALLE,      // call external
 };
 
 #endif

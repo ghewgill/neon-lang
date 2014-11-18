@@ -22,6 +22,8 @@ std::string Token::tostring() const
         case RPAREN:      s << "RPAREN"; break;
         case LBRACKET:    s << "LBRACKET"; break;
         case RBRACKET:    s << "RBRACKET"; break;
+        case LBRACE:      s << "LBRACE"; break;
+        case RBRACE:      s << "RBRACE"; break;
         case COLON:       s << "COLON"; break;
         case ASSIGN:      s << "ASSIGN"; break;
         case PLUS:        s << "PLUS"; break;
@@ -68,6 +70,7 @@ std::string Token::tostring() const
         case CASE:        s << "CASE"; break;
         case WHEN:        s << "WHEN"; break;
         case DOTDOT:      s << "DOTDOT"; break;
+        case EXTERNAL:    s << "EXTERNAL"; break;
     }
     s << ">";
     return s.str();
@@ -107,6 +110,8 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == ')') { t.type = RPAREN; i++; }
         else if (c == '[') { t.type = LBRACKET; i++; }
         else if (c == ']') { t.type = RBRACKET; i++; }
+        else if (c == '{') { t.type = LBRACE; i++; }
+        else if (c == '}') { t.type = RBRACE; i++; }
         else if (c == '+') { t.type = PLUS; i++; }
         else if (c == '-') { t.type = MINUS; i++; }
         else if (c == '*') { t.type = TIMES; i++; }
@@ -184,6 +189,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "ELSIF") t.type = ELSIF;
             else if (t.text == "CASE") t.type = CASE;
             else if (t.text == "WHEN") t.type = WHEN;
+            else if (t.text == "EXTERNAL") t.type = EXTERNAL;
             i = j;
         } else if (isdigit(c)) {
             t.type = NUMBER;

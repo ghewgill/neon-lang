@@ -76,9 +76,26 @@ bool number_is_less_equal(Number x, Number y);
 bool number_is_greater_equal(Number x, Number y);
 bool number_is_integer(Number x);
 std::string number_to_string(Number x);
+uint8_t number_to_uint8(Number x);
+int8_t number_to_sint8(Number x);
+uint16_t number_to_uint16(Number x);
+int16_t number_to_sint16(Number x);
 uint32_t number_to_uint32(Number x);
+int32_t number_to_sint32(Number x);
+uint64_t number_to_uint64(Number x);
+int64_t number_to_sint64(Number x);
+float number_to_float(Number x);
+double number_to_double(Number x);
 Number number_from_string(const std::string &s);
+Number number_from_uint8(uint8_t x);
+Number number_from_sint8(int8_t x);
+Number number_from_uint16(uint16_t x);
+Number number_from_sint16(int16_t x);
 Number number_from_uint32(uint32_t x);
+Number number_from_sint32(int32_t x);
 Number number_from_uint64(uint64_t x);
+Number number_from_sint64(int64_t x);
+Number number_from_float(float x);
+Number number_from_double(double x);
 
 #endif

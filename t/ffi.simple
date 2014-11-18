@@ -1,0 +1,209 @@
+EXTERNAL FUNCTION sub_uint8(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "uint8"
+        "y": "uint8"
+        "return": "uint8"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_sint8(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "sint8"
+        "y": "sint8"
+        "return": "sint8"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_uint16(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "uint16"
+        "y": "uint16"
+        "return": "uint16"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_sint16(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "sint16"
+        "y": "sint16"
+        "return": "sint16"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_uint32(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "uint32"
+        "y": "uint32"
+        "return": "uint32"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_sint32(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "sint32"
+        "y": "sint32"
+        "return": "sint32"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_uint64(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "uint64"
+        "y": "uint64"
+        "return": "uint64"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_sint64(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "sint64"
+        "y": "sint64"
+        "return": "sint64"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_float(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "float"
+        "y": "float"
+        "return": "float"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION sub_double(x, y: Number): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "x": "double"
+        "y": "double"
+        "return": "double"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION write_stdout(IN s: String): Nothing
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "s": "pointer"
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION string_length(IN s: String): Number
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "s": "pointer"
+        "return": "uint32"
+    }
+}
+END FUNCTION
+
+%|
+EXTERNAL FUNCTION upper_string(INOUT s: String): Nothing
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+        "s": "pointer"
+    }
+}
+END FUNCTION
+|%
+
+print(str(sub_uint8(8, 5)))
+%= 3
+
+print(str(sub_sint8(8, 5)))
+%= 3
+
+print(str(sub_uint16(8, 5)))
+%= 3
+
+print(str(sub_sint16(8, 5)))
+%= 3
+
+print(str(sub_uint32(8, 5)))
+%= 3
+
+print(str(sub_sint32(8, 5)))
+%= 3
+
+print(str(sub_uint64(8, 5)))
+%= 3
+
+print(str(sub_sint64(8, 5)))
+%= 3
+
+print(str(sub_float(8, 5)))
+%= 3
+
+print(str(sub_double(8, 5)))
+%= 3
+
+%write_stdout("Hello World")
+%%= Hello World
+
+print(str(string_length("Hello")))
+%= 5
+
+%|
+VAR s: String
+s := "Hello World"
+upper_string(s)
+print(s)
+%# HELLO WORLD
+|%

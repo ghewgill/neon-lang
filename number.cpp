@@ -158,10 +158,64 @@ std::string number_to_string(Number x)
     return r;
 }
 
+uint8_t number_to_uint8(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<uint8_t>(trunc(x.x));
+}
+
+int8_t number_to_sint8(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<int8_t>(trunc(x.x));
+}
+
+uint16_t number_to_uint16(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<uint16_t>(trunc(x.x));
+}
+
+int16_t number_to_sint16(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<int16_t>(trunc(x.x));
+}
+
 uint32_t number_to_uint32(Number x)
 {
     // TODO: handle out of range exception
     return static_cast<uint32_t>(trunc(x.x));
+}
+
+int32_t number_to_sint32(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<int32_t>(trunc(x.x));
+}
+
+uint64_t number_to_uint64(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<uint64_t>(trunc(x.x));
+}
+
+int64_t number_to_sint64(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<int64_t>(trunc(x.x));
+}
+
+float number_to_float(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<float>(trunc(x.x));
+}
+
+double number_to_double(Number x)
+{
+    // TODO: handle out of range exception
+    return static_cast<double>(trunc(x.x));
 }
 
 Number number_from_string(const std::string &s)
@@ -169,14 +223,54 @@ Number number_from_string(const std::string &s)
     return stod(s);
 }
 
+Number number_from_uint8(uint8_t x)
+{
+    return x;
+}
+
+Number number_from_sint8(int8_t x)
+{
+    return x;
+}
+
+Number number_from_uint16(uint16_t x)
+{
+    return x;
+}
+
+Number number_from_sint16(int16_t x)
+{
+    return x;
+}
+
 Number number_from_uint32(uint32_t x)
+{
+    return x;
+}
+
+Number number_from_sint32(int32_t x)
 {
     return x;
 }
 
 Number number_from_uint64(uint64_t x)
 {
-    return static_cast<double>(x);
+    return x;
+}
+
+Number number_from_sint64(int64_t x)
+{
+    return x;
+}
+
+Number number_from_float(float x)
+{
+    return x;
+}
+
+Number number_from_double(double x)
+{
+    return x;
 }
 
 #elif defined(NUMBER_DECIMAL)
@@ -363,9 +457,54 @@ std::string number_to_string(Number x)
     return sbuf;
 }
 
+uint8_t number_to_uint8(Number x)
+{
+    return bid64_to_uint8_int(x.x);
+}
+
+int8_t number_to_sint8(Number x)
+{
+    return bid64_to_int8_int(x.x);
+}
+
+uint16_t number_to_uint16(Number x)
+{
+    return bid64_to_uint16_int(x.x);
+}
+
+int16_t number_to_sint16(Number x)
+{
+    return bid64_to_int16_int(x.x);
+}
+
 uint32_t number_to_uint32(Number x)
 {
     return bid64_to_uint32_int(x.x);
+}
+
+int32_t number_to_sint32(Number x)
+{
+    return bid64_to_int32_int(x.x);
+}
+
+uint64_t number_to_uint64(Number x)
+{
+    return bid64_to_uint64_int(x.x);
+}
+
+int64_t number_to_sint64(Number x)
+{
+    return bid64_to_int64_int(x.x);
+}
+
+float number_to_float(Number x)
+{
+    return bid64_to_binary32(x.x);
+}
+
+double number_to_double(Number x)
+{
+    return bid64_to_binary64(x.x);
 }
 
 Number number_from_string(const std::string &s)
@@ -373,14 +512,54 @@ Number number_from_string(const std::string &s)
     return bid64_from_string(const_cast<char *>(s.c_str()));
 }
 
+Number number_from_uint8(uint8_t x)
+{
+    return bid64_from_uint32(x);
+}
+
+Number number_from_sint8(int8_t x)
+{
+    return bid64_from_int32(x);
+}
+
+Number number_from_uint16(uint16_t x)
+{
+    return bid64_from_uint32(x);
+}
+
+Number number_from_sint16(int16_t x)
+{
+    return bid64_from_int32(x);
+}
+
 Number number_from_uint32(uint32_t x)
 {
     return bid64_from_uint32(x);
 }
 
+Number number_from_sint32(int32_t x)
+{
+    return bid64_from_int32(x);
+}
+
 Number number_from_uint64(uint64_t x)
 {
     return bid64_from_uint64(x);
+}
+
+Number number_from_sint64(int64_t x)
+{
+    return bid64_from_int64(x);
+}
+
+Number number_from_float(float x)
+{
+    return binary32_to_bid64(x);
+}
+
+Number number_from_double(double x)
+{
+    return binary64_to_bid64(x);
 }
 
 #endif

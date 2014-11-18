@@ -351,6 +351,25 @@ public:
     virtual std::string text() const;
 };
 
+class DictionaryLiteralExpression: public Expression {
+public:
+    DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(elementtype), true /*TODO*/), elementtype(elementtype), dict(make_dictionary(elements)) {}
+
+    const Type *elementtype;
+    const std::map<std::string, const Expression *> dict;
+
+    virtual Number eval_number() const { internal_error("ConstantStringExpression"); }
+    virtual std::string eval_string() const { internal_error("DictionaryLiteralExpression"); }
+    virtual void generate(Emitter &) const { internal_error("DictionaryLiteralExpression"); }
+
+    virtual std::string text() const { return "DictionaryLiteralExpression(...)"; }
+private:
+    DictionaryLiteralExpression(DictionaryLiteralExpression &);
+    DictionaryLiteralExpression &operator=(DictionaryLiteralExpression &);
+
+    static std::map<std::string, const Expression *> make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements);
+};
+
 class UnaryMinusExpression: public Expression {
 public:
     UnaryMinusExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
@@ -1020,6 +1039,23 @@ public:
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
+};
+
+class ExternalFunction: public Function {
+public:
+    ExternalFunction(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params, const std::string &library_name, const std::map<std::string, std::string> &param_types): Function(name, returntype, scope, params), library_name(library_name), param_types(param_types), external_index(-1) {}
+
+    const std::string library_name;
+    const std::map<std::string, std::string> param_types;
+    int external_index;
+
+    virtual void predeclare(Emitter &);
+    virtual void postdeclare(Emitter &) {} // TODO: Stub this out so we don't inherit the one from Function. Fix Function hierarchy.
+    virtual void generate_call(Emitter &emitter) const;
+
+private:
+    ExternalFunction(const ExternalFunction &);
+    ExternalFunction &operator=(const ExternalFunction &);
 };
 
 class Module: public Name {

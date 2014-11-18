@@ -91,6 +91,15 @@ std::string ConstantEnumExpression::text() const
     return s.str();
 }
 
+std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements)
+{
+    std::map<std::string, const Expression *> dict;
+    for (auto e: elements) {
+        dict[e.first] = e.second;
+    }
+    return dict;
+}
+
 std::string FunctionCall::text() const
 {
     std::stringstream s;
