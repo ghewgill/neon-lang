@@ -121,13 +121,13 @@ void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
     }
 }
 
-const Name *Scope::lookupName(const std::string &name) const
+const Name *Scope::lookupName(const std::string &name)
 {
-    const Scope *s = this;
+    Scope *s = this;
     while (s != nullptr) {
         auto n = s->names.find(name);
         if (n != s->names.end()) {
-            n->second->referenced = true;
+            s->referenced.insert(n->second);
             return n->second;
         }
         s = s->parent;
@@ -135,7 +135,7 @@ const Name *Scope::lookupName(const std::string &name) const
     return nullptr;
 }
 
-void Scope::addName(const std::string &name, Name *ref)
+void Scope::addName(const std::string &name, Name *ref, bool init_referenced)
 {
     if (lookupName(name) != nullptr) {
         // If this error occurs, it means a new name was introduced
@@ -146,6 +146,9 @@ void Scope::addName(const std::string &name, Name *ref)
         internal_error("name presence not checked");
     }
     names[name] = ref;
+    if (init_referenced) {
+        referenced.insert(ref);
+    }
 }
 
 int Scope::nextIndex()

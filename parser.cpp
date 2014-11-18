@@ -243,7 +243,7 @@ const Statement *Parser::parseTypeDefinition(Scope *scope)
     }
     ++i;
     const Type *type = parseType(scope);
-    scope->addName(name, const_cast<Type *>(type)); // TODO clean up when 'referenced' is fixed
+    scope->addName(name, const_cast<Type *>(type)); // Still ugly.
     return nullptr;
 }
 
@@ -813,7 +813,7 @@ void Parser::parseFunctionHeader(Scope *scope, std::string &name, const Type *&r
             for (auto name: vars.first) {
                 FunctionParameter *fp = new FunctionParameter(name, vars.second, mode, newscope);
                 args.push_back(fp);
-                newscope->addName(name, fp);
+                newscope->addName(name, fp, true);
             }
             if (tokens[i].type != COMMA) {
                 break;

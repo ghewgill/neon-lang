@@ -259,9 +259,7 @@ void Variable::generate_call(Emitter &emitter) const
 
 void GlobalVariable::predeclare(Emitter &emitter)
 {
-    if (referenced) {
-        index = emitter.global(name);
-    }
+    index = emitter.global(name);
 }
 
 void GlobalVariable::generate_address(Emitter &emitter) const
@@ -271,9 +269,7 @@ void GlobalVariable::generate_address(Emitter &emitter) const
 
 void LocalVariable::predeclare(Emitter &)
 {
-    if (referenced) {
-        index = scope->nextIndex();
-    }
+    index = scope->nextIndex();
 }
 
 void LocalVariable::generate_address(Emitter &emitter) const
@@ -297,48 +293,44 @@ void FunctionParameter::generate_address(Emitter &emitter) const
 
 void Function::predeclare(Emitter &emitter)
 {
-    if (referenced) {
-        entry_label = emitter.next_function();
-    }
+    entry_label = emitter.next_function();
 }
 
 void Function::postdeclare(Emitter &emitter)
 {
-    if (referenced) {
-        scope->predeclare(emitter);
-        emitter.jump_target(emitter.function_label(entry_label));
-        emitter.emit(ENTER, scope->getCount());
-        for (auto p = params.rbegin(); p != params.rend(); ++p) {
-            switch ((*p)->mode) {
-                case ParameterType::IN:
-                    (*p)->generate_address(emitter);
-                    (*p)->generate_store(emitter);
-                    break;
-                case ParameterType::INOUT:
-                    emitter.emit(PUSHPL, (*p)->index);
-                    emitter.emit(STOREP);
-                    break;
-                case ParameterType::OUT:
-                    break;
-            }
+    scope->predeclare(emitter);
+    emitter.jump_target(emitter.function_label(entry_label));
+    emitter.emit(ENTER, scope->getCount());
+    for (auto p = params.rbegin(); p != params.rend(); ++p) {
+        switch ((*p)->mode) {
+            case ParameterType::IN:
+                (*p)->generate_address(emitter);
+                (*p)->generate_store(emitter);
+                break;
+            case ParameterType::INOUT:
+                emitter.emit(PUSHPL, (*p)->index);
+                emitter.emit(STOREP);
+                break;
+            case ParameterType::OUT:
+                break;
         }
-        for (auto stmt: statements) {
-            stmt->generate(emitter);
-        }
-        for (auto p = params.rbegin(); p != params.rend(); ++p) {
-            switch ((*p)->mode) {
-                case ParameterType::IN:
-                case ParameterType::INOUT:
-                    break;
-                case ParameterType::OUT:
-                    (*p)->generate_address(emitter);
-                    (*p)->generate_load(emitter);
-                    break;
-            }
-        }
-        emitter.emit(LEAVE);
-        emitter.emit(RET);
     }
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+    for (auto p = params.rbegin(); p != params.rend(); ++p) {
+        switch ((*p)->mode) {
+            case ParameterType::IN:
+            case ParameterType::INOUT:
+                break;
+            case ParameterType::OUT:
+                (*p)->generate_address(emitter);
+                (*p)->generate_load(emitter);
+                break;
+        }
+    }
+    emitter.emit(LEAVE);
+    emitter.emit(RET);
 }
 
 void Function::generate_call(Emitter &emitter) const
@@ -784,14 +776,18 @@ void ForStatement::generate(Emitter &emitter) const
 void Scope::predeclare(Emitter &emitter) const
 {
     for (auto n: names) {
-        n.second->predeclare(emitter);
+        if (referenced.find(n.second) != referenced.end()) {
+            n.second->predeclare(emitter);
+        }
     }
 }
 
 void Scope::postdeclare(Emitter &emitter) const
 {
     for (auto n: names) {
-        n.second->postdeclare(emitter);
+        if (referenced.find(n.second) != referenced.end()) {
+            n.second->postdeclare(emitter);
+        }
     }
 }
 

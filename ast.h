@@ -3,6 +3,7 @@
 
 #include <iso646.h>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -32,20 +33,21 @@ class VariableReference;
 
 class Scope {
 public:
-    Scope(Scope *parent): parent(parent), names(), count(0) {}
+    Scope(Scope *parent): parent(parent), names(), referenced(), count(0) {}
     virtual ~Scope() {}
 
     virtual void predeclare(Emitter &emitter) const;
     virtual void postdeclare(Emitter &emitter) const;
 
-    const Name *lookupName(const std::string &name) const;
-    void addName(const std::string &name, Name *ref);
+    const Name *lookupName(const std::string &name);
+    void addName(const std::string &name, Name *ref, bool init_referenced = false);
     int nextIndex();
     int getCount() const;
 
 private:
     Scope *const parent;
     std::map<std::string, Name *> names;
+    std::set<const Name *> referenced;
     int count;
 private:
     Scope(const Scope &);
@@ -54,10 +56,9 @@ private:
 
 class Name: public AstNode {
 public:
-    Name(const std::string &name, const Type *type): name(name), type(type), referenced(false) {}
+    Name(const std::string &name, const Type *type): name(name), type(type) {}
     const std::string name;
     const Type *type;
-    bool referenced;
 
     virtual void predeclare(Emitter &) {}
     virtual void postdeclare(Emitter &) {}
@@ -260,7 +261,7 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope), mode(mode) { referenced = true; }
+    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope), mode(mode) {}
     ParameterType::Mode mode;
 
     virtual void generate_address(Emitter &emitter) const;
