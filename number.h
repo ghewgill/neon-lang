@@ -37,7 +37,7 @@ struct Number {
 #endif
 
 struct Number {
-    Number(): x(0) {} // TODO: use whatever proper zero constant is appropriate
+    Number(): x(bid64_from_uint32(0)) {}
     Number(BID_UINT64 x): x(x) {}
     BID_UINT64 x;
 };
