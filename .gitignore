@@ -19,3 +19,5 @@ errors.txt
 external/IntelRDFPMathLib20U1/
 external/utf8/
 external/libffi-3.2.1/
+external/lib
+external/share
