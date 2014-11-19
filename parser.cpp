@@ -1009,7 +1009,7 @@ const Statement *Parser::parseWhileStatement(Scope *scope)
         error(2082, tokens[i], "DO expected");
     }
     ++i;
-    auto loop_id = i;
+    unsigned int loop_id = static_cast<unsigned int>(i);
     loops.top().push_back(std::make_pair(WHILE, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
@@ -1287,7 +1287,7 @@ const Statement *Parser::parseForStatement(Scope *scope)
         error(2118, tokens[i], "'DO' expected");
     }
     ++i;
-    auto loop_id = i;
+    unsigned int loop_id = static_cast<unsigned int>(i);
     loops.top().push_back(std::make_pair(FOR, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
