@@ -71,6 +71,7 @@ std::string Token::tostring() const
         case WHEN:        s << "WHEN"; break;
         case DOTDOT:      s << "DOTDOT"; break;
         case EXTERNAL:    s << "EXTERNAL"; break;
+        case EXIT:        s << "EXIT"; break;
     }
     s << ">";
     return s.str();
@@ -190,6 +191,7 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "CASE") t.type = CASE;
             else if (t.text == "WHEN") t.type = WHEN;
             else if (t.text == "EXTERNAL") t.type = EXTERNAL;
+            else if (t.text == "EXIT") t.type = EXIT;
         } else if (isdigit(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 < source.length()) && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {

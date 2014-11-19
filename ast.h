@@ -923,9 +923,16 @@ private:
     IfStatement &operator=(const IfStatement &);
 };
 
-class WhileStatement: public CompoundStatement {
+class LoopStatement: public CompoundStatement {
 public:
-    WhileStatement(const Expression *condition, const std::vector<const Statement *> &statements): CompoundStatement(statements), condition(condition) {}
+    LoopStatement(unsigned int loop_id, const std::vector<const Statement *> &statements): CompoundStatement(statements), loop_id(loop_id) {}
+
+    const unsigned int loop_id;
+};
+
+class WhileStatement: public LoopStatement {
+public:
+    WhileStatement(unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): LoopStatement(loop_id, statements), condition(condition) {}
 
     const Expression *condition;
 
@@ -939,9 +946,9 @@ private:
     WhileStatement &operator=(const WhileStatement &);
 };
 
-class ForStatement: public CompoundStatement {
+class ForStatement: public LoopStatement {
 public:
-    ForStatement(const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): CompoundStatement(statements), var(var), start(start), end(end) {
+    ForStatement(unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): LoopStatement(loop_id, statements), var(var), start(start), end(end) {
     }
 
     const VariableReference *var;
@@ -1001,6 +1008,20 @@ public:
 private:
     CaseStatement(const CaseStatement &);
     CaseStatement &operator=(const CaseStatement &);
+};
+
+class ExitStatement: public Statement {
+public:
+    ExitStatement(unsigned int loop_id): loop_id(loop_id) {}
+
+    const unsigned int loop_id;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ExitStatement(...)"; }
+private:
+    ExitStatement(const ExitStatement &);
+    ExitStatement &operator=(const ExitStatement &);
 };
 
 class Function: public Variable {

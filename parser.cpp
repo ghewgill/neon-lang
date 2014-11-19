@@ -1,6 +1,7 @@
 #include "parser.h"
 
 #include <iso646.h>
+#include <list>
 
 #include "ast.h"
 #include "rtl.h"
@@ -13,6 +14,8 @@ public:
     const std::vector<Token> tokens;
     static Scope *global_scope; // TODO: static is a hack, used by StringReference constructor
     std::vector<Token>::size_type i;
+
+    std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
 
     typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
 
@@ -45,6 +48,7 @@ public:
     const Statement *parseWhileStatement(Scope *scope);
     const Statement *parseCaseStatement(Scope *scope);
     const Statement *parseForStatement(Scope *scope);
+    const Statement *parseExitStatement(Scope *scope);
     const Statement *parseImport(Scope *scope);
     const Statement *parseStatement(Scope *scope);
     const Program *parse();
@@ -57,7 +61,8 @@ Scope *Parser::global_scope;
 
 Parser::Parser(const std::vector<Token> &tokens)
   : tokens(tokens),
-    i(0)
+    i(0),
+    loops()
 {
 }
 
@@ -841,6 +846,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
     parseFunctionHeader(scope, name, returntype, newscope, args);
     Function *function = new Function(name, returntype, newscope, args);
     scope->addName(name, function);
+    loops.push(std::list<std::pair<TokenType, unsigned int>>());
     while (tokens[i].type != END) {
         const Statement *s = parseStatement(newscope);
         if (s != nullptr) {
@@ -852,6 +858,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
         error(2102, tokens[i], "'FUNCTION' expected");
     }
     ++i;
+    loops.pop();
     return nullptr;
 }
 
@@ -1002,6 +1009,8 @@ const Statement *Parser::parseWhileStatement(Scope *scope)
         error(2082, tokens[i], "DO expected");
     }
     ++i;
+    auto loop_id = i;
+    loops.top().push_back(std::make_pair(WHILE, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement(scope);
@@ -1017,7 +1026,8 @@ const Statement *Parser::parseWhileStatement(Scope *scope)
         error(2104, tokens[i], "WHILE expected");
     }
     ++i;
-    return new WhileStatement(cond, statements);
+    loops.top().pop_back();
+    return new WhileStatement(loop_id, cond, statements);
 }
 
 const Statement *Parser::parseCaseStatement(Scope *scope)
@@ -1277,6 +1287,8 @@ const Statement *Parser::parseForStatement(Scope *scope)
         error(2118, tokens[i], "'DO' expected");
     }
     ++i;
+    auto loop_id = i;
+    loops.top().push_back(std::make_pair(FOR, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement(scope);
@@ -1292,7 +1304,27 @@ const Statement *Parser::parseForStatement(Scope *scope)
         error(2120, tokens[i], "'END FOR' expected");
     }
     ++i;
-    return new ForStatement(var, start, end, statements);
+    loops.top().pop_back();
+    return new ForStatement(loop_id, var, start, end, statements);
+}
+
+const Statement *Parser::parseExitStatement(Scope *)
+{
+    ++i;
+    if (tokens[i].type != WHILE
+     && tokens[i].type != FOR) {
+        error(2136, tokens[i], "loop type expected");
+    }
+    TokenType type = tokens[i].type;
+    ++i;
+    if (not loops.empty()) {
+        for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
+            if (j->first == type) {
+                return new ExitStatement(j->second);
+            }
+        }
+    }
+    error(2137, tokens[i-1], "no matching loop found in current scope");
 }
 
 const Statement *Parser::parseImport(Scope *scope)
@@ -1330,6 +1362,8 @@ const Statement *Parser::parseStatement(Scope *scope)
         return parseCaseStatement(scope);
     } else if (tokens[i].type == FOR) {
         return parseForStatement(scope);
+    } else if (tokens[i].type == EXIT) {
+        return parseExitStatement(scope);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope);
         if (tokens[i].type == ASSIGN) {
@@ -1364,12 +1398,14 @@ const Program *Parser::parse()
 {
     Program *program = new Program();
     global_scope = program->scope;
+    loops.push(std::list<std::pair<TokenType, unsigned int>>());
     while (tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement(program->scope);
         if (s != nullptr) {
             program->statements.push_back(s);
         }
     }
+    loops.pop();
     return program;
 }
 

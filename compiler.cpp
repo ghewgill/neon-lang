@@ -16,7 +16,7 @@ class Emitter {
         int target;
     };
 public:
-    Emitter(): code(), strings(), globals(), functions() {}
+    Emitter(): code(), strings(), globals(), functions(), exit_label() {}
     void emit(unsigned char b);
     void emit_int(int value);
     void emit(unsigned char b, int value);
@@ -29,11 +29,15 @@ public:
     Label create_label();
     void emit_jump(unsigned char b, Label &label);
     void jump_target(Label &label);
+    void add_exit_label(unsigned int loop_id, Label &label);
+    void remove_exit_label(unsigned int loop_id);
+    Label &get_exit_label(unsigned int loop_id);
 private:
     std::vector<unsigned char> code;
     std::vector<std::string> strings;
     std::vector<std::string> globals;
     std::vector<Label> functions;
+    std::map<size_t, Label *> exit_label;
 };
 
 void Emitter::emit(unsigned char b)
@@ -121,7 +125,7 @@ void Emitter::emit_jump(unsigned char b, Label &label)
         emit_int(label.target);
     } else {
         label.fixups.push_back(static_cast<int>(code.size()));
-        emit_int(0);
+        emit_int(-1);
     }
 }
 
@@ -135,6 +139,24 @@ void Emitter::jump_target(Label &label)
         code[offset+2] = static_cast<unsigned char>((label.target >> 8) & 0xff);
         code[offset+3] = static_cast<unsigned char>(label.target & 0xff);
     }
+}
+
+void Emitter::add_exit_label(unsigned int loop_id, Label &label)
+{
+    exit_label[loop_id] = &label;
+}
+
+void Emitter::remove_exit_label(unsigned int loop_id)
+{
+    exit_label.erase(loop_id);
+}
+
+Emitter::Label &Emitter::get_exit_label(unsigned int loop_id)
+{
+    if (exit_label.find(loop_id) == exit_label.end()) {
+        internal_error("loop_id not found");
+    }
+    return *exit_label[loop_id];
 }
 
 void TypeBoolean::generate_load(Emitter &emitter) const
@@ -664,12 +686,14 @@ void WhileStatement::generate(Emitter &emitter) const
     emitter.jump_target(top);
     condition->generate(emitter);
     auto skip = emitter.create_label();
+    emitter.add_exit_label(loop_id, skip);
     emitter.emit_jump(JF, skip);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
     emitter.emit_jump(JUMP, top);
     emitter.jump_target(skip);
+    emitter.remove_exit_label(loop_id);
 }
 
 void CaseStatement::generate(Emitter &emitter) const
@@ -746,6 +770,7 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
 void ForStatement::generate(Emitter &emitter) const
 {
     auto skip = emitter.create_label();
+    emitter.add_exit_label(loop_id, skip);
     auto loop = emitter.create_label();
 
     start->generate(emitter);
@@ -771,6 +796,12 @@ void ForStatement::generate(Emitter &emitter) const
     emitter.emit_jump(JUMP, loop);
     
     emitter.jump_target(skip);
+    emitter.remove_exit_label(loop_id);
+}
+
+void ExitStatement::generate(Emitter &emitter) const
+{
+    emitter.emit_jump(JUMP, emitter.get_exit_label(loop_id));
 }
 
 void Scope::predeclare(Emitter &emitter) const

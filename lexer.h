@@ -65,6 +65,7 @@ enum TokenType {
     WHEN,
     DOTDOT,
     EXTERNAL,
+    EXIT,
 };
 
 class Token {
