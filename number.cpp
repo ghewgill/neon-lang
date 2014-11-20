@@ -255,12 +255,12 @@ Number number_from_sint32(int32_t x)
 
 Number number_from_uint64(uint64_t x)
 {
-    return x;
+    return static_cast<double>(x);
 }
 
 Number number_from_sint64(int64_t x)
 {
-    return x;
+    return static_cast<double>(x);
 }
 
 Number number_from_float(float x)
