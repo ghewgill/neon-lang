@@ -421,6 +421,23 @@ void ConstantEnumExpression::generate(Emitter &emitter) const
     emitter.emit(PUSHN, number_from_uint32(value));
 }
 
+void ArrayLiteralExpression::generate(Emitter &emitter) const
+{
+    for (auto e = elements.rbegin(); e != elements.rend(); ++e) {
+        (*e)->generate(emitter);
+    }
+    emitter.emit(CONSA, elements.size());
+}
+
+void DictionaryLiteralExpression::generate(Emitter &emitter) const
+{
+    for (auto d = dict.rbegin(); d != dict.rend(); ++d) {
+        emitter.emit(PUSHS, emitter.str(d->first));
+        d->second->generate(emitter);
+    }
+    emitter.emit(CONSD, dict.size());
+}
+
 void UnaryMinusExpression::generate(Emitter &emitter) const
 {
     value->generate(emitter);

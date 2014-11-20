@@ -178,6 +178,8 @@ private:
     void exec_DROP();
     void exec_RET();
     void exec_CALLE();
+    void exec_CONSA();
+    void exec_CONSD();
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
@@ -721,6 +723,33 @@ void Executor::exec_CALLE()
     }
 }
 
+void Executor::exec_CONSA()
+{
+    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    Cell a;
+    while (val > 0) {
+        a.array().push_back(stack.top());
+        stack.pop();
+        val--;
+    }
+    stack.push(a);
+}
+
+void Executor::exec_CONSD()
+{
+    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    Cell d;
+    while (val > 0) {
+        Cell value = stack.top(); stack.pop();
+        std::string key = stack.top().string(); stack.pop();
+        d.dictionary()[key] = value;
+        val--;
+    }
+    stack.push(d);
+}
+
 void Executor::exec()
 {
     callstack.push(obj.code.size());
@@ -786,6 +815,8 @@ void Executor::exec()
             case DROP:    exec_DROP(); break;
             case RET:     exec_RET(); break;
             case CALLE:   exec_CALLE(); break;
+            case CONSA:   exec_CONSA(); break;
+            case CONSD:   exec_CONSD(); break;
         }
         if (ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", obj.code[ip]);

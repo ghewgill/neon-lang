@@ -60,6 +60,8 @@ enum Opcode {
     DROP,       // drop
     RET,        // return
     CALLE,      // call external
+    CONSA,      // construct array
+    CONSD,      // construct dictionary
 };
 
 #endif

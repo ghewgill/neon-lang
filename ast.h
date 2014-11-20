@@ -352,6 +352,23 @@ public:
     virtual std::string text() const;
 };
 
+class ArrayLiteralExpression: public Expression {
+public:
+    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(elementtype), true /*TODO*/), elementtype(elementtype), elements(elements) {}
+
+    const Type *elementtype;
+    const std::vector<const Expression *> elements;
+
+    virtual Number eval_number() const { internal_error("ArrayLiteralExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayLiteralExpression"); }
+    virtual void generate(Emitter &) const;
+
+    virtual std::string text() const { return "ArrayLiteralExpression(...)"; }
+private:
+    ArrayLiteralExpression(const ArrayLiteralExpression &);
+    ArrayLiteralExpression &operator=(const ArrayLiteralExpression &);
+};
+
 class DictionaryLiteralExpression: public Expression {
 public:
     DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(elementtype), true /*TODO*/), elementtype(elementtype), dict(make_dictionary(elements)) {}
@@ -359,14 +376,14 @@ public:
     const Type *elementtype;
     const std::map<std::string, const Expression *> dict;
 
-    virtual Number eval_number() const { internal_error("ConstantStringExpression"); }
+    virtual Number eval_number() const { internal_error("DictionaryLiteralExpression"); }
     virtual std::string eval_string() const { internal_error("DictionaryLiteralExpression"); }
-    virtual void generate(Emitter &) const { internal_error("DictionaryLiteralExpression"); }
+    virtual void generate(Emitter &) const;
 
     virtual std::string text() const { return "DictionaryLiteralExpression(...)"; }
 private:
-    DictionaryLiteralExpression(DictionaryLiteralExpression &);
-    DictionaryLiteralExpression &operator=(DictionaryLiteralExpression &);
+    DictionaryLiteralExpression(const DictionaryLiteralExpression &);
+    DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &);
 
     static std::map<std::string, const Expression *> make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements);
 };

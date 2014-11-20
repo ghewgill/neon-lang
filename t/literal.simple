@@ -1,0 +1,13 @@
+VAR a: Array<Number>
+a := [1, 2, 3]
+print(str(a[2]))
+%= 3
+
+VAR d: Dictionary<Number>
+d := {
+    "one": 1
+    "two": 2
+    "three": 3
+}
+print(str(d["two"]))
+%= 2

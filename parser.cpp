@@ -27,6 +27,7 @@ public:
     const Statement *parseTypeDefinition(Scope *scope);
     const Statement *parseConstantDefinition(Scope *scope);
     const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope);
+    const ArrayLiteralExpression *parseArrayLiteral(Scope *scope);
     const DictionaryLiteralExpression *parseDictionaryLiteral(Scope *scope);
     const Expression *parseAtom(Scope *scope);
     const Expression *parseExponentiation(Scope *scope);
@@ -322,12 +323,38 @@ const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scop
     return new FunctionCall(ref, args);
 }
 
+const ArrayLiteralExpression *Parser::parseArrayLiteral(Scope *scope)
+{
+    std::vector<const Expression *> elements;
+    const Type *elementtype = nullptr;
+    while (tokens[i].type != RBRACKET) {
+        const Expression *element = parseExpression(scope);
+        if (elementtype == nullptr) {
+            elementtype = element->type;
+        } else if (not element->type->is_equivalent(elementtype)) {
+            error(2138, tokens[i], "type mismatch");
+        }
+        elements.push_back(element);
+        if (tokens[i].type == COMMA) {
+            ++i;
+        } else if (tokens[i].type != RBRACKET) {
+            error(2139, tokens[i], "',' or ']' expected");
+        }
+    }
+    ++i;
+    return new ArrayLiteralExpression(elementtype, elements);
+}
+
 const DictionaryLiteralExpression *Parser::parseDictionaryLiteral(Scope *scope)
 {
     std::vector<std::pair<std::string, const Expression *>> elements;
+    std::set<std::string> keys;
     const Type *elementtype = nullptr;
     while (tokens[i].type == STRING) {
         std::string key = tokens[i].text;
+        if (not keys.insert(key).second) {
+            error(2140, tokens[i], "duplicate key");
+        }
         ++i;
         if (tokens[i].type != COLON) {
             error(2126, tokens[i], "':' expected");
@@ -370,6 +397,11 @@ const Expression *Parser::parseAtom(Scope *scope)
             }
             ++i;
             return expr;
+        }
+        case LBRACKET: {
+            ++i;
+            const Expression *array = parseArrayLiteral(scope);
+            return array;
         }
         case LBRACE: {
             ++i;
