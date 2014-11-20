@@ -20,6 +20,7 @@ public:
     void emit(unsigned char b);
     void emit_int(int value);
     void emit(unsigned char b, int value);
+    void emit(unsigned char b, const Number &value);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &name);
@@ -57,6 +58,14 @@ void Emitter::emit(unsigned char b, int value)
 {
     emit(b);
     emit_int(value);
+}
+
+void Emitter::emit(unsigned char b, const Number &value)
+{
+    emit(b);
+    // TODO: endian
+    const unsigned char *v = reinterpret_cast<const unsigned char *>(&value);
+    emit(std::vector<unsigned char>(v, v+sizeof(value)));
 }
 
 void Emitter::emit(const std::vector<unsigned char> &instr)
@@ -398,10 +407,7 @@ void ConstantBooleanExpression::generate(Emitter &emitter) const
 
 void ConstantNumberExpression::generate(Emitter &emitter) const
 {
-    emitter.emit(PUSHN);
-    // TODO: endian
-    const unsigned char *v = reinterpret_cast<const unsigned char *>(&value);
-    emitter.emit(std::vector<unsigned char>(v, v+sizeof(value)));
+    emitter.emit(PUSHN, value);
 }
 
 void ConstantStringExpression::generate(Emitter &emitter) const
@@ -412,10 +418,7 @@ void ConstantStringExpression::generate(Emitter &emitter) const
 
 void ConstantEnumExpression::generate(Emitter &emitter) const
 {
-    emitter.emit(PUSHN);
-    Number n = number_from_uint32(value);
-    const unsigned char *v = reinterpret_cast<const unsigned char *>(&n);
-    emitter.emit(std::vector<unsigned char>(v, v+sizeof(n)));
+    emitter.emit(PUSHN, number_from_uint32(value));
 }
 
 void UnaryMinusExpression::generate(Emitter &emitter) const
@@ -786,10 +789,7 @@ void ForStatement::generate(Emitter &emitter) const
         stmt->generate(emitter);
     }
 
-    emitter.emit(PUSHN);
-    Number n = number_from_uint32(1);
-    const unsigned char *v = reinterpret_cast<const unsigned char *>(&n);
-    emitter.emit(std::vector<unsigned char>(v, v+sizeof(n)));
+    emitter.emit(PUSHN, number_from_uint32(1));
     var->generate_load(emitter);
     emitter.emit(ADDN);
     var->generate_store(emitter);
