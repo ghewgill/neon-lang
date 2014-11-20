@@ -1,0 +1,3 @@
+IF TRUE < FALSE THEN
+  print("Woah...")
+END IF

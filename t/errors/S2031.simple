@@ -1,0 +1,7 @@
+FUNCTION a(y: Number, z: Number) : Number
+    y := y + 1
+    z := y
+    RETURN 1
+END FUNCTION
+
+print(a(1))

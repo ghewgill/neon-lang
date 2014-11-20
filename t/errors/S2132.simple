@@ -1,0 +1,6 @@
+EXTERNAL FUNCTION Sleep(ms: Number): Nothing
+{
+     "library": {     
+          "name": 5
+     }
+}

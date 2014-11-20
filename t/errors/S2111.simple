@@ -1,0 +1,10 @@
+VAR a: Number
+a := 5
+
+CASE a
+   WHEN < 2, > 5, 1-10 DO
+     print("Less than 2, or greater than 5")
+
+END CASE
+
+       

@@ -1,0 +1,5 @@
+VAR lib: Dictionary<String>
+
+lib := {
+     "Key1": "Value1"
+     "key2": "value2"

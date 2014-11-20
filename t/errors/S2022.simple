@@ -1,0 +1,4 @@
+VAR x: String
+x := "Hello"
+
+CONST x: String = ", World!"

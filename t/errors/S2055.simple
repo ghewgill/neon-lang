@@ -1,0 +1,2 @@
+VAR a: Number
+a := IF 1 = 2 THEN 1 ELSE FALSE

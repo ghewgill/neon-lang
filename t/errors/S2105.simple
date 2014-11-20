@@ -1,0 +1,9 @@
+VAR a: Number
+a := 1
+
+CASE a
+    WHEN 1 DO
+        print("False")
+    WHEN 2 DO
+        print("True")
+END WHEN

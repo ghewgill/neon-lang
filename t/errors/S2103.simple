@@ -1,0 +1,3 @@
+IF TRUE THEN
+  print("true!")
+END FUNCTION
