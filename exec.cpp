@@ -198,7 +198,7 @@ Executor::Executor(const Bytecode::bytecode &bytes)
 
 void Executor::exec_ENTER()
 {
-    int val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     frames.push_back(ActivationFrame(val));
 }
@@ -226,14 +226,14 @@ void Executor::exec_PUSHN()
 
 void Executor::exec_PUSHS()
 {
-    int val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     stack.push(Cell(obj.strtable[val]));
 }
 
 void Executor::exec_PUSHPG()
 {
-    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     assert(addr < globals.size());
     stack.push(Cell(&globals.at(addr)));
@@ -241,7 +241,7 @@ void Executor::exec_PUSHPG()
 
 void Executor::exec_PUSHPL()
 {
-    size_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     stack.push(Cell(&frames.back().locals.at(addr)));
 }
@@ -583,7 +583,7 @@ void Executor::exec_INDEXD()
 
 void Executor::exec_CALLP()
 {
-    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     std::string func = obj.strtable.at(val);
     rtl_call(stack, func);
@@ -591,7 +591,7 @@ void Executor::exec_CALLP()
 
 void Executor::exec_CALLF()
 {
-    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     callstack.push(ip);
     ip = val;
@@ -599,14 +599,14 @@ void Executor::exec_CALLF()
 
 void Executor::exec_JUMP()
 {
-    int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     ip = target;
 }
 
 void Executor::exec_JF()
 {
-    int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     bool a = stack.top().boolean(); stack.pop();
     if (not a) {
@@ -616,7 +616,7 @@ void Executor::exec_JF()
 
 void Executor::exec_JT()
 {
-    int target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     bool a = stack.top().boolean(); stack.pop();
     if (a) {
@@ -644,7 +644,7 @@ void Executor::exec_RET()
 
 void Executor::exec_CALLE()
 {
-    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     ExternalCallInfo *eci = val < external_functions.size() ? external_functions.at(val) : nullptr;
     if (eci == nullptr) {
@@ -725,7 +725,7 @@ void Executor::exec_CALLE()
 
 void Executor::exec_CONSA()
 {
-    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     Cell a;
     while (val > 0) {
@@ -738,7 +738,7 @@ void Executor::exec_CONSA()
 
 void Executor::exec_CONSD()
 {
-    size_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     Cell d;
     while (val > 0) {

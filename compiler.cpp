@@ -11,21 +11,21 @@
 class Emitter {
     class Label {
         friend class Emitter;
-        Label(): fixups(), target(-1) {}
-        std::vector<int> fixups;
-        int target;
+        Label(): fixups(), target(UINT_MAX) {}
+        std::vector<unsigned int> fixups;
+        unsigned int target;
     };
 public:
     Emitter(): code(), strings(), globals(), functions(), exit_label() {}
     void emit(unsigned char b);
-    void emit_int(int value);
-    void emit(unsigned char b, int value);
+    void emit_uint32(uint32_t value);
+    void emit(unsigned char b, uint32_t value);
     void emit(unsigned char b, const Number &value);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &name);
     unsigned int str(const std::string &s);
-    int next_function();
+    unsigned int next_function();
     Label &function_label(int index);
     Label create_label();
     void emit_jump(unsigned char b, Label &label);
@@ -46,7 +46,7 @@ void Emitter::emit(unsigned char b)
     code.push_back(b);
 }
 
-void Emitter::emit_int(int value)
+void Emitter::emit_uint32(uint32_t value)
 {
     emit(static_cast<unsigned char>((value >> 24) & 0xff));
     emit(static_cast<unsigned char>((value >> 16) & 0xff));
@@ -54,10 +54,10 @@ void Emitter::emit_int(int value)
     emit(static_cast<unsigned char>(value & 0xff));
 }
 
-void Emitter::emit(unsigned char b, int value)
+void Emitter::emit(unsigned char b, uint32_t value)
 {
     emit(b);
-    emit_int(value);
+    emit_uint32(value);
 }
 
 void Emitter::emit(unsigned char b, const Number &value)
@@ -110,11 +110,11 @@ unsigned int Emitter::str(const std::string &s)
     return static_cast<unsigned int>(i - strings.begin());
 }
 
-int Emitter::next_function()
+unsigned int Emitter::next_function()
 {
     auto i = functions.size();
     functions.push_back(create_label());
-    return static_cast<int>(i);
+    return static_cast<unsigned int>(i);
 }
 
 Emitter::Label &Emitter::function_label(int index)
@@ -130,18 +130,18 @@ Emitter::Label Emitter::create_label()
 void Emitter::emit_jump(unsigned char b, Label &label)
 {
     emit(b);
-    if (label.target >= 0) {
-        emit_int(label.target);
+    if (label.target != UINT_MAX) {
+        emit_uint32(label.target);
     } else {
-        label.fixups.push_back(static_cast<int>(code.size()));
-        emit_int(-1);
+        label.fixups.push_back(static_cast<unsigned int>(code.size()));
+        emit_uint32(UINT32_MAX);
     }
 }
 
 void Emitter::jump_target(Label &label)
 {
-    assert(label.target < 0);
-    label.target = static_cast<int>(code.size());
+    assert(label.target == UINT_MAX);
+    label.target = static_cast<unsigned int>(code.size());
     for (auto offset: label.fixups) {
         code[offset] = static_cast<unsigned char>((label.target >> 24) & 0xff);
         code[offset+1] = static_cast<unsigned char>((label.target >> 16) & 0xff);
@@ -412,7 +412,7 @@ void ConstantNumberExpression::generate(Emitter &emitter) const
 
 void ConstantStringExpression::generate(Emitter &emitter) const
 {
-    int index = emitter.str(value);
+    unsigned int index = emitter.str(value);
     emitter.emit(PUSHS, index);
 }
 
@@ -426,7 +426,7 @@ void ArrayLiteralExpression::generate(Emitter &emitter) const
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {
         (*e)->generate(emitter);
     }
-    emitter.emit(CONSA, elements.size());
+    emitter.emit(CONSA, static_cast<uint32_t>(elements.size()));
 }
 
 void DictionaryLiteralExpression::generate(Emitter &emitter) const
@@ -435,7 +435,7 @@ void DictionaryLiteralExpression::generate(Emitter &emitter) const
         emitter.emit(PUSHS, emitter.str(d->first));
         d->second->generate(emitter);
     }
-    emitter.emit(CONSD, dict.size());
+    emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
 }
 
 void UnaryMinusExpression::generate(Emitter &emitter) const

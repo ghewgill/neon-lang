@@ -89,7 +89,7 @@ Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
 
 void Disassembler::disasm_ENTER()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "ENTER " << val << "\n";
 }
@@ -117,21 +117,21 @@ void Disassembler::disasm_PUSHN()
 
 void Disassembler::disasm_PUSHS()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
 void Disassembler::disasm_PUSHPG()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "PUSHPG " << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHPL()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "PUSHPL " << addr << "\n";
 }
@@ -390,35 +390,35 @@ void Disassembler::disasm_INDEXD()
 
 void Disassembler::disasm_CALLP()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "CALLP " << obj.strtable[val] << "\n";
 }
 
 void Disassembler::disasm_CALLF()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "CALLF " << addr << "\n";
 }
 
 void Disassembler::disasm_JUMP()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "JUMP " << addr << "\n";
 }
 
 void Disassembler::disasm_JF()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "JF " << addr << "\n";
 }
 
 void Disassembler::disasm_JT()
 {
-    int addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "JT " << addr << "\n";
 }
@@ -443,21 +443,21 @@ void Disassembler::disasm_RET()
 
 void Disassembler::disasm_CALLE()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "CALLE " << obj.strtable[val] << "\n";
 }
 
 void Disassembler::disasm_CONSA()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "CONSA " << val << "\n";
 }
 
 void Disassembler::disasm_CONSD()
 {
-    int val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "CONSD " << val << "\n";
 }

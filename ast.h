@@ -2,6 +2,7 @@
 #define AST_H
 
 #include <iso646.h>
+#include <limits.h>
 #include <map>
 #include <set>
 #include <string>
@@ -1043,11 +1044,11 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(-1), statements() {}
+    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(UINT_MAX), statements() {}
 
     Scope *scope;
     const std::vector<FunctionParameter *> params;
-    int entry_label;
+    unsigned int entry_label;
 
     std::vector<const Statement *> statements;
 
