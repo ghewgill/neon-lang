@@ -17,6 +17,8 @@
 #include "rtl.h"
 #include "rtl_platform.h"
 
+namespace {
+
 std::vector<std::string> split(const std::string &s, char d)
 {
     std::vector<std::string> r;
@@ -34,6 +36,8 @@ std::vector<std::string> split(const std::string &s, char d)
     }
     return r;
 }
+
+} // namespace
 
 class ExternalCallInfo {
 public:

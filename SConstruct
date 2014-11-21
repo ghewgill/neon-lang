@@ -67,6 +67,7 @@ simple = env.Program("simple", [
     "bytecode.cpp",
     "cell.cpp",
     "compiler.cpp",
+    "debuginfo.cpp",
     "disassembler.cpp",
     "exec.cpp",
     "lexer.cpp",

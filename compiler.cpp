@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include "ast.h"
+#include "debuginfo.h"
 #include "opcode.h"
 
 class Emitter {
@@ -16,7 +17,7 @@ class Emitter {
         unsigned int target;
     };
 public:
-    Emitter(): code(), strings(), globals(), functions(), exit_label() {}
+    Emitter(DebugInfo *debug): code(), strings(), globals(), functions(), exit_label(), debug_info(debug) {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -33,12 +34,17 @@ public:
     void add_exit_label(unsigned int loop_id, Label &label);
     void remove_exit_label(unsigned int loop_id);
     Label &get_exit_label(unsigned int loop_id);
+    void debug_line(int line);
 private:
     std::vector<unsigned char> code;
     std::vector<std::string> strings;
     std::vector<std::string> globals;
     std::vector<Label> functions;
     std::map<size_t, Label *> exit_label;
+    DebugInfo *debug_info;
+private:
+    Emitter(const Emitter &);
+    Emitter &operator=(const Emitter &);
 };
 
 void Emitter::emit(unsigned char b)
@@ -166,6 +172,14 @@ Emitter::Label &Emitter::get_exit_label(unsigned int loop_id)
         internal_error("loop_id not found");
     }
     return *exit_label[loop_id];
+}
+
+void Emitter::debug_line(int line)
+{
+    if (debug_info == nullptr) {
+        return;
+    }
+    debug_info->line_numbers[code.size()] = line;
 }
 
 void TypeBoolean::generate_load(Emitter &emitter) const
@@ -662,18 +676,24 @@ void FunctionCall::generate(Emitter &emitter) const
     }
 }
 
-void AssignmentStatement::generate(Emitter &emitter) const
+void Statement::generate(Emitter &emitter) const
+{
+    emitter.debug_line(line);
+    generate_code(emitter);
+}
+
+void AssignmentStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
     variable->generate_store(emitter);
 }
 
-void ExpressionStatement::generate(Emitter &emitter) const
+void ExpressionStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
 }
 
-void IfStatement::generate(Emitter &emitter) const
+void IfStatement::generate_code(Emitter &emitter) const
 {
     auto end_label = emitter.create_label();
     for (auto cs: condition_statements) {
@@ -694,13 +714,13 @@ void IfStatement::generate(Emitter &emitter) const
     emitter.jump_target(end_label);
 }
 
-void ReturnStatement::generate(Emitter &emitter) const
+void ReturnStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
     // TODO: jump to block exit
 }
 
-void WhileStatement::generate(Emitter &emitter) const
+void WhileStatement::generate_code(Emitter &emitter) const
 {
     auto top = emitter.create_label();
     emitter.jump_target(top);
@@ -716,7 +736,7 @@ void WhileStatement::generate(Emitter &emitter) const
     emitter.remove_exit_label(loop_id);
 }
 
-void CaseStatement::generate(Emitter &emitter) const
+void CaseStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
     auto end_label = emitter.create_label();
@@ -787,7 +807,7 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
     emitter.jump_target(result_label);
 }
 
-void ForStatement::generate(Emitter &emitter) const
+void ForStatement::generate_code(Emitter &emitter) const
 {
     auto skip = emitter.create_label();
     emitter.add_exit_label(loop_id, skip);
@@ -816,7 +836,7 @@ void ForStatement::generate(Emitter &emitter) const
     emitter.remove_exit_label(loop_id);
 }
 
-void ExitStatement::generate(Emitter &emitter) const
+void ExitStatement::generate_code(Emitter &emitter) const
 {
     emitter.emit_jump(JUMP, emitter.get_exit_label(loop_id));
 }
@@ -854,9 +874,9 @@ void Program::generate(Emitter &emitter) const
     scope->postdeclare(emitter);
 }
 
-std::vector<unsigned char> compile(const Program *p)
+std::vector<unsigned char> compile(const Program *p, DebugInfo *debug)
 {
-    Emitter emitter;
+    Emitter emitter(debug);
     p->generate(emitter);
     return emitter.getObject();
 }

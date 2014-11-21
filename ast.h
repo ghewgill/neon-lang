@@ -861,12 +861,16 @@ private:
 
 class Statement: public AstNode {
 public:
-    virtual void generate(Emitter &emitter) const = 0;
+    Statement(int line): line(line) {}
+    const int line;
+
+    void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const = 0;
 };
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(const VariableReference *variable, const Expression *expr): variable(variable), expr(expr) {
+    AssignmentStatement(int line, const VariableReference *variable, const Expression *expr): Statement(line), variable(variable), expr(expr) {
         if (not variable->type->is_equivalent(expr->type)) {
             internal_error("AssignmentStatement");
         }
@@ -875,7 +879,7 @@ public:
     const VariableReference *const variable;
     const Expression *const expr;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "AssignmentStatement(" + variable->text() + ", " + expr->text() + ")";
@@ -887,11 +891,11 @@ private:
 
 class ExpressionStatement: public Statement {
 public:
-    ExpressionStatement(const Expression *expr): expr(expr) {}
+    ExpressionStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
 
     const Expression *const expr;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "ExpressionStatement(" + expr->text() + ")";
@@ -903,11 +907,11 @@ private:
 
 class ReturnStatement: public Statement {
 public:
-    ReturnStatement(const Expression *expr): expr(expr) {}
+    ReturnStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
 
     const Expression *const expr;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const { return "ReturnStatement(" + expr->text() + ")"; }
 private:
@@ -917,7 +921,7 @@ private:
 
 class CompoundStatement: public Statement {
 public:
-    CompoundStatement(const std::vector<const Statement *> &statements): statements(statements) {}
+    CompoundStatement(int line, const std::vector<const Statement *> &statements): Statement(line), statements(statements) {}
 
     const std::vector<const Statement *> statements;
 
@@ -926,12 +930,12 @@ public:
 
 class IfStatement: public Statement {
 public:
-    IfStatement(const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): condition_statements(condition_statements), else_statements(else_statements) {}
+    IfStatement(int line, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(line), condition_statements(condition_statements), else_statements(else_statements) {}
 
     const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     const std::vector<const Statement *> else_statements;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "IfStatement(" + condition_statements[0].first->text() + ")";
@@ -943,18 +947,18 @@ private:
 
 class LoopStatement: public CompoundStatement {
 public:
-    LoopStatement(unsigned int loop_id, const std::vector<const Statement *> &statements): CompoundStatement(statements), loop_id(loop_id) {}
+    LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): CompoundStatement(line, statements), loop_id(loop_id) {}
 
     const unsigned int loop_id;
 };
 
 class WhileStatement: public LoopStatement {
 public:
-    WhileStatement(unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): LoopStatement(loop_id, statements), condition(condition) {}
+    WhileStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): LoopStatement(line, loop_id, statements), condition(condition) {}
 
     const Expression *condition;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "WhileStatement(" + condition->text() + ")";
@@ -966,14 +970,14 @@ private:
 
 class ForStatement: public LoopStatement {
 public:
-    ForStatement(unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): LoopStatement(loop_id, statements), var(var), start(start), end(end) {
+    ForStatement(int line, unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): LoopStatement(line, loop_id, statements), var(var), start(start), end(end) {
     }
 
     const VariableReference *var;
     const Expression *start;
     const Expression *end;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "ForStatement(" + var->text() + " = (" + start->text() + ".." + end->text() + ")";
@@ -1013,12 +1017,12 @@ public:
         RangeWhenCondition(const RangeWhenCondition &);
         RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
-    CaseStatement(const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): expr(expr), clauses(clauses) {}
+    CaseStatement(int line, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(line), expr(expr), clauses(clauses) {}
 
     const Expression *expr;
     const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "CaseStatement(" + expr->text() + ")";
@@ -1030,11 +1034,11 @@ private:
 
 class ExitStatement: public Statement {
 public:
-    ExitStatement(unsigned int loop_id): loop_id(loop_id) {}
+    ExitStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
 
     const unsigned int loop_id;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const { return "ExitStatement(...)"; }
 private:

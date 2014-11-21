@@ -43,13 +43,13 @@ public:
     void parseFunctionHeader(Scope *scope, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args);
     const Statement *parseFunctionDefinition(Scope *scope);
     const Statement *parseExternalDefinition(Scope *scope);
-    const Statement *parseIfStatement(Scope *scope);
-    const Statement *parseReturnStatement(Scope *scope);
-    const Statement *parseVarStatement(Scope *scope);
-    const Statement *parseWhileStatement(Scope *scope);
-    const Statement *parseCaseStatement(Scope *scope);
-    const Statement *parseForStatement(Scope *scope);
-    const Statement *parseExitStatement(Scope *scope);
+    const Statement *parseIfStatement(Scope *scope, int line);
+    const Statement *parseReturnStatement(Scope *scope, int line);
+    const Statement *parseVarStatement(Scope *scope, int line);
+    const Statement *parseWhileStatement(Scope *scope, int line);
+    const Statement *parseCaseStatement(Scope *scope, int line);
+    const Statement *parseForStatement(Scope *scope, int line);
+    const Statement *parseExitStatement(Scope *scope, int line);
     const Statement *parseImport(Scope *scope);
     const Statement *parseStatement(Scope *scope);
     const Program *parse();
@@ -961,7 +961,7 @@ const Statement *Parser::parseExternalDefinition(Scope *scope)
     return nullptr;
 }
 
-const Statement *Parser::parseIfStatement(Scope *scope)
+const Statement *Parser::parseIfStatement(Scope *scope, int line)
 {
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     std::vector<const Statement *> else_statements;
@@ -1002,18 +1002,18 @@ const Statement *Parser::parseIfStatement(Scope *scope)
         error(2103, tokens[i], "IF expected");
     }
     ++i;
-    return new IfStatement(condition_statements, else_statements);
+    return new IfStatement(line, condition_statements, else_statements);
 }
 
-const Statement *Parser::parseReturnStatement(Scope *scope)
+const Statement *Parser::parseReturnStatement(Scope *scope, int line)
 {
     ++i;
     const Expression *expr = parseExpression(scope);
     // TODO: check return type
-    return new ReturnStatement(expr);
+    return new ReturnStatement(line, expr);
 }
 
-const Statement *Parser::parseVarStatement(Scope *scope)
+const Statement *Parser::parseVarStatement(Scope *scope, int /*line*/)
 {
     ++i;
     const VariableInfo vars = parseVariableDeclaration(scope);
@@ -1029,7 +1029,7 @@ const Statement *Parser::parseVarStatement(Scope *scope)
     return nullptr;
 }
 
-const Statement *Parser::parseWhileStatement(Scope *scope)
+const Statement *Parser::parseWhileStatement(Scope *scope, int line)
 {
     ++i;
     auto j = i;
@@ -1059,10 +1059,10 @@ const Statement *Parser::parseWhileStatement(Scope *scope)
     }
     ++i;
     loops.top().pop_back();
-    return new WhileStatement(loop_id, cond, statements);
+    return new WhileStatement(line, loop_id, cond, statements);
 }
 
-const Statement *Parser::parseCaseStatement(Scope *scope)
+const Statement *Parser::parseCaseStatement(Scope *scope, int line)
 {
     ++i;
     const Expression *expr = parseExpression(scope);
@@ -1185,7 +1185,7 @@ const Statement *Parser::parseCaseStatement(Scope *scope)
     }
     ++i;
     clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));
-    return new CaseStatement(expr, clauses);
+    return new CaseStatement(line, expr, clauses);
 }
 
 namespace overlap {
@@ -1292,7 +1292,7 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
     }
 }
 
-const Statement *Parser::parseForStatement(Scope *scope)
+const Statement *Parser::parseForStatement(Scope *scope, int line)
 {
     ++i;
     const VariableReference *var = parseVariableReference(scope);
@@ -1337,10 +1337,10 @@ const Statement *Parser::parseForStatement(Scope *scope)
     }
     ++i;
     loops.top().pop_back();
-    return new ForStatement(loop_id, var, start, end, statements);
+    return new ForStatement(line, loop_id, var, start, end, statements);
 }
 
-const Statement *Parser::parseExitStatement(Scope *)
+const Statement *Parser::parseExitStatement(Scope *, int line)
 {
     ++i;
     if (tokens[i].type != WHILE
@@ -1352,7 +1352,7 @@ const Statement *Parser::parseExitStatement(Scope *)
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
-                return new ExitStatement(j->second);
+                return new ExitStatement(line, j->second);
             }
         }
     }
@@ -1372,6 +1372,7 @@ const Statement *Parser::parseImport(Scope *scope)
 
 const Statement *Parser::parseStatement(Scope *scope)
 {
+    const int line = tokens[i].line;
     if (tokens[i].type == IMPORT) {
         return parseImport(scope);
     } else if (tokens[i].type == TYPE) {
@@ -1383,19 +1384,19 @@ const Statement *Parser::parseStatement(Scope *scope)
     } else if (tokens[i].type == EXTERNAL) {
         return parseExternalDefinition(scope);
     } else if (tokens[i].type == IF) {
-        return parseIfStatement(scope);
+        return parseIfStatement(scope, line);
     } else if (tokens[i].type == RETURN) {
-        return parseReturnStatement(scope);
+        return parseReturnStatement(scope, line);
     } else if (tokens[i].type == VAR) {
-        return parseVarStatement(scope);
+        return parseVarStatement(scope, line);
     } else if (tokens[i].type == WHILE) {
-        return parseWhileStatement(scope);
+        return parseWhileStatement(scope, line);
     } else if (tokens[i].type == CASE) {
-        return parseCaseStatement(scope);
+        return parseCaseStatement(scope, line);
     } else if (tokens[i].type == FOR) {
-        return parseForStatement(scope);
+        return parseForStatement(scope, line);
     } else if (tokens[i].type == EXIT) {
-        return parseExitStatement(scope);
+        return parseExitStatement(scope, line);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope);
         if (tokens[i].type == ASSIGN) {
@@ -1409,13 +1410,13 @@ const Statement *Parser::parseStatement(Scope *scope)
                 // TODO: there is probably a better way to detect this.
                 error(2095, tokens[op], "name is not a variable");
             }
-            return new AssignmentStatement(ref, expr);
+            return new AssignmentStatement(line, ref, expr);
         } else if (tokens[i].type == LPAREN) {
             const FunctionCall *fc = parseFunctionCall(ref, scope);
             if (fc->type != TYPE_NOTHING) {
                 error(2096, tokens[i], "return value unused");
             }
-            return new ExpressionStatement(fc);
+            return new ExpressionStatement(line, fc);
         } else if (tokens[i].type == EQUAL) {
             error(2097, tokens[i], "':=' expected");
         } else {

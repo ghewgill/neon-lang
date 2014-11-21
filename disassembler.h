@@ -4,6 +4,8 @@
 #include <ostream>
 #include <vector>
 
-void disassemble(const std::vector<unsigned char> &obj, std::ostream &out);
+class DebugInfo;
+
+void disassemble(const std::vector<unsigned char> &obj, std::ostream &out, const DebugInfo *debug);
 
 #endif

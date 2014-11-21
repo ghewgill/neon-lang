@@ -4,6 +4,7 @@
 
 #include "ast.h"
 #include "compiler.h"
+#include "debuginfo.h"
 #include "disassembler.h"
 #include "exec.h"
 #include "lexer.h"
@@ -49,9 +50,10 @@ int main(int argc, char *argv[])
             dump(ast);
         }
 
-        auto bytecode = compile(ast);
+        DebugInfo debug(buf.str());
+        auto bytecode = compile(ast, &debug);
         if (dump_bytecode) {
-            disassemble(bytecode, std::cerr);
+            disassemble(bytecode, std::cerr, &debug);
         }
 
         exec(bytecode);

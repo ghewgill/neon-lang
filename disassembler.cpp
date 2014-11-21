@@ -5,16 +5,18 @@
 #include <string>
 
 #include "bytecode.h"
+#include "debuginfo.h"
 #include "number.h"
 #include "opcode.h"
 
 class Disassembler {
 public:
-    Disassembler(std::ostream &out, const Bytecode::bytecode &obj);
+    Disassembler(std::ostream &out, const Bytecode::bytecode &obj, const DebugInfo *debug);
     void disassemble();
 private:
     std::ostream &out;
     const Bytecode obj;
+    const DebugInfo *debug;
     Bytecode::bytecode::size_type index;
 
     void disasm_ENTER();
@@ -82,8 +84,8 @@ private:
     Disassembler &operator=(const Disassembler &);
 };
 
-Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj)
-  : out(out), obj(obj), index(0)
+Disassembler::Disassembler(std::ostream &out, const Bytecode::bytecode &obj, const DebugInfo *debug)
+  : out(out), obj(obj), debug(debug), index(0)
 {
 }
 
@@ -472,7 +474,13 @@ void Disassembler::disassemble()
     }
     out << "]\n";
     while (index < obj.code.size()) {
-        out << index << " ";
+        if (debug != nullptr) {
+            auto line = debug->line_numbers.find(index);
+            if (line != debug->line_numbers.end()) {
+                out << line->second << " | " << debug->source_lines.at(line->second) << "\n";
+            }
+        }
+        out << "  " << index << " ";
         auto last_index = index;
         switch (static_cast<Opcode>(obj.code[index])) {
             case ENTER:   disasm_ENTER(); break;
@@ -543,7 +551,7 @@ void Disassembler::disassemble()
     }
 }
 
-void disassemble(const Bytecode::bytecode &obj, std::ostream &out)
+void disassemble(const Bytecode::bytecode &obj, std::ostream &out, const DebugInfo *debug)
 {
-    Disassembler(out, obj).disassemble();
+    Disassembler(out, obj, debug).disassemble();
 }
