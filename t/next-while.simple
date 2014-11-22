@@ -1,0 +1,15 @@
+VAR a: Number
+a := 5
+WHILE a > 0 DO
+    IF a = 3 THEN
+        a := a - 1
+        NEXT WHILE
+    END IF
+    print(str(a))
+    a := a - 1
+END WHILE
+
+%= 5
+%= 4
+%= 2
+%= 1

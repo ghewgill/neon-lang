@@ -1083,6 +1083,20 @@ private:
     ExitStatement &operator=(const ExitStatement &);
 };
 
+class NextStatement: public Statement {
+public:
+    NextStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
+
+    const unsigned int loop_id;
+
+    virtual void generate_code(Emitter &emitter) const;
+
+    virtual std::string text() const { return "NextStatement(...)"; }
+private:
+    NextStatement(const NextStatement &);
+    NextStatement &operator=(const NextStatement &);
+};
+
 class Function: public Variable {
 public:
     Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(UINT_MAX), statements() {}

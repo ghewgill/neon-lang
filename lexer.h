@@ -66,6 +66,7 @@ enum TokenType {
     DOTDOT,
     EXTERNAL,
     EXIT,
+    NEXT,
 };
 
 class Token {

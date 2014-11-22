@@ -52,6 +52,7 @@ public:
     const Statement *parseCaseStatement(Scope *scope, int line);
     const Statement *parseForStatement(Scope *scope, int line);
     const Statement *parseExitStatement(Scope *scope, int line);
+    const Statement *parseNextStatement(Scope *scope, int line);
     const Statement *parseImport(Scope *scope);
     const Statement *parseStatement(Scope *scope);
     const Program *parse();
@@ -1386,6 +1387,25 @@ const Statement *Parser::parseExitStatement(Scope *, int line)
     error(2137, tokens[i-1], "no matching loop found in current scope");
 }
 
+const Statement *Parser::parseNextStatement(Scope *, int line)
+{
+    ++i;
+    if (tokens[i].type != WHILE
+     && tokens[i].type != FOR) {
+        error(2144, tokens[i], "loop type expected");
+    }
+    TokenType type = tokens[i].type;
+    ++i;
+    if (not loops.empty()) {
+        for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
+            if (j->first == type) {
+                return new NextStatement(line, j->second);
+            }
+        }
+    }
+    error(2145, tokens[i-1], "no matching loop found in current scope");
+}
+
 const Statement *Parser::parseImport(Scope *scope)
 {
     ++i;
@@ -1424,6 +1444,8 @@ const Statement *Parser::parseStatement(Scope *scope)
         return parseForStatement(scope, line);
     } else if (tokens[i].type == EXIT) {
         return parseExitStatement(scope, line);
+    } else if (tokens[i].type == NEXT) {
+        return parseNextStatement(scope, line);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope);
         if (tokens[i].type == ASSIGN) {
