@@ -78,7 +78,7 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
         case LESSEQ:    return ComparisonExpression::LE;
         case GREATEREQ: return ComparisonExpression::GE;
         default:
-            error(2000, token, "internal error");
+            internal_error("invalid comparison type");
     }
 }
 
@@ -108,7 +108,7 @@ StringReference::StringReference(const VariableReference *str, const Expression 
 const Type *Parser::parseArrayType(Scope *scope)
 {
     if (tokens[i].type != ARRAY) {
-        error(2001, tokens[i], "Array expected");
+        internal_error("Array expected");
     }
     i++;
     if (tokens[i].type != LESS) {
@@ -126,7 +126,7 @@ const Type *Parser::parseArrayType(Scope *scope)
 const Type *Parser::parseDictionaryType(Scope *scope)
 {
     if (tokens[i].type != DICTIONARY) {
-        error(2004, tokens[i], "Dictionary expected");
+        internal_error("Dictionary expected");
     }
     i++;
     if (tokens[i].type != LESS) {
@@ -144,7 +144,7 @@ const Type *Parser::parseDictionaryType(Scope *scope)
 const Type *Parser::parseRecordType(Scope *scope)
 {
     if (tokens[i].type != RECORD) {
-        error(2007, tokens[i], "RECORD expected");
+        internal_error("RECORD expected");
     }
     i++;
     std::map<std::string, std::pair<int, const Type *> > fields;
@@ -177,7 +177,7 @@ const Type *Parser::parseRecordType(Scope *scope)
 const Type *Parser::parseEnumType(Scope *)
 {
     if (tokens[i].type != ENUM) {
-        error(2011, tokens[i], "ENUM expected");
+        internal_error("ENUM expected");
     }
     i++;
     std::map<std::string, int> names;

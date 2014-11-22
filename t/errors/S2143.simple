@@ -1,0 +1,2 @@
+VAR b: Boolean
+b := 5 IN {"foo": "bar"}

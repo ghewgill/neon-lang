@@ -1,0 +1,2 @@
+VAR b: Boolean
+b := "foo" IN [2, 3]
