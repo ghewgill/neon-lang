@@ -1,0 +1,6 @@
+EXTERNAL FUNCTION Sleep(ms: Number): Nothing
+{
+     "libary": {     
+          "name": "kernel32"
+     }
+}

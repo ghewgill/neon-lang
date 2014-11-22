@@ -1,0 +1,21 @@
+%TODO
+VAR lib: Dictionary<Dictionary<String>>
+
+lib := {
+    "library": { "": "" }
+    "types":   { "": "" }
+}
+
+VAR params: Dictionary<String>
+params := { "dwMilliseconds": "uint32" }
+
+
+EXTERNAL FUNCTION Sleep(ms: Number): Nothing
+{
+     "library": {     
+          "name": "simpleTestLib"
+     }
+     "types": 
+          params
+}
+END FUNCTION

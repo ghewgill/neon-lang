@@ -1,0 +1,11 @@
+TYPE lh := RECORD
+  var1: Number
+  var2: String
+END RECORD
+
+VAR a: lh
+VAR b: lh
+
+IF a <= b THEN
+  print("Woah...")
+END IF

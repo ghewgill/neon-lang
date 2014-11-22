@@ -1,0 +1,9 @@
+FUNCTION a(y: Number,z: Number) : Number
+    y := y + 1
+    z := y
+    RETURN 1
+END FUNCTION
+
+VAR b: Number
+
+b := (a(1, 2) + 5

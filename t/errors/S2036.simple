@@ -1,0 +1,11 @@
+TYPE Cards := ENUM
+  Hearts
+  Diamonds
+  Spades
+  Clubs
+END ENUM
+
+
+VAR a: Number
+
+a := Cards.

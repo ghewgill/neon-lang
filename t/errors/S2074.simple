@@ -1,0 +1,9 @@
+VAR add: Number
+add := 1
+
+
+FUNCTION add(a: Number): Number
+    a = a + 1
+    RETURN a
+END FUNCTION
+  

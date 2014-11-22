@@ -1,0 +1,9 @@
+VAR a: String
+a := "Hello, World!"
+
+CASE a
+    WHEN "HELLO", 3
+        print("a is == 5")
+    WHEN = "Aloha, World!" DO
+        print("a is Aloha.")
+END CASE

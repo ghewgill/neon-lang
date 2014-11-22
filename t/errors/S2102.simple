@@ -1,0 +1,3 @@
+FUNCTION Test() : Nothing
+  print("Test...")
+END WHILE

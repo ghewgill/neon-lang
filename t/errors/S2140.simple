@@ -1,0 +1,7 @@
+VAR a: Dictionary<Number>
+
+a := { 
+    "One": 1,
+    "Two": 2,
+    "Two": 3,
+}

@@ -1,0 +1,1 @@
+EXTERNAL FUNCTION Sleep(ms: Number): Nothing

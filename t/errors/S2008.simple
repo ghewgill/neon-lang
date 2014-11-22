@@ -1,0 +1,7 @@
+TYPE Color := RECORD
+    Red: Number := 1
+    Green: Number
+    Blue: Number
+    Alpha: Number
+END RECORD
+
