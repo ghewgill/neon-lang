@@ -34,6 +34,7 @@ public:
     const Expression *parseMultiplication(Scope *scope);
     const Expression *parseAddition(Scope *scope);
     const Expression *parseComparison(Scope *scope);
+    const Expression *parseMembership(Scope *scope);
     const Expression *parseConjunction(Scope *scope);
     const Expression *parseDisjunction(Scope *scope);
     const Expression *parseConditional(Scope *scope);
@@ -381,6 +382,7 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral(Scope *scope)
  *  * / MOD  multiplication, division, modulo   parseMultiplication
  *  + -      addition, subtraction              parseAddition
  *  < = >    comparison                         parseComparison
+ *  in       membership                         parseMembership
  *  and      conjunction                        parseConjunction
  *  or       disjunction                        parseDisjunction
  *  if       conditional                        parseConditional
@@ -628,14 +630,40 @@ const Expression *Parser::parseComparison(Scope *scope)
     }
 }
 
-const Expression *Parser::parseConjunction(Scope *scope)
+const Expression *Parser::parseMembership(Scope *scope)
 {
     const Expression *left = parseComparison(scope);
+    if (tokens[i].type == IN) {
+        ++i;
+        const Expression *right = parseComparison(scope);
+        const TypeArray *arraytype = dynamic_cast<const TypeArray *>(right->type);
+        const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(right->type);
+        if (arraytype != nullptr) {
+            if (not left->type->is_equivalent(arraytype->elementtype)) {
+                error(2142, tokens[i], "type mismatch");
+            }
+            return new ArrayInExpression(left, right);
+        } else if (dicttype != nullptr) {
+            if (not left->type->is_equivalent(TYPE_STRING)) {
+                error(2143, tokens[i], "type mismatch");
+            }
+            return new DictionaryInExpression(left, right);
+        } else {
+            error(2141, tokens[i], "IN must be used with Array or Dictionary");
+        }
+    } else {
+        return left;
+    }
+}
+
+const Expression *Parser::parseConjunction(Scope *scope)
+{
+    const Expression *left = parseMembership(scope);
     for (;;) {
         if (tokens[i].type == AND) {
             auto op = i;
             ++i;
-            const Expression *right = parseComparison(scope);
+            const Expression *right = parseMembership(scope);
             if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
                 left = new ConjunctionExpression(left, right);
             } else {

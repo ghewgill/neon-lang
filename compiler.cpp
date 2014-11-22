@@ -499,6 +499,20 @@ void ConjunctionExpression::generate(Emitter &emitter) const
     emitter.jump_target(false_label);
 }
 
+void ArrayInExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(INA);
+}
+
+void DictionaryInExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(IND);
+}
+
 void BooleanComparisonExpression::generate(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQB, NEB};

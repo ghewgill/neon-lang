@@ -503,6 +503,40 @@ private:
     ConjunctionExpression &operator=(const ConjunctionExpression &);
 };
 
+class ArrayInExpression: public Expression {
+public:
+    ArrayInExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, false), left(left), right(right) {}
+
+    const Expression *left;
+    const Expression *right;
+
+    virtual Number eval_number() const { internal_error("ArrayInExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayInExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ArrayInExpression(" + left->text() + ", " + right->text() + ")"; }
+private:
+    ArrayInExpression(const ArrayInExpression &);
+    ArrayInExpression &operator=(const ArrayInExpression &);
+};
+
+class DictionaryInExpression: public Expression {
+public:
+    DictionaryInExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, false), left(left), right(right) {}
+
+    const Expression *left;
+    const Expression *right;
+
+    virtual Number eval_number() const { internal_error("DictionaryInExpression"); }
+    virtual std::string eval_string() const { internal_error("DictionaryInExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "DictionaryInExpression(" + left->text() + ", " + right->text() + ")"; }
+private:
+    DictionaryInExpression(const DictionaryInExpression &);
+    DictionaryInExpression &operator=(const DictionaryInExpression &);
+};
+
 class ComparisonExpression: public Expression {
 public:
     enum Comparison {

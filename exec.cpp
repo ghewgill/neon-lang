@@ -1,5 +1,6 @@
 #include "exec.h"
 
+#include <algorithm>
 #include <assert.h>
 #include <iso646.h>
 #include <iostream>
@@ -173,6 +174,8 @@ private:
     void exec_NOTB();
     void exec_INDEXA();
     void exec_INDEXD();
+    void exec_INA();
+    void exec_IND();
     void exec_CALLP();
     void exec_CALLF();
     void exec_JUMP();
@@ -585,6 +588,22 @@ void Executor::exec_INDEXD()
     stack.push(Cell(&addr->dictionary()[index]));
 }
 
+void Executor::exec_INA()
+{
+    ip++;
+    auto array = stack.top().array(); stack.pop();
+    Cell val = stack.top(); stack.pop();
+    stack.push(Cell(std::find(array.begin(), array.end(), val) != array.end()));
+}
+
+void Executor::exec_IND()
+{
+    ip++;
+    auto dictionary = stack.top().dictionary(); stack.pop();
+    std::string key = stack.top().string(); stack.pop();
+    stack.push(Cell(dictionary.find(key) != dictionary.end()));
+}
+
 void Executor::exec_CALLP()
 {
     uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -810,6 +829,8 @@ void Executor::exec()
             case NOTB:    exec_NOTB(); break;
             case INDEXA:  exec_INDEXA(); break;
             case INDEXD:  exec_INDEXD(); break;
+            case INA:     exec_INA(); break;
+            case IND:     exec_IND(); break;
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
             case JUMP:    exec_JUMP(); break;

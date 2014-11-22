@@ -51,6 +51,8 @@ enum Opcode {
     NOTB,       // not boolean
     INDEXA,     // index array
     INDEXD,     // index dictionary
+    INA,        // in array
+    IND,        // in dictionary
     CALLP,      // call predefined
     CALLF,      // call function
     JUMP,       // unconditional jump

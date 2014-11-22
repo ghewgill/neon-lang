@@ -68,6 +68,8 @@ private:
     void disasm_NOTB();
     void disasm_INDEXA();
     void disasm_INDEXD();
+    void disasm_INA();
+    void disasm_IND();
     void disasm_CALLP();
     void disasm_CALLF();
     void disasm_JUMP();
@@ -390,6 +392,18 @@ void Disassembler::disasm_INDEXD()
     index++;
 }
 
+void Disassembler::disasm_INA()
+{
+    out << "INA\n";
+    index++;
+}
+
+void Disassembler::disasm_IND()
+{
+    out << "IND\n";
+    index++;
+}
+
 void Disassembler::disasm_CALLP()
 {
     uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -532,6 +546,8 @@ void Disassembler::disassemble()
             case NOTB:    disasm_NOTB(); break;
             case INDEXA:  disasm_INDEXA(); break;
             case INDEXD:  disasm_INDEXD(); break;
+            case INA:     disasm_INA(); break;
+            case IND:     disasm_IND(); break;
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
             case JUMP:    disasm_JUMP(); break;
