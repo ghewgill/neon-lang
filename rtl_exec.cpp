@@ -12,6 +12,8 @@ typedef void (*Thunk)(std::stack<Cell> &stack, void *func);
 
 static std::map<std::string, std::pair<Thunk, void *> > Functions;
 
+static std::vector<std::string> g_argv;
+
 namespace rtl {
 
 Number abs(Number x)
@@ -150,6 +152,11 @@ Number math$tan(Number x)
     return number_tan(x);
 }
 
+std::vector<std::string> sys$argv()
+{
+    return g_argv;
+}
+
 Number time$now()
 {
     return rtl_time_now();
@@ -160,8 +167,10 @@ Number time$now()
 #include "thunks.inc"
 #include "functions_exec.inc"
 
-void rtl_exec_init()
+void rtl_exec_init(int argc, char *argv[])
 {
+    g_argv.clear();
+    std::copy(argv, argv+argc, std::back_inserter(g_argv));
     for (auto f: BuiltinFunctions) {
         Functions[f.name] = std::make_pair(f.thunk, f.func);
     }

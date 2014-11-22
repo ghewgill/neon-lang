@@ -172,6 +172,8 @@ private:
     TypeArray &operator=(const TypeArray &);
 };
 
+extern TypeArray *TYPE_ARRAY_STRING;
+
 class TypeDictionary: public Type {
 public:
     TypeDictionary(const Type *elementtype): Type("dictionary"), elementtype(elementtype) {}

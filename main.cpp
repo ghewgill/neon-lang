@@ -78,5 +78,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(bytecode);
+    exec(bytecode, argc-1, argv+1);
 }

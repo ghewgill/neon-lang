@@ -5,6 +5,7 @@ AstFromCpp = {
     "bool": "TYPE_BOOLEAN",
     "Number": "TYPE_NUMBER",
     "std::string": "TYPE_STRING",
+    "std::vector<std::string>": "TYPE_ARRAY_STRING",
 }
 
 CppFromAst = {
@@ -12,18 +13,21 @@ CppFromAst = {
     "TYPE_BOOLEAN": "bool",
     "TYPE_NUMBER": "Number",
     "TYPE_STRING": "std::string",
+    "TYPE_ARRAY_STRING": "std::vector<std::string>",
 }
 
 CppFromAstArg = {
     "TYPE_BOOLEAN": "bool",
     "TYPE_NUMBER": "Number",
     "TYPE_STRING": "const std::string &",
+    "TYPE_ARRAY_STRING": "const std::vector<std::string> &",
 }
 
 CellField = {
     "TYPE_BOOLEAN": "boolean()",
     "TYPE_NUMBER": "number()",
     "TYPE_STRING": "string()",
+    "TYPE_ARRAY_STRING": "array()",
 }
 
 functions = dict()
@@ -37,7 +41,7 @@ with open("rtl_exec.cpp") as f:
             paramstr = m.group(3).split(",")
             if name.startswith("rtl_"):
                 continue
-            assert rtype in ["void", "bool", "Number", "std::string"], rtype
+            assert rtype in ["void", "bool", "Number", "std::string", "std::vector<std::string>"], rtype
             params = []
             if paramstr[0]:
                 for arg in paramstr:
@@ -61,7 +65,13 @@ with open("thunks.inc", "w") as inc:
         for i, a in reversed(list(enumerate(params))):
             print >>inc, "    {} a{} = stack.top().{}; stack.pop();".format(CppFromAst[a], i, CellField[a]);
         if rtype != "TYPE_NOTHING":
-            print >>inc, "    stack.push(Cell(reinterpret_cast<{} (*)({})>(func)({})));".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
+            print >>inc, "    auto r = reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
+            if rtype == "TYPE_ARRAY_STRING":
+                print >>inc, "    Cell t;"
+                print >>inc, "    for (auto x: r) t.array().push_back(Cell(x));"
+                print >>inc, "    stack.push(t);"
+            else:
+                print >>inc, "    stack.push(Cell(r));"
         else:
             print >>inc, "    reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
         print >>inc, "}"

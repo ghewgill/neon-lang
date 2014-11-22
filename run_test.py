@@ -20,6 +20,10 @@ def run(fn):
     if any("SKIP" in x for x in all_comments):
         print("skipped")
         return True
+    args = []
+    a = [x for x in all_comments if "ARGS" in x]
+    if a:
+        args = a[0][a[0].index("ARGS")+4:].split()
 
     expected_stdout = ""
     expected_stderr = ""
@@ -35,7 +39,7 @@ def run(fn):
         err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
         expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
 
-    p = subprocess.Popen(["./simple", fn], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(["./simple", fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
 
     out = out.decode().replace("\r\n", "\n")

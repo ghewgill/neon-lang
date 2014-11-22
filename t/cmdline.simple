@@ -1,0 +1,13 @@
+% ARGS hello world
+
+IMPORT sys
+
+VAR a: Array<String>
+a := sys.argv()
+print(a[0])
+print(a[1])
+print(a[2])
+
+%= t/cmdline.simple
+%= hello
+%= world

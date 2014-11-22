@@ -850,8 +850,8 @@ void Executor::exec()
     }
 }
 
-void exec(const Bytecode::bytecode &obj)
+void exec(const Bytecode::bytecode &obj, int argc, char *argv[])
 {
-    rtl_exec_init();
+    rtl_exec_init(argc, argv);
     Executor(obj).exec();
 }
