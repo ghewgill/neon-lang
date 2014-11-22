@@ -913,6 +913,11 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
             function->statements.push_back(s);
         }
     }
+    if (returntype != TYPE_NOTHING) {
+        if (function->statements.empty() || dynamic_cast<const ReturnStatement *>(function->statements.back()) == nullptr) {
+            error(2146, tokens[i], "missing RETURN statement");
+        }
+    }
     ++i;
     if (tokens[i].type != FUNCTION) {
         error(2102, tokens[i], "'FUNCTION' expected");

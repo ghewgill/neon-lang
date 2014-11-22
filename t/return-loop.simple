@@ -1,0 +1,14 @@
+% TODO
+
+FUNCTION foo(x: Number): Number
+    LOOP
+        IF x = 3 THEN
+            RETURN x
+        END IF
+        x := x - 1
+    END LOOP
+END FUNCTION
+
+print(foo(5))
+
+%= 3

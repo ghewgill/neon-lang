@@ -1,9 +1,9 @@
+% SKIP (infinite loop, RETURN jump to end of function)
 FUNCTION factorial(x: Number): Number
     IF x = 0 THEN
         RETURN 1
-    ELSE
-        RETURN x * factorial(x - 1)
     END IF
+    RETURN x * factorial(x - 1)
 END FUNCTION
 
 print(str(factorial(5)))

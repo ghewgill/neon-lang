@@ -1,0 +1,14 @@
+% TODO
+
+FUNCTION foo(x: Number): Number
+    CASE x
+        WHEN < 5 DO
+            RETURN -1
+        WHEN >= 5 DO
+            RETURN 1
+    END CASE
+END FUNCTION
+
+print(str(foo(5))
+
+%= 1
