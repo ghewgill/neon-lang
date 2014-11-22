@@ -2,9 +2,10 @@
 
 #include <iso646.h>
 #include <list>
+#include <stack>
 
 #include "ast.h"
-#include "rtl.h"
+#include "rtl_compile.h"
 #include "util.h"
 
 class Parser {

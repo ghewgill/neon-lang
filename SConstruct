@@ -52,7 +52,7 @@ if coverage:
         "--coverage", "-O0",
     ])
 
-env.Command(["thunks.inc", "functions.inc"], ["rtl.cpp", "make_thunks.py"], sys.executable + " make_thunks.py")
+env.Command(["thunks.inc", "functions_compile.inc", "functions_exec.inc"], ["rtl_exec.cpp", "make_thunks.py"], sys.executable + " make_thunks.py")
 
 if os.name == "posix":
     rtl_platform = "rtl_posix.cpp"
@@ -74,7 +74,9 @@ simple = env.Program("simple", [
     "main.cpp",
     "number.cpp",
     "parser.cpp",
-    "rtl.cpp", rtl_platform,
+    "rtl_compile.cpp",
+    "rtl_exec.cpp",
+    rtl_platform,
     "util.cpp",
 ] + coverage_lib,
 )
@@ -110,7 +112,7 @@ env.UnitTest("test_parser", [
     "parser.cpp",
     "lexer.cpp",
     "number.cpp",
-    "rtl.cpp", rtl_platform,
+    "rtl_compile.cpp",
     "util.cpp",
 ] + coverage_lib,
 )
@@ -125,7 +127,7 @@ env.UnitTest("test_compiler", [
     "lexer.cpp",
     "number.cpp",
     "parser.cpp",
-    "rtl.cpp", rtl_platform,
+    "rtl_compile.cpp",
     "util.cpp",
 ] + coverage_lib,
 )

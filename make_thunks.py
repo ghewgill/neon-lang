@@ -28,7 +28,7 @@ CellField = {
 
 functions = dict()
 
-with open("rtl.cpp") as f:
+with open("rtl_exec.cpp") as f:
     for s in f:
         m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
         if m is not None:
@@ -67,14 +67,22 @@ with open("thunks.inc", "w") as inc:
         print >>inc, "}"
         print >>inc, ""
 
-with open("functions.inc", "w") as inc:
+with open("functions_compile.inc", "w") as inc:
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    const Type *returntype;"
     print >>inc, "    const Type *params[10];"
+    print >>inc, "} BuiltinFunctions[] = {"
+    for name, rtype, params in functions.values():
+        print >>inc, "    {{\"{}\", {}, {{{}}}}},".format(name, rtype, ",".join(params))
+    print >>inc, "};";
+
+with open("functions_exec.inc", "w") as inc:
+    print >>inc, "static struct {"
+    print >>inc, "    const char *name;"
     print >>inc, "    Thunk thunk;"
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, params in functions.values():
-        print >>inc, "    {{\"{}\", {}, {{{}}}, {}, reinterpret_cast<void *>(rtl::{})}},".format(name, rtype, ",".join(params), "thunk_{}_{}".format(rtype, "_".join(params)), name)
+        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name, "thunk_{}_{}".format(rtype, "_".join(params)), name)
     print >>inc, "};";

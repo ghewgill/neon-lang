@@ -4,7 +4,7 @@
 #include <iso646.h>
 #include <sstream>
 
-#include "rtl.h"
+#include "rtl_compile.h"
 
 TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
@@ -199,7 +199,7 @@ Program::Program()
     scope->addName("Number", TYPE_NUMBER);
     scope->addName("String", TYPE_STRING);
 
-    rtl_init(scope);
+    rtl_compile_init(scope);
 }
 
 void Program::dumpsubnodes(std::ostream &out, int depth) const

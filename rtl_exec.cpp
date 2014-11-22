@@ -4,7 +4,6 @@
 #include <string>
 #include <time.h>
 
-#include "ast.h"
 #include "cell.h"
 #include "number.h"
 #include "rtl_platform.h"
@@ -159,41 +158,13 @@ Number time$now()
 } // namespace rtl
 
 #include "thunks.inc"
-#include "functions.inc"
+#include "functions_exec.inc"
 
-void rtl_init(Scope *scope)
+void rtl_exec_init()
 {
     for (auto f: BuiltinFunctions) {
-        std::vector<const ParameterType *> params;
-        for (auto p: f.params) {
-            if (p == nullptr) {
-                break;
-            }
-            params.push_back(new ParameterType(ParameterType::IN, p));
-        }
-        scope->addName(f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
         Functions[f.name] = std::make_pair(f.thunk, f.func);
     }
-}
-
-void rtl_import(Scope *scope, const std::string &name)
-{
-    std::string prefix = name + "$";
-    Module *module = new Module(scope, name);
-    for (auto f: BuiltinFunctions) {
-        std::string qualified_name(f.name);
-        if (qualified_name.substr(0, prefix.length()) == prefix) {
-            std::vector<const ParameterType *> params;
-            for (auto p: f.params) {
-                if (p == nullptr) {
-                    break;
-                }
-                params.push_back(new ParameterType(ParameterType::IN, p));
-            }
-            module->scope->addName(qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
-        }
-    }
-    scope->addName(name, module);
 }
 
 void rtl_call(std::stack<Cell> &stack, const std::string &name)

@@ -15,7 +15,7 @@
 #include "cell.h"
 #include "number.h"
 #include "opcode.h"
-#include "rtl.h"
+#include "rtl_exec.h"
 #include "rtl_platform.h"
 
 namespace {
@@ -852,5 +852,6 @@ void Executor::exec()
 
 void exec(const Bytecode::bytecode &obj)
 {
+    rtl_exec_init();
     Executor(obj).exec();
 }
