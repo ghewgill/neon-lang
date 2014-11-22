@@ -1,4 +1,4 @@
-FUNCTION foo(a: Array<String>): Nothing
+FUNCTION foo(a: Array<String>)
     % ...
 END FUNCTION
 

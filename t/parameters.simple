@@ -1,14 +1,14 @@
-FUNCTION in(IN a: Number): Nothing
+FUNCTION in(IN a: Number)
     print(str(a))
     a := a + 1
 END FUNCTION
 
-FUNCTION inout(INOUT a: Number): Nothing
+FUNCTION inout(INOUT a: Number)
     print(str(a))
     a := a + 1
 END FUNCTION
 
-FUNCTION out(OUT a: Number): Nothing
+FUNCTION out(OUT a: Number)
     print(str(a))
     a := a + 1
 END FUNCTION

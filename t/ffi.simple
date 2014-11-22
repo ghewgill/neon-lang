@@ -128,7 +128,7 @@ EXTERNAL FUNCTION sub_double(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION write_stdout(IN s: String): Nothing
+EXTERNAL FUNCTION write_stdout(IN s: String)
 {
     "library": {
         "name": "libtest_ffi"
@@ -152,7 +152,7 @@ EXTERNAL FUNCTION string_length(IN s: String): Number
 END FUNCTION
 
 %|
-EXTERNAL FUNCTION upper_string(INOUT s: String): Nothing
+EXTERNAL FUNCTION upper_string(INOUT s: String)
 {
     "library": {
         "name": "libtest_ffi"

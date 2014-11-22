@@ -194,7 +194,6 @@ Program::Program()
   : scope(new Scope(nullptr)),
     statements()
 {
-    scope->addName("Nothing", TYPE_NOTHING);
     scope->addName("Boolean", TYPE_BOOLEAN);
     scope->addName("Number", TYPE_NUMBER);
     scope->addName("String", TYPE_STRING);

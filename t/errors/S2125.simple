@@ -1,4 +1,4 @@
-EXTERNAL FUNCTION Sleep(ms: Number): Nothing
+EXTERNAL FUNCTION Sleep(ms: Number)
 {
      "library": {     
           "name": "simpleTestLib"

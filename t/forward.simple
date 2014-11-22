@@ -1,13 +1,13 @@
 % TODO
 
-FUNCTION ping(n: Number): Nothing
+FUNCTION ping(n: Number)
     IF n > 0 THEN
         print("ping " + str(n))
         pong(n - 1)
     END IF
 END FUNCTION
 
-FUNCTION pong(n: Number): Nothing
+FUNCTION pong(n: Number)
     IF n > 0 THEN
         print("pong " + str(n))
         ping(n - 1)

@@ -1,6 +1,6 @@
 VAR a: Number
 
-FUNCTION foo(): Nothing
+FUNCTION foo()
     VAR a: Number
 END FUNCTION
 

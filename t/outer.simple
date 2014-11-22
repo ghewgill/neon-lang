@@ -1,8 +1,8 @@
 % TODO SKIP (causes infinite loop)
 
-FUNCTION foo(): Nothing
+FUNCTION foo()
     VAR outer: String
-        FUNCTION bar(): Nothing
+        FUNCTION bar()
             outer := "two"
         END FUNCTION
     outer := "one"

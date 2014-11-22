@@ -1,6 +1,6 @@
 % TODO
 
-FUNCTION foo(x: Number): Nothing
+FUNCTION foo(x: Number)
     RETURN x
 END FUNCTION
 

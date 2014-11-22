@@ -1,6 +1,6 @@
 % TODO
 
-FUNCTION foo(): Nothing
+FUNCTION foo()
     VAR a: Number
 END FUNCTION
 

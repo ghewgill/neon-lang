@@ -400,7 +400,7 @@ VAR Microseconds, Dhrystones_Per_Second: Number
 % end of variables for time measurement
 
 
-FUNCTION Proc_3 (Ptr_Ref_Par: Record): Nothing
+FUNCTION Proc_3 (Ptr_Ref_Par: Record)
     % executed once
     % Ptr_Ref_Par becomes Ptr_Glob
 
@@ -413,7 +413,7 @@ FUNCTION Proc_3 (Ptr_Ref_Par: Record): Nothing
 END FUNCTION % Proc_3
 
 
-FUNCTION Proc_1 (INOUT Ptr_Val_Par: Record): Nothing
+FUNCTION Proc_1 (INOUT Ptr_Val_Par: Record)
     % executed once
 
 %| TODO
@@ -446,7 +446,7 @@ FUNCTION Proc_1 (INOUT Ptr_Val_Par: Record): Nothing
 END FUNCTION % Proc_1
 
 
-FUNCTION Proc_2 (INOUT Int_Par_Ref: Number): Nothing
+FUNCTION Proc_2 (INOUT Int_Par_Ref: Number)
     % executed once
     % *Int_Par_Ref == 1, becomes 4
 
@@ -467,7 +467,7 @@ FUNCTION Proc_2 (INOUT Int_Par_Ref: Number): Nothing
 END FUNCTION % Proc_2
 
 
-FUNCTION Proc_4 (): Nothing % without parameters
+FUNCTION Proc_4 () % without parameters
     % executed once
 
   VAR Bool_Loc: Boolean
@@ -478,7 +478,7 @@ FUNCTION Proc_4 (): Nothing % without parameters
 END FUNCTION % Proc_4
 
 
-FUNCTION Proc_5 (): Nothing % without parameters
+FUNCTION Proc_5 () % without parameters
     % executed once 
 
   Ch_1_Glob := "A"
@@ -502,7 +502,7 @@ FUNCTION Func_3 (IN Enum_Par_Val: Enumeration): Boolean
 END FUNCTION % Func_3
 
 
-FUNCTION Proc_6 (IN Enum_Val_Par: Enumeration, OUT Enum_Ref_Par: Enumeration): Nothing
+FUNCTION Proc_6 (IN Enum_Val_Par: Enumeration, OUT Enum_Ref_Par: Enumeration)
     % executed once
     % Enum_Val_Par == Ident_3, Enum_Ref_Par becomes Ident_2
 
@@ -530,7 +530,7 @@ FUNCTION Proc_6 (IN Enum_Val_Par: Enumeration, OUT Enum_Ref_Par: Enumeration): N
 END FUNCTION % Proc_6
 
 
-FUNCTION Proc_7 (IN Int_1_Par_Val: One_Fifty, IN Int_2_Par_Val: One_Fifty, OUT Int_Par_Ref: One_Fifty): Nothing
+FUNCTION Proc_7 (IN Int_1_Par_Val: One_Fifty, IN Int_2_Par_Val: One_Fifty, OUT Int_Par_Ref: One_Fifty)
     % executed three times
     % first call:      Int_1_Par_Val == 2, Int_2_Par_Val == 3,
     %                  Int_Par_Ref becomes 7
@@ -546,7 +546,7 @@ FUNCTION Proc_7 (IN Int_1_Par_Val: One_Fifty, IN Int_2_Par_Val: One_Fifty, OUT I
 END FUNCTION % Proc_7 
 
 
-FUNCTION Proc_8 (INOUT Arr_1_Par_Ref: Arr_1_Dim, INOUT Arr_2_Par_Ref: Arr_2_Dim, IN Int_1_Par_Val: Number, IN Int_2_Par_Val: Number): Nothing
+FUNCTION Proc_8 (INOUT Arr_1_Par_Ref: Arr_1_Dim, INOUT Arr_2_Par_Ref: Arr_2_Dim, IN Int_1_Par_Val: Number, IN Int_2_Par_Val: Number)
     % executed once
     % Int_Par_Val_1 == 3
     % Int_Par_Val_2 == 7
@@ -627,7 +627,7 @@ FUNCTION Func_2 (IN Str_1_Par_Ref: String, IN Str_2_Par_Ref: String): Boolean
 END FUNCTION % Func_2
 
 
-FUNCTION main(): Nothing
+FUNCTION main()
 
   % main program, corresponds to procedures
   % Main and Proc_0 in the Ada version

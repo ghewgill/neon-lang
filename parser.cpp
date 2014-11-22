@@ -24,7 +24,7 @@ public:
     const Type *parseDictionaryType(Scope *scope);
     const Type *parseRecordType(Scope *scope);
     const Type *parseEnumType(Scope *scope);
-    const Type *parseType(Scope *scope, bool allow_nothing = false);
+    const Type *parseType(Scope *scope);
     const Statement *parseTypeDefinition(Scope *scope);
     const Statement *parseConstantDefinition(Scope *scope);
     const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope);
@@ -203,7 +203,7 @@ const Type *Parser::parseEnumType(Scope *)
     return new TypeEnum(names);
 }
 
-const Type *Parser::parseType(Scope *scope, bool allow_nothing)
+const Type *Parser::parseType(Scope *scope)
 {
     if (tokens[i].type == ARRAY) {
         return parseArrayType(scope);
@@ -227,9 +227,6 @@ const Type *Parser::parseType(Scope *scope, bool allow_nothing)
     const Type *type = dynamic_cast<const Type *>(name);
     if (type == nullptr) {
         error(2016, tokens[i], "name is not a type");
-    }
-    if (not allow_nothing && type == TYPE_NOTHING) {
-        error(2017, tokens[i], "'Nothing' type is not allowed here");
     }
     i++;
     return type;
@@ -891,11 +888,12 @@ void Parser::parseFunctionHeader(Scope *scope, std::string &name, const Type *&r
         }
     }
     ++i;
-    if (tokens[i].type != COLON) {
-        error(2077, tokens[i], "':' expected");
+    if (tokens[i].type == COLON) {
+        ++i;
+        returntype = parseType(newscope);
+    } else {
+        returntype = TYPE_NOTHING;
     }
-    ++i;
-    returntype = parseType(newscope, true);
 }
 
 const Statement *Parser::parseFunctionDefinition(Scope *scope)
