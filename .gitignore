@@ -10,6 +10,7 @@
 *.dll
 *.gc*
 simple
+simplec
 test_lexer
 test_parser
 test_interpreter

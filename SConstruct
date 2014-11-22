@@ -81,6 +81,21 @@ simple = env.Program("simple", [
 ] + coverage_lib,
 )
 
+simplec = env.Program("simplec", [
+    "ast.cpp",
+    "bytecode.cpp",
+    "compiler.cpp",
+    "debuginfo.cpp",
+    "disassembler.cpp",
+    "lexer.cpp",
+    "number.cpp",
+    "parser.cpp",
+    "rtl_compile.cpp",
+    "simplec.cpp",
+    "util.cpp",
+] + coverage_lib,
+)
+
 env.Depends("number.h", libbid)
 env.Depends("exec.cpp", libffi)
 
