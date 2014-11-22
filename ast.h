@@ -355,7 +355,7 @@ public:
 
 class ArrayLiteralExpression: public Expression {
 public:
-    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(elementtype), true /*TODO*/), elementtype(elementtype), elements(elements) {}
+    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(elementtype), all_constant(elements)), elementtype(elementtype), elements(elements) {}
 
     const Type *elementtype;
     const std::vector<const Expression *> elements;
@@ -368,11 +368,13 @@ public:
 private:
     ArrayLiteralExpression(const ArrayLiteralExpression &);
     ArrayLiteralExpression &operator=(const ArrayLiteralExpression &);
+
+    static bool all_constant(const std::vector<const Expression *> &elements);
 };
 
 class DictionaryLiteralExpression: public Expression {
 public:
-    DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(elementtype), true /*TODO*/), elementtype(elementtype), dict(make_dictionary(elements)) {}
+    DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(elementtype), all_constant(elements)), elementtype(elementtype), dict(make_dictionary(elements)) {}
 
     const Type *elementtype;
     const std::map<std::string, const Expression *> dict;
@@ -386,6 +388,7 @@ private:
     DictionaryLiteralExpression(const DictionaryLiteralExpression &);
     DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &);
 
+    static bool all_constant(const std::vector<std::pair<std::string, const Expression *>> &elements);
     static std::map<std::string, const Expression *> make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements);
 };
 

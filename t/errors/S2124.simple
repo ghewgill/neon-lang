@@ -1,4 +1,3 @@
-%TODO
 VAR lib: Dictionary<Dictionary<String>>
 
 lib := {
