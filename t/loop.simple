@@ -1,0 +1,16 @@
+VAR a: Number
+a := 0
+LOOP
+    print(str(a))
+    IF a = 5 THEN
+        EXIT LOOP
+    END IF
+    a := a + 1
+END LOOP
+
+%= 0
+%= 1
+%= 2
+%= 3
+%= 4
+%= 5

@@ -51,6 +51,8 @@ public:
     const Statement *parseWhileStatement(Scope *scope, int line);
     const Statement *parseCaseStatement(Scope *scope, int line);
     const Statement *parseForStatement(Scope *scope, int line);
+    const Statement *parseLoopStatement(Scope *scope, int line);
+    const Statement *parseRepeatStatement(Scope *scope, int line);
     const Statement *parseExitStatement(Scope *scope, int line);
     const Statement *parseNextStatement(Scope *scope, int line);
     const Statement *parseImport(Scope *scope);
@@ -1373,11 +1375,61 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
     return new ForStatement(line, loop_id, var, start, end, statements);
 }
 
+const Statement *Parser::parseLoopStatement(Scope *scope, int line)
+{
+    ++i;
+    unsigned int loop_id = static_cast<unsigned int>(i);
+    loops.top().push_back(std::make_pair(LOOP, loop_id));
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement(scope);
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(2147, tokens[i], "END expected");
+    }
+    ++i;
+    if (tokens[i].type != LOOP) {
+        error(2148, tokens[i], "LOOP expected");
+    }
+    ++i;
+    loops.top().pop_back();
+    return new LoopStatement(line, loop_id, statements);
+}
+
+const Statement *Parser::parseRepeatStatement(Scope *scope, int line)
+{
+    ++i;
+    unsigned int loop_id = static_cast<unsigned int>(i);
+    loops.top().push_back(std::make_pair(REPEAT, loop_id));
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != UNTIL && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement(scope);
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != UNTIL) {
+        error(2149, tokens[i], "UNTIL expected");
+    }
+    ++i;
+    const Expression *cond = parseExpression(scope);
+    if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
+        error(2150, tokens[i], "boolean value expected");
+    }
+    loops.top().pop_back();
+    return new RepeatStatement(line, loop_id, cond, statements);
+}
+
 const Statement *Parser::parseExitStatement(Scope *, int line)
 {
     ++i;
     if (tokens[i].type != WHILE
-     && tokens[i].type != FOR) {
+     && tokens[i].type != FOR
+     && tokens[i].type != LOOP
+     && tokens[i].type != REPEAT) {
         error(2136, tokens[i], "loop type expected");
     }
     TokenType type = tokens[i].type;
@@ -1396,7 +1448,9 @@ const Statement *Parser::parseNextStatement(Scope *, int line)
 {
     ++i;
     if (tokens[i].type != WHILE
-     && tokens[i].type != FOR) {
+     && tokens[i].type != FOR
+     && tokens[i].type != LOOP
+     && tokens[i].type != REPEAT) {
         error(2144, tokens[i], "loop type expected");
     }
     TokenType type = tokens[i].type;
@@ -1447,6 +1501,10 @@ const Statement *Parser::parseStatement(Scope *scope)
         return parseCaseStatement(scope, line);
     } else if (tokens[i].type == FOR) {
         return parseForStatement(scope, line);
+    } else if (tokens[i].type == LOOP) {
+        return parseLoopStatement(scope, line);
+    } else if (tokens[i].type == REPEAT) {
+        return parseRepeatStatement(scope, line);
     } else if (tokens[i].type == EXIT) {
         return parseExitStatement(scope, line);
     } else if (tokens[i].type == NEXT) {

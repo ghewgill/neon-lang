@@ -869,6 +869,35 @@ void ForStatement::generate_code(Emitter &emitter) const
     emitter.remove_loop_labels(loop_id);
 }
 
+void LoopStatement::generate_code(Emitter &emitter) const
+{
+    auto top = emitter.create_label();
+    emitter.jump_target(top);
+    auto skip = emitter.create_label();
+    emitter.add_loop_labels(loop_id, skip, top);
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+    emitter.emit_jump(JUMP, top);
+    emitter.jump_target(skip);
+    emitter.remove_loop_labels(loop_id);
+}
+
+void RepeatStatement::generate_code(Emitter &emitter) const
+{
+    auto top = emitter.create_label();
+    emitter.jump_target(top);
+    auto skip = emitter.create_label();
+    emitter.add_loop_labels(loop_id, skip, top);
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+    condition->generate(emitter);
+    emitter.emit_jump(JF, top);
+    emitter.jump_target(skip);
+    emitter.remove_loop_labels(loop_id);
+}
+
 void ExitStatement::generate_code(Emitter &emitter) const
 {
     emitter.emit_jump(JUMP, emitter.get_exit_label(loop_id));

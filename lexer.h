@@ -67,6 +67,9 @@ enum TokenType {
     EXTERNAL,
     EXIT,
     NEXT,
+    LOOP,
+    REPEAT,
+    UNTIL,
 };
 
 class Token {

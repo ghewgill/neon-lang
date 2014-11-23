@@ -73,6 +73,9 @@ std::string Token::tostring() const
         case EXTERNAL:    s << "EXTERNAL"; break;
         case EXIT:        s << "EXIT"; break;
         case NEXT:        s << "NEXT"; break;
+        case LOOP:        s << "LOOP"; break;
+        case REPEAT:      s << "REPEAT"; break;
+        case UNTIL:       s << "UNTIL"; break;
     }
     s << ">";
     return s.str();
@@ -194,6 +197,9 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "EXTERNAL") t.type = EXTERNAL;
             else if (t.text == "EXIT") t.type = EXIT;
             else if (t.text == "NEXT") t.type = NEXT;
+            else if (t.text == "LOOP") t.type = LOOP;
+            else if (t.text == "REPEAT") t.type = REPEAT;
+            else if (t.text == "UNTIL") t.type = UNTIL;
         } else if (isdigit(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 < source.length()) && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {

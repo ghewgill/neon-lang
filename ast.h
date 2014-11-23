@@ -984,16 +984,16 @@ private:
     IfStatement &operator=(const IfStatement &);
 };
 
-class LoopStatement: public CompoundStatement {
+class BaseLoopStatement: public CompoundStatement {
 public:
-    LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): CompoundStatement(line, statements), loop_id(loop_id) {}
+    BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): CompoundStatement(line, statements), loop_id(loop_id) {}
 
     const unsigned int loop_id;
 };
 
-class WhileStatement: public LoopStatement {
+class WhileStatement: public BaseLoopStatement {
 public:
-    WhileStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): LoopStatement(line, loop_id, statements), condition(condition) {}
+    WhileStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), condition(condition) {}
 
     const Expression *condition;
 
@@ -1007,9 +1007,9 @@ private:
     WhileStatement &operator=(const WhileStatement &);
 };
 
-class ForStatement: public LoopStatement {
+class ForStatement: public BaseLoopStatement {
 public:
-    ForStatement(int line, unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): LoopStatement(line, loop_id, statements), var(var), start(start), end(end) {
+    ForStatement(int line, unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end) {
     }
 
     const VariableReference *var;
@@ -1024,6 +1024,32 @@ public:
 private:
     ForStatement(const ForStatement &);
     ForStatement &operator=(const ForStatement &);
+};
+
+class LoopStatement: public BaseLoopStatement {
+public:
+    LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements) {}
+
+    virtual void generate_code(Emitter &emitter) const;
+
+    virtual std::string text() const { return "LoopStatement()"; }
+private:
+    LoopStatement(const LoopStatement &);
+    LoopStatement &operator=(const LoopStatement &);
+};
+
+class RepeatStatement: public BaseLoopStatement {
+public:
+    RepeatStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), condition(condition) {}
+
+    const Expression *condition;
+
+    virtual void generate_code(Emitter &emitter) const;
+
+    virtual std::string text() const { return "RepeatStatement(" + condition->text() + ")"; }
+private:
+    RepeatStatement(const RepeatStatement &);
+    RepeatStatement &operator=(const RepeatStatement &);
 };
 
 class CaseStatement: public Statement {
