@@ -454,16 +454,14 @@ FUNCTION Proc_2 (INOUT Int_Par_Ref: Number)
   VAR Enum_Loc: Enumeration
 
   Int_Loc := Int_Par_Ref + 10
-  %| TODO
   REPEAT % executed once
-    IF Ch_1_Glob = "A"
+    IF Ch_1_Glob = "A" THEN
       % then, executed
       Int_Loc := Int_Loc - 1
       Int_Par_Ref := Int_Loc - Int_Glob
-      Enum_Loc := Ident_1
+      Enum_Loc := Enumeration.Ident_1
     END IF
-  UNTIL Enum_Loc = Ident_1 % true
-  |%
+  UNTIL Enum_Loc = Enumeration.Ident_1 % true
 END FUNCTION % Proc_2
 
 
