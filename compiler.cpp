@@ -24,7 +24,14 @@ class Emitter {
         Label *next;
     };
 public:
-    Emitter(DebugInfo *debug): code(), strings(), globals(), functions(), loop_labels(), debug_info(debug) {}
+    struct ExceptionInfo {
+        unsigned int start;
+        unsigned int end;
+        unsigned int excid;
+        unsigned int handler;
+    };
+public:
+    Emitter(DebugInfo *debug): code(), strings(), exceptions(), globals(), functions(), loop_labels(), debug_info(debug) {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -33,6 +40,7 @@ public:
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &name);
     unsigned int str(const std::string &s);
+    unsigned int current_ip();
     unsigned int next_function();
     Label &function_label(int index);
     Label create_label();
@@ -43,9 +51,11 @@ public:
     Label &get_exit_label(unsigned int loop_id);
     Label &get_next_label(unsigned int loop_id);
     void debug_line(int line);
+    void add_exception(const ExceptionInfo &ei);
 private:
     std::vector<unsigned char> code;
     std::vector<std::string> strings;
+    std::vector<ExceptionInfo> exceptions;
     std::vector<std::string> globals;
     std::vector<Label> functions;
     std::map<size_t, LoopLabels> loop_labels;
@@ -90,8 +100,10 @@ void Emitter::emit(const std::vector<unsigned char> &instr)
 std::vector<unsigned char> Emitter::getObject()
 {
     std::vector<unsigned char> obj;
+
     obj.push_back(static_cast<unsigned char>(globals.size() >> 8) & 0xff);
     obj.push_back(static_cast<unsigned char>(globals.size() & 0xff));
+
     std::vector<unsigned char> strtable;
     for (auto s: strings) {
         std::copy(s.begin(), s.end(), std::back_inserter(strtable));
@@ -100,6 +112,20 @@ std::vector<unsigned char> Emitter::getObject()
     obj.push_back(static_cast<unsigned char>(strtable.size() >> 8) & 0xff);
     obj.push_back(static_cast<unsigned char>(strtable.size() & 0xff));
     std::copy(strtable.begin(), strtable.end(), std::back_inserter(obj));
+
+    obj.push_back(static_cast<unsigned char>(exceptions.size() >> 8) & 0xff);
+    obj.push_back(static_cast<unsigned char>(exceptions.size() & 0xff));
+    for (auto e: exceptions) {
+        obj.push_back(static_cast<unsigned char>(e.start >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.start & 0xff));
+        obj.push_back(static_cast<unsigned char>(e.end >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.end & 0xff));
+        obj.push_back(static_cast<unsigned char>(e.excid >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.excid & 0xff));
+        obj.push_back(static_cast<unsigned char>(e.handler >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.handler & 0xff));
+    }
+
     std::copy(code.begin(), code.end(), std::back_inserter(obj));
     return obj;
 }
@@ -122,6 +148,11 @@ unsigned int Emitter::str(const std::string &s)
         i = strings.end() - 1;
     }
     return static_cast<unsigned int>(i - strings.begin());
+}
+
+unsigned int Emitter::current_ip()
+{
+    return code.size();
 }
 
 unsigned int Emitter::next_function()
@@ -196,6 +227,11 @@ void Emitter::debug_line(int line)
         return;
     }
     debug_info->line_numbers[code.size()] = line;
+}
+
+void Emitter::add_exception(const ExceptionInfo &ei)
+{
+    exceptions.push_back(ei);
 }
 
 void TypeBoolean::generate_load(Emitter &emitter) const
@@ -906,6 +942,36 @@ void ExitStatement::generate_code(Emitter &emitter) const
 void NextStatement::generate_code(Emitter &emitter) const
 {
     emitter.emit_jump(JUMP, emitter.get_next_label(loop_id));
+}
+
+void TryStatement::generate_code(Emitter &emitter) const
+{
+    Emitter::ExceptionInfo ei;
+    ei.start = emitter.current_ip();
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+    ei.end = emitter.current_ip();
+    auto skip = emitter.create_label();
+    emitter.emit_jump(JUMP, skip);
+    for (auto c: catches) {
+        for (auto e: c.first) {
+            ei.excid = emitter.str(e->name);
+            ei.handler = emitter.current_ip();
+            emitter.add_exception(ei);
+        }
+        for (auto stmt: c.second) {
+            stmt->generate(emitter);
+        }
+        emitter.emit_jump(JUMP, skip);
+    }
+    emitter.jump_target(skip);
+}
+
+void RaiseStatement::generate_code(Emitter &emitter) const
+{
+    unsigned int index = emitter.str(exception->name);
+    emitter.emit(EXCEPT, index);
 }
 
 void Scope::predeclare(Emitter &emitter) const

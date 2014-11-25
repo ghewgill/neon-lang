@@ -10,12 +10,21 @@ public:
 
     typedef std::vector<unsigned char> bytecode;
 
+    class ExceptionInfo {
+    public:
+        unsigned int start;
+        unsigned int end;
+        unsigned int excid;
+        unsigned int handler;
+    };
+
     size_t global_size;
     std::vector<std::string> strtable;
+    std::vector<ExceptionInfo> exceptions;
     bytecode code;
 
 private:
-    std::vector<std::string> getstrtable(bytecode::const_iterator start, bytecode::const_iterator end);
+    std::vector<std::string> getstrtable(bytecode::const_iterator start, bytecode::const_iterator end, size_t &i);
 };
 
 #endif

@@ -187,6 +187,7 @@ private:
     void exec_CALLE();
     void exec_CONSA();
     void exec_CONSD();
+    void exec_EXCEPT();
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
@@ -773,6 +774,26 @@ void Executor::exec_CONSD()
     stack.push(d);
 }
 
+void Executor::exec_EXCEPT()
+{
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    for (;;) {
+        for (auto e = obj.exceptions.rbegin(); e != obj.exceptions.rend(); ++e) {
+            if (ip >= e->start && ip < e->end && obj.strtable[val] == obj.strtable[e->excid]) {
+                ip = e->handler;
+                return;
+            }
+        }
+        if (callstack.empty()) {
+            break;
+        }
+        ip = callstack.top();
+        callstack.pop();
+    }
+    fprintf(stderr, "unhandled exception %s\n", obj.strtable[val].c_str());
+    exit(1);
+}
+
 void Executor::exec()
 {
     callstack.push(obj.code.size());
@@ -842,6 +863,7 @@ void Executor::exec()
             case CALLE:   exec_CALLE(); break;
             case CONSA:   exec_CONSA(); break;
             case CONSD:   exec_CONSD(); break;
+            case EXCEPT:  exec_EXCEPT(); break;
         }
         if (ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", obj.code[ip]);

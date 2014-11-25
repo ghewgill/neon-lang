@@ -1,0 +1,9 @@
+DECLARE EXCEPTION PrinterOnFire
+
+TRY
+    RAISE PrinterOnFire
+EXCEPTION PrinterOnFire
+    print("conflagration")
+END TRY
+
+%= conflagration

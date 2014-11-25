@@ -70,6 +70,10 @@ enum TokenType {
     LOOP,
     REPEAT,
     UNTIL,
+    DECLARE,
+    EXCEPTION,
+    TRY,
+    RAISE,
 };
 
 class Token {

@@ -224,6 +224,19 @@ public:
 
 extern TypeModule *TYPE_MODULE;
 
+class TypeException: public Type {
+public:
+    TypeException(): Type("Exception") {}
+
+    virtual void generate_load(Emitter &) const { internal_error("TypeException"); }
+    virtual void generate_store(Emitter &) const { internal_error("TypeException"); }
+    virtual void generate_call(Emitter &) const { internal_error("TypeException"); }
+
+    virtual std::string text() const { return "TypeException"; }
+};
+
+extern TypeException *TYPE_EXCEPTION;
+
 class Variable: public Name {
 public:
     Variable(const std::string &name, const Type *type): Name(name, type) {}
@@ -273,6 +286,16 @@ public:
 private:
     FunctionParameter(const FunctionParameter &);
     FunctionParameter &operator=(const FunctionParameter &);
+};
+
+class Exception: public Name {
+public:
+    Exception(const std::string &name): Name(name, TYPE_EXCEPTION) {}
+
+    virtual std::string text() const { return "Exception(" + name + ")"; }
+private:
+    Exception(const Exception &);
+    Exception &operator=(const Exception &);
 };
 
 class Expression: public AstNode {
@@ -1123,6 +1146,35 @@ public:
 private:
     NextStatement(const NextStatement &);
     NextStatement &operator=(const NextStatement &);
+};
+
+class TryStatement: public Statement {
+public:
+    TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> &catches): Statement(line), statements(statements), catches(catches) {}
+
+    const std::vector<const Statement *> statements;
+    const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
+
+    virtual void generate_code(Emitter &emitter) const;
+
+    virtual std::string text() const { return "TryStatement(...)"; }
+private:
+    TryStatement(const TryStatement &);
+    TryStatement &operator=(const TryStatement &);
+};
+
+class RaiseStatement: public Statement {
+public:
+    RaiseStatement(int line, const Exception *exception): Statement(line), exception(exception) {}
+
+    const Exception *exception;
+
+    virtual void generate_code(Emitter &emitter) const;
+
+    virtual std::string text() const { return "RaiseStatement(" + exception->text() + ")"; }
+private:
+    RaiseStatement(const RaiseStatement &);
+    RaiseStatement &operator=(const RaiseStatement &);
 };
 
 class Function: public Variable {

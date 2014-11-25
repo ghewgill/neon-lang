@@ -1,0 +1,15 @@
+% TODO
+
+DECLARE EXCEPTION PrinterOnFire
+
+FUNCTION doit()
+    RAISE PrinterOnFire
+END FUNCTION
+
+TRY
+    doit()
+EXCEPTION PrinterOnFire
+    print("conflagration")
+END TRY
+
+%= conflagration

@@ -12,6 +12,7 @@ TypeNumber *TYPE_NUMBER = new TypeNumber();
 TypeString *TYPE_STRING = new TypeString();
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(TYPE_STRING);
 TypeModule *TYPE_MODULE = new TypeModule();
+TypeException *TYPE_EXCEPTION = new TypeException();
 
 void AstNode::dump(std::ostream &out, int depth) const
 {

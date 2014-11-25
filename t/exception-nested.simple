@@ -1,0 +1,17 @@
+% TODO
+
+DECLARE EXCEPTION PrinterOnFire
+
+TRY
+    print("one")
+    TRY
+        RAISE PrinterOnFire
+    EXCEPTION PrinterOnFire
+        print("two")
+    END TRY
+EXCEPTION PrinterOnFire
+    print("three")
+END TRY
+
+%= one
+%= two

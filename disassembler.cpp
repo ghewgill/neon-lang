@@ -81,6 +81,7 @@ private:
     void disasm_CALLE();
     void disasm_CONSA();
     void disasm_CONSD();
+    void disasm_EXCEPT();
 private:
     Disassembler(const Disassembler &);
     Disassembler &operator=(const Disassembler &);
@@ -478,6 +479,13 @@ void Disassembler::disasm_CONSD()
     out << "CONSD " << val << "\n";
 }
 
+void Disassembler::disasm_EXCEPT()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "EXCEPT \"" << obj.strtable[val] << "\"\n";
+}
+
 void Disassembler::disassemble()
 {
     out << "String table: [\n";
@@ -559,10 +567,17 @@ void Disassembler::disassemble()
             case CALLE:   disasm_CALLE(); break;
             case CONSA:   disasm_CONSA(); break;
             case CONSD:   disasm_CONSD(); break;
+            case EXCEPT:  disasm_EXCEPT(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";
             abort();
+        }
+    }
+    if (not obj.exceptions.empty()) {
+        out << "Exception table:\n";
+        for (auto e: obj.exceptions) {
+            out << "  " << e.start << "-" << e.end << " " << obj.strtable[e.excid] << " " << e.handler << "\n";
         }
     }
 }

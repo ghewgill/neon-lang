@@ -45,6 +45,7 @@ public:
     void parseFunctionHeader(Scope *scope, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args);
     const Statement *parseFunctionDefinition(Scope *scope);
     const Statement *parseExternalDefinition(Scope *scope);
+    const Statement *parseDeclaration(Scope *scope);
     const Statement *parseIfStatement(Scope *scope, int line);
     const Statement *parseReturnStatement(Scope *scope, int line);
     const Statement *parseVarStatement(Scope *scope, int line);
@@ -55,6 +56,8 @@ public:
     const Statement *parseRepeatStatement(Scope *scope, int line);
     const Statement *parseExitStatement(Scope *scope, int line);
     const Statement *parseNextStatement(Scope *scope, int line);
+    const Statement *parseTryStatement(Scope *scope, int line);
+    const Statement *parseRaiseStatement(Scope *scope, int line);
     const Statement *parseImport(Scope *scope);
     const Statement *parseStatement(Scope *scope);
     const Program *parse();
@@ -996,6 +999,26 @@ const Statement *Parser::parseExternalDefinition(Scope *scope)
     return nullptr;
 }
 
+const Statement *Parser::parseDeclaration(Scope *scope)
+{
+    ++i;
+    switch (tokens[i].type) {
+        case EXCEPTION: {
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2152, tokens[i], "identifier expected");
+            }
+            std::string name = tokens[i].text;
+            ++i;
+            scope->addName(name, new Exception(name));
+            break;
+        }
+        default:
+            error(2151, tokens[i], "EXCEPTION expected");
+    }
+    return nullptr;
+}
+
 const Statement *Parser::parseIfStatement(Scope *scope, int line)
 {
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
@@ -1465,6 +1488,67 @@ const Statement *Parser::parseNextStatement(Scope *, int line)
     error(2145, tokens[i-1], "no matching loop found in current scope");
 }
 
+const Statement *Parser::parseTryStatement(Scope *scope, int line)
+{
+    ++i;
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *stmt = parseStatement(scope);
+        statements.push_back(stmt);
+    }
+    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
+    while (tokens[i].type == EXCEPTION) {
+        ++i;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2153, tokens[i], "identifier expected");
+        }
+        const Name *name = scope->lookupName(tokens[i].text);
+        if (name == nullptr) {
+            error(2154, tokens[i], "exception not found: " + tokens[i].text);
+        }
+        const Exception *exception = dynamic_cast<const Exception *>(name);
+        if (exception == nullptr) {
+            error(2155, tokens[i], "name not an exception");
+        }
+        std::vector<const Exception *> exceptions;
+        exceptions.push_back(exception);
+        ++i;
+        std::vector<const Statement *> statements;
+        while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+            const Statement *stmt = parseStatement(scope);
+            statements.push_back(stmt);
+        }
+        catches.push_back(std::make_pair(exceptions, statements));
+    }
+    if (tokens[i].type != END) {
+        error(2159, tokens[i], "'END' expected");
+    }
+    ++i;
+    if (tokens[i].type != TRY) {
+        error(2160, tokens[i], "TRY expected");
+    }
+    ++i;
+    return new TryStatement(line, statements, catches);
+}
+
+const Statement *Parser::parseRaiseStatement(Scope *scope, int line)
+{
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(2156, tokens[i], "identifier expected");
+    }
+    const Name *name = scope->lookupName(tokens[i].text);
+    if (name == nullptr) {
+        error(2157, tokens[i], "exception not found: " + tokens[i].text);
+    }
+    const Exception *exception = dynamic_cast<const Exception *>(name);
+    if (exception == nullptr) {
+        error(2158, tokens[i], "name not an exception");
+    }
+    ++i;
+    return new RaiseStatement(line, exception);
+}
+
 const Statement *Parser::parseImport(Scope *scope)
 {
     ++i;
@@ -1489,6 +1573,8 @@ const Statement *Parser::parseStatement(Scope *scope)
         return parseFunctionDefinition(scope);
     } else if (tokens[i].type == EXTERNAL) {
         return parseExternalDefinition(scope);
+    } else if (tokens[i].type == DECLARE) {
+        return parseDeclaration(scope);
     } else if (tokens[i].type == IF) {
         return parseIfStatement(scope, line);
     } else if (tokens[i].type == RETURN) {
@@ -1509,6 +1595,10 @@ const Statement *Parser::parseStatement(Scope *scope)
         return parseExitStatement(scope, line);
     } else if (tokens[i].type == NEXT) {
         return parseNextStatement(scope, line);
+    } else if (tokens[i].type == TRY) {
+        return parseTryStatement(scope, line);
+    } else if (tokens[i].type == RAISE) {
+        return parseRaiseStatement(scope, line);
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope);
         if (tokens[i].type == ASSIGN) {

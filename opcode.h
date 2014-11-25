@@ -64,6 +64,7 @@ enum Opcode {
     CALLE,      // call external
     CONSA,      // construct array
     CONSD,      // construct dictionary
+    EXCEPT,     // throw exception
 };
 
 #endif
