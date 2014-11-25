@@ -20,45 +20,56 @@
  <     >
  {     }
 :keyword
- IF
- THEN
+* Language Keywords
+ CASE
+ CONST
+ DECLARE
+ DO
  ELSE
  ELSEIF
  END
- WHILE
- DO
- VAR
- DECLARE
- EXTERNAL
- FUNCTION
- RETURN
- FALSE          alternate 2
- TRUE           alternate 2
- AND            alternate 1
- OR             alternate 1
- MOD            alternate 1
- NOT            alternate 1
- RECORD
  ENUM
- CONST
- CASE
- WHEN
+ EXIT
+ EXTERNAL
  FOR
- TO
+ FUNCTION
+ IF
+ LOOP
+ NEXT
+ RECORD
+ REPEAT
+ RETURN
  STEP
+ THEN
+ TO
  TYPE
+ UNTIL
+ VAR
+ WHEN
+ WHILE
+* "Pre-Processor" Commands
+ IMPORT         alternate 1
+* Parameter Control
  IN             alternate 4
  INOUT          alternate 4
  OUT            alternate 4
- IMPORT         alternate 1
- String         alternate 2
- Number         alternate 2
- Boolean        alternate 2
- Nothing        alternate 2
+* Binary Operations
+ AND            alternate 1
+ NOT            alternate 1
+ OR             alternate 1
+* Data Types and Storage containers
  Array          alternate 6
+ Boolean        alternate 2
  Dictionary     alternate 6
- 
+ Nothing        alternate 2
+ Number         alternate 2
+ String         alternate 2
+* Boolean literals
+ FALSE          alternate 2
+ TRUE           alternate 2
+
 :postcompare
+ text MOD       alternate 1
  text ..        alternate 1
  text #         alternate 1
  text :=        alternate 1
@@ -67,3 +78,12 @@
  text <=        alternate 1
  text >=        alternate 1
  text ^         alternate 1
+ text =         alternate 1
+ text +         alternate 1
+ text -         alternate 1
+ text /         alternate 1
+ text *         alternate 1
+ text ,         alternate 1
+ text :         alternate 1
+ text .         alternate 1
+
