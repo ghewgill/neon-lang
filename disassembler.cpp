@@ -1,5 +1,6 @@
 #include "disassembler.h"
 
+#include <iso646.h>
 #include <ostream>
 #include <stdlib.h>
 #include <string>

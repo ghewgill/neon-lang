@@ -152,7 +152,7 @@ unsigned int Emitter::str(const std::string &s)
 
 unsigned int Emitter::current_ip()
 {
-    return code.size();
+    return static_cast<unsigned int>(code.size());
 }
 
 unsigned int Emitter::next_function()
