@@ -1220,7 +1220,7 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
         }
         ++i;
         std::vector<const Statement *> statements;
-        while (tokens[i].type != WHEN && tokens[i].type != ELSE && tokens[i].type != END) {
+        while (tokens[i].type != WHEN && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             const Statement *stmt = parseStatement(scope);
             statements.push_back(stmt);
         }
