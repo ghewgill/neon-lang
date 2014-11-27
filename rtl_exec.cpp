@@ -4,6 +4,8 @@
 #include <string>
 #include <time.h>
 
+#include <utf8.h>
+
 #include "cell.h"
 #include "number.h"
 #include "rtl_platform.h"
@@ -24,7 +26,9 @@ Number abs(Number x)
 std::string chr(Number x)
 {
     assert(number_is_integer(x));
-    return std::string(1, static_cast<char>(number_to_uint32(x)));
+    std::string r;
+    utf8::append(number_to_uint32(x), std::back_inserter(r));
+    return r;
 }
 
 std::string concat(const std::string &a, const std::string &b)
@@ -65,8 +69,9 @@ Number num(const std::string &s)
 
 Number ord(const std::string &s)
 {
-    assert(s.length() == 1);
-    return number_from_uint32(s.at(0));
+    assert(utf8::distance(s.begin(), s.end()) == 1);
+    auto it = s.begin();
+    return number_from_uint32(utf8::next(it, s.end()));
 }
 
 void print(const std::string &s)
@@ -76,6 +81,7 @@ void print(const std::string &s)
 
 std::string splice(const std::string &t, const std::string &s, Number offset, Number length)
 {
+    // TODO: utf8
     uint32_t o = number_to_uint32(offset);
     return s.substr(0, o) + t + s.substr(o + number_to_uint32(length));
 }
@@ -94,7 +100,11 @@ std::string substring(const std::string &s, Number offset, Number length)
 {
     assert(number_is_integer(offset));
     assert(number_is_integer(length));
-    return s.substr(number_to_uint32(offset), number_to_uint32(length));
+    auto start = s.begin();
+    utf8::advance(start, number_to_uint32(offset), s.end());
+    auto end = start;
+    utf8::advance(end, number_to_uint32(length), s.end());
+    return std::string(start, end);
 }
 
 Number math$acos(Number x)
