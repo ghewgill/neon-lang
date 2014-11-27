@@ -40,7 +40,7 @@ public:
     virtual void predeclare(Emitter &emitter) const;
     virtual void postdeclare(Emitter &emitter) const;
 
-    const Name *lookupName(const std::string &name);
+    Name *lookupName(const std::string &name);
     void addName(const std::string &name, Name *ref, bool init_referenced = false);
     int nextIndex();
     int getCount() const;

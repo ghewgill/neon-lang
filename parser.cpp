@@ -859,9 +859,6 @@ void Parser::parseFunctionHeader(Scope *scope, std::string &name, const Type *&r
         error(2073, tokens[i], "identifier expected");
     }
     name = tokens[i].text;
-    if (scope->lookupName(name) != nullptr) {
-        error(2074, tokens[i], "name shadows outer");
-    }
     ++i;
     if (tokens[i].type != LPAREN) {
         error(2075, tokens[i], "'(' expected");
@@ -909,8 +906,16 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
     Scope *newscope;
     std::vector<FunctionParameter *> args;
     parseFunctionHeader(scope, name, returntype, newscope, args);
-    Function *function = new Function(name, returntype, newscope, args);
-    scope->addName(name, function);
+    Name *ident = scope->lookupName(name);
+    Function *function = dynamic_cast<Function *>(ident);
+    if (function != nullptr) {
+        newscope = function->scope;
+    } else if (ident != nullptr) {
+        error(2074, tokens[i], "name shadows outer");
+    } else {
+        function = new Function(name, returntype, newscope, args);
+        scope->addName(name, function);
+    }
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
     while (tokens[i].type != END) {
         const Statement *s = parseStatement(newscope);
@@ -943,6 +948,9 @@ const Statement *Parser::parseExternalDefinition(Scope *scope)
     Scope *newscope;
     std::vector<FunctionParameter *> args;
     parseFunctionHeader(scope, name, returntype, newscope, args);
+    if (scope->lookupName(name) != nullptr) {
+        error(2163, tokens[i], "name shadows outer");
+    }
     if (tokens[i].type != LBRACE) {
         error(2123, tokens[i], "{ expected");
     }
@@ -1013,8 +1021,21 @@ const Statement *Parser::parseDeclaration(Scope *scope)
             scope->addName(name, new Exception(name));
             break;
         }
+        case FUNCTION: {
+            std::string name;
+            const Type *returntype;
+            Scope *newscope;
+            std::vector<FunctionParameter *> args;
+            parseFunctionHeader(scope, name, returntype, newscope, args);
+            if (scope->lookupName(name) != nullptr) {
+                error(2162, tokens[i], "name shadows outer");
+            }
+            Function *function = new Function(name, returntype, newscope, args);
+            scope->addName(name, function);
+            break;
+        }
         default:
-            error(2151, tokens[i], "EXCEPTION expected");
+            error(2151, tokens[i], "EXCEPTION or FUNCTION expected");
     }
     return nullptr;
 }

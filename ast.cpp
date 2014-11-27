@@ -143,7 +143,7 @@ void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
     }
 }
 
-const Name *Scope::lookupName(const std::string &name)
+Name *Scope::lookupName(const std::string &name)
 {
     Scope *s = this;
     while (s != nullptr) {
