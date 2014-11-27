@@ -1,5 +1,3 @@
-% TODO
-
 FUNCTION foo(x: Number): Number
     LOOP
         IF x = 3 THEN
@@ -9,6 +7,5 @@ FUNCTION foo(x: Number): Number
     END LOOP
 END FUNCTION
 
-print(foo(5))
-
+print(str(foo(5)))
 %= 3

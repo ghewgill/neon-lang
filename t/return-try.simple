@@ -1,0 +1,12 @@
+DECLARE EXCEPTION FileNotFound
+
+FUNCTION foo(): Number
+    TRY
+        RETURN 1
+    EXCEPTION FileNotFound
+        RETURN -1
+    END TRY
+END FUNCTION
+
+print(str(foo()))
+%= 1

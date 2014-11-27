@@ -122,6 +122,52 @@ std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dict
     return dict;
 }
 
+bool IfStatement::always_returns() const
+{
+    for (auto cond: condition_statements) {
+        if (cond.second.empty() || not cond.second.back()->always_returns()) {
+            return false;
+        }
+    }
+    if (else_statements.empty() || not else_statements.back()->always_returns()) {
+        return false;
+    }
+    return true;
+}
+
+bool LoopStatement::always_returns() const
+{
+    for (auto s: statements) {
+        if (dynamic_cast<const ExitStatement *>(s) != nullptr) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool CaseStatement::always_returns() const
+{
+    for (auto clause: clauses) {
+        if (clause.second.empty() || not clause.second.back()->always_returns()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool TryStatement::always_returns() const
+{
+    if (statements.empty() || not statements.back()->always_returns()) {
+        return false;
+    }
+    for (auto c: catches) {
+        if (c.second.empty() || not c.second.back()->always_returns()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::string FunctionCall::text() const
 {
     std::stringstream s;

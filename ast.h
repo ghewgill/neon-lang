@@ -926,6 +926,8 @@ public:
     Statement(int line): line(line) {}
     const int line;
 
+    virtual bool always_returns() const { return false; }
+
     void generate(Emitter &emitter) const;
     virtual void generate_code(Emitter &emitter) const = 0;
 };
@@ -973,6 +975,8 @@ public:
 
     const Expression *const expr;
 
+    virtual bool always_returns() const { return true; }
+
     virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const { return "ReturnStatement(" + expr->text() + ")"; }
@@ -996,6 +1000,8 @@ public:
 
     const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     const std::vector<const Statement *> else_statements;
+
+    virtual bool always_returns() const;
 
     virtual void generate_code(Emitter &emitter) const;
 
@@ -1054,6 +1060,8 @@ class LoopStatement: public BaseLoopStatement {
 public:
     LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements) {}
 
+    virtual bool always_returns() const;
+
     virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const { return "LoopStatement()"; }
@@ -1111,6 +1119,8 @@ public:
     const Expression *expr;
     const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
 
+    virtual bool always_returns() const;
+
     virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -1156,6 +1166,8 @@ public:
     const std::vector<const Statement *> statements;
     const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
 
+    virtual bool always_returns() const;
+
     virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const { return "TryStatement(...)"; }
@@ -1169,6 +1181,8 @@ public:
     RaiseStatement(int line, const Exception *exception): Statement(line), exception(exception) {}
 
     const Exception *exception;
+
+    virtual bool always_returns() const { return true; }
 
     virtual void generate_code(Emitter &emitter) const;
 

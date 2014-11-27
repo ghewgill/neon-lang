@@ -927,7 +927,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
         }
     }
     if (returntype != TYPE_NOTHING) {
-        if (function->statements.empty() || dynamic_cast<const ReturnStatement *>(function->statements.back()) == nullptr) {
+        if (function->statements.empty() || not function->statements.back()->always_returns()) {
             error(2146, tokens[i], "missing RETURN statement");
         }
     }

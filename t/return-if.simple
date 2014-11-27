@@ -1,5 +1,3 @@
-% TODO
-
 FUNCTION foo(x: Number): String
     IF x = 0 THEN
         RETURN "zero"
