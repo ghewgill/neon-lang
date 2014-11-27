@@ -16,6 +16,7 @@ public:
     static Scope *global_scope; // TODO: static is a hack, used by StringReference constructor
     std::vector<Token>::size_type i;
 
+    std::stack<const TypeFunction *> functiontypes;
     std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
 
     typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
@@ -71,6 +72,7 @@ Scope *Parser::global_scope;
 Parser::Parser(const std::vector<Token> &tokens)
   : tokens(tokens),
     i(0),
+    functiontypes(),
     loops()
 {
 }
@@ -916,6 +918,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
         function = new Function(name, returntype, newscope, args);
         scope->addName(name, function);
     }
+    functiontypes.push(dynamic_cast<const TypeFunction *>(function->type));
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
     while (tokens[i].type != END) {
         const Statement *s = parseStatement(newscope);
@@ -934,6 +937,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
     }
     ++i;
     loops.pop();
+    functiontypes.pop();
     return nullptr;
 }
 
@@ -1086,9 +1090,16 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
 
 const Statement *Parser::parseReturnStatement(Scope *scope, int line)
 {
+    const auto token_return = tokens[i];
     ++i;
     const Expression *expr = parseExpression(scope);
-    // TODO: check return type
+    if (functiontypes.empty()) {
+        error(2164, token_return, "RETURN not allowed outside function");
+    } else if (functiontypes.top()->returntype == TYPE_NOTHING) {
+        error(2165, token_return, "function does not return a value");
+    } else if (not expr->type->is_equivalent(functiontypes.top()->returntype)) {
+        error(2166, token_return, "type mismatch in RETURN");
+    }
     return new ReturnStatement(line, expr);
 }
 

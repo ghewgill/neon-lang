@@ -1,7 +1,3 @@
-% TODO
-
 FUNCTION foo(x: Number)
     RETURN x
 END FUNCTION
-
-%! function does not return a value
