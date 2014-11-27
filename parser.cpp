@@ -626,7 +626,7 @@ const Expression *Parser::parseComparison(Scope *scope)
             } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
                 return new NumericComparisonExpression(left, right, comp);
             } else {
-                error(2050, tokens[op], "type mismatch");
+                internal_error("unknown type in parseComparison");
             }
         }
         default:
