@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <iso646.h>
 #include <sstream>
+#include <stack>
 
 #include "ast.h"
 #include "debuginfo.h"
@@ -31,7 +32,7 @@ public:
         unsigned int handler;
     };
 public:
-    Emitter(DebugInfo *debug): code(), strings(), exceptions(), globals(), functions(), loop_labels(), debug_info(debug) {}
+    Emitter(DebugInfo *debug): code(), strings(), exceptions(), globals(), functions(), function_exit(), loop_labels(), debug_info(debug) {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -52,12 +53,16 @@ public:
     Label &get_next_label(unsigned int loop_id);
     void debug_line(int line);
     void add_exception(const ExceptionInfo &ei);
+    void push_function_exit(Label &label);
+    void pop_function_exit();
+    Label &get_function_exit();
 private:
     std::vector<unsigned char> code;
     std::vector<std::string> strings;
     std::vector<ExceptionInfo> exceptions;
     std::vector<std::string> globals;
     std::vector<Label> functions;
+    std::stack<Label *> function_exit;
     std::map<size_t, LoopLabels> loop_labels;
     DebugInfo *debug_info;
 private:
@@ -232,6 +237,24 @@ void Emitter::debug_line(int line)
 void Emitter::add_exception(const ExceptionInfo &ei)
 {
     exceptions.push_back(ei);
+}
+
+void Emitter::push_function_exit(Label &exit)
+{
+    function_exit.push(&exit);
+}
+
+void Emitter::pop_function_exit()
+{
+    function_exit.pop();
+}
+
+Emitter::Label &Emitter::get_function_exit()
+{
+    if (function_exit.empty()) {
+        internal_error("get_function_exit");
+    }
+    return *function_exit.top();
 }
 
 void TypeBoolean::generate_load(Emitter &emitter) const
@@ -412,9 +435,12 @@ void Function::postdeclare(Emitter &emitter)
                 break;
         }
     }
+    auto exit = emitter.create_label();
+    emitter.push_function_exit(exit);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
+    emitter.pop_function_exit();
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::IN:
@@ -426,6 +452,7 @@ void Function::postdeclare(Emitter &emitter)
                 break;
         }
     }
+    emitter.jump_target(exit);
     emitter.emit(LEAVE);
     emitter.emit(RET);
 }
@@ -783,7 +810,7 @@ void IfStatement::generate_code(Emitter &emitter) const
 void ReturnStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
-    // TODO: jump to block exit
+    emitter.emit_jump(JUMP, emitter.get_function_exit());
 }
 
 void WhileStatement::generate_code(Emitter &emitter) const
