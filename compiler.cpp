@@ -875,6 +875,12 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
 
 void ForStatement::generate_code(Emitter &emitter) const
 {
+    // Decide if we are looping forward or backwards, based on the step value.
+    Opcode comp = GEN;
+    if (number_is_less(step->eval_number(), 0)) {
+        comp = LEN;
+    }
+
     auto skip = emitter.create_label();
     auto loop = emitter.create_label();
     auto next = emitter.create_label();
@@ -885,7 +891,7 @@ void ForStatement::generate_code(Emitter &emitter) const
 
     end->generate(emitter);
     var->generate_load(emitter);
-    emitter.emit(GEN);
+    emitter.emit(static_cast<char>(comp));
     emitter.emit_jump(JF, skip);
 
     emitter.add_loop_labels(loop_id, skip, next);
@@ -895,7 +901,7 @@ void ForStatement::generate_code(Emitter &emitter) const
     }
 
     emitter.jump_target(next);
-    emitter.emit(PUSHN, number_from_uint32(1));
+    step->generate(emitter);
     var->generate_load(emitter);
     emitter.emit(ADDN);
     var->generate_store(emitter);
