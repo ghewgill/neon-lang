@@ -362,6 +362,21 @@ void TypeRecord::generate_call(Emitter &) const
     internal_error("TypeRecord");
 }
 
+void TypePointer::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADP);
+}
+
+void TypePointer::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREP);
+}
+
+void TypePointer::generate_call(Emitter &) const
+{
+    internal_error("TypePointer");
+}
+
 void Variable::generate_load(Emitter &emitter) const
 {
     type->generate_load(emitter);
@@ -531,6 +546,11 @@ void DictionaryLiteralExpression::generate(Emitter &emitter) const
     emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
 }
 
+void NewRecordExpression::generate(Emitter &emitter) const
+{
+    emitter.emit(ALLOC, static_cast<uint32_t>(fields));
+}
+
 void UnaryMinusExpression::generate(Emitter &emitter) const
 {
     value->generate(emitter);
@@ -632,6 +652,14 @@ void DictionaryComparisonExpression::generate(Emitter &emitter) const
     emitter.emit(op[comp]);
 }
 
+void PointerComparisonExpression::generate(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQP, NEP};
+    left->generate(emitter);
+    right->generate(emitter);
+    emitter.emit(op[comp]);
+}
+
 void AdditionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
@@ -724,6 +752,11 @@ void DictionaryReference::generate_address(Emitter &emitter) const
     dict->generate_address(emitter);
     index->generate(emitter);
     emitter.emit(INDEXD);
+}
+
+void Dereference::generate_address(Emitter &emitter) const
+{
+    ptr->generate_load(emitter);
 }
 
 void VariableExpression::generate(Emitter &emitter) const

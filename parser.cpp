@@ -25,6 +25,7 @@ public:
     const Type *parseDictionaryType(Scope *scope);
     const Type *parseRecordType(Scope *scope);
     const Type *parseEnumType(Scope *scope);
+    const Type *parsePointerType(Scope *scope);
     const Type *parseType(Scope *scope);
     const Statement *parseTypeDefinition(Scope *scope);
     const Statement *parseConstantDefinition(Scope *scope);
@@ -211,6 +212,24 @@ const Type *Parser::parseEnumType(Scope *)
     return new TypeEnum(names);
 }
 
+const Type *Parser::parsePointerType(Scope *scope)
+{
+    if (tokens[i].type != POINTER) {
+        internal_error("POINTER expected");
+    }
+    i++;
+    if (tokens[i].type != TO) {
+        internal_error("TO expected");
+    }
+    i++;
+    const Type *reftype = parseType(scope);
+    const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
+    if (rectype == nullptr) {
+        error(2167, tokens[i], "record type expected");
+    }
+    return new TypePointer(rectype);
+}
+
 const Type *Parser::parseType(Scope *scope)
 {
     if (tokens[i].type == ARRAY) {
@@ -224,6 +243,9 @@ const Type *Parser::parseType(Scope *scope)
     }
     if (tokens[i].type == ENUM) {
         return parseEnumType(scope);
+    }
+    if (tokens[i].type == POINTER) {
+        return parsePointerType(scope);
     }
     if (tokens[i].type != IDENTIFIER) {
         error(2014, tokens[i], "identifier expected");
@@ -452,6 +474,14 @@ const Expression *Parser::parseAtom(Scope *scope)
             }
             return new LogicalNotExpression(atom);
         }
+        case NEW: {
+            ++i;
+            const TypeRecord *type = dynamic_cast<const TypeRecord *>(parseType(scope));
+            if (type == nullptr) {
+                error(2168, tokens[i], "record type expected");
+            }
+            return new NewRecordExpression(type);
+        }
         case IDENTIFIER: {
             const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(scope->lookupName(tokens[i].text));
             if (enumtype != nullptr) {
@@ -627,6 +657,11 @@ const Expression *Parser::parseComparison(Scope *scope)
                 return new ArrayComparisonExpression(left, right, comp);
             } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
                 return new NumericComparisonExpression(left, right, comp);
+            } else if (dynamic_cast<const TypePointer *>(left->type) != nullptr) {
+                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                    error(2169, tokens[op], "comparison not available for POINTER");
+                }
+                return new PointerComparisonExpression(left, right, comp);
             } else {
                 internal_error("unknown type in parseComparison");
             }
@@ -829,6 +864,10 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                 }
             } else if (tokens[i].type == DOT) {
                 const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
+                const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
+                if (pointertype != nullptr) {
+                    recordtype = pointertype->reftype;
+                }
                 if (recordtype != nullptr) {
                     ++i;
                     if (tokens[i].type != IDENTIFIER) {
@@ -840,6 +879,9 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                     }
                     ++i;
                     type = f->second.second;
+                    if (pointertype != nullptr) {
+                        ref = new Dereference(type, ref);
+                    }
                     ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
                 } else {
                     error(2071, tokens[i], "not a record");

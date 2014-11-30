@@ -169,6 +169,8 @@ private:
     void exec_NEA();
     void exec_EQD();
     void exec_NED();
+    void exec_EQP();
+    void exec_NEP();
     void exec_ANDB();
     void exec_ORB();
     void exec_NOTB();
@@ -188,6 +190,7 @@ private:
     void exec_CONSA();
     void exec_CONSD();
     void exec_EXCEPT();
+    void exec_ALLOC();
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
@@ -543,6 +546,22 @@ void Executor::exec_NED()
     stack.push(Cell(a != b));
 }
 
+void Executor::exec_EQP()
+{
+    ip++;
+    Cell *b = stack.top().address(); stack.pop();
+    Cell *a = stack.top().address(); stack.pop();
+    stack.push(Cell(a == b));
+}
+
+void Executor::exec_NEP()
+{
+    ip++;
+    Cell *b = stack.top().address(); stack.pop();
+    Cell *a = stack.top().address(); stack.pop();
+    stack.push(Cell(a != b));
+}
+
 void Executor::exec_ANDB()
 {
     ip++;
@@ -794,6 +813,13 @@ void Executor::exec_EXCEPT()
     exit(1);
 }
 
+void Executor::exec_ALLOC()
+{
+    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    stack.push(Cell(new Cell(std::vector<Cell>(val))));
+}
+
 void Executor::exec()
 {
     callstack.push(obj.code.size());
@@ -845,6 +871,8 @@ void Executor::exec()
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
             case NED:     exec_NED(); break;
+            case EQP:     exec_EQP(); break;
+            case NEP:     exec_NEP(); break;
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(); break;
@@ -864,6 +892,7 @@ void Executor::exec()
             case CONSA:   exec_CONSA(); break;
             case CONSD:   exec_CONSD(); break;
             case EXCEPT:  exec_EXCEPT(); break;
+            case ALLOC:   exec_ALLOC(); break;
         }
         if (ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", obj.code[ip]);

@@ -46,6 +46,8 @@ enum Opcode {
     NEA,        // compare unequal array
     EQD,        // compare equal dictionary
     NED,        // compare unequal dictionary
+    EQP,        // compare equal pointer
+    NEP,        // compare unequal pointer
     ANDB,       // and boolean
     ORB,        // or boolean
     NOTB,       // not boolean
@@ -65,6 +67,7 @@ enum Opcode {
     CONSA,      // construct array
     CONSD,      // construct dictionary
     EXCEPT,     // throw exception
+    ALLOC,      // allocate record
 };
 
 #endif

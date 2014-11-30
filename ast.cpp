@@ -65,6 +65,15 @@ bool TypeRecord::is_equivalent(const Type *rhs) const
     return true;
 }
 
+bool TypePointer::is_equivalent(const Type *rhs) const
+{
+    const TypePointer *p = dynamic_cast<const TypePointer *>(rhs);
+    if (p == nullptr) {
+        return false;
+    }
+    return reftype->is_equivalent(p->reftype);
+}
+
 std::string ConstantBooleanExpression::text() const
 {
     std::stringstream s;

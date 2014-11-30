@@ -203,6 +203,23 @@ public:
     virtual std::string text() const { return "TypeRecord(...)"; }
 };
 
+class TypePointer: public Type {
+public:
+    TypePointer(const TypeRecord *reftype): Type("pointer"), reftype(reftype) {}
+
+    const TypeRecord *reftype;
+
+    virtual bool is_equivalent(const Type *rhs) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
+
+    virtual std::string text() const { return "TypePointer(" + reftype->text() + ")"; }
+private:
+    TypePointer(const TypePointer &);
+    TypePointer &operator=(const TypePointer &);
+};
+
 class TypeEnum: public TypeNumber {
 public:
     TypeEnum(const std::map<std::string, int> &names): TypeNumber(), names(names) {}
@@ -415,6 +432,22 @@ private:
 
     static bool all_constant(const std::vector<std::pair<std::string, const Expression *>> &elements);
     static std::map<std::string, const Expression *> make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements);
+};
+
+class NewRecordExpression: public Expression {
+public:
+    NewRecordExpression(const TypeRecord *reftype): Expression(new TypePointer(reftype), false), fields(reftype->fields.size()) {}
+
+    const size_t fields;
+
+    virtual Number eval_number() const { internal_error("NewRecordExpression"); }
+    virtual std::string eval_string() const { internal_error("NewRecordExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "NewRecordExpression(" + type->text() + ")"; }
+private:
+    NewRecordExpression(const NewRecordExpression &);
+    NewRecordExpression &operator=(const NewRecordExpression &);
 };
 
 class UnaryMinusExpression: public Expression {
@@ -642,6 +675,19 @@ public:
 
     virtual std::string text() const {
         return "DictionaryComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
+class PointerComparisonExpression: public ComparisonExpression {
+public:
+    PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual Number eval_number() const { internal_error("PointerComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("PointerComparisonExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "PointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
 
@@ -883,6 +929,20 @@ public:
 private:
     DictionaryReference(const DictionaryReference &);
     DictionaryReference &operator=(const DictionaryReference &);
+};
+
+class Dereference: public VariableReference {
+public:
+    Dereference(const Type *type, const VariableReference *ptr): VariableReference(type, false), ptr(ptr) {}
+
+    const VariableReference *ptr;
+
+    virtual void generate_address(Emitter &emitter) const;
+
+    virtual std::string text() const { return "Dereference(" + ptr->text() + ")"; }
+private:
+    Dereference(const Dereference &);
+    Dereference &operator=(const Dereference &);
 };
 
 class VariableExpression: public Expression {

@@ -1,0 +1,10 @@
+TYPE R := RECORD
+  a: Number
+END RECORD
+
+VAR a: POINTER TO R
+VAR b: POINTER TO R
+
+IF a <= b THEN
+    print("bad")
+END IF

@@ -81,6 +81,8 @@ std::string Token::tostring() const
         case EXCEPTION:   s << "EXCEPTION"; break;
         case TRY:         s << "TRY"; break;
         case RAISE:       s << "RAISE"; break;
+        case POINTER:     s << "POINTER"; break;
+        case NEW:         s << "NEW"; break;
     }
     s << ">";
     return s.str();
@@ -210,6 +212,8 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "EXCEPTION") t.type = EXCEPTION;
             else if (t.text == "TRY") t.type = TRY;
             else if (t.text == "RAISE") t.type = RAISE;
+            else if (t.text == "POINTER") t.type = POINTER;
+            else if (t.text == "NEW") t.type = NEW;
         } else if (isdigit(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 < source.length()) && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {

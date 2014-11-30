@@ -1,0 +1,2 @@
+VAR a: Number
+a := NEW Number

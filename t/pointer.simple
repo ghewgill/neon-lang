@@ -1,0 +1,10 @@
+TYPE Node := RECORD
+    value: Number
+END RECORD
+
+VAR a: POINTER TO Node
+
+a := NEW Node
+a.value := 5
+print(str(a.value))
+%= 5
