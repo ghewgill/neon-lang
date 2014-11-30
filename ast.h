@@ -28,13 +28,15 @@ private:
 
 class Name;
 class Type;
+class TypeRecord;
+class TypePointer;
 class FunctionCall;
 class FunctionParameter;
 class VariableReference;
 
 class Scope {
 public:
-    Scope(Scope *parent): parent(parent), names(), referenced(), count(0) {}
+    Scope(Scope *parent): parent(parent), names(), referenced(), count(0), forwards() {}
     virtual ~Scope() {}
 
     virtual void predeclare(Emitter &emitter) const;
@@ -44,12 +46,16 @@ public:
     void addName(const std::string &name, Name *ref, bool init_referenced = false);
     int nextIndex();
     int getCount() const;
+    void addForward(const std::string &name, TypePointer *ptrtype);
+    void resolveForward(const std::string &name, const TypeRecord *rectype);
+    void checkForward();
 
 private:
     Scope *const parent;
     std::map<std::string, Name *> names;
     std::set<const Name *> referenced;
     int count;
+    std::map<std::string, std::vector<TypePointer *>> forwards;
 private:
     Scope(const Scope &);
     Scope &operator=(const Scope &);
@@ -201,6 +207,11 @@ public:
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeRecord(...)"; }
+};
+
+class TypeForwardRecord: public TypeRecord {
+public:
+    TypeForwardRecord(): TypeRecord(std::map<std::string, std::pair<int, const Type *>>()) {}
 };
 
 class TypePointer: public Type {

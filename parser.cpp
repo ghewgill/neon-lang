@@ -222,12 +222,20 @@ const Type *Parser::parsePointerType(Scope *scope)
         internal_error("TO expected");
     }
     i++;
-    const Type *reftype = parseType(scope);
-    const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
-    if (rectype == nullptr) {
-        error(2167, tokens[i], "record type expected");
+    if (tokens[i].type == IDENTIFIER && scope->lookupName(tokens[i].text) == nullptr) {
+        const std::string name = tokens[i].text;
+        i++;
+        TypePointer *ptrtype = new TypePointer(new TypeForwardRecord());
+        scope->addForward(name, ptrtype);
+        return ptrtype;
+    } else {
+        const Type *reftype = parseType(scope);
+        const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
+        if (rectype == nullptr) {
+            error(2167, tokens[i], "record type expected");
+        }
+        return new TypePointer(rectype);
     }
-    return new TypePointer(rectype);
 }
 
 const Type *Parser::parseType(Scope *scope)
@@ -279,6 +287,10 @@ const Statement *Parser::parseTypeDefinition(Scope *scope)
     ++i;
     const Type *type = parseType(scope);
     scope->addName(name, const_cast<Type *>(type)); // Still ugly.
+    const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
+    if (rectype != nullptr) {
+        scope->resolveForward(name, rectype);
+    }
     return nullptr;
 }
 
@@ -980,6 +992,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
     ++i;
     loops.pop();
     functiontypes.pop();
+    newscope->checkForward();
     return nullptr;
 }
 
@@ -1732,6 +1745,7 @@ const Program *Parser::parse()
         }
     }
     loops.pop();
+    program->scope->checkForward();
     return program;
 }
 

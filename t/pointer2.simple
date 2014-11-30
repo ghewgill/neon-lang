@@ -1,5 +1,3 @@
-% TODO
-
 TYPE Node := RECORD
     next: POINTER TO Node
     value: Number
@@ -8,7 +6,7 @@ END RECORD
 VAR a: POINTER TO Node
 
 a := NEW Node
-a.next = NEW Node
+a.next := NEW Node
 a.next.value := 5
 print(str(a.next.value))
 %= 5
