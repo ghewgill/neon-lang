@@ -1268,7 +1268,9 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
         std::vector<const Statement *> statements;
         while (tokens[i].type != WHEN && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             const Statement *stmt = parseStatement(scope);
-            statements.push_back(stmt);
+            if (stmt != nullptr) {
+                statements.push_back(stmt);
+            }
         }
         clauses.push_back(std::make_pair(conditions, statements));
     }
@@ -1277,7 +1279,9 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
         ++i;
         while (tokens[i].type != END) {
             const Statement *stmt = parseStatement(scope);
-            else_statements.push_back(stmt);
+            if (stmt != nullptr) {
+                else_statements.push_back(stmt);
+            }
         }
     }
     if (tokens[i].type != END) {
@@ -1557,7 +1561,9 @@ const Statement *Parser::parseTryStatement(Scope *scope, int line)
     std::vector<const Statement *> statements;
     while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *stmt = parseStatement(scope);
-        statements.push_back(stmt);
+        if (stmt != nullptr) {
+            statements.push_back(stmt);
+        }
     }
     std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
     while (tokens[i].type == EXCEPTION) {
@@ -1579,7 +1585,9 @@ const Statement *Parser::parseTryStatement(Scope *scope, int line)
         std::vector<const Statement *> statements;
         while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             const Statement *stmt = parseStatement(scope);
-            statements.push_back(stmt);
+            if (stmt != nullptr) {
+                statements.push_back(stmt);
+            }
         }
         catches.push_back(std::make_pair(exceptions, statements));
     }
