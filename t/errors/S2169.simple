@@ -1,0 +1,2 @@
+VAR a: Dictionary<Number>
+a := {}
