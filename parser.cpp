@@ -303,6 +303,9 @@ const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scop
     if (tokens[i].type != RPAREN) {
         for (;;) {
             const Expression *e = parseExpression(scope);
+            if (p >= ftype->params.size()) {
+                error(2167, tokens[i], "too many parameters");
+            }
             if (ftype->params[p]->mode != ParameterType::IN) {
                 const VariableReference *ref = e->get_reference();
                 if (ref == nullptr) {
