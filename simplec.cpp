@@ -12,6 +12,7 @@
 
 int main(int argc, char *argv[])
 {
+    bool ignore_errors = false;
     bool listing = false;
 
     if (argc < 2) {
@@ -19,28 +20,45 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    std::ifstream inf(argv[1]);
-    std::stringstream buf;
-    buf << inf.rdbuf();
-
-    try {
-        auto tokens = tokenize(buf.str());
-        auto ast = parse(tokens);
-        DebugInfo debug(buf.str());
-        auto bytecode = compile(ast, &debug);
-        if (listing) {
-            disassemble(bytecode, std::cerr, &debug);
+    int a = 1;
+    while (a < argc) {
+        if (std::string(argv[a]) == "-i") {
+            ignore_errors = true;
+            a++;
+            continue;
         }
 
-        std::ofstream outf(std::string(argv[1]) + "x");
-        outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
+        std::cout << "Compiling " << argv[a] << "...\n";
+        std::ifstream inf(argv[a]);
+        std::stringstream buf;
+        buf << inf.rdbuf();
 
-    } catch (SourceError &error) {
-        fprintf(stderr, "%s\n", error.token.source.c_str());
-        fprintf(stderr, "%*s\n", error.token.column, "^");
-        fprintf(stderr, "Error S%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
-        exit(1);
-    } catch (InternalError &error) {
-        fprintf(stderr, "Compiler Internal Error: %s (%s:%d)\n", error.message.c_str(), error.file.c_str(), error.line);
+        try {
+            auto tokens = tokenize(buf.str());
+            auto ast = parse(tokens);
+            DebugInfo debug(buf.str());
+            auto bytecode = compile(ast, &debug);
+            if (listing) {
+                disassemble(bytecode, std::cerr, &debug);
+            }
+
+            std::ofstream outf(std::string(argv[1]) + "x");
+            outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
+
+        } catch (SourceError &error) {
+            fprintf(stderr, "%s\n", error.token.source.c_str());
+            fprintf(stderr, "%*s\n", error.token.column, "^");
+            fprintf(stderr, "Error S%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
+            if (not ignore_errors) {
+                exit(1);
+            }
+        } catch (InternalError &error) {
+            fprintf(stderr, "Compiler Internal Error: %s (%s:%d)\n", error.message.c_str(), error.file.c_str(), error.line);
+            if (not ignore_errors) {
+                exit(1);
+            }
+        }
+
+        a++;
     }
 }
