@@ -270,7 +270,7 @@ std::vector<Token> tokenize(const std::string &source)
                 while (i < source.length() && isdigit(source.at(i))) {
                     i++;
                 }
-                if (i < source.length() && source.at(i) == '.' && source.at(i+1) != '.') {
+                if (i+1 < source.length() && source.at(i) == '.' && source.at(i+1) != '.') {
                     i++;
                     while (i < source.length() && isdigit(source.at(i))) {
                         i++;
