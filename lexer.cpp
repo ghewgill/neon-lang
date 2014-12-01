@@ -233,7 +233,7 @@ std::vector<Token> tokenize(const std::string &source)
                             error(1001, t, "invalid base");
                         }
                         i += (end - (source.c_str() + i));
-                        if (source.at(i) != '#') {
+                        if (i < source.length() && source.at(i) != '#') {
                             error(1002, t, "'#' expected");
                         }
                         i++;
