@@ -4,6 +4,6 @@ EXTERNAL FUNCTION Sleep(ms: Number)
           "name": "simpleTestLib"
      }
      "types": {
-          "dwMilliseconds": "uint32"
+          "ms": "uint32"
      }
 }

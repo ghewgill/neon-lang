@@ -1,9 +1,9 @@
 EXTERNAL FUNCTION Sleep(ms: Number)
 {
      "library": {     
-          "name": "simpleTestLib"
+          "name": "kernel32"
      }
      "types": {
-          "ms": "uint32"
+          "x": "uint32"
      }
-END FUNCTION
+}

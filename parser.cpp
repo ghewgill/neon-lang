@@ -1001,6 +1001,11 @@ const Statement *Parser::parseExternalDefinition(Scope *scope)
     for (auto paramtype: types_dict) {
         param_types[paramtype.first] = paramtype.second->eval_string();
     }
+    for (auto a: args) {
+        if (param_types.find(a->name) == param_types.end()) {
+            error(2168, tokens[i], "parameter type missing: " + a->name);
+        }
+    }
 
     ExternalFunction *function = new ExternalFunction(name, returntype, newscope, args, library_name, param_types);
     scope->addName(name, function);
