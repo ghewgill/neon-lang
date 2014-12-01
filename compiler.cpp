@@ -529,6 +529,11 @@ void ConstantEnumExpression::generate(Emitter &emitter) const
     emitter.emit(PUSHN, number_from_uint32(value));
 }
 
+void ConstantNilExpression::generate(Emitter &emitter) const
+{
+    emitter.emit(PUSHNIL);
+}
+
 void ArrayLiteralExpression::generate(Emitter &emitter) const
 {
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {

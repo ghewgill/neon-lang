@@ -68,6 +68,7 @@ enum Opcode {
     CONSD,      // construct dictionary
     EXCEPT,     // throw exception
     ALLOC,      // allocate record
+    PUSHNIL,    // push nil pointer
 };
 
 #endif

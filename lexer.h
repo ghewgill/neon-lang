@@ -77,6 +77,7 @@ enum TokenType {
     RAISE,
     POINTER,
     NEW,
+    NIL,
 };
 
 class Token {

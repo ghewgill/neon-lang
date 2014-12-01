@@ -86,6 +86,7 @@ private:
     void disasm_CONSD();
     void disasm_EXCEPT();
     void disasm_ALLOC();
+    void disasm_PUSHNIL();
 private:
     Disassembler(const Disassembler &);
     Disassembler &operator=(const Disassembler &);
@@ -509,6 +510,12 @@ void Disassembler::disasm_ALLOC()
     out << "ALLOC " << val << "\n";
 }
 
+void Disassembler::disasm_PUSHNIL()
+{
+    out << "PUSHNIL\n";
+    index++;
+}
+
 void Disassembler::disassemble()
 {
     out << "String table: [\n";
@@ -594,6 +601,7 @@ void Disassembler::disassemble()
             case CONSD:   disasm_CONSD(); break;
             case EXCEPT:  disasm_EXCEPT(); break;
             case ALLOC:   disasm_ALLOC(); break;
+            case PUSHNIL: disasm_PUSHNIL(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

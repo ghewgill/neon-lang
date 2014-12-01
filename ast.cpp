@@ -71,6 +71,9 @@ bool TypePointer::is_equivalent(const Type *rhs) const
     if (p == nullptr) {
         return false;
     }
+    if (reftype == nullptr || p->reftype == nullptr) {
+        return true;
+    }
     // Shortcut check avoids infinite recursion on records with pointer to itself.
     return reftype == p->reftype || reftype->is_equivalent(p->reftype);
 }

@@ -494,6 +494,10 @@ const Expression *Parser::parseAtom(Scope *scope)
             }
             return new NewRecordExpression(type);
         }
+        case NIL: {
+            ++i;
+            return new ConstantNilExpression();
+        }
         case IDENTIFIER: {
             const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(scope->lookupName(tokens[i].text));
             if (enumtype != nullptr) {

@@ -406,6 +406,17 @@ public:
     virtual std::string text() const;
 };
 
+class ConstantNilExpression: public Expression {
+public:
+    ConstantNilExpression(): Expression(new TypePointer(nullptr), true) {}
+
+    virtual Number eval_number() const { internal_error("ConstantNilExpression"); }
+    virtual std::string eval_string() const { internal_error("ConstantNilExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ConstantNilExpression"; }
+};
+
 class ArrayLiteralExpression: public Expression {
 public:
     ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(elementtype), all_constant(elements)), elementtype(elementtype), elements(elements) {}

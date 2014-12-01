@@ -191,6 +191,7 @@ private:
     void exec_CONSD();
     void exec_EXCEPT();
     void exec_ALLOC();
+    void exec_PUSHNIL();
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
@@ -820,6 +821,12 @@ void Executor::exec_ALLOC()
     stack.push(Cell(new Cell(std::vector<Cell>(val))));
 }
 
+void Executor::exec_PUSHNIL()
+{
+    ip++;
+    stack.push(Cell(static_cast<Cell *>(nullptr)));
+}
+
 void Executor::exec()
 {
     callstack.push(obj.code.size());
@@ -893,6 +900,7 @@ void Executor::exec()
             case CONSD:   exec_CONSD(); break;
             case EXCEPT:  exec_EXCEPT(); break;
             case ALLOC:   exec_ALLOC(); break;
+            case PUSHNIL: exec_PUSHNIL(); break;
         }
         if (ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", obj.code[ip]);
