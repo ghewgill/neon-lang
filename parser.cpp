@@ -886,6 +886,9 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                 }
                 if (recordtype != nullptr) {
                     ++i;
+                    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
+                        error(2175, tokens[i], "record not defined yet");
+                    }
                     if (tokens[i].type != IDENTIFIER) {
                         error(2069, tokens[i], "identifier expected");
                     }
