@@ -93,7 +93,7 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
 }
 
 StringReference::StringReference(const VariableReference *str, const Expression *index)
-  : VariableReference(TYPE_STRING, false),
+  : VariableReference(TYPE_STRING, false, false),
     str(str),
     index(index),
     load(nullptr),
@@ -341,6 +341,9 @@ const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scop
                 const VariableReference *ref = e->get_reference();
                 if (ref == nullptr) {
                     error(2028, tokens[i], "function call argument must be reference: " + e->text());
+                }
+                if (ref != nullptr && ref->is_readonly) {
+                    error(2177, tokens[i], "readonly parameter to OUT");
                 }
             }
             if (not e->type->is_equivalent(ftype->params[p]->type)) {
@@ -1140,9 +1143,9 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
             Variable *v;
             // TODO: Try to make this a local variable always (give the global scope a local space).
             if (functiontypes.empty()) {
-                v = new GlobalVariable(name, vtype);
+                v = new GlobalVariable(name, vtype, true);
             } else {
-                v = new LocalVariable(name, vtype, scope);
+                v = new LocalVariable(name, vtype, scope, true);
             }
             scope->addName(name, v);
             cond = new ValidPointerExpression(v, ptr);
@@ -1211,9 +1214,9 @@ const Statement *Parser::parseVarStatement(Scope *scope, int /*line*/)
     for (auto name: vars.first) {
         Variable *v;
         if (scope == global_scope) {
-            v = new GlobalVariable(name, vars.second);
+            v = new GlobalVariable(name, vars.second, false);
         } else {
-            v = new LocalVariable(name, vars.second, scope);
+            v = new LocalVariable(name, vars.second, scope, false);
         }
         scope->addName(name, v);
     }
@@ -1752,15 +1755,18 @@ const Statement *Parser::parseStatement(Scope *scope)
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope);
         if (tokens[i].type == ASSIGN) {
+            if (dynamic_cast<const ConstantReference *>(ref) != nullptr) {
+                // TODO: there is probably a better way to detect this.
+                error(2095, tokens[i], "name is not a variable");
+            }
+            if (ref->is_readonly) {
+                error(2176, tokens[i], "assignment to readonly");
+            }
             auto op = i;
             ++i;
             const Expression *expr = parseExpression(scope);
             if (not expr->type->is_equivalent(ref->type)) {
                 error(2094, tokens[op], "type mismatch");
-            }
-            if (dynamic_cast<const ConstantReference *>(ref) != nullptr) {
-                // TODO: there is probably a better way to detect this.
-                error(2095, tokens[op], "name is not a variable");
             }
             return new AssignmentStatement(line, ref, expr);
         } else if (tokens[i].type == LPAREN) {
