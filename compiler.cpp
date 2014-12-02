@@ -665,6 +665,16 @@ void PointerComparisonExpression::generate(Emitter &emitter) const
     emitter.emit(op[comp]);
 }
 
+void ValidPointerExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    emitter.emit(DUP);
+    var->generate_address(emitter);
+    var->generate_store(emitter);
+    right->generate(emitter);
+    emitter.emit(NEP);
+}
+
 void AdditionExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);

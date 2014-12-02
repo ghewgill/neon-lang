@@ -44,6 +44,7 @@ public:
 
     Name *lookupName(const std::string &name);
     void addName(const std::string &name, Name *ref, bool init_referenced = false);
+    void scrubName(const std::string &name);
     int nextIndex();
     int getCount() const;
     void addForward(const std::string &name, TypePointer *ptrtype);
@@ -229,6 +230,11 @@ public:
 private:
     TypePointer(const TypePointer &);
     TypePointer &operator=(const TypePointer &);
+};
+
+class TypeValidPointer: public TypePointer {
+public:
+    TypeValidPointer(const TypePointer *ptrtype): TypePointer(ptrtype->reftype) {}
 };
 
 class TypeEnum: public TypeNumber {
@@ -711,6 +717,22 @@ public:
     virtual std::string text() const {
         return "PointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
+};
+
+class ValidPointerExpression: public PointerComparisonExpression {
+public:
+    ValidPointerExpression(const Variable *var, const Expression *ptr): PointerComparisonExpression(ptr, new ConstantNilExpression(), ComparisonExpression::NE), var(var) {}
+
+    const Variable *var;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ValidPointerExpression(" + left->text() + ")";
+    }
+private:
+    ValidPointerExpression(const ValidPointerExpression &);
+    ValidPointerExpression &operator=(const ValidPointerExpression &);
 };
 
 class AdditionExpression: public Expression {

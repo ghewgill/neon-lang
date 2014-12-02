@@ -882,6 +882,9 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                 const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
                 const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
                 if (pointertype != nullptr) {
+                    if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
+                        error(2174, tokens[i], "pointer must be a valid pointer");
+                    }
                     recordtype = pointertype->reftype;
                 }
                 if (recordtype != nullptr) {
@@ -903,7 +906,7 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                     }
                     ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
                 } else {
-                    error(2071, tokens[i], "not a record");
+                    error(2071, tokens[i], "not a record or pointer");
                 }
             } else {
                 break;
@@ -1112,10 +1115,43 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
     std::vector<const Statement *> else_statements;
     do {
         ++i;
-        auto j = i;
-        const Expression *cond = parseExpression(scope);
-        if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
-            error(2078, tokens[j], "boolean value expected");
+        const Expression *cond;
+        std::string name;
+        if (tokens[i].type == VALID) {
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2170, tokens[i], "identifier expected");
+            }
+            name = tokens[i].text;
+            if (scope->lookupName(name) != nullptr) {
+                error(2173, tokens[i], "name shadows outer");
+            }
+            ++i;
+            if (tokens[i].type != ASSIGN) {
+                error(2171, tokens[i], "':=' expected");
+            }
+            ++i;
+            const Expression *ptr = parseExpression(scope);
+            const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
+            if (ptrtype == nullptr) {
+                error(2172, tokens[i], "pointer type expression expected");
+            }
+            const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
+            Variable *v;
+            // TODO: Try to make this a local variable always (give the global scope a local space).
+            if (functiontypes.empty()) {
+                v = new GlobalVariable(name, vtype);
+            } else {
+                v = new LocalVariable(name, vtype, scope);
+            }
+            scope->addName(name, v);
+            cond = new ValidPointerExpression(v, ptr);
+        } else {
+            auto j = i;
+            cond = parseExpression(scope);
+            if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
+                error(2078, tokens[j], "boolean value expected");
+            }
         }
         if (tokens[i].type != THEN) {
             error(2079, tokens[i], "THEN expected");
@@ -1127,6 +1163,9 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
             if (s != nullptr) {
                 statements.push_back(s);
             }
+        }
+        if (not name.empty()) {
+            scope->scrubName(name);
         }
         condition_statements.push_back(std::make_pair(cond, statements));
     } while (tokens[i].type == ELSIF);

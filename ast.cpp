@@ -232,6 +232,14 @@ void Scope::addName(const std::string &name, Name *ref, bool init_referenced)
     }
 }
 
+void Scope::scrubName(const std::string &name)
+{
+    auto i = names.find(name);
+    names[std::to_string(reinterpret_cast<intptr_t>(i->second))] = i->second;
+    names.erase(i);
+    referenced.insert(i->second);
+}
+
 int Scope::nextIndex()
 {
     return count++;

@@ -78,6 +78,7 @@ enum TokenType {
     POINTER,
     NEW,
     NIL,
+    VALID,
 };
 
 class Token {
