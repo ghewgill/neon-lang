@@ -65,6 +65,19 @@ bool TypeRecord::is_equivalent(const Type *rhs) const
     return true;
 }
 
+bool TypePointer::is_equivalent(const Type *rhs) const
+{
+    const TypePointer *p = dynamic_cast<const TypePointer *>(rhs);
+    if (p == nullptr) {
+        return false;
+    }
+    if (reftype == nullptr || p->reftype == nullptr) {
+        return true;
+    }
+    // Shortcut check avoids infinite recursion on records with pointer to itself.
+    return reftype == p->reftype || reftype->is_equivalent(p->reftype);
+}
+
 std::string ConstantBooleanExpression::text() const
 {
     std::stringstream s;
@@ -219,6 +232,14 @@ void Scope::addName(const std::string &name, Name *ref, bool init_referenced)
     }
 }
 
+void Scope::scrubName(const std::string &name)
+{
+    auto i = names.find(name);
+    names[std::to_string(reinterpret_cast<intptr_t>(i->second))] = i->second;
+    names.erase(i);
+    referenced.insert(i->second);
+}
+
 int Scope::nextIndex()
 {
     return count++;
@@ -227,6 +248,31 @@ int Scope::nextIndex()
 int Scope::getCount() const
 {
     return count;
+}
+
+void Scope::addForward(const std::string &name, TypePointer *ptrtype)
+{
+    forwards[name].push_back(ptrtype);
+}
+
+void Scope::resolveForward(const std::string &name, const TypeRecord *rectype)
+{
+    auto i = forwards.find(name);
+    if (i != forwards.end()) {
+        for (auto p: i->second) {
+            delete p->reftype;
+            p->reftype = rectype;
+        }
+        forwards.erase(i);
+    }
+}
+
+void Scope::checkForward()
+{
+    if (not forwards.empty()) {
+        // TODO: Make this a real error that points to a token.
+        internal_error("unresolved forward declaration: " + forwards.begin()->first);
+    }
 }
 
 const Type *Function::makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params)

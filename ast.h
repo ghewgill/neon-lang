@@ -28,13 +28,15 @@ private:
 
 class Name;
 class Type;
+class TypeRecord;
+class TypePointer;
 class FunctionCall;
 class FunctionParameter;
 class VariableReference;
 
 class Scope {
 public:
-    Scope(Scope *parent): parent(parent), names(), referenced(), count(0) {}
+    Scope(Scope *parent): parent(parent), names(), referenced(), count(0), forwards() {}
     virtual ~Scope() {}
 
     virtual void predeclare(Emitter &emitter) const;
@@ -42,14 +44,19 @@ public:
 
     Name *lookupName(const std::string &name);
     void addName(const std::string &name, Name *ref, bool init_referenced = false);
+    void scrubName(const std::string &name);
     int nextIndex();
     int getCount() const;
+    void addForward(const std::string &name, TypePointer *ptrtype);
+    void resolveForward(const std::string &name, const TypeRecord *rectype);
+    void checkForward();
 
 private:
     Scope *const parent;
     std::map<std::string, Name *> names;
     std::set<const Name *> referenced;
     int count;
+    std::map<std::string, std::vector<TypePointer *>> forwards;
 private:
     Scope(const Scope &);
     Scope &operator=(const Scope &);
@@ -203,6 +210,33 @@ public:
     virtual std::string text() const { return "TypeRecord(...)"; }
 };
 
+class TypeForwardRecord: public TypeRecord {
+public:
+    TypeForwardRecord(): TypeRecord(std::map<std::string, std::pair<int, const Type *>>()) {}
+};
+
+class TypePointer: public Type {
+public:
+    TypePointer(const TypeRecord *reftype): Type("pointer"), reftype(reftype) {}
+
+    const TypeRecord *reftype;
+
+    virtual bool is_equivalent(const Type *rhs) const;
+    virtual void generate_load(Emitter &emitter) const;
+    virtual void generate_store(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const;
+
+    virtual std::string text() const { return "TypePointer(" + reftype->text() + ")"; }
+private:
+    TypePointer(const TypePointer &);
+    TypePointer &operator=(const TypePointer &);
+};
+
+class TypeValidPointer: public TypePointer {
+public:
+    TypeValidPointer(const TypePointer *ptrtype): TypePointer(ptrtype->reftype) {}
+};
+
 class TypeEnum: public TypeNumber {
 public:
     TypeEnum(const std::map<std::string, int> &names): TypeNumber(), names(names) {}
@@ -239,7 +273,9 @@ extern TypeException *TYPE_EXCEPTION;
 
 class Variable: public Name {
 public:
-    Variable(const std::string &name, const Type *type): Name(name, type) {}
+    Variable(const std::string &name, const Type *type, bool is_readonly): Name(name, type), is_readonly(is_readonly) {}
+
+    const bool is_readonly;
 
     virtual void generate_address(Emitter &emitter) const = 0;
     virtual void generate_load(Emitter &emitter) const;
@@ -251,7 +287,7 @@ public:
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const std::string &name, const Type *type): Variable(name, type), index(-1) {}
+    GlobalVariable(const std::string &name, const Type *type, bool is_readonly): Variable(name, type, is_readonly), index(-1) {}
     int index;
 
     virtual void predeclare(Emitter &emitter);
@@ -262,7 +298,7 @@ public:
 
 class LocalVariable: public Variable {
 public:
-    LocalVariable(const std::string &name, const Type *type, Scope *scope): Variable(name, type), scope(scope), index(-1) {}
+    LocalVariable(const std::string &name, const Type *type, Scope *scope, bool is_readonly): Variable(name, type, is_readonly), scope(scope), index(-1) {}
     Scope *scope;
     int index;
 
@@ -277,7 +313,7 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope), mode(mode) {}
+    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope, mode == ParameterType::IN), mode(mode) {}
     ParameterType::Mode mode;
 
     virtual void generate_address(Emitter &emitter) const;
@@ -378,6 +414,17 @@ public:
     virtual std::string text() const;
 };
 
+class ConstantNilExpression: public Expression {
+public:
+    ConstantNilExpression(): Expression(new TypePointer(nullptr), true) {}
+
+    virtual Number eval_number() const { internal_error("ConstantNilExpression"); }
+    virtual std::string eval_string() const { internal_error("ConstantNilExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ConstantNilExpression"; }
+};
+
 class ArrayLiteralExpression: public Expression {
 public:
     ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(elementtype), all_constant(elements)), elementtype(elementtype), elements(elements) {}
@@ -415,6 +462,22 @@ private:
 
     static bool all_constant(const std::vector<std::pair<std::string, const Expression *>> &elements);
     static std::map<std::string, const Expression *> make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements);
+};
+
+class NewRecordExpression: public Expression {
+public:
+    NewRecordExpression(const TypeRecord *reftype): Expression(new TypePointer(reftype), false), fields(reftype->fields.size()) {}
+
+    const size_t fields;
+
+    virtual Number eval_number() const { internal_error("NewRecordExpression"); }
+    virtual std::string eval_string() const { internal_error("NewRecordExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "NewRecordExpression(" + type->text() + ")"; }
+private:
+    NewRecordExpression(const NewRecordExpression &);
+    NewRecordExpression &operator=(const NewRecordExpression &);
 };
 
 class UnaryMinusExpression: public Expression {
@@ -645,6 +708,35 @@ public:
     }
 };
 
+class PointerComparisonExpression: public ComparisonExpression {
+public:
+    PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual Number eval_number() const { internal_error("PointerComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("PointerComparisonExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "PointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
+class ValidPointerExpression: public PointerComparisonExpression {
+public:
+    ValidPointerExpression(const Variable *var, const Expression *ptr): PointerComparisonExpression(ptr, new ConstantNilExpression(), ComparisonExpression::NE), var(var) {}
+
+    const Variable *var;
+
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const {
+        return "ValidPointerExpression(" + left->text() + ")";
+    }
+private:
+    ValidPointerExpression(const ValidPointerExpression &);
+    ValidPointerExpression &operator=(const ValidPointerExpression &);
+};
+
 class AdditionExpression: public Expression {
 public:
     AdditionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
@@ -785,10 +877,11 @@ private:
 
 class VariableReference: public AstNode {
 public:
-    VariableReference(const Type *type, bool is_constant): type(type), is_constant(is_constant) {}
+    VariableReference(const Type *type, bool is_constant, bool is_readonly): type(type), is_constant(is_constant), is_readonly(is_readonly) {}
 
     const Type *type;
     const bool is_constant;
+    const bool is_readonly;
 
     virtual void generate_address(Emitter &emitter) const = 0;
     virtual void generate_load(Emitter &emitter) const;
@@ -803,7 +896,7 @@ private:
 
 class ConstantReference: public VariableReference {
 public:
-    ConstantReference(const Constant *cons): VariableReference(cons->type, true), cons(cons) {}
+    ConstantReference(const Constant *cons): VariableReference(cons->type, true, true), cons(cons) {}
 
     const Constant *cons;
 
@@ -820,7 +913,7 @@ private:
 
 class ScalarVariableReference: public VariableReference {
 public:
-    ScalarVariableReference(const Variable *var): VariableReference(var->type, false), var(var) {}
+    ScalarVariableReference(const Variable *var): VariableReference(var->type, false, var->is_readonly), var(var) {}
 
     const Variable *var;
 
@@ -857,7 +950,7 @@ private:
 
 class ArrayReference: public VariableReference {
 public:
-    ArrayReference(const Type *type, const VariableReference *array, const Expression *index): VariableReference(type, array->is_constant), array(array), index(index) {}
+    ArrayReference(const Type *type, const VariableReference *array, const Expression *index): VariableReference(type, array->is_constant, array->is_readonly), array(array), index(index) {}
 
     const VariableReference *array;
     const Expression *index;
@@ -872,7 +965,7 @@ private:
 
 class DictionaryReference: public VariableReference {
 public:
-    DictionaryReference(const Type *type, const VariableReference *dict, const Expression *index): VariableReference(type, dict->is_constant), dict(dict), index(index) {}
+    DictionaryReference(const Type *type, const VariableReference *dict, const Expression *index): VariableReference(type, dict->is_constant, dict->is_readonly), dict(dict), index(index) {}
 
     const VariableReference *dict;
     const Expression *index;
@@ -883,6 +976,20 @@ public:
 private:
     DictionaryReference(const DictionaryReference &);
     DictionaryReference &operator=(const DictionaryReference &);
+};
+
+class Dereference: public VariableReference {
+public:
+    Dereference(const Type *type, const VariableReference *ptr): VariableReference(type, false, false), ptr(ptr) {}
+
+    const VariableReference *ptr;
+
+    virtual void generate_address(Emitter &emitter) const;
+
+    virtual std::string text() const { return "Dereference(" + ptr->text() + ")"; }
+private:
+    Dereference(const Dereference &);
+    Dereference &operator=(const Dereference &);
 };
 
 class VariableExpression: public Expression {
@@ -1194,7 +1301,7 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params)), scope(scope), params(params), entry_label(UINT_MAX), statements() {}
+    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params), true), scope(scope), params(params), entry_label(UINT_MAX), statements() {}
 
     Scope *scope;
     const std::vector<FunctionParameter *> params;
@@ -1219,7 +1326,7 @@ private:
 
 class PredefinedFunction: public Variable {
 public:
-    PredefinedFunction(const std::string &name, const Type *type): Variable(name, type), name_index(-1) {}
+    PredefinedFunction(const std::string &name, const Type *type): Variable(name, type, true), name_index(-1) {}
     int name_index;
 
     virtual void predeclare(Emitter &emitter);

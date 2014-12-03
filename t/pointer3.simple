@@ -1,0 +1,11 @@
+TYPE Node := RECORD
+    value: Number
+END RECORD
+
+VAR a: POINTER TO Node
+
+a := NIL
+IF a = NIL THEN
+    print("nil")
+END IF
+%= nil

@@ -64,6 +64,8 @@ private:
     void disasm_NEA();
     void disasm_EQD();
     void disasm_NED();
+    void disasm_EQP();
+    void disasm_NEP();
     void disasm_ANDB();
     void disasm_ORB();
     void disasm_NOTB();
@@ -83,6 +85,8 @@ private:
     void disasm_CONSA();
     void disasm_CONSD();
     void disasm_EXCEPT();
+    void disasm_ALLOC();
+    void disasm_PUSHNIL();
 private:
     Disassembler(const Disassembler &);
     Disassembler &operator=(const Disassembler &);
@@ -364,6 +368,18 @@ void Disassembler::disasm_NED()
     index++;
 }
 
+void Disassembler::disasm_EQP()
+{
+    out << "EQP\n";
+    index++;
+}
+
+void Disassembler::disasm_NEP()
+{
+    out << "NEP\n";
+    index++;
+}
+
 void Disassembler::disasm_ANDB()
 {
     out << "ANDB\n";
@@ -487,6 +503,19 @@ void Disassembler::disasm_EXCEPT()
     out << "EXCEPT \"" << obj.strtable[val] << "\"\n";
 }
 
+void Disassembler::disasm_ALLOC()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "ALLOC " << val << "\n";
+}
+
+void Disassembler::disasm_PUSHNIL()
+{
+    out << "PUSHNIL\n";
+    index++;
+}
+
 void Disassembler::disassemble()
 {
     out << "String table: [\n";
@@ -550,6 +579,8 @@ void Disassembler::disassemble()
             case NEA:     disasm_NEA(); break;
             case EQD:     disasm_EQD(); break;
             case NED:     disasm_NED(); break;
+            case EQP:     disasm_EQP(); break;
+            case NEP:     disasm_NEP(); break;
             case ANDB:    disasm_ANDB(); break;
             case ORB:     disasm_ORB(); break;
             case NOTB:    disasm_NOTB(); break;
@@ -569,6 +600,8 @@ void Disassembler::disassemble()
             case CONSA:   disasm_CONSA(); break;
             case CONSD:   disasm_CONSD(); break;
             case EXCEPT:  disasm_EXCEPT(); break;
+            case ALLOC:   disasm_ALLOC(); break;
+            case PUSHNIL: disasm_PUSHNIL(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

@@ -3,9 +3,9 @@
  *
  *                   "DHRYSTONE" Benchmark Program
  *                   -----------------------------
- *                                                                            
+ *
  *  Version:    C, Version 2.1
- *                                                                            
+ *
  *  File:       dhry.h (part 1 of 3)
  *
  *  Date:       May 25, 1988
@@ -33,12 +33,12 @@
  *
  *  Collection of Results:
  *              Reinhold Weicker (address see above) and
- *              
+ *
  *              Rick Richardson
  *              PC Research. Inc.
  *              94 Apple Orchard Drive
  *              Tinton Falls, NJ 07724
- *                      Phone:  (201) 389-8963 (9-17 EST)               
+ *                      Phone:  (201) 389-8963 (9-17 EST)
  *                      Usenet: ...!uunet!pcrat!rick
  *
  *      Please send results to Rick Richardson and/or Reinhold Weicker.
@@ -91,7 +91,7 @@
  *              version previously distributed by Reinhold Weicker.
  *
  *              At several places in the benchmark, code has been added,
- *              but within the measurement loop only in branches that 
+ *              but within the measurement loop only in branches that
  *              are not executed. The intention is that optimizing compilers
  *              should be prevented from moving code out of the measurement
  *              loop, or from removing code altogether. Since the statements
@@ -101,7 +101,7 @@
  *              still hold. Except for sophisticated optimizing compilers,
  *              execution times for this version should be the same as
  *              for previous versions.
- *              
+ *
  *              Since it has proven difficult to subtract the time for the
  *              measurement loop overhead in a correct way, the loop check
  *              has been made a part of the benchmark. This does have
@@ -151,7 +151,7 @@
  *              -DTIME
  *                      The "times" function of UNIX (returning process times)
  *                      or the "time" function (returning wallclock time)
- *                      is used for measurement. 
+ *                      is used for measurement.
  *                      For single user machines, "time ()" is adequate. For
  *                      multi-user machines where you cannot get single-user
  *                      access, use the "times ()" function. If you have
@@ -198,23 +198,23 @@
  *   different from the Ada version.]
  *
  *  The following program contains statements of a high level programming
- *  language (here: C) in a distribution considered representative:           
+ *  language (here: C) in a distribution considered representative:
  *
  *    assignments                  52 (51.0 %)
  *    control statements           33 (32.4 %)
  *    procedure, function calls    17 (16.7 %)
  *
  *  103 statements are dynamically executed. The program is balanced with
- *  respect to the three aspects:                                             
+ *  respect to the three aspects:
  *
  *    - statement type
  *    - operand type
  *    - operand locality
- *         operand global, local, parameter, or constant.                     
+ *         operand global, local, parameter, or constant.
  *
- *  The combination of these three aspects is balanced only approximately.    
+ *  The combination of these three aspects is balanced only approximately.
  *
- *  1. Statement Type:                                                        
+ *  1. Statement Type:
  *  -----------------             number
  *
  *     V1 = V2                     9
@@ -258,9 +258,9 @@
  *       library procedure    1
  *     X = F (...)
  *             function  call      6
- *       user function        5                                         
- *       library function     1                                               
- *                                --                                          
+ *       user function        5
+ *       library function     1
+ *                                --
  *                                17       17
  *                                        ---
  *                                        103
@@ -274,10 +274,10 @@
  *                          number    approximate
  *                                    percentage
  *
- *    Arithmetic             32          50.8                                 
+ *    Arithmetic             32          50.8
  *
- *       +                     21          33.3                              
- *       -                      7          11.1                              
+ *       +                     21          33.3
+ *       -                      7          11.1
  *       *                      3           4.8
  *       / (int div)            1           1.6
  *
@@ -295,7 +295,7 @@
  *       && (AND-THEN)          1            1.6
  *       |  (OR)                1            1.6
  *       !  (NOT)               2            3.2
- * 
+ *
  *                           --          -----
  *                           63          100.1
  *
@@ -315,10 +315,10 @@
  *                           242       100.0 %
  *
  *  When there is an access path leading to the final operand (e.g. a record
- *  component), only the final data type on the access path is counted.       
+ *  component), only the final data type on the access path is counted.
  *
  *
- *  4. Operand Locality:                                                      
+ *  4. Operand Locality:
  *  -------------------
  *                                number    approximate
  *                                          percentage
@@ -363,7 +363,7 @@ TYPE Arr_1_Dim      := Array<Number>
 TYPE Arr_2_Dim      := Array<Array<Number>>
 
 TYPE Record := RECORD
-    % TODO Ptr_Comp: POINTER TO Record
+    Ptr_Comp: POINTER TO Record
     Discr: Enumeration
 
     Enum_Comp: Enumeration
@@ -379,7 +379,7 @@ END RECORD
 
 % Global Variables:
 
-VAR Ptr_Glob, Next_Ptr_Glob: Record
+VAR Ptr_Glob, Next_Ptr_Glob: POINTER TO Record
 VAR Int_Glob: Number
 VAR Bool_Glob: Boolean
 VAR Ch_1_Glob, Ch_2_Glob: String
@@ -399,50 +399,36 @@ VAR Microseconds, Dhrystones_Per_Second: Number
 
 % end of variables for time measurement
 
+DECLARE FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
+DECLARE FUNCTION Proc_6 (IN Enum_Val_Par: Enumeration, OUT Enum_Ref_Par: Enumeration)
+DECLARE FUNCTION Proc_7 (IN Int_1_Par_Val: One_Fifty, IN Int_2_Par_Val: One_Fifty, OUT Int_Par_Ref: One_Fifty)
 
-FUNCTION Proc_3 (Ptr_Ref_Par: Record)
+FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
     % executed once
-    % Ptr_Ref_Par becomes Ptr_Glob
 
-  %| TODO
-  IF Ptr_Glob # Null
+  VAR Next_Record: POINTER TO Record
+  Next_Record := Ptr_Val_Par.Ptr_Comp
+                                        % == Ptr_Glob_Next
+  % Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
+  % corresponds to "rename" in Ada, "with" in Pascal
+
+  % TODO structassign (*Ptr_Val_Par->Ptr_Comp, *Ptr_Glob);
+  Ptr_Val_Par.Int_Comp := 5
+  Next_Record.Int_Comp := Ptr_Val_Par.Int_Comp
+  Next_Record.Ptr_Comp := Ptr_Val_Par.Ptr_Comp
+  Proc_3 (Next_Record.Ptr_Comp)
+    % Ptr_Val_Par->Ptr_Comp->Ptr_Comp == Ptr_Glob->Ptr_Comp
+  IF Next_Record.Discr = Enumeration.Ident_1 THEN
     % then, executed
-    *Ptr_Ref_Par = Ptr_Glob->Ptr_Comp;
-  Proc_7 (10, Int_Glob, &Ptr_Glob->variant.var_1.Int_Comp)
-  |%
-END FUNCTION % Proc_3
-
-
-FUNCTION Proc_1 (INOUT Ptr_Val_Par: Record)
-    % executed once
-
-%| TODO
-  REG Rec_Pointer Next_Record = Ptr_Val_Par->Ptr_Comp;  
-                                        /* == Ptr_Glob_Next */
-  /* Local variable, initialized with Ptr_Val_Par->Ptr_Comp,    */
-  /* corresponds to "rename" in Ada, "with" in Pascal           */
-  
-  structassign (*Ptr_Val_Par->Ptr_Comp, *Ptr_Glob); 
-  Ptr_Val_Par->variant.var_1.Int_Comp = 5;
-  Next_Record->variant.var_1.Int_Comp 
-        = Ptr_Val_Par->variant.var_1.Int_Comp;
-  Next_Record->Ptr_Comp = Ptr_Val_Par->Ptr_Comp;
-  Proc_3 (&Next_Record->Ptr_Comp);
-    /* Ptr_Val_Par->Ptr_Comp->Ptr_Comp 
-                        == Ptr_Glob->Ptr_Comp */
-  if (Next_Record->Discr == Ident_1)
-    /* then, executed */
-  {
-    Next_Record->variant.var_1.Int_Comp = 6;
-    Proc_6 (Ptr_Val_Par->variant.var_1.Enum_Comp, 
-           &Next_Record->variant.var_1.Enum_Comp);
-    Next_Record->Ptr_Comp = Ptr_Glob->Ptr_Comp;
-    Proc_7 (Next_Record->variant.var_1.Int_Comp, 10, 
-           &Next_Record->variant.var_1.Int_Comp);
-  }
-  else /* not executed */
-    structassign (*Ptr_Val_Par, *Ptr_Val_Par->Ptr_Comp);
-|%
+    Next_Record.Int_Comp := 6
+    Proc_6 (Ptr_Val_Par.Enum_Comp,
+            Next_Record.Enum_Comp)
+    Next_Record.Ptr_Comp := Ptr_Glob.Ptr_Comp
+    Proc_7 (Next_Record.Int_Comp, 10,
+            Next_Record.Int_Comp)
+  ELSE % not executed
+    % TODO structassign (*Ptr_Val_Par, *Ptr_Val_Par->Ptr_Comp);
+  END IF
 END FUNCTION % Proc_1
 
 
@@ -465,6 +451,18 @@ FUNCTION Proc_2 (INOUT Int_Par_Ref: Number)
 END FUNCTION % Proc_2
 
 
+FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
+    % executed once
+    % Ptr_Ref_Par becomes Ptr_Glob
+
+  IF Ptr_Glob # NIL THEN
+    % then, executed
+    Ptr_Ref_Par := Ptr_Glob.Ptr_Comp
+  END IF
+  Proc_7 (10, Int_Glob, Ptr_Glob.Int_Comp)
+END FUNCTION % Proc_3
+
+
 FUNCTION Proc_4 () % without parameters
     % executed once
 
@@ -477,7 +475,7 @@ END FUNCTION % Proc_4
 
 
 FUNCTION Proc_5 () % without parameters
-    % executed once 
+    % executed once
 
   Ch_1_Glob := "A"
   Bool_Glob := FALSE
@@ -541,7 +539,7 @@ FUNCTION Proc_7 (IN Int_1_Par_Val: One_Fifty, IN Int_2_Par_Val: One_Fifty, OUT I
 
   Int_Loc := Int_1_Par_Val + 2
   Int_Par_Ref := Int_2_Par_Val + Int_Loc
-END FUNCTION % Proc_7 
+END FUNCTION % Proc_7
 
 
 FUNCTION Proc_8 (INOUT Arr_1_Par_Ref: Arr_1_Dim, INOUT Arr_2_Par_Ref: Arr_2_Dim, IN Int_1_Par_Val: Number, IN Int_2_Par_Val: Number)
@@ -642,7 +640,10 @@ FUNCTION main()
 
   % Initializations
 
-  % TODO Ptr_Glob->Ptr_Comp                    = Next_Ptr_Glob;
+  Next_Ptr_Glob := NEW Record
+  Ptr_Glob := NEW Record
+
+  Ptr_Glob.Ptr_Comp                    := Next_Ptr_Glob
   Ptr_Glob.Discr                       := Enumeration.Ident_1
   Ptr_Glob.Enum_Comp                   := Enumeration.Ident_3
   Ptr_Glob.Int_Comp                    := 40
@@ -663,7 +664,7 @@ FUNCTION main()
   %%%%%%%%%%%%%%%%%
   %% Start timer %%
   %%%%%%%%%%%%%%%%%
- 
+
   Begin_Time := time.now ()
 
   Run_Index := 1
@@ -715,7 +716,7 @@ FUNCTION main()
   %%%%%%%%%%%%%%%%
   %% Stop timer %%
   %%%%%%%%%%%%%%%%
-  
+
   End_Time := time.now ()
 
   print ("Execution ends")
@@ -735,8 +736,8 @@ FUNCTION main()
   print ("Arr_2_Glob[8][7]:    " + str(Arr_2_Glob[8][7]))
   print ("        should be:   Number_Of_Runs + 10")
   print ("Ptr_Glob->")
-  % TODO print ("  Ptr_Comp:          %d", (int) Ptr_Glob->Ptr_Comp)
-  % TODO print ("        should be:   (implementation-dependent)")
+  print ("  Ptr_Comp:          ") % + Ptr_Glob.Ptr_Comp)
+  print ("        should be:   (implementation-dependent)")
   % TODO print ("  Discr:             " + str(Ptr_Glob.Discr))
   print ("        should be:   " + str(0))
   % TODO print ("  Enum_Comp:         " + str(Ptr_Glob.Enum_Comp))
@@ -746,8 +747,8 @@ FUNCTION main()
   print ("  Str_Comp:          " + Ptr_Glob.Str_Comp)
   print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
   print ("Next_Ptr_Glob->")
-  % TODO print ("  Ptr_Comp:          %d", (int) Next_Ptr_Glob->Ptr_Comp)
-  % TODO print ("        should be:   (implementation-dependent), same as above")
+  print ("  Ptr_Comp:          ") % + Next_Ptr_Glob.Ptr_Comp)
+  print ("        should be:   (implementation-dependent), same as above")
   % TODO print ("  Discr:             " + str(Next_Ptr_Glob.Discr))
   print ("        should be:   " + str(0))
   % TODO print ("  Enum_Comp:         " + str(Next_Ptr_Glob.Enum_Comp))
@@ -783,7 +784,7 @@ FUNCTION main()
     print ("Dhrystones per Second:                      " + str(Dhrystones_Per_Second))
     print ("")
   END IF
-  
+
 END FUNCTION
 
 main()

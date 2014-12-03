@@ -25,6 +25,7 @@ public:
     const Type *parseDictionaryType(Scope *scope);
     const Type *parseRecordType(Scope *scope);
     const Type *parseEnumType(Scope *scope);
+    const Type *parsePointerType(Scope *scope);
     const Type *parseType(Scope *scope);
     const Statement *parseTypeDefinition(Scope *scope);
     const Statement *parseConstantDefinition(Scope *scope);
@@ -92,7 +93,7 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
 }
 
 StringReference::StringReference(const VariableReference *str, const Expression *index)
-  : VariableReference(TYPE_STRING, false),
+  : VariableReference(TYPE_STRING, false, false),
     str(str),
     index(index),
     load(nullptr),
@@ -211,6 +212,32 @@ const Type *Parser::parseEnumType(Scope *)
     return new TypeEnum(names);
 }
 
+const Type *Parser::parsePointerType(Scope *scope)
+{
+    if (tokens[i].type != POINTER) {
+        internal_error("POINTER expected");
+    }
+    i++;
+    if (tokens[i].type != TO) {
+        internal_error("TO expected");
+    }
+    i++;
+    if (tokens[i].type == IDENTIFIER && scope->lookupName(tokens[i].text) == nullptr) {
+        const std::string name = tokens[i].text;
+        i++;
+        TypePointer *ptrtype = new TypePointer(new TypeForwardRecord());
+        scope->addForward(name, ptrtype);
+        return ptrtype;
+    } else {
+        const Type *reftype = parseType(scope);
+        const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
+        if (rectype == nullptr) {
+            error(2171, tokens[i], "record type expected");
+        }
+        return new TypePointer(rectype);
+    }
+}
+
 const Type *Parser::parseType(Scope *scope)
 {
     if (tokens[i].type == ARRAY) {
@@ -224,6 +251,9 @@ const Type *Parser::parseType(Scope *scope)
     }
     if (tokens[i].type == ENUM) {
         return parseEnumType(scope);
+    }
+    if (tokens[i].type == POINTER) {
+        return parsePointerType(scope);
     }
     if (tokens[i].type != IDENTIFIER) {
         error(2014, tokens[i], "identifier expected");
@@ -257,6 +287,10 @@ const Statement *Parser::parseTypeDefinition(Scope *scope)
     ++i;
     const Type *type = parseType(scope);
     scope->addName(name, const_cast<Type *>(type)); // Still ugly.
+    const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
+    if (rectype != nullptr) {
+        scope->resolveForward(name, rectype);
+    }
     return nullptr;
 }
 
@@ -310,6 +344,9 @@ const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scop
                 const VariableReference *ref = e->get_reference();
                 if (ref == nullptr) {
                     error(2028, tokens[i], "function call argument must be reference: " + e->text());
+                }
+                if (ref != nullptr && ref->is_readonly) {
+                    error(2181, tokens[i], "readonly parameter to OUT");
                 }
             }
             if (not e->type->is_equivalent(ftype->params[p]->type)) {
@@ -460,6 +497,18 @@ const Expression *Parser::parseAtom(Scope *scope)
                 error(2034, tokens[op], "boolean required for logical not");
             }
             return new LogicalNotExpression(atom);
+        }
+        case NEW: {
+            ++i;
+            const TypeRecord *type = dynamic_cast<const TypeRecord *>(parseType(scope));
+            if (type == nullptr) {
+                error(2172, tokens[i], "record type expected");
+            }
+            return new NewRecordExpression(type);
+        }
+        case NIL: {
+            ++i;
+            return new ConstantNilExpression();
         }
         case IDENTIFIER: {
             const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(scope->lookupName(tokens[i].text));
@@ -636,6 +685,11 @@ const Expression *Parser::parseComparison(Scope *scope)
                 return new ArrayComparisonExpression(left, right, comp);
             } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
                 return new NumericComparisonExpression(left, right, comp);
+            } else if (dynamic_cast<const TypePointer *>(left->type) != nullptr) {
+                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                    error(2173, tokens[op], "comparison not available for POINTER");
+                }
+                return new PointerComparisonExpression(left, right, comp);
             } else {
                 internal_error("unknown type in parseComparison");
             }
@@ -838,8 +892,18 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                 }
             } else if (tokens[i].type == DOT) {
                 const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
+                const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
+                if (pointertype != nullptr) {
+                    if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
+                        error(2178, tokens[i], "pointer must be a valid pointer");
+                    }
+                    recordtype = pointertype->reftype;
+                }
                 if (recordtype != nullptr) {
                     ++i;
+                    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
+                        error(2179, tokens[i], "record not defined yet");
+                    }
                     if (tokens[i].type != IDENTIFIER) {
                         error(2069, tokens[i], "identifier expected");
                     }
@@ -849,9 +913,12 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                     }
                     ++i;
                     type = f->second.second;
+                    if (pointertype != nullptr) {
+                        ref = new Dereference(type, ref);
+                    }
                     ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
                 } else {
-                    error(2071, tokens[i], "not a record");
+                    error(2071, tokens[i], "not a record or pointer");
                 }
             } else {
                 break;
@@ -947,6 +1014,7 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
     ++i;
     loops.pop();
     functiontypes.pop();
+    newscope->checkForward();
     return nullptr;
 }
 
@@ -1064,10 +1132,43 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
     std::vector<const Statement *> else_statements;
     do {
         ++i;
-        auto j = i;
-        const Expression *cond = parseExpression(scope);
-        if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
-            error(2078, tokens[j], "boolean value expected");
+        const Expression *cond;
+        std::string name;
+        if (tokens[i].type == VALID) {
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2174, tokens[i], "identifier expected");
+            }
+            name = tokens[i].text;
+            if (scope->lookupName(name) != nullptr) {
+                error(2177, tokens[i], "name shadows outer");
+            }
+            ++i;
+            if (tokens[i].type != ASSIGN) {
+                error(2175, tokens[i], "':=' expected");
+            }
+            ++i;
+            const Expression *ptr = parseExpression(scope);
+            const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
+            if (ptrtype == nullptr) {
+                error(2176, tokens[i], "pointer type expression expected");
+            }
+            const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
+            Variable *v;
+            // TODO: Try to make this a local variable always (give the global scope a local space).
+            if (functiontypes.empty()) {
+                v = new GlobalVariable(name, vtype, true);
+            } else {
+                v = new LocalVariable(name, vtype, scope, true);
+            }
+            scope->addName(name, v);
+            cond = new ValidPointerExpression(v, ptr);
+        } else {
+            auto j = i;
+            cond = parseExpression(scope);
+            if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
+                error(2078, tokens[j], "boolean value expected");
+            }
         }
         if (tokens[i].type != THEN) {
             error(2079, tokens[i], "THEN expected");
@@ -1079,6 +1180,9 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
             if (s != nullptr) {
                 statements.push_back(s);
             }
+        }
+        if (not name.empty()) {
+            scope->scrubName(name);
         }
         condition_statements.push_back(std::make_pair(cond, statements));
     } while (tokens[i].type == ELSIF);
@@ -1124,9 +1228,9 @@ const Statement *Parser::parseVarStatement(Scope *scope, int /*line*/)
     for (auto name: vars.first) {
         Variable *v;
         if (scope == global_scope) {
-            v = new GlobalVariable(name, vars.second);
+            v = new GlobalVariable(name, vars.second, false);
         } else {
-            v = new LocalVariable(name, vars.second, scope);
+            v = new LocalVariable(name, vars.second, scope, false);
         }
         scope->addName(name, v);
     }
@@ -1673,15 +1777,18 @@ const Statement *Parser::parseStatement(Scope *scope)
     } else if (tokens[i].type == IDENTIFIER) {
         const VariableReference *ref = parseVariableReference(scope);
         if (tokens[i].type == ASSIGN) {
+            if (dynamic_cast<const ConstantReference *>(ref) != nullptr) {
+                // TODO: there is probably a better way to detect this.
+                error(2095, tokens[i], "name is not a variable");
+            }
+            if (ref->is_readonly) {
+                error(2180, tokens[i], "assignment to readonly");
+            }
             auto op = i;
             ++i;
             const Expression *expr = parseExpression(scope);
             if (not expr->type->is_equivalent(ref->type)) {
                 error(2094, tokens[op], "type mismatch");
-            }
-            if (dynamic_cast<const ConstantReference *>(ref) != nullptr) {
-                // TODO: there is probably a better way to detect this.
-                error(2095, tokens[op], "name is not a variable");
             }
             return new AssignmentStatement(line, ref, expr);
         } else if (tokens[i].type == LPAREN) {
@@ -1712,6 +1819,7 @@ const Program *Parser::parse()
         }
     }
     loops.pop();
+    program->scope->checkForward();
     return program;
 }
 

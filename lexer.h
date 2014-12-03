@@ -75,6 +75,10 @@ enum TokenType {
     EXCEPTION,
     TRY,
     RAISE,
+    POINTER,
+    NEW,
+    NIL,
+    VALID,
 };
 
 class Token {

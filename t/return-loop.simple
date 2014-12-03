@@ -1,9 +1,11 @@
 FUNCTION foo(x: Number): Number
+    VAR y: Number
+    y := x
     LOOP
-        IF x = 3 THEN
-            RETURN x
+        IF y = 3 THEN
+            RETURN y
         END IF
-        x := x - 1
+        y := y - 1
     END LOOP
 END FUNCTION
 
