@@ -112,7 +112,7 @@ std::vector<Token> tokenize(const std::string &source)
     std::string::const_iterator lineend = std::find(source.begin(), source.end(), '\n');
     std::string::const_iterator i = source.begin();
     while (i != source.end()) {
-        char c = *i;
+        uint32_t c = utf8::peek_next(i, source.end());
         //printf("index %lu char %c\n", i, c);
         auto startindex = i;
         Token t;
@@ -120,57 +120,63 @@ std::vector<Token> tokenize(const std::string &source)
         t.line = line;
         t.column = column;
         t.type = NONE;
-             if (c == '(') { t.type = LPAREN; i++; }
-        else if (c == ')') { t.type = RPAREN; i++; }
-        else if (c == '[') { t.type = LBRACKET; i++; }
-        else if (c == ']') { t.type = RBRACKET; i++; }
-        else if (c == '{') { t.type = LBRACE; i++; }
-        else if (c == '}') { t.type = RBRACE; i++; }
-        else if (c == '+') { t.type = PLUS; i++; }
-        else if (c == '-') { t.type = MINUS; i++; }
-        else if (c == '*') { t.type = TIMES; i++; }
-        else if (c == '/') { t.type = DIVIDE; i++; }
-        else if (c == '^') { t.type = EXP; i++; }
-        else if (c == '=') { t.type = EQUAL; i++; }
-        else if (c == '#') { t.type = NOTEQUAL; i++; }
-        else if (c == ',') { t.type = COMMA; i++; }
+             if (c == '(') { t.type = LPAREN; utf8::advance(i, 1, source.end()); }
+        else if (c == ')') { t.type = RPAREN; utf8::advance(i, 1, source.end()); }
+        else if (c == '[') { t.type = LBRACKET; utf8::advance(i, 1, source.end()); }
+        else if (c == ']') { t.type = RBRACKET; utf8::advance(i, 1, source.end()); }
+        else if (c == '{') { t.type = LBRACE; utf8::advance(i, 1, source.end()); }
+        else if (c == '}') { t.type = RBRACE; utf8::advance(i, 1, source.end()); }
+        else if (c == '+') { t.type = PLUS; utf8::advance(i, 1, source.end()); }
+        else if (c == '-') { t.type = MINUS; utf8::advance(i, 1, source.end()); }
+        else if (c == '*') { t.type = TIMES; utf8::advance(i, 1, source.end()); }
+        else if (c == '/') { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
+        else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); }
+        else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
+        else if (c == '#') { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
+        else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x00ac /*'¬'*/) { t.type = NOT; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2227 /*'∧'*/) { t.type = AND; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2228 /*'∨'*/) { t.type = OR; utf8::advance(i, 1, source.end()); }
         else if (c == '<') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = LESSEQ;
-                i += 2;
+                utf8::advance(i, 2, source.end());
             } else {
                 t.type = LESS;
-                i++;
+                utf8::advance(i, 1, source.end());
             }
         } else if (c == '>') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = GREATEREQ;
-                i += 2;
+                utf8::advance(i, 2, source.end());
             } else {
                 t.type = GREATER;
-                i++;
+                utf8::advance(i, 1, source.end());
             }
         } else if (c == '.') {
             if (i+1 != source.end() && *(i+1) == '.') {
                 t.type = DOTDOT;
-                i += 2;
+                utf8::advance(i, 2, source.end());
             } else {
                 t.type = DOT;
-                i++;
+                utf8::advance(i, 1, source.end());
             }
         } else if (c == ':') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = ASSIGN;
-                i += 2;
+                utf8::advance(i, 2, source.end());
             } else {
                 t.type = COLON;
-                i++;
+                utf8::advance(i, 1, source.end());
             }
         } else if (isalpha(c)) {
             t.type = IDENTIFIER;
             auto const start = i;
             while (i != source.end() && (isalnum(*i) || *i == '_')) {
-                i++;
+                utf8::advance(i, 1, source.end());
             }
             t.text = std::string(start, i);
                  if (t.text == "IF") t.type = IF;
@@ -221,31 +227,31 @@ std::vector<Token> tokenize(const std::string &source)
         } else if (isdigit(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not isdigit(*(i+1))) {
-                i++;
+                utf8::advance(i, 1, source.end());
                 c = static_cast<char>(tolower(*i));
                 if (isalpha(c) || c == '#') {
                     long base;
                     if (c == 'b') {
                         base = 2;
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     } else if (c == 'o') {
                         base = 8;
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     } else if (c == 'x') {
                         base = 16;
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     } else if (c == '#') {
-                        i++;
+                        utf8::advance(i, 1, source.end());
                         char *end = NULL;
                         base = strtol(&*i, &end, 10);
                         if (base < 2 || base > 36) {
                             error(1001, t, "invalid base");
                         }
-                        i += (end - &*i);
+                        utf8::advance(i, (end - &*i), source.end());
                         if (i != source.end() && *i != '#') {
                             error(1002, t, "'#' expected");
                         }
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     } else {
                         error(1003, t, "invalid base character");
                     }
@@ -264,7 +270,7 @@ std::vector<Token> tokenize(const std::string &source)
                             error(1005, t, "invalid digit for given base");
                         }
                         value = number_add(number_multiply(value, number_from_uint32(base)), number_from_uint32(d));
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     }
                     if (i == start) {
                         error(1008, t, "numeric constants must have at least one digit");
@@ -276,36 +282,35 @@ std::vector<Token> tokenize(const std::string &source)
             } else {
                 const auto start = i;
                 while (i != source.end() && isdigit(*i)) {
-                    i++;
+                    utf8::advance(i, 1, source.end());
                 }
                 if (i+1 != source.end() && *i == '.' && *(i+1) != '.') {
-                    i++;
+                    utf8::advance(i, 1, source.end());
                     while (i != source.end() && isdigit(*i)) {
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     }
                 }
                 if (i != source.end() && tolower(*i) == 'e') {
-                    i++;
+                    utf8::advance(i, 1, source.end());
                     if (i != source.end() && (*i == '+' || *i == '-')) {
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     }
                     while (i != source.end() && isdigit(*i)) {
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     }
                 }
                 t.value = number_from_string(std::string(start, i));
             }
         } else if (c == '"') {
-            i++;
+            utf8::advance(i, 1, source.end());
             t.type = STRING;
             t.text = "";
             while (i != source.end()) {
-                c = *i;
-                i++;
+                c = utf8::next(i, source.end());
                 if (c == '"') {
                     break;
                 }
-                t.text.push_back(c);
+                utf8::append(c, std::back_inserter(t.text));
             }
         } else if (c == '%') {
             if (i+1 == source.end()) {
@@ -319,23 +324,23 @@ std::vector<Token> tokenize(const std::string &source)
                     }
                     if (*i == '%' && *(i+1) == '|') {
                         level++;
-                        i += 2;
+                        utf8::advance(i, 2, source.end());
                     } else if (*i == '|' && *(i+1) == '%') {
                         level--;
-                        i += 2;
+                        utf8::advance(i, 2, source.end());
                     } else if (*i == '\n') {
                         line++;
                         column = 0;
                         linestart = i+1;
                         lineend = std::find(i+1, source.end(), '\n');
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     } else {
-                        i++;
+                        utf8::advance(i, 1, source.end());
                     }
                 } while (level > 0);
             } else {
                 while (i != source.end() && *i != '\n') {
-                    i++;
+                    utf8::advance(i, 1, source.end());
                 }
             }
         } else if (isspace(c)) {
@@ -346,7 +351,7 @@ std::vector<Token> tokenize(const std::string &source)
                     linestart = i+1;
                     lineend = std::find(i+1, source.end(), '\n');
                 }
-                i++;
+                utf8::advance(i, 1, source.end());
             }
         } else {
             error(1007, t, "Unexpected character");

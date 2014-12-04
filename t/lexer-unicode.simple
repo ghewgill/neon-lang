@@ -1,0 +1,34 @@
+CONST a: Number := 5
+CONST b: Number := 8
+CONST p: Boolean := TRUE
+CONST q: Boolean := FALSE
+
+IF a ≠ b THEN
+    print("1")
+END IF
+%= 1
+
+IF a ≤ b THEN
+    print("2")
+END IF
+%= 2
+
+IF b ≥ a THEN
+    print("3")
+END IF
+%= 3
+
+IF ¬q THEN
+    print("4")
+END IF
+%= 4
+
+IF p ∧ ¬q THEN
+    print("5")
+END IF
+%= 5
+
+IF p ∨ q THEN
+    print("6")
+END IF
+%= 6
