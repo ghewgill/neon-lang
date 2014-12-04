@@ -1620,6 +1620,15 @@ const Statement *Parser::parseRepeatStatement(Scope *scope, int line)
 const Statement *Parser::parseExitStatement(Scope *, int line)
 {
     ++i;
+    if (tokens[i].type == FUNCTION) {
+        if (functiontypes.empty()) {
+            error(2182, tokens[i], "EXIT FUNCTION not allowed outside function");
+        } else if (functiontypes.top()->returntype != TYPE_NOTHING) {
+            error(2183, tokens[i], "function must return a value");
+        }
+        i++;
+        return new ReturnStatement(line, nullptr);
+    }
     if (tokens[i].type != WHILE
      && tokens[i].type != FOR
      && tokens[i].type != LOOP

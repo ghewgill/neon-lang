@@ -1,5 +1,3 @@
-FUNCTION foo()
+FUNCTION foo(): Number
     EXIT FUNCTION
 END FUNCTION
-
-foo()

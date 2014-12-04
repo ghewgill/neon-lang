@@ -857,7 +857,9 @@ void IfStatement::generate_code(Emitter &emitter) const
 
 void ReturnStatement::generate_code(Emitter &emitter) const
 {
-    expr->generate(emitter);
+    if (expr != nullptr) {
+        expr->generate(emitter);
+    }
     emitter.emit_jump(JUMP, emitter.get_function_exit());
 }
 
