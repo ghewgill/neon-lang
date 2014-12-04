@@ -108,15 +108,15 @@ std::vector<Token> tokenize(const std::string &source)
     int line = 1;
     int column = 1;
     std::vector<Token> tokens;
-    std::string::size_type linestart = 0;
-    std::string::size_type lineend = source.find('\n');
-    std::string::size_type i = 0;
-    while (i < source.length()) {
-        char c = source.at(i);
+    std::string::const_iterator linestart = source.begin();
+    std::string::const_iterator lineend = std::find(source.begin(), source.end(), '\n');
+    std::string::const_iterator i = source.begin();
+    while (i != source.end()) {
+        char c = *i;
         //printf("index %lu char %c\n", i, c);
         auto startindex = i;
         Token t;
-        t.source = source.substr(linestart, lineend-linestart);
+        t.source = std::string(linestart, lineend);
         t.line = line;
         t.column = column;
         t.type = NONE;
@@ -135,7 +135,7 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '#') { t.type = NOTEQUAL; i++; }
         else if (c == ',') { t.type = COMMA; i++; }
         else if (c == '<') {
-            if (i+1 < source.length() && source.at(i+1) == '=') {
+            if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = LESSEQ;
                 i += 2;
             } else {
@@ -143,7 +143,7 @@ std::vector<Token> tokenize(const std::string &source)
                 i++;
             }
         } else if (c == '>') {
-            if (i+1 < source.length() && source.at(i+1) == '=') {
+            if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = GREATEREQ;
                 i += 2;
             } else {
@@ -151,7 +151,7 @@ std::vector<Token> tokenize(const std::string &source)
                 i++;
             }
         } else if (c == '.') {
-            if (i+1 < source.length() && source.at(i+1) == '.') {
+            if (i+1 != source.end() && *(i+1) == '.') {
                 t.type = DOTDOT;
                 i += 2;
             } else {
@@ -159,7 +159,7 @@ std::vector<Token> tokenize(const std::string &source)
                 i++;
             }
         } else if (c == ':') {
-            if (i+1 < source.length() && source.at(i+1) == '=') {
+            if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = ASSIGN;
                 i += 2;
             } else {
@@ -169,10 +169,10 @@ std::vector<Token> tokenize(const std::string &source)
         } else if (isalpha(c)) {
             t.type = IDENTIFIER;
             auto const start = i;
-            while (i < source.length() && (isalnum(source.at(i)) || source.at(i) == '_')) {
+            while (i != source.end() && (isalnum(*i) || *i == '_')) {
                 i++;
             }
-            t.text = source.substr(start, i-start);
+            t.text = std::string(start, i);
                  if (t.text == "IF") t.type = IF;
             else if (t.text == "THEN") t.type = THEN;
             else if (t.text == "ELSE") t.type = ELSE;
@@ -220,28 +220,29 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "VALID") t.type = VALID;
         } else if (isdigit(c)) {
             t.type = NUMBER;
-            if (c == '0' && (i+1 < source.length()) && source.at(i+1) != '.' && tolower(source.at(i+1)) != 'e' && not isdigit(source.at(i+1))) {
-                c = static_cast<char>(tolower(source.at(i+1)));
+            if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not isdigit(*(i+1))) {
+                i++;
+                c = static_cast<char>(tolower(*i));
                 if (isalpha(c) || c == '#') {
                     long base;
                     if (c == 'b') {
                         base = 2;
-                        i += 2;
+                        i++;
                     } else if (c == 'o') {
                         base = 8;
-                        i += 2;
+                        i++;
                     } else if (c == 'x') {
                         base = 16;
-                        i += 2;
+                        i++;
                     } else if (c == '#') {
-                        i += 2;
+                        i++;
                         char *end = NULL;
-                        base = strtol(source.c_str() + i, &end, 10);
+                        base = strtol(&*i, &end, 10);
                         if (base < 2 || base > 36) {
                             error(1001, t, "invalid base");
                         }
-                        i += (end - (source.c_str() + i));
-                        if (i < source.length() && source.at(i) != '#') {
+                        i += (end - &*i);
+                        if (i != source.end() && *i != '#') {
                             error(1002, t, "'#' expected");
                         }
                         i++;
@@ -250,8 +251,8 @@ std::vector<Token> tokenize(const std::string &source)
                     }
                     Number value = number_from_uint32(0);
                     const auto start = i;
-                    while (i < source.length()) {
-                        c = static_cast<char>(tolower(source.at(i)));
+                    while (i != source.end()) {
+                        c = static_cast<char>(tolower(*i));
                         if (c == '.') {
                             error(1004, t, "non-decimal fraction not supported");
                         }
@@ -271,36 +272,35 @@ std::vector<Token> tokenize(const std::string &source)
                     t.value = value;
                 } else {
                     t.value = number_from_uint32(0);
-                    i++;
                 }
             } else {
                 const auto start = i;
-                while (i < source.length() && isdigit(source.at(i))) {
+                while (i != source.end() && isdigit(*i)) {
                     i++;
                 }
-                if (i+1 < source.length() && source.at(i) == '.' && source.at(i+1) != '.') {
+                if (i+1 != source.end() && *i == '.' && *(i+1) != '.') {
                     i++;
-                    while (i < source.length() && isdigit(source.at(i))) {
+                    while (i != source.end() && isdigit(*i)) {
                         i++;
                     }
                 }
-                if (i < source.length() && tolower(source.at(i)) == 'e') {
+                if (i != source.end() && tolower(*i) == 'e') {
                     i++;
-                    if (i < source.length() && (source.at(i) == '+' || source.at(i) == '-')) {
+                    if (i != source.end() && (*i == '+' || *i == '-')) {
                         i++;
                     }
-                    while (i < source.length() && isdigit(source.at(i))) {
+                    while (i != source.end() && isdigit(*i)) {
                         i++;
                     }
                 }
-                t.value = number_from_string(source.substr(start, i-start));
+                t.value = number_from_string(std::string(start, i));
             }
         } else if (c == '"') {
             i++;
             t.type = STRING;
             t.text = "";
-            while (i < source.length()) {
-                c = source.at(i);
+            while (i != source.end()) {
+                c = *i;
                 i++;
                 if (c == '"') {
                     break;
@@ -308,43 +308,43 @@ std::vector<Token> tokenize(const std::string &source)
                 t.text.push_back(c);
             }
         } else if (c == '%') {
-            if (i+1 >= source.length()) {
+            if (i+1 == source.end()) {
                 break;
             }
-            if (source.at(i+1) == '|') {
+            if (*(i+1) == '|') {
                 int level = 0;
                 do {
-                    if (i+1 >= source.length()) {
+                    if (i+1 == source.end()) {
                         error(1006, t, "Missing closing comment '|%'");
                     }
-                    if (source.at(i) == '%' && source.at(i+1) == '|') {
+                    if (*i == '%' && *(i+1) == '|') {
                         level++;
                         i += 2;
-                    } else if (source.at(i) == '|' && source.at(i+1) == '%') {
+                    } else if (*i == '|' && *(i+1) == '%') {
                         level--;
                         i += 2;
-                    } else if (source.at(i) == '\n') {
+                    } else if (*i == '\n') {
                         line++;
                         column = 0;
                         linestart = i+1;
-                        lineend = source.find('\n', i+1);
+                        lineend = std::find(i+1, source.end(), '\n');
                         i++;
                     } else {
                         i++;
                     }
                 } while (level > 0);
             } else {
-                while (i < source.length() && source.at(i) != '\n') {
+                while (i != source.end() && *i != '\n') {
                     i++;
                 }
             }
         } else if (isspace(c)) {
-            while (i < source.length() && isspace(source.at(i))) {
-                if (source.at(i) == '\n') {
+            while (i != source.end() && isspace(*i)) {
+                if (*i == '\n') {
                     line++;
                     column = 0;
                     linestart = i+1;
-                    lineend = source.find('\n', i+1);
+                    lineend = std::find(i+1, source.end(), '\n');
                 }
                 i++;
             }
