@@ -798,7 +798,7 @@ void Executor::exec_EXCEPT()
 {
     uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     for (;;) {
-        for (auto e = obj.exceptions.rbegin(); e != obj.exceptions.rend(); ++e) {
+        for (auto e = obj.exceptions.begin(); e != obj.exceptions.end(); ++e) {
             if (ip >= e->start && ip < e->end && obj.strtable[val] == obj.strtable[e->excid]) {
                 ip = e->handler;
                 return;
