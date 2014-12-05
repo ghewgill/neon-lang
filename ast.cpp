@@ -26,7 +26,7 @@ bool TypeArray::is_equivalent(const Type *rhs) const
     if (a == nullptr) {
         return false;
     }
-    return elementtype->is_equivalent(a->elementtype);
+    return elementtype == nullptr || a->elementtype == nullptr || elementtype->is_equivalent(a->elementtype);
 }
 
 bool TypeDictionary::is_equivalent(const Type *rhs) const
@@ -35,7 +35,7 @@ bool TypeDictionary::is_equivalent(const Type *rhs) const
     if (d == nullptr) {
         return false;
     }
-    return elementtype->is_equivalent(d->elementtype);
+    return elementtype == nullptr || d->elementtype == nullptr || elementtype->is_equivalent(d->elementtype);
 }
 
 bool TypeRecord::is_equivalent(const Type *rhs) const

@@ -388,9 +388,6 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral(Scope *scope)
             error(2139, tokens[i], "',' or ']' expected");
         }
     }
-    if (elementtype == nullptr) {
-        error(2170, tokens[i], "empty array literal");
-    }
     ++i;
     return new ArrayLiteralExpression(elementtype, elements);
 }
@@ -420,9 +417,6 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral(Scope *scope)
         if (tokens[i].type == COMMA) {
             ++i;
         }
-    }
-    if (elementtype == nullptr) {
-        error(2169, tokens[i], "empty dictionary literal");
     }
     return new DictionaryLiteralExpression(elementtype, elements);
 }

@@ -1,0 +1,5 @@
+VAR a: Array<String>
+VAR d: Dictionary<Number>
+
+a := []
+d := {}
