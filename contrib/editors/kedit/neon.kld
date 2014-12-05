@@ -1,6 +1,5 @@
-* neon.kld - KEDIT Language Definition for Neon Programming Language
-* Version 1.0 - October, 2014
-* Compiled by Larry Frieson
+* neon.kld - KEDIT Language Definition for the Neon Programming Language.
+* Version 1.3 - December, 2014
 
 :case
  respect
@@ -34,8 +33,11 @@
  FOR
  FUNCTION
  IF
+ IMPORT
  LOOP
+ NEW
  NEXT
+ POINTER
  RECORD
  REPEAT
  RETURN
@@ -44,11 +46,14 @@
  TO
  TYPE
  UNTIL
+ VALID
  VAR
  WHEN
  WHILE
-* "Pre-Processor" Commands
- IMPORT         alternate 1
+* Exception Handling
+ EXCEPTION
+ TRY
+ RAISE          alternate 1
 * Parameter Control
  IN             alternate 4
  INOUT          alternate 4
@@ -64,6 +69,8 @@
  Nothing        alternate 2
  Number         alternate 2
  String         alternate 2
+* NIL is actually a unique value literal, used only with pointer operations.
+ NIL            alternate 2
 * Boolean literals
  FALSE          alternate 2
  TRUE           alternate 2
