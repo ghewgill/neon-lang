@@ -1331,6 +1331,17 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
                         if (not when2->is_constant) {
                             error(2090, tokens[i], "WHEN condition must be constant");
                         }
+                        if (when->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(when->type) != nullptr) {
+                            if (number_is_greater(when->eval_number(), when2->eval_number())) {
+                                error(2184, tokens[i], "WHEN numeric range condition must be low..high");
+                            }
+                        } else if (when->type->is_equivalent(TYPE_STRING)) {
+                            if (when->eval_string() > when2->eval_string()) {
+                                error(2185, tokens[i], "WHEN string range condition must be low..high");
+                            }
+                        } else {
+                            internal_error("range condition type");
+                        }
                         const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(when, when2);
                         for (auto clause: clauses) {
                             for (auto c: clause.first) {
@@ -1414,42 +1425,80 @@ template <typename T> bool check(ComparisonExpression::Comparison comp1, const T
     switch (comp1) {
         case ComparisonExpression::EQ:
             switch (comp2) {
-                case ComparisonExpression::EQ:
-                    return value1 == value2;
-                case ComparisonExpression::NE:
-                    return value1 != value2;
-                case ComparisonExpression::LT:
-                    return value1 < value2;
-                case ComparisonExpression::GT:
-                    return value1 > value2;
-                case ComparisonExpression::LE:
-                    return value1 <= value2;
-                case ComparisonExpression::GE:
-                    return value1 >= value2;
+                case ComparisonExpression::EQ: return value1 == value2;
+                case ComparisonExpression::NE: return value1 != value2;
+                case ComparisonExpression::LT: return value1 < value2;
+                case ComparisonExpression::GT: return value1 > value2;
+                case ComparisonExpression::LE: return value1 <= value2;
+                case ComparisonExpression::GE: return value1 >= value2;
             }
             break;
         case ComparisonExpression::NE:
-            return false; // TODO
+            switch (comp2) {
+                case ComparisonExpression::EQ: return value1 != value2;
+                default: return true;
+            }
+            break;
         case ComparisonExpression::LT:
-            return false; // TODO
+            switch (comp2) {
+                case ComparisonExpression::EQ: return value1 < value2;
+                case ComparisonExpression::NE: return true;
+                case ComparisonExpression::LT: return true;
+                case ComparisonExpression::GT: return value1 > value2;
+                case ComparisonExpression::LE: return true;
+                case ComparisonExpression::GE: return value1 > value2;
+            }
+            break;
         case ComparisonExpression::GT:
-            return false; // TODO
+            switch (comp2) {
+                case ComparisonExpression::EQ: return value1 > value2;
+                case ComparisonExpression::NE: return true;
+                case ComparisonExpression::LT: return value1 < value2;
+                case ComparisonExpression::GT: return true;
+                case ComparisonExpression::LE: return value1 < value2;
+                case ComparisonExpression::GE: return true;
+            }
+            break;
         case ComparisonExpression::LE:
-            return false; // TODO
+            switch (comp2) {
+                case ComparisonExpression::EQ: return value1 <= value2;
+                case ComparisonExpression::NE: return true;
+                case ComparisonExpression::LT: return true;
+                case ComparisonExpression::GT: return value1 >= value2;
+                case ComparisonExpression::LE: return true;
+                case ComparisonExpression::GE: return value1 >= value2;
+            }
+            break;
         case ComparisonExpression::GE:
-            return false; // TODO
+            switch (comp2) {
+                case ComparisonExpression::EQ: return value1 >= value2;
+                case ComparisonExpression::NE: return true;
+                case ComparisonExpression::LT: return value1 <= value2;
+                case ComparisonExpression::GT: return true;
+                case ComparisonExpression::LE: return value1 <= value2;
+                case ComparisonExpression::GE: return true;
+            }
+            break;
     }
     return false;
 }
 
-template <typename T> bool check(ComparisonExpression::Comparison /*comp1*/, const T &/*value1*/, const T &/*value2low*/, const T &/*value2high*/)
+template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, const T &value2low, const T &value2high)
 {
-    return false; // TODO
+    switch (comp1) {
+        case ComparisonExpression::EQ: return value1 >= value2low && value1 <= value2high;
+        case ComparisonExpression::NE: return value1 != value2low || value1 != value2high;
+        case ComparisonExpression::LT: return value1 > value2low;
+        case ComparisonExpression::GT: return value1 > value2high;
+        case ComparisonExpression::LE: return value1 >= value2low;
+        case ComparisonExpression::GE: return value1 <= value2high;
+    }
+    return false;
 }
 
-template <typename T> bool check(const T &/*value1low*/, const T &/*value1high*/, const T &/*value2low*/, const T &/*value2high*/)
+template <typename T> bool check(const T &value1low, const T &value1high, const T &value2low, const T &value2high)
 {
-    return false; // TODO
+    return value1high >= value2low && value1low <= value2high;
 }
 
 } // namespace overlap

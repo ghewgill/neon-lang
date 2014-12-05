@@ -1,0 +1,4 @@
+VAR a: String
+CASE a
+    WHEN "b".."a" DO
+END CASE
