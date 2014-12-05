@@ -1034,9 +1034,9 @@ void TryStatement::generate_code(Emitter &emitter) const
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
-    ei.end = emitter.current_ip();
     auto skip = emitter.create_label();
     emitter.emit_jump(JUMP, skip);
+    ei.end = emitter.current_ip();
     for (auto c: catches) {
         for (auto e: c.first) {
             ei.excid = emitter.str(e->name);
