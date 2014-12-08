@@ -36,6 +36,7 @@ public:
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
+    void emit(unsigned char b, uint32_t value, uint32_t value2);
     void emit(unsigned char b, const Number &value);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
@@ -87,6 +88,13 @@ void Emitter::emit(unsigned char b, uint32_t value)
 {
     emit(b);
     emit_uint32(value);
+}
+
+void Emitter::emit(unsigned char b, uint32_t value, uint32_t value2)
+{
+    emit(b);
+    emit_uint32(value);
+    emit_uint32(value2);
 }
 
 void Emitter::emit(unsigned char b, const Number &value)
@@ -397,7 +405,7 @@ void GlobalVariable::predeclare(Emitter &emitter)
     index = emitter.global(name);
 }
 
-void GlobalVariable::generate_address(Emitter &emitter) const
+void GlobalVariable::generate_address(Emitter &emitter, int) const
 {
     emitter.emit(PUSHPG, index);
 }
@@ -407,12 +415,16 @@ void LocalVariable::predeclare(Emitter &)
     index = scope->nextIndex();
 }
 
-void LocalVariable::generate_address(Emitter &emitter) const
+void LocalVariable::generate_address(Emitter &emitter, int enclosing) const
 {
-    emitter.emit(PUSHPL, index);
+    if (enclosing > 0) {
+        emitter.emit(PUSHPOL, enclosing, index);
+    } else {
+        emitter.emit(PUSHPL, index);
+    }
 }
 
-void FunctionParameter::generate_address(Emitter &emitter) const
+void FunctionParameter::generate_address(Emitter &emitter, int) const
 {
     switch (mode) {
         case ParameterType::IN:
@@ -428,18 +440,18 @@ void FunctionParameter::generate_address(Emitter &emitter) const
 
 void Function::predeclare(Emitter &emitter)
 {
+    scope->predeclare(emitter);
     entry_label = emitter.next_function();
 }
 
 void Function::postdeclare(Emitter &emitter)
 {
-    scope->predeclare(emitter);
     emitter.jump_target(emitter.function_label(entry_label));
     emitter.emit(ENTER, scope->getCount());
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::IN:
-                (*p)->generate_address(emitter);
+                (*p)->generate_address(emitter, 0);
                 (*p)->generate_store(emitter);
                 break;
             case ParameterType::INOUT:
@@ -462,7 +474,7 @@ void Function::postdeclare(Emitter &emitter)
             case ParameterType::INOUT:
                 break;
             case ParameterType::OUT:
-                (*p)->generate_address(emitter);
+                (*p)->generate_address(emitter, 0);
                 (*p)->generate_load(emitter);
                 break;
         }
@@ -470,6 +482,7 @@ void Function::postdeclare(Emitter &emitter)
     emitter.jump_target(exit);
     emitter.emit(LEAVE);
     emitter.emit(RET);
+    scope->postdeclare(emitter);
 }
 
 void Function::generate_call(Emitter &emitter) const
@@ -669,7 +682,7 @@ void ValidPointerExpression::generate(Emitter &emitter) const
 {
     left->generate(emitter);
     emitter.emit(DUP);
-    var->generate_address(emitter);
+    var->generate_address(emitter, 0);
     var->generate_store(emitter);
     right->generate(emitter);
     emitter.emit(NEP);
@@ -736,7 +749,7 @@ void VariableReference::generate_call(Emitter &) const
 
 void ScalarVariableReference::generate_address(Emitter &emitter) const
 {
-    var->generate_address(emitter);
+    var->generate_address(emitter, enclosing);
 }
 
 void ScalarVariableReference::generate_call(Emitter &emitter) const

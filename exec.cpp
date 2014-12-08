@@ -132,6 +132,7 @@ private:
     void exec_PUSHS();
     void exec_PUSHPG();
     void exec_PUSHPL();
+    void exec_PUSHPOL();
     void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
@@ -256,6 +257,16 @@ void Executor::exec_PUSHPL()
     uint32_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     stack.push(Cell(&frames.back().locals.at(addr)));
+}
+
+void Executor::exec_PUSHPOL()
+{
+    ip++;
+    uint32_t enclosing = (obj.code[ip] << 24) | (obj.code[ip+1] << 16) | (obj.code[ip+2] << 8) | obj.code[ip+3];
+    ip += 4;
+    uint32_t addr = (obj.code[ip] << 24) | (obj.code[ip+1] << 16) | (obj.code[ip+2] << 8) | obj.code[ip+3];
+    ip += 4;
+    stack.push(Cell(&frames[frames.size()-1-enclosing].locals.at(addr)));
 }
 
 void Executor::exec_LOADB()
@@ -841,6 +852,7 @@ void Executor::exec()
             case PUSHS:   exec_PUSHS(); break;
             case PUSHPG:  exec_PUSHPG(); break;
             case PUSHPL:  exec_PUSHPL(); break;
+            case PUSHPOL: exec_PUSHPOL(); break;
             case LOADB:   exec_LOADB(); break;
             case LOADN:   exec_LOADN(); break;
             case LOADS:   exec_LOADS(); break;

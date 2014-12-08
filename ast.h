@@ -43,6 +43,7 @@ public:
     virtual void postdeclare(Emitter &emitter) const;
 
     Name *lookupName(const std::string &name);
+    Name *lookupName(const std::string &name, int &enclosing);
     void addName(const std::string &name, Name *ref, bool init_referenced = false);
     void scrubName(const std::string &name);
     int nextIndex();
@@ -277,7 +278,7 @@ public:
 
     const bool is_readonly;
 
-    virtual void generate_address(Emitter &emitter) const = 0;
+    virtual void generate_address(Emitter &emitter, int enclosing) const = 0;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -291,7 +292,7 @@ public:
     int index;
 
     virtual void predeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const;
+    virtual void generate_address(Emitter &emitter, int enclosing) const;
 
     virtual std::string text() const { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
 };
@@ -303,7 +304,7 @@ public:
     int index;
 
     virtual void predeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &emitter) const;
+    virtual void generate_address(Emitter &emitter, int enclosing) const;
 
     virtual std::string text() const { return "LocalVariable(" + name + ", " + type->text() + ")"; }
 private:
@@ -316,7 +317,7 @@ public:
     FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope, mode == ParameterType::IN), mode(mode) {}
     ParameterType::Mode mode;
 
-    virtual void generate_address(Emitter &emitter) const;
+    virtual void generate_address(Emitter &emitter, int enclosing) const;
 
     virtual std::string text() const { return "FunctionParameter(" + name + ", " + type->text() + ")"; }
 private:
@@ -913,9 +914,10 @@ private:
 
 class ScalarVariableReference: public VariableReference {
 public:
-    ScalarVariableReference(const Variable *var): VariableReference(var->type, false, var->is_readonly), var(var) {}
+    ScalarVariableReference(const Variable *var, int enclosing = -1): VariableReference(var->type, false, var->is_readonly), var(var), enclosing(enclosing) {}
 
     const Variable *var;
+    const int enclosing;
 
     virtual void generate_address(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -1313,7 +1315,7 @@ public:
 
     virtual void predeclare(Emitter &emitter);
     virtual void postdeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &) const { internal_error("Function"); }
+    virtual void generate_address(Emitter &, int) const { internal_error("Function"); }
     virtual void generate_load(Emitter &) const { internal_error("Function"); }
     virtual void generate_store(Emitter &) const { internal_error("Function"); }
     virtual void generate_call(Emitter &emitter) const;
@@ -1330,7 +1332,7 @@ public:
     int name_index;
 
     virtual void predeclare(Emitter &emitter);
-    virtual void generate_address(Emitter &) const { internal_error("PredefinedFunction"); }
+    virtual void generate_address(Emitter &, int) const { internal_error("PredefinedFunction"); }
     virtual void generate_load(Emitter &) const { internal_error("PredefinedFunction"); }
     virtual void generate_store(Emitter &) const { internal_error("PredefinedFunction"); }
     virtual void generate_call(Emitter &emitter) const;

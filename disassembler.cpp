@@ -27,6 +27,7 @@ private:
     void disasm_PUSHS();
     void disasm_PUSHPG();
     void disasm_PUSHPL();
+    void disasm_PUSHPOL();
     void disasm_LOADB();
     void disasm_LOADN();
     void disasm_LOADS();
@@ -144,6 +145,16 @@ void Disassembler::disasm_PUSHPL()
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "PUSHPL " << addr << "\n";
+}
+
+void Disassembler::disasm_PUSHPOL()
+{
+    index++;
+    uint32_t enclosing = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "PUSHPL " << enclosing << "," << addr << "\n";
 }
 
 void Disassembler::disasm_LOADB()
@@ -542,6 +553,7 @@ void Disassembler::disassemble()
             case PUSHS:   disasm_PUSHS(); break;
             case PUSHPG:  disasm_PUSHPG(); break;
             case PUSHPL:  disasm_PUSHPL(); break;
+            case PUSHPOL: disasm_PUSHPOL(); break;
             case LOADB:   disasm_LOADB(); break;
             case LOADN:   disasm_LOADN(); break;
             case LOADS:   disasm_LOADS(); break;

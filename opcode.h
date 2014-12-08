@@ -9,6 +9,7 @@ enum Opcode {
     PUSHS,      // push string immediate
     PUSHPG,     // push pointer to global
     PUSHPL,     // push pointer to local
+    PUSHPOL,    // push pointer to outer local
     LOADB,      // load boolean
     LOADN,      // load number
     LOADS,      // load string

@@ -817,7 +817,8 @@ const VariableInfo Parser::parseVariableDeclaration(Scope *scope)
 const VariableReference *Parser::parseVariableReference(Scope *scope)
 {
     if (tokens[i].type == IDENTIFIER) {
-        const Name *name = scope->lookupName(tokens[i].text);
+        int enclosing;
+        const Name *name = scope->lookupName(tokens[i].text, enclosing);
         if (name == nullptr) {
             error(2059, tokens[i], "name not found: " + tokens[i].text);
         }
@@ -839,7 +840,7 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
         if (var == nullptr) {
             error(2061, tokens[i], "name is not a variable: " + tokens[i].text);
         }
-        const VariableReference *ref = new ScalarVariableReference(var);
+        const VariableReference *ref = new ScalarVariableReference(var, enclosing);
         const Type *type = var->type;
         ++i;
         for (;;) {

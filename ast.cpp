@@ -182,6 +182,13 @@ void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
 
 Name *Scope::lookupName(const std::string &name)
 {
+    int enclosing;
+    return lookupName(name, enclosing);
+}
+
+Name *Scope::lookupName(const std::string &name, int &enclosing)
+{
+    enclosing = 0;
     Scope *s = this;
     while (s != nullptr) {
         auto n = s->names.find(name);
@@ -189,6 +196,7 @@ Name *Scope::lookupName(const std::string &name)
             s->referenced.insert(n->second);
             return n->second;
         }
+        enclosing++;
         s = s->parent;
     }
     return nullptr;
