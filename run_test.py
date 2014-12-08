@@ -43,7 +43,10 @@ def run(fn):
     out, err = p.communicate()
 
     out = out.decode().replace("\r\n", "\n")
-    err = err.decode().replace("\r\n", "\n")
+    try:
+        err = err.decode().replace("\r\n", "\n")
+    except UnicodeDecodeError:
+        err = repr(err)
 
     if not expected_stderr:
         sys.stderr.write(err)
