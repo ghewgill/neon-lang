@@ -96,6 +96,17 @@ simplec = env.Program("simplec", [
 ] + coverage_lib,
 )
 
+simplex = env.Program("simplex", [
+    "bytecode.cpp",
+    "cell.cpp",
+    "exec.cpp",
+    "number.cpp",
+    "rtl_exec.cpp",
+    rtl_platform,
+    "simplex.cpp",
+] + coverage_lib,
+)
+
 env.Depends("number.h", libbid)
 env.Depends("exec.cpp", libffi)
 
@@ -157,4 +168,4 @@ env.Depends(tests, test_ffi)
 env.Command("tests_error", [simple, "run_test.py", "errors.txt", Glob("t/errors/*")], sys.executable + " run_test.py --errors t/errors")
 
 env.Command("samples/hello.simplex", ["samples/hello.simple", simplec], simplec[0].abspath + " $SOURCE")
-#env.Command("tests_2", ["samples/hello.simplex", simplex], simplex[0].abspath + " $SOURCE")
+env.Command("tests_2", ["samples/hello.simplex", simplex], simplex[0].abspath + " $SOURCE")

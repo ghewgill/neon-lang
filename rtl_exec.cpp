@@ -167,6 +167,11 @@ std::vector<std::string> sys$argv()
     return g_argv;
 }
 
+void sys$exit(Number x)
+{
+    exit(number_to_sint32(x));
+}
+
 Number time$now()
 {
     return rtl_time_now();
