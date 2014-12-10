@@ -884,7 +884,8 @@ public:
     const bool is_constant;
     const bool is_readonly;
 
-    virtual void generate_address(Emitter &emitter) const = 0;
+    virtual void generate_address_read(Emitter &emitter) const = 0;
+    virtual void generate_address_write(Emitter &emitter) const = 0;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -901,7 +902,8 @@ public:
 
     const Constant *cons;
 
-    virtual void generate_address(Emitter &) const {}
+    virtual void generate_address_read(Emitter &) const {}
+    virtual void generate_address_write(Emitter &) const {}
     virtual void generate_load(Emitter &emitter) const { cons->value->generate(emitter); }
 
     virtual std::string text() const {
@@ -919,7 +921,8 @@ public:
     const Variable *var;
     const int enclosing;
 
-    virtual void generate_address(Emitter &emitter) const;
+    virtual void generate_address_read(Emitter &emitter) const;
+    virtual void generate_address_write(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const {
@@ -940,7 +943,8 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
-    virtual void generate_address(Emitter &) const { internal_error("StringReference"); }
+    virtual void generate_address_read(Emitter &) const { internal_error("StringReference"); }
+    virtual void generate_address_write(Emitter &) const { internal_error("StringReference"); }
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
 
@@ -957,7 +961,8 @@ public:
     const VariableReference *array;
     const Expression *index;
 
-    virtual void generate_address(Emitter &emitter) const;
+    virtual void generate_address_read(Emitter &emitter) const;
+    virtual void generate_address_write(Emitter &emitter) const;
 
     virtual std::string text() const { return "ArrayReference(" + array->text() + ", " + index->text() + ")"; }
 private:
@@ -972,7 +977,8 @@ public:
     const VariableReference *dict;
     const Expression *index;
 
-    virtual void generate_address(Emitter &emitter) const;
+    virtual void generate_address_read(Emitter &emitter) const;
+    virtual void generate_address_write(Emitter &emitter) const;
 
     virtual std::string text() const { return "DictionaryReference(" + dict->text() + ", " + index->text() + ")"; }
 private:
@@ -986,7 +992,8 @@ public:
 
     const VariableReference *ptr;
 
-    virtual void generate_address(Emitter &emitter) const;
+    virtual void generate_address_read(Emitter &emitter) const;
+    virtual void generate_address_write(Emitter &emitter) const;
 
     virtual std::string text() const { return "Dereference(" + ptr->text() + ")"; }
 private:

@@ -1,0 +1,21 @@
+TYPE Record := RECORD
+    value: Number
+END RECORD
+VAR a: Array<Record>
+VAR r: Record
+r.value := 0
+
+TRY
+    a[0].value := 5
+EXCEPTION ArrayIndex
+    print("array index")
+END TRY
+%= array index
+
+a[0] := r
+a[0].value := 5
+print(str(a[0].value))
+print(str(r.value))
+
+%= 5
+%= 0

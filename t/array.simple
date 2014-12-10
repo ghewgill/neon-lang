@@ -4,5 +4,12 @@ a[1] := 5
 print(str(a[0]))
 print(str(a[1]))
 
+TRY
+    print(str(a[2]))
+EXCEPTION ArrayIndex
+    print("array index")
+END TRY
+
 %= 4
 %= 5
+%= array index

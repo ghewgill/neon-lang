@@ -2,4 +2,11 @@ VAR d: Dictionary<String>
 d["hello"] := "world"
 print(d["hello"])
 
+TRY
+    print(d["foo"])
+EXCEPTION DictionaryIndex
+    print("dictionary index")
+END TRY
+
 %= world
+%= dictionary index

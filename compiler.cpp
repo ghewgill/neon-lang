@@ -737,13 +737,13 @@ void ExponentiationExpression::generate(Emitter &emitter) const
 
 void VariableReference::generate_load(Emitter &emitter) const
 {
-    generate_address(emitter);
+    generate_address_read(emitter);
     type->generate_load(emitter);
 }
 
 void VariableReference::generate_store(Emitter &emitter) const
 {
-    generate_address(emitter);
+    generate_address_write(emitter);
     type->generate_store(emitter);
 }
 
@@ -752,7 +752,12 @@ void VariableReference::generate_call(Emitter &) const
     internal_error("VariableReference");
 }
 
-void ScalarVariableReference::generate_address(Emitter &emitter) const
+void ScalarVariableReference::generate_address_read(Emitter &emitter) const
+{
+    var->generate_address(emitter, enclosing);
+}
+
+void ScalarVariableReference::generate_address_write(Emitter &emitter) const
 {
     var->generate_address(emitter, enclosing);
 }
@@ -773,21 +778,40 @@ void StringReference::generate_store(Emitter &emitter) const
     str->generate_store(emitter);
 }
 
-void ArrayReference::generate_address(Emitter &emitter) const
+void ArrayReference::generate_address_read(Emitter &emitter) const
 {
-    array->generate_address(emitter);
+    array->generate_address_read(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXA);
+    emitter.emit(INDEXAR);
 }
 
-void DictionaryReference::generate_address(Emitter &emitter) const
+void ArrayReference::generate_address_write(Emitter &emitter) const
 {
-    dict->generate_address(emitter);
+    array->generate_address_read(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXD);
+    emitter.emit(INDEXAW);
 }
 
-void Dereference::generate_address(Emitter &emitter) const
+void DictionaryReference::generate_address_read(Emitter &emitter) const
+{
+    dict->generate_address_read(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXDR);
+}
+
+void DictionaryReference::generate_address_write(Emitter &emitter) const
+{
+    dict->generate_address_read(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXDW);
+}
+
+void Dereference::generate_address_read(Emitter &emitter) const
+{
+    ptr->generate_load(emitter);
+}
+
+void Dereference::generate_address_write(Emitter &emitter) const
 {
     ptr->generate_load(emitter);
 }
@@ -814,7 +838,7 @@ void FunctionCall::generate(Emitter &emitter) const
                 arg->generate(emitter);
                 break;
             case ParameterType::INOUT:
-                arg->get_reference()->generate_address(emitter);
+                arg->get_reference()->generate_address_read(emitter);
                 break;
             case ParameterType::OUT:
                 break;

@@ -173,8 +173,10 @@ private:
     void exec_ANDB();
     void exec_ORB();
     void exec_NOTB();
-    void exec_INDEXA();
-    void exec_INDEXD();
+    void exec_INDEXAR();
+    void exec_INDEXAW();
+    void exec_INDEXDR();
+    void exec_INDEXDW();
     void exec_INA();
     void exec_IND();
     void exec_CALLP();
@@ -605,7 +607,23 @@ void Executor::exec_NOTB()
     stack.push(Cell(not x));
 }
 
-void Executor::exec_INDEXA()
+void Executor::exec_INDEXAR()
+{
+    ip++;
+    Number index = stack.top().number(); stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    assert(number_is_integer(index));
+    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
+    // TODO: check for i >= 0 and throw exception if not
+    if (i >= addr->array().size()) {
+        raise("ArrayIndex");
+        return;
+    }
+    assert(i < addr->array().size());
+    stack.push(Cell(&addr->array().at(i)));
+}
+
+void Executor::exec_INDEXAW()
 {
     ip++;
     Number index = stack.top().number(); stack.pop();
@@ -620,7 +638,20 @@ void Executor::exec_INDEXA()
     stack.push(Cell(&addr->array().at(i)));
 }
 
-void Executor::exec_INDEXD()
+void Executor::exec_INDEXDR()
+{
+    ip++;
+    std::string index = stack.top().string(); stack.pop();
+    Cell *addr = stack.top().address(); stack.pop();
+    auto e = addr->dictionary().find(index);
+    if (e == addr->dictionary().end()) {
+        raise("DictionaryIndex");
+        return;
+    }
+    stack.push(Cell(&e->second));
+}
+
+void Executor::exec_INDEXDW()
 {
     ip++;
     std::string index = stack.top().string(); stack.pop();
@@ -909,8 +940,10 @@ void Executor::exec()
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(); break;
-            case INDEXA:  exec_INDEXA(); break;
-            case INDEXD:  exec_INDEXD(); break;
+            case INDEXAR: exec_INDEXAR(); break;
+            case INDEXAW: exec_INDEXAW(); break;
+            case INDEXDR: exec_INDEXDR(); break;
+            case INDEXDW: exec_INDEXDW(); break;
             case INA:     exec_INA(); break;
             case IND:     exec_IND(); break;
             case CALLP:   exec_CALLP(); break;

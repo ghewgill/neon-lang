@@ -70,8 +70,10 @@ private:
     void disasm_ANDB();
     void disasm_ORB();
     void disasm_NOTB();
-    void disasm_INDEXA();
-    void disasm_INDEXD();
+    void disasm_INDEXAR();
+    void disasm_INDEXAW();
+    void disasm_INDEXDR();
+    void disasm_INDEXDW();
     void disasm_INA();
     void disasm_IND();
     void disasm_CALLP();
@@ -409,15 +411,27 @@ void Disassembler::disasm_NOTB()
     index++;
 }
 
-void Disassembler::disasm_INDEXA()
+void Disassembler::disasm_INDEXAR()
 {
-    out << "INDEXA\n";
+    out << "INDEXAR\n";
     index++;
 }
 
-void Disassembler::disasm_INDEXD()
+void Disassembler::disasm_INDEXAW()
 {
-    out << "INDEXD\n";
+    out << "INDEXAW\n";
+    index++;
+}
+
+void Disassembler::disasm_INDEXDR()
+{
+    out << "INDEXDR\n";
+    index++;
+}
+
+void Disassembler::disasm_INDEXDW()
+{
+    out << "INDEXDW\n";
     index++;
 }
 
@@ -596,8 +610,10 @@ void Disassembler::disassemble()
             case ANDB:    disasm_ANDB(); break;
             case ORB:     disasm_ORB(); break;
             case NOTB:    disasm_NOTB(); break;
-            case INDEXA:  disasm_INDEXA(); break;
-            case INDEXD:  disasm_INDEXD(); break;
+            case INDEXAR: disasm_INDEXAR(); break;
+            case INDEXAW: disasm_INDEXAW(); break;
+            case INDEXDR: disasm_INDEXDR(); break;
+            case INDEXDW: disasm_INDEXDW(); break;
             case INA:     disasm_INA(); break;
             case IND:     disasm_IND(); break;
             case CALLP:   disasm_CALLP(); break;
