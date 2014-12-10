@@ -17,6 +17,7 @@
 #include "opcode.h"
 #include "rtl_exec.h"
 #include "rtl_platform.h"
+#include "verifier.h"
 
 namespace {
 
@@ -971,5 +972,10 @@ void Executor::exec()
 void exec(const Bytecode::bytecode &obj, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
-    Executor(obj).exec();
+    if (verify(obj)) {
+        Executor(obj).exec();
+    } else {
+        fprintf(stderr, "bytecode verification failed\n");
+        exit(1);
+    }
 }

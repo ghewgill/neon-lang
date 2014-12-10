@@ -93,6 +93,7 @@ neon = env.Program("bin/neon", [
     rtl,
     rtl_platform,
     "src/util.cpp",
+    "src/verifier.cpp",
 ] + coverage_lib,
 )
 
@@ -120,6 +121,7 @@ neonx = env.Program("bin/neonx", [
     rtl,
     rtl_platform,
     "src/neonx.cpp",
+    "src/verifier.cpp",
 ] + coverage_lib,
 )
 
