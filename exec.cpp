@@ -718,10 +718,11 @@ void Executor::exec_CALLE()
         std::string name = info[1];
         std::string rettype = info[2];
         auto params = split(info[3], ',');
-        eci->fp = rtl_external_function(library, name);
+        std::string exception;
+        eci->fp = rtl_external_function(library, name, exception);
         if (eci->fp == nullptr) {
-            fprintf(stderr, "internal ffi function not found: %s\n", name.c_str());
-            exit(1);
+            raise(exception);
+            return;
         }
         for (auto p: params) {
                  if (p == "uint8" ) { eci->types.push_back(&ffi_type_uint8 ); eci->marshal.push_back(marshal_number<uint8_t >); }

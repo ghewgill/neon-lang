@@ -279,6 +279,8 @@ Program::Program()
     scope->addName("String", TYPE_STRING);
 
     scope->addName("DivideByZero", new Exception("DivideByZero"));
+    scope->addName("FunctionNotFound", new Exception("FunctionNotFound"));
+    scope->addName("LibraryNotFound", new Exception("LibraryNotFound"));
 
     rtl_compile_init(scope);
 }

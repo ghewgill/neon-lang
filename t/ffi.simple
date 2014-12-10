@@ -164,6 +164,26 @@ EXTERNAL FUNCTION upper_string(INOUT s: String)
 END FUNCTION
 |%
 
+EXTERNAL FUNCTION nonexistent_function()
+{
+    "library": {
+        "name": "libtest_ffi"
+    }
+    "types": {
+    }
+}
+END FUNCTION
+
+EXTERNAL FUNCTION nonexistent_library()
+{
+    "library": {
+        "name": "nonexistent"
+    }
+    "types": {
+    }
+}
+END FUNCTION
+
 print(str(sub_uint8(8, 5)))
 %= 3
 
@@ -207,3 +227,17 @@ upper_string(s)
 print(s)
 %# HELLO WORLD
 |%
+
+TRY
+    nonexistent_function()
+EXCEPTION FunctionNotFound
+    print("function not found")
+END TRY
+%= function not found
+
+TRY
+    nonexistent_library()
+EXCEPTION LibraryNotFound
+    print("library not found")
+END TRY
+%= library not found
