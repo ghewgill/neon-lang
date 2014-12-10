@@ -193,6 +193,8 @@ private:
     void exec_EXCEPT();
     void exec_ALLOC();
     void exec_PUSHNIL();
+
+    void raise(const std::string &exception);
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
@@ -808,21 +810,7 @@ void Executor::exec_CONSD()
 void Executor::exec_EXCEPT()
 {
     uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    for (;;) {
-        for (auto e = obj.exceptions.begin(); e != obj.exceptions.end(); ++e) {
-            if (ip >= e->start && ip < e->end && obj.strtable[val] == obj.strtable[e->excid]) {
-                ip = e->handler;
-                return;
-            }
-        }
-        if (callstack.empty()) {
-            break;
-        }
-        ip = callstack.top();
-        callstack.pop();
-    }
-    fprintf(stderr, "unhandled exception %s\n", obj.strtable[val].c_str());
-    exit(1);
+    raise(obj.strtable[val]);
 }
 
 void Executor::exec_ALLOC()
@@ -836,6 +824,25 @@ void Executor::exec_PUSHNIL()
 {
     ip++;
     stack.push(Cell(static_cast<Cell *>(nullptr)));
+}
+
+void Executor::raise(const std::string &exception)
+{
+    for (;;) {
+        for (auto e = obj.exceptions.begin(); e != obj.exceptions.end(); ++e) {
+            if (ip >= e->start && ip < e->end && exception == obj.strtable[e->excid]) {
+                ip = e->handler;
+                return;
+            }
+        }
+        if (callstack.empty()) {
+            break;
+        }
+        ip = callstack.top();
+        callstack.pop();
+    }
+    fprintf(stderr, "unhandled exception %s\n", exception.c_str());
+    exit(1);
 }
 
 void Executor::exec()
