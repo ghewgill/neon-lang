@@ -1039,7 +1039,8 @@ const Statement *Parser::parseExternalDefinition(Scope *scope)
         error(2131, tokens[i], "top level dictionary element not dictionary");
     }
     for (auto elem: dict->dict) {
-        if (not dynamic_cast<const DictionaryLiteralExpression *>(elem.second)->elementtype->is_equivalent(TYPE_STRING)) {
+        auto *d = dynamic_cast<const DictionaryLiteralExpression *>(elem.second);
+        if (not d->dict.empty() && not d->elementtype->is_equivalent(TYPE_STRING)) {
             error(2132, tokens[i], "sub level dictionary must have string elements");
         }
     }
