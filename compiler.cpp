@@ -509,8 +509,13 @@ void ExternalFunction::predeclare(Emitter &emitter)
         ss << r->second;
     }
     ss << ":";
+    bool first = true;
     for (auto param: params) {
-        ss << param_types.at(param->name) << ",";
+        if (not first) {
+            ss << ",";
+        }
+        first = false;
+        ss << param_types.at(param->name);
     }
     external_index = emitter.str(ss.str());
 }

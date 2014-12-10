@@ -32,9 +32,7 @@ std::vector<std::string> split(const std::string &s, char d)
         }
         i++;
     }
-    if (i > start) {
-        r.push_back(s.substr(start, i-start));
-    }
+    r.push_back(s.substr(start, i-start));
     return r;
 }
 
