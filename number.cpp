@@ -292,13 +292,11 @@ Number number_multiply(Number x, Number y)
 
 Number number_divide(Number x, Number y)
 {
-    // TODO: division by zero
     return bid64_div(x.x, y.x);
 }
 
 Number number_modulo(Number x, Number y)
 {
-    // TODO: division by zero
     return bid64_rem(x.x, y.x);
 }
 

@@ -397,6 +397,10 @@ void Executor::exec_DIVN()
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
+    if (number_is_zero(b)) {
+        raise("DivideByZero");
+        return;
+    }
     stack.push(Cell(number_divide(a, b)));
 }
 
@@ -405,6 +409,10 @@ void Executor::exec_MODN()
     ip++;
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
+    if (number_is_zero(b)) {
+        raise("DivideByZero");
+        return;
+    }
     stack.push(Cell(number_modulo(a, b)));
 }
 

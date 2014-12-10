@@ -278,6 +278,8 @@ Program::Program()
     scope->addName("Number", TYPE_NUMBER);
     scope->addName("String", TYPE_STRING);
 
+    scope->addName("DivideByZero", new Exception("DivideByZero"));
+
     rtl_compile_init(scope);
 }
 

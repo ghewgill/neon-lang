@@ -1,0 +1,10 @@
+VAR a, b: Number
+a := 5
+b := 0
+TRY
+    print(str(a / b))
+EXCEPTION DivideByZero
+    print("divide by zero")
+END TRY
+
+%= divide by zero
