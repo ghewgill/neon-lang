@@ -1457,19 +1457,19 @@ template <typename T> bool check(ComparisonExpression::Comparison comp1, const T
             break;
         case ComparisonExpression::LE:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 <= value2;
+                case ComparisonExpression::EQ: return value1 >= value2;
                 case ComparisonExpression::NE: return true;
                 case ComparisonExpression::LT: return true;
-                case ComparisonExpression::GT: return value1 >= value2;
+                case ComparisonExpression::GT: return value1 > value2;
                 case ComparisonExpression::LE: return true;
                 case ComparisonExpression::GE: return value1 >= value2;
             }
             break;
         case ComparisonExpression::GE:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 >= value2;
+                case ComparisonExpression::EQ: return value1 <= value2;
                 case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return value1 <= value2;
+                case ComparisonExpression::LT: return value1 < value2;
                 case ComparisonExpression::GT: return true;
                 case ComparisonExpression::LE: return value1 <= value2;
                 case ComparisonExpression::GE: return true;
