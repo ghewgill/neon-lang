@@ -11,6 +11,7 @@
 *.gc*
 simple
 simplec
+simplex
 test_lexer
 test_parser
 test_interpreter
