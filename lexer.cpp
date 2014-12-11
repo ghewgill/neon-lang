@@ -308,7 +308,15 @@ std::vector<Token> tokenize(const std::string &source)
             while (i != source.end()) {
                 c = utf8::next(i, source.end());
                 if (c == '"') {
-                    break;
+                    if (i == source.end()) {
+                        break;
+                    }
+                    auto j = i;
+                    c = utf8::next(j, source.end());
+                    if (c != '"') {
+                        break;
+                    }
+                    i = j;
                 }
                 utf8::append(c, std::back_inserter(t.text));
             }
