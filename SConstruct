@@ -27,6 +27,7 @@ env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
     "external/utf8/source",
     "external/lib/libffi-3.2.1/include",
+    "src",
 ])
 if sys.platform == "win32":
     env.Append(CXXFLAGS=[
@@ -52,63 +53,63 @@ if coverage:
         "--coverage", "-O0",
     ])
 
-env.Command(["thunks.inc", "functions_compile.inc", "functions_exec.inc"], ["rtl_exec.cpp", "make_thunks.py"], sys.executable + " make_thunks.py")
+env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], ["src/rtl_exec.cpp", "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py")
 
 if os.name == "posix":
-    rtl_platform = "rtl_posix.cpp"
+    rtl_platform = "src/rtl_posix.cpp"
 elif os.name == "nt":
-    rtl_platform = "rtl_win32.cpp"
+    rtl_platform = "src/rtl_win32.cpp"
 else:
     print "Unsupported platform:", os.name
     sys.exit(1)
 
-simple = env.Program("simple", [
-    "ast.cpp",
-    "bytecode.cpp",
-    "cell.cpp",
-    "compiler.cpp",
-    "debuginfo.cpp",
-    "disassembler.cpp",
-    "exec.cpp",
-    "lexer.cpp",
-    "main.cpp",
-    "number.cpp",
-    "parser.cpp",
-    "rtl_compile.cpp",
-    "rtl_exec.cpp",
+simple = env.Program("bin/simple", [
+    "src/ast.cpp",
+    "src/bytecode.cpp",
+    "src/cell.cpp",
+    "src/compiler.cpp",
+    "src/debuginfo.cpp",
+    "src/disassembler.cpp",
+    "src/exec.cpp",
+    "src/lexer.cpp",
+    "src/main.cpp",
+    "src/number.cpp",
+    "src/parser.cpp",
+    "src/rtl_compile.cpp",
+    "src/rtl_exec.cpp",
     rtl_platform,
-    "util.cpp",
+    "src/util.cpp",
 ] + coverage_lib,
 )
 
-simplec = env.Program("simplec", [
-    "ast.cpp",
-    "bytecode.cpp",
-    "compiler.cpp",
-    "debuginfo.cpp",
-    "disassembler.cpp",
-    "lexer.cpp",
-    "number.cpp",
-    "parser.cpp",
-    "rtl_compile.cpp",
-    "simplec.cpp",
-    "util.cpp",
+simplec = env.Program("bin/simplec", [
+    "src/ast.cpp",
+    "src/bytecode.cpp",
+    "src/compiler.cpp",
+    "src/debuginfo.cpp",
+    "src/disassembler.cpp",
+    "src/lexer.cpp",
+    "src/number.cpp",
+    "src/parser.cpp",
+    "src/rtl_compile.cpp",
+    "src/simplec.cpp",
+    "src/util.cpp",
 ] + coverage_lib,
 )
 
-simplex = env.Program("simplex", [
-    "bytecode.cpp",
-    "cell.cpp",
-    "exec.cpp",
-    "number.cpp",
-    "rtl_exec.cpp",
+simplex = env.Program("bin/simplex", [
+    "src/bytecode.cpp",
+    "src/cell.cpp",
+    "src/exec.cpp",
+    "src/number.cpp",
+    "src/rtl_exec.cpp",
     rtl_platform,
-    "simplex.cpp",
+    "src/simplex.cpp",
 ] + coverage_lib,
 )
 
-env.Depends("number.h", libbid)
-env.Depends("exec.cpp", libffi)
+env.Depends("src/number.h", libbid)
+env.Depends("src/exec.cpp", libffi)
 
 def UnitTest(env, target, source, **kwargs):
     t = env.Program(target, source, **kwargs)
@@ -118,54 +119,54 @@ def UnitTest(env, target, source, **kwargs):
     env.Alias("test", t)
     return t
 
-env.Command("errors.txt", ["extract_errors.py"] + Glob("*.cpp"), sys.executable + " extract_errors.py")
+env.Command("src/errors.txt", ["scripts/extract_errors.py"] + Glob("src/*.cpp"), sys.executable + " scripts/extract_errors.py")
 
 SConsEnvironment.UnitTest = UnitTest
 
-env.UnitTest("test_lexer", [
-    "test_lexer.cpp",
-    "lexer.cpp",
-    "number.cpp",
-    "util.cpp",
+env.UnitTest("bin/test_lexer", [
+    "tests/test_lexer.cpp",
+    "src/lexer.cpp",
+    "src/number.cpp",
+    "src/util.cpp",
 ] + coverage_lib,
 )
 
-env.UnitTest("test_parser", [
-    "test_parser.cpp",
-    "ast.cpp",
-    "cell.cpp",
-    "compiler.cpp",
-    "parser.cpp",
-    "lexer.cpp",
-    "number.cpp",
-    "rtl_compile.cpp",
-    "util.cpp",
+env.UnitTest("bin/test_parser", [
+    "tests/test_parser.cpp",
+    "src/ast.cpp",
+    "src/cell.cpp",
+    "src/compiler.cpp",
+    "src/parser.cpp",
+    "src/lexer.cpp",
+    "src/number.cpp",
+    "src/rtl_compile.cpp",
+    "src/util.cpp",
 ] + coverage_lib,
 )
 
-env.UnitTest("test_compiler", [
-    "test_compiler.cpp",
-    "ast.cpp",
-    "bytecode.cpp",
-    "cell.cpp",
-    "compiler.cpp",
-    "disassembler.cpp",
-    "lexer.cpp",
-    "number.cpp",
-    "parser.cpp",
-    "rtl_compile.cpp",
-    "util.cpp",
+env.UnitTest("bin/test_compiler", [
+    "tests/test_compiler.cpp",
+    "src/ast.cpp",
+    "src/bytecode.cpp",
+    "src/cell.cpp",
+    "src/compiler.cpp",
+    "src/disassembler.cpp",
+    "src/lexer.cpp",
+    "src/number.cpp",
+    "src/parser.cpp",
+    "src/rtl_compile.cpp",
+    "src/util.cpp",
 ] + coverage_lib,
 )
 
 if sys.platform == "win32":
-    test_ffi = env.SharedLibrary("libtest_ffi", "test_ffi.c")
+    test_ffi = env.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")
 else:
-    test_ffi = env.SharedLibrary("test_ffi", "test_ffi.c")
+    test_ffi = env.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
 
-tests = env.Command("tests_normal", [simple, "run_test.py", Glob("t/*")], sys.executable + " run_test.py t")
+tests = env.Command("tests_normal", [simple, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py t")
 env.Depends(tests, test_ffi)
-env.Command("tests_error", [simple, "run_test.py", "errors.txt", Glob("t/errors/*")], sys.executable + " run_test.py --errors t/errors")
+env.Command("tests_error", [simple, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
 
 env.Command("samples/hello.simplex", ["samples/hello.simple", simplec], simplec[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello.simplex", simplex], simplex[0].abspath + " $SOURCE")

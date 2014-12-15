@@ -9,6 +9,7 @@
 *.dylib
 *.dll
 *.gc*
+*.simplex
 simple
 simplec
 simplex

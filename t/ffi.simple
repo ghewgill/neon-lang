@@ -1,7 +1,7 @@
 EXTERNAL FUNCTION sub_uint8(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "uint8"
@@ -14,7 +14,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_sint8(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "sint8"
@@ -27,7 +27,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_uint16(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "uint16"
@@ -40,7 +40,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_sint16(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "sint16"
@@ -53,7 +53,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_uint32(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "uint32"
@@ -66,7 +66,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_sint32(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "sint32"
@@ -79,7 +79,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_uint64(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "uint64"
@@ -92,7 +92,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_sint64(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "sint64"
@@ -105,7 +105,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_float(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "float"
@@ -118,7 +118,7 @@ END FUNCTION
 EXTERNAL FUNCTION sub_double(x, y: Number): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "x": "double"
@@ -131,7 +131,7 @@ END FUNCTION
 EXTERNAL FUNCTION write_stdout(IN s: String)
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "s": "pointer"
@@ -142,7 +142,7 @@ END FUNCTION
 EXTERNAL FUNCTION string_length(IN s: String): Number
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "s": "pointer"
@@ -155,7 +155,7 @@ END FUNCTION
 EXTERNAL FUNCTION upper_string(INOUT s: String)
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
         "s": "pointer"
@@ -167,7 +167,7 @@ END FUNCTION
 EXTERNAL FUNCTION nonexistent_function()
 {
     "library": {
-        "name": "libtest_ffi"
+        "name": "bin/libtest_ffi"
     }
     "types": {
     }

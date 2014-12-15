@@ -32,7 +32,7 @@ CellField = {
 
 functions = dict()
 
-with open("rtl_exec.cpp") as f:
+with open("src/rtl_exec.cpp") as f:
     for s in f:
         m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
         if m is not None:
@@ -58,7 +58,7 @@ thunks = set()
 for name, rtype, params in functions.values():
     thunks.add((rtype, tuple(params)))
 
-with open("thunks.inc", "w") as inc:
+with open("src/thunks.inc", "w") as inc:
     for rtype, params in thunks:
         print >>inc, "static void thunk_{}_{}(std::stack<Cell> &stack, void *func)".format(rtype, "_".join(params))
         print >>inc, "{"
@@ -77,7 +77,7 @@ with open("thunks.inc", "w") as inc:
         print >>inc, "}"
         print >>inc, ""
 
-with open("functions_compile.inc", "w") as inc:
+with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    const Type *returntype;"
@@ -87,7 +87,7 @@ with open("functions_compile.inc", "w") as inc:
         print >>inc, "    {{\"{}\", {}, {{{}}}}},".format(name, rtype, ",".join(params))
     print >>inc, "};";
 
-with open("functions_exec.inc", "w") as inc:
+with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    Thunk thunk;"

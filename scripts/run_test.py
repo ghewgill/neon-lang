@@ -39,7 +39,7 @@ def run(fn):
         err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
         expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
 
-    p = subprocess.Popen(["./simple", fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(["bin/simple", fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
 
     out = out.decode().replace("\r\n", "\n")
@@ -89,7 +89,7 @@ def main():
     global errors
     for a in sys.argv[1:]:
         if a == "--errors":
-            errors = dict(x.strip().split(" ", 1) for x in open("errors.txt"))
+            errors = dict(x.strip().split(" ", 1) for x in open("src/errors.txt"))
 
     total = 0
     succeeded = 0

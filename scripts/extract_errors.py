@@ -5,7 +5,7 @@ import sys
 r = re.compile(r'\berror\((\d+),.*?"(.*?)"')
 
 errors = {}
-for fn in glob.glob("*.cpp"):
+for fn in glob.glob("src/*.cpp"):
     with open(fn) as f:
         for s in f:
             if " error(" in s:
@@ -18,6 +18,6 @@ for fn in glob.glob("*.cpp"):
                     sys.exit(1)
                 errors[number] = message
 
-with open("errors.txt", "w") as f:
+with open("src/errors.txt", "w") as f:
     for number, message in sorted(errors.items()):
         print >>f, "S{} {}".format(number, message)
