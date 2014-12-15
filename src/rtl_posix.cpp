@@ -2,8 +2,6 @@
 
 #include <dlfcn.h>
 #include <map>
-#include <stdlib.h>
-#include <sys/time.h>
 
 #ifdef __APPLE__
 #define SO_SUFFIX ".dylib"
@@ -43,13 +41,4 @@ void_function_t rtl_external_function(const std::string &library, const std::str
         return nullptr;
     }
     return fp;
-}
-
-Number rtl_time_now()
-{
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) != 0) {
-        return number_from_uint32(0);
-    }
-    return number_add(number_from_uint32(tv.tv_sec), number_divide(number_from_uint32(tv.tv_usec), number_from_uint32(1e6)));
 }

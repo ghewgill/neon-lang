@@ -53,11 +53,24 @@ if coverage:
         "--coverage", "-O0",
     ])
 
-env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], ["src/rtl_exec.cpp", "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py")
+env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [Glob("lib/*.cpp"), "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py")
+
+rtl = [
+    "lib/global.cpp",
+    "lib/math.cpp",
+    "lib/sys.cpp",
+    "lib/time.cpp",
+]
 
 if os.name == "posix":
+    rtl.extend([
+        "lib/time_posix.cpp",
+    ])
     rtl_platform = "src/rtl_posix.cpp"
 elif os.name == "nt":
+    rtl.extend([
+        "lib/time_win32.cpp",
+    ])
     rtl_platform = "src/rtl_win32.cpp"
 else:
     print "Unsupported platform:", os.name
@@ -77,6 +90,7 @@ simple = env.Program("bin/simple", [
     "src/parser.cpp",
     "src/rtl_compile.cpp",
     "src/rtl_exec.cpp",
+    rtl,
     rtl_platform,
     "src/util.cpp",
 ] + coverage_lib,
@@ -103,6 +117,7 @@ simplex = env.Program("bin/simplex", [
     "src/exec.cpp",
     "src/number.cpp",
     "src/rtl_exec.cpp",
+    rtl,
     rtl_platform,
     "src/simplex.cpp",
 ] + coverage_lib,

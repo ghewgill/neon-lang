@@ -1,3 +1,4 @@
+import os
 import re
 
 AstFromCpp = {
@@ -32,26 +33,28 @@ CellField = {
 
 functions = dict()
 
-with open("src/rtl_exec.cpp") as f:
-    for s in f:
-        m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
-        if m is not None:
-            rtype = m.group(1)
-            name = m.group(2)
-            paramstr = m.group(3).split(",")
-            if name.startswith("rtl_"):
-                continue
-            assert rtype in ["void", "bool", "Number", "std::string", "std::vector<std::string>"], rtype
-            params = []
-            if paramstr[0]:
-                for arg in paramstr:
-                    for a in arg.split():
-                        if a == "const":
-                            continue
-                        assert a in ["bool", "Number", "std::string"], (arg, a)
-                        break
-                    params.append(a)
-            functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in params]]
+for path, dirs, files in os.walk("lib"):
+    for fn in files:
+        with open(os.path.join(path, fn)) as f:
+            for s in f:
+                m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
+                if m is not None:
+                    rtype = m.group(1)
+                    name = m.group(2)
+                    paramstr = m.group(3).split(",")
+                    if name.startswith("rtl_"):
+                        continue
+                    assert rtype in ["void", "bool", "Number", "std::string", "std::vector<std::string>"], rtype
+                    params = []
+                    if paramstr[0]:
+                        for arg in paramstr:
+                            for a in arg.split():
+                                if a == "const":
+                                    continue
+                                assert a in ["bool", "Number", "std::string"], (arg, a)
+                                break
+                            params.append(a)
+                    functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in params]]
 
 thunks = set()
 
@@ -88,6 +91,10 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "};";
 
 with open("src/functions_exec.inc", "w") as inc:
+    print >>inc, "namespace rtl {"
+    for name, rtype, params in functions.values():
+        print >>inc, "extern {} {}({});".format(CppFromAst[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
+    print >>inc, "}"
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    Thunk thunk;"
