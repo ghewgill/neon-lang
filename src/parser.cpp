@@ -891,17 +891,10 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                 }
             } else if (tokens[i].type == DOT) {
                 const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
-                const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
-                if (pointertype != nullptr) {
-                    if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
-                        error(2178, tokens[i], "pointer must be a valid pointer");
-                    }
-                    recordtype = pointertype->reftype;
-                }
                 if (recordtype != nullptr) {
                     ++i;
                     if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-                        error(2179, tokens[i], "record not defined yet");
+                        internal_error("record not defined yet");
                     }
                     if (tokens[i].type != IDENTIFIER) {
                         error(2069, tokens[i], "identifier expected");
@@ -912,12 +905,34 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                     }
                     ++i;
                     type = f->second.second;
-                    if (pointertype != nullptr) {
-                        ref = new Dereference(type, ref);
-                    }
                     ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
                 } else {
-                    error(2071, tokens[i], "not a record or pointer");
+                    error(2071, tokens[i], "not a record");
+                }
+            } else if (tokens[i].type == ARROW) {
+                const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
+                if (pointertype != nullptr) {
+                    if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
+                        error(2178, tokens[i], "pointer must be a valid pointer");
+                    }
+                    const TypeRecord *recordtype = pointertype->reftype;
+                    ++i;
+                    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
+                        error(2179, tokens[i], "record not defined yet");
+                    }
+                    if (tokens[i].type != IDENTIFIER) {
+                        error(2186, tokens[i], "identifier expected");
+                    }
+                    std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
+                    if (f == recordtype->fields.end()) {
+                        error(2187, tokens[i], "field not found");
+                    }
+                    ++i;
+                    type = f->second.second;
+                    ref = new Dereference(type, ref);
+                    ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                } else {
+                    error(2188, tokens[i], "not a pointer");
                 }
             } else {
                 break;

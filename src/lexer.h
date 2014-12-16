@@ -79,6 +79,7 @@ enum TokenType {
     NEW,
     NIL,
     VALID,
+    ARROW,
 };
 
 class Token {

@@ -1,0 +1,10 @@
+TYPE Recordset := RECORD
+    ID: Number
+    Name: String
+END RECORD
+
+VAR a: POINTER TO Recordset
+
+IF VALID p := a THEN
+    p->LastName
+END IF

@@ -85,6 +85,7 @@ std::string Token::tostring() const
         case NEW:         s << "NEW"; break;
         case NIL:         s << "NIL"; break;
         case VALID:       s << "VALID"; break;
+        case ARROW:       s << "ARROW"; break;
     }
     s << ">";
     return s.str();
@@ -127,7 +128,6 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '{') { t.type = LBRACE; utf8::advance(i, 1, source.end()); }
         else if (c == '}') { t.type = RBRACE; utf8::advance(i, 1, source.end()); }
         else if (c == '+') { t.type = PLUS; utf8::advance(i, 1, source.end()); }
-        else if (c == '-') { t.type = MINUS; utf8::advance(i, 1, source.end()); }
         else if (c == '*') { t.type = TIMES; utf8::advance(i, 1, source.end()); }
         else if (c == '/') { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
         else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); }
@@ -140,7 +140,15 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == 0x00ac /*'¬'*/) { t.type = NOT; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2227 /*'∧'*/) { t.type = AND; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2228 /*'∨'*/) { t.type = OR; utf8::advance(i, 1, source.end()); }
-        else if (c == '<') {
+        else if (c == '-') {
+            if (i+1 != source.end() && *(i+1) == '>') {
+                t.type = ARROW;
+                utf8::advance(i, 2, source.end());
+            } else {
+                t.type = MINUS;
+                utf8::advance(i, 1, source.end());
+            }
+        } else if (c == '<') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = LESSEQ;
                 utf8::advance(i, 2, source.end());

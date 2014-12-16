@@ -1,2 +1,2 @@
 VAR p: POINTER TO Node
-p.value := 5
+p->value := 5
