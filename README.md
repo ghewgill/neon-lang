@@ -4,6 +4,7 @@ The primary goal of Neon is to find out whether a useful programming language ca
 
 * Floating point errors due to binary floating point
 * Writing `if (x = 0)` when `if (x == 0)` is intended
+* Null pointer exceptions
 * Unintended empty loop with `while (condition);`
 * Forgetting to use the return value of a function
 
@@ -47,8 +48,10 @@ The following types of programming errors have been identified as frequently occ
 * [Floating point errors due to binary floating point](#floating_point)
 * [Writing division expressions such as `5 / 2` and not expecting integer division](#integer_division)
 * [Writing `if (x = 0)` when `if (x == 0)` is intended](#assignment_equals)
+* [Null pointer exceptions](#null_pointer)
 * [Unintended empty loop with `while (condition);`](#empty_loop)
 * [Writing `if a == b or c` (in Python) to test whether `a` is equal to either `b` or `c`](#logical_alternative)
+* [Catching all exceptions](#catch_all)
 * [Accidentally shadowing outer scope variables with inner declaration](#shadow_variables)
 * [Returning a reference to a local variable (C++)](#return_reference)
 * [Partial reading of typed user input using Java `Scanner` or C `scanf('%c')`](#partial_input)
@@ -101,6 +104,19 @@ However, this is not prohibited by the language.
 
 To resolve this problem, the assignment operator in Neon is `:=` and assignment cannot appear within an expression.
 
+<a name="null_pointer"></a>
+### Null pointer exceptions
+
+In many common systems languages (eg. C, C++, Java, C#), a pointer may hold a "null" value which is a runtime error to dereference. Tony Hoare has called the introduction of the null reference in ALGOL his ["billion-dollar mistake"](https://en.wikipedia.org/wiki/Tony_Hoare).
+
+To resolve this problem, Neon introduces the idea of a "valid" pointer. A valid pointer is one that has been checked against `NIL` (the null reference) using a special form of the `IF` statement. The resulting valid pointer can be dereferenced without causing a null pointer exception.
+
+    VAR node: POINTER TO Node
+    
+    IF VALID p := node THEN
+        print(p.value)
+    END IF
+
 <a name="empty_loop"></a>
 ### Unintended empty loop with `while (condition);`
 
@@ -134,6 +150,14 @@ if name == "Jack" or "Jill":
 This is valid because the `"Jill"` is automatically treated as a boolean expression (with value `True`) and combined with the `name == "Jack"` condition using the `or` operator.
 
 To resolve this problem, values in Neon cannot be automatically converted from one type to another (in particular, not to Boolean).
+
+<a name="catch_all"></a>
+### Catching all exceptions
+
+Languages with complex exception hierarchies (eg. C++, Java, C#, Python) allow the program to catch *all* types of exceptions using a construct such as `catch (...)` (C++) or `except:` (Python).
+This generally has the unintended effect of masking exceptions that may not be among those expected by the programmer.
+
+Neon does not have an exception hierarchy, and the exception handling always uses explicitly named exceptions (there is no way to catch *all* types of exceptions).
 
 <a name="shadow_variables"></a>
 ### Accidentally shadowing outer scope variables with inner declaration

@@ -8,7 +8,7 @@ Neon source code is encoded in UTF-8.
 
 The comment lead-in character is `%`.
 A single line comment is a `%` followed by arbitrary text to the end of the line.
-A block comment is begun with `%|` and ends with `|%`.
+A block comment is introduced with `%|` and ends with `|%`.
 Block comments may span multiple lines.
 Block comments may be nested.
 
@@ -16,20 +16,48 @@ Block comments may be nested.
 
 * `AND`
 * `ARRAY`
+* `CASE`
+* `CONST`
+* `DECLARE`
 * `DICTIONARY`
 * `DO`
 * `ELSE`
+* `ELSIF`
+* `ENUM`
 * `END`
+* `EXCEPTION`
+* `EXIT`
+* `EXTERNAL`
 * `FALSE`
+* `FOR`
 * `FUNCTION`
 * `IF`
+* `IN`
+* `INOUT`
+* `IMPORT`
+* `LOOP`
 * `MOD`
+* `NEXT`
+* `NEW`
+* `NIL`
 * `NOT`
 * `OR`
+* `OUT`
+* `POINTER`
+* `RAISE`
+* `RECORD`
+* `REPEAT`
 * `RETURN`
+* `STEP`
 * `THEN`
+* `TO`
 * `TRUE`
+* `TRY`
+* `TYPE`
+* `UNTIL`
 * `VAR`
+* `VALID`
+* `WHEN`
 * `WHILE`
 
 ### Identifiers
@@ -75,9 +103,9 @@ String values are sequences of Unicode characters.
 
 Enumerations are declared with the `ENUM` keyword.
 
-### Structure
+### Record
 
-Structures are declared with the `TYPE` keyword.
+Records are declared with the `RECORD` keyword.
 
 ### Array
 
@@ -86,8 +114,15 @@ Arrays are declared using the syntax `Array<Type>` where `Type` represents the t
 
 ### Dictionary
 
-Dictionaries are an associative which pairs a unique `String` with a value of some type.
+Dictionaries are an associative map which pairs a unique `String` with a value of some type.
 Dictionaries are declared using the syntax `Dictionary<Type>` where `Type` represents the type of elements.
+
+### Pointers
+
+Pointers are addresses of dynamically allocated records.
+The `NEW` keyword allocates a new record of a given type and returns a pointer to it.
+Pointers may have the value `NIL` that does not point to any object.
+To use (dereference) a pointer, it must first be checked for vaildity (not `NIL`) using the `IF VALID` construct.
 
 ## Expressions
 
@@ -125,23 +160,83 @@ Dictionaries are declared using the syntax `Dictionary<Type>` where `Type` repre
 
 ### Operator Precedence
 
+The operator precedence is as follows, highest to lowest:
+
+*  `^`        exponentiation
+*  `*` `/` `MOD`  multiplication, division, modulo
+*  `+` `-`      addition, subtraction
+*  `<` `=` `>`    comparison
+*  `IN`       membership
+*  `AND`      conjunction
+*  `OR`       disjunction
+*  `IF`       conditional
+
 ## Declarations
 
 ### Types
 
+User defined types are introduced with the `RECORD` keyword:
+
+    VAR r: RECORD
+        size: Number
+        colour: String
+    END RECORD
+
+Types may be assigned names using the `TYPE` keyword:
+
+    TYPE Widget := RECORD
+        size: Number
+        colour: String
+    END RECORD
+    
+    VAR r: Widget
+
 ### Constants
+
+Constants are defined using the `CONST` keyword.
+
+    CONST Pi: Number := 3.141592653589793
+    CONST Sky: String := "blue"
+
+The value assigned to a constant must be able to be evaluated at compile time.
+This may be an expression:
+
+    CONST Pi2: Number := Pi ^ 2
+    CONST Ocean: "Deep " + Sky
 
 ### Variables
 
+Variables are declared using the `VAR` keyword:
+
+    VAR count: Number
+    VAR colour: String
+
+Variables declared outside a function are *global* variables.
+Variables declared inside a function are visible only from within that function.
+
 ### Functions
+
+Functions are declared using the `FUNCTION` keyword:
+
+    FUNCTION square(x: Number): Number
+        RETURN x ^ 2
+    END FUNCTION
 
 ## Statements
 
+* `:=` (assignment)
+* Function call
 * `BREAK`
 * `CASE`
+* `EXIT`
 * `FOR`
 * `IF`
+* `LOOP`
+* `NEXT`
+* `RAISE`
+* `REPEAT`
 * `RETURN`
+* `TRY`
 * `WHILE`
 
 ## Functions
