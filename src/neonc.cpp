@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     bool listing = false;
 
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s filename.simple\n", argv[0]);
+        fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
         exit(1);
     }
 
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
         } catch (SourceError &error) {
             fprintf(stderr, "%s\n", error.token.source.c_str());
             fprintf(stderr, "%*s\n", error.token.column, "^");
-            fprintf(stderr, "Error S%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
+            fprintf(stderr, "Error N%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
             if (not ignore_errors) {
                 exit(1);
             }

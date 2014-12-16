@@ -1,6 +1,6 @@
-# Simple Language
+# Neon Language
 
-The primary goal of Simple is to find out whether a useful programming language can avoid some of the common pitfalls that beginners frequently encounter in other languages. Some of these common errors avoided by design are:
+The primary goal of Neon is to find out whether a useful programming language can avoid some of the common pitfalls that beginners frequently encounter in other languages. Some of these common errors avoided by design are:
 
 * Floating point errors due to binary floating point
 * Writing `if (x = 0)` when `if (x == 0)` is intended
@@ -23,21 +23,21 @@ This implementation is also intended to demonstrate the following concepts of a 
 
 ## Prerequisites
 
-To build Simple, the following are required:
+To build Neon, the following are required:
 
 - [Python 2.x](http://python.org)
 - [SCons](http://scons.org)
 - A C++11 compiler (a modern `gcc`, `clang`, or Visual Studio 2013 or later)
 
-Current master branch build status: [![Build Status](https://travis-ci.org/ghewgill/simple-lang.svg?branch=master)](https://travis-ci.org/ghewgill/simple-lang)
+Current master branch build status: [![Build Status](https://travis-ci.org/ghewgill/neon-lang.svg?branch=master)](https://travis-ci.org/ghewgill/neon-lang)
 
 ## Tutorial
 
-See [Simple Tutorial](doc/tutorial.md) for an introduction to the features of Simple.
+See [Neon Tutorial](doc/tutorial.md) for an introduction to the features of Neon.
 
 ## Language Reference
 
-See [Language Reference](doc/language.md) for the full definition of the Simple language.
+See [Language Reference](doc/language.md) for the full definition of the Neon language.
 
 <a name="common_errors"></a>
 ## Common Errors
@@ -72,7 +72,7 @@ False
 
 This happens because `0.2` cannot be repesented exactly in binary floating point. 
 
-To resolve this problem, Simple uses the [decimal64](https://en.wikipedia.org/wiki/Decimal64_floating-point_format) floating point type, which matches the base 10 that humans use to read and write numbers.
+To resolve this problem, Neon uses the [decimal64](https://en.wikipedia.org/wiki/Decimal64_floating-point_format) floating point type, which matches the base 10 that humans use to read and write numbers.
 
 <a name="integer_division"></a>
 ### Writing division expressions such as `5 / 2` and not expecting integer division
@@ -89,7 +89,7 @@ Beginners rightly assume that `c` will be `2.5` as the result of the division.
 However, the C language definition states that `/` will be *integer* division if both operands are integers.
 So, the result in `c` is `2`.
 
-To resolve this problem, the only number type in Simple is decimal64 floating point (called `Number`).
+To resolve this problem, the only number type in Neon is decimal64 floating point (called `Number`).
 In contexts such as array indexing where integers are expected, values are checked for the presence of a fractional part before trying to use them.
 
 <a name="assignment_equals"></a>
@@ -99,7 +99,7 @@ In C and derived languages, `x = 0` is an *expression* with the result 0.
 Some compilers raise a warning if an expression like `(x = 0)` is used in a conditional statement, as it is not likely to be what is intended.
 However, this is not prohibited by the language.
 
-To resolve this problem, the assignment operator in Simple is `:=` and assignment cannot appear within an expression.
+To resolve this problem, the assignment operator in Neon is `:=` and assignment cannot appear within an expression.
 
 <a name="empty_loop"></a>
 ### Unintended empty loop with `while (condition);`
@@ -115,7 +115,7 @@ while (x < 5);
 
 The trailing `;` on the `while` statement is in fact an empty loop body and the loop is an infinite loop.
 
-To resolve this problem, Simple requires an explicitly terminated block in every compound statement:
+To resolve this problem, Neon requires an explicitly terminated block in every compound statement:
 
     WHILE x < 5
         print(x)
@@ -133,7 +133,7 @@ if name == "Jack" or "Jill":
 
 This is valid because the `"Jill"` is automatically treated as a boolean expression (with value `True`) and combined with the `name == "Jack"` condition using the `or` operator.
 
-To resolve this problem, values in Simple cannot be automatically converted from one type to another (in particular, not to Boolean).
+To resolve this problem, values in Neon cannot be automatically converted from one type to another (in particular, not to Boolean).
 
 <a name="shadow_variables"></a>
 ### Accidentally shadowing outer scope variables with inner declaration
@@ -151,7 +151,7 @@ void f() {
 
 This can lead to confusion due to unexpectedly using the wrong variable.
 
-In Simple, it is an error for a declaration to shadow an outer declaration.
+In Neon, it is an error for a declaration to shadow an outer declaration.
 
 <a name="return_reference"></a>
 ### Returning a reference to a local variable (C++)
@@ -167,7 +167,7 @@ int &foo(int x) {
 
 This is *undefined behaviour* because the reference returns to memory that has been deallocated as soon as the function returns.
 
-This is resolved in Simple by not having references.
+This is resolved in Neon by not having references.
 
 <a name="partial_input"></a>
 ### Partial reading of typed user input using Java `Scanner` or C `scanf('%c')`
@@ -177,7 +177,7 @@ However, when used with interactive terminal input, they do not return a value u
 This causes confusion when the user types more than what is expected and the remainder of what the user typed is held in the input buffer until the next time input is requested.
 At that time, the contents of the buffer are used without waiting for user input.
 
-This is resolved in Simple by only providing line oriented input for text.
+This is resolved in Neon by only providing line oriented input for text.
 
 <a name="exponentiation_xor"></a>
 ### Writing `^` to mean exponentiation in C or Java
@@ -185,7 +185,7 @@ This is resolved in Simple by only providing line oriented input for text.
 Sometimes beginners expect the `^` operator to mean exponentiation (eg. `dist = sqrt(a^2 + b^2)`).
 However, `^` means bitwise XOR in many languages, which is not expected.
 
-In Simple, `^` means exponentiation.
+In Neon, `^` means exponentiation.
 
 <a name="#return_value"></a>
 ### Forgetting to use the return value of a function
@@ -193,4 +193,4 @@ In Simple, `^` means exponentiation.
 Many programming languages permit a function that returns a value to be called without actually using the return value.
 This is a frequent source of bugs because the return value may indicate an error condition, which is then ignored.
 
-In Simple, it is an error to call a function that returns a value without using that value in some way.
+In Neon, it is an error to call a function that returns a value without using that value in some way.

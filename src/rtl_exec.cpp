@@ -25,7 +25,7 @@ void rtl_call(std::stack<Cell> &stack, const std::string &name)
 {
     auto f = Functions.find(name);
     if (f == Functions.end()) {
-        fprintf(stderr, "simple: function not found: %s\n", name.c_str());
+        fprintf(stderr, "neon: function not found: %s\n", name.c_str());
         abort();
     }
     f->second.first(stack, f->second.second);

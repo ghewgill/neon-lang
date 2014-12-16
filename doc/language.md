@@ -1,8 +1,8 @@
-# Simple Language
+# Neon Language
 
 ## Lexical Structure
 
-Simple source code is encoded in UTF-8.
+Neon source code is encoded in UTF-8.
 
 ### Comments
 

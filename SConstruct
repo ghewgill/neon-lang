@@ -76,7 +76,7 @@ else:
     print "Unsupported platform:", os.name
     sys.exit(1)
 
-simple = env.Program("bin/simple", [
+neon = env.Program("bin/neon", [
     "src/ast.cpp",
     "src/bytecode.cpp",
     "src/cell.cpp",
@@ -96,7 +96,7 @@ simple = env.Program("bin/simple", [
 ] + coverage_lib,
 )
 
-simplec = env.Program("bin/simplec", [
+neonc = env.Program("bin/neonc", [
     "src/ast.cpp",
     "src/bytecode.cpp",
     "src/compiler.cpp",
@@ -106,12 +106,12 @@ simplec = env.Program("bin/simplec", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/rtl_compile.cpp",
-    "src/simplec.cpp",
+    "src/neonc.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
 
-simplex = env.Program("bin/simplex", [
+neonx = env.Program("bin/neonx", [
     "src/bytecode.cpp",
     "src/cell.cpp",
     "src/exec.cpp",
@@ -119,7 +119,7 @@ simplex = env.Program("bin/simplex", [
     "src/rtl_exec.cpp",
     rtl,
     rtl_platform,
-    "src/simplex.cpp",
+    "src/neonx.cpp",
 ] + coverage_lib,
 )
 
@@ -179,9 +179,9 @@ if sys.platform == "win32":
 else:
     test_ffi = env.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
 
-tests = env.Command("tests_normal", [simple, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py t")
+tests = env.Command("tests_normal", [neon, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py t")
 env.Depends(tests, test_ffi)
-env.Command("tests_error", [simple, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
+env.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
 
-env.Command("samples/hello.simplex", ["samples/hello.simple", simplec], simplec[0].abspath + " $SOURCE")
-env.Command("tests_2", ["samples/hello.simplex", simplex], simplex[0].abspath + " $SOURCE")
+env.Command("samples/hello.neonx", ["samples/hello.neon", neonc], neonc[0].abspath + " $SOURCE")
+env.Command("tests_2", ["samples/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")

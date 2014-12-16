@@ -2,5 +2,5 @@ CONST a: String := "Hello, World!"
 CONST b: Number := 11
 VAR c: String
 
-a := c + " This is SimpleLang here!"
+a := c + " This is Neon here!"
 

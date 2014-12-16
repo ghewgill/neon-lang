@@ -12,7 +12,7 @@ params := { "dwMilliseconds": "uint32" }
 EXTERNAL FUNCTION Sleep(ms: Number)
 {
      "library": {     
-          "name": "simpleTestLib"
+          "name": "TestLib"
      }
      "types": 
           params

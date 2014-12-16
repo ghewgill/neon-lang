@@ -20,4 +20,4 @@ for fn in glob.glob("src/*.cpp"):
 
 with open("src/errors.txt", "w") as f:
     for number, message in sorted(errors.items()):
-        print >>f, "S{} {}".format(number, message)
+        print >>f, "N{} {}".format(number, message)

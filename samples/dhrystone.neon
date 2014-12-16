@@ -653,7 +653,7 @@ FUNCTION main()
   Arr_2_Glob [8][7] := 10
 
   print ("")
-  print ("Dhrystone Benchmark, Version 2.1 (Language: Simple)")
+  print ("Dhrystone Benchmark, Version 2.1 (Language: Neon)")
   print ("")
   print ("Please give the number of runs through the benchmark: ")
   Number_Of_Runs := 10000 % TODO to_number(input())

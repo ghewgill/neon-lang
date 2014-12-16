@@ -39,7 +39,7 @@ def run(fn):
         err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
         expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
 
-    p = subprocess.Popen(["bin/simple", fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(["bin/neon", fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
 
     out = out.decode().replace("\r\n", "\n")
@@ -97,7 +97,7 @@ def main():
     for a in sys.argv[1:]:
         if os.path.isdir(a):
             for fn in sorted(os.listdir(a)):
-                if fn.endswith(".simple"):
+                if fn.endswith(".neon"):
                     total += 1
                     if run(os.path.join(a, fn)):
                         succeeded += 1

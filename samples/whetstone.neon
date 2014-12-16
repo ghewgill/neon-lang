@@ -407,9 +407,9 @@ C--------------------------------------------------------------------
 
         KIPS := (100.0*LOOP*II)/(finisec-startsec)
         IF KIPS >= 1000.0 THEN
-            print("Simple Converted Double Precision Whetstones: " + str(KIPS/1000.0) + " MIPS")
+            print("Neon Converted Double Precision Whetstones: " + str(KIPS/1000.0) + " MIPS")
         ELSE
-            print("Simple Converted Double Precision Whetstones: " + str(KIPS) + " KIPS")
+            print("Neon Converted Double Precision Whetstones: " + str(KIPS) + " KIPS")
         END IF
 
     %END WHILE

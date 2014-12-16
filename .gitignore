@@ -9,10 +9,10 @@
 *.dylib
 *.dll
 *.gc*
-*.simplex
-simple
-simplec
-simplex
+*.neonx
+neon
+neonc
+neonx
 test_lexer
 test_parser
 test_interpreter
