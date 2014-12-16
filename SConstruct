@@ -183,5 +183,6 @@ tests = env.Command("tests_normal", [neon, "scripts/run_test.py", Glob("t/*")], 
 env.Depends(tests, test_ffi)
 env.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
 
-env.Command("samples/hello.neonx", ["samples/hello.neon", neonc], neonc[0].abspath + " $SOURCE")
+for sample in Glob("samples/*.neon"):
+    env.Command(sample.path+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")

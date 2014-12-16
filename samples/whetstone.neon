@@ -70,7 +70,7 @@ VAR J: Number
 VAR K: Number
 VAR L: Number
 
-FUNCTION PA(E: Array<Number>): Nothing
+FUNCTION PA(INOUT E: Array<Number>)
     J := 0
     WHILE J < 6 DO
         E[1] := ( E[1] + E[2] + E[3] - E[4]) * T
@@ -81,13 +81,13 @@ FUNCTION PA(E: Array<Number>): Nothing
     END WHILE
 END FUNCTION
 
-FUNCTION P0(): Nothing
+FUNCTION P0()
     E1[J] := E1[K]
     E1[K] := E1[L]
     E1[L] := E1[J]
 END FUNCTION
 
-FUNCTION P3(X: Number, Y: Number, OUT Z: Number): Nothing
+FUNCTION P3(X: Number, Y: Number, OUT Z: Number)
     VAR X1, Y1: Number
 
     X1 := X
@@ -106,13 +106,13 @@ END FUNCTION
 %}
 %#endif
 
-FUNCTION main(): Nothing
+FUNCTION main()
 
     % used in the FORTRAN version
     VAR I: Number
     VAR N1, N2, N3, N4, N6, N7, N8, N9, N10, N11: Number
     VAR X1,X2,X3,X4,X,Y,Z: Number
-    VAR LOOP: Number
+    VAR loop: Number
     VAR II, JJ: Number
 
     % added for this version
@@ -156,28 +156,28 @@ C
         T2 := 2.0
 %|
 C
-C       With loopcount LOOP=10, one million Whetstone instructions
+C       With loopcount loop=10, one million Whetstone instructions
 C       will be executed in EACH MAJOR LOOP..A MAJOR LOOP IS EXECUTED
 C       'II' TIMES TO INCREASE WALL-CLOCK TIMING ACCURACY.
 C
-        LOOP := 1000
+        loop := 1000
 |%
-        LOOP := loopstart
+        loop := loopstart
         II   := 1
 
         JJ := 1
 
         WHILE JJ <= II DO
             N1  := 0
-            N2  := 12 * LOOP
-            N3  := 14 * LOOP
-            N4  := 345 * LOOP
-            N6  := 210 * LOOP
-            N7  := 32 * LOOP
-            N8  := 899 * LOOP
-            N9  := 616 * LOOP
+            N2  := 12 * loop
+            N3  := 14 * loop
+            N4  := 345 * loop
+            N6  := 210 * loop
+            N7  := 32 * loop
+            N8  := 899 * loop
+            N9  := 616 * loop
             N10 := 0
-            N11 := 93 * LOOP
+            N11 := 93 * loop
 %|
 C
 C       Module 1: Simple identifiers
@@ -392,7 +392,7 @@ C
 C----------------------------------------------------------------
 C      Performance in Whetstone KIP's per second is given by
 C
-C       (100*LOOP*II)/TIME
+C       (100*loop*II)/TIME
 C
 C      where TIME is in seconds.
 C--------------------------------------------------------------------
@@ -403,9 +403,9 @@ C--------------------------------------------------------------------
             % RETURN
         END IF
 
-        print("Loops: " + str(LOOP) + ", Iterations: " + str(II) + ", Duration: " + str(finisec-startsec) + ".")
+        print("Loops: " + str(loop) + ", Iterations: " + str(II) + ", Duration: " + str(finisec-startsec) + ".")
 
-        KIPS := (100.0*LOOP*II)/(finisec-startsec)
+        KIPS := (100.0*loop*II)/(finisec-startsec)
         IF KIPS >= 1000.0 THEN
             print("Neon Converted Double Precision Whetstones: " + str(KIPS/1000.0) + " MIPS")
         ELSE

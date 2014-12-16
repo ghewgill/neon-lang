@@ -407,27 +407,33 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
     % executed once
 
   VAR Next_Record: POINTER TO Record
-  Next_Record := Ptr_Val_Par.Ptr_Comp
+  IF VALID pvp := Ptr_Val_Par THEN
+      Next_Record := pvp.Ptr_Comp
+      IF VALID nr := Next_Record THEN
                                         % == Ptr_Glob_Next
-  % Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
-  % corresponds to "rename" in Ada, "with" in Pascal
+          % Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
+          % corresponds to "rename" in Ada, "with" in Pascal
 
-  % TODO structassign (*Ptr_Val_Par->Ptr_Comp, *Ptr_Glob);
-  Ptr_Val_Par.Int_Comp := 5
-  Next_Record.Int_Comp := Ptr_Val_Par.Int_Comp
-  Next_Record.Ptr_Comp := Ptr_Val_Par.Ptr_Comp
-  Proc_3 (Next_Record.Ptr_Comp)
-    % Ptr_Val_Par->Ptr_Comp->Ptr_Comp == Ptr_Glob->Ptr_Comp
-  IF Next_Record.Discr = Enumeration.Ident_1 THEN
-    % then, executed
-    Next_Record.Int_Comp := 6
-    Proc_6 (Ptr_Val_Par.Enum_Comp,
-            Next_Record.Enum_Comp)
-    Next_Record.Ptr_Comp := Ptr_Glob.Ptr_Comp
-    Proc_7 (Next_Record.Int_Comp, 10,
-            Next_Record.Int_Comp)
-  ELSE % not executed
-    % TODO structassign (*Ptr_Val_Par, *Ptr_Val_Par->Ptr_Comp);
+          % TODO structassign (*Ptr_Val_Par->Ptr_Comp, *Ptr_Glob);
+          pvp.Int_Comp := 5
+          nr.Int_Comp := pvp.Int_Comp
+          nr.Ptr_Comp := pvp.Ptr_Comp
+          Proc_3 (nr.Ptr_Comp)
+            % Ptr_Val_Par->Ptr_Comp->Ptr_Comp == Ptr_Glob->Ptr_Comp
+          IF nr.Discr = Enumeration.Ident_1 THEN
+            % then, executed
+            nr.Int_Comp := 6
+            Proc_6 (pvp.Enum_Comp,
+                    nr.Enum_Comp)
+            IF VALID pg := Ptr_Glob THEN
+                nr.Ptr_Comp := pg.Ptr_Comp
+            END IF
+            Proc_7 (nr.Int_Comp, 10,
+                    nr.Int_Comp)
+          ELSE % not executed
+            % TODO structassign (*Ptr_Val_Par, *Ptr_Val_Par->Ptr_Comp);
+          END IF
+      END IF
   END IF
 END FUNCTION % Proc_1
 
@@ -455,11 +461,11 @@ FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
     % executed once
     % Ptr_Ref_Par becomes Ptr_Glob
 
-  IF Ptr_Glob # NIL THEN
+  IF VALID pg := Ptr_Glob THEN
     % then, executed
-    Ptr_Ref_Par := Ptr_Glob.Ptr_Comp
+    Ptr_Ref_Par := pg.Ptr_Comp
+    Proc_7 (10, Int_Glob, pg.Int_Comp)
   END IF
-  Proc_7 (10, Int_Glob, Ptr_Glob.Int_Comp)
 END FUNCTION % Proc_3
 
 
@@ -643,11 +649,13 @@ FUNCTION main()
   Next_Ptr_Glob := NEW Record
   Ptr_Glob := NEW Record
 
-  Ptr_Glob.Ptr_Comp                    := Next_Ptr_Glob
-  Ptr_Glob.Discr                       := Enumeration.Ident_1
-  Ptr_Glob.Enum_Comp                   := Enumeration.Ident_3
-  Ptr_Glob.Int_Comp                    := 40
-  Ptr_Glob.Str_Comp                    := "DHRYSTONE PROGRAM, SOME STRING"
+  IF VALID pg := Ptr_Glob THEN
+      pg.Ptr_Comp                    := Next_Ptr_Glob
+      pg.Discr                       := Enumeration.Ident_1
+      pg.Enum_Comp                   := Enumeration.Ident_3
+      pg.Int_Comp                    := 40
+      pg.Str_Comp                    := "DHRYSTONE PROGRAM, SOME STRING"
+  END IF
   Str_1_Loc := "DHRYSTONE PROGRAM, 1'ST STRING"
 
   Arr_2_Glob [8][7] := 10
@@ -735,28 +743,32 @@ FUNCTION main()
   print ("        should be:   " + str(7))
   print ("Arr_2_Glob[8][7]:    " + str(Arr_2_Glob[8][7]))
   print ("        should be:   Number_Of_Runs + 10")
-  print ("Ptr_Glob->")
-  print ("  Ptr_Comp:          ") % + Ptr_Glob.Ptr_Comp)
-  print ("        should be:   (implementation-dependent)")
-  % TODO print ("  Discr:             " + str(Ptr_Glob.Discr))
-  print ("        should be:   " + str(0))
-  % TODO print ("  Enum_Comp:         " + str(Ptr_Glob.Enum_Comp))
-  print ("        should be:   " + str(2))
-  print ("  Int_Comp:          " + str(Ptr_Glob.Int_Comp))
-  print ("        should be:   " + str(17))
-  print ("  Str_Comp:          " + Ptr_Glob.Str_Comp)
-  print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
-  print ("Next_Ptr_Glob->")
-  print ("  Ptr_Comp:          ") % + Next_Ptr_Glob.Ptr_Comp)
-  print ("        should be:   (implementation-dependent), same as above")
-  % TODO print ("  Discr:             " + str(Next_Ptr_Glob.Discr))
-  print ("        should be:   " + str(0))
-  % TODO print ("  Enum_Comp:         " + str(Next_Ptr_Glob.Enum_Comp))
-  print ("        should be:   " + str(1))
-  print ("  Int_Comp:          " + str(Next_Ptr_Glob.Int_Comp))
-  print ("        should be:   " + str(18))
-  print ("  Str_Comp:          " + Next_Ptr_Glob.Str_Comp)
-  print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
+  IF VALID pg := Ptr_Glob THEN
+    print ("Ptr_Glob->")
+    print ("  Ptr_Comp:          ") % + pg->Ptr_Comp)
+    print ("        should be:   (implementation-dependent)")
+    % TODO print ("  Discr:             " + str(pg->Discr))
+    print ("        should be:   " + str(0))
+    % TODO print ("  Enum_Comp:         " + str(pg->Enum_Comp))
+    print ("        should be:   " + str(2))
+    print ("  Int_Comp:          " + str(pg.Int_Comp))
+    print ("        should be:   " + str(17))
+    print ("  Str_Comp:          " + pg.Str_Comp)
+    print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
+  END IF
+  IF VALID npg := Next_Ptr_Glob THEN
+    print ("Next_Ptr_Glob->")
+    print ("  Ptr_Comp:          ") % + npg->Ptr_Comp)
+    print ("        should be:   (implementation-dependent), same as above")
+    % TODO print ("  Discr:             " + str(npg->Discr))
+    print ("        should be:   " + str(0))
+    % TODO print ("  Enum_Comp:         " + str(npg->Enum_Comp))
+    print ("        should be:   " + str(1))
+    print ("  Int_Comp:          " + str(npg.Int_Comp))
+    print ("        should be:   " + str(18))
+    print ("  Str_Comp:          " + npg.Str_Comp)
+    print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
+  END IF
   print ("Int_1_Loc:           " + str(Int_1_Loc))
   print ("        should be:   " + str(5))
   print ("Int_2_Loc:           " + str(Int_2_Loc))
