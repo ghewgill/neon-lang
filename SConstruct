@@ -174,6 +174,26 @@ env.UnitTest("bin/test_compiler", [
 ] + coverage_lib,
 )
 
+env.Program("bin/fuzz_lexer", [
+    "tests/fuzz_lexer.cpp",
+    "src/lexer.cpp",
+    "src/number.cpp",
+    "src/util.cpp",
+] + coverage_lib,
+)
+
+env.Program("bin/fuzz_parser", [
+    "tests/fuzz_parser.cpp",
+    "src/ast.cpp",
+    "src/compiler.cpp",
+    "src/lexer.cpp",
+    "src/number.cpp",
+    "src/parser.cpp",
+    "src/rtl_compile.cpp",
+    "src/util.cpp",
+] + coverage_lib,
+)
+
 if sys.platform == "win32":
     test_ffi = env.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")
 else:

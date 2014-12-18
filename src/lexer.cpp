@@ -86,6 +86,7 @@ std::string Token::tostring() const
         case NIL:         s << "NIL"; break;
         case VALID:       s << "VALID"; break;
         case ARROW:       s << "ARROW"; break;
+        case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
     return s.str();

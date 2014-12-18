@@ -80,6 +80,7 @@ enum TokenType {
     NIL,
     VALID,
     ARROW,
+    MAX_TOKEN
 };
 
 class Token {
