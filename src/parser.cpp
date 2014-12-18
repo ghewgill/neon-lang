@@ -1803,6 +1803,9 @@ const Statement *Parser::parseImport(Scope *scope)
     if (tokens[i].type != IDENTIFIER) {
         error(2093, tokens[i], "identifier expected");
     }
+    if (scope->lookupName(tokens[i].text) != nullptr) {
+        error(2190, tokens[i], "name shadows outer");
+    }
     rtl_import(scope, tokens[i].text);
     ++i;
     return nullptr;
