@@ -1118,6 +1118,9 @@ const Statement *Parser::parseDeclaration(Scope *scope)
                 error(2152, tokens[i], "identifier expected");
             }
             std::string name = tokens[i].text;
+            if (scope->lookupName(name) != nullptr) {
+                error(2191, tokens[i], "name shadows outer");
+            }
             ++i;
             scope->addName(name, new Exception(name));
             break;
