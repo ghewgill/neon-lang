@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     buf << inf.rdbuf();
     try {
         tokenize(buf.str());
-    } catch (SourceError &error) {
+    } catch (SourceError &) {
         exit(1);
     }
 }

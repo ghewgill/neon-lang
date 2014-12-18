@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
     std::cout << std::endl;
     try {
         parse(tokens);
-    } catch (SourceError &error) {
+    } catch (SourceError &) {
         exit(1);
     }
 }
