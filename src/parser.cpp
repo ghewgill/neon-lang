@@ -507,7 +507,7 @@ const Expression *Parser::parseAtom(Scope *scope)
         case IDENTIFIER: {
             const Name *name = scope->lookupName(tokens[i].text);
             const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(name);
-            if (enumtype == nullptr && tokens[i+1].type == DOT) {
+            if (name != nullptr && enumtype == nullptr && tokens[i+1].type == DOT) {
                 enumtype = dynamic_cast<const TypeEnum *>(name->type);
             }
             if (enumtype != nullptr) {
