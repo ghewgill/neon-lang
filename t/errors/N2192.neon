@@ -1,0 +1,4 @@
+FUNCTION foo()
+END FUNCTION
+
+print(foo())

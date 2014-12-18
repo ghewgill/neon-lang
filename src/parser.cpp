@@ -528,7 +528,11 @@ const Expression *Parser::parseAtom(Scope *scope)
             } else {
                 const VariableReference *ref = parseVariableReference(scope);
                 if (tokens[i].type == LPAREN) {
-                    return parseFunctionCall(ref, scope);
+                    const FunctionCall *fc = parseFunctionCall(ref, scope);
+                    if (dynamic_cast<const TypeFunction *>(fc->func->type)->returntype == TYPE_NOTHING) {
+                        error(2192, tokens[i], "function does not return anything");
+                    }
+                    return fc;
                 } else {
                     return new VariableExpression(ref);
                 }
