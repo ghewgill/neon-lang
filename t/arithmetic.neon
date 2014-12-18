@@ -14,7 +14,7 @@ print(str(a * b))
 %= 20
 
 print(str(a / b))
-%= 8E-1
+%= 0.8
 
 print(str(a ^ b))
 %= 1024

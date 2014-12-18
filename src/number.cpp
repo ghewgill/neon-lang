@@ -418,40 +418,41 @@ std::string number_to_string(Number x)
     char buf[40];
     bid64_to_string(buf, x.x);
     std::string sbuf(buf);
-
-    // TODO: This hack converts a canonical string like +42E+0 to just 42
-    if (sbuf.length() >= 3 && sbuf.substr(sbuf.length()-3) == "E+0") {
-        sbuf = sbuf.substr(0, sbuf.length()-3);
+    const std::string::size_type E = sbuf.find('E');
+    if (E == std::string::npos) {
+        // Inf or NaN
+        return sbuf;
+    }
+    int exponent = std::stoi(sbuf.substr(E+1));
+    sbuf = sbuf.substr(0, E);
+    const std::string::size_type last_significant_digit = sbuf.find_last_not_of('0');
+    if (last_significant_digit == 0) {
+        return "0";
+    }
+    const int trailing_zeros = static_cast<int>(sbuf.length() - (last_significant_digit + 1));
+    exponent += trailing_zeros;
+    sbuf = sbuf.substr(0, last_significant_digit + 1);
+    if (exponent != 0) {
+        if (exponent > 0 && sbuf.length() + exponent <= 17) {
+            sbuf.append(exponent, '0');
+        } else if (exponent < 0 && -exponent < static_cast<int>(sbuf.length()-1)) {
+            sbuf = sbuf.substr(0, sbuf.length()+exponent) + "." + sbuf.substr(sbuf.length()+exponent);
+        } else if (exponent < 0 && -exponent == static_cast<int>(sbuf.length()-1)) {
+            sbuf = sbuf.substr(0, 1) + "0." + sbuf.substr(1);
+        } else if (exponent < 0 && sbuf.length() - exponent <= 18) {
+            sbuf.insert(1, "0." + std::string(-exponent-1, '0'));
+        } else {
+            exponent += static_cast<int>(sbuf.length() - 2);
+            if (sbuf.length() >= 3) {
+                sbuf.insert(2, 1, '.');
+            }
+            sbuf.push_back('e');
+            sbuf.append(std::to_string(exponent));
+        }
     }
     if (sbuf.at(0) == '+') {
         sbuf = sbuf.substr(1);
     }
-
-    // TODO: This hack converts xxxx0000E-4 to just xxxx.
-    const char *p = sbuf.data() + sbuf.length();
-    while (p > sbuf.data() && isdigit(p[-1])) {
-        p--;
-    }
-    if (p > sbuf.data() && p[-1] == '-') {
-        p--;
-        if (p > sbuf.data() && p[-1] == 'E') {
-            p--;
-            int z = std::stoi(p+2);
-            while (z > 0 && p > sbuf.data() && p[-1] == '0') {
-                p--;
-                z--;
-            }
-            if (z == 0) {
-                sbuf = sbuf.substr(0, p-sbuf.data());
-            }
-        }
-    }
-
-    // TODO: This hack converts 0Exxxx to just 0.
-    if (sbuf.substr(0, 2) == "0E") {
-        sbuf = "0";
-    }
-
     return sbuf;
 }
 
