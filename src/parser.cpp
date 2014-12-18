@@ -219,7 +219,7 @@ const Type *Parser::parsePointerType(Scope *scope)
     }
     i++;
     if (tokens[i].type != TO) {
-        internal_error("TO expected");
+        error(2189, tokens[i], "TO expected");
     }
     i++;
     if (tokens[i].type == IDENTIFIER && scope->lookupName(tokens[i].text) == nullptr) {
