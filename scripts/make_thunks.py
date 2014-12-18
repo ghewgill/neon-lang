@@ -1,5 +1,5 @@
-import os
 import re
+import sys
 
 AstFromCpp = {
     "void": "TYPE_NOTHING",
@@ -33,28 +33,27 @@ CellField = {
 
 functions = dict()
 
-for path, dirs, files in os.walk("lib"):
-    for fn in files:
-        with open(os.path.join(path, fn)) as f:
-            for s in f:
-                m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
-                if m is not None:
-                    rtype = m.group(1)
-                    name = m.group(2)
-                    paramstr = m.group(3).split(",")
-                    if name.startswith("rtl_"):
-                        continue
-                    assert rtype in ["void", "bool", "Number", "std::string", "std::vector<std::string>"], rtype
-                    params = []
-                    if paramstr[0]:
-                        for arg in paramstr:
-                            for a in arg.split():
-                                if a == "const":
-                                    continue
-                                assert a in ["bool", "Number", "std::string"], (arg, a)
-                                break
-                            params.append(a)
-                    functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in params]]
+for fn in sys.argv[1:]:
+    with open(fn) as f:
+        for s in f:
+            m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
+            if m is not None:
+                rtype = m.group(1)
+                name = m.group(2)
+                paramstr = m.group(3).split(",")
+                if name.startswith("rtl_"):
+                    continue
+                assert rtype in ["void", "bool", "Number", "std::string", "std::vector<std::string>"], rtype
+                params = []
+                if paramstr[0]:
+                    for arg in paramstr:
+                        for a in arg.split():
+                            if a == "const":
+                                continue
+                            assert a in ["bool", "Number", "std::string"], (arg, a)
+                            break
+                        params.append(a)
+                functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in params]]
 
 thunks = set()
 

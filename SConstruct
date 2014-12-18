@@ -53,14 +53,14 @@ if coverage:
         "--coverage", "-O0",
     ])
 
-env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [Glob("lib/*.cpp"), "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py")
-
 rtl = [
     "lib/global.cpp",
     "lib/math.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",
 ]
+
+env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [rtl, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl))
 
 if os.name == "posix":
     rtl.extend([
