@@ -24,15 +24,48 @@ static const Program *dump(const Program *program)
     return program;
 }
 
+static void repl()
+{
+    std::cout << "Neon 0.1\n";
+    std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
+    for (;;) {
+        std::cout << "> ";
+        std::string s;
+        std::getline(std::cin, s);
+        if (s == "help") {
+            std::cout << "\n";
+            std::cout << "Welcome to Neon 0.1!\n";
+            std::cout << "\n";
+            std::cout << "See https://github.com/ghewgill/neon-lang for information.\n";
+        } else if (s == "exit" || s == "quit") {
+            exit(0);
+        } else {
+            try {
+                exec(compile(parse(tokenize(s)), nullptr), 0, {});
+            } catch (SourceError &error) {
+                fprintf(stderr, "%s\n", error.token.source.c_str());
+                fprintf(stderr, "%*s\n", error.token.column, "^");
+                fprintf(stderr, "Error N%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
+            } catch (InternalError &error) {
+                fprintf(stderr, "Compiler Internal Error: %s (%s:%d)\n", error.message.c_str(), error.file.c_str(), error.line);
+            }
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     bool dump_tokens = false;
     bool dump_ast = false;
     bool dump_bytecode = false;
 
-    if (argc < 2) {
+    if (argc < 1) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
         exit(1);
+    }
+
+    if (argc < 2) {
+        repl();
     }
 
     const std::string name = argv[1];
