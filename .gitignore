@@ -10,13 +10,7 @@
 *.dll
 *.gc*
 *.neonx
-neon
-neonc
-neonx
-test_lexer
-test_parser
-test_interpreter
-test_compiler
+bin/
 errors.txt
 
 external/IntelRDFPMathLib20U1/
