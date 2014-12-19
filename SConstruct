@@ -138,6 +138,12 @@ env.Command("src/errors.txt", ["scripts/extract_errors.py"] + Glob("src/*.cpp"),
 
 SConsEnvironment.UnitTest = UnitTest
 
+test_number_to_string = env.Program("bin/test_number_to_string", [
+    "tests/test_number_to_string.cpp",
+    "src/number.cpp",
+] + coverage_lib,
+)
+
 env.UnitTest("bin/test_lexer", [
     "tests/test_lexer.cpp",
     "src/lexer.cpp",
@@ -202,6 +208,7 @@ else:
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py t")
 env.Depends(tests, test_ffi)
 env.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
+env.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
 
 for sample in Glob("samples/*.neon"):
     env.Command(sample.path+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
