@@ -139,6 +139,11 @@ bool number_is_integer(Number x)
     return x.x == trunc(x.x);
 }
 
+bool number_is_nan(Number x)
+{
+    return isnan(x.x);
+}
+
 std::string number_to_string(Number x)
 {
     std::string r = std::to_string(x.x);
@@ -411,6 +416,11 @@ bool number_is_integer(Number x)
 {
     BID_UINT64 i = bid64_round_integral_zero(x.x);
     return bid64_quiet_equal(x.x, i) != 0;
+}
+
+bool number_is_nan(Number x)
+{
+    return bid64_isNaN(x.x);
 }
 
 std::string number_to_string(Number x)
