@@ -32,6 +32,7 @@ std::string Token::tostring() const
         case DIVIDE:      s << "DIVIDE"; break;
         case MOD:         s << "MOD"; break;
         case EXP:         s << "EXP"; break;
+        case CONCAT:      s << "CONCAT"; break;
         case EQUAL:       s << "EQUAL"; break;
         case NOTEQUAL:    s << "NOTEQUAL"; break;
         case LESS:        s << "LESS"; break;
@@ -132,6 +133,7 @@ std::vector<Token> tokenize(const std::string &source)
         else if (c == '*') { t.type = TIMES; utf8::advance(i, 1, source.end()); }
         else if (c == '/') { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
         else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); }
+        else if (c == '&') { t.type = CONCAT; utf8::advance(i, 1, source.end()); }
         else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == '#') { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }

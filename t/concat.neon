@@ -2,6 +2,6 @@ VAR a: String
 VAR b: String
 a := "hello "
 b := "world"
-print(a + b)
+print(a & b)
 
 %= hello world

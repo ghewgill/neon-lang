@@ -403,13 +403,13 @@ C--------------------------------------------------------------------
             % RETURN
         END IF
 
-        print("Loops: " + str(loop) + ", Iterations: " + str(II) + ", Duration: " + str(finisec-startsec) + ".")
+        print("Loops: " & str(loop) & ", Iterations: " & str(II) & ", Duration: " & str(finisec-startsec) & ".")
 
         KIPS := (100.0*loop*II)/(finisec-startsec)
         IF KIPS >= 1000.0 THEN
-            print("Neon Converted Double Precision Whetstones: " + str(KIPS/1000.0) + " MIPS")
+            print("Neon Converted Double Precision Whetstones: " & str(KIPS/1000.0) & " MIPS")
         ELSE
-            print("Neon Converted Double Precision Whetstones: " + str(KIPS) + " KIPS")
+            print("Neon Converted Double Precision Whetstones: " & str(KIPS) & " KIPS")
         END IF
 
     %END WHILE

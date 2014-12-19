@@ -26,6 +26,7 @@ enum TokenType {
     DIVIDE,
     MOD,
     EXP,
+    CONCAT,
     EQUAL,
     NOTEQUAL,
     LESS,

@@ -3,9 +3,9 @@ VAR suffix: String
 
 FOR count IN 99 TO 1 STEP -1 DO
     IF count > 1 THEN
-        print(str(count) + " bottles of beer on the wall, " + str(count) + " bottles of beer.")
+        print(str(count) & " bottles of beer on the wall, " & str(count) & " bottles of beer.")
         IF count > 2 THEN
-            suffix := str(count - 1) + " bottles of beer on the wall."
+            suffix := str(count - 1) & " bottles of beer on the wall."
         ELSE
             suffix := "1 bottle of beer on the wall."
         END IF
@@ -13,6 +13,6 @@ FOR count IN 99 TO 1 STEP -1 DO
         print("1 bottle of beer on the wall, 1 bottle of beer.")
         suffix := "no more beer on the wall!"
     END IF
-    print("Take one down, pass it around, " + suffix)
+    print("Take one down, pass it around, " & suffix)
     print("--")
 END FOR

@@ -27,6 +27,7 @@ std::string reconstitute(const Token &t)
         case DIVIDE:      return "/";
         case MOD:         return "MOD";
         case EXP:         return "^";
+        case CONCAT:      return "&";
         case EQUAL:       return "=";
         case NOTEQUAL:    return "#";
         case LESS:        return "<";

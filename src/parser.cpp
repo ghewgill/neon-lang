@@ -617,13 +617,8 @@ const Expression *Parser::parseAddition(Scope *scope)
                 const Expression *right = parseMultiplication(scope);
                 if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new AdditionExpression(left, right);
-                } else if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
-                    std::vector<const Expression *> args;
-                    args.push_back(left);
-                    args.push_back(right);
-                    left = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
                 } else {
-                    error(2043, tokens[op], "type mismatch");
+                    error(2043, tokens[op], "type mismatch (use & to concatenate strings)");
                 }
                 break;
             }
@@ -635,6 +630,20 @@ const Expression *Parser::parseAddition(Scope *scope)
                     left = new SubtractionExpression(left, right);
                 } else {
                     error(2044, tokens[op], "type mismatch");
+                }
+                break;
+            }
+            case CONCAT: {
+                auto op = i;
+                ++i;
+                const Expression *right = parseMultiplication(scope);
+                if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
+                    std::vector<const Expression *> args;
+                    args.push_back(left);
+                    args.push_back(right);
+                    left = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
+                } else {
+                    error(2193, tokens[op], "type mismatch");
                 }
                 break;
             }

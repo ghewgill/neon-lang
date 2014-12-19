@@ -14,7 +14,7 @@ WHILE a < 10 DO
         ELSE
             s := "is something else"
     END CASE
-    print(str(a) + " " + s)
+    print(str(a) & " " & s)
     a := a + 1
 END WHILE
 
