@@ -338,7 +338,7 @@ std::vector<Token> tokenize(const std::string &source)
             if (*(i+1) == '|') {
                 int level = 0;
                 do {
-                    if (i+1 == source.end()) {
+                    if (i == source.end() || i+1 == source.end()) {
                         error(1006, t, "Missing closing comment '|%'");
                     }
                     if (*i == '%' && *(i+1) == '|') {
