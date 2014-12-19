@@ -1,10 +1,7 @@
-%TODO
 VAR a: String
 a := "H"
 
 CASE a
-   WHEN "H".."Z" DO
-     print("or 5")
-   WHEN "A".."Z", "A", "E", "I", "O", "U" DO
+   WHEN "H".."Z", "A".."Z" DO
      print("5")
 END CASE

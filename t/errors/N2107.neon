@@ -1,10 +1,7 @@
-%TODO
 VAR a: Number
 a := 5
 
 CASE a
-   WHEN >= 5 DO
-     print("or 5")
-   WHEN = 5 DO
+   WHEN = 5, = 5 DO
      print("5")
 END CASE
