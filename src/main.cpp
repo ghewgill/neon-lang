@@ -24,7 +24,7 @@ static const Program *dump(const Program *program)
     return program;
 }
 
-static void repl()
+static void repl(int argc, char *argv[])
 {
     std::cout << "Neon 0.1\n";
     std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
@@ -41,7 +41,7 @@ static void repl()
             exit(0);
         } else {
             try {
-                exec(compile(parse(tokenize(s)), nullptr), 0, {});
+                exec(compile(parse(tokenize(s)), nullptr), argc, argv);
             } catch (SourceError &error) {
                 fprintf(stderr, "%s\n", error.token.source.c_str());
                 fprintf(stderr, "%*s\n", error.token.column, "^");
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     }
 
     if (argc < 2) {
-        repl();
+        repl(argc, argv);
     }
 
     const std::string name = argv[1];
