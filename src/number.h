@@ -4,22 +4,10 @@
 #include <stdint.h>
 #include <string>
 
-#define NUMBER_DECIMAL
-
 // The Number type is defined as a struct below (containing a member
 // of the actual numeric type) so that the rest of the code doesn't
 // accidentally use regular arithmetic operations on these numeric
 // values.
-
-#if defined(NUMBER_DOUBLE)
-
-struct Number {
-    Number(): x(0) {}
-    Number(double x): x(x) {}
-    double x;
-};
-
-#elif defined(NUMBER_DECIMAL)
 
 #define DECIMAL_GLOBAL_ROUNDING 1
 #define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
@@ -41,12 +29,6 @@ struct Number {
     Number(BID_UINT64 x): x(x) {}
     BID_UINT64 x;
 };
-
-#else
-
-#error Must define NUMBER_DOUBLE or NUMBER_DECIMAL
-
-#endif
 
 Number number_add(Number x, Number y);
 Number number_subtract(Number x, Number y);
