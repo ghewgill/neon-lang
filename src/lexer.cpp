@@ -93,6 +93,41 @@ std::string Token::tostring() const
     return s.str();
 }
 
+inline bool identifier_start(uint32_t c)
+{
+    return c < 256 && isalpha(c);
+}
+
+inline bool identifier_body(uint32_t c)
+{
+    return c < 256 && (isalnum(c) || c == '_');
+}
+
+inline bool number_start(uint32_t c)
+{
+    return c >= '0' && c <= '9';
+}
+
+inline bool number_body(uint32_t c)
+{
+    return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+inline bool number_base(uint32_t c)
+{
+    return c == '#' || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+}
+
+inline bool number_decimal_body(uint32_t c)
+{
+    return c >= '0' && c <= '9';
+}
+
+inline bool space(uint32_t c)
+{
+    return c < 256 && isspace(c);
+}
+
 std::vector<Token> tokenize(const std::string &source)
 {
     auto inv = utf8::find_invalid(source.begin(), source.end());
@@ -183,10 +218,10 @@ std::vector<Token> tokenize(const std::string &source)
                 t.type = COLON;
                 utf8::advance(i, 1, source.end());
             }
-        } else if (isalpha(c)) {
+        } else if (identifier_start(c)) {
             t.type = IDENTIFIER;
             auto const start = i;
-            while (i != source.end() && (isalnum(*i) || *i == '_')) {
+            while (i != source.end() && identifier_body(*i)) {
                 utf8::advance(i, 1, source.end());
             }
             t.text = std::string(start, i);
@@ -235,12 +270,12 @@ std::vector<Token> tokenize(const std::string &source)
             else if (t.text == "NEW") t.type = NEW;
             else if (t.text == "NIL") t.type = NIL;
             else if (t.text == "VALID") t.type = VALID;
-        } else if (isdigit(c)) {
+        } else if (number_start(c)) {
             t.type = NUMBER;
-            if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not isdigit(*(i+1))) {
+            if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not number_decimal_body(*(i+1))) {
                 utf8::advance(i, 1, source.end());
                 c = static_cast<char>(tolower(*i));
-                if (isalpha(c) || c == '#') {
+                if (number_base(c)) {
                     long base;
                     if (c == 'b') {
                         base = 2;
@@ -273,7 +308,7 @@ std::vector<Token> tokenize(const std::string &source)
                         if (c == '.') {
                             error(1004, t, "non-decimal fraction not supported");
                         }
-                        if (not isalnum(c)) {
+                        if (not number_body(c)) {
                             break;
                         }
                         int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'z' ? c - 'a' + 10 : -1;
@@ -292,12 +327,12 @@ std::vector<Token> tokenize(const std::string &source)
                 }
             } else {
                 const auto start = i;
-                while (i != source.end() && isdigit(*i)) {
+                while (i != source.end() && number_decimal_body(*i)) {
                     utf8::advance(i, 1, source.end());
                 }
                 if (i+1 != source.end() && *i == '.' && *(i+1) != '.') {
                     utf8::advance(i, 1, source.end());
-                    while (i != source.end() && isdigit(*i)) {
+                    while (i != source.end() && number_decimal_body(*i)) {
                         utf8::advance(i, 1, source.end());
                     }
                 }
@@ -306,7 +341,7 @@ std::vector<Token> tokenize(const std::string &source)
                     if (i != source.end() && (*i == '+' || *i == '-')) {
                         utf8::advance(i, 1, source.end());
                     }
-                    while (i != source.end() && isdigit(*i)) {
+                    while (i != source.end() && number_decimal_body(*i)) {
                         utf8::advance(i, 1, source.end());
                     }
                 }
@@ -362,8 +397,8 @@ std::vector<Token> tokenize(const std::string &source)
                     utf8::advance(i, 1, source.end());
                 }
             }
-        } else if (isspace(c)) {
-            while (i != source.end() && isspace(*i)) {
+        } else if (space(c)) {
+            while (i != source.end() && space(*i)) {
                 if (*i == '\n') {
                     line++;
                     column = 0;
