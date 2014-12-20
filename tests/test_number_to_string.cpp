@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <iostream>
+#include <iso646.h>
 #include <random>
 
 #include "number.h"
