@@ -140,7 +140,7 @@ bool number_is_integer(Number x)
 
 bool number_is_nan(Number x)
 {
-    return bid64_isNaN(x.x);
+    return bid64_isNaN(x.x) != 0;
 }
 
 std::string number_to_string(Number x)
