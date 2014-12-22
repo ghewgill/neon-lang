@@ -18,6 +18,8 @@ static void *get_library_handle(const std::string &library)
         std::string libname = library + SO_SUFFIX;
         void *lib = dlopen(libname.c_str(), RTLD_LAZY);
         if (lib == nullptr) {
+            // TODO: fill in exception info
+            fprintf(stderr, "%s\n", dlerror());
             return NULL;
         }
         i = g_Libraries.insert(std::make_pair(library, lib)).first;
