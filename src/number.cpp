@@ -1,5 +1,7 @@
 #include "number.h"
 
+#include <iso646.h>
+
 Number number_add(Number x, Number y)
 {
     return bid64_add(x.x, y.x);
@@ -22,7 +24,16 @@ Number number_divide(Number x, Number y)
 
 Number number_modulo(Number x, Number y)
 {
-    return bid64_rem(x.x, y.x);
+    BID_UINT64 m = bid64_abs(y.x);
+    if (bid64_isSigned(x.x)) {
+        Number q = number_ceil(bid64_div(bid64_abs(x.x), m));
+        x.x = bid64_add(x.x, bid64_mul(m, q.x));
+    }
+    BID_UINT64 r = bid64_fmod(x.x, m);
+    if (bid64_isSigned(y.x) && not bid64_isZero(r)) {
+        r = bid64_sub(r, m);
+    }
+    return r;
 }
 
 Number number_pow(Number x, Number y)
