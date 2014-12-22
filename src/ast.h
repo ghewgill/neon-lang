@@ -1053,20 +1053,27 @@ public:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(int line, const VariableReference *variable, const Expression *expr): Statement(line), variable(variable), expr(expr) {
-        if (not variable->type->is_equivalent(expr->type)) {
-            internal_error("AssignmentStatement");
+    AssignmentStatement(int line, const std::vector<const VariableReference *> vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {
+        for (auto v: variables) {
+            if (not v->type->is_equivalent(expr->type)) {
+                internal_error("AssignmentStatement");
+            }
         }
     }
 
-    const VariableReference *const variable;
+    const std::vector<const VariableReference *> variables;
     const Expression *const expr;
 
     virtual void generate_code(Emitter &emitter) const;
 
     virtual std::string text() const {
-        return "AssignmentStatement(" + variable->text() + ", " + expr->text() + ")";
+        std::string s = "AssignmentStatement(";
+        for (auto v: variables) {
+            s += v->text() + ", ";
+        }
+        return s + expr->text() + ")";
     }
+
 private:
     AssignmentStatement(const AssignmentStatement &);
     AssignmentStatement &operator=(const AssignmentStatement &);

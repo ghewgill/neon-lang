@@ -1,0 +1,10 @@
+VAR a, b: Number := 5
+VAR c: Number := 8
+
+print(str(a))
+print(str(b))
+print(str(c))
+
+%= 5
+%= 5
+%= 8
