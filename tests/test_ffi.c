@@ -8,6 +8,10 @@
 #define EXPORT
 #endif
 
+EXPORT void sub_none()
+{
+}
+
 EXPORT uint8_t sub_uint8(uint8_t x, uint8_t y)
 {
     return x - y;

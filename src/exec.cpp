@@ -23,16 +23,18 @@ namespace {
 std::vector<std::string> split(const std::string &s, char d)
 {
     std::vector<std::string> r;
-    std::string::size_type i = 0;
-    auto start = i;
-    while (i < s.length()) {
-        if (s.at(i) == d) {
-            r.push_back(s.substr(start, i-start));
-            start = i + 1;
+    if (not s.empty()) {
+        std::string::size_type i = 0;
+        auto start = i;
+        while (i < s.length()) {
+            if (s.at(i) == d) {
+                r.push_back(s.substr(start, i-start));
+                start = i + 1;
+            }
+            i++;
         }
-        i++;
+        r.push_back(s.substr(start, i-start));
     }
-    r.push_back(s.substr(start, i-start));
     return r;
 }
 

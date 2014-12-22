@@ -1,3 +1,13 @@
+EXTERNAL FUNCTION sub_none()
+{
+    "library": {
+        "name": "bin/libtest_ffi"
+    }
+    "types": {
+    }
+}
+END FUNCTION
+
 EXTERNAL FUNCTION sub_uint8(x, y: Number): Number
 {
     "library": {
@@ -183,6 +193,8 @@ EXTERNAL FUNCTION nonexistent_library()
     }
 }
 END FUNCTION
+
+sub_none()
 
 print(str(sub_uint8(8, 5)))
 %= 3
