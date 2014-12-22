@@ -16,9 +16,6 @@ static void *get_library_handle(const std::string &library)
     auto i = g_Libraries.find(library);
     if (i == g_Libraries.end()) {
         std::string libname = library + SO_SUFFIX;
-        if (library.find('/') == std::string::npos) {
-            libname = "./" + libname;
-        }
         void *lib = dlopen(libname.c_str(), RTLD_LAZY);
         if (lib == nullptr) {
             return NULL;
