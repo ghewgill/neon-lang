@@ -56,6 +56,7 @@ if coverage:
 rtl = [
     "lib/global.cpp",
     "lib/math.cpp",
+    "lib/random.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",
 ]
