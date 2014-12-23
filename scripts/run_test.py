@@ -4,6 +4,8 @@ import re
 import subprocess
 import sys
 
+class TestSkipped: pass
+
 errors = None
 
 def run(fn):
@@ -19,7 +21,7 @@ def run(fn):
     todo = any("TODO" in x for x in all_comments)
     if any("SKIP" in x for x in all_comments):
         print("skipped")
-        return True
+        raise TestSkipped()
     args = []
     a = [x for x in all_comments if "ARGS" in x]
     if a:
@@ -94,22 +96,29 @@ def main():
     total = 0
     succeeded = 0
     failed = 0
+    skipped = 0
     for a in sys.argv[1:]:
         if os.path.isdir(a):
             for fn in sorted(os.listdir(a)):
                 if fn.endswith(".neon"):
                     total += 1
-                    if run(os.path.join(a, fn)):
-                        succeeded += 1
-                    else:
-                        failed += 1
+                    try:
+                        if run(os.path.join(a, fn)):
+                            succeeded += 1
+                        else:
+                            failed += 1
+                    except TestSkipped:
+                        skipped += 1
         elif os.path.isfile(a):
             total += 1
-            if run(a):
-                succeeded += 1
-            else:
-                failed += 1
-    print("{} tests, {} succeeded, {} failed".format(total, succeeded, failed))
+            try:
+                if run(a):
+                    succeeded += 1
+                else:
+                    failed += 1
+            except TestSkipped:
+                skipped += 1
+    print("{} tests, {} succeeded, {} failed, {} skipped".format(total, succeeded, failed, skipped))
     if errors:
         print "Untested errors:"
         for number, message in sorted(errors.items()):
