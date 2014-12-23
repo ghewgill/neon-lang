@@ -218,23 +218,24 @@ const Type *Parser::parsePointerType(Scope *scope)
         internal_error("POINTER expected");
     }
     i++;
-    if (tokens[i].type != TO) {
-        error(2189, tokens[i], "TO expected");
-    }
-    i++;
-    if (tokens[i].type == IDENTIFIER && scope->lookupName(tokens[i].text) == nullptr) {
-        const std::string name = tokens[i].text;
+    if (tokens[i].type == TO) {
         i++;
-        TypePointer *ptrtype = new TypePointer(new TypeForwardRecord());
-        scope->addForward(name, ptrtype);
-        return ptrtype;
-    } else {
-        const Type *reftype = parseType(scope);
-        const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
-        if (rectype == nullptr) {
-            error(2171, tokens[i], "record type expected");
+        if (tokens[i].type == IDENTIFIER && scope->lookupName(tokens[i].text) == nullptr) {
+            const std::string name = tokens[i].text;
+            i++;
+            TypePointer *ptrtype = new TypePointer(new TypeForwardRecord());
+            scope->addForward(name, ptrtype);
+            return ptrtype;
+        } else {
+            const Type *reftype = parseType(scope);
+            const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
+            if (rectype == nullptr) {
+                error(2171, tokens[i], "record type expected");
+            }
+            return new TypePointer(rectype);
         }
-        return new TypePointer(rectype);
+    } else {
+        return new TypePointer(nullptr);
     }
 }
 
@@ -929,6 +930,9 @@ const VariableReference *Parser::parseVariableReference(Scope *scope)
                         error(2178, tokens[i], "pointer must be a valid pointer");
                     }
                     const TypeRecord *recordtype = pointertype->reftype;
+                    if (recordtype == nullptr) {
+                        error(2194, tokens[i], "pointer must not be a generic pointer");
+                    }
                     ++i;
                     if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
                         error(2179, tokens[i], "record not defined yet");

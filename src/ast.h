@@ -233,6 +233,8 @@ private:
     TypePointer &operator=(const TypePointer &);
 };
 
+extern TypePointer *TYPE_POINTER;
+
 class TypeValidPointer: public TypePointer {
 public:
     TypeValidPointer(const TypePointer *ptrtype): TypePointer(ptrtype->reftype) {}

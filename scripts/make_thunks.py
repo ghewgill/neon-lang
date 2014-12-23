@@ -3,14 +3,17 @@ import sys
 
 AstFromCpp = {
     "void": "TYPE_NOTHING",
+    "void*": "TYPE_POINTER",
     "bool": "TYPE_BOOLEAN",
     "Number": "TYPE_NUMBER",
     "std::string": "TYPE_STRING",
+    "std::string&": "TYPE_STRING",
     "std::vector<std::string>": "TYPE_ARRAY_STRING",
 }
 
 CppFromAst = {
     "TYPE_NOTHING": "void",
+    "TYPE_POINTER": "void *",
     "TYPE_BOOLEAN": "bool",
     "TYPE_NUMBER": "Number",
     "TYPE_STRING": "std::string",
@@ -18,6 +21,7 @@ CppFromAst = {
 }
 
 CppFromAstArg = {
+    "TYPE_POINTER": "void *",
     "TYPE_BOOLEAN": "bool",
     "TYPE_NUMBER": "Number",
     "TYPE_STRING": "const std::string &",
@@ -25,6 +29,7 @@ CppFromAstArg = {
 }
 
 CellField = {
+    "TYPE_POINTER": "address()",
     "TYPE_BOOLEAN": "boolean()",
     "TYPE_NUMBER": "number()",
     "TYPE_STRING": "string()",
@@ -38,23 +43,23 @@ for fn in sys.argv[1:]:
         for s in f:
             if s.startswith("//"):
                 continue
-            m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
+            m = re.match(r"([\S\* ]+?)\s*([\w$]+)\((.*?)\)$", s)
             if m is not None:
-                rtype = m.group(1)
+                rtype = m.group(1).replace(" ", "")
                 name = m.group(2)
                 paramstr = m.group(3).split(",")
                 if name.startswith("rtl_"):
                     continue
-                assert rtype in ["void", "bool", "Number", "std::string", "std::vector<std::string>"], rtype
+                assert rtype in ["void", "bool", "Number", "std::string", "std::vector<std::string>", "void*"], rtype
                 params = []
                 if paramstr[0]:
                     for arg in paramstr:
-                        for a in arg.split():
-                            if a == "const":
-                                continue
-                            assert a in ["bool", "Number", "std::string"], (arg, a)
-                            break
-                        params.append(a)
+                        arg = arg.strip()
+                        if arg.startswith("const"):
+                            arg = arg[5:]
+                        arg = re.sub(r"\w+$", "", arg)
+                        arg = arg.replace(" ", "")
+                        params.append(arg)
                 functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in params]]
 
 thunks = set()
@@ -74,6 +79,8 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "    Cell t;"
                 print >>inc, "    for (auto x: r) t.array().push_back(Cell(x));"
                 print >>inc, "    stack.push(t);"
+            elif rtype == "TYPE_POINTER":
+                print >>inc, "    stack.push(Cell(static_cast<Cell *>(r)));"
             else:
                 print >>inc, "    stack.push(Cell(r));"
         else:
