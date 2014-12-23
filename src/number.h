@@ -26,8 +26,40 @@
 
 struct Number {
     Number(): x(bid64_from_uint32(0)) {}
-    Number(BID_UINT64 x): x(x) {}
     BID_UINT64 x;
+private:
+    Number(BID_UINT64 x): x(x) {}
+
+    friend Number number_add(Number x, Number y);
+    friend Number number_subtract(Number x, Number y);
+    friend Number number_multiply(Number x, Number y);
+    friend Number number_divide(Number x, Number y);
+    friend Number number_modulo(Number x, Number y);
+    friend Number number_pow(Number x, Number y);
+    friend Number number_negate(Number x);
+    friend Number number_abs(Number x);
+    friend Number number_ceil(Number x);
+    friend Number number_floor(Number x);
+    friend Number number_exp(Number x);
+    friend Number number_log(Number x);
+    friend Number number_sqrt(Number x);
+    friend Number number_acos(Number x);
+    friend Number number_asin(Number x);
+    friend Number number_atan(Number x);
+    friend Number number_cos(Number x);
+    friend Number number_sin(Number x);
+    friend Number number_tan(Number x);
+    friend Number number_from_string(const std::string &s);
+    friend Number number_from_uint8(uint8_t x);
+    friend Number number_from_sint8(int8_t x);
+    friend Number number_from_uint16(uint16_t x);
+    friend Number number_from_sint16(int16_t x);
+    friend Number number_from_uint32(uint32_t x);
+    friend Number number_from_sint32(int32_t x);
+    friend Number number_from_uint64(uint64_t x);
+    friend Number number_from_sint64(int64_t x);
+    friend Number number_from_float(float x);
+    friend Number number_from_double(double x);
 };
 
 Number number_add(Number x, Number y);
