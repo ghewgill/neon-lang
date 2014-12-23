@@ -50,6 +50,7 @@ Number number_cos(Number x);
 Number number_sin(Number x);
 Number number_tan(Number x);
 bool number_is_zero(Number x);
+bool number_is_negative(Number x);
 bool number_is_equal(Number x, Number y);
 bool number_is_not_equal(Number x, Number y);
 bool number_is_less(Number x, Number y);

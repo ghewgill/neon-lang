@@ -996,7 +996,7 @@ void ForStatement::generate_code(Emitter &emitter) const
 {
     // Decide if we are looping forward or backwards, based on the step value.
     Opcode comp = GEN;
-    if (number_is_less(step->eval_number(), 0)) {
+    if (number_is_negative(step->eval_number())) {
         comp = LEN;
     }
 

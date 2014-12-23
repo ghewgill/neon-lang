@@ -113,6 +113,11 @@ bool number_is_zero(Number x)
     return bid64_isZero(x.x) != 0;
 }
 
+bool number_is_negative(Number x)
+{
+    return bid64_isSigned(x.x) != 0;
+}
+
 bool number_is_equal(Number x, Number y)
 {
     return bid64_quiet_equal(x.x, y.x) != 0;
