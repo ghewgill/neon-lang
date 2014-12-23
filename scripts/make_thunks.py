@@ -36,6 +36,8 @@ functions = dict()
 for fn in sys.argv[1:]:
     with open(fn) as f:
         for s in f:
+            if s.startswith("//"):
+                continue
             m = re.match("(\S+)\s+([\w$]+)\((.*?)\)$", s)
             if m is not None:
                 rtype = m.group(1)
