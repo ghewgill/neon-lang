@@ -968,6 +968,7 @@ void Executor::exec()
             abort();
         }
     }
+    assert(stack.empty());
 }
 
 void exec(const Bytecode::bytecode &obj, int argc, char *argv[])
