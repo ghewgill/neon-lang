@@ -1,0 +1,8 @@
+IMPORT curses
+
+VAR k: Number
+
+curses.initscr()
+curses.addstr("Hello World")
+k := curses.getch()
+curses.endwin()

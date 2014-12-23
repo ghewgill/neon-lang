@@ -180,6 +180,7 @@ private:
     TypeArray &operator=(const TypeArray &);
 };
 
+extern TypeArray *TYPE_ARRAY_NUMBER;
 extern TypeArray *TYPE_ARRAY_STRING;
 
 class TypeDictionary: public Type {

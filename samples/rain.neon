@@ -1,0 +1,158 @@
+%|***************************************************************************
+ * Copyright (c) 2002 Free Software Foundation, Inc.                        *
+ *                                                                          *
+ * Permission is hereby granted, free of charge, to any person obtaining a  *
+ * copy of this software and associated documentation files (the            *
+ * "Software"), to deal in the Software without restriction, including      *
+ * without limitation the rights to use, copy, modify, merge, publish,      *
+ * distribute, distribute with modifications, sublicense, and/or sell       *
+ * copies of the Software, and to permit persons to whom the Software is    *
+ * furnished to do so, subject to the following conditions:                 *
+ *                                                                          *
+ * The above copyright notice and this permission notice shall be included  *
+ * in all copies or substantial portions of the Software.                   *
+ *                                                                          *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS  *
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF               *
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.   *
+ * IN NO EVENT SHALL THE ABOVE COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,   *
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR    *
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR    *
+ * THE USE OR OTHER DEALINGS IN THE SOFTWARE.                               *
+ *                                                                          *
+ * Except as contained in this notice, the name(s) of the above copyright   *
+ * holders shall not be used in advertising or otherwise to promote the     *
+ * sale, use or other dealings in this Software without prior written       *
+ * authorization.                                                           *
+ ***************************************************************************|%
+
+% $Id: rain.c,v 1.11 2008/07/13 16:08:17 wmcbrine Exp $
+
+IMPORT curses
+IMPORT random
+
+% rain 11/3/1980 EPS/CITHEP
+
+FUNCTION next_j(j: Number): Number
+    VAR new_j: Number
+    IF j = 0 THEN
+        new_j := 4
+    ELSE
+        new_j := j - 1
+    END IF
+
+    %|IF curses.has_colors() THEN
+        VAR z: Number
+        z := random.uint32() MOD 3
+        chtype color = COLOR_PAIR(z);
+
+        if (z)
+            color |= A_BOLD;
+
+        attrset(color);
+    }|%
+
+    RETURN new_j
+END FUNCTION
+
+FUNCTION main()
+    VAR x, y, j, r, c, k: Number
+    VAR xpos, ypos: Array<Number>
+
+    curses.initscr()
+
+    %|if (has_colors())
+    {
+        int bg = COLOR_BLACK;
+
+        start_color();
+
+#if defined(NCURSES_VERSION) || (defined(PDC_BUILD) && PDC_BUILD > 3000)
+        if (use_default_colors() == OK)
+            bg = -1;
+#endif
+        init_pair(1, COLOR_BLUE, bg);
+        init_pair(2, COLOR_CYAN, bg);
+    }|%
+
+    curses.nl()
+    curses.noecho()
+    curses.curs_set(0)
+    curses.timeout(0)
+    %curses.keypad(stdscr, TRUE)
+
+    r := curses.LINES() - 4
+    c := curses.COLS() - 4
+
+    FOR j IN 4 TO 0 STEP -1 DO
+        xpos[j] := random.uint32() MOD c + 2
+        ypos[j] := random.uint32() MOD r + 2
+    END FOR
+
+    j := 0
+    LOOP
+        x := random.uint32() MOD c + 2
+        y := random.uint32() MOD r + 2
+
+        curses.mvaddstr(y, x, ".")
+
+        curses.mvaddstr(ypos[j], xpos[j], "o")
+
+        j := next_j(j)
+        curses.mvaddstr(ypos[j], xpos[j], "O")
+
+        j := next_j(j)
+        curses.mvaddstr(ypos[j] - 1, xpos[j], "-")
+        curses.mvaddstr(ypos[j], xpos[j] - 1, "|.|")
+        curses.mvaddstr(ypos[j] + 1, xpos[j], "-")
+
+        j := next_j(j)
+        curses.mvaddstr(ypos[j] - 2, xpos[j], "-")
+        curses.mvaddstr(ypos[j] - 1, xpos[j] - 1, "/ \")
+        curses.mvaddstr(ypos[j], xpos[j] - 2, "| O |")
+        curses.mvaddstr(ypos[j] + 1, xpos[j] - 1, "\ /")
+        curses.mvaddstr(ypos[j] + 2, xpos[j], "-")
+
+        j := next_j(j)
+        curses.mvaddstr(ypos[j] - 2, xpos[j], " ")
+        curses.mvaddstr(ypos[j] - 1, xpos[j] - 1, "   ")
+        curses.mvaddstr(ypos[j], xpos[j] - 2, "     ")
+        curses.mvaddstr(ypos[j] + 1, xpos[j] - 1, "   ")
+        curses.mvaddstr(ypos[j] + 2, xpos[j], " ")
+
+        xpos[j] := x
+        ypos[j] := y
+
+        k := curses.getch()
+        IF k >= 0 THEN
+            CASE chr(k)
+            WHEN "q", "Q" DO
+                curses.curs_set(1)
+                curses.endwin()
+                EXIT LOOP
+            WHEN "s" DO
+                %nodelay(stdscr, FALSE)
+            WHEN " " DO
+                %nodelay(stdscr, TRUE)
+            END CASE
+        ELSE
+            CASE k
+%|
+#ifdef KEY_RESIZE
+            break;
+        case KEY_RESIZE:
+# ifdef PDCURSES
+            resize_term(0, 0);
+            erase();
+# endif
+            r = LINES - 4;
+            c = COLS - 4;
+#endif
+|%
+            END CASE
+        END IF
+        curses.napms(50)
+    END LOOP
+END FUNCTION
+
+main()

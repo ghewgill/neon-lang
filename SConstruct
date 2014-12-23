@@ -21,12 +21,20 @@ else:
 
 libffi = SConscript("SConscript-libffi", exports=["env"])
 
+if sys.platform == "win32":
+    env.Command("external/PDCurses-3.4/win32/vcwin32.mak", "external/PDCurses-3.4.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
+    libs_curses = [env.Command("external/PDCurses-3.4/win32/pdcurses.lib", "external/PDCurses-3.4/win32/vcwin32.mak", "cd external/PDCurses-3.4/win32 && nmake -fvcwin32.mak WIDE=Y UTF8=Y")]
+    libs_curses.extend(["advapi32", "user32"])
+else:
+    libs_curses = ["ncurses"]
+
 env.Command("external/utf8/source/utf8.h", "external/utf8_v2_3_4.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/utf8"))
 
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
     "external/utf8/source",
     "external/lib/libffi-3.2.1/include",
+    "external/PDCurses-3.4",
     "src",
 ])
 if sys.platform == "win32":
@@ -44,7 +52,7 @@ else:
         "-Werror",
         "-g",
     ])
-env.Append(LIBS=[libbid, libffi])
+env.Append(LIBS=[libbid, libffi] + libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 
@@ -54,6 +62,7 @@ if coverage:
     ])
 
 rtl = [
+    "lib/curses.cpp",
     "lib/global.cpp",
     "lib/math.cpp",
     "lib/random.cpp",

@@ -10,6 +10,7 @@ TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber();
 TypeString *TYPE_STRING = new TypeString();
+TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(TYPE_NUMBER);
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(TYPE_STRING);
 TypePointer *TYPE_POINTER = new TypePointer(nullptr);
 TypeModule *TYPE_MODULE = new TypeModule();
