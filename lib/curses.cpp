@@ -263,7 +263,7 @@ void curses$wclrtoeol(void *win)
 
 std::vector<Number> curses$color_content(Number color)
 {
-    short r, g, b;
+    short r = 0, g = 0, b = 0;
     color_content(static_cast<short>(number_to_uint32(color)), &r, &g, &b);
     std::vector<Number> a;
     a.push_back(number_from_sint32(r));
@@ -437,7 +437,7 @@ Number curses$getbegy(void *win)
 
 std::vector<Number> curses$getbegyx(void *win)
 {
-    int y, x;
+    int y = -1, x = -1;
     getbegyx(static_cast<WINDOW *>(win), y, x);
     std::vector<Number> r;
     r.push_back(number_from_sint32(y));
@@ -492,7 +492,7 @@ Number curses$getmaxy(void *win)
 
 std::vector<Number> curses$getmaxyx(void *win)
 {
-    int y, x;
+    int y = -1, x = -1;
     getmaxyx(static_cast<WINDOW *>(win), y, x);
     std::vector<Number> r;
     r.push_back(number_from_sint32(y));
@@ -552,7 +552,7 @@ Number curses$getpary(void *win)
 
 std::vector<Number> curses$getparyx(void *win)
 {
-    int y, x;
+    int y = -1, x = -1;
     getparyx(static_cast<WINDOW *>(win), y, x);
     std::vector<Number> r;
     r.push_back(number_from_sint32(y));
@@ -562,7 +562,7 @@ std::vector<Number> curses$getparyx(void *win)
 
 std::vector<Number> curses$getsyx()
 {
-    int y, x;
+    int y = -1, x = -1;
     getsyx(y, x);
     std::vector<Number> r;
     r.push_back(number_from_sint32(y));
@@ -572,7 +572,7 @@ std::vector<Number> curses$getsyx()
 
 std::vector<Number> curses$getyx(void *win)
 {
-    int y, x;
+    int y = -1, x = -1;
     getyx(static_cast<WINDOW *>(win), y, x);
     std::vector<Number> r;
     r.push_back(number_from_sint32(y));
@@ -857,7 +857,7 @@ void curses$overwrite(void *srcwin, void *dstwin)
 
 std::vector<Number> curses$pair_content(Number color)
 {
-    short f, b;
+    short f = 0, b = 0;
     pair_content(static_cast<short>(number_to_uint32(color)), &f, &b);
     std::vector<Number> r;
     r.push_back(number_from_sint32(f));
