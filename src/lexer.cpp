@@ -140,8 +140,10 @@ std::vector<Token> tokenize(const std::string &source)
             bol = 0;
         }
         int column = static_cast<int>(1 + inv - (source.begin() + bol));
-        fprintf(stderr, "%d:%d invalid utf8 data in source\n", line, column);
-        exit(1);
+        Token t;
+        t.line = line;
+        t.column = column;
+        error(1000, t, "invalid UTF-8 data in source");
     }
     int line = 1;
     int column = 1;
