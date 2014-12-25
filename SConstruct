@@ -162,34 +162,6 @@ env.UnitTest("bin/test_lexer", [
 ] + coverage_lib,
 )
 
-env.UnitTest("bin/test_parser", [
-    "tests/test_parser.cpp",
-    "src/ast.cpp",
-    "src/cell.cpp",
-    "src/compiler.cpp",
-    "src/parser.cpp",
-    "src/lexer.cpp",
-    "src/number.cpp",
-    "src/rtl_compile.cpp",
-    "src/util.cpp",
-] + coverage_lib,
-)
-
-env.UnitTest("bin/test_compiler", [
-    "tests/test_compiler.cpp",
-    "src/ast.cpp",
-    "src/bytecode.cpp",
-    "src/cell.cpp",
-    "src/compiler.cpp",
-    "src/disassembler.cpp",
-    "src/lexer.cpp",
-    "src/number.cpp",
-    "src/parser.cpp",
-    "src/rtl_compile.cpp",
-    "src/util.cpp",
-] + coverage_lib,
-)
-
 env.Program("bin/fuzz_lexer", [
     "tests/fuzz_lexer.cpp",
     "src/lexer.cpp",
