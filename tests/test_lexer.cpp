@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "lexer.h"
+#include "util.h"
 
 static std::vector<Token> dump(const std::vector<Token> &tokens)
 {
@@ -53,4 +54,24 @@ int main()
     assert(tokens[1].type == DOTDOT);
     assert(tokens[2].type == NUMBER);
     assert(tokens[3].type == END_OF_FILE);
+
+    for (int c = 0; c < 256; c++) {
+        char buf[3];
+        buf[0] = c;
+        buf[1] = 0;
+        try {
+            tokenize(buf);
+        } catch (SourceError &) {
+            // ignore
+        }
+        for (int d = 0; d < 256; d++) {
+            buf[1] = d;
+            buf[2] = 0;
+            try {
+                tokenize(buf);
+            } catch (SourceError &) {
+                // ignore
+            }
+        }
+    }
 }

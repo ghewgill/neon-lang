@@ -332,7 +332,7 @@ std::vector<Token> tokenize(const std::string &source)
                 while (i != source.end() && number_decimal_body(*i)) {
                     utf8::advance(i, 1, source.end());
                 }
-                if (i+1 != source.end() && *i == '.' && *(i+1) != '.') {
+                if (i != source.end() && i+1 != source.end() && *i == '.' && *(i+1) != '.') {
                     utf8::advance(i, 1, source.end());
                     while (i != source.end() && number_decimal_body(*i)) {
                         utf8::advance(i, 1, source.end());
