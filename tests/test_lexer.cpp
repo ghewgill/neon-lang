@@ -57,7 +57,7 @@ int main()
 
     for (int c = 0; c < 256; c++) {
         char buf[3];
-        buf[0] = c;
+        buf[0] = static_cast<char>(c);
         buf[1] = 0;
         try {
             tokenize(buf);
@@ -65,7 +65,7 @@ int main()
             // ignore
         }
         for (int d = 0; d < 256; d++) {
-            buf[1] = d;
+            buf[1] = static_cast<char>(d);
             buf[2] = 0;
             try {
                 tokenize(buf);
