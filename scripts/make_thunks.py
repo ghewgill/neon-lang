@@ -47,6 +47,7 @@ ArrayElementField = {
     "TYPE_ARRAY_STRING": "string()",
 }
 
+constants = dict()
 functions = dict()
 
 for fn in sys.argv[1:]:
@@ -54,6 +55,12 @@ for fn in sys.argv[1:]:
         for s in f:
             if s.startswith("//") or s.startswith("static "):
                 continue
+            m = re.match(r"extern\s+const\s+(\w+)\s+([\w$]+)\s*=", s)
+            if m is not None:
+                ctype = m.group(1)
+                name = m.group(2)
+                assert ctype in ["Number"]
+                constants[name] = [name, ctype, "new ConstantNumberExpression(rtl::{})".format(name)]
             m = re.match(r"([\S\* ]+?)\s*([\w$]+)\((.*?)\)$", s)
             if m is not None:
                 rtype = m.group(1).replace(" ", "")
@@ -103,6 +110,26 @@ with open("src/thunks.inc", "w") as inc:
             print >>inc, "    reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
         print >>inc, "}"
         print >>inc, ""
+
+with open("src/constants_compile.inc", "w") as inc:
+    print >>inc, "namespace rtl {"
+    for name, ctype, init in constants.values():
+        print >>inc, "extern const {} {};".format(ctype, name)
+    print >>inc, "}"
+    print >>inc, "static void init_builtin_constants(Scope *{})".format("scope" if any("$" not in x[0] for x in constants.values()) else "")
+    print >>inc, "{"
+    for name, ctype, init in constants.values():
+        if "$" not in name:
+            print >>inc, "    scope->addName(\"{}\", new Constant(\"{}\", {}));".format(name, name, init)
+    print >>inc, "}";
+    print >>inc, "static void init_builtin_constants(const std::string &module, Scope *scope)"
+    print >>inc, "{"
+    for name, ctype, init in constants.values():
+        i = name.index("$")
+        module = name[:i]
+        modname = name[i+1:]
+        print >>inc, "    if (module == \"{}\") scope->addName(\"{}\", new Constant(\"{}\", {}));".format(module, modname, modname, init)
+    print >>inc, "}";
 
 with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "static struct {"

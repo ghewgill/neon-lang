@@ -1,9 +1,11 @@
 #include "rtl_compile.h"
 
+#include "constants_compile.inc"
 #include "functions_compile.inc"
 
 void rtl_compile_init(Scope *scope)
 {
+    init_builtin_constants(scope);
     for (auto f: BuiltinFunctions) {
         std::vector<const ParameterType *> params;
         for (auto p: f.params) {
@@ -20,6 +22,7 @@ void rtl_import(Scope *scope, const std::string &name)
 {
     std::string prefix = name + "$";
     Module *module = new Module(scope, name);
+    init_builtin_constants(name, module->scope);
     for (auto f: BuiltinFunctions) {
         std::string qualified_name(f.name);
         if (qualified_name.substr(0, prefix.length()) == prefix) {

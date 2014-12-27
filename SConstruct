@@ -122,6 +122,7 @@ neonc = env.Program("bin/neonc", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/rtl_compile.cpp",
+    rtl,
     "src/neonc.cpp",
     "src/util.cpp",
 ] + coverage_lib,
@@ -184,6 +185,7 @@ env.Program("bin/fuzz_parser", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/rtl_compile.cpp",
+    rtl,
     "src/util.cpp",
 ] + coverage_lib,
 )
