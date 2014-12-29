@@ -32,7 +32,6 @@ class TypeRecord;
 class TypePointer;
 class FunctionCall;
 class FunctionParameter;
-class VariableReference;
 
 class Scope {
 public:
@@ -88,9 +87,9 @@ public:
 class TypeNothing: public Type {
 public:
     TypeNothing(): Type("Nothing") {}
-    virtual void generate_load(Emitter &) const {}
-    virtual void generate_store(Emitter &) const {}
-    virtual void generate_call(Emitter &) const {}
+    virtual void generate_load(Emitter &) const { internal_error("TypeNothing"); }
+    virtual void generate_store(Emitter &) const { internal_error("TypeNothing"); }
+    virtual void generate_call(Emitter &) const { internal_error("TypeNothing"); }
 
     virtual std::string text() const { return "TypeNothing"; }
 };
@@ -340,15 +339,16 @@ private:
 
 class Expression: public AstNode {
 public:
-    Expression(const Type *type, bool is_constant): type(type), is_constant(is_constant) {}
+    Expression(const Type *type, bool is_constant, bool is_readonly = true): type(type), is_constant(is_constant), is_readonly(is_readonly) {}
 
     virtual Number eval_number() const = 0;
     virtual std::string eval_string() const = 0;
-    virtual const VariableReference *get_reference() const { return nullptr; }
     virtual void generate(Emitter &emitter) const = 0;
+    virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
 
     const Type *type;
     const bool is_constant;
+    const bool is_readonly;
 private:
     Expression(const Expression &);
     Expression &operator=(const Expression &);
@@ -879,141 +879,108 @@ private:
     ExponentiationExpression &operator=(const ExponentiationExpression &);
 };
 
-class VariableReference: public AstNode {
+class ReferenceExpression: public Expression {
 public:
-    VariableReference(const Type *type, bool is_constant, bool is_readonly): type(type), is_constant(is_constant), is_readonly(is_readonly) {}
+    ReferenceExpression(const Type *type, bool is_readonly): Expression(type, false, is_readonly) {}
 
-    const Type *type;
-    const bool is_constant;
-    const bool is_readonly;
-
-    virtual void generate_address_read(Emitter &emitter) const = 0;
-    virtual void generate_address_write(Emitter &emitter) const = 0;
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
-
-    virtual std::string text() const = 0;
+    virtual void generate(Emitter &emitter) const { generate_load(emitter); }
+    virtual void generate_address_read(Emitter &) const = 0;
+    virtual void generate_address_write(Emitter &) const = 0;
+    virtual void generate_load(Emitter &) const;
+    virtual void generate_store(Emitter &) const;
 private:
-    VariableReference(const VariableReference &);
-    VariableReference &operator=(const VariableReference &);
+    ReferenceExpression(const ReferenceExpression &);
+    ReferenceExpression &operator=(const ReferenceExpression &);
 };
 
-class ConstantReference: public VariableReference {
+class ArrayIndexExpression: public ReferenceExpression {
 public:
-    ConstantReference(const Constant *cons): VariableReference(cons->type, true, true), cons(cons) {}
+    ArrayIndexExpression(const Type *type, const Expression *array, const Expression *index): ReferenceExpression(type, array->is_readonly), array(array), index(index) {}
 
-    const Constant *cons;
+    const Expression *array;
+    const Expression *index;
 
-    virtual void generate_address_read(Emitter &) const {}
-    virtual void generate_address_write(Emitter &) const {}
-    virtual void generate_load(Emitter &emitter) const { cons->value->generate(emitter); }
+    virtual Number eval_number() const { internal_error("ArrayIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const;
+    virtual void generate_address_write(Emitter &) const;
 
-    virtual std::string text() const {
-        return "ConstantReference(" + cons->text() + ")";
-    }
+    virtual std::string text() const { return "ArrayIndexExpression(" + array->text() + ", " + index->text() + ")"; }
 private:
-    ConstantReference(const ConstantReference &);
-    ConstantReference &operator=(const ConstantReference &);
+    ArrayIndexExpression(const ArrayIndexExpression &);
+    ArrayIndexExpression &operator=(const ArrayIndexExpression &);
 };
 
-class ScalarVariableReference: public VariableReference {
+class DictionaryIndexExpression: public ReferenceExpression {
 public:
-    ScalarVariableReference(const Variable *var, int enclosing = -1): VariableReference(var->type, false, var->is_readonly), var(var), enclosing(enclosing) {}
+    DictionaryIndexExpression(const Type *type, const Expression *dictionary, const Expression *index): ReferenceExpression(type, dictionary->is_readonly), dictionary(dictionary), index(index) {}
 
-    const Variable *var;
-    const int enclosing;
+    const Expression *dictionary;
+    const Expression *index;
 
-    virtual void generate_address_read(Emitter &emitter) const;
-    virtual void generate_address_write(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual Number eval_number() const { internal_error("DictionaryIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("DictionaryIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const;
+    virtual void generate_address_write(Emitter &) const;
 
-    virtual std::string text() const {
-        return "ScalarVariableReference(" + var->text() + ")";
-    }
+    virtual std::string text() const { return "DictionaryIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
 private:
-    ScalarVariableReference(const ScalarVariableReference &);
-    ScalarVariableReference &operator=(const ScalarVariableReference &);
+    DictionaryIndexExpression(const DictionaryIndexExpression &);
+    DictionaryIndexExpression &operator=(const DictionaryIndexExpression &);
 };
 
-class StringReference: public VariableReference {
+class StringIndexExpression: public ReferenceExpression {
 public:
-    StringReference(const VariableReference *str, const Expression *index);
+    StringIndexExpression(const ReferenceExpression *ref, const Expression *index);
 
-    const VariableReference *str;
+    const ReferenceExpression *ref;
     const Expression *index;
 
     const FunctionCall *load;
     const FunctionCall *store;
 
-    virtual void generate_address_read(Emitter &) const { internal_error("StringReference"); }
-    virtual void generate_address_write(Emitter &) const { internal_error("StringReference"); }
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
+    virtual Number eval_number() const { internal_error("StringIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("StringIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const { internal_error("StringIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const { internal_error("StringIndexExpression"); }
+    virtual void generate_load(Emitter &) const;
+    virtual void generate_store(Emitter &) const;
 
-    virtual std::string text() const { return "StringReference(" + str->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const { return "StringIndexExpression(" + ref->text() + ", " + index->text() + ")"; }
 private:
-    StringReference(const StringReference &);
-    StringReference &operator=(const StringReference &);
+    StringIndexExpression(const StringIndexExpression &);
+    StringIndexExpression &operator=(const StringIndexExpression &);
 };
 
-class ArrayReference: public VariableReference {
+class PointerDereferenceExpression: public ReferenceExpression {
 public:
-    ArrayReference(const Type *type, const VariableReference *array, const Expression *index): VariableReference(type, array->is_constant, array->is_readonly), array(array), index(index) {}
+    PointerDereferenceExpression(const Type *type, const Expression *ptr): ReferenceExpression(type, false), ptr(ptr) {}
 
-    const VariableReference *array;
-    const Expression *index;
+    const Expression *ptr;
 
+    virtual Number eval_number() const { internal_error("PointerDereferenceExpression"); }
+    virtual std::string eval_string() const { internal_error("PointerDereferenceExpression"); }
     virtual void generate_address_read(Emitter &emitter) const;
     virtual void generate_address_write(Emitter &emitter) const;
 
-    virtual std::string text() const { return "ArrayReference(" + array->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const { return "PointerDereferenceExpression(" + ptr->text() + ")"; }
 private:
-    ArrayReference(const ArrayReference &);
-    ArrayReference &operator=(const ArrayReference &);
+    PointerDereferenceExpression(const PointerDereferenceExpression &);
+    PointerDereferenceExpression &operator=(const PointerDereferenceExpression &);
 };
 
-class DictionaryReference: public VariableReference {
+class VariableExpression: public ReferenceExpression {
 public:
-    DictionaryReference(const Type *type, const VariableReference *dict, const Expression *index): VariableReference(type, dict->is_constant, dict->is_readonly), dict(dict), index(index) {}
+    VariableExpression(const Variable *var): ReferenceExpression(var->type, var->is_readonly), var(var) {}
 
-    const VariableReference *dict;
-    const Expression *index;
-
-    virtual void generate_address_read(Emitter &emitter) const;
-    virtual void generate_address_write(Emitter &emitter) const;
-
-    virtual std::string text() const { return "DictionaryReference(" + dict->text() + ", " + index->text() + ")"; }
-private:
-    DictionaryReference(const DictionaryReference &);
-    DictionaryReference &operator=(const DictionaryReference &);
-};
-
-class Dereference: public VariableReference {
-public:
-    Dereference(const Type *type, const VariableReference *ptr): VariableReference(type, false, false), ptr(ptr) {}
-
-    const VariableReference *ptr;
-
-    virtual void generate_address_read(Emitter &emitter) const;
-    virtual void generate_address_write(Emitter &emitter) const;
-
-    virtual std::string text() const { return "Dereference(" + ptr->text() + ")"; }
-private:
-    Dereference(const Dereference &);
-    Dereference &operator=(const Dereference &);
-};
-
-class VariableExpression: public Expression {
-public:
-    VariableExpression(const VariableReference *var): Expression(var->type, var->is_constant), var(var) {}
-
-    const VariableReference *var;
+    const Variable *var;
 
     virtual Number eval_number() const { internal_error("VariableExpression"); }
     virtual std::string eval_string() const { internal_error("VariableExpression"); }
-    virtual const VariableReference *get_reference() const { return var; }
     virtual void generate(Emitter &emitter) const;
+    virtual void generate_call(Emitter &emitter) const { var->generate_call(emitter); }
+    virtual void generate_address_read(Emitter &emitter) const { var->generate_address(emitter, 0); }
+    virtual void generate_address_write(Emitter &emitter) const { var->generate_address(emitter, 0); }
 
     virtual std::string text() const {
         return "VariableExpression(" + var->text() + ")";
@@ -1025,9 +992,9 @@ private:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const VariableReference *func, const std::vector<const Expression *> &args): Expression(dynamic_cast<const TypeFunction *>(func->type)->returntype, false), func(func), args(args) {}
+    FunctionCall(const Expression *func, const std::vector<const Expression *> &args): Expression(dynamic_cast<const TypeFunction *>(func->type)->returntype, false), func(func), args(args) {}
 
-    const VariableReference *const func;
+    const Expression *const func;
     const std::vector<const Expression *> args;
 
     virtual Number eval_number() const { internal_error("FunctionCall"); }
@@ -1053,7 +1020,7 @@ public:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(int line, const std::vector<const VariableReference *> vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {
+    AssignmentStatement(int line, const std::vector<const ReferenceExpression *> vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {
         for (auto v: variables) {
             if (not v->type->is_equivalent(expr->type)) {
                 internal_error("AssignmentStatement");
@@ -1061,7 +1028,7 @@ public:
         }
     }
 
-    const std::vector<const VariableReference *> variables;
+    const std::vector<const ReferenceExpression *> variables;
     const Expression *const expr;
 
     virtual void generate_code(Emitter &emitter) const;
@@ -1164,10 +1131,10 @@ private:
 
 class ForStatement: public BaseLoopStatement {
 public:
-    ForStatement(int line, unsigned int loop_id, const VariableReference *var, const Expression *start, const Expression *end, const Expression *step, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end), step(step) {
+    ForStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *start, const Expression *end, const Expression *step, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end), step(step) {
     }
 
-    const VariableReference *var;
+    const VariableExpression *var;
     const Expression *start;
     const Expression *end;
     const Expression *step;

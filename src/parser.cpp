@@ -29,9 +29,10 @@ public:
     const Type *parseType(Scope *scope);
     const Statement *parseTypeDefinition(Scope *scope);
     const Statement *parseConstantDefinition(Scope *scope);
-    const FunctionCall *parseFunctionCall(const VariableReference *ref, Scope *scope);
+    const FunctionCall *parseFunctionCall(const Expression *func, Scope *scope);
     const ArrayLiteralExpression *parseArrayLiteral(Scope *scope);
     const DictionaryLiteralExpression *parseDictionaryLiteral(Scope *scope);
+    const Name *parseQualifiedName(Scope *scope, int &enclosing);
     const Expression *parseAtom(Scope *scope);
     const Expression *parseExponentiation(Scope *scope);
     const Expression *parseMultiplication(Scope *scope);
@@ -41,9 +42,8 @@ public:
     const Expression *parseConjunction(Scope *scope);
     const Expression *parseDisjunction(Scope *scope);
     const Expression *parseConditional(Scope *scope);
-    const Expression *parseExpression(Scope *scope);
+    const Expression *parseExpression(Scope *scope, bool allow_nothing = false);
     const VariableInfo parseVariableDeclaration(Scope *scope);
-    const VariableReference *parseVariableReference(Scope *scope);
     void parseFunctionHeader(Scope *scope, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args);
     const Statement *parseFunctionDefinition(Scope *scope);
     const Statement *parseExternalDefinition(Scope *scope);
@@ -92,26 +92,26 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
     }
 }
 
-StringReference::StringReference(const VariableReference *str, const Expression *index)
-  : VariableReference(TYPE_STRING, false, false),
-    str(str),
+StringIndexExpression::StringIndexExpression(const ReferenceExpression *ref, const Expression *index)
+  : ReferenceExpression(ref->type, ref->is_readonly),
+    ref(ref),
     index(index),
     load(nullptr),
     store(nullptr)
 {
     {
         std::vector<const Expression *> args;
-        args.push_back(new VariableExpression(str));
+        args.push_back(ref);
         args.push_back(index);
         args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        load = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("substring"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("substring"))), args);
     }
     {
         std::vector<const Expression *> args;
-        args.push_back(new VariableExpression(str));
+        args.push_back(ref);
         args.push_back(index);
         args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        store = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("splice"))), args);
     }
 }
 
@@ -326,9 +326,9 @@ const Statement *Parser::parseConstantDefinition(Scope *scope)
     return nullptr;
 }
 
-const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scope *scope)
+const FunctionCall *Parser::parseFunctionCall(const Expression *func, Scope *scope)
 {
-    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(ref->type);
+    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     if (ftype == nullptr) {
         error(2027, tokens[i-1], "not a function");
     }
@@ -342,7 +342,7 @@ const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scop
                 error(2167, tokens[i], "too many parameters");
             }
             if (ftype->params[p]->mode != ParameterType::IN) {
-                const VariableReference *ref = e->get_reference();
+                const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
                 if (ref == nullptr) {
                     error(2028, tokens[i], "function call argument must be reference: " + e->text());
                 }
@@ -368,7 +368,7 @@ const FunctionCall *Parser::parseFunctionCall(const VariableReference *ref, Scop
         error(2031, tokens[i], "not enough arguments");
     }
     ++i;
-    return new FunctionCall(ref, args);
+    return new FunctionCall(func, args);
 }
 
 const ArrayLiteralExpression *Parser::parseArrayLiteral(Scope *scope)
@@ -420,6 +420,24 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral(Scope *scope)
         }
     }
     return new DictionaryLiteralExpression(elementtype, elements);
+}
+
+const Name *Parser::parseQualifiedName(Scope *scope, int &enclosing)
+{
+    const Name *name = scope->lookupName(tokens[i].text, enclosing);
+    if (name == nullptr) {
+        error(2059, tokens[i], "name not found: " + tokens[i].text);
+    }
+    const Module *module = dynamic_cast<const Module *>(name);
+    if (module != nullptr) {
+        ++i;
+        if (tokens[i].type != DOT) {
+            error(2060, tokens[i], "'.' expected");
+        }
+        ++i;
+        return parseQualifiedName(module->scope, enclosing);
+    }
+    return name;
 }
 
 /*
@@ -527,16 +545,120 @@ const Expression *Parser::parseAtom(Scope *scope)
                 ++i;
                 return new ConstantEnumExpression(enumtype, name->second);
             } else {
-                const VariableReference *ref = parseVariableReference(scope);
-                if (tokens[i].type == LPAREN) {
-                    const FunctionCall *fc = parseFunctionCall(ref, scope);
-                    if (dynamic_cast<const TypeFunction *>(fc->func->type)->returntype == TYPE_NOTHING) {
-                        error(2192, tokens[i], "function does not return anything");
-                    }
-                    return fc;
-                } else {
-                    return new VariableExpression(ref);
+                int enclosing;
+                const Name *name = parseQualifiedName(scope, enclosing);
+                const Constant *cons = dynamic_cast<const Constant *>(name);
+                if (cons != nullptr) {
+                    ++i;
+                    return cons->value;
                 }
+                const Variable *var = dynamic_cast<const Variable *>(name);
+                if (var == nullptr) {
+                    error(2061, tokens[i], "name is not a variable: " + tokens[i].text);
+                }
+                const Expression *expr = new VariableExpression(var);
+                const Type *type = var->type;
+                ++i;
+                for (;;) {
+                    if (tokens[i].type == LBRACKET) {
+                        const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
+                        const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
+                        if (arraytype != nullptr) {
+                            ++i;
+                            const Expression *index = parseExpression(scope);
+                            if (not index->type->is_equivalent(TYPE_NUMBER)) {
+                                error(2062, tokens[i], "index must be a number");
+                            }
+                            if (tokens[i].type != RBRACKET) {
+                                error(2063, tokens[i], "']' expected");
+                            }
+                            ++i;
+                            type = arraytype->elementtype;
+                            expr = new ArrayIndexExpression(type, expr, index);
+                        } else if (dicttype != nullptr) {
+                            ++i;
+                            const Expression *index = parseExpression(scope);
+                            if (not index->type->is_equivalent(TYPE_STRING)) {
+                                error(2064, tokens[i], "index must be a string");
+                            }
+                            if (tokens[i].type != RBRACKET) {
+                                error(2065, tokens[i], "']' expected");
+                            }
+                            ++i;
+                            type = dicttype->elementtype;
+                            expr = new DictionaryIndexExpression(type, expr, index);
+                        } else if (type == TYPE_STRING) {
+                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
+                            // TODO
+                            ++i;
+                            const Expression *index = parseExpression(scope);
+                            if (not index->type->is_equivalent(TYPE_NUMBER)) {
+                                error(2066, tokens[i], "index must be a number");
+                            }
+                            if (tokens[i].type != RBRACKET) {
+                                error(2067, tokens[i], "']' expected");
+                            }
+                            ++i;
+                            return new StringIndexExpression(ref, index);
+                        } else {
+                            error(2068, tokens[i], "not an array or dictionary");
+                        }
+                    } else if (tokens[i].type == LPAREN) {
+                        const FunctionCall *fc = parseFunctionCall(expr, scope);
+                        return fc;
+                    } else if (tokens[i].type == DOT) {
+                        const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
+                        if (recordtype != nullptr) {
+                            ++i;
+                            if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
+                                internal_error("record not defined yet");
+                            }
+                            if (tokens[i].type != IDENTIFIER) {
+                                error(2069, tokens[i], "identifier expected");
+                            }
+                            std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
+                            if (f == recordtype->fields.end()) {
+                                error(2070, tokens[i], "field not found");
+                            }
+                            ++i;
+                            type = f->second.second;
+                            expr = new ArrayIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                        } else {
+                            error(2071, tokens[i], "not a record");
+                        }
+                    } else if (tokens[i].type == ARROW) {
+                        const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
+                        if (pointertype != nullptr) {
+                            if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
+                                error(2178, tokens[i], "pointer must be a valid pointer");
+                            }
+                            const TypeRecord *recordtype = pointertype->reftype;
+                            if (recordtype == nullptr) {
+                                error(2194, tokens[i], "pointer must not be a generic pointer");
+                            }
+                            ++i;
+                            if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
+                                error(2179, tokens[i], "record not defined yet");
+                            }
+                            if (tokens[i].type != IDENTIFIER) {
+                                error(2186, tokens[i], "identifier expected");
+                            }
+                            std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
+                            if (f == recordtype->fields.end()) {
+                                error(2187, tokens[i], "field not found");
+                            }
+                            ++i;
+                            type = f->second.second;
+                            expr = new PointerDereferenceExpression(type, expr);
+                            expr = new ArrayIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                        } else {
+                            error(2188, tokens[i], "not a pointer");
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                return expr;
             }
         }
         default:
@@ -642,7 +764,7 @@ const Expression *Parser::parseAddition(Scope *scope)
                     std::vector<const Expression *> args;
                     args.push_back(left);
                     args.push_back(right);
-                    left = new FunctionCall(new ScalarVariableReference(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
+                    left = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
                 } else {
                     error(2193, tokens[op], "type mismatch");
                 }
@@ -799,9 +921,13 @@ const Expression *Parser::parseConditional(Scope *scope)
     }
 }
 
-const Expression *Parser::parseExpression(Scope *scope)
+const Expression *Parser::parseExpression(Scope *scope, bool allow_nothing)
 {
-    return parseConditional(scope);
+    const Expression *r = parseConditional(scope);
+    if (not allow_nothing && r->type == TYPE_NOTHING) {
+        error(2192, tokens[i], "function does not return anything");
+    }
+    return r;
 }
 
 typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
@@ -830,135 +956,6 @@ const VariableInfo Parser::parseVariableDeclaration(Scope *scope)
     ++i;
     const Type *t = parseType(scope);
     return make_pair(names, t);
-}
-
-const VariableReference *Parser::parseVariableReference(Scope *scope)
-{
-    if (tokens[i].type == IDENTIFIER) {
-        int enclosing;
-        const Name *name = scope->lookupName(tokens[i].text, enclosing);
-        if (name == nullptr) {
-            error(2059, tokens[i], "name not found: " + tokens[i].text);
-        }
-        const Constant *cons = dynamic_cast<const Constant *>(name);
-        if (cons != nullptr) {
-            ++i;
-            return new ConstantReference(cons);
-        }
-        const Module *module = dynamic_cast<const Module *>(name);
-        if (module != nullptr) {
-            ++i;
-            if (tokens[i].type != DOT) {
-                error(2060, tokens[i], "'.' expected");
-            }
-            ++i;
-            return parseVariableReference(module->scope);
-        }
-        const Variable *var = dynamic_cast<const Variable *>(name);
-        if (var == nullptr) {
-            error(2061, tokens[i], "name is not a variable: " + tokens[i].text);
-        }
-        const VariableReference *ref = new ScalarVariableReference(var, enclosing);
-        const Type *type = var->type;
-        ++i;
-        for (;;) {
-            if (tokens[i].type == LBRACKET) {
-                const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
-                const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
-                if (arraytype != nullptr) {
-                    ++i;
-                    const Expression *index = parseExpression(scope);
-                    if (not index->type->is_equivalent(TYPE_NUMBER)) {
-                        error(2062, tokens[i], "index must be a number");
-                    }
-                    if (tokens[i].type != RBRACKET) {
-                        error(2063, tokens[i], "']' expected");
-                    }
-                    ++i;
-                    type = arraytype->elementtype;
-                    ref = new ArrayReference(type, ref, index);
-                } else if (dicttype != nullptr) {
-                    ++i;
-                    const Expression *index = parseExpression(scope);
-                    if (not index->type->is_equivalent(TYPE_STRING)) {
-                        error(2064, tokens[i], "index must be a string");
-                    }
-                    if (tokens[i].type != RBRACKET) {
-                        error(2065, tokens[i], "']' expected");
-                    }
-                    ++i;
-                    type = dicttype->elementtype;
-                    ref = new DictionaryReference(type, ref, index);
-                } else if (type == TYPE_STRING) {
-                    ++i;
-                    const Expression *index = parseExpression(scope);
-                    if (not index->type->is_equivalent(TYPE_NUMBER)) {
-                        error(2066, tokens[i], "index must be a number");
-                    }
-                    if (tokens[i].type != RBRACKET) {
-                        error(2067, tokens[i], "']' expected");
-                    }
-                    ++i;
-                    return new StringReference(ref, index);
-                } else {
-                    error(2068, tokens[i], "not an array or dictionary");
-                }
-            } else if (tokens[i].type == DOT) {
-                const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
-                if (recordtype != nullptr) {
-                    ++i;
-                    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-                        internal_error("record not defined yet");
-                    }
-                    if (tokens[i].type != IDENTIFIER) {
-                        error(2069, tokens[i], "identifier expected");
-                    }
-                    std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
-                    if (f == recordtype->fields.end()) {
-                        error(2070, tokens[i], "field not found");
-                    }
-                    ++i;
-                    type = f->second.second;
-                    ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
-                } else {
-                    error(2071, tokens[i], "not a record");
-                }
-            } else if (tokens[i].type == ARROW) {
-                const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
-                if (pointertype != nullptr) {
-                    if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
-                        error(2178, tokens[i], "pointer must be a valid pointer");
-                    }
-                    const TypeRecord *recordtype = pointertype->reftype;
-                    if (recordtype == nullptr) {
-                        error(2194, tokens[i], "pointer must not be a generic pointer");
-                    }
-                    ++i;
-                    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-                        error(2179, tokens[i], "record not defined yet");
-                    }
-                    if (tokens[i].type != IDENTIFIER) {
-                        error(2186, tokens[i], "identifier expected");
-                    }
-                    std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
-                    if (f == recordtype->fields.end()) {
-                        error(2187, tokens[i], "field not found");
-                    }
-                    ++i;
-                    type = f->second.second;
-                    ref = new Dereference(type, ref);
-                    ref = new ArrayReference(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
-                } else {
-                    error(2188, tokens[i], "not a pointer");
-                }
-            } else {
-                break;
-            }
-        }
-        return ref;
-    } else {
-        error(2072, tokens[i], "Identifier expected");
-    }
 }
 
 void Parser::parseFunctionHeader(Scope *scope, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args)
@@ -1259,8 +1256,7 @@ const Statement *Parser::parseReturnStatement(Scope *scope, int line)
 const Statement *Parser::parseVarStatement(Scope *scope, int line)
 {
     ++i;
-    int enclosing = 0;
-    std::vector<const VariableReference *> varrefs;
+    std::vector<const ReferenceExpression *> varrefs;
     const VariableInfo vars = parseVariableDeclaration(scope);
     for (auto name: vars.first) {
         Variable *v;
@@ -1270,7 +1266,7 @@ const Statement *Parser::parseVarStatement(Scope *scope, int line)
             v = new LocalVariable(name, vars.second, scope, false);
         }
         scope->addName(name, v);
-        varrefs.push_back(new ScalarVariableReference(v, enclosing));
+        varrefs.push_back(new VariableExpression(v));
     }
     if (tokens[i].type == ASSIGN) {
         ++i;
@@ -1599,10 +1595,18 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
 const Statement *Parser::parseForStatement(Scope *scope, int line)
 {
     ++i;
-    const VariableReference *var = parseVariableReference(scope);
+    if (tokens[i].type != IDENTIFIER) {
+        error(2072, tokens[i], "identifier expected");
+    }
+    const Name *name = scope->lookupName(tokens[i].text);
+    const Variable *var = dynamic_cast<const Variable *>(name);
+    if (var == nullptr) {
+        error(2195, tokens[i], "name not a variable: " + tokens[i].text);
+    }
     if (not var->type->is_equivalent(TYPE_NUMBER)) {
         error(2112, tokens[i], "type mismatch");
     }
+    ++i;
     if (tokens[i].type != IN) {
         error(2121, tokens[i], "'IN' expected");
     }
@@ -1658,7 +1662,7 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
     }
     ++i;
     loops.top().pop_back();
-    return new ForStatement(line, loop_id, var, start, end, step, statements);
+    return new ForStatement(line, loop_id, new VariableExpression(var), start, end, step, statements);
 }
 
 const Statement *Parser::parseLoopStatement(Scope *scope, int line)
@@ -1879,32 +1883,30 @@ const Statement *Parser::parseStatement(Scope *scope)
     } else if (tokens[i].type == RAISE) {
         return parseRaiseStatement(scope, line);
     } else if (tokens[i].type == IDENTIFIER) {
-        const VariableReference *ref = parseVariableReference(scope);
-        if (tokens[i].type == ASSIGN) {
-            if (dynamic_cast<const ConstantReference *>(ref) != nullptr) {
-                // TODO: there is probably a better way to detect this.
-                error(2095, tokens[i], "name is not a variable");
+        const Expression *expr = parseExpression(scope, true);
+        if (expr->type == TYPE_NOTHING) {
+            return new ExpressionStatement(line, expr);
+        } else if (tokens[i].type == ASSIGN) {
+            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
+            if (ref == nullptr) {
+                error(2095, tokens[i], "name is not assignable");
             }
-            if (ref->is_readonly) {
+            if (expr->is_readonly) {
                 error(2180, tokens[i], "assignment to readonly");
             }
             auto op = i;
             ++i;
-            const Expression *expr = parseExpression(scope);
-            if (not expr->type->is_equivalent(ref->type)) {
+            const Expression *rhs = parseExpression(scope);
+            if (not rhs->type->is_equivalent(expr->type)) {
                 error(2094, tokens[op], "type mismatch");
             }
-            std::vector<const VariableReference *> vars;
+            std::vector<const ReferenceExpression *> vars;
             vars.push_back(ref);
-            return new AssignmentStatement(line, vars, expr);
-        } else if (tokens[i].type == LPAREN) {
-            const FunctionCall *fc = parseFunctionCall(ref, scope);
-            if (fc->type != TYPE_NOTHING) {
-                error(2096, tokens[i], "return value unused");
-            }
-            return new ExpressionStatement(line, fc);
-        } else if (tokens[i].type == EQUAL) {
+            return new AssignmentStatement(line, vars, rhs);
+        } else if (dynamic_cast<const ComparisonExpression *>(expr) != nullptr) {
             error(2097, tokens[i], "':=' expected");
+        } else if (dynamic_cast<const FunctionCall *>(expr) != nullptr) {
+            error(2096, tokens[i], "return value unused");
         } else {
             error(2098, tokens[i], "Unexpected");
         }

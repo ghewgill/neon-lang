@@ -1,3 +1,4 @@
+% SKIP
 FUNCTION foo()
     VAR outer: String
         FUNCTION bar()

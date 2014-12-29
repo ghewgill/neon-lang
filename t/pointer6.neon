@@ -6,7 +6,7 @@ VAR a, b: POINTER TO Node
 
 IF VALID p := a THEN
     p := b
-    p.value := 5
+    p->value := 5
 END IF
 
 %! assignment to readonly

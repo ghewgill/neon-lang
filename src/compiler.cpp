@@ -735,89 +735,90 @@ void ExponentiationExpression::generate(Emitter &emitter) const
     emitter.emit(EXPN);
 }
 
-void VariableReference::generate_load(Emitter &emitter) const
+void ReferenceExpression::generate_load(Emitter &emitter) const
 {
     generate_address_read(emitter);
     type->generate_load(emitter);
 }
 
-void VariableReference::generate_store(Emitter &emitter) const
+void ReferenceExpression::generate_store(Emitter &emitter) const
 {
     generate_address_write(emitter);
     type->generate_store(emitter);
 }
 
-void VariableReference::generate_call(Emitter &) const
+void ArrayIndexExpression::generate_address_read(Emitter &emitter) const
 {
-    internal_error("VariableReference");
+    const ReferenceExpression *arrayref = dynamic_cast<const ReferenceExpression *>(array);
+    if (arrayref != nullptr) {
+        arrayref->generate_address_read(emitter);
+        index->generate(emitter);
+        emitter.emit(INDEXAR);
+    } else {
+        internal_error("TODO");
+    }
 }
 
-void ScalarVariableReference::generate_address_read(Emitter &emitter) const
+void ArrayIndexExpression::generate_address_write(Emitter &emitter) const
 {
-    var->generate_address(emitter, enclosing);
+    const ReferenceExpression *arrayref = dynamic_cast<const ReferenceExpression *>(array);
+    if (arrayref != nullptr) {
+        arrayref->generate_address_read(emitter);
+        index->generate(emitter);
+        emitter.emit(INDEXAW);
+    } else {
+        internal_error("TODO");
+    }
 }
 
-void ScalarVariableReference::generate_address_write(Emitter &emitter) const
+void DictionaryIndexExpression::generate_address_read(Emitter &emitter) const
 {
-    var->generate_address(emitter, enclosing);
+    const ReferenceExpression *dictionaryref = dynamic_cast<const ReferenceExpression *>(dictionary);
+    if (dictionaryref != nullptr) {
+        dictionaryref->generate_address_read(emitter);
+        index->generate(emitter);
+        emitter.emit(INDEXDR);
+    } else {
+        internal_error("TODO");
+    }
 }
 
-void ScalarVariableReference::generate_call(Emitter &emitter) const
+void DictionaryIndexExpression::generate_address_write(Emitter &emitter) const
 {
-    var->generate_call(emitter);
+    const ReferenceExpression *dictionaryref = dynamic_cast<const ReferenceExpression *>(dictionary);
+    if (dictionaryref != nullptr) {
+        dictionaryref->generate_address_read(emitter);
+        index->generate(emitter);
+        emitter.emit(INDEXDW);
+    } else {
+        internal_error("TODO");
+    }
 }
 
-void StringReference::generate_load(Emitter &emitter) const
+void StringIndexExpression::generate_load(Emitter &emitter) const
 {
     load->generate(emitter);
 }
 
-void StringReference::generate_store(Emitter &emitter) const
+void StringIndexExpression::generate_store(Emitter &emitter) const
 {
     store->generate(emitter);
-    str->generate_store(emitter);
+    ref->generate_store(emitter);
 }
 
-void ArrayReference::generate_address_read(Emitter &emitter) const
+void PointerDereferenceExpression::generate_address_read(Emitter &emitter) const
 {
-    array->generate_address_read(emitter);
-    index->generate(emitter);
-    emitter.emit(INDEXAR);
+    ptr->generate(emitter);
 }
 
-void ArrayReference::generate_address_write(Emitter &emitter) const
+void PointerDereferenceExpression::generate_address_write(Emitter &emitter) const
 {
-    array->generate_address_read(emitter);
-    index->generate(emitter);
-    emitter.emit(INDEXAW);
-}
-
-void DictionaryReference::generate_address_read(Emitter &emitter) const
-{
-    dict->generate_address_read(emitter);
-    index->generate(emitter);
-    emitter.emit(INDEXDR);
-}
-
-void DictionaryReference::generate_address_write(Emitter &emitter) const
-{
-    dict->generate_address_read(emitter);
-    index->generate(emitter);
-    emitter.emit(INDEXDW);
-}
-
-void Dereference::generate_address_read(Emitter &emitter) const
-{
-    ptr->generate_load(emitter);
-}
-
-void Dereference::generate_address_write(Emitter &emitter) const
-{
-    ptr->generate_load(emitter);
+    ptr->generate(emitter);
 }
 
 void VariableExpression::generate(Emitter &emitter) const
 {
+    generate_address_read(emitter);
     var->generate_load(emitter);
 }
 
@@ -825,9 +826,9 @@ void FunctionCall::generate(Emitter &emitter) const
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     // TODO: This is a ridiculous hack because the way we compile
-    // StringReference::store is not really legal. This assertion
+    // StringIndexExpression::store is not really legal. This assertion
     // holds true for any other function call.
-    if (func->text() != "ScalarVariableReference(PredefinedFunction(splice, TypeFunction(...)))") {
+    if (func->text() != "VariableExpression(PredefinedFunction(splice, TypeFunction(...)))") {
         assert(args.size() == ftype->params.size());
     }
     for (size_t i = 0; i < args.size(); i++) {
@@ -838,7 +839,7 @@ void FunctionCall::generate(Emitter &emitter) const
                 arg->generate(emitter);
                 break;
             case ParameterType::INOUT:
-                arg->get_reference()->generate_address_read(emitter);
+                dynamic_cast<const ReferenceExpression *>(arg)->generate_address_read(emitter);
                 break;
             case ParameterType::OUT:
                 break;
@@ -853,7 +854,7 @@ void FunctionCall::generate(Emitter &emitter) const
             case ParameterType::INOUT:
                 break;
             case ParameterType::OUT:
-                arg->get_reference()->generate_store(emitter);
+                dynamic_cast<const ReferenceExpression *>(arg)->generate_store(emitter);
                 break;
         }
     }
