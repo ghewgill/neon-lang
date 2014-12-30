@@ -11,7 +11,7 @@ namespace String {
 
 Number length(std::string *self)
 {
-    return number_from_uint32(self->length());
+    return number_from_uint64(self->length());
 }
 
 } // namespace String

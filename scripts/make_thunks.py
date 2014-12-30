@@ -117,7 +117,7 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "    Cell t;"
                 print >>inc, "    for (auto x: r) t.array().push_back(Cell(x));"
                 print >>inc, "    stack.push(t);"
-            elif rtype == "TYPE_POINTER":
+            elif rtype[0] == "TYPE_POINTER":
                 print >>inc, "    stack.push(Cell(static_cast<Cell *>(r)));"
             else:
                 print >>inc, "    stack.push(Cell(r));"
