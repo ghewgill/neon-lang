@@ -1256,9 +1256,11 @@ const Statement *Parser::parseReturnStatement(Scope *scope, int line)
     return new ReturnStatement(line, expr);
 }
 
-const Statement *Parser::parseVarStatement(Scope *scope, int /*line*/)
+const Statement *Parser::parseVarStatement(Scope *scope, int line)
 {
     ++i;
+    int enclosing = 0;
+    std::vector<const VariableReference *> varrefs;
     const VariableInfo vars = parseVariableDeclaration(scope);
     for (auto name: vars.first) {
         Variable *v;
@@ -1268,6 +1270,12 @@ const Statement *Parser::parseVarStatement(Scope *scope, int /*line*/)
             v = new LocalVariable(name, vars.second, scope, false);
         }
         scope->addName(name, v);
+        varrefs.push_back(new ScalarVariableReference(v, enclosing));
+    }
+    if (tokens[i].type == ASSIGN) {
+        ++i;
+        const Expression *expr = parseExpression(scope);
+        return new AssignmentStatement(line, varrefs, expr);
     }
     return nullptr;
 }
@@ -1886,7 +1894,9 @@ const Statement *Parser::parseStatement(Scope *scope)
             if (not expr->type->is_equivalent(ref->type)) {
                 error(2094, tokens[op], "type mismatch");
             }
-            return new AssignmentStatement(line, ref, expr);
+            std::vector<const VariableReference *> vars;
+            vars.push_back(ref);
+            return new AssignmentStatement(line, vars, expr);
         } else if (tokens[i].type == LPAREN) {
             const FunctionCall *fc = parseFunctionCall(ref, scope);
             if (fc->type != TYPE_NOTHING) {

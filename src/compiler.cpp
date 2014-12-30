@@ -868,7 +868,12 @@ void Statement::generate(Emitter &emitter) const
 void AssignmentStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
-    variable->generate_store(emitter);
+    for (size_t i = 0; i < variables.size() - 1; i++) {
+        emitter.emit(DUP);
+    }
+    for (auto v: variables) {
+         v->generate_store(emitter);
+    }
 }
 
 void ExpressionStatement::generate_code(Emitter &emitter) const
