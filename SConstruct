@@ -67,7 +67,11 @@ if coverage:
         "--coverage", "-O0",
     ])
 
-rtl = [
+rtl_const = [
+    "lib/math_const.cpp",
+]
+
+rtl = rtl_const + [
     "lib/curses.cpp",
     "lib/global.cpp",
     "lib/math.cpp",
@@ -122,7 +126,7 @@ neonc = env.Program("bin/neonc", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/rtl_compile.cpp",
-    rtl,
+    rtl_const,
     "src/neonc.cpp",
     "src/util.cpp",
 ] + coverage_lib,
@@ -185,7 +189,7 @@ env.Program("bin/fuzz_parser", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/rtl_compile.cpp",
-    rtl,
+    rtl_const,
     "src/util.cpp",
 ] + coverage_lib,
 )
