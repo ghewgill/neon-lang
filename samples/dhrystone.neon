@@ -658,6 +658,7 @@ FUNCTION main()
   END IF
   Str_1_Loc := "DHRYSTONE PROGRAM, 1'ST STRING"
 
+  Arr_2_Glob [28] := []     % Make sure the array is big enough.
   Arr_2_Glob [8][7] := 10
 
   print ("")
