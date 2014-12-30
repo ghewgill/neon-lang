@@ -1116,6 +1116,11 @@ void RaiseStatement::generate_code(Emitter &emitter) const
 
 void Scope::predeclare(Emitter &emitter) const
 {
+    // Avoid unbounded recursion.
+    if (predeclared) {
+        return;
+    }
+    predeclared = true;
     for (auto n: names) {
         if (referenced.find(n.second) != referenced.end()) {
             n.second->predeclare(emitter);

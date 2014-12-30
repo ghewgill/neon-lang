@@ -11,6 +11,5 @@ END ENUM
 VAR a: Colour
 
 a := Colour.red
-% TODO
 print(a.to_string())
 %= red

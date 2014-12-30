@@ -36,7 +36,7 @@ class FunctionParameter;
 
 class Scope {
 public:
-    Scope(Scope *parent): parent(parent), names(), referenced(), count(0), forwards() {}
+    Scope(Scope *parent): parent(parent), predeclared(false), names(), referenced(), count(0), forwards() {}
     virtual ~Scope() {}
 
     virtual void predeclare(Emitter &emitter) const;
@@ -54,6 +54,7 @@ public:
 
 private:
     Scope *const parent;
+    mutable bool predeclared;
     std::map<std::string, Name *> names;
     std::set<const Name *> referenced;
     int count;
@@ -247,7 +248,7 @@ public:
 
 class TypeEnum: public TypeNumber {
 public:
-    TypeEnum(const std::map<std::string, int> &names): TypeNumber(), names(names) {}
+    TypeEnum(const std::map<std::string, int> &names);
     const std::map<std::string, int> names;
 
     virtual std::string text() const { return "TypeEnum(...)"; }

@@ -78,6 +78,39 @@ Parser::Parser(const std::vector<Token> &tokens)
 {
 }
 
+TypeEnum::TypeEnum(const std::map<std::string, int> &names)
+  : TypeNumber(),
+    names(names)
+{
+    {
+        Scope *newscope = new Scope(Parser::global_scope);
+        std::vector<FunctionParameter *> params;
+        FunctionParameter *fp = new FunctionParameter("self", this, ParameterType::INOUT, newscope);
+        params.push_back(fp);
+        Function *f = new Function("enum.to_string", TYPE_STRING, newscope, params);
+        f->scope->addName("self", fp, true);
+        LocalVariable *name_array = new LocalVariable("enum.names", TYPE_ARRAY_STRING, newscope, true);
+        f->scope->addName("enum.names", name_array, true);
+        std::vector<const Expression *> values;
+        for (auto n: names) {
+            if (n.second < 0) {
+                internal_error("TypeEnum");
+            }
+            if (values.size() < static_cast<size_t>(n.second)+1) {
+                values.resize(n.second+1);
+            }
+            if (values[n.second] != nullptr) {
+                internal_error("TypeEnum");
+            }
+            values[n.second] = new ConstantStringExpression(n.first);
+        }
+        f->statements.push_back(new AssignmentStatement(0, std::vector<const ReferenceExpression *>{new VariableExpression(name_array)}, new ArrayLiteralExpression(TYPE_STRING, values)));
+        f->statements.push_back(new ReturnStatement(0, new ArrayIndexExpression(TYPE_STRING, new VariableExpression(name_array), new VariableExpression(fp))));
+        methods["to_string"] = f;
+        Parser::global_scope->addName("enum.to_string", f, true);
+    }
+}
+
 static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
 {
     switch (token.type) {
@@ -530,9 +563,12 @@ const Expression *Parser::parseAtom(Scope *scope)
         case IDENTIFIER: {
             const Name *name = scope->lookupName(tokens[i].text);
             const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(name);
+            /* TODO: This allows referencing enum values for a variable
+                     declared with an anonymous enum type. But it currently
+                     conflicts with method call syntax like a.to_string().
             if (name != nullptr && enumtype == nullptr && tokens[i+1].type == DOT) {
                 enumtype = dynamic_cast<const TypeEnum *>(name->type);
-            }
+            }*/
             if (enumtype != nullptr) {
                 ++i;
                 if (tokens[i].type != DOT) {

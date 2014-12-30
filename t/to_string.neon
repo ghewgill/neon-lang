@@ -1,9 +1,16 @@
 VAR n: Number := 5
-
 print(n.to_string())
 %= 5
 
 VAR b: Boolean := TRUE
-
 print(b.to_string())
 %= TRUE
+
+TYPE Colour := ENUM
+    red
+    green
+    blue
+END ENUM
+VAR c: Colour := Colour.green
+print(c.to_string())
+%= green
