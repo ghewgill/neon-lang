@@ -265,7 +265,7 @@ Emitter::Label &Emitter::get_function_exit()
     return *function_exit.top();
 }
 
-void Type::predeclare(Emitter &emitter)
+void Type::predeclare(Emitter &emitter) const
 {
     for (auto m: methods) {
         m.second->predeclare(emitter);
@@ -407,7 +407,7 @@ void Variable::generate_call(Emitter &emitter) const
     type->generate_call(emitter);
 }
 
-void GlobalVariable::predeclare(Emitter &emitter)
+void GlobalVariable::predeclare(Emitter &emitter) const
 {
     index = emitter.global(name);
 }
@@ -417,7 +417,7 @@ void GlobalVariable::generate_address(Emitter &emitter, int) const
     emitter.emit(PUSHPG, index);
 }
 
-void LocalVariable::predeclare(Emitter &)
+void LocalVariable::predeclare(Emitter &) const
 {
     index = scope->nextIndex();
 }
@@ -445,13 +445,13 @@ void FunctionParameter::generate_address(Emitter &emitter, int) const
     }
 }
 
-void Function::predeclare(Emitter &emitter)
+void Function::predeclare(Emitter &emitter) const
 {
     scope->predeclare(emitter);
     entry_label = emitter.next_function();
 }
 
-void Function::postdeclare(Emitter &emitter)
+void Function::postdeclare(Emitter &emitter) const
 {
     emitter.jump_target(emitter.function_label(entry_label));
     emitter.emit(ENTER, scope->getCount());
@@ -497,7 +497,7 @@ void Function::generate_call(Emitter &emitter) const
     emitter.emit_jump(CALLF, emitter.function_label(entry_label));
 }
 
-void PredefinedFunction::predeclare(Emitter &emitter)
+void PredefinedFunction::predeclare(Emitter &emitter) const
 {
     name_index = emitter.str(name);
 }
@@ -507,7 +507,7 @@ void PredefinedFunction::generate_call(Emitter &emitter) const
     emitter.emit(CALLP, name_index);
 }
 
-void ExternalFunction::predeclare(Emitter &emitter)
+void ExternalFunction::predeclare(Emitter &emitter) const
 {
     std::stringstream ss;
     ss << library_name << ":" << name << ":";
@@ -1130,7 +1130,7 @@ void Scope::postdeclare(Emitter &emitter) const
     }
 }
 
-void Module::predeclare(Emitter &emitter)
+void Module::predeclare(Emitter &emitter) const
 {
     scope->predeclare(emitter);
 }

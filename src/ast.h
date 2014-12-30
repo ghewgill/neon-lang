@@ -69,8 +69,8 @@ public:
     const std::string name;
     const Type *type;
 
-    virtual void predeclare(Emitter &) {}
-    virtual void postdeclare(Emitter &) {}
+    virtual void predeclare(Emitter &) const {}
+    virtual void postdeclare(Emitter &) const {}
 private:
     Name(const Name &);
     Name &operator=(const Name &);
@@ -82,7 +82,7 @@ public:
 
     std::map<std::string, Variable *> methods;
 
-    virtual void predeclare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter) const;
     virtual bool is_equivalent(const Type *rhs) const { return this == rhs; }
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
@@ -296,9 +296,9 @@ public:
 class GlobalVariable: public Variable {
 public:
     GlobalVariable(const std::string &name, const Type *type, bool is_readonly): Variable(name, type, is_readonly), index(-1) {}
-    int index;
+    mutable int index;
 
-    virtual void predeclare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter) const;
     virtual void generate_address(Emitter &emitter, int enclosing) const;
 
     virtual std::string text() const { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
@@ -308,9 +308,9 @@ class LocalVariable: public Variable {
 public:
     LocalVariable(const std::string &name, const Type *type, Scope *scope, bool is_readonly): Variable(name, type, is_readonly), scope(scope), index(-1) {}
     Scope *scope;
-    int index;
+    mutable int index;
 
-    virtual void predeclare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter) const;
     virtual void generate_address(Emitter &emitter, int enclosing) const;
 
     virtual std::string text() const { return "LocalVariable(" + name + ", " + type->text() + ")"; }
@@ -1296,14 +1296,14 @@ public:
 
     Scope *scope;
     const std::vector<FunctionParameter *> params;
-    unsigned int entry_label;
+    mutable unsigned int entry_label;
 
     std::vector<const Statement *> statements;
 
     static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
 
-    virtual void predeclare(Emitter &emitter);
-    virtual void postdeclare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter) const;
+    virtual void postdeclare(Emitter &emitter) const;
     virtual void generate_address(Emitter &, int) const { internal_error("Function"); }
     virtual void generate_load(Emitter &) const { internal_error("Function"); }
     virtual void generate_store(Emitter &) const { internal_error("Function"); }
@@ -1318,9 +1318,9 @@ private:
 class PredefinedFunction: public Variable {
 public:
     PredefinedFunction(const std::string &name, const Type *type): Variable(name, type, true), name_index(-1) {}
-    int name_index;
+    mutable int name_index;
 
-    virtual void predeclare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter) const;
     virtual void generate_address(Emitter &, int) const { internal_error("PredefinedFunction"); }
     virtual void generate_load(Emitter &) const { internal_error("PredefinedFunction"); }
     virtual void generate_store(Emitter &) const { internal_error("PredefinedFunction"); }
@@ -1335,10 +1335,10 @@ public:
 
     const std::string library_name;
     const std::map<std::string, std::string> param_types;
-    int external_index;
+    mutable int external_index;
 
-    virtual void predeclare(Emitter &);
-    virtual void postdeclare(Emitter &) {} // TODO: Stub this out so we don't inherit the one from Function. Fix Function hierarchy.
+    virtual void predeclare(Emitter &) const;
+    virtual void postdeclare(Emitter &) const {} // TODO: Stub this out so we don't inherit the one from Function. Fix Function hierarchy.
     virtual void generate_call(Emitter &emitter) const;
 
 private:
@@ -1352,7 +1352,7 @@ public:
 
     Scope *scope;
 
-    virtual void predeclare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter) const;
 
     virtual std::string text() const { return "Module"; }
 private:
