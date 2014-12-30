@@ -72,6 +72,7 @@ rtl_const = [
 ]
 
 rtl = rtl_const + [
+    "lib/bitwise.cpp",
     "lib/curses.cpp",
     "lib/global.cpp",
     "lib/math.cpp",

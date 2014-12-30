@@ -1,0 +1,34 @@
+IMPORT bitwise
+
+print(str(bitwise.and(10, 12)))
+%= 8
+
+print(str(bitwise.extract(10, 1, 3)))
+%= 5
+
+print(strb(bitwise.get(10, 1)))
+%= TRUE
+
+print(str(bitwise.not(5)))
+%= 4294967290
+
+print(str(bitwise.or(10, 12)))
+%= 14
+
+print(str(bitwise.replace(10, 1, 3, 2)))
+%= 4
+
+print(str(bitwise.set(10, 1, FALSE)))
+%= 8
+
+print(str(bitwise.set(10, 2, TRUE)))
+%= 14
+
+print(str(bitwise.shift_left(10, 2)))
+%= 40
+
+print(str(bitwise.shift_right(10, 2)))
+%= 2
+
+print(str(bitwise.xor(10, 12)))
+%= 6
