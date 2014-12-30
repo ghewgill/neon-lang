@@ -1,0 +1,9 @@
+VAR n: Number := 5
+
+print(n.to_string())
+%= 5
+
+VAR b: Boolean := TRUE
+
+print(b.to_string())
+%= TRUE

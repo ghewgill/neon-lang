@@ -21,8 +21,8 @@ public:
     bool operator==(const Cell &rhs) const;
 
     Cell *address();
-    bool boolean();
-    Number number();
+    bool &boolean();
+    Number &number();
     std::string &string();
     std::vector<Cell> &array();
     std::map<std::string, Cell> &dictionary();

@@ -140,7 +140,7 @@ Cell *Cell::address()
     return address_value;
 }
 
-bool Cell::boolean()
+bool &Cell::boolean()
 {
     if (type == cNone) {
         type = cBoolean;
@@ -149,7 +149,7 @@ bool Cell::boolean()
     return boolean_value;
 }
 
-Number Cell::number()
+Number &Cell::number()
 {
     if (type == cNone) {
         type = cNumber;

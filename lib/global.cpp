@@ -8,23 +8,41 @@
 
 namespace rtl {
 
-namespace Array {
+namespace array {
 
 Number size(Cell *self)
 {
     return number_from_uint64(self->array().size());
 }
 
-} // namespace Array
+} // namespace array
 
-namespace String {
+namespace boolean {
+
+std::string to_string(bool *self)
+{
+    return *self ? "TRUE" : "FALSE";
+}
+
+} // namespace boolean
+
+namespace number {
+
+std::string to_string(Number *self)
+{
+    return number_to_string(*self);
+}
+
+} // namespace number
+
+namespace string {
 
 Number length(std::string *self)
 {
     return number_from_uint64(self->length());
 }
 
-} // namespace String
+} // namespace string
 
 Number abs(Number x)
 {
