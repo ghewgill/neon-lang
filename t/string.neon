@@ -11,3 +11,6 @@ print(a)
 a[4] := "ish"
 print(a)
 %= hellish world
+
+print(str(a.length()))
+%= 13

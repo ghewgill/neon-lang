@@ -7,6 +7,15 @@
 
 namespace rtl {
 
+namespace String {
+
+Number length(std::string *self)
+{
+    return number_from_uint32(self->length());
+}
+
+} // namespace String
+
 Number abs(Number x)
 {
     return number_abs(x);

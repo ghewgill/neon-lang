@@ -1,0 +1,2 @@
+VAR s: String
+s.length :=

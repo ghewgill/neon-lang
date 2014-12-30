@@ -29,7 +29,7 @@ public:
     const Type *parseType(Scope *scope);
     const Statement *parseTypeDefinition(Scope *scope);
     const Statement *parseConstantDefinition(Scope *scope);
-    const FunctionCall *parseFunctionCall(const Expression *func, Scope *scope);
+    const FunctionCall *parseFunctionCall(const Expression *func, const Expression *self, Scope *scope);
     const ArrayLiteralExpression *parseArrayLiteral(Scope *scope);
     const DictionaryLiteralExpression *parseDictionaryLiteral(Scope *scope);
     const Name *parseQualifiedName(Scope *scope, int &enclosing);
@@ -326,7 +326,7 @@ const Statement *Parser::parseConstantDefinition(Scope *scope)
     return nullptr;
 }
 
-const FunctionCall *Parser::parseFunctionCall(const Expression *func, Scope *scope)
+const FunctionCall *Parser::parseFunctionCall(const Expression *func, const Expression *self, Scope *scope)
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     if (ftype == nullptr) {
@@ -335,6 +335,10 @@ const FunctionCall *Parser::parseFunctionCall(const Expression *func, Scope *sco
     ++i;
     std::vector<const Type *>::size_type p = 0;
     std::vector<const Expression *> args;
+    if (self != nullptr) {
+        args.push_back(self);
+        ++p;
+    }
     if (tokens[i].type != RPAREN) {
         for (;;) {
             const Expression *e = parseExpression(scope);
@@ -604,19 +608,27 @@ const Expression *Parser::parseAtom(Scope *scope)
                             error(2068, tokens[i], "not an array or dictionary");
                         }
                     } else if (tokens[i].type == LPAREN) {
-                        const FunctionCall *fc = parseFunctionCall(expr, scope);
+                        const FunctionCall *fc = parseFunctionCall(expr, nullptr, scope);
                         return fc;
                     } else if (tokens[i].type == DOT) {
+                        ++i;
+                        if (tokens[i].type != IDENTIFIER) {
+                            error(2069, tokens[i], "identifier expected");
+                        }
+                        const std::string field = tokens[i].text;
+                        auto m = type->methods.find(field);
                         const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
-                        if (recordtype != nullptr) {
+                        if (m != type->methods.end()) {
                             ++i;
+                            if (tokens[i].type != LPAREN) {
+                                error(2196, tokens[i], "'(' expected");
+                            }
+                            expr = parseFunctionCall(new VariableExpression(m->second), expr, scope);
+                        } else if (recordtype != nullptr) {
                             if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
                                 internal_error("record not defined yet");
                             }
-                            if (tokens[i].type != IDENTIFIER) {
-                                error(2069, tokens[i], "identifier expected");
-                            }
-                            std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
+                            std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(field);
                             if (f == recordtype->fields.end()) {
                                 error(2070, tokens[i], "field not found");
                             }
@@ -624,7 +636,7 @@ const Expression *Parser::parseAtom(Scope *scope)
                             type = f->second.second;
                             expr = new ArrayIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second.first)));
                         } else {
-                            error(2071, tokens[i], "not a record");
+                            error(2071, tokens[i], "no method found or not a record");
                         }
                     } else if (tokens[i].type == ARROW) {
                         const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);

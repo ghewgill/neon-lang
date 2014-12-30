@@ -280,6 +280,12 @@ Program::Program()
     scope->addName("Number", TYPE_NUMBER);
     scope->addName("String", TYPE_STRING);
 
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(ParameterType::INOUT, TYPE_STRING));
+        TYPE_STRING->methods["length"] = new PredefinedFunction("String.length", new TypeFunction(TYPE_NUMBER, params));
+    }
+
     scope->addName("DivideByZero", new Exception("DivideByZero"));
     scope->addName("ArrayIndex", new Exception("ArrayIndex"));
     scope->addName("DictionaryIndex", new Exception("DictionaryIndex"));

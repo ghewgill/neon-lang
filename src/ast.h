@@ -30,6 +30,7 @@ class Name;
 class Type;
 class TypeRecord;
 class TypePointer;
+class Variable;
 class FunctionCall;
 class FunctionParameter;
 
@@ -77,7 +78,11 @@ private:
 
 class Type: public Name {
 public:
-    Type(const std::string &name): Name(name, nullptr) {}
+    Type(const std::string &name): Name(name, nullptr), methods() {}
+
+    std::map<std::string, Variable *> methods;
+
+    virtual void predeclare(Emitter &emitter);
     virtual bool is_equivalent(const Type *rhs) const { return this == rhs; }
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;

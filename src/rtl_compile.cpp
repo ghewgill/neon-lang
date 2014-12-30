@@ -9,10 +9,10 @@ void rtl_compile_init(Scope *scope)
     for (auto f: BuiltinFunctions) {
         std::vector<const ParameterType *> params;
         for (auto p: f.params) {
-            if (p == nullptr) {
+            if (p.p == nullptr) {
                 break;
             }
-            params.push_back(new ParameterType(ParameterType::IN, p));
+            params.push_back(new ParameterType(p.m, p.p));
         }
         scope->addName(f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
     }
@@ -28,10 +28,10 @@ void rtl_import(Scope *scope, const std::string &name)
         if (qualified_name.substr(0, prefix.length()) == prefix) {
             std::vector<const ParameterType *> params;
             for (auto p: f.params) {
-                if (p == nullptr) {
+                if (p.p == nullptr) {
                     break;
                 }
-                params.push_back(new ParameterType(ParameterType::IN, p));
+                params.push_back(new ParameterType(p.m, p.p));
             }
             module->scope->addName(qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
         }

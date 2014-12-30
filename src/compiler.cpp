@@ -265,6 +265,13 @@ Emitter::Label &Emitter::get_function_exit()
     return *function_exit.top();
 }
 
+void Type::predeclare(Emitter &emitter)
+{
+    for (auto m: methods) {
+        m.second->predeclare(emitter);
+    }
+}
+
 void TypeBoolean::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADB);
