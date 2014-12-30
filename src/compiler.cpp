@@ -409,6 +409,7 @@ void Variable::generate_call(Emitter &emitter) const
 
 void GlobalVariable::predeclare(Emitter &emitter) const
 {
+    type->predeclare(emitter);
     index = emitter.global(name);
 }
 
@@ -417,8 +418,9 @@ void GlobalVariable::generate_address(Emitter &emitter, int) const
     emitter.emit(PUSHPG, index);
 }
 
-void LocalVariable::predeclare(Emitter &) const
+void LocalVariable::predeclare(Emitter &emitter) const
 {
+    type->predeclare(emitter);
     index = scope->nextIndex();
 }
 

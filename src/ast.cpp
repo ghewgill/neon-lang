@@ -22,6 +22,17 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
+TypeArray::TypeArray(const Type *elementtype)
+  : Type("array"),
+    elementtype(elementtype)
+{
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(ParameterType::INOUT, this));
+        methods["size"] = new PredefinedFunction("Array.size", new TypeFunction(TYPE_NUMBER, params));
+    }
+}
+
 bool TypeArray::is_equivalent(const Type *rhs) const
 {
     const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);

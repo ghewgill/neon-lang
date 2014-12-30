@@ -170,7 +170,7 @@ private:
 
 class TypeArray: public Type {
 public:
-    TypeArray(const Type *elementtype): Type("array"), elementtype(elementtype) {}
+    TypeArray(const Type *elementtype);
     const Type *elementtype;
 
     virtual bool is_equivalent(const Type *rhs) const;

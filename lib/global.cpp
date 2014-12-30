@@ -3,9 +3,19 @@
 
 #include <utf8.h>
 
+#include "cell.h"
 #include "number.h"
 
 namespace rtl {
+
+namespace Array {
+
+Number size(Cell *self)
+{
+    return number_from_uint64(self->array().size());
+}
+
+} // namespace Array
 
 namespace String {
 

@@ -6,6 +6,7 @@ REF = "REF"
 
 AstFromCpp = {
     "void": ("TYPE_NOTHING", VALUE),
+    "Cell*": ("TYPE_GENERIC", REF),
     "void*": ("TYPE_POINTER", VALUE),
     "bool": ("TYPE_BOOLEAN", VALUE),
     "Number": ("TYPE_NUMBER", VALUE),
@@ -20,6 +21,7 @@ AstFromCpp = {
 
 CppFromAst = {
     ("TYPE_NOTHING", VALUE): "void",
+    ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_POINTER", VALUE): "void *",
     ("TYPE_BOOLEAN", VALUE): "bool",
     ("TYPE_NUMBER", VALUE): "Number",
@@ -31,6 +33,7 @@ CppFromAst = {
 
 CppFromAstArg = {
     ("TYPE_POINTER", VALUE): "void *",
+    ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_BOOLEAN", VALUE): "bool",
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_STRING", VALUE): "const std::string &",
@@ -107,6 +110,8 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "    {} a{};".format(CppFromAst[a], i)
                 print >>inc, "    for (auto x: stack.top().array()) a{}.push_back(x.{});".format(i, ArrayElementField[a])
                 print >>inc, "    stack.pop();"
+            elif a == ("TYPE_GENERIC", REF):
+                print >>inc, "    {} a{} = stack.top().address(); stack.pop();".format(CppFromAst[a], i);
             elif a[1] == REF:
                 print >>inc, "    {} a{} = &stack.top().{}; stack.pop();".format(CppFromAst[a], i, CellField[a]);
             else:
@@ -153,7 +158,7 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "    struct {ParameterType::Mode m; const Type *p; } params[10];"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, params in functions.values():
-        print >>inc, "    {{\"{}\", {}, {{{}}}}},".format(name, rtype[0], ",".join("{{ParameterType::{},{}}}".format("IN" if m == VALUE else "INOUT", p) for p, m in params))
+        print >>inc, "    {{\"{}\", {}, {{{}}}}},".format(name, rtype[0], ",".join("{{ParameterType::{},{}}}".format("IN" if m == VALUE else "INOUT", p if p != "TYPE_GENERIC" else "nullptr") for p, m in params))
     print >>inc, "};";
 
 with open("src/functions_exec.inc", "w") as inc:
