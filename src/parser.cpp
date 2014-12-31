@@ -104,10 +104,12 @@ TypeEnum::TypeEnum(const std::map<std::string, int> &names)
             }
             values[n.second] = new ConstantStringExpression(n.first);
         }
-        f->statements.push_back(new AssignmentStatement(0, std::vector<const ReferenceExpression *>{new VariableExpression(name_array)}, new ArrayLiteralExpression(TYPE_STRING, values)));
+        std::vector<const ReferenceExpression *> a;
+        a.push_back(new VariableExpression(name_array));
+        f->statements.push_back(new AssignmentStatement(0, a, new ArrayLiteralExpression(TYPE_STRING, values)));
         f->statements.push_back(new ReturnStatement(0, new ArrayIndexExpression(TYPE_STRING, new VariableExpression(name_array), new VariableExpression(fp))));
         methods["to_string"] = f;
-        Parser::global_scope->addName("enum.to_string", f, true);
+        Parser::global_scope->addName("enum.to_string."+std::to_string(reinterpret_cast<intptr_t>(this)), f, true);
     }
 }
 
