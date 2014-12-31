@@ -223,7 +223,7 @@ void Scope::addName(const std::string &name, Name *ref, bool init_referenced)
         // name already exists yet. This error needs to be detected
         // in the parsing stage so that we have a token available to
         // pass to the normal error function.
-        internal_error("name presence not checked");
+        internal_error("name presence not checked: " + name);
     }
     names[name] = ref;
     if (init_referenced) {
