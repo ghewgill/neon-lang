@@ -415,6 +415,9 @@ void GlobalVariable::predeclare(Emitter &emitter) const
 
 void GlobalVariable::generate_address(Emitter &emitter, int) const
 {
+    if (index < 0) {
+        internal_error("invalid global index: " + name);
+    }
     emitter.emit(PUSHPG, index);
 }
 
@@ -426,6 +429,9 @@ void LocalVariable::predeclare(Emitter &emitter) const
 
 void LocalVariable::generate_address(Emitter &emitter, int enclosing) const
 {
+    if (index < 0) {
+        internal_error("invalid local index: " + name);
+    }
     if (enclosing > 0) {
         emitter.emit(PUSHPOL, enclosing, index);
     } else {
@@ -435,6 +441,9 @@ void LocalVariable::generate_address(Emitter &emitter, int enclosing) const
 
 void FunctionParameter::generate_address(Emitter &emitter, int) const
 {
+    if (index < 0) {
+        internal_error("invalid local index: " + name);
+    }
     switch (mode) {
         case ParameterType::IN:
         case ParameterType::OUT:
