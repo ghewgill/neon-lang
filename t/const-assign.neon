@@ -2,4 +2,4 @@ CONST a: Number := 5
 
 a := 6
 
-%! name is not assignable
+%! expression is not assignable

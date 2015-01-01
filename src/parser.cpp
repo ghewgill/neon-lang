@@ -1939,10 +1939,10 @@ const Statement *Parser::parseStatement(Scope *scope)
         } else if (tokens[i].type == ASSIGN) {
             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
             if (ref == nullptr) {
-                error(2095, tokens[i], "name is not assignable");
+                error(2095, tokens[i], "expression is not assignable");
             }
             if (expr->is_readonly) {
-                error(2180, tokens[i], "assignment to readonly");
+                error(2180, tokens[i], "assignment to readonly expression");
             }
             auto op = i;
             ++i;
