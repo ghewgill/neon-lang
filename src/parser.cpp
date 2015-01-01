@@ -89,8 +89,6 @@ TypeEnum::TypeEnum(const std::map<std::string, int> &names)
         params.push_back(fp);
         Function *f = new Function("enum.to_string", TYPE_STRING, newscope, params);
         f->scope->addName("self", fp, true);
-        LocalVariable *name_array = new LocalVariable("enum.names", TYPE_ARRAY_STRING, newscope, true);
-        f->scope->addName("enum.names", name_array, true);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -104,10 +102,7 @@ TypeEnum::TypeEnum(const std::map<std::string, int> &names)
             }
             values[n.second] = new ConstantStringExpression(n.first);
         }
-        std::vector<const ReferenceExpression *> a;
-        a.push_back(new VariableExpression(name_array));
-        f->statements.push_back(new AssignmentStatement(0, a, new ArrayLiteralExpression(TYPE_STRING, values)));
-        f->statements.push_back(new ReturnStatement(0, new ArrayIndexExpression(TYPE_STRING, new VariableExpression(name_array), new VariableExpression(fp))));
+        f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values), new VariableExpression(fp))));
         methods["to_string"] = f;
         Parser::global_scope->addName("enum.to_string."+std::to_string(reinterpret_cast<intptr_t>(this)), f, true);
     }
@@ -616,7 +611,12 @@ const Expression *Parser::parseAtom(Scope *scope)
                             }
                             ++i;
                             type = arraytype->elementtype;
-                            expr = new ArrayIndexExpression(type, expr, index);
+                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
+                            if (ref != nullptr) {
+                                expr = new ArrayReferenceIndexExpression(type, ref, index);
+                            } else {
+                                expr = new ArrayValueIndexExpression(type, expr, index);
+                            }
                         } else if (dicttype != nullptr) {
                             ++i;
                             const Expression *index = parseExpression(scope);
@@ -628,7 +628,12 @@ const Expression *Parser::parseAtom(Scope *scope)
                             }
                             ++i;
                             type = dicttype->elementtype;
-                            expr = new DictionaryIndexExpression(type, expr, index);
+                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
+                            if (ref != nullptr) {
+                                expr = new DictionaryReferenceIndexExpression(type, ref, index);
+                            } else {
+                                expr = new DictionaryValueIndexExpression(type, expr, index);
+                            }
                         } else if (type == TYPE_STRING) {
                             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
                             // TODO
@@ -646,8 +651,8 @@ const Expression *Parser::parseAtom(Scope *scope)
                             error(2068, tokens[i], "not an array or dictionary");
                         }
                     } else if (tokens[i].type == LPAREN) {
-                        const FunctionCall *fc = parseFunctionCall(expr, nullptr, scope);
-                        return fc;
+                        expr = parseFunctionCall(expr, nullptr, scope);
+                        type = expr->type;
                     } else if (tokens[i].type == DOT) {
                         ++i;
                         if (tokens[i].type != IDENTIFIER) {
@@ -672,7 +677,12 @@ const Expression *Parser::parseAtom(Scope *scope)
                             }
                             ++i;
                             type = f->second.second;
-                            expr = new ArrayIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
+                            if (ref != nullptr) {
+                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                            } else {
+                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                            }
                         } else {
                             error(2071, tokens[i], "no method found or not a record");
                         }
@@ -699,8 +709,8 @@ const Expression *Parser::parseAtom(Scope *scope)
                             }
                             ++i;
                             type = f->second.second;
-                            expr = new PointerDereferenceExpression(type, expr);
-                            expr = new ArrayIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                            const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, expr);
+                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
                         } else {
                             error(2188, tokens[i], "not a pointer");
                         }

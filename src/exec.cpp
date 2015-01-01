@@ -177,8 +177,10 @@ private:
     void exec_NOTB();
     void exec_INDEXAR();
     void exec_INDEXAW();
+    void exec_INDEXAV();
     void exec_INDEXDR();
     void exec_INDEXDW();
+    void exec_INDEXDV();
     void exec_INA();
     void exec_IND();
     void exec_CALLP();
@@ -640,6 +642,24 @@ void Executor::exec_INDEXAW()
     stack.push(Cell(&addr->array().at(i)));
 }
 
+void Executor::exec_INDEXAV()
+{
+    ip++;
+    Number index = stack.top().number(); stack.pop();
+    std::vector<Cell> &array = stack.top().array();
+    assert(number_is_integer(index));
+    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
+    // TODO: check for i >= 0 and throw exception if not
+    if (i >= array.size()) {
+        raise("ArrayIndex");
+        return;
+    }
+    assert(i < array.size());
+    Cell val = array.at(i);
+    stack.pop();
+    stack.push(val);
+}
+
 void Executor::exec_INDEXDR()
 {
     ip++;
@@ -659,6 +679,21 @@ void Executor::exec_INDEXDW()
     std::string index = stack.top().string(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     stack.push(Cell(&addr->dictionary()[index]));
+}
+
+void Executor::exec_INDEXDV()
+{
+    ip++;
+    std::string index = stack.top().string(); stack.pop();
+    std::map<std::string, Cell> &dictionary = stack.top().dictionary();
+    auto e = dictionary.find(index);
+    if (e == dictionary.end()) {
+        raise("DictionaryIndex");
+        return;
+    }
+    Cell val = e->second;
+    stack.pop();
+    stack.push(val);
 }
 
 void Executor::exec_INA()
@@ -944,8 +979,10 @@ void Executor::exec()
             case NOTB:    exec_NOTB(); break;
             case INDEXAR: exec_INDEXAR(); break;
             case INDEXAW: exec_INDEXAW(); break;
+            case INDEXAV: exec_INDEXAV(); break;
             case INDEXDR: exec_INDEXDR(); break;
             case INDEXDW: exec_INDEXDW(); break;
+            case INDEXDV: exec_INDEXDV(); break;
             case INA:     exec_INA(); break;
             case IND:     exec_IND(); break;
             case CALLP:   exec_CALLP(); break;

@@ -52,10 +52,12 @@ enum Opcode {
     ANDB,       // and boolean
     ORB,        // or boolean
     NOTB,       // not boolean
-    INDEXAR,    // index array
-    INDEXAW,    // index array
-    INDEXDR,    // index dictionary
-    INDEXDW,    // index dictionary
+    INDEXAR,    // index array for read
+    INDEXAW,    // index array for write
+    INDEXAV,    // index array value
+    INDEXDR,    // index dictionary for read
+    INDEXDW,    // index dictionary for write
+    INDEXDV,    // index dictionary value
     INA,        // in array
     IND,        // in dictionary
     CALLP,      // call predefined

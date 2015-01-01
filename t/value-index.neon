@@ -1,0 +1,28 @@
+FUNCTION a(): Array<String>
+    RETURN ["foo", "bar"]
+END FUNCTION
+
+FUNCTION d(): Dictionary<String>
+    RETURN {"foo": "one", "bar": "two"}
+END FUNCTION
+
+TYPE R := RECORD
+    name: String
+    value: String
+END RECORD
+
+FUNCTION r(): R
+    VAR x: R
+    x.name := "foo"
+    x.value := "three"
+    RETURN x
+END FUNCTION
+
+print(a()[1])
+%= bar
+
+print(d()["foo"])
+%= one
+
+print(r().value)
+%= three

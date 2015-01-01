@@ -899,40 +899,74 @@ private:
     ReferenceExpression &operator=(const ReferenceExpression &);
 };
 
-class ArrayIndexExpression: public ReferenceExpression {
+class ArrayReferenceIndexExpression: public ReferenceExpression {
 public:
-    ArrayIndexExpression(const Type *type, const Expression *array, const Expression *index): ReferenceExpression(type, array->is_readonly), array(array), index(index) {}
+    ArrayReferenceIndexExpression(const Type *type, const ReferenceExpression *array, const Expression *index): ReferenceExpression(type, array->is_readonly), array(array), index(index) {}
+
+    const ReferenceExpression *array;
+    const Expression *index;
+
+    virtual Number eval_number() const { internal_error("ArrayReferenceIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const;
+    virtual void generate_address_write(Emitter &) const;
+
+    virtual std::string text() const { return "ArrayReferenceIndexExpression(" + array->text() + ", " + index->text() + ")"; }
+private:
+    ArrayReferenceIndexExpression(const ArrayReferenceIndexExpression &);
+    ArrayReferenceIndexExpression &operator=(const ArrayReferenceIndexExpression &);
+};
+
+class ArrayValueIndexExpression: public Expression {
+public:
+    ArrayValueIndexExpression(const Type *type, const Expression *array, const Expression *index): Expression(type, false), array(array), index(index) {}
 
     const Expression *array;
     const Expression *index;
 
-    virtual Number eval_number() const { internal_error("ArrayIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayIndexExpression"); }
+    virtual Number eval_number() const { internal_error("ArrayValueIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayValueIndexExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ArrayValueIndexExpression(" + array->text() + ", " + index->text() + ")"; }
+private:
+    ArrayValueIndexExpression(const ArrayValueIndexExpression &);
+    ArrayValueIndexExpression &operator=(const ArrayValueIndexExpression &);
+};
+
+class DictionaryReferenceIndexExpression: public ReferenceExpression {
+public:
+    DictionaryReferenceIndexExpression(const Type *type, const ReferenceExpression *dictionary, const Expression *index): ReferenceExpression(type, dictionary->is_readonly), dictionary(dictionary), index(index) {}
+
+    const ReferenceExpression *dictionary;
+    const Expression *index;
+
+    virtual Number eval_number() const { internal_error("DictionaryReferenceIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("DictionaryReferenceIndexExpression"); }
     virtual void generate_address_read(Emitter &) const;
     virtual void generate_address_write(Emitter &) const;
 
-    virtual std::string text() const { return "ArrayIndexExpression(" + array->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const { return "DictionaryReferenceIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
 private:
-    ArrayIndexExpression(const ArrayIndexExpression &);
-    ArrayIndexExpression &operator=(const ArrayIndexExpression &);
+    DictionaryReferenceIndexExpression(const DictionaryReferenceIndexExpression &);
+    DictionaryReferenceIndexExpression &operator=(const DictionaryReferenceIndexExpression &);
 };
 
-class DictionaryIndexExpression: public ReferenceExpression {
+class DictionaryValueIndexExpression: public Expression {
 public:
-    DictionaryIndexExpression(const Type *type, const Expression *dictionary, const Expression *index): ReferenceExpression(type, dictionary->is_readonly), dictionary(dictionary), index(index) {}
+    DictionaryValueIndexExpression(const Type *type, const Expression *dictionary, const Expression *index): Expression(type, false), dictionary(dictionary), index(index) {}
 
     const Expression *dictionary;
     const Expression *index;
 
-    virtual Number eval_number() const { internal_error("DictionaryIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("DictionaryIndexExpression"); }
-    virtual void generate_address_read(Emitter &) const;
-    virtual void generate_address_write(Emitter &) const;
+    virtual Number eval_number() const { internal_error("DictionaryValueIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("DictionaryValueIndexExpression"); }
+    virtual void generate(Emitter &emitter) const;
 
-    virtual std::string text() const { return "DictionaryIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const { return "DictionaryValueIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
 private:
-    DictionaryIndexExpression(const DictionaryIndexExpression &);
-    DictionaryIndexExpression &operator=(const DictionaryIndexExpression &);
+    DictionaryValueIndexExpression(const DictionaryValueIndexExpression &);
+    DictionaryValueIndexExpression &operator=(const DictionaryValueIndexExpression &);
 };
 
 class StringIndexExpression: public ReferenceExpression {

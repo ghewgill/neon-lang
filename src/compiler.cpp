@@ -765,52 +765,46 @@ void ReferenceExpression::generate_store(Emitter &emitter) const
     type->generate_store(emitter);
 }
 
-void ArrayIndexExpression::generate_address_read(Emitter &emitter) const
+void ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
-    const ReferenceExpression *arrayref = dynamic_cast<const ReferenceExpression *>(array);
-    if (arrayref != nullptr) {
-        arrayref->generate_address_read(emitter);
-        index->generate(emitter);
-        emitter.emit(INDEXAR);
-    } else {
-        internal_error("TODO");
-    }
+    array->generate_address_read(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXAR);
 }
 
-void ArrayIndexExpression::generate_address_write(Emitter &emitter) const
+void ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
-    const ReferenceExpression *arrayref = dynamic_cast<const ReferenceExpression *>(array);
-    if (arrayref != nullptr) {
-        arrayref->generate_address_read(emitter);
-        index->generate(emitter);
-        emitter.emit(INDEXAW);
-    } else {
-        internal_error("TODO");
-    }
+    array->generate_address_read(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXAW);
 }
 
-void DictionaryIndexExpression::generate_address_read(Emitter &emitter) const
+void ArrayValueIndexExpression::generate(Emitter &emitter) const
 {
-    const ReferenceExpression *dictionaryref = dynamic_cast<const ReferenceExpression *>(dictionary);
-    if (dictionaryref != nullptr) {
-        dictionaryref->generate_address_read(emitter);
-        index->generate(emitter);
-        emitter.emit(INDEXDR);
-    } else {
-        internal_error("TODO");
-    }
+    array->generate(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXAV);
 }
 
-void DictionaryIndexExpression::generate_address_write(Emitter &emitter) const
+void DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
-    const ReferenceExpression *dictionaryref = dynamic_cast<const ReferenceExpression *>(dictionary);
-    if (dictionaryref != nullptr) {
-        dictionaryref->generate_address_read(emitter);
-        index->generate(emitter);
-        emitter.emit(INDEXDW);
-    } else {
-        internal_error("TODO");
-    }
+    dictionary->generate_address_read(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXDR);
+}
+
+void DictionaryReferenceIndexExpression::generate_address_write(Emitter &emitter) const
+{
+    dictionary->generate_address_read(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXDW);
+}
+
+void DictionaryValueIndexExpression::generate(Emitter &emitter) const
+{
+    dictionary->generate(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXDV);
 }
 
 void StringIndexExpression::generate_load(Emitter &emitter) const
