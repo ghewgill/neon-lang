@@ -31,7 +31,10 @@ static void repl(int argc, char *argv[])
     for (;;) {
         std::cout << "> ";
         std::string s;
-        std::getline(std::cin, s);
+        if (not std::getline(std::cin, s)) {
+            std::cout << std::endl;
+            break;
+        }
         if (s == "help") {
             std::cout << "\n";
             std::cout << "Welcome to Neon 0.1!\n";
@@ -51,6 +54,7 @@ static void repl(int argc, char *argv[])
             }
         }
     }
+    exit(0);
 }
 
 int main(int argc, char *argv[])
