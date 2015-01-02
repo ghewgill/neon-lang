@@ -15,6 +15,7 @@ public:
     const std::vector<Token> tokens;
     static Scope *global_scope; // TODO: static is a hack, used by StringReference constructor
     std::vector<Token>::size_type i;
+    int expression_depth;
 
     std::stack<const TypeFunction *> functiontypes;
     std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
@@ -73,6 +74,7 @@ Scope *Parser::global_scope;
 Parser::Parser(const std::vector<Token> &tokens)
   : tokens(tokens),
     i(0),
+    expression_depth(0),
     functiontypes(),
     loops()
 {
@@ -983,10 +985,15 @@ const Expression *Parser::parseConditional(Scope *scope)
 
 const Expression *Parser::parseExpression(Scope *scope, bool allow_nothing)
 {
+    expression_depth++;
+    if (expression_depth > 100) {
+        error(2197, tokens[i], "exceeded maximum nesting depth");
+    }
     const Expression *r = parseConditional(scope);
     if (not allow_nothing && r->type == TYPE_NOTHING) {
         error(2192, tokens[i], "function does not return anything");
     }
+    expression_depth--;
     return r;
 }
 
