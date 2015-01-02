@@ -1323,7 +1323,7 @@ const Statement *Parser::parseReturnStatement(Scope *scope, int line)
 const Statement *Parser::parseVarStatement(Scope *scope, int line)
 {
     ++i;
-    std::vector<const ReferenceExpression *> varrefs;
+    std::vector<Variable *> variables;
     const VariableInfo vars = parseVariableDeclaration(scope);
     for (auto name: vars.first) {
         Variable *v;
@@ -1332,15 +1332,24 @@ const Statement *Parser::parseVarStatement(Scope *scope, int line)
         } else {
             v = new LocalVariable(name, vars.second, scope, false);
         }
-        scope->addName(name, v);
-        varrefs.push_back(new VariableExpression(v));
+        variables.push_back(v);
     }
+    const Statement *r = nullptr;
     if (tokens[i].type == ASSIGN) {
         ++i;
+        std::vector<const ReferenceExpression *> refs;
         const Expression *expr = parseExpression(scope);
-        return new AssignmentStatement(line, varrefs, expr);
+        for (auto v: variables) {
+            scope->addName(v->name, v, true);
+            refs.push_back(new VariableExpression(v));
+        }
+        r =  new AssignmentStatement(line, refs, expr);
+    } else {
+        for (auto v: variables) {
+            scope->addName(v->name, v);
+        }
     }
-    return nullptr;
+    return r;
 }
 
 const Statement *Parser::parseWhileStatement(Scope *scope, int line)

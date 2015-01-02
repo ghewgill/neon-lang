@@ -1,0 +1,3 @@
+VAR a, b, c: Number := ((7 + 1) * c)
+
+%! name not found: c
