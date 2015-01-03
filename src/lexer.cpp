@@ -151,6 +151,12 @@ std::vector<Token> tokenize(const std::string &source)
     std::string::const_iterator linestart = source.begin();
     std::string::const_iterator lineend = std::find(source.begin(), source.end(), '\n');
     std::string::const_iterator i = source.begin();
+    if (source.substr(0, 2) == "#!") {
+        while (i != source.end() && *i != '\n') {
+            utf8::advance(i, 1, source.end());
+        }
+        line++;
+    }
     while (i != source.end()) {
         uint32_t c = utf8::peek_next(i, source.end());
         //printf("index %lu char %c\n", i, c);

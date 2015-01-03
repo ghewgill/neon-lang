@@ -1,0 +1,3 @@
+#!/usr/bin/env neon
+print("hello world")
+%= hello world
