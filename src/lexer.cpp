@@ -296,10 +296,12 @@ std::vector<Token> tokenize(const std::string &source)
                             error(1001, t, "invalid base");
                         }
                         utf8::advance(i, (end - &*i), source.end());
-                        if (i != source.end() && *i != '#') {
-                            error(1002, t, "'#' expected");
+                        if (i != source.end()) {
+                            if (*i != '#') {
+                                error(1002, t, "'#' expected");
+                            }
+                            utf8::advance(i, 1, source.end());
                         }
-                        utf8::advance(i, 1, source.end());
                     } else {
                         error(1003, t, "invalid base character");
                     }

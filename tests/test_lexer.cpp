@@ -12,7 +12,7 @@ static std::vector<Token> dump(const std::vector<Token> &tokens)
     return tokens;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     auto tokens = dump(tokenize("1 a ( ) := + - * / , IF THEN END \"a\""));
     assert(tokens.size() == 15);
@@ -55,23 +55,32 @@ int main()
     assert(tokens[2].type == NUMBER);
     assert(tokens[3].type == END_OF_FILE);
 
-    for (int c = 0; c < 256; c++) {
-        char buf[3];
-        buf[0] = static_cast<char>(c);
-        buf[1] = 0;
+    int depth = 2;
+    if (argc > 1) {
+        depth = atoi(argv[1]);
+        assert(depth > 0);
+        assert(depth < 8);
+    }
+    char buf[8] = {}; // all zeros
+    for (;;) {
+        int i = depth - 1;
+        while (i >= 0) {
+            buf[i]++;
+            if (buf[i] != 0) {
+                break;
+            }
+            i--;
+        }
+        if (i < 0) {
+            break;
+        }
         try {
             tokenize(buf);
         } catch (SourceError &) {
             // ignore
-        }
-        for (int d = 0; d < 256; d++) {
-            buf[1] = static_cast<char>(d);
-            buf[2] = 0;
-            try {
-                tokenize(buf);
-            } catch (SourceError &) {
-                // ignore
-            }
+        } catch (...) {
+            fprintf(stderr, "fail: %s\n", buf);
+            exit(1);
         }
     }
 }
