@@ -74,9 +74,13 @@ int main(int argc, char *argv[])
 
     const std::string name = argv[1];
 
-    std::ifstream inf(name);
     std::stringstream buf;
-    buf << inf.rdbuf();
+    if (name == "-") {
+        buf << std::cin.rdbuf();
+    } else {
+        std::ifstream inf(name);
+        buf << inf.rdbuf();
+    }
 
     std::vector<unsigned char> bytecode;
 
