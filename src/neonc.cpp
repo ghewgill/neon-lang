@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
                 disassemble(bytecode, std::cerr, &debug);
             }
 
-            std::ofstream outf(std::string(argv[1]) + "x");
+            std::ofstream outf(std::string(argv[a]) + "x", std::ios::binary);
             outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
 
         } catch (SourceError &error) {

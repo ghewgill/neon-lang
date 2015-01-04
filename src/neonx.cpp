@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 
     const std::string name = argv[1];
 
-    std::ifstream inf(name);
+    std::ifstream inf(name, std::ios::binary);
     std::stringstream buf;
     buf << inf.rdbuf();
 
