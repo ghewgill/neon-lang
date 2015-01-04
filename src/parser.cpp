@@ -1950,6 +1950,57 @@ const Statement *Parser::parseStatement(Scope *scope)
     } else if (tokens[i].type == RAISE) {
         return parseRaiseStatement(scope, line);
     } else if (tokens[i].type == IDENTIFIER) {
+        if (tokens[i].text == "value_copy") {
+            ++i;
+            if (tokens[i].type != LPAREN) {
+                error(2198, tokens[i], "'(' expected");
+            }
+            ++i;
+            auto tok_lhs = tokens[i];
+            const Expression *expr = parseExpression(scope);
+            const ReferenceExpression *lhs = dynamic_cast<const ReferenceExpression *>(expr);
+            if (lhs == nullptr) {
+                error(2199, tok_lhs, "expression is not assignable");
+            }
+            if (expr->is_readonly && dynamic_cast<const TypePointer *>(expr->type) == nullptr) {
+                error(2200, tok_lhs, "value_copy to readonly expression");
+            }
+
+            if (tokens[i].type != COMMA) {
+                error(2201, tokens[i], "',' expected");
+            }
+            ++i;
+            auto tok_rhs = tokens[i];
+            const Expression *rhs = parseExpression(scope);
+            if (tokens[i].type != RPAREN) {
+                error(2202, tokens[i], "')' expected");
+            }
+            ++i;
+            const Type *ltype = lhs->type;
+            const TypePointer *lptype = dynamic_cast<const TypePointer *>(ltype);
+            if (lptype != nullptr) {
+                if (dynamic_cast<const TypeValidPointer *>(lptype) == nullptr) {
+                    error(2203, tok_lhs, "valid pointer type required");
+                }
+                ltype = lptype->reftype;
+                lhs = new PointerDereferenceExpression(ltype, lhs);
+            }
+            const Type *rtype = rhs->type;
+            const TypePointer *rptype = dynamic_cast<const TypePointer *>(rtype);
+            if (rptype != nullptr) {
+                if (dynamic_cast<const TypeValidPointer *>(rptype) == nullptr) {
+                    error(2204, tok_rhs, "valid pointer type required");
+                }
+                rtype = rptype->reftype;
+                rhs = new PointerDereferenceExpression(rtype, rhs);
+            }
+            if (not ltype->is_equivalent(rtype)) {
+                error(2205, tok_rhs, "type mismatch");
+            }
+            std::vector<const ReferenceExpression *> vars;
+            vars.push_back(lhs);
+            return new AssignmentStatement(line, vars, rhs);
+        }
         const Expression *expr = parseExpression(scope, true);
         if (expr->type == TYPE_NOTHING) {
             return new ExpressionStatement(line, expr);

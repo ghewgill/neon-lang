@@ -414,7 +414,9 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
           % Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
           % corresponds to "rename" in Ada, "with" in Pascal
 
-          % TODO structassign (*Ptr_Val_Par->Ptr_Comp, *Ptr_Glob);
+          IF VALID pg := Ptr_Glob THEN
+            value_copy(nr, pg)
+          END IF
           pvp->Int_Comp := 5
           nr->Int_Comp := pvp->Int_Comp
           nr->Ptr_Comp := pvp->Ptr_Comp
@@ -430,8 +432,8 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
             END IF
             Proc_7 (nr->Int_Comp, 10,
                     nr->Int_Comp)
-          ELSE % not executed
-            % TODO structassign (*Ptr_Val_Par, *Ptr_Val_Par->Ptr_Comp);
+          ELSE
+            value_copy(pvp, nr)
           END IF
       END IF
   END IF

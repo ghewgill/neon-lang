@@ -1,0 +1,3 @@
+FUNCTION foo(a: Number)
+    value_copy(a, 1)
+END FUNCTION

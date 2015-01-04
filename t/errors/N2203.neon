@@ -1,0 +1,4 @@
+TYPE Rec := RECORD END RECORD
+VAR p: POINTER TO Rec
+VAR a: Rec
+value_copy(p, a)
