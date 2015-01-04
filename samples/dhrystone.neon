@@ -345,6 +345,8 @@
  ***************************************************************************
  |%
 
+IMPORT math
+
 TYPE Enumeration := ENUM
     Ident_1
     Ident_2
@@ -715,7 +717,7 @@ FUNCTION main()
     END WHILE
       % Int_1_Loc == 3, Int_2_Loc == 3, Int_3_Loc == 7
     Int_2_Loc := Int_2_Loc * Int_1_Loc
-    Int_1_Loc := Int_2_Loc / Int_3_Loc
+    Int_1_Loc := math.floor(Int_2_Loc / Int_3_Loc)
     Int_2_Loc := 7 * (Int_2_Loc - Int_3_Loc) - Int_1_Loc
       % Int_1_Loc == 1, Int_2_Loc == 13, Int_3_Loc == 7
     Proc_2 (Int_1_Loc)
