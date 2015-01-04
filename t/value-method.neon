@@ -1,4 +1,4 @@
-% TODO
+% TODO SKIP (segfaults)
 FUNCTION foo(): Array<Number>
     RETURN [1, 2, 3]
 END FUNCTION
