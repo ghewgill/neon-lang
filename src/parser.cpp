@@ -1674,8 +1674,8 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
         error(2112, tokens[i], "type mismatch");
     }
     ++i;
-    if (tokens[i].type != IN) {
-        error(2121, tokens[i], "'IN' expected");
+    if (tokens[i].type != ASSIGN) {
+        error(2121, tokens[i], "':=' expected");
     }
     ++i;
     const Expression *start = parseExpression(scope);

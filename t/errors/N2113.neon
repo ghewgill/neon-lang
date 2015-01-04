@@ -1,2 +1,2 @@
 VAR a: Number
-FOR a IN "one" TO
+FOR a := "one" TO
