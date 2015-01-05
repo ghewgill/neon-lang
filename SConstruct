@@ -145,6 +145,16 @@ neonx = env.Program("bin/neonx", [
 ] + coverage_lib,
 )
 
+neondis = env.Program("bin/neondis", [
+    "src/bytecode.cpp",
+    "src/debuginfo.cpp",
+    "src/disassembler.cpp",
+    "src/neondis.cpp",
+    "src/number.cpp",
+    "src/util.cpp",
+] + coverage_lib,
+)
+
 env.Depends("src/number.h", libbid)
 env.Depends("src/exec.cpp", libffi)
 
