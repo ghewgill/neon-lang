@@ -4,7 +4,7 @@
 
 Cell::Cell()
   : type(cNone),
-    address_value(NULL),
+    address_value(nullptr),
     boolean_value(false),
     number_value(),
     string_value(),
@@ -37,7 +37,7 @@ Cell::Cell(Cell *value)
 
 Cell::Cell(bool value)
   : type(cBoolean),
-    address_value(NULL),
+    address_value(nullptr),
     boolean_value(value),
     number_value(),
     string_value(),
@@ -48,7 +48,7 @@ Cell::Cell(bool value)
 
 Cell::Cell(Number value)
   : type(cNumber),
-    address_value(NULL),
+    address_value(nullptr),
     boolean_value(false),
     number_value(value),
     string_value(),
@@ -59,7 +59,7 @@ Cell::Cell(Number value)
 
 Cell::Cell(const std::string &value)
   : type(cString),
-    address_value(NULL),
+    address_value(nullptr),
     boolean_value(false),
     number_value(),
     string_value(value),
@@ -70,7 +70,7 @@ Cell::Cell(const std::string &value)
 
 Cell::Cell(const char *value)
   : type(cString),
-    address_value(NULL),
+    address_value(nullptr),
     boolean_value(false),
     number_value(),
     string_value(value),
@@ -81,7 +81,7 @@ Cell::Cell(const char *value)
 
 Cell::Cell(const std::vector<Cell> &value)
   : type(cArray),
-    address_value(NULL),
+    address_value(nullptr),
     boolean_value(false),
     number_value(),
     string_value(),
@@ -92,7 +92,7 @@ Cell::Cell(const std::vector<Cell> &value)
 
 Cell::Cell(const std::map<std::string, Cell> &value)
   : type(cDictionary),
-    address_value(NULL),
+    address_value(nullptr),
     boolean_value(false),
     number_value(),
     string_value(),

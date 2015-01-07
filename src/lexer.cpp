@@ -296,7 +296,7 @@ std::vector<Token> tokenize(const std::string &source)
                         utf8::advance(i, 1, source.end());
                     } else if (c == '#') {
                         utf8::advance(i, 1, source.end());
-                        char *end = NULL;
+                        char *end = nullptr;
                         base = strtol(&*i, &end, 10);
                         if (base < 2 || base > 36) {
                             error(1001, t, "invalid base");

@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
 
-    // TODO: Load Debug Info, and pass pointer to it, rather than NULL.
-    disassemble(bytecode, std::cout, NULL);
+    // TODO: Load Debug Info, and pass pointer to it, rather than nullptr.
+    disassemble(bytecode, std::cout, nullptr);
 
     return 0;
 }
