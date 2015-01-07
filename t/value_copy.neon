@@ -1,0 +1,38 @@
+TYPE Rec := RECORD
+    name: String
+    value: Number
+END RECORD
+
+VAR a, b: Rec
+VAR p, q: POINTER TO Rec
+
+p := NEW Rec
+q := NEW Rec
+
+a.name := "foo"
+value_copy(b, a)
+print(b.name)
+%= foo
+
+IF VALID pp := p THEN
+    a.name := "bar"
+    value_copy(pp, a)
+    print(pp->name)
+END IF
+%= bar
+
+IF VALID pp := p THEN
+    pp->name := "baz"
+    value_copy(a, pp)
+    print(a.name)
+END IF
+%= baz
+
+IF VALID pp := p THEN
+    IF VALID qq := q THEN
+        pp->name := "quux"
+        value_copy(qq, pp)
+        print(qq->name)
+    END IF
+END IF
+%= quux
