@@ -1,0 +1,18 @@
+VAR a: String
+a := "\"\\\b\f\n\r\t\u1234"
+print(a[0])
+%= "
+print(a[1])
+%= \
+print(str(ord(a[2])))
+%= 8
+print(str(ord(a[3])))
+%= 12
+print(str(ord(a[4])))
+%= 10
+print(str(ord(a[5])))
+%= 13
+print(str(ord(a[6])))
+%= 9
+print(str(ord(a[7])))
+%= 4660

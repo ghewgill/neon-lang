@@ -108,9 +108,9 @@ FUNCTION main()
 
         j := next_j(j)
         curses.mvaddstr(ypos[j] - 2, xpos[j], "-")
-        curses.mvaddstr(ypos[j] - 1, xpos[j] - 1, "/ \")
+        curses.mvaddstr(ypos[j] - 1, xpos[j] - 1, "/ \\")
         curses.mvaddstr(ypos[j], xpos[j] - 2, "| O |")
-        curses.mvaddstr(ypos[j] + 1, xpos[j] - 1, "\ /")
+        curses.mvaddstr(ypos[j] + 1, xpos[j] - 1, "\\ /")
         curses.mvaddstr(ypos[j] + 2, xpos[j], "-")
 
         j := next_j(j)

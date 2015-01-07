@@ -364,15 +364,39 @@ std::vector<Token> tokenize(const std::string &source)
             while (i != source.end()) {
                 c = utf8::next(i, source.end());
                 if (c == '"') {
+                    break;
+                }
+                if (i == source.end()) {
+                    error(1010, t, "unterminated string");
+                }
+                if (c == '\\') {
+                    c = utf8::next(i, source.end());
                     if (i == source.end()) {
-                        break;
+                        error(1011, t, "unterminated string");
                     }
-                    auto j = i;
-                    c = utf8::next(j, source.end());
-                    if (c != '"') {
-                        break;
+                    switch (c) {
+                        case '"': break;
+                        case '\\': break;
+                        case 'b': c = '\b'; break;
+                        case 'f': c = '\f'; break;
+                        case 'n': c = '\n'; break;
+                        case 'r': c = '\r'; break;
+                        case 't': c = '\t'; break;
+                        case 'u':
+                            if (source.end() - i < 4) {
+                                error(1012, t, "unterminated string");
+                            }
+                            for (int j = 0; j < 4; j++) {
+                                if (not isxdigit(i[j])) {
+                                    error(1013, t, "invalid hex character");
+                                }
+                            }
+                            c = std::stoul(std::string(i, i+4), nullptr, 16);
+                            utf8::advance(i, 4, source.end());
+                            break;
+                        default:
+                            error(1009, t, "invalid escape character");
                     }
-                    i = j;
                 }
                 utf8::append(c, std::back_inserter(t.text));
             }
