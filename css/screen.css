@@ -13,6 +13,7 @@ body {
     text-align: center;
     font-size: 300%;
     font-family: sans-serif;
+    text-shadow: 0 0 0.5em red;
 }
 
 #page .title a {
