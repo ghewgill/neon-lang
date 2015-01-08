@@ -15,3 +15,34 @@ Neon has [standard libraries](standard-libraries.html) for graphics, sound, text
 The graphics and sound libraries recall the early days of the Apple ][ and Commodore 64.
 The curses interface provides interactive text mode capability.
 The ability to link to external libraries and to call external functions opens up a wide variety of possibilities.
+
+## What does Neon look like?
+
+Neon programs start executing at the first statement in the source file.
+For example, a program can be as short as this:
+
+    print("Hello, World.")
+
+Another well-known example is the classic "FizzBuzz" program:
+
+    % For each integer from 1 to 100, print "Fizz" if the number
+    % is divisible by 3, or "Buzz" if the number is divisible
+    % by 5, or "FizzBuzz" if the number is divisible by both.
+    % Otherwise, print the number itself.
+    
+    VAR i: Number
+
+    FOR i := 1 TO 100 DO
+        IF i MOD 15 = 0 THEN
+            print("FizzBuzz")
+        ELSIF i MOD 3 = 0 THEN
+            print("Fizz")
+        ELSIF i MOD 5 = 0 THEN
+            print("Buzz")
+        ELSE
+            print(i.to_string())
+        END IF
+    END FOR
+
+Neon syntax is not sensitive to whitespace, and does not have statement separators.
+Neon source code is case sensitive, but there are no requirements on the case of user-defined identifiers.
