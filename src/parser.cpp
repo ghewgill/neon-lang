@@ -802,8 +802,10 @@ const Expression *Parser::parseAddition(Scope *scope)
                 const Expression *right = parseMultiplication(scope);
                 if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
                     left = new AdditionExpression(left, right);
+                } else if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
+                    error(2206, tokens[op], "type mismatch (use & to concatenate strings)");
                 } else {
-                    error(2043, tokens[op], "type mismatch (use & to concatenate strings)");
+                    error(2043, tokens[op], "type mismatch");
                 }
                 break;
             }
