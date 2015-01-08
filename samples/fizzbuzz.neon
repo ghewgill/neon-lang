@@ -1,3 +1,8 @@
+% For each integer from 1 to 100, print "Fizz" if the number
+% is divisible by 3, or "Buzz" if the number is divisible
+% by 5, or "FizzBuzz" if the number is divisible by both.
+% Otherwise, print the number itself.
+
 VAR i: Number
 
 FOR i := 1 TO 100 DO
@@ -8,6 +13,6 @@ FOR i := 1 TO 100 DO
     ELSIF i MOD 5 = 0 THEN
         print("Buzz")
     ELSE
-        print(str(i))
+        print(i.to_string())
     END IF
 END FOR
