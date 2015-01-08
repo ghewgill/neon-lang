@@ -1,0 +1,13 @@
+VAR i: Number
+
+FOR i := 1 TO 100 DO
+    IF i MOD 15 = 0 THEN
+        print("FizzBuzz")
+    ELSIF i MOD 3 = 0 THEN
+        print("Fizz")
+    ELSIF i MOD 5 = 0 THEN
+        print("Buzz")
+    ELSE
+        print(str(i))
+    END IF
+END FOR
