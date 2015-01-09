@@ -1233,37 +1233,47 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
     std::vector<const Statement *> else_statements;
     do {
         ++i;
-        const Expression *cond;
+        const Expression *cond = nullptr;
         std::string name;
         if (tokens[i].type == VALID) {
-            ++i;
-            if (tokens[i].type != IDENTIFIER) {
-                error(2174, tokens[i], "identifier expected");
+            for (;;) {
+                ++i;
+                if (tokens[i].type != IDENTIFIER) {
+                    error(2174, tokens[i], "identifier expected");
+                }
+                name = tokens[i].text;
+                if (scope->lookupName(name) != nullptr) {
+                    error(2177, tokens[i], "name shadows outer");
+                }
+                ++i;
+                if (tokens[i].type != ASSIGN) {
+                    error(2175, tokens[i], "':=' expected");
+                }
+                ++i;
+                const Expression *ptr = parseExpression(scope);
+                const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
+                if (ptrtype == nullptr) {
+                    error(2176, tokens[i], "pointer type expression expected");
+                }
+                const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
+                Variable *v;
+                // TODO: Try to make this a local variable always (give the global scope a local space).
+                if (functiontypes.empty()) {
+                    v = new GlobalVariable(name, vtype, true);
+                } else {
+                    v = new LocalVariable(name, vtype, scope, true);
+                }
+                scope->addName(name, v, true);
+                const Expression *valid = new ValidPointerExpression(v, ptr);
+                if (cond == nullptr) {
+                    cond = valid;
+                } else {
+                    cond = new ConjunctionExpression(cond, valid);
+                }
+                if (tokens[i].type != COMMA) {
+                    break;
+                }
             }
-            name = tokens[i].text;
-            if (scope->lookupName(name) != nullptr) {
-                error(2177, tokens[i], "name shadows outer");
-            }
-            ++i;
-            if (tokens[i].type != ASSIGN) {
-                error(2175, tokens[i], "':=' expected");
-            }
-            ++i;
-            const Expression *ptr = parseExpression(scope);
-            const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
-            if (ptrtype == nullptr) {
-                error(2176, tokens[i], "pointer type expression expected");
-            }
-            const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
-            Variable *v;
-            // TODO: Try to make this a local variable always (give the global scope a local space).
-            if (functiontypes.empty()) {
-                v = new GlobalVariable(name, vtype, true);
-            } else {
-                v = new LocalVariable(name, vtype, scope, true);
-            }
-            scope->addName(name, v);
-            cond = new ValidPointerExpression(v, ptr);
         } else {
             auto j = i;
             cond = parseExpression(scope);

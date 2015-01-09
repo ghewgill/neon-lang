@@ -1,0 +1,17 @@
+TYPE Node := RECORD
+    value: Number
+END RECORD
+
+VAR a, b: POINTER TO Node
+
+a := NEW Node
+IF VALID p1 := a, q1 := b THEN
+    print("one")
+END IF
+
+b := NEW Node
+IF VALID p2 := a, q2 := b THEN
+    print("two")
+END IF
+
+%= two
