@@ -1,0 +1,29 @@
+% Compute prime numbers up to 100 with the Sieve of Eratosthenes.
+
+CONST Max: Number := 100
+
+VAR sieve: Array<Boolean>
+VAR i, j: Number
+
+FOR i := 0 TO Max DO
+    sieve[i] := TRUE
+END FOR
+
+sieve[0] := FALSE
+sieve[1] := FALSE
+
+FOR i := 2 TO Max DO
+    IF sieve[i] THEN
+        j := 2 * i
+        WHILE j <= Max DO
+            sieve[j] := FALSE
+            j := j + i
+        END WHILE
+    END IF
+END FOR
+
+FOR i := 0 TO sieve.size() - 1 DO
+    IF sieve[i] THEN
+        print(i.to_string())
+    END IF
+END FOR
