@@ -1106,6 +1106,7 @@ void TryStatement::generate_code(Emitter &emitter) const
         for (auto stmt: c.second) {
             stmt->generate(emitter);
         }
+        emitter.emit(CLREXC);
         emitter.emit_jump(JUMP, skip);
     }
     emitter.jump_target(skip);

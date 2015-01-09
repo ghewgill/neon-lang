@@ -195,6 +195,7 @@ private:
     void exec_CONSA();
     void exec_CONSD();
     void exec_EXCEPT();
+    void exec_CLREXC();
     void exec_ALLOC();
     void exec_PUSHNIL();
 
@@ -888,6 +889,13 @@ void Executor::exec_EXCEPT()
     raise(obj.strtable[val]);
 }
 
+void Executor::exec_CLREXC()
+{
+    ip++;
+    globals[0].array()[0] = Cell("");
+    globals[0].array()[1] = Cell(number_from_uint32(0));
+}
+
 void Executor::exec_ALLOC()
 {
     uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
@@ -903,6 +911,11 @@ void Executor::exec_PUSHNIL()
 
 void Executor::raise(const std::string &exception)
 {
+    // The fields here must match the declaration of
+    // ExceptionType in ast.cpp.
+    globals[0].array()[0] = Cell(exception);
+    globals[0].array()[1] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
+
     for (;;) {
         for (auto e = obj.exceptions.begin(); e != obj.exceptions.end(); ++e) {
             if (ip >= e->start && ip < e->end && exception == obj.strtable[e->excid]) {
@@ -922,6 +935,10 @@ void Executor::raise(const std::string &exception)
 
 void Executor::exec()
 {
+    // The number of fields here must match the declaration of
+    // ExceptionType in ast.cpp.
+    globals[0].array().resize(2);
+
     callstack.push(obj.code.size());
     while (not callstack.empty() && ip < obj.code.size()) {
         //std::cerr << "ip " << ip << " op " << (int)obj.code[ip] << "\n";
@@ -997,6 +1014,7 @@ void Executor::exec()
             case CONSA:   exec_CONSA(); break;
             case CONSD:   exec_CONSD(); break;
             case EXCEPT:  exec_EXCEPT(); break;
+            case CLREXC:  exec_CLREXC(); break;
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(); break;
         }

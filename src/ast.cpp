@@ -315,6 +315,18 @@ Program::Program()
     scope->addName("FunctionNotFound", new Exception("FunctionNotFound"));
     scope->addName("LibraryNotFound", new Exception("LibraryNotFound"));
 
+    {
+        // The fields here must match the corresponding references to
+        // ExceptionType in exec.cpp.
+        std::map<std::string, std::pair<int, const Type *>> fields;
+        fields["name"] = std::make_pair(0, TYPE_STRING);
+        fields["offset"] = std::make_pair(1, TYPE_NUMBER);
+        Type *exception_type = new TypeRecord(fields);
+        scope->addName("ExceptionType", exception_type, true);
+        GlobalVariable *current_exception = new GlobalVariable("CURRENT_EXCEPTION", exception_type, true);
+        scope->addName("CURRENT_EXCEPTION", current_exception, true);
+    }
+
     rtl_compile_init(scope);
 }
 

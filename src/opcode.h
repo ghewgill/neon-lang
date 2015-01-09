@@ -72,6 +72,7 @@ enum Opcode {
     CONSA,      // construct array
     CONSD,      // construct dictionary
     EXCEPT,     // throw exception
+    CLREXC,     // clear exception
     ALLOC,      // allocate record
     PUSHNIL,    // push nil pointer
 };

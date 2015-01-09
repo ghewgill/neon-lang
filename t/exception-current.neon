@@ -1,0 +1,13 @@
+DECLARE EXCEPTION PrinterOnFire
+
+TRY
+    RAISE PrinterOnFire
+EXCEPTION PrinterOnFire
+    print(CURRENT_EXCEPTION.name)
+    print(str(CURRENT_EXCEPTION.offset))
+END TRY
+print(CURRENT_EXCEPTION.name)
+
+%= PrinterOnFire
+%= 0
+%=

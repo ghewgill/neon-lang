@@ -90,6 +90,7 @@ private:
     void disasm_CONSA();
     void disasm_CONSD();
     void disasm_EXCEPT();
+    void disasm_CLREXC();
     void disasm_ALLOC();
     void disasm_PUSHNIL();
 private:
@@ -465,7 +466,7 @@ void Disassembler::disasm_CALLP()
 {
     uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
-    out << "CALLP " << obj.strtable[val] << "\n";
+    out << "CALLP " << val << " " << (val < obj.strtable.size() ? obj.strtable[val] : "(invalid)") << "\n";
 }
 
 void Disassembler::disasm_CALLF()
@@ -540,6 +541,12 @@ void Disassembler::disasm_EXCEPT()
     uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "EXCEPT \"" << obj.strtable[val] << "\"\n";
+}
+
+void Disassembler::disasm_CLREXC()
+{
+    out << "CLREXC\n";
+    index++;
 }
 
 void Disassembler::disasm_ALLOC()
@@ -644,6 +651,7 @@ void Disassembler::disassemble()
             case CONSA:   disasm_CONSA(); break;
             case CONSD:   disasm_CONSD(); break;
             case EXCEPT:  disasm_EXCEPT(); break;
+            case CLREXC:  disasm_CLREXC(); break;
             case ALLOC:   disasm_ALLOC(); break;
             case PUSHNIL: disasm_PUSHNIL(); break;
         }
