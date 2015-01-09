@@ -1106,6 +1106,10 @@ void TryStatement::generate_code(Emitter &emitter) const
         for (auto stmt: c.second) {
             stmt->generate(emitter);
         }
+        // TODO: Currently CLREXC only happens when exiting the
+        // exception handler block normally. How would the exception
+        // get cleared if the handler block is exited some other way,
+        // such as a RETURN or EXIT?
         emitter.emit(CLREXC);
         emitter.emit_jump(JUMP, skip);
     }
