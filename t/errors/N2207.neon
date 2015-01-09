@@ -1,0 +1,4 @@
+FUNCTION foo(a: Number)
+    FOR a := 1 TO 10 DO
+    END FOR
+END FUNCTION

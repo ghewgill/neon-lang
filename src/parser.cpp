@@ -1686,14 +1686,18 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
     if (tokens[i].type != IDENTIFIER) {
         error(2072, tokens[i], "identifier expected");
     }
-    const Name *name = scope->lookupName(tokens[i].text);
-    const Variable *var = dynamic_cast<const Variable *>(name);
+    Name *name = scope->lookupName(tokens[i].text);
+    Variable *var = dynamic_cast<Variable *>(name);
     if (var == nullptr) {
         error(2195, tokens[i], "name not a variable: " + tokens[i].text);
     }
     if (not var->type->is_equivalent(TYPE_NUMBER)) {
         error(2112, tokens[i], "type mismatch");
     }
+    if (var->is_readonly) {
+        error(2207, tokens[i], "cannot use readonly variable in FOR loop");
+    }
+    var->is_readonly = true;
     ++i;
     if (tokens[i].type != ASSIGN) {
         error(2121, tokens[i], "':=' expected");
@@ -1750,6 +1754,7 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
     }
     ++i;
     loops.top().pop_back();
+    var->is_readonly = false;
     return new ForStatement(line, loop_id, new VariableExpression(var), start, end, step, statements);
 }
 

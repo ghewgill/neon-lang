@@ -284,7 +284,7 @@ class Variable: public Name {
 public:
     Variable(const std::string &name, const Type *type, bool is_readonly): Name(name, type), is_readonly(is_readonly) {}
 
-    const bool is_readonly;
+    bool is_readonly;
 
     virtual void generate_address(Emitter &emitter, int enclosing) const = 0;
     virtual void generate_load(Emitter &emitter) const;
