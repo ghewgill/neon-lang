@@ -199,7 +199,7 @@ private:
     void exec_ALLOC();
     void exec_PUSHNIL();
 
-    void raise(const std::string &exception);
+    void raise(const std::string &exception, const std::string &info);
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
@@ -403,7 +403,7 @@ void Executor::exec_DIVN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise("DivideByZero");
+        raise("DivideByZero", "");
         return;
     }
     stack.push(Cell(number_divide(a, b)));
@@ -415,7 +415,7 @@ void Executor::exec_MODN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise("DivideByZero");
+        raise("DivideByZero", "");
         return;
     }
     stack.push(Cell(number_modulo(a, b)));
@@ -621,7 +621,7 @@ void Executor::exec_INDEXAR()
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     // TODO: check for i >= 0 and throw exception if not
     if (i >= addr->array().size()) {
-        raise("ArrayIndex");
+        raise("ArrayIndex", std::to_string(i));
         return;
     }
     assert(i < addr->array().size());
@@ -652,7 +652,7 @@ void Executor::exec_INDEXAV()
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     // TODO: check for i >= 0 and throw exception if not
     if (i >= array.size()) {
-        raise("ArrayIndex");
+        raise("ArrayIndex", std::to_string(i));
         return;
     }
     assert(i < array.size());
@@ -668,7 +668,7 @@ void Executor::exec_INDEXDR()
     Cell *addr = stack.top().address(); stack.pop();
     auto e = addr->dictionary().find(index);
     if (e == addr->dictionary().end()) {
-        raise("DictionaryIndex");
+        raise("DictionaryIndex", index);
         return;
     }
     stack.push(Cell(&e->second));
@@ -689,7 +689,7 @@ void Executor::exec_INDEXDV()
     std::map<std::string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
-        raise("DictionaryIndex");
+        raise("DictionaryIndex", index);
         return;
     }
     Cell val = e->second;
@@ -790,7 +790,7 @@ void Executor::exec_CALLE()
         std::string exception;
         eci->fp = rtl_external_function(library, name, exception);
         if (eci->fp == nullptr) {
-            raise(exception);
+            raise(exception, "TODO");
             return;
         }
         for (auto p: params) {
@@ -885,15 +885,19 @@ void Executor::exec_CONSD()
 
 void Executor::exec_EXCEPT()
 {
+    std::string info = stack.top().string(); stack.pop();
     uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    raise(obj.strtable[val]);
+    raise(obj.strtable[val], info);
 }
 
 void Executor::exec_CLREXC()
 {
     ip++;
+    // The fields here must match the declaration of
+    // ExceptionType in ast.cpp.
     globals[0].array()[0] = Cell("");
-    globals[0].array()[1] = Cell(number_from_uint32(0));
+    globals[0].array()[1] = Cell("");
+    globals[0].array()[2] = Cell(number_from_uint32(0));
 }
 
 void Executor::exec_ALLOC()
@@ -909,12 +913,13 @@ void Executor::exec_PUSHNIL()
     stack.push(Cell(static_cast<Cell *>(nullptr)));
 }
 
-void Executor::raise(const std::string &exception)
+void Executor::raise(const std::string &exception, const std::string &info)
 {
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
     globals[0].array()[0] = Cell(exception);
-    globals[0].array()[1] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
+    globals[0].array()[1] = Cell(info);
+    globals[0].array()[2] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
     for (;;) {
         for (auto e = obj.exceptions.begin(); e != obj.exceptions.end(); ++e) {
@@ -937,7 +942,7 @@ void Executor::exec()
 {
     // The number of fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    globals[0].array().resize(2);
+    globals[0].array().resize(3);
 
     callstack.push(obj.code.size());
     while (not callstack.empty() && ip < obj.code.size()) {

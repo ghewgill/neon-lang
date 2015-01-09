@@ -1114,6 +1114,7 @@ void TryStatement::generate_code(Emitter &emitter) const
 
 void RaiseStatement::generate_code(Emitter &emitter) const
 {
+    info->generate(emitter);
     unsigned int index = emitter.str(exception->name);
     emitter.emit(EXCEPT, index);
 }

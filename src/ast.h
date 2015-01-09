@@ -1311,9 +1311,10 @@ private:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(int line, const Exception *exception): Statement(line), exception(exception) {}
+    RaiseStatement(int line, const Exception *exception, const Expression *info): Statement(line), exception(exception), info(info) {}
 
     const Exception *exception;
+    const Expression *info;
 
     virtual bool always_returns() const { return true; }
 

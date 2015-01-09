@@ -1914,7 +1914,13 @@ const Statement *Parser::parseRaiseStatement(Scope *scope, int line)
         error(2158, tokens[i], "name not an exception");
     }
     ++i;
-    return new RaiseStatement(line, exception);
+    const Expression *info = nullptr;
+    if (tokens[i].type == LPAREN) {
+        info = parseExpression(scope);
+    } else {
+        info = new ConstantStringExpression("");
+    }
+    return new RaiseStatement(line, exception, info);
 }
 
 const Statement *Parser::parseImport(Scope *scope)
