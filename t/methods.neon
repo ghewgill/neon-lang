@@ -1,0 +1,15 @@
+TYPE Rec := RECORD
+    name: String
+    value: Number
+END RECORD
+
+FUNCTION Rec.to_string(self: Rec): String
+    RETURN self.name & self.value.to_string()
+END FUNCTION
+
+VAR r: Rec
+r.name := "foo"
+r.value := 5
+print(r.to_string())
+
+%= foo5

@@ -1,0 +1,2 @@
+TYPE Foo := RECORD END RECORD
+FUNCTION Foo.bar(x: Number)

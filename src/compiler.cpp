@@ -272,6 +272,13 @@ void Type::predeclare(Emitter &emitter) const
     }
 }
 
+void Type::postdeclare(Emitter &emitter) const
+{
+    for (auto m: methods) {
+        m.second->postdeclare(emitter);
+    }
+}
+
 void TypeBoolean::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADB);

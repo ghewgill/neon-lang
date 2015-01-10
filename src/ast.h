@@ -84,6 +84,7 @@ public:
     std::map<std::string, Variable *> methods;
 
     virtual void predeclare(Emitter &emitter) const;
+    virtual void postdeclare(Emitter &emitter) const;
     virtual bool is_equivalent(const Type *rhs) const { return this == rhs; }
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
