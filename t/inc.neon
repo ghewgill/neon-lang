@@ -1,0 +1,11 @@
+VAR a: Number
+a := 1
+print(a.to_string())
+inc(a)
+print(a.to_string())
+dec(a)
+print(a.to_string())
+
+%= 1
+%= 2
+%= 1

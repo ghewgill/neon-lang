@@ -62,6 +62,16 @@ std::string concat(const std::string &a, const std::string &b)
     return a + b;
 }
 
+void dec(Number *a)
+{
+    *a = number_subtract(*a, number_from_uint32(1));
+}
+
+void inc(Number *a)
+{
+    *a = number_add(*a, number_from_uint32(1));
+}
+
 std::string input(const std::string &prompt)
 {
     std::cout << prompt;
