@@ -842,57 +842,61 @@ const Expression *Parser::parseAddition(Scope *scope)
 const Expression *Parser::parseComparison(Scope *scope)
 {
     const Expression *left = parseAddition(scope);
-    switch (tokens[i].type) {
-        case EQUAL:
-        case NOTEQUAL:
-        case LESS:
-        case GREATER:
-        case LESSEQ:
-        case GREATEREQ: {
-            ComparisonExpression::Comparison comp = comparisonFromToken(tokens[i]);
-            auto op = i;
-            ++i;
-            const Expression *right = parseAddition(scope);
-            if (not left->type->is_equivalent(right->type)) {
-                error(2045, tokens[op], "type mismatch");
-            }
-            if (left->type->is_equivalent(TYPE_BOOLEAN)) {
-                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                    error(2046, tokens[op], "comparison not available for Boolean");
-                }
-                return new BooleanComparisonExpression(left, right, comp);
-            } else if (left->type->is_equivalent(TYPE_NUMBER)) {
-                return new NumericComparisonExpression(left, right, comp);
-            } else if (left->type->is_equivalent(TYPE_STRING)) {
-                return new StringComparisonExpression(left, right, comp);
-            } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
-                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                    error(2047, tokens[op], "comparison not available for Array");
-                }
-                return new ArrayComparisonExpression(left, right, comp);
-            } else if (dynamic_cast<const TypeDictionary *>(left->type) != nullptr) {
-                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                    error(2048, tokens[op], "comparison not available for Dictionary");
-                }
-                return new DictionaryComparisonExpression(left, right, comp);
-            } else if (dynamic_cast<const TypeRecord *>(left->type) != nullptr) {
-                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                    error(2049, tokens[op], "comparison not available for RECORD");
-                }
-                return new ArrayComparisonExpression(left, right, comp);
-            } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
-                return new NumericComparisonExpression(left, right, comp);
-            } else if (dynamic_cast<const TypePointer *>(left->type) != nullptr) {
-                if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                    error(2173, tokens[op], "comparison not available for POINTER");
-                }
-                return new PointerComparisonExpression(left, right, comp);
-            } else {
-                internal_error("unknown type in parseComparison");
-            }
+    std::vector<const ComparisonExpression *> comps;
+    while (tokens[i].type == EQUAL  || tokens[i].type == NOTEQUAL
+        || tokens[i].type == LESS   || tokens[i].type == GREATER
+        || tokens[i].type == LESSEQ || tokens[i].type == GREATEREQ) {
+        ComparisonExpression::Comparison comp = comparisonFromToken(tokens[i]);
+        auto op = i;
+        ++i;
+        const Expression *right = parseAddition(scope);
+        if (not left->type->is_equivalent(right->type)) {
+            error(2045, tokens[op], "type mismatch");
         }
-        default:
-            return left;
+        const ComparisonExpression *c;
+        if (left->type->is_equivalent(TYPE_BOOLEAN)) {
+            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                error(2046, tokens[op], "comparison not available for Boolean");
+            }
+            c = new BooleanComparisonExpression(left, right, comp);
+        } else if (left->type->is_equivalent(TYPE_NUMBER)) {
+            c = new NumericComparisonExpression(left, right, comp);
+        } else if (left->type->is_equivalent(TYPE_STRING)) {
+            c = new StringComparisonExpression(left, right, comp);
+        } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
+            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                error(2047, tokens[op], "comparison not available for Array");
+            }
+            c = new ArrayComparisonExpression(left, right, comp);
+        } else if (dynamic_cast<const TypeDictionary *>(left->type) != nullptr) {
+            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                error(2048, tokens[op], "comparison not available for Dictionary");
+            }
+            c = new DictionaryComparisonExpression(left, right, comp);
+        } else if (dynamic_cast<const TypeRecord *>(left->type) != nullptr) {
+            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                error(2049, tokens[op], "comparison not available for RECORD");
+            }
+            c = new ArrayComparisonExpression(left, right, comp);
+        } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
+            c = new NumericComparisonExpression(left, right, comp);
+        } else if (dynamic_cast<const TypePointer *>(left->type) != nullptr) {
+            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+                error(2173, tokens[op], "comparison not available for POINTER");
+            }
+            c = new PointerComparisonExpression(left, right, comp);
+        } else {
+            internal_error("unknown type in parseComparison");
+        }
+        comps.push_back(c);
+        left = right;
+    }
+    if (comps.empty()) {
+        return left;
+    } else if (comps.size() == 1) {
+        return comps[0];
+    } else {
+        return new ChainedComparisonExpression(comps);
     }
 }
 

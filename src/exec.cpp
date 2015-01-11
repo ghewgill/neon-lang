@@ -188,7 +188,9 @@ private:
     void exec_JUMP();
     void exec_JF();
     void exec_JT();
+    void exec_JFCHAIN();
     void exec_DUP();
+    void exec_DUPX1();
     void exec_DROP();
     void exec_RET();
     void exec_CALLE();
@@ -756,10 +758,32 @@ void Executor::exec_JT()
     }
 }
 
+void Executor::exec_JFCHAIN()
+{
+    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    ip += 5;
+    Cell a = stack.top(); stack.pop();
+    if (not a.boolean()) {
+        ip = target;
+        stack.pop();
+    }
+    stack.push(a);
+}
+
 void Executor::exec_DUP()
 {
     ip++;
     stack.push(stack.top());
+}
+
+void Executor::exec_DUPX1()
+{
+    ip++;
+    Cell a = stack.top(); stack.pop();
+    Cell b = stack.top(); stack.pop();
+    stack.push(a);
+    stack.push(b);
+    stack.push(a);
 }
 
 void Executor::exec_DROP()
@@ -1012,7 +1036,9 @@ void Executor::exec()
             case JUMP:    exec_JUMP(); break;
             case JF:      exec_JF(); break;
             case JT:      exec_JT(); break;
+            case JFCHAIN: exec_JFCHAIN(); break;
             case DUP:     exec_DUP(); break;
+            case DUPX1:   exec_DUPX1(); break;
             case DROP:    exec_DROP(); break;
             case RET:     exec_RET(); break;
             case CALLE:   exec_CALLE(); break;

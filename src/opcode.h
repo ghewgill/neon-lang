@@ -65,7 +65,9 @@ enum Opcode {
     JUMP,       // unconditional jump
     JF,         // jump if false
     JT,         // jump if true
+    JFCHAIN,    // jump and drop next if false
     DUP,        // duplicate
+    DUPX1,      // duplicate under second value
     DROP,       // drop
     RET,        // return
     CALLE,      // call external

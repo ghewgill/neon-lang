@@ -660,51 +660,67 @@ void DictionaryInExpression::generate(Emitter &emitter) const
     emitter.emit(IND);
 }
 
-void BooleanComparisonExpression::generate(Emitter &emitter) const
+void ComparisonExpression::generate(Emitter &emitter) const
+{
+    left->generate(emitter);
+    right->generate(emitter);
+    generate_comparison_opcode(emitter);
+}
+
+void ChainedComparisonExpression::generate(Emitter &emitter) const
+{
+    comps[0]->left->generate(emitter);
+    auto skip_label = emitter.create_label();
+    size_t i = 0;
+    for (auto c: comps) {
+        bool last = i == comps.size() - 1;
+        c->right->generate(emitter);
+        if (not last) {
+            emitter.emit(DUPX1);
+        }
+        c->generate_comparison_opcode(emitter);
+        emitter.emit_jump(JFCHAIN, skip_label);
+        if (not last) {
+            emitter.emit(DROP);
+        }
+        i++;
+    }
+    emitter.jump_target(skip_label);
+}
+
+void BooleanComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQB, NEB};
-    left->generate(emitter);
-    right->generate(emitter);
     emitter.emit(op[comp]);
 }
 
-void NumericComparisonExpression::generate(Emitter &emitter) const
+void NumericComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
-    left->generate(emitter);
-    right->generate(emitter);
     emitter.emit(op[comp]);
 }
 
-void StringComparisonExpression::generate(Emitter &emitter) const
+void StringComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQS, NES, LTS, GTS, LES, GES};
-    left->generate(emitter);
-    right->generate(emitter);
     emitter.emit(op[comp]);
 }
 
-void ArrayComparisonExpression::generate(Emitter &emitter) const
+void ArrayComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQA, NEA};
-    left->generate(emitter);
-    right->generate(emitter);
     emitter.emit(op[comp]);
 }
 
-void DictionaryComparisonExpression::generate(Emitter &emitter) const
+void DictionaryComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQD, NED};
-    left->generate(emitter);
-    right->generate(emitter);
     emitter.emit(op[comp]);
 }
 
-void PointerComparisonExpression::generate(Emitter &emitter) const
+void PointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQP, NEP};
-    left->generate(emitter);
-    right->generate(emitter);
     emitter.emit(op[comp]);
 }
 

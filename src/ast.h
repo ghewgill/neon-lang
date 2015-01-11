@@ -649,9 +649,28 @@ public:
     const Expression *const left;
     const Expression *const right;
     const Comparison comp;
+
+    virtual void generate(Emitter &emitter) const;
+    virtual void generate_comparison_opcode(Emitter &emitter) const = 0;
 private:
     ComparisonExpression(const ComparisonExpression &);
     ComparisonExpression &operator=(const ComparisonExpression &);
+};
+
+class ChainedComparisonExpression: public Expression {
+public:
+    ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(TYPE_BOOLEAN, false), comps(comps) {}
+
+    const std::vector<const ComparisonExpression *> comps;
+
+    virtual Number eval_number() const { internal_error("ChainedComparisonExpression"); }
+    virtual std::string eval_string() const { internal_error("ChainedComparisonExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ChainedComparisonExpression(...)"; }
+private:
+    ChainedComparisonExpression(const ChainedComparisonExpression &);
+    ChainedComparisonExpression &operator=(const ChainedComparisonExpression &);
 };
 
 class BooleanComparisonExpression: public ComparisonExpression {
@@ -660,7 +679,7 @@ public:
 
     virtual Number eval_number() const { internal_error("BooleanComparisonExpression"); }
     virtual std::string eval_string() const { internal_error("BooleanComparisonExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_comparison_opcode(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "BooleanComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
@@ -673,7 +692,7 @@ public:
 
     virtual Number eval_number() const { internal_error("NumericComparisonExpression"); }
     virtual std::string eval_string() const { internal_error("NumericComparisonExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_comparison_opcode(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "NumericComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
@@ -686,7 +705,7 @@ public:
 
     virtual Number eval_number() const { internal_error("StringComparisonExpression"); }
     virtual std::string eval_string() const { internal_error("StringComparisonExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_comparison_opcode(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "StringComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
@@ -699,7 +718,7 @@ public:
 
     virtual Number eval_number() const { internal_error("ArrayComparisonExpression"); }
     virtual std::string eval_string() const { internal_error("ArrayComparisonExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_comparison_opcode(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "ArrayComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
@@ -712,7 +731,7 @@ public:
 
     virtual Number eval_number() const { internal_error("DictionaryComparisonExpression"); }
     virtual std::string eval_string() const { internal_error("DictionaryComparisonExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_comparison_opcode(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "DictionaryComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
@@ -725,7 +744,7 @@ public:
 
     virtual Number eval_number() const { internal_error("PointerComparisonExpression"); }
     virtual std::string eval_string() const { internal_error("PointerComparisonExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate_comparison_opcode(Emitter &emitter) const;
 
     virtual std::string text() const {
         return "PointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";

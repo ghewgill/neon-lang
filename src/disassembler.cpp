@@ -83,7 +83,9 @@ private:
     void disasm_JUMP();
     void disasm_JF();
     void disasm_JT();
+    void disasm_JFCHAIN();
     void disasm_DUP();
+    void disasm_DUPX1();
     void disasm_DROP();
     void disasm_RET();
     void disasm_CALLE();
@@ -497,9 +499,22 @@ void Disassembler::disasm_JT()
     out << "JT " << addr << "\n";
 }
 
+void Disassembler::disasm_JFCHAIN()
+{
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "JFCHAIN " << addr << "\n";
+}
+
 void Disassembler::disasm_DUP()
 {
     out << "DUP\n";
+    index++;
+}
+
+void Disassembler::disasm_DUPX1()
+{
+    out << "DUPX1\n";
     index++;
 }
 
@@ -644,7 +659,9 @@ void Disassembler::disassemble()
             case JUMP:    disasm_JUMP(); break;
             case JF:      disasm_JF(); break;
             case JT:      disasm_JT(); break;
+            case JFCHAIN: disasm_JFCHAIN(); break;
             case DUP:     disasm_DUP(); break;
+            case DUPX1:   disasm_DUPX1(); break;
             case DROP:    disasm_DROP(); break;
             case RET:     disasm_RET(); break;
             case CALLE:   disasm_CALLE(); break;
