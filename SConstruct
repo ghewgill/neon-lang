@@ -81,8 +81,6 @@ rtl = rtl_const + [
     "lib/time.cpp",
 ]
 
-env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [rtl, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl))
-
 if os.name == "posix":
     rtl.extend([
         "lib/time_posix.cpp",
@@ -96,6 +94,8 @@ elif os.name == "nt":
 else:
     print "Unsupported platform:", os.name
     sys.exit(1)
+
+env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [rtl, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl))
 
 neon = env.Program("bin/neon", [
     "src/ast.cpp",
