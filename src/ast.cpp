@@ -315,6 +315,10 @@ Program::Program()
     scope->addName("FunctionNotFound", new Exception("FunctionNotFound"));
     scope->addName("LibraryNotFound", new Exception("LibraryNotFound"));
 
+    scope->addName("DirectoryExists", new Exception("DirectoryExists"));
+    scope->addName("PathNotFound", new Exception("PathNotFound"));
+    scope->addName("PermissionDenied", new Exception("PermissionDenied"));
+
     {
         // The fields here must match the corresponding references to
         // ExceptionType in exec.cpp.

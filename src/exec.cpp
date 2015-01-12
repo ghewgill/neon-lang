@@ -722,7 +722,12 @@ void Executor::exec_CALLP()
     uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     std::string func = obj.strtable.at(val);
-    rtl_call(stack, func, rtl_call_tokens[val]);
+    try {
+        rtl_call(stack, func, rtl_call_tokens[val]);
+    } catch (RtlException &x) {
+        ip -= 5;
+        raise(x.name, x.info);
+    }
 }
 
 void Executor::exec_CALLF()
@@ -960,7 +965,7 @@ void Executor::raise(const std::string &exception, const std::string &info)
         ip = callstack.top();
         callstack.pop();
     }
-    fprintf(stderr, "unhandled exception %s\n", exception.c_str());
+    fprintf(stderr, "unhandled exception %s (%s)\n", exception.c_str(), info.c_str());
     exit(1);
 }
 

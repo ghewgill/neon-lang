@@ -83,11 +83,13 @@ rtl = rtl_const + [
 
 if os.name == "posix":
     rtl.extend([
+        "lib/file_posix.cpp",
         "lib/time_posix.cpp",
     ])
     rtl_platform = "src/rtl_posix.cpp"
 elif os.name == "nt":
     rtl.extend([
+        "lib/file_win32.cpp",
         "lib/time_win32.cpp",
     ])
     rtl_platform = "src/rtl_win32.cpp"
