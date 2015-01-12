@@ -637,7 +637,7 @@ const Expression *Parser::parseAtom(Scope *scope)
                             }
                         } else if (type == TYPE_STRING) {
                             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
-                            // TODO
+                            // TODO (see t/retval-index.neon)
                             ++i;
                             const Expression *index = parseExpression(scope);
                             if (not index->type->is_equivalent(TYPE_NUMBER)) {
