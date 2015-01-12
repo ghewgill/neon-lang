@@ -6,6 +6,7 @@ REF = "REF"
 
 AstFromCpp = {
     "void": ("TYPE_NOTHING", VALUE),
+    "Cell&": ("TYPE_GENERIC", VALUE),
     "Cell*": ("TYPE_GENERIC", REF),
     "void*": ("TYPE_POINTER", VALUE),
     "bool": ("TYPE_BOOLEAN", VALUE),
@@ -23,6 +24,7 @@ AstFromCpp = {
 
 CppFromAst = {
     ("TYPE_NOTHING", VALUE): "void",
+    ("TYPE_GENERIC", VALUE): "Cell",
     ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_POINTER", VALUE): "void *",
     ("TYPE_BOOLEAN", VALUE): "bool",
@@ -37,6 +39,7 @@ CppFromAst = {
 
 CppFromAstArg = {
     ("TYPE_POINTER", VALUE): "void *",
+    ("TYPE_GENERIC", VALUE): "Cell &",
     ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_BOOLEAN", VALUE): "bool",
     ("TYPE_BOOLEAN", REF): "bool *",
@@ -118,6 +121,8 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "    {} a{};".format(CppFromAst[a], i)
                 print >>inc, "    for (auto x: stack.top().array()) a{}.push_back(x.{});".format(i, ArrayElementField[a])
                 print >>inc, "    stack.pop();"
+            elif a == ("TYPE_GENERIC", VALUE):
+                print >>inc, "    {} a{} = stack.top(); stack.pop();".format(CppFromAst[a], i)
             elif a == ("TYPE_GENERIC", REF):
                 print >>inc, "    {} a{} = stack.top().address(); stack.pop();".format(CppFromAst[a], i);
             elif a[1] == REF:

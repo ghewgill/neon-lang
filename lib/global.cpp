@@ -10,9 +10,9 @@ namespace rtl {
 
 namespace array {
 
-Number size(Cell *self)
+Number size(Cell &self)
 {
-    return number_from_uint64(self->array().size());
+    return number_from_uint64(self.array().size());
 }
 
 } // namespace array

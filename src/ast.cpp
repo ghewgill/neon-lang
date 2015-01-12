@@ -28,7 +28,7 @@ TypeArray::TypeArray(const Type *elementtype)
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::INOUT, this));
+        params.push_back(new ParameterType(ParameterType::IN, this));
         methods["size"] = new PredefinedFunction("array.size", new TypeFunction(TYPE_NUMBER, params));
     }
 }
