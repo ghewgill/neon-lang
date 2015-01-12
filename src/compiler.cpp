@@ -830,15 +830,20 @@ void DictionaryValueIndexExpression::generate(Emitter &emitter) const
     emitter.emit(INDEXDV);
 }
 
-void StringIndexExpression::generate_load(Emitter &emitter) const
+void StringReferenceIndexExpression::generate_load(Emitter &emitter) const
 {
     load->generate(emitter);
 }
 
-void StringIndexExpression::generate_store(Emitter &emitter) const
+void StringReferenceIndexExpression::generate_store(Emitter &emitter) const
 {
     store->generate(emitter);
     ref->generate_store(emitter);
+}
+
+void StringValueIndexExpression::generate(Emitter &emitter) const
+{
+    load->generate(emitter);
 }
 
 void PointerDereferenceExpression::generate_address_read(Emitter &emitter) const

@@ -989,9 +989,9 @@ private:
     DictionaryValueIndexExpression &operator=(const DictionaryValueIndexExpression &);
 };
 
-class StringIndexExpression: public ReferenceExpression {
+class StringReferenceIndexExpression: public ReferenceExpression {
 public:
-    StringIndexExpression(const ReferenceExpression *ref, const Expression *index);
+    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index);
 
     const ReferenceExpression *ref;
     const Expression *index;
@@ -999,17 +999,38 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
-    virtual Number eval_number() const { internal_error("StringIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("StringIndexExpression"); }
-    virtual void generate_address_read(Emitter &) const { internal_error("StringIndexExpression"); }
-    virtual void generate_address_write(Emitter &) const { internal_error("StringIndexExpression"); }
+    virtual Number eval_number() const { internal_error("StringReferenceIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const { internal_error("StringReferenceIndexExpression"); }
     virtual void generate_load(Emitter &) const;
     virtual void generate_store(Emitter &) const;
 
-    virtual std::string text() const { return "StringIndexExpression(" + ref->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const { return "StringReferenceIndexExpression(" + ref->text() + ", " + index->text() + ")"; }
 private:
-    StringIndexExpression(const StringIndexExpression &);
-    StringIndexExpression &operator=(const StringIndexExpression &);
+    StringReferenceIndexExpression(const StringReferenceIndexExpression &);
+    StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &);
+};
+
+class StringValueIndexExpression: public Expression {
+public:
+    StringValueIndexExpression(const Expression *str, const Expression *index);
+
+    const Expression *str;
+    const Expression *index;
+
+    const FunctionCall *load;
+
+    virtual Number eval_number() const { internal_error("StringValueIndexExpression"); }
+    virtual std::string eval_string() const { internal_error("StringValueIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const { internal_error("StringValueIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const { internal_error("StringValueIndexExpression"); }
+    virtual void generate(Emitter &) const;
+
+    virtual std::string text() const { return "StringValueIndexExpression(" + str->text() + ", " + index->text() + ")"; }
+private:
+    StringValueIndexExpression(const StringValueIndexExpression &);
+    StringValueIndexExpression &operator=(const StringValueIndexExpression &);
 };
 
 class PointerDereferenceExpression: public ReferenceExpression {

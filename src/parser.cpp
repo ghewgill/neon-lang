@@ -123,7 +123,7 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
     }
 }
 
-StringIndexExpression::StringIndexExpression(const ReferenceExpression *ref, const Expression *index)
+StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
     index(index),
@@ -143,6 +143,21 @@ StringIndexExpression::StringIndexExpression(const ReferenceExpression *ref, con
         args.push_back(index);
         args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
         store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("splice"))), args);
+    }
+}
+
+StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *index)
+  : Expression(str->type, str->is_readonly),
+    str(str),
+    index(index),
+    load(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(str);
+        args.push_back(index);
+        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("substring"))), args);
     }
 }
 
@@ -636,8 +651,6 @@ const Expression *Parser::parseAtom(Scope *scope)
                                 expr = new DictionaryValueIndexExpression(type, expr, index);
                             }
                         } else if (type == TYPE_STRING) {
-                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
-                            // TODO (see t/retval-index.neon)
                             ++i;
                             const Expression *index = parseExpression(scope);
                             if (not index->type->is_equivalent(TYPE_NUMBER)) {
@@ -647,7 +660,12 @@ const Expression *Parser::parseAtom(Scope *scope)
                                 error(2067, tokens[i], "']' expected");
                             }
                             ++i;
-                            return new StringIndexExpression(ref, index);
+                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
+                            if (ref != nullptr) {
+                                expr = new StringReferenceIndexExpression(ref, index);
+                            } else {
+                                expr = new StringValueIndexExpression(expr, index);
+                            }
                         } else {
                             error(2068, tokens[i], "not an array or dictionary");
                         }

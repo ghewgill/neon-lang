@@ -1,3 +1,2 @@
-% TODO SKIP (segfaults)
 print(str(1)[0])
 %= 1
