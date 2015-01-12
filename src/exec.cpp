@@ -123,6 +123,7 @@ private:
     std::stack<Bytecode::bytecode::size_type> callstack;
     std::vector<Cell> globals;
     std::vector<ActivationFrame> frames;
+    std::vector<size_t> rtl_call_tokens;
     std::vector<ExternalCallInfo *> external_functions;
 
     void exec_ENTER();
@@ -214,6 +215,7 @@ Executor::Executor(const Bytecode::bytecode &bytes)
     callstack(),
     globals(obj.global_size),
     frames(),
+    rtl_call_tokens(obj.strtable.size(), SIZE_MAX),
     external_functions()
 {
 }
@@ -720,7 +722,7 @@ void Executor::exec_CALLP()
     uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
     ip += 5;
     std::string func = obj.strtable.at(val);
-    rtl_call(stack, func);
+    rtl_call(stack, func, rtl_call_tokens[val]);
 }
 
 void Executor::exec_CALLF()

@@ -6,7 +6,7 @@
 
 typedef void (*Thunk)(std::stack<Cell> &stack, void *func);
 
-static std::map<std::string, std::pair<Thunk, void *> > Functions;
+static std::map<std::string, size_t> FunctionNames;
 
 #include "thunks.inc"
 #include "functions_exec.inc"
@@ -16,17 +16,23 @@ void rtl_exec_init(int argc, char *argv[])
     extern void rtl_sys_init(int, char *[]);
     rtl_sys_init(argc, argv);
 
+    size_t i = 0;
     for (auto f: BuiltinFunctions) {
-        Functions[f.name] = std::make_pair(f.thunk, f.func);
+        FunctionNames[f.name] = i;
+        i++;
     }
 }
 
-void rtl_call(std::stack<Cell> &stack, const std::string &name)
+void rtl_call(std::stack<Cell> &stack, const std::string &name, size_t &token)
 {
-    auto f = Functions.find(name);
-    if (f == Functions.end()) {
-        fprintf(stderr, "neon: function not found: %s\n", name.c_str());
-        abort();
+    if (token == SIZE_MAX) {
+        auto f = FunctionNames.find(name);
+        if (f == FunctionNames.end()) {
+            fprintf(stderr, "neon: function not found: %s\n", name.c_str());
+            abort();
+        }
+        token = f->second;
     }
-    f->second.first(stack, f->second.second);
+    auto fn = BuiltinFunctions[token];
+    fn.thunk(stack, fn.func);
 }
