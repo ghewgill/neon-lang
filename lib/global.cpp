@@ -19,27 +19,27 @@ Number size(Cell &self)
 
 namespace boolean {
 
-std::string to_string(bool *self)
+std::string to_string(bool self)
 {
-    return *self ? "TRUE" : "FALSE";
+    return self ? "TRUE" : "FALSE";
 }
 
 } // namespace boolean
 
 namespace number {
 
-std::string to_string(Number *self)
+std::string to_string(Number self)
 {
-    return number_to_string(*self);
+    return number_to_string(self);
 }
 
 } // namespace number
 
 namespace string {
 
-Number length(std::string *self)
+Number length(const std::string &self)
 {
-    return number_from_uint64(self->length());
+    return number_from_uint64(self.length());
 }
 
 } // namespace string

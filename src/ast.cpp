@@ -293,19 +293,19 @@ Program::Program()
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::INOUT, TYPE_BOOLEAN));
+        params.push_back(new ParameterType(ParameterType::IN, TYPE_BOOLEAN));
         TYPE_BOOLEAN->methods["to_string"] = new PredefinedFunction("boolean.to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::INOUT, TYPE_NUMBER));
+        params.push_back(new ParameterType(ParameterType::IN, TYPE_NUMBER));
         TYPE_NUMBER->methods["to_string"] = new PredefinedFunction("number.to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::INOUT, TYPE_STRING));
+        params.push_back(new ParameterType(ParameterType::IN, TYPE_STRING));
         TYPE_STRING->methods["length"] = new PredefinedFunction("string.length", new TypeFunction(TYPE_NUMBER, params));
     }
 
