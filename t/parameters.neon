@@ -12,6 +12,11 @@ FUNCTION out(OUT a: Number)
     a := a + 1
 END FUNCTION
 
+FUNCTION outf(OUT a: Number): String
+    print(str(a))
+    RETURN "foo"
+END FUNCTION
+
 VAR a: Number
 
 a := 5
@@ -31,3 +36,8 @@ out(a)
 print(str(a))
 %= 0
 %= 1
+
+a := 5
+print(outf(a))
+%= 0
+%= foo

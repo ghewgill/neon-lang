@@ -493,6 +493,7 @@ void Function::postdeclare(Emitter &emitter) const
         stmt->generate(emitter);
     }
     emitter.pop_function_exit();
+    emitter.jump_target(exit);
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::IN:
@@ -504,7 +505,6 @@ void Function::postdeclare(Emitter &emitter) const
                 break;
         }
     }
-    emitter.jump_target(exit);
     emitter.emit(LEAVE);
     emitter.emit(RET);
     scope->postdeclare(emitter);
