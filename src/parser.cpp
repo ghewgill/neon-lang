@@ -576,6 +576,7 @@ const Expression *Parser::parseAtom(Scope *scope)
         case IDENTIFIER: {
             const Name *name = scope->lookupName(tokens[i].text);
             const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(name);
+            const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(name);
             /* TODO: This allows referencing enum values for a variable
                      declared with an anonymous enum type. But it currently
                      conflicts with method call syntax like a.to_string().
@@ -597,6 +598,32 @@ const Expression *Parser::parseAtom(Scope *scope)
                 }
                 ++i;
                 return new ConstantEnumExpression(enumtype, name->second);
+            } else if (recordtype != nullptr) {
+                ++i;
+                if (tokens[i].type != LPAREN) {
+                    error(2213, tokens[i], "'(' expected");
+                }
+                ++i;
+                std::vector<const Expression *> elements;
+                auto f = recordtype->fields.begin();
+                while (tokens[i].type != RPAREN) {
+                    if (f == recordtype->fields.end()) {
+                        error(2214, tokens[i], "too many fields");
+                    }
+                    const Expression *element = parseExpression(scope);
+                    if (not element->type->is_equivalent(f->second)) {
+                        error(2215, tokens[i], "type mismatch");
+                    }
+                    elements.push_back(element);
+                    if (tokens[i].type == COMMA) {
+                        ++i;
+                        ++f;
+                    } else if (tokens[i].type != RPAREN) {
+                        error(2216, tokens[i], "',' or ']' expected");
+                    }
+                }
+                ++i;
+                return new RecordLiteralExpression(recordtype, elements);
             } else {
                 int enclosing;
                 const Name *name = parseQualifiedName(scope, enclosing);

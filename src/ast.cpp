@@ -117,6 +117,16 @@ bool DictionaryLiteralExpression::all_constant(const std::vector<std::pair<std::
     return true;
 }
 
+bool RecordLiteralExpression::all_constant(const std::vector<const Expression *> &elements)
+{
+    for (auto e: elements) {
+        if (not e->is_constant) {
+            return false;
+        }
+    }
+    return true;
+}
+
 std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements)
 {
     std::map<std::string, const Expression *> dict;

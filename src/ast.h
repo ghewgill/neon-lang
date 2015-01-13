@@ -486,6 +486,24 @@ private:
     static std::map<std::string, const Expression *> make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements);
 };
 
+class RecordLiteralExpression: public Expression {
+public:
+    RecordLiteralExpression(const TypeRecord *type, const std::vector<const Expression *> &values): Expression(type, all_constant(values)), values(values) {}
+
+    const std::vector<const Expression *> values;
+
+    virtual Number eval_number() const { internal_error("RecordLiteralExpression"); }
+    virtual std::string eval_string() const { internal_error("RecordLiteralExpression"); }
+    virtual void generate(Emitter &) const;
+
+    virtual std::string text() const { return "RecordLiteralExpression(...)"; }
+private:
+    RecordLiteralExpression(const RecordLiteralExpression &);
+    RecordLiteralExpression &operator=(const RecordLiteralExpression &);
+
+    static bool all_constant(const std::vector<const Expression *> &values);
+};
+
 class NewRecordExpression: public Expression {
 public:
     NewRecordExpression(const TypeRecord *reftype): Expression(new TypePointer(reftype), false), fields(reftype->fields.size()) {}

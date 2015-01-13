@@ -594,6 +594,14 @@ void DictionaryLiteralExpression::generate(Emitter &emitter) const
     emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
 }
 
+void RecordLiteralExpression::generate(Emitter &emitter) const
+{
+    for (auto v = values.rbegin(); v != values.rend(); ++v) {
+        (*v)->generate(emitter);
+    }
+    emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
+}
+
 void NewRecordExpression::generate(Emitter &emitter) const
 {
     emitter.emit(ALLOC, static_cast<uint32_t>(fields));
