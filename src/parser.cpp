@@ -203,14 +203,14 @@ const Type *Parser::parseRecordType(Scope *scope)
         internal_error("RECORD expected");
     }
     i++;
-    std::map<std::string, std::pair<int, const Type *> > fields;
-    int index = 0;
+    std::vector<std::pair<std::string, const Type *>> fields;
+    std::set<std::string> field_names;
     while (tokens[i].type != END) {
         if (tokens[i].type != IDENTIFIER) {
             error(2008, tokens[i], "identifier expected");
         }
         std::string name = tokens[i].text;
-        if (fields.find(name) != fields.end()) {
+        if (field_names.find(name) != field_names.end()) {
             error(2009, tokens[i], "duplicate field: " + name);
         }
         ++i;
@@ -219,8 +219,8 @@ const Type *Parser::parseRecordType(Scope *scope)
         }
         ++i;
         const Type *t = parseType(scope);
-        fields[name] = std::make_pair(index, t);
-        index++;
+        fields.push_back(std::make_pair(name, t));
+        field_names.insert(name);
     }
     i++;
     if (tokens[i].type != RECORD) {
@@ -690,17 +690,17 @@ const Expression *Parser::parseAtom(Scope *scope)
                             if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
                                 internal_error("record not defined yet");
                             }
-                            std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(field);
-                            if (f == recordtype->fields.end()) {
+                            auto f = recordtype->field_names.find(field);
+                            if (f == recordtype->field_names.end()) {
                                 error(2070, tokens[i], "field not found");
                             }
                             ++i;
-                            type = f->second.second;
+                            type = recordtype->fields[f->second].second;
                             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
                             if (ref != nullptr) {
-                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second)));
                             } else {
-                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second)));
                             }
                         } else {
                             error(2071, tokens[i], "no method found or not a record");
@@ -722,14 +722,14 @@ const Expression *Parser::parseAtom(Scope *scope)
                             if (tokens[i].type != IDENTIFIER) {
                                 error(2186, tokens[i], "identifier expected");
                             }
-                            std::map<std::string, std::pair<int, const Type *> >::const_iterator f = recordtype->fields.find(tokens[i].text);
-                            if (f == recordtype->fields.end()) {
+                            auto f = recordtype->field_names.find(tokens[i].text);
+                            if (f == recordtype->field_names.end()) {
                                 error(2187, tokens[i], "field not found");
                             }
                             ++i;
-                            type = f->second.second;
+                            type = recordtype->fields[f->second].second;
                             const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, expr);
-                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second.first)));
+                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second)));
                         } else {
                             error(2188, tokens[i], "not a pointer");
                         }

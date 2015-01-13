@@ -207,8 +207,9 @@ private:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const std::map<std::string, std::pair<int, const Type *> > &fields): Type("record"), fields(fields) {}
-    const std::map<std::string, std::pair<int, const Type *> > fields;
+    TypeRecord(const std::vector<std::pair<std::string, const Type *>> &fields): Type("record"), fields(fields), field_names(make_field_names(fields)) {}
+    const std::vector<std::pair<std::string, const Type *>> fields;
+    const std::map<std::string, int> field_names;
 
     virtual bool is_equivalent(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const;
@@ -216,11 +217,21 @@ public:
     virtual void generate_call(Emitter &emitter) const;
 
     virtual std::string text() const { return "TypeRecord(...)"; }
+private:
+    static std::map<std::string, int> make_field_names(const std::vector<std::pair<std::string, const Type *>> &fields) {
+        std::map<std::string, int> r;
+        size_t i = 0;
+        for (auto f: fields) {
+            r[f.first] = i;
+            i++;
+        }
+        return r;
+    }
 };
 
 class TypeForwardRecord: public TypeRecord {
 public:
-    TypeForwardRecord(): TypeRecord(std::map<std::string, std::pair<int, const Type *>>()) {}
+    TypeForwardRecord(): TypeRecord(std::vector<std::pair<std::string, const Type *>>()) {}
 };
 
 class TypePointer: public Type {
