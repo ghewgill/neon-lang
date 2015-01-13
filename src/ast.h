@@ -209,7 +209,7 @@ class TypeRecord: public Type {
 public:
     TypeRecord(const std::vector<std::pair<std::string, const Type *>> &fields): Type("record"), fields(fields), field_names(make_field_names(fields)) {}
     const std::vector<std::pair<std::string, const Type *>> fields;
-    const std::map<std::string, int> field_names;
+    const std::map<std::string, size_t> field_names;
 
     virtual bool is_equivalent(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const;
@@ -218,8 +218,8 @@ public:
 
     virtual std::string text() const { return "TypeRecord(...)"; }
 private:
-    static std::map<std::string, int> make_field_names(const std::vector<std::pair<std::string, const Type *>> &fields) {
-        std::map<std::string, int> r;
+    static std::map<std::string, size_t> make_field_names(const std::vector<std::pair<std::string, const Type *>> &fields) {
+        std::map<std::string, size_t> r;
         size_t i = 0;
         for (auto f: fields) {
             r[f.first] = i;

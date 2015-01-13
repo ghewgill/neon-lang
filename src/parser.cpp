@@ -725,9 +725,9 @@ const Expression *Parser::parseAtom(Scope *scope)
                             type = recordtype->fields[f->second].second;
                             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
                             if (ref != nullptr) {
-                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second)));
+                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))));
                             } else {
-                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(f->second)));
+                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))));
                             }
                         } else {
                             error(2071, tokens[i], "no method found or not a record");
@@ -756,7 +756,7 @@ const Expression *Parser::parseAtom(Scope *scope)
                             ++i;
                             type = recordtype->fields[f->second].second;
                             const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, expr);
-                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(f->second)));
+                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))));
                         } else {
                             error(2188, tokens[i], "not a pointer");
                         }
