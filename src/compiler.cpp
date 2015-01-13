@@ -522,6 +522,9 @@ void PredefinedFunction::predeclare(Emitter &emitter) const
 
 void PredefinedFunction::generate_call(Emitter &emitter) const
 {
+    if (name_index == -1) {
+        internal_error("predefined function not generated: "+name);
+    }
     emitter.emit(CALLP, name_index);
 }
 
