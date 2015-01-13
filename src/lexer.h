@@ -81,6 +81,8 @@ enum TokenType {
     NIL,
     VALID,
     ARROW,
+    SUBBEGIN,
+    SUBEND,
     MAX_TOKEN
 };
 

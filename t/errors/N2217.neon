@@ -1,0 +1,2 @@
+TYPE T := RECORD END RECORD
+print("\(T())")

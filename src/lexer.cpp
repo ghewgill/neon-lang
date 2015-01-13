@@ -87,6 +87,8 @@ std::string Token::tostring() const
         case NIL:         s << "NIL"; break;
         case VALID:       s << "VALID"; break;
         case ARROW:       s << "ARROW"; break;
+        case SUBBEGIN:    s << "SUBBEGIN"; break;
+        case SUBEND:      s << "SUBEND"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -128,35 +130,12 @@ inline bool space(uint32_t c)
     return c < 256 && isspace(c);
 }
 
-std::vector<Token> tokenize(const std::string &source)
+static std::vector<Token> tokenize_fragment(int line, int column, const std::string &source)
 {
-    auto inv = utf8::find_invalid(source.begin(), source.end());
-    if (inv != source.end()) {
-        int line = static_cast<int>(1 + std::count(source.begin(), inv, '\n'));
-        auto bol = source.rfind('\n', inv-source.begin());
-        if (bol != std::string::npos) {
-            bol++;
-        } else {
-            bol = 0;
-        }
-        int column = static_cast<int>(1 + inv - (source.begin() + bol));
-        Token t;
-        t.line = line;
-        t.column = column;
-        error(1000, t, "invalid UTF-8 data in source");
-    }
-    int line = 1;
-    int column = 1;
     std::vector<Token> tokens;
     std::string::const_iterator linestart = source.begin();
     std::string::const_iterator lineend = std::find(source.begin(), source.end(), '\n');
     std::string::const_iterator i = source.begin();
-    if (source.substr(0, 2) == "#!") {
-        while (i != source.end() && *i != '\n') {
-            utf8::advance(i, 1, source.end());
-        }
-        line++;
-    }
     while (i != source.end()) {
         uint32_t c = utf8::peek_next(i, source.end());
         //printf("index %lu char %c\n", i, c);
@@ -394,6 +373,38 @@ std::vector<Token> tokenize(const std::string &source)
                             c = std::stoul(std::string(i, i+4), nullptr, 16);
                             utf8::advance(i, 4, source.end());
                             break;
+                        case '(': {
+                            tokens.push_back(t);
+                            t.type = SUBBEGIN;
+                            tokens.push_back(t);
+                            auto start = i;
+                            int nest = 1;
+                            while (nest > 0) {
+                                if (i == source.end()) {
+                                    error(1015, t, "unexpected end of file");
+                                }
+                                c = utf8::next(i, source.end());
+                                switch (c) {
+                                    case '(':
+                                        nest++;
+                                        break;
+                                    case ')':
+                                        nest--;
+                                        break;
+                                    case '"':
+                                    case '\\':
+                                    case '\n':
+                                        error(1014, t, "invalid char embedded in string substitution");
+                                }
+                            }
+                            auto subtokens = tokenize_fragment(line, column, std::string(start, i-1));
+                            std::copy(subtokens.begin(), subtokens.end(), std::back_inserter(tokens));
+                            t.type = SUBEND;
+                            tokens.push_back(t);
+                            t.type = STRING;
+                            t.text = "";
+                            continue;
+                        }
                         default:
                             error(1009, t, "invalid escape character");
                     }
@@ -449,6 +460,35 @@ std::vector<Token> tokenize(const std::string &source)
         }
         column += static_cast<int>(i - startindex);
     }
+    return tokens;
+}
+
+std::vector<Token> tokenize(const std::string &source)
+{
+    auto inv = utf8::find_invalid(source.begin(), source.end());
+    if (inv != source.end()) {
+        int line = static_cast<int>(1 + std::count(source.begin(), inv, '\n'));
+        auto bol = source.rfind('\n', inv-source.begin());
+        if (bol != std::string::npos) {
+            bol++;
+        } else {
+            bol = 0;
+        }
+        int column = static_cast<int>(1 + inv - (source.begin() + bol));
+        Token t;
+        t.line = line;
+        t.column = column;
+        error(1000, t, "invalid UTF-8 data in source");
+    }
+    int line = 1;
+    std::string::const_iterator i = source.begin();
+    if (source.substr(0, 2) == "#!") {
+        while (i != source.end() && *i != '\n') {
+            utf8::advance(i, 1, source.end());
+        }
+        line++;
+    }
+    std::vector<Token> tokens = tokenize_fragment(line, 1, std::string(i, source.end()));
     Token t;
     t.line = line + 1;
     t.column = 1;

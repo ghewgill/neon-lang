@@ -34,6 +34,7 @@ public:
     const ArrayLiteralExpression *parseArrayLiteral(Scope *scope);
     const DictionaryLiteralExpression *parseDictionaryLiteral(Scope *scope);
     const Name *parseQualifiedName(Scope *scope, int &enclosing);
+    const Expression *parseInterpolatedStringExpression(Scope *scope);
     const Expression *parseAtom(Scope *scope);
     const Expression *parseExponentiation(Scope *scope);
     const Expression *parseMultiplication(Scope *scope);
@@ -490,6 +491,48 @@ const Name *Parser::parseQualifiedName(Scope *scope, int &enclosing)
     return name;
 }
 
+const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
+{
+    const VariableExpression *concat = new VariableExpression(dynamic_cast<const Variable *>(scope->lookupName("concat")));
+    const Expression *expr = new ConstantStringExpression(tokens[i].text);
+    for (;;) {
+        ++i;
+        if (tokens[i].type != SUBBEGIN) {
+            break;
+        }
+        ++i;
+        const Expression *e = parseExpression(scope);
+        if (tokens[i].type != SUBEND) {
+            internal_error("parseInterpolatedStringExpression");
+        }
+        auto to_string = e->type->methods.find("to_string");
+        if (to_string == e->type->methods.end()) {
+            error(2217, tokens[i], "no to_string() method found for type");
+        }
+        {
+            std::vector<const Expression *> args;
+            args.push_back(e);
+            const Expression *str = new FunctionCall(new VariableExpression(to_string->second), args);
+            args.clear();
+            args.push_back(expr);
+            args.push_back(str);
+            expr = new FunctionCall(concat, args);
+        }
+        ++i;
+        if (tokens[i].type != STRING) {
+            internal_error("parseInterpolatedStringExpression");
+        }
+        e = new ConstantStringExpression(tokens[i].text);
+        {
+            std::vector<const Expression *> args;
+            args.push_back(expr);
+            args.push_back(e);
+            expr = new FunctionCall(concat, args);
+        }
+    }
+    return expr;
+}
+
 /*
  * Operator precedence:
  *
@@ -541,7 +584,11 @@ const Expression *Parser::parseAtom(Scope *scope)
             return new ConstantNumberExpression(tokens[i++].value);
         }
         case STRING: {
-            return new ConstantStringExpression(tokens[i++].text);
+            if (tokens[i+1].type == SUBBEGIN) {
+                return parseInterpolatedStringExpression(scope);
+            } else {
+                return new ConstantStringExpression(tokens[i++].text);
+            }
         }
         case MINUS: {
             auto op = i;

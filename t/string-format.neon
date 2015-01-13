@@ -1,0 +1,4 @@
+VAR a: Number
+a := 5
+print("a is \(a)")
+%= a is 5

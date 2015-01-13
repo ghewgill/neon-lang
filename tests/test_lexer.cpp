@@ -55,6 +55,22 @@ int main(int argc, char *argv[])
     assert(tokens[2].type == NUMBER);
     assert(tokens[3].type == END_OF_FILE);
 
+    tokens = dump(tokenize("\"string \\(expr) foo \\(bar(baz))"));
+    assert(tokens.size() == 13);
+    assert(tokens[0].type == STRING);       assert(tokens[0].text == "string ");
+    assert(tokens[1].type == SUBBEGIN);
+    assert(tokens[2].type == IDENTIFIER);   assert(tokens[2].text == "expr");
+    assert(tokens[3].type == SUBEND);
+    assert(tokens[4].type == STRING);       assert(tokens[4].text == " foo ");
+    assert(tokens[5].type == SUBBEGIN);
+    assert(tokens[6].type == IDENTIFIER);   assert(tokens[6].text == "bar");
+    assert(tokens[7].type == LPAREN);
+    assert(tokens[8].type == IDENTIFIER);   assert(tokens[8].text == "baz");
+    assert(tokens[9].type == RPAREN);
+    assert(tokens[10].type == SUBEND);
+    assert(tokens[11].type == STRING);      assert(tokens[11].text == "");
+    assert(tokens[12].type == END_OF_FILE);
+
     int depth = 2;
     if (argc > 1) {
         depth = atoi(argv[1]);

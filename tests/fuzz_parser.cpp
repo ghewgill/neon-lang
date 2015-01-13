@@ -82,6 +82,8 @@ std::string reconstitute(const Token &t)
         case NIL:         return "NIL";
         case VALID:       return "VALID";
         case ARROW:       return "->";
+        case SUBBEGIN:	  return "";
+        case SUBEND:  	  return "";
         case MAX_TOKEN:   return "";
     }
     return "";
