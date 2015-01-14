@@ -505,20 +505,27 @@ const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
         if (tokens[i].type != SUBEND) {
             internal_error("parseInterpolatedStringExpression");
         }
-        auto to_string = e->type->methods.find("to_string");
-        if (to_string == e->type->methods.end()) {
-            error(2217, tokens[i], "no to_string() method found for type");
+        ++i;
+        const Expression *str;
+        if (e->type->is_equivalent(TYPE_STRING)) {
+            str = e;
+        } else {
+            auto to_string = e->type->methods.find("to_string");
+            if (to_string == e->type->methods.end()) {
+                error(2217, tokens[i], "no to_string() method found for type");
+            }
+            {
+                std::vector<const Expression *> args;
+                args.push_back(e);
+                str = new FunctionCall(new VariableExpression(to_string->second), args);
+            }
         }
         {
             std::vector<const Expression *> args;
-            args.push_back(e);
-            const Expression *str = new FunctionCall(new VariableExpression(to_string->second), args);
-            args.clear();
             args.push_back(expr);
             args.push_back(str);
             expr = new FunctionCall(concat, args);
         }
-        ++i;
         if (tokens[i].type != STRING) {
             internal_error("parseInterpolatedStringExpression");
         }

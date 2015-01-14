@@ -2,3 +2,8 @@ VAR a: Number
 a := 5
 print("a is \(a)")
 %= a is 5
+
+VAR s: String
+s := "world"
+print("hello \(s)")
+%= hello world
