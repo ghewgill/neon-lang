@@ -1,0 +1,15 @@
+% TODO
+IMPORT math
+
+VAR x: Number
+
+print(math.ceil(1).to_string())
+%= 1
+print(math.ceil(1.5).to_string())
+%= 2
+print(math.ceil(-1).to_string())
+%= -1
+print(math.ceil(-1.5).to_string())
+%= -1
+print(math.ceil(1e19).to_string())
+%= 1e19
