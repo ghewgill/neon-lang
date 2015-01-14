@@ -1,0 +1,5 @@
+% TODO
+VAR a: Array<Number>
+print(a[-1].to_string())
+
+%! ArrayIndex (-1)
