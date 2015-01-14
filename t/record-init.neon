@@ -1,0 +1,17 @@
+TYPE Point := RECORD
+    x: Number
+    y: Number
+END RECORD
+
+VAR p: Point := Point(1, 2)
+print(p.x.to_string())
+%= 1
+print(p.y.to_string())
+%= 2
+
+VAR points: Array<Point> := [
+    Point(1, 2),
+    Point(3, 4),
+]
+print(points[1].y.to_string())
+%= 4
