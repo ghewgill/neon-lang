@@ -634,6 +634,7 @@ const Expression *Parser::parseAtom(Scope *scope)
             /* TODO: This allows referencing enum values for a variable
                      declared with an anonymous enum type. But it currently
                      conflicts with method call syntax like a.to_string().
+                     See: t/enum2.neon
             if (name != nullptr && enumtype == nullptr && tokens[i+1].type == DOT) {
                 enumtype = dynamic_cast<const TypeEnum *>(name->type);
             }*/
