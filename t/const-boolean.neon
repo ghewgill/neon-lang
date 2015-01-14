@@ -1,0 +1,4 @@
+% TODO
+CONST b: Boolean := TRUE
+print(b.to_string())
+%= TRUE

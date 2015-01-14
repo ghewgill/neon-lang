@@ -682,6 +682,7 @@ const Expression *Parser::parseAtom(Scope *scope)
                 int enclosing;
                 const Name *name = parseQualifiedName(scope, enclosing);
                 const Constant *cons = dynamic_cast<const Constant *>(name);
+                // TODO: Need to look up methods on constants too (t/const-boolean.neon)
                 if (cons != nullptr) {
                     ++i;
                     return cons->value;
