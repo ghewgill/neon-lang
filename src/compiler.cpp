@@ -1149,6 +1149,7 @@ void TryStatement::generate_code(Emitter &emitter) const
         // exception handler block normally. How would the exception
         // get cleared if the handler block is exited some other way,
         // such as a RETURN or EXIT?
+        // See: t/exception-clear.neon
         emitter.emit(CLREXC);
         emitter.emit_jump(JUMP, skip);
     }
