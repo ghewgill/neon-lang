@@ -231,6 +231,8 @@ for sample in Glob("samples/*.neon"):
     env.Command(sample.path+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
 
+env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
+
 if os.name == "posix":
     env.Command("samples/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
     env.Command("tests_script", "samples/hello", "env PATH=bin samples/hello")
