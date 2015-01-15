@@ -7,3 +7,6 @@ VAR s: String
 s := "world"
 print("hello \(s)")
 %= hello world
+
+print("hello \(s:>6)")
+%= hello  world

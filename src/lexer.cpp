@@ -88,6 +88,7 @@ std::string Token::tostring() const
         case VALID:       s << "VALID"; break;
         case ARROW:       s << "ARROW"; break;
         case SUBBEGIN:    s << "SUBBEGIN"; break;
+        case SUBFMT:      s << "SUBFMT"; break;
         case SUBEND:      s << "SUBEND"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -378,6 +379,7 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
                             t.type = SUBBEGIN;
                             tokens.push_back(t);
                             auto start = i;
+                            auto colon = start;
                             int nest = 1;
                             while (nest > 0) {
                                 if (i == source.end()) {
@@ -391,14 +393,30 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
                                     case ')':
                                         nest--;
                                         break;
+                                    case ':':
+                                        if (nest == 1) {
+                                            colon = i - 1;
+                                        }
+                                        break;
                                     case '"':
                                     case '\\':
                                     case '\n':
                                         error(1014, t, "invalid char embedded in string substitution");
                                 }
                             }
-                            auto subtokens = tokenize_fragment(line, column, std::string(start, i-1));
+                            auto end = i - 1;
+                            if (colon > start) {
+                                end = colon;
+                            }
+                            auto subtokens = tokenize_fragment(line, column, std::string(start, end));
                             std::copy(subtokens.begin(), subtokens.end(), std::back_inserter(tokens));
+                            if (colon > start) {
+                                t.type = SUBFMT;
+                                tokens.push_back(t);
+                                t.type = STRING;
+                                t.text = std::string(colon + 1, i - 1);
+                                tokens.push_back(t);
+                            }
                             t.type = SUBEND;
                             tokens.push_back(t);
                             t.type = STRING;

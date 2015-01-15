@@ -1,10 +1,13 @@
 #include <assert.h>
+#include <iso646.h>
 #include <iostream>
 
 #include <utf8.h>
 
 #include "cell.h"
+#include "format.h"
 #include "number.h"
+#include "rtl_exec.h"
 
 namespace rtl {
 
@@ -70,6 +73,15 @@ void dec(Number *a)
 void inc(Number *a)
 {
     *a = number_add(*a, number_from_uint32(1));
+}
+
+std::string format(const std::string &str, const std::string &fmt)
+{
+    format::Spec spec;
+    if (not format::parse(fmt, spec)) {
+        throw RtlException("FormatException", fmt);
+    }
+    return format::format(str, spec);
 }
 
 std::string input(const std::string &prompt)

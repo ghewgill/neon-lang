@@ -5,6 +5,7 @@
 #include <stack>
 
 #include "ast.h"
+#include "format.h"
 #include "rtl_compile.h"
 #include "util.h"
 
@@ -494,6 +495,7 @@ const Name *Parser::parseQualifiedName(Scope *scope, int &enclosing)
 const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
 {
     const VariableExpression *concat = new VariableExpression(dynamic_cast<const Variable *>(scope->lookupName("concat")));
+    const VariableExpression *format = new VariableExpression(dynamic_cast<const Variable *>(scope->lookupName("format")));
     const Expression *expr = new ConstantStringExpression(tokens[i].text);
     for (;;) {
         ++i;
@@ -502,6 +504,19 @@ const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
         }
         ++i;
         const Expression *e = parseExpression(scope);
+        std::string fmt;
+        if (tokens[i].type == SUBFMT) {
+            ++i;
+            if (tokens[i].type != STRING) {
+                internal_error("parseInterpolatedStringExpression");
+            }
+            fmt = tokens[i].text;
+            format::Spec spec;
+            if (not format::parse(fmt, spec)) {
+                error(2218, tokens[i], "invalid format specification");
+            }
+            ++i;
+        }
         if (tokens[i].type != SUBEND) {
             internal_error("parseInterpolatedStringExpression");
         }
@@ -519,6 +534,12 @@ const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
                 args.push_back(e);
                 str = new FunctionCall(new VariableExpression(to_string->second), args);
             }
+        }
+        if (not fmt.empty()) {
+            std::vector<const Expression *> args;
+            args.push_back(str);
+            args.push_back(new ConstantStringExpression(fmt));
+            str = new FunctionCall(format, args);
         }
         {
             std::vector<const Expression *> args;

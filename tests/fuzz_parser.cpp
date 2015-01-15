@@ -83,6 +83,7 @@ std::string reconstitute(const Token &t)
         case VALID:       return "VALID";
         case ARROW:       return "->";
         case SUBBEGIN:	  return "";
+        case SUBFMT:      return "";
         case SUBEND:  	  return "";
         case MAX_TOKEN:   return "";
     }
