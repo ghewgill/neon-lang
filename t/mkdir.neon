@@ -1,0 +1,10 @@
+IMPORT file
+
+TRY
+    file.mkdir("dummy")
+    file.mkdir("dummy")
+EXCEPTION DirectoryExists
+    print(CURRENT_EXCEPTION.info)
+END TRY
+
+%= dummy
