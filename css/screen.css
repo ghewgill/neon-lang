@@ -23,3 +23,8 @@ body {
 #page .links {
     text-align: center;
 }
+
+pre {
+    padding: 1em 2em 1em 2em;
+    background-color: #eeeeee;
+}
