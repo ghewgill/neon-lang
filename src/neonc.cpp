@@ -28,10 +28,16 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        std::cout << "Compiling " << argv[a] << "...\n";
-        std::ifstream inf(argv[a]);
         std::stringstream buf;
-        buf << inf.rdbuf();
+        std::string name = argv[a];
+        if (name == "-") {
+            std::cout << "Compiling stdin (no output file)...\n";
+            buf << std::cin.rdbuf();
+        } else {
+            std::cout << "Compiling " << name << "...\n";
+            std::ifstream inf(name);
+            buf << inf.rdbuf();
+        }
 
         try {
             auto tokens = tokenize(buf.str());
@@ -42,8 +48,10 @@ int main(int argc, char *argv[])
                 disassemble(bytecode, std::cerr, &debug);
             }
 
-            std::ofstream outf(std::string(argv[a]) + "x", std::ios::binary);
-            outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
+            if (name != "-") {
+                std::ofstream outf(std::string(argv[a]) + "x", std::ios::binary);
+                outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
+            }
 
         } catch (SourceError &error) {
             fprintf(stderr, "%s\n", error.token.source.c_str());
