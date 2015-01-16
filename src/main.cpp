@@ -72,7 +72,19 @@ int main(int argc, char *argv[])
         repl(argc, argv);
     }
 
-    const std::string name = argv[1];
+    int a = 1;
+    while (a < argc && argv[a][0] == '-') {
+        std::string arg = argv[a];
+        if (arg == "-d") {
+            dump_bytecode = true;
+        } else {
+            fprintf(stderr, "Unknown option: %s\n", arg.c_str());
+            exit(1);
+        }
+        a++;
+    }
+
+    const std::string name = argv[a];
 
     std::stringstream buf;
     if (name == "-") {
@@ -119,5 +131,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(bytecode, argc-1, argv+1);
+    exec(bytecode, argc-a, argv+a);
 }

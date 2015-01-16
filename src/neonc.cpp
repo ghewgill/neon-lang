@@ -27,6 +27,11 @@ int main(int argc, char *argv[])
             a++;
             continue;
         }
+        if (std::string(argv[a]) == "-d") {
+            listing = true;
+            a++;
+            continue;
+        }
 
         std::stringstream buf;
         std::string name = argv[a];
