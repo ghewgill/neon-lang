@@ -1,4 +1,5 @@
 import subprocess
+import sys
 
 def check_file(source):
     lines = source.split("\n")
@@ -19,7 +20,12 @@ def check_file(source):
             code = ""
         lastblank = False
 
-files = [x for x in subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "origin/gh-pages"]).split("\n") if x.endswith("md")]
+try:
+    files = [x for x in subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "origin/gh-pages"]).split("\n") if x.endswith("md")]
+except subprocess.CalledProcessError:
+    # no git, just exit
+    sys.exit(0)
+
 for fn in files:
     print "Checking {}...".format(fn)
     check_file(subprocess.check_output(["git", "show", "origin/gh-pages:"+fn]))
