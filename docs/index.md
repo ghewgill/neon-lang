@@ -143,7 +143,7 @@ Example:
 
     VAR e: Colour
 
-    e := green
+    e := Colour.green
 
 ### Record
 
@@ -199,11 +199,13 @@ Example:
         size: Number
     END RECORD
 
-    VAR p: POINTER TO Record
+    VAR item: POINTER TO Item
 
-    p := NEW Record
-    p->name := "Widget"
-    p->size := 5
+    item := NEW Item
+    IF VALID p := item THEN
+        p->name := "Widget"
+        p->size := 5
+    END IF
 
 ## Expressions
 
