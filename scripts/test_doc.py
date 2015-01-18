@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 
@@ -20,12 +21,32 @@ def check_file(source):
             code = ""
         lastblank = False
 
-try:
-    files = [x for x in subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "origin/gh-pages"]).split("\n") if x.endswith("md")]
-except subprocess.CalledProcessError:
-    # no git, just exit
-    sys.exit(0)
+def get_branch_files(prefix):
+    try:
+        files = [x for x in subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "origin/gh-pages"]).split("\n") if x.endswith("md")]
+    except subprocess.CalledProcessError:
+        # no git, just exit
+        sys.exit(0)
+    for fn in files:
+        yield (fn, subprocess.check_output(["git", "show", "origin/gh-pages:"+fn]))
 
-for fn in files:
+def get_path_files(prefix):
+    for path, dirs, files in os.walk(prefix):
+        for f in files:
+            if f.endswith(".md"):
+                fn = os.path.join(path, f)
+                yield (fn, open(fn).read())
+
+if len(sys.argv) < 2:
+    path = "origin/gh-pages:"
+else:
+    path = sys.argv[1]
+
+if path.endswith(":"):
+    files = get_branch_files(path)
+else:
+    files = get_path_files(path)
+
+for fn, source in files:
     print "Checking {}...".format(fn)
-    check_file(subprocess.check_output(["git", "show", "origin/gh-pages:"+fn]))
+    check_file(source)
