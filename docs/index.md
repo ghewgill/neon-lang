@@ -217,10 +217,12 @@ Operators are logical, arithmetic, or string and the valid operators depend on t
 
 The following operators take two boolean values.
 
-* `=` - equality
-* `#` - inequality
-* `AND` - logical conjunction
-* `OR` - logical disjunction
+| Operator | Description |
+| -------- | ----------- |
+| `=`      | equality |
+| `#`      | inequality |
+| `AND`    | logical conjunction |
+| `OR`     | logical disjunction |
 
 ### Numeric Operators
 
