@@ -91,6 +91,15 @@ A block comment is introduced with `%|` and ends with `|%`.
 Block comments may span multiple lines.
 Block comments may be nested.
 
+Example:
+
+    % The following line prints some text.
+    print("Hello, World.")
+    
+    %| This comment spans multiple
+       lines of text until the comment
+       closing characters. |%
+
 <a name="lexical-keywords"></a>
 
 ### Keywords
