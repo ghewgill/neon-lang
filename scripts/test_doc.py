@@ -24,7 +24,7 @@ def check_file(source):
 def get_branch_files(prefix):
     try:
         files = [x for x in subprocess.check_output(["git", "ls-tree", "-r", "--name-only", "origin/gh-pages"]).split("\n") if x.endswith("md")]
-    except subprocess.CalledProcessError:
+    except (subprocess.CalledProcessError, OSError):
         # no git, just exit
         sys.exit(0)
     for fn in files:
