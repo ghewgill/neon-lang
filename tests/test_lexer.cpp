@@ -48,13 +48,6 @@ int main(int argc, char *argv[])
     assert(tokens[2].type == IDENTIFIER);
     assert(tokens[3].type == END_OF_FILE);
 
-    tokens = dump(tokenize("3..5"));
-    assert(tokens.size() == 4);
-    assert(tokens[0].type == NUMBER);
-    assert(tokens[1].type == DOTDOT);
-    assert(tokens[2].type == NUMBER);
-    assert(tokens[3].type == END_OF_FILE);
-
     tokens = dump(tokenize("\"string \\(expr) foo \\(bar(baz))"));
     assert(tokens.size() == 13);
     assert(tokens[0].type == STRING);       assert(tokens[0].text == "string ");

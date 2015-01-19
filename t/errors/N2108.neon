@@ -2,8 +2,8 @@ VAR a: String
 a := "Hello, World!"
 
 CASE a
-    WHEN "E".."H" DO
+    WHEN "E" TO "H" DO
         print("a is == 5")
-    WHEN "H".."H", "L", "O" DO
+    WHEN "H" TO "H", "L", "O" DO
         print("a is Aloha.")
 END CASE

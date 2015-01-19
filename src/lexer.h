@@ -65,7 +65,6 @@ enum TokenType {
     ELSIF,
     CASE,
     WHEN,
-    DOTDOT,
     EXTERNAL,
     EXIT,
     NEXT,

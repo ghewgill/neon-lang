@@ -7,7 +7,7 @@ WHILE a < 10 DO
             s := "less than two"
         WHEN 2 DO
             s := "is two"
-        WHEN 3..5 DO
+        WHEN 3 TO 5 DO
             s := "three to five"
         WHEN 7, 9 DO
             s := "seven or nine"

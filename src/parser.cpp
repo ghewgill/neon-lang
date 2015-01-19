@@ -1614,7 +1614,7 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
                     if (not when->is_constant) {
                         error(2088, tokens[i], "WHEN condition must be constant");
                     }
-                    if (tokens[i].type == DOTDOT) {
+                    if (tokens[i].type == TO) {
                         ++i;
                         const Expression *when2 = parseExpression(scope);
                         if (not when2->type->is_equivalent(expr->type)) {

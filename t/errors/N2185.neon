@@ -1,4 +1,4 @@
 VAR a: String
 CASE a
-    WHEN "b".."a" DO
+    WHEN "b" TO "a" DO
 END CASE

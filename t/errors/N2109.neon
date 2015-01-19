@@ -2,6 +2,6 @@ VAR a: String
 a := "H"
 
 CASE a
-   WHEN "H".."Z", "A".."Z" DO
+   WHEN "H" TO "Z", "A" TO "Z" DO
      print("5")
 END CASE

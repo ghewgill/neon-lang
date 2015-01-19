@@ -71,7 +71,6 @@ std::string Token::tostring() const
         case ELSIF:       s << "ELSIF"; break;
         case CASE:        s << "CASE"; break;
         case WHEN:        s << "WHEN"; break;
-        case DOTDOT:      s << "DOTDOT"; break;
         case EXTERNAL:    s << "EXTERNAL"; break;
         case EXIT:        s << "EXIT"; break;
         case NEXT:        s << "NEXT"; break;
@@ -160,6 +159,7 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
         else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == '#') { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }
+        else if (c == '.') { t.type = DOT; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; utf8::advance(i, 1, source.end()); }
@@ -188,14 +188,6 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
                 utf8::advance(i, 2, source.end());
             } else {
                 t.type = GREATER;
-                utf8::advance(i, 1, source.end());
-            }
-        } else if (c == '.') {
-            if (i+1 != source.end() && *(i+1) == '.') {
-                t.type = DOTDOT;
-                utf8::advance(i, 2, source.end());
-            } else {
-                t.type = DOT;
                 utf8::advance(i, 1, source.end());
             }
         } else if (c == ':') {
@@ -320,7 +312,7 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
                 while (i != source.end() && number_decimal_body(*i)) {
                     utf8::advance(i, 1, source.end());
                 }
-                if (i != source.end() && i+1 != source.end() && *i == '.' && *(i+1) != '.') {
+                if (i != source.end() && *i == '.') {
                     utf8::advance(i, 1, source.end());
                     while (i != source.end() && number_decimal_body(*i)) {
                         utf8::advance(i, 1, source.end());
