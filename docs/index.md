@@ -222,6 +222,20 @@ Example:
 ### String
 
 String values are sequences of Unicode code points.
+The only special character within a string is the backslash, used for character escapes.
+The allowed character escapes are:
+
+| Escape | Replacement | Description |
+| ------ | ----------- | ----------- |
+| `\"`   | "           | double quote |
+| `\\`   | \           | backslash |
+| `\b`   | chr(8)      | backspace |
+| `\f`   | chr(11)     | form feed |
+| `\n`   | chr(10)     | newline |
+| `\r`   | chr(13)     | carriage return |
+| `\t`   | chr(9)      | tab |
+| `\uXXXX` | chr(XXXX) | unicode character XXXX |
+| `\()`  | expression  | see <a href="#expression-substitution">expression substitution</a> |
 
 Example:
 
