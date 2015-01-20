@@ -108,6 +108,111 @@ Number number_tan(Number x)
     return bid64_tan(x.x);
 }
 
+Number number_acosh(Number x)
+{
+    return bid64_acosh(x.x);
+}
+
+Number number_asinh(Number x)
+{
+    return bid64_asinh(x.x);
+}
+
+Number number_atanh(Number x)
+{
+    return bid64_atanh(x.x);
+}
+
+Number number_atan2(Number y, Number x)
+{
+    return bid64_atan2(y.x, x.x);
+}
+
+Number number_cbrt(Number x)
+{
+    return bid64_cbrt(x.x);
+}
+
+Number number_cosh(Number x)
+{
+    return bid64_cosh(x.x);
+}
+
+Number number_erf(Number x)
+{
+    return bid64_erf(x.x);
+}
+
+Number number_erfc(Number x)
+{
+    return bid64_erfc(x.x);
+}
+
+Number number_exp2(Number x)
+{
+    return bid64_exp2(x.x);
+}
+
+Number number_expm1(Number x)
+{
+    return bid64_expm1(x.x);
+}
+
+Number number_frexp(Number x, int *exp)
+{
+    return bid64_frexp(x.x, exp);
+}
+
+Number number_hypot(Number x, Number y)
+{
+    return bid64_hypot(x.x, y.x);
+}
+
+Number number_ldexp(Number x, int exp)
+{
+    return bid64_ldexp(x.x, exp);
+}
+
+Number number_lgamma(Number x)
+{
+    return bid64_lgamma(x.x);
+}
+
+Number number_log10(Number x)
+{
+    return bid64_log10(x.x);
+}
+
+Number number_log1p(Number x)
+{
+    return bid64_log1p(x.x);
+}
+
+Number number_log2(Number x)
+{
+    return bid64_log2(x.x);
+}
+
+Number number_nearbyint(Number x)
+{
+    return bid64_nearbyint(x.x);
+}
+
+Number number_sinh(Number x)
+{
+    return bid64_sinh(x.x);
+}
+
+Number number_tanh(Number x)
+{
+    return bid64_tanh(x.x);
+}
+
+Number number_tgamma(Number x)
+{
+    return bid64_tgamma(x.x);
+}
+
 bool number_is_zero(Number x)
 {
     return bid64_isZero(x.x) != 0;
