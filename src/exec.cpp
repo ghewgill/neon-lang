@@ -179,6 +179,7 @@ private:
     void exec_INDEXAR();
     void exec_INDEXAW();
     void exec_INDEXAV();
+    void exec_INDEXAN();
     void exec_INDEXDR();
     void exec_INDEXDW();
     void exec_INDEXDV();
@@ -665,6 +666,19 @@ void Executor::exec_INDEXAV()
     stack.push(val);
 }
 
+void Executor::exec_INDEXAN()
+{
+    ip++;
+    Number index = stack.top().number(); stack.pop();
+    std::vector<Cell> &array = stack.top().array();
+    assert(number_is_integer(index));
+    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
+    // TODO: check for i >= 0 and throw exception if not
+    Cell val = i < array.size() ? array.at(i) : Cell();
+    stack.pop();
+    stack.push(val);
+}
+
 void Executor::exec_INDEXDR()
 {
     ip++;
@@ -1033,6 +1047,7 @@ void Executor::exec()
             case INDEXAR: exec_INDEXAR(); break;
             case INDEXAW: exec_INDEXAW(); break;
             case INDEXAV: exec_INDEXAV(); break;
+            case INDEXAN: exec_INDEXAN(); break;
             case INDEXDR: exec_INDEXDR(); break;
             case INDEXDW: exec_INDEXDW(); break;
             case INDEXDV: exec_INDEXDV(); break;

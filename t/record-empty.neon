@@ -1,0 +1,21 @@
+TYPE Rec := RECORD
+    value: String
+END RECORD
+
+FUNCTION foo(): Rec
+    RETURN Rec()
+END FUNCTION
+
+VAR r: Rec
+print("value=\(r.value)")
+%= value=
+
+print("value=\(foo().value)")
+%= value=
+
+VAR p: POINTER TO Rec
+p := NEW Rec
+IF VALID q := p THEN
+    print("value=\(q->value)")
+END IF
+%= value=

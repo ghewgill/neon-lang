@@ -950,10 +950,11 @@ private:
 
 class ArrayReferenceIndexExpression: public ReferenceExpression {
 public:
-    ArrayReferenceIndexExpression(const Type *type, const ReferenceExpression *array, const Expression *index): ReferenceExpression(type, array->is_readonly), array(array), index(index) {}
+    ArrayReferenceIndexExpression(const Type *type, const ReferenceExpression *array, const Expression *index, bool always_create): ReferenceExpression(type, array->is_readonly), array(array), index(index), always_create(always_create) {}
 
     const ReferenceExpression *array;
     const Expression *index;
+    const bool always_create;
 
     virtual Number eval_number() const { internal_error("ArrayReferenceIndexExpression"); }
     virtual std::string eval_string() const { internal_error("ArrayReferenceIndexExpression"); }
@@ -968,10 +969,11 @@ private:
 
 class ArrayValueIndexExpression: public Expression {
 public:
-    ArrayValueIndexExpression(const Type *type, const Expression *array, const Expression *index): Expression(type, false), array(array), index(index) {}
+    ArrayValueIndexExpression(const Type *type, const Expression *array, const Expression *index, bool always_create): Expression(type, false), array(array), index(index), always_create(always_create) {}
 
     const Expression *array;
     const Expression *index;
+    const bool always_create;
 
     virtual Number eval_number() const { internal_error("ArrayValueIndexExpression"); }
     virtual std::string eval_string() const { internal_error("ArrayValueIndexExpression"); }

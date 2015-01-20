@@ -55,6 +55,7 @@ enum Opcode {
     INDEXAR,    // index array for read
     INDEXAW,    // index array for write
     INDEXAV,    // index array value
+    INDEXAN,    // index array value, no exception
     INDEXDR,    // index dictionary for read
     INDEXDW,    // index dictionary for write
     INDEXDV,    // index dictionary value

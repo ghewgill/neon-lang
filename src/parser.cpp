@@ -106,7 +106,7 @@ TypeEnum::TypeEnum(const std::map<std::string, int> &names)
             }
             values[n.second] = new ConstantStringExpression(n.first);
         }
-        f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values), new VariableExpression(fp))));
+        f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values), new VariableExpression(fp), false)));
         methods["to_string"] = f;
     }
 }
@@ -733,9 +733,9 @@ const Expression *Parser::parseAtom(Scope *scope)
                             type = arraytype->elementtype;
                             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
                             if (ref != nullptr) {
-                                expr = new ArrayReferenceIndexExpression(type, ref, index);
+                                expr = new ArrayReferenceIndexExpression(type, ref, index, false);
                             } else {
-                                expr = new ArrayValueIndexExpression(type, expr, index);
+                                expr = new ArrayValueIndexExpression(type, expr, index, false);
                             }
                         } else if (dicttype != nullptr) {
                             ++i;
@@ -802,9 +802,9 @@ const Expression *Parser::parseAtom(Scope *scope)
                             type = recordtype->fields[f->second].second;
                             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
                             if (ref != nullptr) {
-                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))));
+                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
                             } else {
-                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))));
+                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
                             }
                         } else {
                             error(2071, tokens[i], "no method found or not a record");
@@ -833,7 +833,7 @@ const Expression *Parser::parseAtom(Scope *scope)
                             ++i;
                             type = recordtype->fields[f->second].second;
                             const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, expr);
-                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))));
+                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), false);
                         } else {
                             error(2188, tokens[i], "not a pointer");
                         }

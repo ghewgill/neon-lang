@@ -803,7 +803,7 @@ void ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) cons
 {
     array->generate_address_read(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXAR);
+    emitter.emit(always_create ? INDEXAW : INDEXAR);
 }
 
 void ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
@@ -817,7 +817,7 @@ void ArrayValueIndexExpression::generate(Emitter &emitter) const
 {
     array->generate(emitter);
     index->generate(emitter);
-    emitter.emit(INDEXAV);
+    emitter.emit(always_create ? INDEXAN : INDEXAV);
 }
 
 void DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter) const
