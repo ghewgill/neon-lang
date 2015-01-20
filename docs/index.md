@@ -501,6 +501,38 @@ See <a href="#functions">Functions</a> for complete information about function c
 
 ### `CASE`
 
+The `CASE` statement selects one of a number of alternative code paths based on the value of an expression.
+
+Example:
+
+    VAR x: Number
+    
+    CASE x
+        WHEN < 2 DO
+            print("less than two")
+        WHEN 2 DO
+            print("is two")
+        WHEN 3 TO 5 DO
+            print("three to five")
+        WHEN 7, 9 DO
+            print("seven or nine")
+        ELSE
+            print("is something else")
+    END CASE
+
+The `CASE` statement expression may be of type `Number`, `String`, or an enumeration.
+The possible kinds of `WHEN` clauses are:
+
+| Form | Meaning |
+| ---- | ------- |
+| `WHEN <value>` | equality match |
+| `WHEN <op> <value>` | relational operator comparison (one of `=`, `#`, `<`, `>`, `<=`, `>=`) |
+| `WHEN <value> TO <value>` | range check (both endpoints inclusive) |
+
+More than one of the above forms may be included in a `WHEN` clause, separated by commas.
+The values of `WHEN` clauses must not overlap.
+The optional `ELSE` clause is executed when none of the `WHEN` clauses match.
+
 <a name="statements-exit"></a>
 
 ### `EXIT`
