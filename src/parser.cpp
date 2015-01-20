@@ -1025,24 +1025,33 @@ const Expression *Parser::parseComparison(Scope *scope)
 const Expression *Parser::parseMembership(Scope *scope)
 {
     const Expression *left = parseComparison(scope);
-    if (tokens[i].type == IN) {
+    if (tokens[i].type == IN || (tokens[i].type == NOT && tokens[i+1].type == IN)) {
+        bool notin = tokens[i].type == NOT;
+        if (notin) {
+            ++i;
+        }
         ++i;
         const Expression *right = parseComparison(scope);
         const TypeArray *arraytype = dynamic_cast<const TypeArray *>(right->type);
         const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(right->type);
+        const Expression *r;
         if (arraytype != nullptr) {
             if (not left->type->is_equivalent(arraytype->elementtype)) {
                 error(2142, tokens[i], "type mismatch");
             }
-            return new ArrayInExpression(left, right);
+            r = new ArrayInExpression(left, right);
         } else if (dicttype != nullptr) {
             if (not left->type->is_equivalent(TYPE_STRING)) {
                 error(2143, tokens[i], "type mismatch");
             }
-            return new DictionaryInExpression(left, right);
+            r = new DictionaryInExpression(left, right);
         } else {
             error(2141, tokens[i], "IN must be used with Array or Dictionary");
         }
+        if (notin) {
+            r = new LogicalNotExpression(r);
+        }
+        return r;
     } else {
         return left;
     }

@@ -6,6 +6,8 @@ print(strb(5 IN a))
 %= TRUE
 print(strb(7 IN a))
 %= FALSE
+print(strb(7 NOT IN a))
+%= TRUE
 
 VAR d: Dictionary<Number>
 
@@ -15,3 +17,5 @@ print(strb("foo" IN d))
 %= TRUE
 print(strb("baz" IN d))
 %= FALSE
+print(strb("baz" NOT IN d))
+%= TRUE
