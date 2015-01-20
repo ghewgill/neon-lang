@@ -1525,6 +1525,9 @@ const Statement *Parser::parseVarStatement(Scope *scope, int line)
         ++i;
         std::vector<const ReferenceExpression *> refs;
         const Expression *expr = parseExpression(scope);
+        if (not expr->type->is_equivalent(vars.second)) {
+            error(2189, tokens[i], "type mismatch");
+        }
         for (auto v: variables) {
             scope->addName(v->name, v, true);
             refs.push_back(new VariableExpression(v));
