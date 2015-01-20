@@ -1,0 +1,9 @@
+IMPORT file
+
+VAR a: Array<String>
+
+a := file.lines("LICENSE.txt")
+print(str(a.size()))
+%= 21
+print(a[0])
+%= The MIT License (MIT)
