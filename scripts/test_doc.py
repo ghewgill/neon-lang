@@ -17,7 +17,7 @@ def check_file(source):
                 p = subprocess.Popen(["bin/neonc", "-"], stdin=subprocess.PIPE)
                 p.communicate(code)
                 p.wait()
-                #assert p.retcode == 0
+                assert p.returncode == 0
             code = ""
         lastblank = False
 
