@@ -537,6 +537,16 @@ The optional `ELSE` clause is executed when none of the `WHEN` clauses match.
 
 ### `EXIT`
 
+The `EXIT` statement has five different forms:
+
+| Form | Description |
+| ---- | ----------- |
+| `EXIT FOR` | stop iteration of the nearest enclosing `FOR` loop |
+| `EXIT FUNCTION` | immediately return from a function (only for functions that do not return a value) |
+| `EXIT LOOP` | stop iteration of the nearest enclosing `LOOP` loop |
+| `EXIT REPEAT` | stop iteration of the nearest enclosing `REPEAT` loop |
+| `EXIT WHILE` | stop iteration of the nearest enclosing `WHILE` loop |
+
 <a name="statements-for"></a>
 
 ### `FOR`
