@@ -1,6 +1,3 @@
-print(str(abs(-4)))
-%= 4
-
 print(chr(65))
 %= A
 

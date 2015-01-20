@@ -3,6 +3,9 @@ IMPORT math
 print(str(math.PI))
 %= 3.141592653589793
 
+print(str(math.abs(-5)))
+%= 5
+
 print(str(math.acos(1)))
 %= 0
 

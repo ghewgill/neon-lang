@@ -2,6 +2,11 @@
 
 namespace rtl {
 
+Number math$abs(Number x)
+{
+    return number_abs(x);
+}
+
 Number math$acos(Number x)
 {
     return number_acos(x);

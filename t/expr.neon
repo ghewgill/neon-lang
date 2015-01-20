@@ -1,7 +1,7 @@
 VAR a: Number
 VAR b: Number
 b := 4
-a := abs(-5 * (3 + b))
+a := -(-5 * (3 + b))
 print(str(a))
 
 %= 35

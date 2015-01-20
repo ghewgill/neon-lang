@@ -47,11 +47,6 @@ Number length(const std::string &self)
 
 } // namespace string
 
-Number abs(Number x)
-{
-    return number_abs(x);
-}
-
 std::string chr(Number x)
 {
     assert(number_is_integer(x));
