@@ -551,17 +551,97 @@ The `EXIT` statement has five different forms:
 
 ### `FOR`
 
+The `FOR` loop iterates a numeric variable over a range of values.
+
+Example:
+
+    VAR i: Number
+
+    FOR i := 1 TO 10 STEP 2 DO
+        print("i is \(i)")
+    END FOR
+
+The above example is equivalent to:
+
+    VAR i: Number
+
+    i := 1
+    WHILE i <= 10 DO
+        print("i is \(i)")
+        i := i + 2
+    END WHILE
+
+The exception is that in the `FOR` loop, the value of `i` cannot be modified.
+
+The `STEP` value is optional and defaults to 1.
+It may be any number, including fractional values, except 0.
+It must, however, be a compile time constant.
+
 <a name="statements-if"></a>
 
 ### `IF`
+
+The `IF` statement tests a condition of type `Boolean` and executes one of two alternatives.
+
+Example:
+
+    VAR x: Number
+
+    IF x < 10 THEN
+        print("x is less than 10")
+    ELSE
+        print("not less than 10")
+    END IF
+
+The `ELSE` clause is optional.
+
+Additional alternatives may be introduced with the `ELSIF` clause:
+
+    VAR x: Number
+
+    IF x < 10 THEN
+        print("x is less than 10")
+    ELSIF x < 20 THEN
+        print("x is less than 20")
+    ELSE
+        print("not less than 20")
+    END IF
 
 <a name="statements-loop"></a>
 
 ### `LOOP`
 
+The `LOOP` statement begins a loop with no specific exit condition.
+There is normally an `EXIT LOOP` statement within the loop for a termination condition.
+
+Example:
+
+    VAR i: Number := 0
+
+    LOOP
+        inc(i)
+        IF i >= 10 THEN
+            EXIT LOOP
+        END IF
+        print("i is \(i)")
+    END LOOP
+
 <a name="statements-next"></a>
 
 ### `NEXT`
+
+The `NEXT` statement has four different forms:
+
+| Form | Description |
+| ---- | ----------- |
+| `NEXT FOR` | next iteration of the nearest enclosing `FOR` loop |
+| `NEXT LOOP` | next iteration of the nearest enclosing `LOOP` loop |
+| `NEXT REPEAT` | next iteration of the nearest enclosing `REPEAT` loop |
+| `NEXT WHILE` | next iteration of the nearest enclosing `WHILE` loop |
+
+When using `NEXT FOR`, the loop control variable is incremented (or decremented, according to the `STEP` value) before continuing to the next iteration.
+
+When using `NEXT REPEAT` or `NEXT WHILE`, the loop condition is tested before continuing to the next iteration.
 
 <a name="statements-raise"></a>
 
