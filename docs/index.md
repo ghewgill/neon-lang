@@ -696,6 +696,23 @@ Example:
 
 ### `TRY`
 
+The `TRY` statement introduces a block that handles exceptions.
+After entering a `TRY` block, any exception that happens within the block is checked against the `EXCEPTION` clauses.
+If an exception matching a clause is raised, the corresponding exception handler starts running.
+
+Example:
+
+    DECLARE EXCEPTION InvalidWidgetSize
+    
+    VAR size: Number := 5
+    TRY
+        IF size > 4 THEN
+            RAISE InvalidWidgetSize(size.to_string())
+        END IF
+    EXCEPTION InvalidWidgetSize
+        print("Invalid size \(CURRENT_EXCEPTION.info)")
+    END TRY
+
 <a name="statements-while"></a>
 
 ### `WHILE`
