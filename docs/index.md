@@ -683,6 +683,15 @@ The above loop will print the whole numbers 0 through 9.
 
 ### `RETURN`
 
+The `RETURN` statement returns a value from a function.
+The type of the expression in the `RETURN` statement must match the return type declared in the function header (which means that it is only valid to use `RETURN` for a function that actually returns a value).
+
+Example:
+
+    FUNCTION square(x: Number): Number
+        RETURN x ^ 2
+    END FUNCTION
+
 <a name="statements-try"></a>
 
 ### `TRY`
