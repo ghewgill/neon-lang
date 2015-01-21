@@ -665,6 +665,20 @@ If no exception handler is found, the program terminates with a message.
 
 ### `REPEAT`
 
+The `REPEAT` statement begins a loop with a bottom-tested condition.
+Execution always proceeds into the loop body at least once.
+
+Example:
+
+    VAR x: Number := 0
+    
+    REPEAT
+        print("x is \(x)")
+        inc(x)
+    UNTIL x = 10
+
+The above loop will print the whole numbers 0 through 9.
+
 <a name="statements-return"></a>
 
 ### `RETURN`
