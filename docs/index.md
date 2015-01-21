@@ -717,6 +717,20 @@ Example:
 
 ### `WHILE`
 
+The `WHIEL` statement begins a loop with a top-tested condition.
+The condition is tested before every loop iteration, including the first one.
+
+Example:
+
+    VAR x: Number := 0
+    
+    WHILE x < 10
+        print("x is \(x)")
+        inc(x)
+    END WHILE
+
+The above loop will print the whole numbers 0 through 9.
+
 <a name="functions"></a>
 
 ## Functions
