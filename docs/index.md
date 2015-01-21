@@ -647,6 +647,20 @@ When using `NEXT REPEAT` or `NEXT WHILE`, the loop condition is tested before co
 
 ### `RAISE`
 
+The `RAISE` statement raises an exception.
+
+Example:
+
+    DECLARE EXCEPTION InvalidWidgetSize
+    
+    VAR size: Number := 5
+    IF size > 4 THEN
+        RAISE InvalidWidgetSize(size.to_string())
+    END IF
+
+The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
+If no exception handler is found, the program terminates with a message.
+
 <a name="statements-repeat"></a>
 
 ### `REPEAT`
