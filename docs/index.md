@@ -717,7 +717,7 @@ Example:
 
 ### `WHILE`
 
-The `WHIEL` statement begins a loop with a top-tested condition.
+The `WHILE` statement begins a loop with a top-tested condition.
 The condition is tested before every loop iteration, including the first one.
 
 Example:
