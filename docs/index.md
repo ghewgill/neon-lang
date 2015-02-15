@@ -724,7 +724,7 @@ Example:
 
     VAR x: Number := 0
     
-    WHILE x < 10
+    WHILE x < 10 DO
         print("x is \(x)")
         inc(x)
     END WHILE
