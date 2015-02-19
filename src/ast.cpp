@@ -29,7 +29,7 @@ TypeArray::TypeArray(const Type *elementtype)
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(ParameterType::IN, this));
-        methods["size"] = new PredefinedFunction("array.size", new TypeFunction(TYPE_NUMBER, params));
+        methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params));
     }
 }
 
@@ -304,19 +304,19 @@ Program::Program()
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(ParameterType::IN, TYPE_BOOLEAN));
-        TYPE_BOOLEAN->methods["to_string"] = new PredefinedFunction("boolean.to_string", new TypeFunction(TYPE_STRING, params));
+        TYPE_BOOLEAN->methods["to_string"] = new PredefinedFunction("boolean__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(ParameterType::IN, TYPE_NUMBER));
-        TYPE_NUMBER->methods["to_string"] = new PredefinedFunction("number.to_string", new TypeFunction(TYPE_STRING, params));
+        TYPE_NUMBER->methods["to_string"] = new PredefinedFunction("number__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(ParameterType::IN, TYPE_STRING));
-        TYPE_STRING->methods["length"] = new PredefinedFunction("string.length", new TypeFunction(TYPE_NUMBER, params));
+        TYPE_STRING->methods["length"] = new PredefinedFunction("string__length", new TypeFunction(TYPE_NUMBER, params));
     }
 
     scope->addName("DivideByZero", new Exception("DivideByZero"));

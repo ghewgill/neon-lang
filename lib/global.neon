@@ -1,0 +1,20 @@
+DECLARE NATIVE FUNCTION array__size(self: Array): Number
+DECLARE NATIVE FUNCTION boolean__to_string(self: Boolean): String
+DECLARE NATIVE FUNCTION number__to_string(self: Number): String
+DECLARE NATIVE FUNCTION string__length(self: String): Number
+
+DECLARE NATIVE FUNCTION chr(x: Number): String
+DECLARE NATIVE FUNCTION concat(a: String, b: String): String
+DECLARE NATIVE FUNCTION dec(INOUT a: Number)
+DECLARE NATIVE FUNCTION inc(INOUT a: Number)
+DECLARE NATIVE FUNCTION format(str: String, fmt: String): String
+DECLARE NATIVE FUNCTION input(prompt: String): String
+DECLARE NATIVE FUNCTION max(a: Number, b: Number): Number
+DECLARE NATIVE FUNCTION min(a: Number, b: Number): Number
+DECLARE NATIVE FUNCTION num(s: String): Number
+DECLARE NATIVE FUNCTION ord(s: String): Number
+DECLARE NATIVE FUNCTION print(s: String)
+DECLARE NATIVE FUNCTION splice(t: String, s: String, offset: Number, length: Number): String
+DECLARE NATIVE FUNCTION str(x: Number): String
+DECLARE NATIVE FUNCTION strb(x: Boolean): String
+DECLARE NATIVE FUNCTION substring(s: String, offset: Number, length: Number): String

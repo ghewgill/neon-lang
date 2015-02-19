@@ -1,0 +1,4 @@
+MODULE time
+
+DECLARE NATIVE FUNCTION now(): Number
+DECLARE NATIVE FUNCTION sleep(seconds: Number)

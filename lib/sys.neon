@@ -1,0 +1,4 @@
+MODULE sys
+
+DECLARE NATIVE FUNCTION argv(): Array<String>
+DECLARE NATIVE FUNCTION exit(x: Number)

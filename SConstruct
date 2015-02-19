@@ -71,7 +71,7 @@ rtl_const = [
     "lib/math_const.cpp",
 ]
 
-rtl = rtl_const + [
+rtl_cpp = rtl_const + [
     "lib/bitwise.cpp",
     "lib/curses.cpp",
     "lib/global.cpp",
@@ -82,14 +82,25 @@ rtl = rtl_const + [
     "lib/time.cpp",
 ]
 
+rtl_neon = [
+    "lib/bitwise.neon",
+    "lib/curses.neon",
+    "lib/file.neon",
+    "lib/global.neon",
+    "lib/math.neon",
+    "lib/random.neon",
+    "lib/sys.neon",
+    "lib/time.neon",
+]
+
 if os.name == "posix":
-    rtl.extend([
+    rtl_cpp.extend([
         "lib/file_posix.cpp",
         "lib/time_posix.cpp",
     ])
     rtl_platform = "src/rtl_posix.cpp"
 elif os.name == "nt":
-    rtl.extend([
+    rtl_cpp.extend([
         "lib/file_win32.cpp",
         "lib/time_win32.cpp",
     ])
@@ -98,7 +109,7 @@ else:
     print "Unsupported platform:", os.name
     sys.exit(1)
 
-env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [rtl, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl))
+env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
 
 neon = env.Program("bin/neon", [
     "src/ast.cpp",
@@ -115,7 +126,7 @@ neon = env.Program("bin/neon", [
     "src/parser.cpp",
     "src/rtl_compile.cpp",
     "src/rtl_exec.cpp",
-    rtl,
+    rtl_cpp,
     rtl_platform,
     "src/util.cpp",
 ] + coverage_lib,
@@ -145,7 +156,7 @@ neonx = env.Program("bin/neonx", [
     "src/format.cpp",
     "src/number.cpp",
     "src/rtl_exec.cpp",
-    rtl,
+    rtl_cpp,
     rtl_platform,
     "src/neonx.cpp",
 ] + coverage_lib,

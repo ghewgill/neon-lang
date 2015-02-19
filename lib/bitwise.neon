@@ -1,0 +1,12 @@
+MODULE bitwise
+
+DECLARE NATIVE FUNCTION and(x, y: Number): Number
+DECLARE NATIVE FUNCTION extract(x, n, w: Number): Number
+DECLARE NATIVE FUNCTION get(x, n: Number): Boolean
+DECLARE NATIVE FUNCTION not(x: Number): Number
+DECLARE NATIVE FUNCTION or(x, y: Number): Number
+DECLARE NATIVE FUNCTION replace(x, n, w, y: Number): Number
+DECLARE NATIVE FUNCTION set(x, n: Number, v: Boolean): Number
+DECLARE NATIVE FUNCTION shift_left(x, n: Number): Number
+DECLARE NATIVE FUNCTION shift_right(x, n: Number): Number
+DECLARE NATIVE FUNCTION xor(x, y: Number): Number

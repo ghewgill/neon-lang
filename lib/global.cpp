@@ -11,41 +11,25 @@
 
 namespace rtl {
 
-namespace array {
-
-Number size(Cell &self)
+Number array__size(Cell &self)
 {
     return number_from_uint64(self.array().size());
 }
 
-} // namespace array
-
-namespace boolean {
-
-std::string to_string(bool self)
+std::string boolean__to_string(bool self)
 {
     return self ? "TRUE" : "FALSE";
 }
 
-} // namespace boolean
-
-namespace number {
-
-std::string to_string(Number self)
+std::string number__to_string(Number self)
 {
     return number_to_string(self);
 }
 
-} // namespace number
-
-namespace string {
-
-Number length(const std::string &self)
+Number string__length(const std::string &self)
 {
     return number_from_uint64(self.length());
 }
-
-} // namespace string
 
 std::string chr(Number x)
 {

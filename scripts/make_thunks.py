@@ -4,22 +4,17 @@ import sys
 VALUE = "VALUE"
 REF = "REF"
 
-AstFromCpp = {
-    "void": ("TYPE_NOTHING", VALUE),
-    "Cell&": ("TYPE_GENERIC", VALUE),
-    "Cell*": ("TYPE_GENERIC", REF),
-    "void*": ("TYPE_POINTER", VALUE),
-    "bool": ("TYPE_BOOLEAN", VALUE),
-    "bool*": ("TYPE_BOOLEAN", REF),
+AstFromNeon = {
+    None: ("TYPE_NOTHING", VALUE),
+    "POINTER": ("TYPE_POINTER", VALUE),
+    "Boolean": ("TYPE_BOOLEAN", VALUE),
     "Number": ("TYPE_NUMBER", VALUE),
-    "Number*": ("TYPE_NUMBER", REF),
-    "std::string": ("TYPE_STRING", VALUE),
-    "std::string&": ("TYPE_STRING", VALUE),
-    "std::string*": ("TYPE_STRING", REF),
-    "std::vector<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
-    "std::vector<Number>&": ("TYPE_ARRAY_NUMBER", VALUE),
-    "std::vector<std::string>": ("TYPE_ARRAY_STRING", VALUE),
-    "std::vector<std::string>&": ("TYPE_ARRAY_STRING", VALUE),
+    "INOUT Number": ("TYPE_NUMBER", REF),
+    "OUT Number": ("TYPE_NUMBER", REF),
+    "String": ("TYPE_STRING", VALUE),
+    "Array": ("TYPE_GENERIC", VALUE),
+    "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
+    "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
 }
 
 CppFromAst = {
@@ -68,44 +63,74 @@ ArrayElementField = {
     ("TYPE_ARRAY_STRING", VALUE): "string()",
 }
 
+def parse_params(paramstr):
+    r = []
+    if not paramstr:
+        return r
+    def next_token(s, i):
+        m = re.match(r"\s*([\w<>]+|.)", s[i:])
+        if m is None:
+            return "", i
+        t = m.group(1)
+        return t, i + m.end(0)
+    i = 0
+    while True:
+        mode = ""
+        n = 0
+        while True:
+            t, i = next_token(paramstr, i)
+            assert re.match(r"[\w_]+$", t), (paramstr, i, t)
+            if t in ["OUT", "INOUT"]:
+                mode = t
+                t, i = next_token(paramstr, i)
+            n += 1
+            t, i = next_token(paramstr, i)
+            if t != ",":
+                break
+        assert t == ":", (paramstr, i, t)
+        t, i = next_token(paramstr, i)
+        typename = t
+        r.extend(["{} {}".format(mode, typename).strip()] * n)
+        t, i = next_token(paramstr, i)
+        if t != ",":
+            break
+    return r
+
 constants = dict()
 functions = dict()
 
 for fn in sys.argv[1:]:
-    with open(fn) as f:
-        prefix = ""
-        for s in f:
-            if s.startswith("//") or s.startswith("static "):
-                continue
-            m = re.match(r"namespace (\w+) {", s)
-            if m is not None and m.group(1) != "rtl":
-                prefix = m.group(1) + "."
-            if s.startswith("} // namespace"):
-                prefix = ""
-            m = re.match(r"extern\s+const\s+(\w+)\s+([\w$]+)\s*=", s)
-            if m is not None:
-                ctype = m.group(1)
-                name = m.group(2)
-                assert ctype in ["Number"]
-                constants[name] = [name, ctype, "new ConstantNumberExpression(rtl::{})".format(name)]
-            m = re.match(r"([\S\* ]+?)\s*([\w$]+)\((.*?)\)$", s)
-            if m is not None:
-                rtype = m.group(1).replace(" ", "")
-                name = prefix + m.group(2)
-                paramstr = m.group(3).split(",")
-                if name.startswith("rtl_"):
-                    continue
-                assert rtype in ["void", "bool", "Number", "std::string", "std::vector<Number>", "std::vector<std::string>", "void*"], rtype
-                params = []
-                if paramstr[0]:
-                    for arg in paramstr:
-                        arg = arg.strip()
-                        if arg.startswith("const"):
-                            arg = arg[5:]
-                        arg = re.sub(r"\w+$", "", arg)
-                        arg = arg.replace(" ", "")
-                        params.append(arg)
-                functions[name] = [name, AstFromCpp[rtype], [AstFromCpp[x] for x in params]]
+    if fn.endswith(".neon"):
+        with open(fn) as f:
+            prefix = ""
+            for s in f:
+                a = s.split()
+                if a[:1] == ["MODULE"]:
+                    prefix = a[1] + "$"
+                if a[:1] == ["TYPE"]:
+                    m = re.match("TYPE\s+(\w+)\s*:=\s*(\w+)\s*$", s)
+                    name = m.group(1)
+                    atype = m.group(2)
+                    assert atype == "POINTER"
+                    AstFromNeon[name] = ("TYPE_POINTER", VALUE)
+                if a[:3] == ["DECLARE", "NATIVE", "FUNCTION"]:
+                    m = re.search(r"(\w+)\((.*?)\)(:\s*(\S+))?\s*$", s)
+                    assert m is not None
+                    name = prefix + m.group(1)
+                    paramstr = m.group(2)
+                    rtype = m.group(4)
+                    params = parse_params(paramstr)
+                    functions[name] = [name, AstFromNeon[rtype], [AstFromNeon[x] for x in params]]
+                if a[:3] == ["DECLARE", "NATIVE", "CONST"]:
+                    m = re.search(r"(\w+):\s*(\S+)\s*$", s)
+                    assert m is not None
+                    name = prefix + m.group(1)
+                    ctype = m.group(2)
+                    assert ctype in ["Number"]
+                    constants[name] = [name, ctype, "new ConstantNumberExpression(rtl::{})".format(name)]
+    else:
+        print >>sys.stderr, "Unexpected file: {}".format(fn)
+        sys.exit(1)
 
 thunks = set()
 

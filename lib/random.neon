@@ -1,0 +1,3 @@
+MODULE random
+
+DECLARE NATIVE FUNCTION uint32(): Number

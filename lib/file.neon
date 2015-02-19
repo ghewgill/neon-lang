@@ -1,0 +1,4 @@
+MODULE file
+
+DECLARE NATIVE FUNCTION lines(filename: String): Array<String> 
+DECLARE NATIVE FUNCTION mkdir(path: String)

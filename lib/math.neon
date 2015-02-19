@@ -1,0 +1,37 @@
+MODULE math
+
+DECLARE NATIVE CONST PI: Number
+
+DECLARE NATIVE FUNCTION abs(x: Number): Number
+DECLARE NATIVE FUNCTION acos(x: Number): Number
+DECLARE NATIVE FUNCTION acosh(x: Number): Number
+DECLARE NATIVE FUNCTION asin(x: Number): Number
+DECLARE NATIVE FUNCTION asinh(x: Number): Number
+DECLARE NATIVE FUNCTION atan(x: Number): Number
+DECLARE NATIVE FUNCTION atanh(x: Number): Number
+DECLARE NATIVE FUNCTION atan2(y, x: Number): Number
+DECLARE NATIVE FUNCTION cbrt(x: Number): Number
+DECLARE NATIVE FUNCTION ceil(x: Number): Number
+DECLARE NATIVE FUNCTION cos(x: Number): Number
+DECLARE NATIVE FUNCTION cosh(x: Number): Number
+DECLARE NATIVE FUNCTION erf(x: Number): Number
+DECLARE NATIVE FUNCTION erfc(x: Number): Number
+DECLARE NATIVE FUNCTION exp(x: Number): Number
+DECLARE NATIVE FUNCTION exp2(x: Number): Number
+DECLARE NATIVE FUNCTION expm1(x: Number): Number
+DECLARE NATIVE FUNCTION floor(x: Number): Number
+DECLARE NATIVE FUNCTION frexp(x: Number, OUT exp: Number): Number
+DECLARE NATIVE FUNCTION hypot(x: Number, y: Number): Number
+DECLARE NATIVE FUNCTION ldexp(x: Number, exp: Number): Number
+DECLARE NATIVE FUNCTION lgamma(x: Number): Number
+DECLARE NATIVE FUNCTION log(x: Number): Number
+DECLARE NATIVE FUNCTION log10(x: Number): Number
+DECLARE NATIVE FUNCTION log1p(x: Number): Number
+DECLARE NATIVE FUNCTION log2(x: Number): Number
+DECLARE NATIVE FUNCTION nearbyint(x: Number): Number
+DECLARE NATIVE FUNCTION sin(x: Number): Number
+DECLARE NATIVE FUNCTION sinh(x: Number): Number
+DECLARE NATIVE FUNCTION sqrt(x: Number): Number
+DECLARE NATIVE FUNCTION tan(x: Number): Number
+DECLARE NATIVE FUNCTION tanh(x: Number): Number
+DECLARE NATIVE FUNCTION tgamma(x: Number): Number
