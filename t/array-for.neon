@@ -1,0 +1,11 @@
+% TODO
+
+VAR a: Array<Number> := [1, 2, 3]
+VAR x: Number
+FOR x IN a DO
+    print("x is \(x)")
+END FOR
+
+%= x is 1
+%= x is 2
+%= x is 3
