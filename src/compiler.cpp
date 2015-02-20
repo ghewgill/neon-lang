@@ -369,6 +369,14 @@ void TypeDictionary::generate_call(Emitter &) const
     internal_error("TypeDictionary");
 }
 
+void TypeRecord::predeclare(Emitter &emitter) const
+{
+    Type::predeclare(emitter);
+    for (auto f: fields) {
+        f.second->predeclare(emitter);
+    }
+}
+
 void TypeRecord::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADA);

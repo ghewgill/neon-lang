@@ -211,6 +211,7 @@ public:
     const std::vector<std::pair<std::string, const Type *>> fields;
     const std::map<std::string, size_t> field_names;
 
+    virtual void predeclare(Emitter &emitter) const;
     virtual bool is_equivalent(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
