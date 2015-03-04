@@ -1,4 +1,0 @@
-DECLARE FUNCTION pong(n: Number)
-
-FUNCTION pong()
-END FUNCTION

@@ -3,8 +3,6 @@ TYPE Rec := RECORD
     value: Number
 END RECORD
 
-DECLARE FUNCTION Rec.to_string(self: Rec): String
-
 VAR r: Rec
 r.name := "foo"
 r.value := 5

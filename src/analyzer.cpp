@@ -105,7 +105,6 @@ public:
     const Statement *analyze(const pt::TypeDeclaration *declaration);
     const Statement *analyze(const pt::ConstantDeclaration *declaration);
     const Statement *analyze(const pt::VariableDeclaration *declaration);
-    const Statement *analyze(const pt::BaseFunctionDeclaration *declaration);
     const Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
     const Statement *analyze_body(const pt::FunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExternalFunctionDeclaration *declaration);
@@ -171,7 +170,6 @@ public:
     virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::BaseFunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) { internal_error("pt::Declaration"); }
@@ -238,7 +236,6 @@ public:
     virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::BaseFunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) { internal_error("pt::Declaration"); }
@@ -305,7 +302,6 @@ public:
     virtual void visit(const pt::TypeDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::BaseFunctionDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) { v.push_back(a->analyze(p)); }
@@ -372,7 +368,6 @@ public:
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *) {}
     virtual void visit(const pt::VariableDeclaration *) {}
-    virtual void visit(const pt::BaseFunctionDeclaration *) {}
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}
@@ -3172,75 +3167,6 @@ const Statement *Analyzer::analyze(const pt::VariableDeclaration *declaration)
         }
         return new NullStatement(declaration->token.line);
     }
-}
-
-const Statement *Analyzer::analyze(const pt::BaseFunctionDeclaration *declaration)
-{
-#if 0
-    const std::string classtype = declaration->type;
-    Type *type = nullptr;
-    if (not classtype.empty()) {
-        Name *tname = scope.top()->lookupName(classtype);
-        if (tname == nullptr) {
-            error(2209, declaration->token, "type name not found");
-        }
-        type = dynamic_cast<Type *>(tname);
-        if (type == nullptr) {
-            error(2210, declaration->token, "type name is not a type");
-        }
-    }
-    std::string name = declaration->name;
-    if (scope.top()->lookupName(name) != nullptr) {
-        error(2162, declaration->token, "name shadows outer");
-    }
-    const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
-    Scope *newscope = new Scope(scope.top());
-    std::vector<FunctionParameter *> args;
-    for (auto x: declaration->args) {
-        ParameterType::Mode mode = ParameterType::IN;
-        switch (x->mode) {
-            case pt::FunctionParameter::IN:    mode = ParameterType::IN;       break;
-            case pt::FunctionParameter::INOUT: mode = ParameterType::INOUT;    break;
-            case pt::FunctionParameter::OUT:   mode = ParameterType::OUT;      break;
-        }
-        const Type *ptype = analyze(x->type);
-        if (type != nullptr && args.empty()) {
-            if (not ptype->is_equivalent(type)) {
-                error(2211, x->token, "expected self parameter");
-            }
-        }
-        FunctionParameter *fp = new FunctionParameter(x->name, ptype, mode, newscope);
-        args.push_back(fp);
-        newscope->addName(x->name, fp, true);
-    }
-    if (type != nullptr && args.empty()) {
-        error(2212, declaration->token, "expected self parameter");
-    }
-    Function *function;
-    if (type != nullptr) {
-        auto f = type->methods.find(name);
-        if (f != type->methods.end()) {
-            function = dynamic_cast<Function *>(f->second);
-            newscope = function->scope;
-        } else {
-            function = new Function(name, returntype, newscope, args);
-            type->methods[name] = function;
-        }
-    } else {
-        Name *ident = scope.top()->lookupName(name);
-        function = dynamic_cast<Function *>(ident);
-        if (function != nullptr) {
-            newscope = function->scope;
-        } else if (ident != nullptr) {
-            error(2074, declaration->token, "name shadows outer");
-        } else {
-            function = new Function(name, returntype, newscope, args);
-            scope.top()->addName(name, function);
-        }
-    }
-    newscope->checkForward();
-#endif
-    return new NullStatement(declaration->token.line);
 }
 
 const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declaration)

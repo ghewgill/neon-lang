@@ -49,7 +49,6 @@ class ImportDeclaration;
 class TypeDeclaration;
 class ConstantDeclaration;
 class VariableDeclaration;
-class BaseFunctionDeclaration;
 class FunctionDeclaration;
 class ExternalFunctionDeclaration;
 class ExceptionDeclaration;
@@ -114,7 +113,6 @@ public:
     virtual void visit(const TypeDeclaration *) = 0;
     virtual void visit(const ConstantDeclaration *) = 0;
     virtual void visit(const VariableDeclaration *) = 0;
-    virtual void visit(const BaseFunctionDeclaration *) = 0;
     virtual void visit(const FunctionDeclaration *) = 0;
     virtual void visit(const ExternalFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
@@ -509,7 +507,6 @@ private:
 class BaseFunctionDeclaration: public Declaration {
 public:
     BaseFunctionDeclaration(const Token &token, const std::string &type, const std::string &name, const Type *returntype, const std::vector<const FunctionParameter *> &args): Declaration(token), type(type), name(name), returntype(returntype), args(args) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
     const std::string type;
     const std::string name;
     const Type *const returntype;

@@ -401,10 +401,6 @@ VAR Microseconds, Dhrystones_Per_Second: Number
 
 % end of variables for time measurement
 
-DECLARE FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
-DECLARE FUNCTION Proc_6 (IN Enum_Val_Par: Enumeration, OUT Enum_Ref_Par: Enumeration)
-DECLARE FUNCTION Proc_7 (IN Int_1_Par_Val: One_Fifty, IN Int_2_Par_Val: One_Fifty, OUT Int_Par_Ref: One_Fifty)
-
 FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
     % executed once
 

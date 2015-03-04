@@ -793,17 +793,8 @@ const Statement *Parser::parseDeclaration()
             ++i;
             return new ExceptionDeclaration(tok_name, name);
         }
-        case FUNCTION: {
-            auto &tok_function = tokens[i];
-            std::string type;
-            std::string name;
-            const Type *returntype;
-            std::vector<const FunctionParameter *> args;
-            parseFunctionHeader(type, name, returntype, args);
-            return new BaseFunctionDeclaration(tok_function, type, name, returntype, args);
-        }
         default:
-            error(2151, tokens[i], "EXCEPTION or FUNCTION expected");
+            error(2151, tokens[i], "EXCEPTION expected");
     }
 }
 
