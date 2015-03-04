@@ -1,1 +1,2 @@
-print(2 * "Hello, world!")
+VAR a: Number
+Number := 1

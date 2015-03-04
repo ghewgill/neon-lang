@@ -1,1 +1,8 @@
-CONST 
+TYPE Recordset := RECORD
+    ID: Number
+    Name: String
+END RECORD
+
+VAR a: Recordset
+
+a.

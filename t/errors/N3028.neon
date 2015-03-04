@@ -1,6 +1,1 @@
-FUNCTION a(IN y: Number, INOUT z: Number) : Number
-    z := y + 1
-    RETURN 1
-END FUNCTION
-
-print(a(1, 2))
+print(2 + "Hello, world!")

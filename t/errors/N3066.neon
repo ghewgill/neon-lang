@@ -1,3 +1,3 @@
-VAR Record: String
-
-Record["char(34)"]
+VAR a: String
+FOR a := 1 TO 10 DO
+END FOR

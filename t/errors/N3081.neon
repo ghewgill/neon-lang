@@ -1,3 +1,2 @@
-WHILE (1) DO
-    print("doing...")
-END WHILE
+VAR b: Boolean
+b := 5 IN 6

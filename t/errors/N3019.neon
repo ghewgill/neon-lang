@@ -1,3 +1,5 @@
-VAR outer: Number
+FUNCTION a(y: Number, z: Number) : Number
+    RETURN 1
+END FUNCTION
 
-TYPE outer := Number
+print(a("Hello", ", World!"))

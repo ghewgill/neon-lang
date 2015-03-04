@@ -1,1 +1,3 @@
-TYPE outer:
+VAR Records: Array<Number>
+
+Records[1

@@ -1,4 +1,3 @@
-VAR a: Number
-VAR b: String
-
-a := b
+FUNCTION foo(x: Number)
+    RETURN x
+END FUNCTION

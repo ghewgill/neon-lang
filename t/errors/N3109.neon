@@ -1,7 +1,4 @@
-VAR a: String
-a := "H"
-
+VAR a: Number
 CASE a
-   WHEN "H" TO "Z", "A" TO "Z" DO
-     print("5")
+    WHEN 4 TO 3 DO
 END CASE

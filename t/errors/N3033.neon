@@ -1,3 +1,6 @@
-VAR a: Number
+VAR a: Dictionary<Number>
+VAR b: Dictionary<Number>
 
-a := -"Hello, World!"
+IF a <= b THEN
+  print("Woah...")
+END IF

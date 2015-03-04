@@ -1,3 +1,8 @@
-IF (1) THEN
-    print("TRUE")
-END IF
+VAR a: Number
+
+FOR a := 1 TO 10 DO
+    print(str(a))
+    IF ((a MOD 5) = 0) THEN
+         EXIT WHILE
+    END IF
+END FOR

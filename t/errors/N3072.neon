@@ -1,0 +1,10 @@
+EXTERNAL FUNCTION Sleep(ms: Number)
+{
+     "library": {
+          "name": 32
+     }
+     "types": {
+          "dwMilliseconds": "uint32"
+     }
+}
+END FUNCTION

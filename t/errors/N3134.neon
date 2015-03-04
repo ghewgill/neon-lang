@@ -1,10 +1,2 @@
-EXTERNAL FUNCTION Sleep(ms: Number)
-{
-     "library": {     
-          "libraryName": "Lib"
-     }
-     "types": {
-          "dwMilliseconds": "uint32"
-     }
-}
-END FUNCTION
+IMPORT sys
+sys.foo

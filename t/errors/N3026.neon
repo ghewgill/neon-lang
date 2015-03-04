@@ -1,4 +1,1 @@
-VAR a: String
-a := "Hello, World!"
-
-CONST x: String := a
+print(2 / "Hello, world!")

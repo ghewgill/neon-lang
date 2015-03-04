@@ -1,1 +1,1 @@
-CONST x: String := 42
+print(2 * "Hello, world!")

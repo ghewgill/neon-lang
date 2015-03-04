@@ -1,5 +1,11 @@
-VAR a: Number
+TYPE lh := RECORD
+  var1: Number
+  var2: String
+END RECORD
 
-IF NOT a THEN
-  print("Not true...")
+VAR a: lh
+VAR b: lh
+
+IF a <= b THEN
+  print("Woah...")
 END IF

@@ -1,9 +1,6 @@
-VAR a: Number
-a := 5
+FUNCTION foo(OUT x: Number)
+END FUNCTION
 
-CASE a
-   WHEN >= 10 DO
-     print("10+")
-   WHEN = 10 DO
-     print("5")
-END CASE
+FUNCTION bar(x: Number)
+    foo(x)
+END FUNCTION

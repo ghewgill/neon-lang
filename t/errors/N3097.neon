@@ -1,2 +1,10 @@
-VAR a: Number
-a = 2
+EXTERNAL FUNCTION Sleep(ms: Number)
+{
+     "library": {     
+          "name": "kernel32"
+     }
+     "types": {
+          "x": "uint32"
+     }
+}
+END FUNCTION

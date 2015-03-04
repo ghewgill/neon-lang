@@ -1,1 +1,1 @@
-VAR a: Matrix
+CONST x: String := 42

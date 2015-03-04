@@ -1,2 +1,9 @@
-IF TRUE OR 1 THEN
-END IF
+VAR a: String
+a := "Hello, World!"
+VAR b: String
+b := a
+
+CASE a
+    WHEN = b DO
+        print("a is == to b.")
+END CASE

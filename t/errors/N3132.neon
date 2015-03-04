@@ -1,7 +1,2 @@
-EXTERNAL FUNCTION Sleep(ms: Number)
-{
-     "library": {     
-          "name": 5
-     }
-}
-END FUNCTION
+TYPE T := RECORD END RECORD
+print("\(T())")

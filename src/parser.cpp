@@ -119,12 +119,12 @@ const Type *Parser::parseRecordType()
     std::vector<std::pair<Token, const Type *>> fields;
     while (tokens[i].type != END) {
         if (tokens[i].type != IDENTIFIER) {
-            error(2008, tokens[i], "identifier expected");
+            error(2004, tokens[i], "identifier expected");
         }
         const Token &name = tokens[i];
         ++i;
         if (tokens[i].type != COLON) {
-            error(2010, tokens[i], "colon expected");
+            error(2005, tokens[i], "colon expected");
         }
         ++i;
         const Type *t = parseType();
@@ -132,7 +132,7 @@ const Type *Parser::parseRecordType()
     }
     i++;
     if (tokens[i].type != RECORD) {
-        error(2100, tokens[i], "'RECORD' expected");
+        error(2034, tokens[i], "'RECORD' expected");
     }
     i++;
     return new TypeRecord(tok_record, fields);
@@ -149,7 +149,7 @@ const Type *Parser::parseEnumType()
     int index = 0;
     while (tokens[i].type != END) {
         if (tokens[i].type != IDENTIFIER) {
-            error(2012, tokens[i], "identifier expected");
+            error(2006, tokens[i], "identifier expected");
         }
         const Token &name = tokens[i];
         i++;
@@ -158,7 +158,7 @@ const Type *Parser::parseEnumType()
     }
     i++;
     if (tokens[i].type != ENUM) {
-        error(2101, tokens[i], "'ENUM' expected");
+        error(2035, tokens[i], "'ENUM' expected");
     }
     i++;
     return new TypeEnum(tok_enum, names);
@@ -195,7 +195,7 @@ const Type *Parser::parseType()
         return parsePointerType();
     }
     if (tokens[i].type != IDENTIFIER) {
-        error(2014, tokens[i], "identifier expected");
+        error(2007, tokens[i], "identifier expected");
     }
     const Token &name = tokens[i];
     i++;
@@ -206,12 +206,12 @@ const Statement *Parser::parseTypeDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
-        error(2018, tokens[i], "identifier expected");
+        error(2008, tokens[i], "identifier expected");
     }
     auto &tok_name = tokens[i];
     ++i;
     if (tokens[i].type != ASSIGN) {
-        error(2020, tokens[i], "':=' expected");
+        error(2009, tokens[i], "':=' expected");
     }
     ++i;
     const Type *type = parseType();
@@ -222,17 +222,17 @@ const Statement *Parser::parseConstantDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
-        error(2021, tokens[i], "identifier expected");
+        error(2010, tokens[i], "identifier expected");
     }
     auto &tok_name = tokens[i];
     ++i;
     if (tokens[i].type != COLON) {
-        error(2023, tokens[i], "':' expected");
+        error(2011, tokens[i], "':' expected");
     }
     ++i;
     const Type *type = parseType();
     if (tokens[i].type != ASSIGN) {
-        error(2024, tokens[i], "':=' expected");
+        error(2012, tokens[i], "':=' expected");
     }
     ++i;
     const Expression *value = parseExpression();
@@ -254,7 +254,7 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
             ++i;
         }
         if (tokens[i].type != RPAREN) {
-            error(2030, tokens[i], "')' or ',' expected");
+            error(2013, tokens[i], "')' or ',' expected");
         }
     }
     ++i;
@@ -271,7 +271,7 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral()
         if (tokens[i].type == COMMA) {
             ++i;
         } else if (tokens[i].type != RBRACKET) {
-            error(2139, tokens[i], "',' or ']' expected");
+            error(2053, tokens[i], "',' or ']' expected");
         }
     }
     ++i;
@@ -286,7 +286,7 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
         auto &key = tokens[i];
         ++i;
         if (tokens[i].type != COLON) {
-            error(2126, tokens[i], "':' expected");
+            error(2048, tokens[i], "':' expected");
         }
         ++i;
         const Expression *element = parseExpression();
@@ -352,7 +352,7 @@ const Expression *Parser::parseAtom()
             ++i;
             const Expression *expr = parseExpression();
             if (tokens[i].type != RPAREN) {
-                error(2032, tokens[i], ") expected");
+                error(2014, tokens[i], ") expected");
             }
             ++i;
             return expr;
@@ -366,7 +366,7 @@ const Expression *Parser::parseAtom()
             ++i;
             const Expression *dict = parseDictionaryLiteral();
             if (tokens[i].type != RBRACE) {
-                error(2128, tokens[i], "'}' expected");
+                error(2049, tokens[i], "'}' expected");
             }
             ++i;
             return dict;
@@ -427,7 +427,7 @@ const Expression *Parser::parseAtom()
                     ++i;
                     const Expression *index = parseExpression();
                     if (tokens[i].type != RBRACKET) {
-                        error(2063, tokens[i], "']' expected");
+                        error(2020, tokens[i], "']' expected");
                     }
                     ++i;
                     expr = new SubscriptExpression(tok_lbracket, expr, index);
@@ -437,7 +437,7 @@ const Expression *Parser::parseAtom()
                     auto &tok_dot = tokens[i];
                     ++i;
                     if (tokens[i].type != IDENTIFIER) {
-                        error(2069, tokens[i], "identifier expected");
+                        error(2021, tokens[i], "identifier expected");
                     }
                     const std::string field = tokens[i].text;
                     ++i;
@@ -446,7 +446,7 @@ const Expression *Parser::parseAtom()
                     auto &tok_arrow = tokens[i];
                     ++i;
                     if (tokens[i].type != IDENTIFIER) {
-                        error(2186, tokens[i], "identifier expected");
+                        error(2066, tokens[i], "identifier expected");
                     }
                     const std::string field = tokens[i].text;
                     ++i;
@@ -459,7 +459,7 @@ const Expression *Parser::parseAtom()
             return expr;
         }
         default:
-            error(2038, tokens[i], "Expression expected");
+            error(2015, tokens[i], "Expression expected");
     }
 }
 
@@ -620,12 +620,12 @@ const Expression *Parser::parseConditional()
         ++i;
         const Expression *cond = parseExpression();
         if (tokens[i].type != THEN) {
-            error(2053, tokens[i], "'THEN' expected");
+            error(2016, tokens[i], "'THEN' expected");
         }
         ++i;
         const Expression *left = parseExpression();
         if (tokens[i].type != ELSE) {
-            error(2054, tokens[i], "'ELSE' expected");
+            error(2017, tokens[i], "'ELSE' expected");
         }
         ++i;
         const Expression *right = parseExpression();
@@ -639,7 +639,7 @@ const Expression *Parser::parseExpression()
 {
     expression_depth++;
     if (expression_depth > 100) {
-        error(2197, tokens[i], "exceeded maximum nesting depth");
+        error(2067, tokens[i], "exceeded maximum nesting depth");
     }
     const Expression *r = parseConditional();
     expression_depth--;
@@ -651,7 +651,7 @@ const Parser::VariableInfo Parser::parseVariableDeclaration()
     std::vector<std::string> names;
     for (;;) {
         if (tokens[i].type != IDENTIFIER) {
-            error(2056, tokens[i], "identifier expected");
+            error(2018, tokens[i], "identifier expected");
         }
         std::string name = tokens[i].text;
         ++i;
@@ -662,7 +662,7 @@ const Parser::VariableInfo Parser::parseVariableDeclaration()
         ++i;
     }
     if (tokens[i].type != COLON) {
-        error(2058, tokens[i], "colon expected");
+        error(2019, tokens[i], "colon expected");
     }
     ++i;
     const Type *t = parseType();
@@ -673,21 +673,21 @@ void Parser::parseFunctionHeader(std::string &type, std::string &name, const Typ
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
-        error(2073, tokens[i], "identifier expected");
+        error(2023, tokens[i], "identifier expected");
     }
     name = tokens[i].text;
     ++i;
     if (tokens[i].type == DOT) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
-            error(2208, tokens[i], "identifier expected");
+            error(2068, tokens[i], "identifier expected");
         }
         type = name;
         name = tokens[i].text;
         ++i;
     }
     if (tokens[i].type != LPAREN) {
-        error(2075, tokens[i], "'(' expected");
+        error(2024, tokens[i], "'(' expected");
     }
     ++i;
     if (tokens[i].type != RPAREN) {
@@ -712,7 +712,7 @@ void Parser::parseFunctionHeader(std::string &type, std::string &name, const Typ
             ++i;
         }
         if (tokens[i].type != RPAREN) {
-            error(2076, tokens[i], "')' or ',' expected");
+            error(2025, tokens[i], "')' or ',' expected");
         }
     }
     ++i;
@@ -741,7 +741,7 @@ const Statement *Parser::parseFunctionDefinition()
     }
     ++i;
     if (tokens[i].type != FUNCTION) {
-        error(2102, tokens[i], "'FUNCTION' expected");
+        error(2036, tokens[i], "'FUNCTION' expected");
     }
     ++i;
     return new FunctionDeclaration(tok_function, type, name, returntype, args, body);
@@ -752,7 +752,7 @@ const Statement *Parser::parseExternalDefinition()
     auto &tok_external = tokens[i];
     ++i;
     if (tokens[i].type != FUNCTION) {
-        error(2122, tokens[i], "FUNCTION expected");
+        error(2045, tokens[i], "FUNCTION expected");
     }
     std::string type;
     std::string name;
@@ -760,20 +760,20 @@ const Statement *Parser::parseExternalDefinition()
     std::vector<const FunctionParameter *> args;
     parseFunctionHeader(type, name, returntype, args);
     if (tokens[i].type != LBRACE) {
-        error(2123, tokens[i], "{ expected");
+        error(2046, tokens[i], "{ expected");
     }
     ++i;
     const DictionaryLiteralExpression *dict = parseDictionaryLiteral();
     if (tokens[i].type != RBRACE) {
-        error(2125, tokens[i], "} expected");
+        error(2047, tokens[i], "} expected");
     }
     ++i;
     if (tokens[i].type != END) {
-        error(2129, tokens[i], "'END' expected");
+        error(2050, tokens[i], "'END' expected");
     }
     ++i;
     if (tokens[i].type != FUNCTION) {
-        error(2130, tokens[i], "'END FUNCTION' expected");
+        error(2051, tokens[i], "'END FUNCTION' expected");
     }
     ++i;
     return new ExternalFunctionDeclaration(tok_external, type, name, returntype, args, dict);
@@ -787,14 +787,14 @@ const Statement *Parser::parseDeclaration()
             ++i;
             auto &tok_name = tokens[i];
             if (tokens[i].type != IDENTIFIER) {
-                error(2152, tokens[i], "identifier expected");
+                error(2059, tokens[i], "identifier expected");
             }
             std::string name = tokens[i].text;
             ++i;
             return new ExceptionDeclaration(tok_name, name);
         }
         default:
-            error(2151, tokens[i], "EXCEPTION expected");
+            error(2058, tokens[i], "EXCEPTION expected");
     }
 }
 
@@ -812,12 +812,12 @@ const Statement *Parser::parseIfStatement()
                 auto &tok_valid = tokens[i];
                 ++i;
                 if (tokens[i].type != IDENTIFIER) {
-                    error(2174, tokens[i], "identifier expected");
+                    error(2064, tokens[i], "identifier expected");
                 }
                 name = tokens[i].text;
                 ++i;
                 if (tokens[i].type != ASSIGN) {
-                    error(2175, tokens[i], "':=' expected");
+                    error(2065, tokens[i], "':=' expected");
                 }
                 ++i;
                 const Expression *ptr = parseExpression();
@@ -836,7 +836,7 @@ const Statement *Parser::parseIfStatement()
             cond = parseExpression();
         }
         if (tokens[i].type != THEN) {
-            error(2079, tokens[i], "THEN expected");
+            error(2026, tokens[i], "THEN expected");
         }
         ++i;
         std::vector<const Statement *> statements;
@@ -858,11 +858,11 @@ const Statement *Parser::parseIfStatement()
         }
     }
     if (tokens[i].type != END) {
-        error(2080, tokens[i], "END expected");
+        error(2027, tokens[i], "END expected");
     }
     ++i;
     if (tokens[i].type != IF) {
-        error(2103, tokens[i], "IF expected");
+        error(2037, tokens[i], "IF expected");
     }
     ++i;
     return new IfStatement(tok_if, condition_statements, else_statements);
@@ -895,7 +895,7 @@ const Statement *Parser::parseWhileStatement()
     ++i;
     const Expression *cond = parseExpression();
     if (tokens[i].type != DO) {
-        error(2082, tokens[i], "DO expected");
+        error(2028, tokens[i], "DO expected");
     }
     ++i;
     std::vector<const Statement *> statements;
@@ -906,11 +906,11 @@ const Statement *Parser::parseWhileStatement()
         }
     }
     if (tokens[i].type != END) {
-        error(2083, tokens[i], "END expected");
+        error(2029, tokens[i], "END expected");
     }
     ++i;
     if (tokens[i].type != WHILE) {
-        error(2104, tokens[i], "WHILE expected");
+        error(2038, tokens[i], "WHILE expected");
     }
     ++i;
     return new WhileStatement(tok_while, cond, statements);
@@ -957,7 +957,7 @@ const Statement *Parser::parseCaseStatement()
             }
         } while (tokens[i].type == COMMA);
         if (tokens[i].type != DO) {
-            error(2091, tokens[i], "'DO' expected");
+            error(2030, tokens[i], "'DO' expected");
         }
         ++i;
         std::vector<const Statement *> statements;
@@ -980,11 +980,11 @@ const Statement *Parser::parseCaseStatement()
         }
     }
     if (tokens[i].type != END) {
-        error(2092, tokens[i], "'END' expected");
+        error(2031, tokens[i], "'END' expected");
     }
     ++i;
     if (tokens[i].type != CASE) {
-        error(2105, tokens[i], "CASE expected");
+        error(2039, tokens[i], "CASE expected");
     }
     ++i;
     clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));
@@ -996,17 +996,17 @@ const Statement *Parser::parseForStatement()
     auto &tok_for = tokens[i];
     ++i;
     if (tokens[i].type != IDENTIFIER) {
-        error(2072, tokens[i], "identifier expected");
+        error(2022, tokens[i], "identifier expected");
     }
     const std::string var = tokens[i].text;
     ++i;
     if (tokens[i].type != ASSIGN) {
-        error(2121, tokens[i], "':=' expected");
+        error(2044, tokens[i], "':=' expected");
     }
     ++i;
     const Expression *start = parseExpression();
     if (tokens[i].type != TO) {
-        error(2114, tokens[i], "TO expected");
+        error(2040, tokens[i], "TO expected");
     }
     ++i;
     const Expression *end = parseExpression();
@@ -1016,7 +1016,7 @@ const Statement *Parser::parseForStatement()
         step = parseExpression();
     }
     if (tokens[i].type != DO) {
-        error(2118, tokens[i], "'DO' expected");
+        error(2041, tokens[i], "'DO' expected");
     }
     ++i;
     std::vector<const Statement *> statements;
@@ -1027,11 +1027,11 @@ const Statement *Parser::parseForStatement()
         }
     }
     if (tokens[i].type != END) {
-        error(2119, tokens[i], "'END' expected");
+        error(2042, tokens[i], "'END' expected");
     }
     ++i;
     if (tokens[i].type != FOR) {
-        error(2120, tokens[i], "'END FOR' expected");
+        error(2043, tokens[i], "'END FOR' expected");
     }
     ++i;
     return new ForStatement(tok_for, var, start, end, step, statements);
@@ -1049,11 +1049,11 @@ const Statement *Parser::parseLoopStatement()
         }
     }
     if (tokens[i].type != END) {
-        error(2147, tokens[i], "END expected");
+        error(2055, tokens[i], "END expected");
     }
     ++i;
     if (tokens[i].type != LOOP) {
-        error(2148, tokens[i], "LOOP expected");
+        error(2056, tokens[i], "LOOP expected");
     }
     ++i;
     return new LoopStatement(tok_loop, statements);
@@ -1071,7 +1071,7 @@ const Statement *Parser::parseRepeatStatement()
         }
     }
     if (tokens[i].type != UNTIL) {
-        error(2149, tokens[i], "UNTIL expected");
+        error(2057, tokens[i], "UNTIL expected");
     }
     ++i;
     const Expression *cond = parseExpression();
@@ -1088,7 +1088,7 @@ const Statement *Parser::parseExitStatement()
      && type != FOR
      && type != LOOP
      && type != REPEAT) {
-        error(2136, tokens[i], "loop type expected");
+        error(2052, tokens[i], "loop type expected");
     }
     ++i;
     return new ExitStatement(tok_exit, type);
@@ -1103,7 +1103,7 @@ const Statement *Parser::parseNextStatement()
      && type != FOR
      && type != LOOP
      && type != REPEAT) {
-        error(2144, tokens[i], "loop type expected");
+        error(2054, tokens[i], "loop type expected");
     }
     ++i;
     return new NextStatement(tok_next, type);
@@ -1124,7 +1124,7 @@ const Statement *Parser::parseTryStatement()
     while (tokens[i].type == EXCEPTION) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
-            error(2153, tokens[i], "identifier expected");
+            error(2060, tokens[i], "identifier expected");
         }
         const std::string name = tokens[i].text;
         std::vector<std::string> exceptions;
@@ -1140,11 +1140,11 @@ const Statement *Parser::parseTryStatement()
         catches.push_back(std::make_pair(exceptions, statements));
     }
     if (tokens[i].type != END) {
-        error(2159, tokens[i], "'END' expected");
+        error(2062, tokens[i], "'END' expected");
     }
     ++i;
     if (tokens[i].type != TRY) {
-        error(2160, tokens[i], "TRY expected");
+        error(2063, tokens[i], "TRY expected");
     }
     ++i;
     return new TryStatement(tok_try, statements, catches);
@@ -1155,7 +1155,7 @@ const Statement *Parser::parseRaiseStatement()
     auto &tok_raise = tokens[i];
     ++i;
     if (tokens[i].type != IDENTIFIER) {
-        error(2156, tokens[i], "identifier expected");
+        error(2061, tokens[i], "identifier expected");
     }
     const std::string name = tokens[i].text;
     ++i;
@@ -1173,7 +1173,7 @@ const Statement *Parser::parseImport()
     auto &tok_import = tokens[i];
     ++i;
     if (tokens[i].type != IDENTIFIER) {
-        error(2093, tokens[i], "identifier expected");
+        error(2032, tokens[i], "identifier expected");
     }
     const std::string name = tokens[i].text;
     ++i;
@@ -1231,7 +1231,7 @@ const Statement *Parser::parseStatement()
             return new ExpressionStatement(expr);
         }
     } else {
-        error(2099, tokens[i], "Identifier expected");
+        error(2033, tokens[i], "Identifier expected");
     }
 }
 

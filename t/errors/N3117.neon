@@ -1,3 +1,5 @@
-VAR a: Number
-FOR a := 1 TO 2 STEP a DO
-END FOR
+VAR p: POINTER
+
+IF VALID q := p THEN
+    print(q->foo)
+END IF

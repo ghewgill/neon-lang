@@ -1,8 +1,3 @@
-TYPE Recordset := RECORD
-    ID: Number
-    Name: String
-END RECORD
-
-VAR a: Recordset
-
-a.LastName
+VAR a: Number
+FOR a := 1 TO 2 STEP a DO
+END FOR

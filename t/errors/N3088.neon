@@ -1,9 +1,4 @@
-VAR a: String
-a := "Hello, World!"
-
-CASE a
-    WHEN a TO "HELLO" DO
-        print("a is == 5")
-    WHEN = "Aloha, World!" DO
-        print("a is Aloha.")
-END CASE
+VAR foo: String
+TRY
+EXCEPTION foo
+END TRY

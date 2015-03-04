@@ -1,6 +1,0 @@
-FUNCTION foo(OUT x: Number)
-END FUNCTION
-
-FUNCTION bar(x: Number)
-    foo(x)
-END FUNCTION

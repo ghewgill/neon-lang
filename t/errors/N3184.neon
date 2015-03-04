@@ -1,4 +1,0 @@
-VAR a: Number
-CASE a
-    WHEN 4 TO 3 DO
-END CASE

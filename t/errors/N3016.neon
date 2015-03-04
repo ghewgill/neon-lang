@@ -1,2 +1,4 @@
-VAR Integer: Number
-VAR a: Integer
+VAR a: String
+a := "Hello, World!"
+
+CONST x: String := a

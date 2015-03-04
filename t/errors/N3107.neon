@@ -1,7 +1,1 @@
-VAR a: Number
-a := 5
-
-CASE a
-   WHEN = 5, = 5 DO
-     print("5")
-END CASE
+EXIT FUNCTION

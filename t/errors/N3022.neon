@@ -1,4 +1,5 @@
-VAR x: String
-x := "Hello"
+VAR a: Number
 
-CONST x: String := ", World!"
+IF NOT a THEN
+  print("Not true...")
+END IF

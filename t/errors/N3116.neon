@@ -1,3 +1,1 @@
-VAR a: Number
-FOR a := 1 TO 2 STEP "up" DO
-END FOR
+print(1 & 2)

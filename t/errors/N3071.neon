@@ -1,9 +1,20 @@
-TYPE Recordset := RECORD
-    ID: Number
-    Name: String
-END RECORD
+VAR lib: Dictionary<Dictionary<String>>
 
-VAR a: Recordset
-VAR b: Number
+lib := {
+    "library": { "": "" }
+    "types":   { "": "" }
+}
 
-b.ID
+VAR params: Dictionary<String>
+params := { "dwMilliseconds": "uint32" }
+
+
+EXTERNAL FUNCTION Sleep(ms: Number)
+{
+     "library": {     
+          "name": "TestLib"
+     }
+     "types": 
+          params
+}
+END FUNCTION

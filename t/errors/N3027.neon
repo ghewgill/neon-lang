@@ -1,3 +1,1 @@
-VAR a: String
-
-print(a(1, 2))
+print(2 MOD "Hello, world!")

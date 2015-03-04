@@ -1,7 +1,3 @@
-TYPE Suit := ENUM
-    Heart
-    Heart
-    Club
-    Spade
-    Diamond
-END ENUM
+VAR outer: Number
+
+TYPE outer := Number
