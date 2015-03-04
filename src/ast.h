@@ -33,6 +33,7 @@ class TypePointer;
 class Variable;
 class FunctionCall;
 class FunctionParameter;
+class Statement;
 
 class Scope {
 public:
@@ -1082,6 +1083,22 @@ private:
     PointerDereferenceExpression &operator=(const PointerDereferenceExpression &);
 };
 
+class ConstantExpression: public Expression {
+public:
+    ConstantExpression(const Constant *constant): Expression(constant->type, true, true), constant(constant) {}
+
+    const Constant *constant;
+
+    virtual Number eval_number() const { internal_error("ConstantExpression"); }
+    virtual std::string eval_string() const { internal_error("ConstantExpression"); }
+    virtual void generate(Emitter &emitter) const { constant->value->generate(emitter); }
+
+    virtual std::string text() const { return "ConstantExpression(" + constant->text() + ")"; }
+private:
+    ConstantExpression(const ConstantExpression &);
+    ConstantExpression &operator=(const ConstantExpression &);
+};
+
 class VariableExpression: public ReferenceExpression {
 public:
     VariableExpression(const Variable *var): ReferenceExpression(var->type, var->is_readonly), var(var) {}
@@ -1120,6 +1137,22 @@ private:
     FunctionCall &operator=(const FunctionCall &);
 };
 
+class StatementExpression: public Expression {
+public:
+    StatementExpression(const Statement *stmt): Expression(TYPE_NOTHING, false), stmt(stmt) {}
+
+    const Statement *const stmt;
+
+    virtual Number eval_number() const { internal_error("StatementExpression"); }
+    virtual std::string eval_string() const { internal_error("StatementExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "StatementExpression"; }
+private:
+    StatementExpression(const StatementExpression &);
+    StatementExpression &operator=(const StatementExpression &);
+};
+
 class Statement: public AstNode {
 public:
     Statement(int line): line(line) {}
@@ -1129,6 +1162,15 @@ public:
 
     void generate(Emitter &emitter) const;
     virtual void generate_code(Emitter &emitter) const = 0;
+};
+
+class NullStatement: public Statement {
+public:
+    NullStatement(int line): Statement(line) {}
+
+    virtual void generate_code(Emitter &) const {}
+
+    virtual std::string text() const { return "NullStatement"; }
 };
 
 class AssignmentStatement: public Statement {

@@ -3,8 +3,8 @@
 
 #include "lexer.h"
 
-class Program;
+namespace pt { class Program; }
 
-const Program *parse(const std::vector<Token> &tokens);
+const pt::Program *parse(const std::vector<Token> &tokens);
 
 #endif

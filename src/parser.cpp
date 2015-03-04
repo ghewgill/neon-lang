@@ -4,111 +4,73 @@
 #include <list>
 #include <stack>
 
-#include "ast.h"
 #include "format.h"
-#include "rtl_compile.h"
+#include "pt.h"
 #include "util.h"
+
+using namespace pt;
 
 class Parser {
 public:
     Parser(const std::vector<Token> &tokens);
 
     const std::vector<Token> tokens;
-    static Scope *global_scope; // TODO: static is a hack, used by StringReference constructor
     std::vector<Token>::size_type i;
     int expression_depth;
 
-    std::stack<const TypeFunction *> functiontypes;
-    std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
-
     typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
 
-    const Type *parseArrayType(Scope *scope);
-    const Type *parseDictionaryType(Scope *scope);
-    const Type *parseRecordType(Scope *scope);
-    const Type *parseEnumType(Scope *scope);
-    const Type *parsePointerType(Scope *scope);
-    const Type *parseType(Scope *scope);
-    const Statement *parseTypeDefinition(Scope *scope);
-    const Statement *parseConstantDefinition(Scope *scope);
-    const FunctionCall *parseFunctionCall(const Expression *func, const Expression *self, Scope *scope);
-    const ArrayLiteralExpression *parseArrayLiteral(Scope *scope);
-    const DictionaryLiteralExpression *parseDictionaryLiteral(Scope *scope);
-    const Name *parseQualifiedName(Scope *scope, int &enclosing);
-    const Expression *parseInterpolatedStringExpression(Scope *scope);
-    const Expression *parseAtom(Scope *scope);
-    const Expression *parseExponentiation(Scope *scope);
-    const Expression *parseMultiplication(Scope *scope);
-    const Expression *parseAddition(Scope *scope);
-    const Expression *parseComparison(Scope *scope);
-    const Expression *parseMembership(Scope *scope);
-    const Expression *parseConjunction(Scope *scope);
-    const Expression *parseDisjunction(Scope *scope);
-    const Expression *parseConditional(Scope *scope);
-    const Expression *parseExpression(Scope *scope, bool allow_nothing = false);
-    const VariableInfo parseVariableDeclaration(Scope *scope);
-    void parseFunctionHeader(Scope *scope, Type *&type, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args);
-    const Statement *parseFunctionDefinition(Scope *scope);
-    const Statement *parseExternalDefinition(Scope *scope);
-    const Statement *parseDeclaration(Scope *scope);
-    const Statement *parseIfStatement(Scope *scope, int line);
-    const Statement *parseReturnStatement(Scope *scope, int line);
-    const Statement *parseVarStatement(Scope *scope, int line);
-    const Statement *parseWhileStatement(Scope *scope, int line);
-    const Statement *parseCaseStatement(Scope *scope, int line);
-    const Statement *parseForStatement(Scope *scope, int line);
-    const Statement *parseLoopStatement(Scope *scope, int line);
-    const Statement *parseRepeatStatement(Scope *scope, int line);
-    const Statement *parseExitStatement(Scope *scope, int line);
-    const Statement *parseNextStatement(Scope *scope, int line);
-    const Statement *parseTryStatement(Scope *scope, int line);
-    const Statement *parseRaiseStatement(Scope *scope, int line);
-    const Statement *parseImport(Scope *scope);
-    const Statement *parseStatement(Scope *scope);
+    const Type *parseParameterisedType();
+    const Type *parseRecordType();
+    const Type *parseEnumType();
+    const Type *parsePointerType();
+    const Type *parseType();
+    const Statement *parseTypeDefinition();
+    const Statement *parseConstantDefinition();
+    const FunctionCallExpression *parseFunctionCall(const Expression *func);
+    const ArrayLiteralExpression *parseArrayLiteral();
+    const DictionaryLiteralExpression *parseDictionaryLiteral();
+    const Expression *parseInterpolatedStringExpression();
+    const Expression *parseAtom();
+    const Expression *parseExponentiation();
+    const Expression *parseMultiplication();
+    const Expression *parseAddition();
+    const Expression *parseComparison();
+    const Expression *parseMembership();
+    const Expression *parseConjunction();
+    const Expression *parseDisjunction();
+    const Expression *parseConditional();
+    const Expression *parseExpression();
+    const VariableInfo parseVariableDeclaration();
+    void parseFunctionHeader(std::string &type, std::string &name, const Type *&returntype, std::vector<const FunctionParameter *> &args);
+    const Statement *parseFunctionDefinition();
+    const Statement *parseExternalDefinition();
+    const Statement *parseDeclaration();
+    const Statement *parseIfStatement();
+    const Statement *parseReturnStatement();
+    const Statement *parseVarStatement();
+    const Statement *parseWhileStatement();
+    const Statement *parseCaseStatement();
+    const Statement *parseForStatement();
+    const Statement *parseLoopStatement();
+    const Statement *parseRepeatStatement();
+    const Statement *parseExitStatement();
+    const Statement *parseNextStatement();
+    const Statement *parseTryStatement();
+    const Statement *parseRaiseStatement();
+    const Statement *parseImport();
+    const Statement *parseStatement();
     const Program *parse();
 private:
     Parser(const Parser &);
     Parser &operator=(const Parser &);
 };
 
-Scope *Parser::global_scope;
-
 Parser::Parser(const std::vector<Token> &tokens)
   : tokens(tokens),
     i(0),
-    expression_depth(0),
-    functiontypes(),
-    loops()
+    expression_depth(0)
 {
-}
-
-TypeEnum::TypeEnum(const std::map<std::string, int> &names)
-  : TypeNumber(),
-    names(names)
-{
-    {
-        Scope *newscope = new Scope(Parser::global_scope);
-        std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter("self", this, ParameterType::INOUT, newscope);
-        params.push_back(fp);
-        Function *f = new Function("enum.to_string", TYPE_STRING, newscope, params);
-        f->scope->addName("self", fp, true);
-        std::vector<const Expression *> values;
-        for (auto n: names) {
-            if (n.second < 0) {
-                internal_error("TypeEnum");
-            }
-            if (values.size() < static_cast<size_t>(n.second)+1) {
-                values.resize(n.second+1);
-            }
-            if (values[n.second] != nullptr) {
-                internal_error("TypeEnum");
-            }
-            values[n.second] = new ConstantStringExpression(n.first);
-        }
-        f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values), new VariableExpression(fp), false)));
-        methods["to_string"] = f;
-    }
 }
 
 static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
@@ -125,131 +87,73 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
     }
 }
 
-StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index)
-  : ReferenceExpression(ref->type, ref->is_readonly),
-    ref(ref),
-    index(index),
-    load(nullptr),
-    store(nullptr)
+const Type *Parser::parseParameterisedType()
 {
-    {
-        std::vector<const Expression *> args;
-        args.push_back(ref);
-        args.push_back(index);
-        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("substring"))), args);
-    }
-    {
-        std::vector<const Expression *> args;
-        args.push_back(ref);
-        args.push_back(index);
-        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("splice"))), args);
-    }
-}
-
-StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *index)
-  : Expression(str->type, str->is_readonly),
-    str(str),
-    index(index),
-    load(nullptr)
-{
-    {
-        std::vector<const Expression *> args;
-        args.push_back(str);
-        args.push_back(index);
-        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Parser::global_scope->lookupName("substring"))), args);
-    }
-}
-
-const Type *Parser::parseArrayType(Scope *scope)
-{
-    if (tokens[i].type != ARRAY) {
-        internal_error("Array expected");
+    auto &tok_type = tokens[i];
+    switch (tok_type.type) {
+        case ARRAY:      break;
+        case DICTIONARY: break;
+        default:
+            internal_error("unexpected parameterised type");
     }
     i++;
     if (tokens[i].type != LESS) {
         error(2002, tokens[i], "'<' expected");
     }
     i++;
-    const Type *elementtype = parseType(scope);
+    const Type *elementtype = parseType();
     if (tokens[i].type != GREATER) {
         error(2003, tokens[i], "'>' expected");
     }
     i++;
-    return new TypeArray(elementtype);
+    return new TypeParameterised(tok_type, elementtype);
 }
 
-const Type *Parser::parseDictionaryType(Scope *scope)
-{
-    if (tokens[i].type != DICTIONARY) {
-        internal_error("Dictionary expected");
-    }
-    i++;
-    if (tokens[i].type != LESS) {
-        error(2005, tokens[i], "'<' expected");
-    }
-    i++;
-    const Type *elementtype = parseType(scope);
-    if (tokens[i].type != GREATER) {
-        error(2006, tokens[i], "'>' expected");
-    }
-    i++;
-    return new TypeDictionary(elementtype);
-}
-
-const Type *Parser::parseRecordType(Scope *scope)
+const Type *Parser::parseRecordType()
 {
     if (tokens[i].type != RECORD) {
         internal_error("RECORD expected");
     }
+    auto &tok_record = tokens[i];
     i++;
-    std::vector<std::pair<std::string, const Type *>> fields;
-    std::set<std::string> field_names;
+    std::vector<std::pair<Token, const Type *>> fields;
     while (tokens[i].type != END) {
         if (tokens[i].type != IDENTIFIER) {
             error(2008, tokens[i], "identifier expected");
         }
-        std::string name = tokens[i].text;
-        if (field_names.find(name) != field_names.end()) {
-            error(2009, tokens[i], "duplicate field: " + name);
-        }
+        const Token &name = tokens[i];
         ++i;
         if (tokens[i].type != COLON) {
             error(2010, tokens[i], "colon expected");
         }
         ++i;
-        const Type *t = parseType(scope);
+        const Type *t = parseType();
         fields.push_back(std::make_pair(name, t));
-        field_names.insert(name);
     }
     i++;
     if (tokens[i].type != RECORD) {
         error(2100, tokens[i], "'RECORD' expected");
     }
     i++;
-    return new TypeRecord(fields);
+    return new TypeRecord(tok_record, fields);
 }
 
-const Type *Parser::parseEnumType(Scope *)
+const Type *Parser::parseEnumType()
 {
     if (tokens[i].type != ENUM) {
         internal_error("ENUM expected");
     }
+    auto &tok_enum = tokens[i];
     i++;
-    std::map<std::string, int> names;
+    std::vector<std::pair<Token, int>> names;
     int index = 0;
     while (tokens[i].type != END) {
         if (tokens[i].type != IDENTIFIER) {
             error(2012, tokens[i], "identifier expected");
         }
-        std::string name = tokens[i].text;
-        if (names.find(name) != names.end()) {
-            error(2013, tokens[i], "duplicate enum: " + name);
-        }
+        const Token &name = tokens[i];
         i++;
-        names[name] = index;
+        names.push_back(std::make_pair(name, index));
         index++;
     }
     i++;
@@ -257,156 +161,93 @@ const Type *Parser::parseEnumType(Scope *)
         error(2101, tokens[i], "'ENUM' expected");
     }
     i++;
-    return new TypeEnum(names);
+    return new TypeEnum(tok_enum, names);
 }
 
-const Type *Parser::parsePointerType(Scope *scope)
+const Type *Parser::parsePointerType()
 {
     if (tokens[i].type != POINTER) {
         internal_error("POINTER expected");
     }
+    auto &tok_pointer = tokens[i];
     i++;
     if (tokens[i].type == TO) {
         i++;
-        if (tokens[i].type == IDENTIFIER && scope->lookupName(tokens[i].text) == nullptr) {
-            const std::string name = tokens[i].text;
-            i++;
-            TypePointer *ptrtype = new TypePointer(new TypeForwardRecord());
-            scope->addForward(name, ptrtype);
-            return ptrtype;
-        } else {
-            const Type *reftype = parseType(scope);
-            const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
-            if (rectype == nullptr) {
-                error(2171, tokens[i], "record type expected");
-            }
-            return new TypePointer(rectype);
-        }
+        const Type *reftype = parseType();
+        return new TypePointer(tok_pointer, reftype);
     } else {
-        return new TypePointer(nullptr);
+        return new TypePointer(tok_pointer, nullptr);
     }
 }
 
-const Type *Parser::parseType(Scope *scope)
+const Type *Parser::parseType()
 {
-    if (tokens[i].type == ARRAY) {
-        return parseArrayType(scope);
-    }
-    if (tokens[i].type == DICTIONARY) {
-        return parseDictionaryType(scope);
+    if (tokens[i].type == ARRAY || tokens[i].type == DICTIONARY) {
+        return parseParameterisedType();
     }
     if (tokens[i].type == RECORD) {
-        return parseRecordType(scope);
+        return parseRecordType();
     }
     if (tokens[i].type == ENUM) {
-        return parseEnumType(scope);
+        return parseEnumType();
     }
     if (tokens[i].type == POINTER) {
-        return parsePointerType(scope);
+        return parsePointerType();
     }
     if (tokens[i].type != IDENTIFIER) {
         error(2014, tokens[i], "identifier expected");
     }
-    const Name *name = scope->lookupName(tokens[i].text);
-    if (name == nullptr) {
-        error(2015, tokens[i], "unknown type name");
-    }
-    const Type *type = dynamic_cast<const Type *>(name);
-    if (type == nullptr) {
-        error(2016, tokens[i], "name is not a type");
-    }
+    const Token &name = tokens[i];
     i++;
-    return type;
+    return new TypeSimple(name, name.text);
 }
 
-const Statement *Parser::parseTypeDefinition(Scope *scope)
+const Statement *Parser::parseTypeDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
         error(2018, tokens[i], "identifier expected");
     }
-    std::string name = tokens[i].text;
-    if (scope->lookupName(name) != nullptr) {
-        error(2019, tokens[i], "name shadows outer");
-    }
+    auto &tok_name = tokens[i];
     ++i;
     if (tokens[i].type != ASSIGN) {
         error(2020, tokens[i], "':=' expected");
     }
     ++i;
-    const Type *type = parseType(scope);
-    scope->addName(name, const_cast<Type *>(type)); // Still ugly.
-    const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
-    if (rectype != nullptr) {
-        scope->resolveForward(name, rectype);
-    }
-    return nullptr;
+    const Type *type = parseType();
+    return new TypeDeclaration(tok_name, type);
 }
 
-const Statement *Parser::parseConstantDefinition(Scope *scope)
+const Statement *Parser::parseConstantDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
         error(2021, tokens[i], "identifier expected");
     }
-    std::string name = tokens[i].text;
-    if (scope->lookupName(name) != nullptr) {
-        error(2022, tokens[i], "name shadows outer");
-    }
+    auto &tok_name = tokens[i];
     ++i;
     if (tokens[i].type != COLON) {
         error(2023, tokens[i], "':' expected");
     }
     ++i;
-    const Type *type = parseType(scope);
+    const Type *type = parseType();
     if (tokens[i].type != ASSIGN) {
         error(2024, tokens[i], "':=' expected");
     }
     ++i;
-    const Expression *value = parseExpression(scope);
-    if (not value->type->is_equivalent(type)) {
-        error(2025, tokens[i], "type mismatch");
-    }
-    if (not value->is_constant) {
-        error(2026, tokens[i], "value must be constant");
-    }
-    scope->addName(name, new Constant(name, value));
-    return nullptr;
+    const Expression *value = parseExpression();
+    return new ConstantDeclaration(tok_name, tok_name.text, type, value);
 }
 
-const FunctionCall *Parser::parseFunctionCall(const Expression *func, const Expression *self, Scope *scope)
+const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
 {
-    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
-    if (ftype == nullptr) {
-        error(2027, tokens[i-1], "not a function");
-    }
+    auto &tok_lparen = tokens[i];
     ++i;
-    std::vector<const Type *>::size_type p = 0;
     std::vector<const Expression *> args;
-    if (self != nullptr) {
-        args.push_back(self);
-        ++p;
-    }
     if (tokens[i].type != RPAREN) {
         for (;;) {
-            const Expression *e = parseExpression(scope);
-            if (p >= ftype->params.size()) {
-                error(2167, tokens[i], "too many parameters");
-            }
-            if (ftype->params[p]->mode != ParameterType::IN) {
-                const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
-                if (ref == nullptr) {
-                    error(2028, tokens[i], "function call argument must be reference: " + e->text());
-                }
-                if (ref != nullptr && ref->is_readonly) {
-                    error(2181, tokens[i], "readonly parameter to OUT");
-                }
-            }
-            if (not e->type->is_equivalent(ftype->params[p]->type)) {
-                error(2029, tokens[i], "type mismatch");
-            }
+            const Expression *e = parseExpression();
             args.push_back(e);
-            ++p;
             if (tokens[i].type != COMMA) {
                 break;
             }
@@ -416,24 +257,16 @@ const FunctionCall *Parser::parseFunctionCall(const Expression *func, const Expr
             error(2030, tokens[i], "')' or ',' expected");
         }
     }
-    if (p < ftype->params.size()) {
-        error(2031, tokens[i], "not enough arguments");
-    }
     ++i;
-    return new FunctionCall(func, args);
+    return new FunctionCallExpression(tok_lparen, func, args);
 }
 
-const ArrayLiteralExpression *Parser::parseArrayLiteral(Scope *scope)
+const ArrayLiteralExpression *Parser::parseArrayLiteral()
 {
+    auto &tok_lbracket = tokens[i];
     std::vector<const Expression *> elements;
-    const Type *elementtype = nullptr;
     while (tokens[i].type != RBRACKET) {
-        const Expression *element = parseExpression(scope);
-        if (elementtype == nullptr) {
-            elementtype = element->type;
-        } else if (not element->type->is_equivalent(elementtype)) {
-            error(2138, tokens[i], "type mismatch");
-        }
+        const Expression *element = parseExpression();
         elements.push_back(element);
         if (tokens[i].type == COMMA) {
             ++i;
@@ -442,68 +275,40 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral(Scope *scope)
         }
     }
     ++i;
-    return new ArrayLiteralExpression(elementtype, elements);
+    return new ArrayLiteralExpression(tok_lbracket, elements);
 }
 
-const DictionaryLiteralExpression *Parser::parseDictionaryLiteral(Scope *scope)
+const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
 {
-    std::vector<std::pair<std::string, const Expression *>> elements;
-    std::set<std::string> keys;
-    const Type *elementtype = nullptr;
+    auto &tok_lbrace = tokens[i];
+    std::vector<std::pair<Token, const Expression *>> elements;
     while (tokens[i].type == STRING) {
-        std::string key = tokens[i].text;
-        if (not keys.insert(key).second) {
-            error(2140, tokens[i], "duplicate key");
-        }
+        auto &key = tokens[i];
         ++i;
         if (tokens[i].type != COLON) {
             error(2126, tokens[i], "':' expected");
         }
         ++i;
-        const Expression *element = parseExpression(scope);
-        if (elementtype == nullptr) {
-            elementtype = element->type;
-        } else if (not element->type->is_equivalent(elementtype)) {
-            error(2127, tokens[i], "type mismatch");
-        }
+        const Expression *element = parseExpression();
         elements.push_back(std::make_pair(key, element));
         if (tokens[i].type == COMMA) {
             ++i;
         }
     }
-    return new DictionaryLiteralExpression(elementtype, elements);
+    return new DictionaryLiteralExpression(tok_lbrace, elements);
 }
 
-const Name *Parser::parseQualifiedName(Scope *scope, int &enclosing)
+const Expression *Parser::parseInterpolatedStringExpression()
 {
-    const Name *name = scope->lookupName(tokens[i].text, enclosing);
-    if (name == nullptr) {
-        error(2059, tokens[i], "name not found: " + tokens[i].text);
-    }
-    const Module *module = dynamic_cast<const Module *>(name);
-    if (module != nullptr) {
-        ++i;
-        if (tokens[i].type != DOT) {
-            error(2060, tokens[i], "'.' expected");
-        }
-        ++i;
-        return parseQualifiedName(module->scope, enclosing);
-    }
-    return name;
-}
-
-const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
-{
-    const VariableExpression *concat = new VariableExpression(dynamic_cast<const Variable *>(scope->lookupName("concat")));
-    const VariableExpression *format = new VariableExpression(dynamic_cast<const Variable *>(scope->lookupName("format")));
-    const Expression *expr = new ConstantStringExpression(tokens[i].text);
+    std::vector<std::pair<const Expression *, std::string>> parts;
+    parts.push_back(std::make_pair(new StringLiteralExpression(tokens[i], tokens[i].text), ""));
     for (;;) {
         ++i;
         if (tokens[i].type != SUBBEGIN) {
             break;
         }
         ++i;
-        const Expression *e = parseExpression(scope);
+        const Expression *e = parseExpression();
         std::string fmt;
         if (tokens[i].type == SUBFMT) {
             ++i;
@@ -511,54 +316,20 @@ const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
                 internal_error("parseInterpolatedStringExpression");
             }
             fmt = tokens[i].text;
-            format::Spec spec;
-            if (not format::parse(fmt, spec)) {
-                error(2218, tokens[i], "invalid format specification");
-            }
             ++i;
         }
+        parts.push_back(std::make_pair(e, fmt));
         if (tokens[i].type != SUBEND) {
             internal_error("parseInterpolatedStringExpression");
         }
         ++i;
-        const Expression *str;
-        if (e->type->is_equivalent(TYPE_STRING)) {
-            str = e;
-        } else {
-            auto to_string = e->type->methods.find("to_string");
-            if (to_string == e->type->methods.end()) {
-                error(2217, tokens[i], "no to_string() method found for type");
-            }
-            {
-                std::vector<const Expression *> args;
-                args.push_back(e);
-                str = new FunctionCall(new VariableExpression(to_string->second), args);
-            }
-        }
-        if (not fmt.empty()) {
-            std::vector<const Expression *> args;
-            args.push_back(str);
-            args.push_back(new ConstantStringExpression(fmt));
-            str = new FunctionCall(format, args);
-        }
-        {
-            std::vector<const Expression *> args;
-            args.push_back(expr);
-            args.push_back(str);
-            expr = new FunctionCall(concat, args);
-        }
         if (tokens[i].type != STRING) {
             internal_error("parseInterpolatedStringExpression");
         }
-        e = new ConstantStringExpression(tokens[i].text);
-        {
-            std::vector<const Expression *> args;
-            args.push_back(expr);
-            args.push_back(e);
-            expr = new FunctionCall(concat, args);
-        }
+        e = new StringLiteralExpression(tokens[i], tokens[i].text);
+        parts.push_back(std::make_pair(e, ""));
     }
-    return expr;
+    return new InterpolatedStringExpression(parts[0].first->token, parts);
 }
 
 /*
@@ -574,12 +345,12 @@ const Expression *Parser::parseInterpolatedStringExpression(Scope *scope)
  *  if       conditional                        parseConditional
  */
 
-const Expression *Parser::parseAtom(Scope *scope)
+const Expression *Parser::parseAtom()
 {
     switch (tokens[i].type) {
         case LPAREN: {
             ++i;
-            const Expression *expr = parseExpression(scope);
+            const Expression *expr = parseExpression();
             if (tokens[i].type != RPAREN) {
                 error(2032, tokens[i], ") expected");
             }
@@ -588,12 +359,12 @@ const Expression *Parser::parseAtom(Scope *scope)
         }
         case LBRACKET: {
             ++i;
-            const Expression *array = parseArrayLiteral(scope);
+            const Expression *array = parseArrayLiteral();
             return array;
         }
         case LBRACE: {
             ++i;
-            const Expression *dict = parseDictionaryLiteral(scope);
+            const Expression *dict = parseDictionaryLiteral();
             if (tokens[i].type != RBRACE) {
                 error(2128, tokens[i], "'}' expected");
             }
@@ -601,309 +372,134 @@ const Expression *Parser::parseAtom(Scope *scope)
             return dict;
         }
         case FALSE: {
+            auto &tok_false = tokens[i];
             ++i;
-            return new ConstantBooleanExpression(false);
+            return new BooleanLiteralExpression(tok_false, false);
         }
         case TRUE: {
+            auto &tok_true = tokens[i];
             ++i;
-            return new ConstantBooleanExpression(true);
+            return new BooleanLiteralExpression(tok_true, true);
         }
         case NUMBER: {
-            return new ConstantNumberExpression(tokens[i++].value);
+            auto &tok_number = tokens[i];
+            i++;
+            return new NumberLiteralExpression(tok_number, tok_number.value);
         }
         case STRING: {
             if (tokens[i+1].type == SUBBEGIN) {
-                return parseInterpolatedStringExpression(scope);
+                return parseInterpolatedStringExpression();
             } else {
-                return new ConstantStringExpression(tokens[i++].text);
+                auto &tok_string = tokens[i];
+                i++;
+                return new StringLiteralExpression(tok_string, tok_string.text);
             }
         }
         case MINUS: {
-            auto op = i;
+            auto &tok_minus = tokens[i];
             ++i;
-            const Expression *factor = parseAtom(scope);
-            if (not factor->type->is_equivalent(TYPE_NUMBER)) {
-                error(2033, tokens[op], "number required for negation");
-            }
-            return new UnaryMinusExpression(factor);
+            const Expression *atom = parseAtom();
+            return new UnaryMinusExpression(tok_minus, atom);
         }
         case NOT: {
-            auto op = i;
+            auto &tok_not = tokens[i];
             ++i;
-            const Expression *atom = parseAtom(scope);
-            if (not atom->type->is_equivalent(TYPE_BOOLEAN)) {
-                error(2034, tokens[op], "boolean required for logical not");
-            }
-            return new LogicalNotExpression(atom);
+            const Expression *atom = parseAtom();
+            return new LogicalNotExpression(tok_not, atom);
         }
         case NEW: {
+            auto &tok_new = tokens[i];
             ++i;
-            const TypeRecord *type = dynamic_cast<const TypeRecord *>(parseType(scope));
-            if (type == nullptr) {
-                error(2172, tokens[i], "record type expected");
-            }
-            return new NewRecordExpression(type);
+            const Type *type = parseType();
+            return new NewRecordExpression(tok_new, type);
         }
         case NIL: {
+            auto &tok_nil = tokens[i];
             ++i;
-            return new ConstantNilExpression();
+            return new NilLiteralExpression(tok_nil);
         }
         case IDENTIFIER: {
-            const Name *name = scope->lookupName(tokens[i].text);
-            const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(name);
-            const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(name);
-            /* TODO: This allows referencing enum values for a variable
-                     declared with an anonymous enum type. But it currently
-                     conflicts with method call syntax like a.to_string().
-                     See: t/enum2.neon
-            if (name != nullptr && enumtype == nullptr && tokens[i+1].type == DOT) {
-                enumtype = dynamic_cast<const TypeEnum *>(name->type);
-            }*/
-            if (enumtype != nullptr) {
-                ++i;
-                if (tokens[i].type != DOT) {
-                    error(2035, tokens[i], "'.' expected");
-                }
-                ++i;
-                if (tokens[i].type != IDENTIFIER) {
-                    error(2036, tokens[i], "identifier expected");
-                }
-                auto name = enumtype->names.find(tokens[i].text);
-                if (name == enumtype->names.end()) {
-                    error(2037, tokens[i], "identifier not member of enum: " + tokens[i].text);
-                }
-                ++i;
-                return new ConstantEnumExpression(enumtype, name->second);
-            } else if (recordtype != nullptr) {
-                ++i;
-                if (tokens[i].type != LPAREN) {
-                    error(2213, tokens[i], "'(' expected");
-                }
-                ++i;
-                std::vector<const Expression *> elements;
-                auto f = recordtype->fields.begin();
-                while (tokens[i].type != RPAREN) {
-                    if (f == recordtype->fields.end()) {
-                        error(2214, tokens[i], "too many fields");
-                    }
-                    const Expression *element = parseExpression(scope);
-                    if (not element->type->is_equivalent(f->second)) {
-                        error(2215, tokens[i], "type mismatch");
-                    }
-                    elements.push_back(element);
-                    if (tokens[i].type == COMMA) {
-                        ++i;
-                        ++f;
-                    } else if (tokens[i].type != RPAREN) {
-                        error(2216, tokens[i], "',' or ']' expected");
-                    }
-                }
-                ++i;
-                return new RecordLiteralExpression(recordtype, elements);
-            } else {
-                int enclosing;
-                const Name *name = parseQualifiedName(scope, enclosing);
-                const Constant *cons = dynamic_cast<const Constant *>(name);
-                // TODO: Need to look up methods on constants too (t/const-boolean.neon)
-                if (cons != nullptr) {
+            const Expression *expr = new IdentifierExpression(tokens[i], tokens[i].text);
+            ++i;
+            for (;;) {
+                if (tokens[i].type == LBRACKET) {
+                    auto &tok_lbracket = tokens[i];
                     ++i;
-                    return cons->value;
-                }
-                const Variable *var = dynamic_cast<const Variable *>(name);
-                if (var == nullptr) {
-                    error(2061, tokens[i], "name is not a variable: " + tokens[i].text);
-                }
-                const Expression *expr = new VariableExpression(var);
-                const Type *type = var->type;
-                ++i;
-                for (;;) {
-                    if (tokens[i].type == LBRACKET) {
-                        const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
-                        const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
-                        if (arraytype != nullptr) {
-                            ++i;
-                            const Expression *index = parseExpression(scope);
-                            if (not index->type->is_equivalent(TYPE_NUMBER)) {
-                                error(2062, tokens[i], "index must be a number");
-                            }
-                            if (tokens[i].type != RBRACKET) {
-                                error(2063, tokens[i], "']' expected");
-                            }
-                            ++i;
-                            type = arraytype->elementtype;
-                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
-                            if (ref != nullptr) {
-                                expr = new ArrayReferenceIndexExpression(type, ref, index, false);
-                            } else {
-                                expr = new ArrayValueIndexExpression(type, expr, index, false);
-                            }
-                        } else if (dicttype != nullptr) {
-                            ++i;
-                            const Expression *index = parseExpression(scope);
-                            if (not index->type->is_equivalent(TYPE_STRING)) {
-                                error(2064, tokens[i], "index must be a string");
-                            }
-                            if (tokens[i].type != RBRACKET) {
-                                error(2065, tokens[i], "']' expected");
-                            }
-                            ++i;
-                            type = dicttype->elementtype;
-                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
-                            if (ref != nullptr) {
-                                expr = new DictionaryReferenceIndexExpression(type, ref, index);
-                            } else {
-                                expr = new DictionaryValueIndexExpression(type, expr, index);
-                            }
-                        } else if (type == TYPE_STRING) {
-                            ++i;
-                            const Expression *index = parseExpression(scope);
-                            if (not index->type->is_equivalent(TYPE_NUMBER)) {
-                                error(2066, tokens[i], "index must be a number");
-                            }
-                            if (tokens[i].type != RBRACKET) {
-                                error(2067, tokens[i], "']' expected");
-                            }
-                            ++i;
-                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
-                            if (ref != nullptr) {
-                                expr = new StringReferenceIndexExpression(ref, index);
-                            } else {
-                                expr = new StringValueIndexExpression(expr, index);
-                            }
-                        } else {
-                            error(2068, tokens[i], "not an array or dictionary");
-                        }
-                    } else if (tokens[i].type == LPAREN) {
-                        expr = parseFunctionCall(expr, nullptr, scope);
-                        type = expr->type;
-                    } else if (tokens[i].type == DOT) {
-                        ++i;
-                        if (tokens[i].type != IDENTIFIER) {
-                            error(2069, tokens[i], "identifier expected");
-                        }
-                        const std::string field = tokens[i].text;
-                        auto m = type->methods.find(field);
-                        const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(type);
-                        if (m != type->methods.end()) {
-                            ++i;
-                            if (tokens[i].type != LPAREN) {
-                                error(2196, tokens[i], "'(' expected");
-                            }
-                            expr = parseFunctionCall(new VariableExpression(m->second), expr, scope);
-                        } else if (recordtype != nullptr) {
-                            if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-                                internal_error("record not defined yet");
-                            }
-                            auto f = recordtype->field_names.find(field);
-                            if (f == recordtype->field_names.end()) {
-                                error(2070, tokens[i], "field not found");
-                            }
-                            ++i;
-                            type = recordtype->fields[f->second].second;
-                            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
-                            if (ref != nullptr) {
-                                expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
-                            } else {
-                                expr = new ArrayValueIndexExpression(type, expr, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
-                            }
-                        } else {
-                            error(2071, tokens[i], "no method found or not a record");
-                        }
-                    } else if (tokens[i].type == ARROW) {
-                        const TypePointer *pointertype = dynamic_cast<const TypePointer *>(type);
-                        if (pointertype != nullptr) {
-                            if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
-                                error(2178, tokens[i], "pointer must be a valid pointer");
-                            }
-                            const TypeRecord *recordtype = pointertype->reftype;
-                            if (recordtype == nullptr) {
-                                error(2194, tokens[i], "pointer must not be a generic pointer");
-                            }
-                            ++i;
-                            if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-                                error(2179, tokens[i], "record not defined yet");
-                            }
-                            if (tokens[i].type != IDENTIFIER) {
-                                error(2186, tokens[i], "identifier expected");
-                            }
-                            auto f = recordtype->field_names.find(tokens[i].text);
-                            if (f == recordtype->field_names.end()) {
-                                error(2187, tokens[i], "field not found");
-                            }
-                            ++i;
-                            type = recordtype->fields[f->second].second;
-                            const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, expr);
-                            expr = new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), false);
-                        } else {
-                            error(2188, tokens[i], "not a pointer");
-                        }
-                    } else {
-                        break;
+                    const Expression *index = parseExpression();
+                    if (tokens[i].type != RBRACKET) {
+                        error(2063, tokens[i], "']' expected");
                     }
+                    ++i;
+                    expr = new SubscriptExpression(tok_lbracket, expr, index);
+                } else if (tokens[i].type == LPAREN) {
+                    expr = parseFunctionCall(expr);
+                } else if (tokens[i].type == DOT) {
+                    auto &tok_dot = tokens[i];
+                    ++i;
+                    if (tokens[i].type != IDENTIFIER) {
+                        error(2069, tokens[i], "identifier expected");
+                    }
+                    const std::string field = tokens[i].text;
+                    ++i;
+                    expr = new DotExpression(tok_dot, expr, field);
+                } else if (tokens[i].type == ARROW) {
+                    auto &tok_arrow = tokens[i];
+                    ++i;
+                    if (tokens[i].type != IDENTIFIER) {
+                        error(2186, tokens[i], "identifier expected");
+                    }
+                    const std::string field = tokens[i].text;
+                    ++i;
+                    expr = new ArrowExpression(tok_arrow, expr, field);
+                } else {
+                    // TODO: what happens here?
+                    break;
                 }
-                return expr;
             }
+            return expr;
         }
         default:
             error(2038, tokens[i], "Expression expected");
     }
 }
 
-const Expression *Parser::parseExponentiation(Scope *scope)
+const Expression *Parser::parseExponentiation()
 {
-    const Expression *left = parseAtom(scope);
+    const Expression *left = parseAtom();
     for (;;) {
+        auto &tok_op = tokens[i];
         if (tokens[i].type == EXP) {
-            auto op = i;
             ++i;
-            const Expression *right = parseAtom(scope);
-            if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
-                left = new ExponentiationExpression(left, right);
-            } else {
-                error(2039, tokens[op], "type mismatch");
-            }
+            const Expression *right = parseAtom();
+            left = new ExponentiationExpression(tok_op, left, right);
         } else {
             return left;
         }
     }
 }
 
-const Expression *Parser::parseMultiplication(Scope *scope)
+const Expression *Parser::parseMultiplication()
 {
-    const Expression *left = parseExponentiation(scope);
+    const Expression *left = parseExponentiation();
     for (;;) {
+        auto &tok_op = tokens[i];
         switch (tokens[i].type) {
             case TIMES: {
-                auto op = i;
                 ++i;
-                const Expression *right = parseExponentiation(scope);
-                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
-                    left = new MultiplicationExpression(left, right);
-                } else {
-                    error(2040, tokens[op], "type mismatch");
-                }
+                const Expression *right = parseExponentiation();
+                left = new MultiplicationExpression(tok_op, left, right);
                 break;
             }
             case DIVIDE: {
-                auto op = i;
                 ++i;
-                const Expression *right = parseExponentiation(scope);
-                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
-                    left = new DivisionExpression(left, right);
-                } else {
-                    error(2041, tokens[op], "type mismatch");
-                }
+                const Expression *right = parseExponentiation();
+                left = new DivisionExpression(tok_op, left, right);
                 break;
             }
             case MOD: {
-                auto op = i;
                 ++i;
-                const Expression *right = parseExponentiation(scope);
-                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
-                    left = new ModuloExpression(left, right);
-                } else {
-                    error(2042, tokens[op], "type mismatch");
-                }
+                const Expression *right = parseExponentiation();
+                left = new ModuloExpression(tok_op, left, right);
                 break;
             }
             default:
@@ -912,47 +508,28 @@ const Expression *Parser::parseMultiplication(Scope *scope)
     }
 }
 
-const Expression *Parser::parseAddition(Scope *scope)
+const Expression *Parser::parseAddition()
 {
-    const Expression *left = parseMultiplication(scope);
+    const Expression *left = parseMultiplication();
     for (;;) {
+        auto &tok_op = tokens[i];
         switch (tokens[i].type) {
             case PLUS: {
-                auto op = i;
                 ++i;
-                const Expression *right = parseMultiplication(scope);
-                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
-                    left = new AdditionExpression(left, right);
-                } else if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
-                    error(2206, tokens[op], "type mismatch (use & to concatenate strings)");
-                } else {
-                    error(2043, tokens[op], "type mismatch");
-                }
+                const Expression *right = parseMultiplication();
+                left = new AdditionExpression(tok_op, left, right);
                 break;
             }
             case MINUS: {
-                auto op = i;
                 ++i;
-                const Expression *right = parseMultiplication(scope);
-                if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
-                    left = new SubtractionExpression(left, right);
-                } else {
-                    error(2044, tokens[op], "type mismatch");
-                }
+                const Expression *right = parseMultiplication();
+                left = new SubtractionExpression(tok_op, left, right);
                 break;
             }
             case CONCAT: {
-                auto op = i;
                 ++i;
-                const Expression *right = parseMultiplication(scope);
-                if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
-                    std::vector<const Expression *> args;
-                    args.push_back(left);
-                    args.push_back(right);
-                    left = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(scope->lookupName("concat"))), args);
-                } else {
-                    error(2193, tokens[op], "type mismatch");
-                }
+                const Expression *right = parseMultiplication();
+                left = new ConcatenationExpression(tok_op, left, right);
                 break;
             }
             default:
@@ -961,55 +538,18 @@ const Expression *Parser::parseAddition(Scope *scope)
     }
 }
 
-const Expression *Parser::parseComparison(Scope *scope)
+const Expression *Parser::parseComparison()
 {
-    const Expression *left = parseAddition(scope);
+    const Expression *left = parseAddition();
     std::vector<const ComparisonExpression *> comps;
     while (tokens[i].type == EQUAL  || tokens[i].type == NOTEQUAL
         || tokens[i].type == LESS   || tokens[i].type == GREATER
         || tokens[i].type == LESSEQ || tokens[i].type == GREATEREQ) {
-        ComparisonExpression::Comparison comp = comparisonFromToken(tokens[i]);
-        auto op = i;
+        auto &tok_comp = tokens[i];
+        ComparisonExpression::Comparison comp = comparisonFromToken(tok_comp);
         ++i;
-        const Expression *right = parseAddition(scope);
-        if (not left->type->is_equivalent(right->type)) {
-            error(2045, tokens[op], "type mismatch");
-        }
-        const ComparisonExpression *c;
-        if (left->type->is_equivalent(TYPE_BOOLEAN)) {
-            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                error(2046, tokens[op], "comparison not available for Boolean");
-            }
-            c = new BooleanComparisonExpression(left, right, comp);
-        } else if (left->type->is_equivalent(TYPE_NUMBER)) {
-            c = new NumericComparisonExpression(left, right, comp);
-        } else if (left->type->is_equivalent(TYPE_STRING)) {
-            c = new StringComparisonExpression(left, right, comp);
-        } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
-            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                error(2047, tokens[op], "comparison not available for Array");
-            }
-            c = new ArrayComparisonExpression(left, right, comp);
-        } else if (dynamic_cast<const TypeDictionary *>(left->type) != nullptr) {
-            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                error(2048, tokens[op], "comparison not available for Dictionary");
-            }
-            c = new DictionaryComparisonExpression(left, right, comp);
-        } else if (dynamic_cast<const TypeRecord *>(left->type) != nullptr) {
-            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                error(2049, tokens[op], "comparison not available for RECORD");
-            }
-            c = new ArrayComparisonExpression(left, right, comp);
-        } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
-            c = new NumericComparisonExpression(left, right, comp);
-        } else if (dynamic_cast<const TypePointer *>(left->type) != nullptr) {
-            if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-                error(2173, tokens[op], "comparison not available for POINTER");
-            }
-            c = new PointerComparisonExpression(left, right, comp);
-        } else {
-            internal_error("unknown type in parseComparison");
-        }
+        const Expression *right = parseAddition();
+        const ComparisonExpression *c = new ComparisonExpression(tok_comp, left, right, comp);
         comps.push_back(c);
         left = right;
     }
@@ -1022,34 +562,20 @@ const Expression *Parser::parseComparison(Scope *scope)
     }
 }
 
-const Expression *Parser::parseMembership(Scope *scope)
+const Expression *Parser::parseMembership()
 {
-    const Expression *left = parseComparison(scope);
+    const Expression *left = parseComparison();
     if (tokens[i].type == IN || (tokens[i].type == NOT && tokens[i+1].type == IN)) {
+        auto &tok_op = tokens[i];
         bool notin = tokens[i].type == NOT;
         if (notin) {
             ++i;
         }
         ++i;
-        const Expression *right = parseComparison(scope);
-        const TypeArray *arraytype = dynamic_cast<const TypeArray *>(right->type);
-        const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(right->type);
-        const Expression *r;
-        if (arraytype != nullptr) {
-            if (not left->type->is_equivalent(arraytype->elementtype)) {
-                error(2142, tokens[i], "type mismatch");
-            }
-            r = new ArrayInExpression(left, right);
-        } else if (dicttype != nullptr) {
-            if (not left->type->is_equivalent(TYPE_STRING)) {
-                error(2143, tokens[i], "type mismatch");
-            }
-            r = new DictionaryInExpression(left, right);
-        } else {
-            error(2141, tokens[i], "IN must be used with Array or Dictionary");
-        }
+        const Expression *right = parseComparison();
+        const Expression *r = new MembershipExpression(tok_op, left, right);
         if (notin) {
-            r = new LogicalNotExpression(r);
+            r = new LogicalNotExpression(tok_op, r);
         }
         return r;
     } else {
@@ -1057,85 +583,70 @@ const Expression *Parser::parseMembership(Scope *scope)
     }
 }
 
-const Expression *Parser::parseConjunction(Scope *scope)
+const Expression *Parser::parseConjunction()
 {
-    const Expression *left = parseMembership(scope);
+    const Expression *left = parseMembership();
     for (;;) {
+        auto &tok_op = tokens[i];
         if (tokens[i].type == AND) {
-            auto op = i;
             ++i;
-            const Expression *right = parseMembership(scope);
-            if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
-                left = new ConjunctionExpression(left, right);
-            } else {
-                error(2051, tokens[op], "type mismatch");
-            }
+            const Expression *right = parseMembership();
+            left = new ConjunctionExpression(tok_op, left, right);
         } else {
             return left;
         }
     }
 }
 
-const Expression *Parser::parseDisjunction(Scope *scope)
+const Expression *Parser::parseDisjunction()
 {
-    const Expression *left = parseConjunction(scope);
+    const Expression *left = parseConjunction();
     for (;;) {
+        auto &tok_op = tokens[i];
         if (tokens[i].type == OR) {
-            auto op = i;
             ++i;
-            const Expression *right = parseConjunction(scope);
-            if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
-                left = new DisjunctionExpression(left, right);
-            } else {
-                error(2052, tokens[op], "type mismatch");
-            }
+            const Expression *right = parseConjunction();
+            left = new DisjunctionExpression(tok_op, left, right);
         } else {
             return left;
         }
     }
 }
 
-const Expression *Parser::parseConditional(Scope *scope)
+const Expression *Parser::parseConditional()
 {
     if (tokens[i].type == IF) {
+        auto &tok_if = tokens[i];
         ++i;
-        const Expression *cond = parseExpression(scope);
+        const Expression *cond = parseExpression();
         if (tokens[i].type != THEN) {
             error(2053, tokens[i], "'THEN' expected");
         }
         ++i;
-        const Expression *left = parseExpression(scope);
+        const Expression *left = parseExpression();
         if (tokens[i].type != ELSE) {
             error(2054, tokens[i], "'ELSE' expected");
         }
         ++i;
-        const Expression *right = parseExpression(scope);
-        if (not left->type->is_equivalent(right->type)) {
-            error(2055, tokens[i], "type of THEN and ELSE must match");
-        }
-        return new ConditionalExpression(cond, left, right);
+        const Expression *right = parseExpression();
+        return new ConditionalExpression(tok_if, cond, left, right);
     } else {
-        return parseDisjunction(scope);
+        return parseDisjunction();
     }
 }
 
-const Expression *Parser::parseExpression(Scope *scope, bool allow_nothing)
+const Expression *Parser::parseExpression()
 {
     expression_depth++;
     if (expression_depth > 100) {
         error(2197, tokens[i], "exceeded maximum nesting depth");
     }
-    const Expression *r = parseConditional(scope);
-    if (not allow_nothing && r->type == TYPE_NOTHING) {
-        error(2192, tokens[i], "function does not return anything");
-    }
+    const Expression *r = parseConditional();
     expression_depth--;
     return r;
 }
 
-typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
-
-const VariableInfo Parser::parseVariableDeclaration(Scope *scope)
+const Parser::VariableInfo Parser::parseVariableDeclaration()
 {
     std::vector<std::string> names;
     for (;;) {
@@ -1143,9 +654,6 @@ const VariableInfo Parser::parseVariableDeclaration(Scope *scope)
             error(2056, tokens[i], "identifier expected");
         }
         std::string name = tokens[i].text;
-        if (scope->lookupName(name) != nullptr) {
-            error(2057, tokens[i], "name shadows outer");
-        }
         ++i;
         names.push_back(name);
         if (tokens[i].type != COMMA) {
@@ -1157,11 +665,11 @@ const VariableInfo Parser::parseVariableDeclaration(Scope *scope)
         error(2058, tokens[i], "colon expected");
     }
     ++i;
-    const Type *t = parseType(scope);
+    const Type *t = parseType();
     return make_pair(names, t);
 }
 
-void Parser::parseFunctionHeader(Scope *scope, Type *&type, std::string &name, const Type *&returntype, Scope *&newscope, std::vector<FunctionParameter *> &args)
+void Parser::parseFunctionHeader(std::string &type, std::string &name, const Type *&returntype, std::vector<const FunctionParameter *> &args)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -1169,20 +677,12 @@ void Parser::parseFunctionHeader(Scope *scope, Type *&type, std::string &name, c
     }
     name = tokens[i].text;
     ++i;
-    type = nullptr;
     if (tokens[i].type == DOT) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
             error(2208, tokens[i], "identifier expected");
         }
-        Name *tname = scope->lookupName(name);
-        if (tname == nullptr) {
-            error(2209, tokens[i], "type name not found");
-        }
-        type = dynamic_cast<Type *>(tname);
-        if (type == nullptr) {
-            error(2210, tokens[i], "type name is not a type");
-        }
+        type = name;
         name = tokens[i].text;
         ++i;
     }
@@ -1190,27 +690,21 @@ void Parser::parseFunctionHeader(Scope *scope, Type *&type, std::string &name, c
         error(2075, tokens[i], "'(' expected");
     }
     ++i;
-    newscope = new Scope(scope);
     if (tokens[i].type != RPAREN) {
         for (;;) {
-            ParameterType::Mode mode = ParameterType::IN;
+            FunctionParameter::Mode mode = FunctionParameter::IN;
             switch (tokens[i].type) {
-                case IN:    mode = ParameterType::IN;       i++; break;
-                case INOUT: mode = ParameterType::INOUT;    i++; break;
-                case OUT:   mode = ParameterType::OUT;      i++; break;
+                case IN:    mode = FunctionParameter::IN;       i++; break;
+                case INOUT: mode = FunctionParameter::INOUT;    i++; break;
+                case OUT:   mode = FunctionParameter::OUT;      i++; break;
                 default:
                     break;
             }
-            const VariableInfo vars = parseVariableDeclaration(newscope);
+            auto &tok_param = tokens[i];
+            const VariableInfo vars = parseVariableDeclaration();
             for (auto name: vars.first) {
-                if (type != nullptr && args.empty()) {
-                    if (not vars.second->is_equivalent(type)) {
-                        error(2211, tokens[i], "expected self parameter");
-                    }
-                }
-                FunctionParameter *fp = new FunctionParameter(name, vars.second, mode, newscope);
+                FunctionParameter *fp = new FunctionParameter(tok_param, name, vars.second, mode);
                 args.push_back(fp);
-                newscope->addName(name, fp, true);
             }
             if (tokens[i].type != COMMA) {
                 break;
@@ -1221,59 +715,28 @@ void Parser::parseFunctionHeader(Scope *scope, Type *&type, std::string &name, c
             error(2076, tokens[i], "')' or ',' expected");
         }
     }
-    if (type != nullptr && args.empty()) {
-        error(2212, tokens[i], "expected self parameter");
-    }
     ++i;
     if (tokens[i].type == COLON) {
         ++i;
-        returntype = parseType(newscope);
+        returntype = parseType();
     } else {
-        returntype = TYPE_NOTHING;
+        returntype = nullptr;
     }
 }
 
-const Statement *Parser::parseFunctionDefinition(Scope *scope)
+const Statement *Parser::parseFunctionDefinition()
 {
-    Type *type;
+    auto &tok_function = tokens[i];
+    std::string type;
     std::string name;
     const Type *returntype;
-    Scope *newscope;
-    std::vector<FunctionParameter *> args;
-    parseFunctionHeader(scope, type, name, returntype, newscope, args);
-    Function *function;
-    if (type != nullptr) {
-        auto f = type->methods.find(name);
-        if (f != type->methods.end()) {
-            function = dynamic_cast<Function *>(f->second);
-            newscope = function->scope;
-        } else {
-            function = new Function(name, returntype, newscope, args);
-            type->methods[name] = function;
-        }
-    } else {
-        Name *ident = scope->lookupName(name);
-        function = dynamic_cast<Function *>(ident);
-        if (function != nullptr) {
-            newscope = function->scope;
-        } else if (ident != nullptr) {
-            error(2074, tokens[i], "name shadows outer");
-        } else {
-            function = new Function(name, returntype, newscope, args);
-            scope->addName(name, function);
-        }
-    }
-    functiontypes.push(dynamic_cast<const TypeFunction *>(function->type));
-    loops.push(std::list<std::pair<TokenType, unsigned int>>());
+    std::vector<const FunctionParameter *> args;
+    parseFunctionHeader(type, name, returntype, args);
+    std::vector<const Statement *> body;
     while (tokens[i].type != END) {
-        const Statement *s = parseStatement(newscope);
+        const Statement *s = parseStatement();
         if (s != nullptr) {
-            function->statements.push_back(s);
-        }
-    }
-    if (returntype != TYPE_NOTHING) {
-        if (function->statements.empty() || not function->statements.back()->always_returns()) {
-            error(2146, tokens[i], "missing RETURN statement");
+            body.push_back(s);
         }
     }
     ++i;
@@ -1281,74 +744,26 @@ const Statement *Parser::parseFunctionDefinition(Scope *scope)
         error(2102, tokens[i], "'FUNCTION' expected");
     }
     ++i;
-    loops.pop();
-    functiontypes.pop();
-    newscope->checkForward();
-    return nullptr;
+    return new FunctionDeclaration(tok_function, type, name, returntype, args, body);
 }
 
-const Statement *Parser::parseExternalDefinition(Scope *scope)
+const Statement *Parser::parseExternalDefinition()
 {
+    auto &tok_external = tokens[i];
     ++i;
     if (tokens[i].type != FUNCTION) {
         error(2122, tokens[i], "FUNCTION expected");
     }
-    Type *type;
+    std::string type;
     std::string name;
     const Type *returntype;
-    Scope *newscope;
-    std::vector<FunctionParameter *> args;
-    parseFunctionHeader(scope, type, name, returntype, newscope, args);
-    if (scope->lookupName(name) != nullptr) {
-        error(2163, tokens[i], "name shadows outer");
-    }
+    std::vector<const FunctionParameter *> args;
+    parseFunctionHeader(type, name, returntype, args);
     if (tokens[i].type != LBRACE) {
         error(2123, tokens[i], "{ expected");
     }
     ++i;
-    const DictionaryLiteralExpression *dict = parseDictionaryLiteral(scope);
-    if (not dict->is_constant) {
-        error(2124, tokens[i], "constant dictionary expected");
-    }
-    if (dynamic_cast<const TypeDictionary *>(dict->elementtype) == nullptr) {
-        error(2131, tokens[i], "top level dictionary element not dictionary");
-    }
-    for (auto elem: dict->dict) {
-        auto *d = dynamic_cast<const DictionaryLiteralExpression *>(elem.second);
-        if (not d->dict.empty() && not d->elementtype->is_equivalent(TYPE_STRING)) {
-            error(2132, tokens[i], "sub level dictionary must have string elements");
-        }
-    }
-
-    auto klibrary = dict->dict.find("library");
-    if (klibrary == dict->dict.end()) {
-        error(2133, tokens[i], "\"library\" key not found");
-    }
-    auto &library_dict = dynamic_cast<const DictionaryLiteralExpression *>(klibrary->second)->dict;
-    auto kname = library_dict.find("name");
-    if (kname == library_dict.end()) {
-        error(2134, tokens[i], "\"name\" key not found in library");
-    }
-    std::string library_name = kname->second->eval_string();
-
-    auto ktypes = dict->dict.find("types");
-    if (ktypes == dict->dict.end()) {
-        error(2135, tokens[i], "\"types\" key not found");
-    }
-    auto &types_dict = dynamic_cast<const DictionaryLiteralExpression *>(ktypes->second)->dict;
-    std::map<std::string, std::string> param_types;
-    for (auto paramtype: types_dict) {
-        param_types[paramtype.first] = paramtype.second->eval_string();
-    }
-    for (auto a: args) {
-        if (param_types.find(a->name) == param_types.end()) {
-            error(2168, tokens[i], "parameter type missing: " + a->name);
-        }
-    }
-
-    ExternalFunction *function = new ExternalFunction(name, returntype, newscope, args, library_name, param_types);
-    scope->addName(name, function);
-
+    const DictionaryLiteralExpression *dict = parseDictionaryLiteral();
     if (tokens[i].type != RBRACE) {
         error(2125, tokens[i], "} expected");
     }
@@ -1361,48 +776,40 @@ const Statement *Parser::parseExternalDefinition(Scope *scope)
         error(2130, tokens[i], "'END FUNCTION' expected");
     }
     ++i;
-    return nullptr;
+    return new ExternalFunctionDeclaration(tok_external, type, name, returntype, args, dict);
 }
 
-const Statement *Parser::parseDeclaration(Scope *scope)
+const Statement *Parser::parseDeclaration()
 {
     ++i;
     switch (tokens[i].type) {
         case EXCEPTION: {
             ++i;
+            auto &tok_name = tokens[i];
             if (tokens[i].type != IDENTIFIER) {
                 error(2152, tokens[i], "identifier expected");
             }
             std::string name = tokens[i].text;
-            if (scope->lookupName(name) != nullptr) {
-                error(2191, tokens[i], "name shadows outer");
-            }
             ++i;
-            scope->addName(name, new Exception(name));
-            break;
+            return new ExceptionDeclaration(tok_name, name);
         }
         case FUNCTION: {
-            Type *type;
+            auto &tok_function = tokens[i];
+            std::string type;
             std::string name;
             const Type *returntype;
-            Scope *newscope;
-            std::vector<FunctionParameter *> args;
-            parseFunctionHeader(scope, type, name, returntype, newscope, args);
-            if (scope->lookupName(name) != nullptr) {
-                error(2162, tokens[i], "name shadows outer");
-            }
-            Function *function = new Function(name, returntype, newscope, args);
-            scope->addName(name, function);
-            break;
+            std::vector<const FunctionParameter *> args;
+            parseFunctionHeader(type, name, returntype, args);
+            return new BaseFunctionDeclaration(tok_function, type, name, returntype, args);
         }
         default:
             error(2151, tokens[i], "EXCEPTION or FUNCTION expected");
     }
-    return nullptr;
 }
 
-const Statement *Parser::parseIfStatement(Scope *scope, int line)
+const Statement *Parser::parseIfStatement()
 {
+    auto &tok_if = tokens[i];
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     std::vector<const Statement *> else_statements;
     do {
@@ -1411,49 +818,31 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
         std::string name;
         if (tokens[i].type == VALID) {
             for (;;) {
+                auto &tok_valid = tokens[i];
                 ++i;
                 if (tokens[i].type != IDENTIFIER) {
                     error(2174, tokens[i], "identifier expected");
                 }
                 name = tokens[i].text;
-                if (scope->lookupName(name) != nullptr) {
-                    error(2177, tokens[i], "name shadows outer");
-                }
                 ++i;
                 if (tokens[i].type != ASSIGN) {
                     error(2175, tokens[i], "':=' expected");
                 }
                 ++i;
-                const Expression *ptr = parseExpression(scope);
-                const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
-                if (ptrtype == nullptr) {
-                    error(2176, tokens[i], "pointer type expression expected");
-                }
-                const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
-                Variable *v;
-                // TODO: Try to make this a local variable always (give the global scope a local space).
-                if (functiontypes.empty()) {
-                    v = new GlobalVariable(name, vtype, true);
-                } else {
-                    v = new LocalVariable(name, vtype, scope, true);
-                }
-                scope->addName(name, v, true);
-                const Expression *valid = new ValidPointerExpression(v, ptr);
+                const Expression *ptr = parseExpression();
+                const Expression *valid = new ValidPointerExpression(tok_valid, name, ptr);
                 if (cond == nullptr) {
                     cond = valid;
                 } else {
-                    cond = new ConjunctionExpression(cond, valid);
+                    cond = new ConjunctionExpression(tokens[i], cond, valid);
                 }
                 if (tokens[i].type != COMMA) {
                     break;
                 }
+                // TODO: check that next token is VALID
             }
         } else {
-            auto j = i;
-            cond = parseExpression(scope);
-            if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
-                error(2078, tokens[j], "boolean value expected");
-            }
+            cond = parseExpression();
         }
         if (tokens[i].type != THEN) {
             error(2079, tokens[i], "THEN expected");
@@ -1461,20 +850,17 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
         ++i;
         std::vector<const Statement *> statements;
         while (tokens[i].type != ELSIF && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement(scope);
+            const Statement *s = parseStatement();
             if (s != nullptr) {
                 statements.push_back(s);
             }
-        }
-        if (not name.empty()) {
-            scope->scrubName(name);
         }
         condition_statements.push_back(std::make_pair(cond, statements));
     } while (tokens[i].type == ELSIF);
     if (tokens[i].type == ELSE) {
         ++i;
         while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement(scope);
+            const Statement *s = parseStatement();
             if (s != nullptr) {
                 else_statements.push_back(s);
             }
@@ -1488,76 +874,42 @@ const Statement *Parser::parseIfStatement(Scope *scope, int line)
         error(2103, tokens[i], "IF expected");
     }
     ++i;
-    return new IfStatement(line, condition_statements, else_statements);
+    return new IfStatement(tok_if, condition_statements, else_statements);
 }
 
-const Statement *Parser::parseReturnStatement(Scope *scope, int line)
+const Statement *Parser::parseReturnStatement()
 {
-    const auto token_return = tokens[i];
+    auto &tok_return = tokens[i];
     ++i;
-    const Expression *expr = parseExpression(scope);
-    if (functiontypes.empty()) {
-        error(2164, token_return, "RETURN not allowed outside function");
-    } else if (functiontypes.top()->returntype == TYPE_NOTHING) {
-        error(2165, token_return, "function does not return a value");
-    } else if (not expr->type->is_equivalent(functiontypes.top()->returntype)) {
-        error(2166, token_return, "type mismatch in RETURN");
-    }
-    return new ReturnStatement(line, expr);
+    const Expression *expr = parseExpression();
+    return new ReturnStatement(tok_return, expr);
 }
 
-const Statement *Parser::parseVarStatement(Scope *scope, int line)
+const Statement *Parser::parseVarStatement()
 {
+    auto &tok_var = tokens[i];
     ++i;
-    std::vector<Variable *> variables;
-    const VariableInfo vars = parseVariableDeclaration(scope);
-    for (auto name: vars.first) {
-        Variable *v;
-        if (scope == global_scope) {
-            v = new GlobalVariable(name, vars.second, false);
-        } else {
-            v = new LocalVariable(name, vars.second, scope, false);
-        }
-        variables.push_back(v);
-    }
-    const Statement *r = nullptr;
+    const VariableInfo vars = parseVariableDeclaration();
+    const Expression *expr = nullptr;
     if (tokens[i].type == ASSIGN) {
         ++i;
-        std::vector<const ReferenceExpression *> refs;
-        const Expression *expr = parseExpression(scope);
-        if (not expr->type->is_equivalent(vars.second)) {
-            error(2189, tokens[i], "type mismatch");
-        }
-        for (auto v: variables) {
-            scope->addName(v->name, v, true);
-            refs.push_back(new VariableExpression(v));
-        }
-        r =  new AssignmentStatement(line, refs, expr);
-    } else {
-        for (auto v: variables) {
-            scope->addName(v->name, v);
-        }
+        expr = parseExpression();
     }
-    return r;
+    return new VariableDeclaration(tok_var, vars.first, vars.second, expr);
 }
 
-const Statement *Parser::parseWhileStatement(Scope *scope, int line)
+const Statement *Parser::parseWhileStatement()
 {
+    auto &tok_while = tokens[i];
     ++i;
-    auto j = i;
-    const Expression *cond = parseExpression(scope);
-    if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
-        error(2081, tokens[j], "boolean value expected");
-    }
+    const Expression *cond = parseExpression();
     if (tokens[i].type != DO) {
         error(2082, tokens[i], "DO expected");
     }
     ++i;
-    unsigned int loop_id = static_cast<unsigned int>(i);
-    loops.top().push_back(std::make_pair(WHILE, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(scope);
+        const Statement *s = parseStatement();
         if (s != nullptr) {
             statements.push_back(s);
         }
@@ -1570,19 +922,17 @@ const Statement *Parser::parseWhileStatement(Scope *scope, int line)
         error(2104, tokens[i], "WHILE expected");
     }
     ++i;
-    loops.top().pop_back();
-    return new WhileStatement(line, loop_id, cond, statements);
+    return new WhileStatement(tok_while, cond, statements);
 }
 
-const Statement *Parser::parseCaseStatement(Scope *scope, int line)
+const Statement *Parser::parseCaseStatement()
 {
+    auto &tok_case = tokens[i];
     ++i;
-    const Expression *expr = parseExpression(scope);
-    if (not expr->type->is_equivalent(TYPE_NUMBER) && not expr->type->is_equivalent(TYPE_STRING) && dynamic_cast<const TypeEnum *>(expr->type) == nullptr) {
-        error(2084, tokens[i], "CASE expression must be Number, String, or ENUM");
-    }
+    const Expression *expr = parseExpression();
     std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
     while (tokens[i].type == WHEN) {
+        auto &tok_when = tokens[i];
         std::vector<const CaseStatement::WhenCondition *> conditions;
         do {
             ++i;
@@ -1595,85 +945,20 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
                 case GREATEREQ: {
                     auto op = tokens[i];
                     ++i;
-                    const Expression *when = parseExpression(scope);
-                    if (not when->type->is_equivalent(expr->type)) {
-                        error(2085, tokens[i], "type mismatch");
-                    }
-                    if (not when->is_constant) {
-                        error(2086, tokens[i], "WHEN condition must be constant");
-                    }
-                    const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(comparisonFromToken(op), when);
-                    for (auto clause: clauses) {
-                        for (auto c: clause.first) {
-                            if (cond->overlaps(c)) {
-                                error(2106, tokens[i], "overlapping case condition");
-                            }
-                        }
-                    }
-                    for (auto c: conditions) {
-                        if (cond->overlaps(c)) {
-                            error(2107, tokens[i], "overlapping case condition");
-                        }
-                    }
+                    const Expression *when = parseExpression();
+                    const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(tok_when, comparisonFromToken(op), when);
                     conditions.push_back(cond);
                     break;
                 }
                 default: {
-                    const Expression *when = parseExpression(scope);
-                    if (not when->type->is_equivalent(expr->type)) {
-                        error(2087, tokens[i], "type mismatch");
-                    }
-                    if (not when->is_constant) {
-                        error(2088, tokens[i], "WHEN condition must be constant");
-                    }
+                    const Expression *when = parseExpression();
                     if (tokens[i].type == TO) {
                         ++i;
-                        const Expression *when2 = parseExpression(scope);
-                        if (not when2->type->is_equivalent(expr->type)) {
-                            error(2089, tokens[i], "type mismatch");
-                        }
-                        if (not when2->is_constant) {
-                            error(2090, tokens[i], "WHEN condition must be constant");
-                        }
-                        if (when->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(when->type) != nullptr) {
-                            if (number_is_greater(when->eval_number(), when2->eval_number())) {
-                                error(2184, tokens[i], "WHEN numeric range condition must be low..high");
-                            }
-                        } else if (when->type->is_equivalent(TYPE_STRING)) {
-                            if (when->eval_string() > when2->eval_string()) {
-                                error(2185, tokens[i], "WHEN string range condition must be low..high");
-                            }
-                        } else {
-                            internal_error("range condition type");
-                        }
-                        const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(when, when2);
-                        for (auto clause: clauses) {
-                            for (auto c: clause.first) {
-                                if (cond->overlaps(c)) {
-                                    error(2108, tokens[i], "overlapping case condition");
-                                }
-                            }
-                        }
-                        for (auto c: conditions) {
-                            if (cond->overlaps(c)) {
-                                error(2109, tokens[i], "overlapping case condition");
-                            }
-                        }
+                        const Expression *when2 = parseExpression();
+                        const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(tok_when, when, when2);
                         conditions.push_back(cond);
                     } else {
-                        const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(ComparisonExpression::EQ, when);
-                        for (auto clause: clauses) {
-                            for (auto c: clause.first) {
-                                if (cond->overlaps(c)) {
-                                    error(2110, tokens[i], "overlapping case condition");
-                                }
-                            }
-                        }
-                        for (auto c: conditions) {
-                            if (cond->overlaps(c)) {
-                                error(2111, tokens[i], "overlapping case condition");
-                            }
-                        }
+                        const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(tok_when, ComparisonExpression::EQ, when);
                         conditions.push_back(cond);
                     }
                     break;
@@ -1686,7 +971,7 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
         ++i;
         std::vector<const Statement *> statements;
         while (tokens[i].type != WHEN && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *stmt = parseStatement(scope);
+            const Statement *stmt = parseStatement();
             if (stmt != nullptr) {
                 statements.push_back(stmt);
             }
@@ -1697,7 +982,7 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
     if (tokens[i].type == ELSE) {
         ++i;
         while (tokens[i].type != END) {
-            const Statement *stmt = parseStatement(scope);
+            const Statement *stmt = parseStatement();
             if (stmt != nullptr) {
                 else_statements.push_back(stmt);
             }
@@ -1712,212 +997,40 @@ const Statement *Parser::parseCaseStatement(Scope *scope, int line)
     }
     ++i;
     clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));
-    return new CaseStatement(line, expr, clauses);
+    return new CaseStatement(tok_case, expr, clauses);
 }
 
-namespace overlap {
-
-static bool operator==(const Number &x, const Number &y) { return number_is_equal(x, y); }
-static bool operator!=(const Number &x, const Number &y) { return number_is_not_equal(x, y); }
-static bool operator<(const Number &x, const Number &y) { return number_is_less(x, y); }
-static bool operator>(const Number &x, const Number &y) { return number_is_greater(x, y); }
-static bool operator<=(const Number &x, const Number &y) { return number_is_less_equal(x, y); }
-static bool operator>=(const Number &x, const Number &y) { return number_is_greater_equal(x, y); }
-
-template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, ComparisonExpression::Comparison comp2, const T &value2)
+const Statement *Parser::parseForStatement()
 {
-    switch (comp1) {
-        case ComparisonExpression::EQ:
-            switch (comp2) {
-                case ComparisonExpression::EQ: return value1 == value2;
-                case ComparisonExpression::NE: return value1 != value2;
-                case ComparisonExpression::LT: return value1 < value2;
-                case ComparisonExpression::GT: return value1 > value2;
-                case ComparisonExpression::LE: return value1 <= value2;
-                case ComparisonExpression::GE: return value1 >= value2;
-            }
-            break;
-        case ComparisonExpression::NE:
-            switch (comp2) {
-                case ComparisonExpression::EQ: return value1 != value2;
-                default: return true;
-            }
-            break;
-        case ComparisonExpression::LT:
-            switch (comp2) {
-                case ComparisonExpression::EQ: return value1 < value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return true;
-                case ComparisonExpression::GT: return value1 > value2;
-                case ComparisonExpression::LE: return true;
-                case ComparisonExpression::GE: return value1 > value2;
-            }
-            break;
-        case ComparisonExpression::GT:
-            switch (comp2) {
-                case ComparisonExpression::EQ: return value1 > value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return value1 < value2;
-                case ComparisonExpression::GT: return true;
-                case ComparisonExpression::LE: return value1 < value2;
-                case ComparisonExpression::GE: return true;
-            }
-            break;
-        case ComparisonExpression::LE:
-            switch (comp2) {
-                case ComparisonExpression::EQ: return value1 >= value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return true;
-                case ComparisonExpression::GT: return value1 > value2;
-                case ComparisonExpression::LE: return true;
-                case ComparisonExpression::GE: return value1 >= value2;
-            }
-            break;
-        case ComparisonExpression::GE:
-            switch (comp2) {
-                case ComparisonExpression::EQ: return value1 <= value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return value1 < value2;
-                case ComparisonExpression::GT: return true;
-                case ComparisonExpression::LE: return value1 <= value2;
-                case ComparisonExpression::GE: return true;
-            }
-            break;
-    }
-    return false;
-}
-
-template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, const T &value2low, const T &value2high)
-{
-    switch (comp1) {
-        case ComparisonExpression::EQ: return value1 >= value2low && value1 <= value2high;
-        case ComparisonExpression::NE: return value1 != value2low || value1 != value2high;
-        case ComparisonExpression::LT: return value1 > value2low;
-        case ComparisonExpression::GT: return value1 > value2high;
-        case ComparisonExpression::LE: return value1 >= value2low;
-        case ComparisonExpression::GE: return value1 <= value2high;
-    }
-    return false;
-}
-
-template <typename T> bool check(const T &value1low, const T &value1high, const T &value2low, const T &value2high)
-{
-    return value1high >= value2low && value1low <= value2high;
-}
-
-} // namespace overlap
-
-bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond) const
-{
-    const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
-    const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
-    if (cwhen != nullptr) {
-        if (expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
-            return overlap::check(comp, expr->eval_number(), cwhen->comp, cwhen->expr->eval_number());
-        } else if (expr->type->is_equivalent(TYPE_STRING)) {
-            return overlap::check(comp, expr->eval_string(), cwhen->comp, cwhen->expr->eval_string());
-        } else {
-            internal_error("ComparisonWhenCondition");
-        }
-    } else if (rwhen != nullptr) {
-        if (expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
-            return overlap::check(comp, expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
-        } else if (expr->type->is_equivalent(TYPE_STRING)) {
-            return overlap::check(comp, expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
-        } else {
-            internal_error("ComparisonWhenCondition");
-        }
-    } else {
-        internal_error("ComparisonWhenCondition");
-    }
-}
-
-bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) const
-{
-    const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
-    const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
-    if (cwhen != nullptr) {
-        if (low_expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
-            return overlap::check(cwhen->comp, cwhen->expr->eval_number(), low_expr->eval_number(), high_expr->eval_number());
-        } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
-            return overlap::check(cwhen->comp, cwhen->expr->eval_string(), low_expr->eval_string(), high_expr->eval_string());
-        } else {
-            internal_error("RangeWhenCondition");
-        }
-    } else if (rwhen != nullptr) {
-        if (low_expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
-            return overlap::check(low_expr->eval_number(), high_expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
-        } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
-            return overlap::check(low_expr->eval_string(), high_expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
-        } else {
-            internal_error("RangeWhenCondition");
-        }
-    } else {
-        internal_error("RangeWhenCondition");
-    }
-}
-
-const Statement *Parser::parseForStatement(Scope *scope, int line)
-{
+    auto &tok_for = tokens[i];
     ++i;
     if (tokens[i].type != IDENTIFIER) {
         error(2072, tokens[i], "identifier expected");
     }
-    Name *name = scope->lookupName(tokens[i].text);
-    Variable *var = dynamic_cast<Variable *>(name);
-    if (var == nullptr) {
-        error(2195, tokens[i], "name not a variable: " + tokens[i].text);
-    }
-    if (not var->type->is_equivalent(TYPE_NUMBER)) {
-        error(2112, tokens[i], "type mismatch");
-    }
-    if (var->is_readonly) {
-        error(2207, tokens[i], "cannot use readonly variable in FOR loop");
-    }
-    var->is_readonly = true;
+    const std::string var = tokens[i].text;
     ++i;
     if (tokens[i].type != ASSIGN) {
         error(2121, tokens[i], "':=' expected");
     }
     ++i;
-    const Expression *start = parseExpression(scope);
-    if (not start->type->is_equivalent(TYPE_NUMBER)) {
-        error(2113, tokens[i], "numeric expression expected");
-    }
+    const Expression *start = parseExpression();
     if (tokens[i].type != TO) {
         error(2114, tokens[i], "TO expected");
     }
     ++i;
-    const Expression *end = parseExpression(scope);
-    if (not end->type->is_equivalent(TYPE_NUMBER)) {
-        error(2115, tokens[i], "numeric expression expected");
-    }
-
+    const Expression *end = parseExpression();
     const Expression *step = nullptr;
     if (tokens[i].type == STEP) {
         ++i;
-        step = parseExpression(scope);
-        if (step->type != TYPE_NUMBER) {
-            error(2116, tokens[i], "numeric expression expected");
-        }
-        if (not step->is_constant) {
-            error(2117, tokens[i], "numeric expression must be constant");
-        }
-        if (number_is_zero(step->eval_number())) {
-            error(2161, tokens[i], "STEP value cannot be zero");
-        }
-    } else {
-        step = new ConstantNumberExpression(number_from_uint32(1));
+        step = parseExpression();
     }
     if (tokens[i].type != DO) {
         error(2118, tokens[i], "'DO' expected");
     }
     ++i;
-    unsigned int loop_id = static_cast<unsigned int>(i);
-    loops.top().push_back(std::make_pair(FOR, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(scope);
+        const Statement *s = parseStatement();
         if (s != nullptr) {
             statements.push_back(s);
         }
@@ -1930,19 +1043,16 @@ const Statement *Parser::parseForStatement(Scope *scope, int line)
         error(2120, tokens[i], "'END FOR' expected");
     }
     ++i;
-    loops.top().pop_back();
-    var->is_readonly = false;
-    return new ForStatement(line, loop_id, new VariableExpression(var), start, end, step, statements);
+    return new ForStatement(tok_for, var, start, end, step, statements);
 }
 
-const Statement *Parser::parseLoopStatement(Scope *scope, int line)
+const Statement *Parser::parseLoopStatement()
 {
+    auto &tok_loop = tokens[i];
     ++i;
-    unsigned int loop_id = static_cast<unsigned int>(i);
-    loops.top().push_back(std::make_pair(LOOP, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(scope);
+        const Statement *s = parseStatement();
         if (s != nullptr) {
             statements.push_back(s);
         }
@@ -1955,18 +1065,16 @@ const Statement *Parser::parseLoopStatement(Scope *scope, int line)
         error(2148, tokens[i], "LOOP expected");
     }
     ++i;
-    loops.top().pop_back();
-    return new LoopStatement(line, loop_id, statements);
+    return new LoopStatement(tok_loop, statements);
 }
 
-const Statement *Parser::parseRepeatStatement(Scope *scope, int line)
+const Statement *Parser::parseRepeatStatement()
 {
+    auto &tok_repeat = tokens[i];
     ++i;
-    unsigned int loop_id = static_cast<unsigned int>(i);
-    loops.top().push_back(std::make_pair(REPEAT, loop_id));
     std::vector<const Statement *> statements;
     while (tokens[i].type != UNTIL && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(scope);
+        const Statement *s = parseStatement();
         if (s != nullptr) {
             statements.push_back(s);
         }
@@ -1975,95 +1083,65 @@ const Statement *Parser::parseRepeatStatement(Scope *scope, int line)
         error(2149, tokens[i], "UNTIL expected");
     }
     ++i;
-    const Expression *cond = parseExpression(scope);
-    if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
-        error(2150, tokens[i], "boolean value expected");
-    }
-    loops.top().pop_back();
-    return new RepeatStatement(line, loop_id, cond, statements);
+    const Expression *cond = parseExpression();
+    return new RepeatStatement(tok_repeat, cond, statements);
 }
 
-const Statement *Parser::parseExitStatement(Scope *, int line)
+const Statement *Parser::parseExitStatement()
 {
+    auto &tok_exit = tokens[i];
     ++i;
-    if (tokens[i].type == FUNCTION) {
-        if (functiontypes.empty()) {
-            error(2182, tokens[i], "EXIT FUNCTION not allowed outside function");
-        } else if (functiontypes.top()->returntype != TYPE_NOTHING) {
-            error(2183, tokens[i], "function must return a value");
-        }
-        i++;
-        return new ReturnStatement(line, nullptr);
-    }
-    if (tokens[i].type != WHILE
-     && tokens[i].type != FOR
-     && tokens[i].type != LOOP
-     && tokens[i].type != REPEAT) {
+    TokenType type = tokens[i].type;
+    if (type != FUNCTION
+     && type != WHILE
+     && type != FOR
+     && type != LOOP
+     && type != REPEAT) {
         error(2136, tokens[i], "loop type expected");
     }
-    TokenType type = tokens[i].type;
     ++i;
-    if (not loops.empty()) {
-        for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
-            if (j->first == type) {
-                return new ExitStatement(line, j->second);
-            }
-        }
-    }
-    error(2137, tokens[i-1], "no matching loop found in current scope");
+    return new ExitStatement(tok_exit, type);
 }
 
-const Statement *Parser::parseNextStatement(Scope *, int line)
+const Statement *Parser::parseNextStatement()
 {
+    auto &tok_next = tokens[i];
     ++i;
-    if (tokens[i].type != WHILE
-     && tokens[i].type != FOR
-     && tokens[i].type != LOOP
-     && tokens[i].type != REPEAT) {
+    TokenType type = tokens[i].type;
+    if (type != WHILE
+     && type != FOR
+     && type != LOOP
+     && type != REPEAT) {
         error(2144, tokens[i], "loop type expected");
     }
-    TokenType type = tokens[i].type;
     ++i;
-    if (not loops.empty()) {
-        for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
-            if (j->first == type) {
-                return new NextStatement(line, j->second);
-            }
-        }
-    }
-    error(2145, tokens[i-1], "no matching loop found in current scope");
+    return new NextStatement(tok_next, type);
 }
 
-const Statement *Parser::parseTryStatement(Scope *scope, int line)
+const Statement *Parser::parseTryStatement()
 {
+    auto &tok_try = tokens[i];
     ++i;
     std::vector<const Statement *> statements;
     while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *stmt = parseStatement(scope);
+        const Statement *stmt = parseStatement();
         if (stmt != nullptr) {
             statements.push_back(stmt);
         }
     }
-    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
+    std::vector<std::pair<std::vector<std::string>, std::vector<const Statement *>>> catches;
     while (tokens[i].type == EXCEPTION) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
             error(2153, tokens[i], "identifier expected");
         }
-        const Name *name = scope->lookupName(tokens[i].text);
-        if (name == nullptr) {
-            error(2154, tokens[i], "exception not found: " + tokens[i].text);
-        }
-        const Exception *exception = dynamic_cast<const Exception *>(name);
-        if (exception == nullptr) {
-            error(2155, tokens[i], "name not an exception");
-        }
-        std::vector<const Exception *> exceptions;
-        exceptions.push_back(exception);
+        const std::string name = tokens[i].text;
+        std::vector<std::string> exceptions;
+        exceptions.push_back(name);
         ++i;
         std::vector<const Statement *> statements;
         while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *stmt = parseStatement(scope);
+            const Statement *stmt = parseStatement();
             if (stmt != nullptr) {
                 statements.push_back(stmt);
             }
@@ -2078,164 +1156,88 @@ const Statement *Parser::parseTryStatement(Scope *scope, int line)
         error(2160, tokens[i], "TRY expected");
     }
     ++i;
-    return new TryStatement(line, statements, catches);
+    return new TryStatement(tok_try, statements, catches);
 }
 
-const Statement *Parser::parseRaiseStatement(Scope *scope, int line)
+const Statement *Parser::parseRaiseStatement()
 {
+    auto &tok_raise = tokens[i];
     ++i;
     if (tokens[i].type != IDENTIFIER) {
         error(2156, tokens[i], "identifier expected");
     }
-    const Name *name = scope->lookupName(tokens[i].text);
-    if (name == nullptr) {
-        error(2157, tokens[i], "exception not found: " + tokens[i].text);
-    }
-    const Exception *exception = dynamic_cast<const Exception *>(name);
-    if (exception == nullptr) {
-        error(2158, tokens[i], "name not an exception");
-    }
+    const std::string name = tokens[i].text;
     ++i;
     const Expression *info = nullptr;
     if (tokens[i].type == LPAREN) {
-        info = parseExpression(scope);
+        info = parseExpression();
     } else {
-        info = new ConstantStringExpression("");
+        info = nullptr;
     }
-    return new RaiseStatement(line, exception, info);
+    return new RaiseStatement(tok_raise, name, info);
 }
 
-const Statement *Parser::parseImport(Scope *scope)
+const Statement *Parser::parseImport()
 {
+    auto &tok_import = tokens[i];
     ++i;
     if (tokens[i].type != IDENTIFIER) {
         error(2093, tokens[i], "identifier expected");
     }
-    if (scope->lookupName(tokens[i].text) != nullptr) {
-        error(2190, tokens[i], "name shadows outer");
-    }
-    rtl_import(scope, tokens[i].text);
+    const std::string name = tokens[i].text;
     ++i;
-    return nullptr;
+    return new ImportDeclaration(tok_import, name);
 }
 
-const Statement *Parser::parseStatement(Scope *scope)
+const Statement *Parser::parseStatement()
 {
-    const int line = tokens[i].line;
     if (tokens[i].type == IMPORT) {
-        return parseImport(scope);
+        return parseImport();
     } else if (tokens[i].type == TYPE) {
-        return parseTypeDefinition(scope);
+        return parseTypeDefinition();
     } else if (tokens[i].type == CONST) {
-        return parseConstantDefinition(scope);
+        return parseConstantDefinition();
     } else if (tokens[i].type == FUNCTION) {
-        return parseFunctionDefinition(scope);
+        return parseFunctionDefinition();
     } else if (tokens[i].type == EXTERNAL) {
-        return parseExternalDefinition(scope);
+        return parseExternalDefinition();
     } else if (tokens[i].type == DECLARE) {
-        return parseDeclaration(scope);
+        return parseDeclaration();
     } else if (tokens[i].type == IF) {
-        return parseIfStatement(scope, line);
+        return parseIfStatement();
     } else if (tokens[i].type == RETURN) {
-        return parseReturnStatement(scope, line);
+        return parseReturnStatement();
     } else if (tokens[i].type == VAR) {
-        return parseVarStatement(scope, line);
+        return parseVarStatement();
     } else if (tokens[i].type == WHILE) {
-        return parseWhileStatement(scope, line);
+        return parseWhileStatement();
     } else if (tokens[i].type == CASE) {
-        return parseCaseStatement(scope, line);
+        return parseCaseStatement();
     } else if (tokens[i].type == FOR) {
-        return parseForStatement(scope, line);
+        return parseForStatement();
     } else if (tokens[i].type == LOOP) {
-        return parseLoopStatement(scope, line);
+        return parseLoopStatement();
     } else if (tokens[i].type == REPEAT) {
-        return parseRepeatStatement(scope, line);
+        return parseRepeatStatement();
     } else if (tokens[i].type == EXIT) {
-        return parseExitStatement(scope, line);
+        return parseExitStatement();
     } else if (tokens[i].type == NEXT) {
-        return parseNextStatement(scope, line);
+        return parseNextStatement();
     } else if (tokens[i].type == TRY) {
-        return parseTryStatement(scope, line);
+        return parseTryStatement();
     } else if (tokens[i].type == RAISE) {
-        return parseRaiseStatement(scope, line);
+        return parseRaiseStatement();
     } else if (tokens[i].type == IDENTIFIER) {
-        if (tokens[i].text == "value_copy") {
+        const Expression *expr = parseExpression();
+        if (tokens[i].type == ASSIGN) {
+            auto &tok_assign = tokens[i];
             ++i;
-            if (tokens[i].type != LPAREN) {
-                error(2198, tokens[i], "'(' expected");
-            }
-            ++i;
-            auto tok_lhs = tokens[i];
-            const Expression *expr = parseExpression(scope);
-            const ReferenceExpression *lhs = dynamic_cast<const ReferenceExpression *>(expr);
-            if (lhs == nullptr) {
-                error(2199, tok_lhs, "expression is not assignable");
-            }
-            if (expr->is_readonly && dynamic_cast<const TypePointer *>(expr->type) == nullptr) {
-                error(2200, tok_lhs, "value_copy to readonly expression");
-            }
-
-            if (tokens[i].type != COMMA) {
-                error(2201, tokens[i], "',' expected");
-            }
-            ++i;
-            auto tok_rhs = tokens[i];
-            const Expression *rhs = parseExpression(scope);
-            if (tokens[i].type != RPAREN) {
-                error(2202, tokens[i], "')' expected");
-            }
-            ++i;
-            const Type *ltype = lhs->type;
-            const TypePointer *lptype = dynamic_cast<const TypePointer *>(ltype);
-            if (lptype != nullptr) {
-                if (dynamic_cast<const TypeValidPointer *>(lptype) == nullptr) {
-                    error(2203, tok_lhs, "valid pointer type required");
-                }
-                ltype = lptype->reftype;
-                lhs = new PointerDereferenceExpression(ltype, lhs);
-            }
-            const Type *rtype = rhs->type;
-            const TypePointer *rptype = dynamic_cast<const TypePointer *>(rtype);
-            if (rptype != nullptr) {
-                if (dynamic_cast<const TypeValidPointer *>(rptype) == nullptr) {
-                    error(2204, tok_rhs, "valid pointer type required");
-                }
-                rtype = rptype->reftype;
-                rhs = new PointerDereferenceExpression(rtype, rhs);
-            }
-            if (not ltype->is_equivalent(rtype)) {
-                error(2205, tok_rhs, "type mismatch");
-            }
-            std::vector<const ReferenceExpression *> vars;
-            vars.push_back(lhs);
-            return new AssignmentStatement(line, vars, rhs);
-        }
-        const Expression *expr = parseExpression(scope, true);
-        if (expr->type == TYPE_NOTHING) {
-            return new ExpressionStatement(line, expr);
-        } else if (tokens[i].type == ASSIGN) {
-            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
-            if (ref == nullptr) {
-                error(2095, tokens[i], "expression is not assignable");
-            }
-            if (expr->is_readonly) {
-                error(2180, tokens[i], "assignment to readonly expression");
-            }
-            auto op = i;
-            ++i;
-            const Expression *rhs = parseExpression(scope);
-            if (not rhs->type->is_equivalent(expr->type)) {
-                error(2094, tokens[op], "type mismatch");
-            }
-            std::vector<const ReferenceExpression *> vars;
-            vars.push_back(ref);
-            return new AssignmentStatement(line, vars, rhs);
-        } else if (dynamic_cast<const ComparisonExpression *>(expr) != nullptr) {
-            error(2097, tokens[i], "':=' expected");
-        } else if (dynamic_cast<const FunctionCall *>(expr) != nullptr) {
-            error(2096, tokens[i], "return value unused");
+            const Expression *rhs = parseExpression();
+            std::vector<const Expression *> vars;
+            vars.push_back(expr);
+            return new AssignmentStatement(tok_assign, vars, rhs);
         } else {
-            error(2098, tokens[i], "Unexpected");
+            return new ExpressionStatement(expr);
         }
     } else {
         error(2099, tokens[i], "Identifier expected");
@@ -2244,18 +1246,15 @@ const Statement *Parser::parseStatement(Scope *scope)
 
 const Program *Parser::parse()
 {
-    Program *program = new Program();
-    global_scope = program->scope;
-    loops.push(std::list<std::pair<TokenType, unsigned int>>());
+    auto &tok_program = tokens[i];
+    std::vector<const Statement *> statements;
     while (tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement(program->scope);
+        const Statement *s = parseStatement();
         if (s != nullptr) {
-            program->statements.push_back(s);
+            statements.push_back(s);
         }
     }
-    loops.pop();
-    program->scope->checkForward();
-    return program;
+    return new Program(tok_program, statements);
 }
 
 const Program *parse(const std::vector<Token> &tokens)

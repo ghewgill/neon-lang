@@ -429,8 +429,8 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
             nr->Int_Comp := 6
             Proc_6 (pvp->Enum_Comp,
                     nr->Enum_Comp)
-            IF VALID pg := Ptr_Glob THEN
-                nr->Ptr_Comp := pg->Ptr_Comp
+            IF VALID pg2 := Ptr_Glob THEN
+                nr->Ptr_Comp := pg2->Ptr_Comp
             END IF
             Proc_7 (nr->Int_Comp, 10,
                     nr->Int_Comp)
@@ -748,17 +748,17 @@ FUNCTION main()
   print ("        should be:   " & str(7))
   print ("Arr_2_Glob[8][7]:    " & str(Arr_2_Glob[8][7]))
   print ("        should be:   Number_Of_Runs + 10")
-  IF VALID pg := Ptr_Glob THEN
+  IF VALID pg2 := Ptr_Glob THEN
     print ("Ptr_Glob->")
-    print ("  Ptr_Comp:          ") % & pg->Ptr_Comp)
+    print ("  Ptr_Comp:          ") % & pg2->Ptr_Comp)
     print ("        should be:   (implementation-dependent)")
-    print ("  Discr:             " & pg->Discr.to_string())
+    print ("  Discr:             " & pg2->Discr.to_string())
     print ("        should be:   " & "Ident_1")
-    print ("  Enum_Comp:         " & pg->Enum_Comp.to_string())
+    print ("  Enum_Comp:         " & pg2->Enum_Comp.to_string())
     print ("        should be:   " & "Ident_3")
-    print ("  Int_Comp:          " & str(pg->Int_Comp))
+    print ("  Int_Comp:          " & str(pg2->Int_Comp))
     print ("        should be:   " & str(17))
-    print ("  Str_Comp:          " & pg->Str_Comp)
+    print ("  Str_Comp:          " & pg2->Str_Comp)
     print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
   END IF
   IF VALID npg := Next_Ptr_Glob THEN

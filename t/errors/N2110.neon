@@ -1,9 +1,0 @@
-VAR a: Number
-a := 10
-
-CASE a
-    WHEN 1-5,6,7,8,9,10 DO
-        print("False")
-    WHEN 5-8,9,10-20 DO
-        print("True")
-END CASE

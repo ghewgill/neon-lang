@@ -112,6 +112,7 @@ else:
 env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
 
 neon = env.Program("bin/neon", [
+    "src/analyzer.cpp",
     "src/ast.cpp",
     "src/bytecode.cpp",
     "src/cell.cpp",
@@ -124,6 +125,7 @@ neon = env.Program("bin/neon", [
     "src/main.cpp",
     "src/number.cpp",
     "src/parser.cpp",
+    "src/pt_dump.cpp",
     "src/rtl_compile.cpp",
     "src/rtl_exec.cpp",
     rtl_cpp,
@@ -133,6 +135,7 @@ neon = env.Program("bin/neon", [
 )
 
 neonc = env.Program("bin/neonc", [
+    "src/analyzer.cpp",
     "src/ast.cpp",
     "src/bytecode.cpp",
     "src/compiler.cpp",
@@ -142,6 +145,7 @@ neonc = env.Program("bin/neonc", [
     "src/lexer.cpp",
     "src/number.cpp",
     "src/parser.cpp",
+    "src/pt_dump.cpp",
     "src/rtl_compile.cpp",
     rtl_const,
     "src/neonc.cpp",
@@ -217,6 +221,7 @@ env.Program("bin/fuzz_lexer", [
 
 env.Program("bin/fuzz_parser", [
     "tests/fuzz_parser.cpp",
+    "src/analyzer.cpp",
     "src/ast.cpp",
     "src/compiler.cpp",
     "src/lexer.cpp",

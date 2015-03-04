@@ -1,2 +1,3 @@
 VAR a: Number
-IF VALID a
+IF VALID a := p THEN
+END IF

@@ -1,2 +1,3 @@
 VAR x: Number
-FUNCTION x.bar
+FUNCTION x.bar()
+END FUNCTION

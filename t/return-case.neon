@@ -9,6 +9,6 @@ FUNCTION foo(x: Number): Number
     END CASE
 END FUNCTION
 
-print(str(foo(5))
+print(str(foo(5)))
 
 %= 1

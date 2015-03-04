@@ -927,6 +927,11 @@ void FunctionCall::generate(Emitter &emitter) const
     }
 }
 
+void StatementExpression::generate(Emitter &emitter) const
+{
+    stmt->generate(emitter);
+}
+
 void Statement::generate(Emitter &emitter) const
 {
     emitter.debug_line(line);

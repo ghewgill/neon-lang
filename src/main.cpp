@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "analyzer.h"
 #include "ast.h"
 #include "compiler.h"
 #include "debuginfo.h"
@@ -9,6 +10,7 @@
 #include "exec.h"
 #include "lexer.h"
 #include "parser.h"
+#include "pt_dump.h"
 
 static std::vector<Token> dump(const std::vector<Token> &tokens)
 {
@@ -16,6 +18,12 @@ static std::vector<Token> dump(const std::vector<Token> &tokens)
         std::cerr << t.tostring() << "\n";
     }
     return tokens;
+}
+
+static const pt::Program *dump(const pt::Program *parsetree)
+{
+    pt::dump(std::cerr, parsetree);
+    return parsetree;
 }
 
 static const Program *dump(const Program *program)
@@ -44,7 +52,7 @@ static void repl(int argc, char *argv[])
             exit(0);
         } else {
             try {
-                exec(compile(parse(tokenize(s)), nullptr), argc, argv);
+                exec(compile(analyze(parse(tokenize(s))), nullptr), argc, argv);
             } catch (SourceError &error) {
                 fprintf(stderr, "%s\n", error.token.source.c_str());
                 fprintf(stderr, "%*s\n", error.token.column, "^");
@@ -60,6 +68,7 @@ static void repl(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
     bool dump_tokens = false;
+    bool dump_parse = false;
     bool dump_ast = false;
     bool dump_bytecode = false;
 
@@ -105,7 +114,12 @@ int main(int argc, char *argv[])
                 dump(tokens);
             }
 
-            auto ast = parse(tokens);
+            auto parsetree = parse(tokens);
+            if (dump_parse) {
+                dump(parsetree);
+            }
+
+            auto ast = analyze(parsetree);
             if (dump_ast) {
                 dump(ast);
             }

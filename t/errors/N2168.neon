@@ -7,3 +7,4 @@ EXTERNAL FUNCTION Sleep(ms: Number)
           "x": "uint32"
      }
 }
+END FUNCTION

@@ -1,3 +1,4 @@
 VAR foo: String
 TRY
 EXCEPTION foo
+END TRY

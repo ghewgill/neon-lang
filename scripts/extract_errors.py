@@ -7,8 +7,13 @@ r = re.compile(r'\berror\((\d+),.*?"(.*?)"')
 errors = {}
 for fn in glob.glob("src/*.cpp"):
     with open(fn) as f:
+        enable = True
         for s in f:
-            if " error(" in s:
+            if s.startswith("#if 0"):
+                enable = False
+            elif s.startswith("#endif"):
+                enable = True
+            elif enable and " error(" in s:
                 m = r.search(s)
                 assert m is not None, s
                 number = int(m.group(1))

@@ -1,0 +1,3 @@
+TYPE Foo := RECORD END RECORD
+VAR f: Foo
+f.bar()

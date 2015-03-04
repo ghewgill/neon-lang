@@ -21,17 +21,17 @@ IF VALID pp := p THEN
 END IF
 %= bar
 
-IF VALID pp := p THEN
-    pp->name := "baz"
-    value_copy(a, pp)
+IF VALID pp2 := p THEN
+    pp2->name := "baz"
+    value_copy(a, pp2)
     print(a.name)
 END IF
 %= baz
 
-IF VALID pp := p THEN
+IF VALID pp3 := p THEN
     IF VALID qq := q THEN
-        pp->name := "quux"
-        value_copy(qq, pp)
+        pp3->name := "quux"
+        value_copy(qq, pp3)
         print(qq->name)
     END IF
 END IF

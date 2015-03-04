@@ -1,1 +1,2 @@
-FUNCTION Foo.bar
+FUNCTION Foo.bar()
+END FUNCTION

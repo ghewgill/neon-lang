@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "analyzer.h"
 #include "ast.h"
 #include "compiler.h"
 #include "debuginfo.h"
@@ -9,6 +10,7 @@
 #include "exec.h"
 #include "lexer.h"
 #include "parser.h"
+#include "pt_dump.h"
 
 int main(int argc, char *argv[])
 {
@@ -46,7 +48,8 @@ int main(int argc, char *argv[])
 
         try {
             auto tokens = tokenize(buf.str());
-            auto ast = parse(tokens);
+            auto parsetree = parse(tokens);
+            auto ast = analyze(parsetree);
             DebugInfo debug(buf.str());
             auto bytecode = compile(ast, &debug);
             if (listing) {

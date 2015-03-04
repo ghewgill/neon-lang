@@ -1,2 +1,3 @@
 VAR a: Number
-FOR a := 1 TO 2 STEP a
+FOR a := 1 TO 2 STEP a DO
+END FOR
