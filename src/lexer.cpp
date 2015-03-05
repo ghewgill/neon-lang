@@ -462,7 +462,8 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
             while (i != source.end() && space(*i)) {
                 if (*i == '\n') {
                     line++;
-                    column = 0;
+                    startindex = i+1;
+                    column = 1;
                     linestart = i+1;
                     lineend = std::find(i+1, source.end(), '\n');
                 }

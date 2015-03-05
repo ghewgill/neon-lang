@@ -64,6 +64,18 @@ int main(int argc, char *argv[])
     assert(tokens[11].type == STRING);      assert(tokens[11].text == "");
     assert(tokens[12].type == END_OF_FILE);
 
+    tokens = dump(tokenize("a\n\nb"));
+    assert(tokens.size() == 3);
+    assert(tokens[0].type == IDENTIFIER);
+    assert(tokens[0].text == "a");
+    assert(tokens[0].line == 1);
+    assert(tokens[0].column == 1);
+    assert(tokens[1].type == IDENTIFIER);
+    assert(tokens[1].text == "b");
+    assert(tokens[1].line == 3);
+    assert(tokens[1].column == 1);
+    assert(tokens[2].type == END_OF_FILE);
+
     int depth = 2;
     if (argc > 1) {
         depth = atoi(argv[1]);
