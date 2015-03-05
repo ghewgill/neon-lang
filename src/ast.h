@@ -1089,8 +1089,8 @@ public:
 
     const Constant *constant;
 
-    virtual Number eval_number() const { internal_error("ConstantExpression"); }
-    virtual std::string eval_string() const { internal_error("ConstantExpression"); }
+    virtual Number eval_number() const { return constant->value->eval_number(); }
+    virtual std::string eval_string() const { return constant->value->eval_string(); }
     virtual void generate(Emitter &emitter) const { constant->value->generate(emitter); }
 
     virtual std::string text() const { return "ConstantExpression(" + constant->text() + ")"; }

@@ -1,5 +1,3 @@
-%TODO
-
 CONST FIRST: String := "A"
 CONST LAST: String := "Z"
 
