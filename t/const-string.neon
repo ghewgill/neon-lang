@@ -1,0 +1,17 @@
+%TODO
+
+CONST FIRST: String := "A"
+CONST LAST: String := "Z"
+
+VAR x: String := "M"
+
+CASE x
+    WHEN FIRST DO
+        print("First letter")
+    WHEN LAST DO
+        print("Last Letter")
+    ELSE
+        print("inbetween")
+END CASE
+
+%= inbetween
