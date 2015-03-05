@@ -27,13 +27,22 @@ def run(fn):
     if a:
         args = a[0][a[0].index("ARGS")+4:].split()
 
+    errnum = None
     expected_stdout = ""
     expected_stderr = ""
+    expected_error_pos = []
 
     if errors:
-        err = os.path.splitext(os.path.basename(fn))[0]
-        expected_stderr = err
-        del errors[err]
+        for i, s in enumerate(src.split("\n"), 1):
+            m = re.match(r"(\s*)%<(\d)?", s)
+            if m is not None:
+                n = int(m.group(2)) if m.group(2) else 1
+                while n >= len(expected_error_pos):
+                    expected_error_pos.append(None)
+                expected_error_pos[n] = (i - 1, 1 + len(m.group(1)))
+        errnum = os.path.splitext(os.path.basename(fn))[0]
+        expected_stderr = errnum
+        del errors[errnum]
     else:
         out_comments = re.findall("^%=\s*(.*)$", src, re.MULTILINE)
         expected_stdout = "".join([x + "\n" for x in out_comments])
@@ -57,17 +66,35 @@ def run(fn):
                 return False
             assert p.returncode == 0, p.returncode
 
-    if expected_stderr not in err:
-        print("*** EXPECTED ERROR")
-        print("")
-        sys.stdout.write(expected_stderr)
-        print("")
-        print("*** ACTUAL ERROR")
-        print("")
-        sys.stdout.write(err)
-        if todo:
-            return False
-        sys.exit(1)
+    if expected_stderr:
+        if expected_stderr not in err:
+            print("*** EXPECTED ERROR")
+            print("")
+            sys.stdout.write(expected_stderr)
+            print("")
+            print("*** ACTUAL ERROR")
+            print("")
+            sys.stdout.write(err)
+            if todo:
+                return False
+            sys.exit(1)
+        if expected_error_pos:
+            m = re.search(r"Error N\d+: (\d+):(\d+)", err)
+            assert m is not None
+            actual_line = int(m.group(1))
+            actual_col = int(m.group(2))
+            if (actual_line, actual_col) != expected_error_pos[1]:
+                print("")
+                print("*** WRONG ERROR LOCATION (expected {})".format(expected_error_pos[1]))
+                print("")
+                sys.stdout.write(err)
+                if todo:
+                    return False
+                sys.exit(1)
+        elif errnum and errnum > "N2000":
+            print("Need error location information for {}".format(errnum))
+            # TODO: uncomment this when all error location information has been added
+            #sys.exit(1)
 
     if out != expected_stdout:
         print("*** EXPECTED OUTPUT")
