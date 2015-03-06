@@ -5,4 +5,5 @@ END RECORD
 
 VAR a: Recordset
 
-a.
+a.1
+  %<

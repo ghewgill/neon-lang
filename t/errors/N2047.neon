@@ -7,3 +7,4 @@ EXTERNAL FUNCTION Sleep(ms: Number)
           "ms": "uint32"
      }
 END FUNCTION
+%<

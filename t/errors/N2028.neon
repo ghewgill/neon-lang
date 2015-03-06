@@ -1,3 +1,6 @@
+% TODO location information
+
 WHILE (TRUE)
+             %<
     print("doing...")
 END WHILE

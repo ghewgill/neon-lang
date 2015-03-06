@@ -1,2 +1,3 @@
 VAR a: Number
-FOR a := 1
+FOR a := 1 2
+           %<

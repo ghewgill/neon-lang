@@ -2,3 +2,4 @@ TYPE Rec := RECORD
     Field1: Number
     Field2: String
 END WHILE
+    %<

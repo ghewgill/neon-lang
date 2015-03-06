@@ -1,3 +1,4 @@
+% TODO location information eof
 WHILE (TRUE) DO
     print("doing...")
 

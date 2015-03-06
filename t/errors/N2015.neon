@@ -4,3 +4,4 @@ FUNCTION a(IN y: Number, INOUT z: Number) : Number
 END FUNCTION
 
 print(a(IN 1, 2))
+        %<

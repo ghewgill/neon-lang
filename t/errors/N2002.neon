@@ -1,1 +1,2 @@
-VAR a: Array
+VAR a: Array[Number]
+            %<

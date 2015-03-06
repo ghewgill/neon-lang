@@ -3,3 +3,4 @@ FUNCTION a(y: Number,z: Number) : Number
 END FUNCTION
 
 a(1 a())
+    %<

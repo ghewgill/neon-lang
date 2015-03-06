@@ -1,3 +1,4 @@
 FUNCTION Test()
   print("Test...")
 END WHILE
+    %<

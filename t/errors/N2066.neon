@@ -1,3 +1,5 @@
+% TODO location information
+
 TYPE Recordset := RECORD
     ID: Number
     Name: String
@@ -7,4 +9,5 @@ VAR a: POINTER TO Recordset
 
 IF VALID p := a THEN
     p->
+        %<
 END IF

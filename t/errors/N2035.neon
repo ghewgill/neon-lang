@@ -4,3 +4,4 @@ TYPE Suit := ENUM
     Spade
     Diamond
 END IF
+    %<
