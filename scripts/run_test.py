@@ -93,6 +93,8 @@ def run(fn):
                 sys.exit(1)
         elif errnum and errnum > "N2000":
             print("Need error location information for {}".format(errnum))
+            if todo:
+                return False
             # TODO: uncomment this when all error location information has been added
             #sys.exit(1)
 
