@@ -7,5 +7,6 @@ VAR a: lh
 VAR b: lh
 
 IF a <= b THEN
+     %<
   print("Woah...")
 END IF

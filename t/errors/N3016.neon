@@ -2,3 +2,4 @@ VAR a: String
 a := "Hello, World!"
 
 CONST x: String := a
+                   %<

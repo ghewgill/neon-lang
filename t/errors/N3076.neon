@@ -1,5 +1,6 @@
 EXTERNAL FUNCTION Sleep(ms: Number)
 {
+%<
      "library": {     
           "libraryName": "Lib"
      }

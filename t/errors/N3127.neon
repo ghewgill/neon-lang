@@ -1,3 +1,4 @@
 VAR x: Number
 FUNCTION x.bar()
+         %<
 END FUNCTION

@@ -6,6 +6,7 @@ TYPE Cards := ENUM
 END ENUM
 
 
-VAR a: Number
+VAR a: Cards
 
 a := Cards.King
+           %<

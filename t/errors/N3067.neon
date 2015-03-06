@@ -1,3 +1,4 @@
 VAR a: Number
 FOR a := "one" TO 10 DO
+         %<
 END FOR

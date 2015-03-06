@@ -1,2 +1,5 @@
+% TODO location information
+
 VAR a: Number
 print("\(a:z)")
+           %<

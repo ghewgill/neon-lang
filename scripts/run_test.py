@@ -96,7 +96,7 @@ def run(fn):
             if todo:
                 return False
             # TODO: uncomment this when all error location information has been added
-            #sys.exit(1)
+            sys.exit(1)
 
     if out != expected_stdout:
         print("*** EXPECTED OUTPUT")

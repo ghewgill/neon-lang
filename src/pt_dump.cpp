@@ -60,11 +60,11 @@ public:
         write("IdentifierExpression(" + node->name + ")");
     }
     virtual void visit(const DotExpression *node) {
-        write("DotExpression(" + node->name + ")");
+        write("DotExpression(" + node->name.text + ")");
         child(node->base);
     }
     virtual void visit(const ArrowExpression *node) {
-        write("ArrowExpression(" + node->name + ")");
+        write("ArrowExpression(" + node->name.text + ")");
         child(node->base);
     }
     virtual void visit(const SubscriptExpression *node) {
@@ -168,12 +168,12 @@ public:
         child(node->type);
     }
     virtual void visit(const ValidPointerExpression *node) {
-        write("ValidPointerExpression(" + node->name + ")");
+        write("ValidPointerExpression(" + node->name.text + ")");
         child(node->ptr);
     }
 
     virtual void visit(const ImportDeclaration *node) {
-        write("ImportDeclaration(" + node->name + ")");
+        write("ImportDeclaration(" + node->name.text + ")");
     }
     virtual void visit(const TypeDeclaration *node) {
         write("TypeDeclaration");
@@ -190,21 +190,21 @@ public:
         child(node->value);
     }
     virtual void visit(const BaseFunctionDeclaration *node) {
-        write("BaseFunctionDeclaration(" + node->name + ")");
+        write("BaseFunctionDeclaration(" + node->name.text + ")");
         child(node->returntype);
         depth++;
         for (auto x: node->args) {
-            write(std::to_string(x->mode) + " " + x->name);
+            write(std::to_string(x->mode) + " " + x->name.text);
             child(x->type);
         }
         depth--;
     }
     virtual void visit(const FunctionDeclaration *node) {
-        write("FunctionDeclaration(" + node->name + ")");
+        write("FunctionDeclaration(" + node->name.text + ")");
         child(node->returntype);
         depth++;
         for (auto x: node->args) {
-            write(std::to_string(x->mode) + " " + x->name);
+            write(std::to_string(x->mode) + " " + x->name.text);
             child(x->type);
         }
         depth--;
@@ -213,11 +213,11 @@ public:
         }
     }
     virtual void visit(const ExternalFunctionDeclaration *node) {
-        write("ExternalFunctionDeclaration(" + node->name + ")");
+        write("ExternalFunctionDeclaration(" + node->name.text + ")");
         child(node->returntype);
         depth++;
         for (auto x: node->args) {
-            write(std::to_string(x->mode) + " " + x->name);
+            write(std::to_string(x->mode) + " " + x->name.text);
             child(x->type);
         }
         depth--;
@@ -266,7 +266,7 @@ public:
         child(node->expr);
     }
     virtual void visit(const ForStatement *node) {
-        write("ForStatement(" + node->var + ")");
+        write("ForStatement(" + node->var.text + ")");
         child(node->start);
         child(node->end);
         child(node->step);
@@ -296,7 +296,7 @@ public:
         write("NextStatement(" + std::to_string(node->type) + ")");
     }
     virtual void visit(const RaiseStatement *node) {
-        write("RaiseStatement(" + node->name + ")");
+        write("RaiseStatement(" + node->name.text + ")");
         child(node->info);
     }
     virtual void visit(const RepeatStatement *node) {
@@ -355,6 +355,17 @@ private:
                 r += ",";
             }
             r += x;
+        }
+        return r;
+    }
+
+    static std::string join(const std::vector<Token> &a) {
+        std::string r;
+        for (auto x: a) {
+            if (not r.empty()) {
+                r += ",";
+            }
+            r += x.text;
         }
         return r;
     }

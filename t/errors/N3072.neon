@@ -4,6 +4,7 @@ EXTERNAL FUNCTION Sleep(ms: Number)
           "name": 32
      }
      "types": {
+              %<
           "dwMilliseconds": "uint32"
      }
 }

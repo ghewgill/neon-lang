@@ -1,1 +1,2 @@
 VAR a: POINTER TO Number
+                  %<

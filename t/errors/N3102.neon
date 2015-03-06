@@ -1,3 +1,4 @@
 VAR a: Number
 IF VALID a := p THEN
+         %<
 END IF

@@ -3,5 +3,6 @@ a := "H"
 
 CASE a
    WHEN "H" TO "Z", "A" TO "Z" DO
+                    %<
      print("5")
 END CASE

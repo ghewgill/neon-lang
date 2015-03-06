@@ -1,2 +1,5 @@
+% TODO location information
+
 TYPE T := RECORD END RECORD
 print("\(T())")
+         %<

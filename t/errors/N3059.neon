@@ -3,3 +3,4 @@ FUNCTION One(): Number
 END FUNCTION
 
 One()
+%<

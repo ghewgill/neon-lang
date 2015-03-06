@@ -1,3 +1,4 @@
 IF 1 < "two" THEN
+     %<
   print("Woah...")
 END IF

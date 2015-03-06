@@ -5,5 +5,6 @@ CASE a
     WHEN "E" TO "H" DO
         print("a is == 5")
     WHEN "H" TO "H", "L", "O" DO
+         %<
         print("a is Aloha.")
 END CASE

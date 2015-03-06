@@ -1,3 +1,4 @@
 VAR a: Number
 VAR s: String
 value_copy(a, s)
+              %<

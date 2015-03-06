@@ -1,4 +1,5 @@
 TYPE a := Number
 
 VAR a: Number
+    %<
 

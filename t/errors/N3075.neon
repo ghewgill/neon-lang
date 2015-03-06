@@ -1,5 +1,6 @@
 EXTERNAL FUNCTION Sleep(ms: Number)
 {
+%<
      "libary": {     
           "name": "kernel32"
      }

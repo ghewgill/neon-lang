@@ -1,3 +1,4 @@
 VAR a: Array<Number>
 
 a := [1, 2, "Three", 4, 5]
+            %<

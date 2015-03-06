@@ -1,3 +1,4 @@
 VAR outer: Number
 
 TYPE outer := Number
+     %<

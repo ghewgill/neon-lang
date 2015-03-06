@@ -18,7 +18,7 @@ public:
     std::vector<Token>::size_type i;
     int expression_depth;
 
-    typedef std::pair<std::vector<std::string>, const Type *> VariableInfo;
+    typedef std::pair<std::vector<Token>, const Type *> VariableInfo;
 
     const Type *parseParameterisedType();
     const Type *parseRecordType();
@@ -42,7 +42,7 @@ public:
     const Expression *parseConditional();
     const Expression *parseExpression();
     const VariableInfo parseVariableDeclaration();
-    void parseFunctionHeader(std::string &type, std::string &name, const Type *&returntype, std::vector<const FunctionParameter *> &args);
+    void parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args);
     const Statement *parseFunctionDefinition();
     const Statement *parseExternalDefinition();
     const Statement *parseDeclaration();
@@ -264,6 +264,7 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
 const ArrayLiteralExpression *Parser::parseArrayLiteral()
 {
     auto &tok_lbracket = tokens[i];
+    ++i;
     std::vector<const Expression *> elements;
     while (tokens[i].type != RBRACKET) {
         const Expression *element = parseExpression();
@@ -281,6 +282,7 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral()
 const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
 {
     auto &tok_lbrace = tokens[i];
+    ++i;
     std::vector<std::pair<Token, const Expression *>> elements;
     while (tokens[i].type == STRING) {
         auto &key = tokens[i];
@@ -358,12 +360,10 @@ const Expression *Parser::parseAtom()
             return expr;
         }
         case LBRACKET: {
-            ++i;
             const Expression *array = parseArrayLiteral();
             return array;
         }
         case LBRACE: {
-            ++i;
             const Expression *dict = parseDictionaryLiteral();
             if (tokens[i].type != RBRACE) {
                 error(2049, tokens[i], "'}' expected");
@@ -439,7 +439,7 @@ const Expression *Parser::parseAtom()
                     if (tokens[i].type != IDENTIFIER) {
                         error(2021, tokens[i], "identifier expected");
                     }
-                    const std::string field = tokens[i].text;
+                    const Token &field = tokens[i];
                     ++i;
                     expr = new DotExpression(tok_dot, expr, field);
                 } else if (tokens[i].type == ARROW) {
@@ -448,7 +448,7 @@ const Expression *Parser::parseAtom()
                     if (tokens[i].type != IDENTIFIER) {
                         error(2066, tokens[i], "identifier expected");
                     }
-                    const std::string field = tokens[i].text;
+                    const Token &field = tokens[i];
                     ++i;
                     expr = new ArrowExpression(tok_arrow, expr, field);
                 } else {
@@ -648,12 +648,12 @@ const Expression *Parser::parseExpression()
 
 const Parser::VariableInfo Parser::parseVariableDeclaration()
 {
-    std::vector<std::string> names;
+    std::vector<Token> names;
     for (;;) {
         if (tokens[i].type != IDENTIFIER) {
             error(2018, tokens[i], "identifier expected");
         }
-        std::string name = tokens[i].text;
+        const Token &name = tokens[i];
         ++i;
         names.push_back(name);
         if (tokens[i].type != COMMA) {
@@ -669,13 +669,13 @@ const Parser::VariableInfo Parser::parseVariableDeclaration()
     return make_pair(names, t);
 }
 
-void Parser::parseFunctionHeader(std::string &type, std::string &name, const Type *&returntype, std::vector<const FunctionParameter *> &args)
+void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
         error(2023, tokens[i], "identifier expected");
     }
-    name = tokens[i].text;
+    name = tokens[i];
     ++i;
     if (tokens[i].type == DOT) {
         ++i;
@@ -683,7 +683,7 @@ void Parser::parseFunctionHeader(std::string &type, std::string &name, const Typ
             error(2068, tokens[i], "identifier expected");
         }
         type = name;
-        name = tokens[i].text;
+        name = tokens[i];
         ++i;
     }
     if (tokens[i].type != LPAREN) {
@@ -727,8 +727,8 @@ void Parser::parseFunctionHeader(std::string &type, std::string &name, const Typ
 const Statement *Parser::parseFunctionDefinition()
 {
     auto &tok_function = tokens[i];
-    std::string type;
-    std::string name;
+    Token type;
+    Token name;
     const Type *returntype;
     std::vector<const FunctionParameter *> args;
     parseFunctionHeader(type, name, returntype, args);
@@ -754,15 +754,14 @@ const Statement *Parser::parseExternalDefinition()
     if (tokens[i].type != FUNCTION) {
         error(2045, tokens[i], "FUNCTION expected");
     }
-    std::string type;
-    std::string name;
+    Token type;
+    Token name;
     const Type *returntype;
     std::vector<const FunctionParameter *> args;
     parseFunctionHeader(type, name, returntype, args);
     if (tokens[i].type != LBRACE) {
         error(2046, tokens[i], "{ expected");
     }
-    ++i;
     const DictionaryLiteralExpression *dict = parseDictionaryLiteral();
     if (tokens[i].type != RBRACE) {
         error(2047, tokens[i], "} expected");
@@ -806,22 +805,20 @@ const Statement *Parser::parseIfStatement()
     do {
         ++i;
         const Expression *cond = nullptr;
-        std::string name;
         if (tokens[i].type == VALID) {
             for (;;) {
-                auto &tok_valid = tokens[i];
                 ++i;
                 if (tokens[i].type != IDENTIFIER) {
                     error(2064, tokens[i], "identifier expected");
                 }
-                name = tokens[i].text;
+                const Token &name = tokens[i];
                 ++i;
                 if (tokens[i].type != ASSIGN) {
                     error(2065, tokens[i], "':=' expected");
                 }
                 ++i;
                 const Expression *ptr = parseExpression();
-                const Expression *valid = new ValidPointerExpression(tok_valid, name, ptr);
+                const Expression *valid = new ValidPointerExpression(name, name, ptr);
                 if (cond == nullptr) {
                     cond = valid;
                 } else {
@@ -998,7 +995,7 @@ const Statement *Parser::parseForStatement()
     if (tokens[i].type != IDENTIFIER) {
         error(2022, tokens[i], "identifier expected");
     }
-    const std::string var = tokens[i].text;
+    const Token &var = tokens[i];
     ++i;
     if (tokens[i].type != ASSIGN) {
         error(2044, tokens[i], "':=' expected");
@@ -1120,14 +1117,14 @@ const Statement *Parser::parseTryStatement()
             statements.push_back(stmt);
         }
     }
-    std::vector<std::pair<std::vector<std::string>, std::vector<const Statement *>>> catches;
+    std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> catches;
     while (tokens[i].type == EXCEPTION) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
             error(2060, tokens[i], "identifier expected");
         }
-        const std::string name = tokens[i].text;
-        std::vector<std::string> exceptions;
+        const Token &name = tokens[i];
+        std::vector<Token> exceptions;
         exceptions.push_back(name);
         ++i;
         std::vector<const Statement *> statements;
@@ -1157,7 +1154,7 @@ const Statement *Parser::parseRaiseStatement()
     if (tokens[i].type != IDENTIFIER) {
         error(2061, tokens[i], "identifier expected");
     }
-    const std::string name = tokens[i].text;
+    const Token &name = tokens[i];
     ++i;
     const Expression *info = nullptr;
     if (tokens[i].type == LPAREN) {
@@ -1175,7 +1172,7 @@ const Statement *Parser::parseImport()
     if (tokens[i].type != IDENTIFIER) {
         error(2032, tokens[i], "identifier expected");
     }
-    const std::string name = tokens[i].text;
+    const Token &name = tokens[i];
     ++i;
     return new ImportDeclaration(tok_import, name);
 }
@@ -1219,6 +1216,7 @@ const Statement *Parser::parseStatement()
     } else if (tokens[i].type == RAISE) {
         return parseRaiseStatement();
     } else if (tokens[i].type == IDENTIFIER) {
+        const Token &start = tokens[i];
         const Expression *expr = parseExpression();
         if (tokens[i].type == ASSIGN) {
             auto &tok_assign = tokens[i];
@@ -1228,7 +1226,7 @@ const Statement *Parser::parseStatement()
             vars.push_back(expr);
             return new AssignmentStatement(tok_assign, vars, rhs);
         } else {
-            return new ExpressionStatement(expr);
+            return new ExpressionStatement(start, expr);
         }
     } else {
         error(2033, tokens[i], "Identifier expected");

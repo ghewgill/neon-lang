@@ -246,10 +246,10 @@ public:
 
 class DotExpression: public Expression {
 public:
-    DotExpression(const Token &token, const Expression *base, const std::string &name): Expression(token), base(base), name(name) {}
+    DotExpression(const Token &token, const Expression *base, const Token &name): Expression(token), base(base), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
     const Expression *const base;
-    const std::string name;
+    const Token name;
 private:
     DotExpression(const DotExpression &);
     DotExpression &operator=(const DotExpression &);
@@ -257,10 +257,10 @@ private:
 
 class ArrowExpression: public Expression {
 public:
-    ArrowExpression(const Token &token, const Expression *base, const std::string &name): Expression(token), base(base), name(name) {}
+    ArrowExpression(const Token &token, const Expression *base, const Token &name): Expression(token), base(base), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
     const Expression *const base;
-    const std::string name;
+    const Token name;
 private:
     ArrowExpression(const ArrowExpression &);
     ArrowExpression &operator=(const ArrowExpression &);
@@ -427,9 +427,9 @@ private:
 
 class ValidPointerExpression: public Expression {
 public:
-    ValidPointerExpression(const Token &token, const std::string &name, const Expression *ptr): Expression(token), name(name), ptr(ptr) {}
+    ValidPointerExpression(const Token &token, const Token &name, const Expression *ptr): Expression(token), name(name), ptr(ptr) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::string name;
+    const Token name;
     const Expression *const ptr;
 private:
     ValidPointerExpression(const ValidPointerExpression &);
@@ -443,9 +443,9 @@ public:
         INOUT,
         OUT
     };
-    FunctionParameter(const Token &token, const std::string &name, const Type *type, Mode mode): token(token), name(name), type(type), mode(mode) {}
+    FunctionParameter(const Token &token, const Token &name, const Type *type, Mode mode): token(token), name(name), type(type), mode(mode) {}
     const Token token;
-    const std::string name;
+    const Token name;
     const Type *const type;
     const Mode mode;
 private:
@@ -465,9 +465,9 @@ public:
 
 class ImportDeclaration: public Declaration {
 public:
-    ImportDeclaration(const Token &token, const std::string &name): Declaration(token), name(name) {}
+    ImportDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::string name;
+    const Token name;
 };
 
 class TypeDeclaration: public Declaration {
@@ -494,9 +494,9 @@ private:
 
 class VariableDeclaration: public Declaration {
 public:
-    VariableDeclaration(const Token &token, const std::vector<std::string> &names, const Type *type, const Expression *value): Declaration(token), names(names), type(type), value(value) {}
+    VariableDeclaration(const Token &token, const std::vector<Token> &names, const Type *type, const Expression *value): Declaration(token), names(names), type(type), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::vector<std::string> names;
+    const std::vector<Token> names;
     const Type *const type;
     const Expression *const value;
 private:
@@ -506,9 +506,9 @@ private:
 
 class BaseFunctionDeclaration: public Declaration {
 public:
-    BaseFunctionDeclaration(const Token &token, const std::string &type, const std::string &name, const Type *returntype, const std::vector<const FunctionParameter *> &args): Declaration(token), type(type), name(name), returntype(returntype), args(args) {}
-    const std::string type;
-    const std::string name;
+    BaseFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args): Declaration(token), type(type), name(name), returntype(returntype), args(args) {}
+    const Token type;
+    const Token name;
     const Type *const returntype;
     const std::vector<const FunctionParameter *> args;
 private:
@@ -518,14 +518,14 @@ private:
 
 class FunctionDeclaration: public BaseFunctionDeclaration {
 public:
-    FunctionDeclaration(const Token &token, const std::string &type, const std::string &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const std::vector<const Statement *> &body): BaseFunctionDeclaration(token, type, name, returntype, args), body(body) {}
+    FunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const std::vector<const Statement *> &body): BaseFunctionDeclaration(token, type, name, returntype, args), body(body) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
     const std::vector<const Statement *> body;
 };
 
 class ExternalFunctionDeclaration: public BaseFunctionDeclaration {
 public:
-    ExternalFunctionDeclaration(const Token &token, const std::string &type, const std::string &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Expression *dict): BaseFunctionDeclaration(token, type, name, returntype, args), dict(dict) {}
+    ExternalFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Expression *dict): BaseFunctionDeclaration(token, type, name, returntype, args), dict(dict) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
     const Expression *const dict;
 private:
@@ -604,7 +604,7 @@ public:
 
 class ExpressionStatement: public Statement {
 public:
-    ExpressionStatement(const Expression *expr): Statement(expr->token), expr(expr) {}
+    ExpressionStatement(const Token &token, const Expression *expr): Statement(token), expr(expr) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
     const Expression *const expr;
 private:
@@ -614,9 +614,9 @@ private:
 
 class ForStatement: public BlockStatement {
 public:
-    ForStatement(const Token &token, const std::string &var, const Expression *start, const Expression *end, const Expression *step, const std::vector<const Statement *> &body): BlockStatement(token, body), var(var), start(start), end(end), step(step) {}
+    ForStatement(const Token &token, const Token &var, const Expression *start, const Expression *end, const Expression *step, const std::vector<const Statement *> &body): BlockStatement(token, body), var(var), start(start), end(end), step(step) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::string var;
+    const Token var;
     const Expression *const start;
     const Expression *const end;
     const Expression *const step;
@@ -648,9 +648,9 @@ public:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(const Token &token, const std::string &name, const Expression *info): Statement(token), name(name), info(info) {}
+    RaiseStatement(const Token &token, const Token &name, const Expression *info): Statement(token), name(name), info(info) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::string name;
+    const Token name;
     const Expression *const info;
 private:
     RaiseStatement(const RaiseStatement &);
@@ -679,9 +679,9 @@ private:
 
 class TryStatement: public BlockStatement {
 public:
-    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<std::string>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
+    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::vector<std::pair<std::vector<std::string>, std::vector<const Statement *>>> catches;
+    const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> catches;
 };
 
 class WhileStatement: public BlockStatement {

@@ -1,2 +1,4 @@
+% TODO location information
 FUNCTION foo(): Number
 END FUNCTION
+%<

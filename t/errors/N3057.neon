@@ -2,3 +2,4 @@ VAR a: Number
 VAR b: String
 
 a := b
+     %<

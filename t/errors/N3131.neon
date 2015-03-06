@@ -3,3 +3,4 @@ TYPE Point := RECORD
     y: Number
 END RECORD
 Point(1, "foo")
+         %<
