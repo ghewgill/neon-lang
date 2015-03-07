@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-#include "lexer.h"
 #include "number.h"
+#include "token.h"
 
 namespace pt {
 

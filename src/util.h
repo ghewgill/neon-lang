@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "lexer.h"
+#include "token.h"
 
 class CompilerError {
 public:

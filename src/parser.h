@@ -1,7 +1,9 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#include "lexer.h"
+#include <vector>
+
+#include "token.h"
 
 namespace pt { class Program; }
 
