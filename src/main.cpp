@@ -53,12 +53,8 @@ static void repl(int argc, char *argv[])
         } else {
             try {
                 exec(compile(analyze(parse(tokenize(s))), nullptr), argc, argv);
-            } catch (SourceError &error) {
-                fprintf(stderr, "%s\n", error.token.source.c_str());
-                fprintf(stderr, "%*s\n", error.token.column, "^");
-                fprintf(stderr, "Error N%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
-            } catch (InternalError &error) {
-                fprintf(stderr, "Compiler Internal Error: %s (%s:%d)\n", error.message.c_str(), error.file.c_str(), error.line);
+            } catch (CompilerError &error) {
+                error.write(std::cerr);
             }
         }
     }
@@ -130,13 +126,8 @@ int main(int argc, char *argv[])
                 disassemble(bytecode, std::cerr, &debug);
             }
 
-        } catch (SourceError &error) {
-            fprintf(stderr, "%s\n", error.token.source.c_str());
-            fprintf(stderr, "%*s\n", error.token.column, "^");
-            fprintf(stderr, "Error N%d: %d:%d %s %s (%s:%d)\n", error.number, error.token.line, error.token.column, error.token.tostring().c_str(), error.message.c_str(), error.file.c_str(), error.line);
-            exit(1);
-        } catch (InternalError &error) {
-            fprintf(stderr, "Compiler Internal Error: %s (%s:%d)\n", error.message.c_str(), error.file.c_str(), error.line);
+        } catch (CompilerError &error) {
+            error.write(std::cerr);
             exit(1);
         }
 

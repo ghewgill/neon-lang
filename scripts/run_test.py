@@ -30,15 +30,13 @@ def run(fn):
     errnum = None
     expected_stdout = ""
     expected_stderr = ""
-    expected_error_pos = []
+    expected_error_pos = {}
 
     if errors:
         for i, s in enumerate(src.split("\n"), 1):
             m = re.match(r"(\s*)%<(\d)?", s)
             if m is not None:
                 n = int(m.group(2)) if m.group(2) else 1
-                while n >= len(expected_error_pos):
-                    expected_error_pos.append(None)
                 expected_error_pos[n] = (i - 1, 1 + len(m.group(1)))
         errnum = os.path.splitext(os.path.basename(fn))[0]
         expected_stderr = errnum
@@ -79,23 +77,24 @@ def run(fn):
                 return False
             sys.exit(1)
         if expected_error_pos:
-            m = re.search(r"Error N\d+: (\d+):(\d+)", err)
-            assert m is not None
-            actual_line = int(m.group(1))
-            actual_col = int(m.group(2))
-            if (actual_line, actual_col) != expected_error_pos[1]:
-                print("")
-                print("*** WRONG ERROR LOCATION (expected {})".format(expected_error_pos[1]))
-                print("")
-                sys.stdout.write(err)
-                if todo:
-                    return False
-                sys.exit(1)
+            found = 0
+            for m in re.finditer(r"Error N\d+: (\d+):(\d+)", err):
+                actual_line = int(m.group(1))
+                actual_col = int(m.group(2))
+                if (actual_line, actual_col) != expected_error_pos[1+found]:
+                    print("")
+                    print("*** WRONG ERROR LOCATION (expected {})".format(expected_error_pos[1+found]))
+                    print("")
+                    sys.stdout.write(err)
+                    if todo:
+                        return False
+                    sys.exit(1)
+                found += 1
+            assert found == len(expected_error_pos), (found, len(expected_error_pos))
         elif errnum and errnum > "N2000":
             print("Need error location information for {}".format(errnum))
             if todo:
                 return False
-            # TODO: uncomment this when all error location information has been added
             sys.exit(1)
 
     if out != expected_stdout:

@@ -464,15 +464,16 @@ const Type *Analyzer::analyze(const pt::TypeEnum *type)
 const Type *Analyzer::analyze(const pt::TypeRecord *type)
 {
     std::vector<std::pair<std::string, const Type *>> fields;
-    std::set<std::string> field_names;
+    std::map<std::string, Token> field_names;
     for (auto x: type->fields) {
         std::string name = x.first.text;
-        if (field_names.find(name) != field_names.end()) {
-            error(3009, x.first, "duplicate field: " + x.first.text);
+        auto prev = field_names.find(name);
+        if (prev != field_names.end()) {
+            error2(3009, x.first, prev->second, "duplicate field: " + x.first.text);
         }
         const Type *t = analyze(x.second);
         fields.push_back(std::make_pair(name, t));
-        field_names.insert(name);
+        field_names[name] = x.first;
     }
     return new TypeRecord(fields);
 }

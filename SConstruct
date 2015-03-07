@@ -172,7 +172,6 @@ neondis = env.Program("bin/neondis", [
     "src/disassembler.cpp",
     "src/neondis.cpp",
     "src/number.cpp",
-    "src/util.cpp",
 ] + coverage_lib,
 )
 
