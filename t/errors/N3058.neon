@@ -4,4 +4,3 @@ VAR c: String
 
 a := c + " This is Neon here!"
 %<
-

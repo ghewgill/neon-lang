@@ -38,7 +38,7 @@ class Statement;
 
 class Scope {
 public:
-    Scope(Scope *parent): parent(parent), predeclared(false), names(), referenced(), count(0), forwards() {}
+    Scope(Scope *parent): parent(parent), predeclared(false), names(), declarations(), referenced(), count(0), forwards() {}
     virtual ~Scope() {}
 
     virtual void predeclare(Emitter &emitter) const;
@@ -46,7 +46,8 @@ public:
 
     Name *lookupName(const std::string &name);
     Name *lookupName(const std::string &name, int &enclosing);
-    void addName(const std::string &name, Name *ref, bool init_referenced = false);
+    Token getDeclaration(const std::string &name);
+    void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false);
     void scrubName(const std::string &name);
     int nextIndex();
     int getCount() const;
@@ -58,6 +59,7 @@ private:
     Scope *const parent;
     mutable bool predeclared;
     std::map<std::string, Name *> names;
+    std::map<std::string, Token> declarations;
     std::set<const Name *> referenced;
     int count;
     std::map<std::string, std::vector<TypePointer *>> forwards;
@@ -120,7 +122,7 @@ extern TypeBoolean *TYPE_BOOLEAN;
 
 class TypeNumber: public Type {
 public:
-    TypeNumber(): Type(Token(), "Number") {}
+    TypeNumber(const Token &declaration): Type(declaration, "Number") {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -149,7 +151,8 @@ public:
         INOUT,
         OUT
     };
-    ParameterType(Mode mode, const Type *type): mode(mode), type(type) {}
+    ParameterType(const Token &declaration, Mode mode, const Type *type): declaration(declaration), mode(mode), type(type) {}
+    const Token declaration;
     const Mode mode;
     const Type *type;
 private:
@@ -175,7 +178,7 @@ private:
 
 class TypeArray: public Type {
 public:
-    TypeArray(const Type *elementtype);
+    TypeArray(const Token &declaration, const Type *elementtype);
     const Type *elementtype;
 
     virtual bool is_equivalent(const Type *rhs) const;
@@ -194,7 +197,7 @@ extern TypeArray *TYPE_ARRAY_STRING;
 
 class TypeDictionary: public Type {
 public:
-    TypeDictionary(const Type *elementtype): Type(Token(), "dictionary"), elementtype(elementtype) {}
+    TypeDictionary(const Token &declaration, const Type *elementtype): Type(declaration, "dictionary"), elementtype(elementtype) {}
     const Type *elementtype;
 
     virtual bool is_equivalent(const Type *rhs) const;
@@ -210,8 +213,8 @@ private:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const std::vector<std::pair<std::string, const Type *>> &fields): Type(Token(), "record"), fields(fields), field_names(make_field_names(fields)) {}
-    const std::vector<std::pair<std::string, const Type *>> fields;
+    TypeRecord(const Token &declaration, const std::vector<std::pair<Token, const Type *>> &fields): Type(declaration, "record"), fields(fields), field_names(make_field_names(fields)) {}
+    const std::vector<std::pair<Token, const Type *>> fields;
     const std::map<std::string, size_t> field_names;
 
     virtual void predeclare(Emitter &emitter) const;
@@ -222,11 +225,11 @@ public:
 
     virtual std::string text() const { return "TypeRecord(...)"; }
 private:
-    static std::map<std::string, size_t> make_field_names(const std::vector<std::pair<std::string, const Type *>> &fields) {
+    static std::map<std::string, size_t> make_field_names(const std::vector<std::pair<Token, const Type *>> &fields) {
         std::map<std::string, size_t> r;
         size_t i = 0;
         for (auto f: fields) {
-            r[f.first] = i;
+            r[f.first.text] = i;
             i++;
         }
         return r;
@@ -235,12 +238,12 @@ private:
 
 class TypeForwardRecord: public TypeRecord {
 public:
-    TypeForwardRecord(): TypeRecord(std::vector<std::pair<std::string, const Type *>>()) {}
+    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, std::vector<std::pair<Token, const Type *>>()) {}
 };
 
 class TypePointer: public Type {
 public:
-    TypePointer(const TypeRecord *reftype): Type(Token(), "pointer"), reftype(reftype) {}
+    TypePointer(const Token &declaration, const TypeRecord *reftype): Type(declaration, "pointer"), reftype(reftype) {}
 
     const TypeRecord *reftype;
 
@@ -259,12 +262,12 @@ extern TypePointer *TYPE_POINTER;
 
 class TypeValidPointer: public TypePointer {
 public:
-    TypeValidPointer(const TypePointer *ptrtype): TypePointer(ptrtype->reftype) {}
+    TypeValidPointer(const TypePointer *ptrtype): TypePointer(Token(), ptrtype->reftype) {}
 };
 
 class TypeEnum: public TypeNumber {
 public:
-    TypeEnum(const std::map<std::string, int> &names);
+    TypeEnum(const Token &declaration, const std::map<std::string, int> &names);
     const std::map<std::string, int> names;
 
     virtual std::string text() const { return "TypeEnum(...)"; }
@@ -442,7 +445,7 @@ public:
 
 class ConstantNilExpression: public Expression {
 public:
-    ConstantNilExpression(): Expression(new TypePointer(nullptr), true) {}
+    ConstantNilExpression(): Expression(new TypePointer(Token(), nullptr), true) {}
 
     virtual Number eval_number() const { internal_error("ConstantNilExpression"); }
     virtual std::string eval_string() const { internal_error("ConstantNilExpression"); }
@@ -453,7 +456,7 @@ public:
 
 class ArrayLiteralExpression: public Expression {
 public:
-    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(elementtype), all_constant(elements)), elementtype(elementtype), elements(elements) {}
+    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(Token(), elementtype), all_constant(elements)), elementtype(elementtype), elements(elements) {}
 
     const Type *elementtype;
     const std::vector<const Expression *> elements;
@@ -472,7 +475,7 @@ private:
 
 class DictionaryLiteralExpression: public Expression {
 public:
-    DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(elementtype), all_constant(elements)), elementtype(elementtype), dict(make_dictionary(elements)) {}
+    DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(Token(), elementtype), all_constant(elements)), elementtype(elementtype), dict(make_dictionary(elements)) {}
 
     const Type *elementtype;
     const std::map<std::string, const Expression *> dict;
@@ -510,7 +513,7 @@ private:
 
 class NewRecordExpression: public Expression {
 public:
-    NewRecordExpression(const TypeRecord *reftype): Expression(new TypePointer(reftype), false), fields(reftype->fields.size()) {}
+    NewRecordExpression(const TypeRecord *reftype): Expression(new TypePointer(Token(), reftype), false), fields(reftype->fields.size()) {}
 
     const size_t fields;
 
@@ -1338,13 +1341,15 @@ class CaseStatement: public Statement {
 public:
     class WhenCondition {
     public:
+        WhenCondition(const Token &token): token(token) {}
         virtual ~WhenCondition() {}
+        const Token token;
         virtual bool overlaps(const WhenCondition *cond) const = 0;
         virtual void generate(Emitter &emitter) const = 0;
     };
     class ComparisonWhenCondition: public WhenCondition {
     public:
-        ComparisonWhenCondition(ComparisonExpression::Comparison comp, const Expression *expr): comp(comp), expr(expr) {}
+        ComparisonWhenCondition(const Token &token, ComparisonExpression::Comparison comp, const Expression *expr): WhenCondition(token), comp(comp), expr(expr) {}
         ComparisonExpression::Comparison comp;
         const Expression *expr;
         virtual bool overlaps(const WhenCondition *cond) const;
@@ -1355,7 +1360,7 @@ public:
     };
     class RangeWhenCondition: public WhenCondition {
     public:
-        RangeWhenCondition(const Expression *low_expr, const Expression *high_expr): low_expr(low_expr), high_expr(high_expr) {}
+        RangeWhenCondition(const Token &token, const Expression *low_expr, const Expression *high_expr): WhenCondition(token), low_expr(low_expr), high_expr(high_expr) {}
         const Expression *low_expr;
         const Expression *high_expr;
         virtual bool overlaps(const WhenCondition *cond) const;

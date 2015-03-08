@@ -1,7 +1,8 @@
 TYPE Suit := ENUM
     Heart
+    %<2
     Heart
-    %<
+    %<1
     Club
     Spade
     Diamond

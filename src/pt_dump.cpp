@@ -25,7 +25,7 @@ public:
         child(node->reftype);
     }
     virtual void visit(const TypeParameterised *node) {
-        write("TypeParameterised(" + node->name + ")");
+        write("TypeParameterised(" + node->name.text + ")");
         child(node->elementtype);
     }
 

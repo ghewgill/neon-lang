@@ -1,4 +1,5 @@
 TYPE Recordset := RECORD
+                  %<2
     ID: Number
     Name: String
 END RECORD
@@ -7,5 +8,5 @@ VAR a: POINTER TO Recordset
 
 IF VALID p := a THEN
     p->LastName
-       %<
+       %<1
 END IF

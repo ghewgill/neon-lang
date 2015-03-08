@@ -1,4 +1,5 @@
 VAR a: Number
+    %<2
 IF VALID a := p THEN
-         %<
+         %<1
 END IF

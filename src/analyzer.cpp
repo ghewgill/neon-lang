@@ -359,8 +359,8 @@ Analyzer::Analyzer(const pt::Program *program)
 {
 }
 
-TypeEnum::TypeEnum(const std::map<std::string, int> &names)
-  : TypeNumber(),
+TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &names)
+  : TypeNumber(declaration),
     names(names)
 {
     {
@@ -369,7 +369,7 @@ TypeEnum::TypeEnum(const std::map<std::string, int> &names)
         FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT, newscope);
         params.push_back(fp);
         Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, newscope, params);
-        f->scope->addName("self", fp, true);
+        f->scope->addName(Token(), "self", fp, true);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -441,7 +441,7 @@ const Type *Analyzer::analyze(const pt::TypeSimple *type)
     }
     const Type *r = dynamic_cast<const Type *>(name);
     if (r == nullptr) {
-        error(3012, type->token, "name is not a type");
+        error2(3012, type->token, name->declaration, "name is not a type");
     }
     return r;
 }
@@ -452,18 +452,19 @@ const Type *Analyzer::analyze(const pt::TypeEnum *type)
     int index = 0;
     for (auto x: type->names) {
         std::string name = x.first.text;
-        if (names.find(name) != names.end()) {
-            error(3010, x.first, "duplicate enum: " + name);
+        auto t = names.find(name);
+        if (t != names.end()) {
+            error2(3010, x.first, type->names[t->second].first, "duplicate enum: " + name);
         }
         names[name] = index;
         index++;
     }
-    return new TypeEnum(names);
+    return new TypeEnum(type->token, names);
 }
 
 const Type *Analyzer::analyze(const pt::TypeRecord *type)
 {
-    std::vector<std::pair<std::string, const Type *>> fields;
+    std::vector<std::pair<Token, const Type *>> fields;
     std::map<std::string, Token> field_names;
     for (auto x: type->fields) {
         std::string name = x.first.text;
@@ -472,10 +473,10 @@ const Type *Analyzer::analyze(const pt::TypeRecord *type)
             error2(3009, x.first, prev->second, "duplicate field: " + x.first.text);
         }
         const Type *t = analyze(x.second);
-        fields.push_back(std::make_pair(name, t));
+        fields.push_back(std::make_pair(x.first, t));
         field_names[name] = x.first;
     }
-    return new TypeRecord(fields);
+    return new TypeRecord(type->token, fields);
 }
 
 const Type *Analyzer::analyze(const pt::TypePointer *type)
@@ -484,7 +485,7 @@ const Type *Analyzer::analyze(const pt::TypePointer *type)
         const pt::TypeSimple *simple = dynamic_cast<const pt::TypeSimple *>(type->reftype);
         if (simple != nullptr && scope.top()->lookupName(simple->name) == nullptr) {
             const std::string name = simple->name;
-            TypePointer *ptrtype = new TypePointer(new TypeForwardRecord());
+            TypePointer *ptrtype = new TypePointer(type->token, new TypeForwardRecord(type->reftype->token));
             scope.top()->addForward(name, ptrtype);
             return ptrtype;
         } else {
@@ -493,20 +494,20 @@ const Type *Analyzer::analyze(const pt::TypePointer *type)
             if (rectype == nullptr) {
                 error(3098, type->reftype->token, "record type expected");
             }
-            return new TypePointer(rectype);
+            return new TypePointer(type->token, rectype);
         }
     } else {
-        return new TypePointer(nullptr);
+        return new TypePointer(type->token, nullptr);
     }
 }
 
 const Type *Analyzer::analyze(const pt::TypeParameterised *type)
 {
-    if (type->name == "Array") {
-        return new TypeArray(analyze(type->elementtype));
+    if (type->name.text == "Array") {
+        return new TypeArray(type->name, analyze(type->elementtype));
     }
-    if (type->name == "Dictionary") {
-        return new TypeDictionary(analyze(type->elementtype));
+    if (type->name.text == "Dictionary") {
+        return new TypeDictionary(type->name, analyze(type->elementtype));
     }
     internal_error("Invalid parameterized type");
 }
@@ -552,13 +553,15 @@ const Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
 const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
 {
     std::vector<std::pair<std::string, const Expression *>> elements;
-    std::set<std::string> keys;
+    std::map<std::string, Token> keys;
     const Type *elementtype = nullptr;
     for (auto x: expr->elements) {
         std::string key = x.first.text;
-        if (not keys.insert(key).second) {
-            error(3080, x.first, "duplicate key");
+        auto i = keys.find(key);
+        if (i != keys.end()) {
+            error2(3080, x.first, i->second, "duplicate key");
         }
+        keys[key] = x.first;
         const Expression *element = analyze(x.second);
         if (elementtype == nullptr) {
             elementtype = element->type;
@@ -617,7 +620,7 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (enumtype != nullptr) {
             auto name = enumtype->names.find(expr->name.text);
             if (name == enumtype->names.end()) {
-                error(3023, expr->name, "identifier not member of enum: " + expr->name.text);
+                error2(3023, expr->name, enumtype->declaration, "identifier not member of enum: " + expr->name.text);
             }
             return new ConstantEnumExpression(enumtype, name->second);
         }
@@ -630,7 +633,7 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
         }
         auto f = recordtype->field_names.find(expr->name.text);
         if (f == recordtype->field_names.end()) {
-            error(3045, expr->name, "field not found");
+            error2(3045, expr->name, recordtype->declaration, "field not found");
         }
         const Type *type = recordtype->fields[f->second].second;
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
@@ -658,11 +661,11 @@ const Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
         error(3117, expr->base->token, "pointer must not be a generic pointer");
     }
     if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-        error(3104, expr->base->token, "record not defined yet");
+        error2(3104, expr->base->token, recordtype->declaration, "record not defined yet");
     }
     auto f = recordtype->field_names.find(expr->name.text);
     if (f == recordtype->field_names.end()) {
-        error(3111, expr->name, "field not found");
+        error2(3111, expr->name, recordtype->declaration, "field not found");
     }
     const Type *type = recordtype->fields[f->second].second;
     const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, base);
@@ -678,7 +681,7 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
     const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
     if (arraytype != nullptr) {
         if (not index->type->is_equivalent(TYPE_NUMBER)) {
-            error(3041, expr->index->token, "index must be a number");
+            error2(3041, expr->index->token, arraytype->declaration, "index must be a number");
         }
         type = arraytype->elementtype;
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
@@ -689,7 +692,7 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         }
     } else if (dicttype != nullptr) {
         if (not index->type->is_equivalent(TYPE_STRING)) {
-            error(3042, expr->index->token, "index must be a string");
+            error2(3042, expr->index->token, dicttype->declaration, "index must be a string");
         }
         type = dicttype->elementtype;
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
@@ -709,7 +712,7 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
             return new StringValueIndexExpression(base, index);
         }
     } else {
-        error(3044, expr->token, "not an array or dictionary");
+        error2(3044, expr->token, type->declaration, "not an array or dictionary");
     }
 }
 
@@ -804,16 +807,17 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
         if (recordtype != nullptr) {
             if (expr->args.size() != recordtype->fields.size()) {
-                error(3130, expr->args[recordtype->fields.size()]->token, "wrong number of fields");
+                error2(3130, expr->args[recordtype->fields.size()]->token, recordtype->declaration, "wrong number of fields");
             }
             std::vector<const Expression *> elements;
             auto f = recordtype->fields.begin();
             for (auto x: expr->args) {
                 const Expression *element = analyze(x);
                 if (not element->type->is_equivalent(f->second)) {
-                    error(3131, x->token, "type mismatch");
+                    error2(3131, x->token, f->first, "type mismatch");
                 }
                 elements.push_back(element);
+                ++f;
             }
             return new RecordLiteralExpression(recordtype, elements);
         }
@@ -863,14 +867,14 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         if (ftype->params[p]->mode != ParameterType::IN) {
             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
             if (ref == nullptr) {
-                error(3018, a->token, "function call argument must be reference: " + e->text());
+                error2(3018, a->token, ftype->params[p]->declaration, "function call argument must be reference: " + e->text());
             }
             if (ref->is_readonly) {
                 error(3106, a->token, "readonly parameter to OUT");
             }
         }
         if (not e->type->is_equivalent(ftype->params[p]->type)) {
-            error(3019, a->token, "type mismatch");
+            error2(3019, a->token, ftype->params[p]->declaration, "type mismatch");
         }
         args.push_back(e);
         ++p;
@@ -1111,20 +1115,21 @@ const Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
     if (scope.top()->lookupName(declaration->name.text) != nullptr) {
-        error(3114, declaration->name, "name shadows outer");
+        error2(3114, declaration->name, scope.top()->getDeclaration(declaration->name.text), "duplicate definition of name");
     }
-    rtl_import(scope.top(), declaration->name.text);
+    rtl_import(declaration->name, scope.top(), declaration->name.text);
     return new NullStatement(declaration->token.line);
 }
 
 const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
 {
     std::string name = declaration->token.text;
-    if (scope.top()->lookupName(name) != nullptr) {
-        error(3013, declaration->token, "name shadows outer");
+    const Name *decl = scope.top()->lookupName(name);
+    if (decl != nullptr) {
+        error2(3013, declaration->token, decl->declaration, "name shadows outer");
     }
     const Type *type = analyze(declaration->type);
-    scope.top()->addName(name, const_cast<Type *>(type)); // Still ugly.
+    scope.top()->addName(declaration->token, name, const_cast<Type *>(type)); // Still ugly.
     const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
     if (rectype != nullptr) {
         scope.top()->resolveForward(name, rectype);
@@ -1135,8 +1140,9 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
 const Statement *Analyzer::analyze(const pt::ConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    if (scope.top()->lookupName(name) != nullptr) {
-        error(3014, declaration->token, "name shadows outer");
+    const Name *decl = scope.top()->lookupName(name);
+    if (decl != nullptr) {
+        error2(3014, declaration->token, decl->declaration, "name shadows outer");
     }
     const Type *type = analyze(declaration->type);
     const Expression *value = analyze(declaration->value);
@@ -1146,7 +1152,7 @@ const Statement *Analyzer::analyze(const pt::ConstantDeclaration *declaration)
     if (not value->is_constant) {
         error(3016, declaration->value->token, "value must be constant");
     }
-    scope.top()->addName(name, new Constant(declaration->name, name, value));
+    scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, value));
     return new NullStatement(declaration->token.line);
 }
 
@@ -1155,8 +1161,9 @@ const Statement *Analyzer::analyze(const pt::VariableDeclaration *declaration)
     const Type *type = analyze(declaration->type);
     std::vector<Variable *> variables;
     for (auto name: declaration->names) {
-        if (scope.top()->lookupName(name.text) != nullptr) {
-            error(3038, name, "name shadows outer");
+        const Name *decl = scope.top()->lookupName(name.text);
+        if (decl != nullptr) {
+            error2(3038, name, scope.top()->getDeclaration(name.text), "name shadows outer");
         }
         Variable *v;
         if (scope.top() == global_scope) {
@@ -1173,13 +1180,13 @@ const Statement *Analyzer::analyze(const pt::VariableDeclaration *declaration)
             error(3113, declaration->value->token, "type mismatch");
         }
         for (auto v: variables) {
-            scope.top()->addName(v->name, v, true);
+            scope.top()->addName(v->declaration, v->name, v, true);
             refs.push_back(new VariableExpression(v));
         }
         return new AssignmentStatement(declaration->token.line, refs, expr);
     } else {
         for (auto v: variables) {
-            scope.top()->addName(v->name, v);
+            scope.top()->addName(v->declaration, v->name, v);
         }
         return new NullStatement(declaration->token.line);
     }
@@ -1196,7 +1203,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         }
         type = dynamic_cast<Type *>(tname);
         if (type == nullptr) {
-            error(3127, declaration->type, "type name is not a type");
+            error2(3127, declaration->type, tname->declaration, "type name is not a type");
         }
     }
     std::string name = declaration->name.text;
@@ -1218,7 +1225,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         }
         FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, newscope);
         args.push_back(fp);
-        newscope->addName(x->name.text, fp, true);
+        newscope->addName(x->name, x->name.text, fp, true);
     }
     if (type != nullptr && args.empty()) {
         error(3129, declaration->token, "expected self parameter");
@@ -1239,10 +1246,10 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         if (function != nullptr) {
             newscope = function->scope;
         } else if (ident != nullptr) {
-            error(3047, declaration->name, "name shadows outer");
+            error2(3047, declaration->name, scope.top()->getDeclaration(name), "duplicate definition of name");
         } else {
             function = new Function(declaration->name, name, returntype, newscope, args);
-            scope.top()->addName(name, function);
+            scope.top()->addName(declaration->name, name, function);
         }
     }
     return new NullStatement(declaration->token.line);
@@ -1290,8 +1297,9 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
 const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    if (scope.top()->lookupName(name) != nullptr) {
-        error(3092, declaration->name, "name shadows outer");
+    auto decl = scope.top()->lookupName(name);
+    if (decl != nullptr) {
+        error2(3092, declaration->name, decl->declaration, "name shadows outer");
     }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
     Scope *newscope = new Scope(scope.top());
@@ -1306,7 +1314,7 @@ const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declar
         const Type *ptype = analyze(x->type);
         FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, newscope);
         args.push_back(fp);
-        newscope->addName(x->name.text, fp, true);
+        newscope->addName(x->name, x->name.text, fp, true);
     }
     const DictionaryLiteralExpression *dict = dynamic_cast<const DictionaryLiteralExpression *>(analyze(declaration->dict));
     if (not dict->is_constant) {
@@ -1349,7 +1357,7 @@ const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declar
     }
 
     ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, newscope, args, library_name, param_types);
-    scope.top()->addName(name, function);
+    scope.top()->addName(declaration->name, name, function);
     return new NullStatement(declaration->token.line);
 }
 
@@ -1357,9 +1365,9 @@ const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
     if (scope.top()->lookupName(name) != nullptr) {
-        error(3115, declaration->token, "name shadows outer");
+        error2(3115, declaration->token, scope.top()->getDeclaration(name), "duplicate definition of name");
     }
-    scope.top()->addName(name, new Exception(declaration->name, name));
+    scope.top()->addName(declaration->name, name, new Exception(declaration->name, name));
     return new NullStatement(declaration->token.line);
 }
 
@@ -1420,11 +1428,11 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                     error(3052, cwc->expr->token, "WHEN condition must be constant");
                 }
                 ComparisonExpression::Comparison comp = (ComparisonExpression::Comparison)cwc->comp; // TODO: remove cast
-                const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(comp, when);
+                const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(cwc->expr->token, comp, when);
                 for (auto clause: clauses) {
                     for (auto c: clause.first) {
                         if (cond->overlaps(c)) {
-                            error(3062, cwc->expr->token, "overlapping case condition");
+                            error2(3062, cwc->expr->token, c->token, "overlapping case condition");
                         }
                     }
                 }
@@ -1461,11 +1469,11 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 } else {
                     internal_error("range condition type");
                 }
-                const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(when, when2);
+                const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(rwc->low_expr->token, when, when2);
                 for (auto clause: clauses) {
                     for (auto c: clause.first) {
                         if (cond->overlaps(c)) {
-                            error(3064, rwc->low_expr->token, "overlapping case condition");
+                            error2(3064, rwc->low_expr->token, c->token, "overlapping case condition");
                         }
                     }
                 }
@@ -1666,13 +1674,13 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     Name *name = scope.top()->lookupName(statement->var.text);
     Variable *var = dynamic_cast<Variable *>(name);
     if (var == nullptr) {
-        error(3118, statement->var, "name not a variable: " + statement->var.text);
+        error2(3118, statement->var, scope.top()->getDeclaration(statement->var.text), "name not a variable: " + statement->var.text);
     }
     if (not var->type->is_equivalent(TYPE_NUMBER)) {
-        error(3066, statement->var, "type mismatch");
+        error2(3066, statement->var, scope.top()->getDeclaration(statement->var.text), "type mismatch");
     }
     if (var->is_readonly) {
-        error(3125, statement->var, "cannot use readonly variable in FOR loop");
+        error2(3125, statement->var, scope.top()->getDeclaration(statement->var.text), "cannot use readonly variable in FOR loop");
     }
     var->is_readonly = true;
     const Expression *start = analyze(statement->start);
@@ -1715,7 +1723,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
         const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(c.first);
         if (valid != nullptr) {
             if (scope.top()->lookupName(valid->name.text) != nullptr) {
-                error(3102, valid->name, "name shadows outer");
+                error2(3102, valid->name, scope.top()->getDeclaration(valid->name.text), "name shadows outer");
             }
             const Expression *ptr = analyze(valid->ptr);
             const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
@@ -1730,7 +1738,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
             } else {
                 v = new LocalVariable(valid->name, valid->name.text, vtype, scope.top(), true);
             }
-            scope.top()->addName(valid->name.text, v, true);
+            scope.top()->addName(valid->name, valid->name.text, v, true);
             cond = new ValidPointerExpression(v, ptr);
         } else {
             cond = analyze(c.first);
@@ -1774,7 +1782,7 @@ const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
     }
     const Exception *exception = dynamic_cast<const Exception *>(name);
     if (exception == nullptr) {
-        error(3090, statement->name, "name not an exception");
+        error2(3090, statement->name, name->declaration, "name not an exception");
     }
     const Expression *info = statement->info != nullptr ? analyze(statement->info) : new ConstantStringExpression("");
     return new RaiseStatement(statement->token.line, exception, info);
@@ -1817,7 +1825,7 @@ const Statement *Analyzer::analyze(const pt::TryStatement *statement)
         }
         const Exception *exception = dynamic_cast<const Exception *>(name);
         if (exception == nullptr) {
-            error(3088, x.first.at(0), "name not an exception");
+            error2(3088, x.first.at(0), name->declaration, "name not an exception");
         }
         std::vector<const Exception *> exceptions;
         exceptions.push_back(exception);

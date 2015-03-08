@@ -12,13 +12,13 @@ void rtl_compile_init(Scope *scope)
             if (p.p == nullptr) {
                 break;
             }
-            params.push_back(new ParameterType(p.m, p.p));
+            params.push_back(new ParameterType(Token(), p.m, p.p));
         }
-        scope->addName(f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
+        scope->addName(Token(), f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
     }
 }
 
-void rtl_import(Scope *scope, const std::string &name)
+void rtl_import(const Token &token, Scope *scope, const std::string &name)
 {
     std::string prefix = name + "$";
     Module *module = new Module(Token(), scope, name);
@@ -31,10 +31,10 @@ void rtl_import(Scope *scope, const std::string &name)
                 if (p.p == nullptr) {
                     break;
                 }
-                params.push_back(new ParameterType(p.m, p.p));
+                params.push_back(new ParameterType(Token(), p.m, p.p));
             }
-            module->scope->addName(qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
+            module->scope->addName(Token(), qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
         }
     }
-    scope->addName(name, module);
+    scope->addName(token, name, module);
 }

@@ -182,9 +182,9 @@ private:
 
 class TypeParameterised: public Type {
 public:
-    TypeParameterised(const Token &name, const Type *elementtype): Type(name), name(token.text), elementtype(elementtype) {}
+    TypeParameterised(const Token &name, const Type *elementtype): Type(name), name(token), elementtype(elementtype) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::string name;
+    const Token name;
     const Type *const elementtype;
 private:
     TypeParameterised(const TypeParameterised &);

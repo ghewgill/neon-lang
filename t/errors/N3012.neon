@@ -1,3 +1,4 @@
 VAR Integer: Number
+    %<2
 VAR a: Integer
-       %<
+       %<1

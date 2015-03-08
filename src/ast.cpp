@@ -8,11 +8,11 @@
 
 TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
-TypeNumber *TYPE_NUMBER = new TypeNumber();
+TypeNumber *TYPE_NUMBER = new TypeNumber(Token());
 TypeString *TYPE_STRING = new TypeString();
-TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(TYPE_NUMBER);
-TypeArray *TYPE_ARRAY_STRING = new TypeArray(TYPE_STRING);
-TypePointer *TYPE_POINTER = new TypePointer(nullptr);
+TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(Token(), TYPE_NUMBER);
+TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
+TypePointer *TYPE_POINTER = new TypePointer(Token(), nullptr);
 TypeModule *TYPE_MODULE = new TypeModule();
 TypeException *TYPE_EXCEPTION = new TypeException();
 
@@ -22,13 +22,13 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
-TypeArray::TypeArray(const Type *elementtype)
-  : Type(Token(), "array"),
+TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
+  : Type(declaration, "array"),
     elementtype(elementtype)
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::IN, this));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this));
         methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params));
     }
 }
@@ -225,7 +225,20 @@ Name *Scope::lookupName(const std::string &name, int &enclosing)
     return nullptr;
 }
 
-void Scope::addName(const std::string &name, Name *ref, bool init_referenced)
+Token Scope::getDeclaration(const std::string &name)
+{
+    Scope *s = this;
+    while (s != nullptr) {
+        auto d = s->declarations.find(name);
+        if (d != s->declarations.end()) {
+            return d->second;
+        }
+        s = s->parent;
+    }
+    return Token();
+}
+
+void Scope::addName(const Token &token, const std::string &name, Name *ref, bool init_referenced)
 {
     if (lookupName(name) != nullptr) {
         // If this error occurs, it means a new name was introduced
@@ -235,6 +248,7 @@ void Scope::addName(const std::string &name, Name *ref, bool init_referenced)
         // pass to the normal error function.
         internal_error("name presence not checked: " + name);
     }
+    declarations[name] = token;
     names[name] = ref;
     if (init_referenced) {
         referenced.insert(ref);
@@ -288,7 +302,7 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
 {
     std::vector<const ParameterType *> paramtypes;
     for (auto p: params) {
-        paramtypes.push_back(new ParameterType(p->mode, p->type));
+        paramtypes.push_back(new ParameterType(p->declaration, p->mode, p->type));
     }
     return new TypeFunction(returntype, paramtypes);
 }
@@ -297,49 +311,49 @@ Program::Program()
   : scope(new Scope(nullptr)),
     statements()
 {
-    scope->addName("Boolean", TYPE_BOOLEAN);
-    scope->addName("Number", TYPE_NUMBER);
-    scope->addName("String", TYPE_STRING);
+    scope->addName(Token(), "Boolean", TYPE_BOOLEAN);
+    scope->addName(Token(), "Number", TYPE_NUMBER);
+    scope->addName(Token(), "String", TYPE_STRING);
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::IN, TYPE_BOOLEAN));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BOOLEAN));
         TYPE_BOOLEAN->methods["to_string"] = new PredefinedFunction("boolean__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::IN, TYPE_NUMBER));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER));
         TYPE_NUMBER->methods["to_string"] = new PredefinedFunction("number__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(ParameterType::IN, TYPE_STRING));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING));
         TYPE_STRING->methods["length"] = new PredefinedFunction("string__length", new TypeFunction(TYPE_NUMBER, params));
     }
 
-    scope->addName("DivideByZero", new Exception(Token(), "DivideByZero"));
-    scope->addName("ArrayIndex", new Exception(Token(), "ArrayIndex"));
-    scope->addName("DictionaryIndex", new Exception(Token(), "DictionaryIndex"));
-    scope->addName("FunctionNotFound", new Exception(Token(), "FunctionNotFound"));
-    scope->addName("LibraryNotFound", new Exception(Token(), "LibraryNotFound"));
+    scope->addName(Token(), "DivideByZero", new Exception(Token(), "DivideByZero"));
+    scope->addName(Token(), "ArrayIndex", new Exception(Token(), "ArrayIndex"));
+    scope->addName(Token(), "DictionaryIndex", new Exception(Token(), "DictionaryIndex"));
+    scope->addName(Token(), "FunctionNotFound", new Exception(Token(), "FunctionNotFound"));
+    scope->addName(Token(), "LibraryNotFound", new Exception(Token(), "LibraryNotFound"));
 
-    scope->addName("DirectoryExists", new Exception(Token(), "DirectoryExists"));
-    scope->addName("PathNotFound", new Exception(Token(), "PathNotFound"));
-    scope->addName("PermissionDenied", new Exception(Token(), "PermissionDenied"));
+    scope->addName(Token(), "DirectoryExists", new Exception(Token(), "DirectoryExists"));
+    scope->addName(Token(), "PathNotFound", new Exception(Token(), "PathNotFound"));
+    scope->addName(Token(), "PermissionDenied", new Exception(Token(), "PermissionDenied"));
 
     {
         // The fields here must match the corresponding references to
         // ExceptionType in exec.cpp.
-        std::vector<std::pair<std::string, const Type *>> fields;
-        fields.push_back(std::make_pair("name", TYPE_STRING));
-        fields.push_back(std::make_pair("info", TYPE_STRING));
-        fields.push_back(std::make_pair("offset", TYPE_NUMBER));
-        Type *exception_type = new TypeRecord(fields);
-        scope->addName("ExceptionType", exception_type, true);
+        std::vector<std::pair<Token, const Type *>> fields;
+        fields.push_back(std::make_pair(Token("name"), TYPE_STRING));
+        fields.push_back(std::make_pair(Token("info"), TYPE_STRING));
+        fields.push_back(std::make_pair(Token("offset"), TYPE_NUMBER));
+        Type *exception_type = new TypeRecord(Token(), fields);
+        scope->addName(Token(), "ExceptionType", exception_type, true);
         GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);
-        scope->addName("CURRENT_EXCEPTION", current_exception, true);
+        scope->addName(Token(), "CURRENT_EXCEPTION", current_exception, true);
     }
 
     rtl_compile_init(scope);

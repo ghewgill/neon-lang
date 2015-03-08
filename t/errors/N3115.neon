@@ -1,3 +1,4 @@
 DECLARE EXCEPTION a
+                  %<2
 DECLARE EXCEPTION a
-                  %<
+                  %<1

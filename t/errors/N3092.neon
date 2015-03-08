@@ -1,8 +1,9 @@
 FUNCTION foo()
+         %<2
 END FUNCTION
 
 EXTERNAL FUNCTION foo()
-                  %<
+                  %<1
 {
 }
 END FUNCTION

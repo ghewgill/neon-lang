@@ -1,5 +1,6 @@
 % TODO location information
 
 TYPE T := RECORD END RECORD
+     %<2
 print("\(T())")
-         %<
+         %<1

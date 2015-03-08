@@ -1,6 +1,7 @@
 VAR a: POINTER TO Node
+                  %<2
 
 IF VALID p := a THEN
     p->value := 5
-    %<
+    %<1
 END IF

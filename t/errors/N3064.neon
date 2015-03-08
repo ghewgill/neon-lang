@@ -3,8 +3,9 @@ a := "Hello, World!"
 
 CASE a
     WHEN "E" TO "H" DO
+         %<2
         print("a is == 5")
     WHEN "H" TO "H", "L", "O" DO
-         %<
+         %<1
         print("a is Aloha.")
 END CASE

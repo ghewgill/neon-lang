@@ -1,5 +1,6 @@
 VAR foo: String
+    %<2
 TRY
 EXCEPTION foo
-          %<
+          %<1
 END TRY

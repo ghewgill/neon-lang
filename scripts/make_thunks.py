@@ -178,7 +178,7 @@ with open("src/constants_compile.inc", "w") as inc:
     print >>inc, "{"
     for name, ctype, init in constants.values():
         if "$" not in name:
-            print >>inc, "    scope->addName(\"{}\", new Constant(Token(), \"{}\", {}));".format(name, name, init)
+            print >>inc, "    scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(name, name, init)
     print >>inc, "}";
     print >>inc, "static void init_builtin_constants(const std::string &module, Scope *scope)"
     print >>inc, "{"
@@ -186,7 +186,7 @@ with open("src/constants_compile.inc", "w") as inc:
         i = name.index("$")
         module = name[:i]
         modname = name[i+1:]
-        print >>inc, "    if (module == \"{}\") scope->addName(\"{}\", new Constant(Token(), \"{}\", {}));".format(module, modname, modname, init)
+        print >>inc, "    if (module == \"{}\") scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(module, modname, modname, init)
     print >>inc, "}";
 
 with open("src/functions_compile.inc", "w") as inc:
