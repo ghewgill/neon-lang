@@ -1,7 +1,8 @@
 VAR lib: Dictionary<String>
 
 lib := {
+       %<2
      "Key1": "Value1"
      "key2": "value2"
 END
-%<
+%<1

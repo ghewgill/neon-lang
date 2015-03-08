@@ -4,5 +4,7 @@ END FUNCTION
 
 VAR b: Number
 
-b := (a(1, 2) + 5 a
-                  %<
+b := (a(1, 2) + 5
+     %<2
+a
+%<1

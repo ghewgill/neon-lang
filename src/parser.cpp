@@ -100,10 +100,11 @@ const Type *Parser::parseParameterisedType()
     if (tokens[i].type != LESS) {
         error(2002, tokens[i], "'<' expected");
     }
+    auto &tok_less = tokens[i];
     i++;
     const Type *elementtype = parseType();
     if (tokens[i].type != GREATER) {
-        error(2003, tokens[i], "'>' expected");
+        error2(2003, tokens[i], tok_less, "'>' expected");
     }
     i++;
     return new TypeParameterised(tok_type, elementtype);
@@ -272,7 +273,7 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral()
         if (tokens[i].type == COMMA) {
             ++i;
         } else if (tokens[i].type != RBRACKET) {
-            error(2053, tokens[i], "',' or ']' expected");
+            error2(2053, tokens[i], tok_lbracket, "',' or ']' expected");
         }
     }
     ++i;
@@ -297,6 +298,10 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
             ++i;
         }
     }
+    if (tokens[i].type != RBRACE) {
+        error2(2049, tokens[i], tok_lbrace, "'}' expected");
+    }
+    ++i;
     return new DictionaryLiteralExpression(tok_lbrace, elements);
 }
 
@@ -351,10 +356,11 @@ const Expression *Parser::parseAtom()
 {
     switch (tokens[i].type) {
         case LPAREN: {
+            auto &tok_lparen = tokens[i];
             ++i;
             const Expression *expr = parseExpression();
             if (tokens[i].type != RPAREN) {
-                error(2014, tokens[i], ") expected");
+                error2(2014, tokens[i], tok_lparen, ") expected");
             }
             ++i;
             return expr;
@@ -365,10 +371,6 @@ const Expression *Parser::parseAtom()
         }
         case LBRACE: {
             const Expression *dict = parseDictionaryLiteral();
-            if (tokens[i].type != RBRACE) {
-                error(2049, tokens[i], "'}' expected");
-            }
-            ++i;
             return dict;
         }
         case FALSE: {
@@ -763,10 +765,6 @@ const Statement *Parser::parseExternalDefinition()
         error(2046, tokens[i], "{ expected");
     }
     const DictionaryLiteralExpression *dict = parseDictionaryLiteral();
-    if (tokens[i].type != RBRACE) {
-        error(2047, tokens[i], "} expected");
-    }
-    ++i;
     if (tokens[i].type != END) {
         error(2050, tokens[i], "'END' expected");
     }
