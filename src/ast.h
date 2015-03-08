@@ -1346,6 +1346,9 @@ public:
         const Token token;
         virtual bool overlaps(const WhenCondition *cond) const = 0;
         virtual void generate(Emitter &emitter) const = 0;
+    private:
+        WhenCondition(const WhenCondition &);
+        WhenCondition &operator=(const WhenCondition &);
     };
     class ComparisonWhenCondition: public WhenCondition {
     public:
