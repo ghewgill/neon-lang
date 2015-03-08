@@ -482,9 +482,9 @@ private:
 
 class ConstantDeclaration: public Declaration {
 public:
-    ConstantDeclaration(const Token &token, const std::string &name, const Type *type, const Expression *value): Declaration(token), name(name), type(type), value(value) {}
+    ConstantDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token), name(name), type(type), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::string name;
+    const Token name;
     const Type *const type;
     const Expression *const value;
 private:
@@ -535,9 +535,9 @@ private:
 
 class ExceptionDeclaration: public Declaration {
 public:
-    ExceptionDeclaration(const Token &token, const std::string &name): Declaration(token), name(name) {}
+    ExceptionDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const std::string name;
+    const Token name;
 };
 
 class BlockStatement: public Statement {

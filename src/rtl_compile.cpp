@@ -21,7 +21,7 @@ void rtl_compile_init(Scope *scope)
 void rtl_import(Scope *scope, const std::string &name)
 {
     std::string prefix = name + "$";
-    Module *module = new Module(scope, name);
+    Module *module = new Module(Token(), scope, name);
     init_builtin_constants(name, module->scope);
     for (auto f: BuiltinFunctions) {
         std::string qualified_name(f.name);

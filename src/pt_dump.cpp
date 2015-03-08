@@ -180,7 +180,7 @@ public:
         child(node->type);
     }
     virtual void visit(const ConstantDeclaration *node) {
-        write("ConstantDeclaration(" + node->name + ")");
+        write("ConstantDeclaration(" + node->name.text + ")");
         child(node->type);
         child(node->value);
     }
@@ -224,7 +224,7 @@ public:
         child(node->dict);
     }
     virtual void visit(const ExceptionDeclaration *node) {
-        write("ExceptionDeclaration(" + node->name + ")");
+        write("ExceptionDeclaration(" + node->name.text + ")");
     }
 
     virtual void visit(const AssignmentStatement *node) {

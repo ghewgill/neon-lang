@@ -23,7 +23,7 @@ void AstNode::dump(std::ostream &out, int depth) const
 }
 
 TypeArray::TypeArray(const Type *elementtype)
-  : Type("array"),
+  : Type(Token(), "array"),
     elementtype(elementtype)
 {
     {
@@ -319,15 +319,15 @@ Program::Program()
         TYPE_STRING->methods["length"] = new PredefinedFunction("string__length", new TypeFunction(TYPE_NUMBER, params));
     }
 
-    scope->addName("DivideByZero", new Exception("DivideByZero"));
-    scope->addName("ArrayIndex", new Exception("ArrayIndex"));
-    scope->addName("DictionaryIndex", new Exception("DictionaryIndex"));
-    scope->addName("FunctionNotFound", new Exception("FunctionNotFound"));
-    scope->addName("LibraryNotFound", new Exception("LibraryNotFound"));
+    scope->addName("DivideByZero", new Exception(Token(), "DivideByZero"));
+    scope->addName("ArrayIndex", new Exception(Token(), "ArrayIndex"));
+    scope->addName("DictionaryIndex", new Exception(Token(), "DictionaryIndex"));
+    scope->addName("FunctionNotFound", new Exception(Token(), "FunctionNotFound"));
+    scope->addName("LibraryNotFound", new Exception(Token(), "LibraryNotFound"));
 
-    scope->addName("DirectoryExists", new Exception("DirectoryExists"));
-    scope->addName("PathNotFound", new Exception("PathNotFound"));
-    scope->addName("PermissionDenied", new Exception("PermissionDenied"));
+    scope->addName("DirectoryExists", new Exception(Token(), "DirectoryExists"));
+    scope->addName("PathNotFound", new Exception(Token(), "PathNotFound"));
+    scope->addName("PermissionDenied", new Exception(Token(), "PermissionDenied"));
 
     {
         // The fields here must match the corresponding references to
@@ -338,7 +338,7 @@ Program::Program()
         fields.push_back(std::make_pair("offset", TYPE_NUMBER));
         Type *exception_type = new TypeRecord(fields);
         scope->addName("ExceptionType", exception_type, true);
-        GlobalVariable *current_exception = new GlobalVariable("CURRENT_EXCEPTION", exception_type, true);
+        GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);
         scope->addName("CURRENT_EXCEPTION", current_exception, true);
     }
 

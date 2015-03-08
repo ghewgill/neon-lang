@@ -366,9 +366,9 @@ TypeEnum::TypeEnum(const std::map<std::string, int> &names)
     {
         Scope *newscope = new Scope(Analyzer::global_scope);
         std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter("self", this, ParameterType::INOUT, newscope);
+        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT, newscope);
         params.push_back(fp);
-        Function *f = new Function("enum.to_string", TYPE_STRING, newscope, params);
+        Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, newscope, params);
         f->scope->addName("self", fp, true);
         std::vector<const Expression *> values;
         for (auto n: names) {
@@ -1134,7 +1134,7 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
 
 const Statement *Analyzer::analyze(const pt::ConstantDeclaration *declaration)
 {
-    std::string name = declaration->name;
+    std::string name = declaration->name.text;
     if (scope.top()->lookupName(name) != nullptr) {
         error(3014, declaration->token, "name shadows outer");
     }
@@ -1146,7 +1146,7 @@ const Statement *Analyzer::analyze(const pt::ConstantDeclaration *declaration)
     if (not value->is_constant) {
         error(3016, declaration->value->token, "value must be constant");
     }
-    scope.top()->addName(name, new Constant(name, value));
+    scope.top()->addName(name, new Constant(declaration->name, name, value));
     return new NullStatement(declaration->token.line);
 }
 
@@ -1160,9 +1160,9 @@ const Statement *Analyzer::analyze(const pt::VariableDeclaration *declaration)
         }
         Variable *v;
         if (scope.top() == global_scope) {
-            v = new GlobalVariable(name.text, type, false);
+            v = new GlobalVariable(name, name.text, type, false);
         } else {
-            v = new LocalVariable(name.text, type, scope.top(), false);
+            v = new LocalVariable(name, name.text, type, scope.top(), false);
         }
         variables.push_back(v);
     }
@@ -1216,7 +1216,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
                 error(3128, x->type->token, "expected self parameter");
             }
         }
-        FunctionParameter *fp = new FunctionParameter(x->name.text, ptype, mode, newscope);
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, newscope);
         args.push_back(fp);
         newscope->addName(x->name.text, fp, true);
     }
@@ -1230,7 +1230,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
             function = dynamic_cast<Function *>(f->second);
             newscope = function->scope;
         } else {
-            function = new Function(name, returntype, newscope, args);
+            function = new Function(declaration->name, name, returntype, newscope, args);
             type->methods[name] = function;
         }
     } else {
@@ -1241,7 +1241,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         } else if (ident != nullptr) {
             error(3047, declaration->name, "name shadows outer");
         } else {
-            function = new Function(name, returntype, newscope, args);
+            function = new Function(declaration->name, name, returntype, newscope, args);
             scope.top()->addName(name, function);
         }
     }
@@ -1304,7 +1304,7 @@ const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declar
             case pt::FunctionParameter::OUT:   mode = ParameterType::OUT;      break;
         }
         const Type *ptype = analyze(x->type);
-        FunctionParameter *fp = new FunctionParameter(x->name.text, ptype, mode, newscope);
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, newscope);
         args.push_back(fp);
         newscope->addName(x->name.text, fp, true);
     }
@@ -1348,18 +1348,18 @@ const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declar
         }
     }
 
-    ExternalFunction *function = new ExternalFunction(name, returntype, newscope, args, library_name, param_types);
+    ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, newscope, args, library_name, param_types);
     scope.top()->addName(name, function);
     return new NullStatement(declaration->token.line);
 }
 
 const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
 {
-    std::string name = declaration->name;
+    std::string name = declaration->name.text;
     if (scope.top()->lookupName(name) != nullptr) {
         error(3115, declaration->token, "name shadows outer");
     }
-    scope.top()->addName(name, new Exception(name));
+    scope.top()->addName(name, new Exception(declaration->name, name));
     return new NullStatement(declaration->token.line);
 }
 
@@ -1726,9 +1726,9 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
             Variable *v;
             // TODO: Try to make this a local variable always (give the global scope a local space).
             if (functiontypes.empty()) {
-                v = new GlobalVariable(valid->name.text, vtype, true);
+                v = new GlobalVariable(valid->name, valid->name.text, vtype, true);
             } else {
-                v = new LocalVariable(valid->name.text, vtype, scope.top(), true);
+                v = new LocalVariable(valid->name, valid->name.text, vtype, scope.top(), true);
             }
             scope.top()->addName(valid->name.text, v, true);
             cond = new ValidPointerExpression(v, ptr);

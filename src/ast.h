@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "number.h"
+#include "token.h"
 #include "util.h"
 
 // Compiler
@@ -67,7 +68,8 @@ private:
 
 class Name: public AstNode {
 public:
-    Name(const std::string &name, const Type *type): name(name), type(type) {}
+    Name(const Token &declaration, const std::string &name, const Type *type): declaration(declaration), name(name), type(type) {}
+    const Token declaration;
     const std::string name;
     const Type *type;
 
@@ -80,7 +82,7 @@ private:
 
 class Type: public Name {
 public:
-    Type(const std::string &name): Name(name, nullptr), methods() {}
+    Type(const Token &declaration, const std::string &name): Name(declaration, name, nullptr), methods() {}
 
     std::map<std::string, Variable *> methods;
 
@@ -94,7 +96,7 @@ public:
 
 class TypeNothing: public Type {
 public:
-    TypeNothing(): Type("Nothing") {}
+    TypeNothing(): Type(Token(), "Nothing") {}
     virtual void generate_load(Emitter &) const { internal_error("TypeNothing"); }
     virtual void generate_store(Emitter &) const { internal_error("TypeNothing"); }
     virtual void generate_call(Emitter &) const { internal_error("TypeNothing"); }
@@ -106,7 +108,7 @@ extern TypeNothing *TYPE_NOTHING;
 
 class TypeBoolean: public Type {
 public:
-    TypeBoolean(): Type("Boolean") {}
+    TypeBoolean(): Type(Token(), "Boolean") {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -118,7 +120,7 @@ extern TypeBoolean *TYPE_BOOLEAN;
 
 class TypeNumber: public Type {
 public:
-    TypeNumber(): Type("Number") {}
+    TypeNumber(): Type(Token(), "Number") {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -130,7 +132,7 @@ extern TypeNumber *TYPE_NUMBER;
 
 class TypeString: public Type {
 public:
-    TypeString(): Type("String") {}
+    TypeString(): Type(Token(), "String") {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -157,7 +159,7 @@ private:
 
 class TypeFunction: public Type {
 public:
-    TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type("function"), returntype(returntype), params(params) {}
+    TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -192,7 +194,7 @@ extern TypeArray *TYPE_ARRAY_STRING;
 
 class TypeDictionary: public Type {
 public:
-    TypeDictionary(const Type *elementtype): Type("dictionary"), elementtype(elementtype) {}
+    TypeDictionary(const Type *elementtype): Type(Token(), "dictionary"), elementtype(elementtype) {}
     const Type *elementtype;
 
     virtual bool is_equivalent(const Type *rhs) const;
@@ -208,7 +210,7 @@ private:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const std::vector<std::pair<std::string, const Type *>> &fields): Type("record"), fields(fields), field_names(make_field_names(fields)) {}
+    TypeRecord(const std::vector<std::pair<std::string, const Type *>> &fields): Type(Token(), "record"), fields(fields), field_names(make_field_names(fields)) {}
     const std::vector<std::pair<std::string, const Type *>> fields;
     const std::map<std::string, size_t> field_names;
 
@@ -238,7 +240,7 @@ public:
 
 class TypePointer: public Type {
 public:
-    TypePointer(const TypeRecord *reftype): Type("pointer"), reftype(reftype) {}
+    TypePointer(const TypeRecord *reftype): Type(Token(), "pointer"), reftype(reftype) {}
 
     const TypeRecord *reftype;
 
@@ -270,7 +272,7 @@ public:
 
 class TypeModule: public Type {
 public:
-    TypeModule(): Type("module") {}
+    TypeModule(): Type(Token(), "module") {}
 
     virtual void generate_load(Emitter &) const { internal_error("TypeModule"); }
     virtual void generate_store(Emitter &) const { internal_error("TypeModule"); }
@@ -283,7 +285,7 @@ extern TypeModule *TYPE_MODULE;
 
 class TypeException: public Type {
 public:
-    TypeException(): Type("Exception") {}
+    TypeException(): Type(Token(), "Exception") {}
 
     virtual void generate_load(Emitter &) const { internal_error("TypeException"); }
     virtual void generate_store(Emitter &) const { internal_error("TypeException"); }
@@ -296,7 +298,7 @@ extern TypeException *TYPE_EXCEPTION;
 
 class Variable: public Name {
 public:
-    Variable(const std::string &name, const Type *type, bool is_readonly): Name(name, type), is_readonly(is_readonly) {}
+    Variable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Name(declaration, name, type), is_readonly(is_readonly) {}
 
     bool is_readonly;
 
@@ -310,7 +312,7 @@ public:
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const std::string &name, const Type *type, bool is_readonly): Variable(name, type, is_readonly), index(-1) {}
+    GlobalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}
     mutable int index;
 
     virtual void predeclare(Emitter &emitter) const;
@@ -321,7 +323,7 @@ public:
 
 class LocalVariable: public Variable {
 public:
-    LocalVariable(const std::string &name, const Type *type, Scope *scope, bool is_readonly): Variable(name, type, is_readonly), scope(scope), index(-1) {}
+    LocalVariable(const Token &declaration, const std::string &name, const Type *type, Scope *scope, bool is_readonly): Variable(declaration, name, type, is_readonly), scope(scope), index(-1) {}
     Scope *scope;
     mutable int index;
 
@@ -336,7 +338,7 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(name, type, scope, mode == ParameterType::IN), mode(mode) {}
+    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(declaration, name, type, scope, mode == ParameterType::IN), mode(mode) {}
     ParameterType::Mode mode;
 
     virtual void generate_address(Emitter &emitter, int enclosing) const;
@@ -349,7 +351,7 @@ private:
 
 class Exception: public Name {
 public:
-    Exception(const std::string &name): Name(name, TYPE_EXCEPTION) {}
+    Exception(const Token &declaration, const std::string &name): Name(declaration, name, TYPE_EXCEPTION) {}
 
     virtual std::string text() const { return "Exception(" + name + ")"; }
 private:
@@ -376,7 +378,7 @@ private:
 
 class Constant: public Name {
 public:
-    Constant(const std::string &name, const Expression *value): Name(name, value->type), value(value) {}
+    Constant(const Token &declaration, const std::string &name, const Expression *value): Name(declaration, name, value->type), value(value) {}
 
     const Expression *value;
 
@@ -1443,7 +1445,7 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(name, makeFunctionType(returntype, params), true), scope(scope), params(params), entry_label(UINT_MAX), statements() {}
+    Function(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(declaration, name, makeFunctionType(returntype, params), true), scope(scope), params(params), entry_label(UINT_MAX), statements() {}
 
     Scope *scope;
     const std::vector<FunctionParameter *> params;
@@ -1468,7 +1470,7 @@ private:
 
 class PredefinedFunction: public Variable {
 public:
-    PredefinedFunction(const std::string &name, const Type *type): Variable(name, type, true), name_index(-1) {}
+    PredefinedFunction(const std::string &name, const Type *type): Variable(Token(), name, type, true), name_index(-1) {}
     mutable int name_index;
 
     virtual void predeclare(Emitter &emitter) const;
@@ -1482,7 +1484,7 @@ public:
 
 class ExternalFunction: public Function {
 public:
-    ExternalFunction(const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params, const std::string &library_name, const std::map<std::string, std::string> &param_types): Function(name, returntype, scope, params), library_name(library_name), param_types(param_types), external_index(-1) {}
+    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params, const std::string &library_name, const std::map<std::string, std::string> &param_types): Function(declaration, name, returntype, scope, params), library_name(library_name), param_types(param_types), external_index(-1) {}
 
     const std::string library_name;
     const std::map<std::string, std::string> param_types;
@@ -1499,7 +1501,7 @@ private:
 
 class Module: public Name {
 public:
-    Module(Scope *scope, const std::string &name): Name(name, TYPE_MODULE), scope(new Scope(scope)) {}
+    Module(const Token &declaration, Scope *scope, const std::string &name): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope)) {}
 
     Scope *scope;
 

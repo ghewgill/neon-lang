@@ -236,7 +236,7 @@ const Statement *Parser::parseConstantDefinition()
     }
     ++i;
     const Expression *value = parseExpression();
-    return new ConstantDeclaration(tok_name, tok_name.text, type, value);
+    return new ConstantDeclaration(tok_name, tok_name, type, value);
 }
 
 const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
@@ -788,9 +788,8 @@ const Statement *Parser::parseDeclaration()
             if (tokens[i].type != IDENTIFIER) {
                 error(2059, tokens[i], "identifier expected");
             }
-            std::string name = tokens[i].text;
             ++i;
-            return new ExceptionDeclaration(tok_name, name);
+            return new ExceptionDeclaration(tok_name, tok_name);
         }
         default:
             error(2058, tokens[i], "EXCEPTION expected");
