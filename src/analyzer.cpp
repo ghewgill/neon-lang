@@ -1438,7 +1438,7 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 }
                 for (auto c: conditions) {
                     if (cond->overlaps(c)) {
-                        error(3063, cwc->expr->token, "overlapping case condition");
+                        error2(3063, cwc->expr->token, c->token, "overlapping case condition");
                     }
                 }
                 conditions.push_back(cond);
@@ -1479,7 +1479,7 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 }
                 for (auto c: conditions) {
                     if (cond->overlaps(c)) {
-                        error(3065, rwc->low_expr->token, "overlapping case condition");
+                        error2(3065, rwc->low_expr->token, c->token, "overlapping case condition");
                     }
                 }
                 conditions.push_back(cond);

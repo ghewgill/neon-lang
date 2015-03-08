@@ -34,10 +34,9 @@ def run(fn):
 
     if errors:
         for i, s in enumerate(src.split("\n"), 1):
-            m = re.match(r"(\s*)%<(\d)?", s)
-            if m is not None:
+            for m in re.finditer(r"(%<)(\d)?", s):
                 n = int(m.group(2)) if m.group(2) else 1
-                expected_error_pos[n] = (i - 1, 1 + len(m.group(1)))
+                expected_error_pos[n] = (i - 1, 1 + m.start(1))
         errnum = os.path.splitext(os.path.basename(fn))[0]
         expected_stderr = errnum
         del errors[errnum]
