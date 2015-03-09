@@ -31,6 +31,33 @@ Number string__length(const std::string &self)
     return number_from_uint64(self.length());
 }
 
+void bytes__from_array(std::string *self, const std::vector<Number> &a)
+{
+    std::string().swap(*self);
+    self->reserve(a.size());
+    for (auto x: a) {
+        uint64_t b = number_to_uint64(x);
+        if (b >= 256) {
+            throw RtlException("ByteOutOfRange", std::to_string(b));
+        }
+        self->push_back(b);
+    }
+}
+
+Number bytes__size(const std::string &self)
+{
+    return number_from_uint64(self.length());
+}
+
+std::vector<Number> bytes__to_array(const std::string &self)
+{
+    std::vector<Number> r;
+    for (auto x: self) {
+        r.push_back(number_from_uint8(x));
+    }
+    return r;
+}
+
 std::string chr(Number x)
 {
     assert(number_is_integer(x));

@@ -10,6 +10,7 @@ TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber(Token());
 TypeString *TYPE_STRING = new TypeString();
+TypeBytes *TYPE_BYTES = new TypeBytes();
 TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(Token(), TYPE_NUMBER);
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
 TypePointer *TYPE_POINTER = new TypePointer(Token(), nullptr);
@@ -314,6 +315,7 @@ Program::Program()
     scope->addName(Token(), "Boolean", TYPE_BOOLEAN);
     scope->addName(Token(), "Number", TYPE_NUMBER);
     scope->addName(Token(), "String", TYPE_STRING);
+    scope->addName(Token(), "Bytes", TYPE_BYTES);
 
     {
         std::vector<const ParameterType *> params;
@@ -333,11 +335,29 @@ Program::Program()
         TYPE_STRING->methods["length"] = new PredefinedFunction("string__length", new TypeFunction(TYPE_NUMBER, params));
     }
 
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_BYTES));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_ARRAY_NUMBER));
+        TYPE_BYTES->methods["from_array"] = new PredefinedFunction("bytes__from_array", new TypeFunction(TYPE_NOTHING, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES));
+        TYPE_BYTES->methods["size"] = new PredefinedFunction("bytes__size", new TypeFunction(TYPE_NUMBER, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES));
+        TYPE_BYTES->methods["to_array"] = new PredefinedFunction("bytes__to_array", new TypeFunction(TYPE_ARRAY_NUMBER, params));
+    }
+
     scope->addName(Token(), "DivideByZero", new Exception(Token(), "DivideByZero"));
     scope->addName(Token(), "ArrayIndex", new Exception(Token(), "ArrayIndex"));
     scope->addName(Token(), "DictionaryIndex", new Exception(Token(), "DictionaryIndex"));
     scope->addName(Token(), "FunctionNotFound", new Exception(Token(), "FunctionNotFound"));
     scope->addName(Token(), "LibraryNotFound", new Exception(Token(), "LibraryNotFound"));
+    scope->addName(Token(), "ByteOutOfRange", new Exception(Token(), "ByteOutOfRange"));
 
     scope->addName(Token(), "DirectoryExists", new Exception(Token(), "DirectoryExists"));
     scope->addName(Token(), "PathNotFound", new Exception(Token(), "PathNotFound"));

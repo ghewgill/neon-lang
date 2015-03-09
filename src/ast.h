@@ -144,6 +144,15 @@ public:
 
 extern TypeString *TYPE_STRING;
 
+class TypeBytes: public TypeString {
+public:
+    TypeBytes(): TypeString() {}
+
+    virtual std::string text() const { return "TypeBytes"; }
+};
+
+extern TypeBytes *TYPE_BYTES;
+
 class ParameterType {
 public:
     enum Mode {

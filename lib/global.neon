@@ -2,6 +2,9 @@ DECLARE NATIVE FUNCTION array__size(self: Array): Number
 DECLARE NATIVE FUNCTION boolean__to_string(self: Boolean): String
 DECLARE NATIVE FUNCTION number__to_string(self: Number): String
 DECLARE NATIVE FUNCTION string__length(self: String): Number
+DECLARE NATIVE FUNCTION bytes__from_array(INOUT self: Bytes, a: Array<Number>)
+DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
+DECLARE NATIVE FUNCTION bytes__to_array(self: Bytes): Array<Number>
 
 DECLARE NATIVE FUNCTION chr(x: Number): String
 DECLARE NATIVE FUNCTION concat(a: String, b: String): String

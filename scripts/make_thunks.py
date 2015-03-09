@@ -12,6 +12,8 @@ AstFromNeon = {
     "INOUT Number": ("TYPE_NUMBER", REF),
     "OUT Number": ("TYPE_NUMBER", REF),
     "String": ("TYPE_STRING", VALUE),
+    "Bytes": ("TYPE_BYTES", VALUE),
+    "INOUT Bytes": ("TYPE_BYTES", REF),
     "Array": ("TYPE_GENERIC", VALUE),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
     "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
@@ -28,6 +30,8 @@ CppFromAst = {
     ("TYPE_NUMBER", REF): "Number *",
     ("TYPE_STRING", VALUE): "std::string",
     ("TYPE_STRING", REF): "std::string *",
+    ("TYPE_BYTES", VALUE): "std::string",
+    ("TYPE_BYTES", REF): "std::string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<std::string>",
 }
@@ -42,6 +46,8 @@ CppFromAstArg = {
     ("TYPE_NUMBER", REF): "Number *",
     ("TYPE_STRING", VALUE): "const std::string &",
     ("TYPE_STRING", REF): "std::string *",
+    ("TYPE_BYTES", VALUE): "const std::string &",
+    ("TYPE_BYTES", REF): "std::string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "const std::vector<Number> &",
     ("TYPE_ARRAY_STRING", VALUE): "const std::vector<std::string> &",
 }
@@ -54,6 +60,8 @@ CellField = {
     ("TYPE_NUMBER", REF): "address()->number()",
     ("TYPE_STRING", VALUE): "string()",
     ("TYPE_STRING", REF): "address()->string()",
+    ("TYPE_BYTES", VALUE): "string()",
+    ("TYPE_BYTES", REF): "address()->string()",
     ("TYPE_ARRAY_NUMBER", VALUE): "array()",
     ("TYPE_ARRAY_STRING", VALUE): "array()",
 }
