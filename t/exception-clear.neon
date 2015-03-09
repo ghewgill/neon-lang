@@ -3,11 +3,11 @@ DECLARE EXCEPTION PrinterOnFire
 
 FUNCTION foo()
     TRY
-	RAISE PrinterOnFire("A4")
+        RAISE PrinterOnFire("A4")
     EXCEPTION PrinterOnFire
-	print(CURRENT_EXCEPTION.name)
-	print(CURRENT_EXCEPTION.info)
-	EXIT FUNCTION
+        print(CURRENT_EXCEPTION.name)
+        print(CURRENT_EXCEPTION.info)
+        EXIT FUNCTION
     END TRY
 END FUNCTION
 

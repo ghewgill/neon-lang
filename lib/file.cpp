@@ -31,11 +31,11 @@ std::vector<std::string> file$lines(const std::string &filename)
     std::vector<std::string> r;
     std::ifstream f(filename);
     if (not f.is_open()) {
-	throw RtlException("FileOpenError", filename);
+        throw RtlException("FileOpenError", filename);
     }
     std::string s;
     while (std::getline(f, s)) {
-	r.push_back(s);
+        r.push_back(s);
     }
     return r;
 }
