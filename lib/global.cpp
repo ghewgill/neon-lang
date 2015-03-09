@@ -40,7 +40,7 @@ void bytes__from_array(std::string *self, const std::vector<Number> &a)
         if (b >= 256) {
             throw RtlException("ByteOutOfRange", std::to_string(b));
         }
-        self->push_back(b);
+        self->push_back(static_cast<unsigned char>(b));
     }
 }
 
