@@ -7,3 +7,11 @@ print(str(a.size()))
 %= 21
 print(a[0])
 %= The MIT License (MIT)
+
+VAR buf: Bytes
+buf := file.bytes("LICENSE.txt")
+print(str(buf.size()))
+%= 1076
+VAR arr: Array<Number> := buf.to_array()
+print("\(arr[0])")
+%= 84
