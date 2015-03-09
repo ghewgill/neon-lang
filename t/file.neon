@@ -10,8 +10,8 @@ print(a[0])
 
 VAR buf: Bytes
 buf := file.bytes("LICENSE.txt")
-print(str(buf.size()))
-%= 1076
+print(strb(buf.size() = 1076 OR buf.size() = 1097)) % account for lf vs crlf
+%= TRUE
 VAR arr: Array<Number> := buf.to_array()
 print("\(arr[0])")
 %= 84
