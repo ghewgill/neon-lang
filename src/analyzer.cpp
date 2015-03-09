@@ -60,7 +60,8 @@ public:
     const Statement *analyze(const pt::ImportDeclaration *declaration);
     const Statement *analyze(const pt::TypeDeclaration *declaration);
     const Statement *analyze(const pt::ConstantDeclaration *declaration);
-    const Statement *analyze(const pt::VariableDeclaration *declaration);
+    const Statement *analyze_decl(const pt::VariableDeclaration *declaration);
+    const Statement *analyze_body(const pt::VariableDeclaration *declaration);
     const Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
     const Statement *analyze_body(const pt::FunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExternalFunctionDeclaration *declaration);
@@ -257,7 +258,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TypeDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) { v.push_back(a->analyze(p)); }
@@ -323,7 +324,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *) {}
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *) {}
-    virtual void visit(const pt::VariableDeclaration *) {}
+    virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}
@@ -1156,7 +1157,7 @@ const Statement *Analyzer::analyze(const pt::ConstantDeclaration *declaration)
     return new NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze(const pt::VariableDeclaration *declaration)
+const Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declaration)
 {
     const Type *type = analyze(declaration->type);
     std::vector<Variable *> variables;
@@ -1173,21 +1174,27 @@ const Statement *Analyzer::analyze(const pt::VariableDeclaration *declaration)
         }
         variables.push_back(v);
     }
+    for (auto v: variables) {
+        scope.top()->addName(v->declaration, v->name, v);
+    }
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
+{
+    const Type *type = analyze(declaration->type);
     if (declaration->value != nullptr) {
         std::vector<const ReferenceExpression *> refs;
         const Expression *expr = analyze(declaration->value);
         if (not expr->type->is_equivalent(type)) {
             error(3113, declaration->value->token, "type mismatch");
         }
-        for (auto v: variables) {
-            scope.top()->addName(v->declaration, v->name, v, true);
+        for (auto name: declaration->names) {
+            Variable *v = dynamic_cast<Variable *>(scope.top()->lookupName(name.text));
             refs.push_back(new VariableExpression(v));
         }
         return new AssignmentStatement(declaration->token.line, refs, expr);
     } else {
-        for (auto v: variables) {
-            scope.top()->addName(v->declaration, v->name, v);
-        }
         return new NullStatement(declaration->token.line);
     }
 }
