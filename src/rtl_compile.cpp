@@ -8,10 +8,8 @@ void rtl_compile_init(Scope *scope)
     init_builtin_constants(scope);
     for (auto f: BuiltinFunctions) {
         std::vector<const ParameterType *> params;
-        for (auto p: f.params) {
-            if (p.p == nullptr) {
-                break;
-            }
+        for (int i = 0; i < f.count; i++) {
+            auto &p = f.params[i];
             params.push_back(new ParameterType(Token(), p.m, p.p));
         }
         scope->addName(Token(), f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));

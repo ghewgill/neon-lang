@@ -201,10 +201,11 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    const Type *returntype;"
+    print >>inc, "    int count;"
     print >>inc, "    struct {ParameterType::Mode m; const Type *p; } params[10];"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, params in functions.values():
-        print >>inc, "    {{\"{}\", {}, {{{}}}}},".format(name, rtype[0], ",".join("{{ParameterType::{},{}}}".format("IN" if m == VALUE else "INOUT", p if p != "TYPE_GENERIC" else "nullptr") for p, m in params))
+        print >>inc, "    {{\"{}\", {}, {}, {{{}}}}},".format(name, rtype[0] if rtype[0] != "TYPE_GENERIC" else "nullptr", len(params), ",".join("{{ParameterType::{},{}}}".format("IN" if m == VALUE else "INOUT", p if p != "TYPE_GENERIC" else "nullptr") for p, m in params))
     print >>inc, "};";
 
 with open("src/functions_exec.inc", "w") as inc:
