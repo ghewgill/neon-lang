@@ -809,7 +809,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
         if (recordtype != nullptr) {
-            if (expr->args.size() != recordtype->fields.size()) {
+            if (expr->args.size() > recordtype->fields.size()) {
                 error2(3130, expr->args[recordtype->fields.size()]->token, recordtype->declaration, "wrong number of fields");
             }
             std::vector<const Expression *> elements;

@@ -1,0 +1,19 @@
+
+TYPE Powers := RECORD
+    Flight: Boolean
+    Strength: Boolean
+    SixthSense: Boolean
+END RECORD    
+
+
+TYPE rec := RECORD
+    FirstName: String
+    LastName: String
+    Age: Number
+    Superpower: Powers
+END RECORD
+VAR Recs:Array<rec> := [
+    rec("Spider", "Man", 24, Powers()),
+    rec("Bat", "Man", 35, Powers()),
+    rec("Super", "Man", 39, Powers()),
+]

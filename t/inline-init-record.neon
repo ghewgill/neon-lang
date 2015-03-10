@@ -1,0 +1,11 @@
+
+TYPE rec := RECORD
+    FirstName: String
+    LastName: String
+    Age: Number
+END RECORD
+VAR Recs:Array<rec> := [
+    rec("Spider", "Man", 24),
+    rec("Bat", "Man", 35),
+    rec("Super", "Man", 39),
+]
