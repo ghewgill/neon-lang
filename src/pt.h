@@ -49,6 +49,7 @@ class ImportDeclaration;
 class TypeDeclaration;
 class ConstantDeclaration;
 class VariableDeclaration;
+class LetDeclaration;
 class FunctionDeclaration;
 class ExternalFunctionDeclaration;
 class ExceptionDeclaration;
@@ -113,6 +114,7 @@ public:
     virtual void visit(const TypeDeclaration *) = 0;
     virtual void visit(const ConstantDeclaration *) = 0;
     virtual void visit(const VariableDeclaration *) = 0;
+    virtual void visit(const LetDeclaration *) = 0;
     virtual void visit(const FunctionDeclaration *) = 0;
     virtual void visit(const ExternalFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
@@ -502,6 +504,18 @@ public:
 private:
     VariableDeclaration(const VariableDeclaration &);
     VariableDeclaration &operator=(const VariableDeclaration &);
+};
+
+class LetDeclaration: public Declaration {
+public:
+    LetDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token), name(name), type(type), value(value) {}
+    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    const Token name;
+    const Type *const type;
+    const Expression *const value;
+private:
+    LetDeclaration(const LetDeclaration &);
+    LetDeclaration &operator=(const LetDeclaration &);
 };
 
 class BaseFunctionDeclaration: public Declaration {

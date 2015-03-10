@@ -1,0 +1,5 @@
+VAR a: Number := 5
+LET b: Number := a
+
+print("\(b)")
+%= 5

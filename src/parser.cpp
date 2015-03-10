@@ -49,6 +49,7 @@ public:
     const Statement *parseIfStatement();
     const Statement *parseReturnStatement();
     const Statement *parseVarStatement();
+    const Statement *parseLetStatement();
     const Statement *parseWhileStatement();
     const Statement *parseCaseStatement();
     const Statement *parseForStatement();
@@ -883,6 +884,28 @@ const Statement *Parser::parseVarStatement()
     return new VariableDeclaration(tok_var, vars.first, vars.second, expr);
 }
 
+const Statement *Parser::parseLetStatement()
+{
+    auto &tok_let = tokens[i];
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(2069, tokens[i], "identifier expected");
+    }
+    const Token &name = tokens[i];
+    ++i;
+    if (tokens[i].type != COLON) {
+        error(2070, tokens[i], "':' expected");
+    }
+    ++i;
+    const Type *type = parseType();
+    if (tokens[i].type != ASSIGN) {
+        error(2071, tokens[i], "':=' expected");
+    }
+    ++i;
+    const Expression *expr = parseExpression();
+    return new LetDeclaration(tok_let, name, type, expr);
+}
+
 const Statement *Parser::parseWhileStatement()
 {
     auto &tok_while = tokens[i];
@@ -1194,6 +1217,8 @@ const Statement *Parser::parseStatement()
         return parseReturnStatement();
     } else if (tokens[i].type == VAR) {
         return parseVarStatement();
+    } else if (tokens[i].type == LET) {
+        return parseLetStatement();
     } else if (tokens[i].type == WHILE) {
         return parseWhileStatement();
     } else if (tokens[i].type == CASE) {

@@ -189,6 +189,11 @@ public:
         child(node->type);
         child(node->value);
     }
+    virtual void visit(const LetDeclaration *node) {
+        write("LetDeclaration(" + node->name.text + ")");
+        child(node->type);
+        child(node->value);
+    }
     virtual void visit(const BaseFunctionDeclaration *node) {
         write("BaseFunctionDeclaration(" + node->name.text + ")");
         child(node->returntype);

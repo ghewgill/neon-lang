@@ -63,6 +63,8 @@ public:
     const Statement *analyze_body(const pt::ConstantDeclaration *declaration);
     const Statement *analyze_decl(const pt::VariableDeclaration *declaration);
     const Statement *analyze_body(const pt::VariableDeclaration *declaration);
+    const Statement *analyze_decl(const pt::LetDeclaration *declaration);
+    const Statement *analyze_body(const pt::LetDeclaration *declaration);
     const Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
     const Statement *analyze_body(const pt::FunctionDeclaration *declaration);
     const Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
@@ -129,6 +131,7 @@ public:
     virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::LetDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) { internal_error("pt::Declaration"); }
@@ -195,6 +198,7 @@ public:
     virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::LetDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) { internal_error("pt::Declaration"); }
@@ -261,6 +265,7 @@ public:
     virtual void visit(const pt::TypeDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::LetDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) { v.push_back(a->analyze(p)); }
@@ -327,6 +332,7 @@ public:
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::LetDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExceptionDeclaration *) {}
@@ -1203,6 +1209,33 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
         }
         return new NullStatement(declaration->token.line);
     }
+}
+
+const Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
+{
+    if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
+        error2(3139, declaration->name, scope.top()->getDeclaration(declaration->name.text), "name shadows outer");
+    }
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
+{
+    const Type *type = analyze(declaration->type);
+    Variable *v;
+    if (scope.top() == global_scope) {
+        v = new GlobalVariable(declaration->name, declaration->name.text, type, true);
+    } else {
+        v = new LocalVariable(declaration->name, declaration->name.text, type, scope.top(), true);
+    }
+    const Expression *expr = analyze(declaration->value);
+    if (not expr->type->is_equivalent(type)) {
+        error(3140, declaration->value->token, "type mismatch");
+    }
+    scope.top()->addName(v->declaration, v->name, v, true);
+    std::vector<const ReferenceExpression *> refs;
+    refs.push_back(new VariableExpression(v));
+    return new AssignmentStatement(declaration->token.line, refs, expr);
 }
 
 const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declaration)
