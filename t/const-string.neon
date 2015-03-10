@@ -1,12 +1,12 @@
-CONST FIRST: String := "A"
-CONST LAST: String := "Z"
+CONST First: String := "A"
+CONST Last: String := "Z"
 
 VAR x: String := "M"
 
 CASE x
-    WHEN FIRST DO
+    WHEN First DO
         print("First letter")
-    WHEN LAST DO
+    WHEN Last DO
         print("Last Letter")
     ELSE
         print("inbetween")
