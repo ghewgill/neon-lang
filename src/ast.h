@@ -1502,7 +1502,7 @@ public:
 
 class ExternalFunction: public Function {
 public:
-    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, scope, params), external_index(-1) {}
+    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, scope, params), library_name(), param_types(), external_index(-1) {}
 
     std::string library_name;
     std::map<std::string, std::string> param_types;
