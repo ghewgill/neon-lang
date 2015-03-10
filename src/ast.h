@@ -44,9 +44,10 @@ public:
     virtual void predeclare(Emitter &emitter) const;
     virtual void postdeclare(Emitter &emitter) const;
 
+    bool allocateName(const Token &token, const std::string &name);
     Name *lookupName(const std::string &name);
     Name *lookupName(const std::string &name, int &enclosing);
-    Token getDeclaration(const std::string &name);
+    Token getDeclaration(const std::string &name) const;
     void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false);
     void scrubName(const std::string &name);
     int nextIndex();
@@ -1501,10 +1502,10 @@ public:
 
 class ExternalFunction: public Function {
 public:
-    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params, const std::string &library_name, const std::map<std::string, std::string> &param_types): Function(declaration, name, returntype, scope, params), library_name(library_name), param_types(param_types), external_index(-1) {}
+    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, scope, params), external_index(-1) {}
 
-    const std::string library_name;
-    const std::map<std::string, std::string> param_types;
+    std::string library_name;
+    std::map<std::string, std::string> param_types;
     mutable int external_index;
 
     virtual void predeclare(Emitter &) const;

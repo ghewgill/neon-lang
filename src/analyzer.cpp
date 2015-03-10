@@ -59,12 +59,14 @@ public:
     const Expression *analyze(const pt::ValidPointerExpression *expr);
     const Statement *analyze(const pt::ImportDeclaration *declaration);
     const Statement *analyze(const pt::TypeDeclaration *declaration);
-    const Statement *analyze(const pt::ConstantDeclaration *declaration);
+    const Statement *analyze_decl(const pt::ConstantDeclaration *declaration);
+    const Statement *analyze_body(const pt::ConstantDeclaration *declaration);
     const Statement *analyze_decl(const pt::VariableDeclaration *declaration);
     const Statement *analyze_body(const pt::VariableDeclaration *declaration);
     const Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
     const Statement *analyze_body(const pt::FunctionDeclaration *declaration);
-    const Statement *analyze(const pt::ExternalFunctionDeclaration *declaration);
+    const Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
+    const Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExceptionDeclaration *declaration);
     std::vector<const Statement *> analyze(const std::vector<const pt::Statement *> &statement);
     const Statement *analyze(const pt::AssignmentStatement *statement);
@@ -257,10 +259,10 @@ public:
     virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TypeDeclaration *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *) {}
     virtual void visit(const pt::CaseStatement *) {}
@@ -323,10 +325,10 @@ public:
     virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) {}
     virtual void visit(const pt::TypeDeclaration *) {}
-    virtual void visit(const pt::ConstantDeclaration *) {}
+    virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *) {}
+    virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExceptionDeclaration *) {}
     virtual void visit(const pt::AssignmentStatement *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::CaseStatement *p) { v.push_back(a->analyze(p)); }
@@ -1115,7 +1117,7 @@ const Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
 
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
-    if (scope.top()->lookupName(declaration->name.text) != nullptr) {
+    if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
         error2(3114, declaration->name, scope.top()->getDeclaration(declaration->name.text), "duplicate definition of name");
     }
     rtl_import(declaration->name, scope.top(), declaration->name.text);
@@ -1125,9 +1127,8 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
 {
     std::string name = declaration->token.text;
-    const Name *decl = scope.top()->lookupName(name);
-    if (decl != nullptr) {
-        error2(3013, declaration->token, decl->declaration, "name shadows outer");
+    if (not scope.top()->allocateName(declaration->token, name)) {
+        error2(3013, declaration->token, scope.top()->getDeclaration(name), "name shadows outer");
     }
     const Type *type = analyze(declaration->type);
     scope.top()->addName(declaration->token, name, const_cast<Type *>(type)); // Still ugly.
@@ -1138,13 +1139,18 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     return new NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze(const pt::ConstantDeclaration *declaration)
+const Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    const Name *decl = scope.top()->lookupName(name);
-    if (decl != nullptr) {
-        error2(3014, declaration->token, decl->declaration, "name shadows outer");
+    if (not scope.top()->allocateName(declaration->name, name)) {
+        error2(3014, declaration->token, scope.top()->getDeclaration(declaration->name.text), "name shadows outer");
     }
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
     const Type *type = analyze(declaration->type);
     const Expression *value = analyze(declaration->value);
     if (not value->type->is_equivalent(type)) {
@@ -1159,13 +1165,19 @@ const Statement *Analyzer::analyze(const pt::ConstantDeclaration *declaration)
 
 const Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declaration)
 {
+    for (auto name: declaration->names) {
+        if (not scope.top()->allocateName(name, name.text)) {
+            error2(3038, name, scope.top()->getDeclaration(name.text), "name shadows outer");
+        }
+    }
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
+{
     const Type *type = analyze(declaration->type);
     std::vector<Variable *> variables;
     for (auto name: declaration->names) {
-        const Name *decl = scope.top()->lookupName(name.text);
-        if (decl != nullptr) {
-            error2(3038, name, scope.top()->getDeclaration(name.text), "name shadows outer");
-        }
         Variable *v;
         if (scope.top() == global_scope) {
             v = new GlobalVariable(name, name.text, type, false);
@@ -1174,27 +1186,21 @@ const Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declarati
         }
         variables.push_back(v);
     }
-    for (auto v: variables) {
-        scope.top()->addName(v->declaration, v->name, v);
-    }
-    return new NullStatement(declaration->token.line);
-}
-
-const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
-{
-    const Type *type = analyze(declaration->type);
     if (declaration->value != nullptr) {
         std::vector<const ReferenceExpression *> refs;
         const Expression *expr = analyze(declaration->value);
         if (not expr->type->is_equivalent(type)) {
             error(3113, declaration->value->token, "type mismatch");
         }
-        for (auto name: declaration->names) {
-            Variable *v = dynamic_cast<Variable *>(scope.top()->lookupName(name.text));
+        for (auto v: variables) {
+            scope.top()->addName(v->declaration, v->name, v, true);
             refs.push_back(new VariableExpression(v));
         }
         return new AssignmentStatement(declaration->token.line, refs, expr);
     } else {
+        for (auto v: variables) {
+            scope.top()->addName(v->declaration, v->name, v);
+        }
         return new NullStatement(declaration->token.line);
     }
 }
@@ -1206,14 +1212,22 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
     if (not classtype.empty()) {
         Name *tname = scope.top()->lookupName(classtype);
         if (tname == nullptr) {
-            error(3126, declaration->type, "type name not found");
+            auto decl = scope.top()->getDeclaration(classtype);
+            if (decl.type == NONE) {
+                error(3126, declaration->type, "type name not found");
+            } else {
+                error2(3127, declaration->type, decl, "type name is not a type");
+            }
         }
         type = dynamic_cast<Type *>(tname);
         if (type == nullptr) {
-            error2(3127, declaration->type, tname->declaration, "type name is not a type");
+            error2(3138, declaration->type, tname->declaration, "type name is not a type");
         }
     }
     std::string name = declaration->name.text;
+    if (type == nullptr && not scope.top()->allocateName(declaration->name, name)) {
+        error2(3047, declaration->name, scope.top()->getDeclaration(name), "duplicate definition of name");
+    }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
     Scope *newscope = new Scope(scope.top());
     std::vector<FunctionParameter *> args;
@@ -1252,8 +1266,6 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         function = dynamic_cast<Function *>(ident);
         if (function != nullptr) {
             newscope = function->scope;
-        } else if (ident != nullptr) {
-            error2(3047, declaration->name, scope.top()->getDeclaration(name), "duplicate definition of name");
         } else {
             function = new Function(declaration->name, name, returntype, newscope, args);
             scope.top()->addName(declaration->name, name, function);
@@ -1301,12 +1313,11 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     return new NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declaration)
+const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    auto decl = scope.top()->lookupName(name);
-    if (decl != nullptr) {
-        error2(3092, declaration->name, decl->declaration, "name shadows outer");
+    if (not scope.top()->allocateName(declaration->name, name)) {
+        error2(3092, declaration->name, scope.top()->getDeclaration(name), "name shadows outer");
     }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
     Scope *newscope = new Scope(scope.top());
@@ -1323,6 +1334,16 @@ const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declar
         args.push_back(fp);
         newscope->addName(x->name, x->name.text, fp, true);
     }
+    ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, newscope, args);
+    scope.top()->addName(declaration->name, name, function);
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
+    ExternalFunction *function = dynamic_cast<ExternalFunction *>(scope.top()->lookupName(name));
+
     const DictionaryLiteralExpression *dict = dynamic_cast<const DictionaryLiteralExpression *>(analyze(declaration->dict));
     if (not dict->is_constant) {
         error(3071, declaration->dict->token, "constant dictionary expected");
@@ -1357,21 +1378,21 @@ const Statement *Analyzer::analyze(const pt::ExternalFunctionDeclaration *declar
     for (auto paramtype: types_dict) {
         param_types[paramtype.first] = paramtype.second->eval_string();
     }
-    for (auto a: args) {
+    for (auto a: function->params) {
         if (param_types.find(a->name) == param_types.end()) {
             error(3097, declaration->dict->token, "parameter type missing: " + a->name);
         }
     }
 
-    ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, newscope, args, library_name, param_types);
-    scope.top()->addName(declaration->name, name, function);
+    function->library_name = library_name;
+    function->param_types = param_types;
     return new NullStatement(declaration->token.line);
 }
 
 const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    if (scope.top()->lookupName(name) != nullptr) {
+    if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3115, declaration->token, scope.top()->getDeclaration(name), "duplicate definition of name");
     }
     scope.top()->addName(declaration->name, name, new Exception(declaration->name, name));

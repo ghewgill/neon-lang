@@ -204,6 +204,15 @@ void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
     }
 }
 
+bool Scope::allocateName(const Token &token, const std::string &name)
+{
+    if (getDeclaration(name).type != NONE) {
+        return false;
+    }
+    declarations[name] = token;
+    return true;
+}
+
 Name *Scope::lookupName(const std::string &name)
 {
     int enclosing;
@@ -226,9 +235,9 @@ Name *Scope::lookupName(const std::string &name, int &enclosing)
     return nullptr;
 }
 
-Token Scope::getDeclaration(const std::string &name)
+Token Scope::getDeclaration(const std::string &name) const
 {
-    Scope *s = this;
+    const Scope *s = this;
     while (s != nullptr) {
         auto d = s->declarations.find(name);
         if (d != s->declarations.end()) {

@@ -1,0 +1,7 @@
+FUNCTION x()
+         %<2
+END FUNCTION
+
+FUNCTION x.bar()
+         %<1
+END FUNCTION
