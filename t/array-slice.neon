@@ -1,0 +1,9 @@
+% TODO
+VAR a: Array<Number> := [1, 2, 3, 4]
+VAR b: Array<Number> := a[1 TO LAST-1]
+print("\(b[0]), \(b[1])")
+%= 2, 3
+
+a[1 TO LAST-1] := [5, 5, 5]
+print("\(a.size())")
+%= 5
