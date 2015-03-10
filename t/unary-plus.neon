@@ -1,0 +1,4 @@
+% TODO
+VAR a: Number := +5
+print("\(a)")
+%= 5
