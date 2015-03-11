@@ -44,6 +44,7 @@ class DisjunctionExpression;
 class ConditionalExpression;
 class NewRecordExpression;
 class ValidPointerExpression;
+class RangeSubscriptExpression;
 
 class ImportDeclaration;
 class TypeDeclaration;
@@ -109,6 +110,7 @@ public:
     virtual void visit(const ConditionalExpression *) = 0;
     virtual void visit(const NewRecordExpression *) = 0;
     virtual void visit(const ValidPointerExpression *) = 0;
+    virtual void visit(const RangeSubscriptExpression *) = 0;
 
     virtual void visit(const ImportDeclaration *) = 0;
     virtual void visit(const TypeDeclaration *) = 0;
@@ -436,6 +438,29 @@ public:
 private:
     ValidPointerExpression(const ValidPointerExpression &);
     ValidPointerExpression &operator=(const ValidPointerExpression &);
+};
+
+class ArrayRange {
+public:
+    ArrayRange(const Token &token, const Expression *first, const Expression *last, bool from_end): token(token), first(first), last(last), from_end(from_end) {}
+    const Token token;
+    const Expression *const first;
+    const Expression *const last;
+    const bool from_end;
+private:
+    ArrayRange(const ArrayRange &);
+    ArrayRange &operator=(const ArrayRange &);
+};
+
+class RangeSubscriptExpression: public Expression {
+public:
+    RangeSubscriptExpression(const Token &token, const Expression *base, const ArrayRange *range): Expression(token), base(base), range(range) {}
+    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    const Expression *const base;
+    const ArrayRange *const range;
+private:
+    RangeSubscriptExpression(const RangeSubscriptExpression &);
+    RangeSubscriptExpression &operator=(const RangeSubscriptExpression &);
 };
 
 class FunctionParameter {

@@ -1,7 +1,11 @@
 DECLARE NATIVE FUNCTION array__size(self: Array): Number
+DECLARE NATIVE FUNCTION array__slice(a: Array, low: Number, high: Number, last: Boolean): Array
+DECLARE NATIVE FUNCTION array__splice(b: Array, a: Array, low: Number, high: Number, last: Boolean): Array
 DECLARE NATIVE FUNCTION boolean__to_string(self: Boolean): String
 DECLARE NATIVE FUNCTION number__to_string(self: Number): String
 DECLARE NATIVE FUNCTION string__length(self: String): Number
+DECLARE NATIVE FUNCTION string__splice(t: String, s: String, low: Number, high: Number, last: Boolean): String
+DECLARE NATIVE FUNCTION string__substring(s: String, low: Number, high: Number, last: Boolean): String
 DECLARE NATIVE FUNCTION bytes__from_array(INOUT self: Bytes, a: Array<Number>)
 DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
 DECLARE NATIVE FUNCTION bytes__to_array(self: Bytes): Array<Number>
@@ -17,7 +21,6 @@ DECLARE NATIVE FUNCTION min(a: Number, b: Number): Number
 DECLARE NATIVE FUNCTION num(s: String): Number
 DECLARE NATIVE FUNCTION ord(s: String): Number
 DECLARE NATIVE FUNCTION print(s: String)
-DECLARE NATIVE FUNCTION splice(t: String, s: String, offset: Number, length: Number): String
 DECLARE NATIVE FUNCTION str(x: Number): String
 DECLARE NATIVE FUNCTION strb(x: Boolean): String
 DECLARE NATIVE FUNCTION substring(s: String, offset: Number, length: Number): String

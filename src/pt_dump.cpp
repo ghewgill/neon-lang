@@ -171,6 +171,12 @@ public:
         write("ValidPointerExpression(" + node->name.text + ")");
         child(node->ptr);
     }
+    virtual void visit(const RangeSubscriptExpression *node) {
+        write("RangeSubscriptExpression");
+        child(node->base);
+        child(node->range->first);
+        child(node->range->last);
+    }
 
     virtual void visit(const ImportDeclaration *node) {
         write("ImportDeclaration(" + node->name.text + ")");

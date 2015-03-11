@@ -428,12 +428,46 @@ const Expression *Parser::parseAtom()
                 if (tokens[i].type == LBRACKET) {
                     auto &tok_lbracket = tokens[i];
                     ++i;
-                    const Expression *index = parseExpression();
+                    const Expression *index = nullptr;
+                    if (tokens[i].type == FIRST) {
+                        ++i;
+                        if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
+                            index = new NumberLiteralExpression(Token(), number_from_uint32(0));
+                        } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
+                            error(2072, tokens[i], "'+' or '-' expected");
+                        }
+                    }
+                    if (index == nullptr) {
+                        index = parseExpression();
+                    }
+                    const ArrayRange *range = nullptr;
+                    if (tokens[i].type == TO) {
+                        ++i;
+                        const Expression *last = nullptr;
+                        bool from_end = false;
+                        if (tokens[i].type == LAST) {
+                            from_end = true;
+                            ++i;
+                            if (tokens[i].type == RBRACKET) {
+                                last = new NumberLiteralExpression(Token(), number_from_uint32(0));
+                            } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
+                                error(2073, tokens[i], "'+' or '-' expected");
+                            }
+                        }
+                        if (last == nullptr) {
+                            last = parseExpression();
+                        }
+                        range = new ArrayRange(tok_lbracket, index, last, from_end);
+                    }
                     if (tokens[i].type != RBRACKET) {
                         error(2020, tokens[i], "']' expected");
                     }
                     ++i;
-                    expr = new SubscriptExpression(tok_lbracket, expr, index);
+                    if (range != nullptr) {
+                        expr = new RangeSubscriptExpression(tok_lbracket, expr, range);
+                    } else {
+                        expr = new SubscriptExpression(tok_lbracket, expr, index);
+                    }
                 } else if (tokens[i].type == LPAREN) {
                     expr = parseFunctionCall(expr);
                 } else if (tokens[i].type == DOT) {

@@ -14,3 +14,11 @@ print(a)
 
 print(str(a.length()))
 %= 13
+
+a[4 TO 6] := "o"
+print(a)
+%= hello world
+
+a[5 TO LAST] := ""
+print(a)
+%= hello

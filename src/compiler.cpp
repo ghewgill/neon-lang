@@ -873,6 +873,22 @@ void StringValueIndexExpression::generate(Emitter &emitter) const
     load->generate(emitter);
 }
 
+void ArrayReferenceRangeExpression::generate_load(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
+void ArrayReferenceRangeExpression::generate_store(Emitter &emitter) const
+{
+    store->generate(emitter);
+    ref->generate_store(emitter);
+}
+
+void ArrayValueRangeExpression::generate(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
 void PointerDereferenceExpression::generate_address_read(Emitter &emitter) const
 {
     ptr->generate(emitter);
@@ -895,7 +911,8 @@ void FunctionCall::generate(Emitter &emitter) const
     // TODO: This is a ridiculous hack because the way we compile
     // StringIndexExpression::store is not really legal. This assertion
     // holds true for any other function call.
-    if (func->text() != "VariableExpression(PredefinedFunction(splice, TypeFunction(...)))") {
+    if (func->text() != "VariableExpression(PredefinedFunction(string__splice, TypeFunction(...)))"
+     && func->text() != "VariableExpression(PredefinedFunction(array__splice, TypeFunction(...)))") {
         assert(args.size() == ftype->params.size());
     }
     for (size_t i = 0; i < args.size(); i++) {

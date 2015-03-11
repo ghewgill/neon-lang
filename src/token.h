@@ -83,6 +83,8 @@ enum TokenType {
     SUBFMT,
     SUBEND,
     LET,
+    FIRST,
+    LAST,
     MAX_TOKEN
 };
 

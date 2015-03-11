@@ -16,6 +16,48 @@ Number array__size(Cell &self)
     return number_from_uint64(self.array().size());
 }
 
+Cell array__slice(Cell &a, Number first, Number last, bool from_end)
+{
+    std::vector<Cell> &array = a.array();
+    int64_t fst = number_to_sint64(first);
+    int64_t lst = number_to_sint64(last);
+    if (fst < 0) fst = 0;
+    if (fst > static_cast<int64_t>(array.size())) fst = array.size();
+    if (from_end) {
+        lst += array.size() - 1;
+    }
+    if (lst < 0) lst = 0;
+    if (lst >= static_cast<int64_t>(array.size())) lst = array.size() - 1;
+    std::vector<Cell> r;
+    for (auto i = fst; i <= lst; i++) {
+        r.push_back(array[i]);
+    }
+    return Cell(r);
+}
+
+Cell array__splice(Cell &b, Cell &a, Number first, Number last, bool from_end)
+{
+    std::vector<Cell> &array = a.array();
+    int64_t fst = number_to_sint64(first);
+    int64_t lst = number_to_sint64(last);
+    if (fst < 0) fst = 0;
+    if (fst > static_cast<int64_t>(array.size())) fst = array.size();
+    if (from_end) {
+        lst += array.size() - 1;
+    }
+    if (lst < 0) lst = 0;
+    if (lst >= static_cast<int64_t>(array.size())) lst = array.size() - 1;
+    std::vector<Cell> r;
+    for (auto i = 0; i < fst; i++) {
+        r.push_back(array[i]);
+    }
+    std::copy(b.array().begin(), b.array().end(), std::back_inserter(r));
+    for (auto i = lst + 1; i < static_cast<int64_t>(array.size()); i++) {
+        r.push_back(array[i]);
+    }
+    return Cell(r);
+}
+
 std::string boolean__to_string(bool self)
 {
     return self ? "TRUE" : "FALSE";
@@ -29,6 +71,33 @@ std::string number__to_string(Number self)
 Number string__length(const std::string &self)
 {
     return number_from_uint64(self.length());
+}
+
+std::string string__splice(const std::string &t, const std::string &s, Number first, Number last, bool from_end)
+{
+    // TODO: utf8
+    int64_t f = number_to_sint64(first);
+    int64_t l = number_to_sint64(last);
+    if (from_end) {
+        l += s.size() - 1;
+    }
+    return s.substr(0, f) + t + s.substr(l + 1);
+}
+
+std::string string__substring(const std::string &s, Number first, Number last, bool from_end)
+{
+    assert(number_is_integer(first));
+    assert(number_is_integer(last));
+    int64_t f = number_to_sint64(first);
+    int64_t l = number_to_sint64(last);
+    if (from_end) {
+        l += s.size() - 1;
+    }
+    auto start = s.begin();
+    utf8::advance(start, f, s.end());
+    auto end = start;
+    utf8::advance(end, l - f + 1, s.end());
+    return std::string(start, end);
 }
 
 void bytes__from_array(std::string *self, const std::vector<Number> &a)
@@ -131,13 +200,6 @@ Number ord(const std::string &s)
 void print(const std::string &s)
 {
     std::cout << s << "\n";
-}
-
-std::string splice(const std::string &t, const std::string &s, Number offset, Number length)
-{
-    // TODO: utf8
-    uint32_t o = number_to_uint32(offset);
-    return s.substr(0, o) + t + s.substr(o + number_to_uint32(length));
 }
 
 std::string str(Number x)

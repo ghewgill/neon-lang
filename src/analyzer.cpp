@@ -57,6 +57,7 @@ public:
     const Expression *analyze(const pt::ConditionalExpression *expr);
     const Expression *analyze(const pt::NewRecordExpression *expr);
     const Expression *analyze(const pt::ValidPointerExpression *expr);
+    const Expression *analyze(const pt::RangeSubscriptExpression *expr);
     const Statement *analyze(const pt::ImportDeclaration *declaration);
     const Statement *analyze(const pt::TypeDeclaration *declaration);
     const Statement *analyze_decl(const pt::ConstantDeclaration *declaration);
@@ -127,6 +128,7 @@ public:
     virtual void visit(const pt::ConditionalExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewRecordExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
+    virtual void visit(const pt::RangeSubscriptExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
@@ -194,6 +196,7 @@ public:
     virtual void visit(const pt::ConditionalExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::NewRecordExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::ValidPointerExpression *p) { expr = a->analyze(p); }
+    virtual void visit(const pt::RangeSubscriptExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::ImportDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
@@ -261,6 +264,7 @@ public:
     virtual void visit(const pt::ConditionalExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewRecordExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
+    virtual void visit(const pt::RangeSubscriptExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TypeDeclaration *p) { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_decl(p)); }
@@ -328,6 +332,7 @@ public:
     virtual void visit(const pt::ConditionalExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewRecordExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
+    virtual void visit(const pt::RangeSubscriptExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) {}
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_body(p)); }
@@ -397,41 +402,93 @@ TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &n
     }
 }
 
-StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index)
+StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, const Expression *last, bool from_end)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
-    index(index),
+    first(first),
+    last(last),
+    from_end(from_end),
     load(nullptr),
     store(nullptr)
 {
     {
         std::vector<const Expression *> args;
         args.push_back(ref);
-        args.push_back(index);
-        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("substring"))), args);
+        args.push_back(first);
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(from_end));
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("string__substring"))), args);
     }
     {
         std::vector<const Expression *> args;
         args.push_back(ref);
-        args.push_back(index);
-        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("splice"))), args);
+        args.push_back(first);
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(from_end));
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("string__splice"))), args);
     }
 }
 
-StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *index)
+StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, const Expression *last, bool from_end)
   : Expression(str->type, str->is_readonly),
     str(str),
-    index(index),
+    first(first),
+    last(last),
+    from_end(from_end),
     load(nullptr)
 {
     {
         std::vector<const Expression *> args;
         args.push_back(str);
-        args.push_back(index);
-        args.push_back(new ConstantNumberExpression(number_from_uint32(1)));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("substring"))), args);
+        args.push_back(first);
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(from_end));
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("string__substring"))), args);
+    }
+}
+
+ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, const Expression *last, bool from_end)
+  : ReferenceExpression(ref->type, ref->is_readonly),
+    ref(ref),
+    first(first),
+    last(last),
+    from_end(from_end),
+    load(nullptr),
+    store(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(first);
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(from_end));
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("array__slice"))), args);
+    }
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(first);
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(from_end));
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("array__splice"))), args);
+    }
+}
+
+ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, const Expression *first, const Expression *last, bool from_end)
+  : Expression(array->type, false),
+    array(array),
+    first(first),
+    last(last),
+    from_end(from_end),
+    load(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(array);
+        args.push_back(first);
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(from_end));
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("slice"))), args);
     }
 }
 
@@ -716,9 +773,9 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         }
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new StringReferenceIndexExpression(ref, index);
+            return new StringReferenceIndexExpression(ref, index, index, false);
         } else {
-            return new StringValueIndexExpression(base, index);
+            return new StringValueIndexExpression(base, index, index, false);
         }
     } else {
         error2(3044, expr->token, type->declaration, "not an array or dictionary");
@@ -1119,6 +1176,38 @@ const Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
 {
     // TODO: This happens with multiple pointers in an IF VALID statement.
     internal_error("TODO pt::Expression");
+}
+
+const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
+{
+    const Expression *base = analyze(expr->base);
+    const Expression *first = analyze(expr->range->first);
+    const Expression *last = analyze(expr->range->last);
+    if (not first->type->is_equivalent(TYPE_NUMBER)) {
+        error(3141, expr->range->first->token, "range index must be a number");
+    }
+    if (not last->type->is_equivalent(TYPE_NUMBER)) {
+        error(3142, expr->range->last->token, "range index must be a number");
+    }
+    const Type *type = base->type;
+    const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
+    if (arraytype != nullptr) {
+        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+        if (ref != nullptr) {
+            return new ArrayReferenceRangeExpression(ref, first, last, expr->range->from_end);
+        } else {
+            return new ArrayValueRangeExpression(base, first, last, expr->range->from_end);
+        }
+    } else if (type == TYPE_STRING) {
+        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+        if (ref != nullptr) {
+            return new StringReferenceIndexExpression(ref, first, last, expr->range->from_end);
+        } else {
+            return new StringValueIndexExpression(base, first, last, expr->range->from_end);
+        }
+    } else {
+        error2(3143, expr->base->token, type->declaration, "not an array or string");
+    }
 }
 
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)

@@ -1039,10 +1039,12 @@ private:
 
 class StringReferenceIndexExpression: public ReferenceExpression {
 public:
-    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *index);
+    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, const Expression *last, bool from_end);
 
     const ReferenceExpression *ref;
-    const Expression *index;
+    const Expression *first;
+    const Expression *last;
+    const bool from_end;
 
     const FunctionCall *load;
     const FunctionCall *store;
@@ -1054,7 +1056,7 @@ public:
     virtual void generate_load(Emitter &) const;
     virtual void generate_store(Emitter &) const;
 
-    virtual std::string text() const { return "StringReferenceIndexExpression(" + ref->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const { return "StringReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
 private:
     StringReferenceIndexExpression(const StringReferenceIndexExpression &);
     StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &);
@@ -1062,10 +1064,12 @@ private:
 
 class StringValueIndexExpression: public Expression {
 public:
-    StringValueIndexExpression(const Expression *str, const Expression *index);
+    StringValueIndexExpression(const Expression *str, const Expression *first, const Expression *last, bool from_end);
 
     const Expression *str;
-    const Expression *index;
+    const Expression *first;
+    const Expression *last;
+    const bool from_end;
 
     const FunctionCall *load;
 
@@ -1075,10 +1079,58 @@ public:
     virtual void generate_address_write(Emitter &) const { internal_error("StringValueIndexExpression"); }
     virtual void generate(Emitter &) const;
 
-    virtual std::string text() const { return "StringValueIndexExpression(" + str->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const { return "StringValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
 private:
     StringValueIndexExpression(const StringValueIndexExpression &);
     StringValueIndexExpression &operator=(const StringValueIndexExpression &);
+};
+
+class ArrayReferenceRangeExpression: public ReferenceExpression {
+public:
+    ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, const Expression *last, bool from_end);
+
+    const ReferenceExpression *ref;
+    const Expression *first;
+    const Expression *last;
+    const bool from_end;
+
+    const FunctionCall *load;
+    const FunctionCall *store;
+
+    virtual Number eval_number() const { internal_error("ArrayReferenceRangeExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayReferenceRangeExpression"); }
+    virtual void generate_address_read(Emitter &) const { internal_error("StringReferenceRangeExpression"); }
+    virtual void generate_address_write(Emitter &) const { internal_error("StringReferenceRangeExpression"); }
+    virtual void generate_load(Emitter &) const;
+    virtual void generate_store(Emitter &) const;
+
+    virtual std::string text() const { return "ArrayReferenceRangeExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
+private:
+    ArrayReferenceRangeExpression(const ArrayReferenceRangeExpression &);
+    ArrayReferenceRangeExpression &operator=(const ArrayReferenceRangeExpression &);
+};
+
+class ArrayValueRangeExpression: public Expression {
+public:
+    ArrayValueRangeExpression(const Expression *array, const Expression *first, const Expression *last, bool from_end);
+
+    const Expression *array;
+    const Expression *first;
+    const Expression *last;
+    const bool from_end;
+
+    const FunctionCall *load;
+
+    virtual Number eval_number() const { internal_error("ArrayValueRangeExpression"); }
+    virtual std::string eval_string() const { internal_error("ArrayValueRangeExpression"); }
+    virtual void generate_address_read(Emitter &) const { internal_error("StringValueRangeExpression"); }
+    virtual void generate_address_write(Emitter &) const { internal_error("StringValueRangeExpression"); }
+    virtual void generate(Emitter &emitter) const;
+
+    virtual std::string text() const { return "ArrayValueRangeExpression(" + array->text() + ", " + first->text() + ", " + last->text() + ")"; }
+private:
+    ArrayValueRangeExpression(const ArrayValueRangeExpression &);
+    ArrayValueRangeExpression &operator=(const ArrayValueRangeExpression &);
 };
 
 class PointerDereferenceExpression: public ReferenceExpression {

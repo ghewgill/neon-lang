@@ -90,6 +90,8 @@ std::string Token::tostring() const
         case SUBFMT:      s << "SUBFMT"; break;
         case SUBEND:      s << "SUBEND"; break;
         case LET:         s << "LET"; break;
+        case FIRST:       s << "FIRST"; break;
+        case LAST:        s << "LAST"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -258,6 +260,8 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
             else if (t.text == "NIL") t.type = NIL;
             else if (t.text == "VALID") t.type = VALID;
             else if (t.text == "LET") t.type = LET;
+            else if (t.text == "FIRST") t.type = FIRST;
+            else if (t.text == "LAST") t.type = LAST;
         } else if (number_start(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not number_decimal_body(*(i+1))) {
