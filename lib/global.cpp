@@ -16,14 +16,17 @@ Number array__size(Cell &self)
     return number_from_uint64(self.array().size());
 }
 
-Cell array__slice(Cell &a, Number first, Number last, bool from_end)
+Cell array__slice(Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
+    if (first_from_end) {
+        fst += array.size() - 1;
+    }
     if (fst < 0) fst = 0;
     if (fst > static_cast<int64_t>(array.size())) fst = array.size();
-    if (from_end) {
+    if (last_from_end) {
         lst += array.size() - 1;
     }
     if (lst < 0) lst = 0;
@@ -35,14 +38,17 @@ Cell array__slice(Cell &a, Number first, Number last, bool from_end)
     return Cell(r);
 }
 
-Cell array__splice(Cell &b, Cell &a, Number first, Number last, bool from_end)
+Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
+    if (first_from_end) {
+        fst += array.size() - 1;
+    }
     if (fst < 0) fst = 0;
     if (fst > static_cast<int64_t>(array.size())) fst = array.size();
-    if (from_end) {
+    if (last_from_end) {
         lst += array.size() - 1;
     }
     if (lst < 0) lst = 0;
@@ -73,24 +79,30 @@ Number string__length(const std::string &self)
     return number_from_uint64(self.length());
 }
 
-std::string string__splice(const std::string &t, const std::string &s, Number first, Number last, bool from_end)
+std::string string__splice(const std::string &t, const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     // TODO: utf8
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
-    if (from_end) {
+    if (first_from_end) {
+        f += s.size() - 1;
+    }
+    if (last_from_end) {
         l += s.size() - 1;
     }
     return s.substr(0, f) + t + s.substr(l + 1);
 }
 
-std::string string__substring(const std::string &s, Number first, Number last, bool from_end)
+std::string string__substring(const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     assert(number_is_integer(first));
     assert(number_is_integer(last));
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
-    if (from_end) {
+    if (first_from_end) {
+        f += s.size() - 1;
+    }
+    if (last_from_end) {
         l += s.size() - 1;
     }
     auto start = s.begin();

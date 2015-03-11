@@ -1039,12 +1039,13 @@ private:
 
 class StringReferenceIndexExpression: public ReferenceExpression {
 public:
-    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, const Expression *last, bool from_end);
+    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
 
     const ReferenceExpression *ref;
     const Expression *first;
+    const bool first_from_end;
     const Expression *last;
-    const bool from_end;
+    const bool last_from_end;
 
     const FunctionCall *load;
     const FunctionCall *store;
@@ -1064,12 +1065,13 @@ private:
 
 class StringValueIndexExpression: public Expression {
 public:
-    StringValueIndexExpression(const Expression *str, const Expression *first, const Expression *last, bool from_end);
+    StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
 
     const Expression *str;
     const Expression *first;
+    const bool first_from_end;
     const Expression *last;
-    const bool from_end;
+    const bool last_from_end;
 
     const FunctionCall *load;
 
@@ -1087,12 +1089,13 @@ private:
 
 class ArrayReferenceRangeExpression: public ReferenceExpression {
 public:
-    ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, const Expression *last, bool from_end);
+    ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
 
     const ReferenceExpression *ref;
     const Expression *first;
+    const bool first_from_end;
     const Expression *last;
-    const bool from_end;
+    const bool last_from_end;
 
     const FunctionCall *load;
     const FunctionCall *store;
@@ -1112,12 +1115,13 @@ private:
 
 class ArrayValueRangeExpression: public Expression {
 public:
-    ArrayValueRangeExpression(const Expression *array, const Expression *first, const Expression *last, bool from_end);
+    ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
 
     const Expression *array;
     const Expression *first;
+    const bool first_from_end;
     const Expression *last;
-    const bool from_end;
+    const bool last_from_end;
 
     const FunctionCall *load;
 

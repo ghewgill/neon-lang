@@ -450,11 +450,12 @@ private:
 
 class ArrayRange {
 public:
-    ArrayRange(const Token &token, const Expression *first, const Expression *last, bool from_end): token(token), first(first), last(last), from_end(from_end) {}
+    ArrayRange(const Token &token, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end): token(token), first(first), first_from_end(first_from_end), last(last), last_from_end(last_from_end) {}
     const Token token;
     const Expression *const first;
+    const bool first_from_end;
     const Expression *const last;
-    const bool from_end;
+    const bool last_from_end;
 private:
     ArrayRange(const ArrayRange &);
     ArrayRange &operator=(const ArrayRange &);

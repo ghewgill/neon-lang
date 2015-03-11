@@ -435,7 +435,9 @@ const Expression *Parser::parseAtom()
                     auto &tok_lbracket = tokens[i];
                     ++i;
                     const Expression *index = nullptr;
-                    if (tokens[i].type == FIRST) {
+                    bool first_from_end = false;
+                    if (tokens[i].type == FIRST || tokens[i].type == LAST) {
+                        first_from_end = tokens[i].type == LAST;
                         ++i;
                         if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
                             index = new NumberLiteralExpression(Token(), number_from_uint32(0));
@@ -447,12 +449,13 @@ const Expression *Parser::parseAtom()
                         index = parseExpression();
                     }
                     const ArrayRange *range = nullptr;
+                    const Expression *last = nullptr;
                     if (tokens[i].type == TO) {
                         ++i;
-                        const Expression *last = nullptr;
-                        bool from_end = false;
-                        if (tokens[i].type == LAST) {
-                            from_end = true;
+                        last = nullptr;
+                        bool last_from_end = false;
+                        if (tokens[i].type == FIRST || tokens[i].type == LAST) {
+                            last_from_end = tokens[i].type == LAST;
                             ++i;
                             if (tokens[i].type == RBRACKET) {
                                 last = new NumberLiteralExpression(Token(), number_from_uint32(0));
@@ -463,7 +466,11 @@ const Expression *Parser::parseAtom()
                         if (last == nullptr) {
                             last = parseExpression();
                         }
-                        range = new ArrayRange(tok_lbracket, index, last, from_end);
+                        range = new ArrayRange(tok_lbracket, index, first_from_end, last, last_from_end);
+                    } else {
+                        if (first_from_end) {
+                            range = new ArrayRange(tok_lbracket, index, first_from_end, index, first_from_end);
+                        }
                     }
                     if (tokens[i].type != RBRACKET) {
                         error(2020, tokens[i], "']' expected");
@@ -471,6 +478,9 @@ const Expression *Parser::parseAtom()
                     ++i;
                     if (range != nullptr) {
                         expr = new RangeSubscriptExpression(tok_lbracket, expr, range);
+                        if (first_from_end && last == nullptr) {
+                            expr = new SubscriptExpression(tok_lbracket, expr, new NumberLiteralExpression(Token(), number_from_uint32(0)));
+                        }
                     } else {
                         expr = new SubscriptExpression(tok_lbracket, expr, index);
                     }

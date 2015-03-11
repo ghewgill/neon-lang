@@ -1,12 +1,61 @@
+FUNCTION dump(a: Array<Number>)
+    VAR s: String := "["
+    VAR i: Number
+    FOR i := 0 TO a.size()-1 DO
+        s := s & a[i].to_string()
+        IF i < a.size()-1 THEN
+            s := s & ", "
+        END IF
+    END FOR
+    s := s & "]"
+    print(s)
+END FUNCTION
+
+FUNCTION arr(): Array<Number>
+    RETURN [1, 2, 3]
+END FUNCTION
+
 VAR a: Array<Number> := [1, 2, 3, 4]
 VAR b: Array<Number> := a[1 TO LAST-1]
-print("\(b[0]), \(b[1])")
-%= 2, 3
+dump(b)
+%= [2, 3]
 
 a[1 TO LAST-1] := [5, 5, 5]
-print("\(a.size()) - \(a[0]), \(a[1]), \(a[2]), \(a[3]), \(a[4])")
-%= 5 - 1, 5, 5, 5, 4
+dump(a)
+%= [1, 5, 5, 5, 4]
 
-b := a[FIRST TO LAST-1]
-print("\(b[0]) \(b.size())")
-%= 1 4
+dump(a[FIRST TO LAST-1])
+%= [1, 5, 5, 5]
+
+dump([a[FIRST]])
+%= [1]
+
+dump([a[FIRST+1]])
+%= [5]
+
+dump([a[LAST]])
+%= [4]
+
+dump([a[LAST-1]])
+%= [5]
+
+dump(a[FIRST TO FIRST])
+%= [1]
+
+dump(a[FIRST TO FIRST+1])
+%= [1, 5]
+
+dump(a[LAST TO LAST])
+%= [4]
+
+dump(a[LAST-1 TO LAST])
+%= [5, 4]
+
+print(str(arr()[FIRST+1]))
+%= 2
+
+print(str(arr()[LAST]))
+%= 3
+
+dump(arr()[LAST-1 TO LAST])
+%= [2, 3]
