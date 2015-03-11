@@ -398,6 +398,12 @@ const Expression *Parser::parseAtom()
                 return new StringLiteralExpression(tok_string, tok_string.text);
             }
         }
+        case PLUS: {
+            auto &tok_plus = tokens[i];
+            ++i;
+            const Expression *atom = parseAtom();
+            return new UnaryPlusExpression(tok_plus, atom);
+        }
         case MINUS: {
             auto &tok_minus = tokens[i];
             ++i;

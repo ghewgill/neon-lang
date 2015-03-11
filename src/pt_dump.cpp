@@ -88,6 +88,10 @@ public:
             child(x);
         }
     }
+    virtual void visit(const UnaryPlusExpression *node) {
+        write("UnaryPlusExpression");
+        child(node->expr);
+    }
     virtual void visit(const UnaryMinusExpression *node) {
         write("UnaryMinusExpression");
         child(node->expr);

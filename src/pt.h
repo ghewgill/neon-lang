@@ -27,6 +27,7 @@ class ArrowExpression;
 class SubscriptExpression;
 class InterpolatedStringExpression;
 class FunctionCallExpression;
+class UnaryPlusExpression;
 class UnaryMinusExpression;
 class LogicalNotExpression;
 class ExponentiationExpression;
@@ -93,6 +94,7 @@ public:
     virtual void visit(const SubscriptExpression *) = 0;
     virtual void visit(const InterpolatedStringExpression *) = 0;
     virtual void visit(const FunctionCallExpression *) = 0;
+    virtual void visit(const UnaryPlusExpression *) = 0;
     virtual void visit(const UnaryMinusExpression *) = 0;
     virtual void visit(const LogicalNotExpression *) = 0;
     virtual void visit(const ExponentiationExpression *) = 0;
@@ -306,6 +308,12 @@ public:
 private:
     UnaryExpression(const UnaryExpression &);
     UnaryExpression &operator=(const UnaryExpression &);
+};
+
+class UnaryPlusExpression: public UnaryExpression {
+public:
+    UnaryPlusExpression(const Token &token, const Expression *expr): UnaryExpression(token, expr) {}
+    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
 };
 
 class UnaryMinusExpression: public UnaryExpression {

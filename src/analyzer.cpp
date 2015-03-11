@@ -40,6 +40,7 @@ public:
     const Expression *analyze(const pt::SubscriptExpression *expr);
     const Expression *analyze(const pt::InterpolatedStringExpression *expr);
     const Expression *analyze(const pt::FunctionCallExpression *expr);
+    const Expression *analyze(const pt::UnaryPlusExpression *expr);
     const Expression *analyze(const pt::UnaryMinusExpression *expr);
     const Expression *analyze(const pt::LogicalNotExpression *expr);
     const Expression *analyze(const pt::ExponentiationExpression *expr);
@@ -111,6 +112,7 @@ public:
     virtual void visit(const pt::SubscriptExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::InterpolatedStringExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::FunctionCallExpression *) { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryPlusExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::UnaryMinusExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::LogicalNotExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ExponentiationExpression *) { internal_error("pt::Expression"); }
@@ -179,6 +181,7 @@ public:
     virtual void visit(const pt::SubscriptExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::InterpolatedStringExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::FunctionCallExpression *p) { expr = a->analyze(p); }
+    virtual void visit(const pt::UnaryPlusExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::UnaryMinusExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::LogicalNotExpression *p) { expr = a->analyze(p); }
     virtual void visit(const pt::ExponentiationExpression *p) { expr = a->analyze(p); }
@@ -247,6 +250,7 @@ public:
     virtual void visit(const pt::SubscriptExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::InterpolatedStringExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::FunctionCallExpression *) { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryPlusExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::UnaryMinusExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::LogicalNotExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ExponentiationExpression *) { internal_error("pt::Expression"); }
@@ -315,6 +319,7 @@ public:
     virtual void visit(const pt::SubscriptExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::InterpolatedStringExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::FunctionCallExpression *) { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryPlusExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::UnaryMinusExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::LogicalNotExpression *) { internal_error("pt::Expression"); }
     virtual void visit(const pt::ExponentiationExpression *) { internal_error("pt::Expression"); }
@@ -949,6 +954,15 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         error(3020, expr->token, "not enough arguments (got " + std::to_string(p) + ", expected " + std::to_string(ftype->params.size()));
     }
     return new FunctionCall(func, args);
+}
+
+const Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
+{
+    const Expression *atom = analyze(expr->expr);
+    if (not atom->type->is_equivalent(TYPE_NUMBER)) {
+        error(3144, expr->expr->token, "number required");
+    }
+    return atom;
 }
 
 const Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
