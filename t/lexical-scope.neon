@@ -1,0 +1,41 @@
+% TODO
+
+VAR a, i: Number
+
+CASE a
+    WHEN 5 DO
+        VAR x: Number := a
+    WHEN 6 DO
+        VAR x: Number := a
+    ELSE
+        VAR x: Number := a
+END CASE
+
+FOR i := 1 TO 10 DO
+    VAR x: Number := a
+END FOR
+
+IF a = 0 THEN
+    VAR x: Number := a
+ELSE
+    VAR x: Number := a
+END IF
+
+LOOP
+    VAR x: Number := a
+    EXIT LOOP
+END LOOP
+
+REPEAT
+    VAR x: Number := a
+UNTIL x = 0
+
+TRY
+    VAR x: Number := a
+EXCEPT DivideByZero
+    VAR x: Number := a
+END TRY
+
+WHILE a > 0 DO
+    VAR x: Number := a
+END WHILE
