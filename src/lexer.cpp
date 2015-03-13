@@ -433,6 +433,66 @@ static std::vector<Token> tokenize_fragment(int line, int column, const std::str
                 }
                 utf8::append(c, std::back_inserter(t.text));
             }
+        } else if (c == '@') {
+            utf8::advance(i, 1, source.end());
+            t.type = STRING;
+            t.text = "";
+            if (i == source.end()) {
+                error(1016, t, "unterminated raw string");
+            }
+            c = utf8::peek_next(i, source.end());
+            if (c == '"') {
+                utf8::advance(i, 1, source.end());
+                while (i != source.end()) {
+                    c = utf8::next(i, source.end());
+                    if (c == '"') {
+                        break;
+                    }
+                    if (i == source.end()) {
+                        error(1017, t, "unterminated raw string");
+                    }
+                    utf8::append(c, std::back_inserter(t.text));
+                }
+            } else {
+                std::string delimiter;
+                while (i != source.end()) {
+                    c = utf8::next(i, source.end());
+                    if (c == '@') {
+                        break;
+                    }
+                    if (i == source.end()) {
+                        error(1018, t, "unterminated delimiter");
+                    }
+                    utf8::append(c, std::back_inserter(delimiter));
+                }
+                if (i == source.end() || utf8::next(i, source.end()) != '"') {
+                    error(1019, t, "'\"' expected");
+                }
+                delimiter = "\"@" + delimiter + "@";
+                auto d = delimiter.begin();
+                while (i != source.end()) {
+                    c = utf8::next(i, source.end());
+                    if (c == utf8::next(d, delimiter.end())) {
+                        if (d == delimiter.end()) {
+                            auto j = t.text.end();
+                            for (std::string::size_type trunc = delimiter.length() - 1; trunc > 0; trunc--) {
+                                utf8::prior(j, t.text.begin());
+                            }
+                            t.text = std::string(t.text.begin(), j);
+                            break;
+                        }
+                    } else {
+                        d = delimiter.begin();
+                        if (c == '"') {
+                            utf8::advance(d, 1, delimiter.end());
+                        }
+                    }
+                    if (i == source.end()) {
+                        error(1020, t, "unterminated raw string");
+                    }
+                    utf8::append(c, std::back_inserter(t.text));
+                }
+            }
         } else if (c == '%') {
             if (i+1 == source.end()) {
                 break;
