@@ -36,33 +36,65 @@ class FunctionCall;
 class FunctionParameter;
 class Statement;
 
+class Frame {
+public:
+    Frame(Frame *outer): outer(outer), predeclared(false), slots() {}
+
+    void predeclare(Emitter &emitter);
+    void postdeclare(Emitter &emitter);
+
+    struct Slot {
+        Slot(const Token &token, const std::string &name, Name *ref, bool referenced): token(token), name(name), ref(ref), referenced(referenced) {}
+        Slot(const Slot &rhs): token(rhs.token), name(rhs.name), ref(rhs.ref), referenced(rhs.referenced) {}
+        Slot &operator=(const Slot &rhs) {
+            if (this == &rhs) {
+                return *this;
+            }
+            token = rhs.token;
+            name = rhs.name;
+            ref = rhs.ref;
+            referenced = rhs.referenced;
+            return *this;
+        }
+
+        Token token;
+        std::string name;
+        Name *ref;
+        bool referenced;
+    };
+
+    size_t getCount() const { return slots.size(); }
+    int addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced);
+    const Slot getSlot(int slot);
+    void setReferent(int slot, Name *ref);
+    void setReferenced(int slot);
+
+private:
+    Frame *const outer;
+    bool predeclared;
+    std::vector<Slot> slots;
+private:
+    Frame(const Frame &);
+    Frame &operator=(const Frame &);
+};
+
 class Scope {
 public:
-    Scope(Scope *parent): parent(parent), predeclared(false), names(), declarations(), referenced(), count(0), forwards() {}
+    Scope(Scope *parent, Frame *frame): parent(parent), frame(frame), names(), forwards() {}
     virtual ~Scope() {}
-
-    virtual void predeclare(Emitter &emitter) const;
-    virtual void postdeclare(Emitter &emitter) const;
 
     bool allocateName(const Token &token, const std::string &name);
     Name *lookupName(const std::string &name);
-    Name *lookupName(const std::string &name, int &enclosing);
     Token getDeclaration(const std::string &name) const;
     void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false);
-    void scrubName(const std::string &name);
-    int nextIndex();
-    int getCount() const;
     void addForward(const std::string &name, TypePointer *ptrtype);
     void resolveForward(const std::string &name, const TypeRecord *rectype);
     void checkForward();
 
-private:
     Scope *const parent;
-    mutable bool predeclared;
-    std::map<std::string, Name *> names;
-    std::map<std::string, Token> declarations;
-    std::set<const Name *> referenced;
-    int count;
+    Frame *const frame;
+private:
+    std::map<std::string, int> names;
     std::map<std::string, std::vector<TypePointer *>> forwards;
 private:
     Scope(const Scope &);
@@ -336,11 +368,11 @@ public:
 
 class LocalVariable: public Variable {
 public:
-    LocalVariable(const Token &declaration, const std::string &name, const Type *type, Scope *scope, bool is_readonly): Variable(declaration, name, type, is_readonly), scope(scope), index(-1) {}
-    Scope *scope;
-    mutable int index;
+    LocalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}
+    int index;
 
-    virtual void predeclare(Emitter &emitter) const;
+    virtual void predeclare(Emitter &) const { internal_error("LocalVariable"); }
+    virtual void predeclare(Emitter &emitter, int slot);
     virtual void generate_address(Emitter &emitter, int enclosing) const;
 
     virtual std::string text() const { return "LocalVariable(" + name + ", " + type->text() + ")"; }
@@ -351,7 +383,7 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, ParameterType::Mode mode, Scope *scope): LocalVariable(declaration, name, type, scope, mode == ParameterType::IN), mode(mode) {}
+    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, ParameterType::Mode mode): LocalVariable(declaration, name, type, mode == ParameterType::IN), mode(mode) {}
     ParameterType::Mode mode;
 
     virtual void generate_address(Emitter &emitter, int enclosing) const;
@@ -1519,8 +1551,9 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Variable(declaration, name, makeFunctionType(returntype, params), true), scope(scope), params(params), entry_label(UINT_MAX), statements() {}
+    Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params);
 
+    Frame *frame;
     Scope *scope;
     const std::vector<FunctionParameter *> params;
     mutable unsigned int entry_label;
@@ -1558,7 +1591,7 @@ public:
 
 class ExternalFunction: public Function {
 public:
-    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Scope *scope, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, scope, params), library_name(), param_types(), external_index(-1) {}
+    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params), library_name(), param_types(), external_index(-1) {}
 
     std::string library_name;
     std::map<std::string, std::string> param_types;
@@ -1575,7 +1608,7 @@ private:
 
 class Module: public Name {
 public:
-    Module(const Token &declaration, Scope *scope, const std::string &name): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope)) {}
+    Module(const Token &declaration, Scope *scope, const std::string &name): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope, scope->frame)) {}
 
     Scope *scope;
 
@@ -1591,6 +1624,7 @@ class Program: public AstNode {
 public:
     Program();
 
+    Frame *frame;
     Scope *scope;
     std::vector<const Statement *> statements;
 

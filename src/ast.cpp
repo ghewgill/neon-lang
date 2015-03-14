@@ -204,32 +204,50 @@ void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
     }
 }
 
+int Frame::addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced)
+{
+    Slot slot(token, name, ref, init_referenced);
+    int r = slots.size();
+    slots.push_back(slot);
+    return r;
+}
+
+const Frame::Slot Frame::getSlot(int slot)
+{
+    return slots.at(slot);
+}
+
+void Frame::setReferent(int slot, Name *ref)
+{
+    if (slots.at(slot).ref != nullptr) {
+        internal_error("ref not null");
+    }
+    slots.at(slot).ref = ref;
+}
+
+void Frame::setReferenced(int slot)
+{
+    slots.at(slot).referenced = true;
+}
+
 bool Scope::allocateName(const Token &token, const std::string &name)
 {
     if (getDeclaration(name).type != NONE) {
         return false;
     }
-    declarations[name] = token;
+    names[name] = frame->addSlot(token, name, nullptr, false);
     return true;
 }
 
 Name *Scope::lookupName(const std::string &name)
 {
-    int enclosing;
-    return lookupName(name, enclosing);
-}
-
-Name *Scope::lookupName(const std::string &name, int &enclosing)
-{
-    enclosing = 0;
     Scope *s = this;
     while (s != nullptr) {
         auto n = s->names.find(name);
         if (n != s->names.end()) {
-            s->referenced.insert(n->second);
-            return n->second;
+            s->frame->setReferenced(n->second);
+            return s->frame->getSlot(n->second).ref;
         }
-        enclosing++;
         s = s->parent;
     }
     return nullptr;
@@ -239,9 +257,9 @@ Token Scope::getDeclaration(const std::string &name) const
 {
     const Scope *s = this;
     while (s != nullptr) {
-        auto d = s->declarations.find(name);
-        if (d != s->declarations.end()) {
-            return d->second;
+        auto d = s->names.find(name);
+        if (d != s->names.end()) {
+            return s->frame->getSlot(d->second).token;
         }
         s = s->parent;
     }
@@ -258,29 +276,15 @@ void Scope::addName(const Token &token, const std::string &name, Name *ref, bool
         // pass to the normal error function.
         internal_error("name presence not checked: " + name);
     }
-    declarations[name] = token;
-    names[name] = ref;
-    if (init_referenced) {
-        referenced.insert(ref);
+    auto a = names.find(name);
+    if (a != names.end()) {
+        frame->setReferent(a->second, ref);
+        if (init_referenced) {
+            frame->setReferenced(a->second);
+        }
+    } else {
+        names[name] = frame->addSlot(token, name, ref, init_referenced);
     }
-}
-
-void Scope::scrubName(const std::string &name)
-{
-    auto i = names.find(name);
-    names[std::to_string(reinterpret_cast<intptr_t>(i->second))] = i->second;
-    names.erase(i);
-    referenced.insert(i->second);
-}
-
-int Scope::nextIndex()
-{
-    return count++;
-}
-
-int Scope::getCount() const
-{
-    return count;
 }
 
 void Scope::addForward(const std::string &name, TypePointer *ptrtype)
@@ -308,6 +312,19 @@ void Scope::checkForward()
     }
 }
 
+Function::Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params)
+  : Variable(declaration, name, makeFunctionType(returntype, params), true),
+    frame(new Frame(outer)),
+    scope(new Scope(parent, frame)),
+    params(params),
+    entry_label(UINT_MAX),
+    statements()
+{
+    for (auto p: params) {
+        scope->addName(p->declaration, p->name, p, true);
+    }
+}
+
 const Type *Function::makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params)
 {
     std::vector<const ParameterType *> paramtypes;
@@ -318,7 +335,8 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
 }
 
 Program::Program()
-  : scope(new Scope(nullptr)),
+  : frame(new Frame(nullptr)),
+    scope(new Scope(nullptr, frame)),
     statements()
 {
     scope->addName(Token(), "Boolean", TYPE_BOOLEAN);

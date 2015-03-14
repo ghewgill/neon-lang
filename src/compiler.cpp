@@ -436,10 +436,10 @@ void GlobalVariable::generate_address(Emitter &emitter, int) const
     emitter.emit(PUSHPG, index);
 }
 
-void LocalVariable::predeclare(Emitter &emitter) const
+void LocalVariable::predeclare(Emitter &emitter, int slot)
 {
     type->predeclare(emitter);
-    index = scope->nextIndex();
+    index = slot;
 }
 
 void LocalVariable::generate_address(Emitter &emitter, int enclosing) const
@@ -473,14 +473,14 @@ void FunctionParameter::generate_address(Emitter &emitter, int) const
 
 void Function::predeclare(Emitter &emitter) const
 {
-    scope->predeclare(emitter);
+    frame->predeclare(emitter);
     entry_label = emitter.next_function();
 }
 
 void Function::postdeclare(Emitter &emitter) const
 {
     emitter.jump_target(emitter.function_label(entry_label));
-    emitter.emit(ENTER, scope->getCount());
+    emitter.emit(ENTER, frame->getCount());
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::IN:
@@ -515,7 +515,7 @@ void Function::postdeclare(Emitter &emitter) const
     }
     emitter.emit(LEAVE);
     emitter.emit(RET);
-    scope->postdeclare(emitter);
+    frame->postdeclare(emitter);
 }
 
 void Function::generate_call(Emitter &emitter) const
@@ -1201,42 +1201,51 @@ void RaiseStatement::generate_code(Emitter &emitter) const
     emitter.emit(EXCEPT, index);
 }
 
-void Scope::predeclare(Emitter &emitter) const
+void Frame::predeclare(Emitter &emitter)
 {
     // Avoid unbounded recursion.
     if (predeclared) {
         return;
     }
     predeclared = true;
-    for (auto n: names) {
-        if (referenced.find(n.second) != referenced.end()) {
-            n.second->predeclare(emitter);
+    int slot = 0;
+    for (auto s: slots) {
+        if (s.referenced) {
+            // TODO: This hack passes the slot value to LocalVariable
+            // names, but doesn't bother for all other kinds of names.
+            LocalVariable *lv = dynamic_cast<LocalVariable *>(s.ref);
+            if (lv != nullptr) {
+                lv->predeclare(emitter, slot);
+            } else {
+                s.ref->predeclare(emitter);
+            }
+        }
+        slot++;
+    }
+}
+
+void Frame::postdeclare(Emitter &emitter)
+{
+    for (auto s: slots) {
+        if (s.referenced) {
+            s.ref->postdeclare(emitter);
         }
     }
 }
 
-void Scope::postdeclare(Emitter &emitter) const
+void Module::predeclare(Emitter &) const
 {
-    for (auto n: names) {
-        if (referenced.find(n.second) != referenced.end()) {
-            n.second->postdeclare(emitter);
-        }
-    }
-}
-
-void Module::predeclare(Emitter &emitter) const
-{
-    scope->predeclare(emitter);
+    // TODO? scope->predeclare(emitter);
 }
 
 void Program::generate(Emitter &emitter) const
 {
-    scope->predeclare(emitter);
+    frame->predeclare(emitter);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
     emitter.emit(RET);
-    scope->postdeclare(emitter);
+    frame->postdeclare(emitter);
 }
 
 std::vector<unsigned char> compile(const Program *p, DebugInfo *debug)

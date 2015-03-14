@@ -15,7 +15,9 @@ public:
     Analyzer(const pt::Program *program);
 
     const pt::Program *program;
+    static Frame *global_frame; // TODO
     static Scope *global_scope; // TODO: static is a hack, used by StringReference constructor
+    std::stack<Frame *> frame;
     std::stack<Scope *> scope;
 
     std::stack<const TypeFunction *> functiontypes;
@@ -368,10 +370,12 @@ private:
     StatementAnalyzer &operator=(const StatementAnalyzer &);
 };
 
+Frame *Analyzer::global_frame;
 Scope *Analyzer::global_scope;
 
 Analyzer::Analyzer(const pt::Program *program)
   : program(program),
+    frame(),
     scope(),
     functiontypes(),
     loops()
@@ -383,12 +387,10 @@ TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &n
     names(names)
 {
     {
-        Scope *newscope = new Scope(Analyzer::global_scope);
         std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT, newscope);
+        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT);
         params.push_back(fp);
-        Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, newscope, params);
-        f->scope->addName(Token(), "self", fp, true);
+        Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, Analyzer::global_frame, Analyzer::global_scope, params);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -1303,10 +1305,10 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
     std::vector<Variable *> variables;
     for (auto name: declaration->names) {
         Variable *v;
-        if (scope.top() == global_scope) {
+        if (frame.top() == global_frame) {
             v = new GlobalVariable(name, name.text, type, false);
         } else {
-            v = new LocalVariable(name, name.text, type, scope.top(), false);
+            v = new LocalVariable(name, name.text, type, false);
         }
         variables.push_back(v);
     }
@@ -1341,10 +1343,10 @@ const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
     const Type *type = analyze(declaration->type);
     Variable *v;
-    if (scope.top() == global_scope) {
+    if (frame.top() == global_frame) {
         v = new GlobalVariable(declaration->name, declaration->name.text, type, true);
     } else {
-        v = new LocalVariable(declaration->name, declaration->name.text, type, scope.top(), true);
+        v = new LocalVariable(declaration->name, declaration->name.text, type, true);
     }
     const Expression *expr = analyze(declaration->value);
     if (not expr->type->is_equivalent(type)) {
@@ -1380,7 +1382,6 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         error2(3047, declaration->name, scope.top()->getDeclaration(name), "duplicate definition of name");
     }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
-    Scope *newscope = new Scope(scope.top());
     std::vector<FunctionParameter *> args;
     for (auto x: declaration->args) {
         ParameterType::Mode mode = ParameterType::IN;
@@ -1395,9 +1396,8 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
                 error(3128, x->type->token, "expected self parameter");
             }
         }
-        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, newscope);
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode);
         args.push_back(fp);
-        newscope->addName(x->name, x->name.text, fp, true);
     }
     if (type != nullptr && args.empty()) {
         error(3129, declaration->token, "expected self parameter");
@@ -1407,18 +1407,15 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         auto f = type->methods.find(name);
         if (f != type->methods.end()) {
             function = dynamic_cast<Function *>(f->second);
-            newscope = function->scope;
         } else {
-            function = new Function(declaration->name, name, returntype, newscope, args);
+            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args);
             type->methods[name] = function;
         }
     } else {
         Name *ident = scope.top()->lookupName(name);
         function = dynamic_cast<Function *>(ident);
-        if (function != nullptr) {
-            newscope = function->scope;
-        } else {
-            function = new Function(declaration->name, name, returntype, newscope, args);
+        if (function == nullptr) {
+            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args);
             scope.top()->addName(declaration->name, name, function);
         }
     }
@@ -1446,8 +1443,7 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     } else {
         function = dynamic_cast<Function *>(scope.top()->lookupName(declaration->name.text));
     }
-    Scope *newscope = function->scope;
-    scope.push(newscope);
+    scope.push(function->scope);
     functiontypes.push(dynamic_cast<const TypeFunction *>(function->type));
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
     function->statements = analyze(declaration->body);
@@ -1459,7 +1455,7 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     }
     loops.pop();
     functiontypes.pop();
-    newscope->checkForward();
+    scope.top()->checkForward();
     scope.pop();
     return new NullStatement(declaration->token.line);
 }
@@ -1471,7 +1467,6 @@ const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *d
         error2(3092, declaration->name, scope.top()->getDeclaration(name), "name shadows outer");
     }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
-    Scope *newscope = new Scope(scope.top());
     std::vector<FunctionParameter *> args;
     for (auto x: declaration->args) {
         ParameterType::Mode mode = ParameterType::IN;
@@ -1481,11 +1476,10 @@ const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *d
             case pt::FunctionParameter::OUT:   mode = ParameterType::OUT;      break;
         }
         const Type *ptype = analyze(x->type);
-        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, newscope);
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode);
         args.push_back(fp);
-        newscope->addName(x->name, x->name.text, fp, true);
     }
-    ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, newscope, args);
+    ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
     scope.top()->addName(declaration->name, name, function);
     return new NullStatement(declaration->token.line);
 }
@@ -1915,7 +1909,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
             if (functiontypes.empty()) {
                 v = new GlobalVariable(valid->name, valid->name.text, vtype, true);
             } else {
-                v = new LocalVariable(valid->name, valid->name.text, vtype, scope.top(), true);
+                v = new LocalVariable(valid->name, valid->name.text, vtype, true);
             }
             scope.top()->addName(valid->name, valid->name.text, v, true);
             cond = new ValidPointerExpression(v, ptr);
@@ -2030,8 +2024,10 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 const Program *Analyzer::analyze()
 {
     Program *r = new Program();
+    global_frame = r->frame;
     global_scope = r->scope;
-    scope.push(r->scope);
+    frame.push(global_frame);
+    scope.push(global_scope);
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
     r->statements = analyze(program->body);
     loops.pop();
