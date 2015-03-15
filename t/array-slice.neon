@@ -1,6 +1,5 @@
 FUNCTION dump(a: Array<Number>)
     VAR s: String := "["
-    VAR i: Number
     FOR i := 0 TO a.size()-1 DO
         s := s & a[i].to_string()
         IF i < a.size()-1 THEN

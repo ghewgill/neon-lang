@@ -1,4 +1,3 @@
-VAR a: Number
 VAR b: Number
 VAR c: Number
 b := 5

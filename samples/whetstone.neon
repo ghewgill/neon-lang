@@ -109,7 +109,6 @@ END FUNCTION
 FUNCTION main()
 
     % used in the FORTRAN version
-    VAR I: Number
     VAR N1, N2, N3, N4, N6, N7, N8, N9, N10, N11: Number
     VAR X1,X2,X3,X4,X,Y,Z: Number
     VAR loop: Number

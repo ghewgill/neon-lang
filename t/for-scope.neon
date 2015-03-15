@@ -1,0 +1,12 @@
+FOR i := 1 TO 3 DO
+    print("\(i)")
+END FOR
+FOR i := 1 TO 2 DO
+    print("\(i)")
+END FOR
+
+%= 1
+%= 2
+%= 3
+%= 1
+%= 2

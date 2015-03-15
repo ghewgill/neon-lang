@@ -1,7 +1,5 @@
 CONST MAX_STEP: Number := 1
 
-VAR x: Number
-
 FOR x := 1 TO 5 STEP MAX_STEP DO
     print("\(x)")
 END FOR

@@ -84,9 +84,9 @@ FUNCTION main()
     r := curses.LINES() - 4
     c := curses.COLS() - 4
 
-    FOR j := 4 TO 0 STEP -1 DO
-        xpos[j] := random.uint32() MOD c + 2
-        ypos[j] := random.uint32() MOD r + 2
+    FOR d := 4 TO 0 STEP -1 DO
+        xpos[d] := random.uint32() MOD c + 2
+        ypos[d] := random.uint32() MOD r + 2
     END FOR
 
     j := 0

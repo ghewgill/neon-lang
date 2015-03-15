@@ -3,7 +3,6 @@
 CONST Max: Number := 100
 
 VAR sieve: Array<Boolean>
-VAR i, j: Number
 
 FOR i := 0 TO Max DO
     sieve[i] := TRUE
@@ -14,7 +13,7 @@ sieve[1] := FALSE
 
 FOR i := 2 TO Max DO
     IF sieve[i] THEN
-        j := 2 * i
+        VAR j: Number := 2 * i
         WHILE j <= Max DO
             sieve[j] := FALSE
             j := j + i

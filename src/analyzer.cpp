@@ -1846,17 +1846,18 @@ const Statement *Analyzer::analyze(const pt::ExpressionStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::ForStatement *statement)
 {
-    Name *name = scope.top()->lookupName(statement->var.text);
-    Variable *var = dynamic_cast<Variable *>(name);
-    if (var == nullptr) {
-        error2(3118, statement->var, scope.top()->getDeclaration(statement->var.text), "name not a variable: " + statement->var.text);
+    scope.push(new Scope(scope.top(), frame.top()));
+    Token name = statement->var;
+    if (scope.top()->lookupName(name.text) != nullptr) {
+        error2(3118, name, scope.top()->getDeclaration(name.text), "name shadows outer");
     }
-    if (not var->type->is_equivalent(TYPE_NUMBER)) {
-        error2(3066, statement->var, scope.top()->getDeclaration(statement->var.text), "type mismatch");
+    Variable *var;
+    if (frame.top() == global_frame) {
+        var = new GlobalVariable(name, name.text, TYPE_NUMBER, false);
+    } else {
+        var = new LocalVariable(name, name.text, TYPE_NUMBER, false);
     }
-    if (var->is_readonly) {
-        error2(3125, statement->var, scope.top()->getDeclaration(statement->var.text), "cannot use readonly variable in FOR loop");
-    }
+    scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
     const Expression *start = analyze(statement->start);
     if (not start->type->is_equivalent(TYPE_NUMBER)) {
@@ -1884,7 +1885,6 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(FOR, loop_id));
-    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
     scope.pop();
     loops.top().pop_back();

@@ -1,4 +1,4 @@
-VAR a, i: Number
+VAR a: Number
 
 CASE a
     WHEN 5 DO

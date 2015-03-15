@@ -1,6 +1,0 @@
-FUNCTION foo(a: Number)
-             %<2
-    FOR a := 1 TO 10 DO
-        %<1
-    END FOR
-END FUNCTION
