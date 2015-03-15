@@ -1658,7 +1658,9 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 conditions.push_back(cond);
             }
         }
+        scope.push(new Scope(scope.top(), frame.top()));
         std::vector<const Statement *> statements = analyze(x.second);
+        scope.pop();
         clauses.push_back(std::make_pair(conditions, statements));
     }
     return new CaseStatement(statement->token.line, expr, clauses);
@@ -1882,7 +1884,9 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(FOR, loop_id));
+    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
+    scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
     return new ForStatement(statement->token.line, loop_id, new VariableExpression(var), start, end, step, statements);
@@ -1919,9 +1923,13 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
                 error(3048, c.first->token, "boolean value expected");
             }
         }
+        scope.push(new Scope(scope.top(), frame.top()));
         condition_statements.push_back(std::make_pair(cond, analyze(c.second)));
+        scope.pop();
     }
+    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> else_statements = analyze(statement->else_statements);
+    scope.pop();
     return new IfStatement(statement->token.line, condition_statements, else_statements);
 }
 
@@ -1929,7 +1937,9 @@ const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
 {
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(LOOP, loop_id));
+    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
+    scope.pop();
     loops.top().pop_back();
     return new LoopStatement(statement->token.line, loop_id, statements);
 }
@@ -1965,11 +1975,13 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
 {
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(REPEAT, loop_id));
+    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
     const Expression *cond = analyze(statement->cond);
     if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
         error(3086, statement->cond->token, "boolean value expected");
     }
+    scope.pop();
     loops.top().pop_back();
     return new RepeatStatement(statement->token.line, loop_id, cond, statements);
 }
@@ -1989,7 +2001,9 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::TryStatement *statement)
 {
+    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
+    scope.pop();
     std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
     for (auto x: statement->catches) {
         const Name *name = scope.top()->lookupName(x.first.at(0).text);
@@ -2002,7 +2016,9 @@ const Statement *Analyzer::analyze(const pt::TryStatement *statement)
         }
         std::vector<const Exception *> exceptions;
         exceptions.push_back(exception);
+        scope.push(new Scope(scope.top(), frame.top()));
         std::vector<const Statement *> statements = analyze(x.second);
+        scope.pop();
         catches.push_back(std::make_pair(exceptions, statements));
     }
     return new TryStatement(statement->token.line, statements, catches);
@@ -2016,7 +2032,9 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     }
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(WHILE, loop_id));
+    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
+    scope.pop();
     loops.top().pop_back();
     return new WhileStatement(statement->token.line, loop_id, cond, statements);
 }
