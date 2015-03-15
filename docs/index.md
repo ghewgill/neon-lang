@@ -555,8 +555,6 @@ The `FOR` loop iterates a numeric variable over a range of values.
 
 Example:
 
-    VAR i: Number
-
     FOR i := 1 TO 10 STEP 2 DO
         print("i is \(i)")
     END FOR

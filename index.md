@@ -29,8 +29,6 @@ Another well-known example is the classic "FizzBuzz" program:
     % is divisible by 3, or "Buzz" if the number is divisible
     % by 5, or "FizzBuzz" if the number is divisible by both.
     % Otherwise, print the number itself.
-    
-    VAR i: Number
 
     FOR i := 1 TO 100 DO
         IF i MOD 15 = 0 THEN
