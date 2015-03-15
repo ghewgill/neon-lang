@@ -480,7 +480,7 @@ void Function::predeclare(Emitter &emitter) const
 void Function::postdeclare(Emitter &emitter) const
 {
     emitter.jump_target(emitter.function_label(entry_label));
-    emitter.emit(ENTER, frame->getCount());
+    emitter.emit(ENTER, static_cast<uint32_t>(frame->getCount()));
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::IN:

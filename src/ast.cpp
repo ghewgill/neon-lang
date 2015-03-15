@@ -207,7 +207,7 @@ void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const
 int Frame::addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced)
 {
     Slot slot(token, name, ref, init_referenced);
-    int r = slots.size();
+    int r = static_cast<int>(slots.size());
     slots.push_back(slot);
     return r;
 }
