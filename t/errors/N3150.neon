@@ -1,0 +1,3 @@
+FUNCTION foo(x: Number DEFAULT 1, y: Number)
+                                  %<
+END FUNCTION

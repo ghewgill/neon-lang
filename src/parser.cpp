@@ -243,7 +243,6 @@ const Statement *Parser::parseConstantDefinition()
 
 const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
 {
-    auto &tok_lparen = tokens[i];
     ++i;
     std::vector<std::pair<Token, const Expression *>> args;
     if (tokens[i].type != RPAREN) {
@@ -265,7 +264,7 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
         }
     }
     ++i;
-    return new FunctionCallExpression(tok_lparen, func, args);
+    return new FunctionCallExpression(func->token, func, args);
 }
 
 const ArrayLiteralExpression *Parser::parseArrayLiteral()
@@ -760,8 +759,13 @@ void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returnty
             }
             auto &tok_param = tokens[i];
             const VariableInfo vars = parseVariableDeclaration();
+            const Expression *default_value = nullptr;
+            if (tokens[i].type == DEFAULT) {
+                ++i;
+                default_value = parseExpression();
+            }
             for (auto name: vars.first) {
-                FunctionParameter *fp = new FunctionParameter(tok_param, name, vars.second, mode);
+                FunctionParameter *fp = new FunctionParameter(tok_param, name, vars.second, mode, default_value);
                 args.push_back(fp);
             }
             if (tokens[i].type != COMMA) {

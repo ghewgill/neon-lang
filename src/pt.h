@@ -479,11 +479,12 @@ public:
         INOUT,
         OUT
     };
-    FunctionParameter(const Token &token, const Token &name, const Type *type, Mode mode): token(token), name(name), type(type), mode(mode) {}
+    FunctionParameter(const Token &token, const Token &name, const Type *type, Mode mode, const Expression *default_value): token(token), name(name), type(type), mode(mode), default_value(default_value) {}
     const Token token;
     const Token name;
     const Type *const type;
     const Mode mode;
+    const Expression *default_value;
 private:
     FunctionParameter(const FunctionParameter &);
     FunctionParameter &operator=(const FunctionParameter &);

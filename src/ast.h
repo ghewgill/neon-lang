@@ -34,6 +34,7 @@ class TypePointer;
 class Variable;
 class FunctionCall;
 class FunctionParameter;
+class Expression;
 class Statement;
 
 class Frame {
@@ -193,10 +194,11 @@ public:
         INOUT,
         OUT
     };
-    ParameterType(const Token &declaration, Mode mode, const Type *type): declaration(declaration), mode(mode), type(type) {}
+    ParameterType(const Token &declaration, Mode mode, const Type *type, const Expression *default_value): declaration(declaration), mode(mode), type(type), default_value(default_value) {}
     const Token declaration;
     const Mode mode;
     const Type *type;
+    const Expression *default_value;
 private:
     ParameterType(const ParameterType &);
     ParameterType &operator=(const ParameterType &);
@@ -383,8 +385,9 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, ParameterType::Mode mode): LocalVariable(declaration, name, type, mode == ParameterType::IN), mode(mode) {}
+    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, ParameterType::Mode mode, const Expression *default_value): LocalVariable(declaration, name, type, mode == ParameterType::IN), mode(mode), default_value(default_value) {}
     ParameterType::Mode mode;
+    const Expression *default_value;
 
     virtual void generate_address(Emitter &emitter, int enclosing) const;
 

@@ -1,0 +1,9 @@
+FUNCTION foo(s: String, b: Boolean DEFAULT FALSE)
+    print("\(s) \(b)")
+END FUNCTION
+
+foo("bar", TRUE)
+%= bar TRUE
+
+foo("baz")
+%= baz FALSE

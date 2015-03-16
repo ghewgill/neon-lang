@@ -86,6 +86,7 @@ enum TokenType {
     FIRST,
     LAST,
     AS,
+    DEFAULT,
     MAX_TOKEN
 };
 

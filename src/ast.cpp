@@ -29,7 +29,7 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
         methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params));
     }
 }
@@ -329,7 +329,7 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
 {
     std::vector<const ParameterType *> paramtypes;
     for (auto p: params) {
-        paramtypes.push_back(new ParameterType(p->declaration, p->mode, p->type));
+        paramtypes.push_back(new ParameterType(p->declaration, p->mode, p->type, p->default_value));
     }
     return new TypeFunction(returntype, paramtypes);
 }
@@ -346,36 +346,36 @@ Program::Program()
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BOOLEAN));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BOOLEAN, nullptr));
         TYPE_BOOLEAN->methods["to_string"] = new PredefinedFunction("boolean__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER, nullptr));
         TYPE_NUMBER->methods["to_string"] = new PredefinedFunction("number__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
         TYPE_STRING->methods["length"] = new PredefinedFunction("string__length", new TypeFunction(TYPE_NUMBER, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_BYTES));
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_ARRAY_NUMBER));
+        params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_ARRAY_NUMBER, nullptr));
         TYPE_BYTES->methods["from_array"] = new PredefinedFunction("bytes__from_array", new TypeFunction(TYPE_NOTHING, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["size"] = new PredefinedFunction("bytes__size", new TypeFunction(TYPE_NUMBER, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["to_array"] = new PredefinedFunction("bytes__to_array", new TypeFunction(TYPE_ARRAY_NUMBER, params));
     }
 

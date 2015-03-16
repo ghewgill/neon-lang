@@ -10,7 +10,7 @@ void rtl_compile_init(Scope *scope)
         std::vector<const ParameterType *> params;
         for (int i = 0; i < f.count; i++) {
             auto &p = f.params[i];
-            params.push_back(new ParameterType(Token(), p.m, p.p));
+            params.push_back(new ParameterType(Token(), p.m, p.p, nullptr));
         }
         scope->addName(Token(), f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
     }
@@ -29,7 +29,7 @@ void rtl_import(const Token &token, Scope *scope, const std::string &name)
                 if (p.p == nullptr) {
                     break;
                 }
-                params.push_back(new ParameterType(Token(), p.m, p.p));
+                params.push_back(new ParameterType(Token(), p.m, p.p, nullptr));
             }
             module->scope->addName(Token(), qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
         }

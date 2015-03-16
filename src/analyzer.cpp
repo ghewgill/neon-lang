@@ -388,7 +388,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &n
 {
     {
         std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT);
+        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT, nullptr);
         params.push_back(fp);
         Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, Analyzer::global_frame, Analyzer::global_scope, params);
         std::vector<const Expression *> values;
@@ -994,7 +994,11 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     int p = 0;
     for (auto a: args) {
         if (a == nullptr) {
-            error(3020, expr->token, "argument not specified for: " + ftype->params[p]->declaration.text);
+            if (ftype->params[p]->default_value != nullptr) {
+                args[p] = ftype->params[p]->default_value;
+            } else {
+                error(3020, expr->token, "argument not specified for: " + ftype->params[p]->declaration.text);
+            }
         }
         p++;
     }
@@ -1411,6 +1415,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
     }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
     std::vector<FunctionParameter *> args;
+    bool in_default = false;
     for (auto x: declaration->args) {
         ParameterType::Mode mode = ParameterType::IN;
         switch (x->mode) {
@@ -1424,7 +1429,17 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
                 error(3128, x->type->token, "expected self parameter");
             }
         }
-        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode);
+        const Expression *def = nullptr;
+        if (x->default_value != nullptr) {
+            in_default = true;
+            def = analyze(x->default_value);
+            if (not def->is_constant) {
+                error(3148, x->default_value->token, "default value not constant");
+            }
+        } else if (in_default) {
+            error(3150, x->token, "default value must be specified for this parameter");
+        }
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, def);
         args.push_back(fp);
     }
     if (type != nullptr && args.empty()) {
@@ -1496,6 +1511,7 @@ const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *d
     }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
     std::vector<FunctionParameter *> args;
+    bool in_default = false;
     for (auto x: declaration->args) {
         ParameterType::Mode mode = ParameterType::IN;
         switch (x->mode) {
@@ -1504,7 +1520,17 @@ const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *d
             case pt::FunctionParameter::OUT:   mode = ParameterType::OUT;      break;
         }
         const Type *ptype = analyze(x->type);
-        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode);
+        const Expression *def = nullptr;
+        if (x->default_value != nullptr) {
+            in_default = true;
+            def = analyze(x->default_value);
+            if (not def->is_constant) {
+                error(3149, x->default_value->token, "default value not constant");
+            }
+        } else if (in_default) {
+            error(3151, x->token, "default value must be specified for this parameter");
+        }
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, def);
         args.push_back(fp);
     }
     ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
