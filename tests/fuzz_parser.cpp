@@ -87,6 +87,7 @@ std::string reconstitute(const Token &t)
         case LET:         return "LET";
         case FIRST:       return "FIRST";
         case LAST:        return "LAST";
+        case AS:          return "AS";
         case MAX_TOKEN:   return "";
     }
     return "";

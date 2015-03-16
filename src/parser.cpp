@@ -245,11 +245,16 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
 {
     auto &tok_lparen = tokens[i];
     ++i;
-    std::vector<const Expression *> args;
+    std::vector<std::pair<Token, const Expression *>> args;
     if (tokens[i].type != RPAREN) {
         for (;;) {
+            Token name;
+            if (tokens[i].type == IDENTIFIER && tokens[i+1].type == AS) {
+                name = tokens[i];
+                i += 2;
+            }
             const Expression *e = parseExpression();
-            args.push_back(e);
+            args.push_back(std::make_pair(name, e));
             if (tokens[i].type != COMMA) {
                 break;
             }

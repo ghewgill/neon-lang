@@ -292,10 +292,10 @@ public:
 
 class FunctionCallExpression: public Expression {
 public:
-    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<const Expression *> &args): Expression(token), base(base), args(args) {}
+    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<std::pair<Token, const Expression *>> &args): Expression(token), base(base), args(args) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
     const Expression *const base;
-    const std::vector<const Expression *> args;
+    const std::vector<std::pair<Token, const Expression *>> args;
 private:
     FunctionCallExpression(const FunctionCallExpression &);
     FunctionCallExpression &operator=(const FunctionCallExpression &);

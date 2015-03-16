@@ -85,6 +85,7 @@ enum TokenType {
     LET,
     FIRST,
     LAST,
+    AS,
     MAX_TOKEN
 };
 

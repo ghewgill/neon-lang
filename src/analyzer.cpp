@@ -858,20 +858,20 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (expr->args.size() != 2) {
                 error(3136, expr->token, "two arguments expected");
             }
-            const Expression *lhs_expr = analyze(expr->args[0]);
+            const Expression *lhs_expr = analyze(expr->args[0].second);
             const ReferenceExpression *lhs = dynamic_cast<const ReferenceExpression *>(lhs_expr);
             if (lhs == nullptr) {
-                error(3119, expr->args[0]->token, "expression is not assignable");
+                error(3119, expr->args[0].second->token, "expression is not assignable");
             }
             if (lhs_expr->is_readonly && dynamic_cast<const TypePointer *>(lhs_expr->type) == nullptr) {
-                error(3120, expr->args[0]->token, "value_copy to readonly expression");
+                error(3120, expr->args[0].second->token, "value_copy to readonly expression");
             }
-            const Expression *rhs = analyze(expr->args[1]);
+            const Expression *rhs = analyze(expr->args[1].second);
             const Type *ltype = lhs->type;
             const TypePointer *lptype = dynamic_cast<const TypePointer *>(ltype);
             if (lptype != nullptr) {
                 if (dynamic_cast<const TypeValidPointer *>(lptype) == nullptr) {
-                    error(3121, expr->args[0]->token, "valid pointer type required");
+                    error(3121, expr->args[0].second->token, "valid pointer type required");
                 }
                 ltype = lptype->reftype;
                 lhs = new PointerDereferenceExpression(ltype, lhs);
@@ -880,13 +880,13 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             const TypePointer *rptype = dynamic_cast<const TypePointer *>(rtype);
             if (rptype != nullptr) {
                 if (dynamic_cast<const TypeValidPointer *>(rptype) == nullptr) {
-                    error(3122, expr->args[1]->token, "valid pointer type required");
+                    error(3122, expr->args[1].second->token, "valid pointer type required");
                 }
                 rtype = rptype->reftype;
                 rhs = new PointerDereferenceExpression(rtype, rhs);
             }
             if (not ltype->is_equivalent(rtype)) {
-                error(3123, expr->args[1]->token, "type mismatch");
+                error(3123, expr->args[1].second->token, "type mismatch");
             }
             std::vector<const ReferenceExpression *> vars;
             vars.push_back(lhs);
@@ -895,14 +895,14 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
         if (recordtype != nullptr) {
             if (expr->args.size() > recordtype->fields.size()) {
-                error2(3130, expr->args[recordtype->fields.size()]->token, recordtype->declaration, "wrong number of fields");
+                error2(3130, expr->args[recordtype->fields.size()].second->token, recordtype->declaration, "wrong number of fields");
             }
             std::vector<const Expression *> elements;
             auto f = recordtype->fields.begin();
             for (auto x: expr->args) {
-                const Expression *element = analyze(x);
+                const Expression *element = analyze(x.second);
                 if (not element->type->is_equivalent(f->second)) {
-                    error2(3131, x->token, f->first, "type mismatch");
+                    error2(3131, x.second->token, f->first, "type mismatch");
                 }
                 elements.push_back(element);
                 ++f;
@@ -941,34 +941,62 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     if (ftype == nullptr) {
         error(3017, expr->base->token, "not a function");
     }
-    std::vector<const Type *>::size_type p = 0;
-    std::vector<const Expression *> args;
+    int param_index = 0;
+    std::vector<const Expression *> args(ftype->params.size());
     if (self != nullptr) {
-        args.push_back(self);
-        ++p;
+        args[0] = self;
+        ++param_index;
     }
-    for (const pt::Expression *a: expr->args) {
-        const Expression *e = analyze(a);
-        if (p >= ftype->params.size()) {
-            error(3096, a->token, "too many parameters");
+    for (auto a: expr->args) {
+        const Expression *e = analyze(a.second);
+        if (param_index >= static_cast<int>(ftype->params.size())) {
+            error(3096, a.second->token, "too many parameters");
+        }
+        int p;
+        if (param_index >= 0 && a.first.text.empty()) {
+            p = param_index;
+            param_index++;
+        } else {
+            // Now in named argument mode.
+            param_index = -1;
+            if (a.first.text.empty()) {
+                error(3145, a.second->token, "parameter name must be specified");
+            }
+            auto fp = ftype->params.begin();
+            for (;;) {
+                if (a.first.text == (*fp)->declaration.text) {
+                    break;
+                }
+                ++fp;
+                if (fp == ftype->params.end()) {
+                    error(3146, a.first, "parameter name not found");
+                }
+            }
+            p = std::distance(ftype->params.begin(), fp);
+            if (args[p] != nullptr) {
+                error(3147, a.first, "parameter already specified");
+            }
         }
         if (ftype->params[p]->mode != ParameterType::IN) {
             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
             if (ref == nullptr) {
-                error2(3018, a->token, ftype->params[p]->declaration, "function call argument must be reference: " + e->text());
+                error2(3018, a.second->token, ftype->params[p]->declaration, "function call argument must be reference: " + e->text());
             }
             if (ref->is_readonly) {
-                error(3106, a->token, "readonly parameter to OUT");
+                error(3106, a.second->token, "readonly parameter to OUT");
             }
         }
         if (not e->type->is_equivalent(ftype->params[p]->type)) {
-            error2(3019, a->token, ftype->params[p]->declaration, "type mismatch");
+            error2(3019, a.second->token, ftype->params[p]->declaration, "type mismatch");
         }
-        args.push_back(e);
-        ++p;
+        args[p] = e;
     }
-    if (p < ftype->params.size()) {
-        error(3020, expr->token, "not enough arguments (got " + std::to_string(p) + ", expected " + std::to_string(ftype->params.size()));
+    int p = 0;
+    for (auto a: args) {
+        if (a == nullptr) {
+            error(3020, expr->token, "argument not specified for: " + ftype->params[p]->declaration.text);
+        }
+        p++;
     }
     return new FunctionCall(func, args);
 }
