@@ -625,14 +625,16 @@ void Executor::exec_INDEXAR()
     if (not number_is_integer(index)) {
         raise("ArrayIndex", number_to_string(index));
     }
-    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
-    // TODO: check for i >= 0 and throw exception if not
-    if (i >= addr->array().size()) {
+    int64_t i = number_to_sint64(index);
+    if (i < 0) {
         raise("ArrayIndex", std::to_string(i));
+    }
+    uint64_t j = static_cast<uint64_t>(i);
+    if (j >= addr->array().size()) {
+        raise("ArrayIndex", std::to_string(j));
         return;
     }
-    assert(i < addr->array().size());
-    stack.push(Cell(&addr->array().at(i)));
+    stack.push(Cell(&addr->array().at(j)));
 }
 
 void Executor::exec_INDEXAW()
@@ -643,13 +645,16 @@ void Executor::exec_INDEXAW()
     if (not number_is_integer(index)) {
         raise("ArrayIndex", number_to_string(index));
     }
-    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
-    // TODO: check for i >= 0 and throw exception if not
-    if (i >= addr->array().size()) {
-        addr->array().resize(i+1);
+    int64_t i = number_to_sint64(index);
+    if (i < 0) {
+        raise("ArrayIndex", std::to_string(i));
     }
-    assert(i < addr->array().size());
-    stack.push(Cell(&addr->array().at(i)));
+    uint64_t j = static_cast<uint64_t>(i);
+    if (j >= addr->array().size()) {
+        addr->array().resize(j+1);
+    }
+    assert(j < addr->array().size());
+    stack.push(Cell(&addr->array().at(j)));
 }
 
 void Executor::exec_INDEXAV()
@@ -660,14 +665,17 @@ void Executor::exec_INDEXAV()
     if (not number_is_integer(index)) {
         raise("ArrayIndex", number_to_string(index));
     }
-    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
-    // TODO: check for i >= 0 and throw exception if not
-    if (i >= array.size()) {
+    int64_t i = number_to_sint64(index);
+    if (i < 0) {
         raise("ArrayIndex", std::to_string(i));
+    }
+    uint64_t j = static_cast<uint64_t>(i);
+    if (j >= array.size()) {
+        raise("ArrayIndex", std::to_string(j));
         return;
     }
-    assert(i < array.size());
-    Cell val = array.at(i);
+    assert(j < array.size());
+    Cell val = array.at(j);
     stack.pop();
     stack.push(val);
 }
@@ -680,9 +688,12 @@ void Executor::exec_INDEXAN()
     if (not number_is_integer(index)) {
         raise("ArrayIndex", number_to_string(index));
     }
-    uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
-    // TODO: check for i >= 0 and throw exception if not
-    Cell val = i < array.size() ? array.at(i) : Cell();
+    int64_t i = number_to_sint64(index);
+    if (i < 0) {
+        raise("ArrayIndex", std::to_string(i));
+    }
+    uint64_t j = static_cast<uint64_t>(i);
+    Cell val = j < array.size() ? array.at(j) : Cell();
     stack.pop();
     stack.push(val);
 }
