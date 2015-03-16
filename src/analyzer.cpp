@@ -1948,6 +1948,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::IfStatement *statement)
 {
+    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     for (auto c: statement->condition_statements) {
         const Expression *cond = nullptr;
@@ -1988,7 +1989,6 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
         condition_statements.push_back(std::make_pair(cond, analyze(c.second)));
         scope.pop();
     }
-    scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> else_statements = analyze(statement->else_statements);
     scope.pop();
     return new IfStatement(statement->token.line, condition_statements, else_statements);
