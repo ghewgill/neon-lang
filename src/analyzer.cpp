@@ -972,7 +972,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                     error(3146, a.first, "parameter name not found");
                 }
             }
-            p = std::distance(ftype->params.begin(), fp);
+            p = static_cast<int>(std::distance(ftype->params.begin(), fp));
             if (args[p] != nullptr) {
                 error(3147, a.first, "parameter already specified");
             }
