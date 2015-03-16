@@ -1950,27 +1950,34 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
 {
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     for (auto c: statement->condition_statements) {
-        const Expression *cond;
+        const Expression *cond = nullptr;
         const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(c.first);
         if (valid != nullptr) {
-            if (scope.top()->lookupName(valid->name.text) != nullptr) {
-                error2(3102, valid->name, scope.top()->getDeclaration(valid->name.text), "name shadows outer");
+            for (auto v: valid->tests) {
+                if (scope.top()->lookupName(v.first.text) != nullptr) {
+                    error2(3102, v.first, scope.top()->getDeclaration(v.first.text), "name shadows outer");
+                }
+                const Expression *ptr = analyze(v.second);
+                const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
+                if (ptrtype == nullptr) {
+                    error(3101, v.second->token, "pointer type expression expected");
+                }
+                const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
+                Variable *var;
+                // TODO: Try to make this a local variable always (give the global scope a local space).
+                if (functiontypes.empty()) {
+                    var = new GlobalVariable(v.first, v.first.text, vtype, true);
+                } else {
+                    var = new LocalVariable(v.first, v.first.text, vtype, true);
+                }
+                scope.top()->addName(v.first, v.first.text, var, true);
+                const Expression *ve = new ValidPointerExpression(var, ptr);
+                if (cond == nullptr) {
+                    cond = ve;
+                } else {
+                    cond = new ConjunctionExpression(cond, ve);
+                }
             }
-            const Expression *ptr = analyze(valid->ptr);
-            const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
-            if (ptrtype == nullptr) {
-                error(3101, valid->ptr->token, "pointer type expression expected");
-            }
-            const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
-            Variable *v;
-            // TODO: Try to make this a local variable always (give the global scope a local space).
-            if (functiontypes.empty()) {
-                v = new GlobalVariable(valid->name, valid->name.text, vtype, true);
-            } else {
-                v = new LocalVariable(valid->name, valid->name.text, vtype, true);
-            }
-            scope.top()->addName(valid->name, valid->name.text, v, true);
-            cond = new ValidPointerExpression(v, ptr);
         } else {
             cond = analyze(c.first);
             if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {

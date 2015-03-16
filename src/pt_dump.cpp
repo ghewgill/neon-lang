@@ -172,8 +172,10 @@ public:
         child(node->type);
     }
     virtual void visit(const ValidPointerExpression *node) {
-        write("ValidPointerExpression(" + node->name.text + ")");
-        child(node->ptr);
+        write("ValidPointerExpression");
+        for (auto x: node->tests) {
+            child(x.second);
+        }
     }
     virtual void visit(const RangeSubscriptExpression *node) {
         write("RangeSubscriptExpression");

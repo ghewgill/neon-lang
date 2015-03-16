@@ -863,6 +863,8 @@ const Statement *Parser::parseIfStatement()
         ++i;
         const Expression *cond = nullptr;
         if (tokens[i].type == VALID) {
+            auto &tok_valid = tokens[i];
+            std::vector<std::pair<Token, const Expression *>> tests;
             for (;;) {
                 ++i;
                 if (tokens[i].type != IDENTIFIER) {
@@ -875,17 +877,12 @@ const Statement *Parser::parseIfStatement()
                 }
                 ++i;
                 const Expression *ptr = parseExpression();
-                const Expression *valid = new ValidPointerExpression(name, name, ptr);
-                if (cond == nullptr) {
-                    cond = valid;
-                } else {
-                    cond = new ConjunctionExpression(tokens[i], cond, valid);
-                }
+                tests.push_back(std::make_pair(name, ptr));
                 if (tokens[i].type != COMMA) {
                     break;
                 }
-                // TODO: check that next token is VALID
             }
+            cond = new ValidPointerExpression(tok_valid, tests);
         } else {
             cond = parseExpression();
         }

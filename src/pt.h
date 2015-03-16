@@ -439,10 +439,9 @@ private:
 
 class ValidPointerExpression: public Expression {
 public:
-    ValidPointerExpression(const Token &token, const Token &name, const Expression *ptr): Expression(token), name(name), ptr(ptr) {}
+    ValidPointerExpression(const Token &token, std::vector<std::pair<Token, const Expression *>> &tests): Expression(token), tests(tests) {}
     virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
-    const Token name;
-    const Expression *const ptr;
+    std::vector<std::pair<Token, const Expression *>> tests;
 private:
     ValidPointerExpression(const ValidPointerExpression &);
     ValidPointerExpression &operator=(const ValidPointerExpression &);
