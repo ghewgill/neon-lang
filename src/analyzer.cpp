@@ -1286,7 +1286,7 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
 {
     std::string name = declaration->token.text;
     if (not scope.top()->allocateName(declaration->token, name)) {
-        error2(3013, declaration->token, scope.top()->getDeclaration(name), "name shadows outer");
+        error2(3013, declaration->token, scope.top()->getDeclaration(name), "duplicate identifier");
     }
     const Type *type = analyze(declaration->type);
     scope.top()->addName(declaration->token, name, const_cast<Type *>(type)); // Still ugly.
@@ -1301,7 +1301,7 @@ const Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *declarati
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
-        error2(3014, declaration->token, scope.top()->getDeclaration(declaration->name.text), "name shadows outer");
+        error2(3014, declaration->token, scope.top()->getDeclaration(declaration->name.text), "duplicate identifier");
     }
     return new NullStatement(declaration->token.line);
 }
@@ -1325,7 +1325,7 @@ const Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declarati
 {
     for (auto name: declaration->names) {
         if (not scope.top()->allocateName(name, name.text)) {
-            error2(3038, name, scope.top()->getDeclaration(name.text), "name shadows outer");
+            error2(3038, name, scope.top()->getDeclaration(name.text), "duplicate identifier");
         }
     }
     return new NullStatement(declaration->token.line);
@@ -1366,7 +1366,7 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
 const Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
 {
     if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
-        error2(3139, declaration->name, scope.top()->getDeclaration(declaration->name.text), "name shadows outer");
+        error2(3139, declaration->name, scope.top()->getDeclaration(declaration->name.text), "duplicate identifier");
     }
     return new NullStatement(declaration->token.line);
 }
@@ -1507,7 +1507,7 @@ const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *d
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
-        error2(3092, declaration->name, scope.top()->getDeclaration(name), "name shadows outer");
+        error2(3092, declaration->name, scope.top()->getDeclaration(name), "duplicate identifier");
     }
     const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
     std::vector<FunctionParameter *> args;
@@ -1903,7 +1903,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     scope.push(new Scope(scope.top(), frame.top()));
     Token name = statement->var;
     if (scope.top()->lookupName(name.text) != nullptr) {
-        error2(3118, name, scope.top()->getDeclaration(name.text), "name shadows outer");
+        error2(3118, name, scope.top()->getDeclaration(name.text), "duplicate identifier");
     }
     Variable *var;
     if (frame.top() == global_frame) {
@@ -1956,7 +1956,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
         if (valid != nullptr) {
             for (auto v: valid->tests) {
                 if (scope.top()->lookupName(v.first.text) != nullptr) {
-                    error2(3102, v.first, scope.top()->getDeclaration(v.first.text), "name shadows outer");
+                    error2(3102, v.first, scope.top()->getDeclaration(v.first.text), "duplicate identifier");
                 }
                 const Expression *ptr = analyze(v.second);
                 const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
