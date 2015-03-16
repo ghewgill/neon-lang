@@ -1237,7 +1237,7 @@ const Expression *Analyzer::analyze(const pt::NewRecordExpression *expr)
 
 const Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
 {
-    // TODO: This happens with multiple pointers in an IF VALID statement.
+    // This should never happen because ValidPointerExpression is handled elsewhere.
     internal_error("TODO pt::Expression");
 }
 
