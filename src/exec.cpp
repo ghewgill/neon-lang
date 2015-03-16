@@ -622,7 +622,9 @@ void Executor::exec_INDEXAR()
     ip++;
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
-    assert(number_is_integer(index));
+    if (not number_is_integer(index)) {
+        raise("ArrayIndex", number_to_string(index));
+    }
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     // TODO: check for i >= 0 and throw exception if not
     if (i >= addr->array().size()) {
@@ -638,7 +640,9 @@ void Executor::exec_INDEXAW()
     ip++;
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
-    assert(number_is_integer(index));
+    if (not number_is_integer(index)) {
+        raise("ArrayIndex", number_to_string(index));
+    }
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     // TODO: check for i >= 0 and throw exception if not
     if (i >= addr->array().size()) {
@@ -653,7 +657,9 @@ void Executor::exec_INDEXAV()
     ip++;
     Number index = stack.top().number(); stack.pop();
     std::vector<Cell> &array = stack.top().array();
-    assert(number_is_integer(index));
+    if (not number_is_integer(index)) {
+        raise("ArrayIndex", number_to_string(index));
+    }
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     // TODO: check for i >= 0 and throw exception if not
     if (i >= array.size()) {
@@ -671,7 +677,9 @@ void Executor::exec_INDEXAN()
     ip++;
     Number index = stack.top().number(); stack.pop();
     std::vector<Cell> &array = stack.top().array();
-    assert(number_is_integer(index));
+    if (not number_is_integer(index)) {
+        raise("ArrayIndex", number_to_string(index));
+    }
     uint32_t i = number_to_uint32(index); // TODO: to signed instead of unsigned for better errors
     // TODO: check for i >= 0 and throw exception if not
     Cell val = i < array.size() ? array.at(i) : Cell();
