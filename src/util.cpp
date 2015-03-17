@@ -14,7 +14,7 @@ void abort_error_a(const char *file, int line, int number, const Token &token_be
         throw SourceError(file, line, number, token, message);
     }
     Token tok = token_before;
-    tok.column = 1 + tok.source.length();
+    tok.column = static_cast<int>(1 + tok.source.length());
     if (tok.source[tok.source.length()-1] != ' ') {
         tok.column++;
     }
