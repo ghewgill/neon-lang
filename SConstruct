@@ -1,4 +1,6 @@
 import os
+import re
+import subprocess
 import sys
 import tarfile
 import zipfile
@@ -61,6 +63,21 @@ else:
 env.Append(LIBS=[libbid, libffi] + libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
+
+# This adds -Doverride= for GCC earlier than 4.7.
+# (GCC does not support 'override' before 4.7, but
+# it supports everything else we need.)
+try:
+    ver = subprocess.check_output([env["CXX"], "--version"])
+    if ver.startswith("g++"):
+        ver = ver.split("\n")[0]
+        ver = re.sub(r"\(.*?\)", "", ver)
+        ver = float(re.search(r"(\d+\.\d+)\.", ver).group(1))
+        if ver < 4.7:
+            env.Append(CXXFLAGS=["-Doverride="])
+except Exception as x:
+    print x
+    pass
 
 if coverage:
     env.Append(CXXFLAGS=[
