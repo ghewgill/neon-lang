@@ -158,28 +158,28 @@ public:
 class TypeSimple: public Type {
 public:
     TypeSimple(const Token &token, const std::string &name): Type(token), name(name) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::string name;
 };
 
 class TypeEnum: public Type {
 public:
     TypeEnum(const Token &token, const std::vector<std::pair<Token, int>> &names): Type(token), names(names) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<Token, int>> names;
 };
 
 class TypeRecord: public Type {
 public:
     TypeRecord(const Token &token, const std::vector<std::pair<Token, const Type *>> &fields): Type(token), fields(fields) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<Token, const Type *>> fields;
 };
 
 class TypePointer: public Type {
 public:
     TypePointer(const Token &token, const Type *reftype): Type(token), reftype(reftype) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Type *const reftype;
 private:
     TypePointer(const TypePointer &);
@@ -189,7 +189,7 @@ private:
 class TypeParameterised: public Type {
 public:
     TypeParameterised(const Token &name, const Type *elementtype): Type(name), name(token), elementtype(elementtype) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     const Type *const elementtype;
 private:
@@ -205,55 +205,55 @@ public:
 class BooleanLiteralExpression: public Expression {
 public:
     BooleanLiteralExpression(const Token &token, bool value): Expression(token), value(value) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const bool value;
 };
 
 class NumberLiteralExpression: public Expression {
 public:
     NumberLiteralExpression(const Token &token, Number value): Expression(token), value(value) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Number value;
 };
 
 class StringLiteralExpression: public Expression {
 public:
     StringLiteralExpression(const Token &token, const std::string &value): Expression(token), value(value) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::string value;
 };
 
 class ArrayLiteralExpression: public Expression {
 public:
     ArrayLiteralExpression(const Token &token, const std::vector<const Expression *> &elements): Expression(token), elements(elements) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const Expression *> elements;
 };
 
 class DictionaryLiteralExpression: public Expression {
 public:
     DictionaryLiteralExpression(const Token &token, const std::vector<std::pair<Token, const Expression *>> &elements): Expression(token), elements(elements) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<Token, const Expression *>> elements;
 };
 
 class NilLiteralExpression: public Expression {
 public:
     NilLiteralExpression(const Token &token): Expression(token) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class IdentifierExpression: public Expression {
 public:
     IdentifierExpression(const Token &token, const std::string &name): Expression(token), name(name) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::string name;
 };
 
 class DotExpression: public Expression {
 public:
     DotExpression(const Token &token, const Expression *base, const Token &name): Expression(token), base(base), name(name) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const Token name;
 private:
@@ -264,7 +264,7 @@ private:
 class ArrowExpression: public Expression {
 public:
     ArrowExpression(const Token &token, const Expression *base, const Token &name): Expression(token), base(base), name(name) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const Token name;
 private:
@@ -275,7 +275,7 @@ private:
 class SubscriptExpression: public Expression {
 public:
     SubscriptExpression(const Token &token, const Expression *base, const Expression *index): Expression(token), base(base), index(index) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const Expression *const index;
 private:
@@ -286,14 +286,14 @@ private:
 class InterpolatedStringExpression: public Expression {
 public:
     InterpolatedStringExpression(const Token &token, const std::vector<std::pair<const Expression *, std::string>> &parts): Expression(token), parts(parts) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<const Expression *, std::string>> parts;
 };
 
 class FunctionCallExpression: public Expression {
 public:
     FunctionCallExpression(const Token &token, const Expression *base, const std::vector<std::pair<Token, const Expression *>> &args): Expression(token), base(base), args(args) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const std::vector<std::pair<Token, const Expression *>> args;
 private:
@@ -313,19 +313,19 @@ private:
 class UnaryPlusExpression: public UnaryExpression {
 public:
     UnaryPlusExpression(const Token &token, const Expression *expr): UnaryExpression(token, expr) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class UnaryMinusExpression: public UnaryExpression {
 public:
     UnaryMinusExpression(const Token &token, const Expression *expr): UnaryExpression(token, expr) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class LogicalNotExpression: public UnaryExpression {
 public:
     LogicalNotExpression(const Token &token, const Expression *expr): UnaryExpression(token, expr) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class BinaryExpression: public Expression {
@@ -341,43 +341,43 @@ private:
 class ExponentiationExpression: public BinaryExpression {
 public:
     ExponentiationExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class MultiplicationExpression: public BinaryExpression {
 public:
     MultiplicationExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class DivisionExpression: public BinaryExpression {
 public:
     DivisionExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ModuloExpression: public BinaryExpression {
 public:
     ModuloExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class AdditionExpression: public BinaryExpression {
 public:
     AdditionExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class SubtractionExpression: public BinaryExpression {
 public:
     SubtractionExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ConcatenationExpression: public BinaryExpression {
 public:
     ConcatenationExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ComparisonExpression: public BinaryExpression {
@@ -386,39 +386,39 @@ public:
         EQ, NE, LT, GT, LE, GE
     };
     ComparisonExpression(const Token &token, const Expression *left, const Expression *right, Comparison comp): BinaryExpression(token, left, right), comp(comp) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Comparison comp;
 };
 
 class ChainedComparisonExpression: public Expression {
 public:
     ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(comps[0]->token), comps(comps) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const ComparisonExpression *> comps;
 };
 
 class MembershipExpression: public BinaryExpression {
 public:
     MembershipExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ConjunctionExpression: public BinaryExpression {
 public:
     ConjunctionExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class DisjunctionExpression: public BinaryExpression {
 public:
     DisjunctionExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ConditionalExpression: public Expression {
 public:
     ConditionalExpression(const Token &token, const Expression *cond, const Expression *left, const Expression *right): Expression(token), cond(cond), left(left), right(right) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const cond;
     const Expression *const left;
     const Expression *const right;
@@ -430,7 +430,7 @@ private:
 class NewRecordExpression: public Expression {
 public:
     NewRecordExpression(const Token &token, const Type *type): Expression(token), type(type) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Type *const type;
 private:
     NewRecordExpression(const NewRecordExpression &);
@@ -440,7 +440,7 @@ private:
 class ValidPointerExpression: public Expression {
 public:
     ValidPointerExpression(const Token &token, std::vector<std::pair<Token, const Expression *>> &tests): Expression(token), tests(tests) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::pair<Token, const Expression *>> tests;
 private:
     ValidPointerExpression(const ValidPointerExpression &);
@@ -463,7 +463,7 @@ private:
 class RangeSubscriptExpression: public Expression {
 public:
     RangeSubscriptExpression(const Token &token, const Expression *base, const ArrayRange *range): Expression(token), base(base), range(range) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const ArrayRange *const range;
 private:
@@ -502,14 +502,14 @@ public:
 class ImportDeclaration: public Declaration {
 public:
     ImportDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
 };
 
 class TypeDeclaration: public Declaration {
 public:
     TypeDeclaration(const Token &token, const Type *type): Declaration(token), type(type) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Type *const type;
 private:
     TypeDeclaration(const TypeDeclaration &);
@@ -519,7 +519,7 @@ private:
 class ConstantDeclaration: public Declaration {
 public:
     ConstantDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token), name(name), type(type), value(value) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     const Type *const type;
     const Expression *const value;
@@ -531,7 +531,7 @@ private:
 class VariableDeclaration: public Declaration {
 public:
     VariableDeclaration(const Token &token, const std::vector<Token> &names, const Type *type, const Expression *value): Declaration(token), names(names), type(type), value(value) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<Token> names;
     const Type *const type;
     const Expression *const value;
@@ -543,7 +543,7 @@ private:
 class LetDeclaration: public Declaration {
 public:
     LetDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token), name(name), type(type), value(value) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     const Type *const type;
     const Expression *const value;
@@ -567,14 +567,14 @@ private:
 class FunctionDeclaration: public BaseFunctionDeclaration {
 public:
     FunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const std::vector<const Statement *> &body): BaseFunctionDeclaration(token, type, name, returntype, args), body(body) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const Statement *> body;
 };
 
 class ExternalFunctionDeclaration: public BaseFunctionDeclaration {
 public:
     ExternalFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Expression *dict): BaseFunctionDeclaration(token, type, name, returntype, args), dict(dict) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const dict;
 private:
     ExternalFunctionDeclaration(const ExternalFunctionDeclaration &);
@@ -584,7 +584,7 @@ private:
 class ExceptionDeclaration: public Declaration {
 public:
     ExceptionDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
 };
 
@@ -597,7 +597,7 @@ public:
 class AssignmentStatement: public Statement {
 public:
     AssignmentStatement(const Token &token, const std::vector<const Expression *> &variables, const Expression *expr): Statement(token), variables(variables), expr(expr) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const Expression *> variables;
     const Expression *const expr;
 private:
@@ -635,7 +635,7 @@ public:
         RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
     CaseStatement(const Token &token, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(token), expr(expr), clauses(clauses) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const expr;
     const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
 private:
@@ -646,14 +646,14 @@ private:
 class ExitStatement: public Statement {
 public:
     ExitStatement(const Token &token, TokenType type): Statement(token), type(type) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const TokenType type;
 };
 
 class ExpressionStatement: public Statement {
 public:
     ExpressionStatement(const Token &token, const Expression *expr): Statement(token), expr(expr) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const expr;
 private:
     ExpressionStatement(const ExpressionStatement &);
@@ -663,7 +663,7 @@ private:
 class ForStatement: public BlockStatement {
 public:
     ForStatement(const Token &token, const Token &var, const Expression *start, const Expression *end, const Expression *step, const std::vector<const Statement *> &body): BlockStatement(token, body), var(var), start(start), end(end), step(step) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token var;
     const Expression *const start;
     const Expression *const end;
@@ -676,7 +676,7 @@ private:
 class IfStatement: public Statement {
 public:
     IfStatement(const Token &token, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(token), condition_statements(condition_statements), else_statements(else_statements) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     const std::vector<const Statement *> else_statements;
 };
@@ -684,20 +684,20 @@ public:
 class LoopStatement: public BlockStatement {
 public:
     LoopStatement(const Token &token, const std::vector<const Statement *> &body): BlockStatement(token, body) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class NextStatement: public Statement {
 public:
     NextStatement(const Token &token, TokenType type): Statement(token), type(type) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const TokenType type;
 };
 
 class RaiseStatement: public Statement {
 public:
     RaiseStatement(const Token &token, const Token &name, const Expression *info): Statement(token), name(name), info(info) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     const Expression *const info;
 private:
@@ -708,7 +708,7 @@ private:
 class RepeatStatement: public BlockStatement {
 public:
     RepeatStatement(const Token &token, const Expression *cond, const std::vector<const Statement *> &body): BlockStatement(token, body), cond(cond) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const cond;
 private:
     RepeatStatement(const RepeatStatement &);
@@ -718,7 +718,7 @@ private:
 class ReturnStatement: public Statement {
 public:
     ReturnStatement(const Token &token, const Expression *expr): Statement(token), expr(expr) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const expr;
 private:
     ReturnStatement(const ReturnStatement &);
@@ -728,14 +728,14 @@ private:
 class TryStatement: public BlockStatement {
 public:
     TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> catches;
 };
 
 class WhileStatement: public BlockStatement {
 public:
     WhileStatement(const Token &token, const Expression *cond, const std::vector<const Statement *> &body): BlockStatement(token, body), cond(cond) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const cond;
 private:
     WhileStatement(const WhileStatement &);
@@ -745,7 +745,7 @@ private:
 class Program: public BlockStatement {
 public:
     Program(const Token &token, const std::vector<const Statement *> &body): BlockStatement(token, body) {}
-    virtual void accept(IParseTreeVisitor *visitor) const { visitor->visit(this); }
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 } // namespace pt

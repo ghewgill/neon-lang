@@ -97,64 +97,64 @@ private:
 class TypeAnalyzer: public pt::IParseTreeVisitor {
 public:
     TypeAnalyzer(Analyzer *a): type(nullptr), a(a) {}
-    virtual void visit(const pt::TypeSimple *t) { type = a->analyze(t); }
-    virtual void visit(const pt::TypeEnum *t) { type = a->analyze(t); }
-    virtual void visit(const pt::TypeRecord *t) { type = a->analyze(t); }
-    virtual void visit(const pt::TypePointer *t) { type = a->analyze(t); }
-    virtual void visit(const pt::TypeParameterised *t) { type = a->analyze(t); }
-    virtual void visit(const pt::BooleanLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NumberLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::StringLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ArrayLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DictionaryLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NilLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::IdentifierExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DotExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ArrowExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::SubscriptExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::InterpolatedStringExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::FunctionCallExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::UnaryPlusExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::UnaryMinusExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::LogicalNotExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ExponentiationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::MultiplicationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DivisionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ModuloExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::AdditionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::SubtractionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConcatenationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ComparisonExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ChainedComparisonExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::MembershipExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConjunctionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DisjunctionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConditionalExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NewRecordExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::RangeSubscriptExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ImportDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::VariableDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::LetDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::FunctionDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ExceptionDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::AssignmentStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::CaseStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ExitStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ExpressionStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ForStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::IfStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::LoopStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::NextStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::RaiseStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::RepeatStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ReturnStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::TryStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::WhileStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::Program *) { internal_error("pt::Program"); }
+    virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t); }
+    virtual void visit(const pt::TypeEnum *t) override { type = a->analyze(t); }
+    virtual void visit(const pt::TypeRecord *t) override { type = a->analyze(t); }
+    virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t); }
+    virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t); }
+    virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DotExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrowExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::InterpolatedStringExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::FunctionCallExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryPlusExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryMinusExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::LogicalNotExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ExponentiationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::MultiplicationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DivisionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ModuloExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::AdditionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SubtractionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::IfStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
     const Type *type;
 private:
     Analyzer *a;
@@ -166,64 +166,64 @@ private:
 class ExpressionAnalyzer: public pt::IParseTreeVisitor {
 public:
     ExpressionAnalyzer(Analyzer *a): expr(nullptr), a(a) {}
-    virtual void visit(const pt::TypeSimple *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeEnum *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeRecord *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypePointer *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeParameterised *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::BooleanLiteralExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::NumberLiteralExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::StringLiteralExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ArrayLiteralExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::DictionaryLiteralExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::NilLiteralExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::IdentifierExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::DotExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ArrowExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::SubscriptExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::InterpolatedStringExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::FunctionCallExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::UnaryPlusExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::UnaryMinusExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::LogicalNotExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ExponentiationExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::MultiplicationExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::DivisionExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ModuloExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::AdditionExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::SubtractionExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ConcatenationExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ComparisonExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ChainedComparisonExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::MembershipExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ConjunctionExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::DisjunctionExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ConditionalExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::NewRecordExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ValidPointerExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::RangeSubscriptExpression *p) { expr = a->analyze(p); }
-    virtual void visit(const pt::ImportDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::TypeDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ConstantDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::VariableDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::LetDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::FunctionDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ExceptionDeclaration *) { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::AssignmentStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::CaseStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ExitStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ExpressionStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ForStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::IfStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::LoopStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::NextStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::RaiseStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::RepeatStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::ReturnStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::TryStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::WhileStatement *) { internal_error("pt::Statement"); }
-    virtual void visit(const pt::Program *) { internal_error("pt::Program"); }
+    virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::NumberLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::StringLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ArrayLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::DictionaryLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::NilLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::IdentifierExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::DotExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ArrowExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::SubscriptExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::InterpolatedStringExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::FunctionCallExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::UnaryPlusExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::UnaryMinusExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::LogicalNotExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ExponentiationExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::MultiplicationExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::DivisionExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ModuloExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::AdditionExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::SubtractionExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ConcatenationExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ComparisonExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ChainedComparisonExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::MembershipExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ConjunctionExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::DisjunctionExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ConditionalExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::NewRecordExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ValidPointerExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::RangeSubscriptExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::IfStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
     const Expression *expr;
 private:
     Analyzer *a;
@@ -235,64 +235,64 @@ private:
 class DeclarationAnalyzer: public pt::IParseTreeVisitor {
 public:
     DeclarationAnalyzer(Analyzer *a, std::vector<const Statement *> &v): a(a), v(v) {}
-    virtual void visit(const pt::TypeSimple *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeEnum *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeRecord *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypePointer *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeParameterised *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::BooleanLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NumberLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::StringLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ArrayLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DictionaryLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NilLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::IdentifierExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DotExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ArrowExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::SubscriptExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::InterpolatedStringExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::FunctionCallExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::UnaryPlusExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::UnaryMinusExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::LogicalNotExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ExponentiationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::MultiplicationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DivisionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ModuloExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::AdditionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::SubtractionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConcatenationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ComparisonExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ChainedComparisonExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::MembershipExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConjunctionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DisjunctionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConditionalExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NewRecordExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::RangeSubscriptExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ImportDeclaration *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::TypeDeclaration *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::LetDeclaration *p) { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::ExceptionDeclaration *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::AssignmentStatement *) {}
-    virtual void visit(const pt::CaseStatement *) {}
-    virtual void visit(const pt::ExitStatement *) {}
-    virtual void visit(const pt::ExpressionStatement *) {}
-    virtual void visit(const pt::ForStatement *) {}
-    virtual void visit(const pt::IfStatement *) {}
-    virtual void visit(const pt::LoopStatement *) {}
-    virtual void visit(const pt::NextStatement *) {}
-    virtual void visit(const pt::RaiseStatement *) {}
-    virtual void visit(const pt::RepeatStatement *) {}
-    virtual void visit(const pt::ReturnStatement *) {}
-    virtual void visit(const pt::TryStatement *) {}
-    virtual void visit(const pt::WhileStatement *) {}
-    virtual void visit(const pt::Program *) { internal_error("pt::Program"); }
+    virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DotExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrowExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::InterpolatedStringExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::FunctionCallExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryPlusExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryMinusExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::LogicalNotExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ExponentiationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::MultiplicationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DivisionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ModuloExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::AdditionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SubtractionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ImportDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::TypeDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::AssignmentStatement *) override {}
+    virtual void visit(const pt::CaseStatement *) override {}
+    virtual void visit(const pt::ExitStatement *) override {}
+    virtual void visit(const pt::ExpressionStatement *) override {}
+    virtual void visit(const pt::ForStatement *) override {}
+    virtual void visit(const pt::IfStatement *) override {}
+    virtual void visit(const pt::LoopStatement *) override {}
+    virtual void visit(const pt::NextStatement *) override {}
+    virtual void visit(const pt::RaiseStatement *) override {}
+    virtual void visit(const pt::RepeatStatement *) override {}
+    virtual void visit(const pt::ReturnStatement *) override {}
+    virtual void visit(const pt::TryStatement *) override {}
+    virtual void visit(const pt::WhileStatement *) override {}
+    virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
     Analyzer *a;
     std::vector<const Statement *> &v;
@@ -304,64 +304,64 @@ private:
 class StatementAnalyzer: public pt::IParseTreeVisitor {
 public:
     StatementAnalyzer(Analyzer *a, std::vector<const Statement *> &v): a(a), v(v) {}
-    virtual void visit(const pt::TypeSimple *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeEnum *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeRecord *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypePointer *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::TypeParameterised *) { internal_error("pt::Type"); }
-    virtual void visit(const pt::BooleanLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NumberLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::StringLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ArrayLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DictionaryLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NilLiteralExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::IdentifierExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DotExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ArrowExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::SubscriptExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::InterpolatedStringExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::FunctionCallExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::UnaryPlusExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::UnaryMinusExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::LogicalNotExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ExponentiationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::MultiplicationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DivisionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ModuloExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::AdditionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::SubtractionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConcatenationExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ComparisonExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ChainedComparisonExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::MembershipExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConjunctionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::DisjunctionExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ConditionalExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NewRecordExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ValidPointerExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::RangeSubscriptExpression *) { internal_error("pt::Expression"); }
-    virtual void visit(const pt::ImportDeclaration *) {}
-    virtual void visit(const pt::TypeDeclaration *) {}
-    virtual void visit(const pt::ConstantDeclaration *p) { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::VariableDeclaration *p) { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::LetDeclaration *p) { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::FunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *p) { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::ExceptionDeclaration *) {}
-    virtual void visit(const pt::AssignmentStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::CaseStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::ExitStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::ExpressionStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::ForStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::IfStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::LoopStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::NextStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::RaiseStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::RepeatStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::ReturnStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::TryStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::WhileStatement *p) { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::Program *) { internal_error("pt::Program"); }
+    virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DotExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrowExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::InterpolatedStringExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::FunctionCallExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryPlusExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::UnaryMinusExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::LogicalNotExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ExponentiationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::MultiplicationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DivisionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ModuloExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::AdditionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SubtractionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ImportDeclaration *) override {}
+    virtual void visit(const pt::TypeDeclaration *) override {}
+    virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::ExceptionDeclaration *) override {}
+    virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::CaseStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExitStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExpressionStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ForStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::IfStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::LoopStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::NextStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::RaiseStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::RepeatStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ReturnStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::TryStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::WhileStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
     Analyzer *a;
     std::vector<const Statement *> &v;

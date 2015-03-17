@@ -20,14 +20,14 @@ private:
 class InternalError: public CompilerError {
 public:
     InternalError(const std::string &file, int line, const std::string &message): CompilerError(file, line, message) {}
-    virtual void write(std::ostream &out);
+    virtual void write(std::ostream &out) override;
 };
 
 class SourceError: public CompilerError {
 public:
     SourceError(const std::string &file, int line, int number, const Token &token, const std::string &message): CompilerError(file, line, message), number(number), token(token), token2() {}
     SourceError(const std::string &file, int line, int number, const Token &token, const Token &token2, const std::string &message): CompilerError(file, line, message), number(number), token(token), token2(token2) {}
-    virtual void write(std::ostream &out);
+    virtual void write(std::ostream &out) override;
     const int number;
     const Token token;
     const Token token2;

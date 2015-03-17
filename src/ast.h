@@ -122,8 +122,8 @@ public:
 
     std::map<std::string, Variable *> methods;
 
-    virtual void predeclare(Emitter &emitter) const;
-    virtual void postdeclare(Emitter &emitter) const;
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual void postdeclare(Emitter &emitter) const override;
     virtual bool is_equivalent(const Type *rhs) const { return this == rhs; }
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
@@ -133,11 +133,11 @@ public:
 class TypeNothing: public Type {
 public:
     TypeNothing(): Type(Token(), "Nothing") {}
-    virtual void generate_load(Emitter &) const { internal_error("TypeNothing"); }
-    virtual void generate_store(Emitter &) const { internal_error("TypeNothing"); }
-    virtual void generate_call(Emitter &) const { internal_error("TypeNothing"); }
+    virtual void generate_load(Emitter &) const override { internal_error("TypeNothing"); }
+    virtual void generate_store(Emitter &) const override { internal_error("TypeNothing"); }
+    virtual void generate_call(Emitter &) const override { internal_error("TypeNothing"); }
 
-    virtual std::string text() const { return "TypeNothing"; }
+    virtual std::string text() const override { return "TypeNothing"; }
 };
 
 extern TypeNothing *TYPE_NOTHING;
@@ -145,11 +145,11 @@ extern TypeNothing *TYPE_NOTHING;
 class TypeBoolean: public Type {
 public:
     TypeBoolean(): Type(Token(), "Boolean") {}
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TypeBoolean"; }
+    virtual std::string text() const override { return "TypeBoolean"; }
 };
 
 extern TypeBoolean *TYPE_BOOLEAN;
@@ -157,11 +157,11 @@ extern TypeBoolean *TYPE_BOOLEAN;
 class TypeNumber: public Type {
 public:
     TypeNumber(const Token &declaration): Type(declaration, "Number") {}
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TypeNumber"; }
+    virtual std::string text() const override { return "TypeNumber"; }
 };
 
 extern TypeNumber *TYPE_NUMBER;
@@ -169,11 +169,11 @@ extern TypeNumber *TYPE_NUMBER;
 class TypeString: public Type {
 public:
     TypeString(): Type(Token(), "String") {}
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TypeString"; }
+    virtual std::string text() const override { return "TypeString"; }
 };
 
 extern TypeString *TYPE_STRING;
@@ -182,7 +182,7 @@ class TypeBytes: public TypeString {
 public:
     TypeBytes(): TypeString() {}
 
-    virtual std::string text() const { return "TypeBytes"; }
+    virtual std::string text() const override { return "TypeBytes"; }
 };
 
 extern TypeBytes *TYPE_BYTES;
@@ -207,14 +207,14 @@ private:
 class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
     const Type *returntype;
     const std::vector<const ParameterType *> params;
 
-    virtual std::string text() const { return "TypeFunction(...)"; }
+    virtual std::string text() const override { return "TypeFunction(...)"; }
 private:
     TypeFunction(const TypeFunction &);
     TypeFunction &operator=(const TypeFunction &);
@@ -225,12 +225,12 @@ public:
     TypeArray(const Token &declaration, const Type *elementtype);
     const Type *elementtype;
 
-    virtual bool is_equivalent(const Type *rhs) const;
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TypeArray(" + elementtype->text() + ")"; }
+    virtual std::string text() const override { return "TypeArray(" + elementtype->text() + ")"; }
 private:
     TypeArray(const TypeArray &);
     TypeArray &operator=(const TypeArray &);
@@ -244,12 +244,12 @@ public:
     TypeDictionary(const Token &declaration, const Type *elementtype): Type(declaration, "dictionary"), elementtype(elementtype) {}
     const Type *elementtype;
 
-    virtual bool is_equivalent(const Type *rhs) const;
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TypeDictionary(" + elementtype->text() + ")"; }
+    virtual std::string text() const override { return "TypeDictionary(" + elementtype->text() + ")"; }
 private:
     TypeDictionary(const TypeDictionary &);
     TypeDictionary &operator=(const TypeDictionary &);
@@ -261,13 +261,13 @@ public:
     const std::vector<std::pair<Token, const Type *>> fields;
     const std::map<std::string, size_t> field_names;
 
-    virtual void predeclare(Emitter &emitter) const;
-    virtual bool is_equivalent(const Type *rhs) const;
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TypeRecord(...)"; }
+    virtual std::string text() const override { return "TypeRecord(...)"; }
 private:
     static std::map<std::string, size_t> make_field_names(const std::vector<std::pair<Token, const Type *>> &fields) {
         std::map<std::string, size_t> r;
@@ -291,12 +291,12 @@ public:
 
     const TypeRecord *reftype;
 
-    virtual bool is_equivalent(const Type *rhs) const;
-    virtual void generate_load(Emitter &emitter) const;
-    virtual void generate_store(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const;
+    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TypePointer(" + reftype->text() + ")"; }
+    virtual std::string text() const override { return "TypePointer(" + reftype->text() + ")"; }
 private:
     TypePointer(const TypePointer &);
     TypePointer &operator=(const TypePointer &);
@@ -314,18 +314,18 @@ public:
     TypeEnum(const Token &declaration, const std::map<std::string, int> &names);
     const std::map<std::string, int> names;
 
-    virtual std::string text() const { return "TypeEnum(...)"; }
+    virtual std::string text() const override { return "TypeEnum(...)"; }
 };
 
 class TypeModule: public Type {
 public:
     TypeModule(): Type(Token(), "module") {}
 
-    virtual void generate_load(Emitter &) const { internal_error("TypeModule"); }
-    virtual void generate_store(Emitter &) const { internal_error("TypeModule"); }
-    virtual void generate_call(Emitter &) const { internal_error("TypeModule"); }
+    virtual void generate_load(Emitter &) const override { internal_error("TypeModule"); }
+    virtual void generate_store(Emitter &) const override { internal_error("TypeModule"); }
+    virtual void generate_call(Emitter &) const override { internal_error("TypeModule"); }
 
-    virtual std::string text() const { return "TypeModule(...)"; }
+    virtual std::string text() const override { return "TypeModule(...)"; }
 };
 
 extern TypeModule *TYPE_MODULE;
@@ -334,11 +334,11 @@ class TypeException: public Type {
 public:
     TypeException(): Type(Token(), "Exception") {}
 
-    virtual void generate_load(Emitter &) const { internal_error("TypeException"); }
-    virtual void generate_store(Emitter &) const { internal_error("TypeException"); }
-    virtual void generate_call(Emitter &) const { internal_error("TypeException"); }
+    virtual void generate_load(Emitter &) const override { internal_error("TypeException"); }
+    virtual void generate_store(Emitter &) const override { internal_error("TypeException"); }
+    virtual void generate_call(Emitter &) const override { internal_error("TypeException"); }
 
-    virtual std::string text() const { return "TypeException"; }
+    virtual std::string text() const override { return "TypeException"; }
 };
 
 extern TypeException *TYPE_EXCEPTION;
@@ -354,7 +354,7 @@ public:
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
 
-    virtual std::string text() const { return "Variable(" + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override { return "Variable(" + name + ", " + type->text() + ")"; }
 };
 
 class GlobalVariable: public Variable {
@@ -362,10 +362,10 @@ public:
     GlobalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}
     mutable int index;
 
-    virtual void predeclare(Emitter &emitter) const;
-    virtual void generate_address(Emitter &emitter, int enclosing) const;
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual void generate_address(Emitter &emitter, int enclosing) const override;
 
-    virtual std::string text() const { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
 };
 
 class LocalVariable: public Variable {
@@ -373,11 +373,11 @@ public:
     LocalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}
     int index;
 
-    virtual void predeclare(Emitter &) const { internal_error("LocalVariable"); }
+    virtual void predeclare(Emitter &) const override { internal_error("LocalVariable"); }
     virtual void predeclare(Emitter &emitter, int slot);
-    virtual void generate_address(Emitter &emitter, int enclosing) const;
+    virtual void generate_address(Emitter &emitter, int enclosing) const override;
 
-    virtual std::string text() const { return "LocalVariable(" + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override { return "LocalVariable(" + name + ", " + type->text() + ")"; }
 private:
     LocalVariable(const LocalVariable &);
     LocalVariable &operator=(const LocalVariable &);
@@ -389,9 +389,9 @@ public:
     ParameterType::Mode mode;
     const Expression *default_value;
 
-    virtual void generate_address(Emitter &emitter, int enclosing) const;
+    virtual void generate_address(Emitter &emitter, int enclosing) const override;
 
-    virtual std::string text() const { return "FunctionParameter(" + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override { return "FunctionParameter(" + name + ", " + type->text() + ")"; }
 private:
     FunctionParameter(const FunctionParameter &);
     FunctionParameter &operator=(const FunctionParameter &);
@@ -401,7 +401,7 @@ class Exception: public Name {
 public:
     Exception(const Token &declaration, const std::string &name): Name(declaration, name, TYPE_EXCEPTION) {}
 
-    virtual std::string text() const { return "Exception(" + name + ")"; }
+    virtual std::string text() const override { return "Exception(" + name + ")"; }
 private:
     Exception(const Exception &);
     Exception &operator=(const Exception &);
@@ -430,7 +430,7 @@ public:
 
     const Expression *value;
 
-    virtual std::string text() const { return "Constant(" + name + ", " + value->text() + ")"; }
+    virtual std::string text() const override { return "Constant(" + name + ", " + value->text() + ")"; }
 private:
     Constant(const Constant &);
     Constant &operator=(const Constant &);
@@ -442,11 +442,11 @@ public:
 
     const bool value;
 
-    virtual Number eval_number() const { internal_error("ConstantBooleanExpression"); }
-    virtual std::string eval_string() const { internal_error("ConstantBooleanExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ConstantBooleanExpression"); }
+    virtual std::string eval_string() const override { internal_error("ConstantBooleanExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const;
+    virtual std::string text() const override;
 };
 
 class ConstantNumberExpression: public Expression {
@@ -455,11 +455,11 @@ public:
 
     const Number value;
 
-    virtual Number eval_number() const { return value; }
-    virtual std::string eval_string() const { internal_error("ConstantNumberExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return value; }
+    virtual std::string eval_string() const override { internal_error("ConstantNumberExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const;
+    virtual std::string text() const override;
 };
 
 class ConstantStringExpression: public Expression {
@@ -468,11 +468,11 @@ public:
 
     const std::string value;
 
-    virtual Number eval_number() const { internal_error("ConstantStringExpression"); }
-    virtual std::string eval_string() const { return value; }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ConstantStringExpression"); }
+    virtual std::string eval_string() const override { return value; }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const;
+    virtual std::string text() const override;
 };
 
 class ConstantEnumExpression: public Expression {
@@ -481,22 +481,22 @@ public:
 
     const int value;
 
-    virtual Number eval_number() const { return number_from_uint32(value); }
-    virtual std::string eval_string() const { internal_error("ConstantEnumExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_from_uint32(value); }
+    virtual std::string eval_string() const override { internal_error("ConstantEnumExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const;
+    virtual std::string text() const override;
 };
 
 class ConstantNilExpression: public Expression {
 public:
     ConstantNilExpression(): Expression(new TypePointer(Token(), nullptr), true) {}
 
-    virtual Number eval_number() const { internal_error("ConstantNilExpression"); }
-    virtual std::string eval_string() const { internal_error("ConstantNilExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ConstantNilExpression"); }
+    virtual std::string eval_string() const override { internal_error("ConstantNilExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "ConstantNilExpression"; }
+    virtual std::string text() const override { return "ConstantNilExpression"; }
 };
 
 class ArrayLiteralExpression: public Expression {
@@ -506,11 +506,11 @@ public:
     const Type *elementtype;
     const std::vector<const Expression *> elements;
 
-    virtual Number eval_number() const { internal_error("ArrayLiteralExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayLiteralExpression"); }
-    virtual void generate(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("ArrayLiteralExpression"); }
+    virtual std::string eval_string() const override { internal_error("ArrayLiteralExpression"); }
+    virtual void generate(Emitter &) const override;
 
-    virtual std::string text() const { return "ArrayLiteralExpression(...)"; }
+    virtual std::string text() const override { return "ArrayLiteralExpression(...)"; }
 private:
     ArrayLiteralExpression(const ArrayLiteralExpression &);
     ArrayLiteralExpression &operator=(const ArrayLiteralExpression &);
@@ -525,11 +525,11 @@ public:
     const Type *elementtype;
     const std::map<std::string, const Expression *> dict;
 
-    virtual Number eval_number() const { internal_error("DictionaryLiteralExpression"); }
-    virtual std::string eval_string() const { internal_error("DictionaryLiteralExpression"); }
-    virtual void generate(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("DictionaryLiteralExpression"); }
+    virtual std::string eval_string() const override { internal_error("DictionaryLiteralExpression"); }
+    virtual void generate(Emitter &) const override;
 
-    virtual std::string text() const { return "DictionaryLiteralExpression(...)"; }
+    virtual std::string text() const override { return "DictionaryLiteralExpression(...)"; }
 private:
     DictionaryLiteralExpression(const DictionaryLiteralExpression &);
     DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &);
@@ -544,11 +544,11 @@ public:
 
     const std::vector<const Expression *> values;
 
-    virtual Number eval_number() const { internal_error("RecordLiteralExpression"); }
-    virtual std::string eval_string() const { internal_error("RecordLiteralExpression"); }
-    virtual void generate(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("RecordLiteralExpression"); }
+    virtual std::string eval_string() const override { internal_error("RecordLiteralExpression"); }
+    virtual void generate(Emitter &) const override;
 
-    virtual std::string text() const { return "RecordLiteralExpression(...)"; }
+    virtual std::string text() const override { return "RecordLiteralExpression(...)"; }
 private:
     RecordLiteralExpression(const RecordLiteralExpression &);
     RecordLiteralExpression &operator=(const RecordLiteralExpression &);
@@ -562,11 +562,11 @@ public:
 
     const size_t fields;
 
-    virtual Number eval_number() const { internal_error("NewRecordExpression"); }
-    virtual std::string eval_string() const { internal_error("NewRecordExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("NewRecordExpression"); }
+    virtual std::string eval_string() const override { internal_error("NewRecordExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "NewRecordExpression(" + type->text() + ")"; }
+    virtual std::string text() const override { return "NewRecordExpression(" + type->text() + ")"; }
 private:
     NewRecordExpression(const NewRecordExpression &);
     NewRecordExpression &operator=(const NewRecordExpression &);
@@ -582,11 +582,11 @@ public:
 
     const Expression *const value;
 
-    virtual Number eval_number() const { return number_negate(value->eval_number()); }
-    virtual std::string eval_string() const { internal_error("UnaryMinusExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_negate(value->eval_number()); }
+    virtual std::string eval_string() const override { internal_error("UnaryMinusExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "UnaryMinusExpression(" + value->text() + ")";
     }
 private:
@@ -604,11 +604,11 @@ public:
 
     const Expression *const value;
 
-    virtual Number eval_number() const { internal_error("LogicalNotExpression"); }
-    virtual std::string eval_string() const { internal_error("LogicalNotExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("LogicalNotExpression"); }
+    virtual std::string eval_string() const override { internal_error("LogicalNotExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "LogicalNotExpression(" + value->text() + ")";
     }
 private:
@@ -628,11 +628,11 @@ public:
     const Expression *left;
     const Expression *right;
 
-    virtual Number eval_number() const { internal_error("ConditionalExpression"); }
-    virtual std::string eval_string() const { internal_error("ConditionalExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ConditionalExpression"); }
+    virtual std::string eval_string() const override { internal_error("ConditionalExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ConditionalExpression(" + condition->text() + "," + left->text() + "," + right->text() + ")";
     }
 private:
@@ -651,11 +651,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { internal_error("DisjunctionExpression"); }
-    virtual std::string eval_string() const { internal_error("DisjunctionExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("DisjunctionExpression"); }
+    virtual std::string eval_string() const override { internal_error("DisjunctionExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "DisjunctionExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -674,11 +674,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { internal_error("ConjunctionExpression"); }
-    virtual std::string eval_string() const { internal_error("ConjunctionExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ConjunctionExpression"); }
+    virtual std::string eval_string() const override { internal_error("ConjunctionExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ConjunctionExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -693,11 +693,11 @@ public:
     const Expression *left;
     const Expression *right;
 
-    virtual Number eval_number() const { internal_error("ArrayInExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayInExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ArrayInExpression"); }
+    virtual std::string eval_string() const override { internal_error("ArrayInExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "ArrayInExpression(" + left->text() + ", " + right->text() + ")"; }
+    virtual std::string text() const override { return "ArrayInExpression(" + left->text() + ", " + right->text() + ")"; }
 private:
     ArrayInExpression(const ArrayInExpression &);
     ArrayInExpression &operator=(const ArrayInExpression &);
@@ -710,11 +710,11 @@ public:
     const Expression *left;
     const Expression *right;
 
-    virtual Number eval_number() const { internal_error("DictionaryInExpression"); }
-    virtual std::string eval_string() const { internal_error("DictionaryInExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("DictionaryInExpression"); }
+    virtual std::string eval_string() const override { internal_error("DictionaryInExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "DictionaryInExpression(" + left->text() + ", " + right->text() + ")"; }
+    virtual std::string text() const override { return "DictionaryInExpression(" + left->text() + ", " + right->text() + ")"; }
 private:
     DictionaryInExpression(const DictionaryInExpression &);
     DictionaryInExpression &operator=(const DictionaryInExpression &);
@@ -731,7 +731,7 @@ public:
     const Expression *const right;
     const Comparison comp;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate(Emitter &emitter) const override;
     virtual void generate_comparison_opcode(Emitter &emitter) const = 0;
 private:
     ComparisonExpression(const ComparisonExpression &);
@@ -744,11 +744,11 @@ public:
 
     const std::vector<const ComparisonExpression *> comps;
 
-    virtual Number eval_number() const { internal_error("ChainedComparisonExpression"); }
-    virtual std::string eval_string() const { internal_error("ChainedComparisonExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ChainedComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("ChainedComparisonExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "ChainedComparisonExpression(...)"; }
+    virtual std::string text() const override { return "ChainedComparisonExpression(...)"; }
 private:
     ChainedComparisonExpression(const ChainedComparisonExpression &);
     ChainedComparisonExpression &operator=(const ChainedComparisonExpression &);
@@ -758,11 +758,11 @@ class BooleanComparisonExpression: public ComparisonExpression {
 public:
     BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { internal_error("BooleanComparisonExpression"); }
-    virtual std::string eval_string() const { internal_error("BooleanComparisonExpression"); }
-    virtual void generate_comparison_opcode(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("BooleanComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("BooleanComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "BooleanComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
@@ -771,11 +771,11 @@ class NumericComparisonExpression: public ComparisonExpression {
 public:
     NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { internal_error("NumericComparisonExpression"); }
-    virtual std::string eval_string() const { internal_error("NumericComparisonExpression"); }
-    virtual void generate_comparison_opcode(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("NumericComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("NumericComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "NumericComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
@@ -784,11 +784,11 @@ class StringComparisonExpression: public ComparisonExpression {
 public:
     StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { internal_error("StringComparisonExpression"); }
-    virtual std::string eval_string() const { internal_error("StringComparisonExpression"); }
-    virtual void generate_comparison_opcode(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("StringComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("StringComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "StringComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
@@ -797,11 +797,11 @@ class ArrayComparisonExpression: public ComparisonExpression {
 public:
     ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { internal_error("ArrayComparisonExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayComparisonExpression"); }
-    virtual void generate_comparison_opcode(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ArrayComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("ArrayComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ArrayComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
@@ -810,11 +810,11 @@ class DictionaryComparisonExpression: public ComparisonExpression {
 public:
     DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { internal_error("DictionaryComparisonExpression"); }
-    virtual std::string eval_string() const { internal_error("DictionaryComparisonExpression"); }
-    virtual void generate_comparison_opcode(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("DictionaryComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("DictionaryComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "DictionaryComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
@@ -823,11 +823,11 @@ class PointerComparisonExpression: public ComparisonExpression {
 public:
     PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
-    virtual Number eval_number() const { internal_error("PointerComparisonExpression"); }
-    virtual std::string eval_string() const { internal_error("PointerComparisonExpression"); }
-    virtual void generate_comparison_opcode(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("PointerComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("PointerComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "PointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
@@ -838,9 +838,9 @@ public:
 
     const Variable *var;
 
-    virtual void generate(Emitter &emitter) const;
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ValidPointerExpression(" + left->text() + ")";
     }
 private:
@@ -859,11 +859,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { return number_add(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { internal_error("AdditionExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_add(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const override { internal_error("AdditionExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "AdditionExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -882,11 +882,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { return number_subtract(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { internal_error("SubtractionExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_subtract(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const override { internal_error("SubtractionExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "SubtractionExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -905,11 +905,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { return number_multiply(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { internal_error("MultiplicationExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_multiply(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const override { internal_error("MultiplicationExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "MultiplicationExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -928,11 +928,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { return number_divide(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { internal_error("DivisionExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_divide(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const override { internal_error("DivisionExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "DivisionExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -951,11 +951,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { return number_modulo(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { internal_error("ModuloExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_modulo(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const override { internal_error("ModuloExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ModuloExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -974,11 +974,11 @@ public:
     const Expression *const left;
     const Expression *const right;
 
-    virtual Number eval_number() const { return number_pow(left->eval_number(), right->eval_number()); }
-    virtual std::string eval_string() const { internal_error("ExponentiationExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { return number_pow(left->eval_number(), right->eval_number()); }
+    virtual std::string eval_string() const override { internal_error("ExponentiationExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ExponentiationExpression(" + left->text() + "," + right->text() + ")";
     }
 private:
@@ -990,7 +990,7 @@ class ReferenceExpression: public Expression {
 public:
     ReferenceExpression(const Type *type, bool is_readonly): Expression(type, false, is_readonly) {}
 
-    virtual void generate(Emitter &emitter) const { generate_load(emitter); }
+    virtual void generate(Emitter &emitter) const override { generate_load(emitter); }
     virtual void generate_address_read(Emitter &) const = 0;
     virtual void generate_address_write(Emitter &) const = 0;
     virtual void generate_load(Emitter &) const;
@@ -1008,12 +1008,12 @@ public:
     const Expression *index;
     const bool always_create;
 
-    virtual Number eval_number() const { internal_error("ArrayReferenceIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayReferenceIndexExpression"); }
-    virtual void generate_address_read(Emitter &) const;
-    virtual void generate_address_write(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("ArrayReferenceIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("ArrayReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const override;
+    virtual void generate_address_write(Emitter &) const override;
 
-    virtual std::string text() const { return "ArrayReferenceIndexExpression(" + array->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const override { return "ArrayReferenceIndexExpression(" + array->text() + ", " + index->text() + ")"; }
 private:
     ArrayReferenceIndexExpression(const ArrayReferenceIndexExpression &);
     ArrayReferenceIndexExpression &operator=(const ArrayReferenceIndexExpression &);
@@ -1027,11 +1027,11 @@ public:
     const Expression *index;
     const bool always_create;
 
-    virtual Number eval_number() const { internal_error("ArrayValueIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayValueIndexExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ArrayValueIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("ArrayValueIndexExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "ArrayValueIndexExpression(" + array->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const override { return "ArrayValueIndexExpression(" + array->text() + ", " + index->text() + ")"; }
 private:
     ArrayValueIndexExpression(const ArrayValueIndexExpression &);
     ArrayValueIndexExpression &operator=(const ArrayValueIndexExpression &);
@@ -1044,12 +1044,12 @@ public:
     const ReferenceExpression *dictionary;
     const Expression *index;
 
-    virtual Number eval_number() const { internal_error("DictionaryReferenceIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("DictionaryReferenceIndexExpression"); }
-    virtual void generate_address_read(Emitter &) const;
-    virtual void generate_address_write(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("DictionaryReferenceIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("DictionaryReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const override;
+    virtual void generate_address_write(Emitter &) const override;
 
-    virtual std::string text() const { return "DictionaryReferenceIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const override { return "DictionaryReferenceIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
 private:
     DictionaryReferenceIndexExpression(const DictionaryReferenceIndexExpression &);
     DictionaryReferenceIndexExpression &operator=(const DictionaryReferenceIndexExpression &);
@@ -1062,11 +1062,11 @@ public:
     const Expression *dictionary;
     const Expression *index;
 
-    virtual Number eval_number() const { internal_error("DictionaryValueIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("DictionaryValueIndexExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("DictionaryValueIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("DictionaryValueIndexExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "DictionaryValueIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
+    virtual std::string text() const override { return "DictionaryValueIndexExpression(" + dictionary->text() + ", " + index->text() + ")"; }
 private:
     DictionaryValueIndexExpression(const DictionaryValueIndexExpression &);
     DictionaryValueIndexExpression &operator=(const DictionaryValueIndexExpression &);
@@ -1085,14 +1085,14 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
-    virtual Number eval_number() const { internal_error("StringReferenceIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("StringReferenceIndexExpression"); }
-    virtual void generate_address_read(Emitter &) const { internal_error("StringReferenceIndexExpression"); }
-    virtual void generate_address_write(Emitter &) const { internal_error("StringReferenceIndexExpression"); }
-    virtual void generate_load(Emitter &) const;
-    virtual void generate_store(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("StringReferenceIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_load(Emitter &) const override;
+    virtual void generate_store(Emitter &) const override;
 
-    virtual std::string text() const { return "StringReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "StringReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
 private:
     StringReferenceIndexExpression(const StringReferenceIndexExpression &);
     StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &);
@@ -1110,13 +1110,11 @@ public:
 
     const FunctionCall *load;
 
-    virtual Number eval_number() const { internal_error("StringValueIndexExpression"); }
-    virtual std::string eval_string() const { internal_error("StringValueIndexExpression"); }
-    virtual void generate_address_read(Emitter &) const { internal_error("StringValueIndexExpression"); }
-    virtual void generate_address_write(Emitter &) const { internal_error("StringValueIndexExpression"); }
-    virtual void generate(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("StringValueIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("StringValueIndexExpression"); }
+    virtual void generate(Emitter &) const override;
 
-    virtual std::string text() const { return "StringValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "StringValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
 private:
     StringValueIndexExpression(const StringValueIndexExpression &);
     StringValueIndexExpression &operator=(const StringValueIndexExpression &);
@@ -1135,14 +1133,14 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
-    virtual Number eval_number() const { internal_error("ArrayReferenceRangeExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayReferenceRangeExpression"); }
-    virtual void generate_address_read(Emitter &) const { internal_error("StringReferenceRangeExpression"); }
-    virtual void generate_address_write(Emitter &) const { internal_error("StringReferenceRangeExpression"); }
-    virtual void generate_load(Emitter &) const;
-    virtual void generate_store(Emitter &) const;
+    virtual Number eval_number() const override { internal_error("ArrayReferenceRangeExpression"); }
+    virtual std::string eval_string() const override { internal_error("ArrayReferenceRangeExpression"); }
+    virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceRangeExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("StringReferenceRangeExpression"); }
+    virtual void generate_load(Emitter &) const override;
+    virtual void generate_store(Emitter &) const override;
 
-    virtual std::string text() const { return "ArrayReferenceRangeExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "ArrayReferenceRangeExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
 private:
     ArrayReferenceRangeExpression(const ArrayReferenceRangeExpression &);
     ArrayReferenceRangeExpression &operator=(const ArrayReferenceRangeExpression &);
@@ -1160,13 +1158,11 @@ public:
 
     const FunctionCall *load;
 
-    virtual Number eval_number() const { internal_error("ArrayValueRangeExpression"); }
-    virtual std::string eval_string() const { internal_error("ArrayValueRangeExpression"); }
-    virtual void generate_address_read(Emitter &) const { internal_error("StringValueRangeExpression"); }
-    virtual void generate_address_write(Emitter &) const { internal_error("StringValueRangeExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("ArrayValueRangeExpression"); }
+    virtual std::string eval_string() const override { internal_error("ArrayValueRangeExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "ArrayValueRangeExpression(" + array->text() + ", " + first->text() + ", " + last->text() + ")"; }
+    virtual std::string text() const override { return "ArrayValueRangeExpression(" + array->text() + ", " + first->text() + ", " + last->text() + ")"; }
 private:
     ArrayValueRangeExpression(const ArrayValueRangeExpression &);
     ArrayValueRangeExpression &operator=(const ArrayValueRangeExpression &);
@@ -1178,12 +1174,12 @@ public:
 
     const Expression *ptr;
 
-    virtual Number eval_number() const { internal_error("PointerDereferenceExpression"); }
-    virtual std::string eval_string() const { internal_error("PointerDereferenceExpression"); }
-    virtual void generate_address_read(Emitter &emitter) const;
-    virtual void generate_address_write(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("PointerDereferenceExpression"); }
+    virtual std::string eval_string() const override { internal_error("PointerDereferenceExpression"); }
+    virtual void generate_address_read(Emitter &emitter) const override;
+    virtual void generate_address_write(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "PointerDereferenceExpression(" + ptr->text() + ")"; }
+    virtual std::string text() const override { return "PointerDereferenceExpression(" + ptr->text() + ")"; }
 private:
     PointerDereferenceExpression(const PointerDereferenceExpression &);
     PointerDereferenceExpression &operator=(const PointerDereferenceExpression &);
@@ -1195,11 +1191,11 @@ public:
 
     const Constant *constant;
 
-    virtual Number eval_number() const { return constant->value->eval_number(); }
-    virtual std::string eval_string() const { return constant->value->eval_string(); }
-    virtual void generate(Emitter &emitter) const { constant->value->generate(emitter); }
+    virtual Number eval_number() const override { return constant->value->eval_number(); }
+    virtual std::string eval_string() const override { return constant->value->eval_string(); }
+    virtual void generate(Emitter &emitter) const override { constant->value->generate(emitter); }
 
-    virtual std::string text() const { return "ConstantExpression(" + constant->text() + ")"; }
+    virtual std::string text() const override { return "ConstantExpression(" + constant->text() + ")"; }
 private:
     ConstantExpression(const ConstantExpression &);
     ConstantExpression &operator=(const ConstantExpression &);
@@ -1211,14 +1207,14 @@ public:
 
     const Variable *var;
 
-    virtual Number eval_number() const { internal_error("VariableExpression"); }
-    virtual std::string eval_string() const { internal_error("VariableExpression"); }
-    virtual void generate(Emitter &emitter) const;
-    virtual void generate_call(Emitter &emitter) const { var->generate_call(emitter); }
-    virtual void generate_address_read(Emitter &emitter) const { var->generate_address(emitter, 0); }
-    virtual void generate_address_write(Emitter &emitter) const { var->generate_address(emitter, 0); }
+    virtual Number eval_number() const override { internal_error("VariableExpression"); }
+    virtual std::string eval_string() const override { internal_error("VariableExpression"); }
+    virtual void generate(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override { var->generate_call(emitter); }
+    virtual void generate_address_read(Emitter &emitter) const override { var->generate_address(emitter, 0); }
+    virtual void generate_address_write(Emitter &emitter) const override { var->generate_address(emitter, 0); }
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "VariableExpression(" + var->text() + ")";
     }
 private:
@@ -1233,11 +1229,11 @@ public:
     const Expression *const func;
     const std::vector<const Expression *> args;
 
-    virtual Number eval_number() const { internal_error("FunctionCall"); }
-    virtual std::string eval_string() const { internal_error("FunctionCall"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("FunctionCall"); }
+    virtual std::string eval_string() const override { internal_error("FunctionCall"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const;
+    virtual std::string text() const override;
 private:
     FunctionCall(const FunctionCall &);
     FunctionCall &operator=(const FunctionCall &);
@@ -1249,11 +1245,11 @@ public:
 
     const Statement *const stmt;
 
-    virtual Number eval_number() const { internal_error("StatementExpression"); }
-    virtual std::string eval_string() const { internal_error("StatementExpression"); }
-    virtual void generate(Emitter &emitter) const;
+    virtual Number eval_number() const override { internal_error("StatementExpression"); }
+    virtual std::string eval_string() const override { internal_error("StatementExpression"); }
+    virtual void generate(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "StatementExpression"; }
+    virtual std::string text() const override { return "StatementExpression"; }
 private:
     StatementExpression(const StatementExpression &);
     StatementExpression &operator=(const StatementExpression &);
@@ -1274,9 +1270,9 @@ class NullStatement: public Statement {
 public:
     NullStatement(int line): Statement(line) {}
 
-    virtual void generate_code(Emitter &) const {}
+    virtual void generate_code(Emitter &) const override {}
 
-    virtual std::string text() const { return "NullStatement"; }
+    virtual std::string text() const override { return "NullStatement"; }
 };
 
 class AssignmentStatement: public Statement {
@@ -1292,9 +1288,9 @@ public:
     const std::vector<const ReferenceExpression *> variables;
     const Expression *const expr;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         std::string s = "AssignmentStatement(";
         for (auto v: variables) {
             s += v->text() + ", ";
@@ -1313,9 +1309,9 @@ public:
 
     const Expression *const expr;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ExpressionStatement(" + expr->text() + ")";
     }
 private:
@@ -1329,11 +1325,11 @@ public:
 
     const Expression *const expr;
 
-    virtual bool always_returns() const { return true; }
+    virtual bool always_returns() const override { return true; }
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "ReturnStatement(" + expr->text() + ")"; }
+    virtual std::string text() const override { return "ReturnStatement(" + expr->text() + ")"; }
 private:
     ReturnStatement(const ReturnStatement &);
     ReturnStatement &operator=(const ReturnStatement &);
@@ -1345,7 +1341,7 @@ public:
 
     const std::vector<const Statement *> statements;
 
-    virtual void dumpsubnodes(std::ostream &out, int depth) const;
+    virtual void dumpsubnodes(std::ostream &out, int depth) const override;
 };
 
 class IfStatement: public Statement {
@@ -1355,11 +1351,11 @@ public:
     const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     const std::vector<const Statement *> else_statements;
 
-    virtual bool always_returns() const;
+    virtual bool always_returns() const override;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "IfStatement(" + condition_statements[0].first->text() + ")";
     }
 private:
@@ -1380,9 +1376,9 @@ public:
 
     const Expression *condition;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "WhileStatement(" + condition->text() + ")";
     }
 private:
@@ -1400,9 +1396,9 @@ public:
     const Expression *end;
     const Expression *step;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "ForStatement(" + var->text() + "(" + start->text() + " TO " + end->text() + " STEP " + step->text() + ")";
     }
 private:
@@ -1414,11 +1410,11 @@ class LoopStatement: public BaseLoopStatement {
 public:
     LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements) {}
 
-    virtual bool always_returns() const;
+    virtual bool always_returns() const override;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "LoopStatement()"; }
+    virtual std::string text() const override { return "LoopStatement()"; }
 private:
     LoopStatement(const LoopStatement &);
     LoopStatement &operator=(const LoopStatement &);
@@ -1430,9 +1426,9 @@ public:
 
     const Expression *condition;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "RepeatStatement(" + condition->text() + ")"; }
+    virtual std::string text() const override { return "RepeatStatement(" + condition->text() + ")"; }
 private:
     RepeatStatement(const RepeatStatement &);
     RepeatStatement &operator=(const RepeatStatement &);
@@ -1456,8 +1452,8 @@ public:
         ComparisonWhenCondition(const Token &token, ComparisonExpression::Comparison comp, const Expression *expr): WhenCondition(token), comp(comp), expr(expr) {}
         ComparisonExpression::Comparison comp;
         const Expression *expr;
-        virtual bool overlaps(const WhenCondition *cond) const;
-        virtual void generate(Emitter &emitter) const;
+        virtual bool overlaps(const WhenCondition *cond) const override;
+        virtual void generate(Emitter &emitter) const override;
     private:
         ComparisonWhenCondition(const ComparisonWhenCondition &);
         ComparisonWhenCondition &operator=(const ComparisonWhenCondition &);
@@ -1467,8 +1463,8 @@ public:
         RangeWhenCondition(const Token &token, const Expression *low_expr, const Expression *high_expr): WhenCondition(token), low_expr(low_expr), high_expr(high_expr) {}
         const Expression *low_expr;
         const Expression *high_expr;
-        virtual bool overlaps(const WhenCondition *cond) const;
-        virtual void generate(Emitter &emitter) const;
+        virtual bool overlaps(const WhenCondition *cond) const override;
+        virtual void generate(Emitter &emitter) const override;
     private:
         RangeWhenCondition(const RangeWhenCondition &);
         RangeWhenCondition &operator=(const RangeWhenCondition &);
@@ -1478,11 +1474,11 @@ public:
     const Expression *expr;
     const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
 
-    virtual bool always_returns() const;
+    virtual bool always_returns() const override;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const {
+    virtual std::string text() const override {
         return "CaseStatement(" + expr->text() + ")";
     }
 private:
@@ -1496,9 +1492,9 @@ public:
 
     const unsigned int loop_id;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "ExitStatement(...)"; }
+    virtual std::string text() const override { return "ExitStatement(...)"; }
 private:
     ExitStatement(const ExitStatement &);
     ExitStatement &operator=(const ExitStatement &);
@@ -1510,9 +1506,9 @@ public:
 
     const unsigned int loop_id;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "NextStatement(...)"; }
+    virtual std::string text() const override { return "NextStatement(...)"; }
 private:
     NextStatement(const NextStatement &);
     NextStatement &operator=(const NextStatement &);
@@ -1525,11 +1521,11 @@ public:
     const std::vector<const Statement *> statements;
     const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
 
-    virtual bool always_returns() const;
+    virtual bool always_returns() const override;
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "TryStatement(...)"; }
+    virtual std::string text() const override { return "TryStatement(...)"; }
 private:
     TryStatement(const TryStatement &);
     TryStatement &operator=(const TryStatement &);
@@ -1542,11 +1538,11 @@ public:
     const Exception *exception;
     const Expression *info;
 
-    virtual bool always_returns() const { return true; }
+    virtual bool always_returns() const override { return true; }
 
-    virtual void generate_code(Emitter &emitter) const;
+    virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "RaiseStatement(" + exception->text() + ")"; }
+    virtual std::string text() const override { return "RaiseStatement(" + exception->text() + ")"; }
 private:
     RaiseStatement(const RaiseStatement &);
     RaiseStatement &operator=(const RaiseStatement &);
@@ -1565,14 +1561,14 @@ public:
 
     static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
 
-    virtual void predeclare(Emitter &emitter) const;
-    virtual void postdeclare(Emitter &emitter) const;
-    virtual void generate_address(Emitter &, int) const { internal_error("Function"); }
-    virtual void generate_load(Emitter &) const { internal_error("Function"); }
-    virtual void generate_store(Emitter &) const { internal_error("Function"); }
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual void postdeclare(Emitter &emitter) const override;
+    virtual void generate_address(Emitter &, int) const override { internal_error("Function"); }
+    virtual void generate_load(Emitter &) const override { internal_error("Function"); }
+    virtual void generate_store(Emitter &) const override { internal_error("Function"); }
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "Function(" + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override { return "Function(" + name + ", " + type->text() + ")"; }
 private:
     Function(const Function &);
     Function &operator=(const Function &);
@@ -1583,13 +1579,13 @@ public:
     PredefinedFunction(const std::string &name, const Type *type): Variable(Token(), name, type, true), name_index(-1) {}
     mutable int name_index;
 
-    virtual void predeclare(Emitter &emitter) const;
-    virtual void generate_address(Emitter &, int) const { internal_error("PredefinedFunction"); }
-    virtual void generate_load(Emitter &) const { internal_error("PredefinedFunction"); }
-    virtual void generate_store(Emitter &) const { internal_error("PredefinedFunction"); }
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual void generate_address(Emitter &, int) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_load(Emitter &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_store(Emitter &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_call(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
+    virtual std::string text() const override { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
 };
 
 class ExternalFunction: public Function {
@@ -1600,9 +1596,9 @@ public:
     std::map<std::string, std::string> param_types;
     mutable int external_index;
 
-    virtual void predeclare(Emitter &) const;
-    virtual void postdeclare(Emitter &) const {} // TODO: Stub this out so we don't inherit the one from Function. Fix Function hierarchy.
-    virtual void generate_call(Emitter &emitter) const;
+    virtual void predeclare(Emitter &) const override;
+    virtual void postdeclare(Emitter &) const override {} // TODO: Stub this out so we don't inherit the one from Function. Fix Function hierarchy.
+    virtual void generate_call(Emitter &emitter) const override;
 
 private:
     ExternalFunction(const ExternalFunction &);
@@ -1615,9 +1611,9 @@ public:
 
     Scope *scope;
 
-    virtual void predeclare(Emitter &emitter) const;
+    virtual void predeclare(Emitter &emitter) const override;
 
-    virtual std::string text() const { return "Module"; }
+    virtual std::string text() const override { return "Module"; }
 private:
     Module(const Module &);
     Module &operator=(const Module &);
@@ -1633,8 +1629,8 @@ public:
 
     virtual void generate(Emitter &emitter) const;
 
-    virtual std::string text() const { return "Program"; }
-    virtual void dumpsubnodes(std::ostream &out, int depth) const;
+    virtual std::string text() const override { return "Program"; }
+    virtual void dumpsubnodes(std::ostream &out, int depth) const override;
 private:
     Program(const Program &);
     Program &operator=(const Program &);

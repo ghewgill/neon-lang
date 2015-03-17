@@ -11,40 +11,40 @@ class Dumper: public IParseTreeVisitor {
 public:
     Dumper(std::ostream &out): out(out), depth(0) {}
 
-    virtual void visit(const TypeSimple *node) {
+    virtual void visit(const TypeSimple *node) override {
         write("TypeSimple(" + node->name + ")");
     }
-    virtual void visit(const TypeEnum *node) {
+    virtual void visit(const TypeEnum *node) override {
         write("TypeEnum(" + join(node->names) + ")");
     }
-    virtual void visit(const TypeRecord *node) {
+    virtual void visit(const TypeRecord *node) override {
         write("TypeRecord(" + join(node->fields) + ")");
     }
-    virtual void visit(const TypePointer *node) {
+    virtual void visit(const TypePointer *node) override {
         write("TypePointer");
         child(node->reftype);
     }
-    virtual void visit(const TypeParameterised *node) {
+    virtual void visit(const TypeParameterised *node) override {
         write("TypeParameterised(" + node->name.text + ")");
         child(node->elementtype);
     }
 
-    virtual void visit(const BooleanLiteralExpression *node) {
+    virtual void visit(const BooleanLiteralExpression *node) override {
         write("BooleanLiteralExpression(" + std::string(node->value ? "true" : "false") + ")");
     }
-    virtual void visit(const NumberLiteralExpression *node) {
+    virtual void visit(const NumberLiteralExpression *node) override {
         write("NumberLiteralExpression(" + number_to_string(node->value) + ")");
     }
-    virtual void visit(const StringLiteralExpression *node) {
+    virtual void visit(const StringLiteralExpression *node) override {
         write("StringLiteralExpression(" + node->value + ")");
     }
-    virtual void visit(const ArrayLiteralExpression *node) {
+    virtual void visit(const ArrayLiteralExpression *node) override {
         write("ArrayLiteralExpression");
         for (auto x: node->elements) {
             child(x);
         }
     }
-    virtual void visit(const DictionaryLiteralExpression *node) {
+    virtual void visit(const DictionaryLiteralExpression *node) override {
         write("DictionaryLiteralExpression");
         depth++;
         for (auto x: node->elements) {
@@ -53,26 +53,26 @@ public:
         }
         depth--;
     }
-    virtual void visit(const NilLiteralExpression *) {
+    virtual void visit(const NilLiteralExpression *) override {
         write("NilLiteralExpression");
     }
-    virtual void visit(const IdentifierExpression *node) {
+    virtual void visit(const IdentifierExpression *node) override {
         write("IdentifierExpression(" + node->name + ")");
     }
-    virtual void visit(const DotExpression *node) {
+    virtual void visit(const DotExpression *node) override {
         write("DotExpression(" + node->name.text + ")");
         child(node->base);
     }
-    virtual void visit(const ArrowExpression *node) {
+    virtual void visit(const ArrowExpression *node) override {
         write("ArrowExpression(" + node->name.text + ")");
         child(node->base);
     }
-    virtual void visit(const SubscriptExpression *node) {
+    virtual void visit(const SubscriptExpression *node) override {
         write("SubscriptExpression");
         child(node->base);
         child(node->index);
     }
-    virtual void visit(const InterpolatedStringExpression *node) {
+    virtual void visit(const InterpolatedStringExpression *node) override {
         write("InterpolatedStringExpression");
         depth++;
         for (auto x: node->parts) {
@@ -81,142 +81,132 @@ public:
         }
         depth--;
     }
-    virtual void visit(const FunctionCallExpression *node) {
+    virtual void visit(const FunctionCallExpression *node) override {
         write("FunctionCallExpression");
         child(node->base);
         for (auto x: node->args) {
             child(x.second);
         }
     }
-    virtual void visit(const UnaryPlusExpression *node) {
+    virtual void visit(const UnaryPlusExpression *node) override {
         write("UnaryPlusExpression");
         child(node->expr);
     }
-    virtual void visit(const UnaryMinusExpression *node) {
+    virtual void visit(const UnaryMinusExpression *node) override {
         write("UnaryMinusExpression");
         child(node->expr);
     }
-    virtual void visit(const LogicalNotExpression *node) {
+    virtual void visit(const LogicalNotExpression *node) override {
         write("LogicalNotExpression");
         child(node->expr);
     }
-    virtual void visit(const ExponentiationExpression *node) {
+    virtual void visit(const ExponentiationExpression *node) override {
         write("ExponentiationExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const MultiplicationExpression *node) {
+    virtual void visit(const MultiplicationExpression *node) override {
         write("MultiplicationExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const DivisionExpression *node) {
+    virtual void visit(const DivisionExpression *node) override {
         write("DivisionExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const ModuloExpression *node) {
+    virtual void visit(const ModuloExpression *node) override {
         write("ModuloExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const AdditionExpression *node) {
+    virtual void visit(const AdditionExpression *node) override {
         write("AdditionExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const SubtractionExpression *node) {
+    virtual void visit(const SubtractionExpression *node) override {
         write("SubtractionExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const ConcatenationExpression *node) {
+    virtual void visit(const ConcatenationExpression *node) override {
         write("ConcatenationExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const ComparisonExpression *node) {
+    virtual void visit(const ComparisonExpression *node) override {
         write("ComparisonExpression(" + std::to_string(node->comp) + ")");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const ChainedComparisonExpression *node) {
+    virtual void visit(const ChainedComparisonExpression *node) override {
         write("ChainedComparisonExpression");
         for (auto x: node->comps) {
             child(x);
         }
     }
-    virtual void visit(const MembershipExpression *node) {
+    virtual void visit(const MembershipExpression *node) override {
         write("MembershipExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const ConjunctionExpression *node) {
+    virtual void visit(const ConjunctionExpression *node) override {
         write("ConjunctionExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const DisjunctionExpression *node) {
+    virtual void visit(const DisjunctionExpression *node) override {
         write("DisjunctionExpression");
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const ConditionalExpression *node) {
+    virtual void visit(const ConditionalExpression *node) override {
         write("ConditionalExpression");
         child(node->cond);
         child(node->left);
         child(node->right);
     }
-    virtual void visit(const NewRecordExpression *node) {
+    virtual void visit(const NewRecordExpression *node) override {
         write("NewRecordExpression");
         child(node->type);
     }
-    virtual void visit(const ValidPointerExpression *node) {
+    virtual void visit(const ValidPointerExpression *node) override {
         write("ValidPointerExpression");
         for (auto x: node->tests) {
             child(x.second);
         }
     }
-    virtual void visit(const RangeSubscriptExpression *node) {
+    virtual void visit(const RangeSubscriptExpression *node) override {
         write("RangeSubscriptExpression");
         child(node->base);
         child(node->range->first);
         child(node->range->last);
     }
 
-    virtual void visit(const ImportDeclaration *node) {
+    virtual void visit(const ImportDeclaration *node) override {
         write("ImportDeclaration(" + node->name.text + ")");
     }
-    virtual void visit(const TypeDeclaration *node) {
+    virtual void visit(const TypeDeclaration *node) override {
         write("TypeDeclaration");
         child(node->type);
     }
-    virtual void visit(const ConstantDeclaration *node) {
+    virtual void visit(const ConstantDeclaration *node) override {
         write("ConstantDeclaration(" + node->name.text + ")");
         child(node->type);
         child(node->value);
     }
-    virtual void visit(const VariableDeclaration *node) {
+    virtual void visit(const VariableDeclaration *node) override {
         write("VariableDeclaration(" + join(node->names) + ")");
         child(node->type);
         child(node->value);
     }
-    virtual void visit(const LetDeclaration *node) {
+    virtual void visit(const LetDeclaration *node) override {
         write("LetDeclaration(" + node->name.text + ")");
         child(node->type);
         child(node->value);
     }
-    virtual void visit(const BaseFunctionDeclaration *node) {
-        write("BaseFunctionDeclaration(" + node->name.text + ")");
-        child(node->returntype);
-        depth++;
-        for (auto x: node->args) {
-            write(std::to_string(x->mode) + " " + x->name.text);
-            child(x->type);
-        }
-        depth--;
-    }
-    virtual void visit(const FunctionDeclaration *node) {
+    virtual void visit(const FunctionDeclaration *node) override {
         write("FunctionDeclaration(" + node->name.text + ")");
         child(node->returntype);
         depth++;
@@ -229,7 +219,7 @@ public:
             child(x);
         }
     }
-    virtual void visit(const ExternalFunctionDeclaration *node) {
+    virtual void visit(const ExternalFunctionDeclaration *node) override {
         write("ExternalFunctionDeclaration(" + node->name.text + ")");
         child(node->returntype);
         depth++;
@@ -240,18 +230,18 @@ public:
         depth--;
         child(node->dict);
     }
-    virtual void visit(const ExceptionDeclaration *node) {
+    virtual void visit(const ExceptionDeclaration *node) override {
         write("ExceptionDeclaration(" + node->name.text + ")");
     }
 
-    virtual void visit(const AssignmentStatement *node) {
+    virtual void visit(const AssignmentStatement *node) override {
         write("AssignmentStatement");
         for (auto x: node->variables) {
             child(x);
         }
         child(node->expr);
     }
-    virtual void visit(const CaseStatement *node) {
+    virtual void visit(const CaseStatement *node) override {
         write("CaseStatement");
         child(node->expr);
         depth++;
@@ -275,14 +265,14 @@ public:
         }
         depth--;
     }
-    virtual void visit(const ExitStatement *node) {
+    virtual void visit(const ExitStatement *node) override {
         write("ExitStatement(" + std::to_string(node->type) + ")");
     }
-    virtual void visit(const ExpressionStatement *node) {
+    virtual void visit(const ExpressionStatement *node) override {
         write("ExpressionStatement");
         child(node->expr);
     }
-    virtual void visit(const ForStatement *node) {
+    virtual void visit(const ForStatement *node) override {
         write("ForStatement(" + node->var.text + ")");
         child(node->start);
         child(node->end);
@@ -291,7 +281,7 @@ public:
             child(x);
         }
     }
-    virtual void visit(const IfStatement *node) {
+    virtual void visit(const IfStatement *node) override {
         write("IfStatement");
         for (auto x: node->condition_statements) {
             child(x.first);
@@ -303,45 +293,45 @@ public:
             child(x);
         }
     }
-    virtual void visit(const LoopStatement *node) {
+    virtual void visit(const LoopStatement *node) override {
         write("LoopStatement");
         for (auto x: node->body) {
             child(x);
         }
     }
-    virtual void visit(const NextStatement *node) {
+    virtual void visit(const NextStatement *node) override {
         write("NextStatement(" + std::to_string(node->type) + ")");
     }
-    virtual void visit(const RaiseStatement *node) {
+    virtual void visit(const RaiseStatement *node) override {
         write("RaiseStatement(" + node->name.text + ")");
         child(node->info);
     }
-    virtual void visit(const RepeatStatement *node) {
+    virtual void visit(const RepeatStatement *node) override {
         write("RepeatStatement");
         child(node->cond);
         for (auto x: node->body) {
             child(x);
         }
     }
-    virtual void visit(const ReturnStatement *node) {
+    virtual void visit(const ReturnStatement *node) override {
         write("ReturnStatement");
         child(node->expr);
     }
-    virtual void visit(const TryStatement *node) {
+    virtual void visit(const TryStatement *node) override {
         write("TryStatement");
         for (auto x: node->body) {
             child(x);
         }
         // TODO: internal_error("TODO: TryStatement");
     }
-    virtual void visit(const WhileStatement *node) {
+    virtual void visit(const WhileStatement *node) override {
         write("WhileStatement");
         child(node->cond);
         for (auto x: node->body) {
             child(x);
         }
     }
-    virtual void visit(const Program *node) {
+    virtual void visit(const Program *node) override {
         write("Program");
         for (auto s: node->body) {
             child(s);
