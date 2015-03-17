@@ -1,4 +1,3 @@
-% TODO location info eof
 IF (TRUE) THEN
     print("TRUE")
-
+%$

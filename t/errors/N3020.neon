@@ -1,9 +1,6 @@
-% TODO location information
-
 FUNCTION a(y: Number, z: Number) : Number
-                      %<2
     RETURN 1
 END FUNCTION
 
 print(a(1))
-         %<1
+         %<

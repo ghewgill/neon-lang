@@ -33,10 +33,13 @@ def run(fn):
     expected_error_pos = {}
 
     if errors:
-        for i, s in enumerate(src.split("\n"), 1):
+        lines = src.strip().split("\n")
+        for i, s in enumerate(lines, 1):
             for m in re.finditer(r"(%<)(\d)?", s):
                 n = int(m.group(2)) if m.group(2) else 1
                 expected_error_pos[n] = (i - 1, 1 + m.start(1))
+        if lines[-1] == "%$":
+            expected_error_pos[1] = (len(lines) + 1, 1)
         errnum = os.path.splitext(os.path.basename(fn))[0]
         expected_stderr = errnum
         del errors[errnum]

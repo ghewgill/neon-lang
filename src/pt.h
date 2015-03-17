@@ -285,17 +285,18 @@ private:
 
 class InterpolatedStringExpression: public Expression {
 public:
-    InterpolatedStringExpression(const Token &token, const std::vector<std::pair<const Expression *, std::string>> &parts): Expression(token), parts(parts) {}
+    InterpolatedStringExpression(const Token &token, const std::vector<std::pair<const Expression *, Token>> &parts): Expression(token), parts(parts) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::vector<std::pair<const Expression *, std::string>> parts;
+    const std::vector<std::pair<const Expression *, Token>> parts;
 };
 
 class FunctionCallExpression: public Expression {
 public:
-    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<std::pair<Token, const Expression *>> &args): Expression(token), base(base), args(args) {}
+    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<std::pair<Token, const Expression *>> &args, const Token &rparen): Expression(token), base(base), args(args), rparen(rparen) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const std::vector<std::pair<Token, const Expression *>> args;
+    const Token rparen;
 private:
     FunctionCallExpression(const FunctionCallExpression &);
     FunctionCallExpression &operator=(const FunctionCallExpression &);
@@ -554,11 +555,12 @@ private:
 
 class BaseFunctionDeclaration: public Declaration {
 public:
-    BaseFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args): Declaration(token), type(type), name(name), returntype(returntype), args(args) {}
+    BaseFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Token &rparen): Declaration(token), type(type), name(name), returntype(returntype), args(args), rparen(rparen) {}
     const Token type;
     const Token name;
     const Type *const returntype;
     const std::vector<const FunctionParameter *> args;
+    const Token rparen;
 private:
     BaseFunctionDeclaration(const BaseFunctionDeclaration &);
     BaseFunctionDeclaration &operator=(const BaseFunctionDeclaration &);
@@ -566,14 +568,15 @@ private:
 
 class FunctionDeclaration: public BaseFunctionDeclaration {
 public:
-    FunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const std::vector<const Statement *> &body): BaseFunctionDeclaration(token, type, name, returntype, args), body(body) {}
+    FunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Token &rparen, const std::vector<const Statement *> &body, const Token &end_function): BaseFunctionDeclaration(token, type, name, returntype, args, rparen), body(body), end_function(end_function) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const Statement *> body;
+    const Token end_function;
 };
 
 class ExternalFunctionDeclaration: public BaseFunctionDeclaration {
 public:
-    ExternalFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Expression *dict): BaseFunctionDeclaration(token, type, name, returntype, args), dict(dict) {}
+    ExternalFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Token &rparen, const Expression *dict): BaseFunctionDeclaration(token, type, name, returntype, args, rparen), dict(dict) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const dict;
 private:

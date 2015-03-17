@@ -76,7 +76,7 @@ public:
         write("InterpolatedStringExpression");
         depth++;
         for (auto x: node->parts) {
-            write("FormatString(" + x.second + ")");
+            write("FormatString(" + x.second.text + ")");
             child(x.first);
         }
         depth--;

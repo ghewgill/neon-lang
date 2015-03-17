@@ -811,11 +811,11 @@ const Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr
     const Expression *r = nullptr;
     for (auto x: expr->parts) {
         const Expression *e = analyze(x.first);
-        std::string fmt = x.second;
+        std::string fmt = x.second.text;
         if (not fmt.empty()) {
             format::Spec spec;
             if (not format::parse(fmt, spec)) {
-                error(3133, x.first->token, "invalid format specification");
+                error(3133, x.second, "invalid format specification");
             }
         }
         const Expression *str;
@@ -856,7 +856,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     if (fname != nullptr) {
         if (fname->name == "value_copy") {
             if (expr->args.size() != 2) {
-                error(3136, expr->token, "two arguments expected");
+                error(3136, expr->rparen, "two arguments expected");
             }
             const Expression *lhs_expr = analyze(expr->args[0].second);
             const ReferenceExpression *lhs = dynamic_cast<const ReferenceExpression *>(lhs_expr);
@@ -997,7 +997,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (ftype->params[p]->default_value != nullptr) {
                 args[p] = ftype->params[p]->default_value;
             } else {
-                error(3020, expr->token, "argument not specified for: " + ftype->params[p]->declaration.text);
+                error(3020, expr->rparen, "argument not specified for: " + ftype->params[p]->declaration.text);
             }
         }
         p++;
@@ -1443,7 +1443,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         args.push_back(fp);
     }
     if (type != nullptr && args.empty()) {
-        error(3129, declaration->token, "expected self parameter");
+        error(3129, declaration->rparen, "expected self parameter");
     }
     Function *function;
     if (type != nullptr) {
@@ -1493,7 +1493,7 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     const Type *returntype = dynamic_cast<const TypeFunction *>(function->type)->returntype;
     if (returntype != TYPE_NOTHING) {
         if (function->statements.empty() || not function->statements.back()->always_returns()) {
-            error(3085, declaration->token, "missing RETURN statement");
+            error(3085, declaration->end_function, "missing RETURN statement");
         }
     }
     loops.pop();

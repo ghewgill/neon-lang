@@ -8,6 +8,19 @@ void abort_error(const char *file, int line, int number, const Token &token, con
     throw SourceError(file, line, number, token, message);
 }
 
+void abort_error_a(const char *file, int line, int number, const Token &token_before, const Token &token, const std::string &message)
+{
+    if (token_before.line == token.line) {
+        throw SourceError(file, line, number, token, message);
+    }
+    Token tok = token_before;
+    tok.column = 1 + tok.source.length();
+    if (tok.source[tok.source.length()-1] != ' ') {
+        tok.column++;
+    }
+    throw SourceError(file, line, number, tok, message);
+}
+
 void abort_error(const char *file, int line, int number, const Token &token, const Token &token2, const std::string &message)
 {
     throw SourceError(file, line, number, token, token2, message);

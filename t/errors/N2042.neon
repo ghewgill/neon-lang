@@ -1,5 +1,4 @@
-% TODO location information eof
-
 VAR a: Number
 FOR a := 1 TO 5 DO
     print(str(a))
+%$

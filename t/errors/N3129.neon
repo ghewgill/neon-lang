@@ -1,5 +1,3 @@
-% TODO location information
-
 TYPE Foo := RECORD END RECORD
 FUNCTION Foo.bar()
                  %<

@@ -1,5 +1,3 @@
-% TODO location information eof
-
 VAR a: Number
 a := 10
 
@@ -8,3 +6,4 @@ CASE a
         print("Less than 2, or greater than 5")
     WHEN 5 DO
         print("BOOM!")
+%$

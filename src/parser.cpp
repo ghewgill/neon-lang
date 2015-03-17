@@ -42,7 +42,7 @@ public:
     const Expression *parseConditional();
     const Expression *parseExpression();
     const VariableInfo parseVariableDeclaration();
-    void parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args);
+    void parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen);
     const Statement *parseFunctionDefinition();
     const Statement *parseExternalDefinition();
     const Statement *parseDeclaration();
@@ -134,7 +134,7 @@ const Type *Parser::parseRecordType()
     }
     i++;
     if (tokens[i].type != RECORD) {
-        error(2034, tokens[i], "'RECORD' expected");
+        error_a(2034, tokens[i-1], tokens[i], "'RECORD' expected");
     }
     i++;
     return new TypeRecord(tok_record, fields);
@@ -160,7 +160,7 @@ const Type *Parser::parseEnumType()
     }
     i++;
     if (tokens[i].type != ENUM) {
-        error(2035, tokens[i], "'ENUM' expected");
+        error_a(2035, tokens[i-1], tokens[i], "'ENUM' expected");
     }
     i++;
     return new TypeEnum(tok_enum, names);
@@ -263,8 +263,9 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
             error(2013, tokens[i], "')' or ',' expected");
         }
     }
+    auto &tok_rparen = tokens[i];
     ++i;
-    return new FunctionCallExpression(func->token, func, args);
+    return new FunctionCallExpression(func->token, func, args, tok_rparen);
 }
 
 const ArrayLiteralExpression *Parser::parseArrayLiteral()
@@ -312,8 +313,8 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
 
 const Expression *Parser::parseInterpolatedStringExpression()
 {
-    std::vector<std::pair<const Expression *, std::string>> parts;
-    parts.push_back(std::make_pair(new StringLiteralExpression(tokens[i], tokens[i].text), ""));
+    std::vector<std::pair<const Expression *, Token>> parts;
+    parts.push_back(std::make_pair(new StringLiteralExpression(tokens[i], tokens[i].text), Token()));
     for (;;) {
         ++i;
         if (tokens[i].type != SUBBEGIN) {
@@ -321,13 +322,13 @@ const Expression *Parser::parseInterpolatedStringExpression()
         }
         ++i;
         const Expression *e = parseExpression();
-        std::string fmt;
+        Token fmt;
         if (tokens[i].type == SUBFMT) {
             ++i;
             if (tokens[i].type != STRING) {
                 internal_error("parseInterpolatedStringExpression");
             }
-            fmt = tokens[i].text;
+            fmt = tokens[i];
             ++i;
         }
         parts.push_back(std::make_pair(e, fmt));
@@ -339,7 +340,7 @@ const Expression *Parser::parseInterpolatedStringExpression()
             internal_error("parseInterpolatedStringExpression");
         }
         e = new StringLiteralExpression(tokens[i], tokens[i].text);
-        parts.push_back(std::make_pair(e, ""));
+        parts.push_back(std::make_pair(e, Token()));
     }
     return new InterpolatedStringExpression(parts[0].first->token, parts);
 }
@@ -726,7 +727,7 @@ const Parser::VariableInfo Parser::parseVariableDeclaration()
     return make_pair(names, t);
 }
 
-void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args)
+void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -777,6 +778,7 @@ void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returnty
             error(2025, tokens[i], "')' or ',' expected");
         }
     }
+    rparen = tokens[i];
     ++i;
     if (tokens[i].type == COLON) {
         ++i;
@@ -793,7 +795,8 @@ const Statement *Parser::parseFunctionDefinition()
     Token name;
     const Type *returntype;
     std::vector<const FunctionParameter *> args;
-    parseFunctionHeader(type, name, returntype, args);
+    Token rparen;
+    parseFunctionHeader(type, name, returntype, args, rparen);
     std::vector<const Statement *> body;
     while (tokens[i].type != END) {
         const Statement *s = parseStatement();
@@ -801,12 +804,13 @@ const Statement *Parser::parseFunctionDefinition()
             body.push_back(s);
         }
     }
+    auto &tok_end_function = tokens[i];
     ++i;
     if (tokens[i].type != FUNCTION) {
-        error(2036, tokens[i], "'FUNCTION' expected");
+        error_a(2036, tokens[i-1], tokens[i], "'FUNCTION' expected");
     }
     ++i;
-    return new FunctionDeclaration(tok_function, type, name, returntype, args, body);
+    return new FunctionDeclaration(tok_function, type, name, returntype, args, rparen, body, tok_end_function);
 }
 
 const Statement *Parser::parseExternalDefinition()
@@ -820,7 +824,8 @@ const Statement *Parser::parseExternalDefinition()
     Token name;
     const Type *returntype;
     std::vector<const FunctionParameter *> args;
-    parseFunctionHeader(type, name, returntype, args);
+    Token rparen;
+    parseFunctionHeader(type, name, returntype, args, rparen);
     if (tokens[i].type != LBRACE) {
         error(2046, tokens[i], "{ expected");
     }
@@ -830,10 +835,10 @@ const Statement *Parser::parseExternalDefinition()
     }
     ++i;
     if (tokens[i].type != FUNCTION) {
-        error(2051, tokens[i], "'END FUNCTION' expected");
+        error_a(2051, tokens[i-1], tokens[i], "'END FUNCTION' expected");
     }
     ++i;
-    return new ExternalFunctionDeclaration(tok_external, type, name, returntype, args, dict);
+    return new ExternalFunctionDeclaration(tok_external, type, name, returntype, args, rparen, dict);
 }
 
 const Statement *Parser::parseDeclaration()
@@ -913,7 +918,7 @@ const Statement *Parser::parseIfStatement()
     }
     ++i;
     if (tokens[i].type != IF) {
-        error(2037, tokens[i], "IF expected");
+        error_a(2037, tokens[i-1], tokens[i], "IF expected");
     }
     ++i;
     return new IfStatement(tok_if, condition_statements, else_statements);
@@ -968,7 +973,7 @@ const Statement *Parser::parseWhileStatement()
     ++i;
     const Expression *cond = parseExpression();
     if (tokens[i].type != DO) {
-        error(2028, tokens[i], "DO expected");
+        error_a(2028, tokens[i-1], tokens[i], "DO expected");
     }
     ++i;
     std::vector<const Statement *> statements;
@@ -983,7 +988,7 @@ const Statement *Parser::parseWhileStatement()
     }
     ++i;
     if (tokens[i].type != WHILE) {
-        error(2038, tokens[i], "WHILE expected");
+        error_a(2038, tokens[i-1], tokens[i], "WHILE expected");
     }
     ++i;
     return new WhileStatement(tok_while, cond, statements);
@@ -1030,7 +1035,7 @@ const Statement *Parser::parseCaseStatement()
             }
         } while (tokens[i].type == COMMA);
         if (tokens[i].type != DO) {
-            error(2030, tokens[i], "'DO' expected");
+            error_a(2030, tokens[i-1], tokens[i], "'DO' expected");
         }
         ++i;
         std::vector<const Statement *> statements;
@@ -1057,7 +1062,7 @@ const Statement *Parser::parseCaseStatement()
     }
     ++i;
     if (tokens[i].type != CASE) {
-        error(2039, tokens[i], "CASE expected");
+        error_a(2039, tokens[i-1], tokens[i], "CASE expected");
     }
     ++i;
     clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));
@@ -1089,7 +1094,7 @@ const Statement *Parser::parseForStatement()
         step = parseExpression();
     }
     if (tokens[i].type != DO) {
-        error(2041, tokens[i], "'DO' expected");
+        error_a(2041, tokens[i-1], tokens[i], "'DO' expected");
     }
     ++i;
     std::vector<const Statement *> statements;
@@ -1104,7 +1109,7 @@ const Statement *Parser::parseForStatement()
     }
     ++i;
     if (tokens[i].type != FOR) {
-        error(2043, tokens[i], "'END FOR' expected");
+        error_a(2043, tokens[i-1], tokens[i], "'END FOR' expected");
     }
     ++i;
     return new ForStatement(tok_for, var, start, end, step, statements);
@@ -1126,7 +1131,7 @@ const Statement *Parser::parseLoopStatement()
     }
     ++i;
     if (tokens[i].type != LOOP) {
-        error(2056, tokens[i], "LOOP expected");
+        error_a(2056, tokens[i-1], tokens[i], "LOOP expected");
     }
     ++i;
     return new LoopStatement(tok_loop, statements);
@@ -1161,7 +1166,7 @@ const Statement *Parser::parseExitStatement()
      && type != FOR
      && type != LOOP
      && type != REPEAT) {
-        error(2052, tokens[i], "loop type expected");
+        error_a(2052, tokens[i-1], tokens[i], "loop type expected");
     }
     ++i;
     return new ExitStatement(tok_exit, type);
@@ -1176,7 +1181,7 @@ const Statement *Parser::parseNextStatement()
      && type != FOR
      && type != LOOP
      && type != REPEAT) {
-        error(2054, tokens[i], "loop type expected");
+        error_a(2054, tokens[i-1], tokens[i], "loop type expected");
     }
     ++i;
     return new NextStatement(tok_next, type);
@@ -1217,7 +1222,7 @@ const Statement *Parser::parseTryStatement()
     }
     ++i;
     if (tokens[i].type != TRY) {
-        error(2063, tokens[i], "TRY expected");
+        error_a(2063, tokens[i-1], tokens[i], "TRY expected");
     }
     ++i;
     return new TryStatement(tok_try, statements, catches);

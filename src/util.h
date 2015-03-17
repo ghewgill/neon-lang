@@ -34,6 +34,7 @@ public:
 };
 
 #define error(number, token, message) abort_error(__FILE__, __LINE__, number, token, message)
+#define error_a(number, token_before, token, message) abort_error_a(__FILE__, __LINE__, number, token_before, token, message)
 #define error2(number, token, token2, message) abort_error(__FILE__, __LINE__, number, token, token2, message)
 #define internal_error(message) abort_internal_error(__FILE__, __LINE__, message)
 
@@ -41,6 +42,15 @@ public:
 __declspec(noreturn)
 #endif
 void abort_error(const char *file, int line, int number, const Token &token, const std::string &message)
+#ifdef __GNUC__
+__attribute__((noreturn))
+#endif
+;
+
+#ifdef _MSC_VER
+__declspec(noreturn)
+#endif
+void abort_error_a(const char *file, int line, int number, const Token &token_before, const Token &token, const std::string &message)
 #ifdef __GNUC__
 __attribute__((noreturn))
 #endif
