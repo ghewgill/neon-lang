@@ -239,6 +239,7 @@ env.Program("bin/fuzz_parser", [
     "tests/fuzz_parser.cpp",
     "src/analyzer.cpp",
     "src/ast.cpp",
+    "src/bytecode.cpp",
     "src/compiler.cpp",
     "src/lexer.cpp",
     "src/format.cpp",

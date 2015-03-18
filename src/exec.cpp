@@ -115,14 +115,14 @@ public:
 
 class Executor {
 public:
-    Executor(const Bytecode::bytecode &bytes, const DebugInfo *debuginfo);
+    Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo);
     void exec();
 private:
     const Bytecode obj;
     const DebugInfo *debug;
-    Bytecode::bytecode::size_type ip;
+    Bytecode::Bytes::size_type ip;
     std::stack<Cell> stack;
-    std::stack<Bytecode::bytecode::size_type> callstack;
+    std::stack<Bytecode::Bytes::size_type> callstack;
     std::vector<Cell> globals;
     std::vector<ActivationFrame> frames;
     std::vector<size_t> rtl_call_tokens;
@@ -211,7 +211,7 @@ private:
     Executor &operator=(const Executor &);
 };
 
-Executor::Executor(const Bytecode::bytecode &bytes, const DebugInfo *debuginfo)
+Executor::Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo)
   : obj(bytes),
     debug(debuginfo),
     ip(0),
@@ -1121,7 +1121,7 @@ void Executor::exec()
     assert(stack.empty());
 }
 
-void exec(const Bytecode::bytecode &obj, const DebugInfo *debuginfo, int argc, char *argv[])
+void exec(const Bytecode::Bytes &obj, const DebugInfo *debuginfo, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
     Executor(obj, debuginfo).exec();

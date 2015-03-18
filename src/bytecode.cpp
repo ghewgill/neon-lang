@@ -1,8 +1,24 @@
 #include "bytecode.h"
 
+Bytecode::Bytecode()
+  : global_size(0),
+    strtable(),
+    types(),
+    constants(),
+    variables(),
+    functions(),
+    exceptions(),
+    code()
+{
+}
+
 Bytecode::Bytecode(const std::vector<unsigned char> &obj)
   : global_size(0),
     strtable(),
+    types(),
+    constants(),
+    variables(),
+    functions(),
     exceptions(),
     code()
 {
@@ -27,10 +43,10 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
         exceptions.push_back(e);
         exceptionsize--;
     }
-    code = bytecode(obj.begin() + i, obj.end());
+    code = Bytes(obj.begin() + i, obj.end());
 }
 
-std::vector<std::string> Bytecode::getstrtable(bytecode::const_iterator start, bytecode::const_iterator end, size_t &i)
+std::vector<std::string> Bytecode::getstrtable(Bytes::const_iterator start, Bytes::const_iterator end, size_t &i)
 {
     std::vector<std::string> r;
     while (start != end) {
@@ -45,4 +61,37 @@ std::vector<std::string> Bytecode::getstrtable(bytecode::const_iterator start, b
         i++;
     }
     return r;
+}
+
+Bytecode::Bytes Bytecode::getBytes() const
+{
+    std::vector<unsigned char> obj;
+
+    obj.push_back(static_cast<unsigned char>(global_size >> 8) & 0xff);
+    obj.push_back(static_cast<unsigned char>(global_size & 0xff));
+
+    std::vector<unsigned char> t;
+    for (auto s: strtable) {
+        std::copy(s.begin(), s.end(), std::back_inserter(t));
+        t.push_back(0);
+    }
+    obj.push_back(static_cast<unsigned char>(t.size() >> 8) & 0xff);
+    obj.push_back(static_cast<unsigned char>(t.size() & 0xff));
+    std::copy(t.begin(), t.end(), std::back_inserter(obj));
+
+    obj.push_back(static_cast<unsigned char>(exceptions.size() >> 8) & 0xff);
+    obj.push_back(static_cast<unsigned char>(exceptions.size() & 0xff));
+    for (auto e: exceptions) {
+        obj.push_back(static_cast<unsigned char>(e.start >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.start & 0xff));
+        obj.push_back(static_cast<unsigned char>(e.end >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.end & 0xff));
+        obj.push_back(static_cast<unsigned char>(e.excid >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.excid & 0xff));
+        obj.push_back(static_cast<unsigned char>(e.handler >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.handler & 0xff));
+    }
+
+    std::copy(code.begin(), code.end(), std::back_inserter(obj));
+    return obj;
 }
