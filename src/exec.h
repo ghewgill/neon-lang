@@ -3,6 +3,8 @@
 
 #include <vector>
 
-void exec(const std::vector<unsigned char> &obj, int argc, char *argv[]);
+class DebugInfo;
+
+void exec(const std::vector<unsigned char> &obj, const DebugInfo *debug, int argc, char *argv[]);
 
 #endif

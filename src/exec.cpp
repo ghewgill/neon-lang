@@ -13,6 +13,7 @@
 
 #include "bytecode.h"
 #include "cell.h"
+#include "debuginfo.h"
 #include "number.h"
 #include "opcode.h"
 #include "rtl_exec.h"
@@ -114,10 +115,11 @@ public:
 
 class Executor {
 public:
-    Executor(const Bytecode::bytecode &bytes);
+    Executor(const Bytecode::bytecode &bytes, const DebugInfo *debuginfo);
     void exec();
 private:
     const Bytecode obj;
+    const DebugInfo *debug;
     Bytecode::bytecode::size_type ip;
     std::stack<Cell> stack;
     std::stack<Bytecode::bytecode::size_type> callstack;
@@ -209,8 +211,9 @@ private:
     Executor &operator=(const Executor &);
 };
 
-Executor::Executor(const Bytecode::bytecode &bytes)
+Executor::Executor(const Bytecode::bytecode &bytes, const DebugInfo *debuginfo)
   : obj(bytes),
+    debug(debuginfo),
     ip(0),
     stack(),
     callstack(),
@@ -985,6 +988,7 @@ void Executor::raise(const std::string &exception, const std::string &info)
     globals[0].array()[1] = Cell(info);
     globals[0].array()[2] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
+    auto eip = ip;
     for (;;) {
         for (auto e = obj.exceptions.begin(); e != obj.exceptions.end(); ++e) {
             if (ip >= e->start && ip < e->end && exception == obj.strtable[e->excid]) {
@@ -998,7 +1002,26 @@ void Executor::raise(const std::string &exception, const std::string &info)
         ip = callstack.top();
         callstack.pop();
     }
-    fprintf(stderr, "unhandled exception %s (%s)\n", exception.c_str(), info.c_str());
+    fprintf(stderr, "unhandled exception %s (%s) at address %lu\n", exception.c_str(), info.c_str(), eip);
+
+    if (debug != nullptr) {
+        auto p = eip;
+        for (;;) {
+            auto line = debug->line_numbers.find(p);
+            if (line != debug->line_numbers.end()) {
+                fprintf(stderr, "%d | %s\n", line->second, debug->source_lines.at(line->second).c_str());
+                break;
+            }
+            if (p == 0) {
+                fprintf(stderr, "No matching debug information found.\n");
+                break;
+            }
+            p--;
+        }
+    } else {
+        fprintf(stderr, "No debug information available.\n");
+        // TODO: Include filename in errors.
+    }
     exit(1);
 }
 
@@ -1098,8 +1121,8 @@ void Executor::exec()
     assert(stack.empty());
 }
 
-void exec(const Bytecode::bytecode &obj, int argc, char *argv[])
+void exec(const Bytecode::bytecode &obj, const DebugInfo *debuginfo, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
-    Executor(obj).exec();
+    Executor(obj, debuginfo).exec();
 }
