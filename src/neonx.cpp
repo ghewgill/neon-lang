@@ -27,7 +27,8 @@ int main(int argc, char *argv[])
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
 
-    exec(bytecode, argc-1, argv+1);
+    // TODO: Implement reading DebugInfo from another file.
+    exec(bytecode, nullptr, argc-1, argv+1);
 
     // Return 0, if the neon bytecode did not call sys.exit() with its OWN exit code.
     return 0;

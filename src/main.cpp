@@ -52,7 +52,11 @@ static void repl(int argc, char *argv[])
             exit(0);
         } else {
             try {
-                exec(compile(analyze(parse(tokenize(s))), nullptr), argc, argv);
+                auto parsetree = parse(tokenize(s));
+                auto ast = analyze(parsetree);
+                DebugInfo debug(s);
+                auto bytecode = compile(ast, &debug);
+                exec(bytecode, &debug, argc, argv);
             } catch (CompilerError &error) {
                 error.write(std::cerr);
             }
@@ -100,6 +104,8 @@ int main(int argc, char *argv[])
     }
 
     std::vector<unsigned char> bytecode;
+    // TODO - Allow reading debug information from file.
+    DebugInfo debug(buf.str());
 
     // Pretty hacky way of checking whether the input file is compiled or not.
     if (name[name.length()-1] != 'x') {
@@ -120,7 +126,6 @@ int main(int argc, char *argv[])
                 dump(ast);
             }
 
-            DebugInfo debug(buf.str());
             bytecode = compile(ast, &debug);
             if (dump_bytecode) {
                 disassemble(bytecode, std::cerr, &debug);
@@ -136,5 +141,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(bytecode, argc-a, argv+a);
+    exec(bytecode, &debug, argc-a, argv+a);
 }
