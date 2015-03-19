@@ -1,0 +1,18 @@
+EXPORT type
+EXPORT const
+EXPORT var
+EXPORT function
+
+TYPE type := RECORD
+    boolean: Boolean
+    number: Number
+    string: String
+END RECORD
+
+CONST const: Number := 5
+
+VAR var: String := "test"
+
+FUNCTION function(x: Number): Number
+    RETURN x * x
+END FUNCTION

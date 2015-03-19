@@ -19,6 +19,7 @@ public:
     Scope *global_scope;
     std::stack<Frame *> frame;
     std::stack<Scope *> scope;
+    std::set<std::string> exports;
 
     std::stack<const TypeFunction *> functiontypes;
     std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
@@ -74,6 +75,7 @@ public:
     const Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
     const Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExceptionDeclaration *declaration);
+    const Statement *analyze(const pt::ExportDeclaration *declaration);
     std::vector<const Statement *> analyze(const std::vector<const pt::Statement *> &statement);
     const Statement *analyze(const pt::AssignmentStatement *statement);
     const Statement *analyze(const pt::CaseStatement *statement);
@@ -141,6 +143,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
@@ -210,6 +213,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
@@ -279,6 +283,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExportDeclaration *) override {}
     virtual void visit(const pt::AssignmentStatement *) override {}
     virtual void visit(const pt::CaseStatement *) override {}
     virtual void visit(const pt::ExitStatement *) override {}
@@ -348,6 +353,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExceptionDeclaration *) override {}
+    virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::CaseStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExitStatement *p) override { v.push_back(a->analyze(p)); }
@@ -376,6 +382,7 @@ Analyzer::Analyzer(const pt::Program *program)
     global_scope(nullptr),
     frame(),
     scope(),
+    exports(),
     functiontypes(),
     loops()
 {
@@ -1599,6 +1606,15 @@ const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
     return new NullStatement(declaration->token.line);
 }
 
+const Statement *Analyzer::analyze(const pt::ExportDeclaration *declaration)
+{
+    if (scope.top()->getDeclaration(declaration->name.text).type == NONE) {
+        error(3152, declaration->name, "export name not declared");
+    }
+    exports.insert(declaration->name.text);
+    return new NullStatement(declaration->token.line);
+}
+
 std::vector<const Statement *> Analyzer::analyze(const std::vector<const pt::Statement *> &statement)
 {
     std::vector<const Statement *> statements;
@@ -2112,6 +2128,16 @@ const Program *Analyzer::analyze()
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();
+    for (auto n: exports) {
+        const Name *name = scope.top()->lookupName(n);
+        if (name == nullptr) {
+            internal_error("export name not found");
+        }
+        if (r->exports.find(n) != r->exports.end()) {
+            internal_error("export name already exported");
+        }
+        r->exports[n] = name;
+    }
     scope.pop();
     return r;
 }

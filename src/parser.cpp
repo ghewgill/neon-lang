@@ -47,6 +47,7 @@ public:
     const Statement *parseFunctionDefinition();
     const Statement *parseExternalDefinition();
     const Statement *parseDeclaration();
+    const Statement *parseExport();
     const Statement *parseIfStatement();
     const Statement *parseReturnStatement();
     const Statement *parseVarStatement();
@@ -861,6 +862,17 @@ const Statement *Parser::parseDeclaration()
     }
 }
 
+const Statement *Parser::parseExport()
+{
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(2074, tokens[i], "identifier expected");
+    }
+    auto &tok_name = tokens[i];
+    ++i;
+    return new ExportDeclaration(tok_name, tok_name);
+}
+
 const Statement *Parser::parseIfStatement()
 {
     auto &tok_if = tokens[i];
@@ -1274,6 +1286,8 @@ const Statement *Parser::parseStatement()
         return parseExternalDefinition();
     } else if (tokens[i].type == DECLARE) {
         return parseDeclaration();
+    } else if (tokens[i].type == EXPORT) {
+        return parseExport();
     } else if (tokens[i].type == IF) {
         return parseIfStatement();
     } else if (tokens[i].type == RETURN) {

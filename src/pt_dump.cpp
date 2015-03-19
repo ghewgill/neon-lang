@@ -233,6 +233,9 @@ public:
     virtual void visit(const ExceptionDeclaration *node) override {
         write("ExceptionDeclaration(" + node->name.text + ")");
     }
+    virtual void visit(const ExportDeclaration *node) override {
+        write("ExportDeclaration(" + node->name.text + ")");
+    }
 
     virtual void visit(const AssignmentStatement *node) override {
         write("AssignmentStatement");

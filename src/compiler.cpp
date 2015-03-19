@@ -17,6 +17,13 @@ class Emitter {
         Label(): fixups(), target(UINT_MAX) {}
         std::vector<unsigned int> fixups;
         unsigned int target;
+    public:
+        unsigned int get_target() {
+            if (target == UINT_MAX) {
+                internal_error("Label::get_target");
+            }
+            return target;
+        }
     };
     class LoopLabels {
     public:
@@ -51,6 +58,11 @@ public:
     void push_function_exit(Label &label);
     void pop_function_exit();
     Label &get_function_exit();
+    void add_export_type(const std::string &name, const std::string &descriptor);
+    void add_export_constant(const std::string &name, const std::string &type, const std::string &value);
+    void add_export_variable(const std::string &name, const std::string &type, int index);
+    void add_export_function(const std::string &name, const std::string &type, int entry);
+    void add_export_exception(const std::string &name);
 private:
     const std::string source_hash;
     Bytecode object;
@@ -232,6 +244,47 @@ Emitter::Label &Emitter::get_function_exit()
     return *function_exit.top();
 }
 
+void Emitter::add_export_type(const std::string &name, const std::string &descriptor)
+{
+    Bytecode::Type type;
+    type.name = str(name);
+    type.descriptor = str(descriptor);
+    object.types.push_back(type);
+}
+
+void Emitter::add_export_constant(const std::string &name, const std::string &type, const std::string &value)
+{
+    Bytecode::Constant constant;
+    constant.name = str(name);
+    constant.type = str(type);
+    constant.value = Bytecode::Bytes(value.data(), value.data()+value.length());
+    object.constants.push_back(constant);
+}
+
+void Emitter::add_export_variable(const std::string &name, const std::string &type, int index)
+{
+    Bytecode::Variable variable;
+    variable.name = str(name);
+    variable.type = str(type);
+    variable.index = index;
+    object.variables.push_back(variable);
+}
+
+void Emitter::add_export_function(const std::string &name, const std::string &type, int entry)
+{
+    Bytecode::Function function;
+    function.name = str(name);
+    function.descriptor = str(type);
+    function.entry = entry;
+    object.functions.push_back(function);
+}
+
+void Emitter::add_export_exception(const std::string &name)
+{
+    // TODO
+    fprintf(stderr, "add_export_exception %s\n", name.c_str());
+}
+
 void Type::predeclare(Emitter &emitter) const
 {
     for (auto m: methods) {
@@ -244,6 +297,11 @@ void Type::postdeclare(Emitter &emitter) const
     for (auto m: methods) {
         m.second->postdeclare(emitter);
     }
+}
+
+void Type::generate_export(Emitter &emitter, const std::string &name) const
+{
+    emitter.add_export_type(name, get_type_descriptor());
 }
 
 void TypeBoolean::generate_load(Emitter &emitter) const
@@ -306,6 +364,20 @@ void TypeFunction::generate_call(Emitter &) const
     internal_error("TypeFunction");
 }
 
+std::string TypeFunction::get_type_descriptor() const
+{
+    std::string r = "F[";
+    for (auto p: params) {
+        if (r.length() > 2) {
+            r += ",";
+        }
+        // TODO: mode, default value
+        r += p->declaration.text + ":" + p->type->get_type_descriptor();
+    }
+    r += "]:" + returntype->get_type_descriptor();
+    return r;
+}
+
 void TypeArray::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADA);
@@ -359,6 +431,19 @@ void TypeRecord::generate_call(Emitter &) const
     internal_error("TypeRecord");
 }
 
+std::string TypeRecord::get_type_descriptor() const
+{
+    std::string r = "R[";
+    for (auto f: fields) {
+        if (r.length() > 2) {
+            r += ",";
+        }
+        r += f.first.text + ":" + f.second->get_type_descriptor();
+    }
+    r += "]";
+    return r;
+}
+
 void TypePointer::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADP);
@@ -372,6 +457,19 @@ void TypePointer::generate_store(Emitter &emitter) const
 void TypePointer::generate_call(Emitter &) const
 {
     internal_error("TypePointer");
+}
+
+std::string TypeEnum::get_type_descriptor() const
+{
+    std::string r = "E[";
+    for (auto n: names) {
+        if (r.length() > 2) {
+            r += ",";
+        }
+        r += n.first;
+    }
+    r += "]";
+    return r;
 }
 
 void Variable::generate_load(Emitter &emitter) const
@@ -401,6 +499,11 @@ void GlobalVariable::generate_address(Emitter &emitter, int) const
         internal_error("invalid global index: " + name);
     }
     emitter.emit(PUSHPG, index);
+}
+
+void GlobalVariable::generate_export(Emitter &emitter, const std::string &name) const
+{
+    emitter.add_export_variable(name, type->get_type_descriptor(), index);
 }
 
 void LocalVariable::predeclare(Emitter &emitter, int slot)
@@ -490,6 +593,11 @@ void Function::generate_call(Emitter &emitter) const
     emitter.emit_jump(CALLF, emitter.function_label(entry_label));
 }
 
+void Function::generate_export(Emitter &emitter, const std::string &name) const
+{
+    emitter.add_export_function(name, type->get_type_descriptor(), emitter.function_label(entry_label).get_target());
+}
+
 void PredefinedFunction::predeclare(Emitter &emitter) const
 {
     name_index = emitter.str(name);
@@ -526,6 +634,16 @@ void ExternalFunction::predeclare(Emitter &emitter) const
 void ExternalFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLE, external_index);
+}
+
+void Exception::generate_export(Emitter &emitter, const std::string &name) const
+{
+    emitter.add_export_exception(name);
+}
+
+void Constant::generate_export(Emitter &emitter, const std::string &name) const
+{
+    emitter.add_export_constant(name, type->get_type_descriptor(), value->serialize());
 }
 
 void ConstantBooleanExpression::generate(Emitter &emitter) const
@@ -1213,6 +1331,9 @@ void Program::generate(Emitter &emitter) const
     }
     emitter.emit(RET);
     frame->postdeclare(emitter);
+    for (auto exp: exports) {
+        exp.second->generate_export(emitter, exp.first);
+    }
 }
 
 std::vector<unsigned char> compile(const Program *p, DebugInfo *debug)

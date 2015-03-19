@@ -338,7 +338,8 @@ Program::Program(const std::string &source_hash)
   : source_hash(source_hash),
     frame(new Frame(nullptr)),
     scope(new Scope(nullptr, frame)),
-    statements()
+    statements(),
+    exports()
 {
     scope->addName(Token(), "Boolean", TYPE_BOOLEAN);
     scope->addName(Token(), "Number", TYPE_NUMBER);

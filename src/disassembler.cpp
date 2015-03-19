@@ -96,6 +96,8 @@ private:
     void disasm_CLREXC();
     void disasm_ALLOC();
     void disasm_PUSHNIL();
+
+    std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
     Disassembler(const Disassembler &);
     Disassembler &operator=(const Disassembler &);
@@ -584,6 +586,11 @@ void Disassembler::disasm_PUSHNIL()
     index++;
 }
 
+std::string Disassembler::decode_value(const std::string &/*type*/, const Bytecode::Bytes &/*value*/)
+{
+    return "TODO";
+}
+
 void Disassembler::disassemble()
 {
     out << "String table: [\n";
@@ -593,6 +600,25 @@ void Disassembler::disassemble()
         i++;
     }
     out << "]\n";
+
+    out << "Exports:\n";
+    out << "  Types:\n";
+    for (auto t: obj.types) {
+        out << "    " << obj.strtable[t.name] << " " << obj.strtable[t.descriptor] << "\n";
+    }
+    out << "  Constants:\n";
+    for (auto c: obj.constants) {
+        out << "    " << obj.strtable[c.name] << " " << obj.strtable[c.type] << " " << decode_value(obj.strtable[c.type], c.value) << "\n";
+    }
+    out << "  Variables:\n";
+    for (auto v: obj.variables) {
+        out << "    " << obj.strtable[v.name] << " " << obj.strtable[v.type] << " " << v.index << "\n";
+    }
+    out << "  Functions:\n";
+    for (auto f: obj.functions) {
+        out << "    " << obj.strtable[f.name] << " " << obj.strtable[f.descriptor] << " " << f.entry << "\n";
+    }
+
     while (index < obj.code.size()) {
         if (debug != nullptr) {
             auto line = debug->line_numbers.find(index);

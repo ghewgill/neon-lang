@@ -55,6 +55,7 @@ class LetDeclaration;
 class FunctionDeclaration;
 class ExternalFunctionDeclaration;
 class ExceptionDeclaration;
+class ExportDeclaration;
 
 class AssignmentStatement;
 class CaseStatement;
@@ -122,6 +123,7 @@ public:
     virtual void visit(const FunctionDeclaration *) = 0;
     virtual void visit(const ExternalFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
+    virtual void visit(const ExportDeclaration *) = 0;
 
     virtual void visit(const AssignmentStatement *) = 0;
     virtual void visit(const CaseStatement *) = 0;
@@ -587,6 +589,13 @@ private:
 class ExceptionDeclaration: public Declaration {
 public:
     ExceptionDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token name;
+};
+
+class ExportDeclaration: public Declaration {
+public:
+    ExportDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
 };

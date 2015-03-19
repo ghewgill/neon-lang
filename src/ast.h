@@ -113,6 +113,8 @@ public:
 
     virtual void predeclare(Emitter &) const {}
     virtual void postdeclare(Emitter &) const {}
+
+    virtual void generate_export(Emitter &emitter, const std::string &name) const = 0;
 private:
     Name(const Name &);
     Name &operator=(const Name &);
@@ -130,6 +132,8 @@ public:
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
+    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
+    virtual std::string get_type_descriptor() const = 0;
 };
 
 class TypeNothing: public Type {
@@ -138,6 +142,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeNothing"); }
+    virtual std::string get_type_descriptor() const override { return "Z"; }
 
     virtual std::string text() const override { return "TypeNothing"; }
 };
@@ -150,6 +155,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override { return "B"; }
 
     virtual std::string text() const override { return "TypeBoolean"; }
 };
@@ -162,6 +168,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override { return "N"; }
 
     virtual std::string text() const override { return "TypeNumber"; }
 };
@@ -174,6 +181,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override { return "S"; }
 
     virtual std::string text() const override { return "TypeString"; }
 };
@@ -183,6 +191,8 @@ extern TypeString *TYPE_STRING;
 class TypeBytes: public TypeString {
 public:
     TypeBytes(): TypeString() {}
+
+    virtual std::string get_type_descriptor() const override { return "Y"; }
 
     virtual std::string text() const override { return "TypeBytes"; }
 };
@@ -212,6 +222,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override;
 
     const Type *returntype;
     const std::vector<const ParameterType *> params;
@@ -231,6 +242,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override { return "A<" + elementtype->get_type_descriptor() + ">"; }
 
     virtual std::string text() const override { return "TypeArray(" + elementtype->text() + ")"; }
 private:
@@ -250,6 +262,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override { return "D<" + elementtype->get_type_descriptor() + ">"; }
 
     virtual std::string text() const override { return "TypeDictionary(" + elementtype->text() + ")"; }
 private:
@@ -268,6 +281,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override;
 
     virtual std::string text() const override { return "TypeRecord(...)"; }
 private:
@@ -297,6 +311,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor() const override { return "P<" + reftype->get_type_descriptor() + ">"; }
 
     virtual std::string text() const override { return "TypePointer(" + reftype->text() + ")"; }
 private:
@@ -316,6 +331,8 @@ public:
     TypeEnum(const Token &declaration, const std::map<std::string, int> &names, Analyzer *analyzer);
     const std::map<std::string, int> names;
 
+    virtual std::string get_type_descriptor() const override;
+
     virtual std::string text() const override { return "TypeEnum(...)"; }
 };
 
@@ -326,6 +343,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeModule"); }
+    virtual std::string get_type_descriptor() const override { internal_error("TypeModule"); }
 
     virtual std::string text() const override { return "TypeModule(...)"; }
 };
@@ -339,6 +357,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeException"); }
+    virtual std::string get_type_descriptor() const override { return "X"; }
 
     virtual std::string text() const override { return "TypeException"; }
 };
@@ -355,6 +374,7 @@ public:
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
+    virtual void generate_export(Emitter &, const std::string &) const override { internal_error("Variable"); }
 
     virtual std::string text() const override { return "Variable(" + name + ", " + type->text() + ")"; }
 };
@@ -366,6 +386,7 @@ public:
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &emitter, int enclosing) const override;
+    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
 };
@@ -402,6 +423,7 @@ private:
 class Exception: public Name {
 public:
     Exception(const Token &declaration, const std::string &name): Name(declaration, name, TYPE_EXCEPTION) {}
+    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "Exception(" + name + ")"; }
 private:
@@ -416,6 +438,7 @@ public:
     virtual bool eval_boolean() const = 0;
     virtual Number eval_number() const = 0;
     virtual std::string eval_string() const = 0;
+    virtual std::string serialize() const { return "TODO"; } // = 0;
     virtual void generate(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
 
@@ -432,6 +455,8 @@ public:
     Constant(const Token &declaration, const std::string &name, const Expression *value): Name(declaration, name, value->type), value(value) {}
 
     const Expression *value;
+
+    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "Constant(" + name + ", " + value->text() + ")"; }
 private:
@@ -1612,6 +1637,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("Function"); }
     virtual void generate_store(Emitter &) const override { internal_error("Function"); }
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "Function(" + name + ", " + type->text() + ")"; }
 private:
@@ -1657,6 +1683,7 @@ public:
     Scope *scope;
 
     virtual void predeclare(Emitter &emitter) const override;
+    virtual void generate_export(Emitter &, const std::string &) const override { internal_error("can't export module"); }
 
     virtual std::string text() const override { return "Module"; }
 private:
@@ -1672,6 +1699,7 @@ public:
     Frame *frame;
     Scope *scope;
     std::vector<const Statement *> statements;
+    std::map<std::string, const Name *> exports;
 
     virtual void generate(Emitter &emitter) const;
 

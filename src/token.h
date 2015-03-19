@@ -87,6 +87,7 @@ enum TokenType {
     LAST,
     AS,
     DEFAULT,
+    EXPORT,
     MAX_TOKEN
 };
 
