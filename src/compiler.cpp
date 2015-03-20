@@ -26,7 +26,7 @@ class Emitter {
         Label *next;
     };
 public:
-    Emitter(DebugInfo *debug): code(), strings(), exceptions(), globals(), functions(), function_exit(), loop_labels(), debug_info(debug) {}
+    Emitter(DebugInfo *debug): object(), globals(), functions(), function_exit(), loop_labels(), debug_info(debug) {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -52,9 +52,7 @@ public:
     void pop_function_exit();
     Label &get_function_exit();
 private:
-    std::vector<unsigned char> code;
-    std::vector<std::string> strings;
-    std::vector<Bytecode::ExceptionInfo> exceptions;
+    Bytecode object;
     std::vector<std::string> globals;
     std::vector<Label> functions;
     std::stack<Label *> function_exit;
@@ -67,7 +65,7 @@ private:
 
 void Emitter::emit(unsigned char b)
 {
-    code.push_back(b);
+    object.code.push_back(b);
 }
 
 void Emitter::emit_uint32(uint32_t value)
@@ -101,17 +99,13 @@ void Emitter::emit(unsigned char b, const Number &value)
 
 void Emitter::emit(const std::vector<unsigned char> &instr)
 {
-    std::copy(instr.begin(), instr.end(), std::back_inserter(code));
+    std::copy(instr.begin(), instr.end(), std::back_inserter(object.code));
 }
 
 std::vector<unsigned char> Emitter::getObject()
 {
-    Bytecode obj;
-    obj.global_size = globals.size();
-    obj.strtable = strings;
-    obj.exceptions = exceptions;
-    obj.code = code;
-    return obj.getBytes();
+    object.global_size = globals.size();
+    return object.getBytes();
 }
 
 unsigned int Emitter::global(const std::string &name)
@@ -126,17 +120,17 @@ unsigned int Emitter::global(const std::string &name)
 
 unsigned int Emitter::str(const std::string &s)
 {
-    auto i = std::find(strings.begin(), strings.end(), s);
-    if (i == strings.end()) {
-        strings.push_back(s);
-        i = strings.end() - 1;
+    auto i = std::find(object.strtable.begin(), object.strtable.end(), s);
+    if (i == object.strtable.end()) {
+        object.strtable.push_back(s);
+        i = object.strtable.end() - 1;
     }
-    return static_cast<unsigned int>(i - strings.begin());
+    return static_cast<unsigned int>(i - object.strtable.begin());
 }
 
 unsigned int Emitter::current_ip()
 {
-    return static_cast<unsigned int>(code.size());
+    return static_cast<unsigned int>(object.code.size());
 }
 
 unsigned int Emitter::next_function()
@@ -162,7 +156,7 @@ void Emitter::emit_jump(unsigned char b, Label &label)
     if (label.target != UINT_MAX) {
         emit_uint32(label.target);
     } else {
-        label.fixups.push_back(static_cast<unsigned int>(code.size()));
+        label.fixups.push_back(static_cast<unsigned int>(object.code.size()));
         emit_uint32(UINT32_MAX);
     }
 }
@@ -170,12 +164,12 @@ void Emitter::emit_jump(unsigned char b, Label &label)
 void Emitter::jump_target(Label &label)
 {
     assert(label.target == UINT_MAX);
-    label.target = static_cast<unsigned int>(code.size());
+    label.target = static_cast<unsigned int>(object.code.size());
     for (auto offset: label.fixups) {
-        code[offset] = static_cast<unsigned char>((label.target >> 24) & 0xff);
-        code[offset+1] = static_cast<unsigned char>((label.target >> 16) & 0xff);
-        code[offset+2] = static_cast<unsigned char>((label.target >> 8) & 0xff);
-        code[offset+3] = static_cast<unsigned char>(label.target & 0xff);
+        object.code[offset] = static_cast<unsigned char>((label.target >> 24) & 0xff);
+        object.code[offset+1] = static_cast<unsigned char>((label.target >> 16) & 0xff);
+        object.code[offset+2] = static_cast<unsigned char>((label.target >> 8) & 0xff);
+        object.code[offset+3] = static_cast<unsigned char>(label.target & 0xff);
     }
 }
 
@@ -210,12 +204,12 @@ void Emitter::debug_line(int line)
     if (debug_info == nullptr) {
         return;
     }
-    debug_info->line_numbers[code.size()] = line;
+    debug_info->line_numbers[object.code.size()] = line;
 }
 
 void Emitter::add_exception(const Bytecode::ExceptionInfo &ei)
 {
-    exceptions.push_back(ei);
+    object.exceptions.push_back(ei);
 }
 
 void Emitter::push_function_exit(Label &exit)
