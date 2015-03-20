@@ -1,0 +1,10 @@
+FUNCTION foo(): String
+    VAR a: String
+    a := "foo" & a
+    RETURN a
+END FUNCTION
+
+print(foo())
+print(foo())
+%= foo
+%= foo

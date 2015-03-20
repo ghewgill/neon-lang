@@ -1486,6 +1486,7 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     } else {
         function = dynamic_cast<Function *>(scope.top()->lookupName(declaration->name.text));
     }
+    frame.push(function->frame);
     scope.push(function->scope);
     functiontypes.push(dynamic_cast<const TypeFunction *>(function->type));
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
@@ -1500,6 +1501,7 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     functiontypes.pop();
     scope.top()->checkForward();
     scope.pop();
+    frame.pop();
     return new NullStatement(declaration->token.line);
 }
 
