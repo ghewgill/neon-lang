@@ -411,6 +411,7 @@ class Expression: public AstNode {
 public:
     Expression(const Type *type, bool is_constant, bool is_readonly = true): type(type), is_constant(is_constant), is_readonly(is_readonly) {}
 
+    virtual bool eval_boolean() const = 0;
     virtual Number eval_number() const = 0;
     virtual std::string eval_string() const = 0;
     virtual void generate(Emitter &emitter) const = 0;
@@ -442,6 +443,7 @@ public:
 
     const bool value;
 
+    virtual bool eval_boolean() const override { return value; }
     virtual Number eval_number() const override { internal_error("ConstantBooleanExpression"); }
     virtual std::string eval_string() const override { internal_error("ConstantBooleanExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -455,6 +457,7 @@ public:
 
     const Number value;
 
+    virtual bool eval_boolean() const override { internal_error("ConstantNumberExpression"); }
     virtual Number eval_number() const override { return value; }
     virtual std::string eval_string() const override { internal_error("ConstantNumberExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -468,6 +471,7 @@ public:
 
     const std::string value;
 
+    virtual bool eval_boolean() const override { internal_error("ConstantStringExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantStringExpression"); }
     virtual std::string eval_string() const override { return value; }
     virtual void generate(Emitter &emitter) const override;
@@ -481,6 +485,7 @@ public:
 
     const int value;
 
+    virtual bool eval_boolean() const override { internal_error("ConstantEnumExpression"); }
     virtual Number eval_number() const override { return number_from_uint32(value); }
     virtual std::string eval_string() const override { internal_error("ConstantEnumExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -492,6 +497,7 @@ class ConstantNilExpression: public Expression {
 public:
     ConstantNilExpression(): Expression(new TypePointer(Token(), nullptr), true) {}
 
+    virtual bool eval_boolean() const override { internal_error("ConstantNilExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantNilExpression"); }
     virtual std::string eval_string() const override { internal_error("ConstantNilExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -506,6 +512,7 @@ public:
     const Type *elementtype;
     const std::vector<const Expression *> elements;
 
+    virtual bool eval_boolean() const override { internal_error("ArrayLiteralExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayLiteralExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayLiteralExpression"); }
     virtual void generate(Emitter &) const override;
@@ -525,6 +532,7 @@ public:
     const Type *elementtype;
     const std::map<std::string, const Expression *> dict;
 
+    virtual bool eval_boolean() const override { internal_error("DictionaryLiteralExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryLiteralExpression"); }
     virtual std::string eval_string() const override { internal_error("DictionaryLiteralExpression"); }
     virtual void generate(Emitter &) const override;
@@ -544,6 +552,7 @@ public:
 
     const std::vector<const Expression *> values;
 
+    virtual bool eval_boolean() const override { internal_error("RecordLiteralExpression"); }
     virtual Number eval_number() const override { internal_error("RecordLiteralExpression"); }
     virtual std::string eval_string() const override { internal_error("RecordLiteralExpression"); }
     virtual void generate(Emitter &) const override;
@@ -562,6 +571,7 @@ public:
 
     const size_t fields;
 
+    virtual bool eval_boolean() const override { internal_error("NewRecordExpression"); }
     virtual Number eval_number() const override { internal_error("NewRecordExpression"); }
     virtual std::string eval_string() const override { internal_error("NewRecordExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -582,6 +592,7 @@ public:
 
     const Expression *const value;
 
+    virtual bool eval_boolean() const override { internal_error("UnaryMinusExpression"); }
     virtual Number eval_number() const override { return number_negate(value->eval_number()); }
     virtual std::string eval_string() const override { internal_error("UnaryMinusExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -604,6 +615,7 @@ public:
 
     const Expression *const value;
 
+    virtual bool eval_boolean() const override { return not value->eval_boolean(); }
     virtual Number eval_number() const override { internal_error("LogicalNotExpression"); }
     virtual std::string eval_string() const override { internal_error("LogicalNotExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -628,6 +640,7 @@ public:
     const Expression *left;
     const Expression *right;
 
+    virtual bool eval_boolean() const override { internal_error("ConditionalExpression"); }
     virtual Number eval_number() const override { internal_error("ConditionalExpression"); }
     virtual std::string eval_string() const override { internal_error("ConditionalExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -651,6 +664,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { return left->eval_boolean() || right->eval_boolean(); }
     virtual Number eval_number() const override { internal_error("DisjunctionExpression"); }
     virtual std::string eval_string() const override { internal_error("DisjunctionExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -674,6 +688,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { return left->eval_boolean() && right->eval_boolean(); }
     virtual Number eval_number() const override { internal_error("ConjunctionExpression"); }
     virtual std::string eval_string() const override { internal_error("ConjunctionExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -693,6 +708,7 @@ public:
     const Expression *left;
     const Expression *right;
 
+    virtual bool eval_boolean() const override { internal_error("ArrayInExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayInExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayInExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -710,6 +726,7 @@ public:
     const Expression *left;
     const Expression *right;
 
+    virtual bool eval_boolean() const override { internal_error("DictionaryInExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryInExpression"); }
     virtual std::string eval_string() const override { internal_error("DictionaryInExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -744,6 +761,7 @@ public:
 
     const std::vector<const ComparisonExpression *> comps;
 
+    virtual bool eval_boolean() const override { internal_error("ChainedComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("ChainedComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("ChainedComparisonExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -758,6 +776,7 @@ class BooleanComparisonExpression: public ComparisonExpression {
 public:
     BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual bool eval_boolean() const override { internal_error("BooleanComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("BooleanComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("BooleanComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -771,6 +790,7 @@ class NumericComparisonExpression: public ComparisonExpression {
 public:
     NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual bool eval_boolean() const override { internal_error("NumericComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("NumericComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("NumericComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -784,6 +804,7 @@ class StringComparisonExpression: public ComparisonExpression {
 public:
     StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual bool eval_boolean() const override { internal_error("StringComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("StringComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("StringComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -797,6 +818,7 @@ class ArrayComparisonExpression: public ComparisonExpression {
 public:
     ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual bool eval_boolean() const override { internal_error("ArrayComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -810,6 +832,7 @@ class DictionaryComparisonExpression: public ComparisonExpression {
 public:
     DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual bool eval_boolean() const override { internal_error("DictionaryComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("DictionaryComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -823,6 +846,7 @@ class PointerComparisonExpression: public ComparisonExpression {
 public:
     PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
 
+    virtual bool eval_boolean() const override { internal_error("PointerComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("PointerComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("PointerComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -859,6 +883,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { internal_error("AdditionExpression"); }
     virtual Number eval_number() const override { return number_add(left->eval_number(), right->eval_number()); }
     virtual std::string eval_string() const override { internal_error("AdditionExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -882,6 +907,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { internal_error("SubtractionExpression"); }
     virtual Number eval_number() const override { return number_subtract(left->eval_number(), right->eval_number()); }
     virtual std::string eval_string() const override { internal_error("SubtractionExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -905,6 +931,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { internal_error("MultiplicationExpression"); }
     virtual Number eval_number() const override { return number_multiply(left->eval_number(), right->eval_number()); }
     virtual std::string eval_string() const override { internal_error("MultiplicationExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -928,6 +955,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { internal_error("DivisionExpression"); }
     virtual Number eval_number() const override { return number_divide(left->eval_number(), right->eval_number()); }
     virtual std::string eval_string() const override { internal_error("DivisionExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -951,6 +979,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { internal_error("ModuloExpression"); }
     virtual Number eval_number() const override { return number_modulo(left->eval_number(), right->eval_number()); }
     virtual std::string eval_string() const override { internal_error("ModuloExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -974,6 +1003,7 @@ public:
     const Expression *const left;
     const Expression *const right;
 
+    virtual bool eval_boolean() const override { internal_error("ExponentiationExpression"); }
     virtual Number eval_number() const override { return number_pow(left->eval_number(), right->eval_number()); }
     virtual std::string eval_string() const override { internal_error("ExponentiationExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -1008,6 +1038,7 @@ public:
     const Expression *index;
     const bool always_create;
 
+    virtual bool eval_boolean() const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual void generate_address_read(Emitter &) const override;
@@ -1027,6 +1058,7 @@ public:
     const Expression *index;
     const bool always_create;
 
+    virtual bool eval_boolean() const override { internal_error("ArrayValueIndexExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayValueIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayValueIndexExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -1044,6 +1076,7 @@ public:
     const ReferenceExpression *dictionary;
     const Expression *index;
 
+    virtual bool eval_boolean() const override { internal_error("DictionaryReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryReferenceIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("DictionaryReferenceIndexExpression"); }
     virtual void generate_address_read(Emitter &) const override;
@@ -1062,6 +1095,7 @@ public:
     const Expression *dictionary;
     const Expression *index;
 
+    virtual bool eval_boolean() const override { internal_error("DictionaryValueIndexExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryValueIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("DictionaryValueIndexExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -1085,6 +1119,7 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
+    virtual bool eval_boolean() const override { internal_error("StringReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("StringReferenceIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("StringReferenceIndexExpression"); }
     virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
@@ -1110,6 +1145,7 @@ public:
 
     const FunctionCall *load;
 
+    virtual bool eval_boolean() const override { internal_error("StringValueIndexExpression"); }
     virtual Number eval_number() const override { internal_error("StringValueIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("StringValueIndexExpression"); }
     virtual void generate(Emitter &) const override;
@@ -1133,6 +1169,7 @@ public:
     const FunctionCall *load;
     const FunctionCall *store;
 
+    virtual bool eval_boolean() const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceRangeExpression"); }
@@ -1158,6 +1195,7 @@ public:
 
     const FunctionCall *load;
 
+    virtual bool eval_boolean() const override { internal_error("ArrayValueRangeExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayValueRangeExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayValueRangeExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -1174,6 +1212,7 @@ public:
 
     const Expression *ptr;
 
+    virtual bool eval_boolean() const override { internal_error("PointerDereferenceExpression"); }
     virtual Number eval_number() const override { internal_error("PointerDereferenceExpression"); }
     virtual std::string eval_string() const override { internal_error("PointerDereferenceExpression"); }
     virtual void generate_address_read(Emitter &emitter) const override;
@@ -1191,6 +1230,7 @@ public:
 
     const Constant *constant;
 
+    virtual bool eval_boolean() const override { return constant->value->eval_boolean(); }
     virtual Number eval_number() const override { return constant->value->eval_number(); }
     virtual std::string eval_string() const override { return constant->value->eval_string(); }
     virtual void generate(Emitter &emitter) const override { constant->value->generate(emitter); }
@@ -1207,6 +1247,7 @@ public:
 
     const Variable *var;
 
+    virtual bool eval_boolean() const override { internal_error("VariableExpression"); }
     virtual Number eval_number() const override { internal_error("VariableExpression"); }
     virtual std::string eval_string() const override { internal_error("VariableExpression"); }
     virtual void generate(Emitter &emitter) const override;
@@ -1229,6 +1270,7 @@ public:
     const Expression *const func;
     const std::vector<const Expression *> args;
 
+    virtual bool eval_boolean() const override { internal_error("FunctionCall"); }
     virtual Number eval_number() const override { internal_error("FunctionCall"); }
     virtual std::string eval_string() const override { internal_error("FunctionCall"); }
     virtual void generate(Emitter &emitter) const override;
@@ -1245,6 +1287,7 @@ public:
 
     const Statement *const stmt;
 
+    virtual bool eval_boolean() const override { internal_error("StatementExpression"); }
     virtual Number eval_number() const override { internal_error("StatementExpression"); }
     virtual std::string eval_string() const override { internal_error("StatementExpression"); }
     virtual void generate(Emitter &emitter) const override;
