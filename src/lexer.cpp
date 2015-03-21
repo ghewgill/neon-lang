@@ -4,6 +4,7 @@
 #include <iso646.h>
 #include <sstream>
 
+#include <sha256.h>
 #include <utf8.h>
 
 #include "util.h"
@@ -556,7 +557,7 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
     return tokens;
 }
 
-std::vector<Token> tokenize(const std::string &source)
+TokenizedSource tokenize(const std::string &source)
 {
     auto inv = utf8::find_invalid(source.begin(), source.end());
     if (inv != source.end()) {
@@ -581,11 +582,17 @@ std::vector<Token> tokenize(const std::string &source)
         }
         line++;
     }
-    std::vector<Token> tokens = tokenize_fragment(line, 1, std::string(i, source.end()));
+    TokenizedSource r;
+    SHA256 sha256;
+    sha256(source);
+    unsigned char h[SHA256::HashBytes];
+    sha256.getHash(h);
+    r.source_hash = std::string(h, h+sizeof(h));
+    r.tokens = tokenize_fragment(line, 1, std::string(i, source.end()));
     Token t;
     t.line = line;
     t.column = 1;
     t.type = END_OF_FILE;
-    tokens.push_back(t);
-    return tokens;
+    r.tokens.push_back(t);
+    return r;
 }

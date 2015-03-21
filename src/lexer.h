@@ -5,6 +5,12 @@
 
 #include "token.h"
 
-std::vector<Token> tokenize(const std::string &source);
+struct TokenizedSource {
+    TokenizedSource(): source_hash(), tokens() {}
+    std::string source_hash;
+    std::vector<Token> tokens;
+};
+
+TokenizedSource tokenize(const std::string &source);
 
 #endif

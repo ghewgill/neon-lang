@@ -102,7 +102,7 @@ int main(int argc, char *argv[])
     std::ifstream inf(argv[1]);
     std::stringstream buf;
     buf << inf.rdbuf();
-    std::vector<Token> tokens;
+    TokenizedSource tokens;
     int i = 0;
     for (auto b: buf.str()) {
         if (b > END_OF_FILE && b < MAX_TOKEN) {
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
             if (t.type == IDENTIFIER) {
                 t.text = std::string(1, 'a'+(i%4));
             }
-            tokens.push_back(t);
+            tokens.tokens.push_back(t);
         } else {
             exit(1);
         }
@@ -119,8 +119,8 @@ int main(int argc, char *argv[])
     }
     Token t;
     t.type = END_OF_FILE;
-    tokens.push_back(t);
-    for (auto t: tokens) {
+    tokens.tokens.push_back(t);
+    for (auto t: tokens.tokens) {
         std::cout << reconstitute(t) << " ";
     }
     std::cout << std::endl;

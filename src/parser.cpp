@@ -12,8 +12,9 @@ using namespace pt;
 
 class Parser {
 public:
-    Parser(const std::vector<Token> &tokens);
+    Parser(const TokenizedSource &tokens);
 
+    TokenizedSource source;
     const std::vector<Token> tokens;
     std::vector<Token>::size_type i;
     int expression_depth;
@@ -67,8 +68,9 @@ private:
     Parser &operator=(const Parser &);
 };
 
-Parser::Parser(const std::vector<Token> &tokens)
-  : tokens(tokens),
+Parser::Parser(const TokenizedSource &tokens)
+  : source(tokens),
+    tokens(tokens.tokens),
     i(0),
     expression_depth(0)
 {
@@ -1326,10 +1328,10 @@ const Program *Parser::parse()
             statements.push_back(s);
         }
     }
-    return new Program(tok_program, statements);
+    return new Program(tok_program, statements, source.source_hash);
 }
 
-const Program *parse(const std::vector<Token> &tokens)
+const Program *parse(const TokenizedSource &tokens)
 {
     return Parser(tokens).parse();
 }

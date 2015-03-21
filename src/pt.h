@@ -747,8 +747,9 @@ private:
 
 class Program: public BlockStatement {
 public:
-    Program(const Token &token, const std::vector<const Statement *> &body): BlockStatement(token, body) {}
+    Program(const Token &token, const std::vector<const Statement *> &body, const std::string &source_hash): BlockStatement(token, body), source_hash(source_hash) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const std::string source_hash;
 };
 
 } // namespace pt

@@ -1,7 +1,10 @@
 #include "bytecode.h"
 
+#include <assert.h>
+
 Bytecode::Bytecode()
-  : global_size(0),
+  : source_hash(),
+    global_size(0),
     strtable(),
     types(),
     constants(),
@@ -13,7 +16,8 @@ Bytecode::Bytecode()
 }
 
 Bytecode::Bytecode(const std::vector<unsigned char> &obj)
-  : global_size(0),
+  : source_hash(),
+    global_size(0),
     strtable(),
     types(),
     constants(),
@@ -23,11 +27,16 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
     code()
 {
     size_t i = 0;
+
+    source_hash = std::string(&obj[i], &obj[i]+32);
+    i += 32;
+
     global_size = (obj[i] << 8 | obj[i+1]);
     i += 2;
     unsigned int strtablesize = (obj[i] << 8) | obj[i+1];
     i += 2;
-    strtable = getstrtable(obj.begin() + 4, obj.begin() + 4 + strtablesize, i);
+    strtable = getstrtable(&obj[i], &obj[i] + strtablesize, i);
+
     unsigned int exceptionsize = (obj[i] << 8) | obj[i+1];
     i += 2;
     while (exceptionsize > 0) {
@@ -46,7 +55,7 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
     code = Bytes(obj.begin() + i, obj.end());
 }
 
-std::vector<std::string> Bytecode::getstrtable(Bytes::const_iterator start, Bytes::const_iterator end, size_t &i)
+std::vector<std::string> Bytecode::getstrtable(const unsigned char *start, const unsigned char *end, size_t &i)
 {
     std::vector<std::string> r;
     while (start != end) {
@@ -66,6 +75,11 @@ std::vector<std::string> Bytecode::getstrtable(Bytes::const_iterator start, Byte
 Bytecode::Bytes Bytecode::getBytes() const
 {
     std::vector<unsigned char> obj;
+
+    assert(source_hash.length() == 32);
+    for (int i = 0; i < 32; i++) {
+        obj.push_back(source_hash[i]);
+    }
 
     obj.push_back(static_cast<unsigned char>(global_size >> 8) & 0xff);
     obj.push_back(static_cast<unsigned char>(global_size & 0xff));

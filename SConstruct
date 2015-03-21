@@ -38,13 +38,19 @@ env.Command("external/utf8/source/utf8.h", "external/utf8_v2_3_4.zip", lambda ta
 env.Command("external/easysid-version-1.0/SConstruct", "external/easysid-version-1.0.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
 libeasysid = env.Command("external/easysid-version-1.0/libeasysid"+env["SHLIBSUFFIX"], "external/easysid-version-1.0/SConstruct", "cd external/easysid-version-1.0 && " + sys.executable + " " + sys.argv[0])
 
+env.Command(["external/hash-library/sha256.cpp", "external/hash-library/sha256.h"], "external/hash-library.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/hash-library"))
+hash_env = env.Clone()
+hash_lib = hash_env.Library("external/hash-library/hash-library", ["external/hash-library/sha256.cpp"])
+
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
     "external/utf8/source",
     "external/lib/libffi-3.2.1/include",
     "external/PDCurses-3.4",
+    "external/hash-library",
     "src",
 ])
+env.Append(LIBS=[hash_lib])
 if sys.platform == "win32":
     env.Append(CXXFLAGS=[
         "/EHsc",

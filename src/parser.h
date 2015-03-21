@@ -3,10 +3,10 @@
 
 #include <vector>
 
-#include "token.h"
+#include "lexer.h"
 
 namespace pt { class Program; }
 
-const pt::Program *parse(const std::vector<Token> &tokens);
+const pt::Program *parse(const TokenizedSource &tokens);
 
 #endif

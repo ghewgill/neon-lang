@@ -12,9 +12,9 @@
 #include "parser.h"
 #include "pt_dump.h"
 
-static std::vector<Token> dump(const std::vector<Token> &tokens)
+static TokenizedSource dump(const TokenizedSource &tokens)
 {
-    for (auto t: tokens) {
+    for (auto t: tokens.tokens) {
         std::cerr << t.tostring() << "\n";
     }
     return tokens;

@@ -26,7 +26,7 @@ class Emitter {
         Label *next;
     };
 public:
-    Emitter(DebugInfo *debug): object(), globals(), functions(), function_exit(), loop_labels(), debug_info(debug) {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), loop_labels(), debug_info(debug) {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -52,6 +52,7 @@ public:
     void pop_function_exit();
     Label &get_function_exit();
 private:
+    const std::string source_hash;
     Bytecode object;
     std::vector<std::string> globals;
     std::vector<Label> functions;
@@ -104,6 +105,7 @@ void Emitter::emit(const std::vector<unsigned char> &instr)
 
 std::vector<unsigned char> Emitter::getObject()
 {
+    object.source_hash = source_hash;
     object.global_size = globals.size();
     return object.getBytes();
 }
@@ -1215,7 +1217,7 @@ void Program::generate(Emitter &emitter) const
 
 std::vector<unsigned char> compile(const Program *p, DebugInfo *debug)
 {
-    Emitter emitter(debug);
+    Emitter emitter(p->source_hash, debug);
     p->generate(emitter);
     return emitter.getObject();
 }

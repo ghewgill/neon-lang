@@ -1664,8 +1664,9 @@ private:
 
 class Program: public AstNode {
 public:
-    Program();
+    Program(const std::string &source_hash);
 
+    const std::string source_hash;
     Frame *frame;
     Scope *scope;
     std::vector<const Statement *> statements;

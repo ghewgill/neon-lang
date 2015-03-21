@@ -55,6 +55,7 @@ public:
         unsigned int handler;
     };
 
+    std::string source_hash;
     size_t global_size;
     std::vector<std::string> strtable;
     std::vector<Type> types;
@@ -67,7 +68,7 @@ public:
     Bytes getBytes() const;
 
 private:
-    std::vector<std::string> getstrtable(Bytes::const_iterator start, Bytes::const_iterator end, size_t &i);
+    std::vector<std::string> getstrtable(const unsigned char *start, const unsigned char *end, size_t &i);
 };
 
 #endif
