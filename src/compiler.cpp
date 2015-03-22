@@ -643,7 +643,7 @@ void Exception::generate_export(Emitter &emitter, const std::string &name) const
 
 void Constant::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_constant(name, type->get_type_descriptor(), value->serialize());
+    emitter.add_export_constant(name, type->get_type_descriptor(), type->serialize(value));
 }
 
 void ConstantBooleanExpression::generate(Emitter &emitter) const

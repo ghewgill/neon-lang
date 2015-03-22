@@ -23,6 +23,29 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
+std::string TypeBoolean::serialize(const Expression *value) const
+{
+    return value->eval_boolean() ? std::string(1, 1) : std::string(1, 0);
+}
+
+std::string TypeNumber::serialize(const Expression *value) const
+{
+    Number x = value->eval_number();
+    return std::string(reinterpret_cast<const char *>(&x), sizeof(x));
+}
+
+std::string TypeString::serialize(const Expression *value) const
+{
+    std::string x = value->eval_string();
+    uint32_t len = x.length();
+    std::string r;
+    r.push_back(static_cast<unsigned char>(len >> 24) & 0xff);
+    r.push_back(static_cast<unsigned char>(len >> 16) & 0xff);
+    r.push_back(static_cast<unsigned char>(len >> 8) & 0xff);
+    r.push_back(static_cast<unsigned char>(len & 0xff));
+    return r + x;
+}
+
 TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
   : Type(declaration, "array"),
     elementtype(elementtype)
@@ -43,6 +66,11 @@ bool TypeArray::is_equivalent(const Type *rhs) const
     return elementtype == nullptr || a->elementtype == nullptr || elementtype->is_equivalent(a->elementtype);
 }
 
+std::string TypeArray::serialize(const Expression *) const
+{
+    internal_error("TODO TypeArray::serialize");
+}
+
 bool TypeDictionary::is_equivalent(const Type *rhs) const
 {
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
@@ -52,9 +80,19 @@ bool TypeDictionary::is_equivalent(const Type *rhs) const
     return elementtype == nullptr || d->elementtype == nullptr || elementtype->is_equivalent(d->elementtype);
 }
 
+std::string TypeDictionary::serialize(const Expression *) const
+{
+    internal_error("TODO TypeDictionary::serialize");
+}
+
 bool TypeRecord::is_equivalent(const Type *rhs) const
 {
     return this == rhs;
+}
+
+std::string TypeRecord::serialize(const Expression *) const
+{
+    internal_error("TODO TypeRecord::serialize");
 }
 
 bool TypePointer::is_equivalent(const Type *rhs) const

@@ -11,6 +11,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "pt_dump.h"
+#include "support.h"
 
 int main(int argc, char *argv[])
 {
@@ -49,7 +50,7 @@ int main(int argc, char *argv[])
         try {
             auto tokens = tokenize(buf.str());
             auto parsetree = parse(tokens);
-            auto ast = analyze(parsetree);
+            auto ast = analyze(&g_compiler_support, parsetree);
             DebugInfo debug(buf.str());
             auto bytecode = compile(ast, &debug);
             if (listing) {

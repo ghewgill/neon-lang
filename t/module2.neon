@@ -1,0 +1,15 @@
+IMPORT module
+
+%VAR r: module.type
+%r.string := "hello"
+%print(r.string)
+%%= hello
+
+print("\(module.const)")
+%= 5
+
+%print(module.var)
+%%= test
+
+%print("\(module.function(5))")
+%%= 25

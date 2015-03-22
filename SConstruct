@@ -153,6 +153,7 @@ neon = env.Program("bin/neon", [
     "src/rtl_exec.cpp",
     rtl_cpp,
     rtl_platform,
+    "src/support.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -166,12 +167,13 @@ neonc = env.Program("bin/neonc", [
     "src/disassembler.cpp",
     "src/format.cpp",
     "src/lexer.cpp",
+    "src/neonc.cpp",
     "src/number.cpp",
     "src/parser.cpp",
     "src/pt_dump.cpp",
     "src/rtl_compile.cpp",
     rtl_const,
-    "src/neonc.cpp",
+    "src/support.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -195,6 +197,9 @@ neondis = env.Program("bin/neondis", [
     "src/disassembler.cpp",
     "src/neondis.cpp",
     "src/number.cpp",
+    # The following are just to support internal_error()
+    "src/lexer.cpp",
+    "src/util.cpp",
 ] + coverage_lib,
 )
 

@@ -11,6 +11,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "pt_dump.h"
+#include "support.h"
 
 static TokenizedSource dump(const TokenizedSource &tokens)
 {
@@ -53,7 +54,7 @@ static void repl(int argc, char *argv[])
         } else {
             try {
                 auto parsetree = parse(tokenize(s));
-                auto ast = analyze(parsetree);
+                auto ast = analyze(&g_compiler_support, parsetree);
                 DebugInfo debug(s);
                 auto bytecode = compile(ast, &debug);
                 exec(bytecode, &debug, argc, argv);
@@ -121,7 +122,7 @@ int main(int argc, char *argv[])
                 dump(parsetree);
             }
 
-            auto ast = analyze(parsetree);
+            auto ast = analyze(&g_compiler_support, parsetree);
             if (dump_ast) {
                 dump(ast);
             }

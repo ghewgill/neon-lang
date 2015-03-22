@@ -9,6 +9,7 @@
 #include "debuginfo.h"
 #include "number.h"
 #include "opcode.h"
+#include "util.h"
 
 class Disassembler {
 public:
@@ -586,9 +587,23 @@ void Disassembler::disasm_PUSHNIL()
     index++;
 }
 
-std::string Disassembler::decode_value(const std::string &/*type*/, const Bytecode::Bytes &/*value*/)
+std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
-    return "TODO";
+    switch (type.at(0)) {
+        case 'B': {
+            return value.at(0) != 0 ? "TRUE" : "FALSE";
+        }
+        case 'N': {
+            Number x = *reinterpret_cast<const Number *>(&value.at(0));
+            return number_to_string(x);
+        }
+        case 'S': {
+            uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(1) << 8) | value.at(0);
+            return std::string(&value.at(4), &value.at(4)+len);
+        }
+        default:
+            internal_error("TODO unimplemented type in decode_value");
+    }
 }
 
 void Disassembler::disassemble()

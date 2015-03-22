@@ -134,6 +134,7 @@ public:
     virtual void generate_call(Emitter &emitter) const = 0;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
     virtual std::string get_type_descriptor() const = 0;
+    virtual std::string serialize(const Expression *value) const = 0;
 };
 
 class TypeNothing: public Type {
@@ -143,6 +144,7 @@ public:
     virtual void generate_store(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeNothing"); }
     virtual std::string get_type_descriptor() const override { return "Z"; }
+    virtual std::string serialize(const Expression *) const override { internal_error("TypeNothing"); }
 
     virtual std::string text() const override { return "TypeNothing"; }
 };
@@ -156,6 +158,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "B"; }
+    virtual std::string serialize(const Expression *) const override;
 
     virtual std::string text() const override { return "TypeBoolean"; }
 };
@@ -169,6 +172,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "N"; }
+    virtual std::string serialize(const Expression *value) const override;
 
     virtual std::string text() const override { return "TypeNumber"; }
 };
@@ -182,6 +186,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "S"; }
+    virtual std::string serialize(const Expression *value) const override;
 
     virtual std::string text() const override { return "TypeString"; }
 };
@@ -223,6 +228,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override;
+    virtual std::string serialize(const Expression *) const override { internal_error("TypeFunction"); }
 
     const Type *returntype;
     const std::vector<const ParameterType *> params;
@@ -243,6 +249,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "A<" + elementtype->get_type_descriptor() + ">"; }
+    virtual std::string serialize(const Expression *value) const override;
 
     virtual std::string text() const override { return "TypeArray(" + elementtype->text() + ")"; }
 private:
@@ -263,6 +270,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "D<" + elementtype->get_type_descriptor() + ">"; }
+    virtual std::string serialize(const Expression *value) const override;
 
     virtual std::string text() const override { return "TypeDictionary(" + elementtype->text() + ")"; }
 private:
@@ -282,6 +290,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override;
+    virtual std::string serialize(const Expression *value) const override;
 
     virtual std::string text() const override { return "TypeRecord(...)"; }
 private:
@@ -312,6 +321,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "P<" + reftype->get_type_descriptor() + ">"; }
+    virtual std::string serialize(const Expression *) const override { internal_error("TypePointer"); }
 
     virtual std::string text() const override { return "TypePointer(" + reftype->text() + ")"; }
 private:
@@ -344,6 +354,7 @@ public:
     virtual void generate_store(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeModule"); }
     virtual std::string get_type_descriptor() const override { internal_error("TypeModule"); }
+    virtual std::string serialize(const Expression *) const override { internal_error("TypeModule"); }
 
     virtual std::string text() const override { return "TypeModule(...)"; }
 };
@@ -358,6 +369,7 @@ public:
     virtual void generate_store(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeException"); }
     virtual std::string get_type_descriptor() const override { return "X"; }
+    virtual std::string serialize(const Expression *) const override { internal_error("TypeException"); }
 
     virtual std::string text() const override { return "TypeException"; }
 };
@@ -438,7 +450,6 @@ public:
     virtual bool eval_boolean() const = 0;
     virtual Number eval_number() const = 0;
     virtual std::string eval_string() const = 0;
-    virtual std::string serialize() const { return "TODO"; } // = 0;
     virtual void generate(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
 

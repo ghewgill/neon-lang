@@ -1,10 +1,11 @@
-#include "parser.h"
+#include "analyzer.h"
 
 #include <iso646.h>
 #include <list>
 #include <stack>
 
 #include "ast.h"
+#include "bytecode.h"
 #include "format.h"
 #include "pt.h"
 #include "rtl_compile.h"
@@ -12,8 +13,9 @@
 
 class Analyzer {
 public:
-    Analyzer(const pt::Program *program);
+    Analyzer(ICompilerSupport *support, const pt::Program *program);
 
+    ICompilerSupport *support;
     const pt::Program *program;
     Frame *global_frame;
     Scope *global_scope;
@@ -376,8 +378,9 @@ private:
     StatementAnalyzer &operator=(const StatementAnalyzer &);
 };
 
-Analyzer::Analyzer(const pt::Program *program)
-  : program(program),
+Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program)
+  : support(support),
+    program(program),
     global_frame(nullptr),
     global_scope(nullptr),
     frame(),
@@ -1279,12 +1282,41 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
     }
 }
 
+static Expression *deserialize(const std::string &descriptor, const Bytecode::Bytes &value)
+{
+    switch (descriptor.at(0)) {
+        case 'B': {
+            return new ConstantBooleanExpression(value.at(0) != 0);
+        }
+        case 'N': {
+            Number x = *reinterpret_cast<const Number *>(&value.at(0));
+            return new ConstantNumberExpression(x);
+        }
+        case 'S': {
+            uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(1) << 8) | value.at(0);
+            return new ConstantStringExpression(std::string(&value.at(4), &value.at(4)+len));
+        }
+        default:
+            internal_error("TODO unimplemented type in deserialize");
+    }
+}
+
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
     if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
         error2(3114, declaration->name, scope.top()->getDeclaration(declaration->name.text), "duplicate definition of name");
     }
-    rtl_import(declaration->name, scope.top(), declaration->name.text);
+    if (not rtl_import(declaration->name, scope.top(), declaration->name.text)) {
+        Bytecode object;
+        if (not support->loadBytecode(declaration->name.text, object)) {
+            internal_error("TODO module not found: " + declaration->name.text);
+        }
+        Module *module = new Module(declaration->token, scope.top(), declaration->name.text);
+        for (auto c: object.constants) {
+            module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], deserialize(object.strtable[c.type], c.value)));
+        }
+        scope.top()->addName(declaration->token, declaration->name.text, module);
+    }
     return new NullStatement(declaration->token.line);
 }
 
@@ -2142,7 +2174,7 @@ const Program *Analyzer::analyze()
     return r;
 }
 
-const Program *analyze(const pt::Program *program)
+const Program *analyze(ICompilerSupport *support, const pt::Program *program)
 {
-    return Analyzer(program).analyze();
+    return Analyzer(support, program).analyze();
 }
