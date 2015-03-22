@@ -204,7 +204,17 @@ const Type *Parser::parseType()
     }
     const Token &name = tokens[i];
     i++;
-    return new TypeSimple(name, name.text);
+    if (tokens[i].type == DOT) {
+        i++;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2075, tokens[i], "identifier expected");
+        }
+        const Token &subname = tokens[i];
+        i++;
+        return new TypeImport(name, name, subname);
+    } else {
+        return new TypeSimple(name, name.text);
+    }
 }
 
 const Statement *Parser::parseTypeDefinition()

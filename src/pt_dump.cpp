@@ -28,6 +28,9 @@ public:
         write("TypeParameterised(" + node->name.text + ")");
         child(node->elementtype);
     }
+    virtual void visit(const TypeImport *node) override {
+        write("TypeImport(" + node->modname.text + "." + node->subname.text + ")");
+    }
 
     virtual void visit(const BooleanLiteralExpression *node) override {
         write("BooleanLiteralExpression(" + std::string(node->value ? "true" : "false") + ")");

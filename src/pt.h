@@ -14,6 +14,7 @@ class TypeEnum;
 class TypeRecord;
 class TypePointer;
 class TypeParameterised;
+class TypeImport;
 
 class BooleanLiteralExpression;
 class NumberLiteralExpression;
@@ -82,6 +83,7 @@ public:
     virtual void visit(const TypeRecord *) = 0;
     virtual void visit(const TypePointer *) = 0;
     virtual void visit(const TypeParameterised *) = 0;
+    virtual void visit(const TypeImport *) = 0;
 
     virtual void visit(const BooleanLiteralExpression *) = 0;
     virtual void visit(const NumberLiteralExpression *) = 0;
@@ -197,6 +199,14 @@ public:
 private:
     TypeParameterised(const TypeParameterised &);
     TypeParameterised &operator=(const TypeParameterised &);
+};
+
+class TypeImport: public Type {
+public:
+    TypeImport(const Token &token, const Token &modname, const Token &subname): Type(token), modname(modname), subname(subname) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token modname;
+    const Token subname;
 };
 
 class Expression: public ParseTreeNode {

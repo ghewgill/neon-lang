@@ -1,0 +1,4 @@
+IMPORT module
+
+VAR x: module.bar
+              %<

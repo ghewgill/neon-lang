@@ -32,6 +32,7 @@ public:
     const Type *analyze(const pt::TypeRecord *type);
     const Type *analyze(const pt::TypePointer *type);
     const Type *analyze(const pt::TypeParameterised *type);
+    const Type *analyze(const pt::TypeImport *type);
     const Expression *analyze(const pt::Expression *expr);
     const Expression *analyze(const pt::BooleanLiteralExpression *expr);
     const Expression *analyze(const pt::NumberLiteralExpression *expr);
@@ -106,6 +107,7 @@ public:
     virtual void visit(const pt::TypeRecord *t) override { type = a->analyze(t); }
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t); }
+    virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -176,6 +178,7 @@ public:
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NumberLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::StringLiteralExpression *p) override { expr = a->analyze(p); }
@@ -246,6 +249,7 @@ public:
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -316,6 +320,7 @@ public:
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -602,6 +607,27 @@ const Type *Analyzer::analyze(const pt::TypeParameterised *type)
         return new TypeDictionary(type->name, analyze(type->elementtype));
     }
     internal_error("Invalid parameterized type");
+}
+
+const Type *Analyzer::analyze(const pt::TypeImport *type)
+{
+    Name *modname = scope.top()->lookupName(type->modname.text);
+    if (modname == nullptr) {
+        error(3153, type->modname, "name not found");
+    }
+    Module *module = dynamic_cast<Module *>(modname);
+    if (module == nullptr) {
+        error(3154, type->modname, "module name expected");
+    }
+    Name *name = module->scope->lookupName(type->subname.text);
+    if (name == nullptr) {
+        error(3155, type->subname, "name not found in module");
+    }
+    Type *rtype = dynamic_cast<Type *>(name);
+    if (rtype == nullptr) {
+        error(3156, type->subname, "name not a type");
+    }
+    return rtype;
 }
 
 const Expression *Analyzer::analyze(const pt::Expression *expr)
