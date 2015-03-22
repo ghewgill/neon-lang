@@ -1,9 +1,9 @@
 IMPORT module
 
-%VAR r: module.type
-%r.string := "hello"
-%print(r.string)
-%%= hello
+VAR r: module.type
+r.string := "hello"
+print(r.string)
+%= hello
 
 print("\(module.const)")
 %= 5

@@ -1308,7 +1308,49 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
     }
 }
 
-static Expression *deserialize(const std::string &descriptor, const Bytecode::Bytes &value)
+static Type *deserialize_type(const std::string &descriptor)
+{
+    switch (descriptor.at(0)) {
+        case 'B': return TYPE_BOOLEAN;
+        case 'N': return TYPE_NUMBER;
+        case 'S': return TYPE_STRING;
+        case 'R': {
+            int i = 0;
+            i++;
+            std::vector<std::pair<Token, const Type *>> fields;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            for (;;) {
+                std::string name;
+                while (descriptor.at(i) != ':') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                i++;
+                std::string type;
+                // TODO: this doesn't handle nested records correctly
+                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                    type.push_back(descriptor.at(i));
+                    i++;
+                }
+                Token token;
+                token.text = name;
+                fields.push_back(std::make_pair(token, deserialize_type(type)));
+                if (descriptor.at(i) == ']') {
+                    break;
+                }
+                i++;
+            }
+            return new TypeRecord(Token(), fields);
+        }
+        default:
+            internal_error("TODO unimplemented type in deserialize_type: " + descriptor);
+    }
+}
+
+static Expression *deserialize_value(const std::string &descriptor, const Bytecode::Bytes &value)
 {
     switch (descriptor.at(0)) {
         case 'B': {
@@ -1323,7 +1365,7 @@ static Expression *deserialize(const std::string &descriptor, const Bytecode::By
             return new ConstantStringExpression(std::string(&value.at(4), &value.at(4)+len));
         }
         default:
-            internal_error("TODO unimplemented type in deserialize");
+            internal_error("TODO unimplemented type in deserialize_value");
     }
 }
 
@@ -1338,8 +1380,11 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
             internal_error("TODO module not found: " + declaration->name.text);
         }
         Module *module = new Module(declaration->token, scope.top(), declaration->name.text);
+        for (auto t: object.types) {
+            module->scope->addName(Token(), object.strtable[t.name], deserialize_type(object.strtable[t.descriptor]));
+        }
         for (auto c: object.constants) {
-            module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], deserialize(object.strtable[c.type], c.value)));
+            module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], deserialize_value(object.strtable[c.type], c.value)));
         }
         scope.top()->addName(declaration->token, declaration->name.text, module);
     }
