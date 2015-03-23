@@ -1682,6 +1682,21 @@ public:
     virtual std::string text() const override { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
 };
 
+class ModuleFunction: public Variable {
+public:
+    ModuleFunction(const std::string &module, const std::string &name, const Type *type, unsigned int entry): Variable(Token(), name, type, true), module(module), entry(entry) {}
+    const std::string module;
+    const unsigned int entry;
+
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual void generate_address(Emitter &, int) const override { internal_error("ModuleFunction"); }
+    virtual void generate_load(Emitter &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_store(Emitter &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_call(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ModuleFunction(" + module + "." + name + ", " + type->text() + ")"; }
+};
+
 class ExternalFunction: public Function {
 public:
     ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params), library_name(), param_types(), external_index(-1) {}

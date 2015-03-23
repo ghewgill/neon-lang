@@ -64,6 +64,7 @@ enum Opcode {
     IND,        // in dictionary
     CALLP,      // call predefined
     CALLF,      // call function
+    CALLMF,     // call module function
     JUMP,       // unconditional jump
     JF,         // jump if false
     JT,         // jump if true

@@ -124,6 +124,9 @@ public:
     std::vector<Cell> globals;
     std::vector<size_t> rtl_call_tokens;
     std::vector<ExternalCallInfo *> external_functions;
+private:
+    Module(const Module &);
+    Module &operator=(const Module &);
 };
 
 class Executor {
@@ -201,6 +204,7 @@ private:
     void exec_IND();
     void exec_CALLP();
     void exec_CALLF();
+    void exec_CALLMF();
     void exec_JUMP();
     void exec_JF();
     void exec_JT();
@@ -828,6 +832,23 @@ void Executor::exec_CALLF()
     ip = val;
 }
 
+void Executor::exec_CALLMF()
+{
+    ip++;
+    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    callstack.push(std::make_pair(module, ip));
+    auto m = modules.find(module->object.strtable[mod]);
+    if (m == modules.end()) {
+        fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
+        exit(1);
+    }
+    module = m->second;
+    ip = val;
+}
+
 void Executor::exec_JUMP()
 {
     uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
@@ -1165,6 +1186,7 @@ void Executor::exec()
             case IND:     exec_IND(); break;
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
+            case CALLMF:  exec_CALLMF(); break;
             case JUMP:    exec_JUMP(); break;
             case JF:      exec_JF(); break;
             case JT:      exec_JT(); break;

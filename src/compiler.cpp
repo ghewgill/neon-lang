@@ -633,6 +633,16 @@ void PredefinedFunction::generate_call(Emitter &emitter) const
     emitter.emit(CALLP, name_index);
 }
 
+void ModuleFunction::predeclare(Emitter &emitter) const
+{
+    emitter.add_import(module);
+}
+
+void ModuleFunction::generate_call(Emitter &emitter) const
+{
+    emitter.emit(CALLMF, emitter.str(module), entry);
+}
+
 void ExternalFunction::predeclare(Emitter &emitter) const
 {
     std::stringstream ss;

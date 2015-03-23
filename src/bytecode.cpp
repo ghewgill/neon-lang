@@ -10,6 +10,7 @@ Bytecode::Bytecode()
     constants(),
     variables(),
     functions(),
+    imports(),
     exceptions(),
     code()
 {
@@ -23,6 +24,7 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
     constants(),
     variables(),
     functions(),
+    imports(),
     exceptions(),
     code()
 {

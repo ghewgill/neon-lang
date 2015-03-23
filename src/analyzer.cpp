@@ -1346,6 +1346,45 @@ static Type *deserialize_type(const std::string &descriptor)
             }
             return new TypeRecord(Token(), fields);
         }
+        case 'F': {
+            int i = 0;
+            i++;
+            std::vector<const ParameterType *> params;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            for (;;) {
+                std::string name;
+                while (descriptor.at(i) != ':') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                i++;
+                std::string type;
+                // TODO: this doesn't handle nested records correctly
+                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                    type.push_back(descriptor.at(i));
+                    i++;
+                }
+                Token token;
+                token.text = name;
+                // TODO: parameter passing mode
+                // TODO: default value
+                params.push_back(new ParameterType(token, ParameterType::IN, deserialize_type(type), nullptr));
+                if (descriptor.at(i) == ']') {
+                    break;
+                }
+                i++;
+            }
+            i++;
+            if (descriptor.at(i) != ':') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            const Type *returntype = deserialize_type(descriptor.substr(i));
+            return new TypeFunction(returntype, params);
+        }
         default:
             internal_error("TODO unimplemented type in deserialize_type: " + descriptor);
     }
@@ -1389,6 +1428,9 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
         }
         for (auto v: object.variables) {
             module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(object.strtable[v.type]), v.index));
+        }
+        for (auto f: object.functions) {
+            module->scope->addName(Token(), object.strtable[f.name], new ModuleFunction(declaration->name.text, object.strtable[f.name], deserialize_type(object.strtable[f.descriptor]), f.entry));
         }
         scope.top()->addName(declaration->token, declaration->name.text, module);
     }

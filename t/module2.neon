@@ -11,5 +11,5 @@ print("\(module.const)")
 print(module.var)
 %= test
 
-%print("\(module.function(5))")
-%%= 25
+print("\(module.function(5))")
+%= 25

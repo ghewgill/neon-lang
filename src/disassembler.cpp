@@ -83,6 +83,7 @@ private:
     void disasm_IND();
     void disasm_CALLP();
     void disasm_CALLF();
+    void disasm_CALLMF();
     void disasm_JUMP();
     void disasm_JF();
     void disasm_JT();
@@ -499,6 +500,16 @@ void Disassembler::disasm_CALLF()
     out << "CALLF " << addr << "\n";
 }
 
+void Disassembler::disasm_CALLMF()
+{
+    index++;
+    uint32_t mod = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "CALLMF " << mod << "," << addr << "\n";
+}
+
 void Disassembler::disasm_JUMP()
 {
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -722,6 +733,7 @@ void Disassembler::disassemble()
             case IND:     disasm_IND(); break;
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
+            case CALLMF:  disasm_CALLMF(); break;
             case JUMP:    disasm_JUMP(); break;
             case JF:      disasm_JF(); break;
             case JT:      disasm_JT(); break;
