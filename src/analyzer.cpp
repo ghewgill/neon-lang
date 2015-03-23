@@ -15,8 +15,8 @@ public:
     Analyzer(const pt::Program *program);
 
     const pt::Program *program;
-    static Frame *global_frame; // TODO
-    static Scope *global_scope; // TODO: static is a hack, used by StringReference constructor
+    Frame *global_frame;
+    Scope *global_scope;
     std::stack<Frame *> frame;
     std::stack<Scope *> scope;
 
@@ -370,11 +370,10 @@ private:
     StatementAnalyzer &operator=(const StatementAnalyzer &);
 };
 
-Frame *Analyzer::global_frame;
-Scope *Analyzer::global_scope;
-
 Analyzer::Analyzer(const pt::Program *program)
   : program(program),
+    global_frame(nullptr),
+    global_scope(nullptr),
     frame(),
     scope(),
     functiontypes(),
@@ -382,7 +381,7 @@ Analyzer::Analyzer(const pt::Program *program)
 {
 }
 
-TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &names)
+TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &names, Analyzer *analyzer)
   : TypeNumber(declaration),
     names(names)
 {
@@ -390,7 +389,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &n
         std::vector<FunctionParameter *> params;
         FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT, nullptr);
         params.push_back(fp);
-        Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, Analyzer::global_frame, Analyzer::global_scope, params);
+        Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -409,7 +408,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &n
     }
 }
 
-StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end)
+StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
     first(first),
@@ -426,7 +425,7 @@ StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceEx
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("string__substring"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__substring"))), args);
     }
     {
         std::vector<const Expression *> args;
@@ -435,11 +434,11 @@ StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceEx
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("string__splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__splice"))), args);
     }
 }
 
-StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end)
+StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : Expression(str->type, str->is_readonly),
     str(str),
     first(first),
@@ -455,11 +454,11 @@ StringValueIndexExpression::StringValueIndexExpression(const Expression *str, co
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("string__substring"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("string__substring"))), args);
     }
 }
 
-ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end)
+ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
     first(first),
@@ -476,7 +475,7 @@ ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpr
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("array__slice"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__slice"))), args);
     }
     {
         std::vector<const Expression *> args;
@@ -485,11 +484,11 @@ ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpr
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("array__splice"))), args);
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__splice"))), args);
     }
 }
 
-ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end)
+ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : Expression(array->type, false),
     array(array),
     first(first),
@@ -505,7 +504,7 @@ ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, co
         args.push_back(new ConstantBooleanExpression(first_from_end));
         args.push_back(last);
         args.push_back(new ConstantBooleanExpression(last_from_end));
-        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(Analyzer::global_scope->lookupName("array__slice"))), args);
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__slice"))), args);
     }
 }
 
@@ -542,7 +541,7 @@ const Type *Analyzer::analyze(const pt::TypeEnum *type)
         names[name] = index;
         index++;
     }
-    return new TypeEnum(type->token, names);
+    return new TypeEnum(type->token, names, this);
 }
 
 const Type *Analyzer::analyze(const pt::TypeRecord *type)
@@ -795,9 +794,9 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         }
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new StringReferenceIndexExpression(ref, index, false, index, false);
+            return new StringReferenceIndexExpression(ref, index, false, index, false, this);
         } else {
-            return new StringValueIndexExpression(base, index, false, index, false);
+            return new StringValueIndexExpression(base, index, false, index, false, this);
         }
     } else {
         error2(3044, expr->token, type->declaration, "not an array or dictionary");
@@ -1257,16 +1256,16 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
     if (arraytype != nullptr) {
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new ArrayReferenceRangeExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end);
+            return new ArrayReferenceRangeExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
-            return new ArrayValueRangeExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end);
+            return new ArrayValueRangeExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
     } else if (type == TYPE_STRING) {
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new StringReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end);
+            return new StringReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
-            return new StringValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end);
+            return new StringValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
     } else {
         error2(3143, expr->base->token, type->declaration, "not an array or string");

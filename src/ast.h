@@ -12,6 +12,8 @@
 #include "token.h"
 #include "util.h"
 
+class Analyzer;
+
 // Compiler
 class Emitter;
 
@@ -311,7 +313,7 @@ public:
 
 class TypeEnum: public TypeNumber {
 public:
-    TypeEnum(const Token &declaration, const std::map<std::string, int> &names);
+    TypeEnum(const Token &declaration, const std::map<std::string, int> &names, Analyzer *analyzer);
     const std::map<std::string, int> names;
 
     virtual std::string text() const override { return "TypeEnum(...)"; }
@@ -1108,7 +1110,7 @@ private:
 
 class StringReferenceIndexExpression: public ReferenceExpression {
 public:
-    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
+    StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
 
     const ReferenceExpression *ref;
     const Expression *first;
@@ -1135,7 +1137,7 @@ private:
 
 class StringValueIndexExpression: public Expression {
 public:
-    StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
+    StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
 
     const Expression *str;
     const Expression *first;
@@ -1158,7 +1160,7 @@ private:
 
 class ArrayReferenceRangeExpression: public ReferenceExpression {
 public:
-    ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
+    ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
 
     const ReferenceExpression *ref;
     const Expression *first;
@@ -1185,7 +1187,7 @@ private:
 
 class ArrayValueRangeExpression: public Expression {
 public:
-    ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end);
+    ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
 
     const Expression *array;
     const Expression *first;
