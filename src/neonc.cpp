@@ -47,10 +47,12 @@ int main(int argc, char *argv[])
             buf << inf.rdbuf();
         }
 
+        CompilerSupport compiler_support;
+
         try {
             auto tokens = tokenize(buf.str());
             auto parsetree = parse(tokens);
-            auto ast = analyze(&g_compiler_support, parsetree);
+            auto ast = analyze(&compiler_support, parsetree);
             DebugInfo debug(buf.str());
             auto bytecode = compile(ast, &debug);
             if (listing) {

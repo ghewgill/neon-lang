@@ -35,6 +35,8 @@ static const Program *dump(const Program *program)
 
 static void repl(int argc, char *argv[])
 {
+    CompilerSupport compiler_support;
+    RuntimeSupport runtime_support;
     std::cout << "Neon 0.1\n";
     std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
     for (;;) {
@@ -54,10 +56,10 @@ static void repl(int argc, char *argv[])
         } else {
             try {
                 auto parsetree = parse(tokenize(s));
-                auto ast = analyze(&g_compiler_support, parsetree);
+                auto ast = analyze(&compiler_support, parsetree);
                 DebugInfo debug(s);
                 auto bytecode = compile(ast, &debug);
-                exec(bytecode, &debug, &g_runtime_support, argc, argv);
+                exec(bytecode, &debug, &runtime_support, argc, argv);
             } catch (CompilerError &error) {
                 error.write(std::cerr);
             }
@@ -104,6 +106,9 @@ int main(int argc, char *argv[])
         buf << inf.rdbuf();
     }
 
+    CompilerSupport compiler_support;
+    RuntimeSupport runtime_support;
+
     std::vector<unsigned char> bytecode;
     // TODO - Allow reading debug information from file.
     DebugInfo debug(buf.str());
@@ -122,7 +127,7 @@ int main(int argc, char *argv[])
                 dump(parsetree);
             }
 
-            auto ast = analyze(&g_compiler_support, parsetree);
+            auto ast = analyze(&compiler_support, parsetree);
             if (dump_ast) {
                 dump(ast);
             }
@@ -142,5 +147,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(bytecode, &debug, &g_runtime_support, argc-a, argv+a);
+    exec(bytecode, &debug, &runtime_support, argc-a, argv+a);
 }

@@ -8,8 +8,6 @@
 #include "parser.h"
 #include "compiler.h"
 
-CompilerSupport g_compiler_support;
-
 bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 {
     std::ifstream inf("t/"+name+".neonx", std::ios::binary);

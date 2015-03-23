@@ -24,12 +24,14 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    RuntimeSupport runtime_support;
+
     std::vector<unsigned char> bytecode;
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
 
     // TODO: Implement reading DebugInfo from another file.
-    exec(bytecode, nullptr, &g_runtime_support, argc-1, argv+1);
+    exec(bytecode, nullptr, &runtime_support, argc-1, argv+1);
 
     // Return 0, if the neon bytecode did not call sys.exit() with its OWN exit code.
     return 0;

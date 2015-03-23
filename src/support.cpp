@@ -4,8 +4,6 @@
 #include <iso646.h>
 #include <sstream>
 
-RuntimeSupport g_runtime_support;
-
 bool RuntimeSupport::loadBytecode(const std::string &name, Bytecode &object)
 {
     std::ifstream inf("t/"+name+".neonx", std::ios::binary);
