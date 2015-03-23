@@ -96,6 +96,9 @@ public:
     const Statement *analyze(const pt::WhileStatement *statement);
     const Program *analyze();
 private:
+    Type *deserialize_type(const std::string &descriptor, std::string::size_type &i);
+    Type *deserialize_type(const std::string &descriptor);
+private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
 };
@@ -1309,14 +1312,40 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
     }
 }
 
-static Type *deserialize_type(const std::string &descriptor)
+Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::size_type &i)
 {
-    switch (descriptor.at(0)) {
-        case 'B': return TYPE_BOOLEAN;
-        case 'N': return TYPE_NUMBER;
-        case 'S': return TYPE_STRING;
+    switch (descriptor.at(i)) {
+        case 'B': i++; return TYPE_BOOLEAN;
+        case 'N': i++; return TYPE_NUMBER;
+        case 'S': i++; return TYPE_STRING;
+        case 'Y': i++; return TYPE_BYTES;
+        case 'A': {
+            i++;
+            if (descriptor.at(i) != '<') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            const Type *type = deserialize_type(descriptor, i);
+            if (descriptor.at(i) != '>') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            return new TypeArray(Token(), type);
+        }
+        case 'D': {
+            i++;
+            if (descriptor.at(i) != '<') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            const Type *type = deserialize_type(descriptor, i);
+            if (descriptor.at(i) != '>') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            return new TypeDictionary(Token(), type);
+        }
         case 'R': {
-            int i = 0;
             i++;
             std::vector<std::pair<Token, const Type *>> fields;
             if (descriptor.at(i) != '[') {
@@ -1330,24 +1359,43 @@ static Type *deserialize_type(const std::string &descriptor)
                     i++;
                 }
                 i++;
-                std::string type;
-                // TODO: this doesn't handle nested records correctly
-                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
-                    type.push_back(descriptor.at(i));
-                    i++;
-                }
+                const Type *type = deserialize_type(descriptor, i);
                 Token token;
                 token.text = name;
-                fields.push_back(std::make_pair(token, deserialize_type(type)));
+                fields.push_back(std::make_pair(token, type));
                 if (descriptor.at(i) == ']') {
                     break;
                 }
                 i++;
             }
+            i++;
             return new TypeRecord(Token(), fields);
         }
+        case 'E': {
+            i++;
+            std::map<std::string, int> names;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            int value = 0;
+            for (;;) {
+                std::string name;
+                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                names[name] = value;
+                value++;
+                if (descriptor.at(i) == ']') {
+                    break;
+                }
+                i++;
+            }
+            i++;
+            return new TypeEnum(Token(), names, this);
+        }
         case 'F': {
-            int i = 0;
             i++;
             std::vector<const ParameterType *> params;
             if (descriptor.at(i) != '[') {
@@ -1361,17 +1409,12 @@ static Type *deserialize_type(const std::string &descriptor)
                     i++;
                 }
                 i++;
-                std::string type;
-                // TODO: this doesn't handle nested records correctly
-                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
-                    type.push_back(descriptor.at(i));
-                    i++;
-                }
+                const Type *type = deserialize_type(descriptor, i);
                 Token token;
                 token.text = name;
                 // TODO: parameter passing mode
                 // TODO: default value
-                params.push_back(new ParameterType(token, ParameterType::IN, deserialize_type(type), nullptr));
+                params.push_back(new ParameterType(token, ParameterType::IN, type, nullptr));
                 if (descriptor.at(i) == ']') {
                     break;
                 }
@@ -1382,7 +1425,7 @@ static Type *deserialize_type(const std::string &descriptor)
                 internal_error("deserialize_type");
             }
             i++;
-            const Type *returntype = deserialize_type(descriptor.substr(i));
+            const Type *returntype = deserialize_type(descriptor, i);
             return new TypeFunction(returntype, params);
         }
         default:
@@ -1390,23 +1433,14 @@ static Type *deserialize_type(const std::string &descriptor)
     }
 }
 
-static Expression *deserialize_value(const std::string &descriptor, const Bytecode::Bytes &value)
+Type *Analyzer::deserialize_type(const std::string &descriptor)
 {
-    switch (descriptor.at(0)) {
-        case 'B': {
-            return new ConstantBooleanExpression(value.at(0) != 0);
-        }
-        case 'N': {
-            Number x = *reinterpret_cast<const Number *>(&value.at(0));
-            return new ConstantNumberExpression(x);
-        }
-        case 'S': {
-            uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(1) << 8) | value.at(0);
-            return new ConstantStringExpression(std::string(&value.at(4), &value.at(4)+len));
-        }
-        default:
-            internal_error("TODO unimplemented type in deserialize_value");
+    std::string::size_type i = 0;
+    Type *r = deserialize_type(descriptor, i);
+    if (i != descriptor.length()) {
+        internal_error("deserialize_type: " + descriptor + " " + std::to_string(i));
     }
+    return r;
 }
 
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
@@ -1424,7 +1458,9 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
             module->scope->addName(Token(), object.strtable[t.name], deserialize_type(object.strtable[t.descriptor]));
         }
         for (auto c: object.constants) {
-            module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], deserialize_value(object.strtable[c.type], c.value)));
+            const Type *type = deserialize_type(object.strtable[c.type]);
+            int i = 0;
+            module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
         }
         for (auto v: object.variables) {
             module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(object.strtable[v.type]), v.index));

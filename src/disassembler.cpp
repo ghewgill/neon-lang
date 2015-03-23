@@ -624,7 +624,8 @@ std::string Disassembler::decode_value(const std::string &type, const Bytecode::
             return std::string(&value.at(4), &value.at(4)+len);
         }
         default:
-            internal_error("TODO unimplemented type in decode_value");
+            // TODO internal_error("TODO unimplemented type in decode_value");
+            return "<unknown>";
     }
 }
 

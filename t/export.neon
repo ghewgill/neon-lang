@@ -1,0 +1,48 @@
+EXPORT cb
+EXPORT cn
+EXPORT cs
+EXPORT ca
+EXPORT cd
+EXPORT cr
+EXPORT ce
+
+EXPORT vb
+EXPORT vn
+EXPORT vs
+EXPORT vy
+EXPORT va
+EXPORT vd
+EXPORT vr
+EXPORT ve
+%EXPORT vp
+
+TYPE Record := RECORD
+    n: Number
+    r: RECORD
+        s: String
+    END RECORD
+END RECORD
+
+TYPE Enum := ENUM
+    red
+    green
+    blue
+END ENUM
+
+CONST cb: Boolean := TRUE
+CONST cn: Number := 1
+CONST cs: String := "a"
+CONST ca: Array<Number> := [1]
+CONST cd: Dictionary<Number> := {"a": 1}
+CONST cr: Record := Record(1)
+CONST ce: Enum := Enum.green
+
+VAR vb: Boolean
+VAR vn: Number
+VAR vs: String
+VAR vy: Bytes
+VAR va: Array<Number>
+VAR vd: Dictionary<Number>
+VAR vr: Record
+VAR ve: Enum
+%VAR vp: POINTER TO Record

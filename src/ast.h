@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "bytecode.h"
 #include "number.h"
 #include "token.h"
 #include "util.h"
@@ -135,6 +136,7 @@ public:
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
     virtual std::string get_type_descriptor() const = 0;
     virtual std::string serialize(const Expression *value) const = 0;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const = 0;
 };
 
 class TypeNothing: public Type {
@@ -145,6 +147,7 @@ public:
     virtual void generate_call(Emitter &) const override { internal_error("TypeNothing"); }
     virtual std::string get_type_descriptor() const override { return "Z"; }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeNothing"); }
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeNothing"); }
 
     virtual std::string text() const override { return "TypeNothing"; }
 };
@@ -159,6 +162,7 @@ public:
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "B"; }
     virtual std::string serialize(const Expression *) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
     virtual std::string text() const override { return "TypeBoolean"; }
 };
@@ -173,6 +177,7 @@ public:
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "N"; }
     virtual std::string serialize(const Expression *value) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
     virtual std::string text() const override { return "TypeNumber"; }
 };
@@ -186,7 +191,10 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "S"; }
+    static std::string serialize(const std::string &value);
     virtual std::string serialize(const Expression *value) const override;
+    static std::string deserialize_string(const Bytecode::Bytes &value, int &i);
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
     virtual std::string text() const override { return "TypeString"; }
 };
@@ -229,6 +237,7 @@ public:
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override;
     virtual std::string serialize(const Expression *) const override { internal_error("TypeFunction"); }
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeFunction"); }
 
     const Type *returntype;
     const std::vector<const ParameterType *> params;
@@ -250,6 +259,7 @@ public:
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "A<" + elementtype->get_type_descriptor() + ">"; }
     virtual std::string serialize(const Expression *value) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
     virtual std::string text() const override { return "TypeArray(" + elementtype->text() + ")"; }
 private:
@@ -271,6 +281,7 @@ public:
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "D<" + elementtype->get_type_descriptor() + ">"; }
     virtual std::string serialize(const Expression *value) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
     virtual std::string text() const override { return "TypeDictionary(" + elementtype->text() + ")"; }
 private:
@@ -291,6 +302,7 @@ public:
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override;
     virtual std::string serialize(const Expression *value) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
     virtual std::string text() const override { return "TypeRecord(...)"; }
 private:
@@ -321,7 +333,8 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor() const override { return "P<" + reftype->get_type_descriptor() + ">"; }
-    virtual std::string serialize(const Expression *) const override { internal_error("TypePointer"); }
+    virtual std::string serialize(const Expression *) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
     virtual std::string text() const override { return "TypePointer(" + reftype->text() + ")"; }
 private:
@@ -355,6 +368,7 @@ public:
     virtual void generate_call(Emitter &) const override { internal_error("TypeModule"); }
     virtual std::string get_type_descriptor() const override { internal_error("TypeModule"); }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeModule"); }
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeModule"); }
 
     virtual std::string text() const override { return "TypeModule(...)"; }
 };
@@ -370,6 +384,7 @@ public:
     virtual void generate_call(Emitter &) const override { internal_error("TypeException"); }
     virtual std::string get_type_descriptor() const override { return "X"; }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeException"); }
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeException"); }
 
     virtual std::string text() const override { return "TypeException"; }
 };
