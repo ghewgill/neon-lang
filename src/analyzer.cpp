@@ -9,6 +9,7 @@
 #include "format.h"
 #include "pt.h"
 #include "rtl_compile.h"
+#include "support.h"
 #include "util.h"
 
 class Analyzer {

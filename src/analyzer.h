@@ -5,14 +5,9 @@
 
 #include "bytecode.h"
 
+class ICompilerSupport;
 class Program;
 namespace pt { class Program; }
-
-class ICompilerSupport {
-public:
-    virtual ~ICompilerSupport() {}
-    virtual bool loadBytecode(const std::string &module, Bytecode &bytecode) = 0;
-};
 
 const Program *analyze(ICompilerSupport *support, const pt::Program *program);
 

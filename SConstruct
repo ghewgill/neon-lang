@@ -154,6 +154,7 @@ neon = env.Program("bin/neon", [
     rtl_cpp,
     rtl_platform,
     "src/support.cpp",
+    "src/support_compiler.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -174,6 +175,7 @@ neonc = env.Program("bin/neonc", [
     "src/rtl_compile.cpp",
     rtl_const,
     "src/support.cpp",
+    "src/support_compiler.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -183,11 +185,12 @@ neonx = env.Program("bin/neonx", [
     "src/cell.cpp",
     "src/exec.cpp",
     "src/format.cpp",
+    "src/neonx.cpp",
     "src/number.cpp",
     "src/rtl_exec.cpp",
     rtl_cpp,
     rtl_platform,
-    "src/neonx.cpp",
+    "src/support.cpp",
 ] + coverage_lib,
 )
 
