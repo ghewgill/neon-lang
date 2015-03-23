@@ -27,6 +27,7 @@ private:
     void disasm_PUSHN();
     void disasm_PUSHS();
     void disasm_PUSHPG();
+    void disasm_PUSHPMG();
     void disasm_PUSHPL();
     void disasm_PUSHPOL();
     void disasm_LOADB();
@@ -149,6 +150,16 @@ void Disassembler::disasm_PUSHPG()
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "PUSHPG " << addr << "\n";
+}
+
+void Disassembler::disasm_PUSHPMG()
+{
+    index++;
+    uint32_t module = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "PUSHPMG " << module << "," << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHPL()
@@ -634,6 +645,11 @@ void Disassembler::disassemble()
         out << "    " << obj.strtable[f.name] << " " << obj.strtable[f.descriptor] << " " << f.entry << "\n";
     }
 
+    out << "Imports " << obj.imports.size() << ":\n";
+    for (auto i: obj.imports) {
+        out << "  " << obj.strtable[i.first] << "\n";
+    }
+
     while (index < obj.code.size()) {
         if (debug != nullptr) {
             auto line = debug->line_numbers.find(index);
@@ -650,6 +666,7 @@ void Disassembler::disassemble()
             case PUSHN:   disasm_PUSHN(); break;
             case PUSHS:   disasm_PUSHS(); break;
             case PUSHPG:  disasm_PUSHPG(); break;
+            case PUSHPMG: disasm_PUSHPMG(); break;
             case PUSHPL:  disasm_PUSHPL(); break;
             case PUSHPOL: disasm_PUSHPOL(); break;
             case LOADB:   disasm_LOADB(); break;

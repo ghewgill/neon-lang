@@ -63,6 +63,7 @@ public:
     void add_export_variable(const std::string &name, const std::string &type, int index);
     void add_export_function(const std::string &name, const std::string &type, int entry);
     void add_export_exception(const std::string &name);
+    void add_import(const std::string &name);
 private:
     const std::string source_hash;
     Bytecode object;
@@ -285,6 +286,17 @@ void Emitter::add_export_exception(const std::string &name)
     fprintf(stderr, "add_export_exception %s\n", name.c_str());
 }
 
+void Emitter::add_import(const std::string &name)
+{
+    unsigned int index = str(name);
+    for (auto i: object.imports) {
+        if (i.first == index) {
+            return;
+        }
+    }
+    object.imports.push_back(std::make_pair(index, std::string(32, '0')));
+}
+
 void Type::predeclare(Emitter &emitter) const
 {
     for (auto m: methods) {
@@ -485,6 +497,16 @@ void Variable::generate_store(Emitter &emitter) const
 void Variable::generate_call(Emitter &emitter) const
 {
     type->generate_call(emitter);
+}
+
+void ModuleVariable::predeclare(Emitter &emitter) const
+{
+    emitter.add_import(module);
+}
+
+void ModuleVariable::generate_address(Emitter &emitter, int) const
+{
+    emitter.emit(PUSHPMG, emitter.str(module), index);
 }
 
 void GlobalVariable::predeclare(Emitter &emitter) const

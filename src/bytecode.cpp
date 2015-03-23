@@ -94,6 +94,18 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
         functionsize--;
     }
 
+    unsigned int importsize = (obj[i] << 8) | obj[i+1];
+    i += 2;
+    while (importsize > 0) {
+        std::pair<unsigned int, std::string> imp;
+        imp.first = (obj[i] << 8) | obj[i+1];
+        i += 2;
+        imp.second = std::string(&obj[i], &obj[i]+32);
+        i += 32;
+        imports.push_back(imp);
+        importsize--;
+    }
+
     unsigned int exceptionsize = (obj[i] << 8) | obj[i+1];
     i += 2;
     while (exceptionsize > 0) {
@@ -192,6 +204,17 @@ Bytecode::Bytes Bytecode::getBytes() const
         obj.push_back(static_cast<unsigned char>(f.descriptor & 0xff));
         obj.push_back(static_cast<unsigned char>(f.entry >> 8) & 0xff);
         obj.push_back(static_cast<unsigned char>(f.entry & 0xff));
+    }
+
+    obj.push_back(static_cast<unsigned char>(imports.size() >> 8) & 0xff);
+    obj.push_back(static_cast<unsigned char>(imports.size() & 0xff));
+    for (auto i: imports) {
+        obj.push_back(static_cast<unsigned char>(i.first >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(i.first & 0xff));
+        assert(i.second.length() == 32);
+        for (int j = 0; j < 32; j++) {
+            obj.push_back(i.second[j]);
+        }
     }
 
     obj.push_back(static_cast<unsigned char>(exceptions.size() >> 8) & 0xff);

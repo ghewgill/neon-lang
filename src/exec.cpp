@@ -18,6 +18,7 @@
 #include "opcode.h"
 #include "rtl_exec.h"
 #include "rtl_platform.h"
+#include "support.h"
 
 namespace {
 
@@ -113,9 +114,11 @@ public:
     std::vector<Cell> locals;
 };
 
+class Executor;
+
 class Module {
 public:
-    Module(const Bytecode &object, const DebugInfo *debuginfo);
+    Module(const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support);
     Bytecode object;
     const DebugInfo *debug;
     std::vector<Cell> globals;
@@ -123,21 +126,13 @@ public:
     std::vector<ExternalCallInfo *> external_functions;
 };
 
-Module::Module(const Bytecode &object, const DebugInfo *debuginfo)
-  : object(object),
-    debug(debuginfo),
-    globals(object.global_size),
-    rtl_call_tokens(object.strtable.size(), SIZE_MAX),
-    external_functions()
-{
-}
-
 class Executor {
 public:
-    Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo);
+    Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support);
     void exec();
 private:
     std::map<std::string, Module *> modules;
+    std::vector<std::string> init_order;
     Module *module;
     Bytecode::Bytes::size_type ip;
     std::stack<Cell> stack;
@@ -150,6 +145,7 @@ private:
     void exec_PUSHN();
     void exec_PUSHS();
     void exec_PUSHPG();
+    void exec_PUSHPMG();
     void exec_PUSHPL();
     void exec_PUSHPOL();
     void exec_LOADB();
@@ -222,21 +218,48 @@ private:
     void exec_PUSHNIL();
 
     void raise(const std::string &exception, const std::string &info);
+
+    friend class Module;
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
 };
 
-Executor::Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo)
+Executor::Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support)
   : modules(),
+    init_order(),
     module(nullptr),
     ip(0),
     stack(),
     callstack(),
     frames()
 {
-    module = new Module(Bytecode(bytes), debuginfo);
+    module = new Module(Bytecode(bytes), debuginfo, this, support);
     modules[""] = module;
+}
+
+Module::Module(const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support)
+  : object(object),
+    debug(debuginfo),
+    globals(object.global_size),
+    rtl_call_tokens(object.strtable.size(), SIZE_MAX),
+    external_functions()
+{
+    for (auto i: object.imports) {
+        std::string name = object.strtable[i.first];
+        if (executor->modules.find(name) != executor->modules.end()) {
+            continue;
+        }
+        Bytecode code;
+        if (not support->loadBytecode(name, code)) {
+            fprintf(stderr, "couldn't load module: %s\n", name.c_str());
+            exit(1);
+        }
+        // TODO: check hash of exports
+        executor->init_order.push_back(name);
+        executor->modules[name] = nullptr; // Prevent unwanted recursion.
+        executor->modules[name] = new Module(code, nullptr, executor, support);
+    }
 }
 
 void Executor::exec_ENTER()
@@ -280,6 +303,22 @@ void Executor::exec_PUSHPG()
     ip += 5;
     assert(addr < module->globals.size());
     stack.push(Cell(&module->globals.at(addr)));
+}
+
+void Executor::exec_PUSHPMG()
+{
+    ip++;
+    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    uint32_t addr = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    auto m = modules.find(module->object.strtable[mod]);
+    if (m == modules.end()) {
+        fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
+        exit(1);
+    }
+    assert(addr < m->second->globals.size());
+    stack.push(Cell(&m->second->globals.at(addr)));
 }
 
 void Executor::exec_PUSHPL()
@@ -1049,6 +1088,17 @@ void Executor::exec()
     module->globals[0].array().resize(3);
 
     callstack.push(std::make_pair(module, module->object.code.size()));
+
+    // This sets up the call stack in such a way as to initialize
+    // each module in the order determined in init_order, followed
+    // by running the code in the main module.
+    callstack.push(std::make_pair(module, 0));
+    for (auto x = init_order.rbegin(); x != init_order.rend(); ++x) {
+        callstack.push(std::make_pair(modules[*x], 0));
+    }
+    // Set up ip for first module (or main module if no imports).
+    exec_RET();
+
     while (not callstack.empty() && ip < module->object.code.size()) {
         //std::cerr << "ip " << ip << " op " << (int)module->object.code[ip] << "\n";
         auto last_ip = ip;
@@ -1059,6 +1109,7 @@ void Executor::exec()
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
             case PUSHPG:  exec_PUSHPG(); break;
+            case PUSHPMG: exec_PUSHPMG(); break;
             case PUSHPL:  exec_PUSHPL(); break;
             case PUSHPOL: exec_PUSHPOL(); break;
             case LOADB:   exec_LOADB(); break;
@@ -1138,8 +1189,8 @@ void Executor::exec()
     assert(stack.empty());
 }
 
-void exec(const Bytecode::Bytes &obj, const DebugInfo *debuginfo, int argc, char *argv[])
+void exec(const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
-    Executor(obj, debuginfo).exec();
+    Executor(obj, debuginfo, support).exec();
 }

@@ -8,8 +8,8 @@ print(r.string)
 print("\(module.const)")
 %= 5
 
-%print(module.var)
-%%= test
+print(module.var)
+%= test
 
 %print("\(module.function(5))")
 %%= 25

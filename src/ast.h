@@ -391,6 +391,18 @@ public:
     virtual std::string text() const override { return "Variable(" + name + ", " + type->text() + ")"; }
 };
 
+class ModuleVariable: public Variable {
+public:
+    ModuleVariable(const std::string &module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, false), module(module), index(index) {}
+    const std::string module;
+    const int index;
+
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual void generate_address(Emitter &emitter, int enclosing) const override;
+
+    virtual std::string text() const override { return "ModuleVariable(" + module + "." + name + ")"; }
+};
+
 class GlobalVariable: public Variable {
 public:
     GlobalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}

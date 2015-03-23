@@ -57,7 +57,7 @@ static void repl(int argc, char *argv[])
                 auto ast = analyze(&g_compiler_support, parsetree);
                 DebugInfo debug(s);
                 auto bytecode = compile(ast, &debug);
-                exec(bytecode, &debug, argc, argv);
+                exec(bytecode, &debug, &g_runtime_support, argc, argv);
             } catch (CompilerError &error) {
                 error.write(std::cerr);
             }
@@ -142,5 +142,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(bytecode, &debug, argc-a, argv+a);
+    exec(bytecode, &debug, &g_runtime_support, argc-a, argv+a);
 }

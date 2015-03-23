@@ -1387,6 +1387,9 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
         for (auto c: object.constants) {
             module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], deserialize_value(object.strtable[c.type], c.value)));
         }
+        for (auto v: object.variables) {
+            module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(object.strtable[v.type]), v.index));
+        }
         scope.top()->addName(declaration->token, declaration->name.text, module);
     }
     return new NullStatement(declaration->token.line);

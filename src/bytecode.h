@@ -66,6 +66,7 @@ public:
     std::vector<Constant> constants;
     std::vector<Variable> variables;
     std::vector<Function> functions;
+    std::vector<std::pair<unsigned int, std::string>> imports;
     std::vector<ExceptionInfo> exceptions;
     Bytes code;
 
