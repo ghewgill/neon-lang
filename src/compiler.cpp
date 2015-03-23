@@ -282,8 +282,9 @@ void Emitter::add_export_function(const std::string &name, const std::string &ty
 
 void Emitter::add_export_exception(const std::string &name)
 {
-    // TODO
-    fprintf(stderr, "add_export_exception %s\n", name.c_str());
+    Bytecode::ExceptionExport exception;
+    exception.name = str(name);
+    object.exception_exports.push_back(exception);
 }
 
 void Emitter::add_import(const std::string &name)

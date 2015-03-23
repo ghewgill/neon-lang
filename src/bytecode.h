@@ -52,6 +52,11 @@ public:
         unsigned int entry;
     };
 
+    struct ExceptionExport {
+        ExceptionExport(): name(0) {}
+        unsigned int name;
+    };
+
     struct ExceptionInfo {
         unsigned int start;
         unsigned int end;
@@ -66,6 +71,7 @@ public:
     std::vector<Constant> constants;
     std::vector<Variable> variables;
     std::vector<Function> functions;
+    std::vector<ExceptionExport> exception_exports;
     std::vector<std::pair<unsigned int, std::string>> imports;
     std::vector<ExceptionInfo> exceptions;
     Bytes code;

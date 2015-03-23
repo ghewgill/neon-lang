@@ -10,6 +10,7 @@ Bytecode::Bytecode()
     constants(),
     variables(),
     functions(),
+    exception_exports(),
     imports(),
     exceptions(),
     code()
@@ -24,6 +25,7 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
     constants(),
     variables(),
     functions(),
+    exception_exports(),
     imports(),
     exceptions(),
     code()
@@ -94,6 +96,16 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
         i += 2;
         functions.push_back(f);
         functionsize--;
+    }
+
+    unsigned int exceptionexportsize = (obj[i] << 8) | obj[i+1];
+    i += 2;
+    while (exceptionexportsize > 0) {
+        ExceptionExport e;
+        e.name = (obj[i] << 8) | obj[i+1];
+        i += 2;
+        exception_exports.push_back(e);
+        exceptionexportsize--;
     }
 
     unsigned int importsize = (obj[i] << 8) | obj[i+1];
@@ -206,6 +218,13 @@ Bytecode::Bytes Bytecode::getBytes() const
         obj.push_back(static_cast<unsigned char>(f.descriptor & 0xff));
         obj.push_back(static_cast<unsigned char>(f.entry >> 8) & 0xff);
         obj.push_back(static_cast<unsigned char>(f.entry & 0xff));
+    }
+
+    obj.push_back(static_cast<unsigned char>(exception_exports.size() >> 8) & 0xff);
+    obj.push_back(static_cast<unsigned char>(exception_exports.size() & 0xff));
+    for (auto e: exception_exports) {
+        obj.push_back(static_cast<unsigned char>(e.name >> 8) & 0xff);
+        obj.push_back(static_cast<unsigned char>(e.name & 0xff));
     }
 
     obj.push_back(static_cast<unsigned char>(imports.size() >> 8) & 0xff);

@@ -309,7 +309,7 @@ public:
         write("NextStatement(" + std::to_string(node->type) + ")");
     }
     virtual void visit(const RaiseStatement *node) override {
-        write("RaiseStatement(" + node->name.text + ")");
+        write("RaiseStatement(" + node->name.first.text + "." + node->name.second.text + ")");
         child(node->info);
     }
     virtual void visit(const RepeatStatement *node) override {

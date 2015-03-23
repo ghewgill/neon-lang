@@ -1222,16 +1222,26 @@ const Statement *Parser::parseTryStatement()
             statements.push_back(stmt);
         }
     }
-    std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> catches;
+    std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
     while (tokens[i].type == EXCEPTION) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
             error(2060, tokens[i], "identifier expected");
         }
-        const Token &name = tokens[i];
-        std::vector<Token> exceptions;
-        exceptions.push_back(name);
+        std::pair<Token, Token> name;
+        name.second = tokens[i];
         ++i;
+        if (tokens[i].type == DOT) {
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2077, tokens[i], "identifier expected");
+            }
+            name.first = name.second;
+            name.second = tokens[i];
+            ++i;
+        }
+        std::vector<std::pair<Token, Token>> exceptions;
+        exceptions.push_back(name);
         std::vector<const Statement *> statements;
         while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             const Statement *stmt = parseStatement();
@@ -1259,8 +1269,18 @@ const Statement *Parser::parseRaiseStatement()
     if (tokens[i].type != IDENTIFIER) {
         error(2061, tokens[i], "identifier expected");
     }
-    const Token &name = tokens[i];
+    std::pair<Token, Token> name;
+    name.second = tokens[i];
     ++i;
+    if (tokens[i].type == DOT) {
+        ++i;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2076, tokens[i], "identifier expected");
+        }
+        name.first = name.second;
+        name.second = tokens[i];
+        ++i;
+    }
     const Expression *info = nullptr;
     if (tokens[i].type == LPAREN) {
         info = parseExpression();

@@ -1064,6 +1064,7 @@ void Executor::raise(const std::string &exception, const std::string &info)
     module->globals[0].array()[1] = Cell(info);
     module->globals[0].array()[2] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
+    auto emodule = module;
     auto eip = ip;
     for (;;) {
         for (auto e = module->object.exceptions.begin(); e != module->object.exceptions.end(); ++e) {
@@ -1081,12 +1082,12 @@ void Executor::raise(const std::string &exception, const std::string &info)
     }
     fprintf(stderr, "unhandled exception %s (%s) at address %lu\n", exception.c_str(), info.c_str(), eip);
 
-    if (module->debug != nullptr) {
+    if (emodule->debug != nullptr) {
         auto p = eip;
         for (;;) {
-            auto line = module->debug->line_numbers.find(p);
-            if (line != module->debug->line_numbers.end()) {
-                fprintf(stderr, "%d | %s\n", line->second, module->debug->source_lines.at(line->second).c_str());
+            auto line = emodule->debug->line_numbers.find(p);
+            if (line != emodule->debug->line_numbers.end()) {
+                fprintf(stderr, "%d | %s\n", line->second, emodule->debug->source_lines.at(line->second).c_str());
                 break;
             }
             if (p == 0) {
@@ -1106,7 +1107,10 @@ void Executor::exec()
 {
     // The number of fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    module->globals[0].array().resize(3);
+    // TODO: Should be only one instance of the current exception object.
+    for (auto m: modules) {
+        m.second->globals[0].array().resize(3);
+    }
 
     callstack.push(std::make_pair(module, module->object.code.size()));
 

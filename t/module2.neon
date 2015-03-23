@@ -13,3 +13,17 @@ print(module.var)
 
 print("\(module.function(5))")
 %= 25
+
+TRY
+    RAISE module.exception
+EXCEPTION module.exception
+    print("exception 1")
+END TRY
+%= exception 1
+
+TRY
+    module.raise()
+EXCEPTION module.exception
+    print("exception 2")
+END TRY
+%= exception 2

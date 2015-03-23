@@ -1,0 +1,3 @@
+VAR module: Number
+RAISE module.exception
+      %<

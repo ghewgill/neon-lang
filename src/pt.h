@@ -718,9 +718,9 @@ public:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(const Token &token, const Token &name, const Expression *info): Statement(token), name(name), info(info) {}
+    RaiseStatement(const Token &token, const std::pair<Token, Token> &name, const Expression *info): Statement(token), name(name), info(info) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const Token name;
+    const std::pair<Token, Token> name;
     const Expression *const info;
 private:
     RaiseStatement(const RaiseStatement &);
@@ -749,9 +749,9 @@ private:
 
 class TryStatement: public BlockStatement {
 public:
-    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
+    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> catches;
+    const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
 };
 
 class WhileStatement: public BlockStatement {

@@ -2,6 +2,8 @@ EXPORT type
 EXPORT const
 EXPORT var
 EXPORT function
+EXPORT exception
+EXPORT raise
 
 TYPE type := RECORD
     boolean: Boolean
@@ -16,3 +18,9 @@ VAR var: String := "test"
 FUNCTION function(x: Number): Number
     RETURN x * x
 END FUNCTION
+
+FUNCTION raise()
+    RAISE exception
+END FUNCTION
+
+DECLARE EXCEPTION exception

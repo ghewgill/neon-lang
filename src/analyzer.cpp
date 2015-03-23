@@ -1315,6 +1315,7 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
 Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::size_type &i)
 {
     switch (descriptor.at(i)) {
+        case 'Z': i++; return TYPE_NOTHING;
         case 'B': i++; return TYPE_BOOLEAN;
         case 'N': i++; return TYPE_NUMBER;
         case 'S': i++; return TYPE_STRING;
@@ -1402,7 +1403,7 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 internal_error("deserialize_type");
             }
             i++;
-            for (;;) {
+            while (descriptor.at(i) != ']') {
                 std::string name;
                 while (descriptor.at(i) != ':') {
                     name.push_back(descriptor.at(i));
@@ -1415,10 +1416,9 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 // TODO: parameter passing mode
                 // TODO: default value
                 params.push_back(new ParameterType(token, ParameterType::IN, type, nullptr));
-                if (descriptor.at(i) == ']') {
-                    break;
+                if (descriptor.at(i) == ',') {
+                    i++;
                 }
-                i++;
             }
             i++;
             if (descriptor.at(i) != ':') {
@@ -1467,6 +1467,9 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
         }
         for (auto f: object.functions) {
             module->scope->addName(Token(), object.strtable[f.name], new ModuleFunction(declaration->name.text, object.strtable[f.name], deserialize_type(object.strtable[f.descriptor]), f.entry));
+        }
+        for (auto e: object.exception_exports) {
+            module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
         }
         scope.top()->addName(declaration->token, declaration->name.text, module);
     }
@@ -2222,13 +2225,25 @@ const Statement *Analyzer::analyze(const pt::NextStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
 {
-    const Name *name = scope.top()->lookupName(statement->name.text);
+    Scope *s = scope.top();
+    if (statement->name.first.type != NONE) {
+        const Name *modname = scope.top()->lookupName(statement->name.first.text);
+        if (modname == nullptr) {
+            error(3157, statement->name.first, "module name not found: " + statement->name.first.text);
+        }
+        const Module *mod = dynamic_cast<const Module *>(modname);
+        if (mod == nullptr) {
+            error(3158, statement->name.first, "module name expected");
+        }
+        s = mod->scope;
+    }
+    const Name *name = s->lookupName(statement->name.second.text);
     if (name == nullptr) {
-        error(3089, statement->name, "exception not found: " + statement->name.text);
+        error(3089, statement->name.second, "exception not found: " + statement->name.second.text);
     }
     const Exception *exception = dynamic_cast<const Exception *>(name);
     if (exception == nullptr) {
-        error2(3090, statement->name, name->declaration, "name not an exception");
+        error2(3090, statement->name.second, name->declaration, "name not an exception");
     }
     const Expression *info = statement->info != nullptr ? analyze(statement->info) : new ConstantStringExpression("");
     return new RaiseStatement(statement->token.line, exception, info);
@@ -2269,13 +2284,25 @@ const Statement *Analyzer::analyze(const pt::TryStatement *statement)
     scope.pop();
     std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
     for (auto x: statement->catches) {
-        const Name *name = scope.top()->lookupName(x.first.at(0).text);
+        Scope *s = scope.top();
+        if (x.first.at(0).first.type != NONE) {
+            const Name *modname = scope.top()->lookupName(x.first.at(0).first.text);
+            if (modname == nullptr) {
+                error(3159, x.first.at(0).first, "module name not found: " + x.first.at(0).first.text);
+            }
+            const Module *mod = dynamic_cast<const Module *>(modname);
+            if (mod == nullptr) {
+                error(3160, x.first.at(0).first, "module name expected");
+            }
+            s = mod->scope;
+        }
+        const Name *name = s->lookupName(x.first.at(0).second.text);
         if (name == nullptr) {
-            error(3087, x.first.at(0), "exception not found: " + x.first.at(0).text);
+            error(3087, x.first.at(0).second, "exception not found: " + x.first.at(0).second.text);
         }
         const Exception *exception = dynamic_cast<const Exception *>(name);
         if (exception == nullptr) {
-            error2(3088, x.first.at(0), name->declaration, "name not an exception");
+            error2(3088, x.first.at(0).second, name->declaration, "name not an exception");
         }
         std::vector<const Exception *> exceptions;
         exceptions.push_back(exception);
