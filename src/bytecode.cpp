@@ -32,6 +32,7 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
 {
     size_t i = 0;
 
+    assert(obj.size() > 32);
     source_hash = std::string(&obj[i], &obj[i]+32);
     i += 32;
 

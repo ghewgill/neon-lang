@@ -13,6 +13,10 @@
 bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 {
     std::pair<std::string, std::string> names = findModule(name);
+    if (names.first.empty() && names.second.empty()) {
+        return false;
+    }
+
     std::ifstream obj(names.second, std::ios::binary);
     std::ifstream src(names.first);
 
@@ -42,13 +46,15 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
         }
     }
 
-    {
-        auto tokens = tokenize(source);
-        auto parsetree = parse(tokens);
-        auto ast = analyze(this, parsetree);
-        auto bytecode = compile(ast, nullptr);
-        std::ofstream outf(names.first+"x", std::ios::binary);
-        outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
+    if (not source.empty()) {
+        {
+            std::ofstream outf(names.first+"x", std::ios::binary);
+            auto tokens = tokenize(source);
+            auto parsetree = parse(tokens);
+            auto ast = analyze(this, parsetree);
+            auto bytecode = compile(ast, nullptr);
+            outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
+        }
         obj.open(names.first+"x", std::ios::binary);
         if (not obj.good()) {
             return false;
