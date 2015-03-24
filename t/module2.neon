@@ -17,6 +17,11 @@ print(module.var)
 print("\(module.function(5))")
 %= 25
 
+VAR x: Number := 7
+module.modify(x)
+print("\(x)")
+%= 14
+
 TRY
     RAISE module.exception
 EXCEPTION module.exception

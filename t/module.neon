@@ -2,6 +2,7 @@ EXPORT type
 EXPORT const
 EXPORT var
 EXPORT function
+EXPORT modify
 EXPORT exception
 EXPORT raise
 
@@ -21,6 +22,10 @@ VAR var: String := "test"
 
 FUNCTION function(x: Number): Number
     RETURN x * x
+END FUNCTION
+
+FUNCTION modify(INOUT x: Number)
+    x := x * 2
 END FUNCTION
 
 FUNCTION raise()

@@ -1404,6 +1404,15 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
             }
             i++;
             while (descriptor.at(i) != ']') {
+                ParameterType::Mode mode = ParameterType::IN;
+                switch (descriptor.at(i)) {
+                    case '>': mode = ParameterType::IN;    break;
+                    case '*': mode = ParameterType::INOUT; break;
+                    case '<': mode = ParameterType::OUT;   break;
+                    default:
+                        internal_error("unexpected mode indicator");
+                }
+                i++;
                 std::string name;
                 while (descriptor.at(i) != ':') {
                     name.push_back(descriptor.at(i));
@@ -1413,9 +1422,8 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 const Type *type = deserialize_type(descriptor, i);
                 Token token;
                 token.text = name;
-                // TODO: parameter passing mode
                 // TODO: default value
-                params.push_back(new ParameterType(token, ParameterType::IN, type, nullptr));
+                params.push_back(new ParameterType(token, mode, type, nullptr));
                 if (descriptor.at(i) == ',') {
                     i++;
                 }

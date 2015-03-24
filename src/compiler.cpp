@@ -391,8 +391,14 @@ std::string TypeFunction::get_type_descriptor() const
         if (r.length() > 2) {
             r += ",";
         }
-        // TODO: mode, default value
-        r += p->declaration.text + ":" + p->type->get_type_descriptor();
+        char m;
+        switch (p->mode) {
+            case ParameterType::IN:    m = '>'; break;
+            case ParameterType::INOUT: m = '*'; break;
+            case ParameterType::OUT:   m = '<'; break;
+        }
+        // TODO: default value
+        r += m + p->declaration.text + ":" + p->type->get_type_descriptor();
     }
     r += "]:" + returntype->get_type_descriptor();
     return r;
