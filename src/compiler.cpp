@@ -396,6 +396,8 @@ std::string TypeFunction::get_type_descriptor() const
             case ParameterType::IN:    m = '>'; break;
             case ParameterType::INOUT: m = '*'; break;
             case ParameterType::OUT:   m = '<'; break;
+            default:
+                internal_error("invalid parameter mode");
         }
         // TODO: default value
         r += m + p->declaration.text + ":" + p->type->get_type_descriptor();
