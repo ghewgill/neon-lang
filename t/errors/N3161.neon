@@ -1,0 +1,12 @@
+EXPORT foo
+
+EXTERNAL FUNCTION foo()
+                  %<
+{
+    "library": {
+        "name": "none"
+    }
+    "types": {
+    }
+}
+END FUNCTION

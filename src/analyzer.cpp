@@ -2358,6 +2358,9 @@ const Program *Analyzer::analyze()
         if (r->exports.find(n) != r->exports.end()) {
             internal_error("export name already exported");
         }
+        if (dynamic_cast<const ExternalFunction *>(name) != nullptr) {
+            error(3161, name->declaration, "cannot export external function");
+        }
         r->exports[n] = name;
     }
     scope.pop();
