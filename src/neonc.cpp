@@ -36,18 +36,24 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        std::stringstream buf;
         std::string name = argv[a];
+        std::string source_path;
+
+        std::stringstream buf;
         if (name == "-") {
             std::cout << "Compiling stdin (no output file)...\n";
             buf << std::cin.rdbuf();
         } else {
+            auto i = name.find_last_of("/:\\");
+            if (i != std::string::npos) {
+                source_path = name.substr(0, i+1);
+            }
             std::cout << "Compiling " << name << "...\n";
             std::ifstream inf(name);
             buf << inf.rdbuf();
         }
 
-        CompilerSupport compiler_support;
+        CompilerSupport compiler_support(source_path);
 
         try {
             auto tokens = tokenize(buf.str());

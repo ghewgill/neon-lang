@@ -272,7 +272,9 @@ else:
 
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py t")
 env.Depends(tests, test_ffi)
-env.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
+testenv = env.Clone()
+testenv["ENV"]["NEONPATH"] = "t/"
+testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
 env.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
 
 for sample in Glob("samples/*.neon"):
