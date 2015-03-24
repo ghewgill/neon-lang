@@ -315,6 +315,13 @@ void Type::postdeclare(Emitter &emitter) const
 void Type::generate_export(Emitter &emitter, const std::string &name) const
 {
     emitter.add_export_type(name, get_type_descriptor());
+    for (auto m: methods) {
+        const Function *f = dynamic_cast<const Function *>(m.second);
+        if (f == nullptr) {
+            internal_error("method should be function");
+        }
+        emitter.add_export_function(name + "." + m.first, f->type->get_type_descriptor(), emitter.function_label(f->entry_label).get_target());
+    }
 }
 
 void TypeBoolean::generate_load(Emitter &emitter) const

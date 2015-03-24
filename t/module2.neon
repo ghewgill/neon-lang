@@ -5,6 +5,9 @@ r.string := "hello"
 print(r.string)
 %= hello
 
+print(r.method())
+%= hellohello
+
 print("\(module.const)")
 %= 5
 

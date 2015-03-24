@@ -1466,7 +1466,17 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
             module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(object.strtable[v.type]), v.index));
         }
         for (auto f: object.functions) {
-            module->scope->addName(Token(), object.strtable[f.name], new ModuleFunction(declaration->name.text, object.strtable[f.name], deserialize_type(object.strtable[f.descriptor]), f.entry));
+            const std::string name = object.strtable[f.name];
+            auto i = name.find('.');
+            if (i != std::string::npos) {
+                const std::string typestr = name.substr(0, i);
+                const std::string method = name.substr(i+1);
+                Name *n = module->scope->lookupName(typestr);
+                Type *type = dynamic_cast<Type *>(n);
+                type->methods[method] = new ModuleFunction(declaration->name.text, name, deserialize_type(object.strtable[f.descriptor]), f.entry);
+            } else {
+                module->scope->addName(Token(), name, new ModuleFunction(declaration->name.text, name, deserialize_type(object.strtable[f.descriptor]), f.entry));
+            }
         }
         for (auto e: object.exception_exports) {
             module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
