@@ -55,6 +55,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
             auto bytecode = compile(ast, nullptr);
             outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
         }
+        obj.close();
         obj.open(names.first+"x", std::ios::binary);
         if (not obj.good()) {
             return false;
