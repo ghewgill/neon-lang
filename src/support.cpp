@@ -51,6 +51,13 @@ PathSupport::PathSupport(const std::string &source_path)
         std::vector<std::string> p = split(neonpath, PATHSEP);
         std::copy(p.begin(), p.end(), std::back_inserter(paths));
     }
+    std::ifstream inf(".neonpath");
+    if (inf.good()) {
+        std::string s;
+        while (std::getline(inf, s)) {
+            paths.push_back(s);
+        }
+    }
 }
 
 std::pair<std::string, std::string> PathSupport::findModule(const std::string &name)
