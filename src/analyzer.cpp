@@ -1,24 +1,28 @@
-#include "parser.h"
+#include "analyzer.h"
 
 #include <iso646.h>
 #include <list>
 #include <stack>
 
 #include "ast.h"
+#include "bytecode.h"
 #include "format.h"
 #include "pt.h"
 #include "rtl_compile.h"
+#include "support.h"
 #include "util.h"
 
 class Analyzer {
 public:
-    Analyzer(const pt::Program *program);
+    Analyzer(ICompilerSupport *support, const pt::Program *program);
 
+    ICompilerSupport *support;
     const pt::Program *program;
     Frame *global_frame;
     Scope *global_scope;
     std::stack<Frame *> frame;
     std::stack<Scope *> scope;
+    std::set<std::string> exports;
 
     std::stack<const TypeFunction *> functiontypes;
     std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
@@ -29,6 +33,7 @@ public:
     const Type *analyze(const pt::TypeRecord *type);
     const Type *analyze(const pt::TypePointer *type);
     const Type *analyze(const pt::TypeParameterised *type);
+    const Type *analyze(const pt::TypeImport *type);
     const Expression *analyze(const pt::Expression *expr);
     const Expression *analyze(const pt::BooleanLiteralExpression *expr);
     const Expression *analyze(const pt::NumberLiteralExpression *expr);
@@ -74,6 +79,7 @@ public:
     const Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
     const Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExceptionDeclaration *declaration);
+    const Statement *analyze(const pt::ExportDeclaration *declaration);
     std::vector<const Statement *> analyze(const std::vector<const pt::Statement *> &statement);
     const Statement *analyze(const pt::AssignmentStatement *statement);
     const Statement *analyze(const pt::CaseStatement *statement);
@@ -90,6 +96,9 @@ public:
     const Statement *analyze(const pt::WhileStatement *statement);
     const Program *analyze();
 private:
+    Type *deserialize_type(const std::string &descriptor, std::string::size_type &i);
+    Type *deserialize_type(const std::string &descriptor);
+private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
 };
@@ -102,6 +111,7 @@ public:
     virtual void visit(const pt::TypeRecord *t) override { type = a->analyze(t); }
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t); }
+    virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -141,6 +151,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
@@ -171,6 +182,7 @@ public:
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NumberLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::StringLiteralExpression *p) override { expr = a->analyze(p); }
@@ -210,6 +222,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
@@ -240,6 +253,7 @@ public:
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -279,6 +293,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExportDeclaration *) override {}
     virtual void visit(const pt::AssignmentStatement *) override {}
     virtual void visit(const pt::CaseStatement *) override {}
     virtual void visit(const pt::ExitStatement *) override {}
@@ -309,6 +324,7 @@ public:
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -348,6 +364,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExceptionDeclaration *) override {}
+    virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::CaseStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExitStatement *p) override { v.push_back(a->analyze(p)); }
@@ -370,12 +387,14 @@ private:
     StatementAnalyzer &operator=(const StatementAnalyzer &);
 };
 
-Analyzer::Analyzer(const pt::Program *program)
-  : program(program),
+Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program)
+  : support(support),
+    program(program),
     global_frame(nullptr),
     global_scope(nullptr),
     frame(),
     scope(),
+    exports(),
     functiontypes(),
     loops()
 {
@@ -592,6 +611,27 @@ const Type *Analyzer::analyze(const pt::TypeParameterised *type)
         return new TypeDictionary(type->name, analyze(type->elementtype));
     }
     internal_error("Invalid parameterized type");
+}
+
+const Type *Analyzer::analyze(const pt::TypeImport *type)
+{
+    Name *modname = scope.top()->lookupName(type->modname.text);
+    if (modname == nullptr) {
+        error(3153, type->modname, "name not found");
+    }
+    Module *module = dynamic_cast<Module *>(modname);
+    if (module == nullptr) {
+        error(3154, type->modname, "module name expected");
+    }
+    Name *name = module->scope->lookupName(type->subname.text);
+    if (name == nullptr) {
+        error(3155, type->subname, "name not found in module");
+    }
+    Type *rtype = dynamic_cast<Type *>(name);
+    if (rtype == nullptr) {
+        error(3156, type->subname, "name not a type");
+    }
+    return rtype;
 }
 
 const Expression *Analyzer::analyze(const pt::Expression *expr)
@@ -1272,12 +1312,185 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
     }
 }
 
+Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::size_type &i)
+{
+    switch (descriptor.at(i)) {
+        case 'Z': i++; return TYPE_NOTHING;
+        case 'B': i++; return TYPE_BOOLEAN;
+        case 'N': i++; return TYPE_NUMBER;
+        case 'S': i++; return TYPE_STRING;
+        case 'Y': i++; return TYPE_BYTES;
+        case 'A': {
+            i++;
+            if (descriptor.at(i) != '<') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            const Type *type = deserialize_type(descriptor, i);
+            if (descriptor.at(i) != '>') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            return new TypeArray(Token(), type);
+        }
+        case 'D': {
+            i++;
+            if (descriptor.at(i) != '<') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            const Type *type = deserialize_type(descriptor, i);
+            if (descriptor.at(i) != '>') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            return new TypeDictionary(Token(), type);
+        }
+        case 'R': {
+            i++;
+            std::vector<std::pair<Token, const Type *>> fields;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            for (;;) {
+                std::string name;
+                while (descriptor.at(i) != ':') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                i++;
+                const Type *type = deserialize_type(descriptor, i);
+                Token token;
+                token.text = name;
+                fields.push_back(std::make_pair(token, type));
+                if (descriptor.at(i) == ']') {
+                    break;
+                }
+                i++;
+            }
+            i++;
+            return new TypeRecord(Token(), fields);
+        }
+        case 'E': {
+            i++;
+            std::map<std::string, int> names;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            int value = 0;
+            for (;;) {
+                std::string name;
+                while (descriptor.at(i) != ',' && descriptor.at(i) != ']') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                names[name] = value;
+                value++;
+                if (descriptor.at(i) == ']') {
+                    break;
+                }
+                i++;
+            }
+            i++;
+            return new TypeEnum(Token(), names, this);
+        }
+        case 'F': {
+            i++;
+            std::vector<const ParameterType *> params;
+            if (descriptor.at(i) != '[') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            while (descriptor.at(i) != ']') {
+                ParameterType::Mode mode = ParameterType::IN;
+                switch (descriptor.at(i)) {
+                    case '>': mode = ParameterType::IN;    break;
+                    case '*': mode = ParameterType::INOUT; break;
+                    case '<': mode = ParameterType::OUT;   break;
+                    default:
+                        internal_error("unexpected mode indicator");
+                }
+                i++;
+                std::string name;
+                while (descriptor.at(i) != ':') {
+                    name.push_back(descriptor.at(i));
+                    i++;
+                }
+                i++;
+                const Type *type = deserialize_type(descriptor, i);
+                Token token;
+                token.text = name;
+                // TODO: default value
+                params.push_back(new ParameterType(token, mode, type, nullptr));
+                if (descriptor.at(i) == ',') {
+                    i++;
+                }
+            }
+            i++;
+            if (descriptor.at(i) != ':') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            const Type *returntype = deserialize_type(descriptor, i);
+            return new TypeFunction(returntype, params);
+        }
+        default:
+            internal_error("TODO unimplemented type in deserialize_type: " + descriptor);
+    }
+}
+
+Type *Analyzer::deserialize_type(const std::string &descriptor)
+{
+    std::string::size_type i = 0;
+    Type *r = deserialize_type(descriptor, i);
+    if (i != descriptor.length()) {
+        internal_error("deserialize_type: " + descriptor + " " + std::to_string(i));
+    }
+    return r;
+}
+
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
     if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
         error2(3114, declaration->name, scope.top()->getDeclaration(declaration->name.text), "duplicate definition of name");
     }
-    rtl_import(declaration->name, scope.top(), declaration->name.text);
+    if (not rtl_import(declaration->name, scope.top(), declaration->name.text)) {
+        Bytecode object;
+        if (not support->loadBytecode(declaration->name.text, object)) {
+            internal_error("TODO module not found: " + declaration->name.text);
+        }
+        Module *module = new Module(declaration->token, scope.top(), declaration->name.text);
+        for (auto t: object.types) {
+            module->scope->addName(Token(), object.strtable[t.name], deserialize_type(object.strtable[t.descriptor]));
+        }
+        for (auto c: object.constants) {
+            const Type *type = deserialize_type(object.strtable[c.type]);
+            int i = 0;
+            module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
+        }
+        for (auto v: object.variables) {
+            module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(object.strtable[v.type]), v.index));
+        }
+        for (auto f: object.functions) {
+            const std::string name = object.strtable[f.name];
+            auto i = name.find('.');
+            if (i != std::string::npos) {
+                const std::string typestr = name.substr(0, i);
+                const std::string method = name.substr(i+1);
+                Name *n = module->scope->lookupName(typestr);
+                Type *type = dynamic_cast<Type *>(n);
+                type->methods[method] = new ModuleFunction(declaration->name.text, name, deserialize_type(object.strtable[f.descriptor]), f.entry);
+            } else {
+                module->scope->addName(Token(), name, new ModuleFunction(declaration->name.text, name, deserialize_type(object.strtable[f.descriptor]), f.entry));
+            }
+        }
+        for (auto e: object.exception_exports) {
+            module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
+        }
+        scope.top()->addName(declaration->token, declaration->name.text, module);
+    }
     return new NullStatement(declaration->token.line);
 }
 
@@ -1596,6 +1809,15 @@ const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
         error2(3115, declaration->token, scope.top()->getDeclaration(name), "duplicate definition of name");
     }
     scope.top()->addName(declaration->name, name, new Exception(declaration->name, name));
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze(const pt::ExportDeclaration *declaration)
+{
+    if (scope.top()->getDeclaration(declaration->name.text).type == NONE) {
+        error(3152, declaration->name, "export name not declared");
+    }
+    exports.insert(declaration->name.text);
     return new NullStatement(declaration->token.line);
 }
 
@@ -2021,13 +2243,25 @@ const Statement *Analyzer::analyze(const pt::NextStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
 {
-    const Name *name = scope.top()->lookupName(statement->name.text);
+    Scope *s = scope.top();
+    if (statement->name.first.type != NONE) {
+        const Name *modname = scope.top()->lookupName(statement->name.first.text);
+        if (modname == nullptr) {
+            error(3157, statement->name.first, "module name not found: " + statement->name.first.text);
+        }
+        const Module *mod = dynamic_cast<const Module *>(modname);
+        if (mod == nullptr) {
+            error(3158, statement->name.first, "module name expected");
+        }
+        s = mod->scope;
+    }
+    const Name *name = s->lookupName(statement->name.second.text);
     if (name == nullptr) {
-        error(3089, statement->name, "exception not found: " + statement->name.text);
+        error(3089, statement->name.second, "exception not found: " + statement->name.second.text);
     }
     const Exception *exception = dynamic_cast<const Exception *>(name);
     if (exception == nullptr) {
-        error2(3090, statement->name, name->declaration, "name not an exception");
+        error2(3090, statement->name.second, name->declaration, "name not an exception");
     }
     const Expression *info = statement->info != nullptr ? analyze(statement->info) : new ConstantStringExpression("");
     return new RaiseStatement(statement->token.line, exception, info);
@@ -2068,13 +2302,25 @@ const Statement *Analyzer::analyze(const pt::TryStatement *statement)
     scope.pop();
     std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
     for (auto x: statement->catches) {
-        const Name *name = scope.top()->lookupName(x.first.at(0).text);
+        Scope *s = scope.top();
+        if (x.first.at(0).first.type != NONE) {
+            const Name *modname = scope.top()->lookupName(x.first.at(0).first.text);
+            if (modname == nullptr) {
+                error(3159, x.first.at(0).first, "module name not found: " + x.first.at(0).first.text);
+            }
+            const Module *mod = dynamic_cast<const Module *>(modname);
+            if (mod == nullptr) {
+                error(3160, x.first.at(0).first, "module name expected");
+            }
+            s = mod->scope;
+        }
+        const Name *name = s->lookupName(x.first.at(0).second.text);
         if (name == nullptr) {
-            error(3087, x.first.at(0), "exception not found: " + x.first.at(0).text);
+            error(3087, x.first.at(0).second, "exception not found: " + x.first.at(0).second.text);
         }
         const Exception *exception = dynamic_cast<const Exception *>(name);
         if (exception == nullptr) {
-            error2(3088, x.first.at(0), name->declaration, "name not an exception");
+            error2(3088, x.first.at(0).second, name->declaration, "name not an exception");
         }
         std::vector<const Exception *> exceptions;
         exceptions.push_back(exception);
@@ -2112,11 +2358,24 @@ const Program *Analyzer::analyze()
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();
+    for (auto n: exports) {
+        const Name *name = scope.top()->lookupName(n);
+        if (name == nullptr) {
+            internal_error("export name not found");
+        }
+        if (r->exports.find(n) != r->exports.end()) {
+            internal_error("export name already exported");
+        }
+        if (dynamic_cast<const ExternalFunction *>(name) != nullptr) {
+            error(3161, name->declaration, "cannot export external function");
+        }
+        r->exports[n] = name;
+    }
     scope.pop();
     return r;
 }
 
-const Program *analyze(const pt::Program *program)
+const Program *analyze(ICompilerSupport *support, const pt::Program *program)
 {
-    return Analyzer(program).analyze();
+    return Analyzer(support, program).analyze();
 }

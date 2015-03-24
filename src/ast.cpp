@@ -23,6 +23,60 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
+std::string TypeBoolean::serialize(const Expression *value) const
+{
+    return value->eval_boolean() ? std::string(1, 1) : std::string(1, 0);
+}
+
+const Expression *TypeBoolean::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    unsigned char b = value.at(i);
+    i++;
+    return new ConstantBooleanExpression(b != 0);
+}
+
+std::string TypeNumber::serialize(const Expression *value) const
+{
+    Number x = value->eval_number();
+    return std::string(reinterpret_cast<const char *>(&x), sizeof(x));
+}
+
+const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    Number x = *reinterpret_cast<const Number *>(&value.at(i));
+    i += sizeof(Number);
+    return new ConstantNumberExpression(x);
+}
+
+std::string TypeString::serialize(const std::string &value)
+{
+    uint32_t len = static_cast<uint32_t>(value.length());
+    std::string r;
+    r.push_back(static_cast<unsigned char>(len >> 24) & 0xff);
+    r.push_back(static_cast<unsigned char>(len >> 16) & 0xff);
+    r.push_back(static_cast<unsigned char>(len >> 8) & 0xff);
+    r.push_back(static_cast<unsigned char>(len & 0xff));
+    return r + value;
+}
+
+std::string TypeString::serialize(const Expression *value) const
+{
+    return serialize(value->eval_string());
+}
+
+std::string TypeString::deserialize_string(const Bytecode::Bytes &value, int &i)
+{
+    uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
+    std::string s(&value.at(i+4), &value.at(i+4)+len);
+    i += 4 + len;
+    return s;
+}
+
+const Expression *TypeString::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    return new ConstantStringExpression(deserialize_string(value, i));
+}
+
 TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
   : Type(declaration, "array"),
     elementtype(elementtype)
@@ -43,6 +97,32 @@ bool TypeArray::is_equivalent(const Type *rhs) const
     return elementtype == nullptr || a->elementtype == nullptr || elementtype->is_equivalent(a->elementtype);
 }
 
+std::string TypeArray::serialize(const Expression *value) const
+{
+    std::string r;
+    const ArrayLiteralExpression *a = dynamic_cast<const ArrayLiteralExpression *>(value);
+    r.push_back(static_cast<unsigned char>(a->elements.size() >> 24) & 0xff);
+    r.push_back(static_cast<unsigned char>(a->elements.size() >> 16) & 0xff);
+    r.push_back(static_cast<unsigned char>(a->elements.size() >> 8) & 0xff);
+    r.push_back(static_cast<unsigned char>(a->elements.size() & 0xff));
+    for (auto x: a->elements) {
+        r.append(a->elementtype->serialize(x));
+    }
+    return r;
+}
+
+const Expression *TypeArray::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    std::vector<const Expression *> elements;
+    uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
+    i += 4;
+    while (len > 0) {
+        elements.push_back(elementtype->deserialize_value(value, i));
+        len--;
+    }
+    return new ArrayLiteralExpression(elementtype, elements);
+}
+
 bool TypeDictionary::is_equivalent(const Type *rhs) const
 {
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
@@ -52,9 +132,64 @@ bool TypeDictionary::is_equivalent(const Type *rhs) const
     return elementtype == nullptr || d->elementtype == nullptr || elementtype->is_equivalent(d->elementtype);
 }
 
+std::string TypeDictionary::serialize(const Expression *value) const
+{
+    std::string r;
+    const DictionaryLiteralExpression *d = dynamic_cast<const DictionaryLiteralExpression *>(value);
+    r.push_back(static_cast<unsigned char>(d->dict.size() >> 24) & 0xff);
+    r.push_back(static_cast<unsigned char>(d->dict.size() >> 16) & 0xff);
+    r.push_back(static_cast<unsigned char>(d->dict.size() >> 8) & 0xff);
+    r.push_back(static_cast<unsigned char>(d->dict.size() & 0xff));
+    for (auto x: d->dict) {
+        r.append(TypeString::serialize(x.first));
+        r.append(d->elementtype->serialize(x.second));
+    }
+    return r;
+}
+
+const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    std::vector<std::pair<std::string, const Expression *>> dict;
+    uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
+    i += 4;
+    while (len > 0) {
+        std::string name = TypeString::deserialize_string(value, i);
+        dict.push_back(std::make_pair(name, elementtype->deserialize_value(value, i)));
+        len--;
+    }
+    return new DictionaryLiteralExpression(elementtype, dict);
+}
+
 bool TypeRecord::is_equivalent(const Type *rhs) const
 {
     return this == rhs;
+}
+
+std::string TypeRecord::serialize(const Expression *value) const
+{
+    std::string r;
+    const RecordLiteralExpression *a = dynamic_cast<const RecordLiteralExpression *>(value);
+    r.push_back(static_cast<unsigned char>(a->values.size() >> 24) & 0xff);
+    r.push_back(static_cast<unsigned char>(a->values.size() >> 16) & 0xff);
+    r.push_back(static_cast<unsigned char>(a->values.size() >> 8) & 0xff);
+    r.push_back(static_cast<unsigned char>(a->values.size() & 0xff));
+    for (auto x: a->values) {
+        r.append(x->type->serialize(x));
+    }
+    return r;
+}
+
+const Expression *TypeRecord::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    std::vector<const Expression *> elements;
+    uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
+    int f = 0;
+    while (len > 0) {
+        elements.push_back(fields[f].second->deserialize_value(value, i));
+        f++;
+        len--;
+    }
+    return new RecordLiteralExpression(this, elements);
 }
 
 bool TypePointer::is_equivalent(const Type *rhs) const
@@ -68,6 +203,16 @@ bool TypePointer::is_equivalent(const Type *rhs) const
     }
     // Shortcut check avoids infinite recursion on records with pointer to itself.
     return reftype == p->reftype || reftype->is_equivalent(p->reftype);
+}
+
+std::string TypePointer::serialize(const Expression *) const
+{
+    return std::string();
+}
+
+const Expression *TypePointer::deserialize_value(const Bytecode::Bytes &, int &) const
+{
+    return new ConstantNilExpression();
 }
 
 std::string ConstantBooleanExpression::text() const
@@ -338,7 +483,8 @@ Program::Program(const std::string &source_hash)
   : source_hash(source_hash),
     frame(new Frame(nullptr)),
     scope(new Scope(nullptr, frame)),
-    statements()
+    statements(),
+    exports()
 {
     scope->addName(Token(), "Boolean", TYPE_BOOLEAN);
     scope->addName(Token(), "Number", TYPE_NUMBER);

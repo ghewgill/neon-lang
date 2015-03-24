@@ -153,6 +153,8 @@ neon = env.Program("bin/neon", [
     "src/rtl_exec.cpp",
     rtl_cpp,
     rtl_platform,
+    "src/support.cpp",
+    "src/support_compiler.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -166,12 +168,14 @@ neonc = env.Program("bin/neonc", [
     "src/disassembler.cpp",
     "src/format.cpp",
     "src/lexer.cpp",
+    "src/neonc.cpp",
     "src/number.cpp",
     "src/parser.cpp",
     "src/pt_dump.cpp",
     "src/rtl_compile.cpp",
     rtl_const,
-    "src/neonc.cpp",
+    "src/support.cpp",
+    "src/support_compiler.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -181,11 +185,12 @@ neonx = env.Program("bin/neonx", [
     "src/cell.cpp",
     "src/exec.cpp",
     "src/format.cpp",
+    "src/neonx.cpp",
     "src/number.cpp",
     "src/rtl_exec.cpp",
     rtl_cpp,
     rtl_platform,
-    "src/neonx.cpp",
+    "src/support.cpp",
 ] + coverage_lib,
 )
 
@@ -195,6 +200,9 @@ neondis = env.Program("bin/neondis", [
     "src/disassembler.cpp",
     "src/neondis.cpp",
     "src/number.cpp",
+    # The following are just to support internal_error()
+    "src/lexer.cpp",
+    "src/util.cpp",
 ] + coverage_lib,
 )
 
@@ -264,7 +272,9 @@ else:
 
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py t")
 env.Depends(tests, test_ffi)
-env.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
+testenv = env.Clone()
+testenv["ENV"]["NEONPATH"] = "t/"
+testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
 env.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
 
 for sample in Glob("samples/*.neon"):

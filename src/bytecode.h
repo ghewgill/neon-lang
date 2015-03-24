@@ -26,26 +26,35 @@ public:
      */
 
     struct Type {
+        Type(): name(0), descriptor(0) {}
         unsigned int name;
         unsigned int descriptor;
     };
 
     struct Constant {
+        Constant(): name(0), type(0), value() {}
         unsigned int name;
         unsigned int type;
         Bytes value;
     };
 
     struct Variable {
+        Variable(): name(0), type(0), index(0) {}
         unsigned int name;
         unsigned int type;
         unsigned int index;
     };
 
     struct Function {
+        Function(): name(0), descriptor(0), entry(0) {}
         unsigned int name;
         unsigned int descriptor;
-        unsigned int offset;
+        unsigned int entry;
+    };
+
+    struct ExceptionExport {
+        ExceptionExport(): name(0) {}
+        unsigned int name;
     };
 
     struct ExceptionInfo {
@@ -62,6 +71,8 @@ public:
     std::vector<Constant> constants;
     std::vector<Variable> variables;
     std::vector<Function> functions;
+    std::vector<ExceptionExport> exception_exports;
+    std::vector<std::pair<unsigned int, std::string>> imports;
     std::vector<ExceptionInfo> exceptions;
     Bytes code;
 

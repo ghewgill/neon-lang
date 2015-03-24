@@ -8,6 +8,7 @@ enum Opcode {
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate
     PUSHPG,     // push pointer to global
+    PUSHPMG,    // push pointer to module global
     PUSHPL,     // push pointer to local
     PUSHPOL,    // push pointer to outer local
     LOADB,      // load boolean
@@ -63,6 +64,7 @@ enum Opcode {
     IND,        // in dictionary
     CALLP,      // call predefined
     CALLF,      // call function
+    CALLMF,     // call module function
     JUMP,       // unconditional jump
     JF,         // jump if false
     JT,         // jump if true

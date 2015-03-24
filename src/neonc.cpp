@@ -11,6 +11,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "pt_dump.h"
+#include "support.h"
 
 int main(int argc, char *argv[])
 {
@@ -35,21 +36,29 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        std::stringstream buf;
         std::string name = argv[a];
+        std::string source_path;
+
+        std::stringstream buf;
         if (name == "-") {
             std::cout << "Compiling stdin (no output file)...\n";
             buf << std::cin.rdbuf();
         } else {
+            auto i = name.find_last_of("/:\\");
+            if (i != std::string::npos) {
+                source_path = name.substr(0, i+1);
+            }
             std::cout << "Compiling " << name << "...\n";
             std::ifstream inf(name);
             buf << inf.rdbuf();
         }
 
+        CompilerSupport compiler_support(source_path);
+
         try {
             auto tokens = tokenize(buf.str());
             auto parsetree = parse(tokens);
-            auto ast = analyze(parsetree);
+            auto ast = analyze(&compiler_support, parsetree);
             DebugInfo debug(buf.str());
             auto bytecode = compile(ast, &debug);
             if (listing) {

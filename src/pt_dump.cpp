@@ -28,6 +28,9 @@ public:
         write("TypeParameterised(" + node->name.text + ")");
         child(node->elementtype);
     }
+    virtual void visit(const TypeImport *node) override {
+        write("TypeImport(" + node->modname.text + "." + node->subname.text + ")");
+    }
 
     virtual void visit(const BooleanLiteralExpression *node) override {
         write("BooleanLiteralExpression(" + std::string(node->value ? "true" : "false") + ")");
@@ -233,6 +236,9 @@ public:
     virtual void visit(const ExceptionDeclaration *node) override {
         write("ExceptionDeclaration(" + node->name.text + ")");
     }
+    virtual void visit(const ExportDeclaration *node) override {
+        write("ExportDeclaration(" + node->name.text + ")");
+    }
 
     virtual void visit(const AssignmentStatement *node) override {
         write("AssignmentStatement");
@@ -303,7 +309,7 @@ public:
         write("NextStatement(" + std::to_string(node->type) + ")");
     }
     virtual void visit(const RaiseStatement *node) override {
-        write("RaiseStatement(" + node->name.text + ")");
+        write("RaiseStatement(" + node->name.first.text + "." + node->name.second.text + ")");
         child(node->info);
     }
     virtual void visit(const RepeatStatement *node) override {

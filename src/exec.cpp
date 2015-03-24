@@ -18,6 +18,7 @@
 #include "opcode.h"
 #include "rtl_exec.h"
 #include "rtl_platform.h"
+#include "support.h"
 
 namespace {
 
@@ -113,20 +114,33 @@ public:
     std::vector<Cell> locals;
 };
 
-class Executor {
+class Executor;
+
+class Module {
 public:
-    Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo);
-    void exec();
-private:
-    const Bytecode obj;
+    Module(const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support);
+    Bytecode object;
     const DebugInfo *debug;
-    Bytecode::Bytes::size_type ip;
-    std::stack<Cell> stack;
-    std::stack<Bytecode::Bytes::size_type> callstack;
     std::vector<Cell> globals;
-    std::vector<ActivationFrame> frames;
     std::vector<size_t> rtl_call_tokens;
     std::vector<ExternalCallInfo *> external_functions;
+private:
+    Module(const Module &);
+    Module &operator=(const Module &);
+};
+
+class Executor {
+public:
+    Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support);
+    void exec();
+private:
+    std::map<std::string, Module *> modules;
+    std::vector<std::string> init_order;
+    Module *module;
+    Bytecode::Bytes::size_type ip;
+    std::stack<Cell> stack;
+    std::stack<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
+    std::vector<ActivationFrame> frames;
 
     void exec_ENTER();
     void exec_LEAVE();
@@ -134,6 +148,7 @@ private:
     void exec_PUSHN();
     void exec_PUSHS();
     void exec_PUSHPG();
+    void exec_PUSHPMG();
     void exec_PUSHPL();
     void exec_PUSHPOL();
     void exec_LOADB();
@@ -189,6 +204,7 @@ private:
     void exec_IND();
     void exec_CALLP();
     void exec_CALLF();
+    void exec_CALLMF();
     void exec_JUMP();
     void exec_JF();
     void exec_JT();
@@ -206,27 +222,53 @@ private:
     void exec_PUSHNIL();
 
     void raise(const std::string &exception, const std::string &info);
+
+    friend class Module;
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
 };
 
-Executor::Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo)
-  : obj(bytes),
-    debug(debuginfo),
+Executor::Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support)
+  : modules(),
+    init_order(),
+    module(nullptr),
     ip(0),
     stack(),
     callstack(),
-    globals(obj.global_size),
-    frames(),
-    rtl_call_tokens(obj.strtable.size(), SIZE_MAX),
+    frames()
+{
+    module = new Module(Bytecode(bytes), debuginfo, this, support);
+    modules[""] = module;
+}
+
+Module::Module(const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support)
+  : object(object),
+    debug(debuginfo),
+    globals(object.global_size),
+    rtl_call_tokens(object.strtable.size(), SIZE_MAX),
     external_functions()
 {
+    for (auto i: object.imports) {
+        std::string name = object.strtable[i.first];
+        if (executor->modules.find(name) != executor->modules.end()) {
+            continue;
+        }
+        Bytecode code;
+        if (not support->loadBytecode(name, code)) {
+            fprintf(stderr, "couldn't load module: %s\n", name.c_str());
+            exit(1);
+        }
+        // TODO: check hash of exports
+        executor->init_order.push_back(name);
+        executor->modules[name] = nullptr; // Prevent unwanted recursion.
+        executor->modules[name] = new Module(code, nullptr, executor, support);
+    }
 }
 
 void Executor::exec_ENTER()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     frames.push_back(ActivationFrame(val));
 }
@@ -239,7 +281,7 @@ void Executor::exec_LEAVE()
 
 void Executor::exec_PUSHB()
 {
-    bool val = obj.code[ip+1] != 0;
+    bool val = module->object.code[ip+1] != 0;
     ip += 2;
     stack.push(Cell(val));
 }
@@ -247,29 +289,45 @@ void Executor::exec_PUSHB()
 void Executor::exec_PUSHN()
 {
     // TODO: endian
-    Number val = *reinterpret_cast<const Number *>(&obj.code[ip+1]);
+    Number val = *reinterpret_cast<const Number *>(&module->object.code[ip+1]);
     ip += 1 + sizeof(val);
     stack.push(Cell(val));
 }
 
 void Executor::exec_PUSHS()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    stack.push(Cell(obj.strtable[val]));
+    stack.push(Cell(module->object.strtable[val]));
 }
 
 void Executor::exec_PUSHPG()
 {
-    uint32_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t addr = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    assert(addr < globals.size());
-    stack.push(Cell(&globals.at(addr)));
+    assert(addr < module->globals.size());
+    stack.push(Cell(&module->globals.at(addr)));
+}
+
+void Executor::exec_PUSHPMG()
+{
+    ip++;
+    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    uint32_t addr = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    auto m = modules.find(module->object.strtable[mod]);
+    if (m == modules.end()) {
+        fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
+        exit(1);
+    }
+    assert(addr < m->second->globals.size());
+    stack.push(Cell(&m->second->globals.at(addr)));
 }
 
 void Executor::exec_PUSHPL()
 {
-    uint32_t addr = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t addr = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     stack.push(Cell(&frames.back().locals.at(addr)));
 }
@@ -277,9 +335,9 @@ void Executor::exec_PUSHPL()
 void Executor::exec_PUSHPOL()
 {
     ip++;
-    uint32_t enclosing = (obj.code[ip] << 24) | (obj.code[ip+1] << 16) | (obj.code[ip+2] << 8) | obj.code[ip+3];
+    uint32_t enclosing = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
-    uint32_t addr = (obj.code[ip] << 24) | (obj.code[ip+1] << 16) | (obj.code[ip+2] << 8) | obj.code[ip+3];
+    uint32_t addr = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
     stack.push(Cell(&frames[frames.size()-1-enclosing].locals.at(addr)));
 }
@@ -755,11 +813,11 @@ void Executor::exec_IND()
 
 void Executor::exec_CALLP()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    std::string func = obj.strtable.at(val);
+    std::string func = module->object.strtable.at(val);
     try {
-        rtl_call(stack, func, rtl_call_tokens[val]);
+        rtl_call(stack, func, module->rtl_call_tokens[val]);
     } catch (RtlException &x) {
         ip -= 5;
         raise(x.name, x.info);
@@ -768,22 +826,39 @@ void Executor::exec_CALLP()
 
 void Executor::exec_CALLF()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    callstack.push(ip);
+    callstack.push(std::make_pair(module, ip));
+    ip = val;
+}
+
+void Executor::exec_CALLMF()
+{
+    ip++;
+    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    callstack.push(std::make_pair(module, ip));
+    auto m = modules.find(module->object.strtable[mod]);
+    if (m == modules.end()) {
+        fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
+        exit(1);
+    }
+    module = m->second;
     ip = val;
 }
 
 void Executor::exec_JUMP()
 {
-    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     ip = target;
 }
 
 void Executor::exec_JF()
 {
-    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     bool a = stack.top().boolean(); stack.pop();
     if (not a) {
@@ -793,7 +868,7 @@ void Executor::exec_JF()
 
 void Executor::exec_JT()
 {
-    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     bool a = stack.top().boolean(); stack.pop();
     if (a) {
@@ -803,7 +878,7 @@ void Executor::exec_JT()
 
 void Executor::exec_JFCHAIN()
 {
-    uint32_t target = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     Cell a = stack.top(); stack.pop();
     if (not a.boolean()) {
@@ -837,18 +912,19 @@ void Executor::exec_DROP()
 
 void Executor::exec_RET()
 {
-    ip = callstack.top();
+    module = callstack.top().first;
+    ip = callstack.top().second;
     callstack.pop();
 }
 
 void Executor::exec_CALLE()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    ExternalCallInfo *eci = val < external_functions.size() ? external_functions.at(val) : nullptr;
+    ExternalCallInfo *eci = val < module->external_functions.size() ? module->external_functions.at(val) : nullptr;
     if (eci == nullptr) {
         eci = new ExternalCallInfo;
-        std::string func = obj.strtable.at(val);
+        std::string func = module->object.strtable.at(val);
         auto info = split(func, ':');
         std::string library = info[0];
         std::string name = info[1];
@@ -898,10 +974,10 @@ void Executor::exec_CALLE()
             fprintf(stderr, "internal ffi error %d\n", status);
             exit(1);
         }
-        if (val >= external_functions.size()) {
-            external_functions.resize(val + 1);
+        if (val >= module->external_functions.size()) {
+            module->external_functions.resize(val + 1);
         }
-        external_functions[val] = eci;
+        module->external_functions[val] = eci;
     }
     std::vector<Cell> cells;
     char buf[1024];
@@ -925,7 +1001,7 @@ void Executor::exec_CALLE()
 
 void Executor::exec_CONSA()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     Cell a;
     while (val > 0) {
@@ -938,7 +1014,7 @@ void Executor::exec_CONSA()
 
 void Executor::exec_CONSD()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     Cell d;
     while (val > 0) {
@@ -953,8 +1029,8 @@ void Executor::exec_CONSD()
 void Executor::exec_EXCEPT()
 {
     std::string info = stack.top().string(); stack.pop();
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
-    raise(obj.strtable[val], info);
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    raise(module->object.strtable[val], info);
 }
 
 void Executor::exec_CLREXC()
@@ -962,14 +1038,14 @@ void Executor::exec_CLREXC()
     ip++;
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    globals[0].array()[0] = Cell("");
-    globals[0].array()[1] = Cell("");
-    globals[0].array()[2] = Cell(number_from_uint32(0));
+    module->globals[0].array()[0] = Cell("");
+    module->globals[0].array()[1] = Cell("");
+    module->globals[0].array()[2] = Cell(number_from_uint32(0));
 }
 
 void Executor::exec_ALLOC()
 {
-    uint32_t val = (obj.code[ip+1] << 24) | (obj.code[ip+2] << 16) | (obj.code[ip+3] << 8) | obj.code[ip+4];
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     stack.push(Cell(new Cell(std::vector<Cell>(val))));
 }
@@ -984,14 +1060,15 @@ void Executor::raise(const std::string &exception, const std::string &info)
 {
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    globals[0].array()[0] = Cell(exception);
-    globals[0].array()[1] = Cell(info);
-    globals[0].array()[2] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
+    module->globals[0].array()[0] = Cell(exception);
+    module->globals[0].array()[1] = Cell(info);
+    module->globals[0].array()[2] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
+    auto emodule = module;
     auto eip = ip;
     for (;;) {
-        for (auto e = obj.exceptions.begin(); e != obj.exceptions.end(); ++e) {
-            if (ip >= e->start && ip < e->end && exception == obj.strtable[e->excid]) {
+        for (auto e = module->object.exceptions.begin(); e != module->object.exceptions.end(); ++e) {
+            if (ip >= e->start && ip < e->end && exception == module->object.strtable[e->excid]) {
                 ip = e->handler;
                 return;
             }
@@ -999,17 +1076,18 @@ void Executor::raise(const std::string &exception, const std::string &info)
         if (callstack.empty()) {
             break;
         }
-        ip = callstack.top();
+        module = callstack.top().first;
+        ip = callstack.top().second;
         callstack.pop();
     }
     fprintf(stderr, "unhandled exception %s (%s) at address %lu\n", exception.c_str(), info.c_str(), eip);
 
-    if (debug != nullptr) {
+    if (emodule->debug != nullptr) {
         auto p = eip;
         for (;;) {
-            auto line = debug->line_numbers.find(p);
-            if (line != debug->line_numbers.end()) {
-                fprintf(stderr, "%d | %s\n", line->second, debug->source_lines.at(line->second).c_str());
+            auto line = emodule->debug->line_numbers.find(p);
+            if (line != emodule->debug->line_numbers.end()) {
+                fprintf(stderr, "%d | %s\n", line->second, emodule->debug->source_lines.at(line->second).c_str());
                 break;
             }
             if (p == 0) {
@@ -1029,19 +1107,34 @@ void Executor::exec()
 {
     // The number of fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    globals[0].array().resize(3);
+    // TODO: Should be only one instance of the current exception object.
+    for (auto m: modules) {
+        m.second->globals[0].array().resize(3);
+    }
 
-    callstack.push(obj.code.size());
-    while (not callstack.empty() && ip < obj.code.size()) {
-        //std::cerr << "ip " << ip << " op " << (int)obj.code[ip] << "\n";
+    callstack.push(std::make_pair(module, module->object.code.size()));
+
+    // This sets up the call stack in such a way as to initialize
+    // each module in the order determined in init_order, followed
+    // by running the code in the main module.
+    callstack.push(std::make_pair(module, 0));
+    for (auto x = init_order.rbegin(); x != init_order.rend(); ++x) {
+        callstack.push(std::make_pair(modules[*x], 0));
+    }
+    // Set up ip for first module (or main module if no imports).
+    exec_RET();
+
+    while (not callstack.empty() && ip < module->object.code.size()) {
+        //std::cerr << "ip " << ip << " op " << (int)module->object.code[ip] << "\n";
         auto last_ip = ip;
-        switch (static_cast<Opcode>(obj.code[ip])) {
+        switch (static_cast<Opcode>(module->object.code[ip])) {
             case ENTER:   exec_ENTER(); break;
             case LEAVE:   exec_LEAVE(); break;
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
             case PUSHPG:  exec_PUSHPG(); break;
+            case PUSHPMG: exec_PUSHPMG(); break;
             case PUSHPL:  exec_PUSHPL(); break;
             case PUSHPOL: exec_PUSHPOL(); break;
             case LOADB:   exec_LOADB(); break;
@@ -1097,6 +1190,7 @@ void Executor::exec()
             case IND:     exec_IND(); break;
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
+            case CALLMF:  exec_CALLMF(); break;
             case JUMP:    exec_JUMP(); break;
             case JF:      exec_JF(); break;
             case JT:      exec_JT(); break;
@@ -1114,15 +1208,15 @@ void Executor::exec()
             case PUSHNIL: exec_PUSHNIL(); break;
         }
         if (ip == last_ip) {
-            fprintf(stderr, "exec: Unexpected opcode: %d\n", obj.code[ip]);
+            fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
             abort();
         }
     }
     assert(stack.empty());
 }
 
-void exec(const Bytecode::Bytes &obj, const DebugInfo *debuginfo, int argc, char *argv[])
+void exec(const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
-    Executor(obj, debuginfo).exec();
+    Executor(obj, debuginfo, support).exec();
 }

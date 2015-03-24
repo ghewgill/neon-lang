@@ -11,6 +11,7 @@
 #include "lexer.h"
 #include "parser.h"
 #include "pt_dump.h"
+#include "support.h"
 
 static TokenizedSource dump(const TokenizedSource &tokens)
 {
@@ -34,6 +35,8 @@ static const Program *dump(const Program *program)
 
 static void repl(int argc, char *argv[])
 {
+    CompilerSupport compiler_support("");
+    RuntimeSupport runtime_support("");
     std::cout << "Neon 0.1\n";
     std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
     for (;;) {
@@ -53,10 +56,10 @@ static void repl(int argc, char *argv[])
         } else {
             try {
                 auto parsetree = parse(tokenize(s));
-                auto ast = analyze(parsetree);
+                auto ast = analyze(&compiler_support, parsetree);
                 DebugInfo debug(s);
                 auto bytecode = compile(ast, &debug);
-                exec(bytecode, &debug, argc, argv);
+                exec(bytecode, &debug, &runtime_support, argc, argv);
             } catch (CompilerError &error) {
                 error.write(std::cerr);
             }
@@ -94,14 +97,22 @@ int main(int argc, char *argv[])
     }
 
     const std::string name = argv[a];
+    std::string source_path;
 
     std::stringstream buf;
     if (name == "-") {
         buf << std::cin.rdbuf();
     } else {
+        auto i = name.find_last_of("/:\\");
+        if (i != std::string::npos) {
+            source_path = name.substr(0, i+1);
+        }
         std::ifstream inf(name);
         buf << inf.rdbuf();
     }
+
+    CompilerSupport compiler_support(source_path);
+    RuntimeSupport runtime_support(source_path);
 
     std::vector<unsigned char> bytecode;
     // TODO - Allow reading debug information from file.
@@ -121,7 +132,7 @@ int main(int argc, char *argv[])
                 dump(parsetree);
             }
 
-            auto ast = analyze(parsetree);
+            auto ast = analyze(&compiler_support, parsetree);
             if (dump_ast) {
                 dump(ast);
             }
@@ -141,5 +152,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(bytecode, &debug, argc-a, argv+a);
+    exec(bytecode, &debug, &runtime_support, argc-a, argv+a);
 }

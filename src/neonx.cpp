@@ -3,6 +3,7 @@
 #include <sstream>
 
 #include "exec.h"
+#include "support.h"
 
 int main(int argc, char *argv[])
 {
@@ -12,6 +13,11 @@ int main(int argc, char *argv[])
     }
 
     const std::string name = argv[1];
+    std::string source_path;
+    auto i = name.find_last_of("/:\\");
+    if (i != std::string::npos) {
+        source_path = name.substr(0, i+1);
+    }
 
     std::ifstream inf(name, std::ios::binary);
     std::stringstream buf;
@@ -23,12 +29,14 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    RuntimeSupport runtime_support(source_path);
+
     std::vector<unsigned char> bytecode;
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
 
     // TODO: Implement reading DebugInfo from another file.
-    exec(bytecode, nullptr, argc-1, argv+1);
+    exec(bytecode, nullptr, &runtime_support, argc-1, argv+1);
 
     // Return 0, if the neon bytecode did not call sys.exit() with its OWN exit code.
     return 0;

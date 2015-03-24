@@ -1,0 +1,37 @@
+IMPORT module
+
+VAR r: module.type
+r.string := "hello"
+print(r.string)
+%= hello
+
+print(r.method())
+%= hellohello
+
+print("\(module.const)")
+%= 5
+
+print(module.var)
+%= test
+
+print("\(module.function(5))")
+%= 25
+
+VAR x: Number := 7
+module.modify(x)
+print("\(x)")
+%= 14
+
+TRY
+    RAISE module.exception
+EXCEPTION module.exception
+    print("exception 1")
+END TRY
+%= exception 1
+
+TRY
+    module.raise()
+EXCEPTION module.exception
+    print("exception 2")
+END TRY
+%= exception 2

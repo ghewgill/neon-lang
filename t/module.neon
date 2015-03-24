@@ -1,0 +1,35 @@
+EXPORT type
+EXPORT const
+EXPORT var
+EXPORT function
+EXPORT modify
+EXPORT exception
+EXPORT raise
+
+TYPE type := RECORD
+    boolean: Boolean
+    number: Number
+    string: String
+END RECORD
+
+FUNCTION type.method(IN self: type): String
+    RETURN self.string & self.string
+END FUNCTION
+
+CONST const: Number := 5
+
+VAR var: String := "test"
+
+FUNCTION function(x: Number): Number
+    RETURN x * x
+END FUNCTION
+
+FUNCTION modify(INOUT x: Number)
+    x := x * 2
+END FUNCTION
+
+FUNCTION raise()
+    RAISE exception
+END FUNCTION
+
+DECLARE EXCEPTION exception

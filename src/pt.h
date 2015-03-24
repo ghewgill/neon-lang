@@ -14,6 +14,7 @@ class TypeEnum;
 class TypeRecord;
 class TypePointer;
 class TypeParameterised;
+class TypeImport;
 
 class BooleanLiteralExpression;
 class NumberLiteralExpression;
@@ -55,6 +56,7 @@ class LetDeclaration;
 class FunctionDeclaration;
 class ExternalFunctionDeclaration;
 class ExceptionDeclaration;
+class ExportDeclaration;
 
 class AssignmentStatement;
 class CaseStatement;
@@ -81,6 +83,7 @@ public:
     virtual void visit(const TypeRecord *) = 0;
     virtual void visit(const TypePointer *) = 0;
     virtual void visit(const TypeParameterised *) = 0;
+    virtual void visit(const TypeImport *) = 0;
 
     virtual void visit(const BooleanLiteralExpression *) = 0;
     virtual void visit(const NumberLiteralExpression *) = 0;
@@ -122,6 +125,7 @@ public:
     virtual void visit(const FunctionDeclaration *) = 0;
     virtual void visit(const ExternalFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
+    virtual void visit(const ExportDeclaration *) = 0;
 
     virtual void visit(const AssignmentStatement *) = 0;
     virtual void visit(const CaseStatement *) = 0;
@@ -195,6 +199,14 @@ public:
 private:
     TypeParameterised(const TypeParameterised &);
     TypeParameterised &operator=(const TypeParameterised &);
+};
+
+class TypeImport: public Type {
+public:
+    TypeImport(const Token &token, const Token &modname, const Token &subname): Type(token), modname(modname), subname(subname) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token modname;
+    const Token subname;
 };
 
 class Expression: public ParseTreeNode {
@@ -591,6 +603,13 @@ public:
     const Token name;
 };
 
+class ExportDeclaration: public Declaration {
+public:
+    ExportDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token name;
+};
+
 class BlockStatement: public Statement {
 public:
     BlockStatement(const Token &token, const std::vector<const Statement *> &body): Statement(token), body(body) {}
@@ -699,9 +718,9 @@ public:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(const Token &token, const Token &name, const Expression *info): Statement(token), name(name), info(info) {}
+    RaiseStatement(const Token &token, const std::pair<Token, Token> &name, const Expression *info): Statement(token), name(name), info(info) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const Token name;
+    const std::pair<Token, Token> name;
     const Expression *const info;
 private:
     RaiseStatement(const RaiseStatement &);
@@ -730,9 +749,9 @@ private:
 
 class TryStatement: public BlockStatement {
 public:
-    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
+    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::vector<std::pair<std::vector<Token>, std::vector<const Statement *>>> catches;
+    const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
 };
 
 class WhileStatement: public BlockStatement {

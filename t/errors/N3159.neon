@@ -1,0 +1,4 @@
+TRY
+EXCEPTION module.exception
+          %<
+END TRY

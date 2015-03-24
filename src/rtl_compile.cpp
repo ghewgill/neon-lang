@@ -16,11 +16,12 @@ void rtl_compile_init(Scope *scope)
     }
 }
 
-void rtl_import(const Token &token, Scope *scope, const std::string &name)
+bool rtl_import(const Token &token, Scope *scope, const std::string &name)
 {
     std::string prefix = name + "$";
     Module *module = new Module(Token(), scope, name);
     init_builtin_constants(name, module->scope);
+    bool any = false;
     for (auto f: BuiltinFunctions) {
         std::string qualified_name(f.name);
         if (qualified_name.substr(0, prefix.length()) == prefix) {
@@ -32,7 +33,11 @@ void rtl_import(const Token &token, Scope *scope, const std::string &name)
                 params.push_back(new ParameterType(Token(), p.m, p.p, nullptr));
             }
             module->scope->addName(Token(), qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
+            any = true;
         }
     }
-    scope->addName(token, name, module);
+    if (any) {
+        scope->addName(token, name, module);
+    }
+    return any;
 }

@@ -9,6 +9,7 @@
 #include "debuginfo.h"
 #include "number.h"
 #include "opcode.h"
+#include "util.h"
 
 class Disassembler {
 public:
@@ -26,6 +27,7 @@ private:
     void disasm_PUSHN();
     void disasm_PUSHS();
     void disasm_PUSHPG();
+    void disasm_PUSHPMG();
     void disasm_PUSHPL();
     void disasm_PUSHPOL();
     void disasm_LOADB();
@@ -81,6 +83,7 @@ private:
     void disasm_IND();
     void disasm_CALLP();
     void disasm_CALLF();
+    void disasm_CALLMF();
     void disasm_JUMP();
     void disasm_JF();
     void disasm_JT();
@@ -96,6 +99,8 @@ private:
     void disasm_CLREXC();
     void disasm_ALLOC();
     void disasm_PUSHNIL();
+
+    std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
     Disassembler(const Disassembler &);
     Disassembler &operator=(const Disassembler &);
@@ -146,6 +151,16 @@ void Disassembler::disasm_PUSHPG()
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "PUSHPG " << addr << "\n";
+}
+
+void Disassembler::disasm_PUSHPMG()
+{
+    index++;
+    uint32_t module = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "PUSHPMG " << module << "," << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHPL()
@@ -485,6 +500,16 @@ void Disassembler::disasm_CALLF()
     out << "CALLF " << addr << "\n";
 }
 
+void Disassembler::disasm_CALLMF()
+{
+    index++;
+    uint32_t mod = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "CALLMF " << mod << "," << addr << "\n";
+}
+
 void Disassembler::disasm_JUMP()
 {
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -584,6 +609,26 @@ void Disassembler::disasm_PUSHNIL()
     index++;
 }
 
+std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
+{
+    switch (type.at(0)) {
+        case 'B': {
+            return value.at(0) != 0 ? "TRUE" : "FALSE";
+        }
+        case 'N': {
+            Number x = *reinterpret_cast<const Number *>(&value.at(0));
+            return number_to_string(x);
+        }
+        case 'S': {
+            uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(1) << 8) | value.at(0);
+            return std::string(&value.at(4), &value.at(4)+len);
+        }
+        default:
+            // TODO internal_error("TODO unimplemented type in decode_value");
+            return "<unknown>";
+    }
+}
+
 void Disassembler::disassemble()
 {
     out << "String table: [\n";
@@ -593,6 +638,30 @@ void Disassembler::disassemble()
         i++;
     }
     out << "]\n";
+
+    out << "Exports:\n";
+    out << "  Types:\n";
+    for (auto t: obj.types) {
+        out << "    " << obj.strtable[t.name] << " " << obj.strtable[t.descriptor] << "\n";
+    }
+    out << "  Constants:\n";
+    for (auto c: obj.constants) {
+        out << "    " << obj.strtable[c.name] << " " << obj.strtable[c.type] << " " << decode_value(obj.strtable[c.type], c.value) << "\n";
+    }
+    out << "  Variables:\n";
+    for (auto v: obj.variables) {
+        out << "    " << obj.strtable[v.name] << " " << obj.strtable[v.type] << " " << v.index << "\n";
+    }
+    out << "  Functions:\n";
+    for (auto f: obj.functions) {
+        out << "    " << obj.strtable[f.name] << " " << obj.strtable[f.descriptor] << " " << f.entry << "\n";
+    }
+
+    out << "Imports " << obj.imports.size() << ":\n";
+    for (auto i: obj.imports) {
+        out << "  " << obj.strtable[i.first] << "\n";
+    }
+
     while (index < obj.code.size()) {
         if (debug != nullptr) {
             auto line = debug->line_numbers.find(index);
@@ -609,6 +678,7 @@ void Disassembler::disassemble()
             case PUSHN:   disasm_PUSHN(); break;
             case PUSHS:   disasm_PUSHS(); break;
             case PUSHPG:  disasm_PUSHPG(); break;
+            case PUSHPMG: disasm_PUSHPMG(); break;
             case PUSHPL:  disasm_PUSHPL(); break;
             case PUSHPOL: disasm_PUSHPOL(); break;
             case LOADB:   disasm_LOADB(); break;
@@ -664,6 +734,7 @@ void Disassembler::disassemble()
             case IND:     disasm_IND(); break;
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
+            case CALLMF:  disasm_CALLMF(); break;
             case JUMP:    disasm_JUMP(); break;
             case JF:      disasm_JF(); break;
             case JT:      disasm_JT(); break;
