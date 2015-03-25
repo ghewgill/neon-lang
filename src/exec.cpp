@@ -1126,6 +1126,7 @@ void Executor::exec()
 
     while (not callstack.empty() && ip < module->object.code.size()) {
         //std::cerr << "ip " << ip << " op " << (int)module->object.code[ip] << "\n";
+        auto last_module = module;
         auto last_ip = ip;
         switch (static_cast<Opcode>(module->object.code[ip])) {
             case ENTER:   exec_ENTER(); break;
@@ -1207,7 +1208,7 @@ void Executor::exec()
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(); break;
         }
-        if (ip == last_ip) {
+        if (module == last_module && ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
             abort();
         }
