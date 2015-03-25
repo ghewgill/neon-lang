@@ -1,3 +1,6 @@
+EXPORT Record
+EXPORT Enum
+
 EXPORT cb
 EXPORT cn
 EXPORT cs

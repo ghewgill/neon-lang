@@ -544,7 +544,7 @@ Program::Program(const std::string &source_hash)
         fields.push_back(std::make_pair(Token("name"), TYPE_STRING));
         fields.push_back(std::make_pair(Token("info"), TYPE_STRING));
         fields.push_back(std::make_pair(Token("offset"), TYPE_NUMBER));
-        Type *exception_type = new TypeRecord(Token(), fields);
+        Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
         scope->addName(Token(), "ExceptionType", exception_type, true);
         GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);
         scope->addName(Token(), "CURRENT_EXCEPTION", current_exception, true);

@@ -27,13 +27,13 @@ public:
     std::stack<const TypeFunction *> functiontypes;
     std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
 
-    const Type *analyze(const pt::Type *type);
-    const Type *analyze(const pt::TypeSimple *type);
-    const Type *analyze(const pt::TypeEnum *type);
-    const Type *analyze(const pt::TypeRecord *type);
-    const Type *analyze(const pt::TypePointer *type);
-    const Type *analyze(const pt::TypeParameterised *type);
-    const Type *analyze(const pt::TypeImport *type);
+    const Type *analyze(const pt::Type *type, const std::string &name = std::string());
+    const Type *analyze(const pt::TypeSimple *type, const std::string &name);
+    const Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
+    const Type *analyze_record(const pt::TypeRecord *type, const std::string &name);
+    const Type *analyze(const pt::TypePointer *type, const std::string &name);
+    const Type *analyze(const pt::TypeParameterised *type, const std::string &name);
+    const Type *analyze(const pt::TypeImport *type, const std::string &name);
     const Expression *analyze(const pt::Expression *expr);
     const Expression *analyze(const pt::BooleanLiteralExpression *expr);
     const Expression *analyze(const pt::NumberLiteralExpression *expr);
@@ -96,8 +96,8 @@ public:
     const Statement *analyze(const pt::WhileStatement *statement);
     const Program *analyze();
 private:
-    Type *deserialize_type(const std::string &descriptor, std::string::size_type &i);
-    Type *deserialize_type(const std::string &descriptor);
+    Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
+    Type *deserialize_type(Scope *scope, const std::string &descriptor);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -105,13 +105,13 @@ private:
 
 class TypeAnalyzer: public pt::IParseTreeVisitor {
 public:
-    TypeAnalyzer(Analyzer *a): type(nullptr), a(a) {}
-    virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t); }
-    virtual void visit(const pt::TypeEnum *t) override { type = a->analyze(t); }
-    virtual void visit(const pt::TypeRecord *t) override { type = a->analyze(t); }
-    virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t); }
-    virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t); }
-    virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t); }
+    TypeAnalyzer(Analyzer *a, const std::string &name): type(nullptr), a(a), name(name) {}
+    virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::TypeEnum *t) override { type = a->analyze_enum(t, name); }
+    virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name); }
+    virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -169,6 +169,7 @@ public:
     const Type *type;
 private:
     Analyzer *a;
+    const std::string name;
 private:
     TypeAnalyzer(const TypeAnalyzer &);
     TypeAnalyzer &operator=(const TypeAnalyzer &);
@@ -400,8 +401,8 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program)
 {
 }
 
-TypeEnum::TypeEnum(const Token &declaration, const std::map<std::string, int> &names, Analyzer *analyzer)
-  : TypeNumber(declaration),
+TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer)
+  : TypeNumber(declaration, name),
     names(names)
 {
     {
@@ -527,14 +528,14 @@ ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, co
     }
 }
 
-const Type *Analyzer::analyze(const pt::Type *type)
+const Type *Analyzer::analyze(const pt::Type *type, const std::string &name)
 {
-    TypeAnalyzer ta(this);
+    TypeAnalyzer ta(this, name);
     type->accept(&ta);
     return ta.type;
 }
 
-const Type *Analyzer::analyze(const pt::TypeSimple *type)
+const Type *Analyzer::analyze(const pt::TypeSimple *type, const std::string &)
 {
     const Name *name = scope.top()->lookupName(type->name);
     if (name == nullptr) {
@@ -547,7 +548,7 @@ const Type *Analyzer::analyze(const pt::TypeSimple *type)
     return r;
 }
 
-const Type *Analyzer::analyze(const pt::TypeEnum *type)
+const Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &name)
 {
     std::map<std::string, int> names;
     int index = 0;
@@ -560,10 +561,10 @@ const Type *Analyzer::analyze(const pt::TypeEnum *type)
         names[name] = index;
         index++;
     }
-    return new TypeEnum(type->token, names, this);
+    return new TypeEnum(type->token, name, names, this);
 }
 
-const Type *Analyzer::analyze(const pt::TypeRecord *type)
+const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
     std::vector<std::pair<Token, const Type *>> fields;
     std::map<std::string, Token> field_names;
@@ -577,10 +578,10 @@ const Type *Analyzer::analyze(const pt::TypeRecord *type)
         fields.push_back(std::make_pair(x.first, t));
         field_names[name] = x.first;
     }
-    return new TypeRecord(type->token, fields);
+    return new TypeRecord(type->token, name, fields);
 }
 
-const Type *Analyzer::analyze(const pt::TypePointer *type)
+const Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
 {
     if (type->reftype != nullptr) {
         const pt::TypeSimple *simple = dynamic_cast<const pt::TypeSimple *>(type->reftype);
@@ -602,7 +603,7 @@ const Type *Analyzer::analyze(const pt::TypePointer *type)
     }
 }
 
-const Type *Analyzer::analyze(const pt::TypeParameterised *type)
+const Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
 {
     if (type->name.text == "Array") {
         return new TypeArray(type->name, analyze(type->elementtype));
@@ -613,7 +614,7 @@ const Type *Analyzer::analyze(const pt::TypeParameterised *type)
     internal_error("Invalid parameterized type");
 }
 
-const Type *Analyzer::analyze(const pt::TypeImport *type)
+const Type *Analyzer::analyze(const pt::TypeImport *type, const std::string &)
 {
     Name *modname = scope.top()->lookupName(type->modname.text);
     if (modname == nullptr) {
@@ -1312,7 +1313,7 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
     }
 }
 
-Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::size_type &i)
+Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i)
 {
     switch (descriptor.at(i)) {
         case 'Z': i++; return TYPE_NOTHING;
@@ -1326,7 +1327,7 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 internal_error("deserialize_type");
             }
             i++;
-            const Type *type = deserialize_type(descriptor, i);
+            const Type *type = deserialize_type(scope, descriptor, i);
             if (descriptor.at(i) != '>') {
                 internal_error("deserialize_type");
             }
@@ -1339,7 +1340,7 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 internal_error("deserialize_type");
             }
             i++;
-            const Type *type = deserialize_type(descriptor, i);
+            const Type *type = deserialize_type(scope, descriptor, i);
             if (descriptor.at(i) != '>') {
                 internal_error("deserialize_type");
             }
@@ -1360,7 +1361,7 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                     i++;
                 }
                 i++;
-                const Type *type = deserialize_type(descriptor, i);
+                const Type *type = deserialize_type(scope, descriptor, i);
                 Token token;
                 token.text = name;
                 fields.push_back(std::make_pair(token, type));
@@ -1370,7 +1371,7 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 i++;
             }
             i++;
-            return new TypeRecord(Token(), fields);
+            return new TypeRecord(Token(), "record", fields);
         }
         case 'E': {
             i++;
@@ -1394,7 +1395,7 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 i++;
             }
             i++;
-            return new TypeEnum(Token(), names, this);
+            return new TypeEnum(Token(), "enum", names, this);
         }
         case 'F': {
             i++;
@@ -1419,7 +1420,7 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                     i++;
                 }
                 i++;
-                const Type *type = deserialize_type(descriptor, i);
+                const Type *type = deserialize_type(scope, descriptor, i);
                 Token token;
                 token.text = name;
                 // TODO: default value
@@ -1433,18 +1434,32 @@ Type *Analyzer::deserialize_type(const std::string &descriptor, std::string::siz
                 internal_error("deserialize_type");
             }
             i++;
-            const Type *returntype = deserialize_type(descriptor, i);
+            const Type *returntype = deserialize_type(scope, descriptor, i);
             return new TypeFunction(returntype, params);
+        }
+        case '~': {
+            i++;
+            std::string name;
+            while (descriptor.at(i) != ';') {
+                name.push_back(descriptor.at(i));
+                i++;
+            }
+            i++;
+            Type *type = dynamic_cast<Type *>(scope->lookupName(name));
+            if (type == nullptr) {
+                internal_error("reference to unknown type in exports: " + name);
+            }
+            return type;
         }
         default:
             internal_error("TODO unimplemented type in deserialize_type: " + descriptor);
     }
 }
 
-Type *Analyzer::deserialize_type(const std::string &descriptor)
+Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor)
 {
     std::string::size_type i = 0;
-    Type *r = deserialize_type(descriptor, i);
+    Type *r = deserialize_type(scope, descriptor, i);
     if (i != descriptor.length()) {
         internal_error("deserialize_type: " + descriptor + " " + std::to_string(i));
     }
@@ -1463,15 +1478,15 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
         }
         Module *module = new Module(declaration->token, scope.top(), declaration->name.text);
         for (auto t: object.types) {
-            module->scope->addName(Token(), object.strtable[t.name], deserialize_type(object.strtable[t.descriptor]));
+            module->scope->addName(Token(), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
         for (auto c: object.constants) {
-            const Type *type = deserialize_type(object.strtable[c.type]);
+            const Type *type = deserialize_type(module->scope, object.strtable[c.type]);
             int i = 0;
             module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
         }
         for (auto v: object.variables) {
-            module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(object.strtable[v.type]), v.index));
+            module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
         }
         for (auto f: object.functions) {
             const std::string name = object.strtable[f.name];
@@ -1481,9 +1496,9 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
                 const std::string method = name.substr(i+1);
                 Name *n = module->scope->lookupName(typestr);
                 Type *type = dynamic_cast<Type *>(n);
-                type->methods[method] = new ModuleFunction(declaration->name.text, name, deserialize_type(object.strtable[f.descriptor]), f.entry);
+                type->methods[method] = new ModuleFunction(declaration->name.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
             } else {
-                module->scope->addName(Token(), name, new ModuleFunction(declaration->name.text, name, deserialize_type(object.strtable[f.descriptor]), f.entry));
+                module->scope->addName(Token(), name, new ModuleFunction(declaration->name.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
             }
         }
         for (auto e: object.exception_exports) {
@@ -1500,7 +1515,7 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     if (not scope.top()->allocateName(declaration->token, name)) {
         error2(3013, declaration->token, scope.top()->getDeclaration(name), "duplicate identifier");
     }
-    const Type *type = analyze(declaration->type);
+    const Type *type = analyze(declaration->type, name);
     scope.top()->addName(declaration->token, name, const_cast<Type *>(type)); // Still ugly.
     const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
     if (rectype != nullptr) {

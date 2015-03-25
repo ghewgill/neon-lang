@@ -33,7 +33,7 @@ class Emitter {
         Label *next;
     };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), loop_labels(), debug_info(debug) {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), loop_labels(), exported_types(), debug_info(debug) {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -64,6 +64,7 @@ public:
     void add_export_function(const std::string &name, const std::string &type, int entry);
     void add_export_exception(const std::string &name);
     void add_import(const std::string &name);
+    std::string get_type_descriptor(const Type *type);
 private:
     const std::string source_hash;
     Bytecode object;
@@ -71,6 +72,7 @@ private:
     std::vector<Label> functions;
     std::stack<Label *> function_exit;
     std::map<size_t, LoopLabels> loop_labels;
+    std::set<const Type *> exported_types;
     DebugInfo *debug_info;
 private:
     Emitter(const Emitter &);
@@ -298,6 +300,17 @@ void Emitter::add_import(const std::string &name)
     object.imports.push_back(std::make_pair(index, std::string(32, '0')));
 }
 
+std::string Emitter::get_type_descriptor(const Type *type)
+{
+    if (dynamic_cast<const TypeEnum *>(type) != nullptr
+     || dynamic_cast<const TypeRecord *>(type) != nullptr) {
+        if (not exported_types.insert(type).second) {
+            return "~" + type->name + ";";
+        }
+    }
+    return type->get_type_descriptor(*this);
+}
+
 void Type::predeclare(Emitter &emitter) const
 {
     for (auto m: methods) {
@@ -314,13 +327,13 @@ void Type::postdeclare(Emitter &emitter) const
 
 void Type::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_type(name, get_type_descriptor());
+    emitter.add_export_type(name, emitter.get_type_descriptor(this));
     for (auto m: methods) {
         const Function *f = dynamic_cast<const Function *>(m.second);
         if (f == nullptr) {
             internal_error("method should be function");
         }
-        emitter.add_export_function(name + "." + m.first, f->type->get_type_descriptor(), emitter.function_label(f->entry_label).get_target());
+        emitter.add_export_function(name + "." + m.first, emitter.get_type_descriptor(f->type), emitter.function_label(f->entry_label).get_target());
     }
 }
 
@@ -384,7 +397,7 @@ void TypeFunction::generate_call(Emitter &) const
     internal_error("TypeFunction");
 }
 
-std::string TypeFunction::get_type_descriptor() const
+std::string TypeFunction::get_type_descriptor(Emitter &emitter) const
 {
     std::string r = "F[";
     for (auto p: params) {
@@ -400,9 +413,9 @@ std::string TypeFunction::get_type_descriptor() const
                 internal_error("invalid parameter mode");
         }
         // TODO: default value
-        r += m + p->declaration.text + ":" + p->type->get_type_descriptor();
+        r += m + p->declaration.text + ":" + emitter.get_type_descriptor(p->type);
     }
-    r += "]:" + returntype->get_type_descriptor();
+    r += "]:" + emitter.get_type_descriptor(returntype);
     return r;
 }
 
@@ -421,6 +434,11 @@ void TypeArray::generate_call(Emitter &) const
     internal_error("TypeArray");
 }
 
+std::string TypeArray::get_type_descriptor(Emitter &emitter) const
+{
+    return "A<" + emitter.get_type_descriptor(elementtype) + ">";
+}
+
 void TypeDictionary::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADD);
@@ -434,6 +452,11 @@ void TypeDictionary::generate_store(Emitter &emitter) const
 void TypeDictionary::generate_call(Emitter &) const
 {
     internal_error("TypeDictionary");
+}
+
+std::string TypeDictionary::get_type_descriptor(Emitter &emitter) const
+{
+    return "D<" + emitter.get_type_descriptor(elementtype) + ">";
 }
 
 void TypeRecord::predeclare(Emitter &emitter) const
@@ -459,14 +482,14 @@ void TypeRecord::generate_call(Emitter &) const
     internal_error("TypeRecord");
 }
 
-std::string TypeRecord::get_type_descriptor() const
+std::string TypeRecord::get_type_descriptor(Emitter &emitter) const
 {
     std::string r = "R[";
     for (auto f: fields) {
         if (r.length() > 2) {
             r += ",";
         }
-        r += f.first.text + ":" + f.second->get_type_descriptor();
+        r += f.first.text + ":" + emitter.get_type_descriptor(f.second);
     }
     r += "]";
     return r;
@@ -487,7 +510,12 @@ void TypePointer::generate_call(Emitter &) const
     internal_error("TypePointer");
 }
 
-std::string TypeEnum::get_type_descriptor() const
+std::string TypePointer::get_type_descriptor(Emitter &emitter) const
+{
+    return "P<" + emitter.get_type_descriptor(reftype) + ">";
+}
+
+std::string TypeEnum::get_type_descriptor(Emitter &) const
 {
     std::string r = "E[";
     for (auto n: names) {
@@ -541,7 +569,7 @@ void GlobalVariable::generate_address(Emitter &emitter, int) const
 
 void GlobalVariable::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_variable(name, type->get_type_descriptor(), index);
+    emitter.add_export_variable(name, emitter.get_type_descriptor(type), index);
 }
 
 void LocalVariable::predeclare(Emitter &emitter, int slot)
@@ -633,7 +661,7 @@ void Function::generate_call(Emitter &emitter) const
 
 void Function::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_function(name, type->get_type_descriptor(), emitter.function_label(entry_label).get_target());
+    emitter.add_export_function(name, emitter.get_type_descriptor(type), emitter.function_label(entry_label).get_target());
 }
 
 void PredefinedFunction::predeclare(Emitter &emitter) const
@@ -691,7 +719,7 @@ void Exception::generate_export(Emitter &emitter, const std::string &name) const
 
 void Constant::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_constant(name, type->get_type_descriptor(), type->serialize(value));
+    emitter.add_export_constant(name, emitter.get_type_descriptor(type), type->serialize(value));
 }
 
 void ConstantBooleanExpression::generate(Emitter &emitter) const

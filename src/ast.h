@@ -134,7 +134,7 @@ public:
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
-    virtual std::string get_type_descriptor() const = 0;
+    virtual std::string get_type_descriptor(Emitter &emitter) const = 0;
     virtual std::string serialize(const Expression *value) const = 0;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const = 0;
 };
@@ -145,7 +145,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeNothing"); }
-    virtual std::string get_type_descriptor() const override { return "Z"; }
+    virtual std::string get_type_descriptor(Emitter &) const override { return "Z"; }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeNothing"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeNothing"); }
 
@@ -160,7 +160,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override { return "B"; }
+    virtual std::string get_type_descriptor(Emitter &) const override { return "B"; }
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -172,10 +172,11 @@ extern TypeBoolean *TYPE_BOOLEAN;
 class TypeNumber: public Type {
 public:
     TypeNumber(const Token &declaration): Type(declaration, "Number") {}
+    TypeNumber(const Token &declaration, const std::string &name): Type(declaration, name) {}
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override { return "N"; }
+    virtual std::string get_type_descriptor(Emitter &) const override { return "N"; }
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -190,7 +191,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override { return "S"; }
+    virtual std::string get_type_descriptor(Emitter &) const override { return "S"; }
     static std::string serialize(const std::string &value);
     virtual std::string serialize(const Expression *value) const override;
     static std::string deserialize_string(const Bytecode::Bytes &value, int &i);
@@ -205,7 +206,7 @@ class TypeBytes: public TypeString {
 public:
     TypeBytes(): TypeString() {}
 
-    virtual std::string get_type_descriptor() const override { return "Y"; }
+    virtual std::string get_type_descriptor(Emitter &) const override { return "Y"; }
 
     virtual std::string text() const override { return "TypeBytes"; }
 };
@@ -235,7 +236,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override;
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual std::string serialize(const Expression *) const override { internal_error("TypeFunction"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeFunction"); }
 
@@ -257,7 +258,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override { return "A<" + elementtype->get_type_descriptor() + ">"; }
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -279,7 +280,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override { return "D<" + elementtype->get_type_descriptor() + ">"; }
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -291,7 +292,7 @@ private:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const Token &declaration, const std::vector<std::pair<Token, const Type *>> &fields): Type(declaration, "record"), fields(fields), field_names(make_field_names(fields)) {}
+    TypeRecord(const Token &declaration, const std::string &name, const std::vector<std::pair<Token, const Type *>> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)) {}
     const std::vector<std::pair<Token, const Type *>> fields;
     const std::map<std::string, size_t> field_names;
 
@@ -300,7 +301,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override;
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -319,7 +320,7 @@ private:
 
 class TypeForwardRecord: public TypeRecord {
 public:
-    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, std::vector<std::pair<Token, const Type *>>()) {}
+    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, "forward", std::vector<std::pair<Token, const Type *>>()) {}
 };
 
 class TypePointer: public Type {
@@ -332,7 +333,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
-    virtual std::string get_type_descriptor() const override { return "P<" + reftype->get_type_descriptor() + ">"; }
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -351,10 +352,10 @@ public:
 
 class TypeEnum: public TypeNumber {
 public:
-    TypeEnum(const Token &declaration, const std::map<std::string, int> &names, Analyzer *analyzer);
+    TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer);
     const std::map<std::string, int> names;
 
-    virtual std::string get_type_descriptor() const override;
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "TypeEnum(...)"; }
 };
@@ -366,7 +367,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeModule"); }
-    virtual std::string get_type_descriptor() const override { internal_error("TypeModule"); }
+    virtual std::string get_type_descriptor(Emitter &) const override { internal_error("TypeModule"); }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeModule"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeModule"); }
 
@@ -382,7 +383,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeException"); }
-    virtual std::string get_type_descriptor() const override { return "X"; }
+    virtual std::string get_type_descriptor(Emitter &) const override { return "X"; }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeException"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeException"); }
 
