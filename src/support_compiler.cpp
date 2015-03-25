@@ -47,16 +47,18 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
     }
 
     if (not source.empty()) {
+        obj.close();
+        const std::string objname = names.first + "x";
+        remove(objname.c_str());
         {
-            std::ofstream outf(names.first+"x", std::ios::binary);
             auto tokens = tokenize(source);
             auto parsetree = parse(tokens);
             auto ast = analyze(this, parsetree);
             auto bytecode = compile(ast, nullptr);
+            std::ofstream outf(objname, std::ios::binary);
             outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
         }
-        obj.close();
-        obj.open(names.first+"x", std::ios::binary);
+        obj.open(objname, std::ios::binary);
         if (not obj.good()) {
             return false;
         }
