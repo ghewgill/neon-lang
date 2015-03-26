@@ -38,6 +38,10 @@ Number number_modulo(Number x, Number y)
 
 Number number_pow(Number x, Number y)
 {
+    // TODO: Workaround for bug in decimal64 library.
+    if (number_is_equal(y, number_from_uint32(2))) {
+        return bid64_mul(x.x, x.x);
+    }
     return bid64_pow(x.x, y.x);
 }
 
