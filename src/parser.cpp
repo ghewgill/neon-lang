@@ -617,6 +617,9 @@ const Expression *Parser::parseComparison()
         || tokens[i].type == LESS   || tokens[i].type == GREATER
         || tokens[i].type == LESSEQ || tokens[i].type == GREATEREQ) {
         auto &tok_comp = tokens[i];
+        if (tok_comp.type == EQUAL && tokens[i+1].type == EQUAL) {
+            error(2078, tok_comp, "'==' not expected, use '=' for comparison");
+        }
         ComparisonExpression::Comparison comp = comparisonFromToken(tok_comp);
         ++i;
         const Expression *right = parseAddition();
