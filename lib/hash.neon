@@ -1,0 +1,24 @@
+MODULE hash
+
+DECLARE NATIVE FUNCTION crc32(data: String): Number
+DECLARE NATIVE FUNCTION crc32_bytes(data: Bytes): Number
+
+DECLARE NATIVE FUNCTION md5(data: String): String
+DECLARE NATIVE FUNCTION md5_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION md5_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION md5_bytes_raw(data: Bytes): Bytes
+
+DECLARE NATIVE FUNCTION sha1(data: String): String
+DECLARE NATIVE FUNCTION sha1_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION sha1_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION sha1_bytes_raw(data: Bytes): Bytes
+
+DECLARE NATIVE FUNCTION sha256(data: String): String
+DECLARE NATIVE FUNCTION sha256_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION sha256_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION sha256_bytes_raw(data: Bytes): Bytes
+
+DECLARE NATIVE FUNCTION sha3(data: String): String
+DECLARE NATIVE FUNCTION sha3_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION sha3_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION sha3_bytes_raw(data: Bytes): Bytes

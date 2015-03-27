@@ -40,7 +40,13 @@ libeasysid = env.Command("external/easysid-version-1.0/libeasysid"+env["SHLIBSUF
 
 env.Command(["external/hash-library/sha256.cpp", "external/hash-library/sha256.h"], "external/hash-library.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/hash-library"))
 hash_env = env.Clone()
-hash_lib = hash_env.Library("external/hash-library/hash-library", ["external/hash-library/sha256.cpp"])
+hash_lib = hash_env.Library("external/hash-library/hash-library", [
+    "external/hash-library/crc32.cpp",
+    "external/hash-library/md5.cpp",
+    "external/hash-library/sha1.cpp",
+    "external/hash-library/sha256.cpp",
+    "external/hash-library/sha3.cpp",
+])
 
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
@@ -99,6 +105,7 @@ rtl_cpp = rtl_const + [
     "lib/curses.cpp",
     "lib/global.cpp",
     "lib/file.cpp",
+    "lib/hash.cpp",
     "lib/math.cpp",
     "lib/random.cpp",
     "lib/sys.cpp",
@@ -110,6 +117,7 @@ rtl_neon = [
     "lib/curses.neon",
     "lib/file.neon",
     "lib/global.neon",
+    "lib/hash.neon",
     "lib/math.neon",
     "lib/random.neon",
     "lib/sys.neon",
