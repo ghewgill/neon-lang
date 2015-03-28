@@ -1468,15 +1468,16 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor)
 
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
-    if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
-        error2(3114, declaration->name, scope.top()->getDeclaration(declaration->name.text), "duplicate definition of name");
+    const Token &localname = declaration->alias.type != NONE ? declaration->alias : declaration->module;
+    if (not scope.top()->allocateName(localname, localname.text)) {
+        error2(3114, localname, scope.top()->getDeclaration(localname.text), "duplicate definition of name");
     }
-    if (not rtl_import(declaration->name, scope.top(), declaration->name.text)) {
+    if (not rtl_import(declaration->module, scope.top(), declaration->module.text, localname.text)) {
         Bytecode object;
-        if (not support->loadBytecode(declaration->name.text, object)) {
-            internal_error("TODO module not found: " + declaration->name.text);
+        if (not support->loadBytecode(declaration->module.text, object)) {
+            internal_error("TODO module not found: " + declaration->module.text);
         }
-        Module *module = new Module(declaration->token, scope.top(), declaration->name.text);
+        Module *module = new Module(declaration->token, scope.top(), declaration->module.text);
         for (auto t: object.types) {
             module->scope->addName(Token(), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
@@ -1486,7 +1487,7 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
             module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
         }
         for (auto v: object.variables) {
-            module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->name.text, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
+            module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->module.text, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
         }
         for (auto f: object.functions) {
             const std::string name = object.strtable[f.name];
@@ -1496,15 +1497,15 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
                 const std::string method = name.substr(i+1);
                 Name *n = module->scope->lookupName(typestr);
                 Type *type = dynamic_cast<Type *>(n);
-                type->methods[method] = new ModuleFunction(declaration->name.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
+                type->methods[method] = new ModuleFunction(declaration->module.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
             } else {
-                module->scope->addName(Token(), name, new ModuleFunction(declaration->name.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
+                module->scope->addName(Token(), name, new ModuleFunction(declaration->module.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
             }
         }
         for (auto e: object.exception_exports) {
             module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
         }
-        scope.top()->addName(declaration->token, declaration->name.text, module);
+        scope.top()->addName(declaration->token, localname.text, module);
     }
     return new NullStatement(declaration->token.line);
 }

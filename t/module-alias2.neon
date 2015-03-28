@@ -1,0 +1,10 @@
+IMPORT module AS m
+
+print(str(m.const))
+%= 5
+
+print(m.var)
+%= test
+
+print("\(m.function(5))")
+%= 25

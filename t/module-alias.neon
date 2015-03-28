@@ -1,0 +1,4 @@
+IMPORT math AS m
+
+print("\(m.sqrt(9))")
+%= 3

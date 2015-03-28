@@ -514,9 +514,10 @@ public:
 
 class ImportDeclaration: public Declaration {
 public:
-    ImportDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
+    ImportDeclaration(const Token &token, const Token &module, const Token &alias): Declaration(token), module(module), alias(alias) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const Token name;
+    const Token module;
+    const Token alias;
 };
 
 class TypeDeclaration: public Declaration {

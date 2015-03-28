@@ -1300,9 +1300,18 @@ const Statement *Parser::parseImport()
     if (tokens[i].type != IDENTIFIER) {
         error(2032, tokens[i], "identifier expected");
     }
-    const Token &name = tokens[i];
+    const Token &module = tokens[i];
     ++i;
-    return new ImportDeclaration(tok_import, name);
+    Token alias;
+    if (tokens[i].type == AS) {
+        ++i;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2080, tokens[i], "identifier expected");
+        }
+        alias = tokens[i];
+        ++i;
+    }
+    return new ImportDeclaration(tok_import, module, alias);
 }
 
 const Statement *Parser::parseStatement()

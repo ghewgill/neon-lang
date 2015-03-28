@@ -16,7 +16,7 @@ void rtl_compile_init(Scope *scope)
     }
 }
 
-bool rtl_import(const Token &token, Scope *scope, const std::string &name)
+bool rtl_import(const Token &token, Scope *scope, const std::string &name, const std::string &alias)
 {
     std::string prefix = name + "$";
     Module *module = new Module(Token(), scope, name);
@@ -37,7 +37,7 @@ bool rtl_import(const Token &token, Scope *scope, const std::string &name)
         }
     }
     if (any) {
-        scope->addName(token, name, module);
+        scope->addName(token, not alias.empty() ? alias : name, module);
     }
     return any;
 }
