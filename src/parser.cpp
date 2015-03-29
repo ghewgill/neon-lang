@@ -1302,6 +1302,15 @@ const Statement *Parser::parseImport()
     }
     const Token &module = tokens[i];
     ++i;
+    Token name;
+    if (tokens[i].type == DOT) {
+        ++i;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2079, tokens[i], "identifier expected");
+        }
+        name = tokens[i];
+        ++i;
+    }
     Token alias;
     if (tokens[i].type == AS) {
         ++i;
@@ -1311,7 +1320,7 @@ const Statement *Parser::parseImport()
         alias = tokens[i];
         ++i;
     }
-    return new ImportDeclaration(tok_import, module, alias);
+    return new ImportDeclaration(tok_import, module, name, alias);
 }
 
 const Statement *Parser::parseStatement()

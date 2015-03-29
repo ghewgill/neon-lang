@@ -1,0 +1,4 @@
+IMPORT module.var AS v
+
+print(v)
+%= test

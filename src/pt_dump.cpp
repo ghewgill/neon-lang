@@ -188,7 +188,7 @@ public:
     }
 
     virtual void visit(const ImportDeclaration *node) override {
-        write("ImportDeclaration(" + node->module.text + ", " + node->alias.text + ")");
+        write("ImportDeclaration(" + node->module.text + "." + node->name.text + ", " + node->alias.text + ")");
     }
     virtual void visit(const TypeDeclaration *node) override {
         write("TypeDeclaration");

@@ -1,0 +1,4 @@
+IMPORT math.sqrt
+
+print(str(sqrt(9)))
+%= 3

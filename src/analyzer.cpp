@@ -1468,11 +1468,11 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor)
 
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
-    const Token &localname = declaration->alias.type != NONE ? declaration->alias : declaration->module;
+    const Token &localname = declaration->alias.type != NONE ? declaration->alias : declaration->name.type != NONE ? declaration->name : declaration->module;
     if (not scope.top()->allocateName(localname, localname.text)) {
         error2(3114, localname, scope.top()->getDeclaration(localname.text), "duplicate definition of name");
     }
-    if (not rtl_import(declaration->module, scope.top(), declaration->module.text, localname.text)) {
+    if (not rtl_import(declaration->module, scope.top(), declaration->module.text, declaration->name.text, localname.text)) {
         Bytecode object;
         if (not support->loadBytecode(declaration->module.text, object)) {
             internal_error("TODO module not found: " + declaration->module.text);
@@ -1505,7 +1505,11 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
         for (auto e: object.exception_exports) {
             module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
         }
-        scope.top()->addName(declaration->token, localname.text, module);
+        if (declaration->name.type == NONE) {
+            scope.top()->addName(declaration->token, localname.text, module);
+        } else {
+            scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
+        }
     }
     return new NullStatement(declaration->token.line);
 }
