@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 #include "crc32.h"
 #include "md5.h"
 #include "sha1.h"
@@ -8,7 +12,7 @@
 
 inline char hex_digit(unsigned d)
 {
-    return d < 10 ? '0' + d : 'a' + (d - 10);
+    return static_cast<char>(d < 10 ? '0' + d : 'a' + (d - 10));
 }
 
 static std::string to_hex(const std::string &hash)
