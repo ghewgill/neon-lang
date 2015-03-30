@@ -541,9 +541,9 @@ Program::Program(const std::string &source_hash)
         // The fields here must match the corresponding references to
         // ExceptionType in exec.cpp.
         std::vector<TypeRecord::Field> fields;
-        fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING));
-        fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING));
-        fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER));
+        fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING, false));
+        fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
+        fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
         Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
         scope->addName(Token(), "ExceptionType", exception_type, true);
         GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);

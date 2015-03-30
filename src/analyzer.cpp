@@ -24,7 +24,7 @@ public:
     std::stack<Scope *> scope;
     std::set<std::string> exports;
 
-    std::stack<const TypeFunction *> functiontypes;
+    std::stack<std::pair<const Type *, const TypeFunction *>> functiontypes;
     std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
 
     const Type *analyze(const pt::Type *type, const std::string &name = std::string());
@@ -575,7 +575,7 @@ const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::stri
             error2(3009, x.name, prev->second, "duplicate field: " + x.name.text);
         }
         const Type *t = analyze(x.type);
-        fields.push_back(TypeRecord::Field(x.name, t));
+        fields.push_back(TypeRecord::Field(x.name, t, x.is_private));
         field_names[name] = x.name;
     }
     return new TypeRecord(type->token, name, fields);
@@ -758,6 +758,9 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (f == recordtype->field_names.end()) {
             error2(3045, expr->name, recordtype->declaration, "field not found");
         }
+        if (recordtype->fields[f->second].is_private && (functiontypes.empty() || functiontypes.top().first != recordtype)) {
+            error(3162, expr->name, "field is private");
+        }
         const Type *type = recordtype->fields[f->second].type;
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
         if (ref != nullptr) {
@@ -789,6 +792,9 @@ const Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
     auto f = recordtype->field_names.find(expr->name.text);
     if (f == recordtype->field_names.end()) {
         error2(3111, expr->name, recordtype->declaration, "field not found");
+    }
+    if (recordtype->fields[f->second].is_private && (functiontypes.empty() || functiontypes.top().first != recordtype)) {
+        error(3163, expr->name, "field is private");
     }
     const Type *type = recordtype->fields[f->second].type;
     const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, base);
@@ -1355,6 +1361,11 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
             }
             i++;
             for (;;) {
+                bool is_private = false;
+                if (descriptor.at(i) == '!') {
+                    is_private = true;
+                    i++;
+                }
                 std::string name;
                 while (descriptor.at(i) != ':') {
                     name.push_back(descriptor.at(i));
@@ -1364,7 +1375,7 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 const Type *type = deserialize_type(scope, descriptor, i);
                 Token token;
                 token.text = name;
-                fields.push_back(TypeRecord::Field(token, type));
+                fields.push_back(TypeRecord::Field(token, type, is_private));
                 if (descriptor.at(i) == ']') {
                     break;
                 }
@@ -1720,7 +1731,7 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     }
     frame.push(function->frame);
     scope.push(function->scope);
-    functiontypes.push(dynamic_cast<const TypeFunction *>(function->type));
+    functiontypes.push(std::make_pair(type, dynamic_cast<const TypeFunction *>(function->type)));
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
     function->statements = analyze(declaration->body);
     const Type *returntype = dynamic_cast<const TypeFunction *>(function->type)->returntype;
@@ -2110,7 +2121,7 @@ const Statement *Analyzer::analyze(const pt::ExitStatement *statement)
     if (statement->type == FUNCTION) {
         if (functiontypes.empty()) {
             error(3107, statement->token, "EXIT FUNCTION not allowed outside function");
-        } else if (functiontypes.top()->returntype != TYPE_NOTHING) {
+        } else if (functiontypes.top().second->returntype != TYPE_NOTHING) {
             error(3108, statement->token, "function must return a value");
         }
         return new ReturnStatement(statement->token.line, nullptr);
@@ -2307,9 +2318,9 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     const Expression *expr = analyze(statement->expr);
     if (functiontypes.empty()) {
         error(3093, statement->token, "RETURN not allowed outside function");
-    } else if (functiontypes.top()->returntype == TYPE_NOTHING) {
+    } else if (functiontypes.top().second->returntype == TYPE_NOTHING) {
         error(3094, statement->token, "function does not return a value");
-    } else if (not expr->type->is_equivalent(functiontypes.top()->returntype)) {
+    } else if (not expr->type->is_equivalent(functiontypes.top().second->returntype)) {
         error(3095, statement->expr->token, "type mismatch in RETURN");
     }
     return new ReturnStatement(statement->token.line, expr);

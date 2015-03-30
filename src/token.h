@@ -88,6 +88,7 @@ enum TokenType {
     AS,
     DEFAULT,
     EXPORT,
+    PRIVATE,
     MAX_TOKEN
 };
 

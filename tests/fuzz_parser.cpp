@@ -90,6 +90,7 @@ std::string reconstitute(const Token &t)
         case AS:          return "AS";
         case DEFAULT:     return "DEFAULT";
         case EXPORT:      return "EXPORT";
+        case PRIVATE:     return "PRIVATE";
         case MAX_TOKEN:   return "";
     }
     return "";

@@ -489,6 +489,9 @@ std::string TypeRecord::get_type_descriptor(Emitter &emitter) const
         if (r.length() > 2) {
             r += ",";
         }
+        if (f.is_private) {
+            r += "!";
+        }
         r += f.name.text + ":" + emitter.get_type_descriptor(f.type);
     }
     r += "]";

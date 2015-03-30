@@ -123,6 +123,11 @@ const Type *Parser::parseRecordType()
     i++;
     std::vector<TypeRecord::Field> fields;
     while (tokens[i].type != END) {
+        bool is_private = false;
+        if (tokens[i].type == PRIVATE) {
+            is_private = true;
+            ++i;
+        }
         if (tokens[i].type != IDENTIFIER) {
             error(2004, tokens[i], "identifier expected");
         }
@@ -133,7 +138,7 @@ const Type *Parser::parseRecordType()
         }
         ++i;
         const Type *t = parseType();
-        fields.push_back(TypeRecord::Field(name, t));
+        fields.push_back(TypeRecord::Field(name, t, is_private));
     }
     i++;
     if (tokens[i].type != RECORD) {

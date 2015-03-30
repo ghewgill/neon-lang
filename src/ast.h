@@ -293,18 +293,20 @@ private:
 class TypeRecord: public Type {
 public:
     struct Field {
-        Field(const Token &name, const Type *type): name(name), type(type) {}
-        Field(const Field &rhs): name(rhs.name), type(rhs.type) {}
+        Field(const Token &name, const Type *type, bool is_private): name(name), type(type), is_private(is_private) {}
+        Field(const Field &rhs): name(rhs.name), type(rhs.type), is_private(rhs.is_private) {}
         Field &operator=(const Field &rhs) {
             if (&rhs == this) {
                 return *this;
             }
             name = rhs.name;
             type = rhs.type;
+            is_private = rhs.is_private;
             return *this;
         }
         Token name;
         const Type *type;
+        bool is_private;
     };
     TypeRecord(const Token &declaration, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)) {}
     const std::vector<Field> fields;

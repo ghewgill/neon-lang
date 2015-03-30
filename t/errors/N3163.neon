@@ -1,0 +1,9 @@
+TYPE Record := RECORD
+    PRIVATE value: Number
+END RECORD
+
+VAR p: POINTER TO Record
+IF VALID q := p THEN
+    q->value := 0
+       %<
+END IF
