@@ -463,7 +463,7 @@ void TypeRecord::predeclare(Emitter &emitter) const
 {
     Type::predeclare(emitter);
     for (auto f: fields) {
-        f.second->predeclare(emitter);
+        f.type->predeclare(emitter);
     }
 }
 
@@ -489,7 +489,7 @@ std::string TypeRecord::get_type_descriptor(Emitter &emitter) const
         if (r.length() > 2) {
             r += ",";
         }
-        r += f.first.text + ":" + emitter.get_type_descriptor(f.second);
+        r += f.name.text + ":" + emitter.get_type_descriptor(f.type);
     }
     r += "]";
     return r;

@@ -175,9 +175,23 @@ public:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const Token &token, const std::vector<std::pair<Token, const Type *>> &fields): Type(token), fields(fields) {}
+    struct Field {
+        Field(const Token &name, const Type *type): name(name), type(type) {}
+        Field(const Field &rhs): name(rhs.name), type(rhs.type) {}
+        Field &operator=(const Field &rhs) {
+            if (&rhs == this) {
+                return *this;
+            }
+            name = rhs.name;
+            type = rhs.type;
+            return *this;
+        }
+        Token name;
+        const Type *type;
+    };
+    TypeRecord(const Token &token, const std::vector<Field> &fields): Type(token), fields(fields) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::vector<std::pair<Token, const Type *>> fields;
+    const std::vector<Field> fields;
 };
 
 class TypePointer: public Type {

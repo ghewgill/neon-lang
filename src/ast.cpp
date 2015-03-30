@@ -185,7 +185,7 @@ const Expression *TypeRecord::deserialize_value(const Bytecode::Bytes &value, in
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     int f = 0;
     while (len > 0) {
-        elements.push_back(fields[f].second->deserialize_value(value, i));
+        elements.push_back(fields[f].type->deserialize_value(value, i));
         f++;
         len--;
     }
@@ -540,10 +540,10 @@ Program::Program(const std::string &source_hash)
     {
         // The fields here must match the corresponding references to
         // ExceptionType in exec.cpp.
-        std::vector<std::pair<Token, const Type *>> fields;
-        fields.push_back(std::make_pair(Token("name"), TYPE_STRING));
-        fields.push_back(std::make_pair(Token("info"), TYPE_STRING));
-        fields.push_back(std::make_pair(Token("offset"), TYPE_NUMBER));
+        std::vector<TypeRecord::Field> fields;
+        fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING));
+        fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING));
+        fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER));
         Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
         scope->addName(Token(), "ExceptionType", exception_type, true);
         GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);

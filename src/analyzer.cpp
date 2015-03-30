@@ -566,17 +566,17 @@ const Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &
 
 const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
-    std::vector<std::pair<Token, const Type *>> fields;
+    std::vector<TypeRecord::Field> fields;
     std::map<std::string, Token> field_names;
     for (auto x: type->fields) {
-        std::string name = x.first.text;
+        std::string name = x.name.text;
         auto prev = field_names.find(name);
         if (prev != field_names.end()) {
-            error2(3009, x.first, prev->second, "duplicate field: " + x.first.text);
+            error2(3009, x.name, prev->second, "duplicate field: " + x.name.text);
         }
-        const Type *t = analyze(x.second);
-        fields.push_back(std::make_pair(x.first, t));
-        field_names[name] = x.first;
+        const Type *t = analyze(x.type);
+        fields.push_back(TypeRecord::Field(x.name, t));
+        field_names[name] = x.name;
     }
     return new TypeRecord(type->token, name, fields);
 }
@@ -758,7 +758,7 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (f == recordtype->field_names.end()) {
             error2(3045, expr->name, recordtype->declaration, "field not found");
         }
-        const Type *type = recordtype->fields[f->second].second;
+        const Type *type = recordtype->fields[f->second].type;
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
         if (ref != nullptr) {
             return new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
@@ -790,7 +790,7 @@ const Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
     if (f == recordtype->field_names.end()) {
         error2(3111, expr->name, recordtype->declaration, "field not found");
     }
-    const Type *type = recordtype->fields[f->second].second;
+    const Type *type = recordtype->fields[f->second].type;
     const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, base);
     return new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), false);
 }
@@ -941,8 +941,8 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             auto f = recordtype->fields.begin();
             for (auto x: expr->args) {
                 const Expression *element = analyze(x.second);
-                if (not element->type->is_equivalent(f->second)) {
-                    error2(3131, x.second->token, f->first, "type mismatch");
+                if (not element->type->is_equivalent(f->type)) {
+                    error2(3131, x.second->token, f->name, "type mismatch");
                 }
                 elements.push_back(element);
                 ++f;
@@ -1349,7 +1349,7 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
         }
         case 'R': {
             i++;
-            std::vector<std::pair<Token, const Type *>> fields;
+            std::vector<TypeRecord::Field> fields;
             if (descriptor.at(i) != '[') {
                 internal_error("deserialize_type");
             }
@@ -1364,7 +1364,7 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 const Type *type = deserialize_type(scope, descriptor, i);
                 Token token;
                 token.text = name;
-                fields.push_back(std::make_pair(token, type));
+                fields.push_back(TypeRecord::Field(token, type));
                 if (descriptor.at(i) == ']') {
                     break;
                 }

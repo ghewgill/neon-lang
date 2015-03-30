@@ -398,6 +398,18 @@ private:
         }
         return join(b);
     }
+
+    static std::string join(const std::vector<TypeRecord::Field> &a) {
+        std::string r;
+        for (auto x: a) {
+            if (not r.empty()) {
+                r += ",";
+            }
+            r += x.name.text;
+        }
+        return r;
+    }
+
 private:
     Dumper(const Dumper &);
     Dumper &operator=(const Dumper &);

@@ -121,7 +121,7 @@ const Type *Parser::parseRecordType()
     }
     auto &tok_record = tokens[i];
     i++;
-    std::vector<std::pair<Token, const Type *>> fields;
+    std::vector<TypeRecord::Field> fields;
     while (tokens[i].type != END) {
         if (tokens[i].type != IDENTIFIER) {
             error(2004, tokens[i], "identifier expected");
@@ -133,7 +133,7 @@ const Type *Parser::parseRecordType()
         }
         ++i;
         const Type *t = parseType();
-        fields.push_back(std::make_pair(name, t));
+        fields.push_back(TypeRecord::Field(name, t));
     }
     i++;
     if (tokens[i].type != RECORD) {

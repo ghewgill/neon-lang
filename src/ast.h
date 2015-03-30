@@ -292,8 +292,22 @@ private:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const Token &declaration, const std::string &name, const std::vector<std::pair<Token, const Type *>> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)) {}
-    const std::vector<std::pair<Token, const Type *>> fields;
+    struct Field {
+        Field(const Token &name, const Type *type): name(name), type(type) {}
+        Field(const Field &rhs): name(rhs.name), type(rhs.type) {}
+        Field &operator=(const Field &rhs) {
+            if (&rhs == this) {
+                return *this;
+            }
+            name = rhs.name;
+            type = rhs.type;
+            return *this;
+        }
+        Token name;
+        const Type *type;
+    };
+    TypeRecord(const Token &declaration, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)) {}
+    const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
     virtual void predeclare(Emitter &emitter) const override;
@@ -307,11 +321,11 @@ public:
 
     virtual std::string text() const override { return "TypeRecord(...)"; }
 private:
-    static std::map<std::string, size_t> make_field_names(const std::vector<std::pair<Token, const Type *>> &fields) {
+    static std::map<std::string, size_t> make_field_names(const std::vector<Field> &fields) {
         std::map<std::string, size_t> r;
         size_t i = 0;
         for (auto f: fields) {
-            r[f.first.text] = i;
+            r[f.name.text] = i;
             i++;
         }
         return r;
@@ -320,7 +334,7 @@ private:
 
 class TypeForwardRecord: public TypeRecord {
 public:
-    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, "forward", std::vector<std::pair<Token, const Type *>>()) {}
+    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, "forward", std::vector<Field>()) {}
 };
 
 class TypePointer: public Type {
