@@ -1,0 +1,109 @@
+EXPORT Variant
+EXPORT Type
+EXPORT TypeMismatch
+
+DECLARE EXCEPTION TypeMismatch
+
+TYPE Type := ENUM
+    null
+    boolean
+    number
+    string
+    bytes
+    array
+    dictionary
+END ENUM
+
+TYPE Variant := RECORD
+    PRIVATE type: Type
+    PRIVATE val_boolean: Boolean
+    PRIVATE val_number: Number
+    PRIVATE val_string: String
+    PRIVATE val_bytes: Bytes
+    PRIVATE val_array: Array<Variant>
+    PRIVATE val_dictionary: Dictionary<Variant>
+END RECORD
+
+FUNCTION Variant.get_type(IN self: Variant): Type
+    RETURN self.type
+END FUNCTION
+
+FUNCTION Variant.set_null(INOUT self: Variant)
+    self.type := Type.null
+END FUNCTION
+
+FUNCTION Variant.is_null(IN self: Variant): Boolean
+    RETURN self.type = Type.null
+END FUNCTION
+
+FUNCTION Variant.set_boolean(INOUT self: Variant, b: Boolean)
+    self.type := Type.boolean
+    self.val_boolean := b
+END FUNCTION
+
+FUNCTION Variant.get_boolean(IN self: Variant): Boolean
+    IF self.type # Type.boolean THEN
+        RAISE TypeMismatch
+    END IF
+    RETURN self.val_boolean
+END FUNCTION
+
+FUNCTION Variant.set_number(INOUT self: Variant, n: Number)
+    self.type := Type.number
+    self.val_number := n
+END FUNCTION
+
+FUNCTION Variant.get_number(IN self: Variant): Number
+    IF self.type # Type.number THEN
+        RAISE TypeMismatch
+    END IF
+    RETURN self.val_number
+END FUNCTION
+
+FUNCTION Variant.set_string(INOUT self: Variant, s: String)
+    self.type := Type.string
+    self.val_string := s
+END FUNCTION
+
+FUNCTION Variant.get_string(IN self: Variant): String
+    IF self.type # Type.string THEN
+        RAISE TypeMismatch
+    END IF
+    RETURN self.val_string
+END FUNCTION
+
+FUNCTION Variant.set_bytes(INOUT self: Variant, s: Bytes)
+    self.type := Type.bytes
+    self.val_bytes := s
+END FUNCTION
+
+FUNCTION Variant.get_bytes(IN self: Variant): Bytes
+    IF self.type # Type.bytes THEN
+        RAISE TypeMismatch
+    END IF
+    RETURN self.val_bytes
+END FUNCTION
+
+FUNCTION Variant.set_array(INOUT self: Variant, a: Array<Variant>)
+    self.type := Type.array
+    self.val_array := a
+END FUNCTION
+
+FUNCTION Variant.get_array(IN self: Variant): Array<Variant>
+    IF self.type # Type.array THEN
+        RAISE TypeMismatch
+    END IF
+    RETURN self.val_array
+END FUNCTION
+
+FUNCTION Variant.set_dictionary(INOUT self: Variant, d: Dictionary<Variant>)
+    self.type := Type.dictionary
+    self.val_dictionary := d
+END FUNCTION
+
+FUNCTION Variant.get_dictionary(IN self: Variant): Dictionary<Variant>
+    IF self.type # Type.dictionary THEN
+        RAISE TypeMismatch
+    END IF
+    RETURN self.val_dictionary
+END FUNCTION

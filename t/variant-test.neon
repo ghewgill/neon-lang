@@ -1,0 +1,29 @@
+IMPORT variant
+IMPORT variant.Variant
+
+VAR v: Variant
+
+v.set_null()
+print("\(v.is_null())")
+%= TRUE
+
+v.set_boolean(TRUE)
+print("\(v.get_boolean())")
+%= TRUE
+print("\(v.is_null())")
+%= FALSE
+
+v.set_number(5)
+print("\(v.get_number())")
+%= 5
+
+v.set_string("hello")
+print("\(v.get_string())")
+%= hello
+
+TRY
+    LET b: Boolean := v.get_boolean()
+EXCEPTION variant.TypeMismatch
+    print("TypeMismatch")
+END TRY
+%= TypeMismatch
