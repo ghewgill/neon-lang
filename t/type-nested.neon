@@ -1,0 +1,8 @@
+TYPE Record := RECORD
+    a: Array<Record>
+END RECORD
+
+VAR r: Record
+
+print(str(r.a.size()))
+%= 0

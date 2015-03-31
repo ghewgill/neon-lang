@@ -461,10 +461,25 @@ std::string TypeDictionary::get_type_descriptor(Emitter &emitter) const
 
 void TypeRecord::predeclare(Emitter &emitter) const
 {
+    // Avoid unbounded recursion.
+    if (predeclared) {
+        return;
+    }
+    predeclared = true;
     Type::predeclare(emitter);
     for (auto f: fields) {
         f.type->predeclare(emitter);
     }
+}
+
+void TypeRecord::postdeclare(Emitter &emitter) const
+{
+    // Avoid unbounded recursion.
+    if (postdeclared) {
+        return;
+    }
+    postdeclared = true;
+    Type::postdeclare(emitter);
 }
 
 void TypeRecord::generate_load(Emitter &emitter) const

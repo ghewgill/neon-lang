@@ -1490,7 +1490,17 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
         }
         Module *module = new Module(declaration->token, scope.top(), declaration->module.text);
         for (auto t: object.types) {
-            module->scope->addName(Token(), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
+            if (object.strtable[t.descriptor][0] == 'R') {
+                // Support recursive record type declarations.
+                TypeRecord *actual_record = new TypeRecord(Token(), object.strtable[t.name], std::vector<TypeRecord::Field>());
+                module->scope->addName(Token(), object.strtable[t.name], actual_record);
+                Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
+                const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
+                const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
+                const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
+            } else {
+                module->scope->addName(Token(), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
+            }
         }
         for (auto c: object.constants) {
             const Type *type = deserialize_type(module->scope, object.strtable[c.type]);
@@ -1531,8 +1541,22 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     if (not scope.top()->allocateName(declaration->token, name)) {
         error2(3013, declaration->token, scope.top()->getDeclaration(name), "duplicate identifier");
     }
+    TypeRecord *actual_record = nullptr;
+    const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type);
+    if (recdecl != nullptr) {
+        // Support recursive record type declarations.
+        actual_record = new TypeRecord(recdecl->token, name, std::vector<TypeRecord::Field>());
+        scope.top()->addName(declaration->token, name, actual_record);
+    }
     const Type *type = analyze(declaration->type, name);
-    scope.top()->addName(declaration->token, name, const_cast<Type *>(type)); // Still ugly.
+    if (actual_record != nullptr) {
+        const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
+        const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
+        const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
+        type = actual_record;
+    } else {
+        scope.top()->addName(declaration->token, name, const_cast<Type *>(type)); // Still ugly.
+    }
     const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
     if (rectype != nullptr) {
         scope.top()->resolveForward(name, rectype);

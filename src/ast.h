@@ -308,11 +308,12 @@ public:
         const Type *type;
         bool is_private;
     };
-    TypeRecord(const Token &declaration, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)) {}
+    TypeRecord(const Token &declaration, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)), predeclared(false), postdeclared(false) {}
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
     virtual void predeclare(Emitter &emitter) const override;
+    virtual void postdeclare(Emitter &emitter) const override;
     virtual bool is_equivalent(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
@@ -323,6 +324,8 @@ public:
 
     virtual std::string text() const override { return "TypeRecord(...)"; }
 private:
+    mutable bool predeclared;
+    mutable bool postdeclared;
     static std::map<std::string, size_t> make_field_names(const std::vector<Field> &fields) {
         std::map<std::string, size_t> r;
         size_t i = 0;
