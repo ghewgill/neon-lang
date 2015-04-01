@@ -1887,8 +1887,17 @@ std::vector<const Statement *> Analyzer::analyze(const std::vector<const pt::Sta
         d->accept(&da);
     }
     StatementAnalyzer sa(this, statements);
+    bool lastexit = false;
     for (auto s: statement) {
         s->accept(&sa);
+        if (dynamic_cast<const pt::ExitStatement *>(s) != nullptr
+         || dynamic_cast<const pt::NextStatement *>(s) != nullptr
+         || dynamic_cast<const pt::RaiseStatement *>(s) != nullptr
+         || dynamic_cast<const pt::ReturnStatement *>(s) != nullptr) {
+            lastexit = true;
+        } else if (lastexit) {
+            error(3165, s->token, "unreachable code");
+        }
     }
     return statements;
 }
