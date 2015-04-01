@@ -224,8 +224,8 @@ print(str(sub_float(8, 5)))
 print(str(sub_double(8, 5)))
 %= 3
 
-write_stdout("Hello World")
-%= Hello World
+%write_stdout("Hello World")
+%%= Hello World
 
 print(str(string_length("Hello")))
 %= 5
