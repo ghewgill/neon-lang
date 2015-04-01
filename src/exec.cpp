@@ -102,6 +102,14 @@ static void marshal_pointer(Cell &cell, void *&p, size_t &space)
     space -= sizeof(void *);
 }
 
+static void marshal_pointer_a(Cell &cell, void *&p, size_t &space)
+{
+    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
+    *a = const_cast<char *>(cell.address()->string().data());
+    p = a + 1;
+    space -= sizeof(void *);
+}
+
 template <typename T> static Cell unmarshal_number(void *p)
 {
     return Cell(number_conversion<T>::convert_from_native(*reinterpret_cast<T *>(p)));
@@ -937,17 +945,18 @@ void Executor::exec_CALLE()
             return;
         }
         for (auto p: params) {
-                 if (p == "uint8" ) { eci->types.push_back(&ffi_type_uint8 ); eci->marshal.push_back(marshal_number<uint8_t >); }
-            else if (p == "sint8" ) { eci->types.push_back(&ffi_type_sint8 ); eci->marshal.push_back(marshal_number< int8_t >); }
-            else if (p == "uint16") { eci->types.push_back(&ffi_type_uint16); eci->marshal.push_back(marshal_number<uint16_t>); }
-            else if (p == "sint16") { eci->types.push_back(&ffi_type_sint16); eci->marshal.push_back(marshal_number< int16_t>); }
-            else if (p == "uint32") { eci->types.push_back(&ffi_type_uint32); eci->marshal.push_back(marshal_number<uint32_t>); }
-            else if (p == "sint32") { eci->types.push_back(&ffi_type_sint32); eci->marshal.push_back(marshal_number< int32_t>); }
-            else if (p == "uint64") { eci->types.push_back(&ffi_type_uint64); eci->marshal.push_back(marshal_number<uint64_t>); }
-            else if (p == "sint64") { eci->types.push_back(&ffi_type_sint64); eci->marshal.push_back(marshal_number< int64_t>); }
-            else if (p == "float" ) { eci->types.push_back(&ffi_type_float ); eci->marshal.push_back(marshal_number<float   >); }
-            else if (p == "double") { eci->types.push_back(&ffi_type_double); eci->marshal.push_back(marshal_number<double  >); }
-            else if (p == "pointer"){ eci->types.push_back(&ffi_type_pointer);eci->marshal.push_back(marshal_pointer         ); }
+                 if (p == "uint8" )   { eci->types.push_back(&ffi_type_uint8 );  eci->marshal.push_back(marshal_number<uint8_t >); }
+            else if (p == "sint8" )   { eci->types.push_back(&ffi_type_sint8 );  eci->marshal.push_back(marshal_number< int8_t >); }
+            else if (p == "uint16")   { eci->types.push_back(&ffi_type_uint16);  eci->marshal.push_back(marshal_number<uint16_t>); }
+            else if (p == "sint16")   { eci->types.push_back(&ffi_type_sint16);  eci->marshal.push_back(marshal_number< int16_t>); }
+            else if (p == "uint32")   { eci->types.push_back(&ffi_type_uint32);  eci->marshal.push_back(marshal_number<uint32_t>); }
+            else if (p == "sint32")   { eci->types.push_back(&ffi_type_sint32);  eci->marshal.push_back(marshal_number< int32_t>); }
+            else if (p == "uint64")   { eci->types.push_back(&ffi_type_uint64);  eci->marshal.push_back(marshal_number<uint64_t>); }
+            else if (p == "sint64")   { eci->types.push_back(&ffi_type_sint64);  eci->marshal.push_back(marshal_number< int64_t>); }
+            else if (p == "float" )   { eci->types.push_back(&ffi_type_float );  eci->marshal.push_back(marshal_number<float   >); }
+            else if (p == "double")   { eci->types.push_back(&ffi_type_double);  eci->marshal.push_back(marshal_number<double  >); }
+            else if (p == "pointer")  { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer         ); }
+            else if (p == "*pointer") { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer_a       ); }
             else {
                 fprintf(stderr, "ffi type not supported: %s\n", p.c_str());
                 exit(1);

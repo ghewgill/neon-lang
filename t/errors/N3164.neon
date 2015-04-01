@@ -1,0 +1,11 @@
+EXTERNAL FUNCTION f(OUT x: String)
+                        %<
+{
+    "library": {
+        "name": "bin/libtest_ffi"
+    }
+    "types": {
+        "x": "pointer"
+    }
+}
+END FUNCTION

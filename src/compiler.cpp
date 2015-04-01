@@ -720,6 +720,9 @@ void ExternalFunction::predeclare(Emitter &emitter) const
             ss << ",";
         }
         first = false;
+        if (param->mode == ParameterType::INOUT) {
+            ss << '*';
+        }
         ss << param_types.at(param->name);
     }
     external_index = emitter.str(ss.str());

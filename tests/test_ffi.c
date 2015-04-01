@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -70,4 +71,12 @@ EXPORT void write_stdout(const char *s)
 EXPORT uint32_t string_length(const char *s)
 {
     return strlen(s);
+}
+
+EXPORT void upper_string(char *s)
+{
+    char *p;
+    for (p = s; *p != '\0'; p++) {
+        *p = toupper(*p);
+    }
 }

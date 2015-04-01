@@ -161,7 +161,6 @@ EXTERNAL FUNCTION string_length(IN s: String): Number
 }
 END FUNCTION
 
-%|
 EXTERNAL FUNCTION upper_string(INOUT s: String)
 {
     "library": {
@@ -172,7 +171,6 @@ EXTERNAL FUNCTION upper_string(INOUT s: String)
     }
 }
 END FUNCTION
-|%
 
 EXTERNAL FUNCTION nonexistent_function()
 {
@@ -226,19 +224,17 @@ print(str(sub_float(8, 5)))
 print(str(sub_double(8, 5)))
 %= 3
 
-%write_stdout("Hello World")
-%%= Hello World
+write_stdout("Hello World")
+%= Hello World
 
 print(str(string_length("Hello")))
 %= 5
 
-%|
 VAR s: String
 s := "Hello World"
 upper_string(s)
 print(s)
-%# HELLO WORLD
-|%
+%= HELLO WORLD
 
 TRY
     nonexistent_function()

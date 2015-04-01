@@ -1846,9 +1846,12 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
     for (auto paramtype: types_dict) {
         param_types[paramtype.first] = paramtype.second->eval_string();
     }
-    for (auto a: function->params) {
-        if (param_types.find(a->name) == param_types.end()) {
-            error(3097, declaration->dict->token, "parameter type missing: " + a->name);
+    for (auto p: function->params) {
+        if (p->mode == ParameterType::OUT) {
+            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + p->name);
+        }
+        if (param_types.find(p->name) == param_types.end()) {
+            error(3097, declaration->dict->token, "parameter type missing: " + p->name);
         }
     }
 
