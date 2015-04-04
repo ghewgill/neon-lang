@@ -1,6 +1,8 @@
 EXPORT type
+EXPORT enum
 EXPORT const
 EXPORT var
+EXPORT var2
 EXPORT function
 EXPORT modify
 EXPORT exception
@@ -12,6 +14,12 @@ TYPE type := RECORD
     string: String
 END RECORD
 
+TYPE enum := ENUM
+    red
+    green
+    blue
+END ENUM
+
 FUNCTION type.method(IN self: type): String
     RETURN self.string & self.string
 END FUNCTION
@@ -19,6 +27,8 @@ END FUNCTION
 CONST const: Number := 5
 
 VAR var: String := "test"
+
+VAR var2: enum := enum.blue
 
 FUNCTION function(x: Number): Number
     RETURN x * x
