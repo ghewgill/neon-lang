@@ -1,6 +1,8 @@
 EXPORT Variant
 EXPORT Type
 EXPORT TypeMismatch
+EXPORT make_number
+EXPORT make_string
 
 DECLARE EXCEPTION TypeMismatch
 
@@ -23,6 +25,18 @@ TYPE Variant := RECORD
     PRIVATE val_array: Array<Variant>
     PRIVATE val_dictionary: Dictionary<Variant>
 END RECORD
+
+FUNCTION make_number(n: Number): Variant
+    VAR r: Variant
+    r.set_number(n)
+    RETURN r
+END FUNCTION
+
+FUNCTION make_string(s: String): Variant
+    VAR r: Variant
+    r.set_string(s)
+    RETURN r
+END FUNCTION
 
 FUNCTION Variant.get_type(IN self: Variant): Type
     RETURN self.type

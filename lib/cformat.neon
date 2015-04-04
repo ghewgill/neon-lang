@@ -1,0 +1,33 @@
+EXPORT printf
+EXPORT sprintf
+
+IMPORT variant.Variant
+
+% TODO: This needs a lot more functionality, it is intended
+% as a functional equivalent to the C sprintf function.
+FUNCTION sprintf(fmt: String, value: Array<Variant>): String
+    VAR r: String
+    VAR a: Number := 0
+    VAR i: Number := 0
+    WHILE i < fmt.length() DO
+        IF fmt[i] = "%" THEN
+            inc(i)
+            CASE fmt[i]
+                WHEN "d" DO
+                    r := r & value[a].get_number().to_string()
+                    inc(a)
+                WHEN "s" DO
+                    r := r & value[a].get_string()
+                    inc(a)
+            END CASE
+        ELSE
+            r := r & fmt[i]
+        END IF
+        inc(i)
+    END WHILE
+    RETURN r
+END FUNCTION
+
+FUNCTION printf(fmt: String, value: Array<Variant>)
+    print(sprintf(fmt, value))
+END FUNCTION
