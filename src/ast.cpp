@@ -123,6 +123,22 @@ const Expression *TypeArray::deserialize_value(const Bytecode::Bytes &value, int
     return new ArrayLiteralExpression(elementtype, elements);
 }
 
+TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype)
+  : Type(declaration, "dictionary"),
+    elementtype(elementtype)
+{
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        methods["size"] = new PredefinedFunction("dictionary__size", new TypeFunction(TYPE_NUMBER, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        methods["keys"] = new PredefinedFunction("dictionary__keys", new TypeFunction(TYPE_ARRAY_STRING, params));
+    }
+}
+
 bool TypeDictionary::is_equivalent(const Type *rhs) const
 {
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);

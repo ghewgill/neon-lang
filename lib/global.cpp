@@ -69,6 +69,20 @@ std::string boolean__to_string(bool self)
     return self ? "TRUE" : "FALSE";
 }
 
+Number dictionary__size(Cell &self)
+{
+    return number_from_uint64(self.dictionary().size());
+}
+
+std::vector<std::string> dictionary__keys(Cell &self)
+{
+    std::vector<std::string> r;
+    for (auto d: self.dictionary()) {
+        r.push_back(d.first);
+    }
+    return r;
+}
+
 std::string number__to_string(Number self)
 {
     return number_to_string(self);

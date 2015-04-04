@@ -273,7 +273,7 @@ extern TypeArray *TYPE_ARRAY_STRING;
 
 class TypeDictionary: public Type {
 public:
-    TypeDictionary(const Token &declaration, const Type *elementtype): Type(declaration, "dictionary"), elementtype(elementtype) {}
+    TypeDictionary(const Token &declaration, const Type *elementtype);
     const Type *elementtype;
 
     virtual bool is_equivalent(const Type *rhs) const override;

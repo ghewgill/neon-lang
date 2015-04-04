@@ -17,6 +17,7 @@ AstFromNeon = {
     "Array": ("TYPE_GENERIC", VALUE),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
     "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
+    "Dictionary": ("TYPE_GENERIC", VALUE),
 }
 
 CppFromAst = {
