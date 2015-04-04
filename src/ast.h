@@ -322,7 +322,7 @@ public:
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
-    virtual std::string text() const override { return "TypeRecord(...)"; }
+    virtual std::string text() const override;
 private:
     mutable bool predeclared;
     mutable bool postdeclared;

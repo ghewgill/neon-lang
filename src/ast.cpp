@@ -192,6 +192,21 @@ const Expression *TypeRecord::deserialize_value(const Bytecode::Bytes &value, in
     return new RecordLiteralExpression(this, elements);
 }
 
+std::string TypeRecord::text() const
+{
+    std::string r = "TypeRecord(";
+    bool first = true;
+    for (auto f: fields) {
+        if (not first) {
+            r.append(",");
+        }
+        first = false;
+        r.append(f.name.text);
+    }
+    r.append(")");
+    return r;
+}
+
 bool TypePointer::is_equivalent(const Type *rhs) const
 {
     const TypePointer *p = dynamic_cast<const TypePointer *>(rhs);

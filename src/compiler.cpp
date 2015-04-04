@@ -308,7 +308,7 @@ void Emitter::add_import(const std::string &name)
 
 std::string Emitter::get_type_reference(const Type *type)
 {
-    if (exported_types.find(type) != exported_types.end()) {
+    if (type->name.find('.') != std::string::npos || exported_types.find(type) != exported_types.end()) {
         return "~" + type->name + ";";
     }
     return type->get_type_descriptor(*this);
@@ -334,7 +334,7 @@ void Type::generate_export(Emitter &emitter, const std::string &name) const
     for (auto m: methods) {
         const Function *f = dynamic_cast<const Function *>(m.second);
         if (f == nullptr) {
-            internal_error("method should be function");
+            internal_error("method should be function: " + this->name + "." + m.second->name + " " + m.second->text());
         }
         emitter.add_export_function(name + "." + m.first, f->type->get_type_descriptor(emitter), emitter.function_label(f->entry_label).get_target());
     }

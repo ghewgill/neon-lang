@@ -545,7 +545,7 @@ Module *Analyzer::import_module(const std::string &name)
     for (auto t: object.types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
-            TypeRecord *actual_record = new TypeRecord(Token(), object.strtable[t.name], std::vector<TypeRecord::Field>());
+            TypeRecord *actual_record = new TypeRecord(Token(), name + "." + object.strtable[t.name], std::vector<TypeRecord::Field>());
             module->scope->addName(Token(), object.strtable[t.name], actual_record);
             Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
             const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
@@ -1511,7 +1511,15 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 i++;
             }
             i++;
-            Type *type = dynamic_cast<Type *>(scope->lookupName(name));
+            Scope *s = scope;
+            std::string localname = name;
+            auto dot = name.find('.');
+            if (dot != std::string::npos) {
+                const Module *module = import_module(name.substr(0, dot));
+                s = module->scope;
+                localname = name.substr(dot+1);
+            }
+            Type *type = dynamic_cast<Type *>(s->lookupName(localname));
             if (type == nullptr) {
                 internal_error("reference to unknown type in exports: " + name);
             }
