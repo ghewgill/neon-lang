@@ -58,13 +58,14 @@ public:
     void push_function_exit(Label &label);
     void pop_function_exit();
     Label &get_function_exit();
+    void declare_export_type(const Type *type);
     void add_export_type(const std::string &name, const std::string &descriptor);
     void add_export_constant(const std::string &name, const std::string &type, const std::string &value);
     void add_export_variable(const std::string &name, const std::string &type, int index);
     void add_export_function(const std::string &name, const std::string &type, int entry);
     void add_export_exception(const std::string &name);
     void add_import(const std::string &name);
-    std::string get_type_descriptor(const Type *type);
+    std::string get_type_reference(const Type *type);
 private:
     const std::string source_hash;
     Bytecode object;
@@ -247,6 +248,11 @@ Emitter::Label &Emitter::get_function_exit()
     return *function_exit.top();
 }
 
+void Emitter::declare_export_type(const Type *type)
+{
+    exported_types.insert(type);
+}
+
 void Emitter::add_export_type(const std::string &name, const std::string &descriptor)
 {
     Bytecode::Type type;
@@ -300,13 +306,10 @@ void Emitter::add_import(const std::string &name)
     object.imports.push_back(std::make_pair(index, std::string(32, '0')));
 }
 
-std::string Emitter::get_type_descriptor(const Type *type)
+std::string Emitter::get_type_reference(const Type *type)
 {
-    if (dynamic_cast<const TypeEnum *>(type) != nullptr
-     || dynamic_cast<const TypeRecord *>(type) != nullptr) {
-        if (not exported_types.insert(type).second) {
-            return "~" + type->name + ";";
-        }
+    if (exported_types.find(type) != exported_types.end()) {
+        return "~" + type->name + ";";
     }
     return type->get_type_descriptor(*this);
 }
@@ -327,13 +330,13 @@ void Type::postdeclare(Emitter &emitter) const
 
 void Type::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_type(name, emitter.get_type_descriptor(this));
+    emitter.add_export_type(name, get_type_descriptor(emitter));
     for (auto m: methods) {
         const Function *f = dynamic_cast<const Function *>(m.second);
         if (f == nullptr) {
             internal_error("method should be function");
         }
-        emitter.add_export_function(name + "." + m.first, emitter.get_type_descriptor(f->type), emitter.function_label(f->entry_label).get_target());
+        emitter.add_export_function(name + "." + m.first, f->type->get_type_descriptor(emitter), emitter.function_label(f->entry_label).get_target());
     }
 }
 
@@ -413,9 +416,9 @@ std::string TypeFunction::get_type_descriptor(Emitter &emitter) const
                 internal_error("invalid parameter mode");
         }
         // TODO: default value
-        r += m + p->declaration.text + ":" + emitter.get_type_descriptor(p->type);
+        r += m + p->declaration.text + ":" + emitter.get_type_reference(p->type);
     }
-    r += "]:" + emitter.get_type_descriptor(returntype);
+    r += "]:" + emitter.get_type_reference(returntype);
     return r;
 }
 
@@ -436,7 +439,7 @@ void TypeArray::generate_call(Emitter &) const
 
 std::string TypeArray::get_type_descriptor(Emitter &emitter) const
 {
-    return "A<" + emitter.get_type_descriptor(elementtype) + ">";
+    return "A<" + emitter.get_type_reference(elementtype) + ">";
 }
 
 void TypeDictionary::generate_load(Emitter &emitter) const
@@ -456,7 +459,7 @@ void TypeDictionary::generate_call(Emitter &) const
 
 std::string TypeDictionary::get_type_descriptor(Emitter &emitter) const
 {
-    return "D<" + emitter.get_type_descriptor(elementtype) + ">";
+    return "D<" + emitter.get_type_reference(elementtype) + ">";
 }
 
 void TypeRecord::predeclare(Emitter &emitter) const
@@ -507,7 +510,7 @@ std::string TypeRecord::get_type_descriptor(Emitter &emitter) const
         if (f.is_private) {
             r += "!";
         }
-        r += f.name.text + ":" + emitter.get_type_descriptor(f.type);
+        r += f.name.text + ":" + emitter.get_type_reference(f.type);
     }
     r += "]";
     return r;
@@ -530,7 +533,7 @@ void TypePointer::generate_call(Emitter &) const
 
 std::string TypePointer::get_type_descriptor(Emitter &emitter) const
 {
-    return "P<" + emitter.get_type_descriptor(reftype) + ">";
+    return "P<" + emitter.get_type_reference(reftype) + ">";
 }
 
 std::string TypeEnum::get_type_descriptor(Emitter &) const
@@ -587,7 +590,7 @@ void GlobalVariable::generate_address(Emitter &emitter, int) const
 
 void GlobalVariable::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_variable(name, emitter.get_type_descriptor(type), index);
+    emitter.add_export_variable(name, emitter.get_type_reference(type), index);
 }
 
 void LocalVariable::predeclare(Emitter &emitter, int slot)
@@ -679,7 +682,7 @@ void Function::generate_call(Emitter &emitter) const
 
 void Function::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_function(name, emitter.get_type_descriptor(type), emitter.function_label(entry_label).get_target());
+    emitter.add_export_function(name, type->get_type_descriptor(emitter), emitter.function_label(entry_label).get_target());
 }
 
 void PredefinedFunction::predeclare(Emitter &emitter) const
@@ -740,7 +743,7 @@ void Exception::generate_export(Emitter &emitter, const std::string &name) const
 
 void Constant::generate_export(Emitter &emitter, const std::string &name) const
 {
-    emitter.add_export_constant(name, emitter.get_type_descriptor(type), type->serialize(value));
+    emitter.add_export_constant(name, emitter.get_type_reference(type), type->serialize(value));
 }
 
 void ConstantBooleanExpression::generate(Emitter &emitter) const
@@ -1428,6 +1431,12 @@ void Program::generate(Emitter &emitter) const
     }
     emitter.emit(RET);
     frame->postdeclare(emitter);
+    for (auto exp: exports) {
+        const Type *type = dynamic_cast<const Type *>(exp.second);
+        if (type != nullptr) {
+            emitter.declare_export_type(type);
+        }
+    }
     for (auto exp: exports) {
         exp.second->generate_export(emitter, exp.first);
     }
