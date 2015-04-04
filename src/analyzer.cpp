@@ -18,6 +18,7 @@ public:
 
     ICompilerSupport *support;
     const pt::Program *program;
+    std::map<std::string, Module *> modules;
     Frame *global_frame;
     Scope *global_scope;
     std::stack<Frame *> frame;
@@ -96,6 +97,7 @@ public:
     const Statement *analyze(const pt::WhileStatement *statement);
     const Program *analyze();
 private:
+    Module *import_module(const std::string &name);
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
 private:
@@ -391,6 +393,7 @@ private:
 Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program)
   : support(support),
     program(program),
+    modules(),
     global_frame(nullptr),
     global_scope(nullptr),
     frame(),
@@ -526,6 +529,58 @@ ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, co
         args.push_back(new ConstantBooleanExpression(last_from_end));
         load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__slice"))), args);
     }
+}
+
+Module *Analyzer::import_module(const std::string &name)
+{
+    auto m = modules.find(name);
+    if (m != modules.end()) {
+        return m->second;
+    }
+    Bytecode object;
+    if (not support->loadBytecode(name, object)) {
+        internal_error("TODO module not found: " + name);
+    }
+    Module *module = new Module(Token(), scope.top(), name);
+    for (auto t: object.types) {
+        if (object.strtable[t.descriptor][0] == 'R') {
+            // Support recursive record type declarations.
+            TypeRecord *actual_record = new TypeRecord(Token(), object.strtable[t.name], std::vector<TypeRecord::Field>());
+            module->scope->addName(Token(), object.strtable[t.name], actual_record);
+            Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
+            const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
+            const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
+            const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
+        } else {
+            module->scope->addName(Token(), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
+        }
+    }
+    for (auto c: object.constants) {
+        const Type *type = deserialize_type(module->scope, object.strtable[c.type]);
+        int i = 0;
+        module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
+    }
+    for (auto v: object.variables) {
+        module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
+    }
+    for (auto f: object.functions) {
+        const std::string function_name = object.strtable[f.name];
+        auto i = function_name.find('.');
+        if (i != std::string::npos) {
+            const std::string typestr = function_name.substr(0, i);
+            const std::string method = function_name.substr(i+1);
+            Name *n = module->scope->lookupName(typestr);
+            Type *type = dynamic_cast<Type *>(n);
+            type->methods[method] = new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
+        } else {
+            module->scope->addName(Token(), function_name, new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
+        }
+    }
+    for (auto e: object.exception_exports) {
+        module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
+    }
+    modules[name] = module;
+    return module;
 }
 
 const Type *Analyzer::analyze(const pt::Type *type, const std::string &name)
@@ -1484,48 +1539,7 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
         error2(3114, localname, scope.top()->getDeclaration(localname.text), "duplicate definition of name");
     }
     if (not rtl_import(declaration->module, scope.top(), declaration->module.text, declaration->name.text, localname.text)) {
-        Bytecode object;
-        if (not support->loadBytecode(declaration->module.text, object)) {
-            internal_error("TODO module not found: " + declaration->module.text);
-        }
-        Module *module = new Module(declaration->token, scope.top(), declaration->module.text);
-        for (auto t: object.types) {
-            if (object.strtable[t.descriptor][0] == 'R') {
-                // Support recursive record type declarations.
-                TypeRecord *actual_record = new TypeRecord(Token(), object.strtable[t.name], std::vector<TypeRecord::Field>());
-                module->scope->addName(Token(), object.strtable[t.name], actual_record);
-                Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
-                const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
-                const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
-                const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
-            } else {
-                module->scope->addName(Token(), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
-            }
-        }
-        for (auto c: object.constants) {
-            const Type *type = deserialize_type(module->scope, object.strtable[c.type]);
-            int i = 0;
-            module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
-        }
-        for (auto v: object.variables) {
-            module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(declaration->module.text, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
-        }
-        for (auto f: object.functions) {
-            const std::string name = object.strtable[f.name];
-            auto i = name.find('.');
-            if (i != std::string::npos) {
-                const std::string typestr = name.substr(0, i);
-                const std::string method = name.substr(i+1);
-                Name *n = module->scope->lookupName(typestr);
-                Type *type = dynamic_cast<Type *>(n);
-                type->methods[method] = new ModuleFunction(declaration->module.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
-            } else {
-                module->scope->addName(Token(), name, new ModuleFunction(declaration->module.text, name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
-            }
-        }
-        for (auto e: object.exception_exports) {
-            module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
-        }
+        Module *module = import_module(declaration->module.text);
         if (declaration->name.type == NONE) {
             scope.top()->addName(declaration->token, localname.text, module);
         } else {
