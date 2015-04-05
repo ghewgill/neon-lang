@@ -1,0 +1,143 @@
+EXPORT decode
+EXPORT encode
+
+IMPORT variant
+IMPORT variant.Type
+IMPORT variant.Variant
+
+% TODO: This encoder and decoder does not handle backslash
+% character escapes yet.
+% TODO: Also, this could be improved a lot by using regex.
+
+DECLARE EXCEPTION JsonFormat
+
+FUNCTION skip_whitespace(json: String, INOUT index: Number)
+    WHILE index < json.length() AND (json[index] = " " OR json[index] = "\t" OR json[index] = "\r" OR json[index] = "\n") DO
+        inc(index)
+    END WHILE
+END FUNCTION
+
+FUNCTION decode_part(json: String, INOUT index: Number): Variant
+    skip_whitespace(json, index)
+    CASE json[index]
+        WHEN "a" TO "z" DO
+            LET start: Number := index
+            WHILE index < json.length() AND "a" <= json[index] <= "z" DO
+                inc(index)
+            END WHILE
+            LET s: String := json[start TO index-1]
+            CASE s
+                WHEN "null" DO
+                    RETURN variant.make_null()
+                WHEN "false" DO
+                    RETURN variant.make_boolean(FALSE)
+                WHEN "true" DO
+                    RETURN variant.make_boolean(TRUE)
+                ELSE
+                    RAISE JsonFormat("null or false or true expected")
+            END CASE
+        WHEN "-", "0" TO "9" DO
+            LET start: Number := index
+            WHILE index < json.length() AND ("0" <= json[index] <= "9" OR json[index] = "-" OR json[index] = "+" OR json[index] = "." OR json[index] = "e" OR json[index] = "E") DO
+                inc(index)
+            END WHILE
+            RETURN variant.make_number(num(json[start TO index-1]))
+        WHEN "\"" DO
+            inc(index)
+            LET start: Number := index
+            WHILE index < json.length() AND json[index] # "\"" DO
+                inc(index)
+            END WHILE
+            inc(index)
+            RETURN variant.make_string(json[start TO index-2])
+        WHEN "[" DO
+            inc(index)
+            VAR a: Array<Variant>
+            LOOP
+                skip_whitespace(json, index)
+                IF json[index] = "]" THEN
+                    EXIT LOOP
+                END IF
+                a[a.size()] := decode_part(json, index)
+                skip_whitespace(json, index)
+                IF json[index] = "," THEN
+                    inc(index)
+                ELSIF json[index] # "]" THEN
+                    RAISE JsonFormat(", or ] expected")
+                END IF
+            END LOOP
+            inc(index)
+            RETURN variant.make_array(a)
+        WHEN "{" DO
+            inc(index)
+            VAR d: Dictionary<Variant>
+            LOOP
+                skip_whitespace(json, index)
+                IF json[index] = "}" THEN
+                    EXIT LOOP
+                END IF
+                LET vkey: Variant := decode_part(json, index)
+                IF vkey.get_type() # Type.string THEN
+                    RAISE JsonFormat("string key expected")
+                END IF
+                LET key: String := vkey.get_string()
+                skip_whitespace(json, index)
+                IF json[index] # ":" THEN
+                    RAISE JsonFormat(": expected")
+                END IF
+                inc(index)
+                d[key] := decode_part(json, index)
+                skip_whitespace(json, index)
+                IF json[index] = "," THEN
+                    inc(index)
+                ELSIF json[index] # "}" THEN
+                    RAISE JsonFormat(", or } expected")
+                END IF
+            END LOOP
+            inc(index)
+            RETURN variant.make_dictionary(d)
+    END CASE
+    RETURN variant.make_null()
+END FUNCTION
+
+FUNCTION decode(json: String): Variant
+    VAR i: Number := 0
+    RETURN decode_part(json, i)
+END FUNCTION
+
+FUNCTION encode(data: Variant): String
+    CASE data.get_type()
+        WHEN Type.null DO
+            RETURN "null"
+        WHEN Type.boolean DO
+            RETURN IF data.get_boolean() THEN "true" ELSE "false"
+        WHEN Type.number DO
+            RETURN str(data.get_number())
+        WHEN Type.string DO
+            RETURN "\"" & data.get_string() & "\""
+        WHEN Type.array DO
+            VAR r: String := "["
+            LET a: Array<Variant> := data.get_array()
+            FOR i := 0 TO a.size()-1 DO
+                IF r.length() > 1 THEN
+                    r := r & ","
+                END IF
+                r := r & encode(a[i])
+            END FOR
+            r := r & "]"
+            RETURN r
+        WHEN Type.dictionary DO
+            VAR r: String := "{"
+            LET d: Dictionary<Variant> := data.get_dictionary()
+            LET keys: Array<String> := d.keys()
+            FOR i := 0 TO d.size()-1 DO
+                IF r.length() > 1 THEN
+                    r := r & ","
+                END IF
+                r := r & encode(variant.make_string(keys[i])) & ":" & encode(d[keys[i]])
+            END FOR
+            r := r & "}"
+            RETURN r
+    END CASE
+    RETURN "?unknown"
+END FUNCTION

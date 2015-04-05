@@ -1,0 +1,59 @@
+IMPORT json
+
+IMPORT variant
+
+VAR s: String
+VAR v: variant.Variant
+
+s := json.encode(variant.make_null())
+print(s)
+%= null
+v := json.decode(s)
+print("\(v.is_null())")
+%= TRUE
+
+s := json.encode(variant.make_boolean(TRUE))
+print(s)
+%= true
+v := json.decode(s)
+print("\(v.get_boolean())")
+%= TRUE
+
+s := json.encode(variant.make_number(5))
+print(s)
+%= 5
+v := json.decode(s)
+print("\(v.get_number())")
+%= 5
+
+s := json.encode(variant.make_string("fork"))
+print(s)
+%= "fork"
+v := json.decode(s)
+print("\(v.get_string())")
+%= fork
+
+s := json.encode(variant.make_array([variant.make_number(5), variant.make_string("fork")]))
+print(s)
+%= [5,"fork"]
+v := json.decode(s)
+print("\(v.get_array()[0].get_number()) \(v.get_array()[1].get_string())")
+%= 5 fork
+
+s := json.encode(variant.make_dictionary({
+    "null": variant.make_null()
+    "boolean": variant.make_boolean(TRUE)
+    "number": variant.make_number(5)
+    "string": variant.make_string("fork")
+}))
+print(s)
+%= {"boolean":true,"null":null,"number":5,"string":"fork"}
+v := json.decode(s)
+print(v.get_dictionary()["null"].is_null().to_string())
+%= TRUE
+print(v.get_dictionary()["boolean"].get_boolean().to_string())
+%= TRUE
+print(v.get_dictionary()["number"].get_number().to_string())
+%= 5
+print(v.get_dictionary()["string"].get_string())
+%= fork
