@@ -1,0 +1,11 @@
+EXPORT Match
+
+TYPE Group := RECORD
+    start: Number
+    end: Number
+    group: String
+END RECORD
+
+TYPE Match := Array<Group>
+
+DECLARE NATIVE FUNCTION search(pattern: String, subject: String, INOUT match: Match): Boolean
