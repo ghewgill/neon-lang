@@ -1,8 +1,13 @@
 EXPORT Variant
 EXPORT Type
 EXPORT TypeMismatch
+EXPORT make_null
+EXPORT make_boolean
 EXPORT make_number
 EXPORT make_string
+EXPORT make_bytes
+EXPORT make_array
+EXPORT make_dictionary
 
 DECLARE EXCEPTION TypeMismatch
 
@@ -26,6 +31,18 @@ TYPE Variant := RECORD
     PRIVATE val_dictionary: Dictionary<Variant>
 END RECORD
 
+FUNCTION make_null(): Variant
+    VAR r: Variant
+    r.set_null()
+    RETURN r
+END FUNCTION
+
+FUNCTION make_boolean(b: Boolean): Variant
+    VAR r: Variant
+    r.set_boolean(b)
+    RETURN r
+END FUNCTION
+
 FUNCTION make_number(n: Number): Variant
     VAR r: Variant
     r.set_number(n)
@@ -35,6 +52,24 @@ END FUNCTION
 FUNCTION make_string(s: String): Variant
     VAR r: Variant
     r.set_string(s)
+    RETURN r
+END FUNCTION
+
+FUNCTION make_bytes(b: Bytes): Variant
+    VAR r: Variant
+    r.set_bytes(b)
+    RETURN r
+END FUNCTION
+
+FUNCTION make_array(a: Array<Variant>): Variant
+    VAR r: Variant
+    r.set_array(a)
+    RETURN r
+END FUNCTION
+
+FUNCTION make_dictionary(d: Dictionary<Variant>): Variant
+    VAR r: Variant
+    r.set_dictionary(d)
     RETURN r
 END FUNCTION
 
