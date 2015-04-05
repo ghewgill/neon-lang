@@ -35,6 +35,9 @@ else:
 
 env.Command("external/utf8/source/utf8.h", "external/utf8_v2_3_4.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/utf8"))
 
+env.Command("external/pcre2-10.10/configure", "external/pcre2-10.10.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
+libpcre = env.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
+
 env.Command("external/easysid-version-1.0/SConstruct", "external/easysid-version-1.0.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
 libeasysid = env.Command("external/easysid-version-1.0/libeasysid"+env["SHLIBSUFFIX"], "external/easysid-version-1.0/SConstruct", "cd external/easysid-version-1.0 && " + sys.executable + " " + sys.argv[0])
 
@@ -54,6 +57,7 @@ env.Append(CPPPATH=[
     "external/lib/libffi-3.2.1/include",
     "external/PDCurses-3.4",
     "external/hash-library",
+    "external/pcre2-10.10/src",
     "src",
 ])
 env.Append(LIBS=[hash_lib])
@@ -72,7 +76,7 @@ else:
         "-Werror",
         "-g",
     ])
-env.Append(LIBS=[libbid, libffi] + libs_curses)
+env.Append(LIBS=[libbid, libffi, libpcre] + libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 

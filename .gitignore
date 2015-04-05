@@ -19,5 +19,6 @@ external/libffi-3.2.1/
 external/PDCurses-3.4/
 external/easysid-version-1.0/
 external/hash-library/
+external/pcre2-10.10/
 external/lib
 external/share
