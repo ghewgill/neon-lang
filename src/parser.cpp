@@ -875,6 +875,25 @@ const Statement *Parser::parseDeclaration()
             ++i;
             return new ExceptionDeclaration(tok_name, tok_name);
         }
+        case NATIVE: {
+            ++i;
+            if (tokens[i].type == CONST) {
+                ++i;
+                // This just skips over the (assumed syntactically correct)
+                // identifier, colon, and type declaration of a constant.
+                ++i;
+                ++i;
+                parseType();
+            } else if (tokens[i].type == FUNCTION) {
+                Token type;
+                Token name;
+                const Type *returntype;
+                std::vector<const FunctionParameter *> args;
+                Token rparen;
+                parseFunctionHeader(type, name, returntype, args, rparen);
+            }
+            return nullptr;
+        }
         default:
             error(2058, tokens[i], "EXCEPTION expected");
     }

@@ -1,5 +1,3 @@
-MODULE curses
-
 TYPE Window := POINTER
 
 DECLARE NATIVE FUNCTION COLS(): Number

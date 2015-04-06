@@ -1,3 +1,4 @@
+import os
 import re
 import sys
 
@@ -110,12 +111,12 @@ functions = dict()
 
 for fn in sys.argv[1:]:
     if fn.endswith(".neon"):
-        with open(fn) as f:
+        prefix = os.path.basename(fn)[:-5] + "$"
+        if prefix == "global$":
             prefix = ""
+        with open(fn) as f:
             for s in f:
                 a = s.split()
-                if a[:1] == ["MODULE"]:
-                    prefix = a[1] + "$"
                 if a[:1] == ["TYPE"]:
                     m = re.match("TYPE\s+(\w+)\s*:=\s*(\w+)\s*$", s)
                     name = m.group(1)

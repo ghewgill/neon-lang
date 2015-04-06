@@ -1,5 +1,3 @@
-MODULE math
-
 DECLARE NATIVE CONST PI: Number
 
 DECLARE NATIVE FUNCTION abs(x: Number): Number

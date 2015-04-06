@@ -1546,13 +1546,12 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
     if (not scope.top()->allocateName(localname, localname.text)) {
         error2(3114, localname, scope.top()->getDeclaration(localname.text), "duplicate definition of name");
     }
-    if (not rtl_import(declaration->module, scope.top(), declaration->module.text, declaration->name.text, localname.text)) {
-        Module *module = import_module(declaration->module.text);
-        if (declaration->name.type == NONE) {
-            scope.top()->addName(declaration->token, localname.text, module);
-        } else {
-            scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
-        }
+    Module *module = import_module(declaration->module.text);
+    rtl_import(declaration->module.text, module);
+    if (declaration->name.type == NONE) {
+        scope.top()->addName(declaration->token, localname.text, module);
+    } else {
+        scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
     }
     return new NullStatement(declaration->token.line);
 }

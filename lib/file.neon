@@ -1,5 +1,3 @@
-MODULE file
-
 DECLARE NATIVE FUNCTION bytes(filename: String): Bytes
 DECLARE NATIVE FUNCTION lines(filename: String): Array<String> 
 DECLARE NATIVE FUNCTION mkdir(path: String)

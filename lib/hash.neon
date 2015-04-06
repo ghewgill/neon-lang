@@ -1,5 +1,3 @@
-MODULE hash
-
 DECLARE NATIVE FUNCTION crc32(data: String): Number
 DECLARE NATIVE FUNCTION crc32_bytes(data: Bytes): Number
 

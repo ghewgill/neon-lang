@@ -1,5 +1,3 @@
-MODULE bitwise
-
 DECLARE NATIVE FUNCTION and(x, y: Number): Number
 DECLARE NATIVE FUNCTION extract(x, n, w: Number): Number
 DECLARE NATIVE FUNCTION get(x, n: Number): Boolean
