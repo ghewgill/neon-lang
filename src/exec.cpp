@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <iso646.h>
 #include <iostream>
+#include <list>
 #include <map>
 #include <sstream>
 #include <stack>
@@ -148,7 +149,7 @@ private:
     Bytecode::Bytes::size_type ip;
     std::stack<Cell> stack;
     std::stack<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
-    std::vector<ActivationFrame> frames;
+    std::list<ActivationFrame> frames;
 
     void exec_ENTER();
     void exec_LEAVE();
@@ -342,12 +343,16 @@ void Executor::exec_PUSHPL()
 
 void Executor::exec_PUSHPOL()
 {
+    fprintf(stderr, "unimplemented: PUSHPOL\n");
+    exit(1);
+    /*
     ip++;
     uint32_t enclosing = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
     uint32_t addr = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
     stack.push(Cell(&frames[frames.size()-1-enclosing].locals.at(addr)));
+    */
 }
 
 void Executor::exec_LOADB()
