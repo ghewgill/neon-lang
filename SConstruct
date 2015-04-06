@@ -1,5 +1,6 @@
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -36,7 +37,43 @@ else:
 env.Command("external/utf8/source/utf8.h", "external/utf8_v2_3_4.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/utf8"))
 
 env.Command("external/pcre2-10.10/configure", "external/pcre2-10.10.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
-libpcre = env.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
+if sys.platform == "win32":
+    shutil.copyfile("external/pcre2-10.10/src/config.h.generic", "external/pcre2-10.10/src/config.h")
+    shutil.copyfile("external/pcre2-10.10/src/pcre2.h.generic", "external/pcre2-10.10/src/pcre2.h")
+    pcreenv = env.Clone()
+    pcreenv.Append(CPPFLAGS=[
+        "-DHAVE_CONFIG_H",
+        "-DPCRE2_CODE_UNIT_WIDTH=8",
+        "-DPCRE2_STATIC",
+    ])
+    pcreenv.Command("external/pcre2-10.10/src/pcre2_chartables.c", "external/pcre2-10.10/src/pcre2_chartables.c.dist", lambda target, source, env: shutil.copyfile(source[0].path, target[0].path))
+    libpcre = pcreenv.Library("external/pcre2-10.10/pcre2.lib", [
+        "external/pcre2-10.10/src/pcre2_auto_possess.c",
+        "external/pcre2-10.10/src/pcre2_chartables.c",
+        "external/pcre2-10.10/src/pcre2_compile.c",
+        "external/pcre2-10.10/src/pcre2_config.c",
+        "external/pcre2-10.10/src/pcre2_context.c",
+        "external/pcre2-10.10/src/pcre2_dfa_match.c",
+        "external/pcre2-10.10/src/pcre2_error.c",
+        "external/pcre2-10.10/src/pcre2_jit_compile.c",
+        "external/pcre2-10.10/src/pcre2_maketables.c",
+        "external/pcre2-10.10/src/pcre2_match.c",
+        "external/pcre2-10.10/src/pcre2_match_data.c",
+        "external/pcre2-10.10/src/pcre2_newline.c",
+        "external/pcre2-10.10/src/pcre2_ord2utf.c",
+        "external/pcre2-10.10/src/pcre2_pattern_info.c",
+        "external/pcre2-10.10/src/pcre2_serialize.c",
+        "external/pcre2-10.10/src/pcre2_string_utils.c",
+        "external/pcre2-10.10/src/pcre2_study.c",
+        "external/pcre2-10.10/src/pcre2_substitute.c",
+        "external/pcre2-10.10/src/pcre2_substring.c",
+        "external/pcre2-10.10/src/pcre2_tables.c",
+        "external/pcre2-10.10/src/pcre2_ucd.c",
+        "external/pcre2-10.10/src/pcre2_valid_utf.c",
+        "external/pcre2-10.10/src/pcre2_xclass.c",
+    ])
+else:
+    libpcre = env.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
 
 env.Command("external/easysid-version-1.0/SConstruct", "external/easysid-version-1.0.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
 libeasysid = env.Command("external/easysid-version-1.0/libeasysid"+env["SHLIBSUFFIX"], "external/easysid-version-1.0/SConstruct", "cd external/easysid-version-1.0 && " + sys.executable + " " + sys.argv[0])

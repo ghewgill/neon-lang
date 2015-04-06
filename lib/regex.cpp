@@ -4,6 +4,7 @@
 #include <cell.h>
 #include <number.h>
 
+#define PCRE2_STATIC
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 
@@ -24,8 +25,8 @@ bool regex$search(const std::string &pattern, const std::string &subject, Cell *
     PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(md);
     for (uint32_t i = 0; i < n*2; i += 2) {
         Cell g;
-        g.array().push_back(Cell(number_from_uint32(ovector[i])));
-        g.array().push_back(Cell(number_from_uint32(ovector[i+1])));
+        g.array().push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i]))));
+        g.array().push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i+1]))));
         g.array().push_back(Cell(subject.substr(ovector[i], ovector[i+1])));
         match->array().push_back(g);
     }
