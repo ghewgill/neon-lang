@@ -332,6 +332,12 @@ void Type::generate_export(Emitter &emitter, const std::string &name) const
 {
     emitter.add_export_type(name, get_type_descriptor(emitter));
     for (auto m: methods) {
+        // TODO: This is kind of a hack. It seems to work because
+        // predefined functions are available everywhere and don't
+        // need to be actually exported.
+        if (dynamic_cast<const PredefinedFunction *>(m.second) != nullptr) {
+            continue;
+        }
         const Function *f = dynamic_cast<const Function *>(m.second);
         if (f == nullptr) {
             internal_error("method should be function: " + this->name + "." + m.second->name + " " + m.second->text());
