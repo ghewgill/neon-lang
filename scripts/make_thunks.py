@@ -118,11 +118,14 @@ for fn in sys.argv[1:]:
             for s in f:
                 a = s.split()
                 if a[:1] == ["TYPE"]:
-                    m = re.match("TYPE\s+(\w+)\s*:=\s*(\w+)\s*$", s)
+                    m = re.match("TYPE\s+(\w+)\s*:=\s*(\S+)\s*$", s)
                     name = m.group(1)
                     atype = m.group(2)
-                    assert atype == "POINTER"
-                    AstFromNeon[name] = ("TYPE_POINTER", VALUE)
+                    if atype == "POINTER":
+                        AstFromNeon[name] = ("TYPE_POINTER", VALUE)
+                    else:
+                        AstFromNeon[name] = ("TYPE_GENERIC", VALUE)
+                        AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
                 if a[:3] == ["DECLARE", "NATIVE", "FUNCTION"]:
                     m = re.search(r"(\w+)\((.*?)\)(:\s*(\S+))?\s*$", s)
                     assert m is not None
@@ -130,7 +133,7 @@ for fn in sys.argv[1:]:
                     paramstr = m.group(2)
                     rtype = m.group(4)
                     params = parse_params(paramstr)
-                    functions[name] = [name, AstFromNeon[rtype], [AstFromNeon[x] for x in params]]
+                    functions[name] = [name, AstFromNeon[rtype], [AstFromNeon[x] for x in params], [x.split()[-1] for x in params]]
                 if a[:3] == ["DECLARE", "NATIVE", "CONST"]:
                     m = re.search(r"(\w+):\s*(\S+)\s*$", s)
                     assert m is not None
@@ -144,7 +147,7 @@ for fn in sys.argv[1:]:
 
 thunks = set()
 
-for name, rtype, params in functions.values():
+for name, rtype, params, paramtypes in functions.values():
     thunks.add((rtype, tuple(params)))
 
 with open("src/thunks.inc", "w") as inc:
@@ -204,15 +207,15 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "    const char *name;"
     print >>inc, "    const Type *returntype;"
     print >>inc, "    int count;"
-    print >>inc, "    struct {ParameterType::Mode m; const Type *p; } params[10];"
+    print >>inc, "    struct {ParameterType::Mode m; const Type *p; const char *modtypename; } params[10];"
     print >>inc, "} BuiltinFunctions[] = {"
-    for name, rtype, params in functions.values():
-        print >>inc, "    {{\"{}\", {}, {}, {{{}}}}},".format(name, rtype[0] if rtype[0] != "TYPE_GENERIC" else "nullptr", len(params), ",".join("{{ParameterType::{},{}}}".format("IN" if m == VALUE else "INOUT", p if p != "TYPE_GENERIC" else "nullptr") for p, m in params))
+    for name, rtype, params, paramtypes in functions.values():
+        print >>inc, "    {{\"{}\", {}, {}, {{{}}}}},".format(name, rtype[0] if rtype[0] != "TYPE_GENERIC" else "nullptr", len(params), ",".join("{{ParameterType::{},{},{}}}".format("IN" if m == VALUE else "INOUT", p if p != "TYPE_GENERIC" else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t in zip(params, paramtypes)))
     print >>inc, "};";
 
 with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "namespace rtl {"
-    for name, rtype, params in functions.values():
+    for name, rtype, params, paramtypes in functions.values():
         if "." in name:
             namespace, name = name.split(".")
             print >>inc, "namespace {} {{ extern {} {}({}); }}".format(namespace, CppFromAst[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
@@ -224,6 +227,6 @@ with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "    Thunk thunk;"
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
-    for name, rtype, params in functions.values():
+    for name, rtype, params, paramtypes in functions.values():
         print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name, "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), name.replace(".", "::"))
     print >>inc, "};";

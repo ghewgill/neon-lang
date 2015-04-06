@@ -25,11 +25,14 @@ bool rtl_import(const std::string &module, Module *mod)
         std::string qualified_name(f.name);
         if (qualified_name.substr(0, prefix.length()) == prefix) {
             std::vector<const ParameterType *> params;
-            for (auto p: f.params) {
-                if (p.p == nullptr) {
-                    break;
+            for (int i = 0; i < f.count; i++) {
+                auto &p = f.params[i];
+                auto *ptype = p.p;
+                if (ptype == nullptr) {
+                    Name *n = mod->scope->lookupName(p.modtypename);
+                    ptype = dynamic_cast<const Type *>(n);
                 }
-                params.push_back(new ParameterType(Token(), p.m, p.p, nullptr));
+                params.push_back(new ParameterType(Token(), p.m, ptype, nullptr));
             }
             mod->scope->addName(Token(), qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
             any = true;
