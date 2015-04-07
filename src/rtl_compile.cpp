@@ -3,6 +3,16 @@
 #include "constants_compile.inc"
 #include "functions_compile.inc"
 
+static const Type *resolve_type(const PredefinedType &ptype, Scope *scope)
+{
+    auto *type = ptype.type;
+    if (type == nullptr && scope != nullptr) {
+        Name *name = scope->lookupName(ptype.modtypename);
+        type = dynamic_cast<const Type *>(name);
+    }
+    return type;
+}
+
 void rtl_compile_init(Scope *scope)
 {
     init_builtin_constants(scope);
@@ -10,9 +20,9 @@ void rtl_compile_init(Scope *scope)
         std::vector<const ParameterType *> params;
         for (int i = 0; i < f.count; i++) {
             auto &p = f.params[i];
-            params.push_back(new ParameterType(Token(), p.m, p.p, nullptr));
+            params.push_back(new ParameterType(Token(), p.m, resolve_type(p.ptype, nullptr), nullptr));
         }
-        scope->addName(Token(), f.name, new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
+        scope->addName(Token(), f.name, new PredefinedFunction(f.name, new TypeFunction(resolve_type(f.returntype, nullptr), params)));
     }
 }
 
@@ -27,14 +37,9 @@ bool rtl_import(const std::string &module, Module *mod)
             std::vector<const ParameterType *> params;
             for (int i = 0; i < f.count; i++) {
                 auto &p = f.params[i];
-                auto *ptype = p.p;
-                if (ptype == nullptr) {
-                    Name *n = mod->scope->lookupName(p.modtypename);
-                    ptype = dynamic_cast<const Type *>(n);
-                }
-                params.push_back(new ParameterType(Token(), p.m, ptype, nullptr));
+                params.push_back(new ParameterType(Token(), p.m, resolve_type(p.ptype, mod->scope), nullptr));
             }
-            mod->scope->addName(Token(), qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(f.returntype, params)));
+            mod->scope->addName(Token(), qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(resolve_type(f.returntype, mod->scope), params)));
             any = true;
         }
     }
