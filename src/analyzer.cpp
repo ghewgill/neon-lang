@@ -1596,7 +1596,9 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         type = actual_record;
     } else {
-        scope.top()->addName(declaration->token, name, const_cast<Type *>(type)); // Still ugly.
+        Type *t = const_cast<Type *>(type);
+        const_cast<std::string &>(t->name) = name;
+        scope.top()->addName(declaration->token, name, t); // Still ugly.
     }
     const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
     if (rectype != nullptr) {
