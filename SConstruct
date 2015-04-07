@@ -88,10 +88,11 @@ hash_lib = hash_env.Library("external/hash-library/hash-library", [
     "external/hash-library/sha3.cpp",
 ])
 
-sqlite_c = env.Command("external/sqlite-amalgamation-3080803/sqlite3.c", "external/sqlite-amalgamation-3080803.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external"))
+if not os.path.exists("external/sqlite-amalgamation-3080803/sqlite3.c"):
+    zipfile.ZipFile("external/sqlite-amalgamation-3080803.zip").extractall("external")
 sqliteenv = env.Clone()
 sqliteenv.Append(CPPFLAGS=["-DSQLITE_THREADSAFE=0"])
-sqlite = sqliteenv.Object(sqlite_c)
+sqlite = sqliteenv.Object("external/sqlite-amalgamation-3080803/sqlite3.c")
 
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
