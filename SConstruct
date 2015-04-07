@@ -88,6 +88,11 @@ hash_lib = hash_env.Library("external/hash-library/hash-library", [
     "external/hash-library/sha3.cpp",
 ])
 
+sqlite_c = env.Command("external/sqlite-amalgamation-3080803/sqlite3.c", "external/sqlite-amalgamation-3080803.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external"))
+sqliteenv = env.Clone()
+sqliteenv.Append(CPPFLAGS=["-DSQLITE_THREADSAFE=0"])
+sqlite = sqliteenv.Object(sqlite_c)
+
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
     "external/utf8/source",
@@ -95,6 +100,7 @@ env.Append(CPPPATH=[
     "external/PDCurses-3.4",
     "external/hash-library",
     "external/pcre2-10.10/src",
+    "external/sqlite-amalgamation-3080803",
     "src",
 ])
 env.Append(LIBS=[hash_lib])
@@ -150,6 +156,7 @@ rtl_cpp = rtl_const + [
     "lib/math.cpp",
     "lib/random.cpp",
     "lib/regex.cpp",
+    "lib/sqlite.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",
 ]
@@ -163,6 +170,7 @@ rtl_neon = [
     "lib/math.neon",
     "lib/random.neon",
     "lib/regex.neon",
+    "lib/sqlite.neon",
     "lib/sys.neon",
     "lib/time.neon",
 ]
@@ -206,6 +214,7 @@ neon = env.Program("bin/neon", [
     rtl_platform,
     "src/support.cpp",
     "src/support_compiler.cpp",
+    sqlite,
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -242,6 +251,7 @@ neonx = env.Program("bin/neonx", [
     rtl_cpp,
     rtl_platform,
     "src/support.cpp",
+    sqlite,
 ] + coverage_lib,
 )
 

@@ -1,0 +1,13 @@
+EXPORT Database
+EXPORT Row
+EXPORT Rows
+
+TYPE Database := POINTER
+
+TYPE Row := Array<String>
+
+TYPE Rows := Array<Row>
+
+DECLARE NATIVE FUNCTION open(name: String): Database
+DECLARE NATIVE FUNCTION exec(db: Database, sql: String): Rows
+DECLARE NATIVE FUNCTION close(db: Database)

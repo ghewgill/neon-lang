@@ -20,5 +20,6 @@ external/PDCurses-3.4/
 external/easysid-version-1.0/
 external/hash-library/
 external/pcre2-10.10/
+external/sqlite-amalgamation-3080803/
 external/lib
 external/share
