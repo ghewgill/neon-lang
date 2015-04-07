@@ -1503,6 +1503,26 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
             const Type *returntype = deserialize_type(scope, descriptor, i);
             return new TypeFunction(returntype, params);
         }
+        case 'P': {
+            i++;
+            if (descriptor.at(i) != '<') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            const TypeRecord *rectype = nullptr;
+            if (descriptor.at(i) != '>') {
+                const Type *type = deserialize_type(scope, descriptor, i);
+                rectype = dynamic_cast<const TypeRecord *>(type);
+                if (rectype == nullptr) {
+                    internal_error("deserialize_type");
+                }
+            }
+            if (descriptor.at(i) != '>') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            return new TypePointer(Token(), rectype);
+        }
         case '~': {
             i++;
             std::string name;

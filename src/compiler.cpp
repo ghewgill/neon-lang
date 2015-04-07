@@ -539,7 +539,7 @@ void TypePointer::generate_call(Emitter &) const
 
 std::string TypePointer::get_type_descriptor(Emitter &emitter) const
 {
-    return "P<" + emitter.get_type_reference(reftype) + ">";
+    return "P<" + (reftype != nullptr ? emitter.get_type_reference(reftype) : "") + ">";
 }
 
 std::string TypeEnum::get_type_descriptor(Emitter &) const
