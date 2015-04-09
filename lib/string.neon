@@ -1,0 +1,6 @@
+DECLARE NATIVE FUNCTION find(s: String, t: String): Number
+DECLARE NATIVE FUNCTION join(a: Array<String>, d: String): String
+DECLARE NATIVE FUNCTION lower(s: String): String
+DECLARE NATIVE FUNCTION split(s: String, d: String): Array<String>
+DECLARE NATIVE FUNCTION trim(s: String): String
+DECLARE NATIVE FUNCTION upper(s: String): String

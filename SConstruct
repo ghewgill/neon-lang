@@ -158,6 +158,7 @@ rtl_cpp = rtl_const + [
     "lib/random.cpp",
     "lib/regex.cpp",
     "lib/sqlite.cpp",
+    "lib/string.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",
 ]
@@ -172,6 +173,7 @@ rtl_neon = [
     "lib/random.neon",
     "lib/regex.neon",
     "lib/sqlite.neon",
+    "lib/string.neon",
     "lib/sys.neon",
     "lib/time.neon",
 ]
