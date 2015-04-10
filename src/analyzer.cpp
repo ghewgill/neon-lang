@@ -43,6 +43,7 @@ public:
     const Expression *analyze(const pt::DictionaryLiteralExpression *expr);
     const Expression *analyze(const pt::NilLiteralExpression *expr);
     const Expression *analyze(const pt::IdentifierExpression *expr);
+    const Name *analyze_qualified_name(const pt::Expression *expr);
     const Expression *analyze(const pt::DotExpression *expr);
     const Expression *analyze(const pt::ArrowExpression *expr);
     const Expression *analyze(const pt::SubscriptExpression *expr);
@@ -773,27 +774,43 @@ const Expression *Analyzer::analyze(const pt::IdentifierExpression *expr)
     error(3040, expr->token, "name is not a constant or variable: " + expr->name);
 }
 
+const Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
+{
+    const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(expr);
+    if (ident != nullptr) {
+        return scope.top()->lookupName(ident->name);
+    }
+    const pt::DotExpression *dotted = dynamic_cast<const pt::DotExpression *>(expr);
+    if (dotted == nullptr) {
+        return nullptr;
+    }
+    const Name *base = analyze_qualified_name(dotted->base);
+    const Module *module = dynamic_cast<const Module *>(base);
+    if (module != nullptr) {
+        const Name *name = module->scope->lookupName(dotted->name.text);
+        if (name == nullptr) {
+            error(3134, dotted->name, "name not found: " + dotted->name.text);
+        }
+        return name;
+    }
+    return nullptr;
+}
+
 const Expression *Analyzer::analyze(const pt::DotExpression *expr)
 {
-    const pt::IdentifierExpression *scopename = dynamic_cast<const pt::IdentifierExpression *>(expr->base);
-    if (scopename != nullptr) {
-        const Name *name = scope.top()->lookupName(scopename->name);
-        const Module *module = dynamic_cast<const Module *>(name);
-        if (module != nullptr) {
-            const Name *name = module->scope->lookupName(expr->name.text);
-            if (name == nullptr) {
-                error(3134, expr->name, "name not found: " + expr->name.text);
-            }
-            const Constant *constant = dynamic_cast<const Constant *>(name);
-            if (constant != nullptr) {
-                return new ConstantExpression(constant);
-            }
-            const Variable *var = dynamic_cast<const Variable *>(name);
-            if (var != nullptr) {
-                return new VariableExpression(var);
-            }
-            error(3135, expr->token, "name is not a variable: " + expr->name.text);
+    const Name *name = analyze_qualified_name(expr);
+    if (name != nullptr) {
+        const Constant *constant = dynamic_cast<const Constant *>(name);
+        if (constant != nullptr) {
+            return new ConstantExpression(constant);
         }
+        const Variable *var = dynamic_cast<const Variable *>(name);
+        if (var != nullptr) {
+            return new VariableExpression(var);
+        }
+    }
+    name = analyze_qualified_name(expr->base);
+    if (name != nullptr) {
         const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(name);
         if (enumtype != nullptr) {
             auto name = enumtype->names.find(expr->name.text);
