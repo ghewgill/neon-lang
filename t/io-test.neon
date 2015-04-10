@@ -1,0 +1,19 @@
+IMPORT io
+
+LET stdout: io.File := io.stdout()
+
+io.fprint(stdout, "Hello World")
+%= Hello World
+
+io.write(stdout, "Hello ")
+io.write(stdout, "World\n")
+%= Hello World
+
+VAR f: io.File := io.open("LICENSE.txt", io.Mode.read)
+VAR s: String
+print(strb(io.readline(f, s)))
+%= TRUE
+print(s[FIRST TO LAST-1])
+%= The MIT License (MIT)
+
+io.close(f)

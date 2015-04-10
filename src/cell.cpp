@@ -131,7 +131,7 @@ bool Cell::operator==(const Cell &rhs) const
     return false;
 }
 
-Cell *Cell::address()
+Cell *&Cell::address()
 {
     if (type == cNone) {
         type = cAddress;

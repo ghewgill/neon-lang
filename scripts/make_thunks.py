@@ -13,6 +13,7 @@ AstFromNeon = {
     "INOUT Number": ("TYPE_NUMBER", REF),
     "OUT Number": ("TYPE_NUMBER", REF),
     "String": ("TYPE_STRING", VALUE),
+    "INOUT String": ("TYPE_STRING", REF),
     "Bytes": ("TYPE_BYTES", VALUE),
     "INOUT Bytes": ("TYPE_BYTES", REF),
     "Array": ("TYPE_GENERIC", VALUE),
@@ -26,6 +27,7 @@ CppFromAst = {
     ("TYPE_GENERIC", VALUE): "Cell",
     ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_POINTER", VALUE): "void *",
+    ("TYPE_POINTER", REF): "Cell **",
     ("TYPE_BOOLEAN", VALUE): "bool",
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
@@ -40,6 +42,7 @@ CppFromAst = {
 
 CppFromAstArg = {
     ("TYPE_POINTER", VALUE): "void *",
+    ("TYPE_POINTER", REF): "Cell **",
     ("TYPE_GENERIC", VALUE): "Cell &",
     ("TYPE_GENERIC", REF): "Cell *",
     ("TYPE_BOOLEAN", VALUE): "bool",
@@ -56,6 +59,7 @@ CppFromAstArg = {
 
 CellField = {
     ("TYPE_POINTER", VALUE): "address()",
+    ("TYPE_POINTER", REF): "address()->address()",
     ("TYPE_BOOLEAN", VALUE): "boolean()",
     ("TYPE_BOOLEAN", REF): "address()->boolean()",
     ("TYPE_NUMBER", VALUE): "number()",
@@ -123,6 +127,7 @@ for fn in sys.argv[1:]:
                     atype = m.group(2)
                     if atype == "POINTER":
                         AstFromNeon[name] = ("TYPE_POINTER", VALUE)
+                        AstFromNeon["INOUT "+name] = ("TYPE_POINTER", REF)
                     else:
                         AstFromNeon[name] = ("TYPE_GENERIC", VALUE)
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)

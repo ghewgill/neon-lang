@@ -1,0 +1,18 @@
+EXPORT File
+EXPORT Mode
+
+TYPE Mode := ENUM
+    read
+    write
+END ENUM
+
+TYPE File := POINTER
+
+DECLARE NATIVE FUNCTION close(INOUT f: File)
+DECLARE NATIVE FUNCTION fprint(f: File, s: String)
+DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
+DECLARE NATIVE FUNCTION readline(f: File, INOUT s: String): Boolean
+DECLARE NATIVE FUNCTION stdin(): File
+DECLARE NATIVE FUNCTION stdout(): File
+DECLARE NATIVE FUNCTION stderr(): File
+DECLARE NATIVE FUNCTION write(f: File, s: String)

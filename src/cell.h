@@ -20,7 +20,7 @@ public:
     Cell &operator=(const Cell &rhs);
     bool operator==(const Cell &rhs) const;
 
-    Cell *address();
+    Cell *&address();
     bool &boolean();
     Number &number();
     std::string &string();
