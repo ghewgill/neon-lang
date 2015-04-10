@@ -19,7 +19,8 @@ env = Environment()
 env["ENV"]["PROCESSOR_ARCHITECURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
 env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 
-env.Command("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "external/IntelRDFPMathLib20U1.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
+if not os.path.exists("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak"):
+    tarfile.open("external/IntelRDFPMathLib20U1.tar.gz").extractall("external")
 if sys.platform == "win32":
     libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.lib", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && nmake -fmakefile.mak CC=cl GLOBAL_RND=1 GLOBAL_FLAGS=1")
 else:
@@ -28,15 +29,18 @@ else:
 libffi = SConscript("SConscript-libffi", exports=["env"])
 
 if sys.platform == "win32":
-    env.Command("external/PDCurses-3.4/win32/vcwin32.mak", "external/PDCurses-3.4.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
+    if not os.path.exists("external/PDCurses-3.4/win32/vcwin32.mak"):
+        tarfile.open("external/PDCurses-3.4.tar.gz").extractall("external")
     libs_curses = [env.Command("external/PDCurses-3.4/win32/pdcurses.lib", "external/PDCurses-3.4/win32/vcwin32.mak", "cd external/PDCurses-3.4/win32 && nmake -fvcwin32.mak WIDE=Y UTF8=Y")]
     libs_curses.extend(["advapi32", "user32"])
 else:
     libs_curses = ["ncurses"]
 
-env.Command("external/utf8/source/utf8.h", "external/utf8_v2_3_4.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/utf8"))
+if not os.path.exists("external/utf8/source/utf8.h"):
+    zipfile.ZipFile("external/utf8_v2_3_4.zip").extractall("external/utf8")
 
-env.Command("external/pcre2-10.10/configure", "external/pcre2-10.10.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
+if not os.path.exists("external/pcre2-10.10/configure"):
+    tarfile.open("external/pcre2-10.10.tar.gz").extractall("external")
 if sys.platform == "win32":
     shutil.copyfile("external/pcre2-10.10/src/config.h.generic", "external/pcre2-10.10/src/config.h")
     shutil.copyfile("external/pcre2-10.10/src/pcre2.h.generic", "external/pcre2-10.10/src/pcre2.h")
@@ -75,10 +79,14 @@ if sys.platform == "win32":
 else:
     libpcre = env.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
 
-env.Command("external/easysid-version-1.0/SConstruct", "external/easysid-version-1.0.tar.gz", lambda target, source, env: tarfile.open(source[0].path).extractall("external"))
+if not os.path.exists("external/easysid-version-1.0/SConstruct"):
+    tarfile.open("external/easysid-version-1.0.tar.gz").extractall("external")
 libeasysid = env.Command("external/easysid-version-1.0/libeasysid"+env["SHLIBSUFFIX"], "external/easysid-version-1.0/SConstruct", "cd external/easysid-version-1.0 && " + sys.executable + " " + sys.argv[0])
 
-env.Command(["external/hash-library/sha256.cpp", "external/hash-library/sha256.h"], "external/hash-library.zip", lambda target, source, env: zipfile.ZipFile(source[0].path).extractall("external/hash-library"))
+if not os.path.exists("external/hash-library/sha256.cpp"):
+    zipfile.ZipFile("external/hash-library.zip").extractall("external/hash-library")
+    if sys.platform == "darwin":
+        subprocess.check_call("perl -n -i -e 'print unless /<endian.h>/' external/hash-library/*.cpp", shell=True)
 hash_env = env.Clone()
 hash_lib = hash_env.Library("external/hash-library/hash-library", [
     "external/hash-library/crc32.cpp",
