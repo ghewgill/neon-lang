@@ -55,6 +55,7 @@ class VariableDeclaration;
 class LetDeclaration;
 class FunctionDeclaration;
 class ExternalFunctionDeclaration;
+class NativeFunctionDeclaration;
 class ExceptionDeclaration;
 class ExportDeclaration;
 
@@ -124,6 +125,7 @@ public:
     virtual void visit(const LetDeclaration *) = 0;
     virtual void visit(const FunctionDeclaration *) = 0;
     virtual void visit(const ExternalFunctionDeclaration *) = 0;
+    virtual void visit(const NativeFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
     virtual void visit(const ExportDeclaration *) = 0;
 
@@ -614,6 +616,15 @@ private:
     ExternalFunctionDeclaration &operator=(const ExternalFunctionDeclaration &);
 };
 
+class NativeFunctionDeclaration: public BaseFunctionDeclaration {
+public:
+    NativeFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Token &rparen): BaseFunctionDeclaration(token, type, name, returntype, args, rparen) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+private:
+    NativeFunctionDeclaration(const NativeFunctionDeclaration &);
+    NativeFunctionDeclaration &operator=(const NativeFunctionDeclaration &);
+};
+
 class ExceptionDeclaration: public Declaration {
 public:
     ExceptionDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
@@ -784,8 +795,9 @@ private:
 
 class Program: public BlockStatement {
 public:
-    Program(const Token &token, const std::vector<const Statement *> &body, const std::string &source_hash): BlockStatement(token, body), source_hash(source_hash) {}
+    Program(const Token &token, const std::vector<const Statement *> &body, const std::string &source_path, const std::string &source_hash): BlockStatement(token, body), source_path(source_path), source_hash(source_hash) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const std::string source_path;
     const std::string source_hash;
 };
 

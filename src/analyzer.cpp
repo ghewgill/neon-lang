@@ -80,6 +80,7 @@ public:
     const Statement *analyze_body(const pt::FunctionDeclaration *declaration);
     const Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
     const Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
+    const Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExceptionDeclaration *declaration);
     const Statement *analyze(const pt::ExportDeclaration *declaration);
     std::vector<const Statement *> analyze(const std::vector<const pt::Statement *> &statement);
@@ -153,6 +154,7 @@ public:
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
@@ -225,6 +227,7 @@ public:
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
@@ -296,6 +299,7 @@ public:
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::NativeFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExportDeclaration *) override {}
     virtual void visit(const pt::AssignmentStatement *) override {}
@@ -367,6 +371,7 @@ public:
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::NativeFunctionDeclaration *) override {}
     virtual void visit(const pt::ExceptionDeclaration *) override {}
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
@@ -390,6 +395,29 @@ private:
     StatementAnalyzer(const StatementAnalyzer &);
     StatementAnalyzer &operator=(const StatementAnalyzer &);
 };
+
+static std::string path_basename(const std::string &path)
+{
+#ifdef _WIN32
+    static const std::string delim = "/\\:";
+#else
+    static const std::string delim = "/";
+#endif
+    std::string::size_type i = path.find_last_of(delim);
+    if (i == std::string::npos) {
+        return path;
+    }
+    return path.substr(i + 1);
+}
+
+static std::string path_stripext(const std::string &name)
+{
+    std::string::size_type i = name.find_last_of('.');
+    if (i == std::string::npos) {
+        return name;
+    }
+    return name.substr(0, i);
+}
 
 Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program)
   : support(support),
@@ -1917,6 +1945,41 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
 
     function->library_name = library_name;
     function->param_types = param_types;
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
+    if (not scope.top()->allocateName(declaration->name, name)) {
+        error2(3166, declaration->name, scope.top()->getDeclaration(name), "duplicate identifier");
+    }
+    const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype) : TYPE_NOTHING;
+    std::vector<const ParameterType *> params;
+    bool in_default = false;
+    for (auto x: declaration->args) {
+        ParameterType::Mode mode = ParameterType::IN;
+        switch (x->mode) {
+            case pt::FunctionParameter::IN:    mode = ParameterType::IN;       break;
+            case pt::FunctionParameter::INOUT: mode = ParameterType::INOUT;    break;
+            case pt::FunctionParameter::OUT:   mode = ParameterType::OUT;      break;
+        }
+        const Type *ptype = analyze(x->type);
+        const Expression *def = nullptr;
+        if (x->default_value != nullptr) {
+            in_default = true;
+            def = analyze(x->default_value);
+            if (not def->is_constant) {
+                error(3167, x->default_value->token, "default value not constant");
+            }
+        } else if (in_default) {
+            error(3168, x->token, "default value must be specified for this parameter");
+        }
+        ParameterType *pt = new ParameterType(x->name, mode, ptype, def);
+        params.push_back(pt);
+    }
+    PredefinedFunction *function = new PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new TypeFunction(returntype, params));
+    scope.top()->addName(declaration->name, name, function);
     return new NullStatement(declaration->token.line);
 }
 

@@ -14,7 +14,7 @@ static TokenizedSource dump(const TokenizedSource &tokens)
 
 int main(int argc, char *argv[])
 {
-    auto tokens = dump(tokenize("1 a ( ) := + - * / , IF THEN END \"a\"")).tokens;
+    auto tokens = dump(tokenize("", "1 a ( ) := + - * / , IF THEN END \"a\"")).tokens;
     assert(tokens.size() == 15);
     assert(tokens[0].type == NUMBER);
     assert(number_is_equal(tokens[0].value, number_from_uint32(1)));
@@ -35,20 +35,20 @@ int main(int argc, char *argv[])
     assert(tokens[13].text == "a");
     assert(tokens[14].type == END_OF_FILE);
 
-    tokens = dump(tokenize("a 1 % foo")).tokens;
+    tokens = dump(tokenize("", "a 1 % foo")).tokens;
     assert(tokens.size() == 3);
     assert(tokens[0].type == IDENTIFIER);
     assert(tokens[1].type == NUMBER);
     assert(tokens[2].type == END_OF_FILE);
 
-    tokens = dump(tokenize("a 1 %| foo bar %| nest |% |% baz")).tokens;
+    tokens = dump(tokenize("", "a 1 %| foo bar %| nest |% |% baz")).tokens;
     assert(tokens.size() == 4);
     assert(tokens[0].type == IDENTIFIER);
     assert(tokens[1].type == NUMBER);
     assert(tokens[2].type == IDENTIFIER);
     assert(tokens[3].type == END_OF_FILE);
 
-    tokens = dump(tokenize("\"string \\(expr) foo \\(bar(baz)) \\(quux:4)\"")).tokens;
+    tokens = dump(tokenize("", "\"string \\(expr) foo \\(bar(baz)) \\(quux:4)\"")).tokens;
     //                      1 23456789 012345678901 234567890123 456789012
     assert(tokens.size() == 19);
     assert(tokens[0].type == STRING);       assert(tokens[0].column == 1);      assert(tokens[0].text == "string ");
@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
     assert(tokens[17].type == STRING);      assert(tokens[17].column == 42);    assert(tokens[17].text == "");
     assert(tokens[18].type == END_OF_FILE);
 
-    tokens = dump(tokenize("a\n\nb")).tokens;
+    tokens = dump(tokenize("", "a\n\nb")).tokens;
     assert(tokens.size() == 3);
     assert(tokens[0].type == IDENTIFIER);
     assert(tokens[0].text == "a");
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
             break;
         }
         try {
-            tokenize(buf);
+            tokenize("", buf);
         } catch (SourceError &) {
             // ignore
         } catch (...) {

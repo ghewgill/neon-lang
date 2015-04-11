@@ -51,7 +51,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
         const std::string objname = names.first + "x";
         remove(objname.c_str());
         {
-            auto tokens = tokenize(source);
+            auto tokens = tokenize(names.first, source);
             auto parsetree = parse(tokens);
             auto ast = analyze(this, parsetree);
             auto bytecode = compile(ast, nullptr);

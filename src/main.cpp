@@ -55,7 +55,7 @@ static void repl(int argc, char *argv[])
             exit(0);
         } else {
             try {
-                auto parsetree = parse(tokenize(s));
+                auto parsetree = parse(tokenize("", s));
                 auto ast = analyze(&compiler_support, parsetree);
                 DebugInfo debug(s);
                 auto bytecode = compile(ast, &debug);
@@ -122,7 +122,7 @@ int main(int argc, char *argv[])
     if (name[name.length()-1] != 'x') {
 
         try {
-            auto tokens = tokenize(buf.str());
+            auto tokens = tokenize(name, buf.str());
             if (dump_tokens) {
                 dump(tokens);
             }

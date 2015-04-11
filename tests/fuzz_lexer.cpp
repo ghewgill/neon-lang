@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     std::stringstream buf;
     buf << inf.rdbuf();
     try {
-        tokenize(buf.str());
+        tokenize("", buf.str());
     } catch (SourceError &) {
         exit(1);
     }

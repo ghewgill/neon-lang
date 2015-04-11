@@ -1,0 +1,5 @@
+FUNCTION bar(): Number
+    RETURN 5
+END FUNCTION
+DECLARE NATIVE FUNCTION foo(a: Number DEFAULT bar())
+                                              %<

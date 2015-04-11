@@ -885,12 +885,14 @@ const Statement *Parser::parseDeclaration()
                 ++i;
                 parseType();
             } else if (tokens[i].type == FUNCTION) {
+                auto &tok_function = tokens[i];
                 Token type;
                 Token name;
                 const Type *returntype;
                 std::vector<const FunctionParameter *> args;
                 Token rparen;
                 parseFunctionHeader(type, name, returntype, args, rparen);
+                return new NativeFunctionDeclaration(tok_function, type, name, returntype, args, rparen);
             }
             return nullptr;
         }
@@ -1417,7 +1419,7 @@ const Program *Parser::parse()
             statements.push_back(s);
         }
     }
-    return new Program(tok_program, statements, source.source_hash);
+    return new Program(tok_program, statements, source.source_path, source.source_hash);
 }
 
 const Program *parse(const TokenizedSource &tokens)

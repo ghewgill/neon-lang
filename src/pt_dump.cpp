@@ -233,6 +233,16 @@ public:
         depth--;
         child(node->dict);
     }
+    virtual void visit(const NativeFunctionDeclaration *node) override {
+        write("NativeFunctionDeclaration(" + node->name.text + ")");
+        child(node->returntype);
+        depth++;
+        for (auto x: node->args) {
+            write(std::to_string(x->mode) + " " + x->name.text);
+            child(x->type);
+        }
+        depth--;
+    }
     virtual void visit(const ExceptionDeclaration *node) override {
         write("ExceptionDeclaration(" + node->name.text + ")");
     }

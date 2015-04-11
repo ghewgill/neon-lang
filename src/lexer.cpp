@@ -563,7 +563,7 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
     return tokens;
 }
 
-TokenizedSource tokenize(const std::string &source)
+TokenizedSource tokenize(const std::string &source_path, const std::string &source)
 {
     auto inv = utf8::find_invalid(source.begin(), source.end());
     if (inv != source.end()) {
@@ -593,6 +593,7 @@ TokenizedSource tokenize(const std::string &source)
     sha256(source);
     unsigned char h[SHA256::HashBytes];
     sha256.getHash(h);
+    r.source_path = source_path;
     r.source_hash = std::string(h, h+sizeof(h));
     r.tokens = tokenize_fragment(line, 1, std::string(i, source.end()));
     Token t;

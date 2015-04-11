@@ -1,0 +1,4 @@
+DECLARE NATIVE FUNCTION foo()
+                        %<2
+DECLARE NATIVE FUNCTION foo()
+                        %<1

@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         CompilerSupport compiler_support(source_path);
 
         try {
-            auto tokens = tokenize(buf.str());
+            auto tokens = tokenize(name, buf.str());
             auto parsetree = parse(tokens);
             auto ast = analyze(&compiler_support, parsetree);
             DebugInfo debug(buf.str());
