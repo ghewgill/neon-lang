@@ -159,6 +159,7 @@ rtl_const = [
 rtl_cpp = rtl_const + [
     "lib/bitwise.cpp",
     "lib/curses.cpp",
+    "lib/datetime.cpp",
     "lib/global.cpp",
     "lib/file.cpp",
     "lib/hash.cpp",
@@ -175,6 +176,7 @@ rtl_cpp = rtl_const + [
 rtl_neon = [
     "lib/bitwise.neon",
     "lib/curses.neon",
+    "lib/datetime.neon",
     "lib/file.neon",
     "lib/global.neon",
     "lib/hash.neon",

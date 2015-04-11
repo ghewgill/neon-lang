@@ -1,0 +1,188 @@
+EXPORT Instant
+EXPORT DateTime
+EXPORT Interval
+EXPORT Period
+EXPORT Duration
+EXPORT now
+EXPORT make_from_instant
+
+IMPORT math
+IMPORT time
+
+DECLARE EXCEPTION TODO
+
+CONST JANUARY  : Number := 1
+CONST FEBRUARY : Number := 2
+CONST MARCH    : Number := 3
+CONST APRIL    : Number := 4
+CONST MAY      : Number := 5
+CONST JUNE     : Number := 6
+CONST JULY     : Number := 7
+CONST AUGUST   : Number := 8
+CONST SEPTEMBER: Number := 9
+CONST OCTOBER  : Number := 10
+CONST NOVEMBER : Number := 11
+CONST DECEMBER : Number := 12
+
+CONST MONDAY   : Number := 1
+CONST TUESDAY  : Number := 2
+CONST WEDNESDAY: Number := 3
+CONST THURSDAY : Number := 4
+CONST FRIDAY   : Number := 5
+CONST SATURDAY : Number := 6
+CONST SUNDAY   : Number := 7
+
+TYPE Instant := Number
+
+TYPE DateTime := RECORD
+    instant: Instant
+    year: Number
+    month: Number
+    day: Number
+    hour: Number
+    minute: Number
+    second: Number
+END RECORD
+
+TYPE Interval := RECORD
+    start: DateTime
+    end: DateTime
+END RECORD
+
+TYPE Duration := Number
+
+TYPE Period := RECORD
+    years: Number
+    months: Number
+    days: Number
+    hours: Number
+    minutes: Number
+    seconds: Number
+END RECORD
+
+TYPE struct_tm := RECORD
+    tm_sec: Number      % seconds (0 - 60)
+    tm_min: Number      % minutes (0 - 59)
+    tm_hour: Number     % hours (0 - 23)
+    tm_mday: Number     % day of month (1 - 31)
+    tm_mon: Number      % month of year (0 - 11)
+    tm_year: Number     % year - 1900
+    tm_wday: Number     % day of week (Sunday = 0)
+    tm_yday: Number     % day of year (0 - 365)
+    tm_isdst: Number    % is summer time in effect?
+    tm_zone: String     % abbreviation of timezone name
+    tm_gmtoff: Number   % offset from UTC in seconds
+END RECORD
+
+DECLARE NATIVE FUNCTION gmtime(t: Number): struct_tm
+DECLARE NATIVE FUNCTION timegm(tm: struct_tm): Number
+
+FUNCTION now(): DateTime
+    RETURN make_from_instant(time.now())
+END FUNCTION
+
+FUNCTION make_from_instant(inst: Instant): DateTime
+    LET tm: struct_tm := gmtime(inst)
+    RETURN DateTime(
+        instant AS inst,
+        year AS 1900 + tm.tm_year,
+        month AS 1 + tm.tm_mon,
+        day AS tm.tm_mday,
+        hour AS tm.tm_hour,
+        minute AS tm.tm_min,
+        second AS tm.tm_sec
+    )
+END FUNCTION
+
+FUNCTION make_from_parts(dt: DateTime): DateTime
+    VAR tm: struct_tm
+    tm.tm_sec := dt.second
+    tm.tm_min := dt.minute
+    tm.tm_hour := dt.hour
+    tm.tm_mday := dt.day
+    tm.tm_mon := dt.month - 1
+    tm.tm_year := dt.year - 1900
+    RETURN make_from_instant(timegm(tm))
+END FUNCTION
+
+FUNCTION make_from_string(s: String): DateTime
+    RAISE TODO
+END FUNCTION
+
+FUNCTION DateTime.minus_duration(self: DateTime, duration: Duration): DateTime
+    RETURN make_from_instant(self.instant - duration)
+END FUNCTION
+
+FUNCTION DateTime.minus_period(self: DateTime, period: Period): DateTime
+    RAISE TODO
+END FUNCTION
+
+FUNCTION DateTime.plus_duration(self: DateTime, duration: Duration): DateTime
+    RETURN make_from_instant(self.instant + duration)
+END FUNCTION
+
+FUNCTION DateTime.plus_period(self: DateTime, period: Period): DateTime
+    VAR dt: DateTime := self
+    dt.year := dt.year + period.years
+    LET m: Number := dt.month - 1 + period.months
+    dt.year := dt.year + math.floor(m / 12)
+    dt.month := m MOD 12
+    RETURN make_from_parts(dt).plus_duration(86400*period.days + 3600*period.hours + 60*period.minutes + period.seconds)
+END FUNCTION
+
+FUNCTION DateTime.to_string(self: DateTime): String
+    % TODO: add formatting codes for leading zeros when implemented
+    RETURN "\(self.year)-\(self.month)-\(self.day)T\(self.hour):\(self.minute):\(self.second)Z"
+END FUNCTION
+
+FUNCTION DateTime.with_date(self: DateTime, year, month, day: Number): DateTime
+    VAR dt: DateTime := self
+    dt.year := year
+    dt.month := month
+    dt.day := day
+    RETURN make_from_parts(dt)
+END FUNCTION
+
+FUNCTION DateTime.with_year(self: DateTime, year: Number): DateTime
+    VAR dt: DateTime := self
+    dt.year := year
+    RETURN make_from_parts(dt)
+END FUNCTION
+
+FUNCTION DateTime.with_month(self: DateTime, month: Number): DateTime
+    VAR dt: DateTime := self
+    dt.month := month
+    RETURN make_from_parts(dt)
+END FUNCTION
+
+FUNCTION DateTime.with_day(self: DateTime, day: Number): DateTime
+    VAR dt: DateTime := self
+    dt.day := day
+    RETURN make_from_parts(dt)
+END FUNCTION
+
+FUNCTION DateTime.with_time(self: DateTime, hour, minute, second: Number): DateTime
+    VAR dt: DateTime := self
+    dt.hour := hour
+    dt.minute := minute
+    dt.second := second
+    RETURN make_from_parts(dt)
+END FUNCTION
+
+FUNCTION DateTime.with_hour(self: DateTime, hour: Number): DateTime
+    VAR dt: DateTime := self
+    dt.hour := hour
+    RETURN make_from_parts(dt)
+END FUNCTION
+
+FUNCTION DateTime.with_minute(self: DateTime, minute: Number): DateTime
+    VAR dt: DateTime := self
+    dt.minute := minute
+    RETURN make_from_parts(dt)
+END FUNCTION
+
+FUNCTION DateTime.with_second(self: DateTime, second: Number): DateTime
+    VAR dt: DateTime := self
+    dt.second := second
+    RETURN make_from_parts(dt)
+END FUNCTION
