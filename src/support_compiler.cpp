@@ -41,9 +41,10 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
         object = Bytecode(bytecode);
 
-        if (object.source_hash == hash) {
-            return true;
-        }
+        // TODO: skipping the following check causes modules to always be rebuilt
+        //if (object.source_hash == hash) {
+        //    return true;
+        //}
     }
 
     if (not source.empty()) {
