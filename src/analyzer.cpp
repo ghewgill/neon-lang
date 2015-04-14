@@ -1642,7 +1642,9 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         type = actual_record;
     } else {
         Type *t = const_cast<Type *>(type);
-        const_cast<std::string &>(t->name) = name;
+        if (type != TYPE_BOOLEAN && type != TYPE_NUMBER && type != TYPE_STRING && type != TYPE_BYTES) {
+            const_cast<std::string &>(t->name) = name;
+        }
         scope.top()->addName(declaration->token, name, t); // Still ugly.
     }
     const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
