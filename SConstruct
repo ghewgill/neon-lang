@@ -16,7 +16,7 @@ coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darw
 
 env = Environment()
 
-env["ENV"]["PROCESSOR_ARCHITECURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
+env["ENV"]["PROCESSOR_ARCHITECTURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
 env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 
 # Add path of Python itself to shell PATH.
@@ -82,6 +82,15 @@ if sys.platform == "win32":
 else:
     libpcre = env.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
 
+if not os.path.exists("external/curl-7.41.0/configure"):
+    tarfile.open("external/curl-7.41.0.tar.gz").extractall("external")
+if sys.platform == "win32":
+    libcurl = env.Command("external/curl-7.41.0/lib/libcurl.lib", "external/curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG=release MACHINE=x64 RTLIBCFG=static")
+    env.Append(CPPFLAGS=["-DCURL_STATICLIB"])
+    env.Append(LIBS=["ws2_32", "wldap32"])
+else:
+    libcurl = env.Command("external/curl-7.41.0/lib/.libs/libcurl.a", "external/curl-7.41.0/configure", "cd external/curl-7.41.0 && ./configure --disable-ares --disable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-manual --disable-ipv6 --disable-threaded-resolver --disable-sspi --disable-crypto-auth --disable-ntlm-wb --disable-tls-srp --disable-unix-sockets --disable-cookies --disable-soname-bump --without-zlib --without-winssl --without-darwinssl --without-ssl --without-gnutls --without-polarssl --without-cyassl --without-nss --without-axtls --without-libmetalink --without-libssh2 --without-librtmp --without-winidn --without-libidn --without-nghttp2 && make")
+
 if not os.path.exists("external/easysid-version-1.0/SConstruct"):
     tarfile.open("external/easysid-version-1.0.tar.gz").extractall("external")
 libeasysid = env.Command("external/easysid-version-1.0/libeasysid"+env["SHLIBSUFFIX"], "external/easysid-version-1.0/SConstruct", "cd external/easysid-version-1.0 && " + sys.executable + " " + sys.argv[0])
@@ -112,6 +121,7 @@ env.Append(CPPPATH=[
     "external/PDCurses-3.4",
     "external/hash-library",
     "external/pcre2-10.10/src",
+    "external/curl-7.41.0/include",
     "external/sqlite-amalgamation-3080803",
     "src",
 ])
@@ -131,9 +141,11 @@ else:
         "-Werror",
         "-g",
     ])
-env.Append(LIBS=[libbid, libffi, libpcre] + libs_curses)
+env.Append(LIBS=[libbid, libffi, libpcre, libcurl] + libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
+if sys.platform.startswith("linux"):
+    env.Append(LIBS=["rt"])
 
 # This adds -Doverride= for GCC earlier than 4.7.
 # (GCC does not support 'override' before 4.7, but
@@ -166,6 +178,7 @@ rtl_cpp = rtl_const + [
     "lib/global.cpp",
     "lib/file.cpp",
     "lib/hash.cpp",
+    "lib/http.cpp",
     "lib/io.cpp",
     "lib/math.cpp",
     "lib/os.cpp",
@@ -184,6 +197,7 @@ rtl_neon = [
     "lib/file.neon",
     "lib/global.neon",
     "lib/hash.neon",
+    "lib/http.neon",
     "lib/io.neon",
     "lib/math.neon",
     "lib/os.neon",

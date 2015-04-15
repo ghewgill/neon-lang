@@ -1,0 +1,1 @@
+DECLARE NATIVE FUNCTION get(url: String): String
