@@ -70,8 +70,6 @@ TYPE struct_tm := RECORD
     tm_wday: Number     % day of week (Sunday = 0)
     tm_yday: Number     % day of year (0 - 365)
     tm_isdst: Number    % is summer time in effect?
-    tm_zone: String     % abbreviation of timezone name
-    tm_gmtoff: Number   % offset from UTC in seconds
 END RECORD
 
 DECLARE NATIVE FUNCTION gmtime(t: Number): struct_tm

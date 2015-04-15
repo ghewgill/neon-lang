@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#define timegm _mkgmtime
+#endif
 #include <time.h>
 
 #include "cell.h"
@@ -19,8 +23,6 @@ Cell datetime$gmtime(Number t)
     r.array()[6] = Cell(number_from_uint32(tm->tm_wday));
     r.array()[7] = Cell(number_from_uint32(tm->tm_yday));
     r.array()[8] = Cell(number_from_uint32(tm->tm_isdst));
-    r.array()[9] = Cell(tm->tm_zone);
-    r.array()[10] = Cell(number_from_uint32(tm->tm_gmtoff));
     return r;
 }
 
