@@ -19,6 +19,9 @@ env = Environment()
 env["ENV"]["PROCESSOR_ARCHITECURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
 env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 
+# Add path of Python itself to shell PATH.
+env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.path.dirname(sys.executable)
+
 if not os.path.exists("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak"):
     tarfile.open("external/IntelRDFPMathLib20U1.tar.gz").extractall("external")
 if sys.platform == "win32":
@@ -165,6 +168,7 @@ rtl_cpp = rtl_const + [
     "lib/hash.cpp",
     "lib/io.cpp",
     "lib/math.cpp",
+    "lib/os.cpp",
     "lib/random.cpp",
     "lib/regex.cpp",
     "lib/sqlite.cpp",
@@ -182,6 +186,7 @@ rtl_neon = [
     "lib/hash.neon",
     "lib/io.neon",
     "lib/math.neon",
+    "lib/os.neon",
     "lib/random.neon",
     "lib/regex.neon",
     "lib/sqlite.neon",
@@ -193,12 +198,14 @@ rtl_neon = [
 if os.name == "posix":
     rtl_cpp.extend([
         "lib/file_posix.cpp",
+        "lib/os_posix.cpp",
         "lib/time_posix.cpp",
     ])
     rtl_platform = "src/rtl_posix.cpp"
 elif os.name == "nt":
     rtl_cpp.extend([
         "lib/file_win32.cpp",
+        "lib/os_win32.cpp",
         "lib/time_win32.cpp",
     ])
     rtl_platform = "src/rtl_win32.cpp"

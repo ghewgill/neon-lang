@@ -1,0 +1,12 @@
+EXPORT Process
+
+TYPE Process := POINTER
+
+DECLARE NATIVE FUNCTION chdir(path: String)
+DECLARE NATIVE FUNCTION getcwd(): String
+DECLARE NATIVE FUNCTION getenv(name: String): String
+DECLARE NATIVE FUNCTION system(command: String): Number
+
+DECLARE NATIVE FUNCTION kill(process: Process)
+DECLARE NATIVE FUNCTION spawn(command: String): Process
+DECLARE NATIVE FUNCTION wait(process: Process): Number
