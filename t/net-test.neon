@@ -1,0 +1,17 @@
+IMPORT net
+
+LET server: net.Socket := net.tcp_socket()
+server.listen(21010)
+
+LET client: net.Socket := net.tcp_socket()
+client.connect("127.0.0.1", 21010)
+
+LET t: net.Socket := server.accept()
+
+client.send("GET / HTTP/1.0")
+LET buf: String := t.recv(1000)
+print(buf)
+%= GET / HTTP/1.0
+
+client.close()
+server.close()

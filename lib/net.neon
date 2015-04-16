@@ -1,0 +1,40 @@
+EXPORT Socket
+
+TYPE Handle := Number
+
+TYPE Socket := RECORD
+    PRIVATE handle: Handle
+END RECORD
+
+DECLARE NATIVE FUNCTION tcp_socket(): Socket
+
+DECLARE NATIVE FUNCTION socket_accept(handle: Handle): Socket
+DECLARE NATIVE FUNCTION socket_close(handle: Handle)
+DECLARE NATIVE FUNCTION socket_connect(handle: Handle, host: String, port: Number)
+DECLARE NATIVE FUNCTION socket_listen(handle: Handle, port: Number)
+DECLARE NATIVE FUNCTION socket_recv(handle: Handle, count: Number): String
+DECLARE NATIVE FUNCTION socket_send(handle: Handle, data: String)
+
+FUNCTION Socket.accept(self: Socket): Socket
+    RETURN socket_accept(self.handle)
+END FUNCTION
+
+FUNCTION Socket.close(self: Socket)
+    socket_close(self.handle)
+END FUNCTION
+
+FUNCTION Socket.connect(self: Socket, host: String, port: Number)
+    socket_connect(self.handle, host, port)
+END FUNCTION
+
+FUNCTION Socket.listen(self: Socket, port: Number)
+    socket_listen(self.handle, port)
+END FUNCTION
+
+FUNCTION Socket.recv(self: Socket, count: Number): String
+    RETURN socket_recv(self.handle, count)
+END FUNCTION
+
+FUNCTION Socket.send(self: Socket, data: String)
+    socket_send(self.handle, data)
+END FUNCTION
