@@ -1,3 +1,4 @@
+% SKIP There seems to be a race condition that hangs on Travis.
 IMPORT http
 IMPORT os
 IMPORT string
