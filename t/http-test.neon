@@ -5,6 +5,10 @@ IMPORT string
 
 LET p: os.Process := os.spawn("python -m SimpleHTTPServer 21010")
 LET license: String := http.get("http://127.0.0.1:21010/LICENSE.txt")
-print(string.split(license, "\n")[0])
+VAR s: String := string.split(license, "\n")[0]
+IF s[LAST] = "\r" THEN
+    s := s[FIRST TO LAST-1]
+END IF
+print(s)
 %= The MIT License (MIT)
 os.kill(p)
