@@ -39,6 +39,9 @@ void *os$spawn(const std::string &command)
     Process *p = new Process;
     p->pid = fork();
     if (p->pid == 0) {
+        for (int fd = 3; fd <= 256; fd++) {
+            close(fd);
+        }
         execl("/bin/sh", "/bin/sh", "-c", command.c_str(), NULL);
         _exit(127);
     }
