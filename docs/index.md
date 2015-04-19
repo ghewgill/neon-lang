@@ -22,6 +22,7 @@ It is not intended as an introduction to the language.
       <li><a href="#types-boolean">Boolean</a></li>
       <li><a href="#types-number">Number</a></li>
       <li><a href="#types-string">String</a></li>
+      <li><a href="#types-bytes">Bytes</a></li>
       <li><a href="#types-enumeration">Enumeration</a></li>
       <li><a href="#types-record">Record</a></li>
       <li><a href="#types-array">Array</a></li>
@@ -46,6 +47,7 @@ It is not intended as an introduction to the language.
       <li><a href="#statements-exit">EXIT</a></li>
       <li><a href="#statements-for">FOR</a></li>
       <li><a href="#statements-if">IF</a></li>
+      <li><a href="#statements-let">LET</a></li>
       <li><a href="#statements-loop">LOOP</a></li>
       <li><a href="#statements-next">NEXT</a></li>
       <li><a href="#statements-raise">RAISE</a></li>
@@ -109,10 +111,12 @@ The following keywords are predefined and may not be used for any other purpose.
 | Keyword | Description |
 | ------- | ----------- |
 | <a href="#keyword-AND">`AND`</a> | logical conjunction |
+| <a href="#keyword-AS">`AS`</a> | parameter specification for named parameters |
 | <a href="#keyword-Array">`Array`</a> | generic array type |
 | <a href="#keyword-CASE">`CASE`</a> | multiple value matching from a range |
 | <a href="#keyword-CONST">`CONST`</a> | constant declaration |
 | <a href="#keyword-DECLARE">`DECLARE`</a> | exception and forward function declaration |
+| <a href="#keyword-DEFAULT">`DEFAULT`</a> | default value for function parameter |
 | <a href="#keyword-Dictionary">`Dictionary`</a> | generic dictionary type |
 | <a href="#keyword-DO">`DO`</a> | used in `CASE`, `FOR`, and `WHILE` statements |
 | <a href="#keyword-ELSE">`ELSE`</a> | alternative condition in `IF` statement |
@@ -121,14 +125,18 @@ The following keywords are predefined and may not be used for any other purpose.
 | <a href="#keyword-END">`END`</a> | end of most kinds of blocks of code |
 | <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration and handling |
 | <a href="#keyword-EXIT">`EXIT`</a> | early exit from loops |
+| <a href="#keyword-EXPORT">`EXPORT`</a> | export identifier from module |
 | <a href="#keyword-EXTERNAL">`EXTERNAL`</a> | external function declaration |
 | <a href="#keyword-FALSE">`FALSE`</a> | boolean constant |
+| <a href="#keyword-FIRST">`FIRST`</a> | indicates first value in array subscript |
 | <a href="#keyword-FOR">`FOR`</a> | loop with a sequential control variable |
 | <a href="#keyword-FUNCTION">`FUNCTION`</a> | definition of subprogram |
 | <a href="#keyword-IF">`IF`</a> | conditional test and branch |
 | <a href="#keyword-IN">`IN`</a> | function parameter passing mode; aggregate membership test |
 | <a href="#keyword-INOUT">`INOUT`</a> | function parameter passing mode |
 | <a href="#keyword-IMPORT">`IMPORT`</a> | access code in another module |
+| <a href="#keyword-LAST">`LAST`</a> | indicates last value in array subscript |
+| <a href="#keyword-LET">`LET`</a> | assignment to read-only value |
 | <a href="#keyword-LOOP">`LOOP`</a> | generic loop |
 | <a href="#keyword-MOD">`MOD`</a> | arithmetic modulus |
 | <a href="#keyword-NEXT">`NEXT`</a> | early skip to next loop iteration |
@@ -138,6 +146,7 @@ The following keywords are predefined and may not be used for any other purpose.
 | <a href="#keyword-OR">`OR`</a> | logical disjunction |
 | <a href="#keyword-OUT">`OUT`</a> | function parameter passing mode |
 | <a href="#keyword-POINTER">`POINTER`</a> | pointer type declaration |
+| <a href="#keyword-PRIVATE">`PRIVATE`</a> | private record field |
 | <a href="#keyword-RAISE">`RAISE`</a> | initiate exception search |
 | <a href="#keyword-RECORD">`RECORD`</a> | named aggregate type declaration |
 | <a href="#keyword-REPEAT">`REPEAT`</a> | bottom-tested loop |
@@ -158,7 +167,7 @@ The following keywords are predefined and may not be used for any other purpose.
 
 ### Identifiers
 
-An Identifier is a letter followed by any number of letters, digits, or underscore.
+An identifier is a letter followed by any number of letters, digits, or underscore.
 
 <a name="lexical-numbers"></a>
 
@@ -181,6 +190,42 @@ Additionally, they may have an exponent following `e` or `E`.
 ### Strings
 
 Strings are sequences of Unicode characters surrounded by double quotes.
+The only special character within a string is the backslash, used for character escapes.
+The allowed character escapes are:
+
+| Escape | Replacement | Description |
+| ------ | ----------- | ----------- |
+| `\"`   | "           | double quote |
+| `\\`   | \           | backslash |
+| `\b`   | chr(8)      | backspace |
+| `\f`   | chr(11)     | form feed |
+| `\n`   | chr(10)     | newline |
+| `\r`   | chr(13)     | carriage return |
+| `\t`   | chr(9)      | tab |
+| `\uXXXX` | chr(XXXX) | unicode character XXXX |
+| `\()`  | expression  | see <a href="#expression-substitution">expression substitution</a> |
+
+Example:
+
+    VAR s: String
+
+    s := "Hello, World"
+
+Literal strings may need to contain backslashes (such as when used for regular expressions).
+Instead of using normal double-quoted strings, there are two varieties of "raw strings".
+The first can contain any character except `"`:
+
+    CONST s: String := @"This string contains backslash (\) characters"
+
+The second type of string uses arbitrary delimiters so that any literal string can be included in source.
+The simplest form is:
+
+    CONST s: String := @@"This string contains backslashes (\) and "quotes"."@@
+
+If there is a need to include the sequence `"@@` within the string, an arbitrary identifier may appear between the `@` at the start and end of the stiring.
+For example:
+
+    CONST s: String := @raw@"A raw string example is @@"like this"@@."@raw@
 
 <a name="types"></a>
 
@@ -222,26 +267,13 @@ Example:
 ### String
 
 String values are sequences of Unicode code points.
-The only special character within a string is the backslash, used for character escapes.
-The allowed character escapes are:
 
-| Escape | Replacement | Description |
-| ------ | ----------- | ----------- |
-| `\"`   | "           | double quote |
-| `\\`   | \           | backslash |
-| `\b`   | chr(8)      | backspace |
-| `\f`   | chr(11)     | form feed |
-| `\n`   | chr(10)     | newline |
-| `\r`   | chr(13)     | carriage return |
-| `\t`   | chr(9)      | tab |
-| `\uXXXX` | chr(XXXX) | unicode character XXXX |
-| `\()`  | expression  | see <a href="#expression-substitution">expression substitution</a> |
+<a name="types-bytes"</a>
 
-Example:
+### Bytes
 
-    VAR s: String
-
-    s := "Hello, World"
+Bytes values are sequences of 8-bit bytes.
+Values of this type are used for buffers when doing file and network I/O, for example.
 
 <a name="types-enumeration"></a>
 
@@ -474,6 +506,10 @@ Variables are declared using the `VAR` keyword:
 Variables declared outside a function are *global* variables.
 Variables declared inside a function are visible only from within that function.
 
+Read-only values (therefore not actually *variables*) are declared with the `LET` keyword:
+
+    LET path: String := os.getenv("PATH")
+
 <a name="statements"></a>
 
 ## Statements
@@ -604,6 +640,20 @@ Additional alternatives may be introduced with the `ELSIF` clause:
     ELSE
         print("not less than 20")
     END IF
+
+<a name="statements-let"></a>
+
+### `LET`
+
+The `LET` statement introduces a new read-only variable and assigns a value (which can be an arbitrary expression, evaluated at run time).
+
+Example:
+
+    FUNCTION five(): Number
+        RETURN 5
+    END FUNCTION
+
+    LET ten: Number := 2 * five()
 
 <a name="statements-loop"></a>
 
@@ -742,6 +792,8 @@ Functions are declared using the `FUNCTION` keyword:
 The return type of a function (appearing after the `)`) is optional.
 The `RETURN` statement is not permitted inside a function that does not return a value (use `EXIT FUNCTION` instead).
 
+### Parameter Passing Mode
+
 Function parameters may be declared with a parameter mode:
 
 * `IN` - the function parameter is passed from the caller into the function, and may not be modified within the function
@@ -750,6 +802,38 @@ Function parameters may be declared with a parameter mode:
 
 The default parameter mode is `IN`.
 For `INOUT` and `OUT` parameters, the caller must pass an actual variable rather than the result of an expression.
+
+### Default Parameter Value
+
+Function parameters may be declared with a default value.
+
+Example:
+
+    FUNCTION add(INOUT x: Number, delta: Number DEFAULT 1)
+        x := x + delta
+    END FUNCTION
+
+    VAR value: Number := 5
+    add(value)
+    add(value, 2)
+
+When a parameter is not specified and it has a default value, the function call is executed as if the parameter were present and had the given value.
+Default parameter values only apply to `IN` mode parameters.
+
+### Named Parameters
+
+When calling a function, function parameters may be named using the `AS` keyword.
+
+Example:
+
+    FUNCTION birthday_party(name: String, balloons: Number, cake: String, clown: Boolean)
+        % ...
+    END FUNCTION
+
+    birthday_party(name AS "Helen", balloons AS 10, cake AS "Chocolate", clown AS TRUE)
+
+Parameters may be passed in order without using `AS`, and then switch to using `AS` for the remainder of the function call.
+Each non-default parameter must be specified exactly once in the function call.
 
 <a name="library"></a>
 
