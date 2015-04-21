@@ -7,7 +7,6 @@
 #include "compiler.h"
 #include "debuginfo.h"
 #include "disassembler.h"
-#include "exec.h"
 #include "lexer.h"
 #include "parser.h"
 #include "pt_dump.h"
