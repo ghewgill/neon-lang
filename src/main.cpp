@@ -57,9 +57,9 @@ static void repl(int argc, char *argv[])
             try {
                 auto parsetree = parse(tokenize("", s));
                 auto ast = analyze(&compiler_support, parsetree);
-                DebugInfo debug(s);
+                DebugInfo debug("-", s);
                 auto bytecode = compile(ast, &debug);
-                exec(bytecode, &debug, &runtime_support, argc, argv);
+                exec("-", bytecode, &debug, &runtime_support, argc, argv);
             } catch (CompilerError &error) {
                 error.write(std::cerr);
             }
@@ -116,7 +116,7 @@ int main(int argc, char *argv[])
 
     std::vector<unsigned char> bytecode;
     // TODO - Allow reading debug information from file.
-    DebugInfo debug(buf.str());
+    DebugInfo debug(name, buf.str());
 
     // Pretty hacky way of checking whether the input file is compiled or not.
     if (name[name.length()-1] != 'x') {
@@ -152,5 +152,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(bytecode, &debug, &runtime_support, argc-a, argv+a);
+    exec(name, bytecode, &debug, &runtime_support, argc-a, argv+a);
 }

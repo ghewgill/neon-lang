@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
             auto tokens = tokenize(name, buf.str());
             auto parsetree = parse(tokens);
             auto ast = analyze(&compiler_support, parsetree);
-            DebugInfo debug(buf.str());
+            DebugInfo debug(name, buf.str());
             auto bytecode = compile(ast, &debug);
             if (listing) {
                 disassemble(bytecode, std::cerr, &debug);

@@ -7,9 +7,13 @@
 
 class DebugInfo {
 public:
-    explicit DebugInfo(const std::string &source);
+    explicit DebugInfo(const std::string &source_path, const std::string &source);
+    const std::string source_path;
     std::vector<std::string> source_lines;
     std::map<size_t, int> line_numbers;
+private:
+    DebugInfo(const DebugInfo &);
+    DebugInfo operator=(const DebugInfo &);
 };
 
 #endif

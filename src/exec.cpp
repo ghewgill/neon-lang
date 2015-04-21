@@ -140,15 +140,16 @@ private:
 
 class Executor {
 public:
-    Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support);
+    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support);
     void exec();
 private:
+    const std::string source_path;
     std::map<std::string, Module *> modules;
     std::vector<std::string> init_order;
     Module *module;
     Bytecode::Bytes::size_type ip;
     std::stack<Cell> stack;
-    std::stack<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
+    std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
 
     void exec_ENTER();
@@ -238,8 +239,9 @@ private:
     Executor &operator=(const Executor &);
 };
 
-Executor::Executor(const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support)
-  : modules(),
+Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support)
+  : source_path(source_path),
+    modules(),
     init_order(),
     module(nullptr),
     ip(0),
@@ -841,7 +843,7 @@ void Executor::exec_CALLF()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    callstack.push(std::make_pair(module, ip));
+    callstack.push_back(std::make_pair(module, ip));
     ip = val;
 }
 
@@ -852,7 +854,7 @@ void Executor::exec_CALLMF()
     ip += 4;
     uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
-    callstack.push(std::make_pair(module, ip));
+    callstack.push_back(std::make_pair(module, ip));
     auto m = modules.find(module->object.strtable[mod]);
     if (m == modules.end()) {
         fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
@@ -925,9 +927,9 @@ void Executor::exec_DROP()
 
 void Executor::exec_RET()
 {
-    module = callstack.top().first;
-    ip = callstack.top().second;
-    callstack.pop();
+    module = callstack.back().first;
+    ip = callstack.back().second;
+    callstack.pop_back();
 }
 
 void Executor::exec_CALLE()
@@ -1078,41 +1080,57 @@ void Executor::raise(const std::string &exception, const std::string &info)
     module->globals[0].array()[1] = Cell(info);
     module->globals[0].array()[2] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
-    auto emodule = module;
-    auto eip = ip;
+    auto tmodule = module;
+    auto tip = ip;
+    size_t sp = callstack.size();
     for (;;) {
-        for (auto e = module->object.exceptions.begin(); e != module->object.exceptions.end(); ++e) {
-            if (ip >= e->start && ip < e->end && exception == module->object.strtable[e->excid]) {
+        for (auto e = tmodule->object.exceptions.begin(); e != tmodule->object.exceptions.end(); ++e) {
+            if (tip >= e->start && tip < e->end && exception == tmodule->object.strtable[e->excid]) {
+                module = tmodule;
                 ip = e->handler;
+                callstack.resize(sp);
                 return;
             }
+        }
+        if (sp == 0) {
+            break;
+        }
+        sp -= 1;
+        tmodule = callstack[sp].first;
+        tip = callstack[sp].second;
+    }
+
+    fprintf(stderr, "Unhandled exception %s (%s)\n", exception.c_str(), info.c_str());
+    while (ip < module->object.code.size()) {
+        if (module->debug != nullptr) {
+            auto line = module->debug->line_numbers.end();
+            auto p = ip;
+            for (;;) {
+                line = module->debug->line_numbers.find(p);
+                if (line != module->debug->line_numbers.end()) {
+                    break;
+                }
+                if (p == 0) {
+                    fprintf(stderr, "No matching debug information found.\n");
+                    break;
+                }
+                p--;
+            }
+            if (line != module->debug->line_numbers.end()) {
+                fprintf(stderr, "  Stack frame #%lu: file %s line %d address %lu\n", callstack.size(), module->debug->source_path.c_str(), line->second, ip);
+                fprintf(stderr, "    %s\n", module->debug->source_lines.at(line->second).c_str());
+            } else {
+                fprintf(stderr, "  Stack frame #%lu: file %s address %lu (line number not found)\n", callstack.size(), module->debug->source_path.c_str(), ip);
+            }
+        } else {
+            fprintf(stderr, "  Stack frame #%lu: file %s address %lu (no debug info available)\n", callstack.size(), source_path.c_str(), ip);
         }
         if (callstack.empty()) {
             break;
         }
-        module = callstack.top().first;
-        ip = callstack.top().second;
-        callstack.pop();
-    }
-    fprintf(stderr, "unhandled exception %s (%s) at address %lu\n", exception.c_str(), info.c_str(), eip);
-
-    if (emodule->debug != nullptr) {
-        auto p = eip;
-        for (;;) {
-            auto line = emodule->debug->line_numbers.find(p);
-            if (line != emodule->debug->line_numbers.end()) {
-                fprintf(stderr, "%d | %s\n", line->second, emodule->debug->source_lines.at(line->second).c_str());
-                break;
-            }
-            if (p == 0) {
-                fprintf(stderr, "No matching debug information found.\n");
-                break;
-            }
-            p--;
-        }
-    } else {
-        fprintf(stderr, "No debug information available.\n");
-        // TODO: Include filename in errors.
+        module = callstack.back().first;
+        ip = callstack.back().second;
+        callstack.pop_back();
     }
     exit(1);
 }
@@ -1126,14 +1144,14 @@ void Executor::exec()
         m.second->globals[0].array().resize(3);
     }
 
-    callstack.push(std::make_pair(module, module->object.code.size()));
+    callstack.push_back(std::make_pair(module, module->object.code.size()));
 
     // This sets up the call stack in such a way as to initialize
     // each module in the order determined in init_order, followed
     // by running the code in the main module.
-    callstack.push(std::make_pair(module, 0));
+    callstack.push_back(std::make_pair(module, 0));
     for (auto x = init_order.rbegin(); x != init_order.rend(); ++x) {
-        callstack.push(std::make_pair(modules[*x], 0));
+        callstack.push_back(std::make_pair(modules[*x], 0));
     }
     // Set up ip for first module (or main module if no imports).
     exec_RET();
@@ -1230,8 +1248,8 @@ void Executor::exec()
     assert(stack.empty());
 }
 
-void exec(const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, int argc, char *argv[])
+void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
-    Executor(obj, debuginfo, support).exec();
+    Executor(source_path, obj, debuginfo, support).exec();
 }
