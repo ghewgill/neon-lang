@@ -1,0 +1,96 @@
+EXPORT Struct
+EXPORT Field
+EXPORT Type
+EXPORT make
+EXPORT field
+
+IMPORT bitwise
+IMPORT variant
+
+TYPE Type := ENUM
+    bool
+    int
+    string
+END ENUM
+
+TYPE Field := RECORD
+    name: String
+    type: Type
+    width: Number
+END RECORD
+
+TYPE Struct := RECORD
+    PRIVATE fields: Array<Field>
+END RECORD
+
+FUNCTION make(fields: Array<Field>): Struct
+    RETURN Struct(fields)
+END FUNCTION
+
+FUNCTION field(name: String, type: Type, width: Number): Field
+    RETURN Field(name, type, width)
+END FUNCTION
+
+FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
+    VAR buf: Array<Number>
+    FOR f := 0 TO self.fields.size()-1 DO
+        CASE self.fields[f].type
+            WHEN Type.bool DO
+                LET b: Boolean := values[self.fields[f].name].get_boolean()
+                buf[buf.size()] := IF b THEN 1 ELSE 0
+            WHEN Type.int DO
+                LET n: Number := values[self.fields[f].name].get_number()
+                buf[buf.size()] := bitwise.and(bitwise.shift_right(n, 24), 0xff)
+                buf[buf.size()] := bitwise.and(bitwise.shift_right(n, 16), 0xff)
+                buf[buf.size()] := bitwise.and(bitwise.shift_right(n, 8), 0xff)
+                buf[buf.size()] := bitwise.and(n, 0xff)
+            WHEN Type.string DO
+                LET s: String := values[self.fields[f].name].get_string()
+                FOR i := 0 TO self.fields[f].width-1 DO
+                    buf[buf.size()] := IF i < s.length() THEN ord(s[i]) ELSE 0
+                END FOR
+        END CASE
+    END FOR
+    VAR r: Bytes
+    r.from_array(buf)
+    RETURN r
+END FUNCTION
+
+FUNCTION Struct.sizeof(self: Struct): Number
+    VAR r: Number
+    FOR f := 0 TO self.fields.size()-1 DO
+        r := r + self.fields[f].width
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
+    VAR r: Dictionary<variant.Variant>
+    LET a: Array<Number> := data.to_array()
+    VAR i: Number := 0
+    FOR f := 0 TO self.fields.size()-1 DO
+        CASE self.fields[f].type
+            WHEN Type.bool DO
+                r[self.fields[f].name] := variant.make_boolean(a[i] # 0)
+                inc(i)
+            WHEN Type.int DO
+                r[self.fields[f].name] := variant.make_number(
+                    bitwise.shift_left(a[i  ], 24) +
+                    bitwise.shift_left(a[i+1], 16) +
+                    bitwise.shift_left(a[i+2],  8) +
+                    a[i+3])
+                i := i + 4
+            WHEN Type.string DO
+                VAR s: String
+                FOR j := 0 TO self.fields[f].width-1 DO
+                    IF a[i+j] = 0 THEN
+                        EXIT FOR
+                    END IF
+                    s := s & chr(a[i+j])
+                END FOR
+                r[self.fields[f].name] := variant.make_string(s)
+                i := i + self.fields[f].width
+        END CASE
+    END FOR
+    RETURN r
+END FUNCTION
