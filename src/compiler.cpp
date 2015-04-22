@@ -448,6 +448,13 @@ std::string TypeArray::get_type_descriptor(Emitter &emitter) const
     return "A<" + emitter.get_type_reference(elementtype) + ">";
 }
 
+void TypeArray::get_type_references(std::set<const Type *> &references) const
+{
+    if (references.insert(elementtype).second) {
+        elementtype->get_type_references(references);
+    }
+}
+
 void TypeDictionary::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADD);
@@ -466,6 +473,13 @@ void TypeDictionary::generate_call(Emitter &) const
 std::string TypeDictionary::get_type_descriptor(Emitter &emitter) const
 {
     return "D<" + emitter.get_type_reference(elementtype) + ">";
+}
+
+void TypeDictionary::get_type_references(std::set<const Type *> &references) const
+{
+    if (references.insert(elementtype).second) {
+        elementtype->get_type_references(references);
+    }
 }
 
 void TypeRecord::predeclare(Emitter &emitter) const
@@ -522,6 +536,15 @@ std::string TypeRecord::get_type_descriptor(Emitter &emitter) const
     return r;
 }
 
+void TypeRecord::get_type_references(std::set<const Type *> &references) const
+{
+    for (auto f: fields) {
+        if (references.insert(f.type).second) {
+            f.type->get_type_references(references);
+        }
+    }
+}
+
 void TypePointer::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADP);
@@ -540,6 +563,13 @@ void TypePointer::generate_call(Emitter &) const
 std::string TypePointer::get_type_descriptor(Emitter &emitter) const
 {
     return "P<" + (reftype != nullptr ? emitter.get_type_reference(reftype) : "") + ">";
+}
+
+void TypePointer::get_type_references(std::set<const Type *> &references) const
+{
+    if (reftype != nullptr && references.insert(reftype).second) {
+        reftype->get_type_references(references);
+    }
 }
 
 std::string TypeEnum::get_type_descriptor(Emitter &) const
@@ -1444,14 +1474,37 @@ void Program::generate(Emitter &emitter) const
     }
     emitter.emit(RET);
     frame->postdeclare(emitter);
+
+    // The following block does a topological sort on the dependencies
+    // between types. This is necessary so that the export table in a
+    // module always declares a type before any types that reference
+    // that exported type (using ~ notation).
+    std::map<const Type *, std::set<const Type *>> type_references;
     for (auto exp: exports) {
         const Type *type = dynamic_cast<const Type *>(exp.second);
         if (type != nullptr) {
             emitter.declare_export_type(type);
+            std::set<const Type *> references;
+            type->get_type_references(references);
+            type_references[type] = references;
         }
     }
+    std::vector<std::pair<std::string, const Type *>> export_types;
     for (auto exp: exports) {
-        exp.second->generate_export(emitter, exp.first);
+        const Type *type = dynamic_cast<const Type *>(exp.second);
+        if (type != nullptr) {
+            export_types.push_back(std::make_pair(exp.first, type));
+        }
+    }
+    std::sort(export_types.begin(), export_types.end(), [type_references](const std::pair<std::string, const Type *> &a, const std::pair<std::string, const Type *> &b) { return type_references.at(a.second).find(b.second) == type_references.at(a.second).end(); });
+    for (auto t: export_types) {
+        t.second->generate_export(emitter, t.first);
+    }
+
+    for (auto exp: exports) {
+        if (dynamic_cast<const Type *>(exp.second) == nullptr) {
+            exp.second->generate_export(emitter, exp.first);
+        }
     }
 }
 

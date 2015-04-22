@@ -135,6 +135,7 @@ public:
     virtual void generate_call(Emitter &emitter) const = 0;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const = 0;
+    virtual void get_type_references(std::set<const Type *> &) const {}
     virtual std::string serialize(const Expression *value) const = 0;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const = 0;
 };
@@ -259,6 +260,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
+    virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -281,6 +283,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
+    virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -319,6 +322,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
+    virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
@@ -353,6 +357,7 @@ public:
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
+    virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
 
