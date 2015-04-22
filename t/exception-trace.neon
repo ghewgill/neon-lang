@@ -1,0 +1,13 @@
+DECLARE EXCEPTION Error
+
+FUNCTION foo()
+    bar()
+END FUNCTION
+
+FUNCTION bar()
+    RAISE Error
+END FUNCTION
+
+foo()
+
+%! Unhandled exception Error
