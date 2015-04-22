@@ -508,6 +508,8 @@ Variables declared inside a function are visible only from within that function.
 
 Read-only values (therefore not actually *variables*) are declared with the `LET` keyword:
 
+    IMPORT os
+
     LET path: String := os.getenv("PATH")
 
 <a name="statements"></a>
