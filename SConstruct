@@ -114,6 +114,122 @@ sqliteenv = env.Clone()
 sqliteenv.Append(CPPFLAGS=["-DSQLITE_THREADSAFE=0"])
 sqlite = sqliteenv.Object("external/sqlite-amalgamation-3080803/sqlite3.c")
 
+if not os.path.exists("external/zlib-1.2.8/configure"):
+    tarfile.open("external/zlib-1.2.8.tar.gz").extractall("external")
+if sys.platform == "win32":
+    libz = env.Library("external/zlib-1.2.8/libz.lib", [
+        "external/zlib-1.2.8/adler32.c",
+        "external/zlib-1.2.8/compress.c",
+        "external/zlib-1.2.8/crc32.c",
+        "external/zlib-1.2.8/deflate.c",
+        "external/zlib-1.2.8/inffast.c",
+        "external/zlib-1.2.8/inflate.c",
+        "external/zlib-1.2.8/inftrees.c",
+        "external/zlib-1.2.8/trees.c",
+        "external/zlib-1.2.8/uncompr.c",
+        "external/zlib-1.2.8/zutil.c",
+    ])
+else:
+    libz = env.Command("external/zlib-1.2.8/libz.a", "external/zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
+
+if not os.path.exists("external/bzip2-1.0.6/Makefile"):
+    tarfile.open("external/bzip2-1.0.6.tar.gz").extractall("external")
+if sys.platform == "win32":
+    libbz2 = env.Library("external/bzip2-1.0.6/libbz2.lib", [
+        "external/bzip2-1.0.6/blocksort.c",
+        "external/bzip2-1.0.6/bzlib.c",
+        "external/bzip2-1.0.6/compress.c",
+        "external/bzip2-1.0.6/crctable.c",
+        "external/bzip2-1.0.6/decompress.c",
+        "external/bzip2-1.0.6/huffman.c",
+        "external/bzip2-1.0.6/randtable.c",
+    ])
+else:
+    libbz2 = env.Command("external/bzip2-1.0.6/libbz2.a", "external/bzip2-1.0.6/Makefile", "cd external/bzip2-1.0.6 && make")
+
+if not os.path.exists("external/xz-5.2.1/configure"):
+    tarfile.open("external/xz-5.2.1.tar.gz").extractall("external")
+if sys.platform == "win32":
+    env.Append(CPPDEFINES=[
+        "LZMA_API_STATIC",
+    ])
+    lzmaenv = env.Clone()
+    lzmaenv.Append(CPPPATH=[
+        "external/xz-5.2.1/src/common",
+        "external/xz-5.2.1/src/liblzma/api",
+        "external/xz-5.2.1/src/liblzma/check",
+        "external/xz-5.2.1/src/liblzma/common",
+        "external/xz-5.2.1/src/liblzma/delta",
+        "external/xz-5.2.1/src/liblzma/lz",
+        "external/xz-5.2.1/src/liblzma/lzma",
+        "external/xz-5.2.1/src/liblzma/rangecoder",
+        "external/xz-5.2.1/src/liblzma/simple",
+        "external/xz-5.2.1/windows",
+    ])
+    lzmaenv.Append(CPPDEFINES=[
+        ("DWORD", "unsigned long"),
+        "HAVE_CONFIG_H",
+    ])
+    liblzma = lzmaenv.Library("external/xz-5.2.1/src/liblzma/liblzma.lib", [
+        "external/xz-5.2.1/src/liblzma/check/check.c",
+        "external/xz-5.2.1/src/liblzma/check/crc32_fast.c",
+        "external/xz-5.2.1/src/liblzma/check/crc32_table.c",
+        "external/xz-5.2.1/src/liblzma/check/crc64_fast.c",
+        "external/xz-5.2.1/src/liblzma/check/crc64_table.c",
+        "external/xz-5.2.1/src/liblzma/check/sha256.c",
+        "external/xz-5.2.1/src/liblzma/delta/delta_common.c",
+        "external/xz-5.2.1/src/liblzma/delta/delta_decoder.c",
+        "external/xz-5.2.1/src/liblzma/delta/delta_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/block_header_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/block_header_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/block_buffer_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/block_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/block_util.c",
+        "external/xz-5.2.1/src/liblzma/common/common.c",
+        "external/xz-5.2.1/src/liblzma/common/easy_buffer_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/easy_preset.c",
+        "external/xz-5.2.1/src/liblzma/common/filter_common.c",
+        "external/xz-5.2.1/src/liblzma/common/filter_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/filter_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/filter_flags_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/filter_flags_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/index.c",
+        "external/xz-5.2.1/src/liblzma/common/index_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/index_hash.c",
+        "external/xz-5.2.1/src/liblzma/common/stream_buffer_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/stream_buffer_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/stream_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/stream_flags_common.c",
+        "external/xz-5.2.1/src/liblzma/common/stream_flags_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/stream_flags_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/vli_decoder.c",
+        "external/xz-5.2.1/src/liblzma/common/vli_encoder.c",
+        "external/xz-5.2.1/src/liblzma/common/vli_size.c",
+        "external/xz-5.2.1/src/liblzma/lz/lz_decoder.c",
+        "external/xz-5.2.1/src/liblzma/lz/lz_encoder.c",
+        "external/xz-5.2.1/src/liblzma/lz/lz_encoder_mf.c",
+        "external/xz-5.2.1/src/liblzma/lzma/fastpos_table.c",
+        "external/xz-5.2.1/src/liblzma/lzma/lzma_decoder.c",
+        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder.c",
+        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder_optimum_fast.c",
+        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder_optimum_normal.c",
+        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder_presets.c",
+        "external/xz-5.2.1/src/liblzma/lzma/lzma2_decoder.c",
+        "external/xz-5.2.1/src/liblzma/lzma/lzma2_encoder.c",
+        "external/xz-5.2.1/src/liblzma/rangecoder/price_table.c",
+        "external/xz-5.2.1/src/liblzma/simple/arm.c",
+        "external/xz-5.2.1/src/liblzma/simple/armthumb.c",
+        "external/xz-5.2.1/src/liblzma/simple/ia64.c",
+        "external/xz-5.2.1/src/liblzma/simple/powerpc.c",
+        "external/xz-5.2.1/src/liblzma/simple/simple_coder.c",
+        "external/xz-5.2.1/src/liblzma/simple/simple_decoder.c",
+        "external/xz-5.2.1/src/liblzma/simple/simple_encoder.c",
+        "external/xz-5.2.1/src/liblzma/simple/sparc.c",
+        "external/xz-5.2.1/src/liblzma/simple/x86.c",
+    ])
+else:
+    liblzma = env.Command("external/xz-5.2.1/src/liblzma/.libs/liblzma.a", "external/xz-5.2.1/configure", "cd external/xz-5.2.1 && ./configure && make")
+
 env.Append(CPPPATH=[
     "external/IntelRDFPMathLib20U1/LIBRARY/src",
     "external/utf8/source",
@@ -123,6 +239,9 @@ env.Append(CPPPATH=[
     "external/pcre2-10.10/src",
     "external/curl-7.41.0/include",
     "external/sqlite-amalgamation-3080803",
+    "external/zlib-1.2.8",
+    "external/bzip2-1.0.6",
+    "external/xz-5.2.1/src/liblzma/api",
     "src",
 ])
 env.Append(LIBS=[hash_lib])
@@ -141,7 +260,7 @@ else:
         "-Werror",
         "-g",
     ])
-env.Append(LIBS=[libbid, libffi, libpcre, libcurl] + libs_curses)
+env.Append(LIBS=[libbid, libffi, libpcre, libcurl, libz, libbz2, liblzma] + libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -173,6 +292,7 @@ rtl_const = [
 
 rtl_cpp = rtl_const + [
     "lib/bitwise.cpp",
+    "lib/compress.cpp",
     "lib/curses.cpp",
     "lib/datetime.cpp",
     "lib/global.cpp",
@@ -193,6 +313,7 @@ rtl_cpp = rtl_const + [
 
 rtl_neon = [
     "lib/bitwise.neon",
+    "lib/compress.neon",
     "lib/curses.neon",
     "lib/datetime.neon",
     "lib/file.neon",

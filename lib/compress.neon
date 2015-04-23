@@ -1,0 +1,8 @@
+DECLARE NATIVE FUNCTION gzip(input: String): Bytes
+DECLARE NATIVE FUNCTION gunzip(input: Bytes): String
+
+DECLARE NATIVE FUNCTION bzip2(input: String): Bytes
+DECLARE NATIVE FUNCTION bunzip2(input: Bytes): String
+
+DECLARE NATIVE FUNCTION lzma(input: String): Bytes
+DECLARE NATIVE FUNCTION unlzma(input: Bytes): String

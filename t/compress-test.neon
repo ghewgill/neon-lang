@@ -1,0 +1,19 @@
+IMPORT compress
+
+VAR b: Bytes
+VAR s: String
+
+b := compress.gzip("hello gzip world")
+s := compress.gunzip(b)
+print(s)
+%= hello gzip world
+
+b := compress.bzip2("hello bzip2 world")
+s := compress.bunzip2(b)
+print(s)
+%= hello bzip2 world
+
+b := compress.lzma("hello lzma world")
+s := compress.unlzma(b)
+print(s)
+%= hello lzma world

@@ -22,5 +22,8 @@ external/hash-library/
 external/pcre2-10.10/
 external/curl-7.41.0/
 external/sqlite-amalgamation-3080803/
+external/zlib-1.2.8/
+external/bzip2-1.0.6/
+external/xz-5.2.1/
 external/lib
 external/share
