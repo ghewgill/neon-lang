@@ -428,6 +428,12 @@ std::string TypeFunction::get_type_descriptor(Emitter &emitter) const
     return r;
 }
 
+void TypeArray::predeclare(Emitter &emitter) const
+{
+    Type::predeclare(emitter);
+    elementtype->predeclare(emitter);
+}
+
 void TypeArray::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADA);
@@ -453,6 +459,12 @@ void TypeArray::get_type_references(std::set<const Type *> &references) const
     if (references.insert(elementtype).second) {
         elementtype->get_type_references(references);
     }
+}
+
+void TypeDictionary::predeclare(Emitter &emitter) const
+{
+    Type::predeclare(emitter);
+    elementtype->predeclare(emitter);
 }
 
 void TypeDictionary::generate_load(Emitter &emitter) const

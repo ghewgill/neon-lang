@@ -255,6 +255,7 @@ public:
     TypeArray(const Token &declaration, const Type *elementtype);
     const Type *elementtype;
 
+    virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_equivalent(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
@@ -278,6 +279,7 @@ public:
     TypeDictionary(const Token &declaration, const Type *elementtype);
     const Type *elementtype;
 
+    virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_equivalent(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
