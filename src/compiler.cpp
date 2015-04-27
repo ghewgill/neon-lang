@@ -391,6 +391,12 @@ void TypeString::generate_call(Emitter &) const
     internal_error("TypeString");
 }
 
+void TypeFunction::predeclare(Emitter &emitter) const
+{
+    Type::predeclare(emitter);
+    returntype->predeclare(emitter);
+}
+
 void TypeFunction::generate_load(Emitter &) const
 {
     internal_error("TypeFunction");
@@ -685,6 +691,7 @@ void FunctionParameter::generate_address(Emitter &emitter, int) const
 
 void Function::predeclare(Emitter &emitter) const
 {
+    type->predeclare(emitter);
     frame->predeclare(emitter);
     entry_label = emitter.next_function();
 }

@@ -234,6 +234,8 @@ private:
 class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
+
+    virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
