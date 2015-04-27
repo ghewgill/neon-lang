@@ -56,6 +56,8 @@ bool parse(const std::string &fmt, Spec &spec)
                 return false;
             }
             break;
+        case 'd':
+            return true;
         default:
             return false;
     }
@@ -87,7 +89,7 @@ std::string format(const std::string &str, const Spec &spec)
             int space = spec.width - len;
             if (spec.align == 0 || spec.align == '<') {
                 r += fillstr(spec, space);
-            } else if (spec.align == '>') {
+            } else if (spec.align == '>' || spec.align == '=') {
                 r = fillstr(spec, space) + r;
             } else if (spec.align == '^') {
                 r = fillstr(spec, space/2) + r + fillstr(spec, space - space/2);
