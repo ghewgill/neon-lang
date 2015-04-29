@@ -1348,9 +1348,11 @@ void ForStatement::generate_code(Emitter &emitter) const
 
     start->generate(emitter);
     var->generate_store(emitter);
+    end->generate(emitter);
+    bound->generate_store(emitter);
     emitter.jump_target(loop);
 
-    end->generate(emitter);
+    bound->generate_load(emitter);
     var->generate_load(emitter);
     emitter.emit(static_cast<char>(comp));
     emitter.emit_jump(JF, skip);

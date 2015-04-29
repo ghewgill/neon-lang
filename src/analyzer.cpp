@@ -2328,6 +2328,14 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     }
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
+    Variable *bound;
+    if (frame.top() == global_frame) {
+        bound = new GlobalVariable(Token(), "", TYPE_NUMBER, false);
+    } else {
+        bound = new LocalVariable(Token(), "", TYPE_NUMBER, false);
+    }
+    // TODO: Need better way of declaring unnamed local variable.
+    scope.top()->addName(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
     const Expression *start = analyze(statement->start);
     if (not start->type->is_equivalent(TYPE_NUMBER)) {
         error(3067, statement->start->token, "numeric expression expected");
@@ -2358,7 +2366,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new ForStatement(statement->token.line, loop_id, new VariableExpression(var), start, end, step, statements);
+    return new ForStatement(statement->token.line, loop_id, new VariableExpression(var), start, end, step, new VariableExpression(bound), statements);
 }
 
 const Statement *Analyzer::analyze(const pt::IfStatement *statement)

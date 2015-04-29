@@ -1,0 +1,9 @@
+VAR n: Number := 4
+FOR i := 1 TO n DO
+    print(str(i))
+    dec(n)
+END FOR
+%= 1
+%= 2
+%= 3
+%= 4

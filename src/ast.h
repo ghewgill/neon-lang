@@ -1525,13 +1525,14 @@ private:
 
 class ForStatement: public BaseLoopStatement {
 public:
-    ForStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *start, const Expression *end, const Expression *step, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end), step(step) {
+    ForStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *start, const Expression *end, const Expression *step, const VariableExpression *bound, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end), step(step), bound(bound) {
     }
 
     const VariableExpression *var;
     const Expression *start;
     const Expression *end;
     const Expression *step;
+    const VariableExpression *bound;
 
     virtual void generate_code(Emitter &emitter) const override;
 
