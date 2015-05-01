@@ -1,0 +1,73 @@
+IMPORT bigint
+IMPORT math
+IMPORT sys
+
+LET a: bigint.BigInt := bigint.make(12345)
+print(a.to_string())
+%= 12345
+
+LET b: bigint.BigInt := bigint.make(23456)
+print(b.to_string())
+%= 23456
+
+LET sum: bigint.BigInt := bigint.add(a, b)
+print(sum.to_string())
+%= 35801
+
+LET diff: bigint.BigInt := bigint.sub(b, a)
+print(diff.to_string())
+%= 11111
+
+LET prod: bigint.BigInt := bigint.mul(a, b)
+print(prod.to_string())
+%= 289564320
+
+%LET quot: bigint.BigInt := bigint.div(b, a)
+%print(quot.to_string())
+%%= 1
+
+FOR lx := -30 TO 30 DO
+    FOR ly := -30 TO 30 DO
+        LET x: Number := math.floor(math.exp(math.abs(lx))) * math.sign(lx)
+        LET y: Number := math.floor(math.exp(math.abs(ly))) * math.sign(ly)
+        test_arithmetic(x, y)
+        IF lx = 0 THEN
+            test_arithmetic(0, y)
+        END IF
+        IF ly = 0 THEN
+            test_arithmetic(x, 0)
+        END IF
+    END FOR
+END FOR
+
+FUNCTION test_arithmetic(x, y: Number)
+    LET p: bigint.BigInt := bigint.make(x)
+    LET q: bigint.BigInt := bigint.make(y)
+
+    LET rsum: bigint.BigInt := bigint.make(x + y)
+    IF NOT p.add(q).equals(rsum) THEN
+        print("fail: \(x) + \(y) expected \(x + y) got \(rsum)")
+        sys.exit(1)
+    END IF
+
+    LET rdiff: bigint.BigInt := bigint.make(x - y)
+    IF NOT p.sub(q).equals(rdiff) THEN
+        print("fail: \(x) - \(y) expected \(x - y) got \(rdiff)")
+        sys.exit(1)
+    END IF
+
+    IF math.abs(x * y) < 1e16 THEN
+        LET rprod: bigint.BigInt := bigint.make(x * y)
+        IF NOT p.mul(q).equals(rprod) THEN
+            print("fail: \(x) * \(y) expected \(x * y) got \(rprod)")
+            sys.exit(1)
+        END IF
+    END IF
+
+    %LET rquot: bigint.BigInt := bigint.make(x / y)
+    %IF NOT p.div(q).equals(rquot) THEN
+    %    print("fail: \(x) / \(y) expected \(x / y) got \(rquot)")
+    %    sys.exit(1)
+    %END IF
+
+END FUNCTION
