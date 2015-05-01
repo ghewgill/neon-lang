@@ -1,0 +1,9 @@
+EXPORT parse
+
+TYPE Document := RECORD
+    dummy: Boolean
+END RECORD
+
+FUNCTION parse(s: String): Document
+    RETURN Document()
+END FUNCTION
