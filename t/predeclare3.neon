@@ -1,0 +1,3 @@
+% TODO
+VAR d: Dictionary<Number>
+print(str(d.keys().size()))
