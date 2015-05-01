@@ -32,6 +32,9 @@ print(str(math.floor(-5.5)))
 print(str(math.log(1)))
 %= 0
 
+print(str(math.sign(-5)))
+%= -1
+
 print(str(math.sin(0)))
 %= 0
 

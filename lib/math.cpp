@@ -147,6 +147,11 @@ Number math$nearbyint(Number x)
     return number_nearbyint(x);
 }
 
+Number math$sign(Number x)
+{
+    return number_sign(x);
+}
+
 Number math$sin(Number x)
 {
     return number_sin(x);

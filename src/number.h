@@ -38,6 +38,7 @@ private:
     friend Number number_pow(Number x, Number y);
     friend Number number_negate(Number x);
     friend Number number_abs(Number x);
+    friend Number number_sign(Number x);
     friend Number number_ceil(Number x);
     friend Number number_floor(Number x);
     friend Number number_exp(Number x);
@@ -91,6 +92,7 @@ Number number_modulo(Number x, Number y);
 Number number_pow(Number x, Number y);
 Number number_negate(Number x);
 Number number_abs(Number x);
+Number number_sign(Number x);
 Number number_ceil(Number x);
 Number number_floor(Number x);
 Number number_exp(Number x);

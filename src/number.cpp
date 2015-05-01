@@ -55,6 +55,11 @@ Number number_abs(Number x)
     return bid64_abs(x.x);
 }
 
+Number number_sign(Number x)
+{
+    return bid64_copySign(bid64_from_uint32(1), x.x);
+}
+
 Number number_ceil(Number x)
 {
     // TODO: find proper ceil function to handle full range of decimal64

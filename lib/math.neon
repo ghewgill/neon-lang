@@ -27,6 +27,7 @@ DECLARE NATIVE FUNCTION log10(x: Number): Number
 DECLARE NATIVE FUNCTION log1p(x: Number): Number
 DECLARE NATIVE FUNCTION log2(x: Number): Number
 DECLARE NATIVE FUNCTION nearbyint(x: Number): Number
+DECLARE NATIVE FUNCTION sign(x: Number): Number
 DECLARE NATIVE FUNCTION sin(x: Number): Number
 DECLARE NATIVE FUNCTION sinh(x: Number): Number
 DECLARE NATIVE FUNCTION sqrt(x: Number): Number
