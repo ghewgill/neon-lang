@@ -55,6 +55,7 @@ public:
     const Statement *parseWhileStatement();
     const Statement *parseCaseStatement();
     const Statement *parseForStatement();
+    const Statement *parseForeachStatement();
     const Statement *parseLoopStatement();
     const Statement *parseRepeatStatement();
     const Statement *parseExitStatement();
@@ -1168,6 +1169,51 @@ const Statement *Parser::parseForStatement()
     return new ForStatement(tok_for, var, start, end, step, statements);
 }
 
+const Statement *Parser::parseForeachStatement()
+{
+    auto &tok_foreach = tokens[i];
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(2081, tokens[i], "identifier expected");
+    }
+    const Token &var = tokens[i];
+    ++i;
+    if (tokens[i].type != OF) {
+        error(2082, tokens[i], "OF expected");
+    }
+    ++i;
+    const Expression *array = parseExpression();
+    Token index;
+    if (tokens[i].type == INDEX) {
+        ++i;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2083, tokens[i], "identifier expected");
+        }
+        index = tokens[i];
+        ++i;
+    }
+    if (tokens[i].type != DO) {
+        error_a(2084, tokens[i-1], tokens[i], "'DO' expected");
+    }
+    ++i;
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement();
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(2085, tokens[i], "'END' expected");
+    }
+    ++i;
+    if (tokens[i].type != FOREACH) {
+        error_a(2086, tokens[i-1], tokens[i], "'END FOREACH' expected");
+    }
+    ++i;
+    return new ForeachStatement(tok_foreach, var, array, index, statements);
+}
+
 const Statement *Parser::parseLoopStatement()
 {
     auto &tok_loop = tokens[i];
@@ -1379,6 +1425,8 @@ const Statement *Parser::parseStatement()
         return parseCaseStatement();
     } else if (tokens[i].type == FOR) {
         return parseForStatement();
+    } else if (tokens[i].type == FOREACH) {
+        return parseForeachStatement();
     } else if (tokens[i].type == LOOP) {
         return parseLoopStatement();
     } else if (tokens[i].type == REPEAT) {

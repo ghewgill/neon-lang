@@ -297,6 +297,13 @@ public:
             child(x);
         }
     }
+    virtual void visit(const ForeachStatement *node) override {
+        write("ForeachStatement(" + node->var.text + ")");
+        child(node->array);
+        for (auto x: node->body) {
+            child(x);
+        }
+    }
     virtual void visit(const IfStatement *node) override {
         write("IfStatement");
         for (auto x: node->condition_statements) {

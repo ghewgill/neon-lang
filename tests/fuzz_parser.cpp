@@ -92,6 +92,9 @@ std::string reconstitute(const Token &t)
         case EXPORT:      return "EXPORT";
         case PRIVATE:     return "PRIVATE";
         case NATIVE:      return "NATIVE";
+        case FOREACH:     return "FOREACH";
+        case OF:          return "OF";
+        case INDEX:       return "INDEX";
         case MAX_TOKEN:   return "";
     }
     return "";

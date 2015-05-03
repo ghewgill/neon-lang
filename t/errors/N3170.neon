@@ -1,0 +1,3 @@
+FOREACH x OF {} DO
+             %<
+END FOREACH

@@ -98,6 +98,9 @@ std::string Token::tostring() const
         case EXPORT:      s << "EXPORT"; break;
         case PRIVATE:     s << "PRIVATE"; break;
         case NATIVE:      s << "NATIVE"; break;
+        case FOREACH:     s << "FOREACH"; break;
+        case OF:          s << "OF"; break;
+        case INDEX:       s << "INDEX"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -273,6 +276,9 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
             else if (t.text == "EXPORT") t.type = EXPORT;
             else if (t.text == "PRIVATE") t.type = PRIVATE;
             else if (t.text == "NATIVE") t.type = NATIVE;
+            else if (t.text == "FOREACH") t.type = FOREACH;
+            else if (t.text == "OF") t.type = OF;
+            else if (t.text == "INDEX") t.type = INDEX;
         } else if (number_start(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not number_decimal_body(*(i+1))) {

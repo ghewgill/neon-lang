@@ -90,6 +90,9 @@ enum TokenType {
     EXPORT,
     PRIVATE,
     NATIVE,
+    FOREACH,
+    OF,
+    INDEX,
     MAX_TOKEN
 };
 

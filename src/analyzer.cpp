@@ -89,6 +89,7 @@ public:
     const Statement *analyze(const pt::ExitStatement *statement);
     const Statement *analyze(const pt::ExpressionStatement *statement);
     const Statement *analyze(const pt::ForStatement *statement);
+    const Statement *analyze(const pt::ForeachStatement *statement);
     const Statement *analyze(const pt::IfStatement *statement);
     const Statement *analyze(const pt::LoopStatement *statement);
     const Statement *analyze(const pt::NextStatement *statement);
@@ -162,6 +163,7 @@ public:
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ForeachStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::IfStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
@@ -235,6 +237,7 @@ public:
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ForeachStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::IfStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
@@ -307,6 +310,7 @@ public:
     virtual void visit(const pt::ExitStatement *) override {}
     virtual void visit(const pt::ExpressionStatement *) override {}
     virtual void visit(const pt::ForStatement *) override {}
+    virtual void visit(const pt::ForeachStatement *) override {}
     virtual void visit(const pt::IfStatement *) override {}
     virtual void visit(const pt::LoopStatement *) override {}
     virtual void visit(const pt::NextStatement *) override {}
@@ -379,6 +383,7 @@ public:
     virtual void visit(const pt::ExitStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExpressionStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ForStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ForeachStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::IfStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::LoopStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::NextStatement *p) override { v.push_back(a->analyze(p)); }
@@ -2367,6 +2372,70 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     loops.top().pop_back();
     var->is_readonly = false;
     return new ForStatement(statement->token.line, loop_id, new VariableExpression(var), start, end, step, new VariableExpression(bound), statements);
+}
+
+const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
+{
+    scope.push(new Scope(scope.top(), frame.top()));
+    Token var_name = statement->var;
+    if (scope.top()->lookupName(var_name.text) != nullptr) {
+        error2(3169, var_name, scope.top()->getDeclaration(var_name.text), "duplicate identifier");
+    }
+    const Expression *array = analyze(statement->array);
+    const TypeArray *atype = dynamic_cast<const TypeArray *>(array->type);
+    if (atype == nullptr) {
+        error(3170, statement->array->token, "array expected");
+    }
+    Variable *var;
+    if (frame.top() == global_frame) {
+        var = new GlobalVariable(var_name, var_name.text, atype->elementtype, false);
+    } else {
+        var = new LocalVariable(var_name, var_name.text, atype->elementtype, false);
+    }
+    scope.top()->addName(var->declaration, var->name, var, true);
+    var->is_readonly = true;
+
+    Token index_name = statement->index;
+    Variable *index;
+    if (index_name.type == IDENTIFIER) {
+        if (scope.top()->lookupName(index_name.text) != nullptr) {
+            error2(3171, index_name, scope.top()->getDeclaration(index_name.text), "duplicate identifier");
+        }
+        if (frame.top() == global_frame) {
+            index = new GlobalVariable(index_name, index_name.text, TYPE_NUMBER, false);
+        } else {
+            index = new LocalVariable(index_name, index_name.text, TYPE_NUMBER, false);
+        }
+        scope.top()->addName(index->declaration, index->name, index, true);
+    } else {
+        // TODO: Need better way of declaring unnamed local variable.
+        index_name.text = std::to_string(reinterpret_cast<intptr_t>(statement)+1);
+        if (frame.top() == global_frame) {
+            index = new GlobalVariable(Token(), index_name.text, TYPE_NUMBER, false);
+        } else {
+            index = new LocalVariable(Token(), index_name.text, TYPE_NUMBER, false);
+        }
+        scope.top()->addName(Token(), index_name.text, index, true);
+    }
+    index->is_readonly = true;
+
+    Variable *bound;
+    // TODO: Need better way of declaring unnamed local variable.
+    std::string bound_name = std::to_string(reinterpret_cast<intptr_t>(statement));
+    if (frame.top() == global_frame) {
+        bound = new GlobalVariable(Token(), bound_name, TYPE_NUMBER, false);
+    } else {
+        bound = new LocalVariable(Token(), bound_name, TYPE_NUMBER, false);
+    }
+    scope.top()->addName(Token(), bound_name, bound, true);
+    // TODO: make loop_id a void*
+    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
+    loops.top().push_back(std::make_pair(FOREACH, loop_id));
+    std::vector<const Statement *> statements = analyze(statement->body);
+    scope.pop();
+    loops.top().pop_back();
+    var->is_readonly = false;
+    return new ForeachStatement(statement->token.line, loop_id, new VariableExpression(var), array, new VariableExpression(index), new VariableExpression(bound), statements);
 }
 
 const Statement *Analyzer::analyze(const pt::IfStatement *statement)

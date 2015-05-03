@@ -64,6 +64,7 @@ class CaseStatement;
 class ExitStatement;
 class ExpressionStatement;
 class ForStatement;
+class ForeachStatement;
 class IfStatement;
 class LoopStatement;
 class NextStatement;
@@ -134,6 +135,7 @@ public:
     virtual void visit(const ExitStatement *) = 0;
     virtual void visit(const ExpressionStatement *) = 0;
     virtual void visit(const ForStatement *) = 0;
+    virtual void visit(const ForeachStatement *) = 0;
     virtual void visit(const IfStatement *) = 0;
     virtual void visit(const LoopStatement *) = 0;
     virtual void visit(const NextStatement *) = 0;
@@ -722,6 +724,18 @@ public:
 private:
     ForStatement(const ForStatement &);
     ForStatement &operator=(const ForStatement &);
+};
+
+class ForeachStatement: public BlockStatement {
+public:
+    ForeachStatement(const Token &token, const Token &var, const Expression *array, const Token &index, const std::vector<const Statement *> &body): BlockStatement(token, body), var(var), array(array), index(index) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token var;
+    const Expression *const array;
+    const Token index;
+private:
+    ForeachStatement(const ForeachStatement &);
+    ForeachStatement &operator=(const ForeachStatement &);
 };
 
 class IfStatement: public Statement {

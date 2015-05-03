@@ -1544,6 +1544,26 @@ private:
     ForStatement &operator=(const ForStatement &);
 };
 
+class ForeachStatement: public BaseLoopStatement {
+public:
+    ForeachStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *array, const VariableExpression *index, const VariableExpression *bound, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), array(array), index(index), bound(bound) {
+    }
+
+    const VariableExpression *var;
+    const Expression *array;
+    const VariableExpression *index;
+    const VariableExpression *bound;
+
+    virtual void generate_code(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        return "ForeachStatement(" + var->text() + "(" + array->text() + ")";
+    }
+private:
+    ForeachStatement(const ForeachStatement &);
+    ForeachStatement &operator=(const ForeachStatement &);
+};
+
 class LoopStatement: public BaseLoopStatement {
 public:
     LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements) {}

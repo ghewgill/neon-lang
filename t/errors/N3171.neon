@@ -1,0 +1,5 @@
+VAR i: Number
+    %<2
+FOREACH x OF [] INDEX i DO
+                      %<1
+END FOREACH

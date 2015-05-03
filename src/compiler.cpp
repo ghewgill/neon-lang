@@ -1369,7 +1369,46 @@ void ForStatement::generate_code(Emitter &emitter) const
     emitter.emit(ADDN);
     var->generate_store(emitter);
     emitter.emit_jump(JUMP, loop);
-    
+
+    emitter.jump_target(skip);
+    emitter.remove_loop_labels(loop_id);
+}
+
+void ForeachStatement::generate_code(Emitter &emitter) const
+{
+    auto skip = emitter.create_label();
+    auto loop = emitter.create_label();
+    auto next = emitter.create_label();
+
+    emitter.emit(PUSHN, number_from_uint32(0));
+    index->generate_store(emitter);
+    array->generate(emitter);
+    emitter.emit(CALLP, dynamic_cast<const PredefinedFunction *>(array->type->methods.at("size"))->name_index);
+    bound->generate_store(emitter);
+
+    emitter.jump_target(loop);
+    bound->generate_load(emitter);
+    index->generate_load(emitter);
+    emitter.emit(GTN);
+    emitter.emit_jump(JF, skip);
+
+    emitter.add_loop_labels(loop_id, skip, next);
+
+    array->generate(emitter);
+    index->generate(emitter);
+    emitter.emit(INDEXAV);
+    var->generate_store(emitter);
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+
+    emitter.jump_target(next);
+    index->generate_load(emitter);
+    emitter.emit(PUSHN, number_from_uint32(1));
+    emitter.emit(ADDN);
+    index->generate_store(emitter);
+    emitter.emit_jump(JUMP, loop);
+
     emitter.jump_target(skip);
     emitter.remove_loop_labels(loop_id);
 }
