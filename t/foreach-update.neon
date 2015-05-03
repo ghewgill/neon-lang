@@ -1,0 +1,8 @@
+% TODO
+
+VAR a: Array<Number> := [1, 2, 3]
+FOREACH x OF a DO
+    inc(x)
+END FOREACH
+print("\(a[0]) \(a[1]) \(a[2])")
+%= 2 3 4
