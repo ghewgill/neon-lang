@@ -118,24 +118,25 @@ FUNCTION encode(data: Variant): String
         WHEN Type.array DO
             VAR r: String := "["
             LET a: Array<Variant> := data.get_array()
-            FOR i := 0 TO a.size()-1 DO
+            FOREACH x OF a DO
                 IF r.length() > 1 THEN
                     r := r & ","
                 END IF
-                r := r & encode(a[i])
-            END FOR
+                r := r & encode(x)
+            END FOREACH
             r := r & "]"
             RETURN r
         WHEN Type.dictionary DO
             VAR r: String := "{"
             LET d: Dictionary<Variant> := data.get_dictionary()
             LET keys: Array<String> := d.keys()
-            FOR i := 0 TO d.size()-1 DO
+            % TODO: This should just be d.keys(), see t/foreach-value.neon
+            FOREACH x OF keys DO
                 IF r.length() > 1 THEN
                     r := r & ","
                 END IF
-                r := r & encode(variant.make_string(keys[i])) & ":" & encode(d[keys[i]])
-            END FOR
+                r := r & encode(variant.make_string(x)) & ":" & encode(d[x])
+            END FOREACH
             r := r & "}"
             RETURN r
     END CASE
