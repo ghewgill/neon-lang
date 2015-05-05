@@ -31,6 +31,7 @@ It is not intended as an introduction to the language.
     </ol></li>
   <li><a href="#expressions">Expressions</a>
     <ol>
+      <li><a href="#expressions-literal">Literal Values</a></li>
       <li><a href="#expressions-boolean">Boolean Operators</a></li>
       <li><a href="#expressions-numeric">Numeric Operators</a></li>
       <li><a href="#expressions-string">String Operators</a></li>
@@ -38,6 +39,8 @@ It is not intended as an introduction to the language.
       <li><a href="#expressions-dictionary">Dictionary Operator</a></li>
       <li><a href="#expressions-pointer">Pointer Operator</a></li>
       <li><a href="#expressions-precedence">Operator Precedence</a></li>
+      <li><a href="#expressions-subscript">Array Subscripts</a></li>
+      <li><a href="#expressions-substitution">Expression Substitution</a></li>
     </ol></li>
   <li><a href="#statements">Statements</a>
     <ol>
@@ -56,22 +59,45 @@ It is not intended as an introduction to the language.
       <li><a href="#statements-try">TRY</a></li>
       <li><a href="#statements-while">WHILE</a></li>
     </ol></li>
-  <li>Functions
+  <li><a href="#functions">Functions</a>
     <ol>
-      <li>Return Type</li>
-      <li>Parameter Modes</li>
-      <li>Forward Declarations</li>
+      <li><a href="#functions-parameter-mode">Parameter Modes</a></li>
+      <li><a href="#functions-default">Default Parameter Value</a></li>
+      <li><a href="#functions-named">Named Parameters</a></li>
       <li>External Functions</li>
+    </ol></li>
+  <li><a href="#modules">Modules</a>
+    <ol>
+      <li><a href="#modules-export">Export</a></li>
+      <li><a href="#modules-import">Import</a></li>
+      <li><a href="#modules-neonpath">Module Path</a></li>
     </ol></li>
   <li><a href="#library">Standard Library</a>
     <ol>
+      <li><a href="#library-bigint">bigint</a></li>
       <li><a href="#library-bitwise">bitwise</a></li>
+      <li><a href="#library-cformat">cformat</a></li>
+      <li><a href="#library-complex">complex</a></li>
+      <li><a href="#library-compress">compress</a></li>
       <li><a href="#library-curses">curses</a></li>
+      <li><a href="#library-datetime">datetime</a></li>
       <li><a href="#library-file">file</a></li>
+      <li><a href="#library-hash">hash</a></li>
+      <li><a href="#library-http">http</a></li>
+      <li><a href="#library-io">io</a></li>
+      <li><a href="#library-json">json</a></li>
       <li><a href="#library-math">math</a></li>
+      <li><a href="#library-net">net</a></li>
+      <li><a href="#library-os">os</a></li>
       <li><a href="#library-random">random</a></li>
+      <li><a href="#library-regex">regex</a></li>
+      <li><a href="#library-sqlite">sqlite</a></li>
+      <li><a href="#library-string">string</a></li>
+      <li><a href="#library-struct">struct</a></li>
       <li><a href="#library-sys">sys</a></li>
       <li><a href="#library-time">time</a></li>
+      <li><a href="#library-variant">variant</a></li>
+      <li><a href="#library-xml">xml</a></li>
     </ol></li>
   <li>Grammar</li>
 </ol>
@@ -202,8 +228,8 @@ The allowed character escapes are:
 | `\n`   | chr(10)     | newline |
 | `\r`   | chr(13)     | carriage return |
 | `\t`   | chr(9)      | tab |
-| `\uXXXX` | chr(XXXX) | unicode character XXXX |
-| `\()`  | expression  | see <a href="#expression-substitution">expression substitution</a> |
+| `\uXXXX` | chr(XXXX) | unicode character XXXX (where XXXX is a 4-digit hex number) |
+| `\()`  | expression  | see <a href="#expressions-substitution">expression substitution</a> |
 
 Example:
 
@@ -242,9 +268,7 @@ Boolean values can take on two values, `FALSE` or `TRUE`.
 
 Example:
 
-    VAR b: Boolean
-
-    b := TRUE
+    LET b: Boolean := TRUE
 
 <a name="types-number"></a>
 
@@ -258,9 +282,7 @@ The valid magnitude range of numbers are (in addition to zero):
 
 Example:
 
-    VAR n: Number
-
-    n := 2.997924580e+8
+    LET n: Number := 2.997924580e+8
 
 <a name="types-string"></a>
 
@@ -289,9 +311,7 @@ Example:
         blue
     END ENUM
 
-    VAR e: Colour
-
-    e := Colour.green
+    LET e: Colour := Colour.green
 
 <a name="types-record"></a>
 
@@ -310,6 +330,34 @@ Example:
 
     r.name := "Widget"
     r.size := 5
+
+Records may have associated functions called methods, which can be called using a typical method call syntax.
+
+Example:
+
+    TYPE Cart := RECORD
+        apples: Number
+        oranges: Number
+    END RECORD
+
+    FUNCTION Cart.total_fruit(self: Cart): Number
+        RETURN self.apples + self.oranges
+    END FUNCTION
+
+    VAR c: Cart
+    c.apples := 5
+    c.oranges := 6
+    print(str(c.total_fruit()))
+
+Record fields may be marked `PRIVATE`, which means that only code within associated methods may access that field.
+
+Example:
+
+    TYPE Cart := RECORD
+        apples: Number
+        oranges: Number
+        PRIVATE nuts: Number
+    END RECORD
 
 <a name="types-array"></a>
 
@@ -370,6 +418,30 @@ Example:
 Expressions are combinations of operands and operators.
 Operands are values in themselves, which may be expressions surrounded by `( )`.
 Operators are logical, arithmetic, or string and the valid operators depend on the types of the operands.
+
+<a name="expressions-literal"></a>
+
+### Literal Valeus
+
+Literal values can be individual lexical elements such as <a href="lexical-identifiers">identifiers</a>, <a href="lexical-numbers">numbers</a>, and <a href="lexical-strings">strings</a>.
+
+Literal arrays are sequences of comma-separated values surrounded by brackets `[ ]`.
+
+Example:
+
+    LET a: Array<Number> := [1, 2, 3]
+
+Literal dictionaries are sequences of comma-separated name/value pairs surrounded by braces `{ }`.
+
+Example:
+
+    LET d: Dictionary<Number> := {
+        "one": 1,
+        "two": 2,
+        "three": 3
+    }
+
+For convenience, both literal arrays and dictionaries accept a trailing comma after the final element.
 
 <a name="expressions-boolean"></a>
 
@@ -462,6 +534,51 @@ The operator precedence is as follows, highest to lowest:
 | `AND`    | conjunction |
 | `OR`     | disjunction |
 | `IF`     | conditional |
+
+<a name="expressions-subscript"></a>
+
+### Array Subscripts
+
+Array subscripts are normally integers greater than or equal to zero:
+
+    LET a: Array<String> := ["foo", "bar", "baz"]
+    print(a[0])
+    print(a[2])
+
+Two special values may be used, `FIRST` and `LAST`:
+
+    LET a: Array<String> := ["foo", "bar", "baz"]
+    print(a[FIRST])
+    print(a[LAST])
+
+`FIRST` always means the same as `0` and is provided for completeness.
+`LAST` refers to the index of the last element of the array.
+
+Array slices are also possible using the `TO` keyword.
+Both indexes are inclusive.
+
+    LET a: Array<String> := ["foo", "bar", "baz"]
+    LET b: Array<String> := a[0 TO 1]
+    LET c: Array<String> := a[LAST-1 TO LAST]
+
+In the above example, `b` contains `["foo", "bar"]` and `c` contains `["bar", "baz"]`.
+
+<a name="expressions-substitution"></a>
+
+### Expression Substitution
+
+Literal strings may contain embedded expressions surrounded by the special escape `\( )`.
+These expressions are evaluated at run time.
+The type of the embedded expression must have a `.to_string()` method which will be called automatically to convert the result to a string.
+
+Example:
+
+    LET a: Array<String> := ["one", "two", "three"]
+    FOR i := 1 TO 3 DO
+        print("i is \(i) and the array element is \(a[i])")
+    END FOR
+
+[TODO: formatting specifiers]
 
 ## Declarations
 
@@ -590,6 +707,7 @@ The `EXIT` statement has five different forms:
 ### `FOR`
 
 The `FOR` loop iterates a numeric variable over a range of values.
+The loop control variable is implicitly a `Number` and must not be already declared outside the `FOR` statement.
 
 Example:
 
@@ -641,6 +759,18 @@ Additional alternatives may be introduced with the `ELSIF` clause:
         print("x is less than 20")
     ELSE
         print("not less than 20")
+    END IF
+
+The `IF VALID` form is used to test a pointer value to check whether it is `NIL`, and capture the pointer value in a new variable for use within the `IF VALID` block.
+
+    TYPE Record := RECORD
+        name: String
+    END RECORD
+
+    VAR p: POINTER TO Record
+
+    IF VALID q := p THEN
+        print(q->name)
     END IF
 
 <a name="statements-let"></a>
@@ -709,7 +839,7 @@ Example:
     END IF
 
 The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
-If no exception handler is found, the program terminates with a message.
+If no exception handler is found, the program terminates with a message and stack trace.
 
 <a name="statements-repeat"></a>
 
@@ -794,16 +924,20 @@ Functions are declared using the `FUNCTION` keyword:
 The return type of a function (appearing after the `)`) is optional.
 The `RETURN` statement is not permitted inside a function that does not return a value (use `EXIT FUNCTION` instead).
 
-### Parameter Passing Mode
+<a name="functions-parameter-mode"></a>
+
+### Parameter Modes
 
 Function parameters may be declared with a parameter mode:
 
-* `IN` - the function parameter is passed from the caller into the function, and may not be modified within the function
-* `INOUT` - a reference to the function argument is passed to the function, and the parameter may be modified within the function
-* `OUT` - no value is passed into the function, but any value assigned within the function is passed back to the caller
+* `IN` - The function parameter is passed from the caller into the function, and may not be modified within the function.
+* `INOUT` - A reference to the function argument is passed to the function, and the parameter may be modified within the function.
+* `OUT` - No value is passed into the function, but any value assigned within the function is passed back to the caller.
 
 The default parameter mode is `IN`.
-For `INOUT` and `OUT` parameters, the caller must pass an actual variable rather than the result of an expression.
+For `INOUT` and `OUT` parameters, the caller must supply an actual variable rather than the result of an expression.
+
+<a name="functions-default"></a>
 
 ### Default Parameter Value
 
@@ -822,6 +956,8 @@ Example:
 When a parameter is not specified and it has a default value, the function call is executed as if the parameter were present and had the given value.
 Default parameter values only apply to `IN` mode parameters.
 
+<a name="functions-named"></a>
+
 ### Named Parameters
 
 When calling a function, function parameters may be named using the `AS` keyword.
@@ -837,36 +973,152 @@ Example:
 Parameters may be passed in order without using `AS`, and then switch to using `AS` for the remainder of the function call.
 Each non-default parameter must be specified exactly once in the function call.
 
+<a name="modules"></a>
+
+## Modules
+
+Neon code can be divided into modules, which are separate source files.
+A module named `example` would be found in a file called `example.neon`.
+
+<a name="modules-export"></a>
+
+Module source code must *export* identifiers before they can be used outside the module file.
+This is done with the `EXPORT` declaration:
+
+    EXPORT hello
+
+    FUNCTION hello()
+        print("Hello world")
+    END FUNCTION
+
+<a name="modules-import"></a>
+
+In order to use an identifier exported by another module, the `IMPORT` declaration must be used.
+
+Example:
+
+    IMPORT os
+
+    print(os.getenv("PATH"))
+
+Individual identifiers may also be imported:
+
+    IMPORT os.getenv
+
+    print(getenv("PATH"))
+
+<a name="modules-neonpath"></a>
+
+### Module Path
+
+When a module is imported, the compiler must be able to locate the code for the imported module.
+The followed directories are searched in order:
+
+<ol>
+  <li>Same directory as the importing source file</li>
+  <li>The current directory</li>
+  <li>The directories in the environment variable <tt>NEONPATH</tt></li>
+  <li>The directories listed in the <tt>.neonpath</tt> file in the current directory</li>
+</ol>
+
 <a name="library"></a>
 
 ## Standard Library
 
-<a name="#library-bitwise"></a>
+<a name="library-bigint"></a>
+
+### bigint
+
+<a name="library-bitwise"></a>
 
 ### bitwise
 
-<a name="#library-curses"></a>
+<a name="library-cformat"></a>
+
+### cformat
+
+<a name="library-complex"></a>
+
+### complex
+
+<a name="library-compress"></a>
+
+### compress
+
+<a name="library-curses"></a>
 
 ### curses
 
-<a name="#library-file"></a>
+<a name="library-datetime"></a>
+
+### datetime
+
+<a name="library-file"></a>
 
 ### file
 
-<a name="#library-math"></a>
+<a name="library-hash"></a>
+
+### hash
+
+<a name="library-http"></a>
+
+### http
+
+<a name="library-io"></a>
+
+### io
+
+<a name="library-json"></a>
+
+### json
+
+<a name="library-math"></a>
 
 ### math
 
-<a name="#library-random"></a>
+<a name="library-net"></a>
+
+### net
+
+<a name="library-os"></a>
+
+### os
+
+<a name="library-random"></a>
 
 ### random
 
-<a name="#library-sys"></a>
+<a name="library-regex"></a>
+
+### regex
+
+<a name="library-sqlite"></a>
+
+### sqlite
+
+<a name="library-string"></a>
+
+### string
+
+<a name="library-struct"></a>
+
+### struct
+
+<a name="library-sys"></a>
 
 ### sys
 
-<a name="#library-time"></a>
+<a name="library-time"></a>
 
 ### time
+
+<a name="library-variant"></a>
+
+### variant
+
+<a name="library-xml"></a>
+
+### xml
 
 ## Grammar
