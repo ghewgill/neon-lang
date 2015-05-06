@@ -1029,96 +1029,144 @@ The followed directories are searched in order:
 
 ### bigint
 
+The `bigint` library provides functions for performing arithmetic with aribitrary precision integers.
+
 <a name="library-bitwise"></a>
 
 ### bitwise
+
+The `bitwise` library provides functions for working with `Number` values treated as 32-bit binary integers.
 
 <a name="library-cformat"></a>
 
 ### cformat
 
+The `cformat` library provides formatting functions similar to the C `printf` family of functions.
+
 <a name="library-complex"></a>
 
 ### complex
+
+The `complex` library provides functions for performing arithmetic on complex numbers (with a real and imaginary part).
 
 <a name="library-compress"></a>
 
 ### compress
 
+The `compress` library provides functions for performing data compression using a variety of common algorithms (gzip, bzip2, lzma).
+
 <a name="library-curses"></a>
 
 ### curses
+
+The `curses` library provides access to the "curses" terminal library for building textual user interfaces.
 
 <a name="library-datetime"></a>
 
 ### datetime
 
+The `datetime` library provides functions work working with calendar dates and times.
+
 <a name="library-file"></a>
 
 ### file
+
+The `file` library provides high level functions for filesystem access.
 
 <a name="library-hash"></a>
 
 ### hash
 
+The `hash` library provides functions for calculating hashes using a number of different algorithms (CRC32, MD5, SHA1, SHA256, SHA3).
+
 <a name="library-http"></a>
 
 ### http
+
+The `http` library provides functions for interacting with remote servers using HTTP.
 
 <a name="library-io"></a>
 
 ### io
 
+The `io` library provides low-level functions for accessing files as streams of bytes.
+
 <a name="library-json"></a>
 
 ### json
+
+The `json` library provides functions for encoding and decoding data in JSON format.
 
 <a name="library-math"></a>
 
 ### math
 
+The `math` library provides trigonometric, trancendental, and other functions for real numbers.
+
 <a name="library-net"></a>
 
 ### net
+
+The `net` library provides functions for low-level socket communications.
 
 <a name="library-os"></a>
 
 ### os
 
+The `os` library provides low-level functions for working with the opering system environment.
+
 <a name="library-random"></a>
 
 ### random
+
+The `random` library provides functions for generating random numbers.
 
 <a name="library-regex"></a>
 
 ### regex
 
+The `regex` library provides functions for performing text searches using regular expressions.
+
 <a name="library-sqlite"></a>
 
 ### sqlite
+
+The `sqlite` library provides access to the SQLite database library.
 
 <a name="library-string"></a>
 
 ### string
 
+The `string` library provides functions for working with textual data in strings.
+
 <a name="library-struct"></a>
 
 ### struct
+
+The `struct` library provides functions for packing and unpacking data into C-like structures.
 
 <a name="library-sys"></a>
 
 ### sys
 
+The `sys` library provides low level functions for interacting with the Neon runtime environment.
+
 <a name="library-time"></a>
 
 ### time
+
+The `time` library provides functions for working with real (wall clock) time.
 
 <a name="library-variant"></a>
 
 ### variant
 
+The `variant` library provides functions for working with data encapsulated in a generic `Variant` type.
+
 <a name="library-xml"></a>
 
 ### xml
+
+The `xml` data provides functions for working with data in XML format.
 
 ## Grammar
