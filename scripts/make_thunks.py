@@ -175,9 +175,9 @@ with open("src/thunks.inc", "w") as inc:
         if rtype[0] != "TYPE_NOTHING":
             print >>inc, "    auto r = reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
             if rtype[0].startswith("TYPE_ARRAY_"):
-                print >>inc, "    Cell t;"
-                print >>inc, "    for (auto x: r) t.array().push_back(Cell(x));"
-                print >>inc, "    stack.push(t);"
+                print >>inc, "    std::vector<Cell> t;"
+                print >>inc, "    for (auto x: r) t.push_back(Cell(x));"
+                print >>inc, "    stack.push(Cell(t));"
             elif rtype[0] == "TYPE_POINTER":
                 print >>inc, "    stack.push(Cell(static_cast<Cell *>(r)));"
             else:

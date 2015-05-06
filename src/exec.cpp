@@ -737,7 +737,7 @@ void Executor::exec_INDEXAV()
 {
     ip++;
     Number index = stack.top().number(); stack.pop();
-    std::vector<Cell> &array = stack.top().array();
+    const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
         raise("ArrayIndex", number_to_string(index));
     }
@@ -760,7 +760,7 @@ void Executor::exec_INDEXAN()
 {
     ip++;
     Number index = stack.top().number(); stack.pop();
-    std::vector<Cell> &array = stack.top().array();
+    const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
         raise("ArrayIndex", number_to_string(index));
     }
@@ -1019,13 +1019,13 @@ void Executor::exec_CONSA()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    Cell a;
+    std::vector<Cell> a;
     while (val > 0) {
-        a.array().push_back(stack.top());
+        a.push_back(stack.top());
         stack.pop();
         val--;
     }
-    stack.push(a);
+    stack.push(Cell(a));
 }
 
 void Executor::exec_CONSD()

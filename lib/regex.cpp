@@ -12,7 +12,7 @@ namespace rtl {
 
 bool regex$search(const std::string &pattern, const std::string &subject, Cell *match)
 {
-    *match = Cell();
+    std::vector<Cell> matches;
     int errorcode;
     PCRE2_SIZE erroroffset;
     pcre2_code *code = pcre2_compile(reinterpret_cast<PCRE2_SPTR>(pattern.data()), pattern.length(), 0, &errorcode, &erroroffset, NULL);
@@ -24,13 +24,14 @@ bool regex$search(const std::string &pattern, const std::string &subject, Cell *
     uint32_t n = pcre2_get_ovector_count(md);
     PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(md);
     for (uint32_t i = 0; i < n*2; i += 2) {
-        Cell g;
-        g.array().push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i]))));
-        g.array().push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i+1]))));
-        g.array().push_back(Cell(subject.substr(ovector[i], ovector[i+1])));
-        match->array().push_back(g);
+        std::vector<Cell> g;
+        g.push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i]))));
+        g.push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i+1]))));
+        g.push_back(Cell(subject.substr(ovector[i], ovector[i+1])));
+        matches.push_back(Cell(g));
     }
     pcre2_match_data_free(md);
+    *match = Cell(matches);
     return true;
 }
 

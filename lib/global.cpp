@@ -18,7 +18,7 @@ Number array__size(Cell &self)
 
 Cell array__slice(Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
-    std::vector<Cell> &array = a.array();
+    const std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
     if (first_from_end) {
@@ -40,7 +40,7 @@ Cell array__slice(Cell &a, Number first, bool first_from_end, Number last, bool 
 
 Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
-    std::vector<Cell> &array = a.array();
+    const std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
     if (first_from_end) {

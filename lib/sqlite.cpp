@@ -6,12 +6,12 @@
 
 static int callback(void *rowscell, int columns, char **values, char ** /*names*/)
 {
-    Cell *rows = static_cast<Cell *>(rowscell);
+    std::vector<Cell> *rows = static_cast<std::vector<Cell> *>(rowscell);
     std::vector<Cell> row;
     for (int i = 0; i < columns; i++) {
         row.push_back(Cell(values[i]));
     }
-    rows->array().push_back(Cell(row));
+    rows->push_back(Cell(row));
     return 0;
 }
 
@@ -28,13 +28,13 @@ void *sqlite$open(const std::string &name)
 
 Cell sqlite$exec(void *db, const std::string &sql)
 {
-    Cell rows;
+    std::vector<Cell> rows;
     char *errmsg;
     int r = sqlite3_exec(static_cast<sqlite3 *>(db), sql.c_str(), callback, &rows, &errmsg);
     if (r != SQLITE_OK) {
         fprintf(stderr, "sqlite3_exec error: %s\n", errmsg);
     }
-    return rows;
+    return Cell(rows);
 }
 
 void sqlite$close(void *db)
