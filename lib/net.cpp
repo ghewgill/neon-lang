@@ -26,7 +26,7 @@ Cell net$tcp_socket()
 #endif
     Cell r;
     SOCKET s = socket(PF_INET, SOCK_STREAM, 0);
-    r.array().push_back(Cell(number_from_sint32(static_cast<int32_t>(s))));
+    r.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(s)));
     return r;
 }
 
@@ -41,7 +41,7 @@ Cell net$socket_accept(Cell &handle)
         return Cell();
     }
     Cell client;
-    client.array().push_back(Cell(number_from_sint32(static_cast<int32_t>(r))));
+    client.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(r)));
     return client;
 }
 

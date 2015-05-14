@@ -24,7 +24,9 @@ public:
     bool &boolean();
     Number &number();
     std::string &string();
-    std::vector<Cell> &array();
+    const std::vector<Cell> &array();
+    Cell &array_index_for_read(size_t i);
+    Cell &array_index_for_write(size_t i);
     std::map<std::string, Cell> &dictionary();
 
 private:
@@ -42,7 +44,7 @@ private:
     bool boolean_value;
     Number number_value;
     std::string string_value;
-    std::vector<Cell> array_value;
+    std::shared_ptr<std::vector<Cell>> array_ptr;
     std::map<std::string, Cell> dictionary_value;
 };
 

@@ -8,7 +8,7 @@ Cell::Cell()
     boolean_value(false),
     number_value(),
     string_value(),
-    array_value(),
+    array_ptr(),
     dictionary_value()
 {
 }
@@ -19,7 +19,7 @@ Cell::Cell(const Cell &rhs)
     boolean_value(rhs.boolean_value),
     number_value(rhs.number_value),
     string_value(rhs.string_value),
-    array_value(rhs.array_value),
+    array_ptr(rhs.array_ptr),
     dictionary_value(rhs.dictionary_value)
 {
 }
@@ -30,7 +30,7 @@ Cell::Cell(Cell *value)
     boolean_value(false),
     number_value(),
     string_value(),
-    array_value(),
+    array_ptr(),
     dictionary_value()
 {
 }
@@ -41,7 +41,7 @@ Cell::Cell(bool value)
     boolean_value(value),
     number_value(),
     string_value(),
-    array_value(),
+    array_ptr(),
     dictionary_value()
 {
 }
@@ -52,7 +52,7 @@ Cell::Cell(Number value)
     boolean_value(false),
     number_value(value),
     string_value(),
-    array_value(),
+    array_ptr(),
     dictionary_value()
 {
 }
@@ -63,7 +63,7 @@ Cell::Cell(const std::string &value)
     boolean_value(false),
     number_value(),
     string_value(value),
-    array_value(),
+    array_ptr(),
     dictionary_value()
 {
 }
@@ -74,7 +74,7 @@ Cell::Cell(const char *value)
     boolean_value(false),
     number_value(),
     string_value(value),
-    array_value(),
+    array_ptr(),
     dictionary_value()
 {
 }
@@ -85,7 +85,7 @@ Cell::Cell(const std::vector<Cell> &value)
     boolean_value(false),
     number_value(),
     string_value(),
-    array_value(value),
+    array_ptr(std::make_shared<std::vector<Cell>>(value)),
     dictionary_value()
 {
 }
@@ -96,7 +96,7 @@ Cell::Cell(const std::map<std::string, Cell> &value)
     boolean_value(false),
     number_value(),
     string_value(),
-    array_value(),
+    array_ptr(),
     dictionary_value(value)
 {
 }
@@ -111,7 +111,7 @@ Cell &Cell::operator=(const Cell &rhs)
     boolean_value = rhs.boolean_value;
     number_value = rhs.number_value;
     string_value = rhs.string_value;
-    array_value = rhs.array_value;
+    array_ptr = rhs.array_ptr;
     dictionary_value = rhs.dictionary_value;
     return *this;
 }
@@ -125,7 +125,7 @@ bool Cell::operator==(const Cell &rhs) const
         case cBoolean:      return boolean_value == rhs.boolean_value;
         case cNumber:       return number_is_equal(number_value, rhs.number_value);
         case cString:       return string_value == rhs.string_value;
-        case cArray:        return array_value == rhs.array_value;
+        case cArray:        return *array_ptr == *rhs.array_ptr;
         case cDictionary:   return dictionary_value == rhs.dictionary_value;
     }
     return false;
@@ -167,13 +167,38 @@ std::string &Cell::string()
     return string_value;
 }
 
-std::vector<Cell> &Cell::array()
+const std::vector<Cell> &Cell::array()
 {
     if (type == cNone) {
         type = cArray;
     }
     assert(type == cArray);
-    return array_value;
+    if (not array_ptr) {
+        array_ptr = std::make_shared<std::vector<Cell>>();
+    }
+    return *array_ptr;
+}
+
+Cell &Cell::array_index_for_read(size_t i)
+{
+    if (not array_ptr) {
+        array_ptr = std::make_shared<std::vector<Cell>>();
+    }
+    return array_ptr->at(i);
+}
+
+Cell &Cell::array_index_for_write(size_t i)
+{
+    if (not array_ptr) {
+        array_ptr = std::make_shared<std::vector<Cell>>();
+    }
+    if (not array_ptr.unique()) {
+        array_ptr = std::make_shared<std::vector<Cell>>(*array_ptr);
+    }
+    if (i >= array_ptr->size()) {
+        array_ptr->resize(i+1);
+    }
+    return array_ptr->at(i);
 }
 
 std::map<std::string, Cell> &Cell::dictionary()

@@ -382,7 +382,7 @@ void Executor::exec_LOADA()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
-    stack.push(Cell(addr->array()));
+    stack.push(Cell(*addr));
 }
 
 void Executor::exec_LOADD()
@@ -710,7 +710,7 @@ void Executor::exec_INDEXAR()
         raise("ArrayIndex", std::to_string(j));
         return;
     }
-    stack.push(Cell(&addr->array().at(j)));
+    stack.push(Cell(&addr->array_index_for_read(j)));
 }
 
 void Executor::exec_INDEXAW()
@@ -726,11 +726,7 @@ void Executor::exec_INDEXAW()
         raise("ArrayIndex", std::to_string(i));
     }
     uint64_t j = static_cast<uint64_t>(i);
-    if (j >= addr->array().size()) {
-        addr->array().resize(j+1);
-    }
-    assert(j < addr->array().size());
-    stack.push(Cell(&addr->array().at(j)));
+    stack.push(Cell(&addr->array_index_for_write(j)));
 }
 
 void Executor::exec_INDEXAV()
@@ -1054,9 +1050,9 @@ void Executor::exec_CLREXC()
     ip++;
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    module->globals[0].array()[0] = Cell("");
-    module->globals[0].array()[1] = Cell("");
-    module->globals[0].array()[2] = Cell(number_from_uint32(0));
+    module->globals[0].array_index_for_write(0) = Cell("");
+    module->globals[0].array_index_for_write(1) = Cell("");
+    module->globals[0].array_index_for_write(2) = Cell(number_from_uint32(0));
 }
 
 void Executor::exec_ALLOC()
@@ -1076,9 +1072,9 @@ void Executor::raise(const std::string &exception, const std::string &info)
 {
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    module->globals[0].array()[0] = Cell(exception);
-    module->globals[0].array()[1] = Cell(info);
-    module->globals[0].array()[2] = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
+    module->globals[0].array_index_for_write(0) = Cell(exception);
+    module->globals[0].array_index_for_write(1) = Cell(info);
+    module->globals[0].array_index_for_write(2) = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
     auto tmodule = module;
     auto tip = ip;
@@ -1141,7 +1137,7 @@ void Executor::exec()
     // ExceptionType in ast.cpp.
     // TODO: Should be only one instance of the current exception object.
     for (auto m: modules) {
-        m.second->globals[0].array().resize(3);
+        m.second->globals[0].array_index_for_write(2);
     }
 
     callstack.push_back(std::make_pair(module, module->object.code.size()));
