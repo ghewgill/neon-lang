@@ -7,6 +7,16 @@ import tarfile
 import zipfile
 from SCons.Script.SConscript import SConsEnvironment
 
+# Compatibility function for Python 2.6.
+if not hasattr(subprocess, "check_output"):
+    def check_output(args):
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            raise subprocess.CalledProcessError(args)
+        return out
+    subprocess.check_output = check_output
+
 # Assume a UTF-8 capable terminal.
 os.putenv("PYTHONIOENCODING", "UTF-8")
 
