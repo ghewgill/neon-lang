@@ -780,7 +780,7 @@ void Executor::exec_INDEXDR()
         raise("DictionaryIndex", index);
         return;
     }
-    stack.push(Cell(&e->second));
+    stack.push(Cell(&addr->dictionary_index_for_read(index)));
 }
 
 void Executor::exec_INDEXDW()
@@ -788,14 +788,14 @@ void Executor::exec_INDEXDW()
     ip++;
     std::string index = stack.top().string(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
-    stack.push(Cell(&addr->dictionary()[index]));
+    stack.push(Cell(&addr->dictionary_index_for_write(index)));
 }
 
 void Executor::exec_INDEXDV()
 {
     ip++;
     std::string index = stack.top().string(); stack.pop();
-    std::map<std::string, Cell> &dictionary = stack.top().dictionary();
+    const std::map<std::string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
         raise("DictionaryIndex", index);
@@ -1032,7 +1032,7 @@ void Executor::exec_CONSD()
     while (val > 0) {
         Cell value = stack.top(); stack.pop();
         std::string key = stack.top().string(); stack.pop();
-        d.dictionary()[key] = value;
+        d.dictionary_index_for_write(key) = value;
         val--;
     }
     stack.push(d);

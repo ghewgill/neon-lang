@@ -9,7 +9,7 @@ Cell::Cell()
     number_value(),
     string_value(),
     array_ptr(),
-    dictionary_value()
+    dictionary_ptr()
 {
 }
 
@@ -20,7 +20,7 @@ Cell::Cell(const Cell &rhs)
     number_value(rhs.number_value),
     string_value(rhs.string_value),
     array_ptr(rhs.array_ptr),
-    dictionary_value(rhs.dictionary_value)
+    dictionary_ptr(rhs.dictionary_ptr)
 {
 }
 
@@ -31,7 +31,7 @@ Cell::Cell(Cell *value)
     number_value(),
     string_value(),
     array_ptr(),
-    dictionary_value()
+    dictionary_ptr()
 {
 }
 
@@ -42,7 +42,7 @@ Cell::Cell(bool value)
     number_value(),
     string_value(),
     array_ptr(),
-    dictionary_value()
+    dictionary_ptr()
 {
 }
 
@@ -53,7 +53,7 @@ Cell::Cell(Number value)
     number_value(value),
     string_value(),
     array_ptr(),
-    dictionary_value()
+    dictionary_ptr()
 {
 }
 
@@ -64,7 +64,7 @@ Cell::Cell(const std::string &value)
     number_value(),
     string_value(value),
     array_ptr(),
-    dictionary_value()
+    dictionary_ptr()
 {
 }
 
@@ -75,7 +75,7 @@ Cell::Cell(const char *value)
     number_value(),
     string_value(value),
     array_ptr(),
-    dictionary_value()
+    dictionary_ptr()
 {
 }
 
@@ -86,7 +86,7 @@ Cell::Cell(const std::vector<Cell> &value)
     number_value(),
     string_value(),
     array_ptr(std::make_shared<std::vector<Cell>>(value)),
-    dictionary_value()
+    dictionary_ptr()
 {
 }
 
@@ -97,7 +97,7 @@ Cell::Cell(const std::map<std::string, Cell> &value)
     number_value(),
     string_value(),
     array_ptr(),
-    dictionary_value(value)
+    dictionary_ptr(std::make_shared<std::map<std::string, Cell>>(value))
 {
 }
 
@@ -112,7 +112,7 @@ Cell &Cell::operator=(const Cell &rhs)
     number_value = rhs.number_value;
     string_value = rhs.string_value;
     array_ptr = rhs.array_ptr;
-    dictionary_value = rhs.dictionary_value;
+    dictionary_ptr = rhs.dictionary_ptr;
     return *this;
 }
 
@@ -126,7 +126,7 @@ bool Cell::operator==(const Cell &rhs) const
         case cNumber:       return number_is_equal(number_value, rhs.number_value);
         case cString:       return string_value == rhs.string_value;
         case cArray:        return *array_ptr == *rhs.array_ptr;
-        case cDictionary:   return dictionary_value == rhs.dictionary_value;
+        case cDictionary:   return *dictionary_ptr == *rhs.dictionary_ptr;
     }
     return false;
 }
@@ -201,11 +201,33 @@ Cell &Cell::array_index_for_write(size_t i)
     return array_ptr->at(i);
 }
 
-std::map<std::string, Cell> &Cell::dictionary()
+const std::map<std::string, Cell> &Cell::dictionary()
 {
     if (type == cNone) {
         type = cDictionary;
     }
     assert(type == cDictionary);
-    return dictionary_value;
+    if (not dictionary_ptr) {
+        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>();
+    }
+    return *dictionary_ptr;
+}
+
+Cell &Cell::dictionary_index_for_read(const std::string &index)
+{
+    if (not dictionary_ptr) {
+        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>();
+    }
+    return dictionary_ptr->at(index);
+}
+
+Cell &Cell::dictionary_index_for_write(const std::string &index)
+{
+    if (not dictionary_ptr) {
+        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>();
+    }
+    if (not dictionary_ptr.unique()) {
+        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>(*dictionary_ptr);
+    }
+    return dictionary_ptr->operator[](index);
 }

@@ -27,7 +27,9 @@ public:
     const std::vector<Cell> &array();
     Cell &array_index_for_read(size_t i);
     Cell &array_index_for_write(size_t i);
-    std::map<std::string, Cell> &dictionary();
+    const std::map<std::string, Cell> &dictionary();
+    Cell &dictionary_index_for_read(const std::string &index);
+    Cell &dictionary_index_for_write(const std::string &index);
 
 private:
     enum {
@@ -45,7 +47,7 @@ private:
     Number number_value;
     std::string string_value;
     std::shared_ptr<std::vector<Cell>> array_ptr;
-    std::map<std::string, Cell> dictionary_value;
+    std::shared_ptr<std::map<std::string, Cell>> dictionary_ptr;
 };
 
 #endif
