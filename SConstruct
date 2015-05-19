@@ -7,6 +7,16 @@ import tarfile
 import zipfile
 from SCons.Script.SConscript import SConsEnvironment
 
+def check_output(s, **kwargs):
+    p = subprocess.Popen(s, stdout=subprocess.PIPE, **kwargs)
+    (outdata, errdata) = p.communicate()
+    r = p.returncode
+    assert r is not None
+    if r != 0:
+        raise subprocess.CalledProcessError(r, s)
+    return outdata
+subprocess.check_output = check_output
+
 # Assume a UTF-8 capable terminal.
 os.putenv("PYTHONIOENCODING", "UTF-8")
 
