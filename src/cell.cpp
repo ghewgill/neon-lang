@@ -1,6 +1,7 @@
 #include "cell.h"
 
 #include <assert.h>
+#include <iso646.h>
 
 Cell::Cell()
   : type(cNone),

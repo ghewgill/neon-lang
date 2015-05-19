@@ -2,6 +2,7 @@
 #define CELL_H
 
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "number.h"
