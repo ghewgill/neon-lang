@@ -1,0 +1,88 @@
+import os
+import sys
+import tarfile
+
+def find_tool(name):
+    justname = os.path.basename(name)
+    for p in env["ENV"]["PATH"].split(";"):
+        fn = os.path.join(p, justname)
+        if os.access(fn, os.F_OK):
+            return fn
+        fn = os.path.join(p, name)
+        if os.access(fn, os.F_OK):
+            return fn
+    print >>sys.stderr, "could not find tool:", name
+    sys.exit(1)
+
+def subs(target, source, env):
+    with open(target[0].path, "w") as outf:
+        with open(source[0].path) as inf:
+            outf.write(inf.read()
+                .replace("@VERSION@", "3.2.1")
+                .replace("@TARGET@", "X86_WIN64")
+                .replace("@HAVE_LONG_DOUBLE@", "HAVE_LONG_DOUBLE")
+                .replace("@HAVE_LONG_DOUBLE_VARIANT@", "HAVE_LONG_DOUBLE_VARIANT")
+                .replace("@FFI_EXEC_TRAMPOLINE_TABLE@", "FFI_EXEC_TRAMPOLINE_TABLE")
+            )
+
+def fix_target(target, source, env):
+    with open(target[0].path, "w") as outf:
+        with open(source[0].path) as inf:
+            for s in inf:
+                if s.startswith("#define FFI_TARGET_HAS_COMPLEX_TYPE"):
+                    s = "//" + s
+                outf.write(s)
+
+def sub_config(target, source, env):
+    with open(target[0].path, "w") as outf:
+        with open(source[0].path) as inf:
+            for s in inf:
+                if s.startswith("#undef"):
+                    if s.split()[1] in [
+                        "HAVE_MEMCPY",
+                        "FFI_NO_RAW_API",
+                    ]:
+                        s = "#define {} 1".format(s.split()[1])
+                outf.write(s)
+
+def remove_short(target, source, env):
+    with open(target[0].path, "w") as outf:
+        with open(source[0].path) as inf:
+            outf.write(inf.read().replace("SHORT", ""))
+
+Import("env")
+
+ffienv = Environment()
+
+if not os.path.exists("libffi-3.2.1/configure"):
+    tarfile.open("libffi-3.2.1.tar.gz").extractall(".")
+if sys.platform == "win32":
+    env.Append(CPPDEFINES=["FFI_BUILDING"])
+    ffienv.Append(CPPDEFINES=["FFI_BUILDING"])
+    ffienv.Append(CPPPATH=["libffi-3.2.1/x86-win64/include"])
+    ffi_h = ffienv.Command("libffi-3.2.1/x86-win64/include/ffi.h", "libffi-3.2.1/include/ffi.h.in", subs)
+    ffitarget_h = ffienv.Command("libffi-3.2.1/x86-win64/include/ffitarget.h", "libffi-3.2.1/src/x86/ffitarget.h", fix_target)
+    fficommon_h = ffienv.Command("libffi-3.2.1/x86-win64/include/ffi_common.h", "libffi-3.2.1/include/ffi_common.h", Copy("$TARGET", "$SOURCE"))
+    fficonfig_h = ffienv.Command("libffi-3.2.1/x86-win64/include/fficonfig.h", "libffi-3.2.1/fficonfig.h.in", sub_config)
+    win64_p = ffienv.Command("libffi-3.2.1/x86-win64/win64.p", "libffi-3.2.1/src/x86/win64.S", "cl /EP /I external/libffi-3.2.1/x86-win64/include $SOURCE >$TARGET")
+    win64_asm = ffienv.Command("libffi-3.2.1/x86-win64/win62.asm", win64_p, remove_short)
+    objects = [
+        ffienv.Object("libffi-3.2.1/x86-win64/closures.obj", "libffi-3.2.1/src/closures.c"),
+        ffienv.Object("libffi-3.2.1/x86-win64/ffi.obj", "libffi-3.2.1/src/x86/ffi.c"),
+        ffienv.Object("libffi-3.2.1/x86-win64/prep_cif.obj", "libffi-3.2.1/src/prep_cif.c"),
+        ffienv.Object("libffi-3.2.1/x86-win64/types.obj", "libffi-3.2.1/src/types.c"),
+    ]
+    for o in objects:
+        ffienv.Depends(o, [ffi_h, ffitarget_h, fficommon_h, fficonfig_h])
+    libffi = ffienv.Library("libffi-3.2.1/x86-win64/libffi.lib", objects + [
+        ffienv.Command("libffi-3.2.1/x86-win64/win64.obj", win64_asm, "\"{}\" /c /Cx /Fo$TARGET $SOURCE".format(find_tool("x86_amd64/ml64.exe"))),
+    ])
+    ffienv.Install("lib/libffi-3.2.1/include/", [ffi_h, ffitarget_h, fficommon_h, fficonfig_h])
+    libffi = ffienv.Install("lib/", libffi)
+else:
+    ffienv.Command("libffi-3.2.1/Makefile", "libffi-3.2.1/configure", "cd external/libffi-3.2.1 && ./configure --prefix=`pwd`/..")
+    libffi = ffienv.Command("lib/libffi.a", "libffi-3.2.1/Makefile", "cd external/libffi-3.2.1 && make && make install")
+
+env.Append(CPPPATH=["external/lib/libffi-3.2.1/include"])
+
+Return(["libffi"])

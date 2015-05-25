@@ -1,0 +1,18 @@
+import os
+import sys
+import tarfile
+
+Import("env")
+
+cursesenv = Environment()
+
+if sys.platform == "win32":
+    if not os.path.exists("PDCurses-3.4/win32/vcwin32.mak"):
+        tarfile.open("PDCurses-3.4.tar.gz").extractall(".")
+    libs_curses = [cursesenv.Command("PDCurses-3.4/win32/pdcurses.lib", "PDCurses-3.4/win32/vcwin32.mak", "cd external/PDCurses-3.4/win32 && nmake -fvcwin32.mak WIDE=Y UTF8=Y")]
+    libs_curses.extend(["advapi32", "user32"])
+    env.Append(CPPPATH=["external/PDCurses-3.4"])
+else:
+    libs_curses = ["ncurses"]
+
+Return(["libs_curses"])

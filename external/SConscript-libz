@@ -1,0 +1,29 @@
+import os
+import sys
+import tarfile
+
+Import("env")
+
+libzenv = Environment()
+
+if not os.path.exists("zlib-1.2.8/configure"):
+    tarfile.open("zlib-1.2.8.tar.gz").extractall(".")
+if sys.platform == "win32":
+    libz = libzenv.Library("zlib-1.2.8/libz.lib", [
+        "zlib-1.2.8/adler32.c",
+        "zlib-1.2.8/compress.c",
+        "zlib-1.2.8/crc32.c",
+        "zlib-1.2.8/deflate.c",
+        "zlib-1.2.8/inffast.c",
+        "zlib-1.2.8/inflate.c",
+        "zlib-1.2.8/inftrees.c",
+        "zlib-1.2.8/trees.c",
+        "zlib-1.2.8/uncompr.c",
+        "zlib-1.2.8/zutil.c",
+    ])
+else:
+    libz = libzenv.Command("zlib-1.2.8/libz.a", "zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
+
+env.Append(CPPPATH=["external/zlib-1.2.8"])
+
+Return(["libz"])

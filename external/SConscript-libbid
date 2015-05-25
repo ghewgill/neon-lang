@@ -1,0 +1,18 @@
+import os
+import sys
+import tarfile
+
+Import("env")
+
+bidenv = Environment()
+
+if not os.path.exists("IntelRDFPMathLib20U1/LIBRARY/makefile.mak"):
+    tarfile.open("IntelRDFPMathLib20U1.tar.gz").extractall(".")
+if sys.platform == "win32":
+    libbid = bidenv.Command("IntelRDFPMathLib20U1/LIBRARY/libbid.lib", "IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && nmake -fmakefile.mak CC=cl GLOBAL_RND=1 GLOBAL_FLAGS=1")
+else:
+    libbid = bidenv.Command("IntelRDFPMathLib20U1/LIBRARY/libbid.a", "IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
+
+env.Append(CPPPATH=["external/IntelRDFPMathLib20U1/LIBRARY/src"])
+
+Return(["libbid"])

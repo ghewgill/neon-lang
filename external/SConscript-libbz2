@@ -1,0 +1,26 @@
+import os
+import sys
+import tarfile
+
+Import("env")
+
+bz2env = Environment()
+
+if not os.path.exists("bzip2-1.0.6/Makefile"):
+    tarfile.open("bzip2-1.0.6.tar.gz").extractall(".")
+if sys.platform == "win32":
+    libbz2 = bz2env.Library("bzip2-1.0.6/libbz2.lib", [
+        "bzip2-1.0.6/blocksort.c",
+        "bzip2-1.0.6/bzlib.c",
+        "bzip2-1.0.6/compress.c",
+        "bzip2-1.0.6/crctable.c",
+        "bzip2-1.0.6/decompress.c",
+        "bzip2-1.0.6/huffman.c",
+        "bzip2-1.0.6/randtable.c",
+    ])
+else:
+    libbz2 = bz2env.Command("bzip2-1.0.6/libbz2.a", "bzip2-1.0.6/Makefile", "cd external/bzip2-1.0.6 && make")
+
+env.Append(CPPPATH=["external/bzip2-1.0.6"])
+
+Return(["libbz2"])
