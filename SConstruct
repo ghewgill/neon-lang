@@ -32,232 +32,22 @@ env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 # Add path of Python itself to shell PATH.
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.path.dirname(sys.executable)
 
-if not os.path.exists("external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak"):
-    tarfile.open("external/IntelRDFPMathLib20U1.tar.gz").extractall("external")
-if sys.platform == "win32":
-    libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.lib", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && nmake -fmakefile.mak CC=cl GLOBAL_RND=1 GLOBAL_FLAGS=1")
-else:
-    libbid = env.Command("external/IntelRDFPMathLib20U1/LIBRARY/libbid.a", "external/IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
-
+SConscript("SConscript-libutf8", exports=["env"])
+libbid = SConscript("SConscript-libbid", exports=["env"])
 libffi = SConscript("SConscript-libffi", exports=["env"])
-
-if sys.platform == "win32":
-    if not os.path.exists("external/PDCurses-3.4/win32/vcwin32.mak"):
-        tarfile.open("external/PDCurses-3.4.tar.gz").extractall("external")
-    libs_curses = [env.Command("external/PDCurses-3.4/win32/pdcurses.lib", "external/PDCurses-3.4/win32/vcwin32.mak", "cd external/PDCurses-3.4/win32 && nmake -fvcwin32.mak WIDE=Y UTF8=Y")]
-    libs_curses.extend(["advapi32", "user32"])
-else:
-    libs_curses = ["ncurses"]
-
-if not os.path.exists("external/utf8/source/utf8.h"):
-    zipfile.ZipFile("external/utf8_v2_3_4.zip").extractall("external/utf8")
-
-if not os.path.exists("external/pcre2-10.10/configure"):
-    tarfile.open("external/pcre2-10.10.tar.gz").extractall("external")
-if sys.platform == "win32":
-    shutil.copyfile("external/pcre2-10.10/src/config.h.generic", "external/pcre2-10.10/src/config.h")
-    shutil.copyfile("external/pcre2-10.10/src/pcre2.h.generic", "external/pcre2-10.10/src/pcre2.h")
-    pcreenv = env.Clone()
-    pcreenv.Append(CPPFLAGS=[
-        "-DHAVE_CONFIG_H",
-        "-DPCRE2_CODE_UNIT_WIDTH=8",
-        "-DPCRE2_STATIC",
-    ])
-    pcreenv.Command("external/pcre2-10.10/src/pcre2_chartables.c", "external/pcre2-10.10/src/pcre2_chartables.c.dist", lambda target, source, env: shutil.copyfile(source[0].path, target[0].path))
-    libpcre = pcreenv.Library("external/pcre2-10.10/pcre2.lib", [
-        "external/pcre2-10.10/src/pcre2_auto_possess.c",
-        "external/pcre2-10.10/src/pcre2_chartables.c",
-        "external/pcre2-10.10/src/pcre2_compile.c",
-        "external/pcre2-10.10/src/pcre2_config.c",
-        "external/pcre2-10.10/src/pcre2_context.c",
-        "external/pcre2-10.10/src/pcre2_dfa_match.c",
-        "external/pcre2-10.10/src/pcre2_error.c",
-        "external/pcre2-10.10/src/pcre2_jit_compile.c",
-        "external/pcre2-10.10/src/pcre2_maketables.c",
-        "external/pcre2-10.10/src/pcre2_match.c",
-        "external/pcre2-10.10/src/pcre2_match_data.c",
-        "external/pcre2-10.10/src/pcre2_newline.c",
-        "external/pcre2-10.10/src/pcre2_ord2utf.c",
-        "external/pcre2-10.10/src/pcre2_pattern_info.c",
-        "external/pcre2-10.10/src/pcre2_serialize.c",
-        "external/pcre2-10.10/src/pcre2_string_utils.c",
-        "external/pcre2-10.10/src/pcre2_study.c",
-        "external/pcre2-10.10/src/pcre2_substitute.c",
-        "external/pcre2-10.10/src/pcre2_substring.c",
-        "external/pcre2-10.10/src/pcre2_tables.c",
-        "external/pcre2-10.10/src/pcre2_ucd.c",
-        "external/pcre2-10.10/src/pcre2_valid_utf.c",
-        "external/pcre2-10.10/src/pcre2_xclass.c",
-    ])
-else:
-    libpcre = env.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
-
-if not os.path.exists("external/curl-7.41.0/configure"):
-    tarfile.open("external/curl-7.41.0.tar.gz").extractall("external")
-    config_win32 = open("external/curl-7.41.0/lib/config-win32.h").read()
-    config_win32 = "#define HTTP_ONLY\n" + config_win32
-    open("external/curl-7.41.0/lib/config-win32.h", "w").write(config_win32)
-if sys.platform == "win32":
-    libcurl = env.Command("external/curl-7.41.0/lib/libcurl.lib", "external/curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG=release MACHINE=x64 RTLIBCFG=static")
-    env.Append(CPPFLAGS=["-DCURL_STATICLIB"])
-    env.Append(LIBS=["ws2_32"])
-else:
-    libcurl = env.Command("external/curl-7.41.0/lib/.libs/libcurl.a", "external/curl-7.41.0/configure", "cd external/curl-7.41.0 && ./configure --disable-ares --disable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-manual --disable-ipv6 --disable-threaded-resolver --disable-sspi --disable-crypto-auth --disable-ntlm-wb --disable-tls-srp --disable-unix-sockets --disable-cookies --disable-soname-bump --without-zlib --without-winssl --without-darwinssl --without-ssl --without-gnutls --without-polarssl --without-cyassl --without-nss --without-axtls --without-libmetalink --without-libssh2 --without-librtmp --without-winidn --without-libidn --without-nghttp2 && make")
-
-if not os.path.exists("external/easysid-version-1.0/SConstruct"):
-    tarfile.open("external/easysid-version-1.0.tar.gz").extractall("external")
-libeasysid = env.Command("external/easysid-version-1.0/libeasysid"+env["SHLIBSUFFIX"], "external/easysid-version-1.0/SConstruct", "cd external/easysid-version-1.0 && " + sys.executable + " " + sys.argv[0])
-
-if not os.path.exists("external/hash-library/sha256.cpp"):
-    zipfile.ZipFile("external/hash-library.zip").extractall("external/hash-library")
-    if sys.platform == "darwin":
-        subprocess.check_call("perl -n -i -e 'print unless /<endian.h>/' external/hash-library/*.cpp", shell=True)
-hash_env = env.Clone()
-hash_lib = hash_env.Library("external/hash-library/hash-library", [
-    "external/hash-library/crc32.cpp",
-    "external/hash-library/md5.cpp",
-    "external/hash-library/sha1.cpp",
-    "external/hash-library/sha256.cpp",
-    "external/hash-library/sha3.cpp",
-])
-
-if not os.path.exists("external/sqlite-amalgamation-3080803/sqlite3.c"):
-    zipfile.ZipFile("external/sqlite-amalgamation-3080803.zip").extractall("external")
-sqliteenv = env.Clone()
-sqliteenv.Append(CPPFLAGS=["-DSQLITE_THREADSAFE=0"])
-sqlite = sqliteenv.Object("external/sqlite-amalgamation-3080803/sqlite3.c")
-
-if not os.path.exists("external/zlib-1.2.8/configure"):
-    tarfile.open("external/zlib-1.2.8.tar.gz").extractall("external")
-if sys.platform == "win32":
-    libz = env.Library("external/zlib-1.2.8/libz.lib", [
-        "external/zlib-1.2.8/adler32.c",
-        "external/zlib-1.2.8/compress.c",
-        "external/zlib-1.2.8/crc32.c",
-        "external/zlib-1.2.8/deflate.c",
-        "external/zlib-1.2.8/inffast.c",
-        "external/zlib-1.2.8/inflate.c",
-        "external/zlib-1.2.8/inftrees.c",
-        "external/zlib-1.2.8/trees.c",
-        "external/zlib-1.2.8/uncompr.c",
-        "external/zlib-1.2.8/zutil.c",
-    ])
-else:
-    libz = env.Command("external/zlib-1.2.8/libz.a", "external/zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
-
-if not os.path.exists("external/bzip2-1.0.6/Makefile"):
-    tarfile.open("external/bzip2-1.0.6.tar.gz").extractall("external")
-if sys.platform == "win32":
-    libbz2 = env.Library("external/bzip2-1.0.6/libbz2.lib", [
-        "external/bzip2-1.0.6/blocksort.c",
-        "external/bzip2-1.0.6/bzlib.c",
-        "external/bzip2-1.0.6/compress.c",
-        "external/bzip2-1.0.6/crctable.c",
-        "external/bzip2-1.0.6/decompress.c",
-        "external/bzip2-1.0.6/huffman.c",
-        "external/bzip2-1.0.6/randtable.c",
-    ])
-else:
-    libbz2 = env.Command("external/bzip2-1.0.6/libbz2.a", "external/bzip2-1.0.6/Makefile", "cd external/bzip2-1.0.6 && make")
-
-if not os.path.exists("external/xz-5.2.1/configure"):
-    tarfile.open("external/xz-5.2.1.tar.gz").extractall("external")
-if sys.platform == "win32":
-    env.Append(CPPDEFINES=[
-        "LZMA_API_STATIC",
-    ])
-    lzmaenv = env.Clone()
-    lzmaenv.Append(CPPPATH=[
-        "external/xz-5.2.1/src/common",
-        "external/xz-5.2.1/src/liblzma/api",
-        "external/xz-5.2.1/src/liblzma/check",
-        "external/xz-5.2.1/src/liblzma/common",
-        "external/xz-5.2.1/src/liblzma/delta",
-        "external/xz-5.2.1/src/liblzma/lz",
-        "external/xz-5.2.1/src/liblzma/lzma",
-        "external/xz-5.2.1/src/liblzma/rangecoder",
-        "external/xz-5.2.1/src/liblzma/simple",
-        "external/xz-5.2.1/windows",
-    ])
-    lzmaenv.Append(CPPDEFINES=[
-        ("DWORD", "unsigned long"),
-        "HAVE_CONFIG_H",
-    ])
-    liblzma = lzmaenv.Library("external/xz-5.2.1/src/liblzma/liblzma.lib", [
-        "external/xz-5.2.1/src/liblzma/check/check.c",
-        "external/xz-5.2.1/src/liblzma/check/crc32_fast.c",
-        "external/xz-5.2.1/src/liblzma/check/crc32_table.c",
-        "external/xz-5.2.1/src/liblzma/check/crc64_fast.c",
-        "external/xz-5.2.1/src/liblzma/check/crc64_table.c",
-        "external/xz-5.2.1/src/liblzma/check/sha256.c",
-        "external/xz-5.2.1/src/liblzma/delta/delta_common.c",
-        "external/xz-5.2.1/src/liblzma/delta/delta_decoder.c",
-        "external/xz-5.2.1/src/liblzma/delta/delta_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/block_header_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/block_header_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/block_buffer_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/block_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/block_util.c",
-        "external/xz-5.2.1/src/liblzma/common/common.c",
-        "external/xz-5.2.1/src/liblzma/common/easy_buffer_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/easy_preset.c",
-        "external/xz-5.2.1/src/liblzma/common/filter_common.c",
-        "external/xz-5.2.1/src/liblzma/common/filter_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/filter_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/filter_flags_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/filter_flags_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/index.c",
-        "external/xz-5.2.1/src/liblzma/common/index_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/index_hash.c",
-        "external/xz-5.2.1/src/liblzma/common/stream_buffer_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/stream_buffer_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/stream_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/stream_flags_common.c",
-        "external/xz-5.2.1/src/liblzma/common/stream_flags_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/stream_flags_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/vli_decoder.c",
-        "external/xz-5.2.1/src/liblzma/common/vli_encoder.c",
-        "external/xz-5.2.1/src/liblzma/common/vli_size.c",
-        "external/xz-5.2.1/src/liblzma/lz/lz_decoder.c",
-        "external/xz-5.2.1/src/liblzma/lz/lz_encoder.c",
-        "external/xz-5.2.1/src/liblzma/lz/lz_encoder_mf.c",
-        "external/xz-5.2.1/src/liblzma/lzma/fastpos_table.c",
-        "external/xz-5.2.1/src/liblzma/lzma/lzma_decoder.c",
-        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder.c",
-        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder_optimum_fast.c",
-        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder_optimum_normal.c",
-        "external/xz-5.2.1/src/liblzma/lzma/lzma_encoder_presets.c",
-        "external/xz-5.2.1/src/liblzma/lzma/lzma2_decoder.c",
-        "external/xz-5.2.1/src/liblzma/lzma/lzma2_encoder.c",
-        "external/xz-5.2.1/src/liblzma/rangecoder/price_table.c",
-        "external/xz-5.2.1/src/liblzma/simple/arm.c",
-        "external/xz-5.2.1/src/liblzma/simple/armthumb.c",
-        "external/xz-5.2.1/src/liblzma/simple/ia64.c",
-        "external/xz-5.2.1/src/liblzma/simple/powerpc.c",
-        "external/xz-5.2.1/src/liblzma/simple/simple_coder.c",
-        "external/xz-5.2.1/src/liblzma/simple/simple_decoder.c",
-        "external/xz-5.2.1/src/liblzma/simple/simple_encoder.c",
-        "external/xz-5.2.1/src/liblzma/simple/sparc.c",
-        "external/xz-5.2.1/src/liblzma/simple/x86.c",
-    ])
-else:
-    liblzma = env.Command("external/xz-5.2.1/src/liblzma/.libs/liblzma.a", "external/xz-5.2.1/configure", "cd external/xz-5.2.1 && ./configure && make")
+libs_curses = SConscript("SConscript-libcurses", exports=["env"])
+libpcre = SConscript("SConscript-libpcre", exports=["env"])
+libcurl = SConscript("SConscript-libcurl", exports=["env"])
+libeasysid = SConscript("SConscript-libeasysid", exports=["env"])
+libhash = SConscript("SConscript-libhash", exports=["env"])
+libsqlite = SConscript("SConscript-libsqlite", exports=["env"])
+libz = SConscript("SConscript-libz", exports=["env"])
+libbz2 = SConscript("SConscript-libbz2", exports=["env"])
+liblzma = SConscript("SConscript-liblzma", exports=["env"])
 
 env.Append(CPPPATH=[
-    "external/IntelRDFPMathLib20U1/LIBRARY/src",
-    "external/utf8/source",
-    "external/lib/libffi-3.2.1/include",
-    "external/PDCurses-3.4",
-    "external/hash-library",
-    "external/pcre2-10.10/src",
-    "external/curl-7.41.0/include",
-    "external/sqlite-amalgamation-3080803",
-    "external/zlib-1.2.8",
-    "external/bzip2-1.0.6",
-    "external/xz-5.2.1/src/liblzma/api",
     "src",
 ])
-env.Append(LIBS=[hash_lib])
 if sys.platform == "win32":
     env.Append(CXXFLAGS=[
         "/EHsc",
@@ -273,7 +63,7 @@ else:
         "-Werror",
         "-g",
     ])
-env.Append(LIBS=[libbid, libffi, libpcre, libcurl, libz, libbz2, liblzma] + libs_curses)
+env.Append(LIBS=[libbid, libffi, libpcre, libcurl, libhash, libsqlite, libz, libbz2, liblzma] + libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -386,7 +176,6 @@ neon = env.Program("bin/neon", [
     rtl_platform,
     "src/support.cpp",
     "src/support_compiler.cpp",
-    sqlite,
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -423,7 +212,6 @@ neonx = env.Program("bin/neonx", [
     rtl_cpp,
     rtl_platform,
     "src/support.cpp",
-    sqlite,
 ] + coverage_lib,
 )
 

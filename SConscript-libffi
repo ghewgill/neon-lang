@@ -81,4 +81,6 @@ else:
     env.Command("external/libffi-3.2.1/Makefile", "external/libffi-3.2.1/configure", "cd external/libffi-3.2.1 && ./configure --prefix=`pwd`/..")
     libffi = env.Command("external/lib/libffi.a", "external/libffi-3.2.1/Makefile", "cd external/libffi-3.2.1 && make && make install")
 
+env.Append(CPPPATH=["external/lib/libffi-3.2.1/include"])
+
 Return(["libffi"])
