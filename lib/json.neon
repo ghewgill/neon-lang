@@ -120,11 +120,11 @@ FUNCTION encode(data: Variant): String
             LET a: Array<Variant> := data.get_array()
             FOREACH x OF a DO
                 IF r.length() > 1 THEN
-                    r := r & ","
+                    r.append(",")
                 END IF
-                r := r & encode(x)
+                r.append(encode(x))
             END FOREACH
-            r := r & "]"
+            r.append("]")
             RETURN r
         WHEN Type.dictionary DO
             VAR r: String := "{"
@@ -133,11 +133,11 @@ FUNCTION encode(data: Variant): String
             % TODO: This should just be d.keys(), see t/foreach-value.neon
             FOREACH x OF keys DO
                 IF r.length() > 1 THEN
-                    r := r & ","
+                    r.append(",")
                 END IF
-                r := r & encode(variant.make_string(x)) & ":" & encode(d[x])
+                r.append(encode(variant.make_string(x)) & ":" & encode(d[x]))
             END FOREACH
-            r := r & "}"
+            r.append("}")
             RETURN r
     END CASE
     RETURN "?unknown"

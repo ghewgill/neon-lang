@@ -1,12 +1,12 @@
 FUNCTION dump(a: Array<Number>)
     VAR s: String := "["
     FOR i := 0 TO a.size()-1 DO
-        s := s & a[i].to_string()
+        s.append(a[i].to_string())
         IF i < a.size()-1 THEN
-            s := s & ", "
+            s.append(", ")
         END IF
     END FOR
-    s := s & "]"
+    s.append("]")
     print(s)
 END FUNCTION
 

@@ -86,7 +86,7 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
                     IF a[i+j] = 0 THEN
                         EXIT FOR
                     END IF
-                    s := s & chr(a[i+j])
+                    s.append(chr(a[i+j]))
                 END FOR
                 r[self.fields[f].name] := variant.make_string(s)
                 i := i + self.fields[f].width
