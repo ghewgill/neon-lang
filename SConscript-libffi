@@ -52,11 +52,13 @@ def remove_short(target, source, env):
 
 Import("env")
 
+ffienv = Environment()
+
 if not os.path.exists("external/libffi-3.2.1/configure"):
     tarfile.open("external/libffi-3.2.1.tar.gz").extractall("external")
 if sys.platform == "win32":
     env.Append(CPPDEFINES=["FFI_BUILDING"])
-    ffienv = env.Clone()
+    ffienv.Append(CPPDEFINES=["FFI_BUILDING"])
     ffienv.Append(CPPPATH=["external/libffi-3.2.1/x86-win64/include"])
     ffi_h = ffienv.Command("external/libffi-3.2.1/x86-win64/include/ffi.h", "external/libffi-3.2.1/include/ffi.h.in", subs)
     ffitarget_h = ffienv.Command("external/libffi-3.2.1/x86-win64/include/ffitarget.h", "external/libffi-3.2.1/src/x86/ffitarget.h", fix_target)
@@ -78,8 +80,8 @@ if sys.platform == "win32":
     ffienv.Install("external/lib/libffi-3.2.1/include/", [ffi_h, ffitarget_h, fficommon_h, fficonfig_h])
     libffi = ffienv.Install("external/lib/", libffi)
 else:
-    env.Command("external/libffi-3.2.1/Makefile", "external/libffi-3.2.1/configure", "cd external/libffi-3.2.1 && ./configure --prefix=`pwd`/..")
-    libffi = env.Command("external/lib/libffi.a", "external/libffi-3.2.1/Makefile", "cd external/libffi-3.2.1 && make && make install")
+    ffienv.Command("external/libffi-3.2.1/Makefile", "external/libffi-3.2.1/configure", "cd external/libffi-3.2.1 && ./configure --prefix=`pwd`/..")
+    libffi = ffienv.Command("external/lib/libffi.a", "external/libffi-3.2.1/Makefile", "cd external/libffi-3.2.1 && make && make install")
 
 env.Append(CPPPATH=["external/lib/libffi-3.2.1/include"])
 

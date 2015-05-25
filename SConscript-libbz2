@@ -4,10 +4,12 @@ import tarfile
 
 Import("env")
 
+bz2env = Environment()
+
 if not os.path.exists("external/bzip2-1.0.6/Makefile"):
     tarfile.open("external/bzip2-1.0.6.tar.gz").extractall("external")
 if sys.platform == "win32":
-    libbz2 = env.Library("external/bzip2-1.0.6/libbz2.lib", [
+    libbz2 = bz2env.Library("external/bzip2-1.0.6/libbz2.lib", [
         "external/bzip2-1.0.6/blocksort.c",
         "external/bzip2-1.0.6/bzlib.c",
         "external/bzip2-1.0.6/compress.c",
@@ -17,7 +19,7 @@ if sys.platform == "win32":
         "external/bzip2-1.0.6/randtable.c",
     ])
 else:
-    libbz2 = env.Command("external/bzip2-1.0.6/libbz2.a", "external/bzip2-1.0.6/Makefile", "cd external/bzip2-1.0.6 && make")
+    libbz2 = bz2env.Command("external/bzip2-1.0.6/libbz2.a", "external/bzip2-1.0.6/Makefile", "cd external/bzip2-1.0.6 && make")
 
 env.Append(CPPPATH=["external/bzip2-1.0.6"])
 

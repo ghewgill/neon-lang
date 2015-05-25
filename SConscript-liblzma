@@ -4,13 +4,17 @@ import tarfile
 
 Import("env")
 
+lzmaenv = Environment()
+
 if not os.path.exists("external/xz-5.2.1/configure"):
     tarfile.open("external/xz-5.2.1.tar.gz").extractall("external")
 if sys.platform == "win32":
     env.Append(CPPDEFINES=[
         "LZMA_API_STATIC",
     ])
-    lzmaenv = env.Clone()
+    lzmaenv.Append(CPPDEFINES=[
+        "LZMA_API_STATIC",
+    ])
     lzmaenv.Append(CPPPATH=[
         "external/xz-5.2.1/src/common",
         "external/xz-5.2.1/src/liblzma/api",
@@ -85,7 +89,7 @@ if sys.platform == "win32":
         "external/xz-5.2.1/src/liblzma/simple/x86.c",
     ])
 else:
-    liblzma = env.Command("external/xz-5.2.1/src/liblzma/.libs/liblzma.a", "external/xz-5.2.1/configure", "cd external/xz-5.2.1 && ./configure && make")
+    liblzma = lzmaenv.Command("external/xz-5.2.1/src/liblzma/.libs/liblzma.a", "external/xz-5.2.1/configure", "cd external/xz-5.2.1 && ./configure && make")
 
 env.Append(CPPPATH=["external/xz-5.2.1/src/liblzma/api"])
 

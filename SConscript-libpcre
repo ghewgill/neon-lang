@@ -5,12 +5,13 @@ import tarfile
 
 Import("env")
 
+pcreenv = Environment()
+
 if not os.path.exists("external/pcre2-10.10/configure"):
     tarfile.open("external/pcre2-10.10.tar.gz").extractall("external")
 if sys.platform == "win32":
     shutil.copyfile("external/pcre2-10.10/src/config.h.generic", "external/pcre2-10.10/src/config.h")
     shutil.copyfile("external/pcre2-10.10/src/pcre2.h.generic", "external/pcre2-10.10/src/pcre2.h")
-    pcreenv = env.Clone()
     pcreenv.Append(CPPFLAGS=[
         "-DHAVE_CONFIG_H",
         "-DPCRE2_CODE_UNIT_WIDTH=8",
@@ -43,7 +44,7 @@ if sys.platform == "win32":
         "external/pcre2-10.10/src/pcre2_xclass.c",
     ])
 else:
-    libpcre = env.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
+    libpcre = pcreenv.Command("external/pcre2-10.10/.libs/libpcre2-8.a", "external/pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
 
 env.Append(CPPPATH=["external/pcre2-10.10/src"])
 

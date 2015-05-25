@@ -5,12 +5,13 @@ import zipfile
 
 Import("env")
 
+hashenv = Environment()
+
 if not os.path.exists("external/hash-library/sha256.cpp"):
     zipfile.ZipFile("external/hash-library.zip").extractall("external/hash-library")
     if sys.platform == "darwin":
         subprocess.check_call("perl -n -i -e 'print unless /<endian.h>/' external/hash-library/*.cpp", shell=True)
-hash_env = env.Clone()
-libhash = hash_env.Library("external/hash-library/hash-library", [
+libhash = hashenv.Library("external/hash-library/hash-library", [
     "external/hash-library/crc32.cpp",
     "external/hash-library/md5.cpp",
     "external/hash-library/sha1.cpp",

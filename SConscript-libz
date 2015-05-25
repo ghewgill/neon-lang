@@ -4,10 +4,12 @@ import tarfile
 
 Import("env")
 
+libzenv = Environment()
+
 if not os.path.exists("external/zlib-1.2.8/configure"):
     tarfile.open("external/zlib-1.2.8.tar.gz").extractall("external")
 if sys.platform == "win32":
-    libz = env.Library("external/zlib-1.2.8/libz.lib", [
+    libz = libzenv.Library("external/zlib-1.2.8/libz.lib", [
         "external/zlib-1.2.8/adler32.c",
         "external/zlib-1.2.8/compress.c",
         "external/zlib-1.2.8/crc32.c",
@@ -20,7 +22,7 @@ if sys.platform == "win32":
         "external/zlib-1.2.8/zutil.c",
     ])
 else:
-    libz = env.Command("external/zlib-1.2.8/libz.a", "external/zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
+    libz = libzenv.Command("external/zlib-1.2.8/libz.a", "external/zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
 
 env.Append(CPPPATH=["external/zlib-1.2.8"])
 

@@ -3,9 +3,10 @@ import zipfile
 
 Import("env")
 
+sqliteenv = Environment()
+
 if not os.path.exists("external/sqlite-amalgamation-3080803/sqlite3.c"):
     zipfile.ZipFile("external/sqlite-amalgamation-3080803.zip").extractall("external")
-sqliteenv = env.Clone()
 sqliteenv.Append(CPPFLAGS=["-DSQLITE_THREADSAFE=0"])
 libsqlite = sqliteenv.Library("external/sqlite-amalgamation-3080803/sqlite3.c")
 
