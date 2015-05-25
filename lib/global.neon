@@ -5,6 +5,7 @@ DECLARE NATIVE FUNCTION boolean__to_string(self: Boolean): String
 DECLARE NATIVE FUNCTION dictionary__size(self: Dictionary): Number
 DECLARE NATIVE FUNCTION dictionary__keys(self: Dictionary): Array<String>
 DECLARE NATIVE FUNCTION number__to_string(self: Number): String
+DECLARE NATIVE FUNCTION string__append(INOUT self: String, t: String)
 DECLARE NATIVE FUNCTION string__length(self: String): Number
 DECLARE NATIVE FUNCTION string__splice(t: String, s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String

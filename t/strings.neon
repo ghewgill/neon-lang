@@ -22,3 +22,7 @@ print(a)
 a[5 TO LAST] := ""
 print(a)
 %= hello
+
+a.append(" world")
+print(a)
+%= hello world

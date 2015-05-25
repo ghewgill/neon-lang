@@ -542,6 +542,13 @@ Program::Program(const std::string &source_hash)
 
     {
         std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_STRING, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
+        TYPE_STRING->methods["append"] = new PredefinedFunction("string__append", new TypeFunction(TYPE_NOTHING, params));
+    }
+
+    {
+        std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_BYTES, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_ARRAY_NUMBER, nullptr));
         TYPE_BYTES->methods["from_array"] = new PredefinedFunction("bytes__from_array", new TypeFunction(TYPE_NOTHING, params));

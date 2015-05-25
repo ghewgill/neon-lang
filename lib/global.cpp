@@ -88,6 +88,11 @@ std::string number__to_string(Number self)
     return number_to_string(self);
 }
 
+void string__append(std::string *self, const std::string &t)
+{
+    self->append(t);
+}
+
 Number string__length(const std::string &self)
 {
     return number_from_uint64(self.length());
