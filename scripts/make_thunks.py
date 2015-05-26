@@ -22,7 +22,25 @@ AstFromNeon = {
     "Dictionary": ("TYPE_GENERIC", VALUE),
 }
 
-CppFromAst = {
+CppFromAstParam = {
+    ("TYPE_NOTHING", VALUE): "void",
+    ("TYPE_GENERIC", VALUE): "Cell",
+    ("TYPE_GENERIC", REF): "Cell *",
+    ("TYPE_POINTER", VALUE): "void *",
+    ("TYPE_POINTER", REF): "Cell **",
+    ("TYPE_BOOLEAN", VALUE): "bool",
+    ("TYPE_BOOLEAN", REF): "bool *",
+    ("TYPE_NUMBER", VALUE): "Number",
+    ("TYPE_NUMBER", REF): "Number *",
+    ("TYPE_STRING", VALUE): "const std::string &",
+    ("TYPE_STRING", REF): "std::string *",
+    ("TYPE_BYTES", VALUE): "const std::string &",
+    ("TYPE_BYTES", REF): "std::string *",
+    ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
+    ("TYPE_ARRAY_STRING", VALUE): "std::vector<std::string>",
+}
+
+CppFromAstReturn = {
     ("TYPE_NOTHING", VALUE): "void",
     ("TYPE_GENERIC", VALUE): "Cell",
     ("TYPE_GENERIC", REF): "Cell *",
@@ -160,30 +178,36 @@ with open("src/thunks.inc", "w") as inc:
         print >>inc, "static void thunk_{}_{}(opstack<Cell> &{}, void *func)".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params), "stack" if (params or rtype[0] != "TYPE_NOTHING") else "")
         print >>inc, "{"
         for i, a in reversed(list(enumerate(params))):
+            d = len(params) - 1 - i
             if a[0].startswith("TYPE_ARRAY_"):
-                print >>inc, "    {} a{};".format(CppFromAst[a], i)
-                print >>inc, "    for (auto x: stack.top().array()) a{}.push_back(x.{});".format(i, ArrayElementField[a])
-                print >>inc, "    stack.pop();"
+                print >>inc, "    {} a{};".format(CppFromAstParam[a], i)
+                print >>inc, "    for (auto x: stack.peek({}).array()) a{}.push_back(x.{});".format(d, i, ArrayElementField[a])
             elif a == ("TYPE_GENERIC", VALUE):
-                print >>inc, "    {} a{} = stack.top(); stack.pop();".format(CppFromAst[a], i)
+                print >>inc, "    {} a{} = stack.peek({});".format(CppFromAstParam[a], i, d)
             elif a == ("TYPE_GENERIC", REF):
-                print >>inc, "    {} a{} = stack.top().address(); stack.pop();".format(CppFromAst[a], i);
+                print >>inc, "    {} a{} = stack.peek({}).address();".format(CppFromAstParam[a], i, d)
             elif a[1] == REF:
-                print >>inc, "    {} a{} = &stack.top().{}; stack.pop();".format(CppFromAst[a], i, CellField[a]);
+                print >>inc, "    {} a{} = &stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a])
             else:
-                print >>inc, "    {} a{} = stack.top().{}; stack.pop();".format(CppFromAst[a], i, CellField[a]);
+                print >>inc, "    {} a{} = stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a])
+        print >>inc, "    try {"
+        print >>inc, "        {}reinterpret_cast<{} (*)({})>(func)({});".format("auto r = " if rtype[0] != "TYPE_NOTHING" else "", CppFromAstReturn[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
+        if params:
+            print >>inc, "        stack.drop({});".format(len(params))
         if rtype[0] != "TYPE_NOTHING":
-            print >>inc, "    auto r = reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
             if rtype[0].startswith("TYPE_ARRAY_"):
-                print >>inc, "    std::vector<Cell> t;"
-                print >>inc, "    for (auto x: r) t.push_back(Cell(x));"
-                print >>inc, "    stack.push(Cell(t));"
+                print >>inc, "        std::vector<Cell> t;"
+                print >>inc, "        for (auto x: r) t.push_back(Cell(x));"
+                print >>inc, "        stack.push(Cell(t));"
             elif rtype[0] == "TYPE_POINTER":
-                print >>inc, "    stack.push(Cell(static_cast<Cell *>(r)));"
+                print >>inc, "        stack.push(Cell(static_cast<Cell *>(r)));"
             else:
-                print >>inc, "    stack.push(Cell(r));"
-        else:
-            print >>inc, "    reinterpret_cast<{} (*)({})>(func)({});".format(CppFromAst[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
+                print >>inc, "        stack.push(Cell(r));"
+        print >>inc, "    } catch (RtlException &) {"
+        if params:
+            print >>inc, "        stack.drop({});".format(len(params))
+        print >>inc, "        throw;"
+        print >>inc, "    }"
         print >>inc, "}"
         print >>inc, ""
 
@@ -227,9 +251,9 @@ with open("src/functions_exec.inc", "w") as inc:
     for name, rtype, rtypename, params, paramtypes in functions.values():
         if "." in name:
             namespace, name = name.split(".")
-            print >>inc, "namespace {} {{ extern {} {}({}); }}".format(namespace, CppFromAst[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
+            print >>inc, "namespace {} {{ extern {} {}({}); }}".format(namespace, CppFromAstReturn[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
         else:
-            print >>inc, "extern {} {}({});".format(CppFromAst[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
+            print >>inc, "extern {} {}({});".format(CppFromAstReturn[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
     print >>inc, "}"
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"

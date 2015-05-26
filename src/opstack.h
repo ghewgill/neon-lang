@@ -5,7 +5,9 @@
 
 template <typename T> class opstack {
 public:
+    void drop(size_t n) { a.resize(a.size() - n); }
     bool empty() { return a.empty(); }
+    T &peek(size_t n) { return a.at(a.size() - 1 - n); }
     void push(const T &x) { a.push_back(x); }
     void pop() { a.pop_back(); }
     T &top() { return a.back(); }
