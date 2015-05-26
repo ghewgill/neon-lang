@@ -24,7 +24,8 @@ public:
     Cell *&address();
     bool &boolean();
     Number &number();
-    std::string &string();
+    const std::string &string();
+    std::string &string_for_write();
     const std::vector<Cell> &array();
     Cell &array_index_for_read(size_t i);
     Cell &array_index_for_write(size_t i);
@@ -46,7 +47,7 @@ private:
     Cell *address_value;
     bool boolean_value;
     Number number_value;
-    std::string string_value;
+    std::shared_ptr<std::string> string_ptr;
     std::shared_ptr<std::vector<Cell>> array_ptr;
     std::shared_ptr<std::map<std::string, Cell>> dictionary_ptr;
 };

@@ -65,9 +65,9 @@ CellField = {
     ("TYPE_NUMBER", VALUE): "number()",
     ("TYPE_NUMBER", REF): "address()->number()",
     ("TYPE_STRING", VALUE): "string()",
-    ("TYPE_STRING", REF): "address()->string()",
+    ("TYPE_STRING", REF): "address()->string_for_write()",
     ("TYPE_BYTES", VALUE): "string()",
-    ("TYPE_BYTES", REF): "address()->string()",
+    ("TYPE_BYTES", REF): "address()->string_for_write()",
     ("TYPE_ARRAY_NUMBER", VALUE): "array()",
     ("TYPE_ARRAY_STRING", VALUE): "array()",
 }
