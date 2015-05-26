@@ -1,10 +1,9 @@
-#include <stack>
+#include "rtl_exec.h"
+
 #include <stdlib.h>
 #include <string>
 
-#include "cell.h"
-
-typedef void (*Thunk)(std::stack<Cell> &stack, void *func);
+typedef void (*Thunk)(opstack<Cell> &stack, void *func);
 
 static std::map<std::string, size_t> FunctionNames;
 
@@ -23,7 +22,7 @@ void rtl_exec_init(int argc, char *argv[])
     }
 }
 
-void rtl_call(std::stack<Cell> &stack, const std::string &name, size_t &token)
+void rtl_call(opstack<Cell> &stack, const std::string &name, size_t &token)
 {
     if (token == SIZE_MAX) {
         auto f = FunctionNames.find(name);

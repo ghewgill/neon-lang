@@ -7,7 +7,6 @@
 #include <list>
 #include <map>
 #include <sstream>
-#include <stack>
 #include <stdlib.h>
 
 #include <ffi.h>
@@ -17,6 +16,7 @@
 #include "debuginfo.h"
 #include "number.h"
 #include "opcode.h"
+#include "opstack.h"
 #include "rtl_exec.h"
 #include "rtl_platform.h"
 #include "support.h"
@@ -148,7 +148,7 @@ private:
     std::vector<std::string> init_order;
     Module *module;
     Bytecode::Bytes::size_type ip;
-    std::stack<Cell> stack;
+    opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
 

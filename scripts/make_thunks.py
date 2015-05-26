@@ -157,7 +157,7 @@ for name, rtype, rtypename, params, paramtypes in functions.values():
 
 with open("src/thunks.inc", "w") as inc:
     for rtype, params in thunks:
-        print >>inc, "static void thunk_{}_{}(std::stack<Cell> &{}, void *func)".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params), "stack" if (params or rtype[0] != "TYPE_NOTHING") else "")
+        print >>inc, "static void thunk_{}_{}(opstack<Cell> &{}, void *func)".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params), "stack" if (params or rtype[0] != "TYPE_NOTHING") else "")
         print >>inc, "{"
         for i, a in reversed(list(enumerate(params))):
             if a[0].startswith("TYPE_ARRAY_"):
