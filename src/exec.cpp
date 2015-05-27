@@ -1116,13 +1116,13 @@ void Executor::raise(const utf8string &exception, const utf8string &info)
                 p--;
             }
             if (line != module->debug->line_numbers.end()) {
-                fprintf(stderr, "  Stack frame #%lu: file %s line %d address %lu\n", callstack.size(), module->debug->source_path.c_str(), line->second, ip);
+                fprintf(stderr, "  Stack frame #%lu: file %s line %d address %lu\n", static_cast<unsigned long>(callstack.size()), module->debug->source_path.c_str(), line->second, static_cast<unsigned long>(ip));
                 fprintf(stderr, "    %s\n", module->debug->source_lines.at(line->second).c_str());
             } else {
-                fprintf(stderr, "  Stack frame #%lu: file %s address %lu (line number not found)\n", callstack.size(), module->debug->source_path.c_str(), ip);
+                fprintf(stderr, "  Stack frame #%lu: file %s address %lu (line number not found)\n", static_cast<unsigned long>(callstack.size()), module->debug->source_path.c_str(), static_cast<unsigned long>(ip));
             }
         } else {
-            fprintf(stderr, "  Stack frame #%lu: file %s address %lu (no debug info available)\n", callstack.size(), source_path.c_str(), ip);
+            fprintf(stderr, "  Stack frame #%lu: file %s address %lu (no debug info available)\n", static_cast<unsigned long>(callstack.size()), source_path.c_str(), static_cast<unsigned long>(ip));
         }
         if (callstack.empty()) {
             break;
