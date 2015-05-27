@@ -58,12 +58,12 @@ Cell::Cell(Number value)
 {
 }
 
-Cell::Cell(const std::string &value)
+Cell::Cell(const utf8string &value)
   : type(cString),
     address_value(nullptr),
     boolean_value(false),
     number_value(),
-    string_ptr(std::make_shared<std::string>(value)),
+    string_ptr(std::make_shared<utf8string>(value)),
     array_ptr(),
     dictionary_ptr()
 {
@@ -74,7 +74,7 @@ Cell::Cell(const char *value)
     address_value(nullptr),
     boolean_value(false),
     number_value(),
-    string_ptr(std::make_shared<std::string>(value)),
+    string_ptr(std::make_shared<utf8string>(value)),
     array_ptr(),
     dictionary_ptr()
 {
@@ -91,14 +91,14 @@ Cell::Cell(const std::vector<Cell> &value)
 {
 }
 
-Cell::Cell(const std::map<std::string, Cell> &value)
+Cell::Cell(const std::map<utf8string, Cell> &value)
   : type(cDictionary),
     address_value(nullptr),
     boolean_value(false),
     number_value(),
     string_ptr(),
     array_ptr(),
-    dictionary_ptr(std::make_shared<std::map<std::string, Cell>>(value))
+    dictionary_ptr(std::make_shared<std::map<utf8string, Cell>>(value))
 {
 }
 
@@ -159,29 +159,29 @@ Number &Cell::number()
     return number_value;
 }
 
-const std::string &Cell::string()
+const utf8string &Cell::string()
 {
     if (type == cNone) {
         type = cString;
     }
     assert(type == cString);
     if (not string_ptr) {
-        string_ptr = std::make_shared<std::string>();
+        string_ptr = std::make_shared<utf8string>();
     }
     return *string_ptr;
 }
 
-std::string &Cell::string_for_write()
+utf8string &Cell::string_for_write()
 {
     if (type == cNone) {
         type = cString;
     }
     assert(type == cString);
     if (not string_ptr) {
-        string_ptr = std::make_shared<std::string>();
+        string_ptr = std::make_shared<utf8string>();
     }
     if (not string_ptr.unique()) {
-        string_ptr = std::make_shared<std::string>(*string_ptr);
+        string_ptr = std::make_shared<utf8string>(*string_ptr);
     }
     return *string_ptr;
 }
@@ -220,33 +220,33 @@ Cell &Cell::array_index_for_write(size_t i)
     return array_ptr->at(i);
 }
 
-const std::map<std::string, Cell> &Cell::dictionary()
+const std::map<utf8string, Cell> &Cell::dictionary()
 {
     if (type == cNone) {
         type = cDictionary;
     }
     assert(type == cDictionary);
     if (not dictionary_ptr) {
-        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>();
+        dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
     return *dictionary_ptr;
 }
 
-Cell &Cell::dictionary_index_for_read(const std::string &index)
+Cell &Cell::dictionary_index_for_read(const utf8string &index)
 {
     if (not dictionary_ptr) {
-        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>();
+        dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
     return dictionary_ptr->at(index);
 }
 
-Cell &Cell::dictionary_index_for_write(const std::string &index)
+Cell &Cell::dictionary_index_for_write(const utf8string &index)
 {
     if (not dictionary_ptr) {
-        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>();
+        dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
     if (not dictionary_ptr.unique()) {
-        dictionary_ptr = std::make_shared<std::map<std::string, Cell>>(*dictionary_ptr);
+        dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>(*dictionary_ptr);
     }
     return dictionary_ptr->operator[](index);
 }

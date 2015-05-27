@@ -26,9 +26,9 @@ std::string file$bytes(const std::string &filename)
     return r;
 }
 
-std::vector<std::string> file$lines(const std::string &filename)
+std::vector<utf8string> file$lines(const std::string &filename)
 {
-    std::vector<std::string> r;
+    std::vector<utf8string> r;
     std::ifstream f(filename);
     if (not f.is_open()) {
         throw RtlException("FileOpenError", filename);

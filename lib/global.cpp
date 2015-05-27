@@ -74,9 +74,9 @@ Number dictionary__size(Cell &self)
     return number_from_uint64(self.dictionary().size());
 }
 
-std::vector<std::string> dictionary__keys(Cell &self)
+std::vector<utf8string> dictionary__keys(Cell &self)
 {
-    std::vector<std::string> r;
+    std::vector<utf8string> r;
     for (auto d: self.dictionary()) {
         r.push_back(d.first);
     }
@@ -88,7 +88,7 @@ std::string number__to_string(Number self)
     return number_to_string(self);
 }
 
-void string__append(std::string *self, const std::string &t)
+void string__append(utf8string *self, const std::string &t)
 {
     self->append(t);
 }
@@ -112,8 +112,9 @@ std::string string__splice(const std::string &t, const std::string &s, Number fi
     return s.substr(0, f) + t + s.substr(l + 1);
 }
 
-std::string string__substring(const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
+std::string string__substring(const std::string &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
+    const utf8string &s = reinterpret_cast<const utf8string &>(t);
     assert(number_is_integer(first));
     assert(number_is_integer(last));
     int64_t f = number_to_sint64(first);
@@ -124,16 +125,14 @@ std::string string__substring(const std::string &s, Number first, bool first_fro
     if (last_from_end) {
         l += s.size() - 1;
     }
-    auto start = s.begin();
-    utf8::advance(start, f, s.end());
-    auto end = start;
-    utf8::advance(end, l - f + 1, s.end());
-    return std::string(start, end);
+    size_t start = s.index(f);
+    size_t end = s.index(l + 1);
+    return s.substr(start, end-start);
 }
 
-void bytes__from_array(std::string *self, const std::vector<Number> &a)
+void bytes__from_array(utf8string *self, const std::vector<Number> &a)
 {
-    std::string().swap(*self);
+    self->clear();
     self->reserve(a.size());
     for (auto x: a) {
         uint64_t b = number_to_uint64(x);

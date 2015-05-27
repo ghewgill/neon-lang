@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "number.h"
+#include "utf8string.h"
 
 namespace rtl {
 
@@ -16,14 +17,14 @@ Number string$find(const std::string &s, const std::string &t)
     return number_from_uint64(i);
 }
 
-std::string string$join(const std::vector<std::string> &a, const std::string &d)
+std::string string$join(const std::vector<utf8string> &a, const std::string &d)
 {
     std::string r;
     for (auto s: a) {
         if (not r.empty()) {
             r.append(d);
         }
-        r.append(s);
+        r.append(s.str());
     }
     return r;
 }
@@ -35,9 +36,9 @@ std::string string$lower(const std::string &s)
     return r;
 }
 
-std::vector<std::string> string$split(const std::string &s, const std::string &d)
+std::vector<utf8string> string$split(const std::string &s, const std::string &d)
 {
-    std::vector<std::string> r;
+    std::vector<utf8string> r;
     std::string::size_type i = 0;
     while (i < s.length()) {
         std::string::size_type nd = s.find(d, i);

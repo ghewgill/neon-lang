@@ -29,7 +29,7 @@ void *io$open(const std::string &name, Cell &/*mode*/)
     return fopen(name.c_str(), "r");
 }
 
-bool io$readline(void *pf, std::string *s)
+bool io$readline(void *pf, utf8string *s)
 {
     FILE *f = (FILE *)pf;
     s->clear();

@@ -33,11 +33,11 @@ CppFromAstParam = {
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_NUMBER", REF): "Number *",
     ("TYPE_STRING", VALUE): "const std::string &",
-    ("TYPE_STRING", REF): "std::string *",
+    ("TYPE_STRING", REF): "utf8string *",
     ("TYPE_BYTES", VALUE): "const std::string &",
-    ("TYPE_BYTES", REF): "std::string *",
+    ("TYPE_BYTES", REF): "utf8string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
-    ("TYPE_ARRAY_STRING", VALUE): "std::vector<std::string>",
+    ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
 }
 
 CppFromAstReturn = {
@@ -55,7 +55,7 @@ CppFromAstReturn = {
     ("TYPE_BYTES", VALUE): "std::string",
     ("TYPE_BYTES", REF): "std::string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
-    ("TYPE_ARRAY_STRING", VALUE): "std::vector<std::string>",
+    ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
 }
 
 CppFromAstArg = {
@@ -68,11 +68,11 @@ CppFromAstArg = {
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_NUMBER", REF): "Number *",
     ("TYPE_STRING", VALUE): "const std::string &",
-    ("TYPE_STRING", REF): "std::string *",
+    ("TYPE_STRING", REF): "utf8string *",
     ("TYPE_BYTES", VALUE): "const std::string &",
-    ("TYPE_BYTES", REF): "std::string *",
+    ("TYPE_BYTES", REF): "utf8string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "const std::vector<Number> &",
-    ("TYPE_ARRAY_STRING", VALUE): "const std::vector<std::string> &",
+    ("TYPE_ARRAY_STRING", VALUE): "const std::vector<utf8string> &",
 }
 
 CellField = {
@@ -82,9 +82,9 @@ CellField = {
     ("TYPE_BOOLEAN", REF): "address()->boolean()",
     ("TYPE_NUMBER", VALUE): "number()",
     ("TYPE_NUMBER", REF): "address()->number()",
-    ("TYPE_STRING", VALUE): "string()",
+    ("TYPE_STRING", VALUE): "string().str()",
     ("TYPE_STRING", REF): "address()->string_for_write()",
-    ("TYPE_BYTES", VALUE): "string()",
+    ("TYPE_BYTES", VALUE): "string().str()",
     ("TYPE_BYTES", REF): "address()->string_for_write()",
     ("TYPE_ARRAY_NUMBER", VALUE): "array()",
     ("TYPE_ARRAY_STRING", VALUE): "array()",

@@ -231,7 +231,7 @@ private:
     void exec_ALLOC();
     void exec_PUSHNIL();
 
-    void raise(const std::string &exception, const std::string &info);
+    void raise(const utf8string &exception, const utf8string &info);
 
     friend class Module;
 private:
@@ -375,13 +375,15 @@ void Executor::exec_LOADS()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
-    stack.push(Cell(addr->string()));
+    addr->string();
+    stack.push(Cell(*addr));
 }
 
 void Executor::exec_LOADA()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
+    addr->array();
     stack.push(Cell(*addr));
 }
 
@@ -389,7 +391,8 @@ void Executor::exec_LOADD()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
-    stack.push(Cell(addr->dictionary()));
+    addr->dictionary();
+    stack.push(Cell(*addr));
 }
 
 void Executor::exec_LOADP()
@@ -419,24 +422,24 @@ void Executor::exec_STORES()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
-    std::string val = stack.top().string(); stack.pop();
-    *addr = Cell(val);
+    *addr = stack.top(); stack.pop();
+    addr->string();
 }
 
 void Executor::exec_STOREA()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
-    std::vector<Cell> val = stack.top().array(); stack.pop();
-    *addr = Cell(val);
+    *addr = stack.top(); stack.pop();
+    addr->array();
 }
 
 void Executor::exec_STORED()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
-    std::map<std::string, Cell> val = stack.top().dictionary(); stack.pop();
-    *addr = Cell(val);
+    *addr = stack.top(); stack.pop();
+    addr->dictionary();
 }
 
 void Executor::exec_STOREP()
@@ -577,48 +580,48 @@ void Executor::exec_GEN()
 void Executor::exec_EQS()
 {
     ip++;
-    std::string b = stack.top().string(); stack.pop();
-    std::string a = stack.top().string(); stack.pop();
+    utf8string b = stack.top().string(); stack.pop();
+    utf8string a = stack.top().string(); stack.pop();
     stack.push(Cell(a == b));
 }
 
 void Executor::exec_NES()
 {
     ip++;
-    std::string b = stack.top().string(); stack.pop();
-    std::string a = stack.top().string(); stack.pop();
+    utf8string b = stack.top().string(); stack.pop();
+    utf8string a = stack.top().string(); stack.pop();
     stack.push(Cell(a != b));
 }
 
 void Executor::exec_LTS()
 {
     ip++;
-    std::string b = stack.top().string(); stack.pop();
-    std::string a = stack.top().string(); stack.pop();
+    utf8string b = stack.top().string(); stack.pop();
+    utf8string a = stack.top().string(); stack.pop();
     stack.push(Cell(a < b));
 }
 
 void Executor::exec_GTS()
 {
     ip++;
-    std::string b = stack.top().string(); stack.pop();
-    std::string a = stack.top().string(); stack.pop();
+    utf8string b = stack.top().string(); stack.pop();
+    utf8string a = stack.top().string(); stack.pop();
     stack.push(Cell(a > b));
 }
 
 void Executor::exec_LES()
 {
     ip++;
-    std::string b = stack.top().string(); stack.pop();
-    std::string a = stack.top().string(); stack.pop();
+    utf8string b = stack.top().string(); stack.pop();
+    utf8string a = stack.top().string(); stack.pop();
     stack.push(Cell(a <= b));
 }
 
 void Executor::exec_GES()
 {
     ip++;
-    std::string b = stack.top().string(); stack.pop();
-    std::string a = stack.top().string(); stack.pop();
+    utf8string b = stack.top().string(); stack.pop();
+    utf8string a = stack.top().string(); stack.pop();
     stack.push(Cell(a >= b));
 }
 
@@ -641,16 +644,16 @@ void Executor::exec_NEA()
 void Executor::exec_EQD()
 {
     ip++;
-    std::map<std::string, Cell> b = stack.top().dictionary(); stack.pop();
-    std::map<std::string, Cell> a = stack.top().dictionary(); stack.pop();
+    std::map<utf8string, Cell> b = stack.top().dictionary(); stack.pop();
+    std::map<utf8string, Cell> a = stack.top().dictionary(); stack.pop();
     stack.push(Cell(a == b));
 }
 
 void Executor::exec_NED()
 {
     ip++;
-    std::map<std::string, Cell> b = stack.top().dictionary(); stack.pop();
-    std::map<std::string, Cell> a = stack.top().dictionary(); stack.pop();
+    std::map<utf8string, Cell> b = stack.top().dictionary(); stack.pop();
+    std::map<utf8string, Cell> a = stack.top().dictionary(); stack.pop();
     stack.push(Cell(a != b));
 }
 
@@ -773,7 +776,7 @@ void Executor::exec_INDEXAN()
 void Executor::exec_INDEXDR()
 {
     ip++;
-    std::string index = stack.top().string(); stack.pop();
+    utf8string index = stack.top().string(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     auto e = addr->dictionary().find(index);
     if (e == addr->dictionary().end()) {
@@ -786,7 +789,7 @@ void Executor::exec_INDEXDR()
 void Executor::exec_INDEXDW()
 {
     ip++;
-    std::string index = stack.top().string(); stack.pop();
+    utf8string index = stack.top().string(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     stack.push(Cell(&addr->dictionary_index_for_write(index)));
 }
@@ -794,8 +797,8 @@ void Executor::exec_INDEXDW()
 void Executor::exec_INDEXDV()
 {
     ip++;
-    std::string index = stack.top().string(); stack.pop();
-    const std::map<std::string, Cell> &dictionary = stack.top().dictionary();
+    utf8string index = stack.top().string(); stack.pop();
+    const std::map<utf8string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
         raise("DictionaryIndex", index);
@@ -818,7 +821,7 @@ void Executor::exec_IND()
 {
     ip++;
     auto dictionary = stack.top().dictionary(); stack.pop();
-    std::string key = stack.top().string(); stack.pop();
+    utf8string key = stack.top().string(); stack.pop();
     stack.push(Cell(dictionary.find(key) != dictionary.end()));
 }
 
@@ -1031,7 +1034,7 @@ void Executor::exec_CONSD()
     Cell d;
     while (val > 0) {
         Cell value = stack.top(); stack.pop();
-        std::string key = stack.top().string(); stack.pop();
+        utf8string key = stack.top().string(); stack.pop();
         d.dictionary_index_for_write(key) = value;
         val--;
     }
@@ -1040,7 +1043,7 @@ void Executor::exec_CONSD()
 
 void Executor::exec_EXCEPT()
 {
-    std::string info = stack.top().string(); stack.pop();
+    utf8string info = stack.top().string(); stack.pop();
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     raise(module->object.strtable[val], info);
 }
@@ -1068,7 +1071,7 @@ void Executor::exec_PUSHNIL()
     stack.push(Cell(static_cast<Cell *>(nullptr)));
 }
 
-void Executor::raise(const std::string &exception, const std::string &info)
+void Executor::raise(const utf8string &exception, const utf8string &info)
 {
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.

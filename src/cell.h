@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "number.h"
+#include "utf8string.h"
 
 class Cell {
 public:
@@ -14,24 +15,24 @@ public:
     explicit Cell(Cell *value);
     explicit Cell(bool value);
     explicit Cell(Number value);
-    explicit Cell(const std::string &value);
+    explicit Cell(const utf8string &value);
     explicit Cell(const char *value);
     explicit Cell(const std::vector<Cell> &value);
-    explicit Cell(const std::map<std::string, Cell> &value);
+    explicit Cell(const std::map<utf8string, Cell> &value);
     Cell &operator=(const Cell &rhs);
     bool operator==(const Cell &rhs) const;
 
     Cell *&address();
     bool &boolean();
     Number &number();
-    const std::string &string();
-    std::string &string_for_write();
+    const utf8string &string();
+    utf8string &string_for_write();
     const std::vector<Cell> &array();
     Cell &array_index_for_read(size_t i);
     Cell &array_index_for_write(size_t i);
-    const std::map<std::string, Cell> &dictionary();
-    Cell &dictionary_index_for_read(const std::string &index);
-    Cell &dictionary_index_for_write(const std::string &index);
+    const std::map<utf8string, Cell> &dictionary();
+    Cell &dictionary_index_for_read(const utf8string &index);
+    Cell &dictionary_index_for_write(const utf8string &index);
 
 private:
     enum {
@@ -47,9 +48,9 @@ private:
     Cell *address_value;
     bool boolean_value;
     Number number_value;
-    std::shared_ptr<std::string> string_ptr;
+    std::shared_ptr<utf8string> string_ptr;
     std::shared_ptr<std::vector<Cell>> array_ptr;
-    std::shared_ptr<std::map<std::string, Cell>> dictionary_ptr;
+    std::shared_ptr<std::map<utf8string, Cell>> dictionary_ptr;
 };
 
 #endif

@@ -3,12 +3,13 @@
 #include <vector>
 
 #include "number.h"
+#include "utf8string.h"
 
-static std::vector<std::string> g_argv;
+static std::vector<utf8string> g_argv;
 
 namespace rtl {
 
-std::vector<std::string> sys$argv()
+std::vector<utf8string> sys$argv()
 {
     return g_argv;
 }
