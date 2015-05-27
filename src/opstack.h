@@ -5,6 +5,7 @@
 
 template <typename T> class opstack {
 public:
+    opstack(): a() {}
     void drop(size_t n) { a.resize(a.size() - n); }
     bool empty() { return a.empty(); }
     T &peek(size_t n) { return a.at(a.size() - 1 - n); }
