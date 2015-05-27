@@ -1,5 +1,8 @@
+#define __STDC_LIMIT_MACROS // for SIZE_MAX, see https://stackoverflow.com/questions/30472731/which-c-standard-header-defines-size-max
+
 #include "rtl_exec.h"
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string>
 
