@@ -127,7 +127,8 @@ class Executor;
 
 class Module {
 public:
-    Module(const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support);
+    Module(const std::string &name, const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support);
+    const std::string name;
     Bytecode object;
     const DebugInfo *debug;
     std::vector<Cell> globals;
@@ -249,12 +250,13 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     callstack(),
     frames()
 {
-    module = new Module(Bytecode(bytes), debuginfo, this, support);
+    module = new Module(source_path, Bytecode(bytes), debuginfo, this, support);
     modules[""] = module;
 }
 
-Module::Module(const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support)
-  : object(object),
+Module::Module(const std::string &name, const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support)
+  : name(name),
+    object(object),
     debug(debuginfo),
     globals(object.global_size),
     rtl_call_tokens(object.strtable.size(), SIZE_MAX),
@@ -273,7 +275,7 @@ Module::Module(const Bytecode &object, const DebugInfo *debuginfo, Executor *exe
         // TODO: check hash of exports
         executor->init_order.push_back(name);
         executor->modules[name] = nullptr; // Prevent unwanted recursion.
-        executor->modules[name] = new Module(code, nullptr, executor, support);
+        executor->modules[name] = new Module(name, code, nullptr, executor, support);
     }
 }
 
@@ -1156,7 +1158,7 @@ void Executor::exec()
     exec_RET();
 
     while (not callstack.empty() && ip < module->object.code.size()) {
-        //std::cerr << "ip " << ip << " op " << (int)module->object.code[ip] << "\n";
+        //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << "\n";
         auto last_module = module;
         auto last_ip = ip;
         switch (static_cast<Opcode>(module->object.code[ip])) {
