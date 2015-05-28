@@ -945,9 +945,8 @@ void ChainedComparisonExpression::generate(Emitter &emitter) const
             emitter.emit(DUPX1);
         }
         c->generate_comparison_opcode(emitter);
-        emitter.emit_jump(JFCHAIN, skip_label);
         if (not last) {
-            emitter.emit(DROP);
+            emitter.emit_jump(JFCHAIN, skip_label);
         }
         i++;
     }

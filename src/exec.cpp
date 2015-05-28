@@ -900,8 +900,8 @@ void Executor::exec_JFCHAIN()
     if (not a.boolean()) {
         ip = target;
         stack.pop();
+        stack.push(a);
     }
-    stack.push(a);
 }
 
 void Executor::exec_DUP()
