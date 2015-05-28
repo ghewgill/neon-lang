@@ -1158,7 +1158,7 @@ void Executor::exec()
     exec_RET();
 
     while (not callstack.empty() && ip < module->object.code.size()) {
-        //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << "\n";
+        //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << " st " << stack.depth() << "\n";
         auto last_module = module;
         auto last_ip = ip;
         switch (static_cast<Opcode>(module->object.code[ip])) {
