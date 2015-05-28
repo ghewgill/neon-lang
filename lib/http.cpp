@@ -28,6 +28,7 @@ std::string http$get(const std::string &url, std::vector<utf8string> *headers)
     std::string data;
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_callback);
