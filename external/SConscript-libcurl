@@ -4,6 +4,8 @@ import tarfile
 
 Import("env")
 
+libcurl = None
+
 curlenv = Environment()
 
 if not os.path.exists("curl-7.41.0/configure"):
@@ -15,10 +17,13 @@ if sys.platform == "win32":
     env.Append(CPPFLAGS=["-DCURL_STATICLIB"])
     curlenv.Append(CPPFLAGS=["-DCURL_STATICLIB"])
     libcurl = curlenv.Command("curl-7.41.0/lib/libcurl.lib", "curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG=release MACHINE=x64 RTLIBCFG=static")
+    env.Append(CPPPATH=["external/curl-7.41.0/include"])
     env.Append(LIBS=["ws2_32"])
 else:
-    libcurl = curlenv.Command("curl-7.41.0/lib/.libs/libcurl.a", "curl-7.41.0/configure", "cd external/curl-7.41.0 && ./configure --disable-ares --disable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-manual --disable-ipv6 --disable-threaded-resolver --disable-sspi --disable-crypto-auth --disable-ntlm-wb --disable-tls-srp --disable-unix-sockets --disable-cookies --disable-soname-bump --without-zlib --without-winssl --without-darwinssl --without-ssl --without-gnutls --without-polarssl --without-cyassl --without-nss --without-axtls --without-libmetalink --without-libssh2 --without-librtmp --without-winidn --without-libidn --without-nghttp2 && make")
-
-env.Append(CPPPATH=["external/curl-7.41.0/include"])
+    conf = Configure(env)
+    if not conf.CheckLibWithHeader("curl", "curl/curl.h", "c"):
+        libcurl = curlenv.Command("curl-7.41.0/lib/.libs/libcurl.a", "curl-7.41.0/configure", "cd external/curl-7.41.0 && ./configure --disable-ares --disable-ftp --disable-file --disable-ldap --disable-ldaps --disable-rtsp --disable-proxy --disable-dict --disable-telnet --disable-tftp --disable-pop3 --disable-imap --disable-smb --disable-smtp --disable-gopher --disable-manual --disable-ipv6 --disable-threaded-resolver --disable-sspi --disable-crypto-auth --disable-ntlm-wb --disable-tls-srp --disable-unix-sockets --disable-cookies --disable-soname-bump --without-zlib --without-winssl --without-darwinssl --without-ssl --without-gnutls --without-polarssl --without-cyassl --without-nss --without-axtls --without-libmetalink --without-libssh2 --without-librtmp --without-winidn --without-libidn --without-nghttp2 && make")
+        env.Append(CPPPATH=["external/curl-7.41.0/include"])
+    conf.Finish()
 
 Return(["libcurl"])

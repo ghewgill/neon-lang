@@ -4,6 +4,8 @@ import tarfile
 
 Import("env")
 
+liblzma = None
+
 lzmaenv = Environment()
 
 if not os.path.exists("xz-5.2.1/configure"):
@@ -88,9 +90,12 @@ if sys.platform == "win32":
         "xz-5.2.1/src/liblzma/simple/sparc.c",
         "xz-5.2.1/src/liblzma/simple/x86.c",
     ])
+    env.Append(CPPPATH=["external/xz-5.2.1/src/liblzma/api"])
 else:
-    liblzma = lzmaenv.Command("xz-5.2.1/src/liblzma/.libs/liblzma.a", "xz-5.2.1/configure", "cd external/xz-5.2.1 && ./configure && make")
-
-env.Append(CPPPATH=["external/xz-5.2.1/src/liblzma/api"])
+    conf = Configure(env)
+    if not conf.CheckLibWithHeader("lzma", "lzma.h", "c"):
+        liblzma = lzmaenv.Command("xz-5.2.1/src/liblzma/.libs/liblzma.a", "xz-5.2.1/configure", "cd external/xz-5.2.1 && ./configure && make")
+        env.Append(CPPPATH=["external/xz-5.2.1/src/liblzma/api"])
+    conf.Finish()
 
 Return(["liblzma"])

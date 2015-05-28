@@ -4,6 +4,8 @@ import tarfile
 
 Import("env")
 
+libs_curses = []
+
 cursesenv = Environment()
 
 if sys.platform == "win32":
@@ -13,6 +15,10 @@ if sys.platform == "win32":
     libs_curses.extend(["advapi32", "user32"])
     env.Append(CPPPATH=["external/PDCurses-3.4"])
 else:
-    libs_curses = ["ncurses"]
+    conf = Configure(env)
+    if not conf.CheckLibWithHeader("ncurses", "curses.h", "c"):
+        print "Could not find ncurses library"
+        Exit(1)
+    conf.Finish()
 
 Return(["libs_curses"])

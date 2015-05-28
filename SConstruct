@@ -63,7 +63,10 @@ else:
         "-Werror",
         "-g",
     ])
-env.Append(LIBS=[libbid, libffi, libpcre, libcurl, libhash, libsqlite, libz, libbz2, liblzma] + libs_curses)
+for lib in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libz, libbz2, liblzma]:
+    if lib is not None:
+        env.Append(LIBS=[lib])
+env.Append(LIBS=libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
