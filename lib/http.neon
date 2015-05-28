@@ -1,1 +1,1 @@
-DECLARE NATIVE FUNCTION get(url: String, OUT headers: Array<String>): String
+DECLARE NATIVE FUNCTION get(url: String, INOUT headers: Array<String>): String

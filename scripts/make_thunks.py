@@ -19,7 +19,7 @@ AstFromNeon = {
     "Array": ("TYPE_GENERIC", VALUE),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
     "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
-    "OUT Array<String>": ("TYPE_ARRAY_STRING", REF),
+    "INOUT Array<String>": ("TYPE_ARRAY_STRING", REF),
     "Dictionary": ("TYPE_GENERIC", VALUE),
 }
 
