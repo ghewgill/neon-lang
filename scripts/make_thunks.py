@@ -19,6 +19,7 @@ AstFromNeon = {
     "Array": ("TYPE_GENERIC", VALUE),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
     "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
+    "OUT Array<String>": ("TYPE_ARRAY_STRING", REF),
     "Dictionary": ("TYPE_GENERIC", VALUE),
 }
 
@@ -38,6 +39,7 @@ CppFromAstParam = {
     ("TYPE_BYTES", REF): "utf8string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
+    ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string>",
 }
 
 CppFromAstReturn = {
@@ -56,6 +58,7 @@ CppFromAstReturn = {
     ("TYPE_BYTES", REF): "std::string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
+    ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string> *",
 }
 
 CppFromAstArg = {
@@ -73,6 +76,7 @@ CppFromAstArg = {
     ("TYPE_BYTES", REF): "utf8string *",
     ("TYPE_ARRAY_NUMBER", VALUE): "const std::vector<Number> &",
     ("TYPE_ARRAY_STRING", VALUE): "const std::vector<utf8string> &",
+    ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string> *",
 }
 
 CellField = {
@@ -88,11 +92,13 @@ CellField = {
     ("TYPE_BYTES", REF): "address()->string_for_write()",
     ("TYPE_ARRAY_NUMBER", VALUE): "array()",
     ("TYPE_ARRAY_STRING", VALUE): "array()",
+    ("TYPE_ARRAY_STRING", REF): "array()",
 }
 
 ArrayElementField = {
     ("TYPE_ARRAY_NUMBER", VALUE): "number()",
     ("TYPE_ARRAY_STRING", VALUE): "string()",
+    ("TYPE_ARRAY_STRING", REF): "string()",
 }
 
 def parse_params(paramstr):
@@ -179,9 +185,13 @@ with open("src/thunks.inc", "w") as inc:
         print >>inc, "{"
         for i, a in reversed(list(enumerate(params))):
             d = len(params) - 1 - i
-            if a[0].startswith("TYPE_ARRAY_"):
+            if a[0].startswith("TYPE_ARRAY_") and a[1] == VALUE:
                 print >>inc, "    {} a{};".format(CppFromAstParam[a], i)
                 print >>inc, "    for (auto x: stack.peek({}).array()) a{}.push_back(x.{});".format(d, i, ArrayElementField[a])
+            elif a[0].startswith("TYPE_ARRAY_") and a[1] == REF:
+                print >>inc, "    {} t{};".format(CppFromAstParam[a], i)
+                print >>inc, "    for (auto x: stack.peek({}).address()->array()) t{}.push_back(x.{});".format(d, i, ArrayElementField[a])
+                print >>inc, "    {} *a{} = &t{};".format(CppFromAstParam[a], i, i)
             elif a == ("TYPE_GENERIC", VALUE):
                 print >>inc, "    {} a{} = stack.peek({});".format(CppFromAstParam[a], i, d)
             elif a == ("TYPE_GENERIC", REF):
@@ -192,6 +202,11 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "    {} a{} = stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a])
         print >>inc, "    try {"
         print >>inc, "        {}reinterpret_cast<{} (*)({})>(func)({});".format("auto r = " if rtype[0] != "TYPE_NOTHING" else "", CppFromAstReturn[rtype], ",".join(CppFromAstArg[x] for x in params), ",".join("a{}".format(x) for x in range(len(params))))
+        for i, a in reversed(list(enumerate(params))):
+            d = len(params) - 1 - i
+            if a[0].startswith("TYPE_ARRAY_") and a[1] == REF:
+                print >>inc, "        stack.peek({}).address()->array_for_write().clear();".format(d)
+                print >>inc, "        for (auto x: t{}) stack.peek({}).address()->array_for_write().push_back(Cell(x));".format(i, d)
         if params:
             print >>inc, "        stack.drop({});".format(len(params))
         if rtype[0] != "TYPE_NOTHING":

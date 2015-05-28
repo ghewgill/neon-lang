@@ -28,6 +28,7 @@ public:
     const utf8string &string();
     utf8string &string_for_write();
     const std::vector<Cell> &array();
+    std::vector<Cell> &array_for_write();
     Cell &array_index_for_read(size_t i);
     Cell &array_index_for_write(size_t i);
     const std::map<utf8string, Cell> &dictionary();

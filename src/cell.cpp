@@ -198,6 +198,21 @@ const std::vector<Cell> &Cell::array()
     return *array_ptr;
 }
 
+std::vector<Cell> &Cell::array_for_write()
+{
+    if (type == cNone) {
+        type = cArray;
+    }
+    assert(type == cArray);
+    if (not array_ptr) {
+        array_ptr = std::make_shared<std::vector<Cell>>();
+    }
+    if (not array_ptr.unique()) {
+        array_ptr = std::make_shared<std::vector<Cell>>(*array_ptr);
+    }
+    return *array_ptr;
+}
+
 Cell &Cell::array_index_for_read(size_t i)
 {
     if (not array_ptr) {
