@@ -1263,6 +1263,7 @@ const Statement *Parser::parseExitStatement()
     if (type != FUNCTION
      && type != WHILE
      && type != FOR
+     && type != FOREACH
      && type != LOOP
      && type != REPEAT) {
         error_a(2052, tokens[i-1], tokens[i], "loop type expected");
@@ -1278,6 +1279,7 @@ const Statement *Parser::parseNextStatement()
     TokenType type = tokens[i].type;
     if (type != WHILE
      && type != FOR
+     && type != FOREACH
      && type != LOOP
      && type != REPEAT) {
         error_a(2054, tokens[i-1], tokens[i], "loop type expected");
