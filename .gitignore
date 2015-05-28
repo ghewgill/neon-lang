@@ -1,4 +1,6 @@
 .sconsign.dblite
+.sconf_temp/
+config.log
 *.inc
 *.o
 *.os
