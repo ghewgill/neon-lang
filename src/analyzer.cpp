@@ -1357,6 +1357,34 @@ const Expression *Analyzer::analyze(const pt::ConjunctionExpression *expr)
 
 const Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
 {
+    // This is a pretty long-winded way of identifying common tautological
+    // expressions of the form:
+    //  a # "x" OR a # "y"
+    // The following only works for expressions like the above where:
+    //  - the identifier ("a") is a simple identifier
+    //  - both # expressions are in the above order
+    //  - it's actually an OR expression
+    // A more general purpose and cleaner implementation would be welcome.
+    const pt::ComparisonExpression *lne = dynamic_cast<const pt::ComparisonExpression *>(expr->left);
+    const pt::ComparisonExpression *rne = dynamic_cast<const pt::ComparisonExpression *>(expr->right);
+    if (lne != nullptr && rne != nullptr && lne->comp == pt::ComparisonExpression::NE && rne->comp == pt::ComparisonExpression::NE) {
+        const pt::IdentifierExpression *lid = dynamic_cast<const pt::IdentifierExpression *>(lne->left);
+        const pt::IdentifierExpression *rid = dynamic_cast<const pt::IdentifierExpression *>(rne->left);
+        if (lid != nullptr && rid != nullptr && lid->name == rid->name) {
+            const pt::BooleanLiteralExpression *lble = dynamic_cast<const pt::BooleanLiteralExpression *>(lne->right);
+            const pt::BooleanLiteralExpression *rble = dynamic_cast<const pt::BooleanLiteralExpression *>(rne->right);
+            const pt::NumberLiteralExpression *lnle = dynamic_cast<const pt::NumberLiteralExpression *>(lne->right);
+            const pt::NumberLiteralExpression *rnle = dynamic_cast<const pt::NumberLiteralExpression *>(rne->right);
+            const pt::StringLiteralExpression *lsle = dynamic_cast<const pt::StringLiteralExpression *>(lne->right);
+            const pt::StringLiteralExpression *rsle = dynamic_cast<const pt::StringLiteralExpression *>(rne->right);
+            if ((lble != nullptr && rble != nullptr && lble->value != rble->value)
+             || (lnle != nullptr && rnle != nullptr && number_is_not_equal(lnle->value, rnle->value))
+             || (lsle != nullptr && rsle != nullptr && lsle->value != rsle->value)) {
+                error(3172, expr->token, "boolean expression is always false");
+            }
+        }
+    }
+
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
     if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
