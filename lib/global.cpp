@@ -11,6 +11,11 @@
 
 namespace rtl {
 
+void array__append(Cell *self, Cell &element)
+{
+    self->array_for_write().push_back(element);
+}
+
 Number array__size(Cell &self)
 {
     return number_from_uint64(self.array().size());

@@ -58,7 +58,7 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
                 IF json[index] = "]" THEN
                     EXIT LOOP
                 END IF
-                a[a.size()] := decode_part(json, index)
+                a.append(decode_part(json, index))
                 skip_whitespace(json, index)
                 IF json[index] = "," THEN
                     inc(index)

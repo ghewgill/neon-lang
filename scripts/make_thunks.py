@@ -8,6 +8,7 @@ REF = "REF"
 AstFromNeon = {
     None: ("TYPE_NOTHING", VALUE),
     "POINTER": ("TYPE_POINTER", VALUE),
+    "Cell": ("TYPE_GENERIC", VALUE),
     "Boolean": ("TYPE_BOOLEAN", VALUE),
     "Number": ("TYPE_NUMBER", VALUE),
     "INOUT Number": ("TYPE_NUMBER", REF),
@@ -17,6 +18,7 @@ AstFromNeon = {
     "Bytes": ("TYPE_BYTES", VALUE),
     "INOUT Bytes": ("TYPE_BYTES", REF),
     "Array": ("TYPE_GENERIC", VALUE),
+    "INOUT Array": ("TYPE_GENERIC", REF),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
     "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
     "INOUT Array<String>": ("TYPE_ARRAY_STRING", REF),
