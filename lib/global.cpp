@@ -16,6 +16,11 @@ void array__append(Cell *self, Cell &element)
     self->array_for_write().push_back(element);
 }
 
+void array__extend(Cell *self, Cell &elements)
+{
+    std::copy(elements.array().begin(), elements.array().end(), std::back_inserter(self->array_for_write()));
+}
+
 Number array__size(Cell &self)
 {
     return number_from_uint64(self.array().size());
