@@ -1360,7 +1360,7 @@ const Statement *Parser::parseRaiseStatement()
     }
     const Expression *info = nullptr;
     if (tokens[i].type == LPAREN) {
-        info = parseExpression();
+        info = parseFunctionCall(new IdentifierExpression(Token(), "ExceptionInfo"));
     } else {
         info = nullptr;
     }

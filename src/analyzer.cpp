@@ -2560,7 +2560,13 @@ const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
     if (exception == nullptr) {
         error2(3090, statement->name.second, name->declaration, "name not an exception");
     }
-    const Expression *info = statement->info != nullptr ? analyze(statement->info) : new ConstantStringExpression("");
+    const Expression *info;
+    if (statement->info != nullptr) {
+        info = analyze(statement->info);
+    } else {
+        std::vector<const Expression *> values;
+        info = new RecordLiteralExpression(dynamic_cast<const TypeRecord *>(s->lookupName("ExceptionInfo")->type), values);
+    }
     return new RaiseStatement(statement->token.line, exception, info);
 }
 

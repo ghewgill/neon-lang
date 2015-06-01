@@ -11,5 +11,5 @@ print(CURRENT_EXCEPTION.name)
 
 %= PrinterOnFire
 %= A4
-%= 5
+%= 10
 %=

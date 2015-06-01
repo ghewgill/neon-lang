@@ -123,6 +123,16 @@ public:
     std::vector<Cell> locals;
 };
 
+// The fields here must match the declaration of
+// ExceptionInfo in ast.cpp.
+class ExceptionInfo {
+public:
+    ExceptionInfo(): info(""), code(number_from_uint32(0)) {}
+    explicit ExceptionInfo(const utf8string &info): info(info), code(number_from_uint32(0)) {}
+    utf8string info;
+    Number code;
+};
+
 class Executor;
 
 class Module {
@@ -232,7 +242,7 @@ private:
     void exec_ALLOC();
     void exec_PUSHNIL();
 
-    void raise(const utf8string &exception, const utf8string &info);
+    void raise(const utf8string &exception, const ExceptionInfo &info);
 
     friend class Module;
 private:
@@ -489,7 +499,7 @@ void Executor::exec_DIVN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise("DivideByZero", "");
+        raise("DivideByZero", ExceptionInfo(""));
         return;
     }
     stack.push(Cell(number_divide(a, b)));
@@ -501,7 +511,7 @@ void Executor::exec_MODN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise("DivideByZero", "");
+        raise("DivideByZero", ExceptionInfo(""));
         return;
     }
     stack.push(Cell(number_modulo(a, b)));
@@ -704,15 +714,15 @@ void Executor::exec_INDEXAR()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise("ArrayIndex", number_to_string(index));
+        raise("ArrayIndex", ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise("ArrayIndex", std::to_string(i));
+        raise("ArrayIndex", ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= addr->array().size()) {
-        raise("ArrayIndex", std::to_string(j));
+        raise("ArrayIndex", ExceptionInfo(std::to_string(j)));
         return;
     }
     stack.push(Cell(&addr->array_index_for_read(j)));
@@ -724,11 +734,11 @@ void Executor::exec_INDEXAW()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise("ArrayIndex", number_to_string(index));
+        raise("ArrayIndex", ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise("ArrayIndex", std::to_string(i));
+        raise("ArrayIndex", ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     stack.push(Cell(&addr->array_index_for_write(j)));
@@ -740,15 +750,15 @@ void Executor::exec_INDEXAV()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise("ArrayIndex", number_to_string(index));
+        raise("ArrayIndex", ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise("ArrayIndex", std::to_string(i));
+        raise("ArrayIndex", ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= array.size()) {
-        raise("ArrayIndex", std::to_string(j));
+        raise("ArrayIndex", ExceptionInfo(std::to_string(j)));
         return;
     }
     assert(j < array.size());
@@ -763,11 +773,11 @@ void Executor::exec_INDEXAN()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise("ArrayIndex", number_to_string(index));
+        raise("ArrayIndex", ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise("ArrayIndex", std::to_string(i));
+        raise("ArrayIndex", ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     Cell val = j < array.size() ? array.at(j) : Cell();
@@ -782,7 +792,7 @@ void Executor::exec_INDEXDR()
     Cell *addr = stack.top().address(); stack.pop();
     auto e = addr->dictionary().find(index);
     if (e == addr->dictionary().end()) {
-        raise("DictionaryIndex", index);
+        raise("DictionaryIndex", ExceptionInfo(index));
         return;
     }
     stack.push(Cell(&addr->dictionary_index_for_read(index)));
@@ -803,7 +813,7 @@ void Executor::exec_INDEXDV()
     const std::map<utf8string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
-        raise("DictionaryIndex", index);
+        raise("DictionaryIndex", ExceptionInfo(index));
         return;
     }
     Cell val = e->second;
@@ -836,7 +846,7 @@ void Executor::exec_CALLP()
         rtl_call(stack, func, module->rtl_call_tokens[val]);
     } catch (RtlException &x) {
         ip -= 5;
-        raise(x.name, x.info);
+        raise(x.name, ExceptionInfo(x.info));
     }
 }
 
@@ -949,7 +959,7 @@ void Executor::exec_CALLE()
         std::string exception;
         eci->fp = rtl_external_function(library, name, exception);
         if (eci->fp == nullptr) {
-            raise(exception, "TODO");
+            raise(exception, ExceptionInfo("TODO"));
             return;
         }
         for (auto p: params) {
@@ -1045,9 +1055,16 @@ void Executor::exec_CONSD()
 
 void Executor::exec_EXCEPT()
 {
-    utf8string info = stack.top().string(); stack.pop();
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    raise(module->object.strtable[val], info);
+    std::vector<Cell> info = stack.top().array(); stack.pop();
+    ExceptionInfo ei;
+    if (info.size() >= 1) {
+        ei.info = info[0].string();
+    }
+    if (info.size() >= 2) {
+        ei.code = info[1].number();
+    }
+    raise(module->object.strtable[val], ei);
 }
 
 void Executor::exec_CLREXC()
@@ -1058,6 +1075,7 @@ void Executor::exec_CLREXC()
     module->globals[0].array_index_for_write(0) = Cell("");
     module->globals[0].array_index_for_write(1) = Cell("");
     module->globals[0].array_index_for_write(2) = Cell(number_from_uint32(0));
+    module->globals[0].array_index_for_write(3) = Cell(number_from_uint32(0));
 }
 
 void Executor::exec_ALLOC()
@@ -1073,13 +1091,14 @@ void Executor::exec_PUSHNIL()
     stack.push(Cell(static_cast<Cell *>(nullptr)));
 }
 
-void Executor::raise(const utf8string &exception, const utf8string &info)
+void Executor::raise(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
     module->globals[0].array_index_for_write(0) = Cell(exception);
-    module->globals[0].array_index_for_write(1) = Cell(info);
-    module->globals[0].array_index_for_write(2) = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
+    module->globals[0].array_index_for_write(1) = Cell(info.info);
+    module->globals[0].array_index_for_write(2) = Cell(info.code);
+    module->globals[0].array_index_for_write(3) = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
     auto tmodule = module;
     auto tip = ip;
@@ -1101,7 +1120,7 @@ void Executor::raise(const utf8string &exception, const utf8string &info)
         tip = callstack[sp].second;
     }
 
-    fprintf(stderr, "Unhandled exception %s (%s)\n", exception.c_str(), info.c_str());
+    fprintf(stderr, "Unhandled exception %s (%s)\n", exception.c_str(), info.info.c_str());
     while (ip < module->object.code.size()) {
         if (module->debug != nullptr) {
             auto line = module->debug->line_numbers.end();
@@ -1142,7 +1161,7 @@ void Executor::exec()
     // ExceptionType in ast.cpp.
     // TODO: Should be only one instance of the current exception object.
     for (auto m: modules) {
-        m.second->globals[0].array_index_for_write(2);
+        m.second->globals[0].array_index_for_write(3);
     }
 
     callstack.push_back(std::make_pair(module, module->object.code.size()));

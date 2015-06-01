@@ -589,10 +589,20 @@ Program::Program(const std::string &source_hash)
 
     {
         // The fields here must match the corresponding references to
+        // ExceptionInfo in exec.cpp.
+        std::vector<TypeRecord::Field> fields;
+        fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
+        fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
+        Type *exception_info = new TypeRecord(Token(), "ExceptionInfo", fields);
+        scope->addName(Token(), "ExceptionInfo", exception_info, true);
+    }
+    {
+        // The fields here must match the corresponding references to
         // ExceptionType in exec.cpp.
         std::vector<TypeRecord::Field> fields;
         fields.push_back(TypeRecord::Field(Token("name"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
+        fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
         Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
         scope->addName(Token(), "ExceptionType", exception_type, true);
