@@ -1,6 +1,7 @@
 EXPORT BigInt
 EXPORT ZERO
 EXPORT ONE
+EXPORT TWO
 EXPORT make
 EXPORT make_from_string
 EXPORT abs
@@ -30,6 +31,7 @@ END RECORD
 % TODO: Make these constants
 LET ZERO: BigInt := BigInt(1, [0])
 LET ONE: BigInt := BigInt(1, [1])
+LET TWO: BigInt := BigInt(1, [2])
 
 FUNCTION normalise(INOUT r: BigInt)
     WHILE r.digits.size() >= 2 AND r.digits[LAST] = 0 DO
