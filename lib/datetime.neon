@@ -5,6 +5,7 @@ EXPORT Period
 EXPORT Duration
 EXPORT now
 EXPORT make_from_instant
+EXPORT make_from_parts
 
 IMPORT math
 IMPORT time
@@ -39,6 +40,7 @@ TYPE DateTime := RECORD
     year: Number
     month: Number
     day: Number
+    weekday: Number
     hour: Number
     minute: Number
     second: Number
@@ -86,6 +88,7 @@ FUNCTION make_from_instant(inst: Instant): DateTime
         year AS 1900 + tm.tm_year,
         month AS 1 + tm.tm_mon,
         day AS tm.tm_mday,
+        weekday AS 1 + tm.tm_wday,
         hour AS tm.tm_hour,
         minute AS tm.tm_min,
         second AS tm.tm_sec
