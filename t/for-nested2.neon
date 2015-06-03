@@ -1,0 +1,10 @@
+FOR x := 10 TO 11 DO
+    FOR y := 1 TO 2 DO
+        print("\(x) \(y)")
+    END FOR
+END FOR
+
+%= 10 1
+%= 10 2
+%= 11 1
+%= 11 2

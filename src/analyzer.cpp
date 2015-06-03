@@ -2363,9 +2363,9 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     var->is_readonly = true;
     Variable *bound;
     if (frame.top() == global_frame) {
-        bound = new GlobalVariable(Token(), "", TYPE_NUMBER, false);
+        bound = new GlobalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, false);
     } else {
-        bound = new LocalVariable(Token(), "", TYPE_NUMBER, false);
+        bound = new LocalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, false);
     }
     // TODO: Need better way of declaring unnamed local variable.
     scope.top()->addName(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
