@@ -76,7 +76,7 @@ if sys.platform.startswith("linux"):
 # (GCC does not support 'override' before 4.7, but
 # it supports everything else we need.)
 try:
-    ver = subprocess.check_output([env["CXX"], "--version"])
+    ver = subprocess.check_output([env.subst("$CXX"), "--version"])
     if ver.startswith("g++"):
         ver = ver.split("\n")[0]
         ver = re.sub(r"\(.*?\)", "", ver)
@@ -84,7 +84,6 @@ try:
         if ver < 4.7:
             env.Append(CXXFLAGS=["-Doverride="])
 except Exception as x:
-    print x
     pass
 
 if coverage:
