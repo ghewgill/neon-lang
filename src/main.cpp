@@ -33,41 +33,6 @@ static const Program *dump(const Program *program)
     return program;
 }
 
-static void repl(int argc, char *argv[])
-{
-    CompilerSupport compiler_support("");
-    RuntimeSupport runtime_support("");
-    std::cout << "Neon 0.1\n";
-    std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
-    for (;;) {
-        std::cout << "> ";
-        std::string s;
-        if (not std::getline(std::cin, s)) {
-            std::cout << std::endl;
-            break;
-        }
-        if (s == "help") {
-            std::cout << "\n";
-            std::cout << "Welcome to Neon 0.1!\n";
-            std::cout << "\n";
-            std::cout << "See https://github.com/ghewgill/neon-lang for information.\n";
-        } else if (s == "exit" || s == "quit") {
-            exit(0);
-        } else {
-            try {
-                auto parsetree = parse(tokenize("", s));
-                auto ast = analyze(&compiler_support, parsetree);
-                DebugInfo debug("-", s);
-                auto bytecode = compile(ast, &debug);
-                exec("-", bytecode, &debug, &runtime_support, argc, argv);
-            } catch (CompilerError &error) {
-                error.write(std::cerr);
-            }
-        }
-    }
-    exit(0);
-}
-
 int main(int argc, char *argv[])
 {
     bool dump_tokens = false;
@@ -75,13 +40,9 @@ int main(int argc, char *argv[])
     bool dump_ast = false;
     bool dump_bytecode = false;
 
-    if (argc < 1) {
+    if (argc < 2) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
         exit(1);
-    }
-
-    if (argc < 2) {
-        repl(argc, argv);
     }
 
     int a = 1;
