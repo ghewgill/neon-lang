@@ -69,6 +69,10 @@ int main(int argc, char *argv[])
             source_path = name.substr(0, i+1);
         }
         std::ifstream inf(name);
+        if (not inf) {
+            fprintf(stderr, "Source file not found: %s\n", name.c_str());
+            exit(1);
+        }
         buf << inf.rdbuf();
     }
 
