@@ -9,13 +9,15 @@ print(string.join(["hello", "world"], " "))
 print(string.lower("Hello World"))
 %= hello world
 
-LET a: Array<String> := string.split("Hello World", " ")
+LET a: Array<String> := string.split("Hello World Everybody", " ")
 print("\(a.size())")
-%= 2
+%= 3
 print(a[0])
 %= Hello
 print(a[1])
 %= World
+print(a[2])
+%= Everybody
 
 print(string.trim("  Hello World  "))
 %= Hello World

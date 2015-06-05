@@ -46,7 +46,7 @@ std::vector<utf8string> string$split(const std::string &s, const std::string &d)
             r.push_back(s.substr(i));
             break;
         } else if (nd > i) {
-            r.push_back(s.substr(i, nd));
+            r.push_back(s.substr(i, nd-i));
         }
         i = nd + d.length();
     }
