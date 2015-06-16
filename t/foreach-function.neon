@@ -1,4 +1,4 @@
-% TODO
+% TODO SKIP (crashes on windows)
 
 LET d: Dictionary<Number> := {"abc": 12}
 FOREACH x OF d.keys() DO
