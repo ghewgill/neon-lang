@@ -92,7 +92,6 @@ if coverage:
     ])
 
 rtl_const = [
-    "lib/math_const.cpp",
 ]
 
 rtl_cpp = rtl_const + [

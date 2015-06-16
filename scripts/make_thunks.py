@@ -239,7 +239,7 @@ with open("src/constants_compile.inc", "w") as inc:
         if "$" not in name:
             print >>inc, "    scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(name, name, init)
     print >>inc, "}";
-    print >>inc, "static void init_builtin_constants(const std::string &module, Scope *scope)"
+    print >>inc, "static void init_builtin_constants(const std::string &{}, Scope *{})".format("module" if any("$" in x[0] for x in constants.values()) else "", "scope" if any("$" in x[0] for x in constants.values()) else "")
     print >>inc, "{"
     for name, ctype, init in constants.values():
         i = name.index("$")
