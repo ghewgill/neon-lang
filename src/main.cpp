@@ -48,7 +48,13 @@ int main(int argc, char *argv[])
     int a = 1;
     while (a < argc && argv[a][0] == '-' && argv[a][1] != '\0') {
         std::string arg = argv[a];
-        if (arg == "-d") {
+        if (arg == "-c") {
+            if (argv[a+1] == NULL) {
+                fprintf(stderr, "%s: -c requires argument\n", argv[0]);
+                exit(1);
+            }
+            break;
+        } else if (arg == "-d") {
             dump_bytecode = true;
         } else {
             fprintf(stderr, "Unknown option: %s\n", arg.c_str());
@@ -63,6 +69,8 @@ int main(int argc, char *argv[])
     std::stringstream buf;
     if (name == "-") {
         buf << std::cin.rdbuf();
+    } else if (name == "-c") {
+        buf << argv[a+1];
     } else {
         auto i = name.find_last_of("/:\\");
         if (i != std::string::npos) {
