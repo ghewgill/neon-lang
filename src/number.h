@@ -25,10 +25,10 @@
 #endif
 
 struct Number {
-    Number(): x(bid64_from_uint32(0)) {}
-    BID_UINT64 x;
+    Number(): x(bid128_from_uint32(0)) {}
+    BID_UINT128 x;
 private:
-    Number(BID_UINT64 x): x(x) {}
+    Number(BID_UINT128 x): x(x) {}
 
     friend Number number_add(Number x, Number y);
     friend Number number_subtract(Number x, Number y);
