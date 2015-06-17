@@ -7,7 +7,8 @@
 
 int main()
 {
-    std::mt19937_64 r;
+    std::random_device rd;
+    std::mt19937_64 r(rd());
     for (int i = 0; i < 100000; i++) {
         Number n;
         n.x = r();
