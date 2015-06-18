@@ -69,8 +69,8 @@ int main(int argc, char *argv[])
                 outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
             }
 
-        } catch (CompilerError &error) {
-            error.write(std::cerr);
+        } catch (CompilerError *error) {
+            error->write(std::cerr);
             if (not ignore_errors) {
                 exit(1);
             }

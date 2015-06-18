@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         }
         try {
             tokenize("", buf);
-        } catch (SourceError &) {
+        } catch (SourceError *) {
             // ignore
         } catch (...) {
             fprintf(stderr, "fail: %s\n", buf);

@@ -115,8 +115,8 @@ int main(int argc, char *argv[])
                 disassemble(bytecode, std::cerr, &debug);
             }
 
-        } catch (CompilerError &error) {
-            error.write(std::cerr);
+        } catch (CompilerError *error) {
+            error->write(std::cerr);
             exit(1);
         }
 
