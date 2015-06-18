@@ -8,6 +8,7 @@
 #include <map>
 #include <sstream>
 #include <stdlib.h>
+#include <string.h>
 
 #include <ffi.h>
 
@@ -312,7 +313,8 @@ void Executor::exec_PUSHB()
 void Executor::exec_PUSHN()
 {
     // TODO: endian
-    Number val = *reinterpret_cast<const Number *>(&module->object.code[ip+1]);
+    Number val;
+    memcpy(&val, &module->object.code[ip+1], sizeof(Number));
     ip += 1 + sizeof(val);
     stack.push(Cell(val));
 }

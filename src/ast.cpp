@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iso646.h>
 #include <sstream>
+#include <string.h>
 
 #include "rtl_compile.h"
 
@@ -43,7 +44,9 @@ std::string TypeNumber::serialize(const Expression *value) const
 
 const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
-    Number x = *reinterpret_cast<const Number *>(&value.at(i));
+    // TODO: endian
+    Number x;
+    memcpy(&x, &value.at(i), sizeof(Number));
     i += sizeof(Number);
     return new ConstantNumberExpression(x);
 }

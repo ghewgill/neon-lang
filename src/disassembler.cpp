@@ -4,6 +4,7 @@
 #include <ostream>
 #include <stdlib.h>
 #include <string>
+#include <string.h>
 
 #include "bytecode.h"
 #include "debuginfo.h"
@@ -134,7 +135,8 @@ void Disassembler::disasm_PUSHB()
 void Disassembler::disasm_PUSHN()
 {
     // TODO: endian
-    Number val = *reinterpret_cast<const Number *>(&obj.code[index+1]);
+    Number val;
+    memcpy(&val, &obj.code[index+1], sizeof(Number));
     index += 1 + sizeof(val);
     out << "PUSHN " << number_to_string(val) << "\n";
 }
@@ -616,7 +618,9 @@ std::string Disassembler::decode_value(const std::string &type, const Bytecode::
             return value.at(0) != 0 ? "TRUE" : "FALSE";
         }
         case 'N': {
-            Number x = *reinterpret_cast<const Number *>(&value.at(0));
+            // TODO: endian
+            Number x;
+            memcpy(&x, &value.at(0), sizeof(Number));
             return number_to_string(x);
         }
         case 'S': {
