@@ -9,11 +9,7 @@ IMPORT variant
 
 TYPE Type := ENUM
     bool
-    byte
-    short
     int
-    float
-    double
     string
 END ENUM
 
@@ -42,26 +38,7 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
             WHEN Type.bool DO
                 LET b: Boolean := values[self.fields[f].name].get_boolean()
                 buf.append(IF b THEN 1 ELSE 0)
-            WHEN Type.byte DO
-                LET n: Number := values[self.fields[f].name].get_number()
-                buf.append(bitwise.and(n, 0xff))
-            WHEN Type.short DO
-                LET n: Number := values[self.fields[f].name].get_number()
-                buf.append(bitwise.and(bitwise.shift_right(n, 8), 0xff))
-                buf.append(bitwise.and(n, 0xff))
             WHEN Type.int DO
-                LET n: Number := values[self.fields[f].name].get_number()
-                buf.append(bitwise.and(bitwise.shift_right(n, 24), 0xff))
-                buf.append(bitwise.and(bitwise.shift_right(n, 16), 0xff))
-                buf.append(bitwise.and(bitwise.shift_right(n, 8), 0xff))
-                buf.append(bitwise.and(n, 0xff))
-            WHEN Type.float DO
-                LET n: Number := values[self.fields[f].name].get_number()
-                buf.append(bitwise.and(bitwise.shift_right(n, 24), 0xff))
-                buf.append(bitwise.and(bitwise.shift_right(n, 16), 0xff))
-                buf.append(bitwise.and(bitwise.shift_right(n, 8), 0xff))
-                buf.append(bitwise.and(n, 0xff))
-            WHEN Type.double DO
                 LET n: Number := values[self.fields[f].name].get_number()
                 buf.append(bitwise.and(bitwise.shift_right(n, 24), 0xff))
                 buf.append(bitwise.and(bitwise.shift_right(n, 16), 0xff))
@@ -96,14 +73,6 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
             WHEN Type.bool DO
                 r[self.fields[f].name] := variant.make_boolean(a[i] # 0)
                 inc(i)
-            WHEN Type.byte DO
-                r[self.fields[f].name] := variant.make_number(a[i])
-                inc(i)
-            WHEN Type.short DO
-                r[self.fields[f].name] := variant.make_number(
-                    bitwise.shift_left(a[i  ],  8) +
-                    a[i+1])
-                i := i + 2
             WHEN Type.int DO
                 r[self.fields[f].name] := variant.make_number(
                     bitwise.shift_left(a[i  ], 24) +
