@@ -8,6 +8,7 @@
 #include <map>
 #include <sstream>
 #include <stdlib.h>
+#include <string.h>
 
 #include <ffi.h>
 
@@ -241,6 +242,7 @@ private:
     void exec_CLREXC();
     void exec_ALLOC();
     void exec_PUSHNIL();
+    void exec_JNASSERT();
 
     void raise(const utf8string &exception, const ExceptionInfo &info);
 
@@ -312,7 +314,8 @@ void Executor::exec_PUSHB()
 void Executor::exec_PUSHN()
 {
     // TODO: endian
-    Number val = *reinterpret_cast<const Number *>(&module->object.code[ip+1]);
+    Number val;
+    memcpy(&val, &module->object.code[ip+1], sizeof(Number));
     ip += 1 + sizeof(val);
     stack.push(Cell(val));
 }
@@ -1091,6 +1094,16 @@ void Executor::exec_PUSHNIL()
     stack.push(Cell(static_cast<Cell *>(nullptr)));
 }
 
+void Executor::exec_JNASSERT()
+{
+    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    // TODO: check if assertions disabled, jump
+    if (false) {
+        ip = target;
+    }
+}
+
 void Executor::raise(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -1259,6 +1272,7 @@ void Executor::exec()
             case CLREXC:  exec_CLREXC(); break;
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(); break;
+            case JNASSERT:exec_JNASSERT(); break;
         }
         if (module == last_module && ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);

@@ -75,7 +75,7 @@ False
 
 This happens because `0.2` cannot be repesented exactly in binary floating point. 
 
-To resolve this problem, Neon uses the [decimal64](https://en.wikipedia.org/wiki/Decimal64_floating-point_format) floating point type, which matches the base 10 that humans use to read and write numbers.
+To resolve this problem, Neon uses the [decimal128](https://en.wikipedia.org/wiki/Decimal128_floating-point_format) floating point type, which matches the base 10 that humans use to read and write numbers.
 
 <a name="integer_division"></a>
 ### Writing division expressions such as `5 / 2` and not expecting integer division
@@ -92,7 +92,7 @@ Beginners rightly assume that `c` will be `2.5` as the result of the division.
 However, the C language definition states that `/` will be *integer* division if both operands are integers.
 So, the result in `c` is `2`.
 
-To resolve this problem, the only number type in Neon is decimal64 floating point (called `Number`).
+To resolve this problem, the only number type in Neon is decimal128 floating point (called `Number`).
 In contexts such as array indexing where integers are expected, values are checked for the presence of a fractional part before trying to use them.
 
 <a name="assignment_equals"></a>

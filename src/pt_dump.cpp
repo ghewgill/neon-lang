@@ -250,6 +250,10 @@ public:
         write("ExportDeclaration(" + node->name.text + ")");
     }
 
+    virtual void visit(const AssertStatement *node) override {
+        write("AssertStatement");
+        child(node->expr);
+    }
     virtual void visit(const AssignmentStatement *node) override {
         write("AssignmentStatement");
         for (auto x: node->variables) {

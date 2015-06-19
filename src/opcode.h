@@ -80,6 +80,7 @@ enum Opcode {
     CLREXC,     // clear exception
     ALLOC,      // allocate record
     PUSHNIL,    // push nil pointer
+    JNASSERT,   // jump if assertions disabled
 };
 
 #endif

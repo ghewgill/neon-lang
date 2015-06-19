@@ -1412,6 +1412,21 @@ public:
     virtual std::string text() const override { return "NullStatement"; }
 };
 
+class AssertStatement: public Statement {
+public:
+    AssertStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+
+    const Expression *const expr;
+
+    virtual void generate_code(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "AssertStatement(" + expr->text() + ")"; }
+
+private:
+    AssertStatement(const AssertStatement &);
+    AssertStatement &operator=(const AssertStatement &);
+};
+
 class AssignmentStatement: public Statement {
 public:
     AssignmentStatement(int line, const std::vector<const ReferenceExpression *> vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {

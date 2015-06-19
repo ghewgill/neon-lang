@@ -63,6 +63,7 @@ public:
     const Statement *parseTryStatement();
     const Statement *parseRaiseStatement();
     const Statement *parseImport();
+    const Statement *parseAssert();
     const Statement *parseStatement();
     const Program *parse();
 private:
@@ -1397,6 +1398,14 @@ const Statement *Parser::parseImport()
     return new ImportDeclaration(tok_import, module, name, alias);
 }
 
+const Statement *Parser::parseAssert()
+{
+    auto &tok_assert = tokens[i];
+    ++i;
+    const Expression *expr = parseExpression();
+    return new AssertStatement(tok_assert, expr);
+}
+
 const Statement *Parser::parseStatement()
 {
     if (tokens[i].type == IMPORT) {
@@ -1441,6 +1450,8 @@ const Statement *Parser::parseStatement()
         return parseTryStatement();
     } else if (tokens[i].type == RAISE) {
         return parseRaiseStatement();
+    } else if (tokens[i].type == ASSERT) {
+        return parseAssert();
     } else if (tokens[i].type == IDENTIFIER) {
         const Token &start = tokens[i];
         const Expression *expr = parseExpression();

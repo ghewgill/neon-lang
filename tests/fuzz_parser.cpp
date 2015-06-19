@@ -95,6 +95,7 @@ std::string reconstitute(const Token &t)
         case FOREACH:     return "FOREACH";
         case OF:          return "OF";
         case INDEX:       return "INDEX";
+        case ASSERT:      return "ASSERT";
         case MAX_TOKEN:   return "";
     }
     return "";

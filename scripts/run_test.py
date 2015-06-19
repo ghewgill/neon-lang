@@ -1,4 +1,5 @@
 import codecs
+import difflib
 import os
 import re
 import subprocess
@@ -75,6 +76,10 @@ def run(fn):
             print("*** ACTUAL ERROR")
             print("")
             sys.stdout.write(err)
+            print("")
+            print("*** DIFF")
+            print("")
+            print("\n".join(x.rstrip() for x in difflib.unified_diff(expected_stderr.split("\n"), err.split("\n"))))
             if todo:
                 return False
             sys.exit(1)
@@ -107,6 +112,10 @@ def run(fn):
         print("*** ACTUAL OUTPUT")
         print("")
         sys.stdout.write(out)
+        print("")
+        print("*** DIFF")
+        print("")
+        print("\n".join(x.rstrip() for x in difflib.unified_diff(expected_stdout.split("\n"), out.split("\n"))))
         if todo:
             return False
         sys.exit(1)
