@@ -127,7 +127,7 @@ FUNCTION DateTime.plus_period(self: DateTime, period: Period): DateTime
     dt.year := dt.year + period.years
     LET m: Number := dt.month - 1 + period.months
     dt.year := dt.year + math.floor(m / 12)
-    dt.month := 1 + (m MOD 12)
+    dt.month := m MOD 12
     RETURN make_from_parts(dt).plus_duration(86400*period.days + 3600*period.hours + 60*period.minutes + period.seconds)
 END FUNCTION
 
