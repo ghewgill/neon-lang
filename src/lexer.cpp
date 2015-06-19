@@ -101,6 +101,7 @@ std::string Token::tostring() const
         case FOREACH:     s << "FOREACH"; break;
         case OF:          s << "OF"; break;
         case INDEX:       s << "INDEX"; break;
+        case ASSERT:      s << "ASSERT"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -279,6 +280,7 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
             else if (t.text == "FOREACH") t.type = FOREACH;
             else if (t.text == "OF") t.type = OF;
             else if (t.text == "INDEX") t.type = INDEX;
+            else if (t.text == "ASSERT") t.type = ASSERT;
         } else if (number_start(c)) {
             t.type = NUMBER;
             if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not number_decimal_body(*(i+1))) {

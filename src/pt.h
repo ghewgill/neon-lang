@@ -59,6 +59,7 @@ class NativeFunctionDeclaration;
 class ExceptionDeclaration;
 class ExportDeclaration;
 
+class AssertStatement;
 class AssignmentStatement;
 class CaseStatement;
 class ExitStatement;
@@ -130,6 +131,7 @@ public:
     virtual void visit(const ExceptionDeclaration *) = 0;
     virtual void visit(const ExportDeclaration *) = 0;
 
+    virtual void visit(const AssertStatement *) = 0;
     virtual void visit(const AssignmentStatement *) = 0;
     virtual void visit(const CaseStatement *) = 0;
     virtual void visit(const ExitStatement *) = 0;
@@ -645,6 +647,16 @@ class BlockStatement: public Statement {
 public:
     BlockStatement(const Token &token, const std::vector<const Statement *> &body): Statement(token), body(body) {}
     const std::vector<const Statement *> body;
+};
+
+class AssertStatement: public Statement {
+public:
+    AssertStatement(const Token &token, const Expression *expr): Statement(token), expr(expr) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Expression *const expr;
+private:
+    AssertStatement(const AssertStatement &);
+    AssertStatement &operator=(const AssertStatement &);
 };
 
 class AssignmentStatement: public Statement {

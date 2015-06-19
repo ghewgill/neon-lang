@@ -1,0 +1,3 @@
+LET n: Number := 0
+
+ASSERT n = 0

@@ -1,0 +1,5 @@
+LET n: Number := 5
+
+ASSERT n = 0
+
+%! AssertException

@@ -93,6 +93,7 @@ enum TokenType {
     FOREACH,
     OF,
     INDEX,
+    ASSERT,
     MAX_TOKEN
 };
 

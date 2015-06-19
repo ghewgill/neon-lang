@@ -100,6 +100,7 @@ private:
     void disasm_CLREXC();
     void disasm_ALLOC();
     void disasm_PUSHNIL();
+    void disasm_JNASSERT();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -611,6 +612,13 @@ void Disassembler::disasm_PUSHNIL()
     index++;
 }
 
+void Disassembler::disasm_JNASSERT()
+{
+    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "JNASSERT " << addr << "\n";
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -754,6 +762,7 @@ void Disassembler::disassemble()
             case CLREXC:  disasm_CLREXC(); break;
             case ALLOC:   disasm_ALLOC(); break;
             case PUSHNIL: disasm_PUSHNIL(); break;
+            case JNASSERT:disasm_JNASSERT(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

@@ -1201,6 +1201,18 @@ void Statement::generate(Emitter &emitter) const
     generate_code(emitter);
 }
 
+void AssertStatement::generate_code(Emitter &emitter) const
+{
+    auto skip_label = emitter.create_label();
+    emitter.emit_jump(JNASSERT, skip_label);
+    expr->generate(emitter);
+    emitter.emit_jump(JT, skip_label);
+    emitter.emit(PUSHS, emitter.str(""));
+    emitter.emit(CONSA, 1);
+    emitter.emit(EXCEPT, emitter.str("AssertException"));
+    emitter.jump_target(skip_label);
+}
+
 void AssignmentStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
