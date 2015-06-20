@@ -1207,9 +1207,12 @@ void AssertStatement::generate_code(Emitter &emitter) const
     emitter.emit_jump(JNASSERT, skip_label);
     expr->generate(emitter);
     emitter.emit_jump(JT, skip_label);
-    emitter.emit(PUSHS, emitter.str(""));
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+    emitter.emit(PUSHS, emitter.str(source));
     emitter.emit(CONSA, 1);
-    emitter.emit(EXCEPT, emitter.str("AssertException"));
+    emitter.emit(EXCEPT, emitter.str("AssertFailed"));
     emitter.jump_target(skip_label);
 }
 
@@ -1539,12 +1542,19 @@ void Module::predeclare(Emitter &) const
 
 void Program::generate(Emitter &emitter) const
 {
+    // Call predeclare on standard types so they always work in interpolations.
+    TYPE_BOOLEAN->predeclare(emitter);
+    TYPE_NUMBER->predeclare(emitter);
+
     frame->predeclare(emitter);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
     emitter.emit(RET);
     frame->postdeclare(emitter);
+
+    TYPE_BOOLEAN->postdeclare(emitter);
+    TYPE_NUMBER->postdeclare(emitter);
 
     // The following block does a topological sort on the dependencies
     // between types. This is necessary so that the export table in a

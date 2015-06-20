@@ -235,7 +235,12 @@ public:
 
 class Expression: public ParseTreeNode {
 public:
-    Expression(const Token &token): ParseTreeNode(token) {}
+    Expression(const Token &token, int start_column, int end_column): ParseTreeNode(token), start_column(start_column), end_column(end_column) {}
+    int get_start_column() const { return start_column; }
+    int get_end_column() const { return end_column; }
+private:
+    int start_column;
+    int end_column;
 };
 
 class IdentityExpression: public Expression {
@@ -250,55 +255,55 @@ private:
 
 class BooleanLiteralExpression: public Expression {
 public:
-    BooleanLiteralExpression(const Token &token, bool value): Expression(token), value(value) {}
+    BooleanLiteralExpression(const Token &token, bool value): Expression(token, token.column, token.column+token.text.length()), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const bool value;
 };
 
 class NumberLiteralExpression: public Expression {
 public:
-    NumberLiteralExpression(const Token &token, Number value): Expression(token), value(value) {}
+    NumberLiteralExpression(const Token &token, Number value): Expression(token, token.column, token.column+token.text.length()), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Number value;
 };
 
 class StringLiteralExpression: public Expression {
 public:
-    StringLiteralExpression(const Token &token, const std::string &value): Expression(token), value(value) {}
+    StringLiteralExpression(const Token &token, int end_column, const std::string &value): Expression(token, token.column, end_column), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::string value;
 };
 
 class ArrayLiteralExpression: public Expression {
 public:
-    ArrayLiteralExpression(const Token &token, const std::vector<const Expression *> &elements): Expression(token), elements(elements) {}
+    ArrayLiteralExpression(const Token &token, int end_column, const std::vector<const Expression *> &elements): Expression(token, token.column, end_column), elements(elements) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const Expression *> elements;
 };
 
 class DictionaryLiteralExpression: public Expression {
 public:
-    DictionaryLiteralExpression(const Token &token, const std::vector<std::pair<Token, const Expression *>> &elements): Expression(token), elements(elements) {}
+    DictionaryLiteralExpression(const Token &token, int end_column, const std::vector<std::pair<Token, const Expression *>> &elements): Expression(token, token.column, end_column), elements(elements) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<Token, const Expression *>> elements;
 };
 
 class NilLiteralExpression: public Expression {
 public:
-    NilLiteralExpression(const Token &token): Expression(token) {}
+    NilLiteralExpression(const Token &token): Expression(token, token.column, token.column+3) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class IdentifierExpression: public Expression {
 public:
-    IdentifierExpression(const Token &token, const std::string &name): Expression(token), name(name) {}
+    IdentifierExpression(const Token &token, const std::string &name): Expression(token, token.column, token.column+token.text.length()), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::string name;
 };
 
 class DotExpression: public Expression {
 public:
-    DotExpression(const Token &token, const Expression *base, const Token &name): Expression(token), base(base), name(name) {}
+    DotExpression(const Token &token, const Expression *base, const Token &name): Expression(token, base->get_start_column(), name.column+name.text.length()), base(base), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const Token name;
@@ -309,7 +314,7 @@ private:
 
 class ArrowExpression: public Expression {
 public:
-    ArrowExpression(const Token &token, const Expression *base, const Token &name): Expression(token), base(base), name(name) {}
+    ArrowExpression(const Token &token, const Expression *base, const Token &name): Expression(token, base->get_start_column(), name.column+name.text.length()), base(base), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const Token name;
@@ -320,7 +325,7 @@ private:
 
 class SubscriptExpression: public Expression {
 public:
-    SubscriptExpression(const Token &token, const Expression *base, const Expression *index): Expression(token), base(base), index(index) {}
+    SubscriptExpression(const Token &token, int end_column, const Expression *base, const Expression *index): Expression(token, base->get_start_column(), end_column), base(base), index(index) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const Expression *const index;
@@ -331,14 +336,14 @@ private:
 
 class InterpolatedStringExpression: public Expression {
 public:
-    InterpolatedStringExpression(const Token &token, const std::vector<std::pair<const Expression *, Token>> &parts): Expression(token), parts(parts) {}
+    InterpolatedStringExpression(const Token &token, const std::vector<std::pair<const Expression *, Token>> &parts): Expression(token, parts.front().first->get_start_column(), parts.back().first->get_end_column()), parts(parts) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<const Expression *, Token>> parts;
 };
 
 class FunctionCallExpression: public Expression {
 public:
-    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<std::pair<Token, const Expression *>> &args, const Token &rparen): Expression(token), base(base), args(args), rparen(rparen) {}
+    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<std::pair<Token, const Expression *>> &args, const Token &rparen): Expression(token, base->get_start_column(), rparen.column+1), base(base), args(args), rparen(rparen) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const std::vector<std::pair<Token, const Expression *>> args;
@@ -350,7 +355,7 @@ private:
 
 class UnaryExpression: public Expression {
 public:
-    UnaryExpression(const Token &token, const Expression *expr): Expression(token), expr(expr) {}
+    UnaryExpression(const Token &token, const Expression *expr): Expression(token, token.column, expr->get_end_column()), expr(expr) {}
     const Expression *const expr;
 private:
     UnaryExpression(const UnaryExpression &);
@@ -377,7 +382,7 @@ public:
 
 class BinaryExpression: public Expression {
 public:
-    BinaryExpression(const Token &token, const Expression *left, const Expression *right): Expression(token), left(left), right(right) {}
+    BinaryExpression(const Token &token, const Expression *left, const Expression *right): Expression(token, left->get_start_column(), right->get_end_column()), left(left), right(right) {}
     const Expression *const left;
     const Expression *const right;
 private:
@@ -439,7 +444,7 @@ public:
 
 class ChainedComparisonExpression: public Expression {
 public:
-    ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(comps[0]->token), comps(comps) {}
+    ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(comps[0]->token, comps.front()->get_start_column(), comps.back()->get_end_column()), comps(comps) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const ComparisonExpression *> comps;
 };
@@ -464,7 +469,7 @@ public:
 
 class ConditionalExpression: public Expression {
 public:
-    ConditionalExpression(const Token &token, const Expression *cond, const Expression *left, const Expression *right): Expression(token), cond(cond), left(left), right(right) {}
+    ConditionalExpression(const Token &token, const Expression *cond, const Expression *left, const Expression *right): Expression(token, token.column, right->get_end_column()), cond(cond), left(left), right(right) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const cond;
     const Expression *const left;
@@ -476,7 +481,7 @@ private:
 
 class NewRecordExpression: public Expression {
 public:
-    NewRecordExpression(const Token &token, const Type *type): Expression(token), type(type) {}
+    NewRecordExpression(const Token &token, int end_column, const Type *type): Expression(token, token.column, end_column), type(type) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Type *const type;
 private:
@@ -486,7 +491,7 @@ private:
 
 class ValidPointerExpression: public Expression {
 public:
-    ValidPointerExpression(const Token &token, std::vector<std::pair<Token, const Expression *>> &tests): Expression(token), tests(tests) {}
+    ValidPointerExpression(const Token &token, std::vector<std::pair<Token, const Expression *>> &tests): Expression(token, tests.front().second->get_start_column(), tests.back().second->get_end_column()), tests(tests) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::pair<Token, const Expression *>> tests;
 private:
@@ -509,7 +514,7 @@ private:
 
 class RangeSubscriptExpression: public Expression {
 public:
-    RangeSubscriptExpression(const Token &token, const Expression *base, const ArrayRange *range): Expression(token), base(base), range(range) {}
+    RangeSubscriptExpression(const Token &token, int end_column, const Expression *base, const ArrayRange *range): Expression(token, base->get_start_column(), end_column), base(base), range(range) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
     const ArrayRange *const range;
@@ -661,11 +666,12 @@ public:
     const std::vector<const Statement *> body;
 };
 
-class AssertStatement: public Statement {
+class AssertStatement: public BlockStatement {
 public:
-    AssertStatement(const Token &token, const Expression *expr): Statement(token), expr(expr) {}
+    AssertStatement(const Token &token, std::vector<const Statement *> &body, const Expression *expr, const std::string &source): BlockStatement(token, body), expr(expr), source(source) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const expr;
+    const std::string source;
 private:
     AssertStatement(const AssertStatement &);
     AssertStatement &operator=(const AssertStatement &);

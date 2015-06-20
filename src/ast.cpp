@@ -585,6 +585,7 @@ Program::Program(const std::string &source_hash)
     scope->addName(Token(), "FunctionNotFound", new Exception(Token(), "FunctionNotFound"));
     scope->addName(Token(), "LibraryNotFound", new Exception(Token(), "LibraryNotFound"));
     scope->addName(Token(), "ByteOutOfRange", new Exception(Token(), "ByteOutOfRange"));
+    scope->addName(Token(), "AssertFailed", new Exception(Token(), "AssertFailed"));
 
     scope->addName(Token(), "DirectoryExists", new Exception(Token(), "DirectoryExists"));
     scope->addName(Token(), "PathNotFound", new Exception(Token(), "PathNotFound"));

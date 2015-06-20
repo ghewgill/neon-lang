@@ -2081,7 +2081,8 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     if (not expr->type->is_equivalent(TYPE_BOOLEAN)) {
         error(3173, statement->expr->token, "boolean value expected");
     }
-    return new AssertStatement(statement->token.line, expr);
+    std::vector<const Statement *> statements = analyze(statement->body);
+    return new AssertStatement(statement->token.line, statements, expr, statement->source);
 }
 
 const Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)
