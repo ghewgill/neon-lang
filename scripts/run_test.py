@@ -45,7 +45,7 @@ def run(fn):
         expected_stderr = errnum
         del errors[errnum]
     else:
-        out_comments = re.findall("^%=\s*(.*)$", src, re.MULTILINE)
+        out_comments = re.findall("^%=\s(.*)$", src, re.MULTILINE)
         expected_stdout = "".join([x + "\n" for x in out_comments])
 
         err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
