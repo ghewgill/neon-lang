@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
     bool dump_parse = false;
     bool dump_ast = false;
     bool dump_bytecode = false;
+    bool enable_assert = true;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
@@ -56,6 +57,8 @@ int main(int argc, char *argv[])
             break;
         } else if (arg == "-d") {
             dump_bytecode = true;
+        } else if (arg == "-n") {
+            enable_assert = false;
         } else {
             fprintf(stderr, "Unknown option: %s\n", arg.c_str());
             exit(1);
@@ -125,5 +128,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(name, bytecode, &debug, &runtime_support, argc-a, argv+a);
+    exec(name, bytecode, &debug, &runtime_support, enable_assert, argc-a, argv+a);
 }

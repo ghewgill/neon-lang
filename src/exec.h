@@ -7,6 +7,6 @@
 class DebugInfo;
 class ICompilerSupport;
 
-void exec(const std::string &source_path, const std::vector<unsigned char> &obj, const DebugInfo *debug, ICompilerSupport *support, int argc, char *argv[]);
+void exec(const std::string &source_path, const std::vector<unsigned char> &obj, const DebugInfo *debug, ICompilerSupport *support, bool enable_assert, int argc, char *argv[]);
 
 #endif

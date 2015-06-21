@@ -152,10 +152,11 @@ private:
 
 class Executor {
 public:
-    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support);
+    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert);
     void exec();
 private:
     const std::string source_path;
+    const bool enable_assert;
     std::map<std::string, Module *> modules;
     std::vector<std::string> init_order;
     Module *module;
@@ -252,8 +253,9 @@ private:
     Executor &operator=(const Executor &);
 };
 
-Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support)
+Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert)
   : source_path(source_path),
+    enable_assert(enable_assert),
     modules(),
     init_order(),
     module(nullptr),
@@ -1098,8 +1100,7 @@ void Executor::exec_JNASSERT()
 {
     uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    // TODO: check if assertions disabled, jump
-    if (false) {
+    if (not enable_assert) {
         ip = target;
     }
 }
@@ -1282,8 +1283,8 @@ void Executor::exec()
     assert(stack.empty());
 }
 
-void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, int argc, char *argv[])
+void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
-    Executor(source_path, obj, debuginfo, support).exec();
+    Executor(source_path, obj, debuginfo, support, enable_assert).exec();
 }
