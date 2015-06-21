@@ -76,10 +76,6 @@ def run(fn):
             print("*** ACTUAL ERROR")
             print("")
             sys.stdout.write(err)
-            print("")
-            print("*** DIFF")
-            print("")
-            print("\n".join(x.rstrip() for x in difflib.unified_diff(expected_stderr.split("\n"), err.split("\n"))))
             if todo:
                 return False
             sys.exit(1)
