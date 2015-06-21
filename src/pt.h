@@ -16,6 +16,7 @@ class TypePointer;
 class TypeParameterised;
 class TypeImport;
 
+class IdentityExpression;
 class BooleanLiteralExpression;
 class NumberLiteralExpression;
 class StringLiteralExpression;
@@ -88,6 +89,7 @@ public:
     virtual void visit(const TypeParameterised *) = 0;
     virtual void visit(const TypeImport *) = 0;
 
+    virtual void visit(const IdentityExpression *) = 0;
     virtual void visit(const BooleanLiteralExpression *) = 0;
     virtual void visit(const NumberLiteralExpression *) = 0;
     virtual void visit(const StringLiteralExpression *) = 0;
@@ -234,6 +236,16 @@ public:
 class Expression: public ParseTreeNode {
 public:
     Expression(const Token &token): ParseTreeNode(token) {}
+};
+
+class IdentityExpression: public Expression {
+public:
+    IdentityExpression(const Token &token, int start_column, int end_column, const Expression *expr): Expression(token, start_column, end_column), expr(expr) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Expression *const expr;
+private:
+    IdentityExpression(const IdentityExpression &);
+    IdentityExpression &operator=(const IdentityExpression &);
 };
 
 class BooleanLiteralExpression: public Expression {

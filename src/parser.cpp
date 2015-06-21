@@ -389,7 +389,7 @@ const Expression *Parser::parseAtom()
                 error2(2014, tokens[i], tok_lparen, ") expected");
             }
             ++i;
-            return expr;
+            return new IdentityExpression(tok_lparen, tok_lparen.column, tokens[i-1].column+1, expr);
         }
         case LBRACKET: {
             const Expression *array = parseArrayLiteral();

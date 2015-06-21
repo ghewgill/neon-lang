@@ -32,6 +32,10 @@ public:
         write("TypeImport(" + node->modname.text + "." + node->subname.text + ")");
     }
 
+    virtual void visit(const IdentityExpression *node) override {
+        write("IdentityExpression");
+        child(node->expr);
+    }
     virtual void visit(const BooleanLiteralExpression *node) override {
         write("BooleanLiteralExpression(" + std::string(node->value ? "true" : "false") + ")");
     }
