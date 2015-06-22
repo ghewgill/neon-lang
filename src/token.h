@@ -103,7 +103,7 @@ public:
     Token(const std::string &text): source(), line(), column(), type(NONE), text(text), value() {}
     std::string source;
     int line;
-    int column;
+    size_t column;
     TokenType type;
     std::string text;
     Number value;
