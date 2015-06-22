@@ -1,5 +1,14 @@
 LET n: Number := 5
 
-ASSERT n = 0
+ASSERT (n - 2*(n+1)) = 0 % failing assert
+%= Assert failed (t/assert-fail.neon line 3):
+%= ASSERT (n - 2*(n+1)) = 0 % failing assert
+%= Assert expression dump:
+%=   n is 5
+%=   n+1 is 6
+%=   2*(n+1) is 12
+%=   n - 2*(n+1) is -7
+%=   (n - 2*(n+1)) = 0 is FALSE
 
-%! AssertException
+
+%! AssertFailed

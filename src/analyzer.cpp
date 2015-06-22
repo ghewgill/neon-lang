@@ -36,6 +36,7 @@ public:
     const Type *analyze(const pt::TypeParameterised *type, const std::string &name);
     const Type *analyze(const pt::TypeImport *type, const std::string &name);
     const Expression *analyze(const pt::Expression *expr);
+    const Expression *analyze(const pt::IdentityExpression *expr);
     const Expression *analyze(const pt::BooleanLiteralExpression *expr);
     const Expression *analyze(const pt::NumberLiteralExpression *expr);
     const Expression *analyze(const pt::StringLiteralExpression *expr);
@@ -118,6 +119,7 @@ public:
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -193,6 +195,7 @@ public:
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::IdentityExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NumberLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::StringLiteralExpression *p) override { expr = a->analyze(p); }
@@ -267,6 +270,7 @@ public:
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -341,6 +345,7 @@ public:
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -734,6 +739,11 @@ const Expression *Analyzer::analyze(const pt::Expression *expr)
     ExpressionAnalyzer ea(this);
     expr->accept(&ea);
     return ea.expr;
+}
+
+const Expression *Analyzer::analyze(const pt::IdentityExpression *expr)
+{
+    return analyze(expr->expr);
 }
 
 const Expression *Analyzer::analyze(const pt::BooleanLiteralExpression *expr)
@@ -2071,7 +2081,8 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     if (not expr->type->is_equivalent(TYPE_BOOLEAN)) {
         error(3173, statement->expr->token, "boolean value expected");
     }
-    return new AssertStatement(statement->token.line, expr);
+    std::vector<const Statement *> statements = analyze(statement->body);
+    return new AssertStatement(statement->token.line, statements, expr, statement->source);
 }
 
 const Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)

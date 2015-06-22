@@ -1403,6 +1403,15 @@ public:
     virtual void generate_code(Emitter &emitter) const = 0;
 };
 
+class CompoundStatement: public Statement {
+public:
+    CompoundStatement(int line, const std::vector<const Statement *> &statements): Statement(line), statements(statements) {}
+
+    const std::vector<const Statement *> statements;
+
+    virtual void dumpsubnodes(std::ostream &out, int depth) const override;
+};
+
 class NullStatement: public Statement {
 public:
     NullStatement(int line): Statement(line) {}
@@ -1412,11 +1421,12 @@ public:
     virtual std::string text() const override { return "NullStatement"; }
 };
 
-class AssertStatement: public Statement {
+class AssertStatement: public CompoundStatement {
 public:
-    AssertStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+    AssertStatement(int line, const std::vector<const Statement *> &statements, const Expression *expr, const std::string &source): CompoundStatement(line, statements), expr(expr), source(source) {}
 
     const Expression *const expr;
+    const std::string source;
 
     virtual void generate_code(Emitter &emitter) const override;
 
@@ -1485,15 +1495,6 @@ public:
 private:
     ReturnStatement(const ReturnStatement &);
     ReturnStatement &operator=(const ReturnStatement &);
-};
-
-class CompoundStatement: public Statement {
-public:
-    CompoundStatement(int line, const std::vector<const Statement *> &statements): Statement(line), statements(statements) {}
-
-    const std::vector<const Statement *> statements;
-
-    virtual void dumpsubnodes(std::ostream &out, int depth) const override;
 };
 
 class IfStatement: public Statement {

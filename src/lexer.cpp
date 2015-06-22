@@ -283,6 +283,7 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
             else if (t.text == "ASSERT") t.type = ASSERT;
         } else if (number_start(c)) {
             t.type = NUMBER;
+            auto start = i;
             if (c == '0' && (i+1 != source.end()) && *(i+1) != '.' && tolower(*(i+1)) != 'e' && not number_decimal_body(*(i+1))) {
                 utf8::advance(i, 1, source.end());
                 c = static_cast<char>(tolower(*i));
@@ -360,6 +361,7 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
                 }
                 t.value = number_from_string(std::string(start, i));
             }
+            t.text = std::string(start, i);
         } else if (c == '"') {
             utf8::advance(i, 1, source.end());
             t.type = STRING;

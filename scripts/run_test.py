@@ -45,7 +45,7 @@ def run(fn):
         expected_stderr = errnum
         del errors[errnum]
     else:
-        out_comments = re.findall("^%=\s*(.*)$", src, re.MULTILINE)
+        out_comments = re.findall("^%=\s(.*)$", src, re.MULTILINE)
         expected_stdout = "".join([x + "\n" for x in out_comments])
 
         err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
@@ -76,10 +76,6 @@ def run(fn):
             print("*** ACTUAL ERROR")
             print("")
             sys.stdout.write(err)
-            print("")
-            print("*** DIFF")
-            print("")
-            print("\n".join(x.rstrip() for x in difflib.unified_diff(expected_stderr.split("\n"), err.split("\n"))))
             if todo:
                 return False
             sys.exit(1)

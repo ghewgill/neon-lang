@@ -2,6 +2,7 @@
 
 #include <iso646.h>
 #include <list>
+#include <set>
 #include <stack>
 
 #include "format.h"
@@ -303,7 +304,7 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral()
         }
     }
     ++i;
-    return new ArrayLiteralExpression(tok_lbracket, elements);
+    return new ArrayLiteralExpression(tok_lbracket, tokens[i-1].column+1, elements);
 }
 
 const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
@@ -328,13 +329,13 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
         error2(2049, tokens[i], tok_lbrace, "'}' expected");
     }
     ++i;
-    return new DictionaryLiteralExpression(tok_lbrace, elements);
+    return new DictionaryLiteralExpression(tok_lbrace, tokens[i-1].column+1, elements);
 }
 
 const Expression *Parser::parseInterpolatedStringExpression()
 {
     std::vector<std::pair<const Expression *, Token>> parts;
-    parts.push_back(std::make_pair(new StringLiteralExpression(tokens[i], tokens[i].text), Token()));
+    parts.push_back(std::make_pair(new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text), Token()));
     for (;;) {
         ++i;
         if (tokens[i].type != SUBBEGIN) {
@@ -359,7 +360,7 @@ const Expression *Parser::parseInterpolatedStringExpression()
         if (tokens[i].type != STRING) {
             internal_error("parseInterpolatedStringExpression");
         }
-        e = new StringLiteralExpression(tokens[i], tokens[i].text);
+        e = new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text);
         parts.push_back(std::make_pair(e, Token()));
     }
     return new InterpolatedStringExpression(parts[0].first->token, parts);
@@ -389,7 +390,7 @@ const Expression *Parser::parseAtom()
                 error2(2014, tokens[i], tok_lparen, ") expected");
             }
             ++i;
-            return expr;
+            return new IdentityExpression(tok_lparen, tok_lparen.column, tokens[i-1].column+1, expr);
         }
         case LBRACKET: {
             const Expression *array = parseArrayLiteral();
@@ -420,7 +421,7 @@ const Expression *Parser::parseAtom()
             } else {
                 auto &tok_string = tokens[i];
                 i++;
-                return new StringLiteralExpression(tok_string, tok_string.text);
+                return new StringLiteralExpression(tok_string, tokens[i].column, tok_string.text);
             }
         }
         case PLUS: {
@@ -445,7 +446,7 @@ const Expression *Parser::parseAtom()
             auto &tok_new = tokens[i];
             ++i;
             const Type *type = parseType();
-            return new NewRecordExpression(tok_new, type);
+            return new NewRecordExpression(tok_new, tokens[i].column, type);
         }
         case NIL: {
             auto &tok_nil = tokens[i];
@@ -502,12 +503,12 @@ const Expression *Parser::parseAtom()
                     }
                     ++i;
                     if (range != nullptr) {
-                        expr = new RangeSubscriptExpression(tok_lbracket, expr, range);
+                        expr = new RangeSubscriptExpression(tok_lbracket, tokens[i].column, expr, range);
                         if (first_from_end && last == nullptr) {
-                            expr = new SubscriptExpression(tok_lbracket, expr, new NumberLiteralExpression(Token(), number_from_uint32(0)));
+                            expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, new NumberLiteralExpression(Token(), number_from_uint32(0)));
                         }
                     } else {
-                        expr = new SubscriptExpression(tok_lbracket, expr, index);
+                        expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, index);
                     }
                 } else if (tokens[i].type == LPAREN) {
                     expr = parseFunctionCall(expr);
@@ -1398,12 +1399,75 @@ const Statement *Parser::parseImport()
     return new ImportDeclaration(tok_import, module, name, alias);
 }
 
+static void deconstruct(const Expression *expr, std::vector<const Expression *> &parts)
+{
+    const IdentityExpression *ie = dynamic_cast<const IdentityExpression *>(expr);
+    const UnaryExpression *ue = dynamic_cast<const UnaryExpression *>(expr);
+    const BinaryExpression *be = dynamic_cast<const BinaryExpression *>(expr);
+    if (ie != nullptr) {
+        deconstruct(ie->expr, parts);
+        return;
+    } else if (ue != nullptr) {
+        deconstruct(ue->expr, parts);
+    } else if (be != nullptr) {
+        deconstruct(be->left, parts);
+        deconstruct(be->right, parts);
+    } else if (dynamic_cast<const BooleanLiteralExpression *>(expr) != nullptr
+            || dynamic_cast<const NumberLiteralExpression *>(expr) != nullptr
+            || dynamic_cast<const StringLiteralExpression *>(expr) != nullptr) {
+        return;
+    }
+    parts.push_back(expr);
+}
+
 const Statement *Parser::parseAssert()
 {
     auto &tok_assert = tokens[i];
     ++i;
     const Expression *expr = parseExpression();
-    return new AssertStatement(tok_assert, expr);
+    std::vector<const Expression *> parts;
+    deconstruct(expr, parts);
+    std::vector<const Statement *> body;
+    {
+        std::vector<std::pair<Token, const Expression *>> args;
+        args.push_back(std::make_pair(Token(), new StringLiteralExpression(Token(), 0, "Assert failed (" + source.source_path + " line " + std::to_string(tok_assert.line) + "):")));
+        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
+        const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
+        body.push_back(s);
+    }
+    {
+        std::vector<std::pair<Token, const Expression *>> args;
+        args.push_back(std::make_pair(Token(), new StringLiteralExpression(Token(), 0, tok_assert.source)));
+        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
+        const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
+        body.push_back(s);
+    }
+    {
+        std::vector<std::pair<Token, const Expression *>> args;
+        args.push_back(std::make_pair(Token(), new StringLiteralExpression(Token(), 0, "Assert expression dump:")));
+        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
+        const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
+        body.push_back(s);
+    }
+    std::set<std::string> seen;
+    for (auto e: parts) {
+        const std::string str = tok_assert.source.substr(e->get_start_column()-1, e->get_end_column()-e->get_start_column());
+        if (seen.find(str) != seen.end()) {
+            continue;
+        }
+        seen.insert(str);
+
+        std::vector<std::pair<const Expression *, Token>> iparts;
+        iparts.push_back(std::make_pair(new StringLiteralExpression(Token(), 0, "  " + str + " is "), Token()));
+        iparts.push_back(std::make_pair(e, Token()));
+        const InterpolatedStringExpression *is = new InterpolatedStringExpression(Token(), iparts);
+        std::vector<std::pair<Token, const Expression *>> args;
+        args.push_back(std::make_pair(Token(), is));
+        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
+        const ExpressionStatement *s = new ExpressionStatement(e->token, p);
+        body.push_back(s);
+    }
+    return new AssertStatement(tok_assert, body, expr, tok_assert.source);
 }
 
 const Statement *Parser::parseStatement()
