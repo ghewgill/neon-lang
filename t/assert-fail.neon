@@ -1,7 +1,7 @@
 LET n: Number := 5
 
 ASSERT (n - 2*(n+1)) = 0 % failing assert
-%= Assert failed (t/assert-fail.neon line 3):
+%? Assert failed \(t[\\/]assert-fail.neon line 3\):
 %= ASSERT (n - 2*(n+1)) = 0 % failing assert
 %= Assert expression dump:
 %=   n is 5

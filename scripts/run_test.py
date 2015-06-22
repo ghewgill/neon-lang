@@ -30,6 +30,7 @@ def run(fn):
 
     errnum = None
     expected_stdout = ""
+    regex_stdout = None
     expected_stderr = ""
     expected_error_pos = {}
 
@@ -45,8 +46,11 @@ def run(fn):
         expected_stderr = errnum
         del errors[errnum]
     else:
-        out_comments = re.findall("^%=\s(.*)$", src, re.MULTILINE)
-        expected_stdout = "".join([x + "\n" for x in out_comments])
+        out_comments = re.findall("^(%[=?])\s(.*)$", src, re.MULTILINE)
+        if any(x[0] == "%?" for x in out_comments):
+            regex_stdout = "".join([(re.escape(x[1]) if x[0] == "%=" else x[1]) + "\n" for x in out_comments])
+        else:
+            expected_stdout = "".join([x[1] + "\n" for x in out_comments])
 
         err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
         expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
@@ -100,7 +104,19 @@ def run(fn):
                 return False
             sys.exit(1)
 
-    if out != expected_stdout:
+    if regex_stdout:
+        if not re.match(regex_stdout, out):
+            print("*** EXPECTED OUTPUT (regex)")
+            print("")
+            sys.stdout.write(regex_stdout)
+            print("")
+            print("*** ACTUAL OUTPUT")
+            print("")
+            sys.stdout.write(out)
+            if todo:
+                return False
+            sys.exit(1)
+    elif out != expected_stdout:
         print("*** EXPECTED OUTPUT")
         print("")
         sys.stdout.write(expected_stdout)
