@@ -143,7 +143,7 @@ inline bool space(uint32_t c)
     return c < 256 && isspace(c);
 }
 
-static std::vector<Token> tokenize_fragment(int &line, int column, const std::string &source, const std::string &actual_source_line = std::string())
+static std::vector<Token> tokenize_fragment(int &line, size_t column, const std::string &source, const std::string &actual_source_line = std::string())
 {
     std::vector<Token> tokens;
     std::string::const_iterator linestart = source.begin();
@@ -401,7 +401,7 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
                             break;
                         case '(': {
                             tokens.push_back(t);
-                            t.column = column + static_cast<int>(i - startindex) - 1;
+                            t.column = column + (i - startindex) - 1;
                             t.type = SUBBEGIN;
                             tokens.push_back(t);
                             auto start = i;
@@ -434,11 +434,11 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
                             if (colon > start) {
                                 end = colon;
                             }
-                            int col = column + static_cast<int>(start - startindex);
+                            size_t col = column + (start - startindex);
                             auto subtokens = tokenize_fragment(line, col, std::string(start, end), t.source);
                             std::copy(subtokens.begin(), subtokens.end(), std::back_inserter(tokens));
                             if (colon > start) {
-                                t.column = column + static_cast<int>(colon - startindex);
+                                t.column = column + (colon - startindex);
                                 t.type = SUBFMT;
                                 tokens.push_back(t);
                                 t.column += 1;
@@ -446,10 +446,10 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
                                 t.text = std::string(colon + 1, i - 1);
                                 tokens.push_back(t);
                             }
-                            t.column = column + static_cast<int>(i - startindex) - 1;
+                            t.column = column + (i - startindex) - 1;
                             t.type = SUBEND;
                             tokens.push_back(t);
-                            t.column = column + static_cast<int>(i - startindex);
+                            t.column = column + (i - startindex);
                             t.type = STRING;
                             t.text = "";
                             continue;
@@ -568,7 +568,7 @@ static std::vector<Token> tokenize_fragment(int &line, int column, const std::st
         if (t.type != NONE) {
             tokens.push_back(t);
         }
-        column += static_cast<int>(i - startindex);
+        column += (i - startindex);
     }
     return tokens;
 }
@@ -584,7 +584,7 @@ TokenizedSource tokenize(const std::string &source_path, const std::string &sour
         } else {
             bol = 0;
         }
-        int column = static_cast<int>(1 + inv - (source.begin() + bol));
+        size_t column = (1 + inv - (source.begin() + bol));
         Token t;
         t.line = line;
         t.column = column;
