@@ -125,7 +125,7 @@ inline bool number_start(uint32_t c)
 
 inline bool number_body(uint32_t c)
 {
-    return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
+    return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';
 }
 
 inline bool number_base(uint32_t c)
@@ -135,7 +135,7 @@ inline bool number_base(uint32_t c)
 
 inline bool number_decimal_body(uint32_t c)
 {
-    return c >= '0' && c <= '9';
+    return (c >= '0' && c <= '9') || c == '_';
 }
 
 inline bool space(uint32_t c)
@@ -325,11 +325,13 @@ static std::vector<Token> tokenize_fragment(int &line, size_t column, const std:
                         if (not number_body(c)) {
                             break;
                         }
-                        int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'z' ? c - 'a' + 10 : -1;
-                        if (d < 0 || d >= base) {
-                            error(1005, t, "invalid digit for given base");
+                        if (c != '_') {
+                            int d = c >= '0' && c <= '9' ? c - '0' : c >= 'a' && c <= 'z' ? c - 'a' + 10 : -1;
+                            if (d < 0 || d >= base) {
+                                error(1005, t, "invalid digit for given base");
+                            }
+                            value = number_add(number_multiply(value, number_from_uint32(base)), number_from_uint32(d));
                         }
-                        value = number_add(number_multiply(value, number_from_uint32(base)), number_from_uint32(d));
                         utf8::advance(i, 1, source.end());
                     }
                     if (i == start) {
@@ -340,26 +342,38 @@ static std::vector<Token> tokenize_fragment(int &line, size_t column, const std:
                     t.value = number_from_uint32(0);
                 }
             } else {
-                const auto start = i;
+                std::string n;
                 while (i != source.end() && number_decimal_body(*i)) {
+                    if (*i != '_') {
+                        n.push_back(*i);
+                    }
                     utf8::advance(i, 1, source.end());
                 }
                 if (i != source.end() && *i == '.') {
+                    n.push_back(*i);
                     utf8::advance(i, 1, source.end());
                     while (i != source.end() && number_decimal_body(*i)) {
+                        if (*i != '_') {
+                            n.push_back(*i);
+                        }
                         utf8::advance(i, 1, source.end());
                     }
                 }
                 if (i != source.end() && tolower(*i) == 'e') {
+                    n.push_back(*i);
                     utf8::advance(i, 1, source.end());
                     if (i != source.end() && (*i == '+' || *i == '-')) {
+                        n.push_back(*i);
                         utf8::advance(i, 1, source.end());
                     }
                     while (i != source.end() && number_decimal_body(*i)) {
+                        if (*i != '_') {
+                            n.push_back(*i);
+                        }
                         utf8::advance(i, 1, source.end());
                     }
                 }
-                t.value = number_from_string(std::string(start, i));
+                t.value = number_from_string(n);
             }
             t.text = std::string(start, i);
         } else if (c == '"') {
