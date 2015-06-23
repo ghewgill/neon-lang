@@ -27,3 +27,27 @@ EXCEPTION variant.TypeMismatch
     print("TypeMismatch")
 END TRY
 %= TypeMismatch
+
+v.set_null()
+print("\(v)")
+%= null
+
+v.set_boolean(TRUE)
+print("\(v)")
+%= true
+
+v.set_number(5)
+print("\(v)")
+%= 5
+
+v.set_string("hello")
+print("\(v)")
+%= hello
+
+v.set_array([variant.make_number(5), variant.make_string("hello")])
+print("\(v)")
+%= [5, "hello"]
+
+v.set_dictionary({"hello": variant.make_string("world")})
+print("\(v)")
+%= {"hello": "world"}

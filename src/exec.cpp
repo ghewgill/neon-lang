@@ -22,6 +22,8 @@
 #include "rtl_platform.h"
 #include "support.h"
 
+const size_t MAX_CALLSTACK_SIZE = 1000;
+
 namespace {
 
 std::vector<std::string> split(const std::string &s, char d)
@@ -859,6 +861,9 @@ void Executor::exec_CALLF()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
+    if (callstack.size() >= MAX_CALLSTACK_SIZE) {
+        raise("StackOverflow", ExceptionInfo(""));
+    }
     callstack.push_back(std::make_pair(module, ip));
     ip = val;
 }
@@ -870,6 +875,9 @@ void Executor::exec_CALLMF()
     ip += 4;
     uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
+    if (callstack.size() >= MAX_CALLSTACK_SIZE) {
+        raise("StackOverflow", ExceptionInfo(""));
+    }
     callstack.push_back(std::make_pair(module, ip));
     auto m = modules.find(module->object.strtable[mod]);
     if (m == modules.end()) {

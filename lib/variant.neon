@@ -156,3 +156,49 @@ FUNCTION Variant.get_dictionary(IN self: Variant): Dictionary<Variant>
     END IF
     RETURN self.val_dictionary
 END FUNCTION
+
+FUNCTION Variant.to_string(IN self: Variant): String
+    CASE self.type
+        WHEN Type.null DO
+            RETURN "null"
+        WHEN Type.boolean DO
+            RETURN IF self.val_boolean THEN "true" ELSE "false"
+        WHEN Type.number DO
+            RETURN str(self.val_number)
+        WHEN Type.string DO
+            RETURN self.val_string
+        WHEN Type.bytes DO
+            RETURN "<bytes>"
+        WHEN Type.array DO
+            VAR r: String := "["
+            FOREACH x OF self.val_array INDEX i DO
+                IF i > 0 THEN
+                    r.append(", ")
+                END IF
+                IF x.get_type() = Type.string THEN
+                    r.append("\"\(x)\"")
+                ELSE
+                    r.append(x.to_string())
+                END IF
+            END FOREACH
+            r.append("]")
+            RETURN r
+        WHEN Type.dictionary DO
+            VAR r: String := "{"
+            LET keys: Array<String> := self.val_dictionary.keys() % TODO: remove this temporary
+            FOREACH x OF keys INDEX i DO
+                IF i > 0 THEN
+                    r.append(", ")
+                END IF
+                r.append("\"\(x)\": ")
+                IF self.val_dictionary[x].get_type() = Type.string THEN
+                    r.append("\"\(self.val_dictionary[x])\"")
+                ELSE
+                    r.append(" \(self.val_dictionary[x])")
+                END IF
+            END FOREACH
+            r.append("}")
+            RETURN r
+    END CASE
+    RETURN "TODO"
+END FUNCTION
