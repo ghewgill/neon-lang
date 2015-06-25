@@ -587,10 +587,6 @@ Program::Program(const std::string &source_hash)
     scope->addName(Token(), "ByteOutOfRange", new Exception(Token(), "ByteOutOfRange"));
     scope->addName(Token(), "AssertFailed", new Exception(Token(), "AssertFailed"));
 
-    scope->addName(Token(), "DirectoryExists", new Exception(Token(), "DirectoryExists"));
-    scope->addName(Token(), "PathNotFound", new Exception(Token(), "PathNotFound"));
-    scope->addName(Token(), "PermissionDenied", new Exception(Token(), "PermissionDenied"));
-
     {
         // The fields here must match the corresponding references to
         // ExceptionInfo in exec.cpp.
