@@ -3,7 +3,7 @@ IMPORT file
 TRY
     file.mkdir("dummy")
     file.mkdir("dummy")
-EXCEPTION DirectoryExists
+EXCEPTION file.DirectoryExists
     print(CURRENT_EXCEPTION.info)
 END TRY
 
