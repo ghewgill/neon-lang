@@ -88,6 +88,15 @@ Number bitwise$shift_right(Number x, Number n)
     return number_from_uint32(number_to_uint32(x) >> b);
 }
 
+Number bitwise$shift_right_signed(Number x, Number n)
+{
+    uint32_t b = number_to_uint32(n);
+    if (b >= 32) {
+        return number_from_uint32(0);
+    }
+    return number_from_sint32(number_to_sint32(x) >> b);
+}
+
 Number bitwise$xor(Number x, Number y)
 {
     return number_from_uint32(number_to_uint32(x) ^ number_to_uint32(y));

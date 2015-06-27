@@ -30,5 +30,8 @@ print(str(bitwise.shift_left(10, 2)))
 print(str(bitwise.shift_right(10, 2)))
 %= 2
 
+print(str(bitwise.shift_right_signed(-10, 2)))
+%= -3
+
 print(str(bitwise.xor(10, 12)))
 %= 6

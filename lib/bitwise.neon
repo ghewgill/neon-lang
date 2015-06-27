@@ -7,4 +7,5 @@ DECLARE NATIVE FUNCTION replace(x, n, w, y: Number): Number
 DECLARE NATIVE FUNCTION set(x, n: Number, v: Boolean): Number
 DECLARE NATIVE FUNCTION shift_left(x, n: Number): Number
 DECLARE NATIVE FUNCTION shift_right(x, n: Number): Number
+DECLARE NATIVE FUNCTION shift_right_signed(x, n: Number): Number
 DECLARE NATIVE FUNCTION xor(x, y: Number): Number
