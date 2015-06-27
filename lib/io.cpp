@@ -40,6 +40,7 @@ bool io$readline(void *pf, utf8string *s)
         }
         s->append(buf);
         if (s->at(s->length()-1) == '\n') {
+            s->resize(s->length()-1);
             return true;
         }
     }

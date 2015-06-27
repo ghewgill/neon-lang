@@ -37,6 +37,7 @@ public:
     std::string::size_type length() const { return s.length(); }
     void push_back(std::string::value_type ch) { invalidate(); s.push_back(ch); }
     void reserve(std::string::size_type new_cap) { s.reserve(new_cap); }
+    void resize(std::string::size_type count) { s.resize(count); }
     std::string::size_type size() const { return s.size(); }
     const std::string &str() const { return s; }
     std::string substr(std::string::size_type pos, std::string::size_type count) const { return s.substr(pos, count); }

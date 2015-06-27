@@ -13,7 +13,7 @@ VAR f: io.File := io.open("LICENSE.txt", io.Mode.read)
 VAR s: String
 print(strb(io.readline(f, s)))
 %= TRUE
-print(s[FIRST TO LAST-1])
+print(s)
 %= The MIT License (MIT)
 
 io.close(f)
