@@ -1,13 +1,17 @@
 EXPORT DirectoryExists
 EXPORT FileOpenError
+EXPORT FileWriteError
 EXPORT PathNotFound
 EXPORT PermissionDenied
 
 DECLARE EXCEPTION DirectoryExists
 DECLARE EXCEPTION FileOpenError
+DECLARE EXCEPTION FileWriteError
 DECLARE EXCEPTION PathNotFound
 DECLARE EXCEPTION PermissionDenied
 
 DECLARE NATIVE FUNCTION bytes(filename: String): Bytes
 DECLARE NATIVE FUNCTION lines(filename: String): Array<String> 
 DECLARE NATIVE FUNCTION mkdir(path: String)
+DECLARE NATIVE FUNCTION writebytes(filename: String, data: Bytes)
+DECLARE NATIVE FUNCTION writelines(filename: String, data: Array<String>)

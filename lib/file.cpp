@@ -40,4 +40,30 @@ std::vector<utf8string> file$lines(const std::string &filename)
     return r;
 }
 
+void file$writebytes(const std::string &filename, const std::string &data)
+{
+    std::ofstream f(filename, std::ios::binary);
+    if (not f.is_open()) {
+        throw RtlException("FileOpenError", filename);
+    }
+    if (not f.write(data.c_str(), data.length())) {
+        throw RtlException("FileWriteError", filename);
+    }
+}
+
+void file$writelines(const std::string &filename, const std::vector<utf8string> &lines)
+{
+    std::ofstream f(filename, std::ios::out | std::ios::trunc); // Truncate the file every time we open it to write lines to it.
+    if (not f.is_open()) {
+        throw RtlException("FileOpenError", filename);
+    }
+    for (auto s: lines) {
+        f << s.str() << "\n";   // Write line, and line-ending for each element in the array.
+        if (f.fail()) {
+            // If the write fails for any reason, consider that a FileWriteError exception.
+            throw RtlException("FileWriteError", filename);
+        }
+    }
+}
+
 } // namespace rtl
