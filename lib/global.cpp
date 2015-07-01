@@ -203,7 +203,9 @@ std::string input(const std::string &prompt)
 {
     std::cout << prompt;
     std::string r;
-    std::getline(std::cin, r);
+    if (not std::getline(std::cin, r)) {
+        throw RtlException("EndOfFile", "");
+    }
     return r;
 }
 
