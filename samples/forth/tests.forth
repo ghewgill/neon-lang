@@ -1,3 +1,6 @@
+\ Forth 2012 core test suite:
+\ http://lars.nocrew.org/forth2012/testsuite.html
+
 HEX
 
 T{ -> }T                      ( Start with a clean slate )
