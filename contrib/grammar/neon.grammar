@@ -1,0 +1,388 @@
+Program               ::= GlobalStmtList
+
+Expression            ::= Expression '>'  Add Exp 
+                         |  Expression '<'  Add Exp 
+                         |  Expression '=' Add Exp 
+                         |  Expression '>=' Add Exp
+                         |  Expression '<='  Add Exp
+                         |  Expression '#'  Add Exp
+                         |  Add Exp 
+
+Add Exp               ::= Add Exp '+' Mult Exp
+                         |  Add Exp '-' Mult Exp
+                         |  Mult Exp 
+
+Mult Exp              ::= Mult Exp '*' Negate Exp 
+                         |  Mult Exp '/' Negate Exp 
+                         |  Negate Exp 
+
+Negate Exp            ::= '-' Value 
+                         |  Value 
+
+NativeType            ::= 'Number'
+                         |  'Boolean'
+                         |  'String'
+
+Containers            ::= 'Array' '<' DataType '>'
+                         |  'Dictionary' '<' DataType '>'
+
+DataType              ::= NativeType
+                         |  EnumDecl
+                         |  Containers
+                         |  RecordDecl
+                         |  Expr
+
+VarDecl               ::= 'VAR' VarName ':' DataType OtherVarsOpt
+
+VarName               ::= ExtendedID '[' ArrayRankList ']'
+                         |  ExtendedID
+
+OtherVarsOpt          ::= ',' VarName OtherVarsOpt
+                         |  ':=' Expression
+                         |  ':' DataType
+                         |
+
+ArrayRankList         ::= IntLiteral ',' ArrayRankList
+                         |  IntLiteral
+                         |
+
+ConstDecl             ::= AccessModifierOpt 'CONST' ConstList
+
+ConstList             ::= ExtendedID ':=' ConstExprDef ',' ConstList
+                         |  ExtendedID ':=' ConstExprDef
+
+
+
+
+
+
+
+ConstExprDef          ::= '[' ConstExprDef ']'
+                         |  '-' ConstExprDef
+                         |  '+' ConstExprDef
+                         |  ConstExpr
+
+EnumDecl              ::= 'TYPE' ExtendedID ':=' 'ENUM' EnumTypeLst 'END' 'ENUM'
+
+EnumTypeLst           ::= ExtendedID
+
+RecordDecl            ::= 'TYPE' ExtendedID ':=' 'RECORD' FieldList 'END' 'RECORD'
+                         
+FieldList             ::= VarName ':' DataType OtherVarsOpt
+
+FunctionDecl          ::= MethodAccessOpt 'FUNCTION' ExtendedID MethodArgList MethodReturnOpt MethodStmtList 'END' 'FUNCTION'
+                         |  MethodAccessOpt 'FUNCTION' ExtendedID MethodArgList MethodReturnOpt InlineStmt 'END' 'FUNCTION'
+
+MethodAccessOpt       ::= 'PUBLIC' 'PRIVATE'
+                         |  AccessModifierOpt
+
+AccessModifierOpt     ::= 'PUBLIC'
+                         |  'PRIVATE'
+                         |
+
+MethodReturnOpt       ::= ':' DataType
+                         |  ':' 'Nothing'
+                         |
+
+MethodArgList         ::= '(' ArgList ')'
+                          | '(' ')'
+                          |
+
+ArgList               ::= Arg ',' ArgList
+                          | Arg
+
+Arg                   ::= ArgModifierOpt ExtendedID '(' ')'
+                          | ArgModifierOpt ExtendedID
+
+ArgModifierOpt        ::= 'IN'
+                          | 'INOUT'
+                          | 'OUT'
+                          |
+                         
+ReturnStmt            ::= 'RETURN' DataType
+                          |
+
+GlobalStmt            ::= ImportStmt
+                          | RecordDecl
+                          | EnumDecl
+                          | ConstDecl
+                          | FunctionDecl
+                          | BlockStmt
+                          | AssignStmt
+                          | TryStmt
+                          | FunctionCallStmt
+                          | VarDecl
+                          | CallStmt
+                          | IfStmt
+                          | WhileStmt
+                          | CaseStmt
+                          | RepeatStmt
+                          | ForStmt
+
+MethodStmt            ::= BlockStmt
+                          | ReturnStmt
+                          | ExitStmt
+
+BlockStmt             ::= VarDecl
+                          | AssignStmt
+                          | CallStmt
+                          | IfStmt
+                          | WhileStmt
+                          | CaseStmt
+                          | RepeatStmt
+                          | ForStmt
+                          | InlineStmt
+                          | NextStmt
+
+InlineStmt            ::= AssignStmt
+                          | FunctionCallStmt
+                          | ExitStmt
+
+GlobalStmtList        ::= GlobalStmt GlobalStmtList
+                          |
+
+MethodStmtList        ::= MethodStmt MethodStmtList
+                          |
+
+BlockStmtList         ::= BlockStmt BlockStmtList
+                          |
+
+ImportStmt            ::= 'IMPORT' Identifier
+
+TryStmt               ::= 'TRY' BlockStmtList 'EXCEPTION' Identifier BlockStmtList 'END' 'TRY'
+
+ExitStmt              ::= 'EXIT' 'WHILE'
+                          | 'EXIT' 'FOR'
+                          | 'EXIT' 'LOOP'
+                          | 'EXIT' 'REPEAT'
+                          | 'EXIT' 'FUNCTION'
+
+NextStmt              ::= 'NEXT' 'WHILE'
+                          | 'NEXT' 'FOR'
+                          | 'NEXT' 'LOOP'
+                          | 'NEXT' 'REPEAT'
+
+AssignStmt            ::= LeftExpr ':=' Expr
+                          | 'LET' LeftExpr ':=' Expr
+
+
+FunctionCallStmt      ::= QualifiedID Params
+                          | QualifiedID Params IndexList '.' LeftExprTail QualifiedID CommaExprList
+                          | QualifiedID Params IndexList '.' LeftExprTail QualifiedID
+
+CallStmt              ::= LeftExpr '(' ')'
+
+LeftExpr              ::= QualifiedID IndexList '.' LeftExprTail
+                          | QualifiedID IndexList
+                          | QualifiedID
+                          | KeywordID
+
+LeftExprTail         ::= QualifiedIDTail IndexList '.' LeftExprTail
+                         | QualifiedIDTail IndexList
+                         | QualifiedIDTail
+
+QualifiedID           ::= IDDot QualifiedIDTail
+                          | ID
+
+QualifiedIDTail       ::= IDDot QualifiedIDTail
+                          | ID
+                          | KeywordID
+
+KeywordID             ::= 'AND'
+                          | 'NOT'
+                          | 'OR'
+                          | 'EXCEPTION'
+                          | 'TRY'
+                          | 'RAISE'
+                          | 'IN'
+                          | 'INOUT'
+                          | 'OUT'
+                          | 'FALSE'
+                          | 'TRUE'
+                          | 'Array'
+                          | 'Boolean'
+                          | 'Dictionary'
+                          | 'Nothing'
+                          | 'Number'
+                          | 'String'
+                          | 'NIL'
+                          | 'CASE'
+                          | 'CONST'
+                          | 'DECLARE'
+                          | 'DO'
+                          | 'ELSE'
+                          | 'ELSIF'
+                          | 'END'
+                          | 'ENUM'
+                          | 'EXIT'
+                          | 'EXTERNAL'
+                          | 'FOR'
+                          | 'FUNCTION'
+                          | 'IF'
+                          | 'IMPORT'
+                          | 'LET'
+                          | 'LOOP'
+                          | 'MOD'
+                          | 'NEW'
+                          | 'NEXT'
+                          | 'POINTER'
+                          | 'PRIVATE'
+                          | 'PUBLIC'
+                          | 'RECORD'
+                          | 'REPEAT'
+                          | 'RETURN'
+                          | 'STEP'
+                          | 'THEN'
+                          | 'TO'
+                          | 'TYPE'
+                          | 'UNTIL'
+                          | 'VALID'
+                          | 'VAR'
+                          | 'WHEN'
+                          | 'WHILE'
+                          | ''
+
+ExtendedID            ::= KeywordID
+                          | ID                            
+
+IndexList             ::= Index IndexList
+                          | Index
+
+Index                 ::= '[' Expr CommaExprList ']'
+                          | '[' CommaExprList ']'
+                          | '[' Expr ']'
+
+ParamModifierOpt      ::= 'IN'
+                          | 'INOUT'
+                          | 'OUT'
+                          |
+
+Param                 ::= ParamModifierOpt ExtendedID ':' DataType
+                          |
+
+Params                ::= '(' Param ')'
+                          | '(' ')'
+
+ParamLst              ::= '(' Param ParamLst
+                          | CommaParamList
+                          | '(' ')'
+
+IndexListDot          ::= Index IndexListDot
+                          | IndexDot
+
+IndexDot              ::= '[' Expr CommaExprList '].'
+                          | '[' CommaExprList '].'
+                          | '[' Expr '].'
+
+CommaParamList        ::= ',' Param CommaParamList
+                          | ',' CommaParamList
+                          | ',' Param
+
+CommaExprList         ::= ',' Expr CommaExprList
+                          | ',' CommaExprList
+                          | ',' Expr
+                          | ','
+
+IfStmt                ::= 'IF' Expr 'THEN' BlockStmtList ElseStmtList EndIfOpt
+                          | 'IF' Expr 'THEN' InlineStmt ElseOpt
+
+ElseStmtList          ::= 'ELSIF' Expr 'THEN' BlockStmtList ElseStmtList
+                          | ElseOpt
+                          |
+
+Else                  ::= 'ELSE' BlockStmtList
+                          | 'ELSE' InlineStmt
+
+ElseOpt               ::= Else
+                          |
+
+EndIf                 ::= 'END' 'IF'
+
+EndIfOpt              ::= EndIf
+                          |
+
+
+RepeatStmt            ::= 'REPEAT' BlockStmtList 'LOOP' 'UNTIL' Expr
+
+
+WhileStmt             ::= 'WHILE' Expr 'DO' BlockStmtList 'END' 'WHILE'
+
+
+ForStmt               ::= 'FOR' ExtendedID ':=' Expr 'TO' Expr StepOpt 'DO' BlockStmtList 'END' 'FOR'
+                          | 'FOR' 'EACH' ExtendedID 'IN' Expr 'DO' BlockStmtList 'END' 'FOR'
+
+StepOpt               ::= 'STEP' Expr
+                          |
+
+CaseStmt              ::= 'CASE' Expr WhenStmtList 'END' 'CASE'
+
+WhenStmtList          ::= 'WHEN' ExprList 'DO' BlockStmtList WhenStmtList
+                          | 'ELSE' BlockStmtList
+                          |
+
+
+ExprList              ::= Expr ',' ExprList
+                          | Expr
+
+Expr                  ::= OrExpr
+
+OrExpr                ::= OrExpr 'OR' AndExpr
+                          | AndExpr
+
+AndExpr               ::= AndExpr 'AND' NotExpr
+                          | NotExpr
+
+NotExpr               ::= 'NOT' NotExpr
+                          | CompareExpr
+
+CompareExpr           ::= CompareExpr 'NOT' ConcatExpr
+                          | CompareExpr '>=' ConcatExpr
+                          | CompareExpr '<=' ConcatExpr
+                          | CompareExpr '>'  ConcatExpr
+                          | CompareExpr '<'  <ConcatExpr
+                          | CompareExpr '#'  ConcatExpr
+                          | CompareExpr '='  ConcatExpr
+                          | ConcatExpr
+
+ConcatExpr            ::= ConcatExpr '&' AddExpr
+                          | AddExpr
+
+AddExpr               ::= AddExpr '+' ModExpr
+                          | AddExpr '-' ModExpr
+                          | ModExpr
+
+ModExpr               ::= ModExpr 'MOD' MultExpr
+                          | MultExpr
+
+MultExpr              ::= MultExpr '*' UnaryExpr
+                          | MultExpr '/' UnaryExpr
+                          | UnaryExpr
+
+UnaryExpr             ::= '-' UnaryExpr
+                          | '+' UnaryExpr
+                          | ExpExpr
+
+ExpExpr               ::= Value '^' ExpExpr
+                          | Value
+
+Value                 ::= ConstExpr
+                          | LeftExpr
+                          | '(' Expr ')'
+
+ConstExpr             ::= BoolLiteral
+                          | IntLiteral
+                          | FloatLiteral
+                          | StringLiteral
+                          | Nothing
+
+BoolLiteral           ::= 'TRUE'
+                          | 'FALSE'
+
+IntLiteral            ::= IntLiteral
+                          | HexLiteral
+                          | OctLiteral
+                          | BinLiteral
+                          | ModLiteral
+
+Nothing               ::= 'Nothing'
+                          | 'NIL'
