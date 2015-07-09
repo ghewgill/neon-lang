@@ -11,6 +11,7 @@ DECLARE EXCEPTION PathNotFound
 DECLARE EXCEPTION PermissionDenied
 
 DECLARE NATIVE FUNCTION bytes(filename: String): Bytes
+DECLARE NATIVE FUNCTION exists(filename: String): Boolean
 DECLARE NATIVE FUNCTION lines(filename: String): Array<String> 
 DECLARE NATIVE FUNCTION mkdir(path: String)
 DECLARE NATIVE FUNCTION writebytes(filename: String, data: Bytes)
