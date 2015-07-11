@@ -1,0 +1,6 @@
+TYPE Record := RECORD
+    name: String
+END RECORD
+
+LET p: POINTER TO Record := NEW Record
+p->name := "hello"

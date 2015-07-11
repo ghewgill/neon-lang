@@ -1779,15 +1779,19 @@ const Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
 const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
     const Type *type = analyze(declaration->type);
+    const Expression *expr = analyze(declaration->value);
+    if (not expr->type->is_equivalent(type)) {
+        error(3140, declaration->value->token, "type mismatch");
+    }
+    const TypePointer *ptype = dynamic_cast<const TypePointer *>(type);
+    if (ptype != nullptr && dynamic_cast<const NewRecordExpression *>(expr) != nullptr) {
+        type = new TypeValidPointer(ptype);
+    }
     Variable *v;
     if (frame.top() == global_frame) {
         v = new GlobalVariable(declaration->name, declaration->name.text, type, true);
     } else {
         v = new LocalVariable(declaration->name, declaration->name.text, type, true);
-    }
-    const Expression *expr = analyze(declaration->value);
-    if (not expr->type->is_equivalent(type)) {
-        error(3140, declaration->value->token, "type mismatch");
     }
     scope.top()->addName(v->declaration, v->name, v, true);
     std::vector<const ReferenceExpression *> refs;
