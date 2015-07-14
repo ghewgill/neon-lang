@@ -21,6 +21,14 @@ void array__extend(Cell *self, Cell &elements)
     std::copy(elements.array().begin(), elements.array().end(), std::back_inserter(self->array_for_write()));
 }
 
+void array__resize(Cell *self, Number new_size)
+{
+    if (not number_is_integer(new_size)) {
+        throw RtlException("ArrayIndex", number_to_string(new_size));
+    }
+    self->array_for_write().resize(number_to_sint64(new_size));
+}
+
 Number array__size(Cell &self)
 {
     return number_from_uint64(self.array().size());

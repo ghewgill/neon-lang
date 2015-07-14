@@ -98,6 +98,12 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
     }
     {
         std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::INOUT, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER, nullptr));
+        methods["resize"] = new PredefinedFunction("array__resize", new TypeFunction(TYPE_NOTHING, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
         methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params));
     }

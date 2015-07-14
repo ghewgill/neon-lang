@@ -13,7 +13,7 @@ TYPE Stack := RECORD
 END RECORD
 
 FUNCTION Stack.drop(INOUT self: Stack, n: Number DEFAULT 1)
-    self.stack[LAST-(n-1) TO LAST] := []
+    self.stack.resize(self.stack.size() - n)
 END FUNCTION
 
 FUNCTION Stack.peek(self: Stack, n: Number DEFAULT 0): Number
@@ -22,7 +22,7 @@ END FUNCTION
 
 FUNCTION Stack.pop(INOUT self: Stack): Number
     LET x: Number := self.stack[LAST]
-    self.stack[LAST TO LAST] := []
+    self.stack.resize(self.stack.size()-1)
     RETURN x
 END FUNCTION
 
@@ -414,7 +414,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             ip := instr
         WHEN 0 DO
             ip := return[LAST].ip
-            return[LAST TO LAST] := []
+            return.resize(return.size()-1)
         WHEN CORE_STORE DO
             LET addr: Number := stack.pop()
             LET x: Number := stack.pop()
@@ -632,13 +632,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             % no action required
         WHEN CORE_ALLOT DO
             LET n: Number := signed32(stack.pop())
-            IF n > 0 THEN
-                FOR i := 1 TO n DO
-                    storage.append(0)
-                END FOR
-            ELSIF n < 0 THEN
-                storage[LAST-(n-1) TO LAST] := []
-            END IF
+            storage.resize(storage.size() + n)
         WHEN CORE_AND DO
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
@@ -835,7 +829,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(cell_pad)
         WHEN CORE_R_FROM DO
             stack.push(return[LAST].ip)
-            return[LAST TO LAST] := []
+            return.resize(return.size()-1)
         WHEN CORE_R_FETCH DO
             stack.push(return[LAST].ip)
         WHEN CORE_ROT DO
@@ -993,10 +987,10 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             ip := ip + 2
         WHEN INT_EXIT DO
             ip := return[LAST].ip
-            return[LAST TO LAST] := []
+            return.resize(return.size()-1)
         WHEN INT_LEAVE DO
             ip := return[LAST].leave
-            return[LAST TO LAST] := []
+            return.resize(return.size()-1)
         WHEN INT_LITERAL DO
             stack.push(code[ip+1])
             ip := ip + 2
@@ -1004,7 +998,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET last: Number := return.size() - 1
             return[last].index := (return[last].index + 1) MOD 0x100000000
             IF return[last].index = return[last].limit THEN
-                return[LAST TO LAST] := []
+                return.resize(return.size()-1)
             ELSE
                 ip := return[last].ip
             END IF
@@ -1019,7 +1013,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
                                         ELSE return[last].index < prev))
             OR (n < 0 AND (IF limit # 0 THEN prev >= limit AND (return[last].index < limit OR return[last].index > prev)
                                         ELSE return[last].index > prev)) THEN
-                return[LAST TO LAST] := []
+                return.resize(return.size()-1)
             ELSE
                 ip := return[last].ip
             END IF
@@ -1044,7 +1038,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(storage[code[ip+1]])
             ip := ip + 2
         WHEN INT_UNLOOP DO
-            return[LAST TO LAST] := []
+            return.resize(return.size()-1)
         ELSE
             print("Unknown instruction: \(instr)")
             sys.exit(1)
