@@ -6,7 +6,7 @@ END RECORD
 
 VAR a: POINTER TO Recordset
 
-IF VALID p := a THEN
+IF VALID a AS p THEN
     p->LastName
        %<1
 END IF

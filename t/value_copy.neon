@@ -14,22 +14,22 @@ value_copy(b, a)
 print(b.name)
 %= foo
 
-IF VALID pp := p THEN
+IF VALID p AS pp THEN
     a.name := "bar"
     value_copy(pp, a)
     print(pp->name)
 END IF
 %= bar
 
-IF VALID pp := p THEN
+IF VALID p AS pp THEN
     pp->name := "baz"
     value_copy(a, pp)
     print(a.name)
 END IF
 %= baz
 
-IF VALID pp := p THEN
-    IF VALID qq := q THEN
+IF VALID p AS pp THEN
+    IF VALID q AS qq THEN
         pp->name := "quux"
         value_copy(qq, pp)
         print(qq->name)

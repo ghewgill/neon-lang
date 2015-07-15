@@ -1,6 +1,6 @@
 VAR p: POINTER
 
-IF VALID q := p THEN
+IF VALID p AS q THEN
     print(q->foo)
           %<
 END IF

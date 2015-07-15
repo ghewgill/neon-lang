@@ -405,14 +405,14 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
     % executed once
 
   VAR Next_Record: POINTER TO Record
-  IF VALID pvp := Ptr_Val_Par THEN
+  IF VALID Ptr_Val_Par AS pvp THEN
       Next_Record := pvp->Ptr_Comp
-      IF VALID nr := Next_Record THEN
+      IF VALID Next_Record AS nr THEN
                                         % == Ptr_Glob_Next
           % Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
           % corresponds to "rename" in Ada, "with" in Pascal
 
-          IF VALID pg := Ptr_Glob THEN
+          IF VALID Ptr_Glob AS pg THEN
             value_copy(nr, pg)
           END IF
           pvp->Int_Comp := 5
@@ -425,7 +425,7 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
             nr->Int_Comp := 6
             Proc_6 (pvp->Enum_Comp,
                     nr->Enum_Comp)
-            IF VALID pg := Ptr_Glob THEN
+            IF VALID Ptr_Glob AS pg THEN
                 nr->Ptr_Comp := pg->Ptr_Comp
             END IF
             Proc_7 (nr->Int_Comp, 10,
@@ -461,7 +461,7 @@ FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
     % executed once
     % Ptr_Ref_Par becomes Ptr_Glob
 
-  IF VALID pg := Ptr_Glob THEN
+  IF VALID Ptr_Glob AS pg THEN
     % then, executed
     Ptr_Ref_Par := pg->Ptr_Comp
     Proc_7 (10, Int_Glob, pg->Int_Comp)
@@ -649,7 +649,7 @@ FUNCTION main()
   Next_Ptr_Glob := NEW Record
   Ptr_Glob := NEW Record
 
-  IF VALID pg := Ptr_Glob THEN
+  IF VALID Ptr_Glob AS pg THEN
       pg->Ptr_Comp                    := Next_Ptr_Glob
       pg->Discr                       := Enumeration.Ident_1
       pg->Enum_Comp                   := Enumeration.Ident_3
@@ -744,7 +744,7 @@ FUNCTION main()
   print ("        should be:   " & str(7))
   print ("Arr_2_Glob[8][7]:    " & str(Arr_2_Glob[8][7]))
   print ("        should be:   Number_Of_Runs + 10")
-  IF VALID pg := Ptr_Glob THEN
+  IF VALID Ptr_Glob AS pg THEN
     print ("Ptr_Glob->")
     print ("  Ptr_Comp:          ") % & pg->Ptr_Comp)
     print ("        should be:   (implementation-dependent)")
@@ -757,7 +757,7 @@ FUNCTION main()
     print ("  Str_Comp:          " & pg->Str_Comp)
     print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
   END IF
-  IF VALID npg := Next_Ptr_Glob THEN
+  IF VALID Next_Ptr_Glob AS npg THEN
     print ("Next_Ptr_Glob->")
     print ("  Ptr_Comp:          ") % & npg->Ptr_Comp)
     print ("        should be:   (implementation-dependent), same as above")

@@ -15,7 +15,7 @@ print("value=\(foo().value)")
 
 VAR p: POINTER TO Rec
 p := NEW Rec
-IF VALID q := p THEN
+IF VALID p AS q THEN
     print("value=\(q->value)")
 END IF
 %= value=

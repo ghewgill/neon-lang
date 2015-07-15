@@ -3,7 +3,7 @@ TYPE Record := RECORD
 END RECORD
 
 VAR p: POINTER TO Record
-IF VALID q := p THEN
+IF VALID p AS q THEN
     q->value := 0
        %<
 END IF

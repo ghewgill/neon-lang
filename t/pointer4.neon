@@ -5,6 +5,6 @@ END RECORD
 VAR a: POINTER TO Node
 
 a := NEW Node
-IF VALID p := a THEN
+IF VALID a AS p THEN
     p->value := 5
 END IF

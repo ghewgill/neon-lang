@@ -928,16 +928,16 @@ const Statement *Parser::parseIfStatement()
             std::vector<std::pair<Token, const Expression *>> tests;
             for (;;) {
                 ++i;
+                const Expression *ptr = parseExpression();
+                if (tokens[i].type != AS) {
+                    error(2065, tokens[i], "'AS' expected");
+                }
+                ++i;
                 if (tokens[i].type != IDENTIFIER) {
                     error(2064, tokens[i], "identifier expected");
                 }
                 const Token &name = tokens[i];
                 ++i;
-                if (tokens[i].type != ASSIGN) {
-                    error(2065, tokens[i], "':=' expected");
-                }
-                ++i;
-                const Expression *ptr = parseExpression();
                 tests.push_back(std::make_pair(name, ptr));
                 if (tokens[i].type != COMMA) {
                     break;

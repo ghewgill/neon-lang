@@ -5,12 +5,12 @@ END RECORD
 VAR a, b: POINTER TO Node
 
 a := NEW Node
-IF VALID p1 := a, q1 := b THEN
+IF VALID a AS p1, b AS q1 THEN
     print("one")
 END IF
 
 b := NEW Node
-IF VALID p2 := a, q2 := b THEN
+IF VALID a AS p2, b AS q2 THEN
     print("two")
 END IF
 

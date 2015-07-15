@@ -6,9 +6,9 @@ END RECORD
 VAR a: POINTER TO Node
 
 a := NEW Node
-IF VALID p := a THEN
+IF VALID a AS p THEN
     p->next := NEW Node
-    IF VALID q := p->next THEN
+    IF VALID p->next AS q THEN
         q->value := 5
         print(str(q->value))
     END IF
