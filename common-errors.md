@@ -82,7 +82,7 @@ To resolve this problem, Neon introduces the idea of a "valid" pointer. A valid 
 
     VAR node: POINTER TO Node
     
-    IF VALID p := node THEN
+    IF VALID node AS p THEN
         print(p->value)
     END IF
 

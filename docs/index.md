@@ -406,7 +406,7 @@ Example:
     VAR item: POINTER TO Item
 
     item := NEW Item
-    IF VALID p := item THEN
+    IF VALID item AS p THEN
         p->name := "Widget"
         p->size := 5
     END IF
@@ -769,7 +769,7 @@ The `IF VALID` form is used to test a pointer value to check whether it is `NIL`
 
     VAR p: POINTER TO Record
 
-    IF VALID q := p THEN
+    IF VALID p AS q THEN
         print(q->name)
     END IF
 
