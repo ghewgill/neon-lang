@@ -491,9 +491,25 @@ private:
 
 class ValidPointerExpression: public Expression {
 public:
-    ValidPointerExpression(const Token &token, std::vector<std::pair<Token, const Expression *>> &tests): Expression(token, tests.front().second->get_start_column(), tests.back().second->get_end_column()), tests(tests) {}
+    struct Clause {
+        Clause(const Expression *expr, const Token &name, bool shorthand): expr(expr), name(name), shorthand(shorthand) {}
+        Clause(const Clause &rhs): expr(rhs.expr), name(rhs.name), shorthand(rhs.shorthand) {}
+        Clause &operator=(const Clause &rhs) {
+            if (this == &rhs) {
+                return *this;
+            }
+            expr = rhs.expr;
+            name = rhs.name;
+            shorthand = rhs.shorthand;
+            return *this;
+        }
+        const Expression *expr;
+        Token name;
+        bool shorthand;
+    };
+    ValidPointerExpression(const Token &token, std::vector<Clause> &tests): Expression(token, tests.front().expr->get_start_column(), tests.back().expr->get_end_column()), tests(tests) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    std::vector<std::pair<Token, const Expression *>> tests;
+    std::vector<Clause> tests;
 private:
     ValidPointerExpression(const ValidPointerExpression &);
     ValidPointerExpression &operator=(const ValidPointerExpression &);

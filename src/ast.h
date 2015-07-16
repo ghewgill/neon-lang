@@ -90,7 +90,7 @@ public:
     bool allocateName(const Token &token, const std::string &name);
     Name *lookupName(const std::string &name);
     Token getDeclaration(const std::string &name) const;
-    void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false);
+    void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false, bool allow_shadow = false);
     void addForward(const std::string &name, TypePointer *ptrtype);
     void resolveForward(const std::string &name, const TypeRecord *rectype);
     void checkForward();

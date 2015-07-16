@@ -1,2 +1,2 @@
-IF VALID p OF
-           %<
+IF VALID p() THEN
+         %<

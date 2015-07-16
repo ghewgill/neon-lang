@@ -463,9 +463,9 @@ Token Scope::getDeclaration(const std::string &name) const
     return Token();
 }
 
-void Scope::addName(const Token &token, const std::string &name, Name *ref, bool init_referenced)
+void Scope::addName(const Token &token, const std::string &name, Name *ref, bool init_referenced, bool allow_shadow)
 {
-    if (lookupName(name) != nullptr) {
+    if (not allow_shadow and lookupName(name) != nullptr) {
         // If this error occurs, it means a new name was introduced
         // but no check was made with lookupName() to see whether the
         // name already exists yet. This error needs to be detected

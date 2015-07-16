@@ -925,20 +925,30 @@ const Statement *Parser::parseIfStatement()
         const Expression *cond = nullptr;
         if (tokens[i].type == VALID) {
             auto &tok_valid = tokens[i];
-            std::vector<std::pair<Token, const Expression *>> tests;
+            std::vector<ValidPointerExpression::Clause> tests;
             for (;;) {
                 ++i;
+                const Token &tok_expr = tokens[i];
                 const Expression *ptr = parseExpression();
-                if (tokens[i].type != AS) {
-                    error(2065, tokens[i], "'AS' expected");
+                Token name;
+                bool shorthand = false;
+                if (tokens[i].type == AS) {
+                    ++i;
+                    if (tokens[i].type != IDENTIFIER) {
+                        error(2064, tokens[i], "identifier expected");
+                    }
+                    name = tokens[i];
+                    ++i;
+                } else {
+                    const IdentifierExpression *ident = dynamic_cast<const IdentifierExpression *>(ptr);
+                    if (ident != nullptr) {
+                        name = ident->token;
+                        shorthand = true;
+                    } else {
+                        error(2065, tok_expr, "single identifier expected (otherwise use AS alias)");
+                    }
                 }
-                ++i;
-                if (tokens[i].type != IDENTIFIER) {
-                    error(2064, tokens[i], "identifier expected");
-                }
-                const Token &name = tokens[i];
-                ++i;
-                tests.push_back(std::make_pair(name, ptr));
+                tests.push_back(ValidPointerExpression::Clause(ptr, name, shorthand));
                 if (tokens[i].type != COMMA) {
                     break;
                 }

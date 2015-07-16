@@ -405,33 +405,33 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
     % executed once
 
   VAR Next_Record: POINTER TO Record
-  IF VALID Ptr_Val_Par AS pvp THEN
-      Next_Record := pvp->Ptr_Comp
-      IF VALID Next_Record AS nr THEN
+  IF VALID Ptr_Val_Par THEN
+      Next_Record := Ptr_Val_Par->Ptr_Comp
+      IF VALID Next_Record THEN
                                         % == Ptr_Glob_Next
           % Local variable, initialized with Ptr_Val_Par->Ptr_Comp,
           % corresponds to "rename" in Ada, "with" in Pascal
 
-          IF VALID Ptr_Glob AS pg THEN
-            value_copy(nr, pg)
+          IF VALID Ptr_Glob THEN
+            value_copy(Next_Record, Ptr_Glob)
           END IF
-          pvp->Int_Comp := 5
-          nr->Int_Comp := pvp->Int_Comp
-          nr->Ptr_Comp := pvp->Ptr_Comp
-          Proc_3 (nr->Ptr_Comp)
+          Ptr_Val_Par->Int_Comp := 5
+          Next_Record->Int_Comp := Ptr_Val_Par->Int_Comp
+          Next_Record->Ptr_Comp := Ptr_Val_Par->Ptr_Comp
+          Proc_3 (Next_Record->Ptr_Comp)
             % Ptr_Val_Par->Ptr_Comp->Ptr_Comp == Ptr_Glob->Ptr_Comp
-          IF nr->Discr = Enumeration.Ident_1 THEN
+          IF Next_Record->Discr = Enumeration.Ident_1 THEN
             % then, executed
-            nr->Int_Comp := 6
-            Proc_6 (pvp->Enum_Comp,
-                    nr->Enum_Comp)
+            Next_Record->Int_Comp := 6
+            Proc_6 (Ptr_Val_Par->Enum_Comp,
+                    Next_Record->Enum_Comp)
             IF VALID Ptr_Glob AS pg THEN
-                nr->Ptr_Comp := pg->Ptr_Comp
+                Next_Record->Ptr_Comp := pg->Ptr_Comp
             END IF
-            Proc_7 (nr->Int_Comp, 10,
-                    nr->Int_Comp)
+            Proc_7 (Next_Record->Int_Comp, 10,
+                    Next_Record->Int_Comp)
           ELSE
-            value_copy(pvp, nr)
+            value_copy(Ptr_Val_Par, Next_Record)
           END IF
       END IF
   END IF
@@ -461,10 +461,10 @@ FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
     % executed once
     % Ptr_Ref_Par becomes Ptr_Glob
 
-  IF VALID Ptr_Glob AS pg THEN
+  IF VALID Ptr_Glob THEN
     % then, executed
-    Ptr_Ref_Par := pg->Ptr_Comp
-    Proc_7 (10, Int_Glob, pg->Int_Comp)
+    Ptr_Ref_Par := Ptr_Glob->Ptr_Comp
+    Proc_7 (10, Int_Glob, Ptr_Glob->Int_Comp)
   END IF
 END FUNCTION % Proc_3
 
@@ -649,12 +649,12 @@ FUNCTION main()
   Next_Ptr_Glob := NEW Record
   Ptr_Glob := NEW Record
 
-  IF VALID Ptr_Glob AS pg THEN
-      pg->Ptr_Comp                    := Next_Ptr_Glob
-      pg->Discr                       := Enumeration.Ident_1
-      pg->Enum_Comp                   := Enumeration.Ident_3
-      pg->Int_Comp                    := 40
-      pg->Str_Comp                    := "DHRYSTONE PROGRAM, SOME STRING"
+  IF VALID Ptr_Glob THEN
+      Ptr_Glob->Ptr_Comp                    := Next_Ptr_Glob
+      Ptr_Glob->Discr                       := Enumeration.Ident_1
+      Ptr_Glob->Enum_Comp                   := Enumeration.Ident_3
+      Ptr_Glob->Int_Comp                    := 40
+      Ptr_Glob->Str_Comp                    := "DHRYSTONE PROGRAM, SOME STRING"
   END IF
   Str_1_Loc := "DHRYSTONE PROGRAM, 1'ST STRING"
 
@@ -744,30 +744,30 @@ FUNCTION main()
   print ("        should be:   " & str(7))
   print ("Arr_2_Glob[8][7]:    " & str(Arr_2_Glob[8][7]))
   print ("        should be:   Number_Of_Runs + 10")
-  IF VALID Ptr_Glob AS pg THEN
+  IF VALID Ptr_Glob THEN
     print ("Ptr_Glob->")
-    print ("  Ptr_Comp:          ") % & pg->Ptr_Comp)
+    print ("  Ptr_Comp:          ") % & Ptr_Glob->Ptr_Comp)
     print ("        should be:   (implementation-dependent)")
-    print ("  Discr:             " & pg->Discr.to_string())
+    print ("  Discr:             " & Ptr_Glob->Discr.to_string())
     print ("        should be:   " & "Ident_1")
-    print ("  Enum_Comp:         " & pg->Enum_Comp.to_string())
+    print ("  Enum_Comp:         " & Ptr_Glob->Enum_Comp.to_string())
     print ("        should be:   " & "Ident_3")
-    print ("  Int_Comp:          " & str(pg->Int_Comp))
+    print ("  Int_Comp:          " & str(Ptr_Glob->Int_Comp))
     print ("        should be:   " & str(17))
-    print ("  Str_Comp:          " & pg->Str_Comp)
+    print ("  Str_Comp:          " & Ptr_Glob->Str_Comp)
     print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
   END IF
-  IF VALID Next_Ptr_Glob AS npg THEN
+  IF VALID Next_Ptr_Glob THEN
     print ("Next_Ptr_Glob->")
-    print ("  Ptr_Comp:          ") % & npg->Ptr_Comp)
+    print ("  Ptr_Comp:          ") % & Next_Ptr_Glob->Ptr_Comp)
     print ("        should be:   (implementation-dependent), same as above")
-    print ("  Discr:             " & npg->Discr.to_string())
+    print ("  Discr:             " & Next_Ptr_Glob->Discr.to_string())
     print ("        should be:   " & "Ident_1")
-    print ("  Enum_Comp:         " & npg->Enum_Comp.to_string())
+    print ("  Enum_Comp:         " & Next_Ptr_Glob->Enum_Comp.to_string())
     print ("        should be:   " & "Ident_2")
-    print ("  Int_Comp:          " & str(npg->Int_Comp))
+    print ("  Int_Comp:          " & str(Next_Ptr_Glob->Int_Comp))
     print ("        should be:   " & str(18))
-    print ("  Str_Comp:          " & npg->Str_Comp)
+    print ("  Str_Comp:          " & Next_Ptr_Glob->Str_Comp)
     print ("        should be:   DHRYSTONE PROGRAM, SOME STRING")
   END IF
   print ("Int_1_Loc:           " & str(Int_1_Loc))

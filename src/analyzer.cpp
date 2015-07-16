@@ -2504,23 +2504,23 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
         const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(c.first);
         if (valid != nullptr) {
             for (auto v: valid->tests) {
-                if (scope.top()->lookupName(v.first.text) != nullptr) {
-                    error2(3102, v.first, scope.top()->getDeclaration(v.first.text), "duplicate identifier");
+                if (not v.shorthand and scope.top()->lookupName(v.name.text) != nullptr) {
+                    error2(3102, v.name, scope.top()->getDeclaration(v.name.text), "duplicate identifier");
                 }
-                const Expression *ptr = analyze(v.second);
+                const Expression *ptr = analyze(v.expr);
                 const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
                 if (ptrtype == nullptr) {
-                    error(3101, v.second->token, "pointer type expression expected");
+                    error(3101, v.expr->token, "pointer type expression expected");
                 }
                 const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
                 Variable *var;
                 // TODO: Try to make this a local variable always (give the global scope a local space).
                 if (functiontypes.empty()) {
-                    var = new GlobalVariable(v.first, v.first.text, vtype, true);
+                    var = new GlobalVariable(v.name, v.name.text, vtype, true);
                 } else {
-                    var = new LocalVariable(v.first, v.first.text, vtype, true);
+                    var = new LocalVariable(v.name, v.name.text, vtype, true);
                 }
-                scope.top()->addName(v.first, v.first.text, var, true);
+                scope.top()->addName(v.name, v.name.text, var, true, v.shorthand);
                 const Expression *ve = new ValidPointerExpression(var, ptr);
                 if (cond == nullptr) {
                     cond = ve;

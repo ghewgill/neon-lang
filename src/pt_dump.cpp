@@ -181,7 +181,7 @@ public:
     virtual void visit(const ValidPointerExpression *node) override {
         write("ValidPointerExpression");
         for (auto x: node->tests) {
-            child(x.second);
+            child(x.expr);
         }
     }
     virtual void visit(const RangeSubscriptExpression *node) override {
