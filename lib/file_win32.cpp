@@ -1,9 +1,15 @@
+#include <io.h>
 #include <string>
 #include <windows.h>
 
 #include "rtl_exec.h"
 
 namespace rtl {
+
+bool file$exists(const std::string &filename)
+{
+    return _access(filename.c_str(), 0) == 0;
+}
 
 void file$mkdir(const std::string &path)
 {

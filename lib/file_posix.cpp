@@ -2,10 +2,16 @@
 #include <string>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "rtl_exec.h"
 
 namespace rtl {
+
+bool file$exists(const std::string &filename)
+{
+    return access(filename.c_str(), F_OK) == 0;
+}
 
 void file$mkdir(const std::string &path)
 {
