@@ -82,6 +82,33 @@ Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number l
     return Cell(r);
 }
 
+std::string array__to_string__number(const std::vector<Number> &a)
+{
+    std::string r = "[";
+    for (Number x: a) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(number_to_string(x));
+    }
+    r.append("]");
+    return r;
+}
+
+std::string array__to_string__string(const std::vector<utf8string> &a)
+{
+    std::string r = "[";
+    for (utf8string x: a) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        // TODO: Escape embedded quotes as necessary.
+        r.append("\"" + x.str() + "\"");
+    }
+    r.append("]");
+    return r;
+}
+
 std::string boolean__to_string(bool self)
 {
     return self ? "TRUE" : "FALSE";

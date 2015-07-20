@@ -4,6 +4,8 @@ DECLARE NATIVE FUNCTION array__resize(INOUT self: Array, new_size: Number)
 DECLARE NATIVE FUNCTION array__size(self: Array): Number
 DECLARE NATIVE FUNCTION array__slice(a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array
 DECLARE NATIVE FUNCTION array__splice(b: Array, a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array
+DECLARE NATIVE FUNCTION array__to_string__number(self: Array<Number>): String
+DECLARE NATIVE FUNCTION array__to_string__string(self: Array<String>): String
 DECLARE NATIVE FUNCTION boolean__to_string(self: Boolean): String
 DECLARE NATIVE FUNCTION dictionary__size(self: Dictionary): Number
 DECLARE NATIVE FUNCTION dictionary__keys(self: Dictionary): Array<String>

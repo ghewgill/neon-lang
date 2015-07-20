@@ -107,6 +107,17 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
         params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
         methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params));
     }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        // TODO: This is just a hack to make this work for now.
+        // Need to do this properly in a general purpose way.
+        if (elementtype == TYPE_NUMBER) {
+            methods["to_string"] = new PredefinedFunction("array__to_string__number", new TypeFunction(TYPE_STRING, params));
+        } else if (elementtype == TYPE_STRING) {
+            methods["to_string"] = new PredefinedFunction("array__to_string__string", new TypeFunction(TYPE_STRING, params));
+        }
+    }
 }
 
 bool TypeArray::is_equivalent(const Type *rhs) const
