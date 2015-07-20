@@ -43,12 +43,17 @@ void InternalError::write(std::ostream &out)
 
 void SourceError::write(std::ostream &out)
 {
-    out << token.source << "\n";
-    out << std::setw(token.column) << "^" << "\n";
-    out << "Error N" << number << ": " << token.line << ":" << token.column << " " << token.tostring() << " " << message << " (" << file << ":" << line << ")\n";
+    out << "Error in file: " << file << "\n";
+    out << "\n";
+    out << token.line << "| " << token.source << "\n";
+    out << std::setw(std::to_string(token.line).length()+2+token.column) << "^" << "\n";
+    out << "Error N" << number << ": " << token.line << ":" << token.column << " " << message << " (" << file << ":" << line << ")\n";
     if (token2.type != NONE) {
-        out << token2.source << "\n";
-        out << std::setw(token2.column) << "^" << "\n";
-        out << "Error N" << number << ": " << token2.line << ":" << token2.column << " " << token2.tostring() << "\n";
+        out << "\n";
+        out << "Related line information:\n";
+        out << "\n";
+        out << token2.line << "| " << token2.source << "\n";
+        out << std::setw(std::to_string(token2.line).length()+2+token2.column) << "^" << "\n";
+        out << "Error N" << number << ": " << token2.line << ":" << token2.column << "\n";
     }
 }
