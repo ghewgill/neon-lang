@@ -1,5 +1,7 @@
 #include "format.h"
 
+#include <algorithm>
+
 #include <utf8.h>
 
 #include "number.h"
