@@ -437,7 +437,9 @@ std::string TypeFunction::get_type_descriptor(Emitter &emitter) const
 void TypeArray::predeclare(Emitter &emitter) const
 {
     Type::predeclare(emitter);
-    elementtype->predeclare(emitter);
+    if (elementtype != nullptr) {
+        elementtype->predeclare(emitter);
+    }
 }
 
 void TypeArray::generate_load(Emitter &emitter) const
@@ -470,7 +472,9 @@ void TypeArray::get_type_references(std::set<const Type *> &references) const
 void TypeDictionary::predeclare(Emitter &emitter) const
 {
     Type::predeclare(emitter);
-    elementtype->predeclare(emitter);
+    if (elementtype != nullptr) {
+        elementtype->predeclare(emitter);
+    }
 }
 
 void TypeDictionary::generate_load(Emitter &emitter) const
@@ -693,7 +697,12 @@ void Function::predeclare(Emitter &emitter) const
 {
     type->predeclare(emitter);
     frame->predeclare(emitter);
-    entry_label = emitter.next_function();
+    // TODO: This hack ensures that we only allocate the
+    // entry label once, even if predeclare() is called
+    // more than once.
+    if (entry_label == UINT_MAX) {
+        entry_label = emitter.next_function();
+    }
 }
 
 void Function::postdeclare(Emitter &emitter) const
@@ -808,34 +817,42 @@ void Constant::generate_export(Emitter &emitter, const std::string &name) const
     emitter.add_export_constant(name, emitter.get_type_reference(type), type->serialize(value));
 }
 
-void ConstantBooleanExpression::generate(Emitter &emitter) const
+void Expression::generate(Emitter &emitter) const
+{
+    if (type != nullptr) {
+        type->predeclare(emitter);
+    }
+    generate_expr(emitter);
+}
+
+void ConstantBooleanExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHB);
     emitter.emit(value ? 1 : 0);
 }
 
-void ConstantNumberExpression::generate(Emitter &emitter) const
+void ConstantNumberExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHN, value);
 }
 
-void ConstantStringExpression::generate(Emitter &emitter) const
+void ConstantStringExpression::generate_expr(Emitter &emitter) const
 {
     unsigned int index = emitter.str(value);
     emitter.emit(PUSHS, index);
 }
 
-void ConstantEnumExpression::generate(Emitter &emitter) const
+void ConstantEnumExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHN, number_from_uint32(value));
 }
 
-void ConstantNilExpression::generate(Emitter &emitter) const
+void ConstantNilExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHNIL);
 }
 
-void ArrayLiteralExpression::generate(Emitter &emitter) const
+void ArrayLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {
         (*e)->generate(emitter);
@@ -843,7 +860,7 @@ void ArrayLiteralExpression::generate(Emitter &emitter) const
     emitter.emit(CONSA, static_cast<uint32_t>(elements.size()));
 }
 
-void DictionaryLiteralExpression::generate(Emitter &emitter) const
+void DictionaryLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto d = dict.rbegin(); d != dict.rend(); ++d) {
         emitter.emit(PUSHS, emitter.str(d->first));
@@ -852,7 +869,7 @@ void DictionaryLiteralExpression::generate(Emitter &emitter) const
     emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
 }
 
-void RecordLiteralExpression::generate(Emitter &emitter) const
+void RecordLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto v = values.rbegin(); v != values.rend(); ++v) {
         (*v)->generate(emitter);
@@ -860,24 +877,24 @@ void RecordLiteralExpression::generate(Emitter &emitter) const
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
 }
 
-void NewRecordExpression::generate(Emitter &emitter) const
+void NewRecordExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(ALLOC, static_cast<uint32_t>(fields));
 }
 
-void UnaryMinusExpression::generate(Emitter &emitter) const
+void UnaryMinusExpression::generate_expr(Emitter &emitter) const
 {
     value->generate(emitter);
     emitter.emit(NEGN);
 }
 
-void LogicalNotExpression::generate(Emitter &emitter) const
+void LogicalNotExpression::generate_expr(Emitter &emitter) const
 {
     value->generate(emitter);
     emitter.emit(NOTB);
 }
 
-void ConditionalExpression::generate(Emitter &emitter) const
+void ConditionalExpression::generate_expr(Emitter &emitter) const
 {
     condition->generate(emitter);
     auto else_label = emitter.create_label();
@@ -890,7 +907,7 @@ void ConditionalExpression::generate(Emitter &emitter) const
     emitter.jump_target(end_label);
 }
 
-void DisjunctionExpression::generate(Emitter &emitter) const
+void DisjunctionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     emitter.emit(DUP);
@@ -901,7 +918,7 @@ void DisjunctionExpression::generate(Emitter &emitter) const
     emitter.jump_target(true_label);
 }
 
-void ConjunctionExpression::generate(Emitter &emitter) const
+void ConjunctionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     emitter.emit(DUP);
@@ -912,28 +929,28 @@ void ConjunctionExpression::generate(Emitter &emitter) const
     emitter.jump_target(false_label);
 }
 
-void ArrayInExpression::generate(Emitter &emitter) const
+void ArrayInExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(INA);
 }
 
-void DictionaryInExpression::generate(Emitter &emitter) const
+void DictionaryInExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(IND);
 }
 
-void ComparisonExpression::generate(Emitter &emitter) const
+void ComparisonExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     generate_comparison_opcode(emitter);
 }
 
-void ChainedComparisonExpression::generate(Emitter &emitter) const
+void ChainedComparisonExpression::generate_expr(Emitter &emitter) const
 {
     comps[0]->left->generate(emitter);
     auto skip_label = emitter.create_label();
@@ -989,7 +1006,7 @@ void PointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) c
     emitter.emit(op[comp]);
 }
 
-void ValidPointerExpression::generate(Emitter &emitter) const
+void ValidPointerExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     emitter.emit(DUP);
@@ -999,42 +1016,42 @@ void ValidPointerExpression::generate(Emitter &emitter) const
     emitter.emit(NEP);
 }
 
-void AdditionExpression::generate(Emitter &emitter) const
+void AdditionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(ADDN);
 }
 
-void SubtractionExpression::generate(Emitter &emitter) const
+void SubtractionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(SUBN);
 }
 
-void MultiplicationExpression::generate(Emitter &emitter) const
+void MultiplicationExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(MULN);
 }
 
-void DivisionExpression::generate(Emitter &emitter) const
+void DivisionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(DIVN);
 }
 
-void ModuloExpression::generate(Emitter &emitter) const
+void ModuloExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
     emitter.emit(MODN);
 }
 
-void ExponentiationExpression::generate(Emitter &emitter) const
+void ExponentiationExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     right->generate(emitter);
@@ -1071,7 +1088,7 @@ void ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) con
     emitter.emit(INDEXAW);
 }
 
-void ArrayValueIndexExpression::generate(Emitter &emitter) const
+void ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     array->generate(emitter);
     index->generate(emitter);
@@ -1096,7 +1113,7 @@ void DictionaryReferenceIndexExpression::generate_address_write(Emitter &emitter
     emitter.emit(INDEXDW);
 }
 
-void DictionaryValueIndexExpression::generate(Emitter &emitter) const
+void DictionaryValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     dictionary->generate(emitter);
     index->generate(emitter);
@@ -1114,7 +1131,7 @@ void StringReferenceIndexExpression::generate_store(Emitter &emitter) const
     ref->generate_store(emitter);
 }
 
-void StringValueIndexExpression::generate(Emitter &emitter) const
+void StringValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     load->generate(emitter);
 }
@@ -1130,7 +1147,7 @@ void ArrayReferenceRangeExpression::generate_store(Emitter &emitter) const
     ref->generate_store(emitter);
 }
 
-void ArrayValueRangeExpression::generate(Emitter &emitter) const
+void ArrayValueRangeExpression::generate_expr(Emitter &emitter) const
 {
     load->generate(emitter);
 }
@@ -1145,13 +1162,13 @@ void PointerDereferenceExpression::generate_address_write(Emitter &emitter) cons
     ptr->generate(emitter);
 }
 
-void VariableExpression::generate(Emitter &emitter) const
+void VariableExpression::generate_expr(Emitter &emitter) const
 {
     generate_address_read(emitter);
     var->generate_load(emitter);
 }
 
-void FunctionCall::generate(Emitter &emitter) const
+void FunctionCall::generate_expr(Emitter &emitter) const
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     // TODO: This is a ridiculous hack because the way we compile
@@ -1190,7 +1207,7 @@ void FunctionCall::generate(Emitter &emitter) const
     }
 }
 
-void StatementExpression::generate(Emitter &emitter) const
+void StatementExpression::generate_expr(Emitter &emitter) const
 {
     stmt->generate(emitter);
 }

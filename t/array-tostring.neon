@@ -5,3 +5,9 @@ print("\(an)")
 LET as: Array<String> := ["foo","bar"]
 print("\(as)")
 %= ["foo", "bar"]
+
+FUNCTION f(): Array<Number>
+    RETURN an
+END FUNCTION
+
+ASSERT f() = [1,2,3]
