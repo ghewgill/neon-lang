@@ -58,14 +58,12 @@ Number number_sign(Number x)
 
 Number number_ceil(Number x)
 {
-    // TODO: find proper ceil function to handle full range of decimal128
-    return bid128_from_int64(bid128_to_int64_ceil(x.x));
+    return bid128_round_integral_positive(x.x);
 }
 
 Number number_floor(Number x)
 {
-    // TODO: find proper floor function to handle full range of decimal128
-    return bid128_from_int64(bid128_to_int64_floor(x.x));
+    return bid128_round_integral_negative(x.x);
 }
 
 Number number_trunc(Number x)
