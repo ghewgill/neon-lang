@@ -1,6 +1,7 @@
 #include "format.h"
 
 #include <algorithm>
+#include <iso646.h>
 
 #include <utf8.h>
 
