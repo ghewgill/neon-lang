@@ -7,11 +7,11 @@
 
 class CompilerError {
 public:
-    CompilerError(const std::string &file, int line, const std::string &message): file(file), line(line), message(message) {}
+    CompilerError(const std::string &compiler_file, int compiler_line, const std::string &message): compiler_file(compiler_file), compiler_line(compiler_line), message(message) {}
     virtual ~CompilerError() {}
     virtual void write(std::ostream &out) = 0;
-    const std::string file;
-    const int line;
+    const std::string compiler_file;
+    const int compiler_line;
     const std::string message;
 private:
     CompilerError &operator=(const CompilerError &);
@@ -19,14 +19,14 @@ private:
 
 class InternalError: public CompilerError {
 public:
-    InternalError(const std::string &file, int line, const std::string &message): CompilerError(file, line, message) {}
+    InternalError(const std::string &compiler_file, int compiler_line, const std::string &message): CompilerError(compiler_file, compiler_line, message) {}
     virtual void write(std::ostream &out) override;
 };
 
 class SourceError: public CompilerError {
 public:
-    SourceError(const std::string &file, int line, int number, const Token &token, const std::string &message): CompilerError(file, line, message), number(number), token(token), token2() {}
-    SourceError(const std::string &file, int line, int number, const Token &token, const Token &token2, const std::string &message): CompilerError(file, line, message), number(number), token(token), token2(token2) {}
+    SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2() {}
+    SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const Token &token2, const std::string &message): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(token2) {}
     virtual void write(std::ostream &out) override;
     const int number;
     const Token token;
@@ -41,7 +41,7 @@ public:
 #ifdef _MSC_VER
 __declspec(noreturn)
 #endif
-void abort_error(const char *file, int line, int number, const Token &token, const std::string &message)
+void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const std::string &message)
 #ifdef __GNUC__
 __attribute__((noreturn))
 #endif
@@ -50,7 +50,7 @@ __attribute__((noreturn))
 #ifdef _MSC_VER
 __declspec(noreturn)
 #endif
-void abort_error_a(const char *file, int line, int number, const Token &token_before, const Token &token, const std::string &message)
+void abort_error_a(const char *compiler_file, int compiler_line, int number, const Token &token_before, const Token &token, const std::string &message)
 #ifdef __GNUC__
 __attribute__((noreturn))
 #endif
@@ -59,7 +59,7 @@ __attribute__((noreturn))
 #ifdef _MSC_VER
 __declspec(noreturn)
 #endif
-void abort_error(const char *file, int line, int number, const Token &token, const Token &token2, const std::string &message)
+void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const Token &token2, const std::string &message)
 #ifdef __GNUC__
 __attribute__((noreturn))
 #endif
@@ -68,7 +68,7 @@ __attribute__((noreturn))
 #ifdef _MSC_VER
 __declspec(noreturn)
 #endif
-void abort_internal_error(const char *file, int line, const std::string &message)
+void abort_internal_error(const char *compiler_file, int compiler_line, const std::string &message)
 #ifdef __GNUC__
 __attribute__((noreturn))
 #endif

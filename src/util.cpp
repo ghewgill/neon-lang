@@ -8,46 +8,46 @@
 // platforms. See https://stackoverflow.com/questions/30885997/clang-runtime-fault-when-throwing-aligned-type-compiler-bug
 // for full explanation.
 
-void abort_error(const char *file, int line, int number, const Token &token, const std::string &message)
+void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const std::string &message)
 {
-    throw new SourceError(file, line, number, token, message);
+    throw new SourceError(compiler_file, compiler_line, number, token, message);
 }
 
-void abort_error_a(const char *file, int line, int number, const Token &token_before, const Token &token, const std::string &message)
+void abort_error_a(const char *compiler_file, int compiler_line, int number, const Token &token_before, const Token &token, const std::string &message)
 {
     if (token_before.line == token.line) {
-        throw new SourceError(file, line, number, token, message);
+        throw new SourceError(compiler_file, compiler_line, number, token, message);
     }
     Token tok = token_before;
     tok.column = static_cast<int>(1 + tok.source.length());
     if (tok.source[tok.source.length()-1] != ' ') {
         tok.column++;
     }
-    throw new SourceError(file, line, number, tok, message);
+    throw new SourceError(compiler_file, compiler_line, number, tok, message);
 }
 
-void abort_error(const char *file, int line, int number, const Token &token, const Token &token2, const std::string &message)
+void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const Token &token2, const std::string &message)
 {
-    throw new SourceError(file, line, number, token, token2, message);
+    throw new SourceError(compiler_file, compiler_line, number, token, token2, message);
 }
 
-void abort_internal_error(const char *file, int line, const std::string &message)
+void abort_internal_error(const char *compiler_file, int compiler_line, const std::string &message)
 {
-    throw new InternalError(file, line, message);
+    throw new InternalError(compiler_file, compiler_line, message);
 }
 
 void InternalError::write(std::ostream &out)
 {
-    out << "Compiler Internal Error: " << message << " (" << file << ":" << line << ")\n";
+    out << "Compiler Internal Error: " << message << " (" << compiler_file << ":" << compiler_line << ")\n";
 }
 
 void SourceError::write(std::ostream &out)
 {
-    out << "Error in file: " << file << "\n";
+    out << "Error in file: " << token.file << "\n";
     out << "\n";
     out << token.line << "| " << token.source << "\n";
     out << std::setw(std::to_string(token.line).length()+2+token.column) << "^" << "\n";
-    out << "Error N" << number << ": " << token.line << ":" << token.column << " " << message << " (" << file << ":" << line << ")\n";
+    out << "Error N" << number << ": " << token.line << ":" << token.column << " " << message << " (" << compiler_file << ":" << compiler_line << ")\n";
     if (token2.type != NONE) {
         out << "\n";
         out << "Related line information:\n";

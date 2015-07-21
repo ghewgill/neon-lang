@@ -99,8 +99,9 @@ enum TokenType {
 
 class Token {
 public:
-    Token(): source(), line(0), column(0), type(NONE), text(), value() {}
-    Token(const std::string &text): source(), line(), column(), type(NONE), text(text), value() {}
+    Token(): file(), source(), line(0), column(0), type(NONE), text(), value() {}
+    Token(const std::string &text): file(), source(), line(), column(), type(NONE), text(text), value() {}
+    std::string file;
     std::string source;
     int line;
     size_t column;

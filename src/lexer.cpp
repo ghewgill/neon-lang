@@ -143,7 +143,7 @@ inline bool space(uint32_t c)
     return c < 256 && isspace(c);
 }
 
-static std::vector<Token> tokenize_fragment(int &line, size_t column, const std::string &source, const std::string &actual_source_line = std::string())
+static std::vector<Token> tokenize_fragment(const std::string &source_path, int &line, size_t column, const std::string &source, const std::string &actual_source_line = std::string())
 {
     std::vector<Token> tokens;
     std::string::const_iterator linestart = source.begin();
@@ -154,6 +154,7 @@ static std::vector<Token> tokenize_fragment(int &line, size_t column, const std:
         //printf("index %lu char %c\n", i, c);
         auto startindex = i;
         Token t;
+        t.file = source_path;
         t.source = actual_source_line.empty() ? std::string(linestart, lineend) : actual_source_line;
         t.line = line;
         t.column = column;
@@ -452,7 +453,7 @@ static std::vector<Token> tokenize_fragment(int &line, size_t column, const std:
                                 end = colon;
                             }
                             size_t col = column + (start - startindex);
-                            auto subtokens = tokenize_fragment(line, col, std::string(start, end), t.source);
+                            auto subtokens = tokenize_fragment(source_path, line, col, std::string(start, end), t.source);
                             std::copy(subtokens.begin(), subtokens.end(), std::back_inserter(tokens));
                             if (colon > start) {
                                 t.column = column + (colon - startindex);
@@ -621,7 +622,7 @@ TokenizedSource tokenize(const std::string &source_path, const std::string &sour
     sha256.getHash(h);
     r.source_path = source_path;
     r.source_hash = std::string(h, h+sizeof(h));
-    r.tokens = tokenize_fragment(line, 1, std::string(i, source.end()));
+    r.tokens = tokenize_fragment(source_path, line, 1, std::string(i, source.end()));
     Token t;
     t.line = line;
     t.column = 1;
