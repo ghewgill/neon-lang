@@ -1437,6 +1437,11 @@ const Statement *Parser::parseAssert()
     const Expression *expr = parseExpression();
     std::vector<const Expression *> parts;
     deconstruct(expr, parts);
+    while (tokens[i].type == COMMA) {
+        ++i;
+        const Expression *e = parseExpression();
+        parts.push_back(e);
+    }
     std::vector<const Statement *> body;
     {
         std::vector<std::pair<Token, const Expression *>> args;
