@@ -1,0 +1,3 @@
+FUNCTION foo(format: String)
+             %<
+END FUNCTION

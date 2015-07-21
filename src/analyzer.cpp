@@ -1848,6 +1848,9 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         } else if (in_default) {
             error(3150, x->token, "default value must be specified for this parameter");
         }
+        if (scope.top()->lookupName(x->name.text)) {
+            error(3174, x->name, "duplicate identifier");
+        }
         FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, def);
         args.push_back(fp);
     }
