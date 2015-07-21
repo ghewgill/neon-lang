@@ -50,5 +50,13 @@ int main()
     assert(format::format("1234", spec)   == "1234");
     assert(format::format("12345", spec)  == "12345");
 
+    assert(format::parse("04x", spec));
+    assert(format::format("1", spec)      == "0001");
+    assert(format::format("12", spec)     == "000c");
+    assert(format::format("123", spec)    == "007b");
+    assert(format::format("1234", spec)   == "04d2");
+    assert(format::format("12345", spec)  == "3039");
+    assert(format::format("123456", spec) == "1e240");
+
     // TODO: Many more format specs.
 }

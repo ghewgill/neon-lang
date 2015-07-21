@@ -260,6 +260,7 @@ env.UnitTest("bin/test_lexer", [
 env.UnitTest("bin/test_format", [
     "tests/test_format.cpp",
     "src/format.cpp",
+    "src/number.cpp",
 ] + coverage_lib,
 )
 

@@ -2,6 +2,8 @@
 
 #include <utf8.h>
 
+#include "number.h"
+
 namespace format {
 
 bool parse(const std::string &fmt, Spec &spec)
@@ -57,6 +59,7 @@ bool parse(const std::string &fmt, Spec &spec)
             }
             break;
         case 'd':
+        case 'x':
             return true;
         default:
             return false;
@@ -79,7 +82,20 @@ static std::string fillstr(const Spec &spec, int n)
 
 std::string format(const std::string &str, const Spec &spec)
 {
+    static const char hexdigit[] = "0123456789abcdef";
+
     std::string r = str;
+    if (spec.type == 'x') {
+        Number x = number_from_string(str);
+        r = "";
+        Number base = number_from_uint32(16);
+        // TODO: handle negative numbers
+        while (not number_is_zero(x)) {
+            r.push_back(hexdigit[number_to_uint32(number_modulo(x, base))]);
+            x = number_floor(number_divide(x, base));
+        }
+        std::reverse(r.begin(), r.end());
+    }
     if (spec.precision >= 0 && static_cast<int>(r.length()) > spec.precision) {
         r = r.substr(0, spec.precision);
     }
