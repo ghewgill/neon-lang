@@ -1,0 +1,3 @@
+FUNCTION f(INOUT a: Number DEFAULT 5)
+                                   %<
+END FUNCTION

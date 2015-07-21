@@ -1840,6 +1840,9 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         }
         const Expression *def = nullptr;
         if (x->default_value != nullptr) {
+            if (mode != ParameterType::IN) {
+                error(3175, x->default_value->token, "default value only available for IN parameters");
+            }
             in_default = true;
             def = analyze(x->default_value);
             if (not def->is_constant) {
