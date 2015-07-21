@@ -388,6 +388,9 @@ static std::vector<Token> tokenize_fragment(int &line, size_t column, const std:
                 if (i == source.end()) {
                     error(1010, t, "unterminated string");
                 }
+                if (c == '\n') {
+                    error(1021, t, "unterminated string (must be single line)");
+                }
                 if (c == '\\') {
                     c = utf8::next(i, source.end());
                     if (i == source.end()) {
