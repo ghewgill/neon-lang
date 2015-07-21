@@ -68,6 +68,11 @@ Number number_floor(Number x)
     return bid128_from_int64(bid128_to_int64_floor(x.x));
 }
 
+Number number_trunc(Number x)
+{
+    return bid128_round_integral_zero(x.x);
+}
+
 Number number_exp(Number x)
 {
     return bid128_exp(x.x);

@@ -95,7 +95,7 @@ std::string format(const std::string &str, const Spec &spec)
         // TODO: handle negative numbers
         while (not number_is_zero(x)) {
             r.push_back(hexdigit[number_to_uint32(number_modulo(x, base))]);
-            x = number_floor(number_divide(x, base));
+            x = number_trunc(number_divide(x, base));
         }
         std::reverse(r.begin(), r.end());
     }

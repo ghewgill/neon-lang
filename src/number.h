@@ -41,6 +41,7 @@ private:
     friend Number number_sign(Number x);
     friend Number number_ceil(Number x);
     friend Number number_floor(Number x);
+    friend Number number_trunc(Number x);
     friend Number number_exp(Number x);
     friend Number number_log(Number x);
     friend Number number_sqrt(Number x);
@@ -95,6 +96,7 @@ Number number_abs(Number x);
 Number number_sign(Number x);
 Number number_ceil(Number x);
 Number number_floor(Number x);
+Number number_trunc(Number x);
 Number number_exp(Number x);
 Number number_log(Number x);
 Number number_sqrt(Number x);
