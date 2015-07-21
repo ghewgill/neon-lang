@@ -610,7 +610,6 @@ TokenizedSource tokenize(const std::string &source_path, const std::string &sour
         while (i != source.end() && *i != '\n') {
             utf8::advance(i, 1, source.end());
         }
-        line++;
     }
     TokenizedSource r;
     SHA256 sha256;
