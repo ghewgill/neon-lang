@@ -36,3 +36,4 @@ DECLARE NATIVE FUNCTION sqrt(x: Number): Number
 DECLARE NATIVE FUNCTION tan(x: Number): Number
 DECLARE NATIVE FUNCTION tanh(x: Number): Number
 DECLARE NATIVE FUNCTION tgamma(x: Number): Number
+DECLARE NATIVE FUNCTION trunc(x: Number): Number

@@ -182,4 +182,9 @@ Number math$tgamma(Number x)
     return number_tgamma(x);
 }
 
+Number math$trunc(Number x)
+{
+    return number_trunc(x);
+}
+
 } // namespace rtl

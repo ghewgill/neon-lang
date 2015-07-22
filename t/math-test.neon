@@ -108,3 +108,6 @@ print(str(math.tanh(0)))
 
 print(str(math.tgamma(6)))
 %= 120
+
+print(str(math.trunc(-5.5)))
+%= -5
