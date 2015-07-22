@@ -1508,7 +1508,7 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 internal_error("deserialize_type");
             }
             i++;
-            for (;;) {
+            while (descriptor.at(i) != ']') {
                 bool is_private = false;
                 if (descriptor.at(i) == '!') {
                     is_private = true;
@@ -1524,10 +1524,9 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 Token token;
                 token.text = name;
                 fields.push_back(TypeRecord::Field(token, type, is_private));
-                if (descriptor.at(i) == ']') {
-                    break;
+                if (descriptor.at(i) == ',') {
+                    i++;
                 }
-                i++;
             }
             i++;
             return new TypeRecord(Token(), "record", fields);

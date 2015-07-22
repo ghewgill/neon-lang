@@ -1,4 +1,5 @@
 EXPORT type
+EXPORT emptytype
 EXPORT enum
 EXPORT const
 EXPORT var
@@ -13,6 +14,8 @@ TYPE type := RECORD
     number: Number
     string: String
 END RECORD
+
+TYPE emptytype := RECORD END RECORD
 
 TYPE enum := ENUM
     red
