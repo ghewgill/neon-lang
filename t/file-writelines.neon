@@ -4,7 +4,7 @@ VAR lines: Array<String> := ["Hello", "Neon", "", "World!"]
 file.writelines("linetest.txt", lines)
 
 VAR data: Array<String>
-data := file.lines("linetest.txt")
+data := file.readlines("linetest.txt")
 
 print("\(data.size()) lines read.")
 %= 4 lines read.

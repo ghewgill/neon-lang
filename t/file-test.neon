@@ -2,14 +2,14 @@ IMPORT file
 
 VAR a: Array<String>
 
-a := file.lines("LICENSE.txt")
+a := file.readlines("LICENSE.txt")
 print(str(a.size()))
 %= 21
 print(a[0])
 %= The MIT License (MIT)
 
 VAR buf: Bytes
-buf := file.bytes("LICENSE.txt")
+buf := file.readbytes("LICENSE.txt")
 print(strb(buf.size() = 1076 OR buf.size() = 1097)) % account for lf vs crlf
 %= TRUE
 VAR arr: Array<Number> := buf.to_array()

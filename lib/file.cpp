@@ -7,7 +7,7 @@
 
 namespace rtl {
 
-std::string file$bytes(const std::string &filename)
+std::string file$readbytes(const std::string &filename)
 {
     std::string r;
     std::ifstream f(filename, std::ios::binary);
@@ -26,7 +26,7 @@ std::string file$bytes(const std::string &filename)
     return r;
 }
 
-std::vector<utf8string> file$lines(const std::string &filename)
+std::vector<utf8string> file$readlines(const std::string &filename)
 {
     std::vector<utf8string> r;
     std::ifstream f(filename);
