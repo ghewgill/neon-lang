@@ -1663,7 +1663,12 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
     if (declaration->name.type == NONE) {
         scope.top()->addName(declaration->token, localname.text, module);
     } else {
-        scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
+        const Name *name = module->scope->lookupName(declaration->name.text);
+        if (name != nullptr) {
+            scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
+        } else {
+            error(3176, declaration->name, "name not found in module");
+        }
     }
     return new NullStatement(declaration->token.line);
 }
