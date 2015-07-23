@@ -175,6 +175,11 @@ std::string string__substring(const std::string &t, Number first, bool first_fro
     return s.substr(start, end-start);
 }
 
+std::string string__to_bytes(const std::string &self)
+{
+    return self;
+}
+
 void bytes__from_array(utf8string *self, const std::vector<Number> &a)
 {
     self->clear();
@@ -200,6 +205,15 @@ std::vector<Number> bytes__to_array(const std::string &self)
         r.push_back(number_from_uint8(x));
     }
     return r;
+}
+
+std::string bytes__to_string(const std::string &self)
+{
+    auto inv = utf8::find_invalid(self.begin(), self.end());
+    if (inv != self.end()) {
+        throw RtlException("Utf8Encoding", "");
+    }
+    return self;
 }
 
 std::string chr(Number x)

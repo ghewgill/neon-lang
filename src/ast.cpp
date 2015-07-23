@@ -578,6 +578,11 @@ Program::Program(const std::string &source_hash)
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
         TYPE_STRING->methods["append"] = new PredefinedFunction("string__append", new TypeFunction(TYPE_NOTHING, params));
     }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
+        TYPE_STRING->methods["to_bytes"] = new PredefinedFunction("string__to_bytes", new TypeFunction(TYPE_BYTES, params));
+    }
 
     {
         std::vector<const ParameterType *> params;
@@ -594,6 +599,11 @@ Program::Program(const std::string &source_hash)
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["to_array"] = new PredefinedFunction("bytes__to_array", new TypeFunction(TYPE_ARRAY_NUMBER, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
+        TYPE_BYTES->methods["to_string"] = new PredefinedFunction("bytes__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
     scope->addName(Token(), "DivideByZero", new Exception(Token(), "DivideByZero"));

@@ -14,9 +14,11 @@ DECLARE NATIVE FUNCTION string__append(INOUT self: String, t: String)
 DECLARE NATIVE FUNCTION string__length(self: String): Number
 DECLARE NATIVE FUNCTION string__splice(t: String, s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
+DECLARE NATIVE FUNCTION string__to_bytes(self: String): Bytes
 DECLARE NATIVE FUNCTION bytes__from_array(INOUT self: Bytes, a: Array<Number>)
 DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
 DECLARE NATIVE FUNCTION bytes__to_array(self: Bytes): Array<Number>
+DECLARE NATIVE FUNCTION bytes__to_string(self: Bytes): String
 
 DECLARE NATIVE FUNCTION chr(x: Number): String
 DECLARE NATIVE FUNCTION concat(a: String, b: String): String
