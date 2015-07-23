@@ -12,8 +12,8 @@ DECLARE NATIVE FUNCTION socket_accept(handle: Handle): Socket
 DECLARE NATIVE FUNCTION socket_close(handle: Handle)
 DECLARE NATIVE FUNCTION socket_connect(handle: Handle, host: String, port: Number)
 DECLARE NATIVE FUNCTION socket_listen(handle: Handle, port: Number)
-DECLARE NATIVE FUNCTION socket_recv(handle: Handle, count: Number): String
-DECLARE NATIVE FUNCTION socket_send(handle: Handle, data: String)
+DECLARE NATIVE FUNCTION socket_recv(handle: Handle, count: Number): Bytes
+DECLARE NATIVE FUNCTION socket_send(handle: Handle, data: Bytes)
 
 FUNCTION Socket.accept(self: Socket): Socket
     RETURN socket_accept(self.handle)
@@ -31,10 +31,10 @@ FUNCTION Socket.listen(self: Socket, port: Number)
     socket_listen(self.handle, port)
 END FUNCTION
 
-FUNCTION Socket.recv(self: Socket, count: Number): String
+FUNCTION Socket.recv(self: Socket, count: Number): Bytes
     RETURN socket_recv(self.handle, count)
 END FUNCTION
 
-FUNCTION Socket.send(self: Socket, data: String)
+FUNCTION Socket.send(self: Socket, data: Bytes)
     socket_send(self.handle, data)
 END FUNCTION

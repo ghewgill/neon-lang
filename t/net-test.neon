@@ -8,9 +8,10 @@ client.connect("127.0.0.1", 21010)
 
 LET t: net.Socket := server.accept()
 
-client.send("GET / HTTP/1.0")
-LET buf: String := t.recv(1000)
-print(buf)
+LET s: String := "GET / HTTP/1.0"
+client.send(s.to_bytes())
+LET buf: Bytes := t.recv(1000)
+print(buf.to_string())
 %= GET / HTTP/1.0
 
 client.close()
