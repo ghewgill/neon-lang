@@ -283,7 +283,9 @@ Number num(const std::string &s)
 
 Number ord(const std::string &s)
 {
-    assert(utf8::distance(s.begin(), s.end()) == 1);
+    if (utf8::distance(s.begin(), s.end()) != 1) {
+        throw RtlException("ArrayIndex", "ord() requires string of length 1");
+    }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));
 }

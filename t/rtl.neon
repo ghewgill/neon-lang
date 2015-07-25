@@ -16,6 +16,13 @@ print(str(num("45")))
 print(str(ord("B")))
 %= 66
 
+TRY
+    print(str(ord("AB")))
+EXCEPTION ArrayIndex
+    print(CURRENT_EXCEPTION.info)
+END TRY
+%= ord() requires string of length 1
+
 print("hello")
 %= hello
 
