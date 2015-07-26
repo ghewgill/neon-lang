@@ -5,7 +5,7 @@ add := 1
 
 FUNCTION add(a: Number): Number
          %<1
-    a = a + 1
+    a := a + 1
     RETURN a
 END FUNCTION
   
