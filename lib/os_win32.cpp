@@ -60,16 +60,17 @@ void *os$spawn(const std::string &command)
     return p;
 }
 
-Number os$wait(void *process)
+Number os$wait(Cell **process)
 {
     DWORD r;
     {
-        Process *p = reinterpret_cast<Process *>(process);
-        WaitForSingleObject(p->process, INFINITE);
-        GetExitCodeProcess(p->process, &r);
-        CloseHandle(p->process);
-        p->process = INVALID_HANDLE_VALUE;
-        delete p;
+        Process **pp = reinterpret_cast<Process **>(process);
+        WaitForSingleObject((*pp)->process, INFINITE);
+        GetExitCodeProcess((*pp)->process, &r);
+        CloseHandle((*pp)->process);
+        (*pp)->process = INVALID_HANDLE_VALUE;
+        delete *pp;
+        *pp = NULL;
     }
     return number_from_uint32(r);
 }

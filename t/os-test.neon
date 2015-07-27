@@ -8,7 +8,7 @@ r := os.system("echo hello")
 print(str(r))
 %= 0
 
-LET p: os.Process := os.spawn(@@"python -c "import time; time.sleep(0.1)""@@)
+VAR p: os.Process := os.spawn(@@"python -c "import time; time.sleep(0.1)""@@)
 LET start: Number := time.now()
 r := os.wait(p)
 LET end: Number := time.now()

@@ -9,4 +9,4 @@ DECLARE NATIVE FUNCTION system(command: String): Number
 
 DECLARE NATIVE FUNCTION kill(process: Process)
 DECLARE NATIVE FUNCTION spawn(command: String): Process
-DECLARE NATIVE FUNCTION wait(process: Process): Number
+DECLARE NATIVE FUNCTION wait(INOUT process: Process): Number

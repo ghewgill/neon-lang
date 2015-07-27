@@ -48,14 +48,15 @@ void *os$spawn(const std::string &command)
     return p;
 }
 
-Number os$wait(void *process)
+Number os$wait(Cell **process)
 {
     int r;
     {
-        Process *p = reinterpret_cast<Process *>(process);
-        waitpid(p->pid, &r, 0);
-        p->pid = 0;
-        delete p;
+        Process **pp = reinterpret_cast<Process **>(process);
+        waitpid((*pp)->pid, &r, 0);
+        (*pp)->pid = 0;
+        delete *pp;
+        *pp = NULL;
     }
     if (WIFEXITED(r)) {
         return number_from_uint8(WEXITSTATUS(r));
