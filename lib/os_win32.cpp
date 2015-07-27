@@ -25,6 +25,13 @@ std::string os$getcwd()
     return buf;
 }
 
+bool os$fork(Cell **process)
+{
+    Process **pp = reinterpret_cast<Process **>(process);
+    *pp = NULL;
+    throw RtlException("UnsupportedFunction", "os.fork");
+}
+
 void os$kill(void *process)
 {
     Process *p = reinterpret_cast<Process *>(process);

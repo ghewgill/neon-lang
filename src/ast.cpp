@@ -614,6 +614,7 @@ Program::Program(const std::string &source_hash)
     scope->addName(Token(), "ByteOutOfRange", new Exception(Token(), "ByteOutOfRange"));
     scope->addName(Token(), "AssertFailed", new Exception(Token(), "AssertFailed"));
     scope->addName(Token(), "EndOfFile", new Exception(Token(), "EndOfFile"));
+    scope->addName(Token(), "UnsupportedFunction", new Exception(Token(), "UnsupportedFunction"));
 
     {
         // The fields here must match the corresponding references to

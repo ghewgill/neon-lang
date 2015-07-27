@@ -7,6 +7,8 @@ DECLARE NATIVE FUNCTION getcwd(): String
 DECLARE NATIVE FUNCTION getenv(name: String): String
 DECLARE NATIVE FUNCTION system(command: String): Number
 
+% TODO: Should be OUT parameter (issue #55)
+DECLARE NATIVE FUNCTION fork(INOUT child: Process): Boolean
 DECLARE NATIVE FUNCTION kill(process: Process)
 DECLARE NATIVE FUNCTION spawn(command: String): Process
 DECLARE NATIVE FUNCTION wait(INOUT process: Process): Number

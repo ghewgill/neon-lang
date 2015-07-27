@@ -1,0 +1,21 @@
+IMPORT os
+IMPORT sys
+
+TRY
+    VAR p: os.Process
+    IF os.fork(p) THEN
+        print(str(os.wait(p)))
+        print("parent")
+    ELSE
+        print("child")
+        sys.exit(5)
+    END IF
+EXCEPTION UnsupportedFunction
+    % Exception for win32, just print what is expected
+    print("child")
+    print("5")
+    print("parent")
+END TRY
+%= child
+%= 5
+%= parent

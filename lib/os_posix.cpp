@@ -26,6 +26,21 @@ std::string os$getcwd()
     return getcwd(buf, sizeof(buf));
 }
 
+bool os$fork(Cell **process)
+{
+    Process **pp = reinterpret_cast<Process **>(process);
+    *pp = NULL;
+    pid_t child = fork();
+    if (child < 0) {
+        throw RtlException("SystemError", std::to_string(errno));
+    }
+    if (child > 0) {
+        *pp = new Process;
+        (*pp)->pid = child;
+    }
+    return child > 0;
+}
+
 void os$kill(void *process)
 {
     Process *p = reinterpret_cast<Process *>(process);
