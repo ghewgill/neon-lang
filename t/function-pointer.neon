@@ -1,0 +1,21 @@
+FUNCTION repeat(n: Number, s: String): String
+    VAR r: String
+    FOR i := 1 TO n DO
+        r.append(s)
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION append(n: Number, s: String): String
+    RETURN str(n) & s
+END FUNCTION
+
+VAR p: FUNCTION(n: Number, s: String): String
+
+p := repeat
+print(p(5, "hello"))
+%= hellohellohellohellohello
+
+p := append
+print(p(5, "hello"))
+%= 5hello

@@ -13,6 +13,7 @@ class TypeSimple;
 class TypeEnum;
 class TypeRecord;
 class TypePointer;
+class TypeFunctionPointer;
 class TypeParameterised;
 class TypeImport;
 
@@ -86,6 +87,7 @@ public:
     virtual void visit(const TypeEnum *) = 0;
     virtual void visit(const TypeRecord *) = 0;
     virtual void visit(const TypePointer *) = 0;
+    virtual void visit(const TypeFunctionPointer *) = 0;
     virtual void visit(const TypeParameterised *) = 0;
     virtual void visit(const TypeImport *) = 0;
 
@@ -151,6 +153,8 @@ public:
     virtual void visit(const Program *) = 0;
 };
 
+class FunctionParameter;
+
 class ParseTreeNode {
 public:
     ParseTreeNode(const Token &token): token(token) {}
@@ -212,6 +216,17 @@ public:
 private:
     TypePointer(const TypePointer &);
     TypePointer &operator=(const TypePointer &);
+};
+
+class TypeFunctionPointer: public Type {
+public:
+    TypeFunctionPointer(const Token &token, const Type *returntype, const std::vector<const FunctionParameter *> &args): Type(token), returntype(returntype), args(args) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Type *returntype;
+    const std::vector<const FunctionParameter *> args;
+private:
+    TypeFunctionPointer(const TypeFunctionPointer &);
+    TypeFunctionPointer &operator=(const TypeFunctionPointer &);
 };
 
 class TypeParameterised: public Type {

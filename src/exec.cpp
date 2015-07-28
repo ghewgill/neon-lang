@@ -176,6 +176,7 @@ private:
     void exec_PUSHPMG();
     void exec_PUSHPL();
     void exec_PUSHPOL();
+    void exec_PUSHI();
     void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
@@ -230,6 +231,7 @@ private:
     void exec_CALLP();
     void exec_CALLF();
     void exec_CALLMF();
+    void exec_CALLI();
     void exec_JUMP();
     void exec_JF();
     void exec_JT();
@@ -374,6 +376,14 @@ void Executor::exec_PUSHPOL()
     ip += 4;
     stack.push(Cell(&frames[frames.size()-1-enclosing].locals.at(addr)));
     */
+}
+
+void Executor::exec_PUSHI()
+{
+    ip++;
+    uint32_t x = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    stack.push(Cell(number_from_uint32(x)));
 }
 
 void Executor::exec_LOADB()
@@ -888,6 +898,21 @@ void Executor::exec_CALLMF()
     ip = val;
 }
 
+void Executor::exec_CALLI()
+{
+    ip++;
+    if (callstack.size() >= MAX_CALLSTACK_SIZE) {
+        raise("StackOverflow", ExceptionInfo(""));
+    }
+    Number addr = stack.top().number(); stack.pop();
+    if (number_is_zero(addr) || not number_is_integer(addr)) {
+        raise("InvalidFunction", ExceptionInfo(""));
+    }
+    uint32_t addri = number_to_uint32(addr);
+    callstack.push_back(std::make_pair(module, ip));
+    ip = addri;
+}
+
 void Executor::exec_JUMP()
 {
     uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
@@ -1212,6 +1237,7 @@ void Executor::exec()
             case PUSHPMG: exec_PUSHPMG(); break;
             case PUSHPL:  exec_PUSHPL(); break;
             case PUSHPOL: exec_PUSHPOL(); break;
+            case PUSHI:   exec_PUSHI(); break;
             case LOADB:   exec_LOADB(); break;
             case LOADN:   exec_LOADN(); break;
             case LOADS:   exec_LOADS(); break;
@@ -1266,6 +1292,7 @@ void Executor::exec()
             case CALLP:   exec_CALLP(); break;
             case CALLF:   exec_CALLF(); break;
             case CALLMF:  exec_CALLMF(); break;
+            case CALLI:   exec_CALLI(); break;
             case JUMP:    exec_JUMP(); break;
             case JF:      exec_JF(); break;
             case JT:      exec_JT(); break;

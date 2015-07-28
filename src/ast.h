@@ -378,6 +378,27 @@ public:
     TypeValidPointer(const TypePointer *ptrtype): TypePointer(Token(), ptrtype->reftype) {}
 };
 
+class TypeFunctionPointer: public Type {
+public:
+    TypeFunctionPointer(const Token &declaration, const TypeFunction *functype): Type(declaration, "function-pointer"), functype(functype) {}
+
+    const TypeFunction *functype;
+
+    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
+    virtual void get_type_references(std::set<const Type *> &references) const override;
+    virtual std::string serialize(const Expression *) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
+
+    virtual std::string text() const override { return "TypeFunctionPointer(" + functype->text() + ")"; }
+private:
+    TypeFunctionPointer(const TypeFunctionPointer &);
+    TypeFunctionPointer &operator=(const TypeFunctionPointer &);
+};
+
 class TypeEnum: public TypeNumber {
 public:
     TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer);
@@ -1360,7 +1381,7 @@ private:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const Expression *func, const std::vector<const Expression *> &args): Expression(dynamic_cast<const TypeFunction *>(func->type)->returntype, false), func(func), args(args) {}
+    FunctionCall(const Expression *func, const std::vector<const Expression *> &args): Expression(get_expr_type(func), false), func(func), args(args) {}
 
     const Expression *const func;
     const std::vector<const Expression *> args;
@@ -1374,6 +1395,18 @@ public:
 private:
     FunctionCall(const FunctionCall &);
     FunctionCall &operator=(const FunctionCall &);
+
+    static const Type *get_expr_type(const Expression *func) {
+        const TypeFunction *f = dynamic_cast<const TypeFunction *>(func->type);
+        if (f != nullptr) {
+            return f->returntype;
+        }
+        const TypeFunctionPointer *p = dynamic_cast<const TypeFunctionPointer *>(func->type);
+        if (p != nullptr) {
+            return p->functype->returntype;
+        }
+        internal_error("not function or functionpointer");
+    }
 };
 
 class StatementExpression: public Expression {
@@ -1738,8 +1771,8 @@ public:
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &, int) const override { internal_error("Function"); }
-    virtual void generate_load(Emitter &) const override { internal_error("Function"); }
+    virtual void generate_address(Emitter &, int) const override {}
+    virtual void generate_load(Emitter &) const override;
     virtual void generate_store(Emitter &) const override { internal_error("Function"); }
     virtual void generate_call(Emitter &emitter) const override;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;

@@ -31,6 +31,7 @@ private:
     void disasm_PUSHPMG();
     void disasm_PUSHPL();
     void disasm_PUSHPOL();
+    void disasm_PUSHI();
     void disasm_LOADB();
     void disasm_LOADN();
     void disasm_LOADS();
@@ -85,6 +86,7 @@ private:
     void disasm_CALLP();
     void disasm_CALLF();
     void disasm_CALLMF();
+    void disasm_CALLI();
     void disasm_JUMP();
     void disasm_JF();
     void disasm_JT();
@@ -181,6 +183,14 @@ void Disassembler::disasm_PUSHPOL()
     uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
     index += 4;
     out << "PUSHPL " << enclosing << "," << addr << "\n";
+}
+
+void Disassembler::disasm_PUSHI()
+{
+    index++;
+    uint32_t x = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "PUSHI " << x << "\n";
 }
 
 void Disassembler::disasm_LOADB()
@@ -513,6 +523,12 @@ void Disassembler::disasm_CALLMF()
     out << "CALLMF " << mod << "," << addr << "\n";
 }
 
+void Disassembler::disasm_CALLI()
+{
+    out << "CALLI\n";
+    index++;
+}
+
 void Disassembler::disasm_JUMP()
 {
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -693,6 +709,7 @@ void Disassembler::disassemble()
             case PUSHPMG: disasm_PUSHPMG(); break;
             case PUSHPL:  disasm_PUSHPL(); break;
             case PUSHPOL: disasm_PUSHPOL(); break;
+            case PUSHI:   disasm_PUSHI(); break;
             case LOADB:   disasm_LOADB(); break;
             case LOADN:   disasm_LOADN(); break;
             case LOADS:   disasm_LOADS(); break;
@@ -747,6 +764,7 @@ void Disassembler::disassemble()
             case CALLP:   disasm_CALLP(); break;
             case CALLF:   disasm_CALLF(); break;
             case CALLMF:  disasm_CALLMF(); break;
+            case CALLI:   disasm_CALLI(); break;
             case JUMP:    disasm_JUMP(); break;
             case JF:      disasm_JF(); break;
             case JT:      disasm_JT(); break;

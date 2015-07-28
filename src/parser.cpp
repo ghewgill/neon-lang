@@ -26,6 +26,7 @@ public:
     const Type *parseRecordType();
     const Type *parseEnumType();
     const Type *parsePointerType();
+    const Type *parseFunctionType();
     const Type *parseType();
     const Statement *parseTypeDefinition();
     const Statement *parseConstantDefinition();
@@ -44,6 +45,7 @@ public:
     const Expression *parseConditional();
     const Expression *parseExpression();
     const VariableInfo parseVariableDeclaration();
+    void parseFunctionParameters(const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen);
     void parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen);
     const Statement *parseFunctionDefinition();
     const Statement *parseExternalDefinition();
@@ -193,6 +195,20 @@ const Type *Parser::parsePointerType()
     }
 }
 
+const Type *Parser::parseFunctionType()
+{
+    if (tokens[i].type != FUNCTION) {
+        internal_error("FUNCTION expected");
+    }
+    auto &tok_function = tokens[i];
+    i++;
+    const Type *returntype;
+    std::vector<const FunctionParameter *> args;
+    Token rparen;
+    parseFunctionParameters(returntype, args, rparen);
+    return new TypeFunctionPointer(tok_function, returntype, args);
+}
+
 const Type *Parser::parseType()
 {
     if (tokens[i].type == ARRAY || tokens[i].type == DICTIONARY) {
@@ -206,6 +222,9 @@ const Type *Parser::parseType()
     }
     if (tokens[i].type == POINTER) {
         return parsePointerType();
+    }
+    if (tokens[i].type == FUNCTION) {
+        return parseFunctionType();
     }
     if (tokens[i].type != IDENTIFIER) {
         error(2007, tokens[i], "identifier expected");
@@ -751,23 +770,8 @@ const Parser::VariableInfo Parser::parseVariableDeclaration()
     return make_pair(names, t);
 }
 
-void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen)
+void Parser::parseFunctionParameters(const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen)
 {
-    ++i;
-    if (tokens[i].type != IDENTIFIER) {
-        error(2023, tokens[i], "identifier expected");
-    }
-    name = tokens[i];
-    ++i;
-    if (tokens[i].type == DOT) {
-        ++i;
-        if (tokens[i].type != IDENTIFIER) {
-            error(2068, tokens[i], "identifier expected");
-        }
-        type = name;
-        name = tokens[i];
-        ++i;
-    }
     if (tokens[i].type != LPAREN) {
         error(2024, tokens[i], "'(' expected");
     }
@@ -810,6 +814,26 @@ void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returnty
     } else {
         returntype = nullptr;
     }
+}
+
+void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen)
+{
+    ++i;
+    if (tokens[i].type != IDENTIFIER) {
+        error(2023, tokens[i], "identifier expected");
+    }
+    name = tokens[i];
+    ++i;
+    if (tokens[i].type == DOT) {
+        ++i;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2068, tokens[i], "identifier expected");
+        }
+        type = name;
+        name = tokens[i];
+        ++i;
+    }
+    parseFunctionParameters(returntype, args, rparen);
 }
 
 const Statement *Parser::parseFunctionDefinition()

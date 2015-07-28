@@ -24,6 +24,10 @@ public:
         write("TypePointer");
         child(node->reftype);
     }
+    virtual void visit(const TypeFunctionPointer *node) override {
+        write("TypeFunctionPointer");
+        child(node->returntype);
+    }
     virtual void visit(const TypeParameterised *node) override {
         write("TypeParameterised(" + node->name.text + ")");
         child(node->elementtype);

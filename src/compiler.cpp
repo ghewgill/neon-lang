@@ -594,6 +594,33 @@ void TypePointer::get_type_references(std::set<const Type *> &references) const
     }
 }
 
+void TypeFunctionPointer::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADN);
+}
+
+void TypeFunctionPointer::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREN);
+}
+
+void TypeFunctionPointer::generate_call(Emitter &emitter) const
+{
+    emitter.emit(CALLI);
+}
+
+std::string TypeFunctionPointer::get_type_descriptor(Emitter &emitter) const
+{
+    return functype->get_type_descriptor(emitter);
+}
+
+void TypeFunctionPointer::get_type_references(std::set<const Type *> &references) const
+{
+    if (references.insert(functype).second) {
+        functype->get_type_references(references);
+    }
+}
+
 std::string TypeEnum::get_type_descriptor(Emitter &) const
 {
     std::string r = "E[";
@@ -626,6 +653,13 @@ void Variable::generate_store(Emitter &emitter) const
 
 void Variable::generate_call(Emitter &emitter) const
 {
+    // These two statements are for function pointer support.
+    // I'm not quite sure why this doesn't cause an internal compiler error
+    // for other things like PredefinedFunction (since its generate_address
+    // is not implemented), but nevertheless this seems to work.
+    generate_address(emitter, 0);
+    type->generate_load(emitter);
+
     type->generate_call(emitter);
 }
 
@@ -744,6 +778,12 @@ void Function::postdeclare(Emitter &emitter) const
     emitter.emit(LEAVE);
     emitter.emit(RET);
     frame->postdeclare(emitter);
+}
+
+void Function::generate_load(Emitter &emitter) const
+{
+    // Get the address of a function for function pointer support.
+    emitter.emit_jump(PUSHI, emitter.function_label(entry_label));
 }
 
 void Function::generate_call(Emitter &emitter) const
@@ -1171,6 +1211,13 @@ void VariableExpression::generate_expr(Emitter &emitter) const
 void FunctionCall::generate_expr(Emitter &emitter) const
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
+    if (ftype == nullptr) {
+        const TypeFunctionPointer *pf = dynamic_cast<const TypeFunctionPointer *>(func->type);
+        if (pf == nullptr) {
+            internal_error("FunctionCall::generate_expr");
+        }
+        ftype = pf->functype;
+    }
     // TODO: This is a ridiculous hack because the way we compile
     // StringIndexExpression::store is not really legal. This assertion
     // holds true for any other function call.

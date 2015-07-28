@@ -1,0 +1,5 @@
+FUNCTION bar(): Number
+    RETURN 5
+END FUNCTION
+TYPE f := FUNCTION(a: Number DEFAULT bar())
+                                     %<

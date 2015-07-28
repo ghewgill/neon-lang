@@ -11,6 +11,7 @@ enum Opcode {
     PUSHPMG,    // push pointer to module global
     PUSHPL,     // push pointer to local
     PUSHPOL,    // push pointer to outer local
+    PUSHI,      // push 32-bit integer immediate
     LOADB,      // load boolean
     LOADN,      // load number
     LOADS,      // load string
@@ -65,6 +66,7 @@ enum Opcode {
     CALLP,      // call predefined
     CALLF,      // call function
     CALLMF,     // call module function
+    CALLI,      // call indirect
     JUMP,       // unconditional jump
     JF,         // jump if false
     JT,         // jump if true

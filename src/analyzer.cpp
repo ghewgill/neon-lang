@@ -33,6 +33,7 @@ public:
     const Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
     const Type *analyze_record(const pt::TypeRecord *type, const std::string &name);
     const Type *analyze(const pt::TypePointer *type, const std::string &name);
+    const Type *analyze(const pt::TypeFunctionPointer *type, const std::string &name);
     const Type *analyze(const pt::TypeParameterised *type, const std::string &name);
     const Type *analyze(const pt::TypeImport *type, const std::string &name);
     const Expression *analyze(const pt::Expression *expr);
@@ -117,6 +118,7 @@ public:
     virtual void visit(const pt::TypeEnum *t) override { type = a->analyze_enum(t, name); }
     virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name); }
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::TypeFunctionPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
@@ -193,6 +195,7 @@ public:
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::IdentityExpression *p) override { expr = a->analyze(p); }
@@ -268,6 +271,7 @@ public:
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
@@ -343,6 +347,7 @@ public:
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
@@ -700,6 +705,35 @@ const Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
     } else {
         return new TypePointer(type->token, nullptr);
     }
+}
+
+const Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::string &)
+{
+    const Type *returntype = type->returntype != nullptr ? analyze(type->returntype) : TYPE_NOTHING;
+    std::vector<const ParameterType *> params;
+    bool in_default = false;
+    for (auto x: type->args) {
+        ParameterType::Mode mode = ParameterType::IN;
+        switch (x->mode) {
+            case pt::FunctionParameter::IN:    mode = ParameterType::IN;       break;
+            case pt::FunctionParameter::INOUT: mode = ParameterType::INOUT;    break;
+            case pt::FunctionParameter::OUT:   mode = ParameterType::OUT;      break;
+        }
+        const Type *ptype = analyze(x->type);
+        const Expression *def = nullptr;
+        if (x->default_value != nullptr) {
+            in_default = true;
+            def = analyze(x->default_value);
+            if (not def->is_constant) {
+                error(3177, x->default_value->token, "default value not constant");
+            }
+        } else if (in_default) {
+            error(3178, x->token, "default value must be specified for this parameter");
+        }
+        ParameterType *pt = new ParameterType(x->name, mode, ptype, def);
+        params.push_back(pt);
+    }
+    return new TypeFunctionPointer(type->token, new TypeFunction(returntype, params));
 }
 
 const Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
@@ -1105,7 +1139,11 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     }
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     if (ftype == nullptr) {
-        error(3017, expr->base->token, "not a function");
+        const TypeFunctionPointer *pf = dynamic_cast<const TypeFunctionPointer *>(func->type);
+        if (pf == nullptr) {
+            error(3017, expr->base->token, "not a function");
+        }
+        ftype = pf->functype;
     }
     int param_index = 0;
     std::vector<const Expression *> args(ftype->params.size());
@@ -2113,7 +2151,7 @@ const Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)
         error(3105, statement->variables[0]->token, "assignment to readonly expression");
     }
     const Expression *rhs = analyze(statement->expr);
-    if (not rhs->type->is_equivalent(expr->type)) {
+    if (not expr->type->is_equivalent(rhs->type)) {
         error(3057, statement->expr->token, "type mismatch");
     }
     std::vector<const ReferenceExpression *> vars;
