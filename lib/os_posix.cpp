@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <signal.h>
 #include <string>
 #include <sys/param.h>
