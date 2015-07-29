@@ -62,13 +62,21 @@ PathSupport::PathSupport(const std::string &source_path)
 
 std::pair<std::string, std::string> PathSupport::findModule(const std::string &name)
 {
-    const std::string source_name = name + ".neon";
-    const std::string object_name = name + ".neonx";
+    std::string module_name = name;
+    std::vector<std::string> use_paths = paths;
+    std::string::size_type slash = name.find_last_of("/\\");
+    if (slash != std::string::npos) {
+        use_paths.clear();
+        use_paths.push_back(name.substr(0, slash+1));
+        module_name = name.substr(slash+1);
+    }
+    const std::string source_name = module_name + ".neon";
+    const std::string object_name = module_name + ".neonx";
     std::pair<std::string, std::string> r;
-    for (auto p: paths) {
+    for (auto p: use_paths) {
 #ifdef _WIN32
         WIN32_FIND_DATA fd;
-        HANDLE ff = FindFirstFile((p + name + ".neon*").c_str(), &fd);
+        HANDLE ff = FindFirstFile((p + module_name + ".neon*").c_str(), &fd);
         if (ff != INVALID_HANDLE_VALUE) {
             do {
                 std::string fn = fd.cFileName;

@@ -1407,8 +1407,8 @@ const Statement *Parser::parseImport()
 {
     auto &tok_import = tokens[i];
     ++i;
-    if (tokens[i].type != IDENTIFIER) {
-        error(2032, tokens[i], "identifier expected");
+    if (tokens[i].type != IDENTIFIER && tokens[i].type != STRING) {
+        error(2032, tokens[i], "identifier or string expected");
     }
     const Token &module = tokens[i];
     ++i;
@@ -1429,6 +1429,8 @@ const Statement *Parser::parseImport()
         }
         alias = tokens[i];
         ++i;
+    } else if (module.type == STRING) {
+        error(2087, module, "named import requires AS alias");
     }
     return new ImportDeclaration(tok_import, module, name, alias);
 }
