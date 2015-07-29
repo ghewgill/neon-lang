@@ -1,4 +1,5 @@
 EXPORT Socket
+EXPORT select
 
 TYPE Handle := Number
 
@@ -14,6 +15,13 @@ DECLARE NATIVE FUNCTION socket_connect(handle: Handle, host: String, port: Numbe
 DECLARE NATIVE FUNCTION socket_listen(handle: Handle, port: Number)
 DECLARE NATIVE FUNCTION socket_recv(handle: Handle, count: Number): Bytes
 DECLARE NATIVE FUNCTION socket_send(handle: Handle, data: Bytes)
+DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
+
+% TODO: This function works around some problem with calling a predefined
+% function with an Array<Socket> parameter.
+FUNCTION select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
+    RETURN socket_select(read, write, error, timeout_seconds)
+END FUNCTION
 
 FUNCTION Socket.accept(self: Socket): Socket
     RETURN socket_accept(self.handle)

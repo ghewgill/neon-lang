@@ -130,6 +130,9 @@ def parse_params(paramstr):
         assert t == ":", (paramstr, i, t)
         t, i = next_token(paramstr, i)
         typename = t
+        m = re.match(r"Array<(.*)>$", typename)
+        if m is not None and m.group(1) not in ["Number", "String"]:
+            typename = "Array"
         r.extend(["{} {}".format(mode, typename).strip()] * n)
         t, i = next_token(paramstr, i)
         if t != ",":

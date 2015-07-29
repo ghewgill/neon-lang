@@ -1,9 +1,12 @@
+#include <iso646.h>
+
 #ifdef _WIN32
 #include <winsock.h>
 typedef int socklen_t;
 #else
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
 typedef int SOCKET;
@@ -11,6 +14,7 @@ typedef int SOCKET;
 #endif
 
 #include "cell.h"
+#include "rtl_exec.h"
 
 namespace rtl {
 
@@ -112,6 +116,77 @@ void net$socket_send(Cell &handle, const std::string &data)
 {
     SOCKET s = number_to_sint32(handle.number());
     send(s, data.data(), static_cast<int>(data.length()), 0);
+}
+
+bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
+{
+    fd_set rfds, wfds, efds;
+    FD_ZERO(&rfds);
+    FD_ZERO(&wfds);
+    FD_ZERO(&efds);
+    int nfds = 0;
+
+    std::vector<Cell> &ra = read->array_for_write();
+    for (auto s: ra) {
+        int fd = number_to_sint32(s.array_for_write()[0].number());
+        FD_SET(fd, &rfds);
+        nfds = std::max(nfds, fd+1);
+    }
+
+    std::vector<Cell> &wa = write->array_for_write();
+    for (auto s: wa) {
+        int fd = number_to_sint32(s.array_for_write()[0].number());
+        FD_SET(fd, &wfds);
+        nfds = std::max(nfds, fd+1);
+    }
+
+    std::vector<Cell> &ea = error->array_for_write();
+    for (auto s: ea) {
+        int fd = number_to_sint32(s.array_for_write()[0].number());
+        FD_SET(fd, &efds);
+        nfds = std::max(nfds, fd+1);
+    }
+
+    struct timeval actual_tv;
+    struct timeval *tv = NULL;
+    if (not number_is_negative(timeout_seconds)) {
+        actual_tv.tv_sec = number_to_sint32(number_trunc(timeout_seconds));
+        actual_tv.tv_usec = number_to_sint32(number_modulo(number_multiply(timeout_seconds, number_from_sint32(1000000)), number_from_sint32(1000000)));
+        tv = &actual_tv;
+    }
+    int r = select(nfds, &rfds, &wfds, &efds, tv);
+    if (r < 0) {
+        throw RtlException("SocketError", "");
+    }
+    if (r == 0) {
+        ra.clear();
+        wa.clear();
+        ea.clear();
+        return false;
+    }
+
+    for (auto i = ra.end(); i != ra.begin(); ) {
+        --i;
+        if (not FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &rfds)) {
+            ra.erase(i);
+        }
+    }
+
+    for (auto i = wa.end(); i != wa.begin(); ) {
+        --i;
+        if (not FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &wfds)) {
+            wa.erase(i);
+        }
+    }
+
+    for (auto i = ea.end(); i != ea.begin(); ) {
+        --i;
+        if (not FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &efds)) {
+            ea.erase(i);
+        }
+    }
+
+    return true;
 }
 
 }
