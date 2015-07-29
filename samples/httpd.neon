@@ -10,6 +10,8 @@ END FUNCTION
 
 TYPE Response := RECORD
     code: Number
+    content_type: String
+    headers: Dictionary<String>
     content: Bytes
 END RECORD
 
@@ -93,10 +95,15 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     END FOREACH
     IF NOT found THEN
         response.code := 404
+        response.content_type := "text/plain"
         response.content := to_bytes("not found")
     END IF
     print("\(method) \(path) \(response.code)")
     client.socket.send(to_bytes("HTTP/1.0 \(response.code) ok\r\n"))
+    client.socket.send(to_bytes("Content-type: \(response.content_type)\r\n"))
+    FOREACH h OF response.headers.keys() DO
+        client.socket.send(to_bytes("\(h): \(response.headers[h])\r\n"))
+    END FOREACH
     client.socket.send(to_bytes("Content-length: \(response.content.size())\r\n"))
     client.socket.send(to_bytes("\r\n"))
     client.socket.send(response.content)
@@ -104,13 +111,38 @@ END FUNCTION
 
 FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
     VAR r: Response
-    TRY
-        r.code := 200
-        r.content := file.readbytes(params[0].get_string() & path)
-    EXCEPTION file.FileOpenError
-        r.code := 404
-        r.content := to_bytes("file not found")
-    END TRY
+    LET local_path: String := params[0].get_string() & path
+    IF file.is_directory(local_path) THEN
+        IF path[LAST] # "/" THEN
+            r.code := 302
+            r.content_type := "text/plain"
+            r.headers["Location"] := path & "/"
+        ELSE
+            r.code := 200
+            r.content_type := "text/html"
+            VAR page: String
+            page.append("<html>\n")
+            page.append("<body>\n")
+            page.append("<table>\n")
+            FOREACH fn OF file.files(local_path) DO
+                page.append("<tr><td><a href=\"\(fn)\">\(fn)</a></td></tr>\n")
+            END FOREACH
+            page.append("</table>\n")
+            page.append("</body>\n")
+            page.append("</html>\n")
+            r.content := page.to_bytes()
+        END IF
+    ELSE
+        TRY
+            r.code := 200
+            r.content_type := "text/plain"
+            r.content := file.readbytes(local_path)
+        EXCEPTION file.FileOpenError
+            r.code := 404
+            r.content_type := "text/plain"
+            r.content := to_bytes("file not found")
+        END TRY
+    END IF
     RETURN r
 END FUNCTION
 
