@@ -1,0 +1,119 @@
+IMPORT file
+IMPORT net
+IMPORT regex
+IMPORT string
+IMPORT variant
+
+FUNCTION to_bytes(s: String): Bytes
+    RETURN s.to_bytes()
+END FUNCTION
+
+TYPE Response := RECORD
+    code: Number
+    content: Bytes
+END RECORD
+
+TYPE RequestHandler := FUNCTION(path: String, params: Array<variant.Variant>): Response
+
+TYPE Handler := RECORD
+    path: String
+    callback: RequestHandler
+    params: Array<variant.Variant>
+END RECORD
+
+TYPE Client := RECORD
+    socket: net.Socket
+    header: String
+END RECORD
+
+TYPE HttpServer := RECORD
+    port: Number
+    server: net.Socket
+    clients: Array<Client>
+    handlers: Array<Handler>
+END RECORD
+
+FUNCTION HttpServer.addHandler(INOUT self: HttpServer, path: String, callback: RequestHandler, params: Array<variant.Variant>)
+    self.handlers.append(Handler(path, callback, params))
+END FUNCTION
+
+FUNCTION HttpServer.serve(INOUT self: HttpServer)
+    self.server := net.tcp_socket()
+    self.server.listen(self.port)
+    LOOP
+        VAR read: Array<net.Socket> := [self.server]
+        FOREACH c OF self.clients DO
+            read.append(c.socket)
+        END FOREACH
+        VAR write: Array<net.Socket> := []
+        VAR error: Array<net.Socket> := []
+        IF net.select(read, write, error, -1) THEN
+            IF self.server IN read THEN
+                self.clients.append(Client(socket AS self.server.accept()))
+            END IF
+            FOR i := self.clients.size()-1 TO 0 STEP -1 DO
+                IF self.clients[i].socket IN read THEN
+                    IF self.handle_incoming(self.clients[i]) THEN
+                        self.clients[i].socket.close()
+                        self.clients[i TO i] := [] % TODO: need an array remove method
+                    END IF
+                END IF
+            END FOR
+        END IF
+    END LOOP
+END FUNCTION
+
+FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client): Boolean
+    client.header.append(client.socket.recv(1000).to_string())
+    IF client.header[LAST-3 TO LAST] = "\r\n\r\n" THEN
+        self.handle_request(client)
+        RETURN TRUE
+    END IF
+    RETURN FALSE
+END FUNCTION
+
+FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
+    LET a: Array<String> := string.split(client.header, "\r\n")
+    LET request: Array<String> := string.split(a[0], " ")
+    LET method: String := request[0]
+    LET path: String := request[1]
+    LET version: String := request[2]
+    VAR response: Response
+    VAR found: Boolean := FALSE
+    FOREACH h OF self.handlers DO
+        VAR m: regex.Match
+        IF regex.search(h.path, path, m) THEN
+            % TODO: Should be able to do h.callback(path, params),
+            % but that syntax seems to be handled only as a method
+            LET rh: RequestHandler := h.callback
+            response := rh(path, h.params)
+            found := TRUE
+            EXIT FOREACH
+        END IF
+    END FOREACH
+    IF NOT found THEN
+        response.code := 404
+        response.content := to_bytes("not found")
+    END IF
+    print("\(method) \(path) \(response.code)")
+    client.socket.send(to_bytes("HTTP/1.0 \(response.code) ok\r\n"))
+    client.socket.send(to_bytes("Content-length: \(response.content.size())\r\n"))
+    client.socket.send(to_bytes("\r\n"))
+    client.socket.send(response.content)
+END FUNCTION
+
+FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
+    VAR r: Response
+    TRY
+        r.code := 200
+        r.content := file.readbytes(params[0].get_string() & path)
+    EXCEPTION file.FileOpenError
+        r.code := 404
+        r.content := to_bytes("file not found")
+    END TRY
+    RETURN r
+END FUNCTION
+
+VAR server: HttpServer := HttpServer(port AS 8080)
+server.addHandler("/", path_handler, [variant.make_string(".")])
+server.serve()
