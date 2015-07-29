@@ -15,3 +15,10 @@ print(strb(buf.size() = 1076 OR buf.size() = 1097)) % account for lf vs crlf
 VAR arr: Array<Number> := buf.to_array()
 print("\(arr[0])")
 %= 84
+
+print(strb(file.is_directory("t")))
+%= TRUE
+
+a := file.files("t")
+print(strb("file-test.neon" IN a))
+%= TRUE

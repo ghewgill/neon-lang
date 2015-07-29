@@ -11,6 +11,8 @@ DECLARE EXCEPTION PathNotFound
 DECLARE EXCEPTION PermissionDenied
 
 DECLARE NATIVE FUNCTION exists(filename: String): Boolean
+DECLARE NATIVE FUNCTION files(path: String): Array<String>
+DECLARE NATIVE FUNCTION is_directory(path: String): Boolean
 DECLARE NATIVE FUNCTION mkdir(path: String)
 DECLARE NATIVE FUNCTION readbytes(filename: String): Bytes
 DECLARE NATIVE FUNCTION readlines(filename: String): Array<String> 
