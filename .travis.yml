@@ -3,3 +3,4 @@ compiler:
   - gcc
   - clang
 script: scons
+sudo: false
