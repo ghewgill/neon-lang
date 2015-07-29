@@ -3,6 +3,7 @@
 #ifdef _WIN32
 #include <winsock.h>
 typedef int socklen_t;
+#pragma warning(disable: 4127) // incompatible with FD_SET()
 #else
 #include <arpa/inet.h>
 #include <netdb.h>
@@ -130,21 +131,27 @@ bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seco
     for (auto s: ra) {
         int fd = number_to_sint32(s.array_for_write()[0].number());
         FD_SET(fd, &rfds);
-        nfds = std::max(nfds, fd+1);
+        if (fd+1 > nfds) {
+            nfds = fd+1;
+        }
     }
 
     std::vector<Cell> &wa = write->array_for_write();
     for (auto s: wa) {
         int fd = number_to_sint32(s.array_for_write()[0].number());
         FD_SET(fd, &wfds);
-        nfds = std::max(nfds, fd+1);
+        if (fd+1 > nfds) {
+            nfds = fd+1;
+        }
     }
 
     std::vector<Cell> &ea = error->array_for_write();
     for (auto s: ea) {
         int fd = number_to_sint32(s.array_for_write()[0].number());
         FD_SET(fd, &efds);
-        nfds = std::max(nfds, fd+1);
+        if (fd+1 > nfds) {
+            nfds = fd+1;
+        }
     }
 
     struct timeval actual_tv;
