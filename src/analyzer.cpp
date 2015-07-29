@@ -1190,7 +1190,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 error(3106, a.second->token, "readonly parameter to OUT");
             }
         }
-        if (not e->type->is_equivalent(ftype->params[p]->type)) {
+        if (not ftype->params[p]->type->is_equivalent(e->type)) {
             error2(3019, a.second->token, ftype->params[p]->declaration, "type mismatch");
         }
         args[p] = e;
