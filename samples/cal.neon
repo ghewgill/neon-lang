@@ -1,0 +1,102 @@
+IMPORT datetime
+IMPORT sys
+
+CONST MonthName: Array<String> := [
+    "", % Month numbers start at 1
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+]
+
+FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
+    VAR dt: datetime.DateTime
+    dt := dt.with_date(year, month, 1)
+    % TODO: module record constructor
+    VAR p: datetime.Period
+    p.days := dt.weekday - 1
+    %dt := dt.minus_period(p)
+    dt := dt.minus_duration(86400 * p.days)
+    LET title: String := IF year_in_title THEN "\(MonthName[month]) \(year)" ELSE MonthName[month]
+    VAR r: Array<String> := ["\(title:^21)", "Su Mo Tu We Th Fr Sa "]
+    FOR i := 1 TO 6*7 DO
+        IF dt.weekday = 1 THEN
+            r.append("")
+        END IF
+        IF dt.month = month THEN
+            r[r.size()-1].append("\(dt.day:>2d) ")
+        ELSE
+            r[r.size()-1].append("   ")
+        END IF
+        p.days := 1
+        dt := dt.plus_period(p)
+    END FOR
+    RETURN r
+END FUNCTION
+
+VAR month, year: Number
+VAR options: Dictionary<Boolean>
+
+FOREACH a OF sys.argv()[1 TO LAST] DO
+    IF a[0] = "-" THEN
+        options[a] := TRUE
+    ELSIF year = 0 THEN
+        year := num(a)
+    ELSE
+        month := year
+        year := num(a)
+    END IF
+END FOREACH
+
+IF year = 0 THEN
+    LET today: datetime.DateTime := datetime.now()
+    year := today.year
+    IF "-y" NOT IN options THEN
+        month := today.month
+    END IF
+END IF
+
+IF month > 0 THEN
+    IF "-3" IN options THEN
+        VAR months: Array<Array<String>>
+        months[0] := IF month > 1 THEN build_month(year, month-1, TRUE) ELSE build_month(year-1, 12, TRUE)
+        months[1] := build_month(year, month, TRUE)
+        months[2] := IF month < 12 THEN build_month(year, month+1, TRUE) ELSE build_month(year+1, 1, TRUE)
+        FOR line := 0 TO 7 DO
+            VAR s: String := ""
+            FOR col := 0 TO 2 DO
+                s.append(months[col][line] & "  ")
+            END FOR
+            print(s)
+        END FOR
+    ELSE
+        LET grid: Array<String> := build_month(year, month, TRUE)
+        FOREACH s OF grid DO
+            print(s)
+        END FOREACH
+    END IF
+ELSE
+    VAR months: Array<Array<String>>
+    FOR m := 1 TO 12 DO
+        months.append(build_month(year, m, FALSE))
+    END FOR
+    print("\(year:^66)")
+    print("")
+    FOR row := 0 TO 3 DO
+        FOR line := 0 TO 7 DO
+            VAR s: String := ""
+            FOR col := 0 TO 2 DO
+                s.append(months[3*row+col][line] & "  ")
+            END FOR
+            print(s)
+        END FOR
+    END FOR
+END IF
