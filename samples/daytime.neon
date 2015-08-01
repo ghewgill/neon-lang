@@ -1,0 +1,18 @@
+IMPORT net
+IMPORT datetime
+
+LET server: net.Socket := net.tcp_socket()
+server.listen(10013)
+LOOP
+    VAR read: Array<net.Socket> := [server]
+    VAR write: Array<net.Socket> := []
+    VAR error: Array<net.Socket> := []
+    IF net.select(read, write, error, -1) THEN
+        IF server IN read THEN
+            LET s: net.Socket := server.accept()
+            LET ts: String := datetime.now().to_string() & "\r\n"
+            s.send(ts.to_bytes())
+            s.close()
+        END IF
+    END IF
+END LOOP

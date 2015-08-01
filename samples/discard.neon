@@ -1,0 +1,30 @@
+IMPORT net
+
+VAR clients: Array<net.Socket>
+
+LET server: net.Socket := net.tcp_socket()
+server.listen(10009)
+LOOP
+    VAR read: Array<net.Socket> := [server]
+    FOREACH c OF clients DO
+        read.append(c)
+    END FOREACH
+    VAR write: Array<net.Socket> := []
+    VAR error: Array<net.Socket> := []
+    IF net.select(read, write, error, -1) THEN
+        IF server IN read THEN
+            clients.append(server.accept())
+        END IF
+        FOR i := clients.size()-1 TO 0 STEP -1 DO
+            IF clients[i] IN read THEN
+                LET buf: Bytes := clients[i].recv(1000)
+                IF buf.size() > 0 THEN
+                    % do nothing
+                ELSE
+                    clients[i].close()
+                    clients[i TO i] := [] % TODO: need an array remove method
+                END IF
+            END IF
+        END FOR
+    END IF
+END LOOP
