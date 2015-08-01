@@ -1,19 +1,19 @@
-FUNCTION in(IN a: Number)
-    print(str(a))
+FUNCTION in(IN x: Number)
+    print(str(x))
 END FUNCTION
 
-FUNCTION inout(INOUT a: Number)
-    print(str(a))
-    a := a + 1
+FUNCTION inout(INOUT x: Number)
+    print(str(x))
+    x := x + 1
 END FUNCTION
 
-FUNCTION out(OUT a: Number)
-    print(str(a))
-    a := a + 1
+FUNCTION out(OUT x: Number)
+    print(str(x))
+    x := x + 1
 END FUNCTION
 
-FUNCTION outf(OUT a: Number): String
-    print(str(a))
+FUNCTION outf(OUT x: Number): String
+    print(str(x))
     RETURN "foo"
 END FUNCTION
 

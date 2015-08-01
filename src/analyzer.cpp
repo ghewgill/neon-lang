@@ -1943,6 +1943,12 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     } else {
         function = dynamic_cast<Function *>(scope.top()->lookupName(declaration->name.text));
     }
+    for (auto x: declaration->args) {
+        Token decl = scope.top()->getDeclaration(x->name.text);
+        if (decl.type != NONE) {
+            error2(3179, x->name, decl, "duplicate identifier");
+        }
+    }
     frame.push(function->frame);
     scope.push(function->scope);
     functiontypes.push(std::make_pair(type, dynamic_cast<const TypeFunction *>(function->type)));
