@@ -297,7 +297,7 @@ bool TypeFunctionPointer::is_equivalent(const Type *rhs) const
     if (functype->params.size() != f->params.size()) {
         return false;
     }
-    for (size_t i = 1; i < functype->params.size(); i++) {
+    for (size_t i = 0; i < functype->params.size(); i++) {
         if (functype->params[i]->declaration.text != f->params[i]->declaration.text) {
             return false;
         }
