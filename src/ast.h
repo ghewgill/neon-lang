@@ -988,6 +988,20 @@ private:
     ValidPointerExpression &operator=(const ValidPointerExpression &);
 };
 
+class FunctionPointerComparisonExpression: public ComparisonExpression {
+public:
+    FunctionPointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+
+    virtual bool eval_boolean() const override { internal_error("FunctionPointerComparisonExpression"); }
+    virtual Number eval_number() const override { internal_error("FunctionPointerComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("FunctionPointerComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        return "FunctionPointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
 class AdditionExpression: public Expression {
 public:
     AdditionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {

@@ -1046,6 +1046,12 @@ void PointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) c
     emitter.emit(op[comp]);
 }
 
+void FunctionPointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQN, NEN};
+    emitter.emit(op[comp]);
+}
+
 void ValidPointerExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
