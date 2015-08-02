@@ -20,7 +20,7 @@ void rtl_compile_init(Scope *scope)
         std::vector<const ParameterType *> params;
         for (int i = 0; i < f.count; i++) {
             auto &p = f.params[i];
-            params.push_back(new ParameterType(Token(), p.m, resolve_type(p.ptype, nullptr), nullptr));
+            params.push_back(new ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, nullptr), nullptr));
         }
         scope->addName(Token(), f.name, new PredefinedFunction(f.name, new TypeFunction(resolve_type(f.returntype, nullptr), params)));
     }
@@ -37,7 +37,7 @@ bool rtl_import(const std::string &module, Module *mod)
             std::vector<const ParameterType *> params;
             for (int i = 0; i < f.count; i++) {
                 auto &p = f.params[i];
-                params.push_back(new ParameterType(Token(), p.m, resolve_type(p.ptype, mod->scope), nullptr));
+                params.push_back(new ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, mod->scope), nullptr));
             }
             mod->scope->addName(Token(), qualified_name.substr(prefix.length()), new PredefinedFunction(f.name, new TypeFunction(resolve_type(f.returntype, mod->scope), params)));
             any = true;
