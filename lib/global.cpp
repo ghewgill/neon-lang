@@ -216,6 +216,16 @@ std::string bytes__to_string(const std::string &self)
     return self;
 }
 
+std::string pointer__to_string(void *p)
+{
+    return "<p:" + std::to_string(reinterpret_cast<intptr_t>(p)) + ">";
+}
+
+std::string functionpointer__to_string(Cell &p)
+{
+    return "<fp:ip=" + number_to_string(p.number()) + ">";
+}
+
 std::string chr(Number x)
 {
     assert(number_is_integer(x));

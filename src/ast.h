@@ -352,7 +352,7 @@ public:
 
 class TypePointer: public Type {
 public:
-    TypePointer(const Token &declaration, const TypeRecord *reftype): Type(declaration, "pointer"), reftype(reftype) {}
+    TypePointer(const Token &declaration, const TypeRecord *reftype);
 
     const TypeRecord *reftype;
 
@@ -380,7 +380,7 @@ public:
 
 class TypeFunctionPointer: public Type {
 public:
-    TypeFunctionPointer(const Token &declaration, const TypeFunction *functype): Type(declaration, "function-pointer"), functype(functype) {}
+    TypeFunctionPointer(const Token &declaration, const TypeFunction *functype);
 
     const TypeFunction *functype;
 

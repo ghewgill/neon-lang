@@ -255,6 +255,17 @@ std::string TypeRecord::text() const
     return r;
 }
 
+TypePointer::TypePointer(const Token &declaration, const TypeRecord *reftype)
+  : Type(declaration, "pointer"),
+    reftype(reftype)
+{
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        methods["to_string"] = new PredefinedFunction("pointer__to_string", new TypeFunction(TYPE_STRING, params));
+    }
+}
+
 bool TypePointer::is_equivalent(const Type *rhs) const
 {
     const TypePointer *p = dynamic_cast<const TypePointer *>(rhs);
@@ -276,6 +287,17 @@ std::string TypePointer::serialize(const Expression *) const
 const Expression *TypePointer::deserialize_value(const Bytecode::Bytes &, int &) const
 {
     return new ConstantNilExpression();
+}
+
+TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFunction *functype)
+  : Type(declaration, "function-pointer"),
+    functype(functype)
+{
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        methods["to_string"] = new PredefinedFunction("functionpointer__to_string", new TypeFunction(TYPE_STRING, params));
+    }
 }
 
 bool TypeFunctionPointer::is_equivalent(const Type *rhs) const
