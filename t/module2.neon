@@ -42,3 +42,6 @@ EXCEPTION module.exception
     print("exception 2")
 END TRY
 %= exception 2
+
+%print(str(module.functionpointer(5)))
+%%= 25

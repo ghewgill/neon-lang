@@ -8,6 +8,7 @@ EXPORT function
 EXPORT modify
 EXPORT exception
 EXPORT raise
+EXPORT functionpointer
 
 TYPE type := RECORD
     boolean: Boolean
@@ -46,3 +47,6 @@ FUNCTION raise()
 END FUNCTION
 
 DECLARE EXCEPTION exception
+
+VAR functionpointer: FUNCTION(x: Number): Number
+functionpointer := function

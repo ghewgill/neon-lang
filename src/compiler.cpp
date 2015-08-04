@@ -611,7 +611,7 @@ void TypeFunctionPointer::generate_call(Emitter &emitter) const
 
 std::string TypeFunctionPointer::get_type_descriptor(Emitter &emitter) const
 {
-    return functype->get_type_descriptor(emitter);
+    return "Q" + emitter.get_type_reference(functype);
 }
 
 void TypeFunctionPointer::get_type_references(std::set<const Type *> &references) const

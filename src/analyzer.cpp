@@ -1658,6 +1658,11 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
             i++;
             return new TypePointer(Token(), rectype);
         }
+        case 'Q': {
+            i++;
+            TypeFunction *f = dynamic_cast<TypeFunction *>(deserialize_type(scope, descriptor, i));
+            return new TypeFunctionPointer(Token(), f);
+        }
         case '~': {
             i++;
             std::string name;
