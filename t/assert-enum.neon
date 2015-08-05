@@ -1,0 +1,9 @@
+% SKIP (segfault)
+TYPE Colour := ENUM
+    red
+    green
+    blue
+END ENUM
+
+LET c: Colour := Colour.red
+ASSERT c = Colour.red
