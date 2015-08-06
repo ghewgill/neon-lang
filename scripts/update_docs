@@ -1,0 +1,11 @@
+#!/bin/sh -e
+
+rev=$(git describe --always)
+scons docs
+git checkout gh-pages
+git pull --ff-only
+rm -rf html
+cp -r lib/html html
+git add html
+git commit -m "Update library documentation from $rev" || echo "Nothing to update"
+git checkout master
