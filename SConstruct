@@ -1,3 +1,4 @@
+import distutils.spawn
 import os
 import re
 import shutil
@@ -311,4 +312,9 @@ if os.name == "posix":
     env.Command("samples/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
     env.Command("tests_script", "samples/hello", "env PATH=bin samples/hello")
 
-env.Command("docs", None, "perl external/NaturalDocs/NaturalDocs -i lib -o HTML lib/html -p lib/nd.proj")
+# Need to find where perl actually is, in case it's not in
+# one of the paths supplied by scons by default (for example,
+# on Windows with the GitHub command prompt).
+perl = distutils.spawn.find_executable("perl")
+if perl:
+    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML lib/html -p lib/nd.proj")
