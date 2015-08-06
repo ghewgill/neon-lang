@@ -202,5 +202,8 @@ FUNCTION BigInt.to_string(self: BigInt): String
             s := str(self.digits[i]) & s
         END IF
     END FOR
+    IF self.sign < 0 THEN
+        s := "-" & s
+    END IF
     RETURN s
 END FUNCTION

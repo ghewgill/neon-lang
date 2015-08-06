@@ -26,6 +26,9 @@ print(prod.to_string())
 %print(quot.to_string())
 %%= 1
 
+print("\(bigint.make(-12345))")
+%= -12345
+
 FOR lx := -30 TO 30 DO
     FOR ly := -30 TO 30 DO
         LET x: Number := math.floor(math.exp(math.abs(lx))) * math.sign(lx)
