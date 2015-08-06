@@ -1,2 +1,19 @@
+%|
+    File: time
+
+    Functions for working with time.
+|%
+
+%|
+    Function: now
+
+    Return the current time in seconds.
+|%
 DECLARE NATIVE FUNCTION now(): Number
+
+%|
+    Function: sleep
+
+    Sleep for the given number of seconds.
+|%
 DECLARE NATIVE FUNCTION sleep(seconds: Number)

@@ -1,12 +1,28 @@
+%|
+    File: net
+
+    Functions for working with network sockets.
+|%
+
 EXPORT Socket
 EXPORT select
 
 TYPE Handle := Number
 
+%|
+    Type: Socket
+
+    Opaque type representing a network socket.
+|%
 TYPE Socket := RECORD
     PRIVATE handle: Handle
 END RECORD
 
+%|
+    Function: tcp_socket
+
+    Create a new TCP/IP (stream) socket.
+|%
 DECLARE NATIVE FUNCTION tcp_socket(): Socket
 
 DECLARE NATIVE FUNCTION socket_accept(handle: Handle): Socket
@@ -17,32 +33,67 @@ DECLARE NATIVE FUNCTION socket_recv(handle: Handle, count: Number): Bytes
 DECLARE NATIVE FUNCTION socket_send(handle: Handle, data: Bytes)
 DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
 
-% TODO: This function works around some problem with calling a predefined
-% function with an Array<Socket> parameter.
+%|
+    Function: select
+
+    Select sockets with pending activity subject to an optional timeout.
+|%
 FUNCTION select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
+    % TODO: This function works around some problem with calling a predefined
+    % function with an Array<Socket> parameter.
     RETURN socket_select(read, write, error, timeout_seconds)
 END FUNCTION
 
+%|
+    Function: Socket.accept
+
+    Accept an incoming connection request on a socket and returns a new socket.
+|%
 FUNCTION Socket.accept(self: Socket): Socket
     RETURN socket_accept(self.handle)
 END FUNCTION
 
+%|
+    Function: Socket.close
+
+    Close a socket.
+|%
 FUNCTION Socket.close(self: Socket)
     socket_close(self.handle)
 END FUNCTION
 
+%|
+    Function: Socket.connect
+
+    Connect a socket to a given host and port.
+|%
 FUNCTION Socket.connect(self: Socket, host: String, port: Number)
     socket_connect(self.handle, host, port)
 END FUNCTION
 
+%|
+    Function: Socket.listen
+
+    Listen for incoming connections on a specific port.
+|%
 FUNCTION Socket.listen(self: Socket, port: Number)
     socket_listen(self.handle, port)
 END FUNCTION
 
+%|
+    Function: Socket.recv
+
+    Receive (read) bytes from a socket.
+|%
 FUNCTION Socket.recv(self: Socket, count: Number): Bytes
     RETURN socket_recv(self.handle, count)
 END FUNCTION
 
+%|
+    Function: Socket.send
+
+    Send (write) bytes to a socket.
+|%
 FUNCTION Socket.send(self: Socket, data: Bytes)
     socket_send(self.handle, data)
 END FUNCTION

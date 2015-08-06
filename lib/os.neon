@@ -1,14 +1,71 @@
+%|
+    File: os
+
+    Functions for operating system interfaces.
+|%
+
 EXPORT Process
 
+%|
+    Type: Process
+
+    Opaque type representing a process.
+|%
 TYPE Process := POINTER
 
+%|
+    Function: chdir
+
+    Change the current process working directory to the given path.
+|%
 DECLARE NATIVE FUNCTION chdir(path: String)
+
+%|
+    Function: getcwd
+
+    Return the working directory of the current process.
+|%
 DECLARE NATIVE FUNCTION getcwd(): String
+
+%|
+    Function: getenv
+
+    Return the value of an environment variable in the current process.
+|%
 DECLARE NATIVE FUNCTION getenv(name: String): String
+
+%|
+    Function: system
+
+    Execute a system (shell) command.
+|%
 DECLARE NATIVE FUNCTION system(command: String): Number
 
-% TODO: Should be OUT parameter (issue #55)
+%|
+    Function: fork
+
+    Fork the current process (POSIX only).
+|%
 DECLARE NATIVE FUNCTION fork(INOUT child: Process): Boolean
+% TODO: Should be OUT parameter (issue #55)
+
+%|
+    Function: kill
+
+    Kill a process.
+|%
 DECLARE NATIVE FUNCTION kill(process: Process)
+
+%|
+    Function: spawn
+
+    Create a new process with the given command line.
+|%
 DECLARE NATIVE FUNCTION spawn(command: String): Process
+
+%|
+    Function: wait
+
+    Wait for a process to terminate.
+|%
 DECLARE NATIVE FUNCTION wait(INOUT process: Process): Number

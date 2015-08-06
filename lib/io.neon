@@ -1,18 +1,88 @@
+%|
+    File: io
+
+    Functions for general purpose input and output with files.
+|%
+
 EXPORT File
 EXPORT Mode
 
+%|
+    Enumeration: Mode
+
+    Mode to use when opening a file.
+
+    Values:
+        read - read only
+        write - read or write
+|%
 TYPE Mode := ENUM
     read
     write
 END ENUM
 
+%|
+    Type: File
+
+    Opaque type representing a file on disk.
+|%
 TYPE File := POINTER
 
+%|
+    Function: close
+
+    Close a file.
+|%
 DECLARE NATIVE FUNCTION close(INOUT f: File)
+
+%|
+    Function: fprint
+
+    Print a string, followed by a newline, to a file.
+|%
 DECLARE NATIVE FUNCTION fprint(f: File, s: String)
+
+%|
+    Function: open
+
+    Open a file with the given name and mode.
+|%
 DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
+
+%|
+    Function: readline
+
+    Read a line of text from a file.
+
+    Returns:
+        FALSE if there are no more lines in the file, otherwise TRUE.
+|%
 DECLARE NATIVE FUNCTION readline(f: File, INOUT s: String): Boolean
+
+%|
+    Function: stdin
+
+    Return the standard input file.
+|%
 DECLARE NATIVE FUNCTION stdin(): File
+
+%|
+    Function: stdout
+
+    Return the standard output file.
+|%
 DECLARE NATIVE FUNCTION stdout(): File
+
+%|
+    Function: stderr
+
+    Return the standard error file.
+|%
 DECLARE NATIVE FUNCTION stderr(): File
+
+%|
+    Function: write
+
+    Write characters to a file. No newline is written.
+|%
 DECLARE NATIVE FUNCTION write(f: File, s: String)

@@ -1,3 +1,9 @@
+%|
+    File: bigint
+
+    Provides arbitrary precision integer support.
+|%
+
 EXPORT BigInt
 EXPORT ZERO
 EXPORT ONE
@@ -23,14 +29,38 @@ TYPE Comparison := ENUM
     greater
 END ENUM
 
+%|
+    Type: BigInt
+
+    An arbitrary precision integer type. This is an opaque type and users are not
+    expected to poke around inside it.
+|%
 TYPE BigInt := RECORD
     sign: Number
     digits: Array<Number>
 END RECORD
 
 % TODO: Make these constants
+
+%|
+    Constant: ZERO
+
+    The integer zero (0) as a BigInt.
+|%
 LET ZERO: BigInt := BigInt(1, [0])
+
+%|
+    Constant: ONE
+
+    The integer one (1) as a BigInt.
+|%
 LET ONE: BigInt := BigInt(1, [1])
+
+%|
+    Constant: TWO
+
+    The integer two (2) as a BigInt.
+|%
 LET TWO: BigInt := BigInt(1, [2])
 
 FUNCTION normalise(INOUT r: BigInt)
@@ -42,6 +72,20 @@ FUNCTION normalise(INOUT r: BigInt)
     END IF
 END FUNCTION
 
+%|
+    Function: make
+
+        Make a BigInt from a Number.
+
+    Parameters:
+        x - number to make into a BigInt
+
+    Returns:
+        The value of x as a BigInt.
+
+    Description:
+        This function discards any fractional part of the input value.
+|%
 FUNCTION make(x: Number): BigInt
     VAR r: BigInt
     r.sign := IF x < 0 THEN -1 ELSE 1
@@ -56,6 +100,21 @@ FUNCTION make(x: Number): BigInt
     RETURN r
 END FUNCTION
 
+%|
+    Function: make_from_string
+
+        Make a BigInt from a string.
+
+    Parameters:
+        s - string to make into a BigInt
+
+    Returns:
+        The value of s as a BigInt.
+
+    Description:
+        This function expects that the string contains only decimal
+        digits, optionally preceded by a minus sign (-).
+|%
 FUNCTION make_from_string(s: String): BigInt
     VAR r: BigInt
     VAR t: String := s
@@ -77,6 +136,11 @@ FUNCTION make_from_string(s: String): BigInt
     RETURN r
 END FUNCTION
 
+%|
+    Function: add
+
+    Add two BigInt values and return the result.
+|%
 FUNCTION add(x, y: BigInt): BigInt
     IF x.sign = y.sign THEN
         VAR r: BigInt
@@ -99,6 +163,11 @@ FUNCTION add(x, y: BigInt): BigInt
     END IF
 END FUNCTION
 
+%|
+    Function: sub
+
+    Subtract two BigInt values and return the result.
+|%
 FUNCTION sub(x, y: BigInt): BigInt
     IF x.sign = y.sign THEN
         IF NOT less(abs(x), abs(y)) THEN
@@ -126,6 +195,11 @@ FUNCTION sub(x, y: BigInt): BigInt
     END IF
 END FUNCTION
 
+%|
+    Function: mul
+
+    Multiply two BigInt values and return the result.
+|%
 FUNCTION mul(x, y: BigInt): BigInt
     VAR r: BigInt := ZERO
     FOR i := 0 TO y.digits.size()-1 DO
@@ -146,18 +220,33 @@ FUNCTION mul(x, y: BigInt): BigInt
     RETURN r
 END FUNCTION
 
+%|
+    Function: abs
+
+    Return the absolute value of a BigInt value.
+|%
 FUNCTION abs(x: BigInt): BigInt
     VAR r: BigInt := x
     r.sign := 1
     RETURN r
 END FUNCTION
 
+%|
+    Function: neg
+
+    Return the negation of a BigInt value.
+|%
 FUNCTION neg(x: BigInt): BigInt
     VAR r: BigInt := x
     r.sign := -r.sign
     RETURN r
 END FUNCTION
 
+%|
+    Function: less
+
+    Determine whether one BigInt value is less than another. Returns TRUE if x < y.
+|%
 FUNCTION less(x, y: BigInt): Boolean
     IF x.sign # y.sign THEN
         RETURN x.sign < y.sign
@@ -173,26 +262,51 @@ FUNCTION less(x, y: BigInt): Boolean
     RETURN FALSE
 END FUNCTION
 
+%|
+    Function: equals
+
+    Returns TRUE if x = y.
+|%
 FUNCTION equals(x, y: BigInt): Boolean
     RETURN x.sign = y.sign AND x.digits = y.digits
 END FUNCTION
 
+%|
+    Function: BigInt.add
+
+|%
 FUNCTION BigInt.add(self, x: BigInt): BigInt
     RETURN add(self, x)
 END FUNCTION
 
+%|
+    Function: BigInt.equals
+
+|%
 FUNCTION BigInt.equals(self, x: BigInt): Boolean
     RETURN equals(self, x)
 END FUNCTION
 
+%|
+    Function: BigInt.mul
+
+|%
 FUNCTION BigInt.mul(self, x: BigInt): BigInt
     RETURN mul(self, x)
 END FUNCTION
 
+%|
+    Function: BigInt.sub
+
+|%
 FUNCTION BigInt.sub(self, x: BigInt): BigInt
     RETURN sub(self, x)
 END FUNCTION
 
+%|
+    Function: BigInt.to_string
+
+|%
 FUNCTION BigInt.to_string(self: BigInt): String
     VAR s: String
     FOR i := 0 TO self.digits.size()-1 DO

@@ -1,13 +1,51 @@
+%|
+    File: sqlite
+
+    Functions for working with SQLite relational databases.
+|%
+
 EXPORT Database
 EXPORT Row
 EXPORT Rows
 
+%|
+    Type: Database
+
+    Opaque type representing a SQLite database.
+|%
 TYPE Database := POINTER
 
+%|
+    Type: Row
+
+    Represents a row in a results.
+|%
 TYPE Row := Array<String>
 
+%|
+    Type: Rows
+
+    Represents a query result set.
+|%
 TYPE Rows := Array<Row>
 
+%|
+    Function: open
+
+    Open a database in the given named file.
+|%
 DECLARE NATIVE FUNCTION open(name: String): Database
+
+%|
+    Function: exec
+
+    Execute a SQL statement in the given database and return the result set.
+|%
 DECLARE NATIVE FUNCTION exec(db: Database, sql: String): Rows
+
+%|
+    Function: close
+
+    Close a database.
+|%
 DECLARE NATIVE FUNCTION close(db: Database)

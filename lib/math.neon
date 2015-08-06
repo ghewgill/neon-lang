@@ -1,3 +1,9 @@
+%|
+    File: math
+
+    Mathemtical functions for real numbers.
+|%
+
 EXPORT PI
 
 CONST PI: Number := 3.141592653589793238462643383279503

@@ -1,3 +1,9 @@
+%|
+    File: struct
+
+    Functions for working with fixed-size structures.
+|%
+
 EXPORT Struct
 EXPORT Field
 EXPORT Type
@@ -7,30 +13,65 @@ EXPORT field
 IMPORT bitwise
 IMPORT variant
 
+%|
+    Enumeration: Type
+
+    The type of a field.
+
+    Values:
+        bool - boolean
+        int - integer
+        string - string
+|%
 TYPE Type := ENUM
     bool
     int
     string
 END ENUM
 
+%|
+    Type: Field
+
+    Represents a field in a structure.
+|%
 TYPE Field := RECORD
     name: String
     type: Type
     width: Number
 END RECORD
 
+%|
+    Type: Struct
+
+    Represents a complete structure as a sequence of fields.
+|%
 TYPE Struct := RECORD
     PRIVATE fields: Array<Field>
 END RECORD
 
+%|
+    Function: make
+
+    Make a <Struct> based on an array of <Fields>.
+|%
 FUNCTION make(fields: Array<Field>): Struct
     RETURN Struct(fields)
 END FUNCTION
 
+%|
+    Function: field
+
+    Helper function to create <Field> records.
+|%
 FUNCTION field(name: String, type: Type, width: Number): Field
     RETURN Field(name, type, width)
 END FUNCTION
 
+%|
+    Function: Struct.pack
+
+    Convert a dictionary of values into a structure.
+|%
 FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
     VAR buf: Array<Number>
     FOR f := 0 TO self.fields.size()-1 DO
@@ -56,6 +97,11 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
     RETURN r
 END FUNCTION
 
+%|
+    Function: Struct.sizeof
+
+    Return the total size of a structure definition.
+|%
 FUNCTION Struct.sizeof(self: Struct): Number
     VAR r: Number
     FOR f := 0 TO self.fields.size()-1 DO
@@ -64,6 +110,11 @@ FUNCTION Struct.sizeof(self: Struct): Number
     RETURN r
 END FUNCTION
 
+%|
+    Function: Struct.unpack
+
+    Convert a structure into a dictionary of values.
+|%
 FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
     VAR r: Dictionary<variant.Variant>
     LET a: Array<Number> := data.to_array()

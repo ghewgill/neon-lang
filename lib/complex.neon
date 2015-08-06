@@ -1,3 +1,9 @@
+%|
+    File: complex
+
+    Mathematical functions for complex numbers.
+|%
+
 EXPORT Complex
 EXPORT make
 EXPORT acos
@@ -31,6 +37,15 @@ IMPORT math
 
 CONST MAX: Number := 9.999999999999999e384
 
+%|
+    Type: Complex
+
+    Complex number type.
+
+    Fields:
+        re - real part
+        im - imaginary part
+|%
 TYPE Complex := RECORD
     re: Number
     im: Number
@@ -59,10 +74,27 @@ FUNCTION rtanh(x: Number): Number
     RETURN (math.exp(2*x) - 1) / (math.exp(2*x) + 1)
 END FUNCTION
 
+%|
+    Function: make
+
+    Make a complex number from real and imaginary parts.
+
+    Parameters:
+        re - real part
+        im - imaginary part
+|%
 FUNCTION make(re: Number, im: Number): Complex
     RETURN Complex(re, im)
 END FUNCTION
 
+%|
+    Function: acos
+
+    Inverse cosine (arc cos).
+
+    Reference:
+        http://mathworld.wolfram.com/InverseCosine.html
+|%
 FUNCTION acos(a: Complex): Complex
     LET s1: Complex := Complex(1 - a.re, -a.im).sqrt()
     LET s2: Complex := Complex(1 + a.re, a.im).sqrt()
@@ -72,6 +104,14 @@ FUNCTION acos(a: Complex): Complex
     RETURN Complex(r1, i1)
 END FUNCTION
 
+%|
+    Function: acosh
+
+    Inverse hyperbolic cosine (arc cosh).
+
+    Reference:
+        http://mathworld.wolfram.com/InverseHyperbolicCosine.html
+|%
 FUNCTION acosh(a: Complex): Complex
     LET s1: Complex := Complex(a.re - 1, a.im).sqrt()
     LET s2: Complex := Complex(a.re + 1, a.im).sqrt()
@@ -81,18 +121,50 @@ FUNCTION acosh(a: Complex): Complex
     RETURN Complex(r1, i1)
 END FUNCTION
 
+%|
+    Function: abs
+
+    Absolute value.
+
+    Reference:
+        http://mathworld.wolfram.com/AbsoluteValue.html
+|%
 FUNCTION abs(a: Complex): Number
     RETURN math.sqrt(a.re^2 + a.im^2)
 END FUNCTION
 
+%|
+    Function: add
+
+    Complex addition.
+
+    Reference:
+        http://mathworld.wolfram.com/ComplexAddition.html
+|%
 FUNCTION add(a, b: Complex): Complex
     RETURN Complex(a.re + b.re, a.im + b.im)
 END FUNCTION
 
+%|
+    Function: arg
+
+    Complex argument.
+
+    Reference:
+        http://mathworld.wolfram.com/ComplexArgument.html
+|%
 FUNCTION arg(a: Complex): Number
     RETURN math.atan2(a.im, a.re)
 END FUNCTION
 
+%|
+    Function: asin
+
+    Inverse sine (arc sin).
+
+    Reference:
+        http://mathworld.wolfram.com/InverseSine.html
+|%
 FUNCTION asin(a: Complex): Complex
     LET s1: Complex := Complex(1 + a.re, a.im).sqrt()
     LET s2: Complex := Complex(1 - a.re, -a.im).sqrt()
@@ -102,6 +174,14 @@ FUNCTION asin(a: Complex): Complex
     RETURN Complex(i1, -r1)
 END FUNCTION
 
+%|
+    Function: asinh
+
+    Inverse hyperbolic sine (arc sinh).
+
+    Reference:
+        http://mathworld.wolfram.com/InverseHyperbolicSine.html
+|%
 FUNCTION asinh(a: Complex): Complex
     LET s1: Complex := Complex(1 + a.im, -a.re).sqrt()
     LET s2: Complex := Complex(1 - a.im, a.re).sqrt()
@@ -111,6 +191,14 @@ FUNCTION asinh(a: Complex): Complex
     RETURN Complex(r1, i1)
 END FUNCTION
 
+%|
+    Function: atan
+
+    Inverse tangent (arc tan).
+
+    Reference:
+        http://mathworld.wolfram.com/InverseTangent.html
+|%
 FUNCTION atan(a: Complex): Complex
     IF a.re = 0 AND math.abs(a.im) = 1 THEN
         RETURN Complex(0, sign(a.im) * MAX)
@@ -124,6 +212,14 @@ FUNCTION atan(a: Complex): Complex
     RETURN Complex(rsign * -w.im/2, w.re/2)
 END FUNCTION
 
+%|
+    Function: atanh
+
+    Inverse hyperbolic tangent (arc tanh).
+
+    Reference:
+        http://mathworld.wolfram.com/InverseHyperbolicTangent.html
+|%
 FUNCTION atanh(a: Complex): Complex
     IF a.im = 0 AND math.abs(a.re) = 1 THEN
         RETURN Complex(sign(a.re) * MAX, 0)
@@ -132,48 +228,128 @@ FUNCTION atanh(a: Complex): Complex
     RETURN Complex(u.re/2, u.im/2)
 END FUNCTION
 
+%|
+    Function: cos
+
+    Cosine.
+
+    Reference:
+        http://mathworld.wolfram.com/Cosine.html
+|%
 FUNCTION cos(a: Complex): Complex
     RETURN Complex(math.cos(a.re)*rcosh(a.im), -math.sin(a.re)*rsinh(a.im))
 END FUNCTION
 
+%|
+    Function: cosh
+
+    Hyperbolic cosine.
+
+    Reference:
+        http://mathworld.wolfram.com/HyperbolicCosine.html
+|%
 FUNCTION cosh(a: Complex): Complex
     RETURN Complex(rcosh(a.re)*math.cos(a.im), rsinh(a.re)*math.sin(a.im))
 END FUNCTION
 
+%|
+    Function: div
+
+    Complex division.
+
+    Reference:
+        http://mathworld.wolfram.com/ComplexDivision.html
+|%
 FUNCTION div(a, b: Complex): Complex
     LET d: Number := b.re^2 + b.im^2
     RETURN Complex((a.re*b.re + a.im*b.im) / d, (a.im*b.re - a.re*b.im) / d)
 END FUNCTION
 
+%|
+    Function: exp
+
+    Complex exponentiation.
+
+    Reference:
+        http://mathworld.wolfram.com/ComplexExponentiation.html
+|%
 FUNCTION exp(a: Complex): Complex
     LET r: Number := math.exp(a.re)
     RETURN Complex(r * math.cos(a.im), r * math.sin(a.im))
 END FUNCTION
 
+%|
+    Function: exp
+
+    Complex exponentiation (base 10).
+
+    Reference:
+        http://mathworld.wolfram.com/ComplexExponentiation.html
+|%
 FUNCTION exp10(a: Complex): Complex
     LET r: Number := 10^a.re
     LET t: Number := a.im * LN10
     RETURN Complex(r * math.cos(t), r * math.sin(t))
 END FUNCTION
 
+%|
+    Function: inv
+
+    Complex inverse.
+
+    Reference:
+        http://mathworld.wolfram.com/MultiplicativeInverse.html
+|%
 FUNCTION inv(a: Complex): Complex
     LET d: Number := a.re*a.re + a.im*a.im
     RETURN Complex(a.re/d, -a.im/d)
 END FUNCTION
 
+%|
+    Function: log
+
+    Complex logarithm.
+
+    Reference:
+        http://mathworld.wolfram.com/Logarithm.html
+|%
 FUNCTION log(a: Complex): Complex
     RETURN Complex(math.log(a.re*a.re + a.im*a.im)/2, a.arg())
 END FUNCTION
 
+%|
+    Function: log10
+
+    Complex logarithm (base 10).
+
+    Reference:
+        http://mathworld.wolfram.com/Logarithm.html
+|%
 FUNCTION log10(a: Complex): Complex
     LET u: Complex := a.log()
     RETURN Complex(u.re / LN10, u.im / LN10)
 END FUNCTION
 
+%|
+    Function: mul
+
+    Complex multiplication.
+
+    Reference:
+        http://mathworld.wolfram.com/ComplexMultiplication.html
+|%
 FUNCTION mul(a, b: Complex): Complex
     RETURN Complex(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re)
 END FUNCTION
 
+%|
+    Function: pow
+
+    Complex power.
+
+    Reference:
+        http://mathworld.wolfram.com/Power.html
+|%
 FUNCTION pow(a, b: Complex): Complex
     LET p: Number := a.arg()
     LET m: Number := a.abs()
@@ -182,32 +358,85 @@ FUNCTION pow(a, b: Complex): Complex
     RETURN Complex(r * math.cos(t), r * math.sin(t))
 END FUNCTION
 
+%|
+    Function: sin
+
+    Sine.
+
+    Reference:
+        http://mathworld.wolfram.com/Sine.html
+|%
 FUNCTION sin(a: Complex): Complex
     RETURN Complex(math.sin(a.re)*rcosh(a.im), math.cos(a.re)*rsinh(a.im))
 END FUNCTION
 
+%|
+    Function: sinh
+
+    Hyperbolic sine.
+
+    Reference:
+        http://mathworld.wolfram.com/HyperbolicSine.html
+|%
 FUNCTION sinh(a: Complex): Complex
     RETURN Complex(rsinh(a.re)*math.cos(a.im), rcosh(a.re)*math.sin(a.im))
 END FUNCTION
 
+%|
+    Function: sqrt
+
+    Square root.
+
+    Reference:
+        http://mathworld.wolfram.com/SquareRoot.html
+|%
 FUNCTION sqrt(a: Complex): Complex
     LET m: Number := a.abs()
     RETURN Complex(math.sqrt((a.re + m) / 2), (IF a.im < 0 THEN -1 ELSE 1) * math.sqrt((-a.re + m) / 2))
 END FUNCTION
 
+%|
+    Function: sub
+
+    Complex subtraction.
+
+    Reference:
+        http://mathworld.wolfram.com/ComplexSubtraction.html
+|%
 FUNCTION sub(a, b: Complex): Complex
     RETURN Complex(a.re - b.re, a.im - b.im)
 END FUNCTION
 
+%|
+    Function: square
+
+    Complex square (a^2).
+|%
 FUNCTION square(a: Complex): Complex
     RETURN Complex(a.re*a.re - a.im*a.im, 2*a.re*a.im)
 END FUNCTION
 
+%|
+    Function: tan
+
+    Tangent.
+
+    Reference:
+        http://mathworld.wolfram.com/Tangent.html
+|%
 FUNCTION tan(a: Complex): Complex
     LET u: Complex := Complex(math.tan(a.re), rtanh(a.im))
     RETURN u.div(Complex(1, -u.re*u.im))
 END FUNCTION
 
+%|
+    Function: tanh
+
+    Hyperbolic tangent.
+
+    Reference:
+        http://mathworld.wolfram.com/HyperbolicTangent.html
+|%
 FUNCTION tanh(a: Complex): Complex
     LET u: Complex := Complex(rtanh(a.re), math.tan(a.im))
     RETURN u.div(Complex(1, u.re*u.im))

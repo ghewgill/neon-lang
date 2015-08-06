@@ -1,3 +1,9 @@
+%|
+    File: datetime
+
+    Functions for date and time manipulation.
+|%
+
 EXPORT Instant
 EXPORT DateTime
 EXPORT Interval
@@ -33,8 +39,28 @@ CONST FRIDAY   : Number := 5
 CONST SATURDAY : Number := 6
 CONST SUNDAY   : Number := 7
 
+%|
+    Type: Instant
+
+    Represents a particular instant in global time.
+|%
 TYPE Instant := Number
 
+%|
+    Type: DateTime
+
+    Represents a particular instant in global time,
+    broken down to components in UTC.
+
+    Fields:
+        year - year
+        month - month (1=January, 12=December)
+        day - day
+        weekday - weekday (1=Monday, 7=Sunday)
+        hour - hour
+        minute - minute
+        second - second
+|%
 TYPE DateTime := RECORD
     instant: Instant
     year: Number
@@ -46,13 +72,40 @@ TYPE DateTime := RECORD
     second: Number
 END RECORD
 
+%|
+    Type: Interval
+
+    Represents a time period between a start and an end time.
+
+    Fields:
+        start - start
+        end - end
+|%
 TYPE Interval := RECORD
     start: DateTime
     end: DateTime
 END RECORD
 
+%|
+    Type: Duration
+
+    Represents a specific amount of time measured in seconds.
+|%
 TYPE Duration := Number
 
+%|
+    Type: Period
+
+    Represents an amount of time measured by components.
+
+    Fields:
+        years - years
+        months - months
+        days - days
+        hours - hours
+        minutes - minutes
+        seconds - seconds
+|%
 TYPE Period := RECORD
     years: Number
     months: Number
@@ -77,10 +130,20 @@ END RECORD
 DECLARE NATIVE FUNCTION gmtime(t: Number): struct_tm
 DECLARE NATIVE FUNCTION timegm(tm: struct_tm): Number
 
+%|
+    Function: now
+
+    Return the current timestamp as a <DateTime>.
+|%
 FUNCTION now(): DateTime
     RETURN make_from_instant(time.now())
 END FUNCTION
 
+%|
+    Function: make_from_instant
+
+    Convert a specific instant into a <DateTime> record.
+|%
 FUNCTION make_from_instant(inst: Instant): DateTime
     LET tm: struct_tm := gmtime(inst)
     RETURN DateTime(
@@ -95,6 +158,12 @@ FUNCTION make_from_instant(inst: Instant): DateTime
     )
 END FUNCTION
 
+%|
+    Function: make_from_parts
+
+    Given timestamp parts, return a <DateTime> representing the instant.
+    This function must be called after filling in an empty DateTime.
+|%
 FUNCTION make_from_parts(dt: DateTime): DateTime
     VAR tm: struct_tm
     tm.tm_sec := dt.second
@@ -106,22 +175,47 @@ FUNCTION make_from_parts(dt: DateTime): DateTime
     RETURN make_from_instant(timegm(tm))
 END FUNCTION
 
+%|
+    Function: make_from_string
+
+    Make a DateTime from a string representation.
+|%
 FUNCTION make_from_string(s: String): DateTime
     RAISE TODO
 END FUNCTION
 
+%|
+    Function: DateTime.minus_duration
+
+    Subtract a <Duration> from a <DateTime> and return a new <DateTime>.
+|%
 FUNCTION DateTime.minus_duration(self: DateTime, duration: Duration): DateTime
     RETURN make_from_instant(self.instant - duration)
 END FUNCTION
 
+%|
+    Function: DateTime.minus_period
+
+    Subtract a <Period> from a <DateTime> and return a new <DateTime>.
+|%
 FUNCTION DateTime.minus_period(self: DateTime, period: Period): DateTime
     RAISE TODO
 END FUNCTION
 
+%|
+    Function: DateTime.plus_duration
+
+    Add a <Duration> to a <DateTime> and return a new <DateTime>.
+|%
 FUNCTION DateTime.plus_duration(self: DateTime, duration: Duration): DateTime
     RETURN make_from_instant(self.instant + duration)
 END FUNCTION
 
+%|
+    Function: DateTime.plus_period
+
+    Add a <Period> to a <DateTime> and return a new <DateTime>.
+|%
 FUNCTION DateTime.plus_period(self: DateTime, period: Period): DateTime
     VAR dt: DateTime := self
     dt.year := dt.year + period.years
@@ -131,11 +225,22 @@ FUNCTION DateTime.plus_period(self: DateTime, period: Period): DateTime
     RETURN make_from_parts(dt).plus_duration(86400*period.days + 3600*period.hours + 60*period.minutes + period.seconds)
 END FUNCTION
 
+%|
+    Function: DateTime.to_string
+
+    Return an ISO 8601 formatted representation of a <DateTime>.
+|%
 FUNCTION DateTime.to_string(self: DateTime): String
     % TODO: add formatting codes for leading zeros when implemented
     RETURN "\(self.year)-\(self.month)-\(self.day)T\(self.hour):\(self.minute):\(self.second)Z"
 END FUNCTION
 
+%|
+    Function: DateTime.with_date
+
+    Return a new <DateTime> with the given year, month, and day based on
+    an existing DateTime.
+|%
 FUNCTION DateTime.with_date(self: DateTime, year, month, day: Number): DateTime
     VAR dt: DateTime := self
     dt.year := year
@@ -144,24 +249,45 @@ FUNCTION DateTime.with_date(self: DateTime, year, month, day: Number): DateTime
     RETURN make_from_parts(dt)
 END FUNCTION
 
+%|
+    Function: DateTime.with_year
+
+    Return a new <DateTime> with the given year based on an existing DateTime.
+|%
 FUNCTION DateTime.with_year(self: DateTime, year: Number): DateTime
     VAR dt: DateTime := self
     dt.year := year
     RETURN make_from_parts(dt)
 END FUNCTION
 
+%|
+    Function: DateTime.with_month
+
+    Return a new <DateTime> with the given month based on an existing DateTime.
+|%
 FUNCTION DateTime.with_month(self: DateTime, month: Number): DateTime
     VAR dt: DateTime := self
     dt.month := month
     RETURN make_from_parts(dt)
 END FUNCTION
 
+%|
+    Function: DateTime.with_day
+
+    Return a new <DateTime> with the given day based on an existing DateTime.
+|%
 FUNCTION DateTime.with_day(self: DateTime, day: Number): DateTime
     VAR dt: DateTime := self
     dt.day := day
     RETURN make_from_parts(dt)
 END FUNCTION
 
+%|
+    Function: DateTime.with_time
+
+    Return a new <DateTime> with the given hour, minute, and second based on
+    an existing DateTime.
+|%
 FUNCTION DateTime.with_time(self: DateTime, hour, minute, second: Number): DateTime
     VAR dt: DateTime := self
     dt.hour := hour
@@ -170,18 +296,33 @@ FUNCTION DateTime.with_time(self: DateTime, hour, minute, second: Number): DateT
     RETURN make_from_parts(dt)
 END FUNCTION
 
+%|
+    Function: DateTime.with_hour
+
+    Return a new <DateTime> with the given hour based on an existing DateTime.
+|%
 FUNCTION DateTime.with_hour(self: DateTime, hour: Number): DateTime
     VAR dt: DateTime := self
     dt.hour := hour
     RETURN make_from_parts(dt)
 END FUNCTION
 
+%|
+    Function: DateTime.with_minute
+
+    Return a new <DateTime> with the given minute based on an existing DateTime.
+|%
 FUNCTION DateTime.with_minute(self: DateTime, minute: Number): DateTime
     VAR dt: DateTime := self
     dt.minute := minute
     RETURN make_from_parts(dt)
 END FUNCTION
 
+%|
+    Function: DateTime.with_second
+
+    Return a new <DateTime> with the given second based on an existing DateTime.
+|%
 FUNCTION DateTime.with_second(self: DateTime, second: Number): DateTime
     VAR dt: DateTime := self
     dt.second := second

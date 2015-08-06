@@ -1,8 +1,53 @@
+%|
+    File: compress
+
+    Functions for in-memory compression using several different algorithms.
+|%
+
+%|
+    Function: gzip
+
+    Compress an input string using the gzip algorithm,
+    returning the compressed data as <Bytes>.
+|%
 DECLARE NATIVE FUNCTION gzip(input: String): Bytes
+
+%|
+    Function: gunzip
+
+    Decompress input bytes using the gunzip algorithm,
+    returning the uncompressed data as a <String>.
+|%
 DECLARE NATIVE FUNCTION gunzip(input: Bytes): String
 
+%|
+    Function: bzip2
+
+    Compress an input string using the bzip2 algorithm,
+    returning the compressed data as <Bytes>.
+|%
 DECLARE NATIVE FUNCTION bzip2(input: String): Bytes
+
+%|
+    Function: bunzip2
+
+    Decompress input bytes using the bunzip2 algorithm,
+    returning the uncompressed data as a <String>.
+|%
 DECLARE NATIVE FUNCTION bunzip2(input: Bytes): String
 
+%|
+    Function: lzma
+
+    Compress an input string using the lzma algorithm,
+    returning the compressed data as <Bytes>.
+|%
 DECLARE NATIVE FUNCTION lzma(input: String): Bytes
+
+%|
+    Function: unlzma
+
+    Decompress input bytes usingi the unlzma algorithm,
+    returning the uncompressed data as a <String>.
+|%
 DECLARE NATIVE FUNCTION unlzma(input: Bytes): String

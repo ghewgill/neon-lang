@@ -1,3 +1,9 @@
+%|
+    File: json
+
+    Functions for reading and writing files in JSON format (<http://json.org>).
+|%
+
 EXPORT decode
 EXPORT encode
 
@@ -9,6 +15,11 @@ IMPORT variant.Variant
 % character escapes yet.
 % TODO: Also, this could be improved a lot by using regex.
 
+%|
+    Exception: JsonFormat
+
+    Indicates that a formatting error was encountered when reading JSON.
+|%
 DECLARE EXCEPTION JsonFormat
 
 FUNCTION skip_whitespace(json: String, INOUT index: Number)
@@ -100,11 +111,21 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
     RETURN variant.make_null()
 END FUNCTION
 
+%|
+    Function: decode
+
+    Decode JSON data in a string to a result in a <Variant>.
+|%
 FUNCTION decode(json: String): Variant
     VAR i: Number := 0
     RETURN decode_part(json, i)
 END FUNCTION
 
+%|
+    Function: encode
+
+    Encode a value in a <Variant> to JSON data in a string.
+|%
 FUNCTION encode(data: Variant): String
     CASE data.get_type()
         WHEN Type.null DO

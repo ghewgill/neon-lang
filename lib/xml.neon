@@ -1,9 +1,25 @@
+%|
+    File: xml
+
+    Provides functions for working with XML files.
+|%
+
 EXPORT parse
 
+%|
+    Type: Document
+
+    Represents an XML document.
+|%
 TYPE Document := RECORD
     dummy: Boolean
 END RECORD
 
+%|
+    Function: parse
+
+    Parse the given string as an XML document.
+|%
 FUNCTION parse(s: String): Document
     RETURN Document()
 END FUNCTION

@@ -1,11 +1,37 @@
+%|
+    File: regex
+
+    Functions for using regular expressions for text searching.
+|%
+
 EXPORT Match
 
+%|
+    Type: Group
+
+    Represents a matching group as part of a <Match> array.
+
+    Fields:
+        start - starting index of group
+        end - ending index of group
+        group - text of group
+|%
 TYPE Group := RECORD
     start: Number
     end: Number
     group: String
 END RECORD
 
+%|
+    Type: Match
+
+    Represents the result of a successful regex match.
+|%
 TYPE Match := Array<Group>
 
+%|
+    Function: search
+
+    Search a string for a given subject regex.
+|%
 DECLARE NATIVE FUNCTION search(pattern: String, subject: String, INOUT match: Match): Boolean

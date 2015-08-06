@@ -1,3 +1,9 @@
+%|
+    File: variant
+
+    Provides a general-purpose type that can hold values of any other type.
+|%
+
 EXPORT Variant
 EXPORT Type
 EXPORT TypeMismatch
@@ -9,8 +15,27 @@ EXPORT make_bytes
 EXPORT make_array
 EXPORT make_dictionary
 
+%|
+    Exception: TypeMismatch
+
+    Indicates an attempt to read a value of the wrong type from a <Variant>.
+|%
 DECLARE EXCEPTION TypeMismatch
 
+%|
+    Enumeration: Type
+
+    The type of a variant value.
+
+    Values:
+        null - null value
+        boolean - boolean
+        number - number
+        string - string
+        bytes - bytes
+        array - array
+        dictionary - dictionary
+|%
 TYPE Type := ENUM
     null
     boolean
@@ -21,6 +46,11 @@ TYPE Type := ENUM
     dictionary
 END ENUM
 
+%|
+    Type: Variant
+
+    Opaque variant type.
+|%
 TYPE Variant := RECORD
     PRIVATE type: Type
     PRIVATE val_boolean: Boolean
@@ -31,48 +61,88 @@ TYPE Variant := RECORD
     PRIVATE val_dictionary: Dictionary<Variant>
 END RECORD
 
+%|
+    Function: make_null
+
+    Make a <Variant> with a null value.
+|%
 FUNCTION make_null(): Variant
     VAR r: Variant
     r.set_null()
     RETURN r
 END FUNCTION
 
+%|
+    Function: make_boolean
+
+    Make a <Variant> with a boolean value.
+|%
 FUNCTION make_boolean(b: Boolean): Variant
     VAR r: Variant
     r.set_boolean(b)
     RETURN r
 END FUNCTION
 
+%|
+    Function: make_number
+
+    Make a <Variant> with a number value.
+|%
 FUNCTION make_number(n: Number): Variant
     VAR r: Variant
     r.set_number(n)
     RETURN r
 END FUNCTION
 
+%|
+    Function: make_string
+
+    Make a <Variant> with a string value.
+|%
 FUNCTION make_string(s: String): Variant
     VAR r: Variant
     r.set_string(s)
     RETURN r
 END FUNCTION
 
+%|
+    Function: make_bytes
+
+    Make a <Variant> with a bytes value.
+|%
 FUNCTION make_bytes(b: Bytes): Variant
     VAR r: Variant
     r.set_bytes(b)
     RETURN r
 END FUNCTION
 
+%|
+    Function: make_array
+
+    Make a <Variant> with an array value.
+|%
 FUNCTION make_array(a: Array<Variant>): Variant
     VAR r: Variant
     r.set_array(a)
     RETURN r
 END FUNCTION
 
+%|
+    Function: make_dictionary
+
+    Make a <Variant> with a dictionary value.
+|%
 FUNCTION make_dictionary(d: Dictionary<Variant>): Variant
     VAR r: Variant
     r.set_dictionary(d)
     RETURN r
 END FUNCTION
 
+%|
+    Function: Variant.get_type
+
+    Return the type of a variant.
+|%
 FUNCTION Variant.get_type(IN self: Variant): Type
     RETURN self.type
 END FUNCTION
@@ -81,6 +151,11 @@ FUNCTION Variant.set_null(INOUT self: Variant)
     self.type := Type.null
 END FUNCTION
 
+%|
+    Function: Variant.is_null
+
+    Return TRUE if the variant is a null value.
+|%
 FUNCTION Variant.is_null(IN self: Variant): Boolean
     RETURN self.type = Type.null
 END FUNCTION
@@ -90,6 +165,11 @@ FUNCTION Variant.set_boolean(INOUT self: Variant, b: Boolean)
     self.val_boolean := b
 END FUNCTION
 
+%|
+    Function: Variant.get_boolean
+
+    Get a boolean value from a <Variant>.
+|%
 FUNCTION Variant.get_boolean(IN self: Variant): Boolean
     IF self.type # Type.boolean THEN
         RAISE TypeMismatch
@@ -102,6 +182,11 @@ FUNCTION Variant.set_number(INOUT self: Variant, n: Number)
     self.val_number := n
 END FUNCTION
 
+%|
+    Function: Variant.get_number
+
+    Get a number value from a <Variant>.
+|%
 FUNCTION Variant.get_number(IN self: Variant): Number
     IF self.type # Type.number THEN
         RAISE TypeMismatch
@@ -114,6 +199,11 @@ FUNCTION Variant.set_string(INOUT self: Variant, s: String)
     self.val_string := s
 END FUNCTION
 
+%|
+    Function: Variant.get_string
+
+    Get a string value from a <Variant>.
+|%
 FUNCTION Variant.get_string(IN self: Variant): String
     IF self.type # Type.string THEN
         RAISE TypeMismatch
@@ -126,6 +216,11 @@ FUNCTION Variant.set_bytes(INOUT self: Variant, s: Bytes)
     self.val_bytes := s
 END FUNCTION
 
+%|
+    Function: Variant.get_bytes
+
+    Get a bytes value from a <Variant>.
+|%
 FUNCTION Variant.get_bytes(IN self: Variant): Bytes
     IF self.type # Type.bytes THEN
         RAISE TypeMismatch
@@ -138,6 +233,11 @@ FUNCTION Variant.set_array(INOUT self: Variant, a: Array<Variant>)
     self.val_array := a
 END FUNCTION
 
+%|
+    Function: Variant.get_array
+
+    Get an array value from a <Variant>.
+|%
 FUNCTION Variant.get_array(IN self: Variant): Array<Variant>
     IF self.type # Type.array THEN
         RAISE TypeMismatch
@@ -150,6 +250,11 @@ FUNCTION Variant.set_dictionary(INOUT self: Variant, d: Dictionary<Variant>)
     self.val_dictionary := d
 END FUNCTION
 
+%|
+    Function: Variant.get_dictionary
+
+    Get a dictionary value from a <Variant>.
+|%
 FUNCTION Variant.get_dictionary(IN self: Variant): Dictionary<Variant>
     IF self.type # Type.dictionary THEN
         RAISE TypeMismatch
@@ -157,6 +262,11 @@ FUNCTION Variant.get_dictionary(IN self: Variant): Dictionary<Variant>
     RETURN self.val_dictionary
 END FUNCTION
 
+%|
+    Function: Variant.to_string
+
+    Return a string representation of a <Variant> value.
+|%
 FUNCTION Variant.to_string(IN self: Variant): String
     CASE self.type
         WHEN Type.null DO
