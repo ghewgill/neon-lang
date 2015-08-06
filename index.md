@@ -11,7 +11,7 @@ It is imperative and not functional; it is statically and not dynamically typed;
 You will not find monads, templates, virtual functions, currying, lambdas, immutability, type inference, or probably even your favourite language feature.
 
 Neon does, however, have features that can make learning programming fun.
-Neon has [standard libraries](standard-libraries.html) for graphics, sound, text mode interfaces (curses), networking, and more.
+Neon has [standard libraries](html/index.html) for graphics, sound, text mode interfaces (curses), networking, and more.
 The graphics and sound libraries recall the early days of the Apple ][ and Commodore 64.
 The curses interface provides interactive text mode capability.
 The ability to link to external libraries and to call external functions opens up a wide variety of possibilities.
