@@ -44,6 +44,7 @@ libsqlite = SConscript("external/SConscript-libsqlite", exports=["env"])
 libz = SConscript("external/SConscript-libz", exports=["env"])
 libbz2 = SConscript("external/SConscript-libbz2", exports=["env"])
 liblzma = SConscript("external/SConscript-liblzma", exports=["env"])
+SConscript("external/SConscript-naturaldocs")
 
 env.Append(CPPPATH=[
     "src",
@@ -309,3 +310,5 @@ env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
 if os.name == "posix":
     env.Command("samples/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
     env.Command("tests_script", "samples/hello", "env PATH=bin samples/hello")
+
+env.Command("docs", None, "perl external/NaturalDocs/NaturalDocs -i lib -o HTML lib/html -p lib/nd.proj")

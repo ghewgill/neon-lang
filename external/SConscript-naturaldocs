@@ -1,0 +1,5 @@
+import os
+import zipfile
+
+if not os.path.exists("NaturalDocs/NaturalDocs"):
+    zipfile.ZipFile("NaturalDocs-1.52.zip").extractall("NaturalDocs")
