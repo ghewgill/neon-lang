@@ -40,6 +40,7 @@ Timestamp: Generated on day month, year
 # --------------------------------------------------------------------------
 
 
+File: global  (global.neon)
 File: bigint  (bigint.neon)
 File: bitwise  (bitwise.neon)
 File: cformat  (cformat.neon)
@@ -48,7 +49,6 @@ File: compress  (compress.neon)
 File: curses  (curses.neon)
 File: datetime  (datetime.neon)
 File: file  (file.neon)
-File: global  (global.neon)
 File: hash  (hash.neon)
 File: http  (http.neon)
 File: io  (io.neon)
