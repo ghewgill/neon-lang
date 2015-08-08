@@ -9,3 +9,5 @@ cp -r lib/html html
 git add html
 git commit -m "Update library documentation from $rev" || echo "Nothing to update"
 git checkout master
+echo "Done."
+echo "git push origin gh-pages:gh-pages"
