@@ -140,6 +140,7 @@ def parse_params(paramstr):
     return r
 
 constants = dict()
+enums = dict()
 functions = dict()
 
 for fn in sys.argv[1:]:
@@ -148,6 +149,7 @@ for fn in sys.argv[1:]:
         if prefix == "global$":
             prefix = ""
         with open(fn) as f:
+            in_enum = None
             for s in f:
                 a = s.split()
                 if a[:1] == ["TYPE"]:
@@ -157,10 +159,15 @@ for fn in sys.argv[1:]:
                     if atype == "POINTER":
                         AstFromNeon[name] = ("TYPE_POINTER", VALUE)
                         AstFromNeon["INOUT "+name] = ("TYPE_POINTER", REF)
+                    elif atype == "ENUM":
+                        AstFromNeon[name] = ("TYPE_GENERIC", VALUE)
+                        AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
+                        enums[name] = []
+                        in_enum = name
                     else:
                         AstFromNeon[name] = ("TYPE_GENERIC", VALUE)
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
-                if a[:3] == ["DECLARE", "NATIVE", "FUNCTION"]:
+                elif a[:3] == ["DECLARE", "NATIVE", "FUNCTION"]:
                     m = re.search(r"(\w+)\((.*?)\)(:\s*(\S+))?\s*$", s)
                     assert m is not None
                     name = prefix + m.group(1)
@@ -168,13 +175,18 @@ for fn in sys.argv[1:]:
                     rtype = m.group(4)
                     params = parse_params(paramstr)
                     functions[name] = [name, AstFromNeon[rtype], rtype.split()[-1] if rtype is not None else None, [AstFromNeon[x[0]] for x in params], [x[0].split()[-1] for x in params], [x[1] for x in params]]
-                if a[:3] == ["DECLARE", "NATIVE", "CONST"]:
+                elif a[:3] == ["DECLARE", "NATIVE", "CONST"]:
                     m = re.search(r"(\w+):\s*(\S+)\s*$", s)
                     assert m is not None
                     name = prefix + m.group(1)
                     ctype = m.group(2)
                     assert ctype in ["Number"]
                     constants[name] = [name, ctype, "new ConstantNumberExpression(rtl::{})".format(name)]
+                elif in_enum:
+                    if a[:2] == ["END", "ENUM"]:
+                        in_enum = None
+                    else:
+                        enums[in_enum].append(a[0])
     else:
         print >>sys.stderr, "Unexpected file: {}".format(fn)
         sys.exit(1)
@@ -283,3 +295,8 @@ with open("src/functions_exec.inc", "w") as inc:
     for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
         print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name, "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), name.replace(".", "::"))
     print >>inc, "};";
+
+with open("src/enums.inc", "w") as inc:
+    for name, values in enums.items():
+        for i, v in enumerate(values):
+            print >>inc, "static const Number ENUM_{}_{} = number_from_uint32({});".format(name, v, i)
