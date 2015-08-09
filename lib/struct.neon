@@ -75,22 +75,26 @@ END FUNCTION
 FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
     VAR buf: Array<Number>
     FOR f := 0 TO self.fields.size()-1 DO
-        CASE self.fields[f].type
-            WHEN Type.bool DO
-                LET b: Boolean := values[self.fields[f].name].get_boolean()
-                buf.append(IF b THEN 1 ELSE 0)
-            WHEN Type.int DO
-                LET n: Number := values[self.fields[f].name].get_number()
-                buf.append(bitwise.and(bitwise.shift_right(n, 24), 0xff))
-                buf.append(bitwise.and(bitwise.shift_right(n, 16), 0xff))
-                buf.append(bitwise.and(bitwise.shift_right(n, 8), 0xff))
-                buf.append(bitwise.and(n, 0xff))
-            WHEN Type.string DO
-                LET s: String := values[self.fields[f].name].get_string()
-                FOR i := 0 TO self.fields[f].width-1 DO
-                    buf.append(IF i < s.length() THEN ord(s[i]) ELSE 0)
-                END FOR
-        END CASE
+        IF self.fields[f].name IN values THEN
+            CASE self.fields[f].type
+                WHEN Type.bool DO
+                    LET b: Boolean := values[self.fields[f].name].get_boolean()
+                    buf.append(IF b THEN 1 ELSE 0)
+                WHEN Type.int DO
+                    LET n: Number := values[self.fields[f].name].get_number()
+                    buf.append(bitwise.and(bitwise.shift_right(n, 24), 0xff))
+                    buf.append(bitwise.and(bitwise.shift_right(n, 16), 0xff))
+                    buf.append(bitwise.and(bitwise.shift_right(n, 8), 0xff))
+                    buf.append(bitwise.and(n, 0xff))
+                WHEN Type.string DO
+                    LET s: String := values[self.fields[f].name].get_string()
+                    FOR i := 0 TO self.fields[f].width-1 DO
+                        buf.append(IF i < s.length() THEN ord(s[i]) ELSE 0)
+                    END FOR
+            END CASE
+        ELSE
+            buf.resize(buf.size() + self.fields[f].width)
+        END IF
     END FOR
     VAR r: Bytes
     r.from_array(buf)

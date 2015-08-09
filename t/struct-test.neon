@@ -9,11 +9,11 @@ VAR s: struct.Struct := struct.make([
 print("\(s.sizeof())")
 %= 24
 
-LET b: Bytes := s.pack({
+VAR b: Bytes := s.pack({
     "field1": variant.make_number(500),
     "field2": variant.make_string("hello"),
 })
-LET a: Array<Number> := b.to_array()
+VAR a: Array<Number> := b.to_array()
 print("\(a.size())")
 %= 24
 print(str(a[0]))
@@ -42,3 +42,8 @@ print(str(v["field1"].get_number()))
 %= 500
 print(v["field2"].get_string())
 %= hello
+
+b := s.pack({"field2": variant.make_string("hi")})
+a := b.to_array()
+print("\(a.size())")
+%= 24
