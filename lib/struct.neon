@@ -22,11 +22,13 @@ IMPORT variant
  |      bool - boolean
  |      int - integer
  |      string - string
+ |      bytes - bytes
  |%
 TYPE Type := ENUM
     bool
     int
     string
+    bytes
 END ENUM
 
 %|
@@ -91,6 +93,11 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
                     FOR i := 0 TO self.fields[f].width-1 DO
                         buf.append(IF i < s.length() THEN ord(s[i]) ELSE 0)
                     END FOR
+                WHEN Type.bytes DO
+                    LET a: Array<Number> := values[self.fields[f].name].get_bytes().to_array()
+                    FOR i := 0 TO self.fields[f].width-1 DO
+                        buf.append(IF i < a.size() THEN a[i] ELSE 0)
+                    END FOR
             END CASE
         ELSE
             buf.resize(buf.size() + self.fields[f].width)
@@ -144,6 +151,11 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
                     s.append(chr(a[i+j]))
                 END FOR
                 r[self.fields[f].name] := variant.make_string(s)
+                i := i + self.fields[f].width
+            WHEN Type.bytes DO
+                VAR b: Bytes
+                b.from_array(a[i TO i+self.fields[f].width-1])
+                r[self.fields[f].name] := variant.make_bytes(b)
                 i := i + self.fields[f].width
         END CASE
     END FOR
