@@ -144,7 +144,7 @@ EXTERNAL FUNCTION write_stdout(IN s: String)
         "name": "bin/libtest_ffi"
     }
     "types": {
-        "s": "pointer"
+        "s": "string"
     }
 }
 END FUNCTION
@@ -155,7 +155,7 @@ EXTERNAL FUNCTION string_length(IN s: String): Number
         "name": "bin/libtest_ffi"
     }
     "types": {
-        "s": "pointer"
+        "s": "string"
         "return": "uint32"
     }
 }
@@ -167,7 +167,7 @@ EXTERNAL FUNCTION upper_string(INOUT s: String)
         "name": "bin/libtest_ffi"
     }
     "types": {
-        "s": "pointer"
+        "s": "string"
     }
 }
 END FUNCTION

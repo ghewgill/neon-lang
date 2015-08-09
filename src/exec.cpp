@@ -98,7 +98,7 @@ template <typename T> static void marshal_number(Cell &cell, void *&p, size_t &s
     space -= sizeof(T);
 }
 
-static void marshal_pointer(Cell &cell, void *&p, size_t &space)
+static void marshal_string(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
     *a = const_cast<char *>(cell.string().data());
@@ -106,7 +106,7 @@ static void marshal_pointer(Cell &cell, void *&p, size_t &space)
     space -= sizeof(void *);
 }
 
-static void marshal_pointer_a(Cell &cell, void *&p, size_t &space)
+static void marshal_string_a(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
     *a = const_cast<char *>(cell.address()->string().data());
@@ -1011,8 +1011,8 @@ void Executor::exec_CALLE()
             else if (p == "sint64")   { eci->types.push_back(&ffi_type_sint64);  eci->marshal.push_back(marshal_number< int64_t>); }
             else if (p == "float" )   { eci->types.push_back(&ffi_type_float );  eci->marshal.push_back(marshal_number<float   >); }
             else if (p == "double")   { eci->types.push_back(&ffi_type_double);  eci->marshal.push_back(marshal_number<double  >); }
-            else if (p == "pointer")  { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer         ); }
-            else if (p == "*pointer") { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer_a       ); }
+            else if (p == "string")   { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string          ); }
+            else if (p == "*string")  { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string_a        ); }
             else {
                 fprintf(stderr, "ffi type not supported: %s\n", p.c_str());
                 exit(1);
