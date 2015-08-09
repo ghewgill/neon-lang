@@ -1,0 +1,82 @@
+%|
+ |  File: win32
+ |
+ |  Win32 API access functions.
+ |%
+
+EXPORT Beep
+EXPORT DebugBreak
+EXPORT FindClose
+EXPORT FindFirstFileA
+EXPORT FindNextFileA
+EXPORT WIN32_FIND_DATA
+
+IMPORT struct
+
+LET WIN32_FIND_DATA: struct.Struct := struct.make([
+    struct.field("dwFileAttributes",    struct.Type.int,      4),
+    struct.field("ftCreationTime",      struct.Type.bytes,    8),
+    struct.field("ftLastAccessTime",    struct.Type.bytes,    8),
+    struct.field("ftLastWriteTime",     struct.Type.bytes,    8),
+    struct.field("nFileSizeHigh",       struct.Type.int,      4),
+    struct.field("nFileSizeLow",        struct.Type.int,      4),
+    struct.field("dwReserved0",         struct.Type.int,      4),
+    struct.field("dwReserved1",         struct.Type.int,      4),
+    struct.field("cFileName",           struct.Type.string, 260),
+    struct.field("cAlternateFileName",  struct.Type.string,  14),
+])
+
+% Function: Beep
+EXTERNAL FUNCTION Beep(dwFreq: Number, dwDuration: Number): Boolean
+{
+    "library": {"name": "kernel32"}
+    "types": {
+        "return": "boolean"
+        "dwFreq": "uint32"
+        "dwDuration": "uint32"
+    }
+}
+END FUNCTION
+
+% Function: DebugBreak
+EXTERNAL FUNCTION DebugBreak()
+{
+    "library": {"name": "kernel32"}
+    "types": {}
+}
+END FUNCTION
+
+% Function: FindClose
+EXTERNAL FUNCTION FindClose(hFindFile: POINTER): Boolean
+{
+    "library": {"name": "kernel32"}
+    "types": {
+        "return": "boolean"
+        "hFindFile": "pointer"
+    }
+}
+END FUNCTION
+
+% Function: FindFirstFileA
+EXTERNAL FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes): POINTER
+{
+    "library": {"name": "kernel32"}
+    "types": {
+        "return": "pointer"
+        "lpFileName": "string"
+        "lpFindFileData": "bytes"
+    }
+}
+END FUNCTION
+
+% Function: FindNextFileA
+EXTERNAL FUNCTION FindNextFileA(hFindFile: POINTER, INOUT lpFindFileData: Bytes): Boolean
+{
+    "library": {"name": "kernel32"}
+    "types": {
+        "return": "boolean"
+        "hFindFile": "pointer"
+        "lpFindFileData": "bytes"
+    }
+}
+END FUNCTION

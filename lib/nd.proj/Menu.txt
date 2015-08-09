@@ -64,6 +64,7 @@ File: struct  (struct.neon)
 File: sys  (sys.neon)
 File: time  (time.neon)
 File: variant  (variant.neon)
+File: win32  (win32.neon)
 File: xml  (xml.neon)
 
 Group: Index  {

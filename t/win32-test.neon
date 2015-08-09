@@ -1,0 +1,21 @@
+% PLATFORM:win32
+
+IMPORT os
+IMPORT sys
+IMPORT variant
+IMPORT win32
+
+VAR b: Boolean
+VAR p: POINTER
+
+VAR bfd: Bytes := win32.WIN32_FIND_DATA.pack({})
+p := win32.FindFirstFileA(@"lib\*.neon", bfd)
+REPEAT
+    VAR fd: Dictionary<variant.Variant> := win32.WIN32_FIND_DATA.unpack(bfd)
+    LET fn: String := fd["cFileName"].get_string()
+    IF fn = "win32.neon" THEN
+        print(fn)
+    END IF
+UNTIL NOT win32.FindNextFileA(p, bfd)
+b := win32.FindClose(p)
+%= win32.neon
