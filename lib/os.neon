@@ -4,7 +4,22 @@
  |  Functions for operating system interfaces.
  |%
 
+EXPORT Platform
 EXPORT Process
+
+%|
+ |  Enumeration: Platform
+ |
+ |  Platform type.
+ |
+ |  Values:
+ |      posix - posix
+ |      win32 - win32
+ |%
+TYPE Platform := ENUM
+    posix
+    win32
+END ENUM
 
 %|
  |  Type: Process
@@ -33,6 +48,13 @@ DECLARE NATIVE FUNCTION getcwd(): String
  |  Return the value of an environment variable in the current process.
  |%
 DECLARE NATIVE FUNCTION getenv(name: String): String
+
+%|
+ |  Function: platform
+ |
+ |  Return the running platform type.
+ |%
+DECLARE NATIVE FUNCTION platform(): Platform
 
 %|
  |  Function: system

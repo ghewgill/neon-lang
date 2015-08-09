@@ -7,6 +7,8 @@
 
 #include "rtl_exec.h"
 
+#include "enums.inc"
+
 struct Process {
     pid_t pid;
 };
@@ -25,6 +27,11 @@ std::string os$getcwd()
 {
     char buf[MAXPATHLEN];
     return getcwd(buf, sizeof(buf));
+}
+
+Cell os$platform()
+{
+    return Cell(ENUM_Platform_posix);
 }
 
 bool os$fork(Cell **process)

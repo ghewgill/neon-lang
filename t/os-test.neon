@@ -14,3 +14,7 @@ r := os.wait(p)
 LET end: Number := time.now()
 print(strb(end - start >= 0.1))
 %= TRUE
+
+LET plat: os.Platform := os.platform()
+print("\(plat)")
+%? (posix|win32)

@@ -4,6 +4,8 @@
 
 #include "rtl_exec.h"
 
+#include "enums.h"
+
 struct Process {
     HANDLE process;
 };
@@ -23,6 +25,11 @@ std::string os$getcwd()
     char buf[MAX_PATH];
     GetCurrentDirectory(sizeof(buf), buf);
     return buf;
+}
+
+Cell os$platform()
+{
+    return Cell(ENUM_Platform_win32);
 }
 
 bool os$fork(Cell **process)
