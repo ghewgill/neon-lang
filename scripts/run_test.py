@@ -23,6 +23,15 @@ def run(fn):
     if any("SKIP" in x for x in all_comments):
         print("skipped")
         raise TestSkipped()
+    platforms = [m and m.group(1) for m in [re.search(r"PLATFORM:(\w+)", x) for x in all_comments]]
+    if any(platforms):
+        while True:
+            if "win32" in platforms and os.name == "nt":
+                break
+            if "posix" in platforms and os.name == "posix":
+                break
+            print("skipped: {}".format(",".join(x for x in platforms if x)))
+            raise TestSkipped()
     args = []
     a = [x for x in all_comments if "ARGS" in x]
     if a:
