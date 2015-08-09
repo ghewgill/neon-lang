@@ -4,7 +4,7 @@
 
 #include "rtl_exec.h"
 
-#include "enums.h"
+#include "enums.inc"
 
 struct Process {
     HANDLE process;
