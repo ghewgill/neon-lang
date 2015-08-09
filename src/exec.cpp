@@ -98,6 +98,22 @@ template <typename T> static void marshal_number(Cell &cell, void *&p, size_t &s
     space -= sizeof(T);
 }
 
+static void marshal_pointer(Cell &cell, void *&p, size_t &space)
+{
+    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
+    *a = cell.address();
+    p = a + 1;
+    space -= sizeof(void *);
+}
+
+static void marshal_pointer_a(Cell &cell, void *&p, size_t &space)
+{
+    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
+    *a = cell.address()->address();
+    p = a + 1;
+    space -= sizeof(void *);
+}
+
 static void marshal_string(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
@@ -114,9 +130,19 @@ static void marshal_string_a(Cell &cell, void *&p, size_t &space)
     space -= sizeof(void *);
 }
 
+template <typename T> static Cell unmarshal_boolean(void *p)
+{
+    return Cell(*reinterpret_cast<T *>(p) != 0);
+}
+
 template <typename T> static Cell unmarshal_number(void *p)
 {
     return Cell(number_conversion<T>::convert_from_native(*reinterpret_cast<T *>(p)));
+}
+
+static Cell unmarshal_pointer(void *p)
+{
+    return Cell(*(reinterpret_cast<Cell **>(p)));
 }
 
 class ActivationFrame {
@@ -1013,13 +1039,18 @@ void Executor::exec_CALLE()
             else if (p == "double")   { eci->types.push_back(&ffi_type_double);  eci->marshal.push_back(marshal_number<double  >); }
             else if (p == "string")   { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string          ); }
             else if (p == "*string")  { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string_a        ); }
+            else if (p == "bytes")    { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string          ); }
+            else if (p == "*bytes")   { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string_a        ); }
+            else if (p == "pointer")  { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer         ); }
+            else if (p == "*pointer") { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer_a       ); }
             else {
                 fprintf(stderr, "ffi type not supported: %s\n", p.c_str());
                 exit(1);
             }
         }
         ffi_type *rtype;
-             if (rettype == "uint8" ) { rtype = &ffi_type_uint8;  eci->unmarshal = unmarshal_number<uint8_t  >; }
+             if (rettype == "boolean"){ rtype = &ffi_type_uint32; eci->unmarshal = unmarshal_boolean<uint32_t>; }
+        else if (rettype == "uint8" ) { rtype = &ffi_type_uint8;  eci->unmarshal = unmarshal_number<uint8_t  >; }
         else if (rettype == "sint8" ) { rtype = &ffi_type_sint8;  eci->unmarshal = unmarshal_number< int8_t  >; }
         else if (rettype == "uint16") { rtype = &ffi_type_uint16; eci->unmarshal = unmarshal_number<uint16_t >; }
         else if (rettype == "sint16") { rtype = &ffi_type_sint16; eci->unmarshal = unmarshal_number< int16_t >; }
@@ -1029,6 +1060,7 @@ void Executor::exec_CALLE()
         else if (rettype == "sint64") { rtype = &ffi_type_sint64; eci->unmarshal = unmarshal_number< int64_t >; }
         else if (rettype == "float" ) { rtype = &ffi_type_float;  eci->unmarshal = unmarshal_number<float    >; }
         else if (rettype == "double") { rtype = &ffi_type_double; eci->unmarshal = unmarshal_number<double   >; }
+        else if (rettype == "pointer"){ rtype = &ffi_type_pointer;eci->unmarshal = unmarshal_pointer; }
         else if (rettype == ""      ) { rtype = &ffi_type_void;   eci->unmarshal = nullptr;                     }
         else {
             fprintf(stderr, "ffi return type not supported: %s\n", rettype.c_str());
