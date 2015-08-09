@@ -821,6 +821,7 @@ void ModuleFunction::generate_call(Emitter &emitter) const
 
 void ExternalFunction::predeclare(Emitter &emitter) const
 {
+    Function::predeclare(emitter);
     std::stringstream ss;
     ss << library_name << ":" << name << ":";
     auto r = param_types.find("return");
@@ -840,6 +841,14 @@ void ExternalFunction::predeclare(Emitter &emitter) const
         ss << param_types.at(param->name);
     }
     external_index = emitter.str(ss.str());
+}
+
+void ExternalFunction::postdeclare(Emitter &emitter) const
+{
+    emitter.jump_target(emitter.function_label(entry_label));
+    generate_call(emitter);
+    emitter.emit(RET);
+    frame->postdeclare(emitter);
 }
 
 void ExternalFunction::generate_call(Emitter &emitter) const

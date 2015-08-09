@@ -1835,7 +1835,7 @@ public:
     mutable int external_index;
 
     virtual void predeclare(Emitter &) const override;
-    virtual void postdeclare(Emitter &) const override {} // TODO: Stub this out so we don't inherit the one from Function. Fix Function hierarchy.
+    virtual void postdeclare(Emitter &) const override;
     virtual void generate_call(Emitter &emitter) const override;
 
 private:
