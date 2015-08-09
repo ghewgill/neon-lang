@@ -1,8 +1,8 @@
 %|
-    File: file
-
-    Functions for working with files and directories.
-|%
+ |  File: file
+ |
+ |  Functions for working with files and directories.
+ |%
 
 EXPORT DirectoryExists
 EXPORT FileOpenError
@@ -11,112 +11,112 @@ EXPORT PathNotFound
 EXPORT PermissionDenied
 
 %|
-    Exception: DirectoryExists
-
-    Indicates that a directory already exists when calling <mkdir>.
-|%
+ |  Exception: DirectoryExists
+ |
+ |  Indicates that a directory already exists when calling <mkdir>.
+ |%
 DECLARE EXCEPTION DirectoryExists
 
 %|
-    Exception: FileOpenError
-
-    Indicates that an error occurred when opening a file.
-|%
+ |  Exception: FileOpenError
+ |
+ |  Indicates that an error occurred when opening a file.
+ |%
 DECLARE EXCEPTION FileOpenError
 
 %|
-    Exception: FileWriteError
-
-    Indicates that an error occurred while writing to a file.
-|%
+ |  Exception: FileWriteError
+ |
+ |  Indicates that an error occurred while writing to a file.
+ |%
 DECLARE EXCEPTION FileWriteError
 
 %|
-    Exception: PathNotFound
-
-    Indicates that a path was not found.
-|%
+ |  Exception: PathNotFound
+ |
+ |  Indicates that a path was not found.
+ |%
 DECLARE EXCEPTION PathNotFound
 
 %|
-    Exception: PermissionDenied
-
-    Indicates that an operation was denied due to filesystem permisssions.
-|%
+ |  Exception: PermissionDenied
+ |
+ |  Indicates that an operation was denied due to filesystem permisssions.
+ |%
 DECLARE EXCEPTION PermissionDenied
 
 %|
-    Function: exists
-
-    Check to see whether a name exists in the filesystem.
-    The name may refer to either a file or a directory.
-|%
+ |  Function: exists
+ |
+ |  Check to see whether a name exists in the filesystem.
+ |  The name may refer to either a file or a directory.
+ |%
 DECLARE NATIVE FUNCTION exists(filename: String): Boolean
 
 %|
-    Function: files
-
-    Given a path name, return an array containing the names of the files in that directory.
-|%
+ |  Function: files
+ |
+ |  Given a path name, return an array containing the names of the files in that directory.
+ |%
 DECLARE NATIVE FUNCTION files(path: String): Array<String>
 
 %|
-    Function: is_directory
-
-    Similar to <exists>, but only returns TRUE if the path actually is a directory.
-|%
+ |  Function: is_directory
+ |
+ |  Similar to <exists>, but only returns TRUE if the path actually is a directory.
+ |%
 DECLARE NATIVE FUNCTION is_directory(path: String): Boolean
 
 %|
-    Function: mkdir
-
-    Create a new directory with the given name.
-
-    Exceptions:
-        - <PermissionDenied> - if the file permissions prevent the operation
-        - <DirectoryExists> - if the directory already exists
-        - <PathNotFound> - if the path (not including the last component) does not exist
-|%
+ |  Function: mkdir
+ |
+ |  Create a new directory with the given name.
+ |
+ |  Exceptions:
+ |      - <PermissionDenied> - if the file permissions prevent the operation
+ |      - <DirectoryExists> - if the directory already exists
+ |      - <PathNotFound> - if the path (not including the last component) does not exist
+ |%
 DECLARE NATIVE FUNCTION mkdir(path: String)
 
 %|
-    Function: readbytes
-
-    Read the contents of a file into <Bytes>.
-
-    Exceptions:
-        - <FileOpenError> - if the file cannot be opened
-|%
+ |  Function: readbytes
+ |
+ |  Read the contents of a file into <Bytes>.
+ |
+ |  Exceptions:
+ |      - <FileOpenError> - if the file cannot be opened
+ |%
 DECLARE NATIVE FUNCTION readbytes(filename: String): Bytes
 
 %|
-    Function: readlines
-
-    Read the lines of a file into an array of <Strings>.
-
-    Exceptions:
-        - <FileOpenError> - if the file cannot be opened
-|%
+ |  Function: readlines
+ |
+ |  Read the lines of a file into an array of <Strings>.
+ |
+ |  Exceptions:
+ |      - <FileOpenError> - if the file cannot be opened
+ |%
 DECLARE NATIVE FUNCTION readlines(filename: String): Array<String> 
 
 %|
-    Function: writebytes
-
-    Write a complete file from data in <Bytes>.
-
-    Exceptions:
-        - <FileOpenError> - if the file cannot be opened
-        - <FileWriteError> - if an error occurs during writing
-|%
+ |  Function: writebytes
+ |
+ |  Write a complete file from data in <Bytes>.
+ |
+ |  Exceptions:
+ |      - <FileOpenError> - if the file cannot be opened
+ |      - <FileWriteError> - if an error occurs during writing
+ |%
 DECLARE NATIVE FUNCTION writebytes(filename: String, data: Bytes)
 
 %|
-    Function: writelines
-
-    Write a complete file from lines of text in an array.
-
-    Exceptions:
-        - <FileOpenError> - if the file cannot be opened
-        - <FileWriteError> - if an error occurs during writing
-|%
+ |  Function: writelines
+ |
+ |  Write a complete file from lines of text in an array.
+ |
+ |  Exceptions:
+ |      - <FileOpenError> - if the file cannot be opened
+ |      - <FileWriteError> - if an error occurs during writing
+ |%
 DECLARE NATIVE FUNCTION writelines(filename: String, data: Array<String>)

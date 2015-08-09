@@ -1,16 +1,16 @@
 %|
-    File: http
-
-    Functions for making HTTP requests.
-|%
+ |  File: http
+ |
+ |  Functions for making HTTP requests.
+ |%
 
 %|
-    Function: get
-
-    Perform an HTTP GET operation with the specified url.
-
-    Parameters:
-        url - the url
-        headers - the response headers from the server
-|%
+ |  Function: get
+ |
+ |  Perform an HTTP GET operation with the specified url.
+ |
+ |  Parameters:
+ |      url - the url
+ |      headers - the response headers from the server
+ |%
 DECLARE NATIVE FUNCTION get(url: String, INOUT headers: Array<String>): Bytes

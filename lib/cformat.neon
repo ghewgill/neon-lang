@@ -1,8 +1,8 @@
 %|
-    File: cformat
-
-    Provide printf-like formatting similar to the C standard library.
-|%
+ |  File: cformat
+ |
+ |  Provide printf-like formatting similar to the C standard library.
+ |%
 
 EXPORT printf
 EXPORT sprintf
@@ -10,27 +10,27 @@ EXPORT sprintf
 IMPORT variant.Variant
 
 %|
-    Function: sprintf
-
-    Given a format string and an array of parameters, format the
-    string and return the result.
-
-    Parameters:
-        fmt - the format string
-        value - the array of <Variant> values to format
-
-    Description:
-        The available formatting codes are
-
-            %d - decimal number
-            %s - string
-
-    Exceptions:
-        - <TypeMismatch> - if the wrong type is supplied for a parameter
-
-    See Also:
-        <printf>
-|%
+ |  Function: sprintf
+ |
+ |  Given a format string and an array of parameters, format the
+ |  string and return the result.
+ |
+ |  Parameters:
+ |      fmt - the format string
+ |      value - the array of <Variant> values to format
+ |
+ |  Description:
+ |      The available formatting codes are
+ |
+ |          %d - decimal number
+ |          %s - string
+ |
+ |  Exceptions:
+ |      - <TypeMismatch> - if the wrong type is supplied for a parameter
+ |
+ |  See Also:
+ |      <printf>
+ |%
 FUNCTION sprintf(fmt: String, value: Array<Variant>): String
     % TODO: This needs a lot more functionality, it is intended
     % as a functional equivalent to the C sprintf function.
@@ -57,21 +57,21 @@ FUNCTION sprintf(fmt: String, value: Array<Variant>): String
 END FUNCTION
 
 %|
-    Function: printf
-
-    Given a format string and an array of parameters, format the
-    string and print the result.
-
-    Parameters:
-        fmt - the format string
-        value - the array of <Variant> values to format
-
-    Exceptions:
-        - <TypeMismatch> - if the wrong type is supplied for a parameter
-
-    See Also:
-        <sprintf>
-|%
+ |  Function: printf
+ |
+ |  Given a format string and an array of parameters, format the
+ |  string and print the result.
+ |
+ |  Parameters:
+ |      fmt - the format string
+ |      value - the array of <Variant> values to format
+ |
+ |  Exceptions:
+ |      - <TypeMismatch> - if the wrong type is supplied for a parameter
+ |
+ |  See Also:
+ |      <sprintf>
+ |%
 FUNCTION printf(fmt: String, value: Array<Variant>)
     print(sprintf(fmt, value))
 END FUNCTION

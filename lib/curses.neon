@@ -1,11 +1,11 @@
 %|
-    File: curses
-
-    Curses library for text-oriented user interface support.
-
-    Reference:
-        https://en.wikipedia.org/wiki/Curses_%28programming_library%29
-|%
+ |  File: curses
+ |
+ |  Curses library for text-oriented user interface support.
+ |
+ |  Reference:
+ |      https://en.wikipedia.org/wiki/Curses_%28programming_library%29
+ |%
 
 TYPE Window := POINTER
 

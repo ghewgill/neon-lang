@@ -1,34 +1,34 @@
 %|
-    File: global
-
-    Global names that are available everywhere.
-|%
-
-%|
-    Type: Boolean
-|%
+ |  File: global
+ |
+ |  Global names that are available everywhere.
+ |%
 
 %|
-    Type: Number
-|%
+ |  Type: Boolean
+ |%
 
 %|
-    Type: String
-|%
+ |  Type: Number
+ |%
 
 %|
-    Type: Array
-|%
+ |  Type: String
+ |%
 
 %|
-    Type: Dictionary
-|%
+ |  Type: Array
+ |%
 
 %|
-    Type: Bytes
+ |  Type: Dictionary
+ |%
 
-    Bytes.
-|%
+%|
+ |  Type: Bytes
+ |
+ |  Bytes.
+ |%
 
 DECLARE NATIVE FUNCTION array__append(INOUT self: Array, element: Cell)
 DECLARE NATIVE FUNCTION array__extend(INOUT self: Array, elements: Array)
@@ -55,102 +55,102 @@ DECLARE NATIVE FUNCTION pointer__to_string(self: POINTER): String
 DECLARE NATIVE FUNCTION functionpointer__to_string(self: Cell): String
 
 %|
-    Function: chr
-
-    Convert a number to the corresponding Unicode character.
-|%
+ |  Function: chr
+ |
+ |  Convert a number to the corresponding Unicode character.
+ |%
 DECLARE NATIVE FUNCTION chr(x: Number): String
 
 %|
-    Function: concat
-
-    Concatenate two strings. Same as the & operator.
-|%
+ |  Function: concat
+ |
+ |  Concatenate two strings. Same as the & operator.
+ |%
 DECLARE NATIVE FUNCTION concat(a: String, b: String): String
 
 %|
-    Function: dec
-
-    Decrement a number by subtracting 1.
-|%
+ |  Function: dec
+ |
+ |  Decrement a number by subtracting 1.
+ |%
 DECLARE NATIVE FUNCTION dec(INOUT a: Number)
 
 %|
-    Function: format
-
-    Format a string based on the formatting mini-language.
-
-    TODO
-|%
+ |  Function: format
+ |
+ |  Format a string based on the formatting mini-language.
+ |
+ |  TODO
+ |%
 DECLARE NATIVE FUNCTION format(str: String, fmt: String): String
 
 %|
-    Function: inc
-
-    Increment a number by adding 1.
-|%
+ |  Function: inc
+ |
+ |  Increment a number by adding 1.
+ |%
 DECLARE NATIVE FUNCTION inc(INOUT a: Number)
 
 %|
-    Function: input
-
-    Read a line of input from the terminal after printing a prompt.
-|%
+ |  Function: input
+ |
+ |  Read a line of input from the terminal after printing a prompt.
+ |%
 DECLARE NATIVE FUNCTION input(prompt: String): String
 
 %|
-    Function: max
-
-    Return the greater of two numbers.
-|%
+ |  Function: max
+ |
+ |  Return the greater of two numbers.
+ |%
 DECLARE NATIVE FUNCTION max(a: Number, b: Number): Number
 
 %|
-    Function: min
-
-    Return the lesser of two numbers.
-|%
+ |  Function: min
+ |
+ |  Return the lesser of two numbers.
+ |%
 DECLARE NATIVE FUNCTION min(a: Number, b: Number): Number
 
 %|
-    Function: num
-
-    Convert a decimal number as a string to a number.
-|%
+ |  Function: num
+ |
+ |  Convert a decimal number as a string to a number.
+ |%
 DECLARE NATIVE FUNCTION num(s: String): Number
 
 %|
-    Function: ord
-
-    Return the Unicode value of a given character.
-    The input string must be a single character.
-|%
+ |  Function: ord
+ |
+ |  Return the Unicode value of a given character.
+ |  The input string must be a single character.
+ |%
 DECLARE NATIVE FUNCTION ord(s: String): Number
 
 %|
-    Function: print
-
-    Print a string to standard output followed by a newline.
-|%
+ |  Function: print
+ |
+ |  Print a string to standard output followed by a newline.
+ |%
 DECLARE NATIVE FUNCTION print(s: String)
 
 %|
-    Function: str
-
-    Convert a number to a decimal string.
-|%
+ |  Function: str
+ |
+ |  Convert a number to a decimal string.
+ |%
 DECLARE NATIVE FUNCTION str(x: Number): String
 
 %|
-    Function: strb
-
-    Convert a boolean to a string, either TRUE or FALSE.
-|%
+ |  Function: strb
+ |
+ |  Convert a boolean to a string, either TRUE or FALSE.
+ |%
 DECLARE NATIVE FUNCTION strb(x: Boolean): String
 
 %|
-    Function: substring
-
-    Return a range of a string with the given offset and length.
-|%
+ |  Function: substring
+ |
+ |  Return a range of a string with the given offset and length.
+ |%
 DECLARE NATIVE FUNCTION substring(s: String, offset: Number, length: Number): String

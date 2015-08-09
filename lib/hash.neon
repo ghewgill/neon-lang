@@ -1,131 +1,131 @@
 %|
-    File: hash
-
-    Functions for hashing data using a variety of algorithms.
-|%
+ |  File: hash
+ |
+ |  Functions for hashing data using a variety of algorithms.
+ |%
 
 %|
-    Function: crc32
-
-    Return the CRC32 of a given <String>.
-|%
+ |  Function: crc32
+ |
+ |  Return the CRC32 of a given <String>.
+ |%
 DECLARE NATIVE FUNCTION crc32(data: String): Number
 
 %|
-    Function: crc32_bytes
-
-    Return the CRC32 of given <Bytes>.
-|%
+ |  Function: crc32_bytes
+ |
+ |  Return the CRC32 of given <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION crc32_bytes(data: Bytes): Number
 
 %|
-    Function: md5
-
-    Return the MD5 hash of a given <String> as a hex string.
-|%
+ |  Function: md5
+ |
+ |  Return the MD5 hash of a given <String> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION md5(data: String): String
 
 %|
-    Function: md5_raw
-
-    Return the MD5 hash of a given <String> as raw <Bytes>.
-|%
+ |  Function: md5_raw
+ |
+ |  Return the MD5 hash of a given <String> as raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION md5_raw(data: String): Bytes
 
 %|
-    Function: md5_bytes
-
-    Return the MD5 hash of given <Bytes> as a hex string.
-|%
+ |  Function: md5_bytes
+ |
+ |  Return the MD5 hash of given <Bytes> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION md5_bytes(data: Bytes): String
 
 %|
-    Function: md5_bytes_raw
-
-    Return the MD5 hash of given <Bytes> as a raw <Bytes>.
-|%
+ |  Function: md5_bytes_raw
+ |
+ |  Return the MD5 hash of given <Bytes> as a raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION md5_bytes_raw(data: Bytes): Bytes
 
 %|
-    Function: sha1
-
-    Return the SHA1 hash of a given <String> as a hex string.
-|%
+ |  Function: sha1
+ |
+ |  Return the SHA1 hash of a given <String> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION sha1(data: String): String
 
 %|
-    Function: sha1_raw
-
-    Return the SHA1 hash of a given <String> as raw <Bytes>.
-|%
+ |  Function: sha1_raw
+ |
+ |  Return the SHA1 hash of a given <String> as raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION sha1_raw(data: String): Bytes
 
 %|
-    Function: sha1_bytes
-
-    Return the SHA1 hash of given <Bytes> as a hex string.
-|%
+ |  Function: sha1_bytes
+ |
+ |  Return the SHA1 hash of given <Bytes> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION sha1_bytes(data: Bytes): String
 
 %|
-    Function: sha1_bytes_raw
-
-    Return the SHA1 hash of given <Bytes> as a raw <Bytes>.
-|%
+ |  Function: sha1_bytes_raw
+ |
+ |  Return the SHA1 hash of given <Bytes> as a raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION sha1_bytes_raw(data: Bytes): Bytes
 
 %|
-    Function: sha256
-
-    Return the SHA256 hash of a given <String> as a hex string.
-|%
+ |  Function: sha256
+ |
+ |  Return the SHA256 hash of a given <String> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION sha256(data: String): String
 
 %|
-    Function: sha256_raw
-
-    Return the SHA256 hash of a given <String> as raw <Bytes>.
-|%
+ |  Function: sha256_raw
+ |
+ |  Return the SHA256 hash of a given <String> as raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION sha256_raw(data: String): Bytes
 
 %|
-    Function: sha256_bytes
-
-    Return the SHA256 hash of given <Bytes> as a hex string.
-|%
+ |  Function: sha256_bytes
+ |
+ |  Return the SHA256 hash of given <Bytes> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION sha256_bytes(data: Bytes): String
 
 %|
-    Function: sha256_bytes_raw
-
-    Return the SHA256 hash of given <Bytes> as a raw <Bytes>.
-|%
+ |  Function: sha256_bytes_raw
+ |
+ |  Return the SHA256 hash of given <Bytes> as a raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION sha256_bytes_raw(data: Bytes): Bytes
 
 %|
-    Function: sha3
-
-    Return the SHA3 hash of a given <String> as a hex string.
-|%
+ |  Function: sha3
+ |
+ |  Return the SHA3 hash of a given <String> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION sha3(data: String): String
 
 %|
-    Function: sha3_raw
-
-    Return the SHA3 hash of a given <String> as raw <Bytes>.
-|%
+ |  Function: sha3_raw
+ |
+ |  Return the SHA3 hash of a given <String> as raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION sha3_raw(data: String): Bytes
 
 %|
-    Function: sha3_bytes
-
-    Return the SHA3 hash of given <Bytes> as a hex string.
-|%
+ |  Function: sha3_bytes
+ |
+ |  Return the SHA3 hash of given <Bytes> as a hex string.
+ |%
 DECLARE NATIVE FUNCTION sha3_bytes(data: Bytes): String
 
 %|
-    Function: sha3_bytes_raw
-
-    Return the SHA3 hash of given <Bytes> as a raw <Bytes>.
-|%
+ |  Function: sha3_bytes_raw
+ |
+ |  Return the SHA3 hash of given <Bytes> as a raw <Bytes>.
+ |%
 DECLARE NATIVE FUNCTION sha3_bytes_raw(data: Bytes): Bytes

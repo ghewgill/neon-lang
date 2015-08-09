@@ -1,47 +1,47 @@
 %|
-    File: string
-
-    Functions for common string operations.
-|%
+ |  File: string
+ |
+ |  Functions for common string operations.
+ |%
 
 %|
-    Function: find
-
-    Find the index of a string within another.
-|%
+ |  Function: find
+ |
+ |  Find the index of a string within another.
+ |%
 DECLARE NATIVE FUNCTION find(s: String, t: String): Number
 
 %|
-    Function: join
-
-    Join an array of strings together using the given delimiter.
-|%
+ |  Function: join
+ |
+ |  Join an array of strings together using the given delimiter.
+ |%
 DECLARE NATIVE FUNCTION join(a: Array<String>, d: String): String
 
 %|
-    Function: lower
-
-    Return a string with all alphabetic characters converted to lower case.
-|%
+ |  Function: lower
+ |
+ |  Return a string with all alphabetic characters converted to lower case.
+ |%
 DECLARE NATIVE FUNCTION lower(s: String): String
 
 %|
-    Function: split
-
-    Split a string into parts using the given delimiter.
-|%
+ |  Function: split
+ |
+ |  Split a string into parts using the given delimiter.
+ |%
 DECLARE NATIVE FUNCTION split(s: String, d: String): Array<String>
 
 %|
-    Function: trim
-
-    Trim whitespace from the start and end of a string.
-|%
+ |  Function: trim
+ |
+ |  Trim whitespace from the start and end of a string.
+ |%
 DECLARE NATIVE FUNCTION trim(s: String): String
 
 %|
-    Function: upper
-
-    Return a string with all alphabetic characters converted to upper case.
-|%
+ |  Function: upper
+ |
+ |  Return a string with all alphabetic characters converted to upper case.
+ |%
 DECLARE NATIVE FUNCTION upper(s: String): String
