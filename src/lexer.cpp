@@ -496,6 +496,9 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                     if (i == source.end()) {
                         error(1017, t, "unterminated raw string");
                     }
+                    if (c == '\n') {
+                        error(1022, t, "unterminated raw string (must be single line)");
+                    }
                     utf8::append(c, std::back_inserter(t.text));
                 }
             } else {
