@@ -1223,7 +1223,7 @@ void VariableExpression::generate_expr(Emitter &emitter) const
     var->generate_load(emitter);
 }
 
-void FunctionCall::generate_expr(Emitter &emitter) const
+void FunctionCall::generate_parameters(Emitter &emitter) const
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     if (ftype == nullptr) {
@@ -1254,6 +1254,19 @@ void FunctionCall::generate_expr(Emitter &emitter) const
                 break;
         }
     }
+}
+
+void FunctionCall::generate_expr(Emitter &emitter) const
+{
+    generate_parameters(emitter);
+    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
+    if (ftype == nullptr) {
+        const TypeFunctionPointer *pf = dynamic_cast<const TypeFunctionPointer *>(func->type);
+        if (pf == nullptr) {
+            internal_error("FunctionCall::generate_expr");
+        }
+        ftype = pf->functype;
+    }
     func->generate_call(emitter);
     for (size_t i = 0; i < args.size(); i++) {
         auto param = ftype->params[i];
@@ -1267,6 +1280,24 @@ void FunctionCall::generate_expr(Emitter &emitter) const
                 break;
         }
     }
+}
+
+bool FunctionCall::all_in_parameters() const
+{
+    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
+    if (ftype == nullptr) {
+        const TypeFunctionPointer *pf = dynamic_cast<const TypeFunctionPointer *>(func->type);
+        if (pf == nullptr) {
+            internal_error("FunctionCall::generate_expr");
+        }
+        ftype = pf->functype;
+    }
+    for (size_t i = 0; i < args.size(); i++) {
+        if (ftype->params[i]->mode != ParameterType::IN) {
+            return false;
+        }
+    }
+    return true;
 }
 
 void StatementExpression::generate_expr(Emitter &emitter) const
@@ -1334,6 +1365,32 @@ void IfStatement::generate_code(Emitter &emitter) const
 
 void ReturnStatement::generate_code(Emitter &emitter) const
 {
+    // Check for a possible tail call. We can only do this if all
+    // of the following conditions hold:
+    //  - The RETURN statement returns only a call to another function
+    //  - The function takes only IN parameters (it might also be possible
+    //    to do this with some kinds of INOUT parameters, but not in general)
+    //  - The function is an ordinary function that we can jump to (not a
+    //    predefined function or external function)
+    // If possible, then generate the parameters for the next function,
+    // emit a LEAVE instruction to discard our frame, and then jump to
+    // the entry point for the next function.
+    const FunctionCall *call = dynamic_cast<const FunctionCall *>(expr);
+    if (call != nullptr) {
+        if (call->all_in_parameters()) {
+            const VariableExpression *var = dynamic_cast<const VariableExpression *>(call->func);
+            if (var != nullptr) {
+                const Function *func = dynamic_cast<const Function *>(var->var);
+                if (func != nullptr) {
+                    call->generate_parameters(emitter);
+                    emitter.emit(LEAVE);
+                    emitter.emit_jump(JUMP, emitter.function_label(func->entry_label));
+                    return;
+                }
+            }
+        }
+    }
+
     if (expr != nullptr) {
         expr->generate(emitter);
     }

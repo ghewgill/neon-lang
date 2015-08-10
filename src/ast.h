@@ -1404,6 +1404,8 @@ public:
     virtual Number eval_number() const override { internal_error("FunctionCall"); }
     virtual std::string eval_string() const override { internal_error("FunctionCall"); }
     virtual void generate_expr(Emitter &emitter) const override;
+    void generate_parameters(Emitter &emitter) const;
+    bool all_in_parameters() const;
 
     virtual std::string text() const override;
 private:

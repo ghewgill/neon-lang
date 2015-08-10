@@ -1,0 +1,9 @@
+FUNCTION loop(n: Number): Number
+    IF n = 0 THEN
+        RETURN 0
+    END IF
+    RETURN loop(n-1)
+END FUNCTION
+
+print(str(loop(10000)))
+%= 0
