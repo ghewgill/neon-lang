@@ -4,6 +4,8 @@
  |  Functions for working with time.
  |%
 
+EXPORT Stopwatch
+
 %|
  |  Function: now
  |
@@ -17,3 +19,77 @@ DECLARE NATIVE FUNCTION now(): Number
  |  Sleep for the given number of seconds.
  |%
 DECLARE NATIVE FUNCTION sleep(seconds: Number)
+
+%|
+ |  Function: tick
+ |
+ |  Return a tick count which is the number of seconds since
+ |  some unspecified time in the past (used by <Stopwatch>).
+ |%
+DECLARE NATIVE FUNCTION tick(): Number
+
+%|
+ |  Type: Stopwatch
+ |
+ |  Stopwatch useful for measuring time intervals.
+ |%
+TYPE Stopwatch := RECORD
+    accumulated: Number
+    start: Number
+END RECORD
+
+%|
+ |  Function: Stopwatch.elapsed
+ |
+ |  Return the current total elapsed time.
+ |%
+FUNCTION Stopwatch.elapsed(self: Stopwatch): Number
+    LET t: Number := tick()
+    VAR r: Number := self.accumulated
+    IF self.is_running() THEN
+        r := r + t - self.start
+    END IF
+    RETURN r
+END FUNCTION
+
+%|
+ |  Function: Stopwatch.is_running
+ |
+ |  Return TRUE if the stopwatch is running.
+ |%
+FUNCTION Stopwatch.is_running(self: Stopwatch): Boolean
+    RETURN self.start > 0
+END FUNCTION
+
+%|
+ |  Function: Stopwatch.reset
+ |
+ |  Stop the timer and reset the accumulated time.
+ |%
+FUNCTION Stopwatch.reset(INOUT self: Stopwatch)
+    self.accumulated := 0
+    self.start := 0
+END FUNCTION
+
+%|
+ |  Function: Stopwatch.start
+ |
+ |  Start a stopwatch.
+ |%
+FUNCTION Stopwatch.start(INOUT self: Stopwatch)
+    self.start := tick()
+END FUNCTION
+
+%|
+ |  Function: Stopwatch.stop
+ |
+ |  Stop a stopwatch.
+ |%
+FUNCTION Stopwatch.stop(INOUT self: Stopwatch)
+    LET t: Number := tick()
+    IF NOT self.is_running() THEN
+        EXIT FUNCTION
+    END IF
+    self.accumulated := self.accumulated + (t - self.start)
+    self.start := 0
+END FUNCTION

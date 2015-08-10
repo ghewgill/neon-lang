@@ -1,3 +1,4 @@
+#include <iso646.h>
 #include <windows.h>
 
 #include "number.h"
@@ -14,6 +15,21 @@ Number time$now()
     ticks.LowPart = ft.dwLowDateTime;
     ticks.HighPart = ft.dwHighDateTime;
     return number_divide(number_from_uint64(ticks.QuadPart - FILETIME_UNIX_EPOCH), number_from_uint32(10000000));
+}
+
+Number time$tick()
+{
+    static bool init = false;
+    static Number frequency;
+    if (not init) {
+        init = true;
+        LARGE_INTEGER freq;
+        QueryPerformanceFrequency(&freq);
+        frequency = number_from_uint64(freq.QuadPart);
+    }
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+    return number_divide(number_from_uint64(now.QuadPart), frequency);
 }
 
 } // namespace rtl
