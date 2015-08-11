@@ -904,26 +904,26 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
     }
     const Expression *base = analyze(expr->base);
     const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(base->type);
-    if (recordtype != nullptr) {
-        if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-            internal_error("record not defined yet");
-        }
-        auto f = recordtype->field_names.find(expr->name.text);
-        if (f == recordtype->field_names.end()) {
-            error2(3045, expr->name, recordtype->declaration, "field not found");
-        }
-        if (recordtype->fields[f->second].is_private && (functiontypes.empty() || functiontypes.top().first != recordtype)) {
-            error(3162, expr->name, "field is private");
-        }
-        const Type *type = recordtype->fields[f->second].type;
-        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
-        if (ref != nullptr) {
-            return new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
-        } else {
-            return new ArrayValueIndexExpression(type, base, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
-        }
+    if (recordtype == nullptr) {
+        error(3046, expr->base->token, "not a record");
     }
-    error(3046, expr->base->token, "no method found or not a record");
+    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
+        internal_error("record not defined yet");
+    }
+    auto f = recordtype->field_names.find(expr->name.text);
+    if (f == recordtype->field_names.end()) {
+        error2(3045, expr->name, recordtype->declaration, "field not found");
+    }
+    if (recordtype->fields[f->second].is_private && (functiontypes.empty() || functiontypes.top().first != recordtype)) {
+        error(3162, expr->name, "field is private");
+    }
+    const Type *type = recordtype->fields[f->second].type;
+    const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+    if (ref != nullptr) {
+        return new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
+    } else {
+        return new ArrayValueIndexExpression(type, base, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
+    }
 }
 
 const Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
