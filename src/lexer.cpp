@@ -594,23 +594,53 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
     return tokens;
 }
 
-TokenizedSource tokenize(const std::string &source_path, const std::string &source)
+std::string expand_tabs(const std::string &s)
 {
-    auto inv = utf8::find_invalid(source.begin(), source.end());
-    if (inv != source.end()) {
-        int line = static_cast<int>(1 + std::count(source.begin(), inv, '\n'));
-        auto bol = source.rfind('\n', inv-source.begin());
+    std::string r;
+    int column = 0;
+    for (auto c: s) {
+        switch (c) {
+        case '\n':
+            r.push_back(c);
+            column = 0;
+            break;
+        case '\t':
+            r.append(std::string(8 - (column % 8), ' '));
+            column = (column + 8) - (column % 8);
+            break;
+        default:
+            r.push_back(c);
+            break;
+        }
+    }
+    return r;
+}
+
+TokenizedSource tokenize(const std::string &source_path, const std::string &orig_source)
+{
+    auto inv = utf8::find_invalid(orig_source.begin(), orig_source.end());
+    if (inv != orig_source.end()) {
+        int line = static_cast<int>(1 + std::count(orig_source.begin(), inv, '\n'));
+        auto bol = orig_source.rfind('\n', inv-orig_source.begin());
         if (bol != std::string::npos) {
             bol++;
         } else {
             bol = 0;
         }
-        size_t column = (1 + inv - (source.begin() + bol));
+        size_t column = (1 + inv - (orig_source.begin() + bol));
         Token t;
         t.line = line;
         t.column = column;
         error(1000, t, "invalid UTF-8 data in source");
     }
+
+    SHA256 sha256;
+    sha256(orig_source);
+    unsigned char h[SHA256::HashBytes];
+    sha256.getHash(h);
+
+    const std::string source = expand_tabs(orig_source);
+
     int line = 1;
     std::string::const_iterator i = source.begin();
     if (source.substr(0, 2) == "#!") {
@@ -618,11 +648,8 @@ TokenizedSource tokenize(const std::string &source_path, const std::string &sour
             utf8::advance(i, 1, source.end());
         }
     }
+
     TokenizedSource r;
-    SHA256 sha256;
-    sha256(source);
-    unsigned char h[SHA256::HashBytes];
-    sha256.getHash(h);
     r.source_path = source_path;
     r.source_hash = std::string(h, h+sizeof(h));
     r.tokens = tokenize_fragment(source_path, line, 1, std::string(i, source.end()));
