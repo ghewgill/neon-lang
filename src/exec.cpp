@@ -1128,10 +1128,11 @@ void Executor::exec_EXCEPT()
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     std::vector<Cell> info = stack.top().array(); stack.pop();
     ExceptionInfo ei;
-    if (info.size() >= 1) {
+    size_t size = info.size();
+    if (size >= 1) {
         ei.info = info[0].string();
     }
-    if (info.size() >= 2) {
+    if (size >= 2) {
         ei.code = info[1].number();
     }
     raise(module->object.strtable[val], ei);

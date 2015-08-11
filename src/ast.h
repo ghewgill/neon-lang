@@ -1489,7 +1489,7 @@ private:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(int line, const std::vector<const ReferenceExpression *> vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {
+    AssignmentStatement(int line, const std::vector<const ReferenceExpression *> &vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {
         for (auto v: variables) {
             if (not v->type->is_equivalent(expr->type)) {
                 internal_error("AssignmentStatement");
