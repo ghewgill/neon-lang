@@ -144,6 +144,17 @@ if os.name == "posix":
         "lib/os_posix.cpp",
         "lib/time_posix.cpp",
     ])
+    if sys.platform.startswith("darwin"):
+        rtl_cpp.extend([
+            "lib/time_darwin.cpp",
+        ])
+    elif sys.platform.startswith("linux"):
+        rtl_cpp.extend([
+            "lib/time_linux.cpp",
+        ])
+    else:
+        print >>sys.stderr, "Unsupported platform:", sys.platform
+        sys.exit(1)
     rtl_platform = "src/rtl_posix.cpp"
 elif os.name == "nt":
     rtl_cpp.extend([
