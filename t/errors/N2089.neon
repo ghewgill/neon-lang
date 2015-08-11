@@ -1,0 +1,4 @@
+IF TRUE THEN
+print("hi")
+%<1
+END IF

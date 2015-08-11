@@ -19,6 +19,7 @@ public:
     const std::vector<Token> tokens;
     std::vector<Token>::size_type i;
     int expression_depth;
+    size_t minimum_column;
 
     typedef std::pair<std::vector<Token>, const Type *> VariableInfo;
 
@@ -72,13 +73,30 @@ public:
 private:
     Parser(const Parser &);
     Parser &operator=(const Parser &);
+
+    class TemporaryMinimumIndent {
+    public:
+        TemporaryMinimumIndent(Parser *parser, size_t indent): parser(parser), old_indent(parser->minimum_column) {
+            parser->minimum_column = indent;
+        }
+        ~TemporaryMinimumIndent() {
+            parser->minimum_column = old_indent;
+        }
+    private:
+        Parser *parser;
+        const size_t old_indent;
+    private:
+        TemporaryMinimumIndent(const TemporaryMinimumIndent &);
+        TemporaryMinimumIndent &operator=(const TemporaryMinimumIndent &);
+    };
 };
 
 Parser::Parser(const TokenizedSource &tokens)
   : source(tokens),
     tokens(tokens.tokens),
     i(0),
-    expression_depth(0)
+    expression_depth(0),
+    minimum_column(1)
 {
 }
 
@@ -845,6 +863,7 @@ const Statement *Parser::parseFunctionDefinition()
     std::vector<const FunctionParameter *> args;
     Token rparen;
     parseFunctionHeader(type, name, returntype, args, rparen);
+    TemporaryMinimumIndent indent(this, tok_function.column + 1);
     std::vector<const Statement *> body;
     while (tokens[i].type != END) {
         const Statement *s = parseStatement();
@@ -943,6 +962,7 @@ const Statement *Parser::parseIfStatement()
 {
     auto &tok_if = tokens[i];
     std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    TemporaryMinimumIndent indent(this, tok_if.column + 1);
     std::vector<const Statement *> else_statements;
     do {
         ++i;
@@ -985,6 +1005,7 @@ const Statement *Parser::parseIfStatement()
             error(2026, tokens[i], "THEN expected");
         }
         ++i;
+        TemporaryMinimumIndent indent(this, tok_if.column + 1);
         std::vector<const Statement *> statements;
         while (tokens[i].type != ELSIF && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             const Statement *s = parseStatement();
@@ -1066,6 +1087,7 @@ const Statement *Parser::parseWhileStatement()
         error_a(2028, tokens[i-1], tokens[i], "DO expected");
     }
     ++i;
+    TemporaryMinimumIndent indent(this, tok_while.column + 1);
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement();
@@ -1089,6 +1111,7 @@ const Statement *Parser::parseCaseStatement()
     auto &tok_case = tokens[i];
     ++i;
     const Expression *expr = parseExpression();
+    TemporaryMinimumIndent indent(this, tok_case.column + 1);
     std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
     while (tokens[i].type == WHEN) {
         auto &tok_when = tokens[i];
@@ -1187,6 +1210,7 @@ const Statement *Parser::parseForStatement()
         error_a(2041, tokens[i-1], tokens[i], "'DO' expected");
     }
     ++i;
+    TemporaryMinimumIndent indent(this, tok_for.column + 1);
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement();
@@ -1232,6 +1256,7 @@ const Statement *Parser::parseForeachStatement()
         error_a(2084, tokens[i-1], tokens[i], "'DO' expected");
     }
     ++i;
+    TemporaryMinimumIndent indent(this, tok_foreach.column + 1);
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement();
@@ -1254,6 +1279,7 @@ const Statement *Parser::parseLoopStatement()
 {
     auto &tok_loop = tokens[i];
     ++i;
+    TemporaryMinimumIndent indent(this, tok_loop.column + 1);
     std::vector<const Statement *> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement();
@@ -1276,6 +1302,7 @@ const Statement *Parser::parseRepeatStatement()
 {
     auto &tok_repeat = tokens[i];
     ++i;
+    TemporaryMinimumIndent indent(this, tok_repeat.column + 1);
     std::vector<const Statement *> statements;
     while (tokens[i].type != UNTIL && tokens[i].type != END_OF_FILE) {
         const Statement *s = parseStatement();
@@ -1328,6 +1355,7 @@ const Statement *Parser::parseTryStatement()
 {
     auto &tok_try = tokens[i];
     ++i;
+    TemporaryMinimumIndent indent(this, tok_try.column + 1);
     std::vector<const Statement *> statements;
     while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         const Statement *stmt = parseStatement();
@@ -1513,6 +1541,9 @@ const Statement *Parser::parseAssert()
 
 const Statement *Parser::parseStatement()
 {
+    if (tokens[i].column < minimum_column) {
+        error(2089, tokens[i], "indent must be at least column " + std::to_string(minimum_column));
+    }
     if (tokens[i].type == IMPORT) {
         return parseImport();
     } else if (tokens[i].type == TYPE) {
