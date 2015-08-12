@@ -1,4 +1,3 @@
-% SKIP (segfault)
 TYPE Colour := ENUM
     red
     green

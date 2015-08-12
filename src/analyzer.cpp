@@ -459,7 +459,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std:
 {
     {
         std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::INOUT, nullptr);
+        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::IN, nullptr);
         params.push_back(fp);
         Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params);
         std::vector<const Expression *> values;
