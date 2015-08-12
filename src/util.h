@@ -25,17 +25,18 @@ public:
 
 class SourceError: public CompilerError {
 public:
-    SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2() {}
-    SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const Token &token2, const std::string &message): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(token2) {}
+    SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(), message2() {}
+    SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message, const Token &token2, const std::string &message2): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(token2), message2(message2) {}
     virtual void write(std::ostream &out) override;
     const int number;
     const Token token;
     const Token token2;
+    const std::string message2;
 };
 
 #define error(number, token, message) abort_error(__FILE__, __LINE__, number, token, message)
 #define error_a(number, token_before, token, message) abort_error_a(__FILE__, __LINE__, number, token_before, token, message)
-#define error2(number, token, token2, message) abort_error(__FILE__, __LINE__, number, token, token2, message)
+#define error2(number, token, message, token2, message2) abort_error(__FILE__, __LINE__, number, token, message, token2, message2)
 #define internal_error(message) abort_internal_error(__FILE__, __LINE__, message)
 
 #ifdef _MSC_VER
@@ -59,7 +60,7 @@ __attribute__((noreturn))
 #ifdef _MSC_VER
 __declspec(noreturn)
 #endif
-void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const Token &token2, const std::string &message)
+void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const std::string &message, const Token &token2, const std::string &message2)
 #ifdef __GNUC__
 __attribute__((noreturn))
 #endif

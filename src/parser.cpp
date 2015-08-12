@@ -131,7 +131,7 @@ const Type *Parser::parseParameterisedType()
     i++;
     const Type *elementtype = parseType();
     if (tokens[i].type != GREATER) {
-        error2(2003, tokens[i], tok_less, "'>' expected");
+        error2(2003, tokens[i], "'>' expected", tok_less, "opening '<' here");
     }
     i++;
     return new TypeParameterised(tok_type, elementtype);
@@ -337,7 +337,7 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral()
         if (tokens[i].type == COMMA) {
             ++i;
         } else if (tokens[i].type != RBRACKET) {
-            error2(2053, tokens[i], tok_lbracket, "',' or ']' expected");
+            error2(2053, tokens[i], "',' or ']' expected", tok_lbracket, "opening '[' here");
         }
     }
     ++i;
@@ -363,7 +363,7 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
         }
     }
     if (tokens[i].type != RBRACE) {
-        error2(2049, tokens[i], tok_lbrace, "'}' expected");
+        error2(2049, tokens[i], "'}' expected", tok_lbrace, "opening '{' here");
     }
     ++i;
     return new DictionaryLiteralExpression(tok_lbrace, tokens[i-1].column+1, elements);
@@ -424,7 +424,7 @@ const Expression *Parser::parseAtom()
             ++i;
             const Expression *expr = parseExpression();
             if (tokens[i].type != RPAREN) {
-                error2(2014, tokens[i], tok_lparen, ") expected");
+                error2(2014, tokens[i], ") expected", tok_lparen, "opening '(' here");
             }
             ++i;
             return new IdentityExpression(tok_lparen, tok_lparen.column, tokens[i-1].column+1, expr);

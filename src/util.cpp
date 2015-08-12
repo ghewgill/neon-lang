@@ -26,9 +26,9 @@ void abort_error_a(const char *compiler_file, int compiler_line, int number, con
     throw new SourceError(compiler_file, compiler_line, number, tok, message);
 }
 
-void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const Token &token2, const std::string &message)
+void abort_error(const char *compiler_file, int compiler_line, int number, const Token &token, const std::string &message, const Token &token2, const std::string &message2)
 {
-    throw new SourceError(compiler_file, compiler_line, number, token, token2, message);
+    throw new SourceError(compiler_file, compiler_line, number, token, message, token2, message2);
 }
 
 void abort_internal_error(const char *compiler_file, int compiler_line, const std::string &message)
@@ -54,6 +54,6 @@ void SourceError::write(std::ostream &out)
         out << "\n";
         out << token2.line << "| " << token2.source << "\n";
         out << std::setw(std::to_string(token2.line).length()+2+token2.column) << "^" << "\n";
-        out << "Error N" << number << ": " << token2.line << ":" << token2.column << "\n";
+        out << "Error N" << number << ": " << token2.line << ":" << token2.column << " " << message2 << "\n";
     }
 }
