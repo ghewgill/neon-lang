@@ -13,6 +13,7 @@ EXPORT WIN32_FIND_DATA
 
 IMPORT struct
 
+% Struct: WIN32_FIND_DATA
 LET WIN32_FIND_DATA: struct.Struct := struct.make([
     struct.field("dwFileAttributes",    struct.Type.int,      4),
     struct.field("ftCreationTime",      struct.Type.bytes,    8),
@@ -25,6 +26,8 @@ LET WIN32_FIND_DATA: struct.Struct := struct.make([
     struct.field("cFileName",           struct.Type.string, 260),
     struct.field("cAlternateFileName",  struct.Type.string,  14),
 ])
+
+% Title: Win32 API Functions
 
 % Function: Beep
 EXTERNAL FUNCTION Beep(dwFreq: Number, dwDuration: Number): Boolean

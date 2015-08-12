@@ -6,22 +6,36 @@
 
 %|
  |  Type: Boolean
+ |
+ |  TRUE or FALSE.
  |%
 
 %|
  |  Type: Number
+ |
+ |  Floating point number with 34 decimal digits of precision.
  |%
 
 %|
  |  Type: String
+ |
+ |  Unicode string.
  |%
 
 %|
  |  Type: Array
+ |
+ |  Parameterised sequence type. Example
+ |
+ |  > Array<String>
  |%
 
 %|
  |  Type: Dictionary
+ |
+ |  Parameterised map type from <String> to the given type. Example
+ |
+ |  > Dictionary<String>
  |%
 
 %|
