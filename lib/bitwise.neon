@@ -5,7 +5,7 @@
  |%
 
 %|
- |  Function: and
+ |  Function: and32
  |
  |  Bitwise logical "and" of two 32-bit words.
  |
@@ -21,10 +21,29 @@
  |  >  ^
  |  >  y
  |%
-DECLARE NATIVE FUNCTION and(x, y: Number): Number
+DECLARE NATIVE FUNCTION and32(x, y: Number): Number
 
 %|
- |  Function: extract
+ |  Function: and64
+ |
+ |  Bitwise logical "and" of two 64-bit words.
+ |
+ |  For each bit in the inputs, the following truth table
+ |  determines the output bit:
+ |
+ |  >    | 0 | 1 | <- x
+ |  > ---+---+---+
+ |  >  0 | 0 | 0 |
+ |  > ---+---+---+
+ |  >  1 | 0 | 1 |
+ |  > ---+---+---+
+ |  >  ^
+ |  >  y
+ |%
+DECLARE NATIVE FUNCTION and64(x, y: Number): Number
+
+%|
+ |  Function: extract32
  |
  |  Extract a range of bits from a 32-bit word.
  |
@@ -51,10 +70,40 @@ DECLARE NATIVE FUNCTION and(x, y: Number): Number
  |      >                                                 |     |
  |      >                                                 +-----+
  |%
-DECLARE NATIVE FUNCTION extract(x, n, w: Number): Number
+DECLARE NATIVE FUNCTION extract32(x, n, w: Number): Number
 
 %|
- |  Function: get
+ |  Function: extract64
+ |
+ |  Extract a range of bits from a 64-bit word.
+ |
+ |  Parameters:
+ |      x - number to extract bits from
+ |      n - bit position of the lowest order bit to extract
+ |      w - width of bit range to extract
+ |
+ |  Description:
+ |      This function extracts a given range of bits. The bits
+ |      in an word are numbered starting at 0 for the least
+ |      significant bit.
+ |
+ |      The function call
+ |
+ |      > bitwise.extract(x, 5, 3)
+ |
+ |      will extract the following bits from the word
+ |
+ |      > 31    28      24      20      16      12       8       4       0
+ |      > +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |      > | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ |      > +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |      >                                                 |     |
+ |      >                                                 +-----+
+ |%
+DECLARE NATIVE FUNCTION extract64(x, n, w: Number): Number
+
+%|
+ |  Function: get32
  |
  |  Get a specific bit from a 32-bit word.
  |
@@ -66,17 +115,39 @@ DECLARE NATIVE FUNCTION extract(x, n, w: Number): Number
  |      This function returns a Boolean value indicting whether
  |      the indicated bit is set (TRUE) or not (FALSE).
  |%
-DECLARE NATIVE FUNCTION get(x, n: Number): Boolean
+DECLARE NATIVE FUNCTION get32(x, n: Number): Boolean
 
 %|
- |  Function: not
+ |  Function: get64
+ |
+ |  Get a specific bit from a 64-bit word.
+ |
+ |  Parameters:
+ |      x - number to extract the bit from
+ |      n - bit position of the bit to extract
+ |
+ |  Description:
+ |      This function returns a Boolean value indicting whether
+ |      the indicated bit is set (TRUE) or not (FALSE).
+ |%
+DECLARE NATIVE FUNCTION get64(x, n: Number): Boolean
+
+%|
+ |  Function: not32
  |
  |  Invert all bits in a 32-bit word.
  |%
-DECLARE NATIVE FUNCTION not(x: Number): Number
+DECLARE NATIVE FUNCTION not32(x: Number): Number
 
 %|
- |  Function: or
+ |  Function: not64
+ |
+ |  Invert all bits in a 64-bit word.
+ |%
+DECLARE NATIVE FUNCTION not64(x: Number): Number
+
+%|
+ |  Function: or32
  |
  |  Bitwise logical "or" of two 32-bit words.
  |
@@ -92,10 +163,29 @@ DECLARE NATIVE FUNCTION not(x: Number): Number
  |  >  ^
  |  >  y
  |%
-DECLARE NATIVE FUNCTION or(x, y: Number): Number
+DECLARE NATIVE FUNCTION or32(x, y: Number): Number
 
 %|
- |  Function: replace
+ |  Function: or64
+ |
+ |  Bitwise logical "or" of two 64-bit words.
+ |
+ |  For each bit in the inputs, the following truth table
+ |  determines the output bit:
+ |
+ |  >    | 0 | 1 | <- x
+ |  > ---+---+---+
+ |  >  0 | 0 | 1 |
+ |  > ---+---+---+
+ |  >  1 | 1 | 1 |
+ |  > ---+---+---+
+ |  >  ^
+ |  >  y
+ |%
+DECLARE NATIVE FUNCTION or64(x, y: Number): Number
+
+%|
+ |  Function: replace32
  |
  |  Replace a range of bits in a 32-bit word.
  |
@@ -126,10 +216,44 @@ DECLARE NATIVE FUNCTION or(x, y: Number): Number
  |      Each of the bits numbered 5, 6, and 7 would be set to 1 (from the
  |      input value 7).
  |%
-DECLARE NATIVE FUNCTION replace(x, n, w, y: Number): Number
+DECLARE NATIVE FUNCTION replace32(x, n, w, y: Number): Number
 
 %|
- |  Function: set
+ |  Function: replace64
+ |
+ |  Replace a range of bits in a 64-bit word.
+ |
+ |  Parameters:
+ |      x - number to replace bits into
+ |      n - bit position of the lowest order bit to replace
+ |      w - width of bit range to replace
+ |      y - new bits to replace
+ |
+ |  Description:
+ |      This function replaces a given range of bits with new bits.
+ |      The bits in an word are numbered starting at 0 for the least
+ |      significant bit.
+ |
+ |      The function call
+ |
+ |      > bitwise.replace(x, 5, 3, 7)
+ |
+ |      will replace the following bits in the word
+ |
+ |      > 31    28      24      20      16      12       8       4       0
+ |      > +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |      > | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | |
+ |      > +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |      >                                                 |     |
+ |      >                                                 +-----+
+ |
+ |      Each of the bits numbered 5, 6, and 7 would be set to 1 (from the
+ |      input value 7).
+ |%
+DECLARE NATIVE FUNCTION replace64(x, n, w, y: Number): Number
+
+%|
+ |  Function: set32
  |
  |  Set a specific bit in a 32-bit word.
  |
@@ -142,10 +266,26 @@ DECLARE NATIVE FUNCTION replace(x, n, w, y: Number): Number
  |      This function returns a new value with the given bit
  |      set according to the parameter v.
  |%
-DECLARE NATIVE FUNCTION set(x, n: Number, v: Boolean): Number
+DECLARE NATIVE FUNCTION set32(x, n: Number, v: Boolean): Number
 
 %|
- |  Function: shift_left
+ |  Function: set64
+ |
+ |  Set a specific bit in a 64-bit word.
+ |
+ |  Parameters:
+ |      x - number to set the bit
+ |      n - bit position of the bit to set
+ |      v - bit value to set, 0 (FALSE) or 1 (TRUE)
+ |
+ |  Description:
+ |      This function returns a new value with the given bit
+ |      set according to the parameter v.
+ |%
+DECLARE NATIVE FUNCTION set64(x, n: Number, v: Boolean): Number
+
+%|
+ |  Function: shift_left32
  |
  |  Shift a 32-bit word left by a given number of bits.
  |
@@ -156,10 +296,24 @@ DECLARE NATIVE FUNCTION set(x, n: Number, v: Boolean): Number
  |  Description:
  |      New bits shifted into the right hand side of the word are 0.
  |%
-DECLARE NATIVE FUNCTION shift_left(x, n: Number): Number
+DECLARE NATIVE FUNCTION shift_left32(x, n: Number): Number
 
 %|
- |  Function: shift_right
+ |  Function: shift_left64
+ |
+ |  Shift a 64-bit word left by a given number of bits.
+ |
+ |  Parameters:
+ |      x - word to shift
+ |      n - number of bits to shift left
+ |
+ |  Description:
+ |      New bits shifted into the right hand side of the word are 0.
+ |%
+DECLARE NATIVE FUNCTION shift_left64(x, n: Number): Number
+
+%|
+ |  Function: shift_right32
  |
  |  Shift a 32-bit word right by a given number of bits.
  |
@@ -170,10 +324,24 @@ DECLARE NATIVE FUNCTION shift_left(x, n: Number): Number
  |  Description:
  |      New bits shifted into the left hand side of the word are 0.
  |%
-DECLARE NATIVE FUNCTION shift_right(x, n: Number): Number
+DECLARE NATIVE FUNCTION shift_right32(x, n: Number): Number
 
 %|
- |  Function: shift_right_signed
+ |  Function: shift_right64
+ |
+ |  Shift a 64-bit word right by a given number of bits.
+ |
+ |  Parameters:
+ |      x - word to shift
+ |      n - number of bits to shift right
+ |
+ |  Description:
+ |      New bits shifted into the left hand side of the word are 0.
+ |%
+DECLARE NATIVE FUNCTION shift_right64(x, n: Number): Number
+
+%|
+ |  Function: shift_right_signed32
  |
  |  Shift a 32-bit word right by a given number of bits, preserving the sign bit.
  |
@@ -184,10 +352,24 @@ DECLARE NATIVE FUNCTION shift_right(x, n: Number): Number
  |  Description:
  |      New bits shifted into the left hand side of the word are the same as the original leftmost bit.
  |%
-DECLARE NATIVE FUNCTION shift_right_signed(x, n: Number): Number
+DECLARE NATIVE FUNCTION shift_right_signed32(x, n: Number): Number
 
 %|
- |  Function: xor
+ |  Function: shift_right_signed64
+ |
+ |  Shift a 64-bit word right by a given number of bits, preserving the sign bit.
+ |
+ |  Parameters:
+ |      x - word to shift
+ |      n - number of bits to shift right
+ |
+ |  Description:
+ |      New bits shifted into the left hand side of the word are the same as the original leftmost bit.
+ |%
+DECLARE NATIVE FUNCTION shift_right_signed64(x, n: Number): Number
+
+%|
+ |  Function: xor32
  |
  |  Bitwise logical "exclusive-or" of two 32-bit words.
  |
@@ -203,4 +385,23 @@ DECLARE NATIVE FUNCTION shift_right_signed(x, n: Number): Number
  |  >  ^
  |  >  y
  |%
-DECLARE NATIVE FUNCTION xor(x, y: Number): Number
+DECLARE NATIVE FUNCTION xor32(x, y: Number): Number
+
+%|
+ |  Function: xor64
+ |
+ |  Bitwise logical "exclusive-or" of two 64-bit words.
+ |
+ |  For each bit in the inputs, the following truth table
+ |  determines the output bit:
+ |
+ |  >    | 0 | 1 | <- x
+ |  > ---+---+---+
+ |  >  0 | 0 | 1 |
+ |  > ---+---+---+
+ |  >  1 | 1 | 0 |
+ |  > ---+---+---+
+ |  >  ^
+ |  >  y
+ |%
+DECLARE NATIVE FUNCTION xor64(x, y: Number): Number
