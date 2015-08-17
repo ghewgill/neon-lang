@@ -112,7 +112,8 @@ Number math$hypot(Number x, Number y)
 Number math$ldexp(Number x, Number exp)
 {
     if (not number_is_integer(exp)) {
-        throw RtlException("NumberNotInteger", number_to_string(exp));
+        // TODO: more specific exception?
+        throw RtlException(Exception_ValueRange, number_to_string(exp));
     }
     return number_ldexp(x, number_to_sint32(exp));
 }

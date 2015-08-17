@@ -163,7 +163,7 @@ bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seco
     }
     int r = select(nfds, &rfds, &wfds, &efds, tv);
     if (r < 0) {
-        throw RtlException("SocketError", "");
+        throw RtlException(Exception_net$SocketError, "");
     }
     if (r == 0) {
         ra.clear();

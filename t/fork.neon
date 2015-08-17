@@ -10,7 +10,7 @@ TRY
         print("child")
         sys.exit(5)
     END IF
-EXCEPTION UnsupportedFunction
+EXCEPTION os.UnsupportedFunction
     % Exception for win32, just print what is expected
     print("child")
     print("5")

@@ -37,10 +37,10 @@ void file$mkdir(const std::string &path)
     BOOL r = CreateDirectoryA(path.c_str(), NULL);
     if (!r) {
         switch (GetLastError()) {
-            case ERROR_ALREADY_EXISTS: throw RtlException("DirectoryExists", path);
-            case ERROR_PATH_NOT_FOUND: throw RtlException("PathNotFound", path);
+            case ERROR_ALREADY_EXISTS: throw RtlException(Exception_file$DirectoryExists, path);
+            case ERROR_PATH_NOT_FOUND: throw RtlException(Exception_file$PathNotFound, path);
             default:
-                throw RtlException("FileError", path + ": " + std::to_string(GetLastError()));
+                throw RtlException(Exception_file$FileError, path + ": " + std::to_string(GetLastError()));
         }
     }
 }

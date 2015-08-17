@@ -5,6 +5,7 @@
  |%
 
 EXPORT DirectoryExists
+EXPORT FileError
 EXPORT FileOpenError
 EXPORT FileWriteError
 EXPORT PathNotFound
@@ -16,6 +17,13 @@ EXPORT PermissionDenied
  |  Indicates that a directory already exists when calling <mkdir>.
  |%
 DECLARE EXCEPTION DirectoryExists
+
+%|
+ |  Exception: FileError
+ |
+ |  Generic file error.
+ |%
+DECLARE EXCEPTION FileError
 
 %|
  |  Exception: FileOpenError

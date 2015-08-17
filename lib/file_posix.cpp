@@ -42,11 +42,11 @@ void file$mkdir(const std::string &path)
     int r = mkdir(path.c_str(), 0755);
     if (r != 0) {
         switch (errno) {
-            case EACCES: throw RtlException("PermissionDenied", path);
-            case EEXIST: throw RtlException("DirectoryExists", path);
-            case ENOENT: throw RtlException("PathNotFound", path);
+            case EACCES: throw RtlException(Exception_file$PermissionDenied, path);
+            case EEXIST: throw RtlException(Exception_file$DirectoryExists, path);
+            case ENOENT: throw RtlException(Exception_file$PathNotFound, path);
             default:
-                throw RtlException("FileError", path + ": " + strerror(errno));
+                throw RtlException(Exception_file$FileError, path + ": " + strerror(errno));
         }
     }
 }

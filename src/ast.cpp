@@ -7,6 +7,8 @@
 
 #include "rtl_compile.h"
 
+#include "exceptions.inc"
+
 TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber(Token());
@@ -671,15 +673,9 @@ Program::Program(const std::string &source_hash)
         TYPE_BYTES->methods["to_string"] = new PredefinedFunction("bytes__to_string", new TypeFunction(TYPE_STRING, params));
     }
 
-    scope->addName(Token(), "DivideByZero", new Exception(Token(), "DivideByZero"));
-    scope->addName(Token(), "ArrayIndex", new Exception(Token(), "ArrayIndex"));
-    scope->addName(Token(), "DictionaryIndex", new Exception(Token(), "DictionaryIndex"));
-    scope->addName(Token(), "FunctionNotFound", new Exception(Token(), "FunctionNotFound"));
-    scope->addName(Token(), "LibraryNotFound", new Exception(Token(), "LibraryNotFound"));
-    scope->addName(Token(), "ByteOutOfRange", new Exception(Token(), "ByteOutOfRange"));
-    scope->addName(Token(), "AssertFailed", new Exception(Token(), "AssertFailed"));
-    scope->addName(Token(), "EndOfFile", new Exception(Token(), "EndOfFile"));
-    scope->addName(Token(), "UnsupportedFunction", new Exception(Token(), "UnsupportedFunction"));
+    for (auto e: ExceptionNames) {
+        scope->addName(Token(), e.name, new Exception(Token(), e.name));
+    }
 
     {
         // The fields here must match the corresponding references to

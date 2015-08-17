@@ -3,6 +3,8 @@
 #include <map>
 #include <windows.h>
 
+#include "rtl_exec.h"
+
 static std::map<std::string, HMODULE> g_Libraries;
 
 static HMODULE get_library_handle(const std::string &library)
@@ -18,17 +20,15 @@ static HMODULE get_library_handle(const std::string &library)
     return i->second;
 }
 
-void_function_t rtl_external_function(const std::string &library, const std::string &function, std::string &exception)
+void_function_t rtl_external_function(const std::string &library, const std::string &function)
 {
     HMODULE lib = get_library_handle(library);
     if (lib == NULL) {
-        exception = "LibraryNotFound";
-        return nullptr;
+        throw RtlException(Exception_LibraryNotFound, library);
     }
     void_function_t fp = reinterpret_cast<void_function_t>(GetProcAddress(lib, function.c_str()));
     if (fp == NULL) {
-        exception = "FunctionNotFound";
-        return nullptr;
+        throw RtlException(Exception_FunctionNotFound, function);
     }
     return fp;
 }

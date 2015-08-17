@@ -24,7 +24,7 @@ void array__extend(Cell *self, Cell &elements)
 void array__resize(Cell *self, Number new_size)
 {
     if (not number_is_integer(new_size)) {
-        throw RtlException("ArrayIndex", number_to_string(new_size));
+        throw RtlException(Exception_ArrayIndex, number_to_string(new_size));
     }
     self->array_for_write().resize(number_to_sint64(new_size));
 }
@@ -187,7 +187,7 @@ void bytes__from_array(utf8string *self, const std::vector<Number> &a)
     for (auto x: a) {
         uint64_t b = number_to_uint64(x);
         if (b >= 256) {
-            throw RtlException("ByteOutOfRange", std::to_string(b));
+            throw RtlException(Exception_ByteOutOfRange, std::to_string(b));
         }
         self->push_back(static_cast<unsigned char>(b));
     }
@@ -211,7 +211,7 @@ std::string bytes__to_string(const std::string &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
-        throw RtlException("Utf8Encoding", "");
+        throw RtlException(Exception_Utf8Encoding, "");
     }
     return self;
 }
@@ -253,7 +253,7 @@ std::string format(const std::string &str, const std::string &fmt)
 {
     format::Spec spec;
     if (not format::parse(fmt, spec)) {
-        throw RtlException("FormatException", fmt);
+        throw RtlException(Exception_FormatException, fmt);
     }
     return format::format(str, spec);
 }
@@ -263,7 +263,7 @@ std::string input(const std::string &prompt)
     std::cout << prompt;
     std::string r;
     if (not std::getline(std::cin, r)) {
-        throw RtlException("EndOfFile", "");
+        throw RtlException(Exception_EndOfFile, "");
     }
     return r;
 }
@@ -294,7 +294,7 @@ Number num(const std::string &s)
 Number ord(const std::string &s)
 {
     if (utf8::distance(s.begin(), s.end()) != 1) {
-        throw RtlException("ArrayIndex", "ord() requires string of length 1");
+        throw RtlException(Exception_ArrayIndex, "ord() requires string of length 1");
     }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));

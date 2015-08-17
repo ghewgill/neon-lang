@@ -19,7 +19,7 @@ void os$chdir(const std::string &path)
 {
     int r = chdir(path.c_str());
     if (r != 0) {
-        throw RtlException("PathNotFound", path);
+        throw RtlException(Exception_file$PathNotFound, path);
     }
 }
 
@@ -40,7 +40,7 @@ bool os$fork(Cell **process)
     *pp = NULL;
     pid_t child = fork();
     if (child < 0) {
-        throw RtlException("SystemError", std::to_string(errno));
+        throw RtlException(Exception_os$SystemError, std::to_string(errno));
     }
     if (child > 0) {
         *pp = new Process;

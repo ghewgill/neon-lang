@@ -16,7 +16,7 @@ void os$chdir(const std::string &path)
 {
     BOOL r = SetCurrentDirectory(path.c_str());
     if (not r) {
-        throw RtlException("PathNotFound", path);
+        throw RtlException(Exception_file$PathNotFound, path);
     }
 }
 
@@ -36,7 +36,7 @@ bool os$fork(Cell **process)
 {
     Process **pp = reinterpret_cast<Process **>(process);
     *pp = NULL;
-    throw RtlException("UnsupportedFunction", "os.fork");
+    throw RtlException(Exception_os$UnsupportedFunction, "os.fork");
 }
 
 void os$kill(void *process)
@@ -67,7 +67,7 @@ void *os$spawn(const std::string &command)
         &si,
         &pi);
     if (not r) {
-        throw RtlException("PathNotFound", command.c_str());
+        throw RtlException(Exception_file$PathNotFound, command.c_str());
     }
     p->process = pi.hProcess;
     CloseHandle(pi.hThread);

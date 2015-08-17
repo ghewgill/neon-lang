@@ -4,9 +4,11 @@
 #include "cell.h"
 #include "opstack.h"
 
+#include "exceptions.inc"
+
 class RtlException {
 public:
-    RtlException(const std::string &name, const std::string &info): name(name), info(info) {}
+    RtlException(const ExceptionName &name, const std::string &info): name(name.name), info(info) {}
     std::string name;
     std::string info;
 };

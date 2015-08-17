@@ -142,6 +142,7 @@ def parse_params(paramstr):
 constants = dict()
 enums = dict()
 functions = dict()
+exceptions = []
 
 for fn in sys.argv[1:]:
     if fn.endswith(".neon"):
@@ -182,6 +183,8 @@ for fn in sys.argv[1:]:
                     ctype = m.group(2)
                     assert ctype in ["Number"]
                     constants[name] = [name, ctype, "new ConstantNumberExpression(rtl::{})".format(name)]
+                elif a[:2] == ["DECLARE", "EXCEPTION"]:
+                    exceptions.append((prefix, a[2]))
                 elif in_enum:
                     if a[:2] == ["END", "ENUM"]:
                         in_enum = None
@@ -300,3 +303,16 @@ with open("src/enums.inc", "w") as inc:
     for name, values in enums.items():
         for i, v in enumerate(values):
             print >>inc, "static const Number ENUM_{}_{} = number_from_uint32({});".format(name, v, i)
+
+with open("src/exceptions.inc", "w") as inc:
+    print >>inc, "struct ExceptionName {"
+    print >>inc, "    const char *name;"
+    print >>inc, "};"
+    for prefix, name in exceptions:
+        print >>inc, "static const ExceptionName Exception_{} = {{\"{}\"}};".format(prefix+name, name)
+    print >>inc
+    print >>inc, "static const ExceptionName ExceptionNames[] = {"
+    for prefix, name in exceptions:
+        if not prefix:
+            print >>inc, "    Exception_{},".format(name)
+    print >>inc, "};"

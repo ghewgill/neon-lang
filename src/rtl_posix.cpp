@@ -3,6 +3,8 @@
 #include <dlfcn.h>
 #include <map>
 
+#include "rtl_exec.h"
+
 #ifdef __APPLE__
 #define SO_SUFFIX ".dylib"
 #else
@@ -27,17 +29,15 @@ static void *get_library_handle(const std::string &library)
     return i->second;
 }
 
-void_function_t rtl_external_function(const std::string &library, const std::string &function, std::string &exception)
+void_function_t rtl_external_function(const std::string &library, const std::string &function)
 {
     void *lib = get_library_handle(library);
     if (lib == NULL) {
-        exception = "LibraryNotFound";
-        return nullptr;
+        throw RtlException(Exception_LibraryNotFound, library);
     }
     void (*fp)() = reinterpret_cast<void (*)()>(dlsym(lib, function.c_str()));
     if (fp == NULL) {
-        exception = "FunctionNotFound";
-        return nullptr;
+        throw RtlException(Exception_FunctionNotFound, function);
     }
     return fp;
 }
