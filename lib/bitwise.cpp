@@ -1,3 +1,4 @@
+#include <iso646.h>
 #include <limits>
 
 #include "number.h"
@@ -86,7 +87,7 @@ template <typename T> Number bitwise_extract(Number x, Number n, Number w)
     if (v == traits<T>::BITS) {
         return x;
     }
-    return traits<T>::to_number((traits<T>::from_number(x) >> b) & ((1 << v) - 1));
+    return traits<T>::to_number((traits<T>::from_number(x) >> b) & (static_cast<T>(1 << v) - 1));
 }
 
 template <typename T> bool bitwise_get(Number x, Number n)
@@ -97,7 +98,7 @@ template <typename T> bool bitwise_get(Number x, Number n)
     if (b >= traits<T>::BITS) {
         return false;
     }
-    return (traits<T>::from_number(x) & (1 << b)) != 0;
+    return (traits<T>::from_number(x) & static_cast<T>(1 << b)) != 0;
 }
 
 template <typename T> Number bitwise_not(Number x)
@@ -128,7 +129,7 @@ template <typename T> Number bitwise_replace(Number x, Number n, Number w, Numbe
         v = traits<T>::BITS - b;
     }
     T z = traits<T>::from_number(y);
-    T mask = v < traits<T>::BITS ? (1 << v) - 1 : ~0;
+    T mask = v < traits<T>::BITS ? static_cast<T>(1 << v) - 1 : ~0;
     return traits<T>::to_number((traits<T>::from_number(x) & ~(mask << b)) | (z << b));
 }
 
@@ -141,9 +142,9 @@ template <typename T> Number bitwise_set(Number x, Number n, bool v)
         return x;
     }
     if (v) {
-        return traits<T>::to_number(traits<T>::from_number(x) | (1 << b));
+        return traits<T>::to_number(traits<T>::from_number(x) | static_cast<T>(1 << b));
     } else {
-        return traits<T>::to_number(traits<T>::from_number(x) & ~(1 << b));
+        return traits<T>::to_number(traits<T>::from_number(x) & ~static_cast<T>(1 << b));
     }
 }
 
