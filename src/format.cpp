@@ -6,6 +6,7 @@
 #include <utf8.h>
 
 #include "number.h"
+#include "rtl_exec.h"
 
 namespace format {
 
@@ -88,16 +89,30 @@ std::string format(const std::string &str, const Spec &spec)
     static const char hexdigit[] = "0123456789abcdef";
 
     std::string r = str;
-    if (spec.type == 'x') {
-        Number x = number_from_string(str);
-        r = "";
-        Number base = number_from_uint32(16);
-        // TODO: handle negative numbers
-        while (not number_is_zero(x)) {
-            r.push_back(hexdigit[number_to_uint32(number_modulo(x, base))]);
-            x = number_trunc(number_divide(x, base));
+    switch (spec.type) {
+        case 'd': {
+            Number x = number_from_string(str);
+            if (number_is_nan(x)) {
+                throw RtlException("ValueRange", "");
+            }
+            break;
         }
-        std::reverse(r.begin(), r.end());
+        case 'x': {
+            Number x = number_from_string(str);
+            r = "";
+            if (number_is_zero(x)) {
+                r = "0";
+            } else {
+                Number base = number_from_uint32(16);
+                // TODO: handle negative numbers
+                while (not number_is_zero(x)) {
+                    r.push_back(hexdigit[number_to_uint32(number_modulo(x, base))]);
+                    x = number_trunc(number_divide(x, base));
+                }
+                std::reverse(r.begin(), r.end());
+            }
+            break;
+        }
     }
     if (spec.precision >= 0 && static_cast<int>(r.length()) > spec.precision) {
         r = r.substr(0, spec.precision);
@@ -106,11 +121,19 @@ std::string format(const std::string &str, const Spec &spec)
         int len = static_cast<int>(r.length());
         if (len < spec.width) {
             int space = spec.width - len;
-            if (spec.align == 0 || spec.align == '<') {
+            char align = spec.align;
+            if (align == 0) {
+                if (spec.type == 'd' || spec.type == 'x') {
+                    align = '>';
+                } else {
+                    align = '<';
+                }
+            }
+            if (align == '<') {
                 r += fillstr(spec, space);
-            } else if (spec.align == '>' || spec.align == '=') {
+            } else if (align == '>' || align == '=') {
                 r = fillstr(spec, space) + r;
-            } else if (spec.align == '^') {
+            } else if (align == '^') {
                 r = fillstr(spec, space/2) + r + fillstr(spec, space - space/2);
             }
         }
