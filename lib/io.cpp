@@ -7,12 +7,16 @@
 
 #include "cell.h"
 #include "number.h"
+#include "rtl_exec.h"
 
 namespace rtl {
 
 void io$close(Cell **pf)
 {
     FILE *f = (FILE *)(*pf);
+    if (f == NULL) {
+        throw RtlException(Exception_io$InvalidFile, "");
+    }
     fclose(f);
     *pf = NULL;
 }
@@ -20,6 +24,9 @@ void io$close(Cell **pf)
 void io$fprint(void *pf, const std::string &s)
 {
     FILE *f = (FILE *)pf;
+    if (f == NULL) {
+        throw RtlException(Exception_io$InvalidFile, "");
+    }
     fputs(s.c_str(), f);
     fputs("\n", f);
 }
@@ -32,6 +39,9 @@ void *io$open(const std::string &name, Cell &/*mode*/)
 bool io$readline(void *pf, utf8string *s)
 {
     FILE *f = (FILE *)pf;
+    if (f == NULL) {
+        throw RtlException(Exception_io$InvalidFile, "");
+    }
     s->clear();
     for (;;) {
         char buf[1024];
@@ -64,6 +74,9 @@ void *io$stderr()
 void io$write(void *pf, const std::string &s)
 {
     FILE *f = (FILE *)pf;
+    if (f == NULL) {
+        throw RtlException(Exception_io$InvalidFile, "");
+    }
     fputs(s.c_str(), f);
 }
 

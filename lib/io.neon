@@ -29,6 +29,13 @@ END ENUM
 TYPE File := POINTER
 
 %|
+ |  Exception: InvalidFile
+ |
+ |  An invalid (NIL) file was used.
+ |%
+DECLARE EXCEPTION InvalidFile
+
+%|
  |  Function: close
  |
  |  Close a file.
