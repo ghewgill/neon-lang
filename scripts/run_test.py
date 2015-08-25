@@ -1,11 +1,18 @@
 import codecs
 import difflib
+import multiprocessing
 import os
 import re
 import subprocess
 import sys
+import time
 
 class TestSkipped: pass
+class TestFatal: pass
+
+Success = object()
+Failure = object()
+Skipped = object()
 
 errors = None
 runner = ["bin/neon"]
@@ -23,7 +30,7 @@ def run(fn):
     todo = any("TODO" in x for x in all_comments)
     if any("SKIP" in x for x in all_comments):
         print("skipped")
-        raise TestSkipped()
+        return Skipped
     platforms = [m and m.group(1) for m in [re.search(r"PLATFORM:(\w+)", x) for x in all_comments]]
     if any(platforms):
         while True:
@@ -32,7 +39,7 @@ def run(fn):
             if "posix" in platforms and os.name == "posix":
                 break
             print("skipped: {}".format(",".join(x for x in platforms if x)))
-            raise TestSkipped()
+            return Skipped
     args = []
     a = [x for x in all_comments if "ARGS" in x]
     if a:
@@ -69,7 +76,7 @@ def run(fn):
     out, err = p.communicate()
     if p.returncode == 99:
         print("skipped due to runner request")
-        raise TestSkipped()
+        return Skipped
 
     out = out.decode().replace("\r\n", "\n")
     try:
@@ -81,7 +88,7 @@ def run(fn):
         sys.stderr.write(err)
         if p.returncode != 0:
             if todo:
-                return False
+                return Failure
             assert p.returncode == 0, p.returncode
 
     if expected_stderr:
@@ -94,8 +101,8 @@ def run(fn):
             print("")
             sys.stdout.write(err)
             if todo:
-                return False
-            sys.exit(1)
+                return Failure
+            raise TestFatal()
         if expected_error_pos:
             found = 0
             for m in re.finditer(r"Error N\d+: (\d+):(\d+)", err):
@@ -107,15 +114,15 @@ def run(fn):
                     print("")
                     sys.stdout.write(err)
                     if todo:
-                        return False
-                    sys.exit(1)
+                        return Failure
+                    raise TestFatal()
                 found += 1
             assert found == len(expected_error_pos), (found, len(expected_error_pos))
         elif errnum and errnum > "N2000":
             print("Need error location information for {}".format(errnum))
             if todo:
-                return False
-            sys.exit(1)
+                return Failure
+            raise TestFatal()
 
     if regex_stdout:
         if not re.match(regex_stdout, out):
@@ -127,8 +134,8 @@ def run(fn):
             print("")
             sys.stdout.write(out)
             if todo:
-                return False
-            sys.exit(1)
+                return Failure
+            raise TestFatal()
     elif out != expected_stdout:
         print("*** EXPECTED OUTPUT")
         print("")
@@ -142,14 +149,14 @@ def run(fn):
         print("")
         print("\n".join(x.rstrip() for x in difflib.unified_diff(expected_stdout.split("\n"), out.split("\n"))))
         if todo:
-            return False
-        sys.exit(1)
+            return Failure
+        raise TestFatal()
 
     if todo:
         sys.stderr.write("TODO comment exists, but test succeeded\n")
-        sys.exit(1)
+        raise TestFatal()
 
-    return True
+    return Success
 
 def main():
     global errors
@@ -171,27 +178,38 @@ def main():
     succeeded = 0
     failed = 0
     skipped = 0
+    tests = []
     for a in sys.argv[1:]:
         if os.path.isdir(a):
             for fn in sorted(os.listdir(a)):
                 if fn.endswith(".neon"):
-                    total += 1
-                    try:
-                        if run(os.path.join(a, fn)):
-                            succeeded += 1
-                        else:
-                            failed += 1
-                    except TestSkipped:
-                        skipped += 1
+                    tests.append(os.path.join(a, fn))
         elif os.path.isfile(a):
+            tests.append(a)
+    pool = multiprocessing.Pool()
+    results = [pool.apply_async(run, [x]) for x in tests]
+    while results:
+        for res in results:
+            if not res.ready():
+                continue
             total += 1
             try:
-                if run(a):
+                r = res.get()
+                if r is Success:
                     succeeded += 1
-                else:
+                elif r is Failure:
                     failed += 1
-            except TestSkipped:
-                skipped += 1
+                elif r is Skipped:
+                    skipped += 1
+            except TestFatal:
+                pool.terminate()
+                sys.exit(1)
+            results.remove(res)
+            break
+        else:
+            time.sleep(0.1)
+    pool.close()
+    pool.join()
     print("{} tests, {} succeeded, {} failed, {} skipped".format(total, succeeded, failed, skipped))
     if errors:
         print "Untested errors:"
@@ -199,4 +217,5 @@ def main():
             print number, message
         sys.exit(1)
 
-main()
+if __name__ == "__main__":
+    main()
