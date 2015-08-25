@@ -8,6 +8,7 @@ import sys
 class TestSkipped: pass
 
 errors = None
+runner = ["bin/neon"]
 
 def run(fn):
     print ("Running {}...".format(fn))
@@ -64,8 +65,11 @@ def run(fn):
         err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
         expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
 
-    p = subprocess.Popen(["bin/neon", fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(runner + [fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
+    if p.returncode == 99:
+        print("skipped due to runner request")
+        raise TestSkipped()
 
     out = out.decode().replace("\r\n", "\n")
     try:
@@ -149,9 +153,19 @@ def run(fn):
 
 def main():
     global errors
-    for a in sys.argv[1:]:
+    global runner
+
+    i = 1
+    while i < len(sys.argv):
+        a = sys.argv[i]
         if a == "--errors":
             errors = dict(x.strip().split(" ", 1) for x in open("src/errors.txt"))
+        elif a == "--runner":
+            i += 1
+            runner = sys.argv[i].split()
+        else:
+            break
+        i += 1
 
     total = 0
     succeeded = 0
