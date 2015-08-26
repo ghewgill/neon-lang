@@ -8,6 +8,7 @@ Import("env")
 libpcre = None
 
 pcreenv = Environment()
+pcreenv.Append(CFLAGS=["/MTd"])
 
 if not os.path.exists("pcre2-10.10/configure"):
     tarfile.open("pcre2-10.10.tar.gz").extractall(".")

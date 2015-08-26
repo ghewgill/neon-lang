@@ -55,6 +55,7 @@ if sys.platform == "win32":
         "/EHsc",
         "/W4",
         "/WX",
+        "/MTd",
     ])
 else:
     env.Append(CXXFLAGS=[

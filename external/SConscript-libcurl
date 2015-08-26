@@ -16,7 +16,7 @@ if not os.path.exists("curl-7.41.0/configure"):
 if sys.platform == "win32":
     env.Append(CPPFLAGS=["-DCURL_STATICLIB"])
     curlenv.Append(CPPFLAGS=["-DCURL_STATICLIB"])
-    libcurl = curlenv.Command("curl-7.41.0/lib/libcurl.lib", "curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG=release MACHINE=x64 RTLIBCFG=static")
+    libcurl = curlenv.Command("curl-7.41.0/lib/libcurld.lib", "curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG=debug MACHINE=x64 RTLIBCFG=static")
     env.Append(CPPPATH=["external/curl-7.41.0/include"])
     env.Append(LIBS=["ws2_32"])
 else:

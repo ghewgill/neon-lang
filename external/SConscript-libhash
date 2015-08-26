@@ -6,6 +6,7 @@ import zipfile
 Import("env")
 
 hashenv = Environment()
+hashenv.Append(CXXFLAGS=["/MTd"])
 
 if not os.path.exists("hash-library/sha256.cpp"):
     zipfile.ZipFile("hash-library.zip").extractall("hash-library")

@@ -53,6 +53,7 @@ def remove_short(target, source, env):
 Import("env")
 
 ffienv = Environment()
+ffienv.Append(CFLAGS=["/MTd"])
 
 if not os.path.exists("libffi-3.2.1/configure"):
     tarfile.open("libffi-3.2.1.tar.gz").extractall(".")

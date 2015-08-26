@@ -4,6 +4,7 @@ import zipfile
 Import("env")
 
 sqliteenv = Environment()
+sqliteenv.Append(CFLAGS=["/MTd"])
 
 if not os.path.exists("sqlite-amalgamation-3080803/sqlite3.c"):
     zipfile.ZipFile("sqlite-amalgamation-3080803.zip").extractall(".")

@@ -7,6 +7,7 @@ Import("env")
 libbz2 = None
 
 bz2env = Environment()
+bz2env.Append(CFLAGS=["/MTd"])
 
 if not os.path.exists("bzip2-1.0.6/Makefile"):
     tarfile.open("bzip2-1.0.6.tar.gz").extractall(".")
