@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tarfile
 
@@ -8,7 +9,9 @@ libz = None
 
 libzenv = Environment()
 
-if not os.path.exists("zlib-1.2.8/configure"):
+if GetOption("clean"):
+    shutil.rmtree("zlib-1.2.8", ignore_errors=True)
+elif not os.path.exists("zlib-1.2.8/configure"):
     tarfile.open("zlib-1.2.8.tar.gz").extractall(".")
 if sys.platform == "win32":
     libz = libzenv.Library("zlib-1.2.8/libz.lib", [

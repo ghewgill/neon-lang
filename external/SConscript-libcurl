@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tarfile
 
@@ -8,7 +9,9 @@ libcurl = None
 
 curlenv = Environment()
 
-if not os.path.exists("curl-7.41.0/configure"):
+if GetOption("clean"):
+    shutil.rmtree("curl-7.41.0", ignore_errors=True)
+elif not os.path.exists("curl-7.41.0/configure"):
     tarfile.open("curl-7.41.0.tar.gz").extractall(".")
     config_win32 = open("curl-7.41.0/lib/config-win32.h").read()
     config_win32 = "#define HTTP_ONLY\n" + config_win32

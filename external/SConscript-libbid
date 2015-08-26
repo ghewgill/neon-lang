@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tarfile
 
@@ -6,7 +7,9 @@ Import("env")
 
 bidenv = Environment()
 
-if not os.path.exists("IntelRDFPMathLib20U1/LIBRARY/makefile.mak"):
+if GetOption("clean"):
+    shutil.rmtree("IntelRDFPMathLib20U1", ignore_errors=True)
+elif not os.path.exists("IntelRDFPMathLib20U1/LIBRARY/makefile.mak"):
     tarfile.open("IntelRDFPMathLib20U1.tar.gz").extractall(".")
 if sys.platform == "win32":
     libbid = bidenv.Command("IntelRDFPMathLib20U1/LIBRARY/libbid.lib", "IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && nmake -fmakefile.mak CC=cl GLOBAL_RND=1 GLOBAL_FLAGS=1")

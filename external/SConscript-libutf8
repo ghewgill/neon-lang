@@ -1,9 +1,12 @@
 import os
+import shutil
 import zipfile
 
 Import("env")
 
-if not os.path.exists("utf8/source/utf8.h"):
+if GetOption("clean"):
+    shutil.rmtree("utf8", ignore_errors=True)
+elif not os.path.exists("utf8/source/utf8.h"):
     zipfile.ZipFile("utf8_v2_3_4.zip").extractall("utf8")
 
 env.Append(CPPPATH=["external/utf8/source"])

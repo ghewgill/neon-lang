@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tarfile
 
@@ -8,7 +9,9 @@ liblzma = None
 
 lzmaenv = Environment()
 
-if not os.path.exists("xz-5.2.1/configure"):
+if GetOption("clean"):
+    shutil.rmtree("xz-5.2.1", ignore_errors=True)
+elif not os.path.exists("xz-5.2.1/configure"):
     tarfile.open("xz-5.2.1.tar.gz").extractall(".")
 if sys.platform == "win32":
     env.Append(CPPDEFINES=[
