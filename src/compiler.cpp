@@ -1676,6 +1676,47 @@ void Module::predeclare(Emitter &) const
     // TODO? scope->predeclare(emitter);
 }
 
+static std::vector<std::pair<std::string, const Type *>> topo_sort(std::vector<std::pair<std::string, const Type*>> types, std::map<const Type *, std::set<const Type *>> references)
+{
+    const size_t orig_types_size = types.size();
+    // First, scrub the dependency list of things we aren't actually exporting.
+    // Also remove self-references.
+    for (auto &ref: references) {
+        auto t = ref.second.begin();
+        while (t != ref.second.end()) {
+            auto r = references.find(*t);
+            if (r == references.end() || *t == ref.first) {
+                auto u = t;
+                ++t;
+                ref.second.erase(u);
+            } else {
+                ++t;
+            }
+        }
+    }
+    std::vector<std::pair<std::string, const Type *>> r;
+    while (not types.empty()) {
+        bool any = false;
+        for (auto t = types.begin(); t != types.end(); ++t) {
+            auto ref = references.find(t->second);
+            if (ref != references.end() && ref->second.size() == 0) {
+                r.push_back(*t);
+                for (auto &rr: references) {
+                    rr.second.erase(t->second);
+                }
+                types.erase(t);
+                any = true;
+                break;
+            }
+        }
+        if (not any) {
+            internal_error("recursive exported type dependency");
+        }
+    }
+    assert(r.size() == orig_types_size);
+    return r;
+}
+
 void Program::generate(Emitter &emitter) const
 {
     // Call predeclare on standard types so they always work in interpolations.
@@ -1713,7 +1754,7 @@ void Program::generate(Emitter &emitter) const
             export_types.push_back(std::make_pair(exp.first, type));
         }
     }
-    std::sort(export_types.begin(), export_types.end(), [type_references](const std::pair<std::string, const Type *> &a, const std::pair<std::string, const Type *> &b) { return type_references.at(a.second).find(b.second) == type_references.at(a.second).end(); });
+    export_types = topo_sort(export_types, type_references);
     for (auto t: export_types) {
         t.second->generate_export(emitter, t.first);
     }
