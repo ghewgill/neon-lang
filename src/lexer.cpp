@@ -289,7 +289,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                 utf8::advance(i, 1, source.end());
                 c = static_cast<char>(tolower(*i));
                 if (number_base(c)) {
-                    long base;
+                    long base = 0;
                     if (c == 'b') {
                         base = 2;
                         utf8::advance(i, 1, source.end());
@@ -302,7 +302,9 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                     } else if (c == '#') {
                         utf8::advance(i, 1, source.end());
                         char *end = nullptr;
-                        base = strtol(&*i, &end, 10);
+                        if (i < source.end()) {
+                            base = strtol(&*i, &end, 10);
+                        }
                         if (base < 2 || base > 36) {
                             error(1001, t, "invalid base");
                         }
