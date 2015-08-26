@@ -10,7 +10,9 @@ libpcre = None
 pcreenv = Environment()
 pcreenv.Append(CFLAGS=["/MTd"])
 
-if not os.path.exists("pcre2-10.10/configure"):
+if GetOption("clean"):
+    shutil.rmtree("pcre2-10.10", ignore_errors=True)
+elif not os.path.exists("pcre2-10.10/configure"):
     tarfile.open("pcre2-10.10.tar.gz").extractall(".")
 if sys.platform == "win32":
     shutil.copyfile("pcre2-10.10/src/config.h.generic", "pcre2-10.10/src/config.h")

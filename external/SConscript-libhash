@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 import zipfile
@@ -8,7 +9,9 @@ Import("env")
 hashenv = Environment()
 hashenv.Append(CXXFLAGS=["/MTd"])
 
-if not os.path.exists("hash-library/sha256.cpp"):
+if GetOption("clean"):
+    shutil.rmtree("hash-library", ignore_errors=True)
+elif not os.path.exists("hash-library/sha256.cpp"):
     zipfile.ZipFile("hash-library.zip").extractall("hash-library")
     if sys.platform == "darwin":
         subprocess.check_call("perl -n -i -e 'print unless /<endian.h>/' hash-library/*.cpp", shell=True)

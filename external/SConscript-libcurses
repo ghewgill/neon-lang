@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tarfile
 
@@ -9,7 +10,9 @@ libs_curses = []
 cursesenv = Environment()
 
 if sys.platform == "win32":
-    if not os.path.exists("PDCurses-3.4/win32/vcwin32.mak"):
+    if GetOption("clean"):
+        shutil.rmtree("PDCurses-3.4", ignore_errors=True)
+    elif not os.path.exists("PDCurses-3.4/win32/vcwin32.mak"):
         tarfile.open("PDCurses-3.4.tar.gz").extractall(".")
         makefile = open("PDCurses-3.4/win32/vcwin32.mak").read()
         makefile = makefile.replace("= -Z7 -DPDCDEBUG", "= -Z7 -DPDCDEBUG -MTd")
