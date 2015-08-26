@@ -8,15 +8,19 @@ Import("env")
 libpcre = None
 
 pcreenv = Environment()
-pcreenv.Append(CFLAGS=["/MTd"])
+if not env["RELEASE"]:
+    if sys.platform == "win32":
+        pcreenv.Append(CFLAGS=["/MTd"])
 
 if GetOption("clean"):
     shutil.rmtree("pcre2-10.10", ignore_errors=True)
 elif not os.path.exists("pcre2-10.10/configure"):
     tarfile.open("pcre2-10.10.tar.gz").extractall(".")
+    if sys.platform == "win32":
+        shutil.copyfile("pcre2-10.10/src/config.h.generic", "pcre2-10.10/src/config.h")
+        shutil.copyfile("pcre2-10.10/src/pcre2.h.generic", "pcre2-10.10/src/pcre2.h")
+
 if sys.platform == "win32":
-    shutil.copyfile("pcre2-10.10/src/config.h.generic", "pcre2-10.10/src/config.h")
-    shutil.copyfile("pcre2-10.10/src/pcre2.h.generic", "pcre2-10.10/src/pcre2.h")
     pcreenv.Append(CPPFLAGS=[
         "-DHAVE_CONFIG_H",
         "-DPCRE2_CODE_UNIT_WIDTH=8",

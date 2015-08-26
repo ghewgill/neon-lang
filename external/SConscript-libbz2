@@ -8,12 +8,15 @@ Import("env")
 libbz2 = None
 
 bz2env = Environment()
-bz2env.Append(CFLAGS=["/MTd"])
+if not env["RELEASE"]:
+    if sys.platform == "win32":
+        bz2env.Append(CFLAGS=["/MTd"])
 
 if GetOption("clean"):
     shutil.rmtree("bzip2-1.0.6", ignore_errors=True)
 elif not os.path.exists("bzip2-1.0.6/Makefile"):
     tarfile.open("bzip2-1.0.6.tar.gz").extractall(".")
+
 if sys.platform == "win32":
     libbz2 = bz2env.Library("bzip2-1.0.6/libbz2.lib", [
         "bzip2-1.0.6/blocksort.c",

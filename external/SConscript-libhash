@@ -7,7 +7,9 @@ import zipfile
 Import("env")
 
 hashenv = Environment()
-hashenv.Append(CXXFLAGS=["/MTd"])
+if not env["RELEASE"]:
+    if sys.platform == "win32":
+        hashenv.Append(CXXFLAGS=["/MTd"])
 
 if GetOption("clean"):
     shutil.rmtree("hash-library", ignore_errors=True)
@@ -15,6 +17,7 @@ elif not os.path.exists("hash-library/sha256.cpp"):
     zipfile.ZipFile("hash-library.zip").extractall("hash-library")
     if sys.platform == "darwin":
         subprocess.check_call("perl -n -i -e 'print unless /<endian.h>/' hash-library/*.cpp", shell=True)
+
 libhash = hashenv.Library("hash-library/hash-library", [
     "hash-library/crc32.cpp",
     "hash-library/md5.cpp",

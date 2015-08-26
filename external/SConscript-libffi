@@ -54,12 +54,15 @@ def remove_short(target, source, env):
 Import("env")
 
 ffienv = Environment()
-ffienv.Append(CFLAGS=["/MTd"])
+if not env["RELEASE"]:
+    if sys.platform == "win32":
+        ffienv.Append(CFLAGS=["/MTd"])
 
 if GetOption("clean"):
     shutil.rmtree("libffi-3.2.1", ignore_errors=True)
 elif not os.path.exists("libffi-3.2.1/configure"):
     tarfile.open("libffi-3.2.1.tar.gz").extractall(".")
+
 if sys.platform == "win32":
     env.Append(CPPDEFINES=["FFI_BUILDING"])
     ffienv.Append(CPPDEFINES=["FFI_BUILDING"])

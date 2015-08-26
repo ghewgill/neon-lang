@@ -8,12 +8,15 @@ Import("env")
 liblzma = None
 
 lzmaenv = Environment()
-lzmaenv.Append(CFLAGS=["/MTd"])
+if not env["RELEASE"]:
+    if sys.platform == "win32":
+        lzmaenv.Append(CFLAGS=["/MTd"])
 
 if GetOption("clean"):
     shutil.rmtree("xz-5.2.1", ignore_errors=True)
 elif not os.path.exists("xz-5.2.1/configure"):
     tarfile.open("xz-5.2.1.tar.gz").extractall(".")
+
 if sys.platform == "win32":
     env.Append(CPPDEFINES=[
         "LZMA_API_STATIC",

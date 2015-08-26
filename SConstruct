@@ -25,7 +25,36 @@ coverage = ARGUMENTS.get("coverage", 0)
 # This is needed on OS X because clang has a bug where this isn't included automatically.
 coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darwin/libclang_rt.profile_osx.a"] if coverage else [])
 
+default_release = 0
+if GetOption("clean"):
+    try:
+        os.remove("config.py")
+    except OSError:
+        pass
+    release = default_release
+else:
+    release = int(ARGUMENTS.get("release", default_release))
+    stored_release = None
+    try:
+        with open("config.py") as config:
+            for s in config:
+                a = s.strip().split("=")
+                if a[0] == "release":
+                    stored_release = int(a[1])
+    except IOError:
+        pass
+    if stored_release is not None:
+        if release != stored_release:
+            print >>sys.stderr, "Requested release flag ({}) different from last build ({}).".format(release, stored_release)
+            print >>sys.stderr, "Run 'scons -c' first."
+            sys.exit(1)
+    else:
+        with open("config.py", "w") as config:
+            print >>config, "release={}".format(release)
+
 env = Environment()
+
+env["RELEASE"] = release
 
 env["ENV"]["PROCESSOR_ARCHITECTURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
 env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
@@ -55,8 +84,12 @@ if sys.platform == "win32":
         "/EHsc",
         "/W4",
         "/WX",
-        "/MTd",
     ])
+    if not env["RELEASE"]:
+        env.Append(CXXFLAGS=[
+            "/MTd",
+            "/Zi",
+        ])
 else:
     env.Append(CXXFLAGS=[
         "-std=c++0x",
@@ -64,8 +97,11 @@ else:
         "-Wextra",
         "-Weffc++",
         "-Werror",
-        "-g",
     ])
+    if not env["RELEASE"]:
+        env.Append(CXXFLAGS=[
+            "-g",
+        ])
 for lib in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libz, libbz2, liblzma]:
     if lib is not None:
         env.Append(LIBS=[lib])

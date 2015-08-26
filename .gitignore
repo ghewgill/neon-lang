@@ -14,6 +14,7 @@ config.log
 *.neonx
 bin/
 errors.txt
+config.py
 
 external/IntelRDFPMathLib20U1/
 external/utf8/
