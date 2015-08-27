@@ -1,5 +1,6 @@
 #include "analyzer.h"
 
+#include <algorithm>
 #include <iso646.h>
 #include <list>
 #include <stack>
@@ -103,7 +104,7 @@ public:
     const Statement *analyze(const pt::WhileStatement *statement);
     const Program *analyze();
 private:
-    Module *import_module(const std::string &name);
+    Module *import_module(const Token &token, const std::string &name);
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
 private:
@@ -580,12 +581,18 @@ ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, co
     }
 }
 
-Module *Analyzer::import_module(const std::string &name)
+Module *Analyzer::import_module(const Token &token, const std::string &name)
 {
+    static std::vector<std::string> s_importing;
+
     auto m = modules.find(name);
     if (m != modules.end()) {
         return m->second;
     }
+    if (std::find(s_importing.begin(), s_importing.end(), name) != s_importing.end()) {
+        error(3181, token, "recursive import detected");
+    }
+    s_importing.push_back(name);
     Bytecode object;
     if (not support->loadBytecode(name, object)) {
         internal_error("TODO module not found: " + name);
@@ -628,6 +635,7 @@ Module *Analyzer::import_module(const std::string &name)
     for (auto e: object.exception_exports) {
         module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
     }
+    s_importing.pop_back();
     modules[name] = module;
     return module;
 }
@@ -1675,7 +1683,7 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
             std::string localname = name;
             auto dot = name.find('.');
             if (dot != std::string::npos) {
-                const Module *module = import_module(name.substr(0, dot));
+                const Module *module = import_module(Token(), name.substr(0, dot));
                 s = module->scope;
                 localname = name.substr(dot+1);
             }
@@ -1706,7 +1714,7 @@ const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
     if (not scope.top()->allocateName(localname, localname.text)) {
         error2(3114, localname, "duplicate definition of name", scope.top()->getDeclaration(localname.text), "first declaration here");
     }
-    Module *module = import_module(declaration->module.text);
+    Module *module = import_module(declaration->module, declaration->module.text);
     rtl_import(declaration->module.text, module);
     if (declaration->name.type == NONE) {
         scope.top()->addName(declaration->token, localname.text, module);
