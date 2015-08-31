@@ -62,39 +62,39 @@ IMPORT time
 %|
         COMMON T,T1,T2,E1(4),J,K,L
 |%
-VAR T: Number
+VAR t: Number
 VAR T1: Number
 VAR T2: Number
 VAR E1: Array<Number>
-VAR J: Number
-VAR K: Number
-VAR L: Number
+VAR j: Number
+VAR k: Number
+VAR l: Number
 
-FUNCTION PA(INOUT E: Array<Number>)
-    J := 0
-    WHILE J < 6 DO
-        E[1] := ( E[1] + E[2] + E[3] - E[4]) * T
-        E[2] := ( E[1] + E[2] - E[3] + E[4]) * T
-        E[3] := ( E[1] - E[2] + E[3] + E[4]) * T
-        E[4] := (-E[1] + E[2] + E[3] + E[4]) / T2
-        J := J + 1
+FUNCTION pa(INOUT e: Array<Number>)
+    j := 0
+    WHILE j < 6 DO
+        e[1] := ( e[1] + e[2] + e[3] - e[4]) * t
+        e[2] := ( e[1] + e[2] - e[3] + e[4]) * t
+        e[3] := ( e[1] - e[2] + e[3] + e[4]) * t
+        e[4] := (-e[1] + e[2] + e[3] + e[4]) / T2
+        j := j + 1
     END WHILE
 END FUNCTION
 
 FUNCTION P0()
-    E1[J] := E1[K]
-    E1[K] := E1[L]
-    E1[L] := E1[J]
+    E1[j] := E1[k]
+    E1[k] := E1[l]
+    E1[l] := E1[j]
 END FUNCTION
 
-FUNCTION P3(X: Number, Y: Number, OUT Z: Number)
+FUNCTION P3(x: Number, y: Number, OUT z: Number)
     VAR X1, Y1: Number
 
-    X1 := X
-    Y1 := Y
-    X1 := T * (X1 + Y1)
-    Y1 := T * (X1 + Y1)
-    Z  := (X1 + Y1) / T2
+    X1 := x
+    Y1 := y
+    X1 := t * (X1 + Y1)
+    Y1 := t * (X1 + Y1)
+    z  := (X1 + Y1) / T2
 END FUNCTION
 
 %#ifdef PRINTOUT
@@ -110,14 +110,14 @@ FUNCTION main()
 
     % used in the FORTRAN version
     VAR N1, N2, N3, N4, N6, N7, N8, N9, N10, N11: Number
-    VAR X1,X2,X3,X4,X,Y,Z: Number
+    VAR X1,X2,X3,X4,x,y,z: Number
     VAR loop: Number
-    VAR II, JJ: Number
+    VAR ii, jj: Number
 
     % added for this version
     VAR loopstart: Number
     VAR startsec, finisec: Number
-    VAR KIPS: Number
+    VAR Kips: Number
     VAR continuous: Boolean
 
     loopstart := 1000               % see the note about LOOP below
@@ -150,7 +150,7 @@ C
 C       The actual benchmark starts here.
 C
 |%
-        T  := 0.499975
+        t  := 0.499975
         T1 := 0.50025
         T2 := 2.0
 %|
@@ -162,11 +162,11 @@ C
         loop := 1000
 |%
         loop := loopstart
-        II   := 1
+        ii   := 1
 
-        JJ := 1
+        jj := 1
 
-        WHILE JJ <= II DO
+        WHILE jj <= ii DO
             N1  := 0
             N2  := 12 * loop
             N3  := 14 * loop
@@ -187,11 +187,11 @@ C
             X3  := -1.0
             X4  := -1.0
 
-            FOR I := 1 TO N1 DO
-                X1 := (X1 + X2 + X3 - X4) * T
-                X2 := (X1 + X2 - X3 + X4) * T
-                X3 := (X1 - X2 + X3 + X4) * T
-                X4 := (-X1+ X2 + X3 + X4) * T
+            FOR i := 1 TO N1 DO
+                X1 := (X1 + X2 + X3 - X4) * t
+                X2 := (X1 + X2 - X3 + X4) * t
+                X3 := (X1 - X2 + X3 + X4) * t
+                X4 := (-X1+ X2 + X3 + X4) * t
             END FOR
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N1,N1,N1,X1,X2,X3,X4);
@@ -207,11 +207,11 @@ C
             E1[3] := -1.0
             E1[4] := -1.0
 
-            FOR I := 1 TO N2 DO
-                E1[1] := ( E1[1] + E1[2] + E1[3] - E1[4]) * T
-                E1[2] := ( E1[1] + E1[2] - E1[3] + E1[4]) * T
-                E1[3] := ( E1[1] - E1[2] + E1[3] + E1[4]) * T
-                E1[4] := (-E1[1] + E1[2] + E1[3] + E1[4]) * T
+            FOR i := 1 TO N2 DO
+                E1[1] := ( E1[1] + E1[2] + E1[3] - E1[4]) * t
+                E1[2] := ( E1[1] + E1[2] - E1[3] + E1[4]) * t
+                E1[3] := ( E1[1] - E1[2] + E1[3] + E1[4]) * t
+                E1[4] := (-E1[1] + E1[2] + E1[3] + E1[4]) * t
             END FOR
 
 %#ifdef PRINTOUT
@@ -223,8 +223,8 @@ C
 C       Module 3: Array as parameter
 C
 |%
-            FOR I := 1 TO N3 DO
-                PA(E1)
+            FOR i := 1 TO N3 DO
+                pa(E1)
             END FOR
 
 %#ifdef PRINTOUT
@@ -236,24 +236,24 @@ C
 C       Module 4: Conditional jumps
 C
 |%
-            J := 1
-            FOR I := 1 TO N4 DO
-                IF J = 1 THEN
-                    J := 2
+            j := 1
+            FOR i := 1 TO N4 DO
+                IF j = 1 THEN
+                    j := 2
                 ELSE
-                    J := 3
+                    j := 3
                 END IF
 
-                IF J > 2 THEN
-                    J := 0
+                IF j > 2 THEN
+                    j := 0
                 ELSE
-                    J := 1
+                    j := 1
                 END IF
 
-                IF J < 1 THEN
-                    J := 1
+                IF j < 1 THEN
+                    j := 1
                 ELSE
-                    J := 0
+                    j := 0
                 END IF
             END FOR
 
@@ -268,16 +268,16 @@ C       Module 6: Integer arithmetic
 C
 |%
 
-            J := 1
-            K := 2
-            L := 3
+            j := 1
+            k := 2
+            l := 3
 
-            FOR I := 1 TO N6 DO
-                J := J * (K-J) * (L-K)
-                K := L * K - (L-J) * K
-                L := (L-K) * (K+J)
-                E1[L-1] := J + K + L
-                E1[K-1] := J * K * L
+            FOR i := 1 TO N6 DO
+                j := j * (k-j) * (l-k)
+                k := l * k - (l-j) * k
+                l := (l-k) * (k+j)
+                E1[l-1] := j + k + l
+                E1[k-1] := j * k * l
             END FOR
 
 %#ifdef PRINTOUT
@@ -289,12 +289,12 @@ C
 C       Module 7: Trigonometric functions
 C
 |%
-            X := 0.5
-            Y := 0.5
+            x := 0.5
+            y := 0.5
 
-            FOR I := 1 TO N7 DO
-                X := T * math.atan(T2*math.sin(X)*math.cos(X)/(math.cos(X+Y)+math.cos(X-Y)-1.0))
-                Y := T * math.atan(T2*math.sin(Y)*math.cos(Y)/(math.cos(X+Y)+math.cos(X-Y)-1.0))
+            FOR i := 1 TO N7 DO
+                x := t * math.atan(T2*math.sin(x)*math.cos(x)/(math.cos(x+y)+math.cos(x-y)-1.0))
+                y := t * math.atan(T2*math.sin(y)*math.cos(y)/(math.cos(x+y)+math.cos(x-y)-1.0))
             END FOR
 
 %#ifdef PRINTOUT
@@ -306,12 +306,12 @@ C
 C       Module 8: Procedure calls
 C
 |%
-            X := 1.0
-            Y := 1.0
-            Z := 1.0
+            x := 1.0
+            y := 1.0
+            z := 1.0
 
-            FOR I := 1 TO N8 DO
-                P3(X,Y,Z)
+            FOR i := 1 TO N8 DO
+                P3(x,y,z)
             END FOR
 
 %#ifdef PRINTOUT
@@ -323,14 +323,14 @@ C
 C       Module 9: Array references
 C
 |%
-            J := 1
-            K := 2
-            L := 3
+            j := 1
+            k := 2
+            l := 3
             E1[1] := 1.0
             E1[2] := 2.0
             E1[3] := 3.0
 
-            FOR I := 1 TO N9 DO
+            FOR i := 1 TO N9 DO
                 P0()
             END FOR
 
@@ -343,14 +343,14 @@ C
 C       Module 10: Integer arithmetic
 C
 |%
-            J := 2
-            K := 3
+            j := 2
+            k := 3
 
-            FOR I := 1 TO N10 DO
-                J := J + K
-                K := J + K
-                J := K - J
-                K := K - J - J
+            FOR i := 1 TO N10 DO
+                j := j + k
+                k := j + k
+                j := k - j
+                k := k - j - j
             END FOR
 
 %#ifdef PRINTOUT
@@ -362,10 +362,10 @@ C
 C       Module 11: Standard functions
 C
 |%
-            X := 0.75
+            x := 0.75
 
-            FOR I := 1 TO N11 DO
-                X := math.sqrt(math.exp(math.log(X)/T1))
+            FOR i := 1 TO N11 DO
+                x := math.sqrt(math.exp(math.log(x)/T1))
             END FOR
 
 %#ifdef PRINTOUT
@@ -377,7 +377,7 @@ C
 C      THIS IS THE END OF THE MAJOR LOOP.
 C
 |%
-            JJ := JJ + 1
+            jj := jj + 1
         END WHILE
 
 %|
@@ -402,13 +402,13 @@ C--------------------------------------------------------------------
             % RETURN
         END IF
 
-        print("Loops: " & str(loop) & ", Iterations: " & str(II) & ", Duration: " & str(finisec-startsec) & ".")
+        print("Loops: " & str(loop) & ", Iterations: " & str(ii) & ", Duration: " & str(finisec-startsec) & ".")
 
-        KIPS := (100.0*loop*II)/(finisec-startsec)
-        IF KIPS >= 1000.0 THEN
-            print("Neon Converted Double Precision Whetstones: " & str(KIPS/1000.0) & " MIPS")
+        Kips := (100.0*loop*ii)/(finisec-startsec)
+        IF Kips >= 1000.0 THEN
+            print("Neon Converted Double Precision Whetstones: " & str(Kips/1000.0) & " MIPS")
         ELSE
-            print("Neon Converted Double Precision Whetstones: " & str(KIPS) & " KIPS")
+            print("Neon Converted Double Precision Whetstones: " & str(Kips) & " KIPS")
         END IF
 
     %END WHILE

@@ -1,10 +1,10 @@
 TYPE Recordset := RECORD
-    ID: Number
+    Id: Number
     Name: String
 END RECORD
 
 VAR a: Recordset
 VAR b: Number
 
-b.ID
+b.Id
 %<

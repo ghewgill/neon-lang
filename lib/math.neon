@@ -4,14 +4,14 @@
  |  Mathemtical functions for real numbers.
  |%
 
-EXPORT PI
+EXPORT Pi
 
 %|
- |  Constant: PI
+ |  Constant: Pi
  |
- |  The value of PI to 34 significant digits.
+ |  The value of Pi to 34 significant digits.
  |%
-CONSTANT PI: Number := 3.141592653589793238462643383279503
+CONSTANT Pi: Number := 3.141592653589793238462643383279503
 
 %|
  |  Function: abs

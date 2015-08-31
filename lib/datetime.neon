@@ -16,28 +16,28 @@ EXPORT make_from_parts
 IMPORT math
 IMPORT time
 
-DECLARE EXCEPTION TODO
+DECLARE EXCEPTION Todo
 
-CONSTANT JANUARY  : Number := 1
-CONSTANT FEBRUARY : Number := 2
-CONSTANT MARCH    : Number := 3
-CONSTANT APRIL    : Number := 4
-CONSTANT MAY      : Number := 5
-CONSTANT JUNE     : Number := 6
-CONSTANT JULY     : Number := 7
-CONSTANT AUGUST   : Number := 8
-CONSTANT SEPTEMBER: Number := 9
-CONSTANT OCTOBER  : Number := 10
-CONSTANT NOVEMBER : Number := 11
-CONSTANT DECEMBER : Number := 12
+CONSTANT January  : Number := 1
+CONSTANT February : Number := 2
+CONSTANT March    : Number := 3
+CONSTANT April    : Number := 4
+CONSTANT May      : Number := 5
+CONSTANT June     : Number := 6
+CONSTANT July     : Number := 7
+CONSTANT August   : Number := 8
+CONSTANT September: Number := 9
+CONSTANT October  : Number := 10
+CONSTANT November : Number := 11
+CONSTANT December : Number := 12
 
-CONSTANT MONDAY   : Number := 1
-CONSTANT TUESDAY  : Number := 2
-CONSTANT WEDNESDAY: Number := 3
-CONSTANT THURSDAY : Number := 4
-CONSTANT FRIDAY   : Number := 5
-CONSTANT SATURDAY : Number := 6
-CONSTANT SUNDAY   : Number := 7
+CONSTANT Monday   : Number := 1
+CONSTANT Tuesday  : Number := 2
+CONSTANT Wednesday: Number := 3
+CONSTANT Thursday : Number := 4
+CONSTANT Friday   : Number := 5
+CONSTANT Saturday : Number := 6
+CONSTANT Sunday   : Number := 7
 
 %|
  |  Type: Instant
@@ -181,7 +181,7 @@ END FUNCTION
  |  Make a DateTime from a string representation.
  |%
 FUNCTION make_from_string(s: String): DateTime
-    RAISE TODO
+    RAISE Todo
 END FUNCTION
 
 %|
@@ -199,7 +199,7 @@ END FUNCTION
  |  Subtract a <Period> from a <DateTime> and return a new <DateTime>.
  |%
 FUNCTION DateTime.minus_period(self: DateTime, period: Period): DateTime
-    RAISE TODO
+    RAISE Todo
 END FUNCTION
 
 %|

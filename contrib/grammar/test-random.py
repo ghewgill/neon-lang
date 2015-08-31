@@ -1,10 +1,18 @@
 import random
+import re
 import subprocess
 import sys
 
 from pyparsing import *
 
 import grammar
+
+def random_ident(node):
+    while True:
+        s = random.choice(node.initCharsOrig) + "".join(random.sample(node.bodyCharsOrig, random.randint(2, 9)))
+        if re.match(r"[A-Z]+$", s):
+            continue
+        return s
 
 class Generator:
     def __init__(self):
@@ -17,7 +25,7 @@ class Generator:
             self.tokens.append("\n" + " "*self.depth)
         if hasattr(node, "name") and node.name == "Expression" and (random.uniform(0, 1) >= 0.05 or self.depth > 5):
             ident = grammar.table["Identifier"].exprs[1]
-            self.tokens.append(random.choice(ident.initCharsOrig) + "".join(random.sample(ident.bodyCharsOrig, random.randint(2, 9))))
+            self.tokens.append(random_ident(ident))
         elif node is grammar.table["Number"]:
             self.tokens.append("12345")
         elif isinstance(node, And):
@@ -44,7 +52,7 @@ class Generator:
             #self.tokens.append("/"+node.pattern+"/")
             self.tokens.append('"foo"')
         elif isinstance(node, Word):
-            self.tokens.append(random.choice(node.initCharsOrig) + "".join(random.sample(node.bodyCharsOrig, random.randint(2, 9))))
+            self.tokens.append(random_ident(node))
         elif isinstance(node, ZeroOrMore):
             while random.choice([False, True]):
                 self.eval(node.expr)

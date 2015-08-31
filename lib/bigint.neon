@@ -5,9 +5,9 @@
  |%
 
 EXPORT BigInt
-EXPORT ZERO
-EXPORT ONE
-EXPORT TWO
+EXPORT Zero
+EXPORT One
+EXPORT Two
 EXPORT make
 EXPORT make_from_string
 EXPORT abs
@@ -20,8 +20,8 @@ EXPORT sub
 
 IMPORT math
 
-CONSTANT DIGITS: Number := 6
-CONSTANT BASE: Number := 1000000 % = 10^DIGITS, but avoid using ^
+CONSTANT Digits: Number := 6
+CONSTANT Base: Number := 1000000 % = 10^Digits, but avoid using ^
 
 TYPE Comparison := ENUM
     less
@@ -43,25 +43,25 @@ END RECORD
 % TODO: Make these constants
 
 %|
- |  Constant: ZERO
+ |  Constant: Zero
  |
  |  The integer zero (0) as a BigInt.
  |%
-LET ZERO: BigInt := BigInt(1, [0])
+LET Zero: BigInt := BigInt(1, [0])
 
 %|
- |  Constant: ONE
+ |  Constant: One
  |
  |  The integer one (1) as a BigInt.
  |%
-LET ONE: BigInt := BigInt(1, [1])
+LET One: BigInt := BigInt(1, [1])
 
 %|
- |  Constant: TWO
+ |  Constant: Two
  |
  |  The integer two (2) as a BigInt.
  |%
-LET TWO: BigInt := BigInt(1, [2])
+LET Two: BigInt := BigInt(1, [2])
 
 FUNCTION normalise(INOUT r: BigInt)
     WHILE r.digits.size() >= 2 AND r.digits[LAST] = 0 DO
@@ -93,8 +93,8 @@ FUNCTION make(x: Number): BigInt
     r.digits[0] := 0
     VAR i: Number := 0
     WHILE n > 0 DO
-        r.digits[i] := n MOD BASE
-        n := math.floor(n / BASE)
+        r.digits[i] := n MOD Base
+        n := math.floor(n / Base)
         inc(i)
     END WHILE
     RETURN r
@@ -124,14 +124,14 @@ FUNCTION make_from_string(s: String): BigInt
         t := t[1 TO LAST]
     END IF
     VAR i: Number := 0
-    VAR j: Number := t.length() - DIGITS
+    VAR j: Number := t.length() - Digits
     WHILE j >= 0 DO
-        r.digits[i] := num(t[j TO j+DIGITS-1])
+        r.digits[i] := num(t[j TO j+Digits-1])
         inc(i)
-        j := j - DIGITS
+        j := j - Digits
     END WHILE
-    IF j > -DIGITS THEN
-        r.digits[i] := num(t[FIRST TO j+DIGITS-1])
+    IF j > -Digits THEN
+        r.digits[i] := num(t[FIRST TO j+Digits-1])
     END IF
     RETURN r
 END FUNCTION
@@ -149,8 +149,8 @@ FUNCTION add(x, y: BigInt): BigInt
         VAR carry: Number := 0
         WHILE i < x.digits.size() OR i < y.digits.size() OR carry # 0 DO
             r.digits[i] := (IF i < x.digits.size() THEN x.digits[i] ELSE 0) + (IF i < y.digits.size() THEN y.digits[i] ELSE 0) + carry
-            IF r.digits[i] >= BASE THEN
-                r.digits[i] := r.digits[i] - BASE
+            IF r.digits[i] >= Base THEN
+                r.digits[i] := r.digits[i] - Base
                 carry := 1
             ELSE
                 carry := 0
@@ -178,7 +178,7 @@ FUNCTION sub(x, y: BigInt): BigInt
             WHILE i < x.digits.size() DO
                 r.digits[i] := (IF i < x.digits.size() THEN x.digits[i] ELSE 0) - (IF i < y.digits.size() THEN y.digits[i] ELSE 0) - borrow
                 IF r.digits[i] < 0 THEN
-                    r.digits[i] := r.digits[i] + BASE
+                    r.digits[i] := r.digits[i] + Base
                     borrow := 1
                 ELSE
                     borrow := 0
@@ -201,14 +201,14 @@ END FUNCTION
  |  Multiply two BigInt values and return the result.
  |%
 FUNCTION mul(x, y: BigInt): BigInt
-    VAR r: BigInt := ZERO
+    VAR r: BigInt := Zero
     FOR i := 0 TO y.digits.size()-1 DO
-        VAR p: BigInt := ZERO
+        VAR p: BigInt := Zero
         VAR carry: Number := 0
         FOR j := 0 TO x.digits.size()-1 DO
             LET z: Number := (IF j < x.digits.size() THEN x.digits[j] ELSE 0) * y.digits[i] + carry
-            p.digits[i+j] := z MOD BASE
-            carry := math.floor(z / BASE)
+            p.digits[i+j] := z MOD Base
+            carry := math.floor(z / Base)
         END FOR
         IF carry # 0 THEN
             p.digits[i+x.digits.size()] := carry
@@ -311,7 +311,7 @@ FUNCTION BigInt.to_string(self: BigInt): String
     VAR s: String
     FOR i := 0 TO self.digits.size()-1 DO
         IF i < self.digits.size()-1 THEN
-            s := format(str(self.digits[i]), "0\(DIGITS)d") & s
+            s := format(str(self.digits[i]), "0\(Digits)d") & s
         ELSE
             s := str(self.digits[i]) & s
         END IF

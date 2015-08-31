@@ -4,8 +4,8 @@
 
 namespace rtl {
 
-extern const Number curses$ERR = number_from_sint32(ERR);
-extern const Number curses$OK = number_from_sint32(OK);
+extern const Number curses$CURSES_ERR = number_from_sint32(ERR);
+extern const Number curses$CURSES_OK = number_from_sint32(OK);
 
 extern const Number curses$A_CHARTEXT = number_from_uint32(A_CHARTEXT);
 extern const Number curses$A_NORMAL = number_from_uint32(A_NORMAL);

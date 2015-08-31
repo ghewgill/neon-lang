@@ -6,13 +6,13 @@ FUNCTION d(): Dictionary<String>
     RETURN {"foo": "one", "bar": "two"}
 END FUNCTION
 
-TYPE R := RECORD
+TYPE Rec := RECORD
     name: String
     value: String
 END RECORD
 
-FUNCTION r(): R
-    VAR x: R
+FUNCTION r(): Rec
+    VAR x: Rec
     x.name := "foo"
     x.value := "three"
     RETURN x

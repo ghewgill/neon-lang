@@ -1,6 +1,6 @@
 TYPE Recordset := RECORD
                   %<2
-    ID: Number
+    Id: Number
     Name: String
 END RECORD
 

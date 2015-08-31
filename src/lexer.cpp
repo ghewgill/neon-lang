@@ -119,6 +119,16 @@ inline bool identifier_body(uint32_t c)
     return c < 256 && (isalnum(c) || c == '_');
 }
 
+inline bool all_upper(const std::string &s)
+{
+    for (auto c: s) {
+        if (not isupper(c)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 inline bool number_start(uint32_t c)
 {
     return c >= '0' && c <= '9';
@@ -284,6 +294,9 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
             else if (t.text == "INDEX") t.type = INDEX;
             else if (t.text == "ASSERT") t.type = ASSERT;
             else if (t.text == "EMBED") t.type = EMBED;
+            else if (all_upper(t.text)) {
+                error(1023, t, "identifier cannot be all upper case (reserved for keywords)");
+            }
         } else if (number_start(c)) {
             t.type = NUMBER;
             auto start = i;

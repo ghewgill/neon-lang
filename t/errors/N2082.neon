@@ -1,2 +1,2 @@
-FOREACH x FROM
+FOREACH x IN
           %<

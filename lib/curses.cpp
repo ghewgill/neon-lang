@@ -36,7 +36,7 @@ Number curses$COLOR_PAIR(Number n)
     return number_from_uint32(COLOR_PAIR(number_to_uint32(n)));
 }
 
-Number curses$COLS()
+Number curses$Cols()
 {
     return number_from_sint32(COLS);
 }
@@ -46,7 +46,7 @@ Number curses$KEY_F(Number c)
     return number_from_uint32(KEY_F(number_to_uint32(c)));
 }
 
-Number curses$LINES()
+Number curses$Lines()
 {
     return number_from_sint32(LINES);
 }

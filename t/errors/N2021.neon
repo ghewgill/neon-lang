@@ -1,5 +1,5 @@
 TYPE Recordset := RECORD
-    ID: Number
+    Id: Number
     Name: String
 END RECORD
 

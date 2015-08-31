@@ -35,7 +35,7 @@ EXPORT tanh
 
 IMPORT math
 
-CONSTANT MAX: Number := 9.999999999999999e384
+CONSTANT Max: Number := 9.999999999999999e384
 
 %|
  |  Type: Complex
@@ -201,7 +201,7 @@ END FUNCTION
  |%
 FUNCTION atan(a: Complex): Complex
     IF a.re = 0 AND math.abs(a.im) = 1 THEN
-        RETURN Complex(0, sign(a.im) * MAX)
+        RETURN Complex(0, sign(a.im) * Max)
     END IF
     VAR rsign: Number := 1
     IF a.re = 0 AND math.abs(a.im) > 1 THEN
@@ -222,7 +222,7 @@ END FUNCTION
  |%
 FUNCTION atanh(a: Complex): Complex
     IF a.im = 0 AND math.abs(a.re) = 1 THEN
-        RETURN Complex(sign(a.re) * MAX, 0)
+        RETURN Complex(sign(a.re) * Max, 0)
     END IF
     LET u: Complex := one.add(a).div(one.sub(a)).log()
     RETURN Complex(u.re/2, u.im/2)

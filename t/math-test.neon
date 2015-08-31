@@ -2,7 +2,7 @@ IMPORT math
 
 VAR exp: Number
 
-print(str(math.PI))
+print(str(math.Pi))
 %= 3.141592653589793238462643383279503
 
 print(str(math.abs(-5)))

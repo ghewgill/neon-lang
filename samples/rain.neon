@@ -76,8 +76,8 @@ FUNCTION main()
     curses.timeout(0)
     %curses.keypad(stdscr, TRUE)
 
-    r := curses.LINES() - 4
-    c := curses.COLS() - 4
+    r := curses.Lines() - 4
+    c := curses.Cols() - 4
 
     FOR d := 4 TO 0 STEP -1 DO
         xpos[d] := random.uint32() MOD c + 2

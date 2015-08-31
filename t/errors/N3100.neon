@@ -1,9 +1,9 @@
-TYPE R := RECORD
+TYPE Rec := RECORD
   a: Number
 END RECORD
 
-VAR a: POINTER TO R
-VAR b: POINTER TO R
+VAR a: POINTER TO Rec
+VAR b: POINTER TO Rec
 
 IF a <= b THEN
      %<
