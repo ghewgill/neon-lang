@@ -2753,7 +2753,7 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 
 const Program *Analyzer::analyze()
 {
-    Program *r = new Program(program->source_hash);
+    Program *r = new Program(program->source_path, program->source_hash);
     global_frame = r->frame;
     global_scope = r->scope;
     frame.push(global_frame);

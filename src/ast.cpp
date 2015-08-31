@@ -609,8 +609,9 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
     return new TypeFunction(returntype, paramtypes);
 }
 
-Program::Program(const std::string &source_hash)
-  : source_hash(source_hash),
+Program::Program(const std::string &source_path, const std::string &source_hash)
+  : source_path(source_path),
+    source_hash(source_hash),
     frame(new Frame(nullptr)),
     scope(new Scope(nullptr, frame)),
     statements(),

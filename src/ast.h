@@ -1862,8 +1862,9 @@ private:
 
 class Program: public AstNode {
 public:
-    Program(const std::string &source_hash);
+    Program(const std::string &source_path, const std::string &source_hash);
 
+    const std::string source_path;
     const std::string source_hash;
     Frame *frame;
     Scope *scope;
