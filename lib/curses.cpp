@@ -672,12 +672,12 @@ Number curses$winch(void *win)
 
 Number curses$mvinch(Number y, Number x)
 {
-    return number_from_uint32(mvinch(number_to_sint32(y), number_to_sint32(x)));
+    return number_from_uint64(mvinch(number_to_sint32(y), number_to_sint32(x)));
 }
 
 Number curses$mvwinch(void *win, Number y, Number x)
 {
-    return number_from_uint32(mvwinch(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x)));
+    return number_from_uint64(mvwinch(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x)));
 }
 
 void curses$init_color(Number pair, Number r, Number g, Number b)
