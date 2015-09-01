@@ -71,7 +71,7 @@ public:
 
     size_t getCount() const { return slots.size(); }
     int addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced);
-    const Slot getSlot(int slot);
+    const Slot getSlot(size_t slot);
     void setReferent(int slot, Name *ref);
     void setReferenced(int slot);
 

@@ -487,7 +487,7 @@ int Frame::addSlot(const Token &token, const std::string &name, Name *ref, bool 
     return r;
 }
 
-const Frame::Slot Frame::getSlot(int slot)
+const Frame::Slot Frame::getSlot(size_t slot)
 {
     return slots.at(slot);
 }
