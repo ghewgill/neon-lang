@@ -84,6 +84,9 @@ add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
 SConscript("external/SConscript-naturaldocs")
 
+env["CC"] = os.getenv("CC") or env["CC"]
+env["CXX"] = os.getenv("CXX") or env["CXX"]
+
 env.Append(CPPPATH=[
     "src",
 ])

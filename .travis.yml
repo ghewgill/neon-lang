@@ -2,5 +2,8 @@ language: cpp
 compiler:
   - gcc
   - clang
+install:
+  - export CC=$(which $CC)
+  - export CXX=$(which $CXX)
 script: scons
 sudo: false
