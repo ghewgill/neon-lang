@@ -74,6 +74,8 @@ libsqlite = SConscript("external/SConscript-libsqlite", exports=["env"])
 libz = SConscript("external/SConscript-libz", exports=["env"])
 libbz2 = SConscript("external/SConscript-libbz2", exports=["env"])
 liblzma = SConscript("external/SConscript-liblzma", exports=["env"])
+SConscript("external/SConscript-minijson", exports=["env"])
+
 SConscript("external/SConscript-naturaldocs")
 
 env.Append(CPPPATH=[

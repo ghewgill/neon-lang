@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <fstream>
 #include <iso646.h>
 #include <sstream>
 #include <stack>
@@ -1766,9 +1767,181 @@ void Program::generate(Emitter &emitter) const
     }
 }
 
+static std::string hex_from_binary(const std::string &bin)
+{
+    std::stringstream r;
+    r << std::hex << std::setfill('0');
+    for (auto b: bin) {
+        r << std::setw(2) << (static_cast<int>(b) & 0xff);
+    }
+    return r.str();
+}
+
+void TypeBoolean::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Boolean");
+    type.write("representation", "boolean");
+    type.close();
+}
+
+void TypeNumber::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Number");
+    type.write("representation", "number");
+    type.close();
+}
+
+void TypeString::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "String");
+    type.write("representation", "string");
+    type.close();
+}
+
+void TypeBytes::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Bytes");
+    type.write("representation", "string");
+    type.close();
+}
+
+void TypeFunction::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Function(...)");
+    type.write("representation", "function");
+    type.close();
+}
+
+void TypeArray::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Array");
+    type.write("representation", "array");
+    type.close();
+}
+
+void TypeDictionary::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Dictionary");
+    type.write("representation", "dictionary");
+    type.close();
+}
+
+void TypeRecord::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Record");
+    type.write("representation", "array");
+    type.close();
+}
+
+void TypePointer::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Pointer");
+    type.write("representation", "address");
+    type.close();
+}
+
+void TypeFunctionPointer::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "FunctionPointer");
+    type.write("representation", "array");
+    type.close();
+}
+
+void TypeEnum::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Enum");
+    type.write("representation", "number");
+    type.close();
+}
+
+void TypeModule::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Module");
+    type.write("representation", "module");
+    type.close();
+}
+
+void TypeException::debuginfo(minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Exception");
+    type.write("representation", "none");
+    type.close();
+}
+
+void Function::debuginfo(minijson::object_writer &out) const
+{
+    auto locals = out.nested_array("locals");
+    for (size_t i = 0; i < frame->getCount(); i++) {
+        auto slot = frame->getSlot(i);
+        const LocalVariable *local = dynamic_cast<const LocalVariable *>(slot.ref);
+        if (local != nullptr) {
+            auto var = locals.nested_object();
+            var.write("name", slot.name);
+            var.write("index", local->index);
+            local->type->debuginfo(var);
+            var.close();
+        }
+    }
+    locals.close();
+}
+
+void Program::debuginfo(minijson::object_writer &out) const
+{
+    {
+        auto globals = out.nested_array("globals");
+        for (size_t i = 0; i < frame->getCount(); i++) {
+            auto slot = frame->getSlot(i);
+            const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(slot.ref);
+            if (global != nullptr) {
+                auto var = globals.nested_object();
+                var.write("name", slot.name);
+                var.write("index", global->index);
+                global->type->debuginfo(var);
+                var.close();
+            }
+        }
+        globals.close();
+    }
+    {
+        auto functions = out.nested_array("functions");
+        for (size_t i = 0; i < frame->getCount(); i++) {
+            auto slot = frame->getSlot(i);
+            const Function *function = dynamic_cast<const Function *>(slot.ref);
+            if (function != nullptr) {
+                auto func = functions.nested_object();
+                func.write("name", slot.name);
+                function->debuginfo(func);
+                func.close();
+            }
+        }
+        functions.close();
+    }
+}
+
 std::vector<unsigned char> compile(const Program *p, DebugInfo *debug)
 {
     Emitter emitter(p->source_hash, debug);
     p->generate(emitter);
+    if (p->source_path != "-") {
+        std::ofstream out(p->source_path + "d");
+        minijson::object_writer writer(out, minijson::writer_configuration().pretty_printing(true));
+        writer.write("source_path", p->source_path);
+        writer.write("source_hash", hex_from_binary(p->source_hash));
+        p->debuginfo(writer);
+        writer.close();
+    }
     return emitter.getObject();
 }

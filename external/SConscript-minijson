@@ -1,0 +1,31 @@
+import os
+import re
+import shutil
+import zipfile
+
+Import("env")
+
+if GetOption("clean"):
+    shutil.rmtree("minijson_writer-master", ignore_errors=True)
+elif not os.path.exists("minijson_writer-master/minijson_writer.hpp"):
+    zipfile.ZipFile("minijson_writer-master.zip").extractall()
+    hpp = open("minijson_writer-master/minijson_writer.hpp").read()
+
+    # Default Travis compilers are C++0x, and not quite officially C++11.
+    hpp, n = re.subn(r"(#define MJW_CPP11_SUPPORTED) .*", r"\1 1", hpp)
+    assert n == 1
+
+    # -Weffc++ requires these.
+    hpp, n = re.subn(r"(<0>\n{\n)", r"\1    virtual ~overload_rank() {}\n", hpp)
+    assert n == 1
+    hpp, n = re.subn(r"(explicit writer\(.*?}\n)", r"""\1
+    writer(const writer &rhs): m_array(rhs.m_array), m_status(rhs.m_status), m_stream(rhs.m_stream), m_configuration(rhs.m_configuration) {}
+    writer &operator=(const writer &rhs) = delete;
+    virtual ~writer() {}\n""", hpp, flags=re.DOTALL)
+    assert n == 1
+    hpp, n = re.subn(r"(struct default_value_writer<char\*>\n{\n)", r"\1    virtual ~default_value_writer() {}\n", hpp)
+    assert n == 1
+
+    open("minijson_writer-master/minijson_writer.hpp", "w").write(hpp)
+
+env.Append(CPPPATH=["external/minijson_writer-master"])
