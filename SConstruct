@@ -1,4 +1,5 @@
 import distutils.spawn
+import glob
 import os
 import re
 import shutil
@@ -75,6 +76,7 @@ libz = SConscript("external/SConscript-libz", exports=["env"])
 libbz2 = SConscript("external/SConscript-libbz2", exports=["env"])
 liblzma = SConscript("external/SConscript-liblzma", exports=["env"])
 SConscript("external/SConscript-minijson", exports=["env"])
+SConscript("external/SConscript-pyparsing", exports=["env"])
 
 SConscript("external/SConscript-naturaldocs")
 
@@ -356,6 +358,10 @@ env.Command("tests_number", test_number_to_string, test_number_to_string[0].path
 for sample in Glob("samples/*.neon"):
     env.Command(sample.path+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
+
+env.Command("test_grammar", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-grammar.py " + " ".join(glob.glob("samples/*.neon") + glob.glob("t/*.neon") + glob.glob("t/errors/N3*.neon")) + " >$TARGET")
+env.Command("test_grammar_random", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-random.py")
+env.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "contrib/grammar/ebnf_w3c.neon", neon], neon[0].path + " contrib/grammar/ebnf_w3c.neon <$SOURCE >$TARGET")
 
 env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
 

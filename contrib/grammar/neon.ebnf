@@ -1,0 +1,164 @@
+(*
+ * The following EBNF grammar for Neon is for informative purposes only.
+ * This grammar file is not used by the compiler; the real grammar is
+ * implemented by the recursive descent parser.
+ *
+ * However, this grammar is tested against the recursive descent parser
+ * using two methods:
+ *
+ *  1. Ensure that all the sample programs and test suite are matched by
+ *     this grammar (test-grammar.py).
+ *  2. Generate random statements using this grammar and ensure that they
+ *     do not trigger parse errors (test-random.py).
+ *
+ * Additionally, this grammar is converted to a form suitable for input
+ * into http://www.bottlecaps.de/rr/ui by ebnf_w3c.neon.
+ *)
+
+Program = [Shebang], {Statement};
+Shebang = '#!', restOfLine;
+
+Statement =
+    ImportDeclaration |
+    TypeDeclaration |
+    ConstantDeclaration |
+    VariableDeclaration |
+    LetDeclaration |
+    FunctionDeclaration |
+    ExternalFunctionDeclaration |
+    NativeFunctionDeclaration |
+    ExceptionDeclaration |
+    ExportDeclaration |
+    AssertStatement |
+    AssignmentStatement |
+    CaseStatement |
+    ExitStatement |
+    ExpressionStatement |
+    ForStatement |
+    ForeachStatement |
+    IfStatement |
+    LoopStatement |
+    NextStatement |
+    RaiseStatement |
+    RepeatStatement |
+    ReturnStatement |
+    TryStatement |
+    WhileStatement;
+
+ImportDeclaration = 'IMPORT', (Identifier, ['.', Identifier], ['AS', Identifier] | StringLiteral, 'AS', Identifier);
+
+TypeDeclaration = 'TYPE', Identifier, ':=', Type;
+
+Type = ParameterisedType | RecordType | EnumType | PointerType | FunctionPointerType | (Identifier, ['.', Identifier]);
+
+ParameterisedType = ('Array' | 'Dictionary'), '<', Type, '>';
+
+RecordType = 'RECORD', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'RECORD';
+
+EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
+
+PointerType = 'POINTER', 'TO', Type;
+
+FunctionPointerType = 'FUNCTION', FunctionParameterList;
+
+ConstantDeclaration = 'CONST', Identifier, ':', Type, ':=', Expression;
+
+VariableDeclaration = 'VAR', Identifier, {',', Identifier}, ':', Type, [':=', Expression];
+
+LetDeclaration = 'LET', Identifier, ':', Type, ':=', Expression;
+
+FunctionDeclaration = 'FUNCTION', FunctionHeader, {Statement}, 'END', 'FUNCTION';
+
+ExternalFunctionDeclaration = 'EXTERNAL', 'FUNCTION', FunctionHeader, DictionaryLiteral, 'END', 'FUNCTION';
+
+NativeFunctionDeclaration = 'DECLARE', 'NATIVE', 'FUNCTION', FunctionHeader;
+
+FunctionHeader = Identifier, ['.', Identifier], FunctionParameterList;
+
+FunctionParameterList = '(', [FunctionParameter, {',', FunctionParameter}], ')', [':', Type];
+
+FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':', Type, ['DEFAULT', Expression];
+
+ExceptionDeclaration = 'DECLARE', 'EXCEPTION', Identifier;
+
+ExportDeclaration = 'EXPORT', Identifier;
+
+AssertStatement = 'ASSERT', Expression, {',', Expression};
+
+AssignmentStatement = CompoundExpression, ':=', Expression;
+
+CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['ELSE', {Statement}], 'END', 'CASE';
+
+WhenCondition = (('=' | '#' | '<' | '>' | '<=' | '>='), Expression) | (Expression, ['TO', Expression]);
+
+ExitStatement = 'EXIT', ('FUNCTION' | 'WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT');
+
+ExpressionStatement = Identifier, CompoundExpressionTail, {CompoundExpressionTail};
+
+ForStatement = 'FOR', Identifier, ':=', Expression, 'TO', Expression, ['STEP', Expression], 'DO', {Statement}, 'END', 'FOR';
+
+ForeachStatement = 'FOREACH', Identifier, 'OF', Expression, ['INDEX', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
+
+IfStatement = 'IF', IfExpression, 'THEN', {Statement}, {'ELSIF', IfExpression, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
+
+IfExpression = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
+
+LoopStatement = 'LOOP', {Statement}, 'END', 'LOOP';
+
+NextStatement = 'NEXT', ('WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT');
+
+RaiseStatement = 'RAISE', Identifier, ['.', Identifier], ['(', Expression, {',', Expression}, ')'];
+
+RepeatStatement = 'REPEAT', {Statement}, 'UNTIL', Expression;
+
+ReturnStatement = 'RETURN', Expression;
+
+TryStatement = 'TRY', {Statement}, {'EXCEPTION', Identifier, ['.', Identifier], {Statement}}, 'END', 'TRY';
+
+WhileStatement = 'WHILE', Expression, 'DO', {Statement}, 'END', 'WHILE';
+
+Expression = ConditionalExpression;
+
+ConditionalExpression = ('IF', Expression, 'THEN', Expression, 'ELSE', Expression) | DisjunctionExpression;
+
+DisjunctionExpression = ConjunctionExpression, {'OR', ConjunctionExpression};
+
+ConjunctionExpression = MembershipExpression, {'AND', MembershipExpression};
+
+MembershipExpression = ComparisonExpression, [('IN' | 'NOT', 'IN'), ComparisonExpression];
+
+ComparisonExpression = AdditionExpression, {('=' | '#' | '<' | '>' | '<=' | '>='), AdditionExpression};
+
+AdditionExpression = MultiplicationExpression, {('+' | '-' | '&'), MultiplicationExpression};
+
+MultiplicationExpression = ExponentiationExpression, {('*' | '/' | 'MOD'), ExponentiationExpression};
+
+ExponentiationExpression = Atom, {'^', Atom};
+
+Atom =
+    ('(', Expression, ')') |
+    ArrayLiteral |
+    DictionaryLiteral |
+    ('FALSE' | 'TRUE') |
+    Number |
+    StringLiteral |
+    (('+' | '-' | 'NOT'), Atom) |
+    ('NEW', Type) |
+    'NIL' |
+    CompoundExpression;
+
+ArrayLiteral = '[', [Expression, {',', Expression}, [',']], ']';
+
+DictionaryLiteral = '{', {StringLiteral, ':', Expression, [',']}, '}';
+
+CompoundExpression = Identifier, {CompoundExpressionTail};
+
+CompoundExpressionTail =
+    ('[', ArrayIndexExpression, ']') |
+    ('(', [FunctionArgument, {',', FunctionArgument}], ')') |
+    ('.', Identifier) |
+    ('->', Identifier);
+
+FunctionArgument = Expression | (Identifier, 'AS', Expression);
+
+ArrayIndexExpression = Expression | (Expression, 'TO', Expression);

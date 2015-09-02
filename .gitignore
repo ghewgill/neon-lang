@@ -11,11 +11,13 @@ config.log
 *.dylib
 *.dll
 *.gc*
+*.pyc
 *.neonx
 *.neond
 bin/
 errors.txt
 config.py
+test_grammar
 
 external/IntelRDFPMathLib20U1/
 external/utf8/
@@ -31,5 +33,6 @@ external/bzip2-1.0.6/
 external/xz-5.2.1/
 external/minijson_writer-master/
 external/NaturalDocs/
+external/pyparsing-2.0.3/
 external/lib
 external/share

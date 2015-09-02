@@ -1,0 +1,13 @@
+import os
+import re
+import shutil
+import tarfile
+
+Import("env")
+
+if GetOption("clean"):
+    shutil.rmtree("pyparsing-2.0.3", ignore_errors=True)
+elif not os.path.exists("pyparsing-2.0.3/pyparsing.py"):
+    tarfile.open("pyparsing-2.0.3.tar.gz").extractall(".")
+
+env["ENV"]["PYTHONPATH"] = (env["ENV"]["PYTHONPATH"] + os.pathsep if "PYTHONPATH" in env["ENV"] else "") + "external/pyparsing-2.0.3"
