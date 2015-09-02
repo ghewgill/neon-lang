@@ -99,7 +99,7 @@ It is not intended as an introduction to the language.
       <li><a href="#library-variant">variant</a></li>
       <li><a href="#library-xml">xml</a></li>
     </ol></li>
-  <li>Grammar</li>
+  <li><a href="#grammar">Grammar</a></li>
 </ol>
 
 <a name="lexical"></a>
@@ -1169,4 +1169,8 @@ The `variant` library provides functions for working with data encapsulated in a
 
 The `xml` data provides functions for working with data in XML format.
 
+<a name="grammar"></a>
+
 ## Grammar
+
+[Neon grammar in "railroad diagrams"](grammar.xhtml).
