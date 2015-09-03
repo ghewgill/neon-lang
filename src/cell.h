@@ -22,6 +22,17 @@ public:
     Cell &operator=(const Cell &rhs);
     bool operator==(const Cell &rhs) const;
 
+    enum Type {
+        cNone,
+        cAddress,
+        cBoolean,
+        cNumber,
+        cString,
+        cArray,
+        cDictionary
+    };
+    Type get_type() const { return type; }
+
     Cell *&address();
     bool &boolean();
     Number &number();
@@ -32,20 +43,19 @@ public:
     Cell &array_index_for_read(size_t i);
     Cell &array_index_for_write(size_t i);
     const std::map<utf8string, Cell> &dictionary();
+    std::map<utf8string, Cell> &dictionary_for_write();
     Cell &dictionary_index_for_read(const utf8string &index);
     Cell &dictionary_index_for_write(const utf8string &index);
 
-private:
-    enum {
-        cNone,
-        cAddress,
-        cBoolean,
-        cNumber,
-        cString,
-        cArray,
-        cDictionary
-    } type;
+    struct GC {
+        GC(): next(nullptr), alloced(false), marked(false) {}
+        Cell *next;
+        bool alloced;
+        bool marked;
+    } gc;
 
+private:
+    Type type;
     Cell *address_value;
     bool boolean_value;
     Number number_value;

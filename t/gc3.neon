@@ -1,0 +1,21 @@
+TYPE Node := RECORD
+    next: POINTER TO Node
+    value: Number
+END RECORD
+
+FUNCTION make(next: POINTER TO Node): POINTER TO Node
+    LET n: POINTER TO Node := NEW Node
+    n->next := next
+    RETURN n
+END FUNCTION
+
+VAR a, b: POINTER TO Node
+
+% Cycle collection, with needing to mark the cycle.
+a := make(NIL)
+IF VALID a THEN
+    a->next := make(a)
+END IF
+b := NEW Node
+a := NIL
+b := NEW Node

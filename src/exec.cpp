@@ -192,6 +192,7 @@ private:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
+    Cell *alloc_list;
 
     void exec_ENTER();
     void exec_LEAVE();
@@ -279,6 +280,8 @@ private:
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
     void raise(const RtlException &x);
 
+    void garbage_collect();
+
     friend class Module;
 private:
     Executor(const Executor &);
@@ -294,7 +297,8 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     ip(0),
     stack(),
     callstack(),
-    frames()
+    frames(),
+    alloc_list(nullptr)
 {
     module = new Module(source_path, Bytecode(bytes), debuginfo, this, support);
     modules[""] = module;
@@ -1155,7 +1159,13 @@ void Executor::exec_ALLOC()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    stack.push(Cell(new Cell(std::vector<Cell>(val))));
+    Cell *cell = new Cell(std::vector<Cell>(val));
+    stack.push(Cell(cell));
+
+    cell->gc.alloced = true;
+    cell->gc.next = alloc_list;
+    alloc_list = cell;
+    garbage_collect();
 }
 
 void Executor::exec_PUSHNIL()
@@ -1245,6 +1255,70 @@ void Executor::raise(const ExceptionName &exception, const ExceptionInfo &info)
 void Executor::raise(const RtlException &x)
 {
     raise_literal(x.name, ExceptionInfo(x.info));
+}
+
+static void mark(Cell *c)
+{
+    if (c == nullptr || (c->gc.alloced && c->gc.marked)) {
+        return;
+    }
+    c->gc.marked = true;
+    switch (c->get_type()) {
+        case Cell::cNone:
+        case Cell::cBoolean:
+        case Cell::cNumber:
+        case Cell::cString:
+            // nothing
+            break;
+        case Cell::cAddress:
+            mark(c->address());
+            break;
+        case Cell::cArray:
+            for (auto &x: c->array_for_write()) {
+                mark(&x);
+            }
+            break;
+        case Cell::cDictionary:
+            for (auto &x: c->dictionary_for_write()) {
+                mark(&x.second);
+            }
+            break;
+    }
+}
+
+void Executor::garbage_collect()
+{
+    // Clear marked bits.
+    for (Cell *c = alloc_list; c != nullptr; c = c->gc.next) {
+        assert(c->gc.alloced);
+        c->gc.marked = false;
+    }
+
+    // Mark reachable objects.
+    for (auto m: modules) {
+        for (auto &g: m.second->globals) {
+            mark(&g);
+        }
+    }
+    for (auto &f: frames) {
+        for (auto &v: f.locals) {
+            mark(&v);
+        }
+    }
+    for (size_t i = 0; i < stack.depth(); i++) {
+        mark(&stack.peek(i));
+    }
+
+    // Sweep unreachable objects.
+    for (Cell **c = &alloc_list; *c != nullptr; ) {
+        if (not (*c)->gc.marked) {
+            Cell *tmp = *c;
+            *c = (*c)->gc.next;
+            delete tmp;
+        } else {
+            c = &(*c)->gc.next;
+        }
+    }
 }
 
 void Executor::exec()

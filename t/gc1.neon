@@ -1,0 +1,10 @@
+TYPE Node := RECORD
+    value: Number
+END RECORD
+
+VAR a, b: POINTER TO Node
+
+% Simple collection.
+a := NEW Node
+a := NIL
+b := NEW Node
