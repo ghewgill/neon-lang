@@ -1992,6 +1992,9 @@ ExcludeTests = [
     "t/fork.neon",              # fork not required
     "t/forth-test.neon",        # Sample not required
     "t/function-namedargs.neon",# Named arguments not required
+    "t/gc1.neon",               # Garbage collector not required
+    "t/gc2.neon",               # Garbage collector not required
+    "t/gc3.neon",               # Garbage collector not required
     "t/import-string.neon",     # Feature not required
     "t/json-test.neon",         # Module not required
     "t/lexer-raw.neon",         # Feature not required

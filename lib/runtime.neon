@@ -1,0 +1,1 @@
+DECLARE NATIVE FUNCTION get_allocated_object_count(): Number

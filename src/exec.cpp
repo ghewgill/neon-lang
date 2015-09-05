@@ -892,7 +892,15 @@ void Executor::exec_CALLP()
     ip += 5;
     std::string func = module->object.strtable.at(val);
     try {
-        rtl_call(stack, func, module->rtl_call_tokens[val]);
+        if (func == "runtime$get_allocated_object_count") {
+            size_t n = 0;
+            for (Cell *p = alloc_list; p != nullptr; p = p->gc.next) {
+                n++;
+            }
+            stack.push(Cell(number_from_uint64(n)));
+        } else {
+            rtl_call(stack, func, module->rtl_call_tokens[val]);
+        }
     } catch (RtlException &x) {
         ip -= 5;
         raise(x);

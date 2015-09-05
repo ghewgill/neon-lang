@@ -1,3 +1,5 @@
+IMPORT runtime
+
 TYPE Node := RECORD
     next: POINTER TO Node
     value: Number
@@ -12,10 +14,15 @@ END FUNCTION
 VAR a, b: POINTER TO Node
 
 % Cycle collection, with needing to mark the cycle.
+ASSERT runtime.get_allocated_object_count() = 0
 a := make(NIL)
+ASSERT runtime.get_allocated_object_count() = 1
 IF VALID a THEN
     a->next := make(a)
 END IF
+ASSERT runtime.get_allocated_object_count() = 2
 b := NEW Node
+ASSERT runtime.get_allocated_object_count() = 3
 a := NIL
 b := NEW Node
+ASSERT runtime.get_allocated_object_count() = 2
