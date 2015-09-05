@@ -87,8 +87,8 @@ Cell::Cell(const char *value)
 {
 }
 
-Cell::Cell(const std::vector<Cell> &value)
-  : gc(),
+Cell::Cell(const std::vector<Cell> &value, bool alloced)
+  : gc(alloced),
     type(cArray),
     address_value(nullptr),
     boolean_value(false),

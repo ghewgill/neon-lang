@@ -17,7 +17,7 @@ public:
     explicit Cell(Number value);
     explicit Cell(const utf8string &value);
     explicit Cell(const char *value);
-    explicit Cell(const std::vector<Cell> &value);
+    explicit Cell(const std::vector<Cell> &value, bool alloced = false);
     explicit Cell(const std::map<utf8string, Cell> &value);
     Cell &operator=(const Cell &rhs);
     bool operator==(const Cell &rhs) const;
@@ -48,9 +48,9 @@ public:
     Cell &dictionary_index_for_write(const utf8string &index);
 
     struct GC {
-        GC(): next(nullptr), alloced(false), marked(false) {}
+        GC(bool alloced = false): next(nullptr), alloced(alloced), marked(false) {}
         Cell *next;
-        bool alloced;
+        const bool alloced;
         bool marked;
     } gc;
 

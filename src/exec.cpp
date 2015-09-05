@@ -1159,10 +1159,9 @@ void Executor::exec_ALLOC()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    Cell *cell = new Cell(std::vector<Cell>(val));
+    Cell *cell = new Cell(std::vector<Cell>(val), true);
     stack.push(Cell(cell));
 
-    cell->gc.alloced = true;
     cell->gc.next = alloc_list;
     alloc_list = cell;
     garbage_collect();
