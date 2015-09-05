@@ -182,10 +182,14 @@ class Executor {
 public:
     Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert);
     size_t get_allocated_object_count();
+    void set_garbage_collection_interval(size_t count);
     void exec();
 private:
     const std::string source_path;
     const bool enable_assert;
+
+    size_t param_garbage_collection_interval;
+
     std::map<std::string, Module *> modules;
     std::vector<std::string> init_order;
     Module *module;
@@ -193,7 +197,9 @@ private:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
+
     std::list<Cell> allocs;
+    unsigned int allocations;
 
     void exec_ENTER();
     void exec_LEAVE();
@@ -294,6 +300,7 @@ static Executor *g_executor;
 Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert)
   : source_path(source_path),
     enable_assert(enable_assert),
+    param_garbage_collection_interval(1000),
     modules(),
     init_order(),
     module(nullptr),
@@ -301,7 +308,8 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     stack(),
     callstack(),
     frames(),
-    allocs()
+    allocs(),
+    allocations(0)
 {
     assert(g_executor == nullptr);
     g_executor = this;
@@ -1167,8 +1175,10 @@ void Executor::exec_ALLOC()
     allocs.emplace_front(std::vector<Cell>(val), true);
     Cell *cell = &allocs.front();
     stack.push(Cell(cell));
-
-    garbage_collect();
+    allocations++;
+    if (param_garbage_collection_interval > 0 && allocations >= param_garbage_collection_interval) {
+        garbage_collect();
+    }
 }
 
 void Executor::exec_PUSHNIL()
@@ -1322,11 +1332,18 @@ void Executor::garbage_collect()
             ++c;
         }
     }
+
+    allocations = 0;
 }
 
 size_t Executor::get_allocated_object_count()
 {
     return allocs.size();
+}
+
+void Executor::set_garbage_collection_interval(size_t count)
+{
+    param_garbage_collection_interval = count;
 }
 
 void Executor::exec()
@@ -1448,6 +1465,11 @@ void Executor::exec()
 size_t executor_get_allocated_object_count()
 {
     return g_executor->get_allocated_object_count();
+}
+
+void executor_set_garbage_collection_interval(size_t count)
+{
+    g_executor->set_garbage_collection_interval(count);
 }
 
 void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, int argc, char *argv[])

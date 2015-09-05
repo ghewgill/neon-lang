@@ -6,6 +6,8 @@ END RECORD
 
 VAR a, b: POINTER TO Node
 
+runtime.set_garbage_collection_interval(1)
+
 % Simple collection.
 ASSERT runtime.get_allocated_object_count() = 0
 a := NEW Node

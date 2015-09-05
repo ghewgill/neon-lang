@@ -1,1 +1,2 @@
 DECLARE NATIVE FUNCTION get_allocated_object_count(): Number
+DECLARE NATIVE FUNCTION set_garbage_collection_interval(count: Number)

@@ -13,6 +13,8 @@ END FUNCTION
 
 VAR a, b: POINTER TO Node
 
+runtime.set_garbage_collection_interval(1)
+
 % Cycle collection, with needing to mark the cycle.
 ASSERT runtime.get_allocated_object_count() = 0
 a := make(NIL)
