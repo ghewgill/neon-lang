@@ -1,3 +1,33 @@
+%|
+ |  File: runtime
+ |
+ |  Functions that interact with the Neon runtime system.
+ |%
+
+%|
+ |  Function: garbage_collect
+ |
+ |  Force a garbage collection immediately. It is not normally necessary
+ |  to call this function, since garbage collection is automatically run
+ |  after a predetermined number of new allocations.
+ |  Use <set_garbage_collection_interval> to change the automatic behaviour.
+ |%
 DECLARE NATIVE FUNCTION garbage_collect()
+
+%|
+ |  Function: get_allocated_object_count
+ |
+ |  Return the number of objects currently allocated. This includes
+ |  objects that may be eligible for garbage collection.
+ |%
 DECLARE NATIVE FUNCTION get_allocated_object_count(): Number
+
+%|
+ |  Function: set_garbage_collection_interval
+ |
+ |  Set the interval that determines when garbage collection will be run.
+ |  The count refers to the number of allocations. The default is 1000
+ |  allocations. Setting this value to 0 disables automatic garbage
+ |  collection.
+ |%
 DECLARE NATIVE FUNCTION set_garbage_collection_interval(count: Number)
