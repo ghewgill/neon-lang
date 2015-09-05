@@ -192,7 +192,7 @@ private:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
-    Cell *alloc_list;
+    std::list<Cell> allocs;
 
     void exec_ENTER();
     void exec_LEAVE();
@@ -298,7 +298,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     stack(),
     callstack(),
     frames(),
-    alloc_list(nullptr)
+    allocs()
 {
     module = new Module(source_path, Bytecode(bytes), debuginfo, this, support);
     modules[""] = module;
@@ -893,11 +893,7 @@ void Executor::exec_CALLP()
     std::string func = module->object.strtable.at(val);
     try {
         if (func == "runtime$get_allocated_object_count") {
-            size_t n = 0;
-            for (Cell *p = alloc_list; p != nullptr; p = p->gc.next) {
-                n++;
-            }
-            stack.push(Cell(number_from_uint64(n)));
+            stack.push(Cell(number_from_uint64(allocs.size())));
         } else {
             rtl_call(stack, func, module->rtl_call_tokens[val]);
         }
@@ -1167,11 +1163,10 @@ void Executor::exec_ALLOC()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    Cell *cell = new Cell(std::vector<Cell>(val), true);
+    allocs.emplace_front(std::vector<Cell>(val), true);
+    Cell *cell = &allocs.front();
     stack.push(Cell(cell));
 
-    cell->gc.next = alloc_list;
-    alloc_list = cell;
     garbage_collect();
 }
 
@@ -1296,9 +1291,9 @@ static void mark(Cell *c)
 void Executor::garbage_collect()
 {
     // Clear marked bits.
-    for (Cell *c = alloc_list; c != nullptr; c = c->gc.next) {
-        assert(c->gc.alloced);
-        c->gc.marked = false;
+    for (Cell &c: allocs) {
+        assert(c.gc.alloced);
+        c.gc.marked = false;
     }
 
     // Mark reachable objects.
@@ -1317,13 +1312,13 @@ void Executor::garbage_collect()
     }
 
     // Sweep unreachable objects.
-    for (Cell **c = &alloc_list; *c != nullptr; ) {
-        if (not (*c)->gc.marked) {
-            Cell *tmp = *c;
-            *c = (*c)->gc.next;
-            delete tmp;
+    for (auto c = allocs.begin(); c != allocs.end(); ) {
+        if (not c->gc.marked) {
+            auto tmp = c;
+            ++c;
+            allocs.erase(tmp);
         } else {
-            c = &(*c)->gc.next;
+            ++c;
         }
     }
 }

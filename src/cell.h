@@ -48,8 +48,7 @@ public:
     Cell &dictionary_index_for_write(const utf8string &index);
 
     struct GC {
-        GC(bool alloced = false): next(nullptr), alloced(alloced), marked(false) {}
-        Cell *next;
+        GC(bool alloced = false): alloced(alloced), marked(false) {}
         const bool alloced;
         bool marked;
     } gc;
