@@ -181,6 +181,7 @@ private:
 class Executor {
 public:
     Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert);
+    void garbage_collect();
     size_t get_allocated_object_count();
     void set_garbage_collection_interval(size_t count);
     void exec();
@@ -286,8 +287,6 @@ private:
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
     void raise(const RtlException &x);
-
-    void garbage_collect();
 
     friend class Module;
 private:
@@ -1460,6 +1459,11 @@ void Executor::exec()
         }
     }
     assert(stack.empty());
+}
+
+void executor_garbage_collect()
+{
+    g_executor->garbage_collect();
 }
 
 size_t executor_get_allocated_object_count()

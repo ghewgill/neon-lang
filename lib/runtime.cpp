@@ -3,6 +3,11 @@
 
 namespace rtl {
 
+void runtime$garbage_collect()
+{
+    executor_garbage_collect();
+}
+
 Number runtime$get_allocated_object_count()
 {
     return number_from_uint64(executor_get_allocated_object_count());

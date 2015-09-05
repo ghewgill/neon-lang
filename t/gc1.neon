@@ -13,5 +13,7 @@ ASSERT runtime.get_allocated_object_count() = 0
 a := NEW Node
 ASSERT runtime.get_allocated_object_count() = 1
 a := NIL
+runtime.garbage_collect()
+ASSERT runtime.get_allocated_object_count() = 0
 b := NEW Node
 ASSERT runtime.get_allocated_object_count() = 1
