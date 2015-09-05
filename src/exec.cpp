@@ -181,6 +181,7 @@ private:
 class Executor {
 public:
     Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert);
+    size_t get_allocated_object_count();
     void exec();
 private:
     const std::string source_path;
@@ -288,6 +289,8 @@ private:
     Executor &operator=(const Executor &);
 };
 
+static Executor *g_executor;
+
 Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert)
   : source_path(source_path),
     enable_assert(enable_assert),
@@ -300,6 +303,8 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     frames(),
     allocs()
 {
+    assert(g_executor == nullptr);
+    g_executor = this;
     module = new Module(source_path, Bytecode(bytes), debuginfo, this, support);
     modules[""] = module;
 }
@@ -892,11 +897,7 @@ void Executor::exec_CALLP()
     ip += 5;
     std::string func = module->object.strtable.at(val);
     try {
-        if (func == "runtime$get_allocated_object_count") {
-            stack.push(Cell(number_from_uint64(allocs.size())));
-        } else {
-            rtl_call(stack, func, module->rtl_call_tokens[val]);
-        }
+        rtl_call(stack, func, module->rtl_call_tokens[val]);
     } catch (RtlException &x) {
         ip -= 5;
         raise(x);
@@ -1323,6 +1324,11 @@ void Executor::garbage_collect()
     }
 }
 
+size_t Executor::get_allocated_object_count()
+{
+    return allocs.size();
+}
+
 void Executor::exec()
 {
     // The number of fields here must match the declaration of
@@ -1437,6 +1443,11 @@ void Executor::exec()
         }
     }
     assert(stack.empty());
+}
+
+size_t executor_get_allocated_object_count()
+{
+    return g_executor->get_allocated_object_count();
 }
 
 void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, int argc, char *argv[])
