@@ -1,21 +1,8 @@
 #include <iso646.h>
 
-#ifdef _WIN32
-#include <winsock.h>
-typedef int socklen_t;
-#pragma warning(disable: 4127) // incompatible with FD_SET()
-#else
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <unistd.h>
-typedef int SOCKET;
-#define closesocket(x) close(x)
-#endif
-
 #include "cell.h"
 #include "rtl_exec.h"
+#include "socketx.h"
 
 namespace rtl {
 
