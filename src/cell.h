@@ -51,6 +51,9 @@ public:
         GC(bool alloced = false): alloced(alloced), marked(false) {}
         const bool alloced;
         bool marked;
+    private:
+        GC(const GC &);
+        GC &operator=(const GC &);
     } gc;
 
 private:
