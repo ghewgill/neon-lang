@@ -18,4 +18,9 @@ void runtime$set_garbage_collection_interval(Number count)
     executor_set_garbage_collection_interval(number_to_uint64(count));
 }
 
+void runtime$set_recursion_limit(Number depth)
+{
+    executor_set_recursion_limit(number_to_uint64(depth));
+}
+
 } // namespace rtl

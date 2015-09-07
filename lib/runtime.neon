@@ -31,3 +31,11 @@ DECLARE NATIVE FUNCTION get_allocated_object_count(): Number
  |  collection.
  |%
 DECLARE NATIVE FUNCTION set_garbage_collection_interval(count: Number)
+
+%|
+ |  Function: set_recursion_limit
+ |
+ |  Set the maximum permitted call stack depth. The default limit is
+ |  1000. Exceeding this limit raises a <StackOverflow> exception.
+ |%
+DECLARE NATIVE FUNCTION set_recursion_limit(depth: Number)

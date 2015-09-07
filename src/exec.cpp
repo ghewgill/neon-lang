@@ -22,8 +22,6 @@
 #include "rtl_platform.h"
 #include "support.h"
 
-const size_t MAX_CALLSTACK_SIZE = 1000;
-
 namespace {
 
 std::vector<std::string> split(const std::string &s, char d)
@@ -184,12 +182,14 @@ public:
     void garbage_collect();
     size_t get_allocated_object_count();
     void set_garbage_collection_interval(size_t count);
+    void set_recursion_limit(size_t depth);
     void exec();
 private:
     const std::string source_path;
     const bool enable_assert;
 
     size_t param_garbage_collection_interval;
+    size_t param_recursion_limit;
 
     std::map<std::string, Module *> modules;
     std::vector<std::string> init_order;
@@ -300,6 +300,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
   : source_path(source_path),
     enable_assert(enable_assert),
     param_garbage_collection_interval(1000),
+    param_recursion_limit(1000),
     modules(),
     init_order(),
     module(nullptr),
@@ -915,7 +916,7 @@ void Executor::exec_CALLF()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    if (callstack.size() >= MAX_CALLSTACK_SIZE) {
+    if (callstack.size() >= param_recursion_limit) {
         raise(Exception_StackOverflow, ExceptionInfo(""));
     }
     callstack.push_back(std::make_pair(module, ip));
@@ -929,7 +930,7 @@ void Executor::exec_CALLMF()
     ip += 4;
     uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
-    if (callstack.size() >= MAX_CALLSTACK_SIZE) {
+    if (callstack.size() >= param_recursion_limit) {
         raise(Exception_StackOverflow, ExceptionInfo(""));
     }
     callstack.push_back(std::make_pair(module, ip));
@@ -945,7 +946,7 @@ void Executor::exec_CALLMF()
 void Executor::exec_CALLI()
 {
     ip++;
-    if (callstack.size() >= MAX_CALLSTACK_SIZE) {
+    if (callstack.size() >= param_recursion_limit) {
         raise(Exception_StackOverflow, ExceptionInfo(""));
     }
     Number addr = stack.top().number(); stack.pop();
@@ -1345,6 +1346,11 @@ void Executor::set_garbage_collection_interval(size_t count)
     param_garbage_collection_interval = count;
 }
 
+void Executor::set_recursion_limit(size_t depth)
+{
+    param_recursion_limit = depth;
+}
+
 void Executor::exec()
 {
     // The number of fields here must match the declaration of
@@ -1474,6 +1480,11 @@ size_t executor_get_allocated_object_count()
 void executor_set_garbage_collection_interval(size_t count)
 {
     g_executor->set_garbage_collection_interval(count);
+}
+
+void executor_set_recursion_limit(size_t depth)
+{
+    g_executor->set_recursion_limit(depth);
 }
 
 void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, int argc, char *argv[])

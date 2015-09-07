@@ -2011,6 +2011,7 @@ ExcludeTests = [
     "t/number-ceil.neon",       # Feature not required
     "t/number-underscore.neon", # Feature not required
     "t/os-test.neon",           # Module not required
+    "t/recursion-limit.neon",   # Feature not required
     "t/regex-test.neon",        # Module not required
     "t/return-case.neon",       # Feature not required
     "t/rtl.neon",               # CURRENT_EXCEPTION not required

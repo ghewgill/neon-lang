@@ -1,0 +1,13 @@
+IMPORT runtime
+
+FUNCTION recurse(n: Number): Number
+    IF n = 0 THEN
+        RETURN 0
+    END IF
+    RETURN recurse(n-1) + 1
+END FUNCTION
+
+runtime.set_recursion_limit(2002)
+
+print(str(recurse(2000)))
+%= 2000
