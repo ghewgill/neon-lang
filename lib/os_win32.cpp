@@ -50,6 +50,15 @@ void os$kill(void *process)
 
 void *os$spawn(const std::string &command)
 {
+    static HANDLE job = INVALID_HANDLE_VALUE;
+    if (job == INVALID_HANDLE_VALUE) {
+        job = CreateJobObject(NULL, NULL);
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli;
+        ZeroMemory(&jeli, sizeof(jeli));
+        jeli.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        SetInformationJobObject(job, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli));
+    }
+
     Process *p = new Process;
     STARTUPINFO si;
     ZeroMemory(&si, sizeof(si));
@@ -69,6 +78,7 @@ void *os$spawn(const std::string &command)
     if (not r) {
         throw RtlException(Exception_file$PathNotFound, command.c_str());
     }
+    AssignProcessToJobObject(job, pi.hProcess);
     p->process = pi.hProcess;
     CloseHandle(pi.hThread);
     return p;
