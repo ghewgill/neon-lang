@@ -63,20 +63,24 @@ env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 # Add path of Python itself to shell PATH.
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.path.dirname(sys.executable)
 
-SConscript("external/SConscript-libutf8", exports=["env"])
-libbid = SConscript("external/SConscript-libbid", exports=["env"])
-libffi = SConscript("external/SConscript-libffi", exports=["env"])
-libs_curses = SConscript("external/SConscript-libcurses", exports=["env"])
-libpcre = SConscript("external/SConscript-libpcre", exports=["env"])
-libcurl = SConscript("external/SConscript-libcurl", exports=["env"])
-libeasysid = SConscript("external/SConscript-libeasysid", exports=["env"])
-libhash = SConscript("external/SConscript-libhash", exports=["env"])
-libsqlite = SConscript("external/SConscript-libsqlite", exports=["env"])
-libz = SConscript("external/SConscript-libz", exports=["env"])
-libbz2 = SConscript("external/SConscript-libbz2", exports=["env"])
-liblzma = SConscript("external/SConscript-liblzma", exports=["env"])
-SConscript("external/SConscript-minijson", exports=["env"])
-SConscript("external/SConscript-pyparsing", exports=["env"])
+def add_external(target):
+    env.Depends("external", target)
+    return target
+
+add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
+libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
+libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
+libs_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"]))
+libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"]))
+libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"]))
+libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"]))
+libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
+libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
+libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
+libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"]))
+liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"]))
+add_external(SConscript("external/SConscript-minijson", exports=["env"]))
+add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
 SConscript("external/SConscript-naturaldocs")
 
