@@ -42,7 +42,7 @@ std::string http$get(const std::string &url, std::vector<utf8string> *headers)
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
         //printf("rc %ld\n", rc);
     } else {
-        printf("r %d error %s\n", r, error);
+        fprintf(stderr, "curl %d error %s\n", r, error);
     }
     curl_easy_cleanup(curl);
     return data;

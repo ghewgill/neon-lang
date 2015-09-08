@@ -69,6 +69,8 @@ void net$socket_connect(Cell &handle, const std::string &host, Number port)
 void net$socket_listen(Cell &handle, Number port)
 {
     SOCKET s = number_to_sint32(handle.number());
+    int on = 1;
+    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char *>(on), sizeof(on));
     int p = number_to_sint32(port);
     sockaddr_in sin;
     sin.sin_family = AF_INET;

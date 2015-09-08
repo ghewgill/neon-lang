@@ -1,10 +1,10 @@
 IMPORT net
 
 LET server: net.Socket := net.tcp_socket()
-server.listen(21010)
+server.listen(21011)
 
 LET client: net.Socket := net.tcp_socket()
-client.connect("127.0.0.1", 21010)
+client.connect("127.0.0.1", 21011)
 
 LET t: net.Socket := server.accept()
 

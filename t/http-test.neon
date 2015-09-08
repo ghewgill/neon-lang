@@ -1,10 +1,12 @@
-% SKIP There seems to be a race condition that hangs on Travis.
 IMPORT http
 IMPORT os
 IMPORT string
+IMPORT time
 
 LET p: os.Process := os.spawn("python -m SimpleHTTPServer 21010")
-LET license: String := http.get("http://127.0.0.1:21010/LICENSE.txt")
+time.sleep(1)
+VAR headers: Array<String>
+LET license: String := http.get("http://127.0.0.1:21010/LICENSE.txt", headers).to_string()
 VAR s: String := string.split(license, "\n")[0]
 IF s[LAST] = "\r" THEN
     s := s[FIRST TO LAST-1]
