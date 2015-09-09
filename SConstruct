@@ -1,5 +1,4 @@
 import distutils.spawn
-import glob
 import os
 import re
 import shutil
@@ -366,7 +365,7 @@ for sample in Glob("samples/*.neon"):
     env.Command(sample.path+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
 
-env.Command("test_grammar", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-grammar.py " + " ".join(glob.glob("samples/*.neon") + glob.glob("t/*.neon") + glob.glob("t/errors/N3*.neon")) + " >$TARGET")
+env.Command("test_grammar", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-grammar.py samples/*.neon t/*.neon t/errors/N3*.neon >$TARGET")
 env.Command("test_grammar_random", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-random.py")
 env.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "contrib/grammar/ebnf_w3c.neon", neon], neon[0].path + " contrib/grammar/ebnf_w3c.neon <$SOURCE >$TARGET")
 

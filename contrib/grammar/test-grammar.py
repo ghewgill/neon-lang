@@ -1,3 +1,4 @@
+import glob
 import sys
 
 from pyparsing import *
@@ -29,7 +30,7 @@ comments = blockComment | lineComment
 
 parser = grammar.parsers["Program"]
 parser.ignore(comments)
-for fn in sys.argv[1:]:
+for fn in reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1:]]):
     fn = fn.replace("\\", "/")
     print(fn)
     if "%!" in open(fn).read():
