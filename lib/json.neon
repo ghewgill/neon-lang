@@ -11,9 +11,9 @@ IMPORT variant
 IMPORT variant.Type
 IMPORT variant.Variant
 
-% TODO: This encoder and decoder does not handle backslash
+% TODO: This encoder and decoder does not handle all backslash
 % character escapes yet.
-% TODO: Also, this could be improved a lot by using regex.
+% TODO: Also, this could probably be improved a lot by using regex.
 
 %|
  |  Exception: JsonFormat
@@ -55,12 +55,19 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
             RETURN variant.make_number(num(json[start TO index-1]))
         WHEN "\"" DO
             inc(index)
+            VAR t: String := ""
             LET start: Number := index
             WHILE index < json.length() AND json[index] # "\"" DO
+                IF json[index] = "\\" THEN
+                    % TODO: This just skips over the backslash.
+                    % Need to add specific processing for control characters.
+                    inc(index)
+                END IF
+                t.append(json[index])
                 inc(index)
             END WHILE
             inc(index)
-            RETURN variant.make_string(json[start TO index-2])
+            RETURN variant.make_string(t)
         WHEN "[" DO
             inc(index)
             VAR a: Array<Variant>

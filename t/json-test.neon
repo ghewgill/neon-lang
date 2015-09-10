@@ -57,3 +57,7 @@ print(v.get_dictionary()["number"].get_number().to_string())
 %= 5
 print(v.get_dictionary()["string"].get_string())
 %= fork
+
+v := json.decode(@@"{"foo": "bar\"baz"}"@@)
+print(v.get_dictionary()["foo"].get_string())
+%= bar"baz
