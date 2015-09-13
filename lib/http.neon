@@ -14,3 +14,15 @@
  |      headers - the response headers from the server
  |%
 DECLARE NATIVE FUNCTION get(url: String, INOUT headers: Array<String>): Bytes
+
+%|
+ |  Function: post
+ |
+ |  Perform an HTTP POST operation with the specified url and post data.
+ |
+ |  Parameters:
+ |      url - the url
+ |      post_data - the body of the POST request
+ |      headers - the response headers from the server
+ |%
+DECLARE NATIVE FUNCTION post(url: String, post_data: String, INOUT headers: Array<String>): Bytes

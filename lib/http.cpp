@@ -48,4 +48,31 @@ std::string http$get(const std::string &url, std::vector<utf8string> *headers)
     return data;
 }
 
+std::string http$post(const std::string &url, const std::string &post_data, std::vector<utf8string> *headers)
+{
+    std::string data;
+    headers->clear();
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.length());
+    char error[CURL_ERROR_SIZE];
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error);
+    CURLcode r = curl_easy_perform(curl);
+    if (r == CURLE_OK) {
+        long rc;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
+        //printf("rc %ld\n", rc);
+    } else {
+        fprintf(stderr, "curl %d error %s\n", r, error);
+    }
+    curl_easy_cleanup(curl);
+    return data;
+}
+
 }
