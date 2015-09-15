@@ -4,6 +4,15 @@
  |  Functions for making HTTP requests.
  |%
 
+EXPORT HttpError
+
+%|
+ |  Exception: HttpError
+ |
+ |  Raised when an HTTP request returns anything other than 200 OK.
+ |%
+DECLARE EXCEPTION HttpError
+
 %|
  |  Function: get
  |

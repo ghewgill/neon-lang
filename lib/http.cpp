@@ -3,6 +3,7 @@
 
 #include <curl/curl.h>
 
+#include "rtl_exec.h"
 #include "utf8string.h"
 
 static size_t header_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
@@ -42,7 +43,9 @@ std::string http$get(const std::string &url, std::vector<utf8string> *headers)
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
         //printf("rc %ld\n", rc);
     } else {
-        fprintf(stderr, "curl %d error %s\n", r, error);
+        curl_easy_cleanup(curl);
+        //fprintf(stderr, "curl %d error %s\n", r, error);
+        throw RtlException(Exception_http$HttpError, error, r);
     }
     curl_easy_cleanup(curl);
     return data;
@@ -69,7 +72,9 @@ std::string http$post(const std::string &url, const std::string &post_data, std:
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
         //printf("rc %ld\n", rc);
     } else {
-        fprintf(stderr, "curl %d error %s\n", r, error);
+        curl_easy_cleanup(curl);
+        //fprintf(stderr, "curl %d error %s\n", r, error);
+        throw RtlException(Exception_http$HttpError, error, r);
     }
     curl_easy_cleanup(curl);
     return data;
