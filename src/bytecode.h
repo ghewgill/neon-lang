@@ -64,6 +64,7 @@ public:
         unsigned int handler;
     };
 
+    Bytes obj;
     std::string source_hash;
     size_t global_size;
     std::vector<std::string> strtable;

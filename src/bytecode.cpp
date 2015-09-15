@@ -3,7 +3,8 @@
 #include <assert.h>
 
 Bytecode::Bytecode()
-  : source_hash(),
+  : obj(),
+    source_hash(),
     global_size(0),
     strtable(),
     types(),
@@ -18,7 +19,8 @@ Bytecode::Bytecode()
 }
 
 Bytecode::Bytecode(const std::vector<unsigned char> &obj)
-  : source_hash(),
+  : obj(obj),
+    source_hash(),
     global_size(0),
     strtable(),
     types(),

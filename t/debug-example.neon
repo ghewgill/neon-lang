@@ -1,0 +1,13 @@
+FUNCTION f(in: String)
+    print(in)
+END FUNCTION
+
+FUNCTION g(x, y: Number): Number
+    RETURN x + y
+END FUNCTION
+
+LET s: String := "hello world"
+f(s)
+%= hello world
+print(str(g(2, 3)))
+%= 5

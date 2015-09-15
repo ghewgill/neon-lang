@@ -2,19 +2,23 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <fstream>
 #include <iso646.h>
 #include <iostream>
 #include <list>
 #include <map>
+#include <set>
 #include <sstream>
 #include <stdlib.h>
 #include <string.h>
 
 #include <ffi.h>
+#include <minijson_writer.hpp>
 
 #include "bytecode.h"
 #include "cell.h"
 #include "debuginfo.h"
+#include "httpserver.h"
 #include "number.h"
 #include "opcode.h"
 #include "opstack.h"
@@ -177,9 +181,10 @@ private:
     Module &operator=(const Module &);
 };
 
-class Executor {
+class Executor: public IHttpServerHandler {
 public:
-    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert);
+    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port);
+    virtual ~Executor();
     void garbage_collect();
     size_t get_allocated_object_count();
     void set_garbage_collection_interval(size_t count);
@@ -202,6 +207,19 @@ private:
 
     std::list<Cell> allocs;
     unsigned int allocations;
+
+    enum DebuggerState {
+        DEBUGGER_STOPPED,
+        DEBUGGER_RUN,
+        DEBUGGER_STEP_INSTRUCTION,
+        DEBUGGER_STEP_SOURCE,
+        DEBUGGER_QUIT,
+    };
+    static const char *DebuggerStateName[];
+    HttpServer *debug_server;
+    DebuggerState debugger_state;
+    size_t debugger_step_source_depth;
+    std::set<size_t> debugger_breakpoints;
 
     void exec_ENTER();
     void exec_LEAVE();
@@ -289,15 +307,26 @@ private:
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
     void raise(const RtlException &x);
 
+    virtual void handle_GET(const std::string &path, HttpResponse &response);
+    virtual void handle_POST(const std::string &path, const std::string &data, HttpResponse &response);
+
     friend class Module;
 private:
     Executor(const Executor &);
     Executor &operator=(const Executor &);
 };
 
+const char *Executor::DebuggerStateName[] = {
+    "stopped",
+    "run",
+    "single_step",
+    "source_step",
+    "quit",
+};
+
 static Executor *g_executor;
 
-Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert)
+Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port)
   : source_path(source_path),
     enable_assert(enable_assert),
     param_garbage_collection_interval(1000),
@@ -310,12 +339,21 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     callstack(),
     frames(),
     allocs(),
-    allocations(0)
+    allocations(0),
+    debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
+    debugger_state(DEBUGGER_STOPPED),
+    debugger_step_source_depth(0),
+    debugger_breakpoints()
 {
     assert(g_executor == nullptr);
     g_executor = this;
     module = new Module(source_path, Bytecode(bytes), debuginfo, this, support);
     modules[""] = module;
+}
+
+Executor::~Executor()
+{
+    delete debug_server;
 }
 
 Module::Module(const std::string &name, const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support)
@@ -1375,6 +1413,34 @@ void Executor::exec()
 
     while (not callstack.empty() && ip < module->object.code.size()) {
         //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << " st " << stack.depth() << "\n";
+        if (debug_server != nullptr) {
+            switch (debugger_state) {
+                case DEBUGGER_STOPPED:
+                    break;
+                case DEBUGGER_RUN:
+                    if (debugger_breakpoints.find(ip) != debugger_breakpoints.end()) {
+                        debugger_state = DEBUGGER_STOPPED;
+                    }
+                    break;
+                case DEBUGGER_STEP_INSTRUCTION:
+                    debugger_state = DEBUGGER_STOPPED;
+                    break;
+                case DEBUGGER_STEP_SOURCE:
+                    if (callstack.size() <= debugger_step_source_depth && module->debug != nullptr && module->debug->line_numbers.find(ip) != module->debug->line_numbers.end()) {
+                        debugger_state = DEBUGGER_STOPPED;
+                    }
+                    break;
+                case DEBUGGER_QUIT:
+                    break;
+            }
+            debug_server->service(false);
+            while (debugger_state == DEBUGGER_STOPPED) {
+                debug_server->service(true);
+            }
+            if (debugger_state == DEBUGGER_QUIT) {
+                return;
+            }
+        }
         auto last_module = module;
         auto last_ip = ip;
         switch (static_cast<Opcode>(module->object.code[ip])) {
@@ -1468,6 +1534,178 @@ void Executor::exec()
     assert(stack.empty());
 }
 
+namespace minijson {
+
+template <> struct default_value_writer<Number> {
+    void operator()(std::ostream &stream, const Number &n) {
+        detail::write_quoted_string(stream, number_to_string(n).c_str());
+    }
+};
+
+template <> struct default_value_writer<Cell> {
+    void operator()(std::ostream &stream, const Cell &ccell, writer_configuration configuration) {
+        object_writer writer(stream, configuration);
+        // Parameter needs to be `const`, but we need to call (benign) non-const methods.
+        Cell &cell = const_cast<Cell &>(ccell);
+        switch (cell.get_type()) {
+            case Cell::cNone:
+                writer.write("type", "none");
+                writer.write("value", nullptr);
+                break;
+            case Cell::cAddress:
+                writer.write("type", "address");
+                writer.write("value", std::to_string(reinterpret_cast<intptr_t>(cell.address())));
+                break;
+            case Cell::cBoolean:
+                writer.write("type", "boolean");
+                writer.write("value", cell.boolean());
+                break;
+            case Cell::cNumber:
+                writer.write("type", "number");
+                writer.write("value", cell.number());
+                break;
+            case Cell::cString:
+                writer.write("type", "string");
+                writer.write("value", cell.string().str());
+                break;
+            case Cell::cArray: {
+                writer.write("type", "array");
+                writer.write_array("value", cell.array_for_write().begin(), cell.array_for_write().end());
+                break;
+            }
+            case Cell::cDictionary: {
+                writer.write("type", "dictionary");
+                auto d = writer.nested_object("value");
+                for (auto &x: cell.dictionary_for_write()) {
+                    d.write(x.first.str().c_str(), x.second);
+                }
+                d.close();
+                break;
+            }
+        }
+        writer.close();
+    }
+};
+
+} // namespace minijson
+
+void Executor::handle_GET(const std::string &path, HttpResponse &response)
+{
+    std::stringstream r;
+    minijson::writer_configuration config = minijson::writer_configuration().pretty_printing(true);
+    std::vector<std::string> parts = split(path, '/');
+    if (path == "/break") {
+        response.code = 200;
+        minijson::array_writer writer(r, config);
+        for (auto b: debugger_breakpoints) {
+            writer.write(b);
+        }
+        writer.close();
+    } else if (path == "/callstack") {
+        response.code = 200;
+        minijson::array_writer writer(r, config);
+        for (auto i = callstack.rbegin(); i != callstack.rend(); ++i) {
+            auto w = writer.nested_object();
+            w.write("module", i->first->name);
+            w.write("ip", i->second);
+            w.close();
+        }
+        writer.close();
+    } else if (path == "/frames") {
+        response.code = 200;
+        minijson::array_writer writer(r, config);
+        for (auto i = frames.rbegin(); i != frames.rend(); ++i) {
+            auto wf = writer.nested_object();
+            auto wl = wf.nested_array("locals");
+            for (auto &local: i->locals) {
+                wl.write(local);
+            }
+            wl.close();
+            wf.close();
+        }
+        writer.close();
+    } else if (parts.size() >= 3 && parts[1] == "module") {
+        std::string module = parts[2];
+        if (module == "-") {
+            module = "";
+        }
+        Module *m = modules[module];
+        if (parts.size() == 4 && parts[3] == "bytecode") {
+            response.code = 200;
+            minijson::write_array(r, m->object.obj.begin(), m->object.obj.end());
+        } else if (parts.size() == 4 && parts[3] == "debuginfo") {
+            response.code = 200;
+            std::ifstream di(m->debug->source_path + "d");
+            r << di.rdbuf();
+        } else if (parts.size() == 5 && parts[3] == "global") {
+            response.code = 200;
+            minijson::default_value_writer<Cell>()(r, m->globals[std::stoi(parts[4])], config);
+        } else if (parts.size() == 4 && parts[3] == "source") {
+            response.code = 200;
+            minijson::write_array(r, m->debug->source_lines.begin(), m->debug->source_lines.end());
+        }
+    } else if (path == "/modules") {
+        response.code = 200;
+        std::vector<std::string> names;
+        for (auto m: modules) {
+            names.push_back(m.first);
+        }
+        minijson::write_array(r, names.begin(), names.end());
+    } else if (path == "/opstack") {
+        response.code = 200;
+        minijson::write_array(r, stack.begin(), stack.end(), config);
+    } else if (path == "/status") {
+        response.code = 200;
+        minijson::object_writer writer(r, config);
+        writer.write("state", DebuggerStateName[debugger_state]);
+        writer.write("module", module->name);
+        writer.write("ip", ip);
+        writer.close();
+    }
+    if (response.code == 0) {
+        response.code = 404;
+        r << "[debug server] path not found: " << path;
+    }
+    response.content = r.str();
+}
+
+void Executor::handle_POST(const std::string &path, const std::string &data, HttpResponse &response)
+{
+    std::stringstream r;
+    //minijson::writer_configuration config = minijson::writer_configuration().pretty_printing(true);
+    std::vector<std::string> parts = split(path, '/');
+    if (parts.size() == 3 && parts[1] == "break") {
+        response.code = 200;
+        auto addr = std::stoi(parts[2]);
+        if (data == "true") {
+            debugger_breakpoints.insert(addr);
+        } else {
+            debugger_breakpoints.erase(addr);
+        }
+    } else if (path == "/continue") {
+        response.code = 200;
+        debugger_state = DEBUGGER_RUN;
+    } else if (path == "/quit") {
+        response.code = 200;
+        debugger_state = DEBUGGER_QUIT;
+    } else if (path == "/step/instruction") {
+        response.code = 200;
+        debugger_state = DEBUGGER_STEP_INSTRUCTION;
+    } else if (parts.size() == 4 && parts[1] == "step" && parts[2] == "source") {
+        response.code = 200;
+        debugger_state = DEBUGGER_STEP_SOURCE;
+        debugger_step_source_depth = callstack.size() + std::stoi(parts[3]);
+    } else if (path == "/stop") {
+        response.code = 200;
+        debugger_state = DEBUGGER_STOPPED;
+    }
+    if (response.code == 0) {
+        response.code = 404;
+        r << "[debug server] path not found: " << path;
+    }
+    response.content = r.str();
+}
+
 void executor_garbage_collect()
 {
     g_executor->garbage_collect();
@@ -1488,8 +1726,8 @@ void executor_set_recursion_limit(size_t depth)
     g_executor->set_recursion_limit(depth);
 }
 
-void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, int argc, char *argv[])
+void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, int argc, char *argv[])
 {
     rtl_exec_init(argc, argv);
-    Executor(source_path, obj, debuginfo, support, enable_assert).exec();
+    Executor(source_path, obj, debuginfo, support, enable_assert, debug_port).exec();
 }

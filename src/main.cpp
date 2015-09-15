@@ -38,8 +38,9 @@ int main(int argc, char *argv[])
     bool dump_tokens = false;
     bool dump_parse = false;
     bool dump_ast = false;
-    bool dump_bytecode = false;
+    bool dump_listing = false;
     bool enable_assert = true;
+    unsigned short debug_port = 0;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
@@ -56,7 +57,10 @@ int main(int argc, char *argv[])
             }
             break;
         } else if (arg == "-d") {
-            dump_bytecode = true;
+            a++;
+            debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
+        } else if (arg == "-l") {
+            dump_listing = true;
         } else if (arg == "-n") {
             enable_assert = false;
         } else {
@@ -114,7 +118,7 @@ int main(int argc, char *argv[])
             }
 
             bytecode = compile(ast, &debug);
-            if (dump_bytecode) {
+            if (dump_listing) {
                 disassemble(bytecode, std::cerr, &debug);
             }
 
@@ -128,5 +132,5 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(name, bytecode, &debug, &runtime_support, enable_assert, argc-a, argv+a);
+    exec(name, bytecode, &debug, &runtime_support, enable_assert, debug_port, argc-a, argv+a);
 }

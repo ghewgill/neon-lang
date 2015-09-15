@@ -1,0 +1,88 @@
+IMPORT http
+IMPORT io
+IMPORT json
+IMPORT os
+IMPORT time
+IMPORT variant
+
+CONST Port: Number := 20179
+
+FUNCTION get(url: String): variant.Variant
+    VAR headers: Array<String>
+    %io.write(io.stderr(), "get \(url)\n")
+    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", headers).to_string()
+    %io.write(io.stderr(), "\(data)\n")
+    RETURN json.decode(data)
+END FUNCTION
+
+FUNCTION post(url: String, post_data: String): variant.Variant
+    VAR headers: Array<String>
+    %io.write(io.stderr(), "post \(url)\n")
+    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, headers).to_string()
+    RETURN json.decode(data)
+END FUNCTION
+
+VAR p: os.Process := os.spawn("bin/neon -d \(Port) t/debug-example.neon")
+time.sleep(1)
+VAR r: variant.Variant
+
+r := get("/module/-/bytecode")
+ASSERT r.get_array().size() > 0
+
+LET debuginfo: variant.Variant := get("/module/-/debuginfo")
+
+r := get("/module/-/source")
+ASSERT r.get_array()[1].get_string() = "FUNCTION f(in: String)"
+
+r := get("/status")
+ASSERT r.get_dictionary()["state"].get_string() = "stopped"
+ASSERT r.get_dictionary()["module"].get_string() = "t/debug-example.neon"
+ASSERT r.get_dictionary()["ip"].get_number() = 0
+
+r := get("/opstack")
+ASSERT r.get_array().size() = 0
+
+r := post("/step/instruction", "")
+
+r := get("/opstack")
+ASSERT r.get_array().size() = 1
+ASSERT r.get_array()[0].get_dictionary()["type"].get_string() = "string"
+ASSERT r.get_array()[0].get_dictionary()["value"].get_string() = "hello world"
+
+r := post("/step/source/0", "")
+
+r := get("/status")
+ASSERT r.get_dictionary()["ip"].get_number() = 11 % Dependent on actual bytecode
+
+r := get("/module/-/global/1")
+ASSERT r.get_dictionary()["type"].get_string() = "string"
+ASSERT r.get_dictionary()["value"].get_string() = "hello world"
+
+r := post("/step/source/0", "")
+%= hello world
+r := get("/status")
+
+VAR entry_g: Number
+FOREACH f OF debuginfo.get_dictionary()["functions"].get_array() DO
+    IF f.get_dictionary()["name"].get_string() = "g" THEN
+        entry_g := f.get_dictionary()["entry"].get_number()
+        EXIT FOREACH
+    END IF
+END FOREACH
+ASSERT entry_g # 0
+
+r := post("/break/\(entry_g)", "true")
+
+r := get("/break")
+ASSERT r.get_array().size() = 1
+ASSERT r.get_array()[0].get_number() = entry_g
+
+r := post("/continue", "")
+
+r := get("/status")
+ASSERT r.get_dictionary()["ip"].get_number() = entry_g
+
+r := post("/continue", "")
+%= 5
+
+LET rc: Number := os.wait(p)

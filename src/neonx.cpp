@@ -8,6 +8,7 @@
 int main(int argc, char *argv[])
 {
     bool enable_assert = true;
+    unsigned short debug_port = 0;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s filename.neonx\n", argv[0]);
@@ -17,7 +18,10 @@ int main(int argc, char *argv[])
     int a = 1;
     while (a < argc && argv[a][0] == '-' && argv[a][1] != '\0') {
         std::string arg = argv[a];
-        if (arg == "-n") {
+        if (arg == "-d") {
+            a++;
+            debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
+        } else if (arg == "-n") {
             enable_assert = false;
         } else {
             fprintf(stderr, "Unknown option: %s\n", arg.c_str());
@@ -50,7 +54,7 @@ int main(int argc, char *argv[])
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
 
     // TODO: Implement reading DebugInfo from another file.
-    exec(name, bytecode, nullptr, &runtime_support, enable_assert, argc-a, argv+a);
+    exec(name, bytecode, nullptr, &runtime_support, enable_assert, debug_port, argc-a, argv+a);
 
     // Return 0, if the neon bytecode did not call sys.exit() with its OWN exit code.
     return 0;
