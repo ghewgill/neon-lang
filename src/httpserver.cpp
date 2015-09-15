@@ -119,7 +119,7 @@ bool Client::handle_request()
                 int length = std::stoi(value);
                 if (length >= 0 && length <= POST_MAX_LENGTH) {
                     post_length = length;
-                    post_length -= post_data.length();
+                    post_length -= static_cast<int>(post_data.length());
                     if (post_length > 0) {
                         return false;
                     } else {
