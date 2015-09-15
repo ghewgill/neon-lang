@@ -156,6 +156,7 @@ class ExceptionInfo {
 public:
     ExceptionInfo(): info(""), code(number_from_uint32(0)) {}
     explicit ExceptionInfo(const utf8string &info): info(info), code(number_from_uint32(0)) {}
+    ExceptionInfo(const utf8string &info, uint32_t code): info(info), code(number_from_uint32(code)) {}
     utf8string info;
     Number code;
 };
@@ -1267,7 +1268,7 @@ void Executor::raise(const ExceptionName &exception, const ExceptionInfo &info)
 
 void Executor::raise(const RtlException &x)
 {
-    raise_literal(x.name, ExceptionInfo(x.info));
+    raise_literal(x.name, ExceptionInfo(x.info, x.code));
 }
 
 static void mark(Cell *c)
