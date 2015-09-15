@@ -1777,7 +1777,7 @@ static std::string hex_from_binary(const std::string &bin)
     return r.str();
 }
 
-void TypeBoolean::debuginfo(minijson::object_writer &out) const
+void TypeBoolean::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Boolean");
@@ -1785,7 +1785,7 @@ void TypeBoolean::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeNumber::debuginfo(minijson::object_writer &out) const
+void TypeNumber::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Number");
@@ -1793,7 +1793,7 @@ void TypeNumber::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeString::debuginfo(minijson::object_writer &out) const
+void TypeString::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "String");
@@ -1801,7 +1801,7 @@ void TypeString::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeBytes::debuginfo(minijson::object_writer &out) const
+void TypeBytes::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Bytes");
@@ -1809,7 +1809,7 @@ void TypeBytes::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeFunction::debuginfo(minijson::object_writer &out) const
+void TypeFunction::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Function(...)");
@@ -1817,7 +1817,7 @@ void TypeFunction::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeArray::debuginfo(minijson::object_writer &out) const
+void TypeArray::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Array");
@@ -1825,7 +1825,7 @@ void TypeArray::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeDictionary::debuginfo(minijson::object_writer &out) const
+void TypeDictionary::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Dictionary");
@@ -1833,7 +1833,7 @@ void TypeDictionary::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeRecord::debuginfo(minijson::object_writer &out) const
+void TypeRecord::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Record");
@@ -1841,7 +1841,7 @@ void TypeRecord::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypePointer::debuginfo(minijson::object_writer &out) const
+void TypePointer::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Pointer");
@@ -1849,7 +1849,7 @@ void TypePointer::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeFunctionPointer::debuginfo(minijson::object_writer &out) const
+void TypeFunctionPointer::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "FunctionPointer");
@@ -1857,7 +1857,7 @@ void TypeFunctionPointer::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeEnum::debuginfo(minijson::object_writer &out) const
+void TypeEnum::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Enum");
@@ -1865,7 +1865,7 @@ void TypeEnum::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeModule::debuginfo(minijson::object_writer &out) const
+void TypeModule::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Module");
@@ -1873,7 +1873,7 @@ void TypeModule::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void TypeException::debuginfo(minijson::object_writer &out) const
+void TypeException::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
     type.write("display", "Exception");
@@ -1881,8 +1881,9 @@ void TypeException::debuginfo(minijson::object_writer &out) const
     type.close();
 }
 
-void Function::debuginfo(minijson::object_writer &out) const
+void Function::debuginfo(Emitter &emitter, minijson::object_writer &out) const
 {
+    out.write("entry", emitter.function_label(entry_label).get_target());
     auto locals = out.nested_array("locals");
     for (size_t i = 0; i < frame->getCount(); i++) {
         auto slot = frame->getSlot(i);
@@ -1891,14 +1892,14 @@ void Function::debuginfo(minijson::object_writer &out) const
             auto var = locals.nested_object();
             var.write("name", slot.name);
             var.write("index", local->index);
-            local->type->debuginfo(var);
+            local->type->debuginfo(emitter, var);
             var.close();
         }
     }
     locals.close();
 }
 
-void Program::debuginfo(minijson::object_writer &out) const
+void Program::debuginfo(Emitter &emitter, minijson::object_writer &out) const
 {
     {
         auto globals = out.nested_array("globals");
@@ -1909,7 +1910,7 @@ void Program::debuginfo(minijson::object_writer &out) const
                 auto var = globals.nested_object();
                 var.write("name", slot.name);
                 var.write("index", global->index);
-                global->type->debuginfo(var);
+                global->type->debuginfo(emitter, var);
                 var.close();
             }
         }
@@ -1923,7 +1924,7 @@ void Program::debuginfo(minijson::object_writer &out) const
             if (function != nullptr) {
                 auto func = functions.nested_object();
                 func.write("name", slot.name);
-                function->debuginfo(func);
+                function->debuginfo(emitter, func);
                 func.close();
             }
         }
@@ -1940,7 +1941,19 @@ std::vector<unsigned char> compile(const Program *p, DebugInfo *debug)
         minijson::object_writer writer(out, minijson::writer_configuration().pretty_printing(true));
         writer.write("source_path", p->source_path);
         writer.write("source_hash", hex_from_binary(p->source_hash));
-        p->debuginfo(writer);
+        if (debug != nullptr) {
+            writer.write_array("source", debug->source_lines.begin(), debug->source_lines.end());
+            std::vector<std::pair<size_t, int>> lines;
+            auto lw = writer.nested_array("line_numbers");
+            for (auto &n: debug->line_numbers) {
+                auto a = lw.nested_array();
+                a.write(n.first);
+                a.write(n.second);
+                a.close();
+            }
+            lw.close();
+        }
+        p->debuginfo(emitter, writer);
         writer.close();
     }
     return emitter.getObject();
