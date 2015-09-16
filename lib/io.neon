@@ -6,6 +6,7 @@
 
 EXPORT File
 EXPORT Mode
+EXPORT SeekBase
 
 %|
  |  Enumeration: Mode
@@ -19,6 +20,22 @@ EXPORT Mode
 TYPE Mode := ENUM
     read
     write
+END ENUM
+
+%|
+ |  Enumeration: SeekBase
+ |
+ |  Position to base seek position on.
+ |
+ |  Values:
+ |      absolute - set absolute position
+ |      relative - set position relative to current
+ |      from_end - set position relative to end
+ |%
+TYPE SeekBase := ENUM
+    absolute
+    relative
+    from_end
 END ENUM
 
 %|
@@ -57,6 +74,13 @@ DECLARE NATIVE FUNCTION fprint(f: File, s: String)
 DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
 
 %|
+ |  Function: read_bytes
+ |
+ |  Read bytes from a file.
+ |%
+DECLARE NATIVE FUNCTION read_bytes(f: File, count: Number): Bytes
+
+%|
  |  Function: readline
  |
  |  Read a line of text from a file.
@@ -65,6 +89,13 @@ DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
  |      FALSE if there are no more lines in the file, otherwise TRUE.
  |%
 DECLARE NATIVE FUNCTION readline(f: File, INOUT s: String): Boolean
+
+%|
+ |  Function: seek
+ |
+ |  Seek to a specific position within a file.
+ |%
+DECLARE NATIVE FUNCTION seek(f: File, offset: Number, whence: SeekBase DEFAULT SeekBase.absolute)
 
 %|
  |  Function: stdin
@@ -88,8 +119,29 @@ DECLARE NATIVE FUNCTION stdout(): File
 DECLARE NATIVE FUNCTION stderr(): File
 
 %|
+ |  Function: tell
+ |
+ |  Return the current file pointer position.
+ |%
+DECLARE NATIVE FUNCTION tell(f: File): Number
+
+%|
+ |  Function: truncate
+ |
+ |  Truncate the file at the current position.
+ |%
+DECLARE NATIVE FUNCTION truncate(f: File)
+
+%|
  |  Function: write
  |
  |  Write characters to a file. No newline is written.
  |%
 DECLARE NATIVE FUNCTION write(f: File, s: String)
+
+%|
+ |  Function: write_bytes
+ |
+ |  Write bytes to a file.
+ |%
+DECLARE NATIVE FUNCTION write_bytes(f: File, b: Bytes)

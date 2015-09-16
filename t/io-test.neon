@@ -16,4 +16,23 @@ print(strb(io.readline(f, s)))
 print(s)
 %= The MIT License (MIT)
 
+io.seek(f, 4, io.SeekBase.absolute)
+print(io.read_bytes(f, 5).to_string())
+%= MIT L
+print(str(io.tell(f)))
+%= 9
+
+io.close(f)
+
+f := io.open("io-test.tmp", io.Mode.write)
+io.fprint(f, "Hello world")
+io.seek(f, 7, io.SeekBase.absolute)
+io.truncate(f)
+io.close(f)
+f := io.open("io-test.tmp", io.Mode.read)
+print(strb(io.readline(f, s)))
+%= TRUE
+print(s)
+%= Hello w
+
 io.close(f)
