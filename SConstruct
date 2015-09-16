@@ -356,7 +356,7 @@ else:
     test_ffi = env.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
 
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py t")
-tests = env.Command("tests_helium", [neon, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " helium/helium.py\" t")
+tests = env.Command("tests_helium", [neon, "scripts/run_test.py", Glob("t/*")], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" t")
 env.Depends(tests, test_ffi)
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
