@@ -161,6 +161,7 @@ for fn in sys.argv[1:]:
                         AstFromNeon[name] = ("TYPE_POINTER", VALUE)
                         AstFromNeon["INOUT "+name] = ("TYPE_POINTER", REF)
                     elif atype == "ENUM":
+                        # TODO: Why is this TYPE_GENERIC? It should be TYPE_NUMBER.
                         AstFromNeon[name] = ("TYPE_GENERIC", VALUE)
                         AstFromNeon["INOUT "+name] = ("TYPE_GENERIC", REF)
                         enums[name] = []
@@ -302,7 +303,7 @@ with open("src/functions_exec.inc", "w") as inc:
 with open("src/enums.inc", "w") as inc:
     for name, values in enums.items():
         for i, v in enumerate(values):
-            print >>inc, "static const Number ENUM_{}_{} = number_from_uint32({});".format(name, v, i)
+            print >>inc, "static const uint32_t ENUM_{}_{} = {};".format(name, v, i)
 
 with open("src/exceptions.inc", "w") as inc:
     print >>inc, "struct ExceptionName {"

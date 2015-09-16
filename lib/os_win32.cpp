@@ -29,7 +29,7 @@ std::string os$getcwd()
 
 Cell os$platform()
 {
-    return Cell(ENUM_Platform_win32);
+    return Cell(number_from_uint32(ENUM_Platform_win32));
 }
 
 bool os$fork(Cell **process)

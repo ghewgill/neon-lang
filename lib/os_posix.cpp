@@ -42,7 +42,7 @@ std::string os$getcwd()
 
 Cell os$platform()
 {
-    return Cell(ENUM_Platform_posix);
+    return Cell(number_from_uint32(ENUM_Platform_posix));
 }
 
 bool os$fork(Cell **process)
