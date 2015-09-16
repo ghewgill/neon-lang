@@ -11,7 +11,7 @@ std::string compress$gzip(const std::string &input)
     std::string buf;
     uLong destLen = compressBound(static_cast<uLong>(input.length()));
     buf.resize(destLen);
-    int r = compress((Bytef *)buf.data(), &destLen, (Bytef *)input.data(), static_cast<uLong>(input.length()));
+    int r = compress(reinterpret_cast<Bytef *>(const_cast<char *>(buf.data())), &destLen, reinterpret_cast<Bytef *>(const_cast<char *>(input.data())), static_cast<uLong>(input.length()));
     if (r != Z_OK) {
         fprintf(stderr, "gzip r %d\n", r);
         return std::string(); // TODO: exception
@@ -27,7 +27,7 @@ std::string compress$gunzip(const std::string &input)
     int r;
     for (;;) {
         buf.resize(destLen);
-        r = uncompress((Bytef *)buf.data(), &destLen, (Bytef *)input.data(), static_cast<uLong>(input.length()));
+        r = uncompress(reinterpret_cast<Bytef *>(const_cast<char *>(buf.data())), &destLen, reinterpret_cast<Bytef *>(const_cast<char *>(input.data())), static_cast<uLong>(input.length()));
         if (r != Z_BUF_ERROR) {
             break;
         }
@@ -46,7 +46,7 @@ std::string compress$bzip2(const std::string &input)
     std::string buf;
     unsigned int destLen = static_cast<unsigned int>(input.length() + input.length()/100 + 600);
     buf.resize(destLen);
-    int r = BZ2_bzBuffToBuffCompress((char *)buf.data(), &destLen, (char *)input.data(), static_cast<unsigned int>(input.length()), 5, 0, 30);
+    int r = BZ2_bzBuffToBuffCompress(const_cast<char *>(buf.data()), &destLen, const_cast<char *>(input.data()), static_cast<unsigned int>(input.length()), 5, 0, 30);
     if (r != BZ_OK) {
         fprintf(stderr, "bzip2 r %d\n", r);
         return std::string(); // TODO: exception
@@ -62,7 +62,7 @@ std::string compress$bunzip2(const std::string &input)
     int r;
     for (;;) {
         buf.resize(destLen);
-        r = BZ2_bzBuffToBuffDecompress((char *)buf.data(), &destLen, (char *)input.data(), static_cast<unsigned int>(input.length()), 0, 0);
+        r = BZ2_bzBuffToBuffDecompress(const_cast<char *>(buf.data()), &destLen, const_cast<char *>(input.data()), static_cast<unsigned int>(input.length()), 0, 0);
         if (r != BZ_OUTBUFF_FULL) {
             break;
         }
@@ -82,7 +82,7 @@ std::string compress$lzma(const std::string &input)
     size_t destLen = input.length() + 1000;
     buf.resize(destLen);
     size_t destPos = 0;
-    int r = lzma_easy_buffer_encode(LZMA_PRESET_EXTREME, LZMA_CHECK_CRC64, NULL, (const uint8_t *)input.data(), input.length(), (uint8_t *)buf.data(), &destPos, destLen);
+    int r = lzma_easy_buffer_encode(LZMA_PRESET_EXTREME, LZMA_CHECK_CRC64, NULL, reinterpret_cast<const uint8_t *>(input.data()), input.length(), reinterpret_cast<uint8_t *>(const_cast<char *>(buf.data())), &destPos, destLen);
     if (r != LZMA_OK) {
         fprintf(stderr, "lzma r %d\n", r);
         return std::string(); // TODO: exception
@@ -102,7 +102,7 @@ std::string compress$unlzma(const std::string &input)
         uint64_t memlimit = UINT64_MAX;
         size_t inPos = 0;
         outPos = 0;
-        r = lzma_stream_buffer_decode(&memlimit, 0, NULL, (const uint8_t *)input.data(), &inPos, input.length(), (uint8_t *)buf.data(), &outPos, destLen);
+        r = lzma_stream_buffer_decode(&memlimit, 0, NULL, reinterpret_cast<const uint8_t *>(input.data()), &inPos, input.length(), reinterpret_cast<uint8_t *>(const_cast<char *>(buf.data())), &outPos, destLen);
         if (r != LZMA_BUF_ERROR) {
             break;
         }

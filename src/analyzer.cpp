@@ -1329,7 +1329,7 @@ const Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr)
 const Expression *Analyzer::analyze(const pt::ComparisonExpression *expr)
 {
     const Expression *left = analyze(expr->left);
-    ComparisonExpression::Comparison comp = (ComparisonExpression::Comparison)expr->comp; // TODO: remove cast
+    ComparisonExpression::Comparison comp = static_cast<ComparisonExpression::Comparison>(expr->comp); // TODO: remove cast
     const Expression *right = analyze(expr->right);
     if (not left->type->is_equivalent(right->type)) {
         error(3030, expr->token, "type mismatch");
@@ -2203,7 +2203,7 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 if (not when->is_constant) {
                     error(3052, cwc->expr->token, "WHEN condition must be constant");
                 }
-                ComparisonExpression::Comparison comp = (ComparisonExpression::Comparison)cwc->comp; // TODO: remove cast
+                ComparisonExpression::Comparison comp = static_cast<ComparisonExpression::Comparison>(cwc->comp); // TODO: remove cast
                 const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(cwc->expr->token, comp, when);
                 for (auto clause: clauses) {
                     for (auto c: clause.first) {

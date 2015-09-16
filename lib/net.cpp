@@ -60,7 +60,7 @@ void net$socket_connect(Cell &handle, const std::string &host, Number port)
     sin.sin_family = AF_INET;
     sin.sin_addr = addr;
     sin.sin_port = htons(static_cast<uint16_t>(p));
-    int r = connect(s, (sockaddr *)&sin, sizeof(sin));
+    int r = connect(s, reinterpret_cast<sockaddr *>(&sin), sizeof(sin));
     if (r < 0) {
         perror("connect");
     }

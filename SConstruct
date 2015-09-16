@@ -103,6 +103,7 @@ else:
         "-Wall",
         "-Wextra",
         "-Weffc++",
+        #"-Wold-style-cast",    # Enable this temporarily to check, but it breaks with gcc and #defines with C casts in standard headers.
         "-Werror",
     ])
     if not env["RELEASE"]:
