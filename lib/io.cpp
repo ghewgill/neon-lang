@@ -1,6 +1,9 @@
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
+#ifdef _WIN32
+#include <io.h>
+#endif
 #include <iso646.h>
 #include <stdio.h>
 #include <string>
@@ -89,7 +92,7 @@ void io$seek(void *pf, Number offset, Cell &whence)
         default:
             return;
     }
-    fseek(f, number_to_sint64(offset), w);
+    fseek(f, static_cast<long>(number_to_sint64(offset)), w);
 }
 
 void *io$stdin()
