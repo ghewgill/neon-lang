@@ -35,6 +35,6 @@ void rtl_call(opstack<Cell> &stack, const std::string &name, size_t &token)
         }
         token = f->second;
     }
-    auto fn = BuiltinFunctions[token];
+    auto &fn = BuiltinFunctions[token];
     fn.thunk(stack, fn.func);
 }
