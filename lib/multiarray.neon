@@ -1,0 +1,104 @@
+%|
+ |  File: multiarray
+ |
+ |  Functions and types for working with multidimensional arrays.
+ |%
+
+EXPORT ArrayNumber2D
+EXPORT ArrayNumber3D
+EXPORT ArrayString2D
+EXPORT ArrayString3D
+EXPORT make_number2D
+EXPORT make_number3D
+EXPORT make_string2D
+EXPORT make_string3D
+
+%|
+ |  Type: ArrayNumber2D
+ |
+ |  A two-dimensional array of <Numbers>.
+ |%
+TYPE ArrayNumber2D := Array<Array<Number>>
+
+%|
+ |  Type: ArrayNumber3D
+ |
+ |  A three-dimensional array of <Numbers>.
+ |%
+TYPE ArrayNumber3D := Array<Array<Array<Number>>>
+
+%|
+ |  Type: ArrayString2D
+ |
+ |  A two-dimensional array of <Strings>.
+ |%
+TYPE ArrayString2D := Array<Array<String>>
+
+%|
+ |  Type: ArrayString3D
+ |
+ |  A three-dimensional array of <Strings>.
+ |%
+TYPE ArrayString3D := Array<Array<Array<String>>>
+
+%|
+ |  Function: make_number2D
+ |
+ |  Create a new <ArrayNumber2D> with the given number of rows and columns.
+ |%
+FUNCTION make_number2D(rows, columns: Number): ArrayNumber2D
+    VAR r: ArrayNumber2D
+    r.resize(rows)
+    FOR i := 0 TO rows-1 DO
+        r[i].resize(columns)
+    END FOR
+    RETURN r
+END FUNCTION
+
+%|
+ |  Function: make_number3D
+ |
+ |  Create a new <ArrayNumber3D> with the given number of rows, columns, and depth.
+ |%
+FUNCTION make_number3D(rows, columns, depth: Number): ArrayNumber3D
+    VAR r: ArrayNumber3D
+    r.resize(rows)
+    FOR i := 0 TO rows-1 DO
+        r[i].resize(columns)
+        FOR j := 0 TO columns-1 DO
+            r[i][j].resize(depth)
+        END FOR
+    END FOR
+    RETURN r
+END FUNCTION
+
+%|
+ |  Function: make_string2D
+ |
+ |  Create a new <ArrayString2D> with the given number of rows and columns.
+ |%
+FUNCTION make_string2D(rows, columns: Number): ArrayString2D
+    VAR r: ArrayString2D
+    r.resize(rows)
+    FOR i := 0 TO rows-1 DO
+        r[i].resize(columns)
+    END FOR
+    RETURN r
+END FUNCTION
+
+%|
+ |  Function: make_string3D
+ |
+ |  Create a new <ArrayString3D> with the given number of rows, columns, and depth.
+ |%
+FUNCTION make_string3D(rows, columns, depth: Number): ArrayString3D
+    VAR r: ArrayString3D
+    r.resize(rows)
+    FOR i := 0 TO rows-1 DO
+        r[i].resize(columns)
+        FOR j := 0 TO columns-1 DO
+            r[i][j].resize(depth)
+        END FOR
+    END FOR
+    RETURN r
+END FUNCTION

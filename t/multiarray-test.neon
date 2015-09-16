@@ -1,0 +1,43 @@
+IMPORT multiarray
+
+VAR n2: multiarray.ArrayNumber2D := multiarray.make_number2D(4, 5)
+ASSERT n2.size() = 4
+FOREACH row OF n2 DO
+    ASSERT row.size() = 5
+    FOREACH cell OF row DO
+        ASSERT cell = 0
+    END FOREACH
+END FOREACH
+
+VAR n3: multiarray.ArrayNumber3D := multiarray.make_number3D(4, 5, 6)
+ASSERT n3.size() = 4
+FOREACH row OF n3 DO
+    ASSERT row.size() = 5
+    FOREACH core OF row DO
+        ASSERT core.size() = 6
+        FOREACH cell OF core DO
+            ASSERT cell = 0
+        END FOREACH
+    END FOREACH
+END FOREACH
+
+VAR s2: multiarray.ArrayString2D := multiarray.make_string2D(4, 5)
+ASSERT s2.size() = 4
+FOREACH row OF s2 DO
+    ASSERT row.size() = 5
+    FOREACH cell OF row DO
+        ASSERT cell = ""
+    END FOREACH
+END FOREACH
+
+VAR s3: multiarray.ArrayString3D := multiarray.make_string3D(4, 5, 6)
+ASSERT s3.size() = 4
+FOREACH row OF s3 DO
+    ASSERT row.size() = 5
+    FOREACH core OF row DO
+        ASSERT core.size() = 6
+        FOREACH cell OF core DO
+            ASSERT cell = ""
+        END FOREACH
+    END FOREACH
+END FOREACH

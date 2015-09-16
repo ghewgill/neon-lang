@@ -2009,6 +2009,7 @@ ExcludeTests = [
     "t/module-import-name-as2.neon", # Feature not required
     "t/module-import-name.neon", # Feature not required
     "t/module-import-name2.neon", # Feature not required
+    "t/multiarray-test.neon",   # Module not required
     "t/net-test.neon",          # Module not required
     "t/number-ceil.neon",       # Feature not required
     "t/number-underscore.neon", # Feature not required
