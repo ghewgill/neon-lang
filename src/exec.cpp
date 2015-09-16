@@ -185,10 +185,17 @@ class Executor: public IHttpServerHandler {
 public:
     Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port);
     virtual ~Executor();
+
+    // Module: debugger
+    void breakpoint();
+    void log(const std::string &message);
+
+    // Module: runtime
     void garbage_collect();
     size_t get_allocated_object_count();
     void set_garbage_collection_interval(size_t count);
     void set_recursion_limit(size_t depth);
+
     void exec();
 private:
     const std::string source_path;
@@ -220,6 +227,7 @@ private:
     DebuggerState debugger_state;
     size_t debugger_step_source_depth;
     std::set<size_t> debugger_breakpoints;
+    std::vector<std::string> debugger_log;
 
     void exec_ENTER();
     void exec_LEAVE();
@@ -343,7 +351,8 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
     debugger_state(DEBUGGER_STOPPED),
     debugger_step_source_depth(0),
-    debugger_breakpoints()
+    debugger_breakpoints(),
+    debugger_log()
 {
     assert(g_executor == nullptr);
     g_executor = this;
@@ -1309,6 +1318,16 @@ void Executor::raise(const RtlException &x)
     raise_literal(x.name, ExceptionInfo(x.info, x.code));
 }
 
+void Executor::breakpoint()
+{
+    debugger_state = DEBUGGER_STOPPED;
+}
+
+void Executor::log(const std::string &message)
+{
+    debugger_log.push_back(message);
+}
+
 static void mark(Cell *c)
 {
     if (c == nullptr || (c->gc.alloced && c->gc.marked)) {
@@ -1660,6 +1679,7 @@ void Executor::handle_GET(const std::string &path, HttpResponse &response)
         writer.write("state", DebuggerStateName[debugger_state]);
         writer.write("module", module->name);
         writer.write("ip", ip);
+        writer.write("log_messages", debugger_log.size());
         writer.close();
     }
     if (response.code == 0) {
@@ -1672,7 +1692,7 @@ void Executor::handle_GET(const std::string &path, HttpResponse &response)
 void Executor::handle_POST(const std::string &path, const std::string &data, HttpResponse &response)
 {
     std::stringstream r;
-    //minijson::writer_configuration config = minijson::writer_configuration().pretty_printing(true);
+    minijson::writer_configuration config = minijson::writer_configuration().pretty_printing(true);
     std::vector<std::string> parts = split(path, '/');
     if (parts.size() == 3 && parts[1] == "break") {
         response.code = 200;
@@ -1685,6 +1705,10 @@ void Executor::handle_POST(const std::string &path, const std::string &data, Htt
     } else if (path == "/continue") {
         response.code = 200;
         debugger_state = DEBUGGER_RUN;
+    } else if (path == "/log") {
+        response.code = 200;
+        minijson::write_array(r, debugger_log.begin(), debugger_log.end(), config);
+        debugger_log.clear();
     } else if (path == "/quit") {
         response.code = 200;
         debugger_state = DEBUGGER_QUIT;
@@ -1704,6 +1728,16 @@ void Executor::handle_POST(const std::string &path, const std::string &data, Htt
         r << "[debug server] path not found: " << path;
     }
     response.content = r.str();
+}
+
+void executor_breakpoint()
+{
+    g_executor->breakpoint();
+}
+
+void executor_log(const std::string &message)
+{
+    g_executor->log(message);
 }
 
 void executor_garbage_collect()

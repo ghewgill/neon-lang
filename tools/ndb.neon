@@ -81,6 +81,13 @@ LOOP
         END TRY
     UNTIL r.get_dictionary()["state"].get_string() = "stopped"
 
+    IF r.get_dictionary()["log_messages"].get_number() > 0 THEN
+        LET log: variant.Variant := post("/log", "")
+        FOREACH message OF log.get_array() DO
+            print(message.get_string())
+        END FOREACH
+    END IF
+
     LET ip: Number := r.get_dictionary()["ip"].get_number()
     IF LineFromAddress[ip] > 0 THEN
         print("\(LineFromAddress[ip]) | \(Source[LineFromAddress[ip]])")

@@ -1984,6 +1984,7 @@ ExcludeTests = [
     "t/complex-test.neon",      # Module not required
     "t/compress-test.neon",     # Module not required
     "t/datetime-test.neon",     # Module not required
+    "t/debug-example.neon",     # Feature not required
     "t/debug-server.neon",      # Feature not required
     "t/decimal.neon",           # Module not required
     "t/exception-clear.neon",   # CURRENT_EXCEPTION not required
