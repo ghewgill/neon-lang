@@ -140,6 +140,7 @@ if coverage:
     ])
 
 rtl_const = [
+    "lib/curses_const.cpp",
 ]
 
 rtl_cpp = rtl_const + [

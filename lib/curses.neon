@@ -7,6 +7,9 @@
  |      https://en.wikipedia.org/wiki/Curses_%28programming_library%29
  |%
 
+DECLARE NATIVE CONST ERR: Number
+DECLARE NATIVE CONST OK: Number
+
 TYPE Window := POINTER
 
 DECLARE NATIVE FUNCTION COLS(): Number
