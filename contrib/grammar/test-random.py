@@ -62,8 +62,8 @@ for _ in range(100):
     out, err = p.communicate(source)
     p.wait()
     if "Error N1" in err or "Error N2" in err:
-        with open("random.out", "w") as f:
+        with open("tmp/random.out", "w") as f:
             f.write(source)
         print err
-        print "Randomly generated source saved in random.out"
+        print "Randomly generated source saved in tmp/random.out"
         sys.exit(1)

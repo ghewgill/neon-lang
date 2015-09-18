@@ -24,12 +24,12 @@ print(str(io.tell(f)))
 
 io.close(f)
 
-f := io.open("io-test.tmp", io.Mode.write)
+f := io.open("tmp/io-test.tmp", io.Mode.write)
 io.fprint(f, "Hello world")
 io.seek(f, 7, io.SeekBase.absolute)
 io.truncate(f)
 io.close(f)
-f := io.open("io-test.tmp", io.Mode.read)
+f := io.open("tmp/io-test.tmp", io.Mode.read)
 print(strb(io.readline(f, s)))
 %= TRUE
 print(s)

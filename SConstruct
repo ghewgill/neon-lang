@@ -378,8 +378,8 @@ env.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "cont
 env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
 
 if os.name == "posix":
-    env.Command("samples/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
-    env.Command("tests_script", "samples/hello", "env PATH=bin samples/hello")
+    env.Command("tmp/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
+    env.Command("tests_script", "tmp/hello", "env PATH=bin tmp/hello")
 
 # Need to find where perl actually is, in case it's not in
 # one of the paths supplied by scons by default (for example,

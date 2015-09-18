@@ -2,7 +2,7 @@ IMPORT sqlite
 
 VAR rows: sqlite.Rows
 
-LET db: sqlite.Database := sqlite.open("test.db")
+LET db: sqlite.Database := sqlite.open("tmp/test.db")
 rows := sqlite.exec(db, "drop table if exists foo")
 rows := sqlite.exec(db, "create table foo(name string, value integer)")
 rows := sqlite.exec(db, "insert into foo values ('property', 234)")

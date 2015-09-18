@@ -4,9 +4,9 @@ VAR buf: Bytes
 
 buf.from_array([4, 3, 2, 0, 1])
 
-file.writebytes("bytetest.bin", buf)
+file.writebytes("tmp/bytetest.bin", buf)
 
-VAR a: Array<Number> := file.readbytes("bytetest.bin").to_array()
+VAR a: Array<Number> := file.readbytes("tmp/bytetest.bin").to_array()
 print("\(a[0]),\(a[1]),\(a[2]),\(a[3]),\(a[4])")
 
 %= 4,3,2,0,1
