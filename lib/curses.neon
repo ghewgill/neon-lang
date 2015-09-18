@@ -14,258 +14,115 @@ TYPE Window := POINTER
 
 %|----------------------------------------------------------------------
  |
- |  Function and Keypad Key Definitions.
- |  Many are just for compatibility.
+ |  Video Attributes
  |
  |%
 
-DECLARE NATIVE CONST KEY_CODE_YES       :Number % If get_wch() gives a key code
+DECLARE NATIVE CONST A_CHARTEXT         : Number
 
-DECLARE NATIVE CONST KEY_BREAK          :Number % Not on PC KBD
-DECLARE NATIVE CONST KEY_DOWN           :Number % Down arrow key
-DECLARE NATIVE CONST KEY_UP             :Number % Up arrow key
-DECLARE NATIVE CONST KEY_LEFT           :Number % Left arrow key
-DECLARE NATIVE CONST KEY_RIGHT          :Number % Right arrow key
-DECLARE NATIVE CONST KEY_HOME           :Number % home key
-DECLARE NATIVE CONST KEY_BACKSPACE      :Number % not on pc
-DECLARE NATIVE CONST KEY_F0             :Number % function keys; 64 reserved
+%|----------------------------------------------------------------------
+ |
+ |  Keyboard, and Key Definitions.
+ |
+ |%
 
-DECLARE NATIVE CONST KEY_DL             :Number % delete line
-DECLARE NATIVE CONST KEY_IL             :Number % insert line
-DECLARE NATIVE CONST KEY_DC             :Number % delete character
-DECLARE NATIVE CONST KEY_IC             :Number % insert char or enter ins mode
-DECLARE NATIVE CONST KEY_EIC            :Number % exit insert char mode
-DECLARE NATIVE CONST KEY_CLEAR          :Number % clear screen
-DECLARE NATIVE CONST KEY_EOS            :Number % clear to end of screen
-DECLARE NATIVE CONST KEY_EOL            :Number % clear to end of line
-DECLARE NATIVE CONST KEY_SF             :Number % scroll 1 line forward
-DECLARE NATIVE CONST KEY_SR             :Number % scroll 1 line back (reverse)
-DECLARE NATIVE CONST KEY_NPAGE          :Number % next page
-DECLARE NATIVE CONST KEY_PPAGE          :Number % previous page
-DECLARE NATIVE CONST KEY_STAB           :Number % set tab
-DECLARE NATIVE CONST KEY_CTAB           :Number % clear tab
-DECLARE NATIVE CONST KEY_CATAB          :Number % clear all tabs
-DECLARE NATIVE CONST KEY_ENTER          :Number % enter or send (unreliable)
-DECLARE NATIVE CONST KEY_SRESET         :Number % soft/reset (partial/unreliable)
-DECLARE NATIVE CONST KEY_RESET          :Number % reset/hard reset (unreliable)
-DECLARE NATIVE CONST KEY_PRINT          :Number % print/copy
-DECLARE NATIVE CONST KEY_LL             :Number % home down/bottom (lower left)
-DECLARE NATIVE CONST KEY_ABORT          :Number % abort/terminate key (any)
-DECLARE NATIVE CONST KEY_SHELP          :Number % short help
-DECLARE NATIVE CONST KEY_LHELP          :Number % long help
-DECLARE NATIVE CONST KEY_BTAB           :Number % Back tab key
-DECLARE NATIVE CONST KEY_BEG            :Number % beg(inning) key
-DECLARE NATIVE CONST KEY_CANCEL         :Number % cancel key
-DECLARE NATIVE CONST KEY_CLOSE          :Number % close key
-DECLARE NATIVE CONST KEY_COMMAND        :Number % cmd (command) key
-DECLARE NATIVE CONST KEY_COPY           :Number % copy key
-DECLARE NATIVE CONST KEY_CREATE         :Number % create key
-DECLARE NATIVE CONST KEY_END            :Number % end key
-DECLARE NATIVE CONST KEY_EXIT           :Number % exit key
-DECLARE NATIVE CONST KEY_FIND           :Number % find key
-DECLARE NATIVE CONST KEY_HELP           :Number % help key
-DECLARE NATIVE CONST KEY_MARK           :Number % mark key
-DECLARE NATIVE CONST KEY_MESSAGE        :Number % message key
-DECLARE NATIVE CONST KEY_MOVE           :Number % move key
-DECLARE NATIVE CONST KEY_NEXT           :Number % next object key
-DECLARE NATIVE CONST KEY_OPEN           :Number % open key
-DECLARE NATIVE CONST KEY_OPTIONS        :Number % options key
-DECLARE NATIVE CONST KEY_PREVIOUS       :Number % previous object key
-DECLARE NATIVE CONST KEY_REDO           :Number % redo key
-DECLARE NATIVE CONST KEY_REFERENCE      :Number % ref(erence) key
-DECLARE NATIVE CONST KEY_REFRESH        :Number % refresh key
-DECLARE NATIVE CONST KEY_REPLACE        :Number % replace key
-DECLARE NATIVE CONST KEY_RESTART        :Number % restart key
-DECLARE NATIVE CONST KEY_RESUME         :Number % resume key
-DECLARE NATIVE CONST KEY_SAVE           :Number % save key
-DECLARE NATIVE CONST KEY_SBEG           :Number % shifted beginning key
-DECLARE NATIVE CONST KEY_SCANCEL        :Number % shifted cancel key
-DECLARE NATIVE CONST KEY_SCOMMAND       :Number % shifted command key
-DECLARE NATIVE CONST KEY_SCOPY          :Number % shifted copy key
-DECLARE NATIVE CONST KEY_SCREATE        :Number % shifted create key
-DECLARE NATIVE CONST KEY_SDC            :Number % shifted delete char key
-DECLARE NATIVE CONST KEY_SDL            :Number % shifted delete line key
-DECLARE NATIVE CONST KEY_SELECT         :Number % select key
-DECLARE NATIVE CONST KEY_SEND           :Number % shifted end key
-DECLARE NATIVE CONST KEY_SEOL           :Number % shifted clear line key
-DECLARE NATIVE CONST KEY_SEXIT          :Number % shifted exit key
-DECLARE NATIVE CONST KEY_SFIND          :Number % shifted find key
-DECLARE NATIVE CONST KEY_SHOME          :Number % shifted home key
-DECLARE NATIVE CONST KEY_SIC            :Number % shifted input key
+DECLARE NATIVE CONST KEY_CODE_YES       : Number % If get_wch() gives a key code
+                                          
+DECLARE NATIVE CONST KEY_BREAK          : Number % Not on PC KBD
+DECLARE NATIVE CONST KEY_DOWN           : Number % Down arrow key
+DECLARE NATIVE CONST KEY_UP             : Number % Up arrow key
+DECLARE NATIVE CONST KEY_LEFT           : Number % Left arrow key
+DECLARE NATIVE CONST KEY_RIGHT          : Number % Right arrow key
+DECLARE NATIVE CONST KEY_HOME           : Number % home key
+DECLARE NATIVE CONST KEY_BACKSPACE      : Number % not on pc
+DECLARE NATIVE CONST KEY_F0             : Number % function keys; 64 reserved
+                                          
+DECLARE NATIVE CONST KEY_DL             : Number % delete line
+DECLARE NATIVE CONST KEY_IL             : Number % insert line
+DECLARE NATIVE CONST KEY_DC             : Number % delete character
+DECLARE NATIVE CONST KEY_IC             : Number % insert char or enter ins mode
+DECLARE NATIVE CONST KEY_EIC            : Number % exit insert char mode
+DECLARE NATIVE CONST KEY_CLEAR          : Number % clear screen
+DECLARE NATIVE CONST KEY_EOS            : Number % clear to end of screen
+DECLARE NATIVE CONST KEY_EOL            : Number % clear to end of line
+DECLARE NATIVE CONST KEY_SF             : Number % scroll 1 line forward
+DECLARE NATIVE CONST KEY_SR             : Number % scroll 1 line back (reverse)
+DECLARE NATIVE CONST KEY_NPAGE          : Number % next page
+DECLARE NATIVE CONST KEY_PPAGE          : Number % previous page
+DECLARE NATIVE CONST KEY_STAB           : Number % set tab
+DECLARE NATIVE CONST KEY_CTAB           : Number % clear tab
+DECLARE NATIVE CONST KEY_CATAB          : Number % clear all tabs
+DECLARE NATIVE CONST KEY_ENTER          : Number % enter or send (unreliable)
+DECLARE NATIVE CONST KEY_SRESET         : Number % soft/reset (partial/unreliable)
+DECLARE NATIVE CONST KEY_RESET          : Number % reset/hard reset (unreliable)
+DECLARE NATIVE CONST KEY_PRINT          : Number % print/copy
+DECLARE NATIVE CONST KEY_LL             : Number % home down/bottom (lower left)
+DECLARE NATIVE CONST KEY_SHELP          : Number % short help
+DECLARE NATIVE CONST KEY_BTAB           : Number % Back tab key
+DECLARE NATIVE CONST KEY_BEG            : Number % beg(inning) key
+DECLARE NATIVE CONST KEY_CANCEL         : Number % cancel key
+DECLARE NATIVE CONST KEY_CLOSE          : Number % close key
+DECLARE NATIVE CONST KEY_COMMAND        : Number % cmd (command) key
+DECLARE NATIVE CONST KEY_COPY           : Number % copy key
+DECLARE NATIVE CONST KEY_CREATE         : Number % create key
+DECLARE NATIVE CONST KEY_END            : Number % end key
+DECLARE NATIVE CONST KEY_EXIT           : Number % exit key
+DECLARE NATIVE CONST KEY_FIND           : Number % find key
+DECLARE NATIVE CONST KEY_HELP           : Number % help key
+DECLARE NATIVE CONST KEY_MARK           : Number % mark key
+DECLARE NATIVE CONST KEY_MESSAGE        : Number % message key
+DECLARE NATIVE CONST KEY_MOVE           : Number % move key
+DECLARE NATIVE CONST KEY_NEXT           : Number % next object key
+DECLARE NATIVE CONST KEY_OPEN           : Number % open key
+DECLARE NATIVE CONST KEY_OPTIONS        : Number % options key
+DECLARE NATIVE CONST KEY_PREVIOUS       : Number % previous object key
+DECLARE NATIVE CONST KEY_REDO           : Number % redo key
+DECLARE NATIVE CONST KEY_REFERENCE      : Number % ref(erence) key
+DECLARE NATIVE CONST KEY_REFRESH        : Number % refresh key
+DECLARE NATIVE CONST KEY_REPLACE        : Number % replace key
+DECLARE NATIVE CONST KEY_RESTART        : Number % restart key
+DECLARE NATIVE CONST KEY_RESUME         : Number % resume key
+DECLARE NATIVE CONST KEY_SAVE           : Number % save key
+DECLARE NATIVE CONST KEY_SBEG           : Number % shifted beginning key
+DECLARE NATIVE CONST KEY_SCANCEL        : Number % shifted cancel key
+DECLARE NATIVE CONST KEY_SCOMMAND       : Number % shifted command key
+DECLARE NATIVE CONST KEY_SCOPY          : Number % shifted copy key
+DECLARE NATIVE CONST KEY_SCREATE        : Number % shifted create key
+DECLARE NATIVE CONST KEY_SDC            : Number % shifted delete char key
+DECLARE NATIVE CONST KEY_SDL            : Number % shifted delete line key
+DECLARE NATIVE CONST KEY_SELECT         : Number % select key
+DECLARE NATIVE CONST KEY_SEND           : Number % shifted end key
+DECLARE NATIVE CONST KEY_SEOL           : Number % shifted clear line key
+DECLARE NATIVE CONST KEY_SEXIT          : Number % shifted exit key
+DECLARE NATIVE CONST KEY_SFIND          : Number % shifted find key
+DECLARE NATIVE CONST KEY_SHOME          : Number % shifted home key
+DECLARE NATIVE CONST KEY_SIC            : Number % shifted input key
+                                          
+DECLARE NATIVE CONST KEY_SLEFT          : Number % shifted left arrow key
+DECLARE NATIVE CONST KEY_SMESSAGE       : Number % shifted message key
+DECLARE NATIVE CONST KEY_SMOVE          : Number % shifted move key
+DECLARE NATIVE CONST KEY_SNEXT          : Number % shifted next key
+DECLARE NATIVE CONST KEY_SOPTIONS       : Number % shifted options key
+DECLARE NATIVE CONST KEY_SPREVIOUS      : Number % shifted prev key
+DECLARE NATIVE CONST KEY_SPRINT         : Number % shifted print key
+DECLARE NATIVE CONST KEY_SREDO          : Number % shifted redo key
+DECLARE NATIVE CONST KEY_SREPLACE       : Number % shifted replace key
+DECLARE NATIVE CONST KEY_SRIGHT         : Number % shifted right arrow
+DECLARE NATIVE CONST KEY_SRSUME         : Number % shifted resume key
+DECLARE NATIVE CONST KEY_SSAVE          : Number % shifted save key
+DECLARE NATIVE CONST KEY_SSUSPEND       : Number % shifted suspend key
+DECLARE NATIVE CONST KEY_SUNDO          : Number % shifted undo key
+DECLARE NATIVE CONST KEY_SUSPEND        : Number % suspend key
+DECLARE NATIVE CONST KEY_UNDO           : Number % undo key
+                                          
+DECLARE NATIVE CONST KEY_MIN            : Number % Minimum curses key value
+DECLARE NATIVE CONST KEY_MAX            : Number % Maximum curses key
 
-DECLARE NATIVE CONST KEY_SLEFT          :Number % shifted left arrow key
-DECLARE NATIVE CONST KEY_SMESSAGE       :Number % shifted message key
-DECLARE NATIVE CONST KEY_SMOVE          :Number % shifted move key
-DECLARE NATIVE CONST KEY_SNEXT          :Number % shifted next key
-DECLARE NATIVE CONST KEY_SOPTIONS       :Number % shifted options key
-DECLARE NATIVE CONST KEY_SPREVIOUS      :Number % shifted prev key
-DECLARE NATIVE CONST KEY_SPRINT         :Number % shifted print key
-DECLARE NATIVE CONST KEY_SREDO          :Number % shifted redo key
-DECLARE NATIVE CONST KEY_SREPLACE       :Number % shifted replace key
-DECLARE NATIVE CONST KEY_SRIGHT         :Number % shifted right arrow
-DECLARE NATIVE CONST KEY_SRSUME         :Number % shifted resume key
-DECLARE NATIVE CONST KEY_SSAVE          :Number % shifted save key
-DECLARE NATIVE CONST KEY_SSUSPEND       :Number % shifted suspend key
-DECLARE NATIVE CONST KEY_SUNDO          :Number % shifted undo key
-DECLARE NATIVE CONST KEY_SUSPEND        :Number % suspend key
-DECLARE NATIVE CONST KEY_UNDO           :Number % undo key
-
-% PDCurses-specific key definitions -- PC only
-
-DECLARE NATIVE CONST ALT_0              :Number
-DECLARE NATIVE CONST ALT_1              :Number
-DECLARE NATIVE CONST ALT_2              :Number
-DECLARE NATIVE CONST ALT_3              :Number
-DECLARE NATIVE CONST ALT_4              :Number
-DECLARE NATIVE CONST ALT_5              :Number
-DECLARE NATIVE CONST ALT_6              :Number
-DECLARE NATIVE CONST ALT_7              :Number
-DECLARE NATIVE CONST ALT_8              :Number
-DECLARE NATIVE CONST ALT_9              :Number
-DECLARE NATIVE CONST ALT_A              :Number
-DECLARE NATIVE CONST ALT_B              :Number
-DECLARE NATIVE CONST ALT_C              :Number
-DECLARE NATIVE CONST ALT_D              :Number
-DECLARE NATIVE CONST ALT_E              :Number
-DECLARE NATIVE CONST ALT_F              :Number
-DECLARE NATIVE CONST ALT_G              :Number
-DECLARE NATIVE CONST ALT_H              :Number
-DECLARE NATIVE CONST ALT_I              :Number
-DECLARE NATIVE CONST ALT_J              :Number
-DECLARE NATIVE CONST ALT_K              :Number
-DECLARE NATIVE CONST ALT_L              :Number
-DECLARE NATIVE CONST ALT_M              :Number
-DECLARE NATIVE CONST ALT_N              :Number
-DECLARE NATIVE CONST ALT_O              :Number
-DECLARE NATIVE CONST ALT_P              :Number
-DECLARE NATIVE CONST ALT_Q              :Number
-DECLARE NATIVE CONST ALT_R              :Number
-DECLARE NATIVE CONST ALT_S              :Number
-DECLARE NATIVE CONST ALT_T              :Number
-DECLARE NATIVE CONST ALT_U              :Number
-DECLARE NATIVE CONST ALT_V              :Number
-DECLARE NATIVE CONST ALT_W              :Number
-DECLARE NATIVE CONST ALT_X              :Number
-DECLARE NATIVE CONST ALT_Y              :Number
-DECLARE NATIVE CONST ALT_Z              :Number
-
-DECLARE NATIVE CONST CTL_LEFT           :Number % Conrtrol-Left-Arrow
-DECLARE NATIVE CONST CTL_RIGHT          :Number
-DECLARE NATIVE CONST CTL_PGUP           :Number
-DECLARE NATIVE CONST CTL_PGDN           :Number
-DECLARE NATIVE CONST CTL_HOME           :Number
-DECLARE NATIVE CONST CTL_END            :Number
-
-DECLARE NATIVE CONST KEY_A1             :Number % upper left on Virtual keypad
-DECLARE NATIVE CONST KEY_A2             :Number % upper middle on Virt. keypad
-DECLARE NATIVE CONST KEY_A3             :Number % upper right on Vir. keypad
-DECLARE NATIVE CONST KEY_B1             :Number % middle left on Virt. keypad
-DECLARE NATIVE CONST KEY_B2             :Number % center on Virt. keypad
-DECLARE NATIVE CONST KEY_B3             :Number % middle right on Vir. keypad
-DECLARE NATIVE CONST KEY_C1             :Number % lower left on Virt. keypad
-DECLARE NATIVE CONST KEY_C2             :Number % lower middle on Virt. keypad
-DECLARE NATIVE CONST KEY_C3             :Number % lower right on Vir. keypad
-
-DECLARE NATIVE CONST PADSLASH           :Number % slash on keypad
-DECLARE NATIVE CONST PADENTER           :Number % enter on keypad
-DECLARE NATIVE CONST CTL_PADENTER       :Number % ctl-enter on keypad
-DECLARE NATIVE CONST ALT_PADENTER       :Number % alt-enter on keypad
-DECLARE NATIVE CONST PADSTOP            :Number % stop on keypad
-DECLARE NATIVE CONST PADSTAR            :Number % star on keypad
-DECLARE NATIVE CONST PADMINUS           :Number % minus on keypad
-DECLARE NATIVE CONST PADPLUS            :Number % plus on keypad
-DECLARE NATIVE CONST CTL_PADSTOP        :Number % ctl-stop on keypad
-DECLARE NATIVE CONST CTL_PADCENTER      :Number % ctl-enter on keypad
-DECLARE NATIVE CONST CTL_PADPLUS        :Number % ctl-plus on keypad
-DECLARE NATIVE CONST CTL_PADMINUS       :Number % ctl-minus on keypad
-DECLARE NATIVE CONST CTL_PADSLASH       :Number % ctl-slash on keypad
-DECLARE NATIVE CONST CTL_PADSTAR        :Number % ctl-star on keypad
-DECLARE NATIVE CONST ALT_PADPLUS        :Number % alt-plus on keypad
-DECLARE NATIVE CONST ALT_PADMINUS       :Number % alt-minus on keypad
-DECLARE NATIVE CONST ALT_PADSLASH       :Number % alt-slash on keypad
-DECLARE NATIVE CONST ALT_PADSTAR        :Number % alt-star on keypad
-DECLARE NATIVE CONST ALT_PADSTOP        :Number % alt-stop on keypad
-DECLARE NATIVE CONST CTL_INS            :Number % ctl-insert
-DECLARE NATIVE CONST ALT_DEL            :Number % alt-delete
-DECLARE NATIVE CONST ALT_INS            :Number % alt-insert
-DECLARE NATIVE CONST CTL_UP             :Number % ctl-up arrow
-DECLARE NATIVE CONST CTL_DOWN           :Number % ctl-down arrow
-DECLARE NATIVE CONST CTL_TAB            :Number % ctl-tab
-DECLARE NATIVE CONST ALT_TAB            :Number 
-DECLARE NATIVE CONST ALT_MINUS          :Number 
-DECLARE NATIVE CONST ALT_EQUAL          :Number 
-DECLARE NATIVE CONST ALT_HOME           :Number 
-DECLARE NATIVE CONST ALT_PGUP           :Number 
-DECLARE NATIVE CONST ALT_PGDN           :Number 
-DECLARE NATIVE CONST ALT_END            :Number 
-DECLARE NATIVE CONST ALT_UP             :Number % alt-up arrow
-DECLARE NATIVE CONST ALT_DOWN           :Number % alt-down arrow
-DECLARE NATIVE CONST ALT_RIGHT          :Number % alt-right arrow
-DECLARE NATIVE CONST ALT_LEFT           :Number % alt-left arrow
-DECLARE NATIVE CONST ALT_ENTER          :Number % alt-enter
-DECLARE NATIVE CONST ALT_ESC            :Number % alt-escape
-DECLARE NATIVE CONST ALT_BQUOTE         :Number % alt-back quote
-DECLARE NATIVE CONST ALT_LBRACKET       :Number % alt-left bracket
-DECLARE NATIVE CONST ALT_RBRACKET       :Number % alt-right bracket
-DECLARE NATIVE CONST ALT_SEMICOLON      :Number % alt-semi-colon
-DECLARE NATIVE CONST ALT_FQUOTE         :Number % alt-forward quote
-DECLARE NATIVE CONST ALT_COMMA          :Number % alt-comma
-DECLARE NATIVE CONST ALT_STOP           :Number % alt-stop
-DECLARE NATIVE CONST ALT_FSLASH         :Number % alt-forward slash
-DECLARE NATIVE CONST ALT_BKSP           :Number % alt-backspace
-DECLARE NATIVE CONST CTL_BKSP           :Number % ctl-backspace
-DECLARE NATIVE CONST PAD0               :Number % keypad 0
-
-DECLARE NATIVE CONST CTL_PAD0           :Number % ctl-keypad 0
-DECLARE NATIVE CONST CTL_PAD1           :Number 
-DECLARE NATIVE CONST CTL_PAD2           :Number 
-DECLARE NATIVE CONST CTL_PAD3           :Number 
-DECLARE NATIVE CONST CTL_PAD4           :Number 
-DECLARE NATIVE CONST CTL_PAD5           :Number 
-DECLARE NATIVE CONST CTL_PAD6           :Number 
-DECLARE NATIVE CONST CTL_PAD7           :Number 
-DECLARE NATIVE CONST CTL_PAD8           :Number 
-DECLARE NATIVE CONST CTL_PAD9           :Number 
-
-DECLARE NATIVE CONST ALT_PAD0           :Number % alt-keypad 0
-DECLARE NATIVE CONST ALT_PAD1           :Number 
-DECLARE NATIVE CONST ALT_PAD2           :Number 
-DECLARE NATIVE CONST ALT_PAD3           :Number 
-DECLARE NATIVE CONST ALT_PAD4           :Number 
-DECLARE NATIVE CONST ALT_PAD5           :Number 
-DECLARE NATIVE CONST ALT_PAD6           :Number 
-DECLARE NATIVE CONST ALT_PAD7           :Number 
-DECLARE NATIVE CONST ALT_PAD8           :Number 
-DECLARE NATIVE CONST ALT_PAD9           :Number 
-
-DECLARE NATIVE CONST CTL_DEL            :Number % clt-delete
-DECLARE NATIVE CONST ALT_BSLASH         :Number % alt-back slash
-DECLARE NATIVE CONST CTL_ENTER          :Number % ctl-enter
-
-DECLARE NATIVE CONST SHF_PADENTER       :Number % shift-enter on keypad
-DECLARE NATIVE CONST SHF_PADSLASH       :Number % shift-slash on keypad
-DECLARE NATIVE CONST SHF_PADSTAR        :Number % shift-star  on keypad
-DECLARE NATIVE CONST SHF_PADPLUS        :Number % shift-plus  on keypad
-DECLARE NATIVE CONST SHF_PADMINUS       :Number % shift-minus on keypad
-DECLARE NATIVE CONST SHF_UP             :Number % shift-up on keypad
-DECLARE NATIVE CONST SHF_DOWN           :Number % shift-down on keypad
-DECLARE NATIVE CONST SHF_IC             :Number % shift-insert on keypad
-DECLARE NATIVE CONST SHF_DC             :Number % shift-delete on keypad
-
-DECLARE NATIVE CONST KEY_MOUSE          :Number % "mouse" key
-DECLARE NATIVE CONST KEY_SHIFT_L        :Number % Left-shift
-DECLARE NATIVE CONST KEY_SHIFT_R        :Number % Right-shift
-DECLARE NATIVE CONST KEY_CONTROL_L      :Number % Left-control
-DECLARE NATIVE CONST KEY_CONTROL_R      :Number % Right-control
-DECLARE NATIVE CONST KEY_ALT_L          :Number % Left-alt
-DECLARE NATIVE CONST KEY_ALT_R          :Number % Right-alt
-DECLARE NATIVE CONST KEY_RESIZE         :Number % Window resize
-DECLARE NATIVE CONST KEY_SUP            :Number % Shifted up arrow
-DECLARE NATIVE CONST KEY_SDOWN          :Number % Shifted down arrow
-
-DECLARE NATIVE CONST KEY_MIN            :Number % Minimum curses key value
-DECLARE NATIVE CONST KEY_MAX            :Number % Maximum curses key
-
+%|----------------------------------------------------------------------
+ |
+ |  Curses functions
+ |
+ |%
 
 DECLARE NATIVE FUNCTION KEY_F(n: Number): Number
 DECLARE NATIVE FUNCTION COLS(): Number
@@ -316,6 +173,7 @@ DECLARE NATIVE FUNCTION color_set(color_pair_number: Number, opts: POINTER)
 DECLARE NATIVE FUNCTION wcolor_set(win: Window, color_pair_number: Number, opts: POINTER)
 DECLARE NATIVE FUNCTION copywin(srcwin: Window, dstwin: Window, sminrow: Number, smincol: Number, dminrow: Number, dmincol: Number, dmaxrow: Number, dmaxcol: Number, overlay: Boolean)
 DECLARE NATIVE FUNCTION curs_set(visibility: Number)
+DECLARE NATIVE FUNCTION curscr(): Window
 DECLARE NATIVE FUNCTION curses_version(): String
 DECLARE NATIVE FUNCTION def_prog_mode()
 DECLARE NATIVE FUNCTION def_shell_mode()
