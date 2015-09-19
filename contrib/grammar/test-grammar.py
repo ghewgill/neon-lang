@@ -17,7 +17,8 @@ KnownParseFailures = [          # Reason:
     "t/errors/N3061.neon",      #
 ]
 
-blockComment = "%|" + ZeroOrMore(CharsNotIn("|") | ("|" + ~Literal("%"))) + "|%"
+# blockComment is similar to cStyleComment form pyparsing
+blockComment = Regex(r"%\|(?:[^|]*\|+)+?%")
 lineComment = "%" + restOfLine
 comments = blockComment | lineComment
 

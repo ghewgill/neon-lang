@@ -22,6 +22,7 @@ Statement =
     ImportDeclaration |
     TypeDeclaration |
     ConstantDeclaration |
+    NativeConstantDeclaration |
     VariableDeclaration |
     LetDeclaration |
     FunctionDeclaration |
@@ -62,6 +63,8 @@ PointerType = 'POINTER', 'TO', Type;
 FunctionPointerType = 'FUNCTION', FunctionParameterList;
 
 ConstantDeclaration = 'CONST', Identifier, ':', Type, ':=', Expression;
+
+NativeConstantDeclaration = 'DECLARE', 'NATIVE', 'CONST', Identifier, ':', Type;
 
 VariableDeclaration = 'VAR', Identifier, {',', Identifier}, ':', Type, [':=', Expression];
 
