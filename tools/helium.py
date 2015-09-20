@@ -1449,8 +1449,16 @@ class Parser:
             return ExceptionDeclaration(name)
         elif self.tokens[self.i] == NATIVE:
             self.i += 1
-            type, name, returntype, args = self.parse_function_header()
-            return NativeFunction(name, returntype, args)
+            if self.tokens[self.i] == CONST:
+                self.i += 1
+                name = self.identifier()
+                self.expect(COLON)
+                type = self.parse_type()
+                if name == "Separator":
+                    return ConstantDeclaration(name, type, StringLiteralExpression(os.sep))
+            elif self.tokens[self.i] == FUNCTION:
+                type, name, returntype, args = self.parse_function_header()
+                return NativeFunction(name, returntype, args)
 
     def parse_exit_statement(self):
         self.expect(EXIT)

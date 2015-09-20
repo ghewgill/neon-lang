@@ -13,6 +13,8 @@
 #include "support.h"
 #include "util.h"
 
+#include "constants_compile.inc"
+
 class Analyzer {
 public:
     Analyzer(ICompilerSupport *support, const pt::Program *program);
@@ -2758,6 +2760,22 @@ const Program *Analyzer::analyze()
     global_scope = r->scope;
     frame.push(global_frame);
     scope.push(global_scope);
+
+    // TODO: This bit makes sure that the native constants are
+    // actually available in the module where they are declared.
+    // There's certainly a better way that doesn't involve this
+    // roundabout way.
+    init_builtin_constants(global_scope);
+    std::string module_name = program->source_path;
+    std::string::size_type i = module_name.find_last_of("/\\");
+    if (i != std::string::npos) {
+        module_name = module_name.substr(i+1);
+    }
+    if (module_name.size() >= 6 && module_name.substr(module_name.size() - 5) == ".neon") {
+        module_name = module_name.substr(0, module_name.size() - 5);
+    }
+    init_builtin_constants(module_name, global_scope);
+
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
     r->statements = analyze(program->body);
     loops.pop();

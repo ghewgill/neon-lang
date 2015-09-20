@@ -181,9 +181,12 @@ for fn in sys.argv[1:]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
                     assert m is not None
                     name = prefix + m.group(1)
-                    ctype = m.group(2)
-                    assert ctype in ["Number"]
-                    constants[name] = [name, ctype, "new ConstantNumberExpression(rtl::{})".format(name)]
+                    ntype = m.group(2)
+                    assert ntype in ["Number", "String"]
+                    ctype = ntype
+                    if ctype == "String":
+                        ctype = "std::string"
+                    constants[name] = [name, ctype, "new Constant{}Expression(rtl::{})".format(ntype, name)]
                 elif a[:2] == ["DECLARE", "EXCEPTION"]:
                     exceptions.append((prefix, a[2]))
                 elif in_enum:
