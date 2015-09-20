@@ -1252,7 +1252,27 @@ class Parser:
             while True:
                 if self.tokens[self.i] is LBRACKET:
                     self.i += 1
-                    index = self.parse_expression()
+                    if self.tokens[self.i] == FIRST:
+                        self.i += 1
+                        if self.tokens[self.i] in [PLUS, MINUS]:
+                            index = self.parse_expression()
+                        else:
+                            index = NumberLiteralExpression(0)
+                    elif self.tokens[self.i] == LAST:
+                        self.i += 1
+                        index = NumberLiteralExpression(-1) # TODO: refer to last
+                    else:
+                        index = self.parse_expression()
+                    if self.tokens[self.i] == TO:
+                        self.i += 1
+                        if self.tokens[self.i] == LAST:
+                            self.i += 1
+                            if self.tokens[self.i] in [PLUS, MINUS]:
+                                last = self.parse_expression()
+                            else:
+                                last = NumberLiteralExpression(-1) # TODO: refer to last
+                        else:
+                            last = self.parse_expression()
                     self.expect(RBRACKET)
                     expr = SubscriptExpression(expr, index)
                 elif self.tokens[self.i] is LPAREN:
