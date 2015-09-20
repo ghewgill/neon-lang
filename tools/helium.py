@@ -946,7 +946,7 @@ class TryStatement:
                 s.run(env)
         except NeonException as x:
             for exceptions, statements in self.catches:
-                if (None, x.name) in exceptions:
+                if x.name in [x[1] for x in exceptions]:
                     for s in statements:
                         s.declare(env)
                     for s in statements:
