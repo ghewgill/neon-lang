@@ -143,6 +143,18 @@ rtl_const = [
     "lib/curses_const.cpp",
 ]
 
+if os.name == "posix":
+    rtl_const.extend([
+        "lib/file_const_posix.cpp",
+    ])
+elif os.name == "nt":
+    rtl_const.extend([
+        "lib/file_const_win32.cpp",
+    ])
+else:
+    print "Unsupported platform:", os.name
+    sys.exit(1)
+
 rtl_cpp = rtl_const + [
     "lib/bitwise.cpp",
     "lib/compress.cpp",

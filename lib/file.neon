@@ -10,6 +10,11 @@ EXPORT FileOpenError
 EXPORT FileWriteError
 EXPORT PathNotFound
 EXPORT PermissionDenied
+EXPORT path_join
+EXPORT path_split
+EXPORT remove_directory_tree
+
+DECLARE NATIVE CONST Separator: String
 
 %|
  |  Exception: DirectoryExists
@@ -54,6 +59,24 @@ DECLARE EXCEPTION PathNotFound
 DECLARE EXCEPTION PermissionDenied
 
 %|
+ |  Function: copy
+ |
+ |  Copy a file.
+ |%
+DECLARE NATIVE FUNCTION copy(filename: String, destination: String)
+
+%|
+ |  Function: delete
+ |
+ |  Delete a file. This function does not raise an exception
+ |  if the file does not exist.
+ |
+ |  Exceptions:
+ |      - <PermissionDenied> - if the file permissions prevent the operation
+ |%
+DECLARE NATIVE FUNCTION delete(filename: String)
+
+%|
  |  Function: exists
  |
  |  Check to see whether a name exists in the filesystem.
@@ -88,6 +111,45 @@ DECLARE NATIVE FUNCTION is_directory(path: String): Boolean
 DECLARE NATIVE FUNCTION mkdir(path: String)
 
 %|
+ |  Function: path_join
+ |
+ |  Join components of a path using the <Separator> characters appropriate for the OS.
+ |%
+FUNCTION path_join(first, second: String): String
+    IF first = "" THEN
+        RETURN second
+    END IF
+    IF second = "" THEN
+        RETURN first
+    END IF
+    IF second[FIRST] IN ["/", Separator] THEN
+        RETURN second
+    END IF
+    IF first[LAST] IN ["/", Separator] THEN
+        RETURN first & second
+    ELSE
+        RETURN first & Separator & second
+    END IF
+END FUNCTION
+
+%|
+ |  Function: path_split
+ |
+ |  Split a path into directory and name parts.
+ |%
+FUNCTION path_split(path: String, OUT directory, name: String)
+    FOR i := path.length() - 1 TO 0 STEP -1 DO
+        IF path[i] IN ["/", Separator] THEN
+            directory := path[FIRST TO i-1]
+            name := path[i+1 TO LAST]
+            EXIT FUNCTION
+        END IF
+    END FOR
+    directory := ""
+    name := path
+END FUNCTION
+
+%|
  |  Function: readbytes
  |
  |  Read the contents of a file into <Bytes>.
@@ -106,6 +168,45 @@ DECLARE NATIVE FUNCTION readbytes(filename: String): Bytes
  |      - <FileOpenError> - if the file cannot be opened
  |%
 DECLARE NATIVE FUNCTION readlines(filename: String): Array<String> 
+
+%|
+ |  Function: remove_directory_tree
+ |
+ |  Remove directory tree recursively.
+ |%
+FUNCTION remove_directory_tree(path: String)
+    LET names: Array<String> := files(path)
+    FOREACH name OF names DO
+        IF name IN [".", ".."] THEN
+            NEXT FOREACH
+        END IF
+        LET pathname: String := path_join(path, name)
+        IF is_directory(name) THEN
+            remove_directory_tree(pathname)
+        ELSE
+            delete(pathname)
+        END IF
+    END FOREACH
+    remove_empty_directory(path)
+END FUNCTION
+
+%|
+ |  Function: remove_empty_directory
+ |
+ |  Remove an empty directory.
+ |%
+DECLARE NATIVE FUNCTION remove_empty_directory(path: String)
+
+%|
+ |  Function: rename
+ |
+ |  Rename a file. This function can also be used to move a file from
+ |  one directory to another.
+ |
+ |  Exceptions:
+ |      - <PathNotFound> - if the file does not exist
+ |%
+DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
 
 %|
  |  Function: writebytes

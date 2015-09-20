@@ -1,5 +1,7 @@
 IMPORT file
 
+ASSERT file.Separator IN ["/", "\\"]
+
 VAR a: Array<String>
 
 a := file.readlines("LICENSE.txt")
@@ -22,3 +24,61 @@ print(strb(file.is_directory("t")))
 a := file.files("t")
 print(strb("file-test.neon" IN a))
 %= TRUE
+
+file.writelines("tmp/file-test.tmp", ["hello", "world"])
+print(strb(file.exists("tmp/file-test.tmp")))
+%= TRUE
+file.delete("tmp/file-test.tmp")
+print(strb(file.exists("tmp/file-test.tmp")))
+%= FALSE
+file.delete("tmp/file-test.tmp") % No exception expected.
+
+file.writelines("tmp/file-test.tmp", ["hello", "world"])
+file.delete("tmp/file-test2.tmp")
+file.rename("tmp/file-test.tmp", "tmp/file-test2.tmp")
+print(strb(file.exists("tmp/file-test.tmp")))
+%= FALSE
+print(strb(file.exists("tmp/file-test2.tmp")))
+%= TRUE
+
+file.copy("tmp/file-test2.tmp", "tmp/file-test3.tmp")
+print(strb(file.exists("tmp/file-test2.tmp")))
+%= TRUE
+print(strb(file.exists("tmp/file-test3.tmp")))
+%= TRUE
+
+file.mkdir("tmp/foo")
+print(strb(file.is_directory("tmp/foo")))
+%= TRUE
+file.writelines("tmp/foo/bar.txt", ["hello", "world"])
+TRY
+    file.remove_empty_directory("tmp/foo")
+EXCEPTION file.FileError
+    print("ok")
+END TRY
+%= ok
+file.delete("tmp/foo/bar.txt")
+file.remove_empty_directory("tmp/foo")
+print(strb(file.is_directory("tmp/foo")))
+%= FALSE
+
+file.mkdir("tmp/foo")
+print(strb(file.is_directory("tmp/foo")))
+%= TRUE
+file.writelines("tmp/foo/bar.txt", ["hello", "world"])
+file.remove_directory_tree("tmp/foo")
+print(strb(file.is_directory("tmp/foo")))
+%= FALSE
+
+print(file.path_join("a", "b"))
+%? a[/\\]b
+print(file.path_join("a", "/b"))
+%= /b
+
+VAR directory, name: String
+file.path_split("a", directory, name)
+print("\(directory) \(name)")
+%=  a
+file.path_split("a/b", directory, name)
+print("\(directory) \(name)")
+%= a b

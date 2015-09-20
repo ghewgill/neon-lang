@@ -4,6 +4,7 @@ import codecs
 import math
 import os
 import re
+import shutil
 import sys
 
 class Symbol:
@@ -1966,6 +1967,15 @@ def neon_strb(env, x):
 def neon_substring(env, s, start, length):
     return s[start:start+length]
 
+def neon_file_copy(env, src, dest):
+    shutil.copyfile(src, dest)
+
+def neon_file_delete(env, fn):
+    try:
+        os.unlink(fn)
+    except OSError:
+        pass
+
 def neon_file_exists(env, fn):
     return os.access(fn, os.F_OK)
 
@@ -1987,6 +1997,15 @@ def neon_file_readbytes(env, fn):
 def neon_file_readlines(env, fn):
     with open(fn, "r") as f:
         return list(map(str.rstrip, f.readlines()))
+
+def neon_file_remove_empty_directory(env, path):
+    try:
+        os.rmdir(path)
+    except OSError:
+        raise NeonException("FileError")
+
+def neon_file_rename(env, old, new):
+    os.rename(old, new)
 
 def neon_file_writebytes(env, fn, bytes):
     with open(fn, "wb") as f:
@@ -2057,6 +2076,7 @@ ExcludeTests = [
     "t/win32-test.neon",        # Module not required
 
     "t/array-slice.neon",       # Probably going to need this
+    "t/file-test.neon",         # Code in module doesn't work yet
     "t/function-pointer.neon",  # Function pointer not required yet
     "t/hash-test.neon",         # Module not required yet
     "t/import.neon",            # Module import not required yet
