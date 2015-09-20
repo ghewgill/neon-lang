@@ -1,10 +1,10 @@
 IMPORT file
 
 TRY
-    file.mkdir("dummy")
-    file.mkdir("dummy")
+    file.mkdir("tmp/dummy")
+    file.mkdir("tmp/dummy")
 EXCEPTION file.DirectoryExists
     print(CURRENT_EXCEPTION.info)
 END TRY
 
-%= dummy
+%= tmp/dummy
