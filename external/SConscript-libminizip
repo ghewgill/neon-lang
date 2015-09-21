@@ -1,0 +1,40 @@
+import os
+import shutil
+import sys
+import zipfile
+
+Import("env")
+
+libminizip = None
+
+libminizipenv = Environment()
+if not env["RELEASE"]:
+    if sys.platform == "win32":
+        libminizipenv.Append(CFLAGS=["/MTd"])
+
+if GetOption("clean"):
+    shutil.rmtree("minizip11", ignore_errors=True)
+elif not os.path.exists("minizip11/Makefile"):
+    zipfile.ZipFile("unzip11.zip").extractall("minizip11")
+
+libminizipenv.Append(CPPPATH=["zlib-1.2.8"])
+
+if sys.platform == "win32":
+    libminizip = libminizipenv.Library("minizip11/minizip.lib", [
+        "minizip11/ioapi.c",
+        "minizip11/iowin32.c",
+        "minizip11/unzip.c",
+        "minizip11/zip.c",
+    ])
+    env.Append(CPPPATH=["external/minizip11"])
+else:
+    if sys.platform.startswith("darwin"):
+        libminizipenv.Append(CPPFLAGS=["-Dfopen64=fopen", "-Dfseeko64=fseeko", "-Dftello64=ftello"])
+    libminizip = libminizipenv.Library("minizip11/libminizip.a", [
+        "minizip11/ioapi.c",
+        "minizip11/unzip.c",
+        "minizip11/zip.c",
+    ])
+    env.Append(CPPPATH=["external/minizip11"])
+
+Return(["libminizip"])

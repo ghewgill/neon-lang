@@ -78,6 +78,7 @@ libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["e
 libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"]))
 liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"]))
+libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
@@ -110,9 +111,9 @@ else:
         env.Append(CXXFLAGS=[
             "-g",
         ])
-for lib in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libz, libbz2, liblzma]:
+for lib in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma]:
     if lib is not None:
-        env.Append(LIBS=[lib])
+        env.Prepend(LIBS=[lib])
 env.Append(LIBS=libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
@@ -294,6 +295,21 @@ neonx = env.Program("bin/neonx", [
 ] + coverage_lib,
 )
 
+neonstub = env.Program("bin/neonstub", [
+    "src/bytecode.cpp",
+    "src/cell.cpp",
+    "src/exec.cpp",
+    "src/format.cpp",
+    "src/httpserver.cpp",
+    "src/neonstub.cpp",
+    "src/number.cpp",
+    "src/rtl_exec.cpp",
+    rtl_cpp,
+    rtl_platform,
+    "src/support.cpp",
+] + coverage_lib,
+)
+
 neondis = env.Program("bin/neondis", [
     "src/bytecode.cpp",
     "src/debuginfo.cpp",
@@ -305,6 +321,12 @@ neondis = env.Program("bin/neondis", [
     "src/util.cpp",
 ] + coverage_lib,
 )
+
+neonbind = env.Program("bin/neonbind", [
+    "src/bytecode.cpp",
+    "src/neonbind.cpp",
+    "src/support.cpp",
+])
 
 env.Depends("src/number.h", libbid)
 env.Depends("src/exec.cpp", libffi)
@@ -392,6 +414,11 @@ env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
 if os.name == "posix":
     env.Command("tmp/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
     env.Command("tests_script", "tmp/hello", "env PATH=bin tmp/hello")
+
+hello_exe = env.Command("tmp/hello.exe", ["samples/hello.neonx", neonbind, neonstub], "{} $TARGET $SOURCE".format(neonbind[0].path))
+env.Command("test_hello", hello_exe, hello_exe[0].path)
+cal_exe = env.Command("tmp/cal.exe", ["samples/cal.neonx", neonbind, neonstub], "{} $TARGET $SOURCE".format(neonbind[0].path))
+env.Command("test_cal", cal_exe, cal_exe[0].path)
 
 # Need to find where perl actually is, in case it's not in
 # one of the paths supplied by scons by default (for example,
