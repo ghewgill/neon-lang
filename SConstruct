@@ -111,9 +111,7 @@ else:
         env.Append(CXXFLAGS=[
             "-g",
         ])
-for lib in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma]:
-    if lib is not None:
-        env.Prepend(LIBS=[lib])
+env.Prepend(LIBS=[x for x in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma] if x])
 env.Append(LIBS=libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
