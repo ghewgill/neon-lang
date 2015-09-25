@@ -53,7 +53,7 @@ def run(fn):
         if lines[-1] == "%$":
             expected_error_pos[1] = (len(lines) + 1, 1)
         errnum = os.path.splitext(os.path.basename(fn))[0]
-        expected_stderr = errnum
+        expected_stderr = "Error " + errnum
         del errors[errnum]
     else:
         out_comments = re.findall("^(%[=?])\s(.*)$", src, re.MULTILINE)
