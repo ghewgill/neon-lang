@@ -102,6 +102,7 @@ std::string Token::tostring() const
         case OF:          s << "OF"; break;
         case INDEX:       s << "INDEX"; break;
         case ASSERT:      s << "ASSERT"; break;
+        case EMBED:       s << "EMBED"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -282,6 +283,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
             else if (t.text == "OF") t.type = OF;
             else if (t.text == "INDEX") t.type = INDEX;
             else if (t.text == "ASSERT") t.type = ASSERT;
+            else if (t.text == "EMBED") t.type = EMBED;
         } else if (number_start(c)) {
             t.type = NUMBER;
             auto start = i;

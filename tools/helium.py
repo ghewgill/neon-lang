@@ -2025,6 +2025,7 @@ ExcludeTests = [
     "t/base.neon",              # Won't need different base literals
     "t/bigint-test.neon",       # Module not required
     "t/bitwise-test.neon",      # Module not required
+    "t/bytes-literal.neon",     # Feature not required
     "t/cal-test.neon",          # Sample not required
     "t/cformat-test.neon",      # Module not required
     "t/comments.neon",          # Nested comments not required

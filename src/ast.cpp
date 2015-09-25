@@ -366,6 +366,13 @@ std::string ConstantStringExpression::text() const
     return s.str();
 }
 
+std::string ConstantFileExpression::text() const
+{
+    std::stringstream s;
+    s << "ConstantFileExpression(" << name << ")";
+    return s.str();
+}
+
 std::string ConstantEnumExpression::text() const
 {
     std::stringstream s;

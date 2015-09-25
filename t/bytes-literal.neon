@@ -1,0 +1,3 @@
+LET text: Bytes := EMBED "t/bytes-literal.neon"
+print(text.to_string()[FIRST TO 10])
+%= LET text: B

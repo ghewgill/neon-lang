@@ -94,6 +94,7 @@ enum TokenType {
     OF,
     INDEX,
     ASSERT,
+    EMBED,
     MAX_TOKEN
 };
 

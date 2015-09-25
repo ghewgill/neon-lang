@@ -461,6 +461,15 @@ const Expression *Parser::parseAtom()
                 return new StringLiteralExpression(tok_string, tokens[i].column, tok_string.text);
             }
         }
+        case EMBED: {
+            ++i;
+            auto &tok_file = tokens[i];
+            ++i;
+            if (tok_file.type != STRING) {
+                error(2090, tok_file, "string literal expected");
+            }
+            return new FileLiteralExpression(tok_file, tokens[i].column, tok_file.text);
+        }
         case PLUS: {
             auto &tok_plus = tokens[i];
             ++i;

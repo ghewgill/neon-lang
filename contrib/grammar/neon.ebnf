@@ -145,6 +145,7 @@ Atom =
     ('FALSE' | 'TRUE') |
     Number |
     StringLiteral |
+    'EMBED', StringLiteral |
     (('+' | '-' | 'NOT'), Atom) |
     ('NEW', Type) |
     'NIL' |

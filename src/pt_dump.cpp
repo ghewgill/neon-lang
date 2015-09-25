@@ -49,6 +49,9 @@ public:
     virtual void visit(const StringLiteralExpression *node) override {
         write("StringLiteralExpression(" + node->value + ")");
     }
+    virtual void visit(const FileLiteralExpression *node) override {
+        write("FileLiteralExpression(" + node->name + ")");
+    }
     virtual void visit(const ArrayLiteralExpression *node) override {
         write("ArrayLiteralExpression");
         for (auto x: node->elements) {

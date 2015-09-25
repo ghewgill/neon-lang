@@ -21,6 +21,7 @@ class IdentityExpression;
 class BooleanLiteralExpression;
 class NumberLiteralExpression;
 class StringLiteralExpression;
+class FileLiteralExpression;
 class ArrayLiteralExpression;
 class DictionaryLiteralExpression;
 class NilLiteralExpression;
@@ -95,6 +96,7 @@ public:
     virtual void visit(const BooleanLiteralExpression *) = 0;
     virtual void visit(const NumberLiteralExpression *) = 0;
     virtual void visit(const StringLiteralExpression *) = 0;
+    virtual void visit(const FileLiteralExpression *) = 0;
     virtual void visit(const ArrayLiteralExpression *) = 0;
     virtual void visit(const DictionaryLiteralExpression *) = 0;
     virtual void visit(const NilLiteralExpression *) = 0;
@@ -287,6 +289,13 @@ public:
     StringLiteralExpression(const Token &token, size_t end_column, const std::string &value): Expression(token, token.column, end_column), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::string value;
+};
+
+class FileLiteralExpression: public Expression {
+public:
+    FileLiteralExpression(const Token &token, size_t end_column, const std::string &name): Expression(token, token.column, end_column), name(name) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const std::string name;
 };
 
 class ArrayLiteralExpression: public Expression {

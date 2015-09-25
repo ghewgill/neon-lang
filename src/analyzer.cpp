@@ -1,8 +1,10 @@
 #include "analyzer.h"
 
 #include <algorithm>
+#include <fstream>
 #include <iso646.h>
 #include <list>
+#include <sstream>
 #include <stack>
 
 #include "ast.h"
@@ -44,6 +46,7 @@ public:
     const Expression *analyze(const pt::BooleanLiteralExpression *expr);
     const Expression *analyze(const pt::NumberLiteralExpression *expr);
     const Expression *analyze(const pt::StringLiteralExpression *expr);
+    const Expression *analyze(const pt::FileLiteralExpression *expr);
     const Expression *analyze(const pt::ArrayLiteralExpression *expr);
     const Expression *analyze(const pt::DictionaryLiteralExpression *expr);
     const Expression *analyze(const pt::NilLiteralExpression *expr);
@@ -128,6 +131,7 @@ public:
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -205,6 +209,7 @@ public:
     virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NumberLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::StringLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::FileLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ArrayLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DictionaryLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NilLiteralExpression *p) override { expr = a->analyze(p); }
@@ -281,6 +286,7 @@ public:
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -357,6 +363,7 @@ public:
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -803,6 +810,17 @@ const Expression *Analyzer::analyze(const pt::NumberLiteralExpression *expr)
 const Expression *Analyzer::analyze(const pt::StringLiteralExpression *expr)
 {
     return new ConstantStringExpression(expr->value);
+}
+
+const Expression *Analyzer::analyze(const pt::FileLiteralExpression *expr)
+{
+    std::ifstream f(expr->name, std::ios::binary);
+    if (not f) {
+        error(3182, expr->token, "could not open file");
+    }
+    std::stringstream buffer;
+    buffer << f.rdbuf();
+    return new ConstantFileExpression(expr->name, buffer.str());
 }
 
 const Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)

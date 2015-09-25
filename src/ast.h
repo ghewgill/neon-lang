@@ -612,6 +612,21 @@ public:
     virtual std::string text() const override;
 };
 
+class ConstantFileExpression: public Expression {
+public:
+    ConstantFileExpression(const std::string &name, const std::string &contents): Expression(TYPE_BYTES, true), name(name), contents(contents) {}
+
+    const std::string name;
+    const std::string contents;
+
+    virtual bool eval_boolean() const override { internal_error("ConstantFileExpression"); }
+    virtual Number eval_number() const override { internal_error("ConstantFileExpression"); }
+    virtual std::string eval_string() const override { internal_error("ConstantFileExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override;
+};
+
 class ConstantEnumExpression: public Expression {
 public:
     ConstantEnumExpression(const TypeEnum *type, int value): Expression(type, true), value(value) {}
