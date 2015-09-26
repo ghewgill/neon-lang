@@ -41,16 +41,16 @@ FUNCTION next_j(j: Number): Number
         new_j := j - 1
     END IF
 
-    %|IF curses.has_colors() THEN
+    IF curses.has_colors() THEN
         VAR z: Number
         z := random.uint32() MOD 3
-        chtype color = COLOR_PAIR(z);
+        VAR color: Number := curses.COLOR_PAIR(z)
 
-        if (z)
-            color |= A_BOLD;
+        %|if (z)
+            color |= A_BOLD;|%
 
-        attrset(color);
-    }|%
+        curses.attrset(color)
+    END IF
 
     RETURN new_j
 END FUNCTION
@@ -61,19 +61,14 @@ FUNCTION main()
 
     curses.initscr()
 
-    %|if (has_colors())
-    {
-        int bg = COLOR_BLACK;
+    IF curses.has_colors() THEN
+        VAR bg: Number := curses.COLOR_BLACK
 
-        start_color();
+        curses.start_color()
 
-#if defined(NCURSES_VERSION) || (defined(PDC_BUILD) && PDC_BUILD > 3000)
-        if (use_default_colors() == OK)
-            bg = -1;
-#endif
-        init_pair(1, COLOR_BLUE, bg);
-        init_pair(2, COLOR_CYAN, bg);
-    }|%
+        curses.init_pair(1, curses.COLOR_BLUE, bg)
+        curses.init_pair(2, curses.COLOR_CYAN, bg)
+    END IF
 
     curses.nl()
     curses.noecho()
