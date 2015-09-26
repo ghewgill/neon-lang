@@ -7,6 +7,8 @@
  |      https://en.wikipedia.org/wiki/Curses_%28programming_library%29
  |%
 
+EXPORT Window
+
 DECLARE NATIVE CONSTANT ERR: Number
 DECLARE NATIVE CONSTANT OK: Number
 

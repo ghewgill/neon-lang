@@ -1,0 +1,345 @@
+IMPORT curses
+IMPORT math
+IMPORT multiarray
+IMPORT random
+IMPORT time
+
+CONSTANT BOARD_WIDTH: Number := 10
+CONSTANT BOARD_HEIGHT: Number := 20
+
+TYPE Piece := RECORD
+    grid: multiarray.ArrayNumber2D
+    rot: Number
+END RECORD
+
+CONSTANT Pieces: Array<Piece> := [
+    Piece(),
+    Piece([[0,0,0,0], % I
+           [1,1,1,1],
+           [0,0,0,0],
+           [0,0,0,0]], 2),
+    Piece([[0,0,0,0], % J
+           [1,1,1,0],
+           [0,0,1,0],
+           [0,0,0,0]], 4),
+    Piece([[0,0,0,0], % L
+           [1,1,1,0],
+           [1,0,0,0],
+           [0,0,0,0]], 4),
+    Piece([[1,1,0,0], % O
+           [1,1,0,0],
+           [0,0,0,0],
+           [0,0,0,0]], 1),
+    Piece([[0,1,1,0], % S
+           [1,1,0,0],
+           [0,0,0,0],
+           [0,0,0,0]], 2),
+    Piece([[0,0,0,0], % T
+           [1,1,1,0],
+           [0,1,0,0],
+           [0,0,0,0]], 4),
+    Piece([[1,1,0,0], % Z
+           [0,1,1,0],
+           [0,0,0,0],
+           [0,0,0,0]], 2)
+]
+
+VAR Board: multiarray.ArrayNumber2D := multiarray.make_number2D(BOARD_HEIGHT, BOARD_WIDTH)
+VAR BoardWindow: curses.Window
+VAR NextWindow: curses.Window
+VAR StatsWindow: curses.Window
+
+FUNCTION rotated(p, r: Number): multiarray.ArrayNumber2D
+    VAR q: multiarray.ArrayNumber2D := multiarray.make_number2D(4, 4)
+    CASE Pieces[p].rot
+        WHEN 1 DO
+            q := Pieces[p].grid
+        WHEN 2 DO
+            CASE r
+                WHEN 0 DO
+                    q := Pieces[p].grid
+                WHEN 1 DO
+                    IF p = 1 THEN
+                        FOR y := 0 TO 3 DO
+                            FOR x := 0 TO 3 DO
+                                q[y][x] := Pieces[p].grid[x][y]
+                            END FOR
+                        END FOR
+                    ELSE
+                        FOR y := 0 TO 2 DO
+                            FOR x := 0 TO 2 DO
+                                q[y][x] := Pieces[p].grid[2-x][y]
+                            END FOR
+                        END FOR
+                    END IF
+            END CASE
+        WHEN 4 DO
+            CASE r
+                WHEN 0 DO
+                    q := Pieces[p].grid
+                WHEN 1 DO
+                    FOR y := 0 TO 2 DO
+                        FOR x := 0 TO 2 DO
+                            q[y][x] := Pieces[p].grid[2-x][y]
+                        END FOR
+                    END FOR
+                WHEN 2 DO
+                    FOR y := 0 TO 2 DO
+                        FOR x := 0 TO 2 DO
+                            q[y][x] := Pieces[p].grid[2-y][2-x]
+                        END FOR
+                    END FOR
+                WHEN 3 DO
+                    FOR y := 0 TO 2 DO
+                        FOR x := 0 TO 2 DO
+                            q[y][x] := Pieces[p].grid[x][2-y]
+                        END FOR
+                    END FOR
+            END CASE
+    END CASE
+    RETURN q
+END FUNCTION
+
+FUNCTION plot(on: Boolean, w: curses.Window, p, y, x, r: Number)
+    IF on THEN
+        curses.wattrset(w, curses.COLOR_PAIR(p))
+    ELSE
+        curses.wattrset(w, 0)
+    END IF
+    LET q: multiarray.ArrayNumber2D := rotated(p, r)
+    FOR j := 0 TO 3 DO
+        FOR i := 0 TO 3 DO
+            IF q[j][i] # 0 THEN
+                curses.mvwaddstr(w, y+j, 1+(x+i)*2, "  ")
+            END IF
+        END FOR
+    END FOR
+END FUNCTION
+
+FUNCTION piece_fits(p, x, y, r: Number): Boolean
+    LET q: multiarray.ArrayNumber2D := rotated(p, r)
+    FOR j := 0 TO 3 DO
+        FOR i := 0 TO 3 DO
+            IF q[j][i] # 0 THEN
+                CASE x + i
+                    WHEN < 0, >= BOARD_WIDTH DO
+                        RETURN FALSE
+                END CASE
+                IF y + j >= BOARD_HEIGHT THEN
+                    RETURN FALSE
+                END IF
+                IF Board[y+j][x+i] # 0 THEN
+                    RETURN FALSE
+                END IF
+            END IF
+        END FOR
+    END FOR
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION drop_piece(p, x, y, r: Number)
+    LET q: multiarray.ArrayNumber2D := rotated(p, r)
+    FOR j := 0 TO 3 DO
+        FOR i := 0 TO 3 DO
+            IF q[j][i] # 0 THEN
+                Board[y+j][x+i] := p
+            END IF
+        END FOR
+    END FOR
+    plot(TRUE, BoardWindow, p, y, x, r)
+END FUNCTION
+
+FUNCTION row_complete(j: Number): Boolean
+    FOREACH x OF Board[j] DO
+        IF x = 0 THEN
+            RETURN FALSE
+        END IF
+    END FOREACH
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION remove_rows(INOUT score, rows: Number)
+    VAR count: Number := 0
+    VAR j: Number := BOARD_HEIGHT-1
+    WHILE j >= 0 DO
+        IF row_complete(j) THEN
+            inc(count)
+            FOR k := j TO 1 STEP -1 DO
+                Board[k] := Board[k-1]
+                FOR i := 0 TO BOARD_WIDTH-1 DO
+                    curses.wattrset(BoardWindow, curses.COLOR_PAIR(Board[k][i]))
+                    curses.mvwaddstr(BoardWindow, k, 1+2*i, "  ")
+                END FOR
+            END FOR
+        ELSE
+            dec(j)
+        END IF
+    END WHILE
+    score := score + count*count
+    rows := rows + count
+END FUNCTION
+
+FUNCTION init()
+    curses.mvaddstr( 0, 30, @" _   _                    _____    _        _     ")
+    curses.mvaddstr( 1, 30, @"| \ | | ___  ___  _ __   |_   _|__| |_ _ __(_)___ ")
+    curses.mvaddstr( 2, 30, @"|  \| |/ _ \/ _ \| '_ \    | |/ _ \ __| '__| / __|")
+    curses.mvaddstr( 3, 30, @"| |\  |  __/ (_) | | | |   | |  __/ |_| |  | \__ \")
+    curses.mvaddstr( 4, 30, @"|_| \_|\___|\___/|_| |_|   |_|\___|\__|_|  |_|___/")
+    curses.mvaddstr( 6, 40, @"rotate left       rotate right    ")
+    curses.mvaddstr( 7, 40, @"           \     /                ")
+    curses.mvaddstr( 8, 40, @"            u   o                 ")
+    curses.mvaddstr( 9, 40, @"move left - j k l - move right    ")
+    curses.mvaddstr(10, 40, @"              |                   ")
+    curses.mvaddstr(11, 40, @"          move down               ")
+    curses.mvaddstr(13, 40, @"        space - drop              ")
+    curses.refresh()
+
+    BoardWindow := curses.newwin(21, 2+2*10, 2, 5)
+    curses.wtimeout(BoardWindow, 100)
+
+    NextWindow := curses.newwin(6, 10, 14, 30)
+    curses.box(NextWindow, 0, 0)
+    curses.mvwaddstr(NextWindow, 0, 2, " Next ")
+
+    StatsWindow := curses.newwin(0, 0, 14, 40)
+END FUNCTION
+
+FUNCTION play_again(): Boolean
+    curses.wattrset(BoardWindow, 0)
+    curses.mvwaddstr(BoardWindow,  8, 5, "           ")
+    curses.mvwaddstr(BoardWindow,  9, 5, "  G A M E  ")
+    curses.mvwaddstr(BoardWindow, 10, 5, "           ")
+    curses.mvwaddstr(BoardWindow, 11, 5, "  O V E R  ")
+    curses.mvwaddstr(BoardWindow, 12, 5, "           ")
+    curses.mvwaddstr(BoardWindow, 13, 5, "  again?   ")
+    curses.mvwaddstr(BoardWindow, 14, 5, "           ")
+    LOOP
+        LET k: Number := curses.wgetch(BoardWindow)
+        IF k >= 0 THEN
+            CASE chr(k)
+                WHEN "n", "q" DO
+                    RETURN FALSE
+                WHEN "y" DO
+                    RETURN TRUE
+            END CASE
+        END IF
+    END LOOP
+END FUNCTION
+
+FUNCTION main()
+    init()
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        curses.werase(BoardWindow)
+        curses.wborder(BoardWindow, 0, 0, 32, 0, 0, 0, 0, 0)
+        FOR j := 0 TO BOARD_HEIGHT-1 DO
+            FOR i := 0 TO BOARD_WIDTH-1 DO
+                Board[j][i] := 0
+            END FOR
+        END FOR
+        VAR p, x, y, r: Number := 0
+        VAR rows, score: Number
+        VAR next: Number := 1 + random.uint32() MOD 7
+        VAR drop_time: Number := 1
+        VAR new_piece: Boolean := TRUE
+        VAR last_drop: Number := 0
+        VAR game_over: Boolean := FALSE
+        WHILE NOT game_over AND NOT quit DO
+            IF new_piece THEN
+                p := next
+                next := 1 + random.uint32() MOD 7
+                x := 3
+                y := 0
+                r := 0
+                IF NOT piece_fits(p, x, y, r) THEN
+                    game_over := TRUE
+                END IF
+                plot(FALSE, NextWindow, p, 1, 0, 0)
+                IF NOT game_over THEN
+                    plot(TRUE, NextWindow, next, 1, 0, 0)
+                END IF
+                curses.wrefresh(NextWindow)
+                new_piece := FALSE
+            END IF
+            drop_time := 0.9 ^ math.floor(rows / 8)
+            LET old_x: Number := x
+            LET old_y: Number := y
+            LET old_r: Number := r
+            plot(TRUE, BoardWindow, p, y, x, r)
+            curses.mvwaddstr(StatsWindow, 1, 5, "Score: \(score)")
+            curses.mvwaddstr(StatsWindow, 3, 5, " Rows: \(rows)")
+            curses.wrefresh(StatsWindow)
+            LOOP
+                LET now: Number := time.now()
+                IF now - last_drop >= drop_time THEN
+                    IF NOT piece_fits(p, x, y+1, r) THEN
+                        new_piece := TRUE
+                    ELSE
+                        inc(y)
+                    END IF
+                    last_drop := now
+                    EXIT LOOP
+                END IF
+                LET k: Number := curses.wgetch(BoardWindow)
+                IF k >= 0 THEN
+                    CASE chr(k)
+                        WHEN " " DO
+                            WHILE piece_fits(p, x, y+1, r) DO
+                                inc(y)
+                            END WHILE
+                            new_piece := TRUE
+                            EXIT LOOP
+                        WHEN "j" DO
+                            dec(x)
+                            EXIT LOOP
+                        WHEN "k" DO
+                            IF piece_fits(p, x, y+1, r) THEN
+                                inc(y)
+                                last_drop := now
+                            ELSE
+                                new_piece := TRUE
+                            END IF
+                            EXIT LOOP
+                        WHEN "l" DO
+                            inc(x)
+                            EXIT LOOP
+                        WHEN "u" DO
+                            r := (r - 1) MOD Pieces[p].rot
+                            EXIT LOOP
+                        WHEN "o" DO
+                            r := (r + 1) MOD Pieces[p].rot
+                            EXIT LOOP
+                        WHEN "q" DO
+                            quit := TRUE
+                            EXIT LOOP
+                    END CASE
+                END IF
+            END LOOP
+            IF NOT piece_fits(p, x, y, r) THEN
+                y := old_y
+                x := old_x
+                r := old_r
+            END IF
+            plot(FALSE, BoardWindow, p, old_y, old_x, old_r)
+            IF new_piece THEN
+                drop_piece(p, x, y, r)
+            END IF
+            remove_rows(score, rows)
+        END WHILE
+        quit := quit OR NOT play_again()
+    END WHILE
+END FUNCTION
+
+curses.initscr()
+curses.start_color()
+curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_CYAN)
+curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
+curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_MAGENTA)
+curses.init_pair(4, curses.COLOR_BLACK, curses.COLOR_YELLOW)
+curses.init_pair(5, curses.COLOR_BLACK, curses.COLOR_GREEN)
+curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_WHITE)
+curses.init_pair(7, curses.COLOR_BLACK, curses.COLOR_RED)
+curses.noecho()
+curses.curs_set(0)
+main()
+curses.endwin()
