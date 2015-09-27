@@ -58,7 +58,7 @@ std::string reconstitute(const Token &t)
         case TYPE:        return "TYPE";
         case RECORD:      return "RECORD";
         case ENUM:        return "ENUM";
-        case CONST:       return "CONST";
+        case CONSTANT:    return "CONSTANT";
         case IMPORT:      return "IMPORT";
         case IN:          return "IN";
         case OUT:         return "OUT";

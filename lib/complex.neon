@@ -35,7 +35,7 @@ EXPORT tanh
 
 IMPORT math
 
-CONST MAX: Number := 9.999999999999999e384
+CONSTANT MAX: Number := 9.999999999999999e384
 
 %|
  |  Type: Complex
@@ -52,8 +52,8 @@ TYPE Complex := RECORD
 END RECORD
 
 LET LN10: Number := math.log(10)
-CONST one: Complex := Complex(1, 0)
-CONST i: Complex := Complex(0, 1)
+CONSTANT one: Complex := Complex(1, 0)
+CONSTANT i: Complex := Complex(0, 1)
 
 FUNCTION sign(x: Number): Number
     IF x = 0 THEN

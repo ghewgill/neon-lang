@@ -11,7 +11,7 @@ EXPORT PI
  |
  |  The value of PI to 34 significant digits.
  |%
-CONST PI: Number := 3.141592653589793238462643383279503
+CONSTANT PI: Number := 3.141592653589793238462643383279503
 
 %|
  |  Function: abs

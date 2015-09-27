@@ -1,2 +1,2 @@
-CONST x String = ", World!"
-        %<
+CONSTANT x String = ", World!"
+           %<

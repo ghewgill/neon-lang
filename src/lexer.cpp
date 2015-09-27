@@ -64,7 +64,7 @@ std::string Token::tostring() const
         case TYPE:        s << "TYPE"; break;
         case RECORD:      s << "RECORD"; break;
         case ENUM:        s << "ENUM"; break;
-        case CONST:       s << "CONST"; break;
+        case CONSTANT:    s << "CONSTANT"; break;
         case IMPORT:      s << "IMPORT"; break;
         case IN:          s << "IN"; break;
         case OUT:         s << "OUT"; break;
@@ -249,7 +249,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
             else if (t.text == "TYPE") t.type = TYPE;
             else if (t.text == "RECORD") t.type = RECORD;
             else if (t.text == "ENUM") t.type = ENUM;
-            else if (t.text == "CONST") t.type = CONST;
+            else if (t.text == "CONSTANT") t.type = CONSTANT;
             else if (t.text == "IMPORT") t.type = IMPORT;
             else if (t.text == "IN") t.type = IN;
             else if (t.text == "OUT") t.type = OUT;

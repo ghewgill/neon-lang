@@ -18,26 +18,26 @@ IMPORT time
 
 DECLARE EXCEPTION TODO
 
-CONST JANUARY  : Number := 1
-CONST FEBRUARY : Number := 2
-CONST MARCH    : Number := 3
-CONST APRIL    : Number := 4
-CONST MAY      : Number := 5
-CONST JUNE     : Number := 6
-CONST JULY     : Number := 7
-CONST AUGUST   : Number := 8
-CONST SEPTEMBER: Number := 9
-CONST OCTOBER  : Number := 10
-CONST NOVEMBER : Number := 11
-CONST DECEMBER : Number := 12
+CONSTANT JANUARY  : Number := 1
+CONSTANT FEBRUARY : Number := 2
+CONSTANT MARCH    : Number := 3
+CONSTANT APRIL    : Number := 4
+CONSTANT MAY      : Number := 5
+CONSTANT JUNE     : Number := 6
+CONSTANT JULY     : Number := 7
+CONSTANT AUGUST   : Number := 8
+CONSTANT SEPTEMBER: Number := 9
+CONSTANT OCTOBER  : Number := 10
+CONSTANT NOVEMBER : Number := 11
+CONSTANT DECEMBER : Number := 12
 
-CONST MONDAY   : Number := 1
-CONST TUESDAY  : Number := 2
-CONST WEDNESDAY: Number := 3
-CONST THURSDAY : Number := 4
-CONST FRIDAY   : Number := 5
-CONST SATURDAY : Number := 6
-CONST SUNDAY   : Number := 7
+CONSTANT MONDAY   : Number := 1
+CONSTANT TUESDAY  : Number := 2
+CONSTANT WEDNESDAY: Number := 3
+CONSTANT THURSDAY : Number := 4
+CONSTANT FRIDAY   : Number := 5
+CONSTANT SATURDAY : Number := 6
+CONSTANT SUNDAY   : Number := 7
 
 %|
  |  Type: Instant

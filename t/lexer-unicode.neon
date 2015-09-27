@@ -1,7 +1,7 @@
-CONST a: Number := 5
-CONST b: Number := 8
-CONST p: Boolean := TRUE
-CONST q: Boolean := FALSE
+CONSTANT a: Number := 5
+CONSTANT b: Number := 8
+CONSTANT p: Boolean := TRUE
+CONSTANT q: Boolean := FALSE
 
 IF a ≠ b THEN
     print("1")

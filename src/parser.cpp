@@ -932,7 +932,7 @@ const Statement *Parser::parseDeclaration()
         }
         case NATIVE: {
             ++i;
-            if (tokens[i].type == CONST) {
+            if (tokens[i].type == CONSTANT) {
                 ++i;
                 // This just skips over the (assumed syntactically correct)
                 // identifier, colon, and type declaration of a constant.
@@ -1557,7 +1557,7 @@ const Statement *Parser::parseStatement()
         return parseImport();
     } else if (tokens[i].type == TYPE) {
         return parseTypeDefinition();
-    } else if (tokens[i].type == CONST) {
+    } else if (tokens[i].type == CONSTANT) {
         return parseConstantDefinition();
     } else if (tokens[i].type == FUNCTION) {
         return parseFunctionDefinition();

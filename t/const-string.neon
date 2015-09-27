@@ -1,5 +1,5 @@
-CONST First: String := "A"
-CONST Last: String := "Z"
+CONSTANT First: String := "A"
+CONSTANT Last: String := "Z"
 
 VAR x: String := "M"
 

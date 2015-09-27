@@ -1,4 +1,4 @@
-CONST MAX_STEP: Number := 1
+CONSTANT MAX_STEP: Number := 1
 
 FOR x := 1 TO 5 STEP MAX_STEP DO
     print("\(x)")

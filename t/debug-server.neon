@@ -5,7 +5,7 @@ IMPORT os
 IMPORT time
 IMPORT variant
 
-CONST Port: Number := 20179
+CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): variant.Variant
     VAR headers: Array<String>

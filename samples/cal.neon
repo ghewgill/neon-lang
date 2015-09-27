@@ -1,7 +1,7 @@
 IMPORT datetime
 IMPORT sys
 
-CONST MonthName: Array<String> := [
+CONSTANT MonthName: Array<String> := [
     "", % Month numbers start at 1
     "January",
     "February",

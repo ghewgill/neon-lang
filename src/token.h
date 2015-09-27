@@ -56,7 +56,7 @@ enum TokenType {
     TYPE,
     RECORD,
     ENUM,
-    CONST,
+    CONSTANT,
     IMPORT,
     IN,
     OUT,

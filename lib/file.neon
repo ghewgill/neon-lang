@@ -14,7 +14,7 @@ EXPORT path_join
 EXPORT path_split
 EXPORT remove_directory_tree
 
-DECLARE NATIVE CONST Separator: String
+DECLARE NATIVE CONSTANT Separator: String
 
 %|
  |  Exception: DirectoryExists

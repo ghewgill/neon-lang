@@ -87,7 +87,7 @@ DOT = Symbol("DOT")
 TYPE = Keyword("TYPE")
 RECORD = Keyword("RECORD")
 ENUM = Keyword("ENUM")
-CONST = Keyword("CONST")
+CONSTANT = Keyword("CONSTANT")
 IMPORT = Keyword("IMPORT")
 IN = Keyword("IN")
 OUT = Keyword("OUT")
@@ -1081,7 +1081,7 @@ class Parser:
         return TypeDeclaration(name, type)
 
     def parse_constant_definition(self):
-        self.expect(CONST)
+        self.expect(CONSTANT)
         name = self.identifier()
         self.expect(COLON)
         type = self.parse_type()
@@ -1470,7 +1470,7 @@ class Parser:
             return ExceptionDeclaration(name)
         elif self.tokens[self.i] == NATIVE:
             self.i += 1
-            if self.tokens[self.i] == CONST:
+            if self.tokens[self.i] == CONSTANT:
                 self.i += 1
                 name = self.identifier()
                 self.expect(COLON)
@@ -1681,7 +1681,7 @@ class Parser:
     def parse_statement(self):
         if self.tokens[self.i] is IMPORT:   return self.parse_import()
         if self.tokens[self.i] is TYPE:     return self.parse_type_definition()
-        if self.tokens[self.i] is CONST:    return self.parse_constant_definition()
+        if self.tokens[self.i] is CONSTANT: return self.parse_constant_definition()
         if self.tokens[self.i] is FUNCTION: return self.parse_function_definition()
         if self.tokens[self.i] is EXTERNAL: return self.parse_external_definition()
         if self.tokens[self.i] is DECLARE:  return self.parse_declaration()

@@ -32,13 +32,13 @@ TYPE Enum := ENUM
     blue
 END ENUM
 
-CONST cb: Boolean := TRUE
-CONST cn: Number := 1
-CONST cs: String := "a"
-CONST ca: Array<Number> := [1]
-CONST cd: Dictionary<Number> := {"a": 1}
-CONST cr: Record := Record(1)
-CONST ce: Enum := Enum.green
+CONSTANT cb: Boolean := TRUE
+CONSTANT cn: Number := 1
+CONSTANT cs: String := "a"
+CONSTANT ca: Array<Number> := [1]
+CONSTANT cd: Dictionary<Number> := {"a": 1}
+CONSTANT cr: Record := Record(1)
+CONSTANT ce: Enum := Enum.green
 
 VAR vb: Boolean
 VAR vn: Number

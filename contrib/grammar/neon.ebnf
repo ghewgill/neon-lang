@@ -62,9 +62,9 @@ PointerType = 'POINTER', 'TO', Type;
 
 FunctionPointerType = 'FUNCTION', FunctionParameterList;
 
-ConstantDeclaration = 'CONST', Identifier, ':', Type, ':=', Expression;
+ConstantDeclaration = 'CONSTANT', Identifier, ':', Type, ':=', Expression;
 
-NativeConstantDeclaration = 'DECLARE', 'NATIVE', 'CONST', Identifier, ':', Type;
+NativeConstantDeclaration = 'DECLARE', 'NATIVE', 'CONSTANT', Identifier, ':', Type;
 
 VariableDeclaration = 'VAR', Identifier, {',', Identifier}, ':', Type, [':=', Expression];
 

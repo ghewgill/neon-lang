@@ -1,5 +1,5 @@
-CONST a: Number := 5
-CONST b: Number := a
+CONSTANT a: Number := 5
+CONSTANT b: Number := a
 
 print(str(b))
 

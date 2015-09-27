@@ -20,8 +20,8 @@ EXPORT sub
 
 IMPORT math
 
-CONST DIGITS: Number := 6
-CONST BASE: Number := 1000000 % = 10^DIGITS, but avoid using ^
+CONSTANT DIGITS: Number := 6
+CONSTANT BASE: Number := 1000000 % = 10^DIGITS, but avoid using ^
 
 TYPE Comparison := ENUM
     less

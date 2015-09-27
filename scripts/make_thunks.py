@@ -177,7 +177,7 @@ for fn in sys.argv[1:]:
                     rtype = m.group(4)
                     params = parse_params(paramstr)
                     functions[name] = [name, AstFromNeon[rtype], rtype.split()[-1] if rtype is not None else None, [AstFromNeon[x[0]] for x in params], [x[0].split()[-1] for x in params], [x[1] for x in params]]
-                elif a[:3] == ["DECLARE", "NATIVE", "CONST"]:
+                elif a[:3] == ["DECLARE", "NATIVE", "CONSTANT"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
                     assert m is not None
                     name = prefix + m.group(1)

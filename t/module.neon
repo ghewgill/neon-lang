@@ -28,7 +28,7 @@ FUNCTION type.method(IN self: type): String
     RETURN self.string & self.string
 END FUNCTION
 
-CONST const: Number := 5
+CONSTANT const: Number := 5
 
 VAR var: String := "test"
 

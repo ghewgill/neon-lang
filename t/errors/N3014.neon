@@ -2,5 +2,5 @@ VAR x: String
     %<2
 x := "Hello"
 
-CONST x: String := ", World!"
-      %<1
+CONSTANT x: String := ", World!"
+         %<1

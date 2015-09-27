@@ -392,9 +392,9 @@ VAR Arr_2_Glob: Array<Array<Number>>
 
 IMPORT time
 
-CONST Mic_secs_Per_Second: Number := 1000000.0
+CONSTANT Mic_secs_Per_Second: Number := 1000000.0
 
-CONST Too_Small_Time: Number := 2
+CONSTANT Too_Small_Time: Number := 2
 
 VAR Begin_Time, End_Time, User_Time: Number
 VAR Microseconds, Dhrystones_Per_Second: Number
