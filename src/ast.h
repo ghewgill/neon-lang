@@ -152,7 +152,7 @@ public:
     virtual std::string get_type_descriptor(Emitter &) const override { return "Z"; }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeNothing"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeNothing"); }
-    virtual void debuginfo(Emitter &, minijson::object_writer &) const { internal_error("TypeNothing"); }
+    virtual void debuginfo(Emitter &, minijson::object_writer &) const override { internal_error("TypeNothing"); }
 
     virtual std::string text() const override { return "TypeNothing"; }
 };
@@ -168,7 +168,7 @@ public:
     virtual std::string get_type_descriptor(Emitter &) const override { return "B"; }
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeBoolean"; }
 };
@@ -185,7 +185,7 @@ public:
     virtual std::string get_type_descriptor(Emitter &) const override { return "N"; }
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeNumber"; }
 };
@@ -203,7 +203,7 @@ public:
     virtual std::string serialize(const Expression *value) const override;
     static std::string deserialize_string(const Bytecode::Bytes &value, int &i);
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeString"; }
 };
@@ -215,7 +215,7 @@ public:
     TypeBytes(): TypeString() {}
 
     virtual std::string get_type_descriptor(Emitter &) const override { return "Y"; }
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeBytes"; }
 };
@@ -250,7 +250,7 @@ public:
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual std::string serialize(const Expression *) const override { internal_error("TypeFunction"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeFunction"); }
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     const Type *returntype;
     const std::vector<const ParameterType *> params;
@@ -275,7 +275,7 @@ public:
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeArray(" + (elementtype != nullptr ? elementtype->text() : "any") + ")"; }
 private:
@@ -300,7 +300,7 @@ public:
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeDictionary(" + (elementtype != nullptr ? elementtype->text() : "any") + ")"; }
 private:
@@ -340,7 +340,7 @@ public:
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override;
 private:
@@ -376,7 +376,7 @@ public:
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypePointer(" + (reftype != nullptr ? reftype->text() : "any") + ")"; }
 private:
@@ -405,7 +405,7 @@ public:
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeFunctionPointer(" + functype->text() + ")"; }
 private:
@@ -419,7 +419,7 @@ public:
     const std::map<std::string, int> names;
 
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeEnum(...)"; }
 };
@@ -434,7 +434,7 @@ public:
     virtual std::string get_type_descriptor(Emitter &) const override { internal_error("TypeModule"); }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeModule"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeModule"); }
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeModule(...)"; }
 };
@@ -451,7 +451,7 @@ public:
     virtual std::string get_type_descriptor(Emitter &) const override { return "X"; }
     virtual std::string serialize(const Expression *) const override { internal_error("TypeException"); }
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeException"); }
-    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeException"; }
 };
