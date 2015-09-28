@@ -140,7 +140,7 @@ The following keywords are predefined and may not be used for any other purpose.
 | <a href="#keyword-AS">`AS`</a> | parameter specification for named parameters |
 | <a href="#keyword-Array">`Array`</a> | generic array type |
 | <a href="#keyword-CASE">`CASE`</a> | multiple value matching from a range |
-| <a href="#keyword-CONST">`CONST`</a> | constant declaration |
+| <a href="#keyword-CONSTANT">`CONSTANT`</a> | constant declaration |
 | <a href="#keyword-DECLARE">`DECLARE`</a> | exception and forward function declaration |
 | <a href="#keyword-DEFAULT">`DEFAULT`</a> | default value for function parameter |
 | <a href="#keyword-Dictionary">`Dictionary`</a> | generic dictionary type |
@@ -241,17 +241,17 @@ Literal strings may need to contain backslashes (such as when used for regular e
 Instead of using normal double-quoted strings, there are two varieties of "raw strings".
 The first can contain any character except `"`:
 
-    CONST s: String := @"This string contains backslash (\) characters"
+    CONSTANT s: String := @"This string contains backslash (\) characters"
 
 The second type of string uses arbitrary delimiters so that any literal string can be included in source.
 The simplest form is:
 
-    CONST s: String := @@"This string contains backslashes (\) and "quotes"."@@
+    CONSTANT s: String := @@"This string contains backslashes (\) and "quotes"."@@
 
 If there is a need to include the sequence `"@@` within the string, an arbitrary identifier may appear between the `@` at the start and end of the stiring.
 For example:
 
-    CONST s: String := @raw@"A raw string example is @@"like this"@@."@raw@
+    CONSTANT s: String := @raw@"A raw string example is @@"like this"@@."@raw@
 
 <a name="types"></a>
 
@@ -602,16 +602,16 @@ Types may be assigned names using the `TYPE` keyword:
 
 ### Constants
 
-Constants are defined using the `CONST` keyword.
+Constants are defined using the `CONSTANT` keyword.
 
-    CONST Pi: Number := 3.141592653589793
-    CONST Sky: String := "blue"
+    CONSTANT Pi: Number := 3.141592653589793
+    CONSTANT Sky: String := "blue"
 
 The value assigned to a constant must be able to be evaluated at compile time.
 This may be an expression:
 
-    CONST Pi: Number := 3.141592653589793
-    CONST Pi2: Number := Pi ^ 2
+    CONSTANT Pi: Number := 3.141592653589793
+    CONSTANT Pi2: Number := Pi ^ 2
 
 ### Variables
 
