@@ -1,0 +1,15 @@
+IMPORT sys
+
+TRY
+    sys.exit(1.5)
+EXCEPTION InvalidValue
+    print(CURRENT_EXCEPTION.info)
+END TRY
+%= sys.exit invalid parameter: 1.5
+
+TRY
+    sys.exit(-1)
+EXCEPTION InvalidValue
+    print(CURRENT_EXCEPTION.info)
+END TRY
+%= sys.exit invalid parameter: -1

@@ -101,6 +101,13 @@ DECLARE EXCEPTION FormatException
 DECLARE EXCEPTION InvalidFunction
 
 %|
+ |  Exception: InvalidValue
+ |
+ |  An invalid value was passed to a library function.
+ |%
+DECLARE EXCEPTION InvalidValue
+
+%|
  |  Exception: FunctionNotFound
  |
  |  Function not found.
