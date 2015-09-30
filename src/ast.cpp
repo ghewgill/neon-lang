@@ -16,7 +16,6 @@ TypeString *TYPE_STRING = new TypeString();
 TypeBytes *TYPE_BYTES = new TypeBytes();
 TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(Token(), TYPE_NUMBER);
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
-TypePointer *TYPE_POINTER = new TypePointer(Token(), nullptr);
 TypeModule *TYPE_MODULE = new TypeModule();
 TypeException *TYPE_EXCEPTION = new TypeException();
 
@@ -270,12 +269,18 @@ TypePointer::TypePointer(const Token &declaration, const TypeRecord *reftype)
 
 bool TypePointer::is_equivalent(const Type *rhs) const
 {
+    if (this == rhs) {
+        return true;
+    }
+    if (dynamic_cast<const TypePointerNil *>(rhs) != nullptr) {
+        return true;
+    }
     const TypePointer *p = dynamic_cast<const TypePointer *>(rhs);
     if (p == nullptr) {
         return false;
     }
     if (reftype == nullptr || p->reftype == nullptr) {
-        return true;
+        return false;
     }
     // Shortcut check avoids infinite recursion on records with pointer to itself.
     return reftype == p->reftype || reftype->is_equivalent(p->reftype);

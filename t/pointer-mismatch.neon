@@ -1,0 +1,9 @@
+TYPE P1 := POINTER
+TYPE P2 := POINTER
+
+VAR p1: P1
+VAR p2: P2
+
+p2 := p1
+
+%! type mismatch

@@ -9,9 +9,13 @@ EXPORT DebugBreak
 EXPORT FindClose
 EXPORT FindFirstFileA
 EXPORT FindNextFileA
+EXPORT Handle
 EXPORT WIN32_FIND_DATA
 
 IMPORT struct
+
+% Type: Handle
+TYPE Handle := POINTER
 
 % Struct: WIN32_FIND_DATA
 LET WIN32_FIND_DATA: struct.Struct := struct.make([
@@ -50,7 +54,7 @@ EXTERNAL FUNCTION DebugBreak()
 END FUNCTION
 
 % Function: FindClose
-EXTERNAL FUNCTION FindClose(hFindFile: POINTER): Boolean
+EXTERNAL FUNCTION FindClose(hFindFile: Handle): Boolean
 {
     "library": {"name": "kernel32"}
     "types": {
@@ -61,7 +65,7 @@ EXTERNAL FUNCTION FindClose(hFindFile: POINTER): Boolean
 END FUNCTION
 
 % Function: FindFirstFileA
-EXTERNAL FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes): POINTER
+EXTERNAL FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes): Handle
 {
     "library": {"name": "kernel32"}
     "types": {
@@ -73,7 +77,7 @@ EXTERNAL FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes
 END FUNCTION
 
 % Function: FindNextFileA
-EXTERNAL FUNCTION FindNextFileA(hFindFile: POINTER, INOUT lpFindFileData: Bytes): Boolean
+EXTERNAL FUNCTION FindNextFileA(hFindFile: Handle, INOUT lpFindFileData: Bytes): Boolean
 {
     "library": {"name": "kernel32"}
     "types": {

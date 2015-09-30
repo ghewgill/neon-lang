@@ -384,7 +384,10 @@ private:
     TypePointer &operator=(const TypePointer &);
 };
 
-extern TypePointer *TYPE_POINTER;
+class TypePointerNil: public TypePointer {
+public:
+    TypePointerNil(): TypePointer(Token(), nullptr) {}
+};
 
 class TypeValidPointer: public TypePointer {
 public:
@@ -643,7 +646,7 @@ public:
 
 class ConstantNilExpression: public Expression {
 public:
-    ConstantNilExpression(): Expression(new TypePointer(Token(), nullptr), true) {}
+    ConstantNilExpression(): Expression(new TypePointerNil(), true) {}
 
     virtual bool eval_boolean() const override { internal_error("ConstantNilExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantNilExpression"); }

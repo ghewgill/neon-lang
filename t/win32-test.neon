@@ -6,7 +6,7 @@ IMPORT variant
 IMPORT win32
 
 VAR b: Boolean
-VAR p: POINTER
+VAR p: win32.Handle
 
 VAR bfd: Bytes := win32.WIN32_FIND_DATA.pack({})
 p := win32.FindFirstFileA(@"lib\*.neon", bfd)

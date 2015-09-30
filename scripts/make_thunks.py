@@ -282,7 +282,7 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "    struct {ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
-        print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {{{}}}}},".format(name, rtype[0] if rtype[0] != "TYPE_GENERIC" else "nullptr", "\"{}\"".format(rtypename) or "nullptr", len(params), ",".join("{{ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT", n, p if p != "TYPE_GENERIC" else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames)))
+        print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {{{}}}}},".format(name, rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(rtypename) or "nullptr", len(params), ",".join("{{ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT", n, p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames)))
     print >>inc, "};";
 
 with open("src/functions_exec.inc", "w") as inc:
