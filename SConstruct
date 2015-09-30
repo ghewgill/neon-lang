@@ -279,6 +279,7 @@ neonc = env.Program("bin/neonc", [
 )
 
 neonx = env.Program("bin/neonx", [
+    "src/bundle.cpp",
     "src/bytecode.cpp",
     "src/cell.cpp",
     "src/exec.cpp",
@@ -294,6 +295,7 @@ neonx = env.Program("bin/neonx", [
 )
 
 neonstub = env.Program("bin/neonstub", [
+    "src/bundle.cpp",
     "src/bytecode.cpp",
     "src/cell.cpp",
     "src/exec.cpp",
@@ -413,9 +415,12 @@ if os.name == "posix":
     env.Command("tmp/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
     env.Command("tests_script", "tmp/hello", "env PATH=bin tmp/hello")
 
-hello_exe = env.Command("tmp/hello.exe", ["samples/hello.neonx", neonbind, neonstub], "{} $TARGET $SOURCE".format(neonbind[0].path))
-env.Command("test_hello", hello_exe, hello_exe[0].path)
-cal_exe = env.Command("tmp/cal.exe", ["samples/cal.neonx", neonbind, neonstub], "{} $TARGET $SOURCE".format(neonbind[0].path))
+hello_neb = env.Command("tmp/hello.neb", ["samples/hello.neonx", neonbind], "{} $TARGET $SOURCE".format(neonbind[0].path))
+env.Command("test_hello_neb", [hello_neb, neonx], "{} $SOURCE".format(neonx[0].path))
+
+hello_exe = env.Command("tmp/hello.exe", ["samples/hello.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
+env.Command("test_hello_exe", hello_exe, hello_exe[0].path)
+cal_exe = env.Command("tmp/cal.exe", ["samples/cal.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
 env.Command("test_cal", cal_exe, cal_exe[0].path)
 
 # Need to find where perl actually is, in case it's not in

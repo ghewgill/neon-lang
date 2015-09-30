@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <string>
+#include <string.h>
 #include <sys/stat.h>
 #include <vector>
 
@@ -45,16 +46,35 @@ void get_modules(const Bytecode &obj, std::map<std::string, Bytecode> &modules)
 
 int main(int argc, char *argv[])
 {
+    bool executable = false;
+
     if (argc < 3) {
-        fprintf(stderr, "Usage: %s executable module\n", argv[0]);
+        fprintf(stderr, "Usage: %s [-e] bundle module\n", argv[0]);
         exit(1);
     }
 
+    int a = 1;
+    while (a < argc) {
+        if (argv[a][0] == '-') {
+            if (strcmp(argv[a], "-e") == 0) {
+                executable = true;
+            } else {
+                fprintf(stderr, "Unknown option: %s\n", argv[a]);
+            }
+        } else {
+            break;
+        }
+        a++;
+    }
+
+    const char *bundle = argv[a];
+    const char *module = argv[a+1];
+
     std::map<std::string, Bytecode> modules;
     {
-        std::ifstream inf(argv[2], std::ios::binary);
+        std::ifstream inf(module, std::ios::binary);
         if (not inf.good()) {
-            fprintf(stderr, "could not find: %s\n", argv[2]);
+            fprintf(stderr, "could not find: %s\n", module);
             exit(1);
         }
         std::stringstream buf;
@@ -66,7 +86,7 @@ int main(int argc, char *argv[])
     }
     get_modules(modules[""], modules);
 
-    const std::string zipname = std::string(argv[1]) + ".zip";
+    const std::string zipname = executable ? std::string(bundle) + ".zip" : bundle;
     {
         zipFile zip = zipOpen(zipname.c_str(), 0);
         if (zip == NULL) {
@@ -85,42 +105,44 @@ int main(int argc, char *argv[])
         zipClose(zip, NULL);
     }
 
-    FILE *stub = fopen("bin/" STUB_NAME, "rb");
-    if (stub == NULL) {
-        fprintf(stderr, "stub open\n");
-        exit(1);
-    }
-    FILE *zip = fopen(zipname.c_str(), "rb");
-    if (zip == NULL) {
-        fprintf(stderr, "zip open\n");
-        exit(1);
-    }
-    FILE *exe = fopen(argv[1], "wb");
-    if (exe == NULL) {
-        fprintf(stderr, "exe open\n");
-        exit(1);
-    }
-    for (;;) {
-        char buf[4096];
-        size_t n = fread(buf, 1, sizeof(buf), stub);
-        if (n == 0) {
-            break;
+    if (executable) {
+        FILE *stub = fopen("bin/" STUB_NAME, "rb");
+        if (stub == NULL) {
+            fprintf(stderr, "stub open\n");
+            exit(1);
         }
-        fwrite(buf, 1, n, exe);
-    }
-    for (;;) {
-        char buf[4096];
-        size_t n = fread(buf, 1, sizeof(buf), zip);
-        if (n == 0) {
-            break;
+        FILE *zip = fopen(zipname.c_str(), "rb");
+        if (zip == NULL) {
+            fprintf(stderr, "zip open\n");
+            exit(1);
         }
-        fwrite(buf, 1, n, exe);
+        FILE *exe = fopen(bundle, "wb");
+        if (exe == NULL) {
+            fprintf(stderr, "exe open\n");
+            exit(1);
+        }
+        for (;;) {
+            char buf[4096];
+            size_t n = fread(buf, 1, sizeof(buf), stub);
+            if (n == 0) {
+                break;
+            }
+            fwrite(buf, 1, n, exe);
+        }
+        for (;;) {
+            char buf[4096];
+            size_t n = fread(buf, 1, sizeof(buf), zip);
+            if (n == 0) {
+                break;
+            }
+            fwrite(buf, 1, n, exe);
+        }
+        fclose(stub);
+        fclose(zip);
+        #ifndef _WIN32
+            fchmod(fileno(exe), 0755);
+        #endif
+        fclose(exe);
+        unlink(zipname.c_str());
     }
-    fclose(stub);
-    fclose(zip);
-    #ifndef _WIN32
-        fchmod(fileno(exe), 0755);
-    #endif
-    fclose(exe);
-    unlink(zipname.c_str());
 }
