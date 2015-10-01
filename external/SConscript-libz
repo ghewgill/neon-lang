@@ -6,6 +6,7 @@ import tarfile
 Import("env")
 
 libz = None
+include_zlib = None
 
 libzenv = Environment()
 if not env["RELEASE"]:
@@ -30,12 +31,12 @@ if sys.platform == "win32":
         "zlib-1.2.8/uncompr.c",
         "zlib-1.2.8/zutil.c",
     ])
-    env.Append(CPPPATH=["external/zlib-1.2.8"])
+    include_zlib = "external/zlib-1.2.8"
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("z", "zlib.h", "c"):
         libz = libzenv.Command("zlib-1.2.8/libz.a", "zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
-        env.Append(CPPPATH=["external/zlib-1.2.8"])
+        include_zlib = "external/zlib-1.2.8"
     conf.Finish()
 
-Return(["libz"])
+Return(["libz", "include_zlib"])

@@ -66,24 +66,39 @@ def add_external(target):
     env.Depends("external", target)
     return target
 
-add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
-libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
-libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libs_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"]))
-libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"]))
-libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"]))
+include_utf8 = add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
+libbid, include_bid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
+libffi, include_ffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
+libs_curses, include_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"]))
+libpcre, include_pcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"]))
+libcurl, include_curl = add_external(SConscript("external/SConscript-libcurl", exports=["env"]))
 libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"]))
-libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
-libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
-libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
-libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"]))
-liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"]))
-libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
-add_external(SConscript("external/SConscript-minijson", exports=["env"]))
+libhash, include_hash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
+libsqlite, include_sqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
+libz, include_zlib = add_external(SConscript("external/SConscript-libz", exports=["env"]))
+libbz2, include_bz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"]))
+liblzma, include_lzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"]))
+libminizip, include_minizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
+include_minijson = add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
 SConscript("external/SConscript-naturaldocs")
 
+def with_path(env, path, source):
+    e = env.Clone()
+    if path:
+        e.Append(CPPPATH=path)
+    return e.Object(source)
+
+env.Append(CPPPATH=[x for x in [
+    include_bid,
+    include_ffi,
+    include_hash,
+    include_minijson,
+    include_minizip,
+    include_utf8,
+    include_zlib,
+] if x])
 env.Append(CPPPATH=[
     "src",
 ])
@@ -139,7 +154,7 @@ if coverage:
     ])
 
 rtl_const = [
-    "lib/curses_const.cpp",
+    with_path(env, include_curses, "lib/curses_const.cpp"),
 ]
 
 if os.name == "posix":
@@ -156,22 +171,22 @@ else:
 
 rtl_cpp = rtl_const + [
     "lib/bitwise.cpp",
-    "lib/compress.cpp",
-    "lib/curses.cpp",
+    with_path(env, [include_bz2, include_lzma], "lib/compress.cpp"),
+    with_path(env, include_curses, "lib/curses.cpp"),
     "lib/datetime.cpp",
     "lib/debugger.cpp",
     "lib/global.cpp",
     "lib/file.cpp",
     "lib/hash.cpp",
-    "lib/http.cpp",
+    with_path(env, include_curl, "lib/http.cpp"),
     "lib/io.cpp",
     "lib/math.cpp",
     "lib/net.cpp",
     "lib/os.cpp",
     "lib/random.cpp",
     "lib/runtime.cpp",
-    "lib/regex.cpp",
-    "lib/sqlite.cpp",
+    with_path(env, include_pcre, "lib/regex.cpp"),
+    with_path(env, include_sqlite, "lib/sqlite.cpp"),
     "lib/string.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",

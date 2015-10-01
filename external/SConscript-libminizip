@@ -26,7 +26,6 @@ if sys.platform == "win32":
         "minizip11/unzip.c",
         "minizip11/zip.c",
     ])
-    env.Append(CPPPATH=["external/minizip11"])
 else:
     if sys.platform.startswith("darwin"):
         libminizipenv.Append(CPPFLAGS=["-Dfopen64=fopen", "-Dfseeko64=fseeko", "-Dftello64=ftello"])
@@ -35,6 +34,7 @@ else:
         "minizip11/unzip.c",
         "minizip11/zip.c",
     ])
-    env.Append(CPPPATH=["external/minizip11"])
 
-Return(["libminizip"])
+include_minizip = "external/minizip11"
+
+Return(["libminizip", "include_minizip"])

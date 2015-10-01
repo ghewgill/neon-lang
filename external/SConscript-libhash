@@ -26,6 +26,6 @@ libhash = hashenv.Library("hash-library/hash-library", [
     "hash-library/sha3.cpp",
 ])
 
-env.Append(CPPPATH=["external/hash-library"])
+include_hash = "external/hash-library"
 
-Return(["libhash"])
+Return(["libhash", "include_hash"])

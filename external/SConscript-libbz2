@@ -6,6 +6,7 @@ import tarfile
 Import("env")
 
 libbz2 = None
+include_bz2 = None
 
 bz2env = Environment()
 if not env["RELEASE"]:
@@ -27,12 +28,12 @@ if sys.platform == "win32":
         "bzip2-1.0.6/huffman.c",
         "bzip2-1.0.6/randtable.c",
     ])
-    env.Append(CPPPATH=["external/bzip2-1.0.6"])
+    include_bz2 = "external/bzip2-1.0.6"
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("bz2", "bzlib.h", "c"):
         libbz2 = bz2env.Command("bzip2-1.0.6/libbz2.a", "bzip2-1.0.6/Makefile", "cd external/bzip2-1.0.6 && make")
-        env.Append(CPPPATH=["external/bzip2-1.0.6"])
+        include_bz2 = "external/bzip2-1.0.6"
     conf.Finish()
 
-Return(["libbz2"])
+Return(["libbz2", "include_bz2"])

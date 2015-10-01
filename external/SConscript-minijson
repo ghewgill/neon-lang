@@ -28,4 +28,6 @@ elif not os.path.exists("minijson_writer-master/minijson_writer.hpp"):
 
     open("minijson_writer-master/minijson_writer.hpp", "w").write(hpp)
 
-env.Append(CPPPATH=["external/minijson_writer-master"])
+include_minijson = "external/minijson_writer-master"
+
+Return(["include_minijson"])

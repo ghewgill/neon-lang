@@ -22,6 +22,6 @@ if sys.platform == "win32":
 else:
     libbid = bidenv.Command("IntelRDFPMathLib20U1/LIBRARY/libbid.a", "IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "cd external/IntelRDFPMathLib20U1/LIBRARY && make CC=gcc GLOBAL_RND=1 GLOBAL_FLAGS=1")
 
-env.Append(CPPPATH=["external/IntelRDFPMathLib20U1/LIBRARY/src"])
+include_bid = "external/IntelRDFPMathLib20U1/LIBRARY/src"
 
-Return(["libbid"])
+Return(["libbid", "include_bid"])

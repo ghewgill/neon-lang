@@ -6,6 +6,7 @@ import tarfile
 Import("env")
 
 libpcre = None
+include_pcre = None
 
 pcreenv = Environment()
 if not env["RELEASE"]:
@@ -52,12 +53,12 @@ if sys.platform == "win32":
         "pcre2-10.10/src/pcre2_valid_utf.c",
         "pcre2-10.10/src/pcre2_xclass.c",
     ])
-    env.Append(CPPPATH=["external/pcre2-10.10/src"])
+    include_pcre = "external/pcre2-10.10/src"
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("pcre2", "pcre2.h", "c"):
         libpcre = pcreenv.Command("pcre2-10.10/.libs/libpcre2-8.a", "pcre2-10.10/configure", "cd external/pcre2-10.10 && ./configure && make")
-        env.Append(CPPPATH=["external/pcre2-10.10/src"])
+        include_pcre = "external/pcre2-10.10/src"
     conf.Finish()
 
-Return(["libpcre"])
+Return(["libpcre", "include_pcre"])

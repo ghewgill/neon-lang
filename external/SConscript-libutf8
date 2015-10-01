@@ -9,4 +9,6 @@ if GetOption("clean"):
 elif not os.path.exists("utf8/source/utf8.h"):
     zipfile.ZipFile("utf8_v2_3_4.zip").extractall("utf8")
 
-env.Append(CPPPATH=["external/utf8/source"])
+include_utf8 = "external/utf8/source"
+
+Return(["include_utf8"])
