@@ -1,0 +1,320 @@
+%|
+ |  Othello game.
+ |
+ |  The Othello playing engine used here was originally written by
+ |  Roemer B. Lievaart for the 1987 International Obfuscated C Code Contest.
+ |%
+
+IMPORT curses
+
+CONSTANT Directions: Array<Number> := [-1, -11, -10, -9, 1, 11, 10, 9]
+CONSTANT Corners: Array<Number> := [11, 18, 81, 88]
+CONSTANT NearCorners: Array<Number> := [22, 27, 72, 77]
+
+VAR Level: Number := 2
+VAR Moves: Array<Number>
+VAR Board: Array<Number>
+VAR BestPos: Number
+
+FUNCTION initialize()
+    Board.resize(1600)
+    FOR i := 0 TO Board.size()-1 STEP 100 DO
+        FOR j := 0 TO 99 DO
+            IF j < 11 OR j > 88 OR (j + 1) MOD 10 < 2 THEN
+                Board[i+j] := 3
+            ELSE
+                Board[i+j] := 0
+            END IF
+        END FOR
+    END FOR
+    Moves := []
+END FUNCTION
+
+FUNCTION updateBoard()
+    FOR i := 0 TO 99 DO
+        IF i < 11 OR i > 88 OR (i + 1) MOD 10 < 2 THEN
+            Board[i] := 3
+        ELSE
+            Board[i] := 0
+        END IF
+    END FOR
+    Board[44] := 1
+    Board[55] := 1
+    Board[45] := 2
+    Board[54] := 2
+    VAR color: Number := 2
+    FOREACH m OF Moves DO
+        IF m # 0 THEN
+            LET dummy: Boolean := validMove(0, m, color, 0)
+        END IF
+        color := 3 - color
+    END FOREACH
+END FUNCTION
+
+FUNCTION dupeBoard(base: Number)
+    VAR p: Number := base + 111
+    FOR i := base+11 TO base+88 DO
+        Board[p] := Board[i]
+        inc(p)
+    END FOR
+END FUNCTION
+
+FUNCTION validMove(base, move, color, delta: Number): Boolean
+    LET p: Number := base + move
+    IF Board[p] # 0 THEN
+        RETURN FALSE
+    END IF
+    LET other: Number := 3 - color
+    VAR ok: Boolean := FALSE
+    FOR d := 7 TO 0 STEP -1 DO
+        LET dd: Number := Directions[d]
+        VAR n: Number := p + dd
+        WHILE Board[n] = other DO
+            n := n + dd
+        END WHILE
+        IF Board[n] = color AND n-dd # p THEN
+            IF NOT ok THEN
+                ok := TRUE
+                dupeBoard(base)
+            END IF
+            WHILE n # p DO
+                n := n - dd
+                Board[n+delta] := color
+            END WHILE
+        END IF
+    END FOR
+    RETURN ok
+END FUNCTION
+
+FUNCTION search(d, base, color, depth: Number, flag: Boolean, minscore, maxscore: Number): Number
+    LET other: Number := 3 - color
+    IF d > depth THEN
+        VAR s: Number := 0
+        FOR c := 0 TO 3 DO
+            VAR q: Number := Board[base + Corners[c]]
+            IF q = color THEN
+                s := s + 300
+            ELSIF q = other THEN
+                s := s - 300
+            ELSE
+                q := Board[base + NearCorners[c]]
+                IF q = color THEN
+                    s := s - 50
+                ELSIF q = other THEN
+                    s := s + 50
+                END IF
+            END IF
+        END FOR
+        RETURN s
+    END IF
+    VAR best: Number := 0
+    VAR bestscore: Number := -9000
+    IF d < depth-1 THEN
+        bestscore := minscore
+    END IF
+    VAR n: Number := 0
+    FOR p := 11 TO 88 DO
+        IF validMove(base, p, color, 100) THEN
+            inc(n)
+            LET ss: Number := -search(d+1, base+100, other, depth, FALSE, -maxscore, -bestscore)
+            IF ss > bestscore THEN
+                best := p
+                BestPos := p
+                bestscore := ss
+                IF ss >= maxscore OR ss >= 8003 THEN
+                    RETURN ss
+                END IF
+            END IF
+        END IF
+    END FOR
+    IF n = 0 THEN
+        best := 0
+        IF flag THEN
+            FOR z := base+11 TO base+88 DO
+                IF Board[z] = color THEN
+                    inc(n)
+                ELSIF Board[z] = other THEN
+                    dec(n)
+                END IF
+            END FOR
+            IF n > 0 THEN
+                RETURN n + 8000
+            ELSE
+                RETURN n - 8000
+            END IF
+        END IF
+        dupeBoard(base)
+        bestscore := -search(d+1, base+100, other, depth, TRUE, -maxscore, -bestscore)
+    END IF
+    BestPos := best
+    IF d >= depth-1 THEN
+        RETURN bestscore + 8*n
+    ELSE
+        RETURN bestscore
+    END IF
+END FUNCTION
+
+FUNCTION init()
+    curses.clear()
+    curses.attrset(curses.COLOR_PAIR(0))
+    curses.mvaddstr(0, 60, "Othello")
+    curses.attrset(curses.COLOR_PAIR(1))
+    FOR j := 0 TO 22 DO
+        IF j MOD 3 = 2 THEN
+            curses.mvaddstr(j, 4, "-----+----+----+----+----+----+----+-----")
+        ELSE
+            curses.mvaddstr(j, 4, "     |    |    |    |    |    |    |     ")
+        END IF
+    END FOR
+END FUNCTION
+
+FUNCTION displayLabels(x, y: Number)
+    curses.attrset(curses.COLOR_PAIR(0))
+    FOR i := 1 TO 8 DO
+        curses.attrset(curses.COLOR_PAIR(IF y = i THEN 2 ELSE 0))
+        curses.mvaddstr((i-1)*3, 0, " " & chr(ord("A") + i - 1) & " ")
+        curses.attrset(curses.COLOR_PAIR(IF x = i THEN 2 ELSE 0))
+        curses.mvaddstr(23, (i-1)*5+5, " " & chr(ord("1") + i - 1) & " ")
+    END FOR
+END FUNCTION
+
+FUNCTION displayBoard(): Boolean
+    VAR black, white: Number := 0
+    VAR any: Boolean := FALSE
+    FOR j := 0 TO 7 DO
+        FOR i := 0 TO 7 DO
+            LET move: Number := 10*(j+1) + (i+1)
+            LET b: Number := Board[move]
+            CASE b
+                WHEN 0 DO
+                    IF validMove(0, move, 2, 100) THEN
+                        any := TRUE
+                    END IF
+                WHEN 1 DO
+                    inc(black)
+                WHEN 2 DO
+                    inc(white)
+            END CASE
+            curses.attrset(curses.COLOR_PAIR(1+b))
+            FOR k := 0 TO 1 DO
+                curses.mvaddstr(3*j+k, 5*i+5, "    ")
+            END FOR
+        END FOR
+    END FOR
+    displayLabels(0, 0)
+    curses.attrset(curses.COLOR_PAIR(0))
+    curses.mvaddstr(5, 50, "Black: \(black)")
+    curses.mvaddstr(7, 50, "White: \(white)")
+    RETURN any
+END FUNCTION
+
+FUNCTION makeMove(move: Number)
+    VAR valid: Boolean := validMove(0, move, 2, 0)
+    Moves.append(move)
+    LET any: Boolean := displayBoard()
+    curses.refresh()
+    LET score: Number := search(0, 0, 1, Level, FALSE, -9000, 9000)
+    valid := validMove(0, BestPos, 1, 0)
+    Moves.append(BestPos)
+END FUNCTION
+
+FUNCTION kibitz(): Number
+    LET score: Number := search(0, 0, 2, Level, FALSE, -9000, 9000)
+    IF validMove(0, BestPos, 2, 100) THEN
+        RETURN BestPos
+    END IF
+    RETURN 0
+END FUNCTION
+
+FUNCTION play_again(): Boolean
+    curses.attrset(curses.COLOR_PAIR(0))
+    curses.mvaddstr(10, 50, "Game over. Again?")
+    LOOP
+        LET k: Number := curses.getch()
+        IF k >= 0 THEN
+            CASE chr(k)
+                WHEN "n", "q" DO
+                    RETURN FALSE
+                WHEN "y" DO
+                    RETURN TRUE
+            END CASE
+        END IF
+    END LOOP
+END FUNCTION
+
+FUNCTION main()
+    init()
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        initialize()
+        updateBoard()
+        VAR game_over: Boolean := FALSE
+        WHILE NOT game_over AND NOT quit DO
+            LET any: Boolean := displayBoard()
+            IF NOT any THEN
+                game_over := TRUE
+                FOR j := 0 TO 7 DO
+                    FOR i := 0 TO 7 DO
+                        IF validMove(0, 10*(j+1)+(i+1), 1, 100) THEN
+                            game_over := FALSE
+                        END IF
+                    END FOR
+                END FOR
+                IF game_over THEN
+                    EXIT WHILE
+                END IF
+            END IF
+            VAR x, y: Number := 0
+            WHILE NOT quit DO
+                displayLabels(x, y)
+                LET k: Number := curses.getch()
+                IF k >= 0 THEN
+                    CASE chr(k)
+                        WHEN "a" TO "h" DO
+                            y := k - ord("a") + 1
+                        WHEN "1" TO "8" DO
+                            x := k - ord("1") + 1
+                        WHEN "k" DO
+                            makeMove(kibitz())
+                            EXIT WHILE
+                        WHEN "p" DO
+                            IF NOT any THEN
+                                makeMove(0)
+                                EXIT WHILE
+                            END IF
+                        WHEN "q" DO
+                            quit := TRUE
+                        WHEN "u" DO
+                            IF Moves.size() >= 2 THEN
+                                Moves.resize(Moves.size() - 2)
+                                updateBoard()
+                                EXIT WHILE
+                            END IF
+                    END CASE
+                END IF
+                IF x # 0 AND y # 0 THEN
+                    LET move: Number := 10*y + x
+                    IF validMove(0, move, 2, 100) THEN
+                        makeMove(move)
+                        EXIT WHILE
+                    ELSE
+                        x := 0
+                        y := 0
+                        EXIT WHILE
+                    END IF
+                END IF
+            END WHILE
+        END WHILE
+        quit := quit OR NOT play_again()
+    END WHILE
+END FUNCTION
+
+curses.initscr()
+curses.start_color()
+curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
+curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
+curses.init_pair(3, curses.COLOR_BLACK, curses.COLOR_BLACK)
+curses.noecho()
+curses.curs_set(0)
+main()
+curses.endwin()
