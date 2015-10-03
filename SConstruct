@@ -401,8 +401,12 @@ testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
 env.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
 
-for sample in Glob("samples/*.neon"):
-    env.Command(sample.path+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
+samples = []
+for path, dirs, files in os.walk("."):
+    if "t" not in path.split(os.sep):
+        samples.extend(os.path.join(path, x) for x in files if x.endswith(".neon") and x != "global.neon")
+for sample in samples:
+    env.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
 
 env.Command("test_grammar", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-grammar.py lib/*.neon samples/*.neon t/*.neon t/errors/N3*.neon >$TARGET")
