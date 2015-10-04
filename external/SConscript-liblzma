@@ -100,7 +100,7 @@ if sys.platform == "win32":
     env.Append(CPPPATH=["external/xz-5.2.1/src/liblzma/api"])
 else:
     conf = Configure(env)
-    if not conf.CheckLibWithHeader("lzma", "lzma.h", "c"):
+    if not conf.CheckLibWithHeader("lzma", "lzma.h", "C++"):
         liblzma = lzmaenv.Command("xz-5.2.1/src/liblzma/.libs/liblzma.a", "xz-5.2.1/configure", "cd external/xz-5.2.1 && ./configure && make")
         env.Append(CPPPATH=["external/xz-5.2.1/src/liblzma/api"])
     conf.Finish()

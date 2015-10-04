@@ -30,7 +30,7 @@ if sys.platform == "win32":
     env.Append(CPPPATH=["external/bzip2-1.0.6"])
 else:
     conf = Configure(env)
-    if not conf.CheckLibWithHeader("bz2", "bzlib.h", "c"):
+    if not conf.CheckLibWithHeader("bz2", "bzlib.h", "C++"):
         libbz2 = bz2env.Command("bzip2-1.0.6/libbz2.a", "bzip2-1.0.6/Makefile", "cd external/bzip2-1.0.6 && make")
         env.Append(CPPPATH=["external/bzip2-1.0.6"])
     conf.Finish()

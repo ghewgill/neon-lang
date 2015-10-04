@@ -24,7 +24,7 @@ if sys.platform == "win32":
     env.Append(CPPPATH=["external/PDCurses-3.4"])
 else:
     conf = Configure(env)
-    if not conf.CheckLibWithHeader("ncurses", "curses.h", "c"):
+    if not conf.CheckLibWithHeader("ncurses", "curses.h", "C++"):
         print "Could not find ncurses library"
         Exit(1)
     conf.Finish()

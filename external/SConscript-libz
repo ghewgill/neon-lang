@@ -33,7 +33,7 @@ if sys.platform == "win32":
     env.Append(CPPPATH=["external/zlib-1.2.8"])
 else:
     conf = Configure(env)
-    if not conf.CheckLibWithHeader("z", "zlib.h", "c"):
+    if not conf.CheckLibWithHeader("z", "zlib.h", "C++"):
         libz = libzenv.Command("zlib-1.2.8/libz.a", "zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
         env.Append(CPPPATH=["external/zlib-1.2.8"])
     conf.Finish()
