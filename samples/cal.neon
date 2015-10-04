@@ -22,13 +22,13 @@ FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
     dt := dt.with_date(year, month, 1)
     % TODO: module record constructor
     VAR p: datetime.Period
-    p.days := dt.weekday - 1
+    p.days := dt.weekday MOD 7
     %dt := dt.minus_period(p)
     dt := dt.minus_duration(86400 * p.days)
     LET title: String := IF year_in_title THEN "\(MonthName[month]) \(year)" ELSE MonthName[month]
     VAR r: Array<String> := ["\(title:^21)", "Su Mo Tu We Th Fr Sa "]
     FOR i := 1 TO 6*7 DO
-        IF dt.weekday = 1 THEN
+        IF dt.weekday = 7 THEN
             r.append("")
         END IF
         IF dt.month = month THEN

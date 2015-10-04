@@ -19,3 +19,6 @@ print("\(dt.plus_duration(90))")
 
 print("\(dt.with_time(1, 2, 3))")
 %= 2009-2-13T1:2:3Z
+
+print(str(dt.weekday))
+%= 5

@@ -13,6 +13,27 @@ EXPORT now
 EXPORT make_from_instant
 EXPORT make_from_parts
 
+EXPORT January
+EXPORT February
+EXPORT March
+EXPORT April
+EXPORT May
+EXPORT June
+EXPORT July
+EXPORT August
+EXPORT September
+EXPORT October
+EXPORT November
+EXPORT December
+
+EXPORT Monday
+EXPORT Tuesday
+EXPORT Wednesday
+EXPORT Thursday
+EXPORT Friday
+EXPORT Saturday
+EXPORT Sunday
+
 IMPORT math
 IMPORT time
 
@@ -151,7 +172,7 @@ FUNCTION make_from_instant(inst: Instant): DateTime
         year AS 1900 + tm.tm_year,
         month AS 1 + tm.tm_mon,
         day AS tm.tm_mday,
-        weekday AS 1 + tm.tm_wday,
+        weekday AS 1 + (tm.tm_wday + 6) MOD 7,
         hour AS tm.tm_hour,
         minute AS tm.tm_min,
         second AS tm.tm_sec
