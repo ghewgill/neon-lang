@@ -121,6 +121,39 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
     }
 }
 
+bool TypeFunction::is_equivalent(const Type *rhs) const
+{
+    // TODO: There needs to be a mechanism for reporting more detail about why the
+    // type does not match. There are quite a few reasons for this to return false,
+    // and the user would probably appreciate more detail.
+    const TypeFunction *f = dynamic_cast<const TypeFunction *>(rhs);
+    if (f == nullptr) {
+        const TypeFunctionPointer *p = dynamic_cast<const TypeFunctionPointer *>(rhs);
+        if (p == nullptr) {
+            return false;
+        }
+        f = p->functype;
+    }
+    if (not returntype->is_equivalent(f->returntype)) {
+        return false;
+    }
+    if (params.size() != f->params.size()) {
+        return false;
+    }
+    for (size_t i = 0; i < params.size(); i++) {
+        if (params[i]->declaration.text != f->params[i]->declaration.text) {
+            return false;
+        }
+        if (params[i]->mode != f->params[i]->mode) {
+            return false;
+        }
+        if (not params[i]->type->is_equivalent(f->params[i]->type)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 bool TypeArray::is_equivalent(const Type *rhs) const
 {
     const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);
@@ -309,35 +342,7 @@ TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFun
 
 bool TypeFunctionPointer::is_equivalent(const Type *rhs) const
 {
-    // TODO: There needs to be a mechanism for reporting more detail about why the
-    // type does not match. There are quite a few reasons for this to return false,
-    // and the user would probably appreciate more detail.
-    const TypeFunction *f = dynamic_cast<const TypeFunction *>(rhs);
-    if (f == nullptr) {
-        const TypeFunctionPointer *p = dynamic_cast<const TypeFunctionPointer *>(rhs);
-        if (p == nullptr) {
-            return false;
-        }
-        f = p->functype;
-    }
-    if (not functype->returntype->is_equivalent(f->returntype)) {
-        return false;
-    }
-    if (functype->params.size() != f->params.size()) {
-        return false;
-    }
-    for (size_t i = 0; i < functype->params.size(); i++) {
-        if (functype->params[i]->declaration.text != f->params[i]->declaration.text) {
-            return false;
-        }
-        if (functype->params[i]->mode != f->params[i]->mode) {
-            return false;
-        }
-        if (not functype->params[i]->type->is_equivalent(f->params[i]->type)) {
-            return false;
-        }
-    }
-    return true;
+    return functype->is_equivalent(rhs);
 }
 
 std::string TypeFunctionPointer::serialize(const Expression *) const
