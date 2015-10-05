@@ -1860,7 +1860,7 @@ const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
     const Type *type = analyze(declaration->type);
     const Expression *expr = analyze(declaration->value);
-    if (not expr->type->is_equivalent(type)) {
+    if (not type->is_equivalent(expr->type)) {
         error(3140, declaration->value->token, "type mismatch");
     }
     const TypePointer *ptype = dynamic_cast<const TypePointer *>(type);
