@@ -22,5 +22,8 @@ print(a[2])
 print(string.trim("  Hello World  "))
 %= Hello World
 
+print(string.trim(" "))
+%= 
+
 print(string.upper("Hello World"))
 %= HELLO WORLD

@@ -57,6 +57,9 @@ std::string string$trim(const std::string &s)
 {
     std::string::size_type first = s.find_first_not_of(' ');
     std::string::size_type last = s.find_last_not_of(' ');
+    if (first == std::string::npos || last == std::string::npos) {
+        return "";
+    }
     return s.substr(first, last-first+1);
 }
 
