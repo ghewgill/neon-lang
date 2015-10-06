@@ -46,7 +46,7 @@ Statement =
     TryStatement |
     WhileStatement;
 
-ImportDeclaration = 'IMPORT', (Identifier, ['.', Identifier], ['AS', Identifier] | StringLiteral, 'AS', Identifier);
+ImportDeclaration = 'IMPORT', (Identifier, ['.', Identifier], ['ALIAS', Identifier] | StringLiteral, 'ALIAS', Identifier);
 
 TypeDeclaration = 'TYPE', Identifier, ':=', Type;
 

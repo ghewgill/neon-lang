@@ -1,4 +1,4 @@
-IMPORT math AS m
+IMPORT math ALIAS m
 
 print("\(m.sqrt(9))")
 %= 3

@@ -1,4 +1,0 @@
-IMPORT math.sqrt AS q
-
-print(str(q(9)))
-%= 3

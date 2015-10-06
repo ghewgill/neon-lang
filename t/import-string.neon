@@ -1,1 +1,1 @@
-IMPORT "t/export" AS export
+IMPORT "t/export" ALIAS export

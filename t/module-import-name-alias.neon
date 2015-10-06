@@ -1,0 +1,4 @@
+IMPORT math.sqrt ALIAS q
+
+print(str(q(9)))
+%= 3

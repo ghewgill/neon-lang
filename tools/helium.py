@@ -125,6 +125,8 @@ FOREACH = Keyword("FOREACH")
 OF = Keyword("OF")
 INDEX = Keyword("INDEX")
 ASSERT = Keyword("ASSERT")
+EMBED = Keyword("EMBED")
+ALIAS = Keyword("ALIAS")
 
 def identifier_start(c):
     return c.isalpha()
@@ -2054,8 +2056,8 @@ ExcludeTests = [
     "t/mkdir.neon",             # Feature not required
     "t/module-alias.neon",      # Feature not required
     "t/module-alias2.neon",     # Feature not required
-    "t/module-import-name-as.neon", # Feature not required
-    "t/module-import-name-as2.neon", # Feature not required
+    "t/module-import-name-alias.neon", # Feature not required
+    "t/module-import-name-alias2.neon", # Feature not required
     "t/module-import-name.neon", # Feature not required
     "t/module-import-name2.neon", # Feature not required
     "t/module-import-name3.neon", # Feature not required

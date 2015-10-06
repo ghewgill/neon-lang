@@ -1459,7 +1459,7 @@ const Statement *Parser::parseImport()
         ++i;
     }
     Token alias;
-    if (tokens[i].type == AS) {
+    if (tokens[i].type == ALIAS) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
             error(2080, tokens[i], "identifier expected");
@@ -1467,7 +1467,7 @@ const Statement *Parser::parseImport()
         alias = tokens[i];
         ++i;
     } else if (module.type == STRING) {
-        error(2087, module, "named import requires AS alias");
+        error(2087, module, "named import requires ALIAS");
     }
     return new ImportDeclaration(tok_import, module, name, alias);
 }

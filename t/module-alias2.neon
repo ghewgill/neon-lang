@@ -1,4 +1,4 @@
-IMPORT module AS m
+IMPORT module ALIAS m
 
 print(str(m.const))
 %= 5

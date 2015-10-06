@@ -1,2 +1,2 @@
-IMPORT module AS 5
-                 %<
+IMPORT module ALIAS 5
+                    %<
