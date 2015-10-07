@@ -1,2 +1,2 @@
-TYPE Colour := ENUM red green blue END ENUM
-TYPE Size := ENUM small medium large END ENUM
+TYPE Colour IS ENUM red green blue END ENUM
+TYPE Size IS ENUM small medium large END ENUM

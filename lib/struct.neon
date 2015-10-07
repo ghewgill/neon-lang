@@ -24,7 +24,7 @@ IMPORT variant
  |      string - string
  |      bytes - bytes
  |%
-TYPE Type := ENUM
+TYPE Type IS ENUM
     bool
     int
     string
@@ -36,7 +36,7 @@ END ENUM
  |
  |  Represents a field in a structure.
  |%
-TYPE Field := RECORD
+TYPE Field IS RECORD
     name: String
     type: Type
     width: Number
@@ -47,7 +47,7 @@ END RECORD
  |
  |  Represents a complete structure as a sequence of fields.
  |%
-TYPE Struct := RECORD
+TYPE Struct IS RECORD
     PRIVATE fields: Array<Field>
 END RECORD
 

@@ -32,7 +32,7 @@ DECLARE EXCEPTION UnsupportedFunction
  |      posix - posix
  |      win32 - win32
  |%
-TYPE Platform := ENUM
+TYPE Platform IS ENUM
     posix
     win32
 END ENUM
@@ -42,7 +42,7 @@ END ENUM
  |
  |  Opaque type representing a process.
  |%
-TYPE Process := POINTER
+TYPE Process IS POINTER
 
 %|
  |  Function: chdir

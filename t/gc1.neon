@@ -1,6 +1,6 @@
 IMPORT runtime
 
-TYPE Node := RECORD
+TYPE Node IS RECORD
     value: Number
 END RECORD
 

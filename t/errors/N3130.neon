@@ -1,4 +1,4 @@
-TYPE Point := RECORD
+TYPE Point IS RECORD
               %<2
     x: Number
     y: Number

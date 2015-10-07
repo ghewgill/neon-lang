@@ -6,7 +6,7 @@ FUNCTION d(): Dictionary<String>
     RETURN {"foo": "one", "bar": "two"}
 END FUNCTION
 
-TYPE Rec := RECORD
+TYPE Rec IS RECORD
     name: String
     value: String
 END RECORD

@@ -1,12 +1,12 @@
 
-TYPE Powers := RECORD
+TYPE Powers IS RECORD
     Flight: Boolean
     Strength: Boolean
     SixthSense: Boolean
 END RECORD    
 
 
-TYPE rec := RECORD
+TYPE rec IS RECORD
     FirstName: String
     LastName: String
     Age: Number

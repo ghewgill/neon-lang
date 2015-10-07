@@ -1,6 +1,6 @@
 % TODO
 
-TYPE Record := RECORD
+TYPE Record IS RECORD
     name: String
 END RECORD
 

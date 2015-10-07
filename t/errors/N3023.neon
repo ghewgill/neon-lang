@@ -1,4 +1,4 @@
-TYPE Cards := ENUM
+TYPE Cards IS ENUM
               %<2
   Hearts
   Diamonds

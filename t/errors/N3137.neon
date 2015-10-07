@@ -1,4 +1,4 @@
-TYPE Foo := RECORD END RECORD
+TYPE Foo IS RECORD END RECORD
 VAR f: Foo
 f.bar()
   %<

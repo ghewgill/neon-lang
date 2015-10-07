@@ -1,4 +1,4 @@
-TYPE Rec := RECORD
+TYPE Rec IS RECORD
     value: String
 END RECORD
 

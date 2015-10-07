@@ -96,6 +96,7 @@ enum TokenType {
     ASSERT,
     EMBED,
     ALIAS,
+    IS,
     MAX_TOKEN
 };
 

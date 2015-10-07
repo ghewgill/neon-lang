@@ -270,8 +270,8 @@ const Statement *Parser::parseTypeDefinition()
     }
     auto &tok_name = tokens[i];
     ++i;
-    if (tokens[i].type != ASSIGN) {
-        error(2009, tokens[i], "':=' expected");
+    if (tokens[i].type != IS) {
+        error(2009, tokens[i], "'IS' expected");
     }
     ++i;
     const Type *type = parseType();

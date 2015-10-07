@@ -6,7 +6,7 @@ VAR b: Boolean := TRUE
 print(b.to_string())
 %= TRUE
 
-TYPE Colour := ENUM
+TYPE Colour IS ENUM
     red
     green
     blue

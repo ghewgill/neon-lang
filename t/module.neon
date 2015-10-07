@@ -10,15 +10,15 @@ EXPORT exception
 EXPORT raise
 EXPORT functionpointer
 
-TYPE type := RECORD
+TYPE type IS RECORD
     boolean: Boolean
     number: Number
     string: String
 END RECORD
 
-TYPE emptytype := RECORD END RECORD
+TYPE emptytype IS RECORD END RECORD
 
-TYPE enum := ENUM
+TYPE enum IS ENUM
     red
     green
     blue

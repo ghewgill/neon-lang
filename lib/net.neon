@@ -15,14 +15,14 @@ EXPORT select
  |%
 DECLARE EXCEPTION SocketError
 
-TYPE Handle := Number
+TYPE Handle IS Number
 
 %|
  |  Type: Socket
  |
  |  Opaque type representing a network socket.
  |%
-TYPE Socket := RECORD
+TYPE Socket IS RECORD
     PRIVATE handle: Handle
 END RECORD
 

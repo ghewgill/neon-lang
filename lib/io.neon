@@ -17,7 +17,7 @@ EXPORT SeekBase
  |      read - read only
  |      write - read or write
  |%
-TYPE Mode := ENUM
+TYPE Mode IS ENUM
     read
     write
 END ENUM
@@ -32,7 +32,7 @@ END ENUM
  |      relative - set position relative to current
  |      from_end - set position relative to end
  |%
-TYPE SeekBase := ENUM
+TYPE SeekBase IS ENUM
     absolute
     relative
     from_end
@@ -43,7 +43,7 @@ END ENUM
  |
  |  Opaque type representing a file on disk.
  |%
-TYPE File := POINTER
+TYPE File IS POINTER
 
 %|
  |  Exception: InvalidFile

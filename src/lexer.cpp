@@ -104,6 +104,7 @@ std::string Token::tostring() const
         case ASSERT:      s << "ASSERT"; break;
         case EMBED:       s << "EMBED"; break;
         case ALIAS:       s << "ALIAS"; break;
+        case IS:          s << "IS"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -296,6 +297,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
             else if (t.text == "ASSERT") t.type = ASSERT;
             else if (t.text == "EMBED") t.type = EMBED;
             else if (t.text == "ALIAS") t.type = ALIAS;
+            else if (t.text == "IS") t.type = IS;
             else if (all_upper(t.text)) {
                 error(1023, t, "identifier cannot be all upper case (reserved for keywords)");
             }

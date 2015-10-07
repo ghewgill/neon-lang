@@ -347,7 +347,7 @@
 
 IMPORT math
 
-TYPE Enumeration := ENUM
+TYPE Enumeration IS ENUM
     Ident_1
     Ident_2
     Ident_3
@@ -357,14 +357,14 @@ END ENUM
 
 % General definitions:
 
-TYPE One_Thirty     := Number
-TYPE One_Fifty      := Number
-TYPE Capital_Letter := String
-TYPE Str_30         := String
-TYPE Arr_1_Dim      := Array<Number>
-TYPE Arr_2_Dim      := Array<Array<Number>>
+TYPE One_Thirty     IS Number
+TYPE One_Fifty      IS Number
+TYPE Capital_Letter IS String
+TYPE Str_30         IS String
+TYPE Arr_1_Dim      IS Array<Number>
+TYPE Arr_2_Dim      IS Array<Array<Number>>
 
-TYPE Record := RECORD
+TYPE Record IS RECORD
     Ptr_Comp: POINTER TO Record
     Discr: Enumeration
 

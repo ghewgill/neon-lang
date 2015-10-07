@@ -48,7 +48,7 @@ Statement =
 
 ImportDeclaration = 'IMPORT', (Identifier, ['.', Identifier], ['ALIAS', Identifier] | StringLiteral, 'ALIAS', Identifier);
 
-TypeDeclaration = 'TYPE', Identifier, ':=', Type;
+TypeDeclaration = 'TYPE', Identifier, 'IS', Type;
 
 Type = ParameterisedType | RecordType | EnumType | PointerType | FunctionPointerType | (Identifier, ['.', Identifier]);
 

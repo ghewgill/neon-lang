@@ -1,4 +1,4 @@
-TYPE Record := RECORD
+TYPE Record IS RECORD
     a: Array<Record>
 END RECORD
 

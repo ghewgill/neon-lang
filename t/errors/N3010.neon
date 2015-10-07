@@ -1,4 +1,4 @@
-TYPE Suit := ENUM
+TYPE Suit IS ENUM
     Heart
     %<2
     Heart

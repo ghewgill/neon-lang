@@ -16,7 +16,7 @@ EXPORT Match
  |      end - ending index of group
  |      group - text of group
  |%
-TYPE Group := RECORD
+TYPE Group IS RECORD
     start: Number
     end: Number
     group: String
@@ -27,7 +27,7 @@ END RECORD
  |
  |  Represents the result of a successful regex match.
  |%
-TYPE Match := Array<Group>
+TYPE Match IS Array<Group>
 
 %|
  |  Function: search

@@ -19,14 +19,14 @@ EXPORT vr
 EXPORT ve
 %EXPORT vp
 
-TYPE Record := RECORD
+TYPE Record IS RECORD
     n: Number
     r: RECORD
         s: String
     END RECORD
 END RECORD
 
-TYPE Enum := ENUM
+TYPE Enum IS ENUM
     red
     green
     blue

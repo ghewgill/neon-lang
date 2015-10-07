@@ -15,7 +15,7 @@ EXPORT WIN32_FIND_DATA
 IMPORT struct
 
 % Type: Handle
-TYPE Handle := POINTER
+TYPE Handle IS POINTER
 
 % Struct: WIN32_FIND_DATA
 LET WIN32_FIND_DATA: struct.Struct := struct.make([

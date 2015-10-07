@@ -1,6 +1,6 @@
 IMPORT runtime
 
-TYPE Node := RECORD
+TYPE Node IS RECORD
     next: POINTER TO Node
     value: Number
 END RECORD

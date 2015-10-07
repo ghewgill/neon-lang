@@ -65,7 +65,7 @@ CONSTANT Sunday   : Number := 7
  |
  |  Represents a particular instant in global time.
  |%
-TYPE Instant := Number
+TYPE Instant IS Number
 
 %|
  |  Type: DateTime
@@ -82,7 +82,7 @@ TYPE Instant := Number
  |      minute - minute
  |      second - second
  |%
-TYPE DateTime := RECORD
+TYPE DateTime IS RECORD
     instant: Instant
     year: Number
     month: Number
@@ -102,7 +102,7 @@ END RECORD
  |      start - start
  |      end - end
  |%
-TYPE Interval := RECORD
+TYPE Interval IS RECORD
     start: DateTime
     end: DateTime
 END RECORD
@@ -112,7 +112,7 @@ END RECORD
  |
  |  Represents a specific amount of time measured in seconds.
  |%
-TYPE Duration := Number
+TYPE Duration IS Number
 
 %|
  |  Type: Period
@@ -127,7 +127,7 @@ TYPE Duration := Number
  |      minutes - minutes
  |      seconds - seconds
  |%
-TYPE Period := RECORD
+TYPE Period IS RECORD
     years: Number
     months: Number
     days: Number
@@ -136,7 +136,7 @@ TYPE Period := RECORD
     seconds: Number
 END RECORD
 
-TYPE struct_tm := RECORD
+TYPE struct_tm IS RECORD
     tm_sec: Number      % seconds (0 - 60)
     tm_min: Number      % minutes (0 - 59)
     tm_hour: Number     % hours (0 - 23)

@@ -12,7 +12,7 @@ EXPORT Window
 DECLARE NATIVE CONSTANT CURSES_ERR: Number
 DECLARE NATIVE CONSTANT CURSES_OK: Number
 
-TYPE Window := POINTER
+TYPE Window IS POINTER
 
 %|----------------------------------------------------------------------
  |

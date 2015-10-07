@@ -37,7 +37,7 @@ Debugger Commands:
 "@@)
 END FUNCTION
 
-TYPE Global := RECORD
+TYPE Global IS RECORD
     index: Number
     repr: String
 END RECORD

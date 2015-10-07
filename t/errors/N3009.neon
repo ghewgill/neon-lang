@@ -1,4 +1,4 @@
-TYPE Point := RECORD
+TYPE Point IS RECORD
     x: Number
     %<2
     x: String

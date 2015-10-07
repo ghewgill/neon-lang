@@ -1,4 +1,4 @@
-TYPE NumberArray := Array<Number>
+TYPE NumberArray IS Array<Number>
 
 FUNCTION foo(): NumberArray
     RETURN [1, 2, 3]

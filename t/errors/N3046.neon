@@ -1,4 +1,4 @@
-TYPE Recordset := RECORD
+TYPE Recordset IS RECORD
     Id: Number
     Name: String
 END RECORD

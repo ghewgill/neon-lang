@@ -23,7 +23,7 @@ IMPORT math
 CONSTANT Digits: Number := 6
 CONSTANT Base: Number := 1000000 % = 10^Digits, but avoid using ^
 
-TYPE Comparison := ENUM
+TYPE Comparison IS ENUM
     less
     equal
     greater
@@ -35,7 +35,7 @@ END ENUM
  |  An arbitrary precision integer type. This is an opaque type and users are not
  |  expected to poke around inside it.
  |%
-TYPE BigInt := RECORD
+TYPE BigInt IS RECORD
     sign: Number
     digits: Array<Number>
 END RECORD

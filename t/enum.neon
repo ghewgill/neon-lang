@@ -1,4 +1,4 @@
-TYPE Colour := ENUM
+TYPE Colour IS ENUM
     red
     orange
     yellow

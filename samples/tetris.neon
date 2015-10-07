@@ -7,7 +7,7 @@ IMPORT time
 CONSTANT BOARD_WIDTH: Number := 10
 CONSTANT BOARD_HEIGHT: Number := 20
 
-TYPE Piece := RECORD
+TYPE Piece IS RECORD
     grid: multiarray.ArrayNumber2D
     rot: Number
 END RECORD

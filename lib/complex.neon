@@ -46,7 +46,7 @@ CONSTANT Max: Number := 9.999999999999999e384
  |      re - real part
  |      im - imaginary part
  |%
-TYPE Complex := RECORD
+TYPE Complex IS RECORD
     re: Number
     im: Number
 END RECORD

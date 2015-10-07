@@ -8,7 +8,7 @@ IMPORT sys
 CONSTANT NUMBER_BUFFER_MAX: Number := 80
 CONSTANT Digits: String := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-TYPE Stack := RECORD
+TYPE Stack IS RECORD
     stack: Array<Number>
 END RECORD
 
@@ -38,7 +38,7 @@ FUNCTION signed32(n: Number): Number
     RETURN IF n >= 0x80000000 THEN n - 0x100000000 ELSE n
 END FUNCTION
 
-TYPE ReturnEntry := RECORD
+TYPE ReturnEntry IS RECORD
     ip: Number
     limit: Number
     index: Number
@@ -209,7 +209,7 @@ CONSTANT INT_Q_BRANCH      : Number := -1012
 CONSTANT INT_S_QUOTE       : Number := -1013
 CONSTANT INT_UNLOOP        : Number := -1014
 
-TYPE Word := RECORD
+TYPE Word IS RECORD
     xt: Number
     immediate: Boolean
 END RECORD

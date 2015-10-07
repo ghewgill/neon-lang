@@ -1,4 +1,4 @@
-TYPE lh := RECORD
+TYPE lh IS RECORD
   var1: Number
   var2: String
 END RECORD

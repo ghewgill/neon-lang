@@ -127,6 +127,7 @@ INDEX = Keyword("INDEX")
 ASSERT = Keyword("ASSERT")
 EMBED = Keyword("EMBED")
 ALIAS = Keyword("ALIAS")
+IS = Keyword("IS")
 
 def identifier_start(c):
     return c.isalpha()
@@ -1078,7 +1079,7 @@ class Parser:
     def parse_type_definition(self):
         self.expect(TYPE)
         name = self.identifier()
-        self.expect(ASSIGN)
+        self.expect(IS)
         type = self.parse_type()
         return TypeDeclaration(name, type)
 

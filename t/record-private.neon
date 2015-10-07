@@ -1,4 +1,4 @@
-TYPE Record := RECORD
+TYPE Record IS RECORD
     PRIVATE value: Number
 END RECORD
 

@@ -11,7 +11,7 @@ EXPORT parse
  |
  |  Represents an XML document.
  |%
-TYPE Document := RECORD
+TYPE Document IS RECORD
     dummy: Boolean
 END RECORD
 

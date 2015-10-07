@@ -1,5 +1,5 @@
 % TODO SKIP (assertion failure)
-TYPE Record := RECORD
+TYPE Record IS RECORD
     value: Number
 END RECORD
 VAR a: Array<Record>

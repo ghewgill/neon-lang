@@ -18,28 +18,28 @@ EXPORT make_string3D
  |
  |  A two-dimensional array of <Numbers>.
  |%
-TYPE ArrayNumber2D := Array<Array<Number>>
+TYPE ArrayNumber2D IS Array<Array<Number>>
 
 %|
  |  Type: ArrayNumber3D
  |
  |  A three-dimensional array of <Numbers>.
  |%
-TYPE ArrayNumber3D := Array<Array<Array<Number>>>
+TYPE ArrayNumber3D IS Array<Array<Array<Number>>>
 
 %|
  |  Type: ArrayString2D
  |
  |  A two-dimensional array of <Strings>.
  |%
-TYPE ArrayString2D := Array<Array<String>>
+TYPE ArrayString2D IS Array<Array<String>>
 
 %|
  |  Type: ArrayString3D
  |
  |  A three-dimensional array of <Strings>.
  |%
-TYPE ArrayString3D := Array<Array<Array<String>>>
+TYPE ArrayString3D IS Array<Array<Array<String>>>
 
 %|
  |  Function: make_number2D

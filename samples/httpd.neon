@@ -8,27 +8,27 @@ FUNCTION to_bytes(s: String): Bytes
     RETURN s.to_bytes()
 END FUNCTION
 
-TYPE Response := RECORD
+TYPE Response IS RECORD
     code: Number
     content_type: String
     headers: Dictionary<String>
     content: Bytes
 END RECORD
 
-TYPE RequestHandler := FUNCTION(path: String, params: Array<variant.Variant>): Response
+TYPE RequestHandler IS FUNCTION(path: String, params: Array<variant.Variant>): Response
 
-TYPE Handler := RECORD
+TYPE Handler IS RECORD
     path: String
     callback: RequestHandler
     params: Array<variant.Variant>
 END RECORD
 
-TYPE Client := RECORD
+TYPE Client IS RECORD
     socket: net.Socket
     header: String
 END RECORD
 
-TYPE HttpServer := RECORD
+TYPE HttpServer IS RECORD
     port: Number
     server: net.Socket
     clients: Array<Client>

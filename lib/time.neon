@@ -33,7 +33,7 @@ DECLARE NATIVE FUNCTION tick(): Number
  |
  |  Stopwatch useful for measuring time intervals.
  |%
-TYPE Stopwatch := RECORD
+TYPE Stopwatch IS RECORD
     accumulated: Number
     start: Number
 END RECORD

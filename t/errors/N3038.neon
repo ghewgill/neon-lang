@@ -1,4 +1,4 @@
-TYPE a := Number
+TYPE a IS Number
      %<2
 
 VAR a: Number

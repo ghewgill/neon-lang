@@ -36,7 +36,7 @@ DECLARE EXCEPTION TypeMismatch
  |      array - array
  |      dictionary - dictionary
  |%
-TYPE Type := ENUM
+TYPE Type IS ENUM
     null
     boolean
     number
@@ -51,7 +51,7 @@ END ENUM
  |
  |  Opaque variant type.
  |%
-TYPE Variant := RECORD
+TYPE Variant IS RECORD
     PRIVATE type: Type
     PRIVATE val_boolean: Boolean
     PRIVATE val_number: Number

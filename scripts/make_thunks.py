@@ -154,7 +154,8 @@ for fn in sys.argv[1:]:
             for s in f:
                 a = s.split()
                 if a[:1] == ["TYPE"]:
-                    m = re.match("TYPE\s+(\w+)\s*:=\s*(\S+)\s*$", s)
+                    m = re.match("TYPE\s+(\w+)\s+IS\s+(\S+)\s*$", s)
+                    assert m, s
                     name = m.group(1)
                     atype = m.group(2)
                     if atype == "POINTER":

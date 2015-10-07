@@ -1,2 +1,2 @@
-TYPE f := FUNCTION(a: Number DEFAULT 1, b: Number)
+TYPE f IS FUNCTION(a: Number DEFAULT 1, b: Number)
                                         %<

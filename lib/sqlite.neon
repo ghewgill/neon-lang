@@ -13,21 +13,21 @@ EXPORT Rows
  |
  |  Opaque type representing a SQLite database.
  |%
-TYPE Database := POINTER
+TYPE Database IS POINTER
 
 %|
  |  Type: Row
  |
  |  Represents a row in a results.
  |%
-TYPE Row := Array<String>
+TYPE Row IS Array<String>
 
 %|
  |  Type: Rows
  |
  |  Represents a query result set.
  |%
-TYPE Rows := Array<Row>
+TYPE Rows IS Array<Row>
 
 %|
  |  Function: open

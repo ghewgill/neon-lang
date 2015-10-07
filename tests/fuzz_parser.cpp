@@ -98,6 +98,7 @@ std::string reconstitute(const Token &t)
         case ASSERT:      return "ASSERT";
         case EMBED:       return "EMBED";
         case ALIAS:       return "ALIAS";
+        case IS:          return "IS";
         case MAX_TOKEN:   return "";
     }
     return "";
