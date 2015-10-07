@@ -305,7 +305,7 @@ Enumeration values are one of a set of valid values defined in the `ENUM` defini
 
 Example:
 
-    TYPE Colour := ENUM
+    TYPE Colour IS ENUM
         red
         green
         blue
@@ -321,7 +321,7 @@ Records are aggregate types that contain named elements with independent types.
 
 Example:
 
-    TYPE Item := RECORD
+    TYPE Item IS RECORD
         name: String
         size: Number
     END RECORD
@@ -335,7 +335,7 @@ Records may have associated functions called methods, which can be called using 
 
 Example:
 
-    TYPE Cart := RECORD
+    TYPE Cart IS RECORD
         apples: Number
         oranges: Number
     END RECORD
@@ -353,7 +353,7 @@ Record fields may be marked `PRIVATE`, which means that only code within associa
 
 Example:
 
-    TYPE Cart := RECORD
+    TYPE Cart IS RECORD
         apples: Number
         oranges: Number
         PRIVATE nuts: Number
@@ -398,7 +398,7 @@ To use (dereference) a pointer, it must first be checked for vaildity (not `NIL`
 
 Example:
 
-    TYPE Item := RECORD
+    TYPE Item IS RECORD
         name: String
         size: Number
     END RECORD
@@ -593,7 +593,7 @@ User defined types are introduced with the `RECORD` keyword:
 
 Types may be assigned names using the `TYPE` keyword:
 
-    TYPE Widget := RECORD
+    TYPE Widget IS RECORD
         size: Number
         colour: String
     END RECORD
@@ -763,7 +763,7 @@ Additional alternatives may be introduced with the `ELSIF` clause:
 
 The `IF VALID` form is used to test a pointer value to check whether it is `NIL`, and capture the pointer value in a new variable for use within the `IF VALID` block.
 
-    TYPE Record := RECORD
+    TYPE Record IS RECORD
         name: String
     END RECORD
 
