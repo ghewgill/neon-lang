@@ -1,0 +1,5 @@
+TYPE Rec IS RECORD
+    num: Number
+END RECORD
+
+VAR p: POINTER TO Rec := NIL

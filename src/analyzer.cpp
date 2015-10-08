@@ -1832,7 +1832,7 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
     if (declaration->value != nullptr) {
         std::vector<const ReferenceExpression *> refs;
         const Expression *expr = analyze(declaration->value);
-        if (not expr->type->is_equivalent(type)) {
+        if (not type->is_equivalent(expr->type)) {
             error(3113, declaration->value->token, "type mismatch");
         }
         for (auto v: variables) {
