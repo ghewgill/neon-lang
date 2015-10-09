@@ -1145,7 +1145,7 @@ void ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) cons
 
 void ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
-    array->generate_address_read(emitter);
+    array->generate_address_write(emitter);
     index->generate(emitter);
     emitter.emit(INDEXAW);
 }
@@ -1170,7 +1170,7 @@ void DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter)
 
 void DictionaryReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
-    dictionary->generate_address_read(emitter);
+    dictionary->generate_address_write(emitter);
     index->generate(emitter);
     emitter.emit(INDEXDW);
 }

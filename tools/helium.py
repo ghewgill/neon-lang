@@ -2082,6 +2082,7 @@ ExcludeTests = [
     "t/win32-test.neon",        # Module not required
 
     "t/array-slice.neon",       # Probably going to need this
+    "t/array2d.neon",           # Not implemented in helium yet
     "t/file-test.neon",         # Code in module doesn't work yet
     "t/function-pointer.neon",  # Function pointer not required yet
     "t/hash-test.neon",         # Module not required yet
