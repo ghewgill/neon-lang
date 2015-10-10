@@ -1,7 +1,10 @@
+#include <stdarg.h>
+#include <stdio.h>
 #include <vector>
 
 #include <curses.h>
 
+#include "cell.h"
 #include "number.h"
 
 // Unsupported: all wchar_t and cchar_t functions
@@ -31,6 +34,16 @@ static std::vector<chtype> chtypes_from_numbers(const std::vector<Number> &chstr
 
 namespace rtl {
 
+Number curses$BUTTON_CHANGED(Number x)
+{
+    return number_from_uint32(BUTTON_CHANGED(number_to_uint32(x)));
+}
+
+Number curses$BUTTON_STATUS(Number x)
+{
+    return number_from_uint32(BUTTON_STATUS(number_to_uint32(x)));
+}
+
 Number curses$COLOR_PAIR(Number n)
 {
     return number_from_uint32(COLOR_PAIR(number_to_uint32(n)));
@@ -50,6 +63,9 @@ Number curses$LINES()
 {
     return number_from_sint32(LINES);
 }
+
+//#define BUTTON_CHANGED(x)       (Mouse_status.changes & (1 << ((x) - 1)))
+//#define BUTTON_STATUS(x)        (Mouse_status.button[(x) - 1])
 
 Number curses$PAIR_NUMBER(Number n)
 {
@@ -755,9 +771,29 @@ void curses$mvinsstr(Number y, Number x, const std::string &str)
     mvinsstr(number_to_sint32(y), number_to_sint32(x), str.c_str());
 }
 
+Number curses$mvprintw(Number y, Number x, const std::string &str)
+{
+    return number_from_sint32(mvprintw(number_to_sint32(y), number_to_sint32(x), str.c_str()));
+}
+
+Number curses$mvscanw(Number y, Number x, const std::string &str)
+{
+    return number_from_uint32(mvscanw(number_to_sint32(y), number_to_sint32(x), str.c_str()));
+}
+
+Number curses$mvvline(Number y, Number x, chtype ch, Number n)
+{
+    return number_from_uint32(mvvline(number_to_sint32(y), number_to_sint32(x), ch, number_to_sint32(n)));
+}
+
 void curses$mvwinsstr(void *win, Number y, Number x, const std::string &str)
 {
     mvwinsstr(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), str.c_str());
+}
+
+Number curses$mvwprintw(void *win, Number y, Number x, const std::string &str)
+{
+    return number_from_sint32(mvwprintw(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), str.c_str()));
 }
 
 bool curses$is_linetouched(void *win, Number line)
@@ -1160,6 +1196,109 @@ void curses$wsyncup(void *win)
 void curses$wtouchln(void *win, Number y, Number n, bool changed)
 {
     wtouchln(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(n), changed);
+}
+
+/*----------------------------------------------------------------------
+ *
+ *  Curses Mouse Interface -- SYSVR4, with extensions
+ *
+ */
+
+Number curses$mouse_set(Number n)
+{
+    return number_from_sint32(mouse_set(number_to_uint32(n)));
+}
+
+Number curses$mouse_on(Number n)
+{
+    return number_from_sint32(mouse_on(number_to_uint32(n)));
+}
+
+Number curses$mouse_off(Number n)
+{
+    return number_from_sint32(mouse_off(number_to_uint32(n)));
+}
+
+Number curses$mouseinterval(Number n)
+{
+    return number_from_uint32(mouseinterval(number_to_uint32(n)));
+}
+
+Number curses$mousemask(Number n, Number *o)
+{
+    mmask_t old = 0;
+    Number retval = number_from_uint32(mousemask(number_to_uint32(n), &old));
+    *o = number_from_uint32(old);
+    return retval;
+}
+
+bool curses$mouse_trafo(Number *pY, Number *pX, bool to_screen)
+{
+    int x = number_to_uint32(*pY);
+    int y = number_to_uint32(*pX);
+
+    _bool Retval = mouse_trafo(&y, &x, to_screen);
+    *pY = number_from_uint32(y);
+    *pX = number_from_uint32(x);
+    return Retval != 0;
+}
+
+Number curses$nc_getmouse(Cell *e)
+{
+    MEVENT MouseEvt;
+    MouseEvt.id     = number_to_uint16(e->array_index_for_read(0).number());
+    MouseEvt.x      = number_to_uint32(e->array_index_for_read(1).number());
+    MouseEvt.y      = number_to_uint32(e->array_index_for_read(2).number());
+    MouseEvt.z      = number_to_uint32(e->array_index_for_read(3).number());
+    MouseEvt.bstate = number_to_uint32(e->array_index_for_read(4).number());
+
+    int Retval = nc_getmouse(&MouseEvt);
+
+    e->array_index_for_write(0) = Cell(number_from_uint16(MouseEvt.id    ));
+    e->array_index_for_write(1) = Cell(number_from_uint32(MouseEvt.x     ));
+    e->array_index_for_write(2) = Cell(number_from_uint32(MouseEvt.y     ));
+    e->array_index_for_write(3) = Cell(number_from_uint32(MouseEvt.z     ));
+    e->array_index_for_write(4) = Cell(number_from_uint32(MouseEvt.bstate));
+
+    return number_from_uint32(Retval);
+}
+
+Number curses$ungetmouse(Cell *e)
+{
+    MEVENT MouseEvt;
+    MouseEvt.id     = number_to_uint16(e->array_index_for_read(0).number());
+    MouseEvt.x      = number_to_uint32(e->array_index_for_read(1).number());
+    MouseEvt.y      = number_to_uint32(e->array_index_for_read(2).number());
+    MouseEvt.z      = number_to_uint32(e->array_index_for_read(3).number());
+    MouseEvt.bstate = number_to_uint32(e->array_index_for_read(4).number());
+
+    int Retval = ungetmouse(&MouseEvt);
+
+    e->array_index_for_write(0) = Cell(number_from_uint16(MouseEvt.id    ));
+    e->array_index_for_write(1) = Cell(number_from_uint32(MouseEvt.x     ));
+    e->array_index_for_write(2) = Cell(number_from_uint32(MouseEvt.y     ));
+    e->array_index_for_write(3) = Cell(number_from_uint32(MouseEvt.z     ));
+    e->array_index_for_write(4) = Cell(number_from_uint32(MouseEvt.bstate));
+
+    return number_from_uint32(Retval);
+}
+
+bool curses$wenclose(void *win, Number x, Number y)
+{
+    return wenclose(static_cast<WINDOW*>(win), number_to_sint32(x), number_to_sint32(y)) != 0;
+}
+
+bool curses$wmouse_trafo(void *win, Number *pY, Number *pX, bool to_screen)
+{
+    int x = number_to_uint32(*pY);
+    int y = number_to_uint32(*pX);
+    
+    _bool Retval = wmouse_trafo(static_cast<WINDOW*>(win), &y, &x, to_screen);
+    
+    *pY = number_from_uint32(y);
+    *pX = number_from_uint32(x);
+
+    return Retval != 0;
 }
 
 } // namespace rtl

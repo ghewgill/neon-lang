@@ -7,6 +7,75 @@ namespace rtl {
 extern const Number curses$ERR = number_from_sint32(ERR);
 extern const Number curses$OK = number_from_sint32(OK);
 
+extern const Number curses$BUTTON_RELEASED = number_from_uint32(BUTTON_RELEASED);
+extern const Number curses$BUTTON_PRESSED = number_from_uint32(BUTTON_PRESSED);
+extern const Number curses$BUTTON_CLICKED = number_from_uint32(BUTTON_CLICKED);
+extern const Number curses$BUTTON_DOUBLE_CLICKED = number_from_uint32(BUTTON_DOUBLE_CLICKED);
+extern const Number curses$BUTTON_TRIPLE_CLICKED = number_from_uint32(BUTTON_TRIPLE_CLICKED);
+extern const Number curses$BUTTON_MOVED = number_from_uint32(BUTTON_MOVED);
+extern const Number curses$WHEEL_SCROLLED = number_from_uint32(WHEEL_SCROLLED);
+extern const Number curses$BUTTON_ACTION_MASK = number_from_uint32(BUTTON_ACTION_MASK);
+
+extern const Number curses$PDC_BUTTON_SHIFT = number_from_uint32(PDC_BUTTON_SHIFT);
+extern const Number curses$PDC_BUTTON_CONTROL = number_from_uint32(PDC_BUTTON_CONTROL);
+extern const Number curses$PDC_BUTTON_ALT = number_from_uint32(PDC_BUTTON_ALT);
+extern const Number curses$BUTTON_MODIFIER_MASK = number_from_uint32(BUTTON_MODIFIER_MASK);
+extern const Number curses$MOUSE_X_POS = number_from_uint32(MOUSE_X_POS);
+extern const Number curses$MOUSE_Y_POS = number_from_uint32(MOUSE_Y_POS);
+
+extern const Number curses$PDC_MOUSE_MOVED = number_from_uint32(PDC_MOUSE_MOVED);
+extern const Number curses$PDC_MOUSE_POSITION = number_from_uint32(PDC_MOUSE_POSITION);
+extern const Number curses$PDC_MOUSE_WHEEL_UP = number_from_uint32(PDC_MOUSE_WHEEL_UP);
+extern const Number curses$PDC_MOUSE_WHEEL_DOWN = number_from_uint32(PDC_MOUSE_WHEEL_DOWN);
+
+extern const Number curses$A_BUTTON_CHANGED = number_from_uint32(A_BUTTON_CHANGED);
+extern const Number curses$MOUSE_MOVED = number_from_uint32(MOUSE_MOVED);
+extern const Number curses$MOUSE_POS_REPORT = number_from_uint32(MOUSE_POS_REPORT);
+extern const Number curses$MOUSE_WHEEL_UP = number_from_uint32(MOUSE_WHEEL_UP);
+extern const Number curses$MOUSE_WHEEL_DOWN = number_from_uint32(MOUSE_WHEEL_DOWN);
+
+extern const Number curses$BUTTON1_RELEASED = number_from_uint32(BUTTON1_RELEASED);
+extern const Number curses$BUTTON1_PRESSED = number_from_uint32(BUTTON1_PRESSED);
+extern const Number curses$BUTTON1_CLICKED = number_from_uint32(BUTTON1_CLICKED);
+extern const Number curses$BUTTON1_DOUBLE_CLICKED = number_from_uint32(BUTTON1_DOUBLE_CLICKED);
+extern const Number curses$BUTTON1_TRIPLE_CLICKED = number_from_uint32(BUTTON1_TRIPLE_CLICKED);
+
+extern const Number curses$BUTTON2_RELEASED = number_from_uint32(BUTTON2_RELEASED);
+extern const Number curses$BUTTON2_PRESSED = number_from_uint32(BUTTON2_PRESSED);
+extern const Number curses$BUTTON2_CLICKED = number_from_uint32(BUTTON2_CLICKED);
+extern const Number curses$BUTTON2_DOUBLE_CLICKED = number_from_uint32(BUTTON2_DOUBLE_CLICKED);
+extern const Number curses$BUTTON2_TRIPLE_CLICKED = number_from_uint32(BUTTON2_TRIPLE_CLICKED);
+
+extern const Number curses$BUTTON3_RELEASED = number_from_uint32(BUTTON3_RELEASED);
+extern const Number curses$BUTTON3_PRESSED = number_from_uint32(BUTTON3_PRESSED);
+extern const Number curses$BUTTON3_CLICKED = number_from_uint32(BUTTON3_CLICKED);
+extern const Number curses$BUTTON3_DOUBLE_CLICKED = number_from_uint32(BUTTON3_DOUBLE_CLICKED);
+extern const Number curses$BUTTON3_TRIPLE_CLICKED = number_from_uint32(BUTTON3_TRIPLE_CLICKED);
+
+extern const Number curses$BUTTON4_RELEASED = number_from_uint32(BUTTON4_RELEASED);
+extern const Number curses$BUTTON4_PRESSED = number_from_uint32(BUTTON4_PRESSED);
+extern const Number curses$BUTTON4_CLICKED = number_from_uint32(BUTTON4_CLICKED);
+extern const Number curses$BUTTON4_DOUBLE_CLICKED = number_from_uint32(BUTTON4_DOUBLE_CLICKED);
+extern const Number curses$BUTTON4_TRIPLE_CLICKED = number_from_uint32(BUTTON4_TRIPLE_CLICKED);
+
+extern const Number curses$BUTTON5_RELEASED = number_from_uint32(BUTTON5_RELEASED);
+extern const Number curses$BUTTON5_PRESSED = number_from_uint32(BUTTON5_PRESSED);
+extern const Number curses$BUTTON5_CLICKED = number_from_uint32(BUTTON5_CLICKED);
+extern const Number curses$BUTTON5_DOUBLE_CLICKED = number_from_uint32(BUTTON5_DOUBLE_CLICKED);
+extern const Number curses$BUTTON5_TRIPLE_CLICKED = number_from_uint32(BUTTON5_TRIPLE_CLICKED);
+
+extern const Number curses$MOUSE_WHEEL_SCROLL = number_from_uint32(MOUSE_WHEEL_SCROLL);
+extern const Number curses$BUTTON_MODIFIER_SHIFT = number_from_uint32(BUTTON_MODIFIER_SHIFT);
+extern const Number curses$BUTTON_MODIFIER_CONTROL = number_from_uint32(BUTTON_MODIFIER_CONTROL);
+extern const Number curses$BUTTON_MODIFIER_ALT = number_from_uint32(BUTTON_MODIFIER_ALT);
+
+extern const Number curses$ALL_MOUSE_EVENTS = number_from_uint32(ALL_MOUSE_EVENTS);
+extern const Number curses$REPORT_MOUSE_POSITION = number_from_uint32(REPORT_MOUSE_POSITION);
+
+extern const Number curses$BUTTON_SHIFT = number_from_uint32(BUTTON_SHIFT);
+extern const Number curses$BUTTON_CONTROL = number_from_uint32(BUTTON_CONTROL);
+extern const Number curses$BUTTON_ALT = number_from_uint32(BUTTON_ALT);
+
 extern const Number curses$A_CHARTEXT = number_from_uint32(A_CHARTEXT);
 extern const Number curses$A_NORMAL = number_from_uint32(A_NORMAL);
 extern const Number curses$A_ALTCHARSET = number_from_uint32(A_ALTCHARSET);
@@ -116,6 +185,7 @@ extern const Number curses$KEY_SSUSPEND = number_from_uint32(KEY_SSUSPEND);
 extern const Number curses$KEY_SUNDO = number_from_uint32(KEY_SUNDO);
 extern const Number curses$KEY_SUSPEND = number_from_uint32(KEY_SUSPEND);
 extern const Number curses$KEY_UNDO = number_from_uint32(KEY_UNDO);
+extern const Number curses$KEY_MOUSE = number_from_uint32(KEY_MOUSE);
 
 extern const Number curses$KEY_MIN = number_from_uint32(KEY_MIN);
 extern const Number curses$KEY_MAX = number_from_uint32(KEY_MAX);

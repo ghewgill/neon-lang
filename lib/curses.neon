@@ -8,7 +8,8 @@
  |%
 
 EXPORT Window
-
+EXPORT MEVENT
+ 
 DECLARE NATIVE CONSTANT ERR: Number
 DECLARE NATIVE CONSTANT OK: Number
 
@@ -141,9 +142,80 @@ DECLARE NATIVE CONSTANT KEY_SSUSPEND       : Number % shifted suspend key
 DECLARE NATIVE CONSTANT KEY_SUNDO          : Number % shifted undo key
 DECLARE NATIVE CONSTANT KEY_SUSPEND        : Number % suspend key
 DECLARE NATIVE CONSTANT KEY_UNDO           : Number % undo key
-
+DECLARE NATIVE CONSTANT KEY_MOUSE          : Number % "mouse" key
 DECLARE NATIVE CONSTANT KEY_MIN            : Number % Minimum curses key value
 DECLARE NATIVE CONSTANT KEY_MAX            : Number % Maximum curses key
+
+%|----------------------------------------------------------------------
+ |
+ |  Curses Mouse constants
+ |
+ |%
+
+DECLARE NATIVE CONSTANT BUTTON_RELEASED         : Number
+DECLARE NATIVE CONSTANT BUTTON_PRESSED          : Number
+DECLARE NATIVE CONSTANT BUTTON_CLICKED          : Number
+DECLARE NATIVE CONSTANT BUTTON_DOUBLE_CLICKED   : Number
+DECLARE NATIVE CONSTANT BUTTON_TRIPLE_CLICKED   : Number
+DECLARE NATIVE CONSTANT BUTTON_MOVED            : Number
+DECLARE NATIVE CONSTANT WHEEL_SCROLLED          : Number
+DECLARE NATIVE CONSTANT BUTTON_ACTION_MASK      : Number
+
+DECLARE NATIVE CONSTANT PDC_BUTTON_SHIFT        : Number
+DECLARE NATIVE CONSTANT PDC_BUTTON_CONTROL      : Number
+DECLARE NATIVE CONSTANT PDC_BUTTON_ALT          : Number
+DECLARE NATIVE CONSTANT BUTTON_MODIFIER_MASK    : Number
+
+DECLARE NATIVE CONSTANT MOUSE_X_POS             : Number
+DECLARE NATIVE CONSTANT MOUSE_Y_POS             : Number
+
+DECLARE NATIVE CONSTANT A_BUTTON_CHANGED        : Number
+DECLARE NATIVE CONSTANT MOUSE_MOVED             : Number
+DECLARE NATIVE CONSTANT MOUSE_POS_REPORT        : Number
+DECLARE NATIVE CONSTANT MOUSE_WHEEL_UP          : Number
+DECLARE NATIVE CONSTANT MOUSE_WHEEL_DOWN        : Number
+
+DECLARE NATIVE CONSTANT BUTTON1_RELEASED        : Number
+DECLARE NATIVE CONSTANT BUTTON1_PRESSED         : Number
+DECLARE NATIVE CONSTANT BUTTON1_CLICKED         : Number
+DECLARE NATIVE CONSTANT BUTTON1_DOUBLE_CLICKED  : Number
+DECLARE NATIVE CONSTANT BUTTON1_TRIPLE_CLICKED  : Number
+
+DECLARE NATIVE CONSTANT BUTTON2_RELEASED        : Number
+DECLARE NATIVE CONSTANT BUTTON2_PRESSED         : Number
+DECLARE NATIVE CONSTANT BUTTON2_CLICKED         : Number
+DECLARE NATIVE CONSTANT BUTTON2_DOUBLE_CLICKED  : Number
+DECLARE NATIVE CONSTANT BUTTON2_TRIPLE_CLICKED  : Number
+
+DECLARE NATIVE CONSTANT BUTTON3_RELEASED        : Number
+DECLARE NATIVE CONSTANT BUTTON3_PRESSED         : Number
+DECLARE NATIVE CONSTANT BUTTON3_CLICKED         : Number
+DECLARE NATIVE CONSTANT BUTTON3_DOUBLE_CLICKED  : Number
+DECLARE NATIVE CONSTANT BUTTON3_TRIPLE_CLICKED  : Number
+
+DECLARE NATIVE CONSTANT BUTTON4_RELEASED        : Number
+DECLARE NATIVE CONSTANT BUTTON4_PRESSED         : Number
+DECLARE NATIVE CONSTANT BUTTON4_CLICKED         : Number
+DECLARE NATIVE CONSTANT BUTTON4_DOUBLE_CLICKED  : Number
+DECLARE NATIVE CONSTANT BUTTON4_TRIPLE_CLICKED  : Number
+
+DECLARE NATIVE CONSTANT BUTTON5_RELEASED        : Number
+DECLARE NATIVE CONSTANT BUTTON5_PRESSED         : Number
+DECLARE NATIVE CONSTANT BUTTON5_CLICKED         : Number
+DECLARE NATIVE CONSTANT BUTTON5_DOUBLE_CLICKED  : Number
+DECLARE NATIVE CONSTANT BUTTON5_TRIPLE_CLICKED  : Number
+
+DECLARE NATIVE CONSTANT MOUSE_WHEEL_SCROLL      : Number
+DECLARE NATIVE CONSTANT BUTTON_MODIFIER_SHIFT   : Number
+DECLARE NATIVE CONSTANT BUTTON_MODIFIER_CONTROL : Number
+DECLARE NATIVE CONSTANT BUTTON_MODIFIER_ALT     : Number
+
+DECLARE NATIVE CONSTANT ALL_MOUSE_EVENTS        : Number 
+DECLARE NATIVE CONSTANT REPORT_MOUSE_POSITION   : Number 
+
+DECLARE NATIVE CONSTANT BUTTON_SHIFT            : Number
+DECLARE NATIVE CONSTANT BUTTON_CONTROL          : Number
+DECLARE NATIVE CONSTANT BUTTON_ALT              : Number
 
 %|----------------------------------------------------------------------
  |
@@ -190,6 +262,8 @@ DECLARE NATIVE FUNCTION nocbreak()
 DECLARE NATIVE FUNCTION chgat(n: Number, attr: Number, color: Number, opts: POINTER)
 DECLARE NATIVE FUNCTION wchgat(win: Window, n: Number, attr: Number, color: Number, opts: POINTER)
 DECLARE NATIVE FUNCTION mvchgat(y: Number, x: Number, n: Number, attr: Number, color: Number, opts: POINTER)
+DECLARE NATIVE FUNCTION mvprintw(y: Number, x: Number, str: String): Number
+DECLARE NATIVE FUNCTION mvwprintw(win: Window, y: Number, x: Number, str: String): Number
 DECLARE NATIVE FUNCTION mvwchgat(win: Window, y: Number, x: Number, n: Number, attr: Number, color: Number, opts: POINTER)
 DECLARE NATIVE FUNCTION clear()
 DECLARE NATIVE FUNCTION wclear(win: Window)
@@ -360,3 +434,35 @@ DECLARE NATIVE FUNCTION wredrawln(win: Window, beg_line: Number, num_lines: Numb
 DECLARE NATIVE FUNCTION wsyncdown(win: Window)
 DECLARE NATIVE FUNCTION wsyncup(win: Window)
 DECLARE NATIVE FUNCTION wtouchln(win: Window, y: Number, n: Number, changed: Boolean)
+
+%|----------------------------------------------------------------------
+ |
+ |  Curses Mouse structures and functions
+ |
+ |%
+
+TYPE MEVENT := RECORD
+    id      : Number    % ID to distinguish multiple devices
+    x       : Number    % event coordinates Horizontal
+    y       : Number    % event coordinates Vertical
+    z       : Number    % Unused
+    bstate  : Number    % button state bits
+END RECORD
+
+%|----------------------------------------------------------------------
+ |
+ |  Curses Mouse Interface -- SYSVR4, with extensions
+ |
+ |%
+
+DECLARE NATIVE FUNCTION mouse_set(n: Number): Number
+DECLARE NATIVE FUNCTION mouse_on(n: Number): Number
+DECLARE NATIVE FUNCTION mouse_off(n: Number): Number
+DECLARE NATIVE FUNCTION mouseinterval(n: Number): Number
+DECLARE NATIVE FUNCTION mousemask(n: Number, INOUT o: Number): Number
+DECLARE NATIVE FUNCTION mouse_trafo(INOUT pY: Number, INOUT pX: Number, to_screen: Boolean): Boolean
+DECLARE NATIVE FUNCTION nc_getmouse(INOUT e: MEVENT): Number
+DECLARE NATIVE FUNCTION ungetmouse(INOUT e: MEVENT): Number
+DECLARE NATIVE FUNCTION wenclose(win: Window, x, y: Number): Boolean
+DECLARE NATIVE FUNCTION wmouse_trafo(win: Window, INOUT pY: Number, INOUT pX: Number, to_screen: Boolean): Boolean
+                                                                                                                        

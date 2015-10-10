@@ -1,0 +1,114 @@
+IMPORT bitwise
+IMPORT cformat
+IMPORT curses
+%IMPORT curses.Window AS WINDOW
+%IMPORT curses.MEVENT AS MEVENT
+IMPORT sys
+IMPORT variant
+
+CONSTANT WIDTH  : Number := 30
+CONSTANT HEIGHT : Number := 10
+
+VAR startx, starty: Number := 0
+
+LET choices: Array<String> := [ "Choice 1",
+                                "Choice 2", 
+                                "Choice 3", 
+                                "Choice 4", 
+                                "Exit" 
+]
+
+VAR n_choices: Number := choices.size() - 1
+
+FUNCTION main(): Number
+    VAR c, choice: Number := 0
+    VAR menu_win: curses.Window
+    VAR event: curses.MEVENT
+
+    % Initialize curses
+    curses.initscr()
+    curses.clear()
+    curses.noecho()
+    curses.cbreak()    % Line buffering disabled. pass on everything
+	LET a: Number := curses.mouse_on(curses.ALL_MOUSE_EVENTS)
+
+    % Try to put the window in the middle of screen
+    startx := (80 - WIDTH) / 2
+    starty := (24 - HEIGHT) / 2
+
+    curses.attron(curses.A_REVERSE)
+    curses.mvaddstr(23, 1, "Click on Exit to quit (Works best in a virtual console)")
+    curses.refresh()
+    curses.attroff(curses.A_REVERSE)
+
+    % Print the menu for the first time
+    menu_win := curses.newwin(HEIGHT, WIDTH, starty, startx)
+    print_menu(menu_win, 1)
+    % Get all the mouse events
+    VAR oldmask: Number
+    LET mask: Number := curses.mousemask(curses.ALL_MOUSE_EVENTS, oldmask)
+
+    LOOP
+        c := curses.wgetch(menu_win)
+        CASE c
+            WHEN curses.KEY_MOUSE DO
+                IF curses.nc_getmouse(event) = curses.OK THEN
+					print("event.x=\(event.x)")
+                    % When the user clicks left mouse button
+                    IF bitwise.and32(event.bstate, curses.BUTTON1_PRESSED) # 0 THEN
+                        report_choice(event.x + 1, event.y + 1, choice)
+                        IF choice = -1 THEN % Exit chosen
+                            curses.endwin()
+                            RETURN 0
+                        END IF
+                        LET strsize: Number := curses.mvprintw(22, 1, cformat.sprintf("Choice made is : %d String Chosen is \"%10s\"", [variant.make_number(choice), variant.make_string(choices[choice - 1])]))
+                        curses.refresh()
+                    END IF
+                END IF
+                print_menu(menu_win, choice)
+			WHEN curses.KEY_EXIT DO
+				curses.endwin()
+				RETURN 0
+        END CASE
+    END LOOP
+    RETURN -1
+END FUNCTION
+
+FUNCTION print_menu(menu_win: curses.Window, highlight: Number)
+    VAR x, y: Number := 2
+	VAR strsize: Number
+
+    curses.box(menu_win, 0, 0)
+    FOR i := 0 TO n_choices DO
+        IF (highlight = (i + 1)) THEN
+            curses.wattron(menu_win, curses.A_REVERSE)
+            strsize := curses.mvwprintw(menu_win, y, x, cformat.sprintf("%s", [variant.make_string(choices[i])]))
+            curses.wattroff(menu_win, curses.A_REVERSE)
+        ELSE
+            strsize := curses.mvwprintw(menu_win, y, x, cformat.sprintf("%s", [variant.make_string(choices[i])]))
+            inc(y)
+        END IF
+    END FOR
+    curses.wrefresh(menu_win)
+END FUNCTION
+
+% Report the choice according to mouse position
+FUNCTION report_choice(mouse_x: Number, mouse_y: Number, INOUT p_choice: Number)
+    VAR i, j: Number
+
+    i := startx + 2
+    j := starty + 3
+
+    FOR choice := 0 TO n_choices DO
+        IF ((mouse_y = j + choice) AND (mouse_x >= i) AND (mouse_x <= i + choices[choice].length())) THEN
+            IF (choice = n_choices - 1) THEN
+                p_choice := -1
+            ELSE
+                p_choice := choice + 1
+                EXIT FOR
+            END IF
+        END IF
+    END FOR
+END FUNCTION
+
+sys.exit(main())
