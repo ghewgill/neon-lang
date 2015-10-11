@@ -1,5 +1,26 @@
 IMPORT multiarray
 
+VAR b2: multiarray.ArrayBoolean2D := multiarray.make_boolean2D(4, 5)
+ASSERT b2.size() = 4
+FOREACH row OF b2 DO
+    ASSERT row.size() = 5
+    FOREACH cell OF row DO
+        ASSERT cell = FALSE
+    END FOREACH
+END FOREACH
+
+VAR b3: multiarray.ArrayBoolean3D := multiarray.make_boolean3D(4, 5, 6)
+ASSERT b3.size() = 4
+FOREACH row OF b3 DO
+    ASSERT row.size() = 5
+    FOREACH core OF row DO
+        ASSERT core.size() = 6
+        FOREACH cell OF core DO
+            ASSERT cell = FALSE
+        END FOREACH
+    END FOREACH
+END FOREACH
+
 VAR n2: multiarray.ArrayNumber2D := multiarray.make_number2D(4, 5)
 ASSERT n2.size() = 4
 FOREACH row OF n2 DO
