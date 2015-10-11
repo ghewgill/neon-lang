@@ -1,0 +1,586 @@
+IMPORT curses
+IMPORT math
+IMPORT multiarray
+IMPORT random
+IMPORT runtime
+
+%|
+ |  The dlx_* functions are an implementation of Knuth's "Dancing Links"
+ |  technique to solve his "Algorithm X" (exact cover).
+ |%
+
+TYPE Node IS RECORD
+    index: Number
+    row: Number
+    column: POINTER TO Node
+    up: POINTER TO Node
+    down: POINTER TO Node
+    left: POINTER TO Node
+    right: POINTER TO Node
+    size: Number
+END RECORD
+
+FUNCTION dlx_cover(c: POINTER TO Node)
+    IF VALID c, c->left AS l, c->right AS r THEN
+        r->left := c->left
+        l->right := c->right
+        VAR i: POINTER TO Node := c->down
+        WHILE i # c DO
+            IF VALID i AS ii THEN
+                VAR j: POINTER TO Node := ii->right
+                WHILE j # i DO
+                    IF VALID j AS jj, jj->up AS u, jj->down AS d THEN
+                        d->up := jj->up
+                        u->down := jj->down
+                        IF VALID jj->column AS col THEN
+                            dec(col->size)
+                        ELSE
+                            ASSERT FALSE
+                        END IF
+                        j := jj->right
+                    ELSE
+                        ASSERT FALSE
+                    END IF
+                END WHILE
+                i := ii->down
+            ELSE
+                ASSERT FALSE
+            END IF
+        END WHILE
+    ELSE
+        ASSERT FALSE
+    END IF
+END FUNCTION
+
+FUNCTION dlx_uncover(c: POINTER TO Node)
+    IF VALID c, c->left AS l, c->right AS r THEN
+        VAR i: POINTER TO Node := c->up
+        WHILE i # c DO
+            IF VALID i AS ii THEN
+                VAR j: POINTER TO Node := ii->left
+                WHILE j # i DO
+                    IF VALID j AS jj, jj->up AS u, jj->down AS d THEN
+                        IF VALID jj->column AS col THEN
+                            inc(col->size)
+                        ELSE
+                            ASSERT FALSE
+                        END IF
+                        d->up := j
+                        u->down := j
+                        j := jj->left
+                    END IF
+                END WHILE
+                i := ii->up
+            ELSE
+                ASSERT FALSE
+            END IF
+        END WHILE
+        r->left := c
+        l->right := c
+    ELSE
+        ASSERT FALSE
+    END IF
+END FUNCTION
+
+FUNCTION dlx_search(head: POINTER TO Node, INOUT solution: Array<Number>, k: Number, INOUT solutions: Array<Array<Number>>, maxsolutions: Number): Boolean
+    IF VALID head THEN
+        IF head->right = head THEN
+            solutions.append(solution)
+            RETURN solutions.size() >= maxsolutions
+        END IF
+        VAR c: POINTER TO Node := NIL
+        VAR s: Number := 99999
+        VAR d: POINTER TO Node := head->right
+        WHILE d # head DO
+            IF VALID d AS dd THEN
+                IF dd->size = 0 THEN
+                    RETURN FALSE
+                END IF
+                IF dd->size < s THEN
+                    s := dd->size
+                    c := dd
+                END IF
+                d := dd->right
+            ELSE
+                ASSERT FALSE
+            END IF
+        END WHILE
+        IF VALID c THEN
+            dlx_cover(c)
+            VAR r: POINTER TO Node := c->down
+            WHILE r # c DO
+                IF VALID r AS rr THEN
+                    solution[k] := rr->row
+                    VAR j: POINTER TO Node := rr->right
+                    WHILE j # r DO
+                        IF VALID j AS jj THEN
+                            dlx_cover(jj->column)
+                            j := jj->right
+                        ELSE
+                            ASSERT FALSE
+                        END IF
+                    END WHILE
+                    IF dlx_search(head, solution, k+1, solutions, maxsolutions) THEN
+                        RETURN TRUE
+                    END IF
+                    j := rr->left
+                    WHILE j # r DO
+                        IF VALID j AS jj THEN
+                            dlx_uncover(jj->column)
+                            j := jj->left
+                        ELSE
+                            ASSERT FALSE
+                        END IF
+                    END WHILE
+                    r := rr->down
+                ELSE
+                    ASSERT FALSE
+                END IF
+            END WHILE
+            dlx_uncover(c)
+        ELSE
+            ASSERT FALSE
+        END IF
+    ELSE
+        ASSERT FALSE
+    END IF
+    RETURN FALSE
+END FUNCTION
+
+FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Number): Array<Array<Number>>
+    VAR columns: Array<POINTER TO Node>
+    FOR i := 0 TO matrix[0].size()-1 DO
+        columns[i] := NEW Node
+    END FOR
+    FOR i := 0 TO columns.size()-1 DO
+        IF VALID columns[i] AS c THEN
+            c->index := i
+            c->up := c
+            c->down := c
+            IF i >= skip THEN
+                IF i-1 >= skip THEN
+                    c->left := columns[i-1]
+                END IF
+                IF i+1 < columns.size() THEN
+                    c->right := columns[i+1]
+                END IF
+            ELSE
+                c->left := c
+                c->right := c
+            END IF
+            c->size := 0
+        ELSE
+            ASSERT FALSE
+        END IF
+    END FOR
+    FOR i := 0 TO matrix.size()-1 DO
+        VAR last: POINTER TO Node := NIL
+        FOR j := 0 TO matrix[i].size()-1 DO
+            IF VALID columns[j] AS c THEN
+                IF matrix[i][j] THEN
+                    %print(str(runtime.get_allocated_object_count()))
+                    LET node: POINTER TO Node := NEW Node
+                    node->row := i
+                    node->column := c
+                    node->up := c->up
+                    node->down := c
+                    IF VALID last THEN
+                        node->left := last
+                        node->right := last->right
+                        IF VALID last->right AS lr THEN
+                            lr->left := node
+                        ELSE
+                            ASSERT FALSE
+                        END IF
+                        last->right := node
+                    ELSE
+                        node->left := node
+                        node->right := node
+                    END IF
+                    IF VALID c->up AS cu THEN
+                        cu->down := node
+                    ELSE
+                        ASSERT FALSE
+                    END IF
+                    c->up := node
+                    inc(c->size)
+                    last := node
+                END IF
+            ELSE
+                ASSERT FALSE
+            END IF
+        END FOR
+    END FOR
+    LET head: POINTER TO Node := NEW Node
+    head->right := columns[skip]
+    head->left := columns[LAST]
+    IF VALID columns[skip] AS cs THEN
+        cs->left := head
+    ELSE
+        ASSERT FALSE
+    END IF
+    IF VALID columns[LAST] AS cl THEN
+        cl->right := head
+    ELSE
+        ASSERT FALSE
+    END IF
+    VAR solution: Array<Number> := []
+    VAR solutions: Array<Array<Number>> := []
+    LET r: Boolean := dlx_search(head, solution, 0, solutions, maxsolutions)
+    RETURN solutions
+END FUNCTION
+
+FUNCTION print_grid(grid: multiarray.ArrayNumber2D)
+    FOREACH row OF grid DO
+        VAR s: String := ""
+        FOREACH n OF row DO
+            IF n > 0 THEN
+                s.append("\(n) ")
+            ELSE
+                s.append("  ")
+            END IF
+        END FOREACH
+        print(s)
+    END FOREACH
+END FUNCTION
+
+%|
+ |  Function: solve_sudoku
+ |
+ |  This solver uses the above implementation to efficiently solve
+ |  a Sudoku puzzle.
+ |%
+
+FUNCTION solve_sudoku(INOUT grid: multiarray.ArrayNumber2D): Number
+    VAR mat: Array<Array<Boolean>>
+    VAR rinfo: Array<Array<Number>>
+    FOR i := 0 TO 8 DO
+        FOR j := 0 TO 8 DO
+            LET g: Number := grid[i][j] - 1
+            IF g >= 0 THEN
+                VAR row: Array<Boolean> := []
+                row.resize(324)
+                row[i*9+j] := TRUE
+                row[9*9+i*9+g] := TRUE
+                row[9*9*2+j*9+g] := TRUE
+                row[9*9*3+(math.floor(i/3)*3+math.floor(j/3))*9+g] := TRUE
+                mat.append(row)
+                rinfo.append([i, j, g+1])
+            ELSE
+                FOR n := 0 TO 8 DO
+                    VAR row: Array<Boolean> := []
+                    row.resize(324)
+                    row[i*9+j] := TRUE
+                    row[9*9+i*9+n] := TRUE
+                    row[9*9*2+j*9+n] := TRUE
+                    row[9*9*3+(math.floor(i/3)*3+math.floor(j/3))*9+n] := TRUE
+                    mat.append(row)
+                    rinfo.append([i, j, n+1])
+                END FOR
+            END IF
+        END FOR
+    END FOR
+    LET solutions: Array<Array<Number>> := dlx_solve(mat, 0, 2)
+    IF solutions.size() > 0 THEN
+        LET r: Array<Number> := solutions[0]
+        FOREACH i OF r DO
+            grid[rinfo[i][0]][rinfo[i][1]] := rinfo[i][2]
+        END FOREACH
+    END IF
+    RETURN solutions.size()
+END FUNCTION
+
+FUNCTION shuffle(INOUT a: Array<Number>)
+    FOR i := a.size()-1 TO 1 STEP -1 DO
+        LET j: Number := random.uint32() MOD (i+1)
+        LET temp: Number := a[i]
+        a[i] := a[j]
+        a[j] := temp
+    END FOR
+END FUNCTION
+
+%|
+ |  Function: make_solution
+ |
+ |  This function makes a random solution to a Sudoku puzzle.
+ |
+ |  It does this by filling in the first row randomly, and then calling
+ |  the solver. Due to the way the solver works, this produces a bias
+ |  which can be observed by looking at the first few numbers in the
+ |  second row. The first three numbers will be the lowest numbers that
+ |  don't appear in the first three cells of the first row, in order.
+ |  An improvement would be to remove this bias.
+ |%
+
+FUNCTION make_solution(): multiarray.ArrayNumber2D
+    VAR r: multiarray.ArrayNumber2D := multiarray.make_number2D(9, 9)
+    r[0] := [1, 2, 3, 4, 5, 6, 7, 8, 9]
+    shuffle(r[0])
+    LET n: Number := solve_sudoku(r)
+    RETURN r
+END FUNCTION
+
+%|
+ |  Function: make_puzzle
+ |
+ |  This function makes a puzzle (a partially filled grid), given a
+ |  solution (completely filled grid) and a number of cells to leave
+ |  filled.
+ |
+ |  This works by removing pairs of numbers (symmetric around 180 degree
+ |  rotation), checking the resulting puzzle to see that it still has only
+ |  one solution, and repeating. If removing a pair of numbers results in
+ |  a puzzle with more than one solution, the numbers are left in place and
+ |  another pair is tried.
+ |
+ |  This function has considerable opportunity for improvements in efficiency.
+ |  Also, it makes no attempt to estimate the "difficulty" of the resulting
+ |  puzzle.
+ |%
+
+FUNCTION make_puzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback: FUNCTION(n: Number)): multiarray.ArrayNumber2D
+    VAR r: multiarray.ArrayNumber2D := solution
+    VAR places: Array<Number>
+    FOR i := 0 TO 9*9-1 DO
+        places[i] := i
+    END FOR
+    shuffle(places)
+    VAR n: Number := 9*9
+    FOREACH p OF places DO
+        callback(n)
+        LET i: Number := math.floor(p / 9)
+        LET j: Number := p MOD 9
+        IF r[i][j] = 0 THEN
+            NEXT FOREACH
+        END IF
+        VAR t: multiarray.ArrayNumber2D := r
+        t[i][j] := 0
+        t[8-i][8-j] := 0
+        LET s: Number := solve_sudoku(t)
+        IF s = 1 THEN
+            r[i][j] := 0
+            r[8-i][8-j] := 0
+            n := n - 2
+            IF n <= filled THEN
+                RETURN r
+            END IF
+        END IF
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION puzzle_filled(grid: multiarray.ArrayNumber2D): Boolean
+    FOREACH row OF grid DO
+        FOREACH cell OF row DO
+            IF cell = 0 THEN
+                RETURN FALSE
+            END IF
+        END FOREACH
+    END FOREACH
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION find_errors(grid: multiarray.ArrayNumber2D): multiarray.ArrayBoolean2D
+    VAR r: multiarray.ArrayBoolean2D := multiarray.make_boolean2D(9, 9)
+    VAR rows: multiarray.ArrayNumber2D := multiarray.make_number2D_value(9, 10, -1)
+    VAR cols: multiarray.ArrayNumber2D := multiarray.make_number2D_value(9, 10, -1)
+    VAR cels: multiarray.ArrayNumber2D := multiarray.make_number2D_value(9, 10, -1)
+    FOR i := 0 TO 8 DO
+        FOR j := 0 TO 8 DO
+            LET n: Number := grid[i][j]
+            IF n > 0 THEN
+                % Check for duplicate number in row.
+                LET x: Number := rows[i][n]
+                IF x >= 0 THEN
+                    r[i][j] := TRUE
+                    r[i][x] := TRUE
+                END IF
+                rows[i][n] := j
+                % Check for duplicate number in column.
+                LET y: Number := cols[j][n]
+                IF y >= 0 THEN
+                    r[i][j] := TRUE
+                    r[y][j] := TRUE
+                END IF
+                cols[j][n] := i
+                % Check for duplicate number in cell.
+                LET c: Number := math.floor(i / 3)*3 + math.floor(j / 3)
+                LET z: Number := cels[c][n]
+                IF z >= 0 THEN
+                    r[i][j] := TRUE
+                    r[math.floor(c / 3)*3 + math.floor(z / 3)][(c MOD 3)*3 + (z MOD 3)] := TRUE
+                END IF
+                cels[c][n] := (i MOD 3)*3 + (j MOD 3)
+            END IF
+        END FOR
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION init()
+    curses.initscr()
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_RED)
+    curses.noecho()
+    curses.curs_set(0)
+    curses.keypad(curses.stdscr(), TRUE)
+    curses.mvaddstr( 0, 50, "Sudoku")
+    curses.mvaddstr( 4, 40, "hjkl/arrows - move cursor")
+    curses.mvaddstr( 5, 40, "digits      - enter number in cell")
+    curses.mvaddstr( 6, 40, "0/space     - clear cell")
+    curses.mvaddstr( 7, 40, "c           - clear puzzle")
+    curses.mvaddstr( 8, 40, "n           - new puzzle")
+    curses.mvaddstr( 9, 40, "s           - solve puzzle")
+    curses.mvaddstr(10, 40, "q           - quit")
+    curses.mvaddstr(11, 40, "u           - undo last move")
+END FUNCTION
+
+FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
+    LET errors: multiarray.ArrayBoolean2D := find_errors(grid)
+    curses.mvaddstr(0, 0, "+---+---+---+---+---+---+---+---+---+")
+    VAR any_errors: Boolean := FALSE
+    FOR i := 0 TO 8 DO
+        curses.mvaddstr(1+2*i, 0, "|           |           |           |")
+        FOR j := 0 TO 8 DO
+            IF i = cy AND j = cx THEN
+                curses.attrset(curses.A_REVERSE)
+            ELSIF errors[i][j] THEN
+                curses.attrset(curses.COLOR_PAIR(1))
+                any_errors := TRUE
+            END IF
+            IF grid[i][j] > 0 THEN
+                curses.mvaddstr(1+2*i, 1+4*j, " \(grid[i][j]) ")
+            ELSE
+                curses.mvaddstr(1+2*i, 1+4*j, "   ")
+            END IF
+            curses.attrset(curses.A_NORMAL)
+        END FOR
+        IF i MOD 3 = 2 THEN
+            curses.mvaddstr(2+2*i, 0, "+---+---+---+---+---+---+---+---+---+")
+        ELSE
+            curses.mvaddstr(2+2*i, 0, "+           +           +           +")
+        END IF
+    END FOR
+    IF NOT any_errors AND puzzle_filled(grid) THEN
+        curses.mvaddstr(15, 40, "Puzzle completed.")
+    ELSE
+        curses.move(15, 40)
+        curses.clrtoeol()
+    END IF
+END FUNCTION
+
+FUNCTION popup_show(message: String): curses.Window
+    LET w: curses.Window := curses.newwin(5, 40, 10, 20)
+    curses.wborder(w, 0, 0, 0, 0, 0, 0, 0, 0)
+    curses.mvwaddstr(w, 2, (40-message.length())/2, message)
+    curses.wrefresh(w)
+    RETURN w
+END FUNCTION
+
+FUNCTION popup_close(w: curses.Window)
+    curses.delwin(w)
+    curses.redrawwin(curses.stdscr())
+END FUNCTION
+
+VAR new_puzzle_popup: curses.Window
+
+FUNCTION update_new_puzzle_popup(n: Number)
+    curses.mvwaddstr(new_puzzle_popup, 2, 30, "\(n)")
+    curses.wrefresh(new_puzzle_popup)
+END FUNCTION
+
+FUNCTION main()
+    init()
+    %LET solution: multiarray.ArrayNumber2D := make_solution()
+    %print_grid(solution)
+    %LET puzzle: multiarray.ArrayNumber2D := make_puzzle(solution, 21)
+    %print_grid(puzzle)
+    VAR start: multiarray.ArrayNumber2D := multiarray.make_number2D(9, 9)
+    start := [
+        % https://en.wikipedia.org/wiki/Sudoku
+        [5,3,0,0,7,0,0,0,0],
+        [6,0,0,1,9,5,0,0,0],
+        [0,9,8,0,0,0,0,6,0],
+        [8,0,0,0,6,0,0,0,3],
+        [4,0,0,8,0,3,0,0,1],
+        [7,0,0,0,2,0,0,0,6],
+        [0,6,0,0,0,0,2,8,0],
+        [0,0,0,4,1,9,0,0,5],
+        [0,0,0,0,8,0,0,7,9],
+    ]
+    VAR known_start: Boolean := TRUE
+    VAR moves: Array<multiarray.ArrayNumber2D> := []
+    VAR grid: multiarray.ArrayNumber2D := start
+    VAR quit: Boolean := FALSE
+    VAR cx, cy: Number := 0
+    WHILE NOT quit DO
+        draw_grid(grid, cx, cy)
+        LET k: Number := curses.getch()
+        IF k >= 0 THEN
+            CASE k
+                WHEN curses.KEY_DOWN DO
+                    cy := (cy + 1) MOD 9
+                WHEN curses.KEY_LEFT DO
+                    cx := (cx - 1) MOD 9
+                WHEN curses.KEY_RIGHT DO
+                    cx := (cx + 1) MOD 9
+                WHEN curses.KEY_UP DO
+                    cy := (cy - 1) MOD 9
+                ELSE
+                    CASE chr(k)
+                        WHEN " ", "0" DO
+                            IF start[cy][cx] = 0 THEN
+                                moves.append(grid)
+                                grid[cy][cx] := 0
+                            END IF
+                        WHEN "1" TO "9" DO
+                            IF start[cy][cx] = 0 THEN
+                                moves.append(grid)
+                                grid[cy][cx] := k - ord("0")
+                            END IF
+                        WHEN "c" DO
+                            moves := []
+                            known_start := FALSE
+                            start := multiarray.make_number2D(9, 9)
+                            grid := start
+                        WHEN "h" DO
+                            cx := (cx - 1) MOD 9
+                        WHEN "j" DO
+                            cy := (cy + 1) MOD 9
+                        WHEN "k" DO
+                            cy := (cy - 1) MOD 9
+                        WHEN "l" DO
+                            cx := (cx + 1) MOD 9
+                        WHEN "n" DO
+                            new_puzzle_popup := popup_show("Creating new puzzle...   ")
+                            moves := []
+                            LET solution: multiarray.ArrayNumber2D := make_solution()
+                            start := make_puzzle(solution, 30, update_new_puzzle_popup)
+                            known_start := TRUE
+                            grid := start
+                            popup_close(new_puzzle_popup)
+                        WHEN "q" DO
+                            quit := TRUE
+                        WHEN "s" DO
+                            LET popup: curses.Window := popup_show("Solving puzzle...")
+                            moves.append(grid)
+                            IF known_start THEN
+                                grid := start
+                            END IF
+                            LET n: Number := solve_sudoku(grid)
+                            popup_close(popup)
+                        WHEN "u" DO
+                            IF moves.size() > 0 THEN
+                                grid := moves[LAST]
+                                moves.resize(moves.size()-1)
+                            END IF
+                    END CASE
+            END CASE
+        END IF
+    END WHILE
+    curses.endwin()
+END FUNCTION
+
+% TODO: Leaving the garbage collector enabled currently crashes it.
+runtime.set_garbage_collection_interval(0)
+main()
