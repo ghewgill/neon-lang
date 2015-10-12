@@ -1331,30 +1331,36 @@ void Executor::log(const std::string &message)
 
 static void mark(Cell *c)
 {
-    if (c == nullptr || (c->gc.alloced && c->gc.marked)) {
-        return;
-    }
-    c->gc.marked = true;
-    switch (c->get_type()) {
-        case Cell::cNone:
-        case Cell::cBoolean:
-        case Cell::cNumber:
-        case Cell::cString:
-            // nothing
-            break;
-        case Cell::cAddress:
-            mark(c->address());
-            break;
-        case Cell::cArray:
-            for (auto &x: c->array_for_write()) {
-                mark(&x);
-            }
-            break;
-        case Cell::cDictionary:
-            for (auto &x: c->dictionary_for_write()) {
-                mark(&x.second);
-            }
-            break;
+    std::vector<Cell *> todo;
+    todo.push_back(c);
+    while (not todo.empty()) {
+        c = todo.back();
+        todo.pop_back();
+        if (c == nullptr || (c->gc.alloced && c->gc.marked)) {
+            continue;
+        }
+        c->gc.marked = true;
+        switch (c->get_type()) {
+            case Cell::cNone:
+            case Cell::cBoolean:
+            case Cell::cNumber:
+            case Cell::cString:
+                // nothing
+                break;
+            case Cell::cAddress:
+                todo.push_back(c->address());
+                break;
+            case Cell::cArray:
+                for (auto &x: c->array_for_write()) {
+                    todo.push_back(&x);
+                }
+                break;
+            case Cell::cDictionary:
+                for (auto &x: c->dictionary_for_write()) {
+                    todo.push_back(&x.second);
+                }
+                break;
+        }
     }
 }
 
