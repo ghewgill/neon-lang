@@ -97,6 +97,8 @@ enum TokenType {
     EMBED,
     ALIAS,
     IS,
+    BEGIN,
+    MAIN,
     MAX_TOKEN
 };
 

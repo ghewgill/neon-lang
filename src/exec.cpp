@@ -193,6 +193,7 @@ public:
     // Module: runtime
     void garbage_collect();
     size_t get_allocated_object_count();
+    bool module_is_main();
     void set_garbage_collection_interval(size_t count);
     void set_recursion_limit(size_t depth);
 
@@ -1399,6 +1400,11 @@ size_t Executor::get_allocated_object_count()
     return allocs.size();
 }
 
+bool Executor::module_is_main()
+{
+    return module == modules[""];
+}
+
 void Executor::set_garbage_collection_interval(size_t count)
 {
     param_garbage_collection_interval = count;
@@ -1748,6 +1754,11 @@ void executor_garbage_collect()
 size_t executor_get_allocated_object_count()
 {
     return g_executor->get_allocated_object_count();
+}
+
+bool executor_module_is_main()
+{
+    return g_executor->module_is_main();
 }
 
 void executor_set_garbage_collection_interval(size_t count)

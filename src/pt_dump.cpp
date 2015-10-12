@@ -260,6 +260,12 @@ public:
     virtual void visit(const ExportDeclaration *node) override {
         write("ExportDeclaration(" + node->name.text + ")");
     }
+    virtual void visit(const MainBlock *node) override {
+        write("MainBlock");
+        for (auto x: node->body) {
+            child(x);
+        }
+    }
 
     virtual void visit(const AssertStatement *node) override {
         write("AssertStatement");

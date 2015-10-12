@@ -91,6 +91,7 @@ public:
     const Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExceptionDeclaration *declaration);
     const Statement *analyze(const pt::ExportDeclaration *declaration);
+    const Statement *analyze(const pt::MainBlock *statement);
     std::vector<const Statement *> analyze(const std::vector<const pt::Statement *> &statement);
     const Statement *analyze(const pt::AssertStatement *statement);
     const Statement *analyze(const pt::AssignmentStatement *statement);
@@ -170,6 +171,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::MainBlock *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
@@ -248,6 +250,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::MainBlock *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
@@ -325,6 +328,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExportDeclaration *) override {}
+    virtual void visit(const pt::MainBlock *) override {}
     virtual void visit(const pt::AssertStatement *) override {}
     virtual void visit(const pt::AssignmentStatement *) override {}
     virtual void visit(const pt::CaseStatement *) override {}
@@ -402,6 +406,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *) override {}
     virtual void visit(const pt::ExceptionDeclaration *) override {}
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::MainBlock *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssertStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::CaseStatement *p) override { v.push_back(a->analyze(p)); }
@@ -2146,6 +2151,17 @@ const Statement *Analyzer::analyze(const pt::ExportDeclaration *declaration)
     }
     exports.insert(declaration->name.text);
     return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze(const pt::MainBlock *statement)
+{
+    Token name = statement->token;
+    name.type = IDENTIFIER;
+    name.text = "MAIN";
+    std::vector<const pt::FunctionParameter *> args;
+    const pt::FunctionDeclaration *main = new pt::FunctionDeclaration(statement->token, Token(), name, nullptr, args, Token(), statement->body, Token());
+    analyze_decl(main);
+    return analyze_body(main);
 }
 
 std::vector<const Statement *> Analyzer::analyze(const std::vector<const pt::Statement *> &statement)

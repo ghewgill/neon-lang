@@ -30,6 +30,7 @@ Statement =
     NativeFunctionDeclaration |
     ExceptionDeclaration |
     ExportDeclaration |
+    MainBlock |
     AssertStatement |
     AssignmentStatement |
     CaseStatement |
@@ -85,6 +86,8 @@ FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':'
 ExceptionDeclaration = 'DECLARE', 'EXCEPTION', Identifier;
 
 ExportDeclaration = 'EXPORT', Identifier;
+
+MainBlock = 'BEGIN', 'MAIN', {Statement}, 'END', 'MAIN';
 
 AssertStatement = 'ASSERT', Expression, {',', Expression};
 

@@ -68,6 +68,7 @@ public:
     const Statement *parseRaiseStatement();
     const Statement *parseImport();
     const Statement *parseAssert();
+    const Statement *parseBegin();
     const Statement *parseStatement();
     const Program *parse();
 private:
@@ -1548,6 +1549,33 @@ const Statement *Parser::parseAssert()
     return new AssertStatement(tok_assert, body, expr, tok_assert.source);
 }
 
+const Statement *Parser::parseBegin()
+{
+    auto &tok_begin = tokens[i];
+    ++i;
+    if (tokens[i].type != MAIN) {
+        error(2091, tokens[i], "'MAIN' expected");
+    }
+    ++i;
+    TemporaryMinimumIndent indent(this, tok_begin.column + 1);
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement();
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(2092, tokens[i], "END expected");
+    }
+    ++i;
+    if (tokens[i].type != MAIN) {
+        error_a(2093, tokens[i-1], tokens[i], "'MAIN' expected");
+    }
+    ++i;
+    return new MainBlock(tok_begin, statements);
+}
+
 const Statement *Parser::parseStatement()
 {
     if (tokens[i].column < minimum_column) {
@@ -1597,6 +1625,8 @@ const Statement *Parser::parseStatement()
         return parseRaiseStatement();
     } else if (tokens[i].type == ASSERT) {
         return parseAssert();
+    } else if (tokens[i].type == BEGIN) {
+        return parseBegin();
     } else if (tokens[i].type == IDENTIFIER) {
         const Token &start = tokens[i];
         const Expression *expr = parseExpression();

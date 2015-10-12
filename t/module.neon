@@ -50,3 +50,8 @@ DECLARE EXCEPTION exception
 
 VAR functionpointer: FUNCTION(x: Number): Number
 functionpointer := function
+
+BEGIN MAIN
+    print("module main")
+END MAIN
+%= module main

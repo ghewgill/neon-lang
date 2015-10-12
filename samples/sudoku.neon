@@ -10,6 +10,9 @@ IMPORT multiarray
 IMPORT random
 IMPORT runtime
 
+% TODO: Leaving the garbage collector enabled currently crashes it.
+runtime.set_garbage_collection_interval(0)
+
 %|
  |  The dlx_* functions are an implementation of Knuth's "Dancing Links"
  |  technique to solve his "Algorithm X" (exact cover).
@@ -495,7 +498,7 @@ FUNCTION update_new_puzzle_popup(n: Number)
     curses.wrefresh(new_puzzle_popup)
 END FUNCTION
 
-FUNCTION main()
+BEGIN MAIN
     init()
     %LET solution: multiarray.ArrayNumber2D := make_solution()
     %print_grid(solution)
@@ -585,8 +588,4 @@ FUNCTION main()
         END IF
     END WHILE
     curses.endwin()
-END FUNCTION
-
-% TODO: Leaving the garbage collector enabled currently crashes it.
-runtime.set_garbage_collection_interval(0)
-main()
+END MAIN

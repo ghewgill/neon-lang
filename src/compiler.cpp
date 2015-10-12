@@ -1734,6 +1734,14 @@ void Program::generate(Emitter &emitter) const
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
+    const Function *main = dynamic_cast<const Function *>(scope->lookupName("MAIN"));
+    if (main != nullptr) {
+        emitter.emit(CALLP, emitter.str("runtime$module_is_main"));
+        auto skip = emitter.create_label();
+        emitter.emit_jump(JF, skip);
+        emitter.emit_jump(CALLF, emitter.function_label(main->entry_label));
+        emitter.jump_target(skip);
+    }
     emitter.emit(RET);
     frame->postdeclare(emitter);
 
