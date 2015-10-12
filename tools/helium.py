@@ -2074,6 +2074,7 @@ ExcludeTests = [
     "t/shebang.neon",           # Feature not required
     "t/sqlite-test.neon",       # Module not required
     "t/string-multiline.neon",  # Feature not required
+    "t/sudoku-test.neon",       # Sample not required
     "t/sys-exit.neon",          # CURRENT_EXCEPTION not required
     "t/tail-call.neon",         # Feature not required
     "t/time-stopwatch.neon",    # Module not required

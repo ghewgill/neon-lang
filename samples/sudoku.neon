@@ -1,3 +1,9 @@
+EXPORT solve_sudoku
+EXPORT make_solution
+EXPORT make_puzzle
+EXPORT puzzle_filled
+EXPORT find_errors
+
 IMPORT curses
 IMPORT math
 IMPORT multiarray
