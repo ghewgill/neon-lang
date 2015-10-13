@@ -751,33 +751,45 @@ void Executor::exec_GES()
 void Executor::exec_EQA()
 {
     ip++;
-    std::vector<Cell> b = stack.top().array(); stack.pop();
-    std::vector<Cell> a = stack.top().array(); stack.pop();
-    stack.push(Cell(a == b));
+    const std::vector<Cell> &b = stack.top().array();
+    const std::vector<Cell> &a = stack.peek(1).array();
+    bool v = a == b;
+    stack.pop();
+    stack.pop();
+    stack.push(Cell(v));
 }
 
 void Executor::exec_NEA()
 {
     ip++;
-    std::vector<Cell> b = stack.top().array(); stack.pop();
-    std::vector<Cell> a = stack.top().array(); stack.pop();
-    stack.push(Cell(a != b));
+    const std::vector<Cell> &b = stack.top().array();
+    const std::vector<Cell> &a = stack.peek(1).array();
+    bool v = a != b;
+    stack.pop();
+    stack.pop();
+    stack.push(Cell(v));
 }
 
 void Executor::exec_EQD()
 {
     ip++;
-    std::map<utf8string, Cell> b = stack.top().dictionary(); stack.pop();
-    std::map<utf8string, Cell> a = stack.top().dictionary(); stack.pop();
-    stack.push(Cell(a == b));
+    const std::map<utf8string, Cell> &b = stack.top().dictionary();
+    const std::map<utf8string, Cell> &a = stack.peek(1).dictionary();
+    bool v = a == b;
+    stack.pop();
+    stack.pop();
+    stack.push(Cell(v));
 }
 
 void Executor::exec_NED()
 {
     ip++;
-    std::map<utf8string, Cell> b = stack.top().dictionary(); stack.pop();
-    std::map<utf8string, Cell> a = stack.top().dictionary(); stack.pop();
-    stack.push(Cell(a != b));
+    const std::map<utf8string, Cell> &b = stack.top().dictionary();
+    const std::map<utf8string, Cell> &a = stack.peek(1).dictionary();
+    bool v = a != b;
+    stack.pop();
+    stack.pop();
+    stack.push(Cell(v));
 }
 
 void Executor::exec_EQP()
@@ -935,17 +947,23 @@ void Executor::exec_INDEXDV()
 void Executor::exec_INA()
 {
     ip++;
-    auto array = stack.top().array(); stack.pop();
-    Cell val = stack.top(); stack.pop();
-    stack.push(Cell(std::find(array.begin(), array.end(), val) != array.end()));
+    auto &array = stack.top().array();
+    Cell val = stack.peek(1);
+    bool v = std::find(array.begin(), array.end(), val) != array.end();
+    stack.pop();
+    stack.pop();
+    stack.push(Cell(v));
 }
 
 void Executor::exec_IND()
 {
     ip++;
-    auto dictionary = stack.top().dictionary(); stack.pop();
-    utf8string key = stack.top().string(); stack.pop();
-    stack.push(Cell(dictionary.find(key) != dictionary.end()));
+    auto &dictionary = stack.top().dictionary();
+    utf8string key = stack.peek(1).string();
+    bool v = dictionary.find(key) != dictionary.end();
+    stack.pop();
+    stack.pop();
+    stack.push(Cell(v));
 }
 
 void Executor::exec_CALLP()
