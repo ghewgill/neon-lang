@@ -1,0 +1,10 @@
+IMPORT runtime
+
+TYPE Rec IS RECORD
+END RECORD
+
+VAR a: Array<POINTER TO Rec>
+FOR i := 1 TO 1001 DO
+    a[i] := NEW Rec
+END FOR
+ASSERT runtime.get_allocated_object_count() = 1001

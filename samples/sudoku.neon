@@ -10,9 +10,6 @@ IMPORT multiarray
 IMPORT random
 IMPORT runtime
 
-% TODO: Leaving the garbage collector enabled currently crashes it.
-runtime.set_garbage_collection_interval(0)
-
 %|
  |  The dlx_* functions are an implementation of Knuth's "Dancing Links"
  |  technique to solve his "Algorithm X" (exact cover).

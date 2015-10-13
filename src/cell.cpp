@@ -224,6 +224,10 @@ std::vector<Cell> &Cell::array_for_write()
 
 Cell &Cell::array_index_for_read(size_t i)
 {
+    if (type == cNone) {
+        type = cArray;
+    }
+    assert(type == cArray);
     if (not array_ptr) {
         array_ptr = std::make_shared<std::vector<Cell>>();
     }
@@ -232,6 +236,10 @@ Cell &Cell::array_index_for_read(size_t i)
 
 Cell &Cell::array_index_for_write(size_t i)
 {
+    if (type == cNone) {
+        type = cArray;
+    }
+    assert(type == cArray);
     if (not array_ptr) {
         array_ptr = std::make_shared<std::vector<Cell>>();
     }
@@ -273,6 +281,10 @@ std::map<utf8string, Cell> &Cell::dictionary_for_write()
 
 Cell &Cell::dictionary_index_for_read(const utf8string &index)
 {
+    if (type == cNone) {
+        type = cDictionary;
+    }
+    assert(type == cDictionary);
     if (not dictionary_ptr) {
         dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
@@ -281,6 +293,10 @@ Cell &Cell::dictionary_index_for_read(const utf8string &index)
 
 Cell &Cell::dictionary_index_for_write(const utf8string &index)
 {
+    if (type == cNone) {
+        type = cDictionary;
+    }
+    assert(type == cDictionary);
     if (not dictionary_ptr) {
         dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
