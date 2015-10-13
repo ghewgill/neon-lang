@@ -1369,13 +1369,13 @@ static void mark(Cell *c)
                 todo.push_back(c->address());
                 break;
             case Cell::cArray:
-                for (auto &x: c->array_for_write()) {
-                    todo.push_back(&x);
+                for (auto &x: c->array()) {
+                    todo.push_back(const_cast<Cell *>(&x));
                 }
                 break;
             case Cell::cDictionary:
-                for (auto &x: c->dictionary_for_write()) {
-                    todo.push_back(&x.second);
+                for (auto &x: c->dictionary()) {
+                    todo.push_back(const_cast<Cell *>(&x.second));
                 }
                 break;
         }
