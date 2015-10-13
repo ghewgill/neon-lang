@@ -1808,6 +1808,27 @@ private:
     RaiseStatement &operator=(const RaiseStatement &);
 };
 
+class ResetStatement: public Statement {
+public:
+    ResetStatement(int line, const std::vector<const ReferenceExpression *> &vars): Statement(line), variables(vars) {}
+
+    const std::vector<const ReferenceExpression *> variables;
+
+    virtual void generate_code(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        std::string s = "ResetStatement(";
+        for (auto v: variables) {
+            s += v->text() + ", ";
+        }
+        return s + ")";
+    }
+
+private:
+    ResetStatement(const ResetStatement &);
+    ResetStatement &operator=(const ResetStatement &);
+};
+
 class Function: public Variable {
 public:
     Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params);

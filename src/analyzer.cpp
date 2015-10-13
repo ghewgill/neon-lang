@@ -1834,22 +1834,22 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
         }
         variables.push_back(v);
     }
+    std::vector<const ReferenceExpression *> refs;
+    const Expression *expr = nullptr;
     if (declaration->value != nullptr) {
-        std::vector<const ReferenceExpression *> refs;
-        const Expression *expr = analyze(declaration->value);
+        expr = analyze(declaration->value);
         if (not type->is_equivalent(expr->type)) {
             error(3113, declaration->value->token, "type mismatch");
         }
-        for (auto v: variables) {
-            scope.top()->addName(v->declaration, v->name, v, true);
-            refs.push_back(new VariableExpression(v));
-        }
+    }
+    for (auto v: variables) {
+        scope.top()->addName(v->declaration, v->name, v, true);
+        refs.push_back(new VariableExpression(v));
+    }
+    if (declaration->value != nullptr) {
         return new AssignmentStatement(declaration->token.line, refs, expr);
     } else {
-        for (auto v: variables) {
-            scope.top()->addName(v->declaration, v->name, v);
-        }
-        return new NullStatement(declaration->token.line);
+        return new ResetStatement(declaration->token.line, refs);
     }
 }
 

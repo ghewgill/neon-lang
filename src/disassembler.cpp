@@ -103,6 +103,7 @@ private:
     void disasm_ALLOC();
     void disasm_PUSHNIL();
     void disasm_JNASSERT();
+    void disasm_RESETC();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -635,6 +636,12 @@ void Disassembler::disasm_JNASSERT()
     out << "JNASSERT " << addr << "\n";
 }
 
+void Disassembler::disasm_RESETC()
+{
+    out << "RESETC\n";
+    index++;
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -781,6 +788,7 @@ void Disassembler::disassemble()
             case ALLOC:   disasm_ALLOC(); break;
             case PUSHNIL: disasm_PUSHNIL(); break;
             case JNASSERT:disasm_JNASSERT(); break;
+            case RESETC:  disasm_RESETC(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

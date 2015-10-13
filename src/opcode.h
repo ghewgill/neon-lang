@@ -83,6 +83,7 @@ enum Opcode {
     ALLOC,      // allocate record
     PUSHNIL,    // push nil pointer
     JNASSERT,   // jump if assertions disabled
+    RESETC,     // reset cell
 };
 
 #endif

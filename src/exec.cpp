@@ -311,6 +311,7 @@ private:
     void exec_ALLOC();
     void exec_PUSHNIL();
     void exec_JNASSERT();
+    void exec_RESETC();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -1263,6 +1264,13 @@ void Executor::exec_JNASSERT()
     }
 }
 
+void Executor::exec_RESETC()
+{
+    ip++;
+    Cell *addr = stack.top().address(); stack.pop();
+    *addr = Cell();
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -1574,6 +1582,7 @@ void Executor::exec()
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(); break;
             case JNASSERT:exec_JNASSERT(); break;
+            case RESETC:  exec_RESETC(); break;
         }
         if (module == last_module && ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);

@@ -1,0 +1,8 @@
+FOR i := 1 TO 3 DO
+    VAR x: Number
+    x := x + 1
+    print(str(x))
+END FOR
+%= 1
+%= 1
+%= 1

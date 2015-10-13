@@ -361,9 +361,12 @@ class VariableDeclaration:
         for name in self.names:
             env.declare(name, type, type.default(env))
     def run(self, env):
-        if self.expr:
-            for name in self.names:
+        type = self.type.resolve(env)
+        for name in self.names:
+            if self.expr:
                 env.set(name, self.expr.eval(env))
+            else:
+                env.set(name, type.default(env))
 
 class LetDeclaration:
     def __init__(self, name, type, expr):

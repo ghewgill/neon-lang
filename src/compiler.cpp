@@ -1646,6 +1646,14 @@ void RaiseStatement::generate_code(Emitter &emitter) const
     emitter.emit(EXCEPT, index);
 }
 
+void ResetStatement::generate_code(Emitter &emitter) const
+{
+    for (auto v: variables) {
+         v->generate_address_write(emitter);
+         emitter.emit(RESETC);
+    }
+}
+
 void Frame::predeclare(Emitter &emitter)
 {
     // Avoid unbounded recursion.
