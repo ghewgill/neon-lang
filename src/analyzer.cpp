@@ -2729,7 +2729,7 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
         error(3093, statement->token, "RETURN not allowed outside function");
     } else if (functiontypes.top().second->returntype == TYPE_NOTHING) {
         error(3094, statement->token, "function does not return a value");
-    } else if (not expr->type->is_equivalent(functiontypes.top().second->returntype)) {
+    } else if (not functiontypes.top().second->returntype->is_equivalent(expr->type)) {
         error(3095, statement->expr->token, "type mismatch in RETURN");
     }
     return new ReturnStatement(statement->token.line, expr);
