@@ -47,6 +47,7 @@ public:
     const Expression *analyze(const pt::NumberLiteralExpression *expr);
     const Expression *analyze(const pt::StringLiteralExpression *expr);
     const Expression *analyze(const pt::FileLiteralExpression *expr);
+    const Expression *analyze(const pt::BytesLiteralExpression *expr);
     const Expression *analyze(const pt::ArrayLiteralExpression *expr);
     const Expression *analyze(const pt::DictionaryLiteralExpression *expr);
     const Expression *analyze(const pt::NilLiteralExpression *expr);
@@ -133,6 +134,7 @@ public:
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::BytesLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -212,6 +214,7 @@ public:
     virtual void visit(const pt::NumberLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::StringLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::FileLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::BytesLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ArrayLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DictionaryLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NilLiteralExpression *p) override { expr = a->analyze(p); }
@@ -290,6 +293,7 @@ public:
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::BytesLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -368,6 +372,7 @@ public:
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::StringLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::BytesLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -825,7 +830,30 @@ const Expression *Analyzer::analyze(const pt::FileLiteralExpression *expr)
     }
     std::stringstream buffer;
     buffer << f.rdbuf();
-    return new ConstantFileExpression(expr->name, buffer.str());
+    return new ConstantBytesExpression(expr->name, buffer.str());
+}
+
+const Expression *Analyzer::analyze(const pt::BytesLiteralExpression *expr)
+{
+    std::string bytes;
+    std::string::size_type i = 0;
+    while (i < expr->data.length()) {
+        if (isspace(expr->data[i])) {
+            ++i;
+            continue;
+        }
+        auto j = i;
+        if (not isxdigit(expr->data[i])) {
+            error(3183, expr->token, "invalid hex data");
+        }
+        j++;
+        if (j < expr->data.length() && isxdigit(expr->data[j])) {
+            j++;
+        }
+        bytes.push_back(static_cast<unsigned char>(std::stoul(expr->data.substr(i, j), nullptr, 16)));
+        i = j;
+    }
+    return new ConstantBytesExpression("HEXBYTES literal", bytes);
 }
 
 const Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)

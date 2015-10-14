@@ -376,10 +376,10 @@ std::string ConstantStringExpression::text() const
     return s.str();
 }
 
-std::string ConstantFileExpression::text() const
+std::string ConstantBytesExpression::text() const
 {
     std::stringstream s;
-    s << "ConstantFileExpression(" << name << ")";
+    s << "ConstantBytesExpression(" << name << ")";
     return s.str();
 }
 

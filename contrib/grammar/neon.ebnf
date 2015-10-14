@@ -149,6 +149,7 @@ Atom =
     Number |
     StringLiteral |
     'EMBED', StringLiteral |
+    'HEXBYTES', StringLiteral |
     (('+' | '-' | 'NOT'), Atom) |
     ('NEW', Type) |
     'NIL' |

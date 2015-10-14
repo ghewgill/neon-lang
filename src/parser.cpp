@@ -471,6 +471,15 @@ const Expression *Parser::parseAtom()
             }
             return new FileLiteralExpression(tok_file, tokens[i].column, tok_file.text);
         }
+        case HEXBYTES: {
+            ++i;
+            auto &tok_literal = tokens[i];
+            ++i;
+            if (tok_literal.type != STRING) {
+                error(2094, tok_literal, "string literal expected");
+            }
+            return new BytesLiteralExpression(tok_literal, tokens[i].column, tok_literal.text);
+        }
         case PLUS: {
             auto &tok_plus = tokens[i];
             ++i;

@@ -1,3 +1,20 @@
-LET text: Bytes := EMBED "t/bytes-literal.neon"
-print(text.to_string()[FIRST TO 10])
-%= LET text: B
+VAR text: Bytes
+text := HEXBYTES "de ad be ef"
+print("\(text.to_array())")
+%= [222, 173, 190, 239]
+
+text := HEXBYTES "1 2 3 4"
+print("\(text.to_array())")
+%= [1, 2, 3, 4]
+
+text := HEXBYTES "01 2 3 4"
+print("\(text.to_array())")
+%= [1, 2, 3, 4]
+
+%text := HEXBYTES "001 2 3 4"
+%print("\(text.to_array())")
+%%= [0, 1, 2, 3, 4]
+%
+%text := HEXBYTES "0001 2 3 4"
+%print("\(text.to_array())")
+%%= [0, 1, 2, 3, 4]

@@ -892,7 +892,7 @@ void ConstantStringExpression::generate_expr(Emitter &emitter) const
     emitter.emit(PUSHS, index);
 }
 
-void ConstantFileExpression::generate_expr(Emitter &emitter) const
+void ConstantBytesExpression::generate_expr(Emitter &emitter) const
 {
     unsigned int index = emitter.str(contents);
     emitter.emit(PUSHS, index);
