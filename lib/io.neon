@@ -88,7 +88,7 @@ DECLARE NATIVE FUNCTION read_bytes(f: File, count: Number): Bytes
  |  Returns:
  |      FALSE if there are no more lines in the file, otherwise TRUE.
  |%
-DECLARE NATIVE FUNCTION readline(f: File, INOUT s: String): Boolean
+DECLARE NATIVE FUNCTION readline(f: File, OUT s: String): Boolean
 
 %|
  |  Function: seek

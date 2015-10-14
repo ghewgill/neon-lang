@@ -84,8 +84,7 @@ DECLARE NATIVE FUNCTION system(command: String): Number
  |
  |  Fork the current process (POSIX only).
  |%
-DECLARE NATIVE FUNCTION fork(INOUT child: Process): Boolean
-% TODO: Should be OUT parameter (issue #55)
+DECLARE NATIVE FUNCTION fork(OUT child: Process): Boolean
 
 %|
  |  Function: kill

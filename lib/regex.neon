@@ -34,4 +34,4 @@ TYPE Match IS Array<Group>
  |
  |  Search a string for a given subject regex.
  |%
-DECLARE NATIVE FUNCTION search(pattern: String, subject: String, INOUT match: Match): Boolean
+DECLARE NATIVE FUNCTION search(pattern: String, subject: String, OUT match: Match): Boolean
