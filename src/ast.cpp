@@ -121,7 +121,7 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
     }
 }
 
-bool TypeFunction::is_equivalent(const Type *rhs) const
+bool TypeFunction::is_assignment_compatible(const Type *rhs) const
 {
     // TODO: There needs to be a mechanism for reporting more detail about why the
     // type does not match. There are quite a few reasons for this to return false,
@@ -134,7 +134,7 @@ bool TypeFunction::is_equivalent(const Type *rhs) const
         }
         f = p->functype;
     }
-    if (not returntype->is_equivalent(f->returntype)) {
+    if (not returntype->is_assignment_compatible(f->returntype)) {
         return false;
     }
     if (params.size() != f->params.size()) {
@@ -147,20 +147,20 @@ bool TypeFunction::is_equivalent(const Type *rhs) const
         if (params[i]->mode != f->params[i]->mode) {
             return false;
         }
-        if (not params[i]->type->is_equivalent(f->params[i]->type)) {
+        if (not f->params[i]->type->is_assignment_compatible(params[i]->type)) {
             return false;
         }
     }
     return true;
 }
 
-bool TypeArray::is_equivalent(const Type *rhs) const
+bool TypeArray::is_assignment_compatible(const Type *rhs) const
 {
     const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);
     if (a == nullptr) {
         return false;
     }
-    return elementtype == nullptr || a->elementtype == nullptr || elementtype->is_equivalent(a->elementtype);
+    return elementtype == nullptr || a->elementtype == nullptr || elementtype->is_assignment_compatible(a->elementtype);
 }
 
 std::string TypeArray::serialize(const Expression *value) const
@@ -205,13 +205,13 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
     }
 }
 
-bool TypeDictionary::is_equivalent(const Type *rhs) const
+bool TypeDictionary::is_assignment_compatible(const Type *rhs) const
 {
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
     if (d == nullptr) {
         return false;
     }
-    return elementtype == nullptr || d->elementtype == nullptr || elementtype->is_equivalent(d->elementtype);
+    return elementtype == nullptr || d->elementtype == nullptr || elementtype->is_assignment_compatible(d->elementtype);
 }
 
 std::string TypeDictionary::serialize(const Expression *value) const
@@ -242,7 +242,7 @@ const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value
     return new DictionaryLiteralExpression(elementtype, dict);
 }
 
-bool TypeRecord::is_equivalent(const Type *rhs) const
+bool TypeRecord::is_assignment_compatible(const Type *rhs) const
 {
     return this == rhs;
 }
@@ -300,7 +300,7 @@ TypePointer::TypePointer(const Token &declaration, const TypeRecord *reftype)
     }
 }
 
-bool TypePointer::is_equivalent(const Type *rhs) const
+bool TypePointer::is_assignment_compatible(const Type *rhs) const
 {
     if (this == rhs) {
         return true;
@@ -316,7 +316,7 @@ bool TypePointer::is_equivalent(const Type *rhs) const
         return false;
     }
     // Shortcut check avoids infinite recursion on records with pointer to itself.
-    return reftype == p->reftype || reftype->is_equivalent(p->reftype);
+    return reftype == p->reftype || reftype->is_assignment_compatible(p->reftype);
 }
 
 std::string TypePointer::serialize(const Expression *) const
@@ -340,9 +340,9 @@ TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFun
     }
 }
 
-bool TypeFunctionPointer::is_equivalent(const Type *rhs) const
+bool TypeFunctionPointer::is_assignment_compatible(const Type *rhs) const
 {
-    return functype->is_equivalent(rhs);
+    return functype->is_assignment_compatible(rhs);
 }
 
 std::string TypeFunctionPointer::serialize(const Expression *) const

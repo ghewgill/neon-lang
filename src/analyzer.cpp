@@ -836,7 +836,7 @@ const Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
         const Expression *element = analyze(x);
         if (elementtype == nullptr) {
             elementtype = element->type;
-        } else if (not element->type->is_equivalent(elementtype)) {
+        } else if (not element->type->is_assignment_compatible(elementtype)) {
             error(3079, x->token, "type mismatch");
         }
         elements.push_back(element);
@@ -859,7 +859,7 @@ const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
         const Expression *element = analyze(x.second);
         if (elementtype == nullptr) {
             elementtype = element->type;
-        } else if (not element->type->is_equivalent(elementtype)) {
+        } else if (not element->type->is_assignment_compatible(elementtype)) {
             error(3072, x.second->token, "type mismatch");
         }
         elements.push_back(std::make_pair(key, element));
@@ -996,7 +996,7 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
     const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
     const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
     if (arraytype != nullptr) {
-        if (not index->type->is_equivalent(TYPE_NUMBER)) {
+        if (not index->type->is_assignment_compatible(TYPE_NUMBER)) {
             error2(3041, expr->index->token, "index must be a number", arraytype->declaration, "array declared here");
         }
         type = arraytype->elementtype;
@@ -1012,7 +1012,7 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
             return new ArrayValueIndexExpression(type, base, index, false);
         }
     } else if (dicttype != nullptr) {
-        if (not index->type->is_equivalent(TYPE_STRING)) {
+        if (not index->type->is_assignment_compatible(TYPE_STRING)) {
             error2(3042, expr->index->token, "index must be a string", dicttype->declaration, "dictionary declared here");
         }
         type = dicttype->elementtype;
@@ -1023,7 +1023,7 @@ const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
             return new DictionaryValueIndexExpression(type, base, index);
         }
     } else if (type == TYPE_STRING) {
-        if (not index->type->is_equivalent(TYPE_NUMBER)) {
+        if (not index->type->is_assignment_compatible(TYPE_NUMBER)) {
             error(3043, expr->index->token, "index must be a number");
         }
         const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
@@ -1052,7 +1052,7 @@ const Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr
             }
         }
         const Expression *str;
-        if (e->type->is_equivalent(TYPE_STRING)) {
+        if (e->type->is_assignment_compatible(TYPE_STRING)) {
             str = e;
         } else {
             auto to_string = e->type->methods.find("to_string");
@@ -1118,7 +1118,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 rtype = rptype->reftype;
                 rhs = new PointerDereferenceExpression(rtype, rhs);
             }
-            if (not ltype->is_equivalent(rtype)) {
+            if (not ltype->is_assignment_compatible(rtype)) {
                 error(3123, expr->args[1].second->token, "type mismatch");
             }
             std::vector<const ReferenceExpression *> vars;
@@ -1134,7 +1134,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             auto f = recordtype->fields.begin();
             for (auto x: expr->args) {
                 const Expression *element = analyze(x.second);
-                if (not element->type->is_equivalent(f->type)) {
+                if (not element->type->is_assignment_compatible(f->type)) {
                     error2(3131, x.second->token, "type mismatch", f->name, "field declared here");
                 }
                 elements.push_back(element);
@@ -1223,7 +1223,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 error(3106, a.second->token, "readonly parameter to OUT");
             }
         }
-        if (not ftype->params[p]->type->is_equivalent(e->type)) {
+        if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
             error2(3019, a.second->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
         }
         args[p] = e;
@@ -1245,7 +1245,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
 const Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
 {
     const Expression *atom = analyze(expr->expr);
-    if (not atom->type->is_equivalent(TYPE_NUMBER)) {
+    if (not atom->type->is_assignment_compatible(TYPE_NUMBER)) {
         error(3144, expr->expr->token, "number required");
     }
     return atom;
@@ -1254,7 +1254,7 @@ const Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
 const Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
 {
     const Expression *atom = analyze(expr->expr);
-    if (not atom->type->is_equivalent(TYPE_NUMBER)) {
+    if (not atom->type->is_assignment_compatible(TYPE_NUMBER)) {
         error(3021, expr->expr->token, "number required for negation");
     }
     return new UnaryMinusExpression(atom);
@@ -1263,7 +1263,7 @@ const Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
 const Expression *Analyzer::analyze(const pt::LogicalNotExpression *expr)
 {
     const Expression *atom = analyze(expr->expr);
-    if (not atom->type->is_equivalent(TYPE_BOOLEAN)) {
+    if (not atom->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         error(3022, expr->expr->token, "boolean required for logical not");
     }
     return new LogicalNotExpression(atom);
@@ -1273,7 +1273,7 @@ const Expression *Analyzer::analyze(const pt::ExponentiationExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
+    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new ExponentiationExpression(left, right);
     } else {
         error(3024, expr->token, "type mismatch");
@@ -1284,7 +1284,7 @@ const Expression *Analyzer::analyze(const pt::MultiplicationExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
+    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new MultiplicationExpression(left, right);
     } else {
         error(3025, expr->token, "type mismatch");
@@ -1295,7 +1295,7 @@ const Expression *Analyzer::analyze(const pt::DivisionExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
+    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new DivisionExpression(left, right);
     } else {
         error(3026, expr->token, "type mismatch");
@@ -1306,7 +1306,7 @@ const Expression *Analyzer::analyze(const pt::ModuloExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
+    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new ModuloExpression(left, right);
     } else {
         error(3027, expr->token, "type mismatch");
@@ -1317,9 +1317,9 @@ const Expression *Analyzer::analyze(const pt::AdditionExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
+    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new AdditionExpression(left, right);
-    } else if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
+    } else if (left->type->is_assignment_compatible(TYPE_STRING) && right->type->is_assignment_compatible(TYPE_STRING)) {
         error(3124, expr->token, "type mismatch (use & to concatenate strings)");
     } else {
         error(3028, expr->token, "type mismatch");
@@ -1330,7 +1330,7 @@ const Expression *Analyzer::analyze(const pt::SubtractionExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_NUMBER) && right->type->is_equivalent(TYPE_NUMBER)) {
+    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new SubtractionExpression(left, right);
     } else {
         error(3029, expr->token, "type mismatch");
@@ -1341,7 +1341,7 @@ const Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_STRING) && right->type->is_equivalent(TYPE_STRING)) {
+    if (left->type->is_assignment_compatible(TYPE_STRING) && right->type->is_assignment_compatible(TYPE_STRING)) {
         std::vector<const Expression *> args;
         args.push_back(left);
         args.push_back(right);
@@ -1356,17 +1356,17 @@ const Expression *Analyzer::analyze(const pt::ComparisonExpression *expr)
     const Expression *left = analyze(expr->left);
     ComparisonExpression::Comparison comp = static_cast<ComparisonExpression::Comparison>(expr->comp); // TODO: remove cast
     const Expression *right = analyze(expr->right);
-    if (not left->type->is_equivalent(right->type)) {
+    if (not left->type->is_assignment_compatible(right->type)) {
         error(3030, expr->token, "type mismatch");
     }
-    if (left->type->is_equivalent(TYPE_BOOLEAN)) {
+    if (left->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
             error(3031, expr->token, "comparison not available for Boolean");
         }
         return new BooleanComparisonExpression(left, right, comp);
-    } else if (left->type->is_equivalent(TYPE_NUMBER)) {
+    } else if (left->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new NumericComparisonExpression(left, right, comp);
-    } else if (left->type->is_equivalent(TYPE_STRING)) {
+    } else if (left->type->is_assignment_compatible(TYPE_STRING)) {
         return new StringComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
         if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
@@ -1421,12 +1421,12 @@ const Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
     const TypeArray *arraytype = dynamic_cast<const TypeArray *>(right->type);
     const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(right->type);
     if (arraytype != nullptr) {
-        if (not left->type->is_equivalent(arraytype->elementtype)) {
+        if (not left->type->is_assignment_compatible(arraytype->elementtype)) {
             error(3082, expr->left->token, "type mismatch");
         }
         return new ArrayInExpression(left, right);
     } else if (dicttype != nullptr) {
-        if (not left->type->is_equivalent(TYPE_STRING)) {
+        if (not left->type->is_assignment_compatible(TYPE_STRING)) {
             error(3083, expr->left->token, "type mismatch");
         }
         return new DictionaryInExpression(left, right);
@@ -1439,7 +1439,7 @@ const Expression *Analyzer::analyze(const pt::ConjunctionExpression *expr)
 {
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
+    if (left->type->is_assignment_compatible(TYPE_BOOLEAN) && right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         return new ConjunctionExpression(left, right);
     } else {
         error(3035, expr->token, "type mismatch");
@@ -1478,7 +1478,7 @@ const Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
 
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (left->type->is_equivalent(TYPE_BOOLEAN) && right->type->is_equivalent(TYPE_BOOLEAN)) {
+    if (left->type->is_assignment_compatible(TYPE_BOOLEAN) && right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         return new DisjunctionExpression(left, right);
     } else {
         error(3036, expr->token, "type mismatch");
@@ -1490,7 +1490,7 @@ const Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
     const Expression *cond = analyze(expr->cond);
     const Expression *left = analyze(expr->left);
     const Expression *right = analyze(expr->right);
-    if (not left->type->is_equivalent(right->type)) {
+    if (not left->type->is_assignment_compatible(right->type)) {
         error(3037, expr->left->token, "type of THEN and ELSE must match");
     }
     return new ConditionalExpression(cond, left, right);
@@ -1516,10 +1516,10 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
     const Expression *base = analyze(expr->base);
     const Expression *first = analyze(expr->range->first);
     const Expression *last = analyze(expr->range->last);
-    if (not first->type->is_equivalent(TYPE_NUMBER)) {
+    if (not first->type->is_assignment_compatible(TYPE_NUMBER)) {
         error(3141, expr->range->first->token, "range index must be a number");
     }
-    if (not last->type->is_equivalent(TYPE_NUMBER)) {
+    if (not last->type->is_assignment_compatible(TYPE_NUMBER)) {
         error(3142, expr->range->last->token, "range index must be a number");
     }
     const Type *type = base->type;
@@ -1801,7 +1801,7 @@ const Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declarati
     std::string name = declaration->name.text;
     const Type *type = analyze(declaration->type);
     const Expression *value = analyze(declaration->value);
-    if (not value->type->is_equivalent(type)) {
+    if (not type->is_assignment_compatible(value->type)) {
         error(3015, declaration->value->token, "type mismatch");
     }
     if (not value->is_constant) {
@@ -1838,7 +1838,7 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
     const Expression *expr = nullptr;
     if (declaration->value != nullptr) {
         expr = analyze(declaration->value);
-        if (not type->is_equivalent(expr->type)) {
+        if (not type->is_assignment_compatible(expr->type)) {
             error(3113, declaration->value->token, "type mismatch");
         }
     }
@@ -1865,7 +1865,7 @@ const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
     const Type *type = analyze(declaration->type);
     const Expression *expr = analyze(declaration->value);
-    if (not type->is_equivalent(expr->type)) {
+    if (not type->is_assignment_compatible(expr->type)) {
         error(3140, declaration->value->token, "type mismatch");
     }
     const TypePointer *ptype = dynamic_cast<const TypePointer *>(type);
@@ -1919,7 +1919,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         }
         const Type *ptype = analyze(x->type);
         if (type != nullptr && args.empty()) {
-            if (not ptype->is_equivalent(type)) {
+            if (not ptype->is_assignment_compatible(type)) {
                 error(3128, x->type->token, "expected self parameter");
             }
         }
@@ -2060,7 +2060,7 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
     }
     for (auto elem: dict->dict) {
         auto *d = dynamic_cast<const DictionaryLiteralExpression *>(elem.second);
-        if (not d->dict.empty() && not d->elementtype->is_equivalent(TYPE_STRING)) {
+        if (not d->dict.empty() && not d->elementtype->is_assignment_compatible(TYPE_STRING)) {
             error(3074, declaration->dict->token, "sub level dictionary must have string elements");
         }
     }
@@ -2190,7 +2190,7 @@ std::vector<const Statement *> Analyzer::analyze(const std::vector<const pt::Sta
 const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
 {
     const Expression *expr = analyze(statement->expr);
-    if (not expr->type->is_equivalent(TYPE_BOOLEAN)) {
+    if (not expr->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         error(3173, statement->expr->token, "boolean value expected");
     }
     std::vector<const Statement *> statements = analyze(statement->body);
@@ -2211,7 +2211,7 @@ const Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)
         error(3105, statement->variables[0]->token, "assignment to readonly expression");
     }
     const Expression *rhs = analyze(statement->expr);
-    if (not expr->type->is_equivalent(rhs->type)) {
+    if (not expr->type->is_assignment_compatible(rhs->type)) {
         error(3057, statement->expr->token, "type mismatch");
     }
     std::vector<const ReferenceExpression *> vars;
@@ -2222,7 +2222,7 @@ const Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)
 const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
 {
     const Expression *expr = analyze(statement->expr);
-    if (not expr->type->is_equivalent(TYPE_NUMBER) && not expr->type->is_equivalent(TYPE_STRING) && dynamic_cast<const TypeEnum *>(expr->type) == nullptr) {
+    if (not expr->type->is_assignment_compatible(TYPE_NUMBER) && not expr->type->is_assignment_compatible(TYPE_STRING) && dynamic_cast<const TypeEnum *>(expr->type) == nullptr) {
         error(3050, statement->expr->token, "CASE expression must be Number, String, or ENUM");
     }
     std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
@@ -2233,7 +2233,7 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
             const pt::CaseStatement::RangeWhenCondition *rwc = dynamic_cast<const pt::CaseStatement::RangeWhenCondition *>(c);
             if (cwc != nullptr) {
                 const Expression *when = analyze(cwc->expr);
-                if (not when->type->is_equivalent(expr->type)) {
+                if (not when->type->is_assignment_compatible(expr->type)) {
                     error(3051, cwc->expr->token, "type mismatch");
                 }
                 if (not when->is_constant) {
@@ -2257,24 +2257,24 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
             }
             if (rwc != nullptr) {
                 const Expression *when = analyze(rwc->low_expr);
-                if (not when->type->is_equivalent(expr->type)) {
+                if (not when->type->is_assignment_compatible(expr->type)) {
                     error(3053, rwc->low_expr->token, "type mismatch");
                 }
                 if (not when->is_constant) {
                     error(3054, rwc->low_expr->token, "WHEN condition must be constant");
                 }
                 const Expression *when2 = analyze(rwc->high_expr);
-                if (not when2->type->is_equivalent(expr->type)) {
+                if (not when2->type->is_assignment_compatible(expr->type)) {
                     error(3055, rwc->high_expr->token, "type mismatch");
                 }
                 if (not when2->is_constant) {
                     error(3056, rwc->high_expr->token, "WHEN condition must be constant");
                 }
-                if (when->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(when->type) != nullptr) {
+                if (when->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(when->type) != nullptr) {
                     if (number_is_greater(when->eval_number(), when2->eval_number())) {
                         error(3109, rwc->high_expr->token, "WHEN numeric range condition must be low..high");
                     }
-                } else if (when->type->is_equivalent(TYPE_STRING)) {
+                } else if (when->type->is_assignment_compatible(TYPE_STRING)) {
                     if (when->eval_string() > when2->eval_string()) {
                         error(3110, rwc->high_expr->token, "WHEN string range condition must be low..high");
                     }
@@ -2402,17 +2402,17 @@ bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond)
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
+        if (expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(), cwhen->comp, cwhen->expr->eval_number());
-        } else if (expr->type->is_equivalent(TYPE_STRING)) {
+        } else if (expr->type->is_assignment_compatible(TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(), cwhen->comp, cwhen->expr->eval_string());
         } else {
             internal_error("ComparisonWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
+        if (expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
-        } else if (expr->type->is_equivalent(TYPE_STRING)) {
+        } else if (expr->type->is_assignment_compatible(TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
         } else {
             internal_error("ComparisonWhenCondition");
@@ -2427,17 +2427,17 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (low_expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
+        if (low_expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_number(), low_expr->eval_number(), high_expr->eval_number());
-        } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
+        } else if (low_expr->type->is_assignment_compatible(TYPE_STRING)) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_string(), low_expr->eval_string(), high_expr->eval_string());
         } else {
             internal_error("RangeWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (low_expr->type->is_equivalent(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
+        if (low_expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(low_expr->eval_number(), high_expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
-        } else if (low_expr->type->is_equivalent(TYPE_STRING)) {
+        } else if (low_expr->type->is_assignment_compatible(TYPE_STRING)) {
             return overlap::check(low_expr->eval_string(), high_expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
         } else {
             internal_error("RangeWhenCondition");
@@ -2507,11 +2507,11 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     // TODO: Need better way of declaring unnamed local variable.
     scope.top()->addName(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
     const Expression *start = analyze(statement->start);
-    if (not start->type->is_equivalent(TYPE_NUMBER)) {
+    if (not start->type->is_assignment_compatible(TYPE_NUMBER)) {
         error(3067, statement->start->token, "numeric expression expected");
     }
     const Expression *end = analyze(statement->end);
-    if (not end->type->is_equivalent(TYPE_NUMBER)) {
+    if (not end->type->is_assignment_compatible(TYPE_NUMBER)) {
         error(3068, statement->end->token, "numeric expression expected");
     }
     const Expression *step = nullptr;
@@ -2638,7 +2638,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
             }
         } else {
             cond = analyze(c.first);
-            if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
+            if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
                 error(3048, c.first->token, "boolean value expected");
             }
         }
@@ -2714,7 +2714,7 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
     const Expression *cond = analyze(statement->cond);
-    if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
+    if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         error(3086, statement->cond->token, "boolean value expected");
     }
     scope.pop();
@@ -2729,7 +2729,7 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
         error(3093, statement->token, "RETURN not allowed outside function");
     } else if (functiontypes.top().second->returntype == TYPE_NOTHING) {
         error(3094, statement->token, "function does not return a value");
-    } else if (not functiontypes.top().second->returntype->is_equivalent(expr->type)) {
+    } else if (not functiontypes.top().second->returntype->is_assignment_compatible(expr->type)) {
         error(3095, statement->expr->token, "type mismatch in RETURN");
     }
     return new ReturnStatement(statement->token.line, expr);
@@ -2775,7 +2775,7 @@ const Statement *Analyzer::analyze(const pt::TryStatement *statement)
 const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 {
     const Expression *cond = analyze(statement->cond);
-    if (not cond->type->is_equivalent(TYPE_BOOLEAN)) {
+    if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         error(3049, statement->cond->token, "boolean value expected");
     }
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));

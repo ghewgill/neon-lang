@@ -131,7 +131,7 @@ public:
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
-    virtual bool is_equivalent(const Type *rhs) const { return this == rhs; }
+    virtual bool is_assignment_compatible(const Type *rhs) const { return this == rhs; }
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
@@ -244,7 +244,7 @@ public:
     TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
 
     virtual void predeclare(Emitter &emitter) const override;
-    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -268,7 +268,7 @@ public:
     const Type *elementtype;
 
     virtual void predeclare(Emitter &emitter) const override;
-    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -293,7 +293,7 @@ public:
     const Type *elementtype;
 
     virtual void predeclare(Emitter &emitter) const override;
-    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -333,7 +333,7 @@ public:
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
-    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -369,7 +369,7 @@ public:
 
     const TypeRecord *reftype;
 
-    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -401,7 +401,7 @@ public:
 
     const TypeFunction *functype;
 
-    virtual bool is_equivalent(const Type *rhs) const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -737,7 +737,7 @@ private:
 class UnaryMinusExpression: public Expression {
 public:
     UnaryMinusExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
-        if (not type->is_equivalent(TYPE_NUMBER)) {
+        if (not type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("UnaryMinusExpression");
         }
     }
@@ -760,7 +760,7 @@ private:
 class LogicalNotExpression: public Expression {
 public:
     LogicalNotExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
-        if (not type->is_equivalent(TYPE_BOOLEAN)) {
+        if (not type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("LogicalNotExpression");
         }
     }
@@ -783,7 +783,7 @@ private:
 class ConditionalExpression: public Expression {
 public:
     ConditionalExpression(const Expression *condition, const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), condition(condition), left(left), right(right) {
-        if (not left->type->is_equivalent(right->type)) {
+        if (not left->type->is_assignment_compatible(right->type)) {
             internal_error("ConditionalExpression");
         }
     }
@@ -808,7 +808,7 @@ private:
 class DisjunctionExpression: public Expression {
 public:
     DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_BOOLEAN) || not right->type->is_equivalent(TYPE_BOOLEAN)) {
+        if (not left->type->is_assignment_compatible(TYPE_BOOLEAN) || not right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("DisjunctionExpression");
         }
     }
@@ -832,7 +832,7 @@ private:
 class ConjunctionExpression: public Expression {
 public:
     ConjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_BOOLEAN) || not right->type->is_equivalent(TYPE_BOOLEAN)) {
+        if (not left->type->is_assignment_compatible(TYPE_BOOLEAN) || not right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("ConjunctionExpression");
         }
     }
@@ -1041,7 +1041,7 @@ public:
 class AdditionExpression: public Expression {
 public:
     AdditionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+        if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("AdditionExpression");
         }
     }
@@ -1065,7 +1065,7 @@ private:
 class SubtractionExpression: public Expression {
 public:
     SubtractionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+        if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("SubtractionExpression");
         }
     }
@@ -1089,7 +1089,7 @@ private:
 class MultiplicationExpression: public Expression {
 public:
     MultiplicationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+        if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("MultiplicationExpression");
         }
     }
@@ -1113,7 +1113,7 @@ private:
 class DivisionExpression: public Expression {
 public:
     DivisionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+        if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("DivisionExpression");
         }
     }
@@ -1137,7 +1137,7 @@ private:
 class ModuloExpression: public Expression {
 public:
     ModuloExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+        if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("ModuloExpression");
         }
     }
@@ -1161,7 +1161,7 @@ private:
 class ExponentiationExpression: public Expression {
 public:
     ExponentiationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
-        if (not left->type->is_equivalent(TYPE_NUMBER) || not right->type->is_equivalent(TYPE_NUMBER)) {
+        if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("ExponentiationExpression");
         }
     }
@@ -1527,7 +1527,7 @@ class AssignmentStatement: public Statement {
 public:
     AssignmentStatement(int line, const std::vector<const ReferenceExpression *> &vars, const Expression *expr): Statement(line), variables(vars), expr(expr) {
         for (auto v: variables) {
-            if (not v->type->is_equivalent(expr->type)) {
+            if (not v->type->is_assignment_compatible(expr->type)) {
                 internal_error("AssignmentStatement");
             }
         }
