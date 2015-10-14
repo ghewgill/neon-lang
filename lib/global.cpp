@@ -69,7 +69,7 @@ Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number l
     if (last_from_end) {
         lst += array.size() - 1;
     }
-    if (lst < 0) lst = 0;
+    if (lst < -1) lst = -1;
     if (lst >= static_cast<int64_t>(array.size())) lst = array.size() - 1;
     std::vector<Cell> r;
     for (auto i = 0; i < fst; i++) {

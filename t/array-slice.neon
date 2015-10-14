@@ -58,3 +58,7 @@ print(str(arr()[LAST]))
 
 dump(arr()[LAST-1 TO LAST])
 %= [2, 3]
+
+a[0 TO -1] := [9]
+dump(a)
+%= [9, 1, 5, 5, 5, 4]
