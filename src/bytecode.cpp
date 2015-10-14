@@ -43,7 +43,8 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
 
     unsigned int strtablesize = (obj[i] << 8) | obj[i+1];
     i += 2;
-    strtable = getstrtable(&obj[i], &obj[i] + strtablesize, i);
+    strtable = getstrtable(&obj[i], &obj[i] + strtablesize);
+    i += strtablesize;
 
     unsigned int typesize = (obj[i] << 8) | obj[i+1];
     i += 2;
@@ -142,19 +143,14 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
     code = Bytes(obj.begin() + i, obj.end());
 }
 
-std::vector<std::string> Bytecode::getstrtable(const unsigned char *start, const unsigned char *end, size_t &i)
+std::vector<std::string> Bytecode::getstrtable(const unsigned char *start, const unsigned char *end)
 {
     std::vector<std::string> r;
     while (start != end) {
-        std::string s;
-        while (*start != 0) {
-            s.push_back(*start);
-            ++start;
-            i++;
-        }
-        r.push_back(s);
-        ++start;
-        i++;
+        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
+        start += 4;
+        r.push_back(std::string(reinterpret_cast<const char *>(start), len));
+        start += len;
     }
     return r;
 }
@@ -173,8 +169,11 @@ Bytecode::Bytes Bytecode::getBytes() const
 
     std::vector<unsigned char> t;
     for (auto s: strtable) {
+        t.push_back(static_cast<unsigned char>(s.length() >> 24) & 0xff);
+        t.push_back(static_cast<unsigned char>(s.length() >> 16) & 0xff);
+        t.push_back(static_cast<unsigned char>(s.length() >> 8) & 0xff);
+        t.push_back(static_cast<unsigned char>(s.length() & 0xff));
         std::copy(s.begin(), s.end(), std::back_inserter(t));
-        t.push_back(0);
     }
     obj.push_back(static_cast<unsigned char>(t.size() >> 8) & 0xff);
     obj.push_back(static_cast<unsigned char>(t.size() & 0xff));

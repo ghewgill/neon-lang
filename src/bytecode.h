@@ -80,7 +80,7 @@ public:
     Bytes getBytes() const;
 
 private:
-    std::vector<std::string> getstrtable(const unsigned char *start, const unsigned char *end, size_t &i);
+    std::vector<std::string> getstrtable(const unsigned char *start, const unsigned char *end);
 };
 
 #endif
