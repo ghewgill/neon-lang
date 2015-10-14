@@ -2058,6 +2058,7 @@ ExcludeTests = [
     "t/json-test.neon",         # Module not required
     "t/lexer-raw.neon",         # Feature not required
     "t/lexer-unicode.neon",     # Unicode source not required
+    "t/lisp-test.neon",         # Sample not required
     "t/math-test.neon",         # Module not required
     "t/mkdir.neon",             # Feature not required
     "t/module-alias.neon",      # Feature not required

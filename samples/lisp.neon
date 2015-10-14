@@ -1,0 +1,402 @@
+EXPORT eval
+EXPORT parse
+EXPORT repr
+EXPORT Value
+
+IMPORT io
+IMPORT math
+IMPORT regex
+IMPORT sys
+IMPORT time
+
+DECLARE EXCEPTION ParseEndOfInput
+DECLARE EXCEPTION SyntaxError
+DECLARE EXCEPTION TypeMismatch
+
+TYPE Environment IS RECORD
+    parent: POINTER TO Environment
+    names: Dictionary<POINTER TO Value>
+END RECORD
+
+LET g_env: POINTER TO Environment := NEW Environment
+
+TYPE Symbol IS RECORD
+    name: String
+END RECORD
+
+VAR Symbols: Dictionary<POINTER TO Symbol>
+
+FUNCTION get_symbol(name: String): POINTER TO Symbol
+    IF name IN Symbols THEN
+        RETURN Symbols[name]
+    END IF
+    LET p: POINTER TO Symbol := NEW Symbol
+    p->name := name
+    Symbols[name] := p
+    RETURN p
+END FUNCTION
+
+TYPE Type IS ENUM
+    null
+    boolean
+    number
+    symbol
+    string
+    pair
+    proc
+END ENUM
+
+TYPE Value IS RECORD
+    type: Type
+    val_boolean: Boolean
+    val_number: Number
+    val_symbol: POINTER TO Symbol
+    val_string: String
+    val_pair: RECORD
+        car: POINTER TO Value
+        cdr: POINTER TO Value
+    END RECORD
+    val_proc: FUNCTION(args: Array<Value>): POINTER TO Value
+END RECORD
+
+FUNCTION make_null(): POINTER TO Value
+    LET r: POINTER TO Value := NEW Value
+    r->type := Type.null
+    RETURN r
+END FUNCTION
+
+FUNCTION make_boolean(b: Boolean): POINTER TO Value
+    LET r: POINTER TO Value := NEW Value
+    r->type := Type.boolean
+    r->val_boolean := b
+    RETURN r
+END FUNCTION
+
+FUNCTION make_number(n: Number): POINTER TO Value
+    LET r: POINTER TO Value := NEW Value
+    r->type := Type.number
+    r->val_number := n
+    RETURN r
+END FUNCTION
+
+FUNCTION make_symbol(name: String): POINTER TO Value
+    LET r: POINTER TO Value := NEW Value
+    r->type := Type.symbol
+    r->val_symbol := get_symbol(name)
+    RETURN r
+END FUNCTION
+
+FUNCTION make_string(s: String): POINTER TO Value
+    LET r: POINTER TO Value := NEW Value
+    r->type := Type.string
+    r->val_string := s
+    RETURN r
+END FUNCTION
+
+FUNCTION make_pair(car, cdr: POINTER TO Value): POINTER TO Value
+    LET r: POINTER TO Value := NEW Value
+    r->type := Type.pair
+    r->val_pair.car := car
+    r->val_pair.cdr := cdr
+    RETURN r
+END FUNCTION
+
+FUNCTION make_proc(proc: FUNCTION(args: Array<Value>): POINTER TO Value): POINTER TO Value
+    LET r: POINTER TO Value := NEW Value
+    r->type := Type.proc
+    r->val_proc := proc
+    RETURN r
+END FUNCTION
+
+FUNCTION Value.to_string(IN self: Value): String
+    CASE self.type
+        WHEN Type.null DO
+            RETURN "null"
+        WHEN Type.boolean DO
+            RETURN IF self.val_boolean THEN "true" ELSE "false"
+        WHEN Type.number DO
+            RETURN str(self.val_number)
+        WHEN Type.symbol DO
+            IF VALID self.val_symbol AS p THEN
+                RETURN p->name
+            END IF
+        WHEN Type.string DO
+            RETURN self.val_string
+        WHEN Type.pair DO
+            RETURN "<pair>"
+    END CASE
+    RETURN "TODO"
+END FUNCTION
+
+FUNCTION new_env(e: POINTER TO Environment): POINTER TO Environment
+    RETURN e
+END FUNCTION
+
+FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
+    WHILE i < s.length() AND s[i] = " " DO
+        inc(i)
+    END WHILE
+    CASE s[i]
+        WHEN "(" DO
+            inc(i)
+            VAR r: POINTER TO Value := NIL
+            VAR p: POINTER TO Value
+            TRY
+                LOOP
+                    LET value: POINTER TO Value := parse2(s, i)
+                    IF value = NIL THEN % TODO: remove this check when the exception handling works
+                        EXIT LOOP
+                    END IF
+                    LET new: POINTER TO Value := NEW Value
+                    new->type := Type.pair
+                    new->val_pair.car := value
+                    IF r = NIL THEN
+                        r := new
+                    ELSE
+                        IF VALID p THEN
+                            p->val_pair.cdr := new
+                        END IF
+                    END IF
+                    p := new
+                END LOOP
+            EXCEPTION ParseEndOfInput
+                % nothing
+            END TRY
+            IF s[i] = ")" THEN
+                inc(i)
+            END IF
+            RETURN r
+        WHEN "#" DO
+            LET start: Number := i
+            inc(i)
+            WHILE i < s.length() AND "a" <= s[i] <= "z" DO
+                inc(i)
+            END WHILE
+            LET t: String := s[start TO i-1]
+            IF t = "#t" THEN
+                RETURN make_boolean(TRUE)
+            ELSIF t = "#f" THEN
+                RETURN make_boolean(FALSE)
+            ELSE
+                ASSERT FALSE, t
+            END IF
+        WHEN "0" TO "9" DO
+            LET start: Number := i
+            inc(i)
+            WHILE i < s.length() AND "0" <= s[i] <= "9" DO
+                inc(i)
+            END WHILE
+            RETURN make_number(num(s[start TO i-1]))
+        WHEN "-", "+" DO
+            LET start: Number := i
+            inc(i)
+            WHILE i < s.length() AND "0" <= s[i] <= "9" DO
+                inc(i)
+            END WHILE
+            LET t: String := s[start TO i-1]
+            VAR m: regex.Match
+            IF regex.search(@"^[-+]?\d+$", t, m) THEN
+                RETURN make_number(num(t))
+            ELSE
+                RETURN make_symbol(t)
+            END IF
+        WHEN "a" TO "z", "!", "$", "%", "&", "*", "/", ":", "<", "=", ">", "?", "~", "_", "^" DO
+            LET start: Number := i
+            inc(i)
+            WHILE i < s.length() AND ("a" <= s[i] <= "z" OR "0" <= s[i] <= "9" OR s[i] = "!" OR s[i] = "$" OR s[i] = "%" OR s[i] = "&" OR s[i] = "*" OR s[i] = "/" OR s[i] = ":" OR s[i] = "<" OR s[i] = "=" OR s[i] = ">" OR s[i] = "?" OR s[i] = "~" OR s[i] = "_" OR s[i] = "^" OR s[i] = "." OR s[i] = "+" OR s[i] = "-") DO
+                inc(i)
+            END WHILE
+            RETURN make_symbol(s[start TO i-1])
+        WHEN "\"" DO
+            inc(i)
+            LET start: Number := i
+            WHILE i < s.length() AND s[i] # "\"" DO
+                inc(i)
+            END WHILE
+            IF i < s.length() THEN
+                inc(i)
+            END IF
+            RETURN make_string(s[start TO i-2])
+%        ELSE
+%            RAISE SyntaxError
+    END CASE
+    RETURN NIL %RAISE ParseEndOfInput
+END FUNCTION
+
+FUNCTION parse(s: String): POINTER TO Value
+    VAR i: Number := 0
+    RETURN parse2(s, i)
+END FUNCTION
+
+FUNCTION read(f: io.File): POINTER TO Value
+    VAR s: String
+    IF NOT io.readline(f, s) THEN
+        sys.exit(0)
+    END IF
+    RETURN parse(s)
+END FUNCTION
+
+FUNCTION eval_special(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Value
+    IF VALID e, e->val_pair.car AS car THEN
+        IF car->type # Type.symbol THEN
+            RETURN NIL
+        END IF
+        IF VALID car->val_symbol AS sym THEN
+            CASE sym->name
+                WHEN "let" DO
+                    LET env2: POINTER TO Environment := new_env(env)
+                    IF VALID e->val_pair.cdr AS bindings THEN
+                        ASSERT bindings->type = Type.pair
+                    ELSE
+                        ASSERT FALSE, e
+                    END IF
+            END CASE
+        ELSE
+            ASSERT FALSE, car
+        END IF
+    END IF
+    RETURN NIL
+END FUNCTION
+
+FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Value
+    IF VALID e THEN
+        CASE e->type
+            WHEN Type.boolean, Type.number, Type.string DO
+                RETURN e
+            WHEN Type.symbol DO
+                IF VALID env, e->val_symbol AS s THEN
+                    RETURN env->names[s->name]
+                END IF
+            WHEN Type.pair DO
+                LET r: POINTER TO Value := eval_special(e, env)
+                IF r # NIL THEN
+                    RETURN r
+                ELSIF VALID e->val_pair.car AS car THEN
+                    LET proc: POINTER TO Value := eval2(car, env)
+                    VAR args: Array<Value>
+                    VAR a: POINTER TO Value := e->val_pair.cdr
+                    LOOP
+                        VAR next: POINTER TO Value
+                        IF VALID a THEN
+                            VAR arg: Value
+                            IF VALID eval2(a->val_pair.car, env) AS q THEN
+                                value_copy(arg, q)
+                            ELSE
+                                arg.type := Type.null
+                            END IF
+                            args.append(arg)
+                            next := a->val_pair.cdr
+                        ELSE
+                            EXIT LOOP
+                        END IF
+                        a := next
+                    END LOOP
+                    IF VALID proc THEN
+                        CASE proc->type
+                            WHEN Type.pair DO
+                                % ...
+                            WHEN Type.proc DO
+                                LET f: FUNCTION(args: Array<Value>): POINTER TO Value := proc->val_proc % TODO: should be able to call this directly
+                                RETURN f(args)
+                            ELSE
+                                print("can't call \(proc->type)")
+                        END CASE
+                    END IF
+                ELSE
+                    print("can't call nil")
+                END IF
+            ELSE
+                print("can't eval \(e->type)")
+        END CASE
+        RETURN make_string("TODO")
+    ELSE
+        RETURN NIL
+    END IF
+END FUNCTION
+
+FUNCTION eval(e: POINTER TO Value): POINTER TO Value
+    RETURN eval2(e, g_env)
+END FUNCTION
+
+FUNCTION repr(e: POINTER TO Value): String
+    IF VALID e THEN
+        CASE e->type
+            WHEN Type.null DO
+                RETURN "null"
+            WHEN Type.boolean DO
+                RETURN IF e->val_boolean THEN "#t" ELSE "#f"
+            WHEN Type.number DO
+                RETURN str(e->val_number)
+            WHEN Type.symbol DO
+                IF VALID e->val_symbol AS p THEN
+                    RETURN p->name
+                END IF
+            WHEN Type.string DO
+                RETURN "\"\(e->val_string)\""
+            WHEN Type.pair DO
+                VAR p: POINTER TO Value := e
+                VAR r: String := "("
+                LOOP
+                    VAR next: POINTER TO Value := NIL
+                    IF VALID p THEN
+                        IF r.length() > 1 THEN
+                            r.append(" ")
+                        END IF
+                        r.append(repr(p->val_pair.car))
+                        IF VALID p->val_pair.cdr AS q THEN
+                            IF q->type = Type.pair THEN
+                                next := q
+                            ELSE
+                                r.append(" . \(repr(q))")
+                                EXIT LOOP
+                            END IF
+                        END IF
+                    ELSE
+                        EXIT LOOP
+                    END IF
+                    p := next
+                END LOOP
+                r.append(")")
+                RETURN r
+            WHEN Type.proc DO
+                RETURN "\(e->val_proc)"
+        ELSE
+            ASSERT FALSE, e->type
+        END CASE
+    END IF
+    RETURN "repr not valid"
+END FUNCTION
+
+FUNCTION repl()
+    LOOP
+        print(repr(eval(read(io.stdin()))))
+        %print(repr(read(io.stdin())))
+    END LOOP
+END FUNCTION
+
+FUNCTION multiply(args: Array<Value>): POINTER TO Value
+    RETURN make_number(args[0].val_number * args[1].val_number)
+END FUNCTION
+
+FUNCTION add(args: Array<Value>): POINTER TO Value
+    RETURN make_number(args[0].val_number + args[1].val_number)
+END FUNCTION
+
+FUNCTION abs(args: Array<Value>): POINTER TO Value
+    RETURN make_number(math.abs(args[0].val_number))
+END FUNCTION
+
+FUNCTION test_repr()
+    LET y: POINTER TO Value := make_pair(make_string("foo"), NIL)
+    LET x: POINTER TO Value := make_pair(y, y)
+    ASSERT repr(x) = "((\"foo\") \"foo\")"
+END FUNCTION
+
+g_env->names["*"] := make_proc(multiply)
+g_env->names["+"] := make_proc(add)
+g_env->names["abs"] := make_proc(abs)
+
+BEGIN MAIN
+    test_repr()
+    %repl()
+END MAIN
