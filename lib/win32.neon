@@ -7,18 +7,32 @@
 EXPORT Beep
 EXPORT DebugBreak
 EXPORT FindClose
-EXPORT FindFirstFileA
-EXPORT FindNextFileA
+EXPORT FindFirstFile
+EXPORT FindNextFile
 EXPORT Handle
 EXPORT WIN32_FIND_DATA
 
 IMPORT struct
+IMPORT variant
 
 % Type: Handle
 TYPE Handle IS POINTER
 
-% Struct: WIN32_FIND_DATA
-LET WIN32_FIND_DATA: struct.Struct := struct.make([
+% Type: WIN32_FIND_DATA
+TYPE WIN32_FIND_DATA IS RECORD
+    dwFileAttributes: Number
+    ftCreationTime: Bytes
+    ftLastAccessTime: Bytes
+    ftLastWriteTime: Bytes
+    nFileSizeHigh: Number
+    nFileSizeLow: Number
+    dwReserved0: Number
+    dwReserved1: Number
+    cFileName: String
+    cAlternateFileName: String
+END RECORD
+
+LET Struct_WIN32_FIND_DATA: struct.Struct := struct.make([
     struct.field("dwFileAttributes",    struct.Type.int,      4),
     struct.field("ftCreationTime",      struct.Type.bytes,    8),
     struct.field("ftLastAccessTime",    struct.Type.bytes,    8),
@@ -30,6 +44,35 @@ LET WIN32_FIND_DATA: struct.Struct := struct.make([
     struct.field("cFileName",           struct.Type.string, 260),
     struct.field("cAlternateFileName",  struct.Type.string,  14),
 ])
+
+FUNCTION WIN32_FIND_DATA.pack(self: WIN32_FIND_DATA): Bytes
+    VAR d: Dictionary<variant.Variant>
+    d["dwFileAttributes"]   := variant.make_number(self.dwFileAttributes)
+    d["ftCreationTime"]     := variant.make_bytes(self.ftCreationTime)
+    d["ftLastAccessTime"]   := variant.make_bytes(self.ftLastAccessTime)
+    d["ftLastWriteTime"]    := variant.make_bytes(self.ftLastWriteTime)
+    d["nFileSizeHigh"]      := variant.make_number(self.nFileSizeHigh)
+    d["nFileSizeLow"]       := variant.make_number(self.nFileSizeLow)
+    d["dwReserved0"]        := variant.make_number(self.dwReserved0)
+    d["dwReserved1"]        := variant.make_number(self.dwReserved1)
+    d["cFileName"]          := variant.make_string(self.cFileName)
+    d["cAlternateFileName"] := variant.make_string(self.cAlternateFileName)
+    RETURN Struct_WIN32_FIND_DATA.pack(d)
+END FUNCTION
+
+FUNCTION WIN32_FIND_DATA.unpack(INOUT self: WIN32_FIND_DATA, data: Bytes)
+    LET d: Dictionary<variant.Variant> := Struct_WIN32_FIND_DATA.unpack(data)
+    self.dwFileAttributes   := d["dwFileAttributes"].get_number()
+    self.ftCreationTime     := d["ftCreationTime"].get_bytes()
+    self.ftLastAccessTime   := d["ftLastAccessTime"].get_bytes()
+    self.ftLastWriteTime    := d["ftLastWriteTime"].get_bytes()
+    self.nFileSizeHigh      := d["nFileSizeHigh"].get_number()
+    self.nFileSizeLow       := d["nFileSizeLow"].get_number()
+    self.dwReserved0        := d["dwReserved0"].get_number()
+    self.dwReserved1        := d["dwReserved1"].get_number()
+    self.cFileName          := d["cFileName"].get_string()
+    self.cAlternateFileName := d["cAlternateFileName"].get_string()
+END FUNCTION
 
 % Title: Win32 API Functions
 
@@ -76,6 +119,13 @@ EXTERNAL FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes
 }
 END FUNCTION
 
+FUNCTION FindFirstFile(lpFileName: String, INOUT lpFindFileData: WIN32_FIND_DATA): Handle
+    VAR fd: Bytes := lpFindFileData.pack()
+    LET r: Handle := FindFirstFileA(lpFileName, fd)
+    lpFindFileData.unpack(fd)
+    RETURN r
+END FUNCTION
+
 % Function: FindNextFileA
 EXTERNAL FUNCTION FindNextFileA(hFindFile: Handle, INOUT lpFindFileData: Bytes): Boolean
 {
@@ -86,4 +136,11 @@ EXTERNAL FUNCTION FindNextFileA(hFindFile: Handle, INOUT lpFindFileData: Bytes):
         "lpFindFileData": "bytes"
     }
 }
+END FUNCTION
+
+FUNCTION FindNextFile(hFindFile: Handle, INOUT lpFindFileData: WIN32_FIND_DATA): Boolean
+    VAR fd: Bytes := lpFindFileData.pack()
+    LET r: Boolean := FindNextFileA(hFindFile, fd)
+    lpFindFileData.unpack(fd)
+    RETURN r
 END FUNCTION
