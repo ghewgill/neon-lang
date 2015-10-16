@@ -72,7 +72,6 @@ File: xml  (xml.neon)
 
 Group: Index  {
 
-   Class Index: Classes
    Constant Index: Constants
    Index: Everything
    Exception Index: Exceptions
