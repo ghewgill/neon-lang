@@ -265,6 +265,7 @@ const Expression *TypeRecord::deserialize_value(const Bytecode::Bytes &value, in
 {
     std::vector<const Expression *> elements;
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
+    i += 4;
     int f = 0;
     while (len > 0) {
         elements.push_back(fields[f].type->deserialize_value(value, i));

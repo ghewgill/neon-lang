@@ -1,1 +1,9 @@
 IMPORT export
+
+ASSERT export.cb = TRUE
+ASSERT export.cn = 1
+ASSERT export.cs = "a"
+ASSERT export.ca = [1]
+ASSERT export.cd["a"] = 1
+ASSERT export.cr.n = 1
+%ASSERT export.ce = export.Enum.green
