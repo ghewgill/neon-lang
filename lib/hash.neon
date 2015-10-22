@@ -12,11 +12,11 @@
 DECLARE NATIVE FUNCTION crc32(data: String): Number
 
 %|
- |  Function: crc32_bytes
+ |  Function: crc32Bytes
  |
  |  Return the CRC32 of given <Bytes>.
  |%
-DECLARE NATIVE FUNCTION crc32_bytes(data: Bytes): Number
+DECLARE NATIVE FUNCTION crc32Bytes(data: Bytes): Number
 
 %|
  |  Function: md5
@@ -26,25 +26,25 @@ DECLARE NATIVE FUNCTION crc32_bytes(data: Bytes): Number
 DECLARE NATIVE FUNCTION md5(data: String): String
 
 %|
- |  Function: md5_raw
+ |  Function: md5Raw
  |
  |  Return the MD5 hash of a given <String> as raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION md5_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION md5Raw(data: String): Bytes
 
 %|
- |  Function: md5_bytes
+ |  Function: md5Bytes
  |
  |  Return the MD5 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION md5_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION md5Bytes(data: Bytes): String
 
 %|
- |  Function: md5_bytes_raw
+ |  Function: md5BytesRaw
  |
  |  Return the MD5 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION md5_bytes_raw(data: Bytes): Bytes
+DECLARE NATIVE FUNCTION md5BytesRaw(data: Bytes): Bytes
 
 %|
  |  Function: sha1
@@ -54,25 +54,25 @@ DECLARE NATIVE FUNCTION md5_bytes_raw(data: Bytes): Bytes
 DECLARE NATIVE FUNCTION sha1(data: String): String
 
 %|
- |  Function: sha1_raw
+ |  Function: sha1Raw
  |
  |  Return the SHA1 hash of a given <String> as raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha1_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION sha1Raw(data: String): Bytes
 
 %|
- |  Function: sha1_bytes
+ |  Function: sha1Bytes
  |
  |  Return the SHA1 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION sha1_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION sha1Bytes(data: Bytes): String
 
 %|
- |  Function: sha1_bytes_raw
+ |  Function: sha1BytesRaw
  |
  |  Return the SHA1 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha1_bytes_raw(data: Bytes): Bytes
+DECLARE NATIVE FUNCTION sha1BytesRaw(data: Bytes): Bytes
 
 %|
  |  Function: sha256
@@ -82,25 +82,25 @@ DECLARE NATIVE FUNCTION sha1_bytes_raw(data: Bytes): Bytes
 DECLARE NATIVE FUNCTION sha256(data: String): String
 
 %|
- |  Function: sha256_raw
+ |  Function: sha256Raw
  |
  |  Return the SHA256 hash of a given <String> as raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha256_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION sha256Raw(data: String): Bytes
 
 %|
- |  Function: sha256_bytes
+ |  Function: sha256Bytes
  |
  |  Return the SHA256 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION sha256_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION sha256Bytes(data: Bytes): String
 
 %|
- |  Function: sha256_bytes_raw
+ |  Function: sha256BytesRaw
  |
  |  Return the SHA256 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha256_bytes_raw(data: Bytes): Bytes
+DECLARE NATIVE FUNCTION sha256BytesRaw(data: Bytes): Bytes
 
 %|
  |  Function: sha3
@@ -110,22 +110,22 @@ DECLARE NATIVE FUNCTION sha256_bytes_raw(data: Bytes): Bytes
 DECLARE NATIVE FUNCTION sha3(data: String): String
 
 %|
- |  Function: sha3_raw
+ |  Function: sha3Raw
  |
  |  Return the SHA3 hash of a given <String> as raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha3_raw(data: String): Bytes
+DECLARE NATIVE FUNCTION sha3Raw(data: String): Bytes
 
 %|
- |  Function: sha3_bytes
+ |  Function: sha3Bytes
  |
  |  Return the SHA3 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION sha3_bytes(data: Bytes): String
+DECLARE NATIVE FUNCTION sha3Bytes(data: Bytes): String
 
 %|
- |  Function: sha3_bytes_raw
+ |  Function: sha3BytesRaw
  |
  |  Return the SHA3 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha3_bytes_raw(data: Bytes): Bytes
+DECLARE NATIVE FUNCTION sha3BytesRaw(data: Bytes): Bytes

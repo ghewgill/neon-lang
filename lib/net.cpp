@@ -6,7 +6,7 @@
 
 namespace rtl {
 
-Cell net$tcp_socket()
+Cell net$tcpSocket()
 {
 #ifdef _WIN32
     static bool initialized = false;

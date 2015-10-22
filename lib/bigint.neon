@@ -9,7 +9,7 @@ EXPORT Zero
 EXPORT One
 EXPORT Two
 EXPORT make
-EXPORT make_from_string
+EXPORT makeFromString
 EXPORT abs
 EXPORT add
 EXPORT equals
@@ -101,7 +101,7 @@ FUNCTION make(x: Number): BigInt
 END FUNCTION
 
 %|
- |  Function: make_from_string
+ |  Function: makeFromString
  |
  |      Make a BigInt from a string.
  |
@@ -115,7 +115,7 @@ END FUNCTION
  |      This function expects that the string contains only decimal
  |      digits, optionally preceded by a minus sign (-).
  |%
-FUNCTION make_from_string(s: String): BigInt
+FUNCTION makeFromString(s: String): BigInt
     VAR r: BigInt
     VAR t: String := s
     r.sign := 1
@@ -304,10 +304,10 @@ FUNCTION BigInt.sub(self, x: BigInt): BigInt
 END FUNCTION
 
 %|
- |  Function: BigInt.to_string
+ |  Function: BigInt.toString
  |
  |%
-FUNCTION BigInt.to_string(self: BigInt): String
+FUNCTION BigInt.toString(self: BigInt): String
     VAR s: String
     FOR i := 0 TO self.digits.size()-1 DO
         IF i < self.digits.size()-1 THEN

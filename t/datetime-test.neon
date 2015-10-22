@@ -1,23 +1,23 @@
 IMPORT datetime
 
-LET dt: datetime.DateTime := datetime.make_from_instant(1234567890)
-print(dt.to_string())
+LET dt: datetime.DateTime := datetime.makeFromInstant(1234567890)
+print(dt.toString())
 %= 2009-2-13T23:31:30Z
 
-print("\(dt.minus_duration(90))")
+print("\(dt.minusDuration(90))")
 %= 2009-2-13T23:30:0Z
 
-%print("\(dt.minus_period(datetime.Period(month AS 1)))")
+%print("\(dt.minusPeriod(datetime.Period(month AS 1)))")
 %%= 2009-1-13T23:31:30Z
 
-print("\(dt.plus_duration(90))")
+print("\(dt.plusDuration(90))")
 %= 2009-2-13T23:33:0Z
 
 % FIXME: Needs module record constructor and named args for constructor
-%print("\(dt.plus_period(datetime.Period(month AS 1)))")
+%print("\(dt.plusPeriod(datetime.Period(month AS 1)))")
 %%= 2009-3-13T23:31:30Z
 
-print("\(dt.with_time(1, 2, 3))")
+print("\(dt.withTime(1, 2, 3))")
 %= 2009-2-13T1:2:3Z
 
 print(str(dt.weekday))

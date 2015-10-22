@@ -54,7 +54,7 @@ std::vector<utf8string> file$files(const std::string &path)
     return r;
 }
 
-bool file$is_directory(const std::string &path)
+bool file$isDirectory(const std::string &path)
 {
     DWORD attr = GetFileAttributes(path.c_str());
     return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
@@ -69,7 +69,7 @@ void file$mkdir(const std::string &path)
     }
 }
 
-void file$remove_empty_directory(const std::string &path)
+void file$removeEmptyDirectory(const std::string &path)
 {
     BOOL r = RemoveDirectory(path.c_str());
     if (!r) {

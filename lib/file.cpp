@@ -7,7 +7,7 @@
 
 namespace rtl {
 
-std::string file$readbytes(const std::string &filename)
+std::string file$readBytes(const std::string &filename)
 {
     std::string r;
     std::ifstream f(filename, std::ios::binary);
@@ -26,7 +26,7 @@ std::string file$readbytes(const std::string &filename)
     return r;
 }
 
-std::vector<utf8string> file$readlines(const std::string &filename)
+std::vector<utf8string> file$readLines(const std::string &filename)
 {
     std::vector<utf8string> r;
     std::ifstream f(filename);
@@ -40,7 +40,7 @@ std::vector<utf8string> file$readlines(const std::string &filename)
     return r;
 }
 
-void file$writebytes(const std::string &filename, const std::string &data)
+void file$writeBytes(const std::string &filename, const std::string &data)
 {
     std::ofstream f(filename, std::ios::binary);
     if (not f.is_open()) {
@@ -51,7 +51,7 @@ void file$writebytes(const std::string &filename, const std::string &data)
     }
 }
 
-void file$writelines(const std::string &filename, const std::vector<utf8string> &lines)
+void file$writeLines(const std::string &filename, const std::vector<utf8string> &lines)
 {
     std::ofstream f(filename, std::ios::out | std::ios::trunc); // Truncate the file every time we open it to write lines to it.
     if (not f.is_open()) {

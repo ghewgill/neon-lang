@@ -2,11 +2,11 @@ FUNCTION foo(x, y, z: Number): Number
     RETURN x * (y - z)
 END FUNCTION
 
-print(foo(1, 2, 3).to_string())
+print(foo(1, 2, 3).toString())
 %= -1
 
-print(foo(x AS 1, y AS 2, z AS 3).to_string())
+print(foo(x AS 1, y AS 2, z AS 3).toString())
 %= -1
 
-print(foo(y AS 2, z AS 3, x AS 1).to_string())
+print(foo(y AS 2, z AS 3, x AS 1).toString())
 %= -1

@@ -11,5 +11,5 @@ END ENUM
 VAR a: Colour
 
 a := Colour.red
-print(a.to_string())
+print(a.toString())
 %= red

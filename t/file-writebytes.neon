@@ -2,11 +2,11 @@ IMPORT file
 
 VAR buf: Bytes
 
-buf.from_array([4, 3, 2, 0, 1])
+buf.fromArray([4, 3, 2, 0, 1])
 
-file.writebytes("tmp/bytetest.bin", buf)
+file.writeBytes("tmp/bytetest.bin", buf)
 
-VAR a: Array<Number> := file.readbytes("tmp/bytetest.bin").to_array()
+VAR a: Array<Number> := file.readBytes("tmp/bytetest.bin").toArray()
 print("\(a[0]),\(a[1]),\(a[2]),\(a[3]),\(a[4])")
 
 %= 4,3,2,0,1

@@ -114,9 +114,9 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
         // TODO: This is just a hack to make this work for now.
         // Need to do this properly in a general purpose way.
         if (elementtype == TYPE_NUMBER) {
-            methods["to_string"] = new PredefinedFunction("array__to_string__number", new TypeFunction(TYPE_STRING, params));
+            methods["toString"] = new PredefinedFunction("array__toString__number", new TypeFunction(TYPE_STRING, params));
         } else if (elementtype == TYPE_STRING) {
-            methods["to_string"] = new PredefinedFunction("array__to_string__string", new TypeFunction(TYPE_STRING, params));
+            methods["toString"] = new PredefinedFunction("array__toString__string", new TypeFunction(TYPE_STRING, params));
         }
     }
 }
@@ -297,7 +297,7 @@ TypePointer::TypePointer(const Token &declaration, const TypeRecord *reftype)
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
-        methods["to_string"] = new PredefinedFunction("pointer__to_string", new TypeFunction(TYPE_STRING, params));
+        methods["toString"] = new PredefinedFunction("pointer__toString", new TypeFunction(TYPE_STRING, params));
     }
 }
 
@@ -337,7 +337,7 @@ TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFun
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
-        methods["to_string"] = new PredefinedFunction("functionpointer__to_string", new TypeFunction(TYPE_STRING, params));
+        methods["toString"] = new PredefinedFunction("functionpointer__toString", new TypeFunction(TYPE_STRING, params));
     }
 }
 
@@ -643,13 +643,13 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BOOLEAN, nullptr));
-        TYPE_BOOLEAN->methods["to_string"] = new PredefinedFunction("boolean__to_string", new TypeFunction(TYPE_STRING, params));
+        TYPE_BOOLEAN->methods["toString"] = new PredefinedFunction("boolean__toString", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER, nullptr));
-        TYPE_NUMBER->methods["to_string"] = new PredefinedFunction("number__to_string", new TypeFunction(TYPE_STRING, params));
+        TYPE_NUMBER->methods["toString"] = new PredefinedFunction("number__toString", new TypeFunction(TYPE_STRING, params));
     }
 
     {
@@ -667,14 +667,14 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
-        TYPE_STRING->methods["to_bytes"] = new PredefinedFunction("string__to_bytes", new TypeFunction(TYPE_BYTES, params));
+        TYPE_STRING->methods["toBytes"] = new PredefinedFunction("string__toBytes", new TypeFunction(TYPE_BYTES, params));
     }
 
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_BYTES, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_ARRAY_NUMBER, nullptr));
-        TYPE_BYTES->methods["from_array"] = new PredefinedFunction("bytes__from_array", new TypeFunction(TYPE_NOTHING, params));
+        TYPE_BYTES->methods["fromArray"] = new PredefinedFunction("bytes__fromArray", new TypeFunction(TYPE_NOTHING, params));
     }
     {
         std::vector<const ParameterType *> params;
@@ -684,12 +684,12 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["to_array"] = new PredefinedFunction("bytes__to_array", new TypeFunction(TYPE_ARRAY_NUMBER, params));
+        TYPE_BYTES->methods["toArray"] = new PredefinedFunction("bytes__toArray", new TypeFunction(TYPE_ARRAY_NUMBER, params));
     }
     {
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
-        TYPE_BYTES->methods["to_string"] = new PredefinedFunction("bytes__to_string", new TypeFunction(TYPE_STRING, params));
+        TYPE_BYTES->methods["toString"] = new PredefinedFunction("bytes__toString", new TypeFunction(TYPE_STRING, params));
     }
 
     for (auto e: ExceptionNames) {

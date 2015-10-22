@@ -230,7 +230,7 @@ END FUNCTION
 
 FUNCTION read(f: io.File): POINTER TO Value
     VAR s: String
-    IF NOT io.readline(f, s) THEN
+    IF NOT io.readLine(f, s) THEN
         sys.exit(0)
     END IF
     RETURN parse(s)
@@ -280,7 +280,7 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                         IF VALID a THEN
                             VAR arg: Value
                             IF VALID eval2(a->val_pair.car, env) AS q THEN
-                                value_copy(arg, q)
+                                valueCopy(arg, q)
                             ELSE
                                 arg.type := Type.null
                             END IF

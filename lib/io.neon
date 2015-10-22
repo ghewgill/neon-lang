@@ -74,21 +74,21 @@ DECLARE NATIVE FUNCTION fprint(f: File, s: String)
 DECLARE NATIVE FUNCTION open(name: String, mode: Mode): File
 
 %|
- |  Function: read_bytes
+ |  Function: readBytes
  |
  |  Read bytes from a file.
  |%
-DECLARE NATIVE FUNCTION read_bytes(f: File, count: Number): Bytes
+DECLARE NATIVE FUNCTION readBytes(f: File, count: Number): Bytes
 
 %|
- |  Function: readline
+ |  Function: readLine
  |
  |  Read a line of text from a file.
  |
  |  Returns:
  |      FALSE if there are no more lines in the file, otherwise TRUE.
  |%
-DECLARE NATIVE FUNCTION readline(f: File, OUT s: String): Boolean
+DECLARE NATIVE FUNCTION readLine(f: File, OUT s: String): Boolean
 
 %|
  |  Function: seek
@@ -140,8 +140,8 @@ DECLARE NATIVE FUNCTION truncate(f: File)
 DECLARE NATIVE FUNCTION write(f: File, s: String)
 
 %|
- |  Function: write_bytes
+ |  Function: writeBytes
  |
  |  Write bytes to a file.
  |%
-DECLARE NATIVE FUNCTION write_bytes(f: File, b: Bytes)
+DECLARE NATIVE FUNCTION writeBytes(f: File, b: Bytes)

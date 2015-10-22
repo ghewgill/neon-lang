@@ -11,6 +11,6 @@ FOR i := 1 TO 100 DO
     ELSIF i MOD 5 = 0 THEN
         print("Buzz")
     ELSE
-        print(i.to_string())
+        print(i.toString())
     END IF
 END FOR

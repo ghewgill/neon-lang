@@ -10,13 +10,13 @@ EXPORT ArrayNumber2D
 EXPORT ArrayNumber3D
 EXPORT ArrayString2D
 EXPORT ArrayString3D
-EXPORT make_boolean2D
-EXPORT make_boolean3D
-EXPORT make_number2D
-EXPORT make_number2D_value
-EXPORT make_number3D
-EXPORT make_string2D
-EXPORT make_string3D
+EXPORT makeBoolean2D
+EXPORT makeBoolean3D
+EXPORT makeNumber2D
+EXPORT makeNumber2DValue
+EXPORT makeNumber3D
+EXPORT makeString2D
+EXPORT makeString3D
 
 %|
  |  Type: ArrayBoolean2D
@@ -61,11 +61,11 @@ TYPE ArrayString2D IS Array<Array<String>>
 TYPE ArrayString3D IS Array<Array<Array<String>>>
 
 %|
- |  Function: make_boolean2D
+ |  Function: makeBoolean2D
  |
  |  Create a new <ArrayBoolean2D> with the given number of rows and columns.
  |%
-FUNCTION make_boolean2D(rows, columns: Number): ArrayBoolean2D
+FUNCTION makeBoolean2D(rows, columns: Number): ArrayBoolean2D
     VAR r: ArrayBoolean2D
     r.resize(rows)
     FOR i := 0 TO rows-1 DO
@@ -75,11 +75,11 @@ FUNCTION make_boolean2D(rows, columns: Number): ArrayBoolean2D
 END FUNCTION
 
 %|
- |  Function: make_boolean3D
+ |  Function: makeBoolean3D
  |
  |  Create a new <ArrayBoolean3D> with the given number of rows, columns, and depth.
  |%
-FUNCTION make_boolean3D(rows, columns, depth: Number): ArrayBoolean3D
+FUNCTION makeBoolean3D(rows, columns, depth: Number): ArrayBoolean3D
     VAR r: ArrayBoolean3D
     r.resize(rows)
     FOR i := 0 TO rows-1 DO
@@ -92,11 +92,11 @@ FUNCTION make_boolean3D(rows, columns, depth: Number): ArrayBoolean3D
 END FUNCTION
 
 %|
- |  Function: make_number2D
+ |  Function: makeNumber2D
  |
  |  Create a new <ArrayNumber2D> with the given number of rows and columns.
  |%
-FUNCTION make_number2D(rows, columns: Number): ArrayNumber2D
+FUNCTION makeNumber2D(rows, columns: Number): ArrayNumber2D
     VAR r: ArrayNumber2D
     r.resize(rows)
     FOR i := 0 TO rows-1 DO
@@ -106,11 +106,11 @@ FUNCTION make_number2D(rows, columns: Number): ArrayNumber2D
 END FUNCTION
 
 %|
- |  Function: make_number2D_value
+ |  Function: makeNumber2DValue
  |
  |  Create a new <ArrayNumber2D> with the given number of rows and columns.
  |%
-FUNCTION make_number2D_value(rows, columns: Number, value: Number): ArrayNumber2D
+FUNCTION makeNumber2DValue(rows, columns: Number, value: Number): ArrayNumber2D
     % TODO: Make 'value' a parameter with a default value
     % (depends on https://github.com/ghewgill/neon-lang/issues/45).
     VAR r: ArrayNumber2D
@@ -127,11 +127,11 @@ FUNCTION make_number2D_value(rows, columns: Number, value: Number): ArrayNumber2
 END FUNCTION
 
 %|
- |  Function: make_number3D
+ |  Function: makeNumber3D
  |
  |  Create a new <ArrayNumber3D> with the given number of rows, columns, and depth.
  |%
-FUNCTION make_number3D(rows, columns, depth: Number): ArrayNumber3D
+FUNCTION makeNumber3D(rows, columns, depth: Number): ArrayNumber3D
     VAR r: ArrayNumber3D
     r.resize(rows)
     FOR i := 0 TO rows-1 DO
@@ -144,11 +144,11 @@ FUNCTION make_number3D(rows, columns, depth: Number): ArrayNumber3D
 END FUNCTION
 
 %|
- |  Function: make_string2D
+ |  Function: makeString2D
  |
  |  Create a new <ArrayString2D> with the given number of rows and columns.
  |%
-FUNCTION make_string2D(rows, columns: Number): ArrayString2D
+FUNCTION makeString2D(rows, columns: Number): ArrayString2D
     VAR r: ArrayString2D
     r.resize(rows)
     FOR i := 0 TO rows-1 DO
@@ -158,11 +158,11 @@ FUNCTION make_string2D(rows, columns: Number): ArrayString2D
 END FUNCTION
 
 %|
- |  Function: make_string3D
+ |  Function: makeString3D
  |
  |  Create a new <ArrayString3D> with the given number of rows, columns, and depth.
  |%
-FUNCTION make_string3D(rows, columns, depth: Number): ArrayString3D
+FUNCTION makeString3D(rows, columns, depth: Number): ArrayString3D
     VAR r: ArrayString3D
     r.resize(rows)
     FOR i := 0 TO rows-1 DO

@@ -509,10 +509,10 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             storage[addr+1] := x1
         WHEN CORE_2_TIMES DO
             LET n1: Number := stack.pop()
-            stack.push(bitwise.shift_left32(n1, 1))
+            stack.push(bitwise.shiftLeft32(n1, 1))
         WHEN CORE_2_DIVIDE DO
             LET n1: Number := signed32(stack.pop())
-            stack.push(bitwise.shift_right_signed32(n1, 1))
+            stack.push(bitwise.shiftRightSigned32(n1, 1))
         WHEN CORE_2_FETCH DO
             LET addr: Number := stack.pop()
             stack.push(storage[addr+1])
@@ -773,7 +773,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_LSHIFT DO
             LET u: Number := stack.pop()
             LET x1: Number := stack.pop()
-            stack.push(bitwise.shift_left32(x1, u))
+            stack.push(bitwise.shiftLeft32(x1, u))
         WHEN CORE_M_MUL DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
@@ -842,7 +842,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_RSHIFT DO
             LET u: Number := stack.pop()
             LET x1: Number := stack.pop()
-            stack.push(bitwise.shift_right32(x1, u))
+            stack.push(bitwise.shiftRight32(x1, u))
         WHEN CORE_S_TO_D DO
             LET n: Number := signed32(stack.pop())
             stack.push(n)
@@ -1313,7 +1313,7 @@ FUNCTION refill(): Boolean
         RETURN FALSE
     END IF
     VAR s: String
-    IF NOT io.readline(current_file, s) THEN
+    IF NOT io.readLine(current_file, s) THEN
         RETURN FALSE
     END IF
     FOR i := 0 TO s.length()-1 DO

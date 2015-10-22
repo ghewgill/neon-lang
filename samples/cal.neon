@@ -19,12 +19,12 @@ CONSTANT MonthName: Array<String> := [
 
 FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
     VAR dt: datetime.DateTime
-    dt := dt.with_date(year, month, 1)
+    dt := dt.withDate(year, month, 1)
     % TODO: module record constructor
     VAR p: datetime.Period
     p.days := dt.weekday MOD 7
-    %dt := dt.minus_period(p)
-    dt := dt.minus_duration(86400 * p.days)
+    %dt := dt.minusPeriod(p)
+    dt := dt.minusDuration(86400 * p.days)
     LET title: String := IF year_in_title THEN "\(MonthName[month]) \(year)" ELSE MonthName[month]
     VAR r: Array<String> := ["\(title:^21)", "Su Mo Tu We Th Fr Sa "]
     FOR i := 1 TO 6*7 DO
@@ -37,7 +37,7 @@ FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
             r[r.size()-1].append("   ")
         END IF
         p.days := 1
-        dt := dt.plus_period(p)
+        dt := dt.plusPeriod(p)
     END FOR
     RETURN r
 END FUNCTION

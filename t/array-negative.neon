@@ -1,4 +1,4 @@
 VAR a: Array<Number>
-print(a[-1].to_string())
+print(a[-1].toString())
 
 %! ArrayIndex (-1)

@@ -46,18 +46,18 @@ END RECORD
 FUNCTION Stopwatch.elapsed(self: Stopwatch): Number
     LET t: Number := tick()
     VAR r: Number := self.accumulated
-    IF self.is_running() THEN
+    IF self.isRunning() THEN
         r := r + t - self.start
     END IF
     RETURN r
 END FUNCTION
 
 %|
- |  Function: Stopwatch.is_running
+ |  Function: Stopwatch.isRunning
  |
  |  Return TRUE if the stopwatch is running.
  |%
-FUNCTION Stopwatch.is_running(self: Stopwatch): Boolean
+FUNCTION Stopwatch.isRunning(self: Stopwatch): Boolean
     RETURN self.start > 0
 END FUNCTION
 
@@ -87,7 +87,7 @@ END FUNCTION
  |%
 FUNCTION Stopwatch.stop(INOUT self: Stopwatch)
     LET t: Number := tick()
-    IF NOT self.is_running() THEN
+    IF NOT self.isRunning() THEN
         EXIT FUNCTION
     END IF
     self.accumulated := self.accumulated + (t - self.start)

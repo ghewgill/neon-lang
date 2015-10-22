@@ -4,11 +4,11 @@ TYPE Record IS RECORD
     name: String
 END RECORD
 
-FUNCTION Record.get_name(self: Record): String
+FUNCTION Record.getName(self: Record): String
     RETURN self.name
 END FUNCTION
 
 LET p: POINTER TO Record := NEW Record
 p->name := "hello"
-print(p->get_name())
+print(p->getName())
 %= hello

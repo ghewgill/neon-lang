@@ -1,7 +1,7 @@
 FUNCTION dump(x: Array<Number>)
     VAR s: String := "["
     FOR i := 0 TO x.size()-1 DO
-        s.append(x[i].to_string())
+        s.append(x[i].toString())
         IF i < x.size()-1 THEN
             s.append(", ")
         END IF

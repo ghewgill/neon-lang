@@ -10,13 +10,13 @@ CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): variant.Variant
     VAR headers: Array<String>
-    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", headers).to_string()
+    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", headers).toString()
     RETURN json.decode(data)
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): variant.Variant
     VAR headers: Array<String>
-    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, headers).to_string()
+    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, headers).toString()
     RETURN json.decode(data)
 END FUNCTION
 
@@ -54,19 +54,19 @@ time.sleep(0.1)
 VAR r: variant.Variant
 
 r := get("/module/-/debuginfo")
-FOREACH s OF r.get_dictionary()["source"].get_array() INDEX i DO
-    Source[i] := s.get_string()
+FOREACH s OF r.getDictionary()["source"].getArray() INDEX i DO
+    Source[i] := s.getString()
 END FOREACH
-FOREACH ln OF r.get_dictionary()["line_numbers"].get_array() DO
-    LET addr: Number := ln.get_array()[0].get_number()
-    LET line: Number := ln.get_array()[1].get_number()
+FOREACH ln OF r.getDictionary()["line_numbers"].getArray() DO
+    LET addr: Number := ln.getArray()[0].getNumber()
+    LET line: Number := ln.getArray()[1].getNumber()
     LineFromAddress[addr] := line
     AddressFromLine[line] := addr
 END FOREACH
-FOREACH g OF r.get_dictionary()["globals"].get_array() DO
-    Globals[g.get_dictionary()["name"].get_string()] := Global(
-        index AS g.get_dictionary()["index"].get_number(),
-        repr AS g.get_dictionary()["type"].get_dictionary()["representation"].get_string()
+FOREACH g OF r.getDictionary()["globals"].getArray() DO
+    Globals[g.getDictionary()["name"].getString()] := Global(
+        index AS g.getDictionary()["index"].getNumber(),
+        repr AS g.getDictionary()["type"].getDictionary()["representation"].getString()
     )
 END FOREACH
 
@@ -79,16 +79,16 @@ LOOP
         EXCEPTION http.HttpError
             EXIT LOOP
         END TRY
-    UNTIL r.get_dictionary()["state"].get_string() = "stopped"
+    UNTIL r.getDictionary()["state"].getString() = "stopped"
 
-    IF r.get_dictionary()["log_messages"].get_number() > 0 THEN
+    IF r.getDictionary()["log_messages"].getNumber() > 0 THEN
         LET log: variant.Variant := post("/log", "")
-        FOREACH message OF log.get_array() DO
-            print(message.get_string())
+        FOREACH message OF log.getArray() DO
+            print(message.getString())
         END FOREACH
     END IF
 
-    LET ip: Number := r.get_dictionary()["ip"].get_number()
+    LET ip: Number := r.getDictionary()["ip"].getNumber()
     IF LineFromAddress[ip] > 0 THEN
         print("\(LineFromAddress[ip]) | \(Source[LineFromAddress[ip]])")
     ELSE
@@ -118,7 +118,7 @@ LOOP
     ELSIF a[0] IN ["p", "print"] THEN
         LET g: Global := Globals[a[1]]
         r := get("/module/-/global/\(g.index)")
-        LET v: variant.Variant := r.get_dictionary()["value"]
+        LET v: variant.Variant := r.getDictionary()["value"]
         print("\(v)")
     ELSIF a[0] IN ["q", "quit"] THEN
         r := post("/quit", "")
@@ -127,7 +127,7 @@ LOOP
         r := post("/continue", "")
     ELSIF a[0] IN ["s", "stack"] THEN
         r := get("/opstack")
-        print(r.to_string())
+        print(r.toString())
     ELSE
         print("Unknown command: \(a[0])")
     END IF

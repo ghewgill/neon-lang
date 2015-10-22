@@ -27,11 +27,11 @@ TYPE Socket IS RECORD
 END RECORD
 
 %|
- |  Function: tcp_socket
+ |  Function: tcpSocket
  |
  |  Create a new TCP/IP (stream) socket.
  |%
-DECLARE NATIVE FUNCTION tcp_socket(): Socket
+DECLARE NATIVE FUNCTION tcpSocket(): Socket
 
 DECLARE NATIVE FUNCTION socket_accept(handle: Handle): Socket
 DECLARE NATIVE FUNCTION socket_close(handle: Handle)

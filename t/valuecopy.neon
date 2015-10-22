@@ -10,20 +10,20 @@ p := NEW Rec
 q := NEW Rec
 
 a.name := "foo"
-value_copy(b, a)
+valueCopy(b, a)
 print(b.name)
 %= foo
 
 IF VALID p AS pp THEN
     a.name := "bar"
-    value_copy(pp, a)
+    valueCopy(pp, a)
     print(pp->name)
 END IF
 %= bar
 
 IF VALID p AS pp THEN
     pp->name := "baz"
-    value_copy(a, pp)
+    valueCopy(a, pp)
     print(a.name)
 END IF
 %= baz
@@ -31,7 +31,7 @@ END IF
 IF VALID p AS pp THEN
     IF VALID q AS qq THEN
         pp->name := "quux"
-        value_copy(qq, pp)
+        valueCopy(qq, pp)
         print(qq->name)
     END IF
 END IF

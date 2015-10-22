@@ -23,6 +23,6 @@ END FOR
 
 FOR i := 0 TO sieve.size() - 1 DO
     IF sieve[i] THEN
-        print(i.to_string())
+        print(i.toString())
     END IF
 END FOR

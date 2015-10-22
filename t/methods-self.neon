@@ -3,7 +3,7 @@ TYPE Rec IS RECORD
     value: Number
 END RECORD
 
-FUNCTION Rec.to_string(self: Number): String
+FUNCTION Rec.toString(self: Number): String
     RETURN "foo"
 END FUNCTION
 

@@ -10,10 +10,10 @@ print("\(s.sizeof())")
 %= 24
 
 VAR b: Bytes := s.pack({
-    "field1": variant.make_number(500),
-    "field2": variant.make_string("hello"),
+    "field1": variant.makeNumber(500),
+    "field2": variant.makeString("hello"),
 })
-VAR a: Array<Number> := b.to_array()
+VAR a: Array<Number> := b.toArray()
 print("\(a.size())")
 %= 24
 print(str(a[0]))
@@ -38,12 +38,12 @@ print(str(a[9]))
 %= 0
 
 LET v: Dictionary<variant.Variant> := s.unpack(b)
-print(str(v["field1"].get_number()))
+print(str(v["field1"].getNumber()))
 %= 500
-print(v["field2"].get_string())
+print(v["field2"].getString())
 %= hello
 
-b := s.pack({"field2": variant.make_string("hi")})
-a := b.to_array()
+b := s.pack({"field2": variant.makeString("hi")})
+a := b.toArray()
 print("\(a.size())")
 %= 24

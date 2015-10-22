@@ -1,9 +1,9 @@
 VAR n: Number := 5
-print(n.to_string())
+print(n.toString())
 %= 5
 
 VAR b: Boolean := TRUE
-print(b.to_string())
+print(b.toString())
 %= TRUE
 
 TYPE Colour IS ENUM
@@ -12,5 +12,5 @@ TYPE Colour IS ENUM
     blue
 END ENUM
 VAR c: Colour := Colour.green
-print(c.to_string())
+print(c.toString())
 %= green

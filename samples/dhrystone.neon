@@ -413,7 +413,7 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
           % corresponds to "rename" in Ada, "with" in Pascal
 
           IF VALID Ptr_Glob THEN
-            value_copy(Next_Record, Ptr_Glob)
+            valueCopy(Next_Record, Ptr_Glob)
           END IF
           Ptr_Val_Par->Int_Comp := 5
           Next_Record->Int_Comp := Ptr_Val_Par->Int_Comp
@@ -431,7 +431,7 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
             Proc_7 (Next_Record->Int_Comp, 10,
                     Next_Record->Int_Comp)
           ELSE
-            value_copy(Ptr_Val_Par, Next_Record)
+            valueCopy(Ptr_Val_Par, Next_Record)
           END IF
       END IF
   END IF
@@ -748,9 +748,9 @@ FUNCTION main()
     print ("Ptr_Glob->")
     print ("  Ptr_Comp:          ") % & Ptr_Glob->Ptr_Comp)
     print ("        should be:   (implementation-dependent)")
-    print ("  Discr:             " & Ptr_Glob->Discr.to_string())
+    print ("  Discr:             " & Ptr_Glob->Discr.toString())
     print ("        should be:   " & "Ident_1")
-    print ("  Enum_Comp:         " & Ptr_Glob->Enum_Comp.to_string())
+    print ("  Enum_Comp:         " & Ptr_Glob->Enum_Comp.toString())
     print ("        should be:   " & "Ident_3")
     print ("  Int_Comp:          " & str(Ptr_Glob->Int_Comp))
     print ("        should be:   " & str(17))
@@ -761,9 +761,9 @@ FUNCTION main()
     print ("Next_Ptr_Glob->")
     print ("  Ptr_Comp:          ") % & Next_Ptr_Glob->Ptr_Comp)
     print ("        should be:   (implementation-dependent), same as above")
-    print ("  Discr:             " & Next_Ptr_Glob->Discr.to_string())
+    print ("  Discr:             " & Next_Ptr_Glob->Discr.toString())
     print ("        should be:   " & "Ident_1")
-    print ("  Enum_Comp:         " & Next_Ptr_Glob->Enum_Comp.to_string())
+    print ("  Enum_Comp:         " & Next_Ptr_Glob->Enum_Comp.toString())
     print ("        should be:   " & "Ident_2")
     print ("  Int_Comp:          " & str(Next_Ptr_Glob->Int_Comp))
     print ("        should be:   " & str(18))
@@ -776,7 +776,7 @@ FUNCTION main()
   print ("        should be:   " & str(13))
   print ("Int_3_Loc:           " & str(Int_3_Loc))
   print ("        should be:   " & str(7))
-  print ("Enum_Loc:            " & Enum_Loc.to_string())
+  print ("Enum_Loc:            " & Enum_Loc.toString())
   print ("        should be:   " & "Ident_2")
   print ("Str_1_Loc:           " &  Str_1_Loc)
   print ("        should be:   DHRYSTONE PROGRAM, 1'ST STRING")

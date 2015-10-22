@@ -10,9 +10,9 @@ EXPORT FileOpenError
 EXPORT FileWriteError
 EXPORT PathNotFound
 EXPORT PermissionDenied
-EXPORT path_join
-EXPORT path_split
-EXPORT remove_directory_tree
+EXPORT pathJoin
+EXPORT pathSplit
+EXPORT removeDirectoryTree
 
 DECLARE NATIVE CONSTANT Separator: String
 
@@ -92,11 +92,11 @@ DECLARE NATIVE FUNCTION exists(filename: String): Boolean
 DECLARE NATIVE FUNCTION files(path: String): Array<String>
 
 %|
- |  Function: is_directory
+ |  Function: isDirectory
  |
  |  Similar to <exists>, but only returns TRUE if the path actually is a directory.
  |%
-DECLARE NATIVE FUNCTION is_directory(path: String): Boolean
+DECLARE NATIVE FUNCTION isDirectory(path: String): Boolean
 
 %|
  |  Function: mkdir
@@ -111,11 +111,11 @@ DECLARE NATIVE FUNCTION is_directory(path: String): Boolean
 DECLARE NATIVE FUNCTION mkdir(path: String)
 
 %|
- |  Function: path_join
+ |  Function: pathJoin
  |
  |  Join components of a path using the <Separator> characters appropriate for the OS.
  |%
-FUNCTION path_join(first, second: String): String
+FUNCTION pathJoin(first, second: String): String
     IF first = "" THEN
         RETURN second
     END IF
@@ -133,11 +133,11 @@ FUNCTION path_join(first, second: String): String
 END FUNCTION
 
 %|
- |  Function: path_split
+ |  Function: pathSplit
  |
  |  Split a path into directory and name parts.
  |%
-FUNCTION path_split(path: String, OUT directory, name: String)
+FUNCTION pathSplit(path: String, OUT directory, name: String)
     FOR i := path.length() - 1 TO 0 STEP -1 DO
         IF path[i] IN ["/", Separator] THEN
             directory := path[FIRST TO i-1]
@@ -150,52 +150,52 @@ FUNCTION path_split(path: String, OUT directory, name: String)
 END FUNCTION
 
 %|
- |  Function: readbytes
+ |  Function: readBytes
  |
  |  Read the contents of a file into <Bytes>.
  |
  |  Exceptions:
  |      - <FileOpenError> - if the file cannot be opened
  |%
-DECLARE NATIVE FUNCTION readbytes(filename: String): Bytes
+DECLARE NATIVE FUNCTION readBytes(filename: String): Bytes
 
 %|
- |  Function: readlines
+ |  Function: readLines
  |
  |  Read the lines of a file into an array of <Strings>.
  |
  |  Exceptions:
  |      - <FileOpenError> - if the file cannot be opened
  |%
-DECLARE NATIVE FUNCTION readlines(filename: String): Array<String> 
+DECLARE NATIVE FUNCTION readLines(filename: String): Array<String> 
 
 %|
- |  Function: remove_directory_tree
+ |  Function: removeDirectoryTree
  |
  |  Remove directory tree recursively.
  |%
-FUNCTION remove_directory_tree(path: String)
+FUNCTION removeDirectoryTree(path: String)
     LET names: Array<String> := files(path)
     FOREACH name OF names DO
         IF name IN [".", ".."] THEN
             NEXT FOREACH
         END IF
-        LET pathname: String := path_join(path, name)
-        IF is_directory(name) THEN
-            remove_directory_tree(pathname)
+        LET pathname: String := pathJoin(path, name)
+        IF isDirectory(name) THEN
+            removeDirectoryTree(pathname)
         ELSE
             delete(pathname)
         END IF
     END FOREACH
-    remove_empty_directory(path)
+    removeEmptyDirectory(path)
 END FUNCTION
 
 %|
- |  Function: remove_empty_directory
+ |  Function: removeEmptyDirectory
  |
  |  Remove an empty directory.
  |%
-DECLARE NATIVE FUNCTION remove_empty_directory(path: String)
+DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String)
 
 %|
  |  Function: rename
@@ -209,7 +209,7 @@ DECLARE NATIVE FUNCTION remove_empty_directory(path: String)
 DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
 
 %|
- |  Function: writebytes
+ |  Function: writeBytes
  |
  |  Write a complete file from data in <Bytes>.
  |
@@ -217,10 +217,10 @@ DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
  |      - <FileOpenError> - if the file cannot be opened
  |      - <FileWriteError> - if an error occurs during writing
  |%
-DECLARE NATIVE FUNCTION writebytes(filename: String, data: Bytes)
+DECLARE NATIVE FUNCTION writeBytes(filename: String, data: Bytes)
 
 %|
- |  Function: writelines
+ |  Function: writeLines
  |
  |  Write a complete file from lines of text in an array.
  |
@@ -228,4 +228,4 @@ DECLARE NATIVE FUNCTION writebytes(filename: String, data: Bytes)
  |      - <FileOpenError> - if the file cannot be opened
  |      - <FileWriteError> - if an error occurs during writing
  |%
-DECLARE NATIVE FUNCTION writelines(filename: String, data: Array<String>)
+DECLARE NATIVE FUNCTION writeLines(filename: String, data: Array<String>)

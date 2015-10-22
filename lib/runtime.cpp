@@ -3,27 +3,27 @@
 
 namespace rtl {
 
-void runtime$garbage_collect()
+void runtime$garbageCollect()
 {
     executor_garbage_collect();
 }
 
-Number runtime$get_allocated_object_count()
+Number runtime$getAllocatedObjectCount()
 {
     return number_from_uint64(executor_get_allocated_object_count());
 }
 
-bool runtime$module_is_main()
+bool runtime$moduleIsMain()
 {
     return executor_module_is_main();
 }
 
-void runtime$set_garbage_collection_interval(Number count)
+void runtime$setGarbageCollectionInterval(Number count)
 {
     executor_set_garbage_collection_interval(number_to_uint64(count));
 }
 
-void runtime$set_recursion_limit(Number depth)
+void runtime$setRecursionLimit(Number depth)
 {
     executor_set_recursion_limit(number_to_uint64(depth));
 }

@@ -1,10 +1,10 @@
 VAR a: Number
 a := 1
-print(a.to_string())
+print(a.toString())
 inc(a)
-print(a.to_string())
+print(a.toString())
 dec(a)
-print(a.to_string())
+print(a.toString())
 
 %= 1
 %= 2

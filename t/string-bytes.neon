@@ -1,8 +1,8 @@
 LET s: String := "你好"
-LET b: Bytes := s.to_bytes()
-print(b.to_array().to_string())
+LET b: Bytes := s.toBytes()
+print(b.toArray().toString())
 %= [228, 189, 160, 229, 165, 189]
 
-LET t: String := b.to_string()
+LET t: String := b.toString()
 print("\(ord(t[0]):x) \(ord(t[1]):x)")
 %= 4f60 597d

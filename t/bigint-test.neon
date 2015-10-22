@@ -3,27 +3,27 @@ IMPORT math
 IMPORT sys
 
 LET a: bigint.BigInt := bigint.make(12345)
-print(a.to_string())
+print(a.toString())
 %= 12345
 
 LET b: bigint.BigInt := bigint.make(23456)
-print(b.to_string())
+print(b.toString())
 %= 23456
 
 LET sum: bigint.BigInt := bigint.add(a, b)
-print(sum.to_string())
+print(sum.toString())
 %= 35801
 
 LET diff: bigint.BigInt := bigint.sub(b, a)
-print(diff.to_string())
+print(diff.toString())
 %= 11111
 
 LET prod: bigint.BigInt := bigint.mul(a, b)
-print(prod.to_string())
+print(prod.toString())
 %= 289564320
 
 %LET quot: bigint.BigInt := bigint.div(b, a)
-%print(quot.to_string())
+%print(quot.toString())
 %%= 1
 
 print("\(bigint.make(-12345))")

@@ -22,14 +22,14 @@ IMPORT variant.Variant
  |%
 DECLARE EXCEPTION JsonFormat
 
-FUNCTION skip_whitespace(json: String, INOUT index: Number)
+FUNCTION skipWhitespace(json: String, INOUT index: Number)
     WHILE index < json.length() AND (json[index] = " " OR json[index] = "\t" OR json[index] = "\r" OR json[index] = "\n") DO
         inc(index)
     END WHILE
 END FUNCTION
 
-FUNCTION decode_part(json: String, INOUT index: Number): Variant
-    skip_whitespace(json, index)
+FUNCTION decodePart(json: String, INOUT index: Number): Variant
+    skipWhitespace(json, index)
     CASE json[index]
         WHEN "a" TO "z" DO
             LET start: Number := index
@@ -39,11 +39,11 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
             LET s: String := json[start TO index-1]
             CASE s
                 WHEN "null" DO
-                    RETURN variant.make_null()
+                    RETURN variant.makeNull()
                 WHEN "false" DO
-                    RETURN variant.make_boolean(FALSE)
+                    RETURN variant.makeBoolean(FALSE)
                 WHEN "true" DO
-                    RETURN variant.make_boolean(TRUE)
+                    RETURN variant.makeBoolean(TRUE)
                 ELSE
                     RAISE JsonFormat("null or false or true expected")
             END CASE
@@ -52,7 +52,7 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
             WHILE index < json.length() AND ("0" <= json[index] <= "9" OR json[index] = "-" OR json[index] = "+" OR json[index] = "." OR json[index] = "e" OR json[index] = "E") DO
                 inc(index)
             END WHILE
-            RETURN variant.make_number(num(json[start TO index-1]))
+            RETURN variant.makeNumber(num(json[start TO index-1]))
         WHEN "\"" DO
             inc(index)
             VAR t: String := ""
@@ -67,17 +67,17 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
                 inc(index)
             END WHILE
             inc(index)
-            RETURN variant.make_string(t)
+            RETURN variant.makeString(t)
         WHEN "[" DO
             inc(index)
             VAR a: Array<Variant>
             LOOP
-                skip_whitespace(json, index)
+                skipWhitespace(json, index)
                 IF json[index] = "]" THEN
                     EXIT LOOP
                 END IF
-                a.append(decode_part(json, index))
-                skip_whitespace(json, index)
+                a.append(decodePart(json, index))
+                skipWhitespace(json, index)
                 IF json[index] = "," THEN
                     inc(index)
                 ELSIF json[index] # "]" THEN
@@ -85,27 +85,27 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
                 END IF
             END LOOP
             inc(index)
-            RETURN variant.make_array(a)
+            RETURN variant.makeArray(a)
         WHEN "{" DO
             inc(index)
             VAR d: Dictionary<Variant>
             LOOP
-                skip_whitespace(json, index)
+                skipWhitespace(json, index)
                 IF json[index] = "}" THEN
                     EXIT LOOP
                 END IF
-                LET vkey: Variant := decode_part(json, index)
-                IF vkey.get_type() # Type.string THEN
+                LET vkey: Variant := decodePart(json, index)
+                IF vkey.getType() # Type.string THEN
                     RAISE JsonFormat("string key expected")
                 END IF
-                LET key: String := vkey.get_string()
-                skip_whitespace(json, index)
+                LET key: String := vkey.getString()
+                skipWhitespace(json, index)
                 IF json[index] # ":" THEN
                     RAISE JsonFormat(": expected")
                 END IF
                 inc(index)
-                d[key] := decode_part(json, index)
-                skip_whitespace(json, index)
+                d[key] := decodePart(json, index)
+                skipWhitespace(json, index)
                 IF json[index] = "," THEN
                     inc(index)
                 ELSIF json[index] # "}" THEN
@@ -113,9 +113,9 @@ FUNCTION decode_part(json: String, INOUT index: Number): Variant
                 END IF
             END LOOP
             inc(index)
-            RETURN variant.make_dictionary(d)
+            RETURN variant.makeDictionary(d)
     END CASE
-    RETURN variant.make_null()
+    RETURN variant.makeNull()
 END FUNCTION
 
 %|
@@ -125,7 +125,7 @@ END FUNCTION
  |%
 FUNCTION decode(json: String): Variant
     VAR i: Number := 0
-    RETURN decode_part(json, i)
+    RETURN decodePart(json, i)
 END FUNCTION
 
 %|
@@ -134,18 +134,18 @@ END FUNCTION
  |  Encode a value in a <Variant> to JSON data in a string.
  |%
 FUNCTION encode(data: Variant): String
-    CASE data.get_type()
+    CASE data.getType()
         WHEN Type.null DO
             RETURN "null"
         WHEN Type.boolean DO
-            RETURN IF data.get_boolean() THEN "true" ELSE "false"
+            RETURN IF data.getBoolean() THEN "true" ELSE "false"
         WHEN Type.number DO
-            RETURN str(data.get_number())
+            RETURN str(data.getNumber())
         WHEN Type.string DO
-            RETURN "\"" & data.get_string() & "\""
+            RETURN "\"" & data.getString() & "\""
         WHEN Type.array DO
             VAR r: String := "["
-            LET a: Array<Variant> := data.get_array()
+            LET a: Array<Variant> := data.getArray()
             FOREACH x OF a DO
                 IF r.length() > 1 THEN
                     r.append(",")
@@ -156,14 +156,14 @@ FUNCTION encode(data: Variant): String
             RETURN r
         WHEN Type.dictionary DO
             VAR r: String := "{"
-            LET d: Dictionary<Variant> := data.get_dictionary()
+            LET d: Dictionary<Variant> := data.getDictionary()
             LET keys: Array<String> := d.keys()
             % TODO: This should just be d.keys(), see t/foreach-value.neon
             FOREACH x OF keys DO
                 IF r.length() > 1 THEN
                     r.append(",")
                 END IF
-                r.append(encode(variant.make_string(x)) & ":" & encode(d[x]))
+                r.append(encode(variant.makeString(x)) & ":" & encode(d[x]))
             END FOREACH
             r.append("}")
             RETURN r

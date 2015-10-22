@@ -1,20 +1,20 @@
 VAR text: Bytes
 text := HEXBYTES "de ad be ef"
-print("\(text.to_array())")
+print("\(text.toArray())")
 %= [222, 173, 190, 239]
 
 text := HEXBYTES "1 2 3 4"
-print("\(text.to_array())")
+print("\(text.toArray())")
 %= [1, 2, 3, 4]
 
 text := HEXBYTES "01 2 3 4"
-print("\(text.to_array())")
+print("\(text.toArray())")
 %= [1, 2, 3, 4]
 
 text := HEXBYTES "001 2 3 4"
-print("\(text.to_array())")
+print("\(text.toArray())")
 %= [0, 1, 2, 3, 4]
 
 text := HEXBYTES "0001 2 3 4"
-print("\(text.to_array())")
+print("\(text.toArray())")
 %= [0, 1, 2, 3, 4]

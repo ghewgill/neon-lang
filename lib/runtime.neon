@@ -5,45 +5,45 @@
  |%
 
 %|
- |  Function: garbage_collect
+ |  Function: garbageCollect
  |
  |  Force a garbage collection immediately. It is not normally necessary
  |  to call this function, since garbage collection is automatically run
  |  after a predetermined number of new allocations.
- |  Use <set_garbage_collection_interval> to change the automatic behaviour.
+ |  Use <setGarbageCollectionInterval> to change the automatic behaviour.
  |%
-DECLARE NATIVE FUNCTION garbage_collect()
+DECLARE NATIVE FUNCTION garbageCollect()
 
 %|
- |  Function: get_allocated_object_count
+ |  Function: getAllocatedObjectCount
  |
  |  Return the number of objects currently allocated. This includes
  |  objects that may be eligible for garbage collection.
  |%
-DECLARE NATIVE FUNCTION get_allocated_object_count(): Number
+DECLARE NATIVE FUNCTION getAllocatedObjectCount(): Number
 
 %|
- |  Function: module_is_main
+ |  Function: moduleIsMain
  |
  |  Return TRUE if the calling module is being run as the main program.
  |  Return FALSE if the calling module has been imported with IMPORT.
  |%
-DECLARE NATIVE FUNCTION module_is_main(): Boolean
+DECLARE NATIVE FUNCTION moduleIsMain(): Boolean
 
 %|
- |  Function: set_garbage_collection_interval
+ |  Function: setGarbageCollectionInterval
  |
  |  Set the interval that determines when garbage collection will be run.
  |  The count refers to the number of allocations. The default is 1000
  |  allocations. Setting this value to 0 disables automatic garbage
  |  collection.
  |%
-DECLARE NATIVE FUNCTION set_garbage_collection_interval(count: Number)
+DECLARE NATIVE FUNCTION setGarbageCollectionInterval(count: Number)
 
 %|
- |  Function: set_recursion_limit
+ |  Function: setRecursionLimit
  |
  |  Set the maximum permitted call stack depth. The default limit is
  |  1000. Exceeding this limit raises a <StackOverflow> exception.
  |%
-DECLARE NATIVE FUNCTION set_recursion_limit(depth: Number)
+DECLARE NATIVE FUNCTION setRecursionLimit(depth: Number)

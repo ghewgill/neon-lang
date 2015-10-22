@@ -2,7 +2,7 @@ IMPORT net
 
 VAR clients: Array<net.Socket>
 
-LET server: net.Socket := net.tcp_socket()
+LET server: net.Socket := net.tcpSocket()
 server.listen(10007)
 LOOP
     VAR read: Array<net.Socket> := [server]

@@ -1,10 +1,10 @@
 VAR buf: Bytes
 
-buf.from_array([1, 2, 3, 0, 4])
+buf.fromArray([1, 2, 3, 0, 4])
 print("\(buf.size())")
 %= 5
 
-VAR a: Array<Number> := buf.to_array()
+VAR a: Array<Number> := buf.toArray()
 print("\(a.size())")
 %= 5
 print("\(a[0]), \(a[4])")

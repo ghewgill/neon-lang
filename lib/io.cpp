@@ -54,7 +54,7 @@ void *io$open(const std::string &name, Cell &mode)
     return fopen(name.c_str(), m);
 }
 
-std::string io$read_bytes(void *pf, Number count)
+std::string io$readBytes(void *pf, Number count)
 {
     FILE *f = check_file(pf);
     uint64_t ncount = number_to_uint64(count);
@@ -64,7 +64,7 @@ std::string io$read_bytes(void *pf, Number count)
     return r;
 }
 
-bool io$readline(void *pf, utf8string *s)
+bool io$readLine(void *pf, utf8string *s)
 {
     FILE *f = check_file(pf);
     s->clear();
@@ -133,7 +133,7 @@ void io$write(void *pf, const std::string &s)
     fputs(s.c_str(), f);
 }
 
-void io$write_bytes(void *pf, const std::string &b)
+void io$writeBytes(void *pf, const std::string &b)
 {
     FILE *f = check_file(pf);
     fwrite(b.data(), 1, b.size(), f);

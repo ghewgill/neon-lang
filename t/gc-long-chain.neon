@@ -13,11 +13,11 @@ END FUNCTION
 
 VAR a: POINTER TO Node := NIL
 
-ASSERT runtime.get_allocated_object_count() = 0
+ASSERT runtime.getAllocatedObjectCount() = 0
 FOR i := 1 TO 10000 DO
     a := make(a)
-    ASSERT i = runtime.get_allocated_object_count()
+    ASSERT i = runtime.getAllocatedObjectCount()
 END FOR
 a := NIL
-runtime.garbage_collect()
-ASSERT runtime.get_allocated_object_count() = 0
+runtime.garbageCollect()
+ASSERT runtime.getAllocatedObjectCount() = 0

@@ -442,7 +442,7 @@ class InterpolatedStringExpression:
                   else neon_strb(env, x) if isinstance(x, bool)
                   else str(x) if isinstance(x, int)
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in x)) if isinstance(x, list)
-                  else x.to_string(x))
+                  else x.toString(x))
             r += neon_format(env, s, f) if f else s
         return r
 
@@ -496,23 +496,23 @@ class DotExpression:
     def eval(self, env):
         obj = self.expr.eval(env)
         if isinstance(obj, bool):
-            if self.field == "to_string": return lambda env: neon_strb(env, obj)
+            if self.field == "toString": return lambda env: neon_strb(env, obj)
             assert False, self.field
         elif isinstance(obj, int):
-            if self.field == "to_string": return lambda env: str(obj)
+            if self.field == "toString": return lambda env: str(obj)
             assert False, self.field
         elif isinstance(obj, (str, unicode)):
             if self.field == "append": return neon_string_append
-            if self.field == "to_array": return lambda env: [ord(x) for x in obj]
-            if self.field == "to_bytes": return lambda env: "".join(x for x in obj.encode("utf-8"))
-            if self.field == "to_string": return lambda env: obj.decode("utf-8")
+            if self.field == "toArray": return lambda env: [ord(x) for x in obj]
+            if self.field == "toBytes": return lambda env: "".join(x for x in obj.encode("utf-8"))
+            if self.field == "toString": return lambda env: obj.decode("utf-8")
             assert False, self.field
         elif isinstance(obj, list):
             if self.field == "append": return lambda env, x: obj.append(x)
             if self.field == "extend": return lambda env, x: obj.extend(x)
             if self.field == "resize": return lambda env, n: neon_array_resize(obj, n)
             if self.field == "size": return lambda env: len(obj)
-            if self.field == "to_string": return lambda env: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
+            if self.field == "toString": return lambda env: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
             assert False, self.field
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env: obj.keys()
@@ -1749,11 +1749,11 @@ class ClassBytes(Class):
         class Bytes:
             def __init__(self):
                 self.a = []
-            def from_array(self, env, a):
+            def fromArray(self, env, a):
                 self.a = list(a)
             def size(self, env):
                 return len(self.a)
-            def to_array(self, env):
+            def toArray(self, env):
                 return list(self.a)
         return Bytes()
 
@@ -1794,7 +1794,7 @@ class ClassEnum(Class):
     class Instance:
         def __init__(self, name):
             self.name = name
-        def to_string(self, env):
+        def toString(self, env):
             return self.name
     def __init__(self, names):
         self.names = names
@@ -1988,23 +1988,23 @@ def neon_file_exists(env, fn):
 def neon_file_files(env, path):
     return os.listdir(path)
 
-def neon_file_is_directory(env, path):
+def neon_file_isDirectory(env, path):
     return os.path.isdir(path)
 
 def neon_file_mkdir(env, path):
     return os.mkdir(path)
 
-def neon_file_readbytes(env, fn):
+def neon_file_readBytes(env, fn):
     with open(fn, "rb") as f:
         r = ClassBytes().default(env)
-        r.from_array(env, [ord(x) for x in f.read()])
+        r.fromArray(env, [ord(x) for x in f.read()])
         return r
 
-def neon_file_readlines(env, fn):
+def neon_file_readLines(env, fn):
     with open(fn, "r") as f:
         return list(map(str.rstrip, f.readlines()))
 
-def neon_file_remove_empty_directory(env, path):
+def neon_file_removeEmptyDirectory(env, path):
     try:
         os.rmdir(path)
     except OSError:
@@ -2013,11 +2013,11 @@ def neon_file_remove_empty_directory(env, path):
 def neon_file_rename(env, old, new):
     os.rename(old, new)
 
-def neon_file_writebytes(env, fn, bytes):
+def neon_file_writeBytes(env, fn, bytes):
     with open(fn, "wb") as f:
         f.write("".join(chr(x) for x in bytes.a))
 
-def neon_file_writelines(env, fn, lines):
+def neon_file_writeLines(env, fn, lines):
     with open(fn, "wb") as f:
         f.writelines(x.encode()+"\n" for x in lines)
 
@@ -2105,7 +2105,7 @@ ExcludeTests = [
     "t/string-test.neon",       # Module not required yet
     "t/strings.neon",           # Feature not required yet
     "t/struct-test.neon",       # Module not required yet
-    "t/value_copy.neon",        # Feature not required yet
+    "t/valuecopy.neon",         # Feature not required yet
 ]
 
 if sys.argv[1].replace("\\", "/") in ExcludeTests:

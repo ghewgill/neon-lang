@@ -204,12 +204,12 @@ Number bitwise$replace32(Number x, Number n, Number w, Number y)    { return bit
 Number bitwise$replace64(Number x, Number n, Number w, Number y)    { return bitwise_replace<uint64_t>(x, n, w, y); }
 Number bitwise$set32(Number x, Number n, bool v)                    { return bitwise_set<uint32_t>(x, n, v); }
 Number bitwise$set64(Number x, Number n, bool v)                    { return bitwise_set<uint64_t>(x, n, v); }
-Number bitwise$shift_left32(Number x, Number n)                     { return bitwise_shift_left<uint32_t>(x, n); }
-Number bitwise$shift_left64(Number x, Number n)                     { return bitwise_shift_left<uint64_t>(x, n); }
-Number bitwise$shift_right32(Number x, Number n)                    { return bitwise_shift_right<uint32_t>(x, n); }
-Number bitwise$shift_right64(Number x, Number n)                    { return bitwise_shift_right<uint64_t>(x, n); }
-Number bitwise$shift_right_signed32(Number x, Number n)             { return bitwise_shift_right_signed<int32_t>(x, n); }
-Number bitwise$shift_right_signed64(Number x, Number n)             { return bitwise_shift_right_signed<int64_t>(x, n); }
+Number bitwise$shiftLeft32(Number x, Number n)                      { return bitwise_shift_left<uint32_t>(x, n); }
+Number bitwise$shiftLeft64(Number x, Number n)                      { return bitwise_shift_left<uint64_t>(x, n); }
+Number bitwise$shiftRight32(Number x, Number n)                     { return bitwise_shift_right<uint32_t>(x, n); }
+Number bitwise$shiftRight64(Number x, Number n)                     { return bitwise_shift_right<uint64_t>(x, n); }
+Number bitwise$shiftRightSigned32(Number x, Number n)               { return bitwise_shift_right_signed<int32_t>(x, n); }
+Number bitwise$shiftRightSigned64(Number x, Number n)               { return bitwise_shift_right_signed<int64_t>(x, n); }
 Number bitwise$xor32(Number x, Number y)                            { return bitwise_xor<uint32_t>(x, y); }
 Number bitwise$xor64(Number x, Number y)                            { return bitwise_xor<uint64_t>(x, y); }
 

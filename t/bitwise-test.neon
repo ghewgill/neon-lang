@@ -24,13 +24,13 @@ print(str(bitwise.set32(10, 1, FALSE)))
 print(str(bitwise.set32(10, 2, TRUE)))
 %= 14
 
-print(str(bitwise.shift_left32(10, 2)))
+print(str(bitwise.shiftLeft32(10, 2)))
 %= 40
 
-print(str(bitwise.shift_right32(10, 2)))
+print(str(bitwise.shiftRight32(10, 2)))
 %= 2
 
-print(str(bitwise.shift_right_signed32(-10, 2)))
+print(str(bitwise.shiftRightSigned32(-10, 2)))
 %= -3
 
 print(str(bitwise.xor32(10, 12)))

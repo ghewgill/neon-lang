@@ -44,13 +44,13 @@ CONSTANT Pieces: Array<Piece> := [
            [0,0,0,0]], 2)
 ]
 
-VAR Board: multiarray.ArrayNumber2D := multiarray.make_number2D(BOARD_HEIGHT, BOARD_WIDTH)
+VAR Board: multiarray.ArrayNumber2D := multiarray.makeNumber2D(BOARD_HEIGHT, BOARD_WIDTH)
 VAR BoardWindow: curses.Window
 VAR NextWindow: curses.Window
 VAR StatsWindow: curses.Window
 
 FUNCTION rotated(p, r: Number): multiarray.ArrayNumber2D
-    VAR q: multiarray.ArrayNumber2D := multiarray.make_number2D(4, 4)
+    VAR q: multiarray.ArrayNumber2D := multiarray.makeNumber2D(4, 4)
     CASE Pieces[p].rot
         WHEN 1 DO
             q := Pieces[p].grid

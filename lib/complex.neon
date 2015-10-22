@@ -546,6 +546,6 @@ FUNCTION Complex.tanh(self: Complex): Complex
     RETURN tanh(self)
 END FUNCTION
 
-FUNCTION Complex.to_string(self: Complex): String
+FUNCTION Complex.toString(self: Complex): String
     RETURN "(\(self.re), \(self.im))"
 END FUNCTION

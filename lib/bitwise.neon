@@ -285,7 +285,7 @@ DECLARE NATIVE FUNCTION set32(x, n: Number, v: Boolean): Number
 DECLARE NATIVE FUNCTION set64(x, n: Number, v: Boolean): Number
 
 %|
- |  Function: shift_left32
+ |  Function: shiftLeft32
  |
  |  Shift a 32-bit word left by a given number of bits.
  |
@@ -296,10 +296,10 @@ DECLARE NATIVE FUNCTION set64(x, n: Number, v: Boolean): Number
  |  Description:
  |      New bits shifted into the right hand side of the word are 0.
  |%
-DECLARE NATIVE FUNCTION shift_left32(x, n: Number): Number
+DECLARE NATIVE FUNCTION shiftLeft32(x, n: Number): Number
 
 %|
- |  Function: shift_left64
+ |  Function: shiftLeft64
  |
  |  Shift a 64-bit word left by a given number of bits.
  |
@@ -310,10 +310,10 @@ DECLARE NATIVE FUNCTION shift_left32(x, n: Number): Number
  |  Description:
  |      New bits shifted into the right hand side of the word are 0.
  |%
-DECLARE NATIVE FUNCTION shift_left64(x, n: Number): Number
+DECLARE NATIVE FUNCTION shiftLeft64(x, n: Number): Number
 
 %|
- |  Function: shift_right32
+ |  Function: shiftRight32
  |
  |  Shift a 32-bit word right by a given number of bits.
  |
@@ -324,10 +324,10 @@ DECLARE NATIVE FUNCTION shift_left64(x, n: Number): Number
  |  Description:
  |      New bits shifted into the left hand side of the word are 0.
  |%
-DECLARE NATIVE FUNCTION shift_right32(x, n: Number): Number
+DECLARE NATIVE FUNCTION shiftRight32(x, n: Number): Number
 
 %|
- |  Function: shift_right64
+ |  Function: shiftRight64
  |
  |  Shift a 64-bit word right by a given number of bits.
  |
@@ -338,10 +338,10 @@ DECLARE NATIVE FUNCTION shift_right32(x, n: Number): Number
  |  Description:
  |      New bits shifted into the left hand side of the word are 0.
  |%
-DECLARE NATIVE FUNCTION shift_right64(x, n: Number): Number
+DECLARE NATIVE FUNCTION shiftRight64(x, n: Number): Number
 
 %|
- |  Function: shift_right_signed32
+ |  Function: shiftRightSigned32
  |
  |  Shift a 32-bit word right by a given number of bits, preserving the sign bit.
  |
@@ -352,10 +352,10 @@ DECLARE NATIVE FUNCTION shift_right64(x, n: Number): Number
  |  Description:
  |      New bits shifted into the left hand side of the word are the same as the original leftmost bit.
  |%
-DECLARE NATIVE FUNCTION shift_right_signed32(x, n: Number): Number
+DECLARE NATIVE FUNCTION shiftRightSigned32(x, n: Number): Number
 
 %|
- |  Function: shift_right_signed64
+ |  Function: shiftRightSigned64
  |
  |  Shift a 64-bit word right by a given number of bits, preserving the sign bit.
  |
@@ -366,7 +366,7 @@ DECLARE NATIVE FUNCTION shift_right_signed32(x, n: Number): Number
  |  Description:
  |      New bits shifted into the left hand side of the word are the same as the original leftmost bit.
  |%
-DECLARE NATIVE FUNCTION shift_right_signed64(x, n: Number): Number
+DECLARE NATIVE FUNCTION shiftRightSigned64(x, n: Number): Number
 
 %|
  |  Function: xor32

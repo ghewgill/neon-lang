@@ -6,10 +6,10 @@ END RECORD
 VAR r: Rec
 r.name := "foo"
 r.value := 5
-print(r.to_string())
+print(r.toString())
 
-FUNCTION Rec.to_string(self: Rec): String
-    RETURN self.name & self.value.to_string()
+FUNCTION Rec.toString(self: Rec): String
+    RETURN self.name & self.value.toString()
 END FUNCTION
 
 %= foo5

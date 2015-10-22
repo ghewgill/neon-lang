@@ -4,8 +4,8 @@ IMPORT regex
 IMPORT string
 IMPORT variant
 
-FUNCTION to_bytes(s: String): Bytes
-    RETURN s.to_bytes()
+FUNCTION toBytes(s: String): Bytes
+    RETURN s.toBytes()
 END FUNCTION
 
 TYPE Response IS RECORD
@@ -40,7 +40,7 @@ FUNCTION HttpServer.addHandler(INOUT self: HttpServer, path: String, callback: R
 END FUNCTION
 
 FUNCTION HttpServer.serve(INOUT self: HttpServer)
-    self.server := net.tcp_socket()
+    self.server := net.tcpSocket()
     self.server.listen(self.port)
     LOOP
         VAR read: Array<net.Socket> := [self.server]
@@ -66,7 +66,7 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
 END FUNCTION
 
 FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client): Boolean
-    client.header.append(client.socket.recv(1000).to_string())
+    client.header.append(client.socket.recv(1000).toString())
     IF client.header[LAST-3 TO LAST] = "\r\n\r\n" THEN
         self.handle_request(client)
         RETURN TRUE
@@ -96,23 +96,23 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     IF NOT found THEN
         response.code := 404
         response.content_type := "text/plain"
-        response.content := to_bytes("not found")
+        response.content := toBytes("not found")
     END IF
     print("\(method) \(path) \(response.code)")
-    client.socket.send(to_bytes("HTTP/1.0 \(response.code) ok\r\n"))
-    client.socket.send(to_bytes("Content-type: \(response.content_type)\r\n"))
+    client.socket.send(toBytes("HTTP/1.0 \(response.code) ok\r\n"))
+    client.socket.send(toBytes("Content-type: \(response.content_type)\r\n"))
     FOREACH h OF response.headers.keys() DO
-        client.socket.send(to_bytes("\(h): \(response.headers[h])\r\n"))
+        client.socket.send(toBytes("\(h): \(response.headers[h])\r\n"))
     END FOREACH
-    client.socket.send(to_bytes("Content-length: \(response.content.size())\r\n"))
-    client.socket.send(to_bytes("\r\n"))
+    client.socket.send(toBytes("Content-length: \(response.content.size())\r\n"))
+    client.socket.send(toBytes("\r\n"))
     client.socket.send(response.content)
 END FUNCTION
 
 FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
     VAR r: Response
-    LET local_path: String := params[0].get_string() & path
-    IF file.is_directory(local_path) THEN
+    LET local_path: String := params[0].getString() & path
+    IF file.isDirectory(local_path) THEN
         IF path[LAST] # "/" THEN
             r.code := 302
             r.content_type := "text/plain"
@@ -130,22 +130,22 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
             page.append("</table>\n")
             page.append("</body>\n")
             page.append("</html>\n")
-            r.content := page.to_bytes()
+            r.content := page.toBytes()
         END IF
     ELSE
         TRY
             r.code := 200
             r.content_type := "text/plain"
-            r.content := file.readbytes(local_path)
+            r.content := file.readBytes(local_path)
         EXCEPTION file.FileOpenError
             r.code := 404
             r.content_type := "text/plain"
-            r.content := to_bytes("file not found")
+            r.content := toBytes("file not found")
         END TRY
     END IF
     RETURN r
 END FUNCTION
 
 VAR server: HttpServer := HttpServer(port AS 8080)
-server.addHandler("/", path_handler, [variant.make_string(".")])
+server.addHandler("/", path_handler, [variant.makeString(".")])
 server.serve()

@@ -114,7 +114,7 @@ std::vector<utf8string> file$files(const std::string &path)
     return r;
 }
 
-bool file$is_directory(const std::string &path)
+bool file$isDirectory(const std::string &path)
 {
     struct stat st;
     return stat(path.c_str(), &st) == 0 && (st.st_mode & S_IFDIR) != 0;
@@ -128,7 +128,7 @@ void file$mkdir(const std::string &path)
     }
 }
 
-void file$remove_empty_directory(const std::string &path)
+void file$removeEmptyDirectory(const std::string &path)
 {
     int r = rmdir(path.c_str());
     if (r != 0) {

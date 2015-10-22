@@ -82,7 +82,7 @@ Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number l
     return Cell(r);
 }
 
-std::string array__to_string__number(const std::vector<Number> &a)
+std::string array__toString__number(const std::vector<Number> &a)
 {
     std::string r = "[";
     for (Number x: a) {
@@ -95,7 +95,7 @@ std::string array__to_string__number(const std::vector<Number> &a)
     return r;
 }
 
-std::string array__to_string__string(const std::vector<utf8string> &a)
+std::string array__toString__string(const std::vector<utf8string> &a)
 {
     std::string r = "[";
     for (utf8string x: a) {
@@ -109,7 +109,7 @@ std::string array__to_string__string(const std::vector<utf8string> &a)
     return r;
 }
 
-std::string boolean__to_string(bool self)
+std::string boolean__toString(bool self)
 {
     return self ? "TRUE" : "FALSE";
 }
@@ -128,7 +128,7 @@ std::vector<utf8string> dictionary__keys(Cell &self)
     return r;
 }
 
-std::string number__to_string(Number self)
+std::string number__toString(Number self)
 {
     return number_to_string(self);
 }
@@ -175,12 +175,12 @@ std::string string__substring(const std::string &t, Number first, bool first_fro
     return s.substr(start, end-start);
 }
 
-std::string string__to_bytes(const std::string &self)
+std::string string__toBytes(const std::string &self)
 {
     return self;
 }
 
-void bytes__from_array(utf8string *self, const std::vector<Number> &a)
+void bytes__fromArray(utf8string *self, const std::vector<Number> &a)
 {
     self->clear();
     self->reserve(a.size());
@@ -198,7 +198,7 @@ Number bytes__size(const std::string &self)
     return number_from_uint64(self.length());
 }
 
-std::vector<Number> bytes__to_array(const std::string &self)
+std::vector<Number> bytes__toArray(const std::string &self)
 {
     std::vector<Number> r;
     for (auto x: self) {
@@ -207,7 +207,7 @@ std::vector<Number> bytes__to_array(const std::string &self)
     return r;
 }
 
-std::string bytes__to_string(const std::string &self)
+std::string bytes__toString(const std::string &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
@@ -216,12 +216,12 @@ std::string bytes__to_string(const std::string &self)
     return self;
 }
 
-std::string pointer__to_string(void *p)
+std::string pointer__toString(void *p)
 {
     return "<p:" + std::to_string(reinterpret_cast<intptr_t>(p)) + ">";
 }
 
-std::string functionpointer__to_string(Cell &p)
+std::string functionpointer__toString(Cell &p)
 {
     return "<fp:ip=" + number_to_string(p.number()) + ">";
 }

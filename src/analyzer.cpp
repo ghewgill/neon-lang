@@ -481,7 +481,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std:
         std::vector<FunctionParameter *> params;
         FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::IN, nullptr);
         params.push_back(fp);
-        Function *f = new Function(Token(), "enum.to_string", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params);
+        Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -496,7 +496,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std:
             values[n.second] = new ConstantStringExpression(n.first);
         }
         f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values), new VariableExpression(fp), false)));
-        methods["to_string"] = f;
+        methods["toString"] = f;
     }
 }
 
@@ -1083,14 +1083,14 @@ const Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr
         if (e->type->is_assignment_compatible(TYPE_STRING)) {
             str = e;
         } else {
-            auto to_string = e->type->methods.find("to_string");
-            if (to_string == e->type->methods.end()) {
-                error(3132, x.first->token, "no to_string() method found for type");
+            auto toString = e->type->methods.find("toString");
+            if (toString == e->type->methods.end()) {
+                error(3132, x.first->token, "no toString() method found for type");
             }
             {
                 std::vector<const Expression *> args;
                 args.push_back(e);
-                str = new FunctionCall(new VariableExpression(to_string->second), args);
+                str = new FunctionCall(new VariableExpression(toString->second), args);
             }
         }
         if (not fmt.empty()) {
@@ -1115,7 +1115,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
 {
     const pt::IdentifierExpression *fname = dynamic_cast<const pt::IdentifierExpression *>(expr->base);
     if (fname != nullptr) {
-        if (fname->name == "value_copy") {
+        if (fname->name == "valueCopy") {
             if (expr->args.size() != 2) {
                 error(3136, expr->rparen, "two arguments expected");
             }
@@ -1125,7 +1125,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 error(3119, expr->args[0].second->token, "expression is not assignable");
             }
             if (lhs_expr->is_readonly && dynamic_cast<const TypePointer *>(lhs_expr->type) == nullptr) {
-                error(3120, expr->args[0].second->token, "value_copy to readonly expression");
+                error(3120, expr->args[0].second->token, "valueCopy to readonly expression");
             }
             const Expression *rhs = analyze(expr->args[1].second);
             const Type *ltype = lhs->type;
