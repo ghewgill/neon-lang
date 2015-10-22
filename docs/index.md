@@ -569,7 +569,7 @@ In the above example, `b` contains `["foo", "bar"]` and `c` contains `["bar", "b
 
 Literal strings may contain embedded expressions surrounded by the special escape `\( )`.
 These expressions are evaluated at run time.
-The type of the embedded expression must have a `.to_string()` method which will be called automatically to convert the result to a string.
+The type of the embedded expression must have a `.toString()` method which will be called automatically to convert the result to a string.
 
 Example:
 
@@ -835,7 +835,7 @@ Example:
     
     VAR size: Number := 5
     IF size > 4 THEN
-        RAISE InvalidWidgetSize(size.to_string())
+        RAISE InvalidWidgetSize(size.toString())
     END IF
 
 The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
@@ -887,7 +887,7 @@ Example:
     VAR size: Number := 5
     TRY
         IF size > 4 THEN
-            RAISE InvalidWidgetSize(size.to_string())
+            RAISE InvalidWidgetSize(size.toString())
         END IF
     EXCEPTION InvalidWidgetSize
         print("Invalid size \(CURRENT_EXCEPTION.info)")

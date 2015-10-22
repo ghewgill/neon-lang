@@ -106,7 +106,7 @@ To resolve this problem, Neon requires an explicitly terminated block in every c
     VAR x: Number
 
     WHILE x < 5 DO
-        print(x.to_string())
+        print(x.toString())
     END WHILE
 
 <a name="logical_alternative"></a>

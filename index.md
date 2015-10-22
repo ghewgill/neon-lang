@@ -38,7 +38,7 @@ Another well-known example is the classic "FizzBuzz" program:
         ELSIF i MOD 5 = 0 THEN
             print("Buzz")
         ELSE
-            print(i.to_string())
+            print(i.toString())
         END IF
     END FOR
 
