@@ -306,6 +306,8 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
             else if (t.text == "HEXBYTES") t.type = HEXBYTES;
             else if (all_upper(t.text)) {
                 error(1023, t, "identifier cannot be all upper case (reserved for keywords)");
+            } else if (t.text.find("__") != std::string::npos) {
+                error(1024, t, "identifier cannot contain double underscore (reserved)");
             }
         } else if (number_start(c)) {
             t.type = NUMBER;
