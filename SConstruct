@@ -1,4 +1,5 @@
 import distutils.spawn
+import operator
 import os
 import re
 import shutil
@@ -407,24 +408,24 @@ for path, dirs, files in os.walk("."):
         samples.extend(os.path.join(path, x) for x in files if x.endswith(".neon") and x != "global.neon")
 for sample in samples:
     env.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
-env.Command("tests_2", ["samples/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
+env.Command("tests_2", ["samples/hello/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
 
-env.Command("test_grammar", ["contrib/grammar/neon.ebnf", "src/parser.cpp"], sys.executable + " contrib/grammar/test-grammar.py lib/*.neon samples/*.neon t/*.neon t/errors/N3*.neon >$TARGET")
+env.Command("test_grammar", ["contrib/grammar/neon.ebnf", "src/parser.cpp"], sys.executable + " contrib/grammar/test-grammar.py lib/*.neon {} t/*.neon t/errors/N3*.neon >$TARGET".format(" ".join(x for x in reduce(operator.add, ([os.path.join(path, x) for x in files] for path, dirs, files in os.walk("samples"))) if x.endswith(".neon"))))
 env.Command("test_grammar_random", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-random.py")
 env.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "contrib/grammar/ebnf_w3c.neon", neon], neon[0].path + " contrib/grammar/ebnf_w3c.neon <$SOURCE >$TARGET")
 
 env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
 
 if os.name == "posix":
-    env.Command("tmp/hello", "samples/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
+    env.Command("tmp/hello", "samples/hello/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
     env.Command("tests_script", "tmp/hello", "env PATH=bin tmp/hello")
 
-hello_neb = env.Command("tmp/hello.neb", ["samples/hello.neonx", neonbind], "{} $TARGET $SOURCE".format(neonbind[0].path))
+hello_neb = env.Command("tmp/hello.neb", ["samples/hello/hello.neonx", neonbind], "{} $TARGET $SOURCE".format(neonbind[0].path))
 env.Command("test_hello_neb", [hello_neb, neonx], "{} $SOURCE".format(neonx[0].path))
 
-hello_exe = env.Command("tmp/hello.exe", ["samples/hello.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
+hello_exe = env.Command("tmp/hello.exe", ["samples/hello/hello.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
 env.Command("test_hello_exe", hello_exe, hello_exe[0].path)
-cal_exe = env.Command("tmp/cal.exe", ["samples/cal.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
+cal_exe = env.Command("tmp/cal.exe", ["samples/cal/cal.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
 env.Command("test_cal", cal_exe, cal_exe[0].path)
 
 # Need to find where perl actually is, in case it's not in

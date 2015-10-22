@@ -2,7 +2,7 @@ IMPORT os
 
 VAR r: Number
 
-r := os.system("bin/neon samples/cal.neon 2015")
+r := os.system("bin/neon samples/cal/cal.neon 2015")
 
 %=                                2015                               
 %= 
@@ -39,7 +39,7 @@ r := os.system("bin/neon samples/cal.neon 2015")
 %= 25 26 27 28 29 30 31   29 30                  27 28 29 30 31         
 %=                                                                      
 
-r := os.system("bin/neon samples/cal.neon 5 2015")
+r := os.system("bin/neon samples/cal/cal.neon 5 2015")
 
 %=       May 2015       
 %= Su Mo Tu We Th Fr Sa 
@@ -50,7 +50,7 @@ r := os.system("bin/neon samples/cal.neon 5 2015")
 %= 24 25 26 27 28 29 30 
 %= 31                   
 
-r := os.system("bin/neon samples/cal.neon -3 5 2015")
+r := os.system("bin/neon samples/cal/cal.neon -3 5 2015")
 
 %=      April 2015              May 2015               June 2015        
 %= Su Mo Tu We Th Fr Sa   Su Mo Tu We Th Fr Sa   Su Mo Tu We Th Fr Sa   

@@ -1,4 +1,4 @@
-IMPORT "samples/lisp" ALIAS lisp
+IMPORT "samples/lisp/lisp" ALIAS lisp
 
 FUNCTION t(s: String)
     print(lisp.repr(lisp.eval(lisp.parse(s))))

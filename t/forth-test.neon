@@ -1,7 +1,7 @@
 IMPORT os
 IMPORT sys
 
-sys.exit(os.system("bin/neon samples/forth.neon samples/forth/ttester.forth samples/forth/tests.forth"))
+sys.exit(os.system("bin/neon samples/forth/forth.neon samples/forth/ttester.forth samples/forth/tests.forth"))
 
 %= YOU SHOULD SEE THE STANDARD GRAPHIC CHARACTERS:
 %=  !"#$%&'()*+,-./0123456789:;<=>?@

@@ -1,6 +1,6 @@
 IMPORT multiarray
 
-IMPORT "samples/sudoku" ALIAS sudoku
+IMPORT "samples/sudoku/sudoku" ALIAS sudoku
 
 VAR grid: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 9)
 grid := [
