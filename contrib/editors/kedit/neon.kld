@@ -1,5 +1,5 @@
 * neon.kld - KEDIT Language Definition for the Neon Programming Language.
-* Version 1.4 - September, 2015
+* Version 1.5 - October, 2015
 
 :case
  respect
@@ -22,12 +22,14 @@
 * Language Keywords
  AS
  ASSERT
+ BEGIN
  CASE
  CONSTANT
  DECLARE
  DO
  ELSE
  ELSIF
+ EMBED
  END
  ENUM
  EXIT
@@ -36,11 +38,14 @@
  FOR
  FOREACH
  FUNCTION
+ HEXBYTES
  IF
  IMPORT
  INDEX
+ IS
  LET
  LOOP
+ MAIN
  NATIVE
  NEW
  NEXT
@@ -104,4 +109,6 @@
  text ->        alternate 1
  text FIRST     alternate 6
  text LAST      alternate 6
- 
+ text IS        alternate 1
+ text MAIN      alternate 3
+
