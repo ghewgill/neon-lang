@@ -2,12 +2,13 @@
 
 rev=$(git describe --always)
 scons docs
-git checkout gh-pages
+cd ../neon-pages
 git pull --ff-only
-rm -rf html
-cp -r lib/html html
-git add html
-git commit -m "Update library documentation from $rev" || echo "Nothing to update"
-git checkout master
+rm -rf html samples
+cp -r ../neon-lang/lib/html html
+cp -r ../neon-lang/samples/html samples
+git add html samples
+git commit -m "Update generated documentation from $rev" || echo "Nothing to update"
+cd ../neon-lang
 echo "Done."
-echo "git push origin gh-pages:gh-pages"
+echo "(cd ../neon-pages && git push)"
