@@ -1,3 +1,9 @@
+%|
+ |  File: sudoku
+ |
+ |  Sudoku solver and puzzle generator.
+ |%
+
 EXPORT solveSudoku
 EXPORT makeSolution
 EXPORT makePuzzle

@@ -1,3 +1,9 @@
+%|
+ |  File: forth
+ |
+ |  Implementation of the Forth programming language.
+ |%
+
 IMPORT bitwise
 IMPORT io
 IMPORT math

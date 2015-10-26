@@ -1,3 +1,9 @@
+%|
+ |  File: lisp
+ |
+ |  Implementation of a Scheme-like Lisp variant.
+ |%
+
 EXPORT eval
 EXPORT parse
 EXPORT repr

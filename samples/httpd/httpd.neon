@@ -1,3 +1,9 @@
+%|
+ |  File: httpd
+ |
+ |  Implementation of a simple HTTP server.
+ |%
+
 IMPORT file
 IMPORT net
 IMPORT regex

@@ -434,3 +434,4 @@ env.Command("test_cal", cal_exe, cal_exe[0].path)
 perl = distutils.spawn.find_executable("perl")
 if perl:
     env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML lib/html -p lib/nd.proj")
+    env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML samples/html -p samples/nd.proj")

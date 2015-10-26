@@ -1,3 +1,9 @@
+%|
+ |  File: tetris
+ |
+ |  Tetris game in curses.
+ |%
+
 IMPORT curses
 IMPORT math
 IMPORT multiarray
