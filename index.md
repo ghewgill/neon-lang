@@ -16,6 +16,8 @@ The graphics and sound libraries recall the early days of the Apple ][ and Commo
 The curses interface provides interactive text mode capability.
 The ability to link to external libraries and to call external functions opens up a wide variety of possibilities.
 
+There are a variety of [samples](samples/index.html) which demonstrate the capabilities of Neon.
+
 ## What does Neon look like?
 
 Neon programs start executing at the first statement in the source file.
