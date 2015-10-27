@@ -1,7 +1,12 @@
 IMPORT os
 IMPORT sys
+IMPORT time
 
-sys.exit(os.system("bin/neon samples/forth/forth.neon samples/forth/ttester.forth samples/forth/tests.forth"))
+VAR timer: time.Stopwatch
+timer.start()
+LET r: Number := os.system("bin/neon samples/forth/forth.neon samples/forth/ttester.forth samples/forth/tests.forth")
+print(str(timer.elapsed()))
+sys.exit(r)
 
 %= YOU SHOULD SEE THE STANDARD GRAPHIC CHARACTERS:
 %=  !"#$%&'()*+,-./0123456789:;<=>?@
