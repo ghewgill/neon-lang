@@ -220,6 +220,168 @@ TYPE Word IS RECORD
     immediate: Boolean
 END RECORD
 
+VAR dispatch: Array<FUNCTION(INOUT ip: Number)>
+dispatch[-CORE_STORE        ] := run_CORE_STORE
+dispatch[-CORE_NUMBER       ] := run_CORE_NUMBER
+dispatch[-CORE_NUMBER_GT    ] := run_CORE_NUMBER_GT
+dispatch[-CORE_NUMBER_S     ] := run_CORE_NUMBER_S
+%dispatch[-CORE_TICK         ] := run_CORE_TICK
+%dispatch[-CORE_COMMENT      ] := run_CORE_COMMENT
+dispatch[-CORE_MUL          ] := run_CORE_MUL
+dispatch[-CORE_MUL_DIV      ] := run_CORE_MUL_DIV
+dispatch[-CORE_MUL_DIV_MOD  ] := run_CORE_MUL_DIV_MOD
+dispatch[-CORE_ADD          ] := run_CORE_ADD
+dispatch[-CORE_ADD_STORE    ] := run_CORE_ADD_STORE
+%dispatch[-CORE_PLUS_LOOP    ] := run_CORE_PLUS_LOOP
+dispatch[-CORE_COMMA        ] := run_CORE_COMMA
+dispatch[-CORE_SUB          ] := run_CORE_SUB
+dispatch[-CORE_PRINT        ] := run_CORE_PRINT
+%dispatch[-CORE_PRINT_QUOTE  ] := run_CORE_PRINT_QUOTE
+dispatch[-CORE_DIV          ] := run_CORE_DIV
+dispatch[-CORE_DIV_MOD      ] := run_CORE_DIV_MOD
+dispatch[-CORE_0_LESS       ] := run_CORE_0_LESS
+dispatch[-CORE_0_EQUAL      ] := run_CORE_0_EQUAL
+dispatch[-CORE_1_PLUS       ] := run_CORE_1_PLUS
+dispatch[-CORE_1_MINUS      ] := run_CORE_1_MINUS
+dispatch[-CORE_2_STORE      ] := run_CORE_2_STORE
+dispatch[-CORE_2_TIMES      ] := run_CORE_2_TIMES
+dispatch[-CORE_2_DIVIDE     ] := run_CORE_2_DIVIDE
+dispatch[-CORE_2_FETCH      ] := run_CORE_2_FETCH
+dispatch[-CORE_2DROP        ] := run_CORE_2DROP
+dispatch[-CORE_2DUP         ] := run_CORE_2DUP
+dispatch[-CORE_2OVER        ] := run_CORE_2OVER
+dispatch[-CORE_2SWAP        ] := run_CORE_2SWAP
+dispatch[-CORE_DEFINE       ] := run_CORE_DEFINE
+%dispatch[-CORE_SEMICOLON    ] := run_CORE_SEMICOLON
+dispatch[-CORE_LESS         ] := run_CORE_LESS
+dispatch[-CORE_LESS_NUMBER  ] := run_CORE_LESS_NUMBER
+dispatch[-CORE_NOT_EQUAL    ] := run_CORE_NOT_EQUAL
+dispatch[-CORE_EQUAL        ] := run_CORE_EQUAL
+dispatch[-CORE_GREATER      ] := run_CORE_GREATER
+dispatch[-CORE_TO_BODY      ] := run_CORE_TO_BODY
+dispatch[-CORE_TO_IN        ] := run_CORE_TO_IN
+dispatch[-CORE_TO_NUMBER    ] := run_CORE_TO_NUMBER
+dispatch[-CORE_TO_R         ] := run_CORE_TO_R
+dispatch[-CORE_Q_DUP        ] := run_CORE_Q_DUP
+dispatch[-CORE_FETCH        ] := run_CORE_FETCH
+dispatch[-CORE_ABS          ] := run_CORE_ABS
+dispatch[-CORE_ACCEPT       ] := run_CORE_ACCEPT
+dispatch[-CORE_ALIGN        ] := run_CORE_ALIGN
+dispatch[-CORE_ALIGNED      ] := run_CORE_ALIGNED
+dispatch[-CORE_ALLOT        ] := run_CORE_ALLOT
+dispatch[-CORE_AND          ] := run_CORE_AND
+dispatch[-CORE_BASE         ] := run_CORE_BASE
+%dispatch[-CORE_BEGIN        ] := run_CORE_BEGIN
+dispatch[-CORE_BL           ] := run_CORE_BL
+dispatch[-CORE_C_STORE      ] := run_CORE_C_STORE
+dispatch[-CORE_C_COMMA      ] := run_CORE_C_COMMA
+dispatch[-CORE_C_FETCH      ] := run_CORE_C_FETCH
+dispatch[-CORE_CELL_PLUS    ] := run_CORE_CELL_PLUS
+dispatch[-CORE_CELLS        ] := run_CORE_CELLS
+dispatch[-CORE_CHAR         ] := run_CORE_CHAR
+dispatch[-CORE_CHAR_PLUS    ] := run_CORE_CHAR_PLUS
+dispatch[-CORE_CHARS        ] := run_CORE_CHARS
+dispatch[-CORE_CONSTANT     ] := run_CORE_CONSTANT
+dispatch[-CORE_COUNT        ] := run_CORE_COUNT
+dispatch[-CORE_CR           ] := run_CORE_CR
+dispatch[-CORE_CREATE       ] := run_CORE_CREATE
+dispatch[-CORE_DECIMAL      ] := run_CORE_DECIMAL
+dispatch[-CORE_DEPTH        ] := run_CORE_DEPTH
+%dispatch[-CORE_DO           ] := run_CORE_DO
+%dispatch[-CORE_DOES         ] := run_CORE_DOES
+dispatch[-CORE_DROP         ] := run_CORE_DROP
+dispatch[-CORE_DUP          ] := run_CORE_DUP
+%dispatch[-CORE_ELSE         ] := run_CORE_ELSE
+dispatch[-CORE_EMIT         ] := run_CORE_EMIT
+dispatch[-CORE_ENVIRONMENT_Q] := run_CORE_ENVIRONMENT_Q
+dispatch[-CORE_EVALUATE     ] := run_CORE_EVALUATE
+dispatch[-CORE_EXECUTE      ] := run_CORE_EXECUTE
+%dispatch[-CORE_EXIT         ] := run_CORE_EXIT
+dispatch[-CORE_FALSE        ] := run_CORE_FALSE
+dispatch[-CORE_FILL         ] := run_CORE_FILL
+dispatch[-CORE_FIND         ] := run_CORE_FIND
+dispatch[-CORE_FM_MOD       ] := run_CORE_FM_MOD
+dispatch[-CORE_HERE         ] := run_CORE_HERE
+dispatch[-CORE_HEX          ] := run_CORE_HEX
+dispatch[-CORE_HOLD         ] := run_CORE_HOLD
+dispatch[-CORE_I            ] := run_CORE_I
+%dispatch[-CORE_IF           ] := run_CORE_IF
+dispatch[-CORE_IMMEDIATE    ] := run_CORE_IMMEDIATE
+dispatch[-CORE_INVERT       ] := run_CORE_INVERT
+dispatch[-CORE_J            ] := run_CORE_J
+%dispatch[-CORE_LEAVE        ] := run_CORE_LEAVE
+%dispatch[-CORE_LITERAL      ] := run_CORE_LITERAL
+%dispatch[-CORE_LOOP         ] := run_CORE_LOOP
+dispatch[-CORE_LSHIFT       ] := run_CORE_LSHIFT
+dispatch[-CORE_M_MUL        ] := run_CORE_M_MUL
+dispatch[-CORE_MAX          ] := run_CORE_MAX
+dispatch[-CORE_MIN          ] := run_CORE_MIN
+dispatch[-CORE_MOD          ] := run_CORE_MOD
+dispatch[-CORE_MOVE         ] := run_CORE_MOVE
+dispatch[-CORE_NEGATE       ] := run_CORE_NEGATE
+dispatch[-CORE_NOT          ] := run_CORE_NOT
+dispatch[-CORE_OR           ] := run_CORE_OR
+dispatch[-CORE_OVER         ] := run_CORE_OVER
+dispatch[-CORE_PAD          ] := run_CORE_PAD
+%dispatch[-CORE_POSTPONE     ] := run_CORE_POSTPONE
+dispatch[-CORE_R_FROM       ] := run_CORE_R_FROM
+dispatch[-CORE_R_FETCH      ] := run_CORE_R_FETCH
+%dispatch[-CORE_RECURSE      ] := run_CORE_RECURSE
+%dispatch[-CORE_REPEAT       ] := run_CORE_REPEAT
+dispatch[-CORE_ROT          ] := run_CORE_ROT
+dispatch[-CORE_RSHIFT       ] := run_CORE_RSHIFT
+%dispatch[-CORE_S_QUOTE      ] := run_CORE_S_QUOTE
+dispatch[-CORE_S_TO_D       ] := run_CORE_S_TO_D
+dispatch[-CORE_SIGN         ] := run_CORE_SIGN
+dispatch[-CORE_SM_REM       ] := run_CORE_SM_REM
+dispatch[-CORE_SOURCE       ] := run_CORE_SOURCE
+dispatch[-CORE_SPACE        ] := run_CORE_SPACE
+dispatch[-CORE_SPACES       ] := run_CORE_SPACES
+dispatch[-CORE_STATE        ] := run_CORE_STATE
+dispatch[-CORE_SWAP         ] := run_CORE_SWAP
+%dispatch[-CORE_THEN         ] := run_CORE_THEN
+dispatch[-CORE_TRUE         ] := run_CORE_TRUE
+dispatch[-CORE_TUCK         ] := run_CORE_TUCK
+dispatch[-CORE_TYPE         ] := run_CORE_TYPE
+dispatch[-CORE_U_PRINT      ] := run_CORE_U_PRINT
+dispatch[-CORE_U_LESS       ] := run_CORE_U_LESS
+dispatch[-CORE_UM_MOD       ] := run_CORE_UM_MOD
+dispatch[-CORE_UM_MUL       ] := run_CORE_UM_MUL
+%dispatch[-CORE_UNLOOP       ] := run_CORE_UNLOOP
+%dispatch[-CORE_UNTIL        ] := run_CORE_UNTIL
+dispatch[-CORE_VARIABLE     ] := run_CORE_VARIABLE
+%dispatch[-CORE_WHILE        ] := run_CORE_WHILE
+dispatch[-CORE_WORD         ] := run_CORE_WORD
+dispatch[-CORE_XOR          ] := run_CORE_XOR
+%dispatch[-CORE_INTERPRET    ] := run_CORE_INTERPRET
+%dispatch[-CORE_IMM_TICK     ] := run_CORE_IMM_TICK
+%dispatch[-CORE_IMM_CHAR     ] := run_CORE_IMM_CHAR
+%dispatch[-CORE_BACKSLASH    ] := run_CORE_BACKSLASH
+%dispatch[-CORE_COMPILE      ] := run_CORE_COMPILE
+dispatch[-TOOLS_PRINT_S     ] := run_TOOLS_PRINT_S
+dispatch[-TOOLS_QUESTION    ] := run_TOOLS_QUESTION
+dispatch[-TOOLS_DUMP        ] := run_TOOLS_DUMP
+dispatch[-TOOLS_SEE         ] := run_TOOLS_SEE
+dispatch[-TOOLS_WORDS       ] := run_TOOLS_WORDS
+dispatch[-TOOLS_EXT_BYE     ] := run_TOOLS_EXT_BYE
+%dispatch[-TOOLS_EXT_ELSE    ] := run_TOOLS_EXT_ELSE
+%dispatch[-TOOLS_EXT_IF      ] := run_TOOLS_EXT_IF
+%dispatch[-TOOLS_EXT_THEN    ] := run_TOOLS_EXT_THEN
+dispatch[-INT_BRANCH        ] := run_INT_BRANCH
+dispatch[-INT_DO            ] := run_INT_DO
+dispatch[-INT_DOES          ] := run_INT_DOES
+dispatch[-INT_EXIT          ] := run_INT_EXIT
+dispatch[-INT_LEAVE         ] := run_INT_LEAVE
+dispatch[-INT_LITERAL       ] := run_INT_LITERAL
+dispatch[-INT_LOOP          ] := run_INT_LOOP
+dispatch[-INT_PLUS_LOOP     ] := run_INT_PLUS_LOOP
+dispatch[-INT_POSTPONE      ] := run_INT_POSTPONE
+dispatch[-INT_POSTPONE_IMM  ] := run_INT_POSTPONE_IMM
+dispatch[-INT_PRINT_QUOTE   ] := run_INT_PRINT_QUOTE
+dispatch[-INT_Q_BRANCH      ] := run_INT_Q_BRANCH
+dispatch[-INT_S_QUOTE       ] := run_INT_S_QUOTE
+dispatch[-INT_UNLOOP        ] := run_INT_UNLOOP
+
 VAR words: Dictionary<Word> := {
     "!": Word(CORE_STORE)
     "#": Word(CORE_NUMBER)
@@ -413,6 +575,890 @@ FUNCTION get_string(addr: Number): String
     RETURN get_string_len(addr+1, len)
 END FUNCTION
 
+FUNCTION run_CORE_STORE(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    LET x: Number := stack.pop()
+    storage[addr] := x
+END FUNCTION
+
+FUNCTION run_CORE_NUMBER(INOUT ip: Number)
+    LET ud1h: Number := stack.pop()
+    LET ud1l: Number := stack.pop()
+    LET ud1: Number := ud1h * 0x100000000 + ud1l
+    LET dig: Number := ud1 MOD storage[cell_base]
+    LET ud2: Number := math.floor(ud1 / storage[cell_base])
+    stack.push(ud2 MOD 0x100000000)
+    stack.push(math.floor(ud2 / 0x100000000))
+    inc(number_buffer_size)
+    storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
+END FUNCTION
+
+FUNCTION run_CORE_NUMBER_GT(INOUT ip: Number)
+    LET xdh: Number := stack.pop()
+    LET xdl: Number := stack.pop()
+    stack.push(cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size)
+    stack.push(number_buffer_size)
+END FUNCTION
+
+FUNCTION run_CORE_NUMBER_S(INOUT ip: Number)
+    LET ud1h: Number := stack.pop()
+    LET ud1l: Number := stack.pop()
+    VAR ud1: Number := ud1h * 0x100000000 + ud1l
+    REPEAT
+        LET dig: Number := ud1 MOD storage[cell_base]
+        ud1 := math.floor(ud1 / storage[cell_base])
+        inc(number_buffer_size)
+        storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
+    UNTIL ud1 = 0
+    stack.push(0)
+    stack.push(0)
+END FUNCTION
+
+FUNCTION run_CORE_MUL(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(n1 * n2)
+END FUNCTION
+
+FUNCTION run_CORE_MUL_DIV(INOUT ip: Number)
+    LET n3: Number := signed32(stack.pop())
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(math.floor(n1 * n2 / n3))
+END FUNCTION
+
+FUNCTION run_CORE_MUL_DIV_MOD(INOUT ip: Number)
+    LET n3: Number := signed32(stack.pop())
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    LET p: Number := n1 * n2
+    stack.push(p MOD n3)
+    stack.push(math.floor(p / n3))
+END FUNCTION
+
+FUNCTION run_CORE_ADD(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(n1 + n2)
+END FUNCTION
+
+FUNCTION run_CORE_ADD_STORE(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    LET n: Number := signed32(stack.pop())
+    storage[addr] := storage[addr] + n
+END FUNCTION
+
+FUNCTION run_CORE_COMMA(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    storage.append(x)
+END FUNCTION
+
+FUNCTION run_CORE_SUB(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(n1 - n2)
+END FUNCTION
+
+FUNCTION run_CORE_PRINT(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    io.write(io.stdout(), "\(n) ")
+END FUNCTION
+
+FUNCTION run_CORE_DIV(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(math.floor(n1 / n2))
+END FUNCTION
+
+FUNCTION run_CORE_DIV_MOD(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(n1 MOD n2)
+    stack.push(math.floor(n1 / n2))
+END FUNCTION
+
+FUNCTION run_CORE_0_LESS(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    stack.push(IF n < 0 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_0_EQUAL(INOUT ip: Number)
+    LET n: Number := stack.pop()
+    stack.push(IF n = 0 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_1_PLUS(INOUT ip: Number)
+    LET n1: Number := signed32(stack.pop())
+    stack.push(n1 + 1)
+END FUNCTION
+
+FUNCTION run_CORE_1_MINUS(INOUT ip: Number)
+    LET n1: Number := signed32(stack.pop())
+    stack.push(n1 - 1)
+END FUNCTION
+
+FUNCTION run_CORE_2_STORE(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    storage[addr] := x2
+    storage[addr+1] := x1
+END FUNCTION
+
+FUNCTION run_CORE_2_TIMES(INOUT ip: Number)
+    LET n1: Number := stack.pop()
+    stack.push(bitwise.shiftLeft32(n1, 1))
+END FUNCTION
+
+FUNCTION run_CORE_2_DIVIDE(INOUT ip: Number)
+    LET n1: Number := signed32(stack.pop())
+    stack.push(bitwise.shiftRightSigned32(n1, 1))
+END FUNCTION
+
+FUNCTION run_CORE_2_FETCH(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    stack.push(storage[addr+1])
+    stack.push(storage[addr])
+END FUNCTION
+
+FUNCTION run_CORE_2DROP(INOUT ip: Number)
+    stack.drop(2)
+END FUNCTION
+
+FUNCTION run_CORE_2DUP(INOUT ip: Number)
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(x1)
+    stack.push(x2)
+    stack.push(x1)
+    stack.push(x2)
+END FUNCTION
+
+FUNCTION run_CORE_2OVER(INOUT ip: Number)
+    LET x4: Number := stack.pop()
+    LET x3: Number := stack.pop()
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(x1)
+    stack.push(x2)
+    stack.push(x3)
+    stack.push(x4)
+    stack.push(x1)
+    stack.push(x2)
+END FUNCTION
+
+FUNCTION run_CORE_2SWAP(INOUT ip: Number)
+    LET x4: Number := stack.pop()
+    LET x3: Number := stack.pop()
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(x3)
+    stack.push(x4)
+    stack.push(x1)
+    stack.push(x2)
+END FUNCTION
+
+FUNCTION run_CORE_DEFINE(INOUT ip: Number)
+    defining := next_word()
+    define_start := code.size()
+    storage[cell_state] := -1
+END FUNCTION
+
+FUNCTION run_CORE_LESS(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(IF n1 < n2 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_LESS_NUMBER(INOUT ip: Number)
+    number_buffer_size := 0
+END FUNCTION
+
+FUNCTION run_CORE_NOT_EQUAL(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(IF n1 # n2 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_EQUAL(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(IF n1 = n2 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_GREATER(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(IF n1 > n2 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_TO_BODY(INOUT ip: Number)
+    LET xt: Number := stack.pop()
+    ASSERT code[xt] = INT_LITERAL
+    ASSERT code[xt+2] = 0 OR code[xt+2] = INT_BRANCH
+    ASSERT code[xt+4] = 0
+    stack.push(code[xt+1])
+END FUNCTION
+
+FUNCTION run_CORE_TO_IN(INOUT ip: Number)
+    stack.push(cell_in)
+END FUNCTION
+
+FUNCTION run_CORE_TO_NUMBER(INOUT ip: Number)
+    VAR u: Number := stack.pop()
+    VAR addr: Number := stack.pop()
+    LET ud1h: Number := stack.pop()
+    LET ud1l: Number := stack.pop()
+    VAR ud1: Number := ud1h * 0x100000000 + ud1l
+    WHILE u > 0 DO
+        LET char: String := chr(storage[addr])
+        VAR dig: Number
+        IF "0" <= char <= "9" THEN
+            dig := ord(char) - ord("0")
+        ELSIF "A" <= char <= "Z" THEN
+            dig := ord(char) - ord("A") + 10
+        ELSE
+            EXIT WHILE
+        END IF
+        IF dig >= storage[cell_base] THEN
+            EXIT WHILE
+        END IF
+        ud1 := ud1 * storage[cell_base] + dig
+        inc(addr)
+        dec(u)
+    END WHILE
+    stack.push(ud1 MOD 0x100000000)
+    stack.push(math.floor(ud1 / 0x100000000))
+    stack.push(addr)
+    stack.push(u)
+END FUNCTION
+
+FUNCTION run_CORE_TO_R(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    return.append(ReturnEntry(x))
+END FUNCTION
+
+FUNCTION run_CORE_Q_DUP(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    stack.push(x)
+    IF x # 0 THEN
+        stack.push(x)
+    END IF
+END FUNCTION
+
+FUNCTION run_CORE_FETCH(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    stack.push(storage[addr])
+END FUNCTION
+
+FUNCTION run_CORE_ABS(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    stack.push(math.abs(n))
+END FUNCTION
+
+FUNCTION run_CORE_ACCEPT(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    LET addr: Number := stack.pop()
+    LET s: String := input("")
+    FOR i := 0 TO min(n-1, s.length()-1) DO
+        storage[addr+i] := ord(s[i])
+    END FOR
+    stack.push(s.length())
+END FUNCTION
+
+FUNCTION run_CORE_ALIGN(INOUT ip: Number)
+    % no action required
+END FUNCTION
+
+FUNCTION run_CORE_ALIGNED(INOUT ip: Number)
+    % no action required
+END FUNCTION
+
+FUNCTION run_CORE_ALLOT(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    storage.resize(storage.size() + n)
+END FUNCTION
+
+FUNCTION run_CORE_AND(INOUT ip: Number)
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(bitwise.and32(x1, x2))
+END FUNCTION
+
+FUNCTION run_CORE_BASE(INOUT ip: Number)
+    stack.push(cell_base)
+END FUNCTION
+
+FUNCTION run_CORE_BL(INOUT ip: Number)
+    stack.push(ord(" "))
+END FUNCTION
+
+FUNCTION run_CORE_C_STORE(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    LET x: Number := stack.pop()
+    storage[addr] := x
+END FUNCTION
+
+FUNCTION run_CORE_C_COMMA(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    storage.append(x)
+END FUNCTION
+
+FUNCTION run_CORE_C_FETCH(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    stack.push(storage[addr])
+END FUNCTION
+
+FUNCTION run_CORE_CELL_PLUS(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    stack.push(addr+1)
+END FUNCTION
+
+FUNCTION run_CORE_CELLS(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    stack.push(n)
+END FUNCTION
+
+FUNCTION run_CORE_CHAR(INOUT ip: Number)
+    LET s: String := next_word()
+    stack.push(ord(s[FIRST]))
+END FUNCTION
+
+FUNCTION run_CORE_CHAR_PLUS(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    stack.push(addr+1)
+END FUNCTION
+
+FUNCTION run_CORE_CHARS(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    stack.push(n)
+END FUNCTION
+
+FUNCTION run_CORE_CONSTANT(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    LET s: String := next_word()
+    words[s] := Word(code.size())
+    code.append(INT_LITERAL)
+    code.append(x)
+    code.append(0)
+END FUNCTION
+
+FUNCTION run_CORE_COUNT(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    stack.push(addr+1)
+    stack.push(storage[addr])
+END FUNCTION
+
+FUNCTION run_CORE_CR(INOUT ip: Number)
+    print("")
+END FUNCTION
+
+FUNCTION run_CORE_CREATE(INOUT ip: Number)
+    LET s: String := next_word()
+    words[s] := Word(code.size())
+    code.append(INT_LITERAL)
+    code.append(storage.size())
+    code.append(0)
+    code.append(0)
+    code.append(0)
+END FUNCTION
+
+FUNCTION run_CORE_DECIMAL(INOUT ip: Number)
+    storage[cell_base] := 10
+END FUNCTION
+
+FUNCTION run_CORE_DEPTH(INOUT ip: Number)
+    stack.push(stack.size())
+END FUNCTION
+
+FUNCTION run_CORE_DROP(INOUT ip: Number)
+    stack.drop()
+END FUNCTION
+
+FUNCTION run_CORE_DUP(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    stack.push(x)
+    stack.push(x)
+END FUNCTION
+
+FUNCTION run_CORE_EMIT(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    io.write(io.stdout(), chr(x))
+END FUNCTION
+
+FUNCTION run_CORE_ENVIRONMENT_Q(INOUT ip: Number)
+    LET u: Number := stack.pop()
+    LET addr: Number := stack.pop()
+    CASE get_string_len(addr, u)
+        WHEN "FLOATING" DO
+            stack.push(0)
+        ELSE
+            stack.push(0)
+    END CASE
+END FUNCTION
+
+FUNCTION run_CORE_EVALUATE(INOUT ip: Number)
+    LET u: Number := stack.pop()
+    LET addr: Number := stack.pop()
+    storage[cell_eval_input_length] := u
+    storage[cell_eval_in] := 0
+    cell_input := addr
+    cell_input_length := cell_eval_input_length
+    cell_in := cell_eval_in
+    interpret()
+END FUNCTION
+
+FUNCTION run_CORE_EXECUTE(INOUT ip: Number)
+    LET xt: Number := stack.pop()
+    IF xt > 0 THEN
+        run_compiled(xt)
+    ELSE
+        run_instruction(xt, ip)
+    END IF
+END FUNCTION
+
+FUNCTION run_CORE_FALSE(INOUT ip: Number)
+    stack.push(0)
+END FUNCTION
+
+FUNCTION run_CORE_FILL(INOUT ip: Number)
+    LET char: Number := stack.pop()
+    VAR u: Number := stack.pop()
+    VAR addr: Number := stack.pop()
+    WHILE u > 0 DO
+        storage[addr] := char
+        inc(addr)
+        dec(u)
+    END WHILE
+END FUNCTION
+
+FUNCTION run_CORE_FIND(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    LET s: String := get_string(addr)
+    IF s IN words THEN
+        stack.push(words[s].xt)
+        stack.push(IF words[s].immediate THEN 1 ELSE -1)
+    ELSE
+        stack.push(addr)
+        stack.push(0)
+    END IF
+END FUNCTION
+
+FUNCTION run_CORE_FM_MOD(INOUT ip: Number)
+    LET n1: Number := signed32(stack.pop())
+    LET d1h: Number := signed32(stack.pop())
+    LET d1l: Number := stack.pop()
+    LET d1: Number := d1h * 0x100000000 + d1l
+    stack.push(d1 MOD n1)
+    stack.push(math.floor(d1 / n1))
+END FUNCTION
+
+FUNCTION run_CORE_HERE(INOUT ip: Number)
+    stack.push(storage.size())
+END FUNCTION
+
+FUNCTION run_CORE_HEX(INOUT ip: Number)
+    storage[cell_base] := 0x10
+END FUNCTION
+
+FUNCTION run_CORE_HOLD(INOUT ip: Number)
+    LET char: Number := stack.pop()
+    inc(number_buffer_size)
+    storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := char
+END FUNCTION
+
+FUNCTION run_CORE_I(INOUT ip: Number)
+    stack.push(return[LAST].index)
+END FUNCTION
+
+FUNCTION run_CORE_IMMEDIATE(INOUT ip: Number)
+    words[defining].immediate := TRUE
+END FUNCTION
+
+FUNCTION run_CORE_INVERT(INOUT ip: Number)
+    LET x1: Number := stack.pop()
+    stack.push(bitwise.not32(x1))
+END FUNCTION
+
+FUNCTION run_CORE_J(INOUT ip: Number)
+    stack.push(return[LAST-1].index)
+END FUNCTION
+
+FUNCTION run_CORE_LSHIFT(INOUT ip: Number)
+    LET u: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(bitwise.shiftLeft32(x1, u))
+END FUNCTION
+
+FUNCTION run_CORE_M_MUL(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    LET p: Number := n1 * n2
+    stack.push(p)
+    stack.push(math.floor(p / 0x100000000))
+END FUNCTION
+
+FUNCTION run_CORE_MAX(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(max(n1, n2))
+END FUNCTION
+
+FUNCTION run_CORE_MIN(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(min(n1, n2))
+END FUNCTION
+
+FUNCTION run_CORE_MOD(INOUT ip: Number)
+    LET n2: Number := signed32(stack.pop())
+    LET n1: Number := signed32(stack.pop())
+    stack.push(n1 MOD n2)
+END FUNCTION
+
+FUNCTION run_CORE_MOVE(INOUT ip: Number)
+    VAR u: Number := stack.pop()
+    VAR addr2: Number := stack.pop()
+    VAR addr1: Number := stack.pop()
+    IF addr2 < addr1 THEN
+        WHILE u > 0 DO
+            storage[addr2] := storage[addr1]
+            inc(addr1)
+            inc(addr2)
+            dec(u)
+        END WHILE
+    ELSIF addr1 < addr2 THEN
+        addr1 := addr1 + u
+        addr2 := addr2 + u
+        WHILE u > 0 DO
+            dec(addr1)
+            dec(addr2)
+            storage[addr2] := storage[addr1]
+            dec(u)
+        END WHILE
+    END IF
+END FUNCTION
+
+FUNCTION run_CORE_NEGATE(INOUT ip: Number)
+    LET n1: Number := signed32(stack.pop())
+    stack.push(-n1)
+END FUNCTION
+
+FUNCTION run_CORE_NOT(INOUT ip: Number)
+    LET n: Number := stack.pop()
+    stack.push(IF n # 0 THEN 0 ELSE -1)
+END FUNCTION
+
+FUNCTION run_CORE_OR(INOUT ip: Number)
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(bitwise.or32(x1, x2))
+END FUNCTION
+
+FUNCTION run_CORE_OVER(INOUT ip: Number)
+    stack.push(stack.peek(1))
+END FUNCTION
+
+FUNCTION run_CORE_PAD(INOUT ip: Number)
+    stack.push(cell_pad)
+END FUNCTION
+
+FUNCTION run_CORE_R_FROM(INOUT ip: Number)
+    stack.push(return[LAST].ip)
+    return.resize(return.size()-1)
+END FUNCTION
+
+FUNCTION run_CORE_R_FETCH(INOUT ip: Number)
+    stack.push(return[LAST].ip)
+END FUNCTION
+
+FUNCTION run_CORE_ROT(INOUT ip: Number)
+    LET x3: Number := stack.pop()
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(x2)
+    stack.push(x3)
+    stack.push(x1)
+END FUNCTION
+
+FUNCTION run_CORE_RSHIFT(INOUT ip: Number)
+    LET u: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(bitwise.shiftRight32(x1, u))
+END FUNCTION
+
+FUNCTION run_CORE_S_TO_D(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    stack.push(n)
+    stack.push(IF n < 0 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_SIGN(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    IF n < 0 THEN
+        inc(number_buffer_size)
+        storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord("-")
+    END IF
+END FUNCTION
+
+FUNCTION run_CORE_SM_REM(INOUT ip: Number)
+    LET n1: Number := signed32(stack.pop())
+    LET d1h: Number := signed32(stack.pop())
+    LET d1l: Number := stack.pop()
+    LET d1: Number := d1h * 0x100000000 + d1l
+    stack.push(d1 MOD n1)
+    stack.push(math.floor(d1 / n1))
+END FUNCTION
+
+FUNCTION run_CORE_SOURCE(INOUT ip: Number)
+    stack.push(cell_input)
+    stack.push(storage[cell_input_length])
+END FUNCTION
+
+FUNCTION run_CORE_SPACE(INOUT ip: Number)
+    io.write(io.stdout(), " ")
+END FUNCTION
+
+FUNCTION run_CORE_SPACES(INOUT ip: Number)
+    VAR n: Number := signed32(stack.pop())
+    WHILE n > 0 DO
+        io.write(io.stdout(), " ")
+        dec(n)
+    END WHILE
+END FUNCTION
+
+FUNCTION run_CORE_STATE(INOUT ip: Number)
+    stack.push(cell_state)
+END FUNCTION
+
+FUNCTION run_CORE_SWAP(INOUT ip: Number)
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(x2)
+    stack.push(x1)
+END FUNCTION
+
+FUNCTION run_CORE_TRUE(INOUT ip: Number)
+    stack.push(-1)
+END FUNCTION
+
+FUNCTION run_CORE_TUCK(INOUT ip: Number)
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(x2)
+    stack.push(x1)
+    stack.push(x2)
+END FUNCTION
+
+FUNCTION run_CORE_TYPE(INOUT ip: Number)
+    LET u: Number := stack.pop()
+    LET addr: Number := stack.pop()
+    LET s: String := get_string_len(addr, u)
+    io.write(io.stdout(), s)
+END FUNCTION
+
+FUNCTION run_CORE_U_PRINT(INOUT ip: Number)
+    LET n: Number := stack.pop()
+    io.write(io.stdout(), "\(n) ")
+END FUNCTION
+
+FUNCTION run_CORE_U_LESS(INOUT ip: Number)
+    LET u2: Number := stack.pop()
+    LET u1: Number := stack.pop()
+    stack.push(IF u1 < u2 THEN -1 ELSE 0)
+END FUNCTION
+
+FUNCTION run_CORE_UM_MOD(INOUT ip: Number)
+    LET u1: Number := stack.pop()
+    LET udh: Number := stack.pop()
+    LET udl: Number := stack.pop()
+    LET ud: Number := udh * 0x100000000 + udl
+    stack.push(ud MOD u1)
+    stack.push(math.floor(ud / u1))
+END FUNCTION
+
+FUNCTION run_CORE_UM_MUL(INOUT ip: Number)
+    LET u2: Number := stack.pop()
+    LET u1: Number := stack.pop()
+    LET p: Number := u1 * u2
+    stack.push(p)
+    stack.push(math.floor(p / 0x100000000))
+END FUNCTION
+
+FUNCTION run_CORE_VARIABLE(INOUT ip: Number)
+    LET s: String := next_word()
+    words[s] := Word(code.size())
+    code.append(INT_LITERAL)
+    code.append(storage.size())
+    code.append(0)
+    storage.append(0)
+END FUNCTION
+
+FUNCTION run_CORE_WORD(INOUT ip: Number)
+    LET char: Number := stack.pop()
+    LET s: String := parse(chr(char))
+    % TODO: use a real scratch area that is discarded
+    stack.push(storage.size())
+    storage.append(s.length())
+    FOR i := 0 TO s.length()-1 DO
+        storage.append(ord(s[i]))
+    END FOR
+    storage.append(ord(" "))
+END FUNCTION
+
+FUNCTION run_CORE_XOR(INOUT ip: Number)
+    LET x2: Number := stack.pop()
+    LET x1: Number := stack.pop()
+    stack.push(bitwise.xor32(x1, x2))
+END FUNCTION
+
+FUNCTION run_TOOLS_QUESTION(INOUT ip: Number)
+    LET addr: Number := stack.pop()
+    print("\(storage[addr])")
+END FUNCTION
+
+FUNCTION run_TOOLS_PRINT_S(INOUT ip: Number)
+    FOR i := 0 TO stack.size()-1 DO
+        print("\(stack.peek(i))")
+    END FOR
+END FUNCTION
+
+FUNCTION run_TOOLS_DUMP(INOUT ip: Number)
+    LET u: Number := stack.pop()
+    LET addr: Number := stack.pop()
+    FOR i := 0 TO u-1 DO
+        print("\(addr+i): \(storage[addr+i])")
+    END FOR
+END FUNCTION
+
+FUNCTION run_TOOLS_SEE(INOUT ip: Number)
+    LET s: String := next_word()
+    IF s IN words THEN
+        IF words[s].immediate THEN
+            print("(immediate)")
+        END IF
+        VAR a: Number := words[s].xt
+        IF a > 0 THEN
+            LOOP
+                print("\(a): \(code[a])")
+                IF code[a] = 0 THEN
+                    EXIT LOOP
+                END IF
+                inc(a)
+            END LOOP
+        ELSE
+            print("built-in")
+        END IF
+    ELSE
+        print("word not found")
+    END IF
+END FUNCTION
+
+FUNCTION run_TOOLS_WORDS(INOUT ip: Number)
+    LET a: Array<String> := words.keys()
+    FOREACH w OF a DO
+        print(w)
+    END FOREACH
+END FUNCTION
+
+FUNCTION run_TOOLS_EXT_BYE(INOUT ip: Number)
+    sys.exit(0)
+END FUNCTION
+
+FUNCTION run_INT_BRANCH(INOUT ip: Number)
+    ip := code[ip+1]
+END FUNCTION
+
+FUNCTION run_INT_DO(INOUT ip: Number)
+    LET u2: Number := stack.pop()
+    LET u1: Number := stack.pop()
+    return.append(ReturnEntry(ip+2, u1, u2, code[ip+1]))
+    ip := ip + 2
+END FUNCTION
+
+FUNCTION run_INT_DOES(INOUT ip: Number)
+    ASSERT code[LAST] = 0
+    code[code.size()-3] := INT_BRANCH
+    code[code.size()-2] := code[ip+1]
+    ip := ip + 2
+END FUNCTION
+
+FUNCTION run_INT_EXIT(INOUT ip: Number)
+    ip := return[LAST].ip
+    return.resize(return.size()-1)
+END FUNCTION
+
+FUNCTION run_INT_LEAVE(INOUT ip: Number)
+    ip := return[LAST].leave
+    return.resize(return.size()-1)
+END FUNCTION
+
+FUNCTION run_INT_LITERAL(INOUT ip: Number)
+    stack.push(code[ip+1])
+    ip := ip + 2
+END FUNCTION
+
+FUNCTION run_INT_LOOP(INOUT ip: Number)
+    LET last: Number := return.size() - 1
+    return[last].index := (return[last].index + 1) MOD 0x100000000
+    IF return[last].index = return[last].limit THEN
+        return.resize(return.size()-1)
+    ELSE
+        ip := return[last].ip
+    END IF
+END FUNCTION
+
+FUNCTION run_INT_PLUS_LOOP(INOUT ip: Number)
+    LET n: Number := signed32(stack.pop())
+    LET last: Number := return.size() - 1
+    LET prev: Number := return[last].index
+    LET limit: Number := return[last].limit
+    return[last].index := (return[last].index + n) MOD 0x100000000
+    % print("prev=\(prev) new=\(return[last].index) limit=\(limit) n=\(n)")
+    IF (n > 0 AND (IF limit # 0 THEN prev < limit AND (return[last].index >= limit OR return[last].index < prev)
+                                ELSE return[last].index < prev))
+    OR (n < 0 AND (IF limit # 0 THEN prev >= limit AND (return[last].index < limit OR return[last].index > prev)
+                                ELSE return[last].index > prev)) THEN
+        return.resize(return.size()-1)
+    ELSE
+        ip := return[last].ip
+    END IF
+END FUNCTION
+
+FUNCTION run_INT_POSTPONE(INOUT ip: Number)
+    run(code[ip+1], FALSE)
+    ip := ip + 2
+END FUNCTION
+
+FUNCTION run_INT_POSTPONE_IMM(INOUT ip: Number)
+    run(code[ip+1], TRUE)
+    ip := ip + 2
+END FUNCTION
+
+FUNCTION run_INT_PRINT_QUOTE(INOUT ip: Number)
+    io.write(io.stdout(), get_string(code[ip+1]))
+    ip := ip + 2
+END FUNCTION
+
+FUNCTION run_INT_Q_BRANCH(INOUT ip: Number)
+    LET x: Number := stack.pop()
+    IF x = 0 THEN
+        ip := code[ip+1]
+    ELSE
+        ip := ip + 2
+    END IF
+END FUNCTION
+
+FUNCTION run_INT_S_QUOTE(INOUT ip: Number)
+    stack.push(code[ip+1]+1)
+    stack.push(storage[code[ip+1]])
+    ip := ip + 2
+END FUNCTION
+
+FUNCTION run_INT_UNLOOP(INOUT ip: Number)
+    return.resize(return.size()-1)
+END FUNCTION
+
 FUNCTION run_instruction(instr: Number, INOUT ip: Number)
     CASE instr
         WHEN > 0 DO
@@ -421,633 +1467,11 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN 0 DO
             ip := return[LAST].ip
             return.resize(return.size()-1)
-        WHEN CORE_STORE DO
-            LET addr: Number := stack.pop()
-            LET x: Number := stack.pop()
-            storage[addr] := x
-        WHEN CORE_NUMBER DO
-            LET ud1h: Number := stack.pop()
-            LET ud1l: Number := stack.pop()
-            LET ud1: Number := ud1h * 0x100000000 + ud1l
-            LET dig: Number := ud1 MOD storage[cell_base]
-            LET ud2: Number := math.floor(ud1 / storage[cell_base])
-            stack.push(ud2 MOD 0x100000000)
-            stack.push(math.floor(ud2 / 0x100000000))
-            inc(number_buffer_size)
-            storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
-        WHEN CORE_NUMBER_GT DO
-            LET xdh: Number := stack.pop()
-            LET xdl: Number := stack.pop()
-            stack.push(cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size)
-            stack.push(number_buffer_size)
-        WHEN CORE_NUMBER_S DO
-            LET ud1h: Number := stack.pop()
-            LET ud1l: Number := stack.pop()
-            VAR ud1: Number := ud1h * 0x100000000 + ud1l
-            REPEAT
-                LET dig: Number := ud1 MOD storage[cell_base]
-                ud1 := math.floor(ud1 / storage[cell_base])
-                inc(number_buffer_size)
-                storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
-            UNTIL ud1 = 0
-            stack.push(0)
-            stack.push(0)
-        WHEN CORE_MUL DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(n1 * n2)
-        WHEN CORE_MUL_DIV DO
-            LET n3: Number := signed32(stack.pop())
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(math.floor(n1 * n2 / n3))
-        WHEN CORE_MUL_DIV_MOD DO
-            LET n3: Number := signed32(stack.pop())
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            LET p: Number := n1 * n2
-            stack.push(p MOD n3)
-            stack.push(math.floor(p / n3))
-        WHEN CORE_ADD DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(n1 + n2)
-        WHEN CORE_ADD_STORE DO
-            LET addr: Number := stack.pop()
-            LET n: Number := signed32(stack.pop())
-            storage[addr] := storage[addr] + n
-        WHEN CORE_COMMA DO
-            LET x: Number := stack.pop()
-            storage.append(x)
-        WHEN CORE_SUB DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(n1 - n2)
-        WHEN CORE_PRINT DO
-            LET n: Number := signed32(stack.pop())
-            io.write(io.stdout(), "\(n) ")
-        WHEN CORE_DIV DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(math.floor(n1 / n2))
-        WHEN CORE_DIV_MOD DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(n1 MOD n2)
-            stack.push(math.floor(n1 / n2))
-        WHEN CORE_0_LESS DO
-            LET n: Number := signed32(stack.pop())
-            stack.push(IF n < 0 THEN -1 ELSE 0)
-        WHEN CORE_0_EQUAL DO
-            LET n: Number := stack.pop()
-            stack.push(IF n = 0 THEN -1 ELSE 0)
-        WHEN CORE_1_PLUS DO
-            LET n1: Number := signed32(stack.pop())
-            stack.push(n1 + 1)
-        WHEN CORE_1_MINUS DO
-            LET n1: Number := signed32(stack.pop())
-            stack.push(n1 - 1)
-        WHEN CORE_2_STORE DO
-            LET addr: Number := stack.pop()
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            storage[addr] := x2
-            storage[addr+1] := x1
-        WHEN CORE_2_TIMES DO
-            LET n1: Number := stack.pop()
-            stack.push(bitwise.shiftLeft32(n1, 1))
-        WHEN CORE_2_DIVIDE DO
-            LET n1: Number := signed32(stack.pop())
-            stack.push(bitwise.shiftRightSigned32(n1, 1))
-        WHEN CORE_2_FETCH DO
-            LET addr: Number := stack.pop()
-            stack.push(storage[addr+1])
-            stack.push(storage[addr])
-        WHEN CORE_2DROP DO
-            stack.drop(2)
-        WHEN CORE_2DUP DO
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(x1)
-            stack.push(x2)
-            stack.push(x1)
-            stack.push(x2)
-        WHEN CORE_2OVER DO
-            LET x4: Number := stack.pop()
-            LET x3: Number := stack.pop()
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(x1)
-            stack.push(x2)
-            stack.push(x3)
-            stack.push(x4)
-            stack.push(x1)
-            stack.push(x2)
-        WHEN CORE_2SWAP DO
-            LET x4: Number := stack.pop()
-            LET x3: Number := stack.pop()
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(x3)
-            stack.push(x4)
-            stack.push(x1)
-            stack.push(x2)
-        WHEN CORE_DEFINE DO
-            defining := next_word()
-            define_start := code.size()
-            storage[cell_state] := -1
-        WHEN CORE_LESS DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 < n2 THEN -1 ELSE 0)
-        WHEN CORE_LESS_NUMBER DO
-            number_buffer_size := 0
-        WHEN CORE_NOT_EQUAL DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 # n2 THEN -1 ELSE 0)
-        WHEN CORE_EQUAL DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 = n2 THEN -1 ELSE 0)
-        WHEN CORE_GREATER DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 > n2 THEN -1 ELSE 0)
-        WHEN CORE_TO_BODY DO
-            LET xt: Number := stack.pop()
-            ASSERT code[xt] = INT_LITERAL
-            ASSERT code[xt+2] = 0 OR code[xt+2] = INT_BRANCH
-            ASSERT code[xt+4] = 0
-            stack.push(code[xt+1])
-        WHEN CORE_TO_IN DO
-            stack.push(cell_in)
-        WHEN CORE_TO_NUMBER DO
-            VAR u: Number := stack.pop()
-            VAR addr: Number := stack.pop()
-            LET ud1h: Number := stack.pop()
-            LET ud1l: Number := stack.pop()
-            VAR ud1: Number := ud1h * 0x100000000 + ud1l
-            WHILE u > 0 DO
-                LET char: String := chr(storage[addr])
-                VAR dig: Number
-                IF "0" <= char <= "9" THEN
-                    dig := ord(char) - ord("0")
-                ELSIF "A" <= char <= "Z" THEN
-                    dig := ord(char) - ord("A") + 10
-                ELSE
-                    EXIT WHILE
-                END IF
-                IF dig >= storage[cell_base] THEN
-                    EXIT WHILE
-                END IF
-                ud1 := ud1 * storage[cell_base] + dig
-                inc(addr)
-                dec(u)
-            END WHILE
-            stack.push(ud1 MOD 0x100000000)
-            stack.push(math.floor(ud1 / 0x100000000))
-            stack.push(addr)
-            stack.push(u)
-        WHEN CORE_TO_R DO
-            LET x: Number := stack.pop()
-            return.append(ReturnEntry(x))
-        WHEN CORE_Q_DUP DO
-            LET x: Number := stack.pop()
-            stack.push(x)
-            IF x # 0 THEN
-                stack.push(x)
-            END IF
-        WHEN CORE_FETCH DO
-            LET addr: Number := stack.pop()
-            stack.push(storage[addr])
-        WHEN CORE_ABS DO
-            LET n: Number := signed32(stack.pop())
-            stack.push(math.abs(n))
-        WHEN CORE_ACCEPT DO
-            LET n: Number := signed32(stack.pop())
-            LET addr: Number := stack.pop()
-            LET s: String := input("")
-            FOR i := 0 TO min(n-1, s.length()-1) DO
-                storage[addr+i] := ord(s[i])
-            END FOR
-            stack.push(s.length())
-        WHEN CORE_ALIGN DO
-            % no action required
-        WHEN CORE_ALIGNED DO
-            % no action required
-        WHEN CORE_ALLOT DO
-            LET n: Number := signed32(stack.pop())
-            storage.resize(storage.size() + n)
-        WHEN CORE_AND DO
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(bitwise.and32(x1, x2))
-        WHEN CORE_BASE DO
-            stack.push(cell_base)
-        WHEN CORE_BL DO
-            stack.push(ord(" "))
-        WHEN CORE_C_STORE DO
-            LET addr: Number := stack.pop()
-            LET x: Number := stack.pop()
-            storage[addr] := x
-        WHEN CORE_C_COMMA DO
-            LET x: Number := stack.pop()
-            storage.append(x)
-        WHEN CORE_C_FETCH DO
-            LET addr: Number := stack.pop()
-            stack.push(storage[addr])
-        WHEN CORE_CELL_PLUS DO
-            LET addr: Number := stack.pop()
-            stack.push(addr+1)
-        WHEN CORE_CELLS DO
-            LET n: Number := signed32(stack.pop())
-            stack.push(n)
-        WHEN CORE_CHAR DO
-            LET s: String := next_word()
-            stack.push(ord(s[FIRST]))
-        WHEN CORE_CHAR_PLUS DO
-            LET addr: Number := stack.pop()
-            stack.push(addr+1)
-        WHEN CORE_CHARS DO
-            LET n: Number := signed32(stack.pop())
-            stack.push(n)
-        WHEN CORE_CONSTANT DO
-            LET x: Number := stack.pop()
-            LET s: String := next_word()
-            words[s] := Word(code.size())
-            code.append(INT_LITERAL)
-            code.append(x)
-            code.append(0)
-        WHEN CORE_COUNT DO
-            LET addr: Number := stack.pop()
-            stack.push(addr+1)
-            stack.push(storage[addr])
-        WHEN CORE_CR DO
-            print("")
-        WHEN CORE_CREATE DO
-            LET s: String := next_word()
-            words[s] := Word(code.size())
-            code.append(INT_LITERAL)
-            code.append(storage.size())
-            code.append(0)
-            code.append(0)
-            code.append(0)
-        WHEN CORE_DECIMAL DO
-            storage[cell_base] := 10
-        WHEN CORE_DEPTH DO
-            stack.push(stack.size())
-        WHEN CORE_DROP DO
-            stack.drop()
-        WHEN CORE_DUP DO
-            LET x: Number := stack.pop()
-            stack.push(x)
-            stack.push(x)
-        WHEN CORE_EMIT DO
-            LET x: Number := stack.pop()
-            io.write(io.stdout(), chr(x))
-        WHEN CORE_ENVIRONMENT_Q DO
-            LET u: Number := stack.pop()
-            LET addr: Number := stack.pop()
-            CASE get_string_len(addr, u)
-                WHEN "FLOATING" DO
-                    stack.push(0)
-                ELSE
-                    stack.push(0)
-            END CASE
-        WHEN CORE_EVALUATE DO
-            LET u: Number := stack.pop()
-            LET addr: Number := stack.pop()
-            storage[cell_eval_input_length] := u
-            storage[cell_eval_in] := 0
-            cell_input := addr
-            cell_input_length := cell_eval_input_length
-            cell_in := cell_eval_in
-            interpret()
-        WHEN CORE_EXECUTE DO
-            LET xt: Number := stack.pop()
-            IF xt > 0 THEN
-                run_compiled(xt)
-            ELSE
-                run_instruction(xt, ip)
-            END IF
-        WHEN CORE_FALSE DO
-            stack.push(0)
-        WHEN CORE_FILL DO
-            LET char: Number := stack.pop()
-            VAR u: Number := stack.pop()
-            VAR addr: Number := stack.pop()
-            WHILE u > 0 DO
-                storage[addr] := char
-                inc(addr)
-                dec(u)
-            END WHILE
-        WHEN CORE_FIND DO
-            LET addr: Number := stack.pop()
-            LET s: String := get_string(addr)
-            IF s IN words THEN
-                stack.push(words[s].xt)
-                stack.push(IF words[s].immediate THEN 1 ELSE -1)
-            ELSE
-                stack.push(addr)
-                stack.push(0)
-            END IF
-        WHEN CORE_FM_MOD DO
-            LET n1: Number := signed32(stack.pop())
-            LET d1h: Number := signed32(stack.pop())
-            LET d1l: Number := stack.pop()
-            LET d1: Number := d1h * 0x100000000 + d1l
-            stack.push(d1 MOD n1)
-            stack.push(math.floor(d1 / n1))
-        WHEN CORE_HERE DO
-            stack.push(storage.size())
-        WHEN CORE_HEX DO
-            storage[cell_base] := 0x10
-        WHEN CORE_HOLD DO
-            LET char: Number := stack.pop()
-            inc(number_buffer_size)
-            storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := char
-        WHEN CORE_I DO
-            stack.push(return[LAST].index)
-        WHEN CORE_IMMEDIATE DO
-            words[defining].immediate := TRUE
-        WHEN CORE_INVERT DO
-            LET x1: Number := stack.pop()
-            stack.push(bitwise.not32(x1))
-        WHEN CORE_J DO
-            stack.push(return[LAST-1].index)
-        WHEN CORE_LSHIFT DO
-            LET u: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(bitwise.shiftLeft32(x1, u))
-        WHEN CORE_M_MUL DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            LET p: Number := n1 * n2
-            stack.push(p)
-            stack.push(math.floor(p / 0x100000000))
-        WHEN CORE_MAX DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(max(n1, n2))
-        WHEN CORE_MIN DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(min(n1, n2))
-        WHEN CORE_MOD DO
-            LET n2: Number := signed32(stack.pop())
-            LET n1: Number := signed32(stack.pop())
-            stack.push(n1 MOD n2)
-        WHEN CORE_MOVE DO
-            VAR u: Number := stack.pop()
-            VAR addr2: Number := stack.pop()
-            VAR addr1: Number := stack.pop()
-            IF addr2 < addr1 THEN
-                WHILE u > 0 DO
-                    storage[addr2] := storage[addr1]
-                    inc(addr1)
-                    inc(addr2)
-                    dec(u)
-                END WHILE
-            ELSIF addr1 < addr2 THEN
-                addr1 := addr1 + u
-                addr2 := addr2 + u
-                WHILE u > 0 DO
-                    dec(addr1)
-                    dec(addr2)
-                    storage[addr2] := storage[addr1]
-                    dec(u)
-                END WHILE
-            END IF
-        WHEN CORE_NEGATE DO
-            LET n1: Number := signed32(stack.pop())
-            stack.push(-n1)
-        WHEN CORE_NOT DO
-            LET n: Number := stack.pop()
-            stack.push(IF n # 0 THEN 0 ELSE -1)
-        WHEN CORE_OR DO
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(bitwise.or32(x1, x2))
-        WHEN CORE_OVER DO
-            stack.push(stack.peek(1))
-        WHEN CORE_PAD DO
-            stack.push(cell_pad)
-        WHEN CORE_R_FROM DO
-            stack.push(return[LAST].ip)
-            return.resize(return.size()-1)
-        WHEN CORE_R_FETCH DO
-            stack.push(return[LAST].ip)
-        WHEN CORE_ROT DO
-            LET x3: Number := stack.pop()
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(x2)
-            stack.push(x3)
-            stack.push(x1)
-        WHEN CORE_RSHIFT DO
-            LET u: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(bitwise.shiftRight32(x1, u))
-        WHEN CORE_S_TO_D DO
-            LET n: Number := signed32(stack.pop())
-            stack.push(n)
-            stack.push(IF n < 0 THEN -1 ELSE 0)
-        WHEN CORE_SIGN DO
-            LET n: Number := signed32(stack.pop())
-            IF n < 0 THEN
-                inc(number_buffer_size)
-                storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord("-")
-            END IF
-        WHEN CORE_SM_REM DO
-            LET n1: Number := signed32(stack.pop())
-            LET d1h: Number := signed32(stack.pop())
-            LET d1l: Number := stack.pop()
-            LET d1: Number := d1h * 0x100000000 + d1l
-            stack.push(d1 MOD n1)
-            stack.push(math.floor(d1 / n1))
-        WHEN CORE_SOURCE DO
-            stack.push(cell_input)
-            stack.push(storage[cell_input_length])
-        WHEN CORE_SPACE DO
-            io.write(io.stdout(), " ")
-        WHEN CORE_SPACES DO
-            VAR n: Number := signed32(stack.pop())
-            WHILE n > 0 DO
-                io.write(io.stdout(), " ")
-                dec(n)
-            END WHILE
-        WHEN CORE_STATE DO
-            stack.push(cell_state)
-        WHEN CORE_SWAP DO
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(x2)
-            stack.push(x1)
-        WHEN CORE_TRUE DO
-            stack.push(-1)
-        WHEN CORE_TUCK DO
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(x2)
-            stack.push(x1)
-            stack.push(x2)
-        WHEN CORE_TYPE DO
-            LET u: Number := stack.pop()
-            LET addr: Number := stack.pop()
-            LET s: String := get_string_len(addr, u)
-            io.write(io.stdout(), s)
-        WHEN CORE_U_PRINT DO
-            LET n: Number := stack.pop()
-            io.write(io.stdout(), "\(n) ")
-        WHEN CORE_U_LESS DO
-            LET u2: Number := stack.pop()
-            LET u1: Number := stack.pop()
-            stack.push(IF u1 < u2 THEN -1 ELSE 0)
-        WHEN CORE_UM_MOD DO
-            LET u1: Number := stack.pop()
-            LET udh: Number := stack.pop()
-            LET udl: Number := stack.pop()
-            LET ud: Number := udh * 0x100000000 + udl
-            stack.push(ud MOD u1)
-            stack.push(math.floor(ud / u1))
-        WHEN CORE_UM_MUL DO
-            LET u2: Number := stack.pop()
-            LET u1: Number := stack.pop()
-            LET p: Number := u1 * u2
-            stack.push(p)
-            stack.push(math.floor(p / 0x100000000))
-        WHEN CORE_VARIABLE DO
-            LET s: String := next_word()
-            words[s] := Word(code.size())
-            code.append(INT_LITERAL)
-            code.append(storage.size())
-            code.append(0)
-            storage.append(0)
-        WHEN CORE_WORD DO
-            LET char: Number := stack.pop()
-            LET s: String := parse(chr(char))
-            % TODO: use a real scratch area that is discarded
-            stack.push(storage.size())
-            storage.append(s.length())
-            FOR i := 0 TO s.length()-1 DO
-                storage.append(ord(s[i]))
-            END FOR
-            storage.append(ord(" "))
-        WHEN CORE_XOR DO
-            LET x2: Number := stack.pop()
-            LET x1: Number := stack.pop()
-            stack.push(bitwise.xor32(x1, x2))
-        WHEN TOOLS_QUESTION DO
-            LET addr: Number := stack.pop()
-            print("\(storage[addr])")
-        WHEN TOOLS_PRINT_S DO
-            FOR i := 0 TO stack.size()-1 DO
-                print("\(stack.peek(i))")
-            END FOR
-        WHEN TOOLS_DUMP DO
-            LET u: Number := stack.pop()
-            LET addr: Number := stack.pop()
-            FOR i := 0 TO u-1 DO
-                print("\(addr+i): \(storage[addr+i])")
-            END FOR
-        WHEN TOOLS_SEE DO
-            LET s: String := next_word()
-            IF s IN words THEN
-                IF words[s].immediate THEN
-                    print("(immediate)")
-                END IF
-                VAR a: Number := words[s].xt
-                IF a > 0 THEN
-                    LOOP
-                        print("\(a): \(code[a])")
-                        IF code[a] = 0 THEN
-                            EXIT LOOP
-                        END IF
-                        inc(a)
-                    END LOOP
-                ELSE
-                    print("built-in")
-                END IF
-            ELSE
-                print("word not found")
-            END IF
-        WHEN TOOLS_WORDS DO
-            LET a: Array<String> := words.keys()
-            FOREACH w OF a DO
-                print(w)
-            END FOREACH
-        WHEN TOOLS_EXT_BYE DO
-            sys.exit(0)
-        WHEN INT_BRANCH DO
-            ip := code[ip+1]
-        WHEN INT_DO DO
-            LET u2: Number := stack.pop()
-            LET u1: Number := stack.pop()
-            return.append(ReturnEntry(ip+2, u1, u2, code[ip+1]))
-            ip := ip + 2
-        WHEN INT_DOES DO
-            ASSERT code[LAST] = 0
-            code[code.size()-3] := INT_BRANCH
-            code[code.size()-2] := code[ip+1]
-            ip := ip + 2
-        WHEN INT_EXIT DO
-            ip := return[LAST].ip
-            return.resize(return.size()-1)
-        WHEN INT_LEAVE DO
-            ip := return[LAST].leave
-            return.resize(return.size()-1)
-        WHEN INT_LITERAL DO
-            stack.push(code[ip+1])
-            ip := ip + 2
-        WHEN INT_LOOP DO
-            LET last: Number := return.size() - 1
-            return[last].index := (return[last].index + 1) MOD 0x100000000
-            IF return[last].index = return[last].limit THEN
-                return.resize(return.size()-1)
-            ELSE
-                ip := return[last].ip
-            END IF
-        WHEN INT_PLUS_LOOP DO
-            LET n: Number := signed32(stack.pop())
-            LET last: Number := return.size() - 1
-            LET prev: Number := return[last].index
-            LET limit: Number := return[last].limit
-            return[last].index := (return[last].index + n) MOD 0x100000000
-            % print("prev=\(prev) new=\(return[last].index) limit=\(limit) n=\(n)")
-            IF (n > 0 AND (IF limit # 0 THEN prev < limit AND (return[last].index >= limit OR return[last].index < prev)
-                                        ELSE return[last].index < prev))
-            OR (n < 0 AND (IF limit # 0 THEN prev >= limit AND (return[last].index < limit OR return[last].index > prev)
-                                        ELSE return[last].index > prev)) THEN
-                return.resize(return.size()-1)
-            ELSE
-                ip := return[last].ip
-            END IF
-        WHEN INT_POSTPONE DO
-            run(code[ip+1], FALSE)
-            ip := ip + 2
-        WHEN INT_POSTPONE_IMM DO
-            run(code[ip+1], TRUE)
-            ip := ip + 2
-        WHEN INT_PRINT_QUOTE DO
-            io.write(io.stdout(), get_string(code[ip+1]))
-            ip := ip + 2
-        WHEN INT_Q_BRANCH DO
-            LET x: Number := stack.pop()
-            IF x = 0 THEN
-                ip := code[ip+1]
-            ELSE
-                ip := ip + 2
-            END IF
-        WHEN INT_S_QUOTE DO
-            stack.push(code[ip+1]+1)
-            stack.push(storage[code[ip+1]])
-            ip := ip + 2
-        WHEN INT_UNLOOP DO
-            return.resize(return.size()-1)
         ELSE
-            print("Unknown instruction: \(instr)")
-            sys.exit(1)
+            LET f: FUNCTION(INOUT ip: Number) := dispatch[-instr]
+            f(ip)
+            %print("Unknown instruction: \(instr)")
+            %sys.exit(1)
     END CASE
 END FUNCTION
 
