@@ -923,6 +923,7 @@ class RepeatStatement:
                 except NextException as x:
                     if x.type is not REPEAT:
                         raise
+                    continue
                 if self.cond.eval(env):
                     break
         except ExitException as x:

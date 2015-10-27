@@ -1,0 +1,11 @@
+VAR x: Number := 0
+REPEAT
+    print(str(x))
+    inc(x)
+    IF x < 3 THEN
+        NEXT REPEAT
+    END IF
+UNTIL x > 0
+%= 0
+%= 1
+%= 2
