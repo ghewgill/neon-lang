@@ -32,6 +32,9 @@ EXPORT sub
 EXPORT square
 EXPORT tan
 EXPORT tanh
+EXPORT Zero
+EXPORT One
+EXPORT i
 
 IMPORT math
 
@@ -52,7 +55,8 @@ TYPE Complex IS RECORD
 END RECORD
 
 LET LN10: Number := math.log(10)
-CONSTANT one: Complex := Complex(1, 0)
+CONSTANT Zero: Complex := Complex(0, 0)
+CONSTANT One: Complex := Complex(1, 0)
 CONSTANT i: Complex := Complex(0, 1)
 
 FUNCTION sign(x: Number): Number
@@ -224,7 +228,7 @@ FUNCTION atanh(a: Complex): Complex
     IF a.im = 0 AND math.abs(a.re) = 1 THEN
         RETURN Complex(sign(a.re) * Max, 0)
     END IF
-    LET u: Complex := one.add(a).div(one.sub(a)).log()
+    LET u: Complex := One.add(a).div(One.sub(a)).log()
     RETURN Complex(u.re/2, u.im/2)
 END FUNCTION
 
