@@ -1,8 +1,8 @@
 FUNCTION dump(x: Array<Number>)
     VAR s: String := "["
-    FOR i := 0 TO x.size()-1 DO
+    FOR i := 0 TO x.size() - 1 DO
         s.append(x[i].toString())
-        IF i < x.size()-1 THEN
+        IF i < x.size() - 1 THEN
             s.append(", ")
         END IF
     END FOR
@@ -15,48 +15,48 @@ FUNCTION arr(): Array<Number>
 END FUNCTION
 
 VAR a: Array<Number> := [1, 2, 3, 4]
-VAR b: Array<Number> := a[1 TO LAST-1]
+VAR b: Array<Number> := a[1 TO LAST - 1]
 dump(b)
 %= [2, 3]
 
-a[1 TO LAST-1] := [5, 5, 5]
+a[1 TO LAST - 1] := [5, 5, 5]
 dump(a)
 %= [1, 5, 5, 5, 4]
 
-dump(a[FIRST TO LAST-1])
+dump(a[FIRST TO LAST - 1])
 %= [1, 5, 5, 5]
 
 dump([a[FIRST]])
 %= [1]
 
-dump([a[FIRST+1]])
+dump([a[FIRST + 1]])
 %= [5]
 
 dump([a[LAST]])
 %= [4]
 
-dump([a[LAST-1]])
+dump([a[LAST - 1]])
 %= [5]
 
 dump(a[FIRST TO FIRST])
 %= [1]
 
-dump(a[FIRST TO FIRST+1])
+dump(a[FIRST TO FIRST + 1])
 %= [1, 5]
 
 dump(a[LAST TO LAST])
 %= [4]
 
-dump(a[LAST-1 TO LAST])
+dump(a[LAST - 1 TO LAST])
 %= [5, 4]
 
-print(str(arr()[FIRST+1]))
+print(str(arr()[FIRST + 1]))
 %= 2
 
 print(str(arr()[LAST]))
 %= 3
 
-dump(arr()[LAST-1 TO LAST])
+dump(arr()[LAST - 1 TO LAST])
 %= [2, 3]
 
 a[0 TO -1] := [9]

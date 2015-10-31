@@ -165,6 +165,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
     std::string::const_iterator linestart = source.begin();
     std::string::const_iterator lineend = std::find(source.begin(), source.end(), '\n');
     std::string::const_iterator i = source.begin();
+    bool last_whitespace = true;
     while (i != source.end()) {
         uint32_t c = utf8::peek_next(i, source.end());
         //printf("index %lu char %c\n", i, c);
@@ -175,40 +176,42 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
         t.line = line;
         t.column = column;
         t.type = NONE;
+        int check_whitespace = 0;
+        bool is_whitespace = false;
              if (c == '(') { t.type = LPAREN; utf8::advance(i, 1, source.end()); }
         else if (c == ')') { t.type = RPAREN; utf8::advance(i, 1, source.end()); }
         else if (c == '[') { t.type = LBRACKET; utf8::advance(i, 1, source.end()); }
         else if (c == ']') { t.type = RBRACKET; utf8::advance(i, 1, source.end()); }
         else if (c == '{') { t.type = LBRACE; utf8::advance(i, 1, source.end()); }
         else if (c == '}') { t.type = RBRACE; utf8::advance(i, 1, source.end()); }
-        else if (c == '+') { t.type = PLUS; utf8::advance(i, 1, source.end()); }
-        else if (c == '*') { t.type = TIMES; utf8::advance(i, 1, source.end()); }
-        else if (c == '/') { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
-        else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); }
-        else if (c == '&') { t.type = CONCAT; utf8::advance(i, 1, source.end()); }
-        else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
-        else if (c == '#') { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
-        else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }
+        else if (c == '+') { t.type = PLUS; check_whitespace = 2; }
+        else if (c == '*') { t.type = TIMES; check_whitespace = 2; }
+        else if (c == '/') { t.type = DIVIDE; check_whitespace = 2; }
+        else if (c == '^') { t.type = EXP; check_whitespace = 2; }
+        else if (c == '&') { t.type = CONCAT; check_whitespace = 2; }
+        else if (c == '=') { t.type = EQUAL; check_whitespace = 2; }
+        else if (c == '#') { t.type = NOTEQUAL; check_whitespace = 2; }
+        else if (c == ',') { t.type = COMMA; check_whitespace = 1; }
         else if (c == '.') { t.type = DOT; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2212 /*'−'*/) { t.type = MINUS; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x00D7 /*'×'*/) { t.type = TIMES; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2215 /*'∕'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x00F7 /*'÷'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2212 /*'−'*/) { t.type = MINUS; check_whitespace = 2; }
+        else if (c == 0x00D7 /*'×'*/) { t.type = TIMES; check_whitespace = 2; }
+        else if (c == 0x2215 /*'∕'*/) { t.type = DIVIDE; check_whitespace = 2; }
+        else if (c == 0x00F7 /*'÷'*/) { t.type = DIVIDE; check_whitespace = 2; }
+        else if (c == 0x2260 /*'≠'*/) { t.type = NOTEQUAL; check_whitespace = 2; }
+        else if (c == 0x2264 /*'≤'*/) { t.type = LESSEQ; check_whitespace = 2; }
+        else if (c == 0x2265 /*'≥'*/) { t.type = GREATEREQ; check_whitespace = 2; }
         else if (c == 0x00ac /*'¬'*/) { t.type = NOT; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2227 /*'∧'*/) { t.type = AND; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2228 /*'∨'*/) { t.type = OR; utf8::advance(i, 1, source.end()); }
-        else if (c == 0x2208 /*'∈'*/) { t.type = IN; utf8::advance(i, 1, source.end()); }
-        // TODO else if (c == 0x2209 /*'∉'*/) { t.type = NOTIN; utf8::advance(i, 1, source.end()); }
+        else if (c == 0x2227 /*'∧'*/) { t.type = AND; check_whitespace = 2; }
+        else if (c == 0x2228 /*'∨'*/) { t.type = OR; check_whitespace = 2; }
+        else if (c == 0x2208 /*'∈'*/) { t.type = IN; check_whitespace = 2; }
+        // TODO else if (c == 0x2209 /*'∉'*/) { t.type = NOTIN; check_whitespace = 2; }
         else if (c == '-') {
             if (i+1 != source.end() && *(i+1) == '>') {
                 t.type = ARROW;
                 utf8::advance(i, 2, source.end());
             } else {
                 t.type = MINUS;
-                utf8::advance(i, 1, source.end());
+                check_whitespace = 2;
             }
         } else if (c == '<') {
             if (i+1 != source.end() && *(i+1) == '=') {
@@ -232,7 +235,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                 utf8::advance(i, 2, source.end());
             } else {
                 t.type = COLON;
-                utf8::advance(i, 1, source.end());
+                check_whitespace = 1;
             }
         } else if (identifier_start(c)) {
             t.type = IDENTIFIER;
@@ -612,9 +615,23 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                 }
                 utf8::advance(i, 1, source.end());
             }
+            is_whitespace = true;
         } else {
             error(1007, t, "Unexpected character");
         }
+        if (check_whitespace != 0) {
+            if ((t.type == PLUS || t.type == MINUS) && (tokens.empty() || (tokens.back().type != IDENTIFIER))) {
+                check_whitespace = 0;
+            }
+            if (check_whitespace == 2 && not last_whitespace) {
+                error(1025, t, "whitespace required before operator");
+            }
+            utf8::advance(i, 1, source.end());
+            if (check_whitespace != 0 && i != source.end() && not space(utf8::peek_next(i, source.end()))) {
+                error(1026, t, "whitespace required after operator");
+            }
+        }
+        last_whitespace = is_whitespace;
         if (t.type != NONE) {
             tokens.push_back(t);
         }

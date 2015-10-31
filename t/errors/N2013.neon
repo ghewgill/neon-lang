@@ -1,4 +1,4 @@
-FUNCTION a(y: Number,z: Number) : Number
+FUNCTION a(y: Number, z: Number) : Number
     RETURN 1
 END FUNCTION
 

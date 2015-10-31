@@ -140,8 +140,8 @@ END FUNCTION
 FUNCTION pathSplit(path: String, OUT directory, name: String)
     FOR i := path.length() - 1 TO 0 STEP -1 DO
         IF path[i] IN ["/", Separator] THEN
-            directory := path[FIRST TO i-1]
-            name := path[i+1 TO LAST]
+            directory := path[FIRST TO i - 1]
+            name := path[i + 1 TO LAST]
             EXIT FUNCTION
         END IF
     END FOR

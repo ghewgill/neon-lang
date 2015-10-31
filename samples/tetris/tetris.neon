@@ -20,34 +20,34 @@ END RECORD
 
 CONSTANT Pieces: Array<Piece> := [
     Piece(),
-    Piece([[0,0,0,0], % I
-           [1,1,1,1],
-           [0,0,0,0],
-           [0,0,0,0]], 2),
-    Piece([[0,0,0,0], % J
-           [1,1,1,0],
-           [0,0,1,0],
-           [0,0,0,0]], 4),
-    Piece([[0,0,0,0], % L
-           [1,1,1,0],
-           [1,0,0,0],
-           [0,0,0,0]], 4),
-    Piece([[1,1,0,0], % O
-           [1,1,0,0],
-           [0,0,0,0],
-           [0,0,0,0]], 1),
-    Piece([[0,1,1,0], % S
-           [1,1,0,0],
-           [0,0,0,0],
-           [0,0,0,0]], 2),
-    Piece([[0,0,0,0], % T
-           [1,1,1,0],
-           [0,1,0,0],
-           [0,0,0,0]], 4),
-    Piece([[1,1,0,0], % Z
-           [0,1,1,0],
-           [0,0,0,0],
-           [0,0,0,0]], 2)
+    Piece([[0, 0, 0, 0], % I
+           [1, 1, 1, 1],
+           [0, 0, 0, 0],
+           [0, 0, 0, 0]], 2),
+    Piece([[0, 0, 0, 0], % J
+           [1, 1, 1, 0],
+           [0, 0, 1, 0],
+           [0, 0, 0, 0]], 4),
+    Piece([[0, 0, 0, 0], % L
+           [1, 1, 1, 0],
+           [1, 0, 0, 0],
+           [0, 0, 0, 0]], 4),
+    Piece([[1, 1, 0, 0], % O
+           [1, 1, 0, 0],
+           [0, 0, 0, 0],
+           [0, 0, 0, 0]], 1),
+    Piece([[0, 1, 1, 0], % S
+           [1, 1, 0, 0],
+           [0, 0, 0, 0],
+           [0, 0, 0, 0]], 2),
+    Piece([[0, 0, 0, 0], % T
+           [1, 1, 1, 0],
+           [0, 1, 0, 0],
+           [0, 0, 0, 0]], 4),
+    Piece([[1, 1, 0, 0], % Z
+           [0, 1, 1, 0],
+           [0, 0, 0, 0],
+           [0, 0, 0, 0]], 2)
 ]
 
 VAR Board: multiarray.ArrayNumber2D := multiarray.makeNumber2D(BOARD_HEIGHT, BOARD_WIDTH)
@@ -116,7 +116,7 @@ FUNCTION plot(on: Boolean, w: curses.Window, p, y, x, r: Number)
     FOR j := 0 TO 3 DO
         FOR i := 0 TO 3 DO
             IF q[j][i] # 0 THEN
-                curses.mvwaddstr(w, y+j, 1+(x+i)*2, "  ")
+                curses.mvwaddstr(w, y + j, 1 + (x + i) * 2, "  ")
             END IF
         END FOR
     END FOR
@@ -134,7 +134,7 @@ FUNCTION piece_fits(p, x, y, r: Number): Boolean
                 IF y + j >= BOARD_HEIGHT THEN
                     RETURN FALSE
                 END IF
-                IF Board[y+j][x+i] # 0 THEN
+                IF Board[y + j][x + i] # 0 THEN
                     RETURN FALSE
                 END IF
             END IF
@@ -148,7 +148,7 @@ FUNCTION drop_piece(p, x, y, r: Number)
     FOR j := 0 TO 3 DO
         FOR i := 0 TO 3 DO
             IF q[j][i] # 0 THEN
-                Board[y+j][x+i] := p
+                Board[y + j][x + i] := p
             END IF
         END FOR
     END FOR
@@ -166,22 +166,22 @@ END FUNCTION
 
 FUNCTION remove_rows(INOUT score, rows: Number)
     VAR count: Number := 0
-    VAR j: Number := BOARD_HEIGHT-1
+    VAR j: Number := BOARD_HEIGHT - 1
     WHILE j >= 0 DO
         IF row_complete(j) THEN
             inc(count)
             FOR k := j TO 1 STEP -1 DO
-                Board[k] := Board[k-1]
-                FOR i := 0 TO BOARD_WIDTH-1 DO
+                Board[k] := Board[k - 1]
+                FOR i := 0 TO BOARD_WIDTH - 1 DO
                     curses.wattrset(BoardWindow, curses.COLOR_PAIR(Board[k][i]))
-                    curses.mvwaddstr(BoardWindow, k, 1+2*i, "  ")
+                    curses.mvwaddstr(BoardWindow, k, 1 + 2 * i, "  ")
                 END FOR
             END FOR
         ELSE
             dec(j)
         END IF
     END WHILE
-    score := score + count*count
+    score := score + count * count
     rows := rows + count
 END FUNCTION
 
@@ -200,7 +200,7 @@ FUNCTION init()
     curses.mvaddstr(13, 40, @"        space - drop              ")
     curses.refresh()
 
-    BoardWindow := curses.newwin(21, 2+2*10, 2, 5)
+    BoardWindow := curses.newwin(21, 2 + 2 * 10, 2, 5)
     curses.wtimeout(BoardWindow, 100)
 
     NextWindow := curses.newwin(6, 10, 14, 30)
@@ -238,8 +238,8 @@ FUNCTION main()
     WHILE NOT quit DO
         curses.werase(BoardWindow)
         curses.wborder(BoardWindow, 0, 0, 32, 0, 0, 0, 0, 0)
-        FOR j := 0 TO BOARD_HEIGHT-1 DO
-            FOR i := 0 TO BOARD_WIDTH-1 DO
+        FOR j := 0 TO BOARD_HEIGHT - 1 DO
+            FOR i := 0 TO BOARD_WIDTH - 1 DO
                 Board[j][i] := 0
             END FOR
         END FOR
@@ -278,7 +278,7 @@ FUNCTION main()
             LOOP
                 LET now: Number := time.now()
                 IF now - last_drop >= drop_time THEN
-                    IF NOT piece_fits(p, x, y+1, r) THEN
+                    IF NOT piece_fits(p, x, y + 1, r) THEN
                         new_piece := TRUE
                     ELSE
                         inc(y)
@@ -290,7 +290,7 @@ FUNCTION main()
                 IF k >= 0 THEN
                     CASE chr(k)
                         WHEN " " DO
-                            WHILE piece_fits(p, x, y+1, r) DO
+                            WHILE piece_fits(p, x, y + 1, r) DO
                                 inc(y)
                             END WHILE
                             new_piece := TRUE
@@ -299,7 +299,7 @@ FUNCTION main()
                             dec(x)
                             EXIT LOOP
                         WHEN "k" DO
-                            IF piece_fits(p, x, y+1, r) THEN
+                            IF piece_fits(p, x, y + 1, r) THEN
                                 inc(y)
                                 last_drop := now
                             ELSE

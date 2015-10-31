@@ -4,7 +4,7 @@ FUNCTION recurse(n: Number): Number
     IF n = 0 THEN
         RETURN 0
     END IF
-    RETURN recurse(n-1) + 1
+    RETURN recurse(n - 1) + 1
 END FUNCTION
 
 runtime.setRecursionLimit(2002)

@@ -68,7 +68,7 @@ TYPE ArrayString3D IS Array<Array<Array<String>>>
 FUNCTION makeBoolean2D(rows, columns: Number): ArrayBoolean2D
     VAR r: ArrayBoolean2D
     r.resize(rows)
-    FOR i := 0 TO rows-1 DO
+    FOR i := 0 TO rows - 1 DO
         r[i].resize(columns)
     END FOR
     RETURN r
@@ -82,9 +82,9 @@ END FUNCTION
 FUNCTION makeBoolean3D(rows, columns, depth: Number): ArrayBoolean3D
     VAR r: ArrayBoolean3D
     r.resize(rows)
-    FOR i := 0 TO rows-1 DO
+    FOR i := 0 TO rows - 1 DO
         r[i].resize(columns)
-        FOR j := 0 TO columns-1 DO
+        FOR j := 0 TO columns - 1 DO
             r[i][j].resize(depth)
         END FOR
     END FOR
@@ -99,7 +99,7 @@ END FUNCTION
 FUNCTION makeNumber2D(rows, columns: Number): ArrayNumber2D
     VAR r: ArrayNumber2D
     r.resize(rows)
-    FOR i := 0 TO rows-1 DO
+    FOR i := 0 TO rows - 1 DO
         r[i].resize(columns)
     END FOR
     RETURN r
@@ -115,10 +115,10 @@ FUNCTION makeNumber2DValue(rows, columns: Number, value: Number): ArrayNumber2D
     % (depends on https://github.com/ghewgill/neon-lang/issues/45).
     VAR r: ArrayNumber2D
     r.resize(rows)
-    FOR i := 0 TO rows-1 DO
+    FOR i := 0 TO rows - 1 DO
         r[i].resize(columns)
         IF value # 0 THEN
-            FOR j := 0 TO columns-1 DO
+            FOR j := 0 TO columns - 1 DO
                 r[i][j] := value
             END FOR
         END IF
@@ -134,9 +134,9 @@ END FUNCTION
 FUNCTION makeNumber3D(rows, columns, depth: Number): ArrayNumber3D
     VAR r: ArrayNumber3D
     r.resize(rows)
-    FOR i := 0 TO rows-1 DO
+    FOR i := 0 TO rows - 1 DO
         r[i].resize(columns)
-        FOR j := 0 TO columns-1 DO
+        FOR j := 0 TO columns - 1 DO
             r[i][j].resize(depth)
         END FOR
     END FOR
@@ -151,7 +151,7 @@ END FUNCTION
 FUNCTION makeString2D(rows, columns: Number): ArrayString2D
     VAR r: ArrayString2D
     r.resize(rows)
-    FOR i := 0 TO rows-1 DO
+    FOR i := 0 TO rows - 1 DO
         r[i].resize(columns)
     END FOR
     RETURN r
@@ -165,9 +165,9 @@ END FUNCTION
 FUNCTION makeString3D(rows, columns, depth: Number): ArrayString3D
     VAR r: ArrayString3D
     r.resize(rows)
-    FOR i := 0 TO rows-1 DO
+    FOR i := 0 TO rows - 1 DO
         r[i].resize(columns)
-        FOR j := 0 TO columns-1 DO
+        FOR j := 0 TO columns - 1 DO
             r[i][j].resize(depth)
         END FOR
     END FOR

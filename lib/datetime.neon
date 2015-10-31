@@ -243,7 +243,7 @@ FUNCTION DateTime.plusPeriod(self: DateTime, period: Period): DateTime
     LET m: Number := dt.month - 1 + period.months
     dt.year := dt.year + math.floor(m / 12)
     dt.month := 1 + (m MOD 12)
-    RETURN makeFromParts(dt).plusDuration(86400*period.days + 3600*period.hours + 60*period.minutes + period.seconds)
+    RETURN makeFromParts(dt).plusDuration(86400 * period.days + 3600 * period.hours + 60 * period.minutes + period.seconds)
 END FUNCTION
 
 %|

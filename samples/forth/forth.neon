@@ -402,25 +402,25 @@ VAR cell_in: Number := cell_normal_in
 
 FUNCTION get_string_len(addr, len: Number): String
     VAR r: String
-    FOR i := 0 TO len-1 DO
-        r.append(chr(storage[addr+i]))
+    FOR i := 0 TO len - 1 DO
+        r.append(chr(storage[addr + i]))
     END FOR
     RETURN r
 END FUNCTION
 
 FUNCTION get_string(addr: Number): String
     LET len: Number := storage[addr]
-    RETURN get_string_len(addr+1, len)
+    RETURN get_string_len(addr + 1, len)
 END FUNCTION
 
 FUNCTION run_instruction(instr: Number, INOUT ip: Number)
     CASE instr
         WHEN > 0 DO
-            return.append(ReturnEntry(ip+1))
+            return.append(ReturnEntry(ip + 1))
             ip := instr
         WHEN 0 DO
             ip := return[LAST].ip
-            return.resize(return.size()-1)
+            return.resize(return.size() - 1)
         WHEN CORE_STORE DO
             LET addr: Number := stack.pop()
             LET x: Number := stack.pop()
@@ -512,7 +512,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
             storage[addr] := x2
-            storage[addr+1] := x1
+            storage[addr + 1] := x1
         WHEN CORE_2_TIMES DO
             LET n1: Number := stack.pop()
             stack.push(bitwise.shiftLeft32(n1, 1))
@@ -521,7 +521,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(bitwise.shiftRightSigned32(n1, 1))
         WHEN CORE_2_FETCH DO
             LET addr: Number := stack.pop()
-            stack.push(storage[addr+1])
+            stack.push(storage[addr + 1])
             stack.push(storage[addr])
         WHEN CORE_2DROP DO
             stack.drop(2)
@@ -577,9 +577,9 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_TO_BODY DO
             LET xt: Number := stack.pop()
             ASSERT code[xt] = INT_LITERAL
-            ASSERT code[xt+2] = 0 OR code[xt+2] = INT_BRANCH
-            ASSERT code[xt+4] = 0
-            stack.push(code[xt+1])
+            ASSERT code[xt + 2] = 0 OR code[xt + 2] = INT_BRANCH
+            ASSERT code[xt + 4] = 0
+            stack.push(code[xt + 1])
         WHEN CORE_TO_IN DO
             stack.push(cell_in)
         WHEN CORE_TO_NUMBER DO
@@ -628,8 +628,8 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET n: Number := signed32(stack.pop())
             LET addr: Number := stack.pop()
             LET s: String := input("")
-            FOR i := 0 TO min(n-1, s.length()-1) DO
-                storage[addr+i] := ord(s[i])
+            FOR i := 0 TO min(n - 1, s.length() - 1) DO
+                storage[addr + i] := ord(s[i])
             END FOR
             stack.push(s.length())
         WHEN CORE_ALIGN DO
@@ -659,7 +659,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(storage[addr])
         WHEN CORE_CELL_PLUS DO
             LET addr: Number := stack.pop()
-            stack.push(addr+1)
+            stack.push(addr + 1)
         WHEN CORE_CELLS DO
             LET n: Number := signed32(stack.pop())
             stack.push(n)
@@ -668,7 +668,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(ord(s[FIRST]))
         WHEN CORE_CHAR_PLUS DO
             LET addr: Number := stack.pop()
-            stack.push(addr+1)
+            stack.push(addr + 1)
         WHEN CORE_CHARS DO
             LET n: Number := signed32(stack.pop())
             stack.push(n)
@@ -681,7 +681,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             code.append(0)
         WHEN CORE_COUNT DO
             LET addr: Number := stack.pop()
-            stack.push(addr+1)
+            stack.push(addr + 1)
             stack.push(storage[addr])
         WHEN CORE_CR DO
             print("")
@@ -948,8 +948,8 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN TOOLS_DUMP DO
             LET u: Number := stack.pop()
             LET addr: Number := stack.pop()
-            FOR i := 0 TO u-1 DO
-                print("\(addr+i): \(storage[addr+i])")
+            FOR i := 0 TO u - 1 DO
+                print("\(addr + i): \(storage[addr + i])")
             END FOR
         WHEN TOOLS_SEE DO
             LET s: String := next_word()
@@ -980,31 +980,31 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN TOOLS_EXT_BYE DO
             sys.exit(0)
         WHEN INT_BRANCH DO
-            ip := code[ip+1]
+            ip := code[ip + 1]
         WHEN INT_DO DO
             LET u2: Number := stack.pop()
             LET u1: Number := stack.pop()
-            return.append(ReturnEntry(ip+2, u1, u2, code[ip+1]))
+            return.append(ReturnEntry(ip + 2, u1, u2, code[ip + 1]))
             ip := ip + 2
         WHEN INT_DOES DO
             ASSERT code[LAST] = 0
-            code[code.size()-3] := INT_BRANCH
-            code[code.size()-2] := code[ip+1]
+            code[code.size() - 3] := INT_BRANCH
+            code[code.size() - 2] := code[ip + 1]
             ip := ip + 2
         WHEN INT_EXIT DO
             ip := return[LAST].ip
-            return.resize(return.size()-1)
+            return.resize(return.size() - 1)
         WHEN INT_LEAVE DO
             ip := return[LAST].leave
-            return.resize(return.size()-1)
+            return.resize(return.size() - 1)
         WHEN INT_LITERAL DO
-            stack.push(code[ip+1])
+            stack.push(code[ip + 1])
             ip := ip + 2
         WHEN INT_LOOP DO
             LET last: Number := return.size() - 1
             return[last].index := (return[last].index + 1) MOD 0x100000000
             IF return[last].index = return[last].limit THEN
-                return.resize(return.size()-1)
+                return.resize(return.size() - 1)
             ELSE
                 ip := return[last].ip
             END IF
@@ -1024,27 +1024,27 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
                 ip := return[last].ip
             END IF
         WHEN INT_POSTPONE DO
-            run(code[ip+1], FALSE)
+            run(code[ip + 1], FALSE)
             ip := ip + 2
         WHEN INT_POSTPONE_IMM DO
-            run(code[ip+1], TRUE)
+            run(code[ip + 1], TRUE)
             ip := ip + 2
         WHEN INT_PRINT_QUOTE DO
-            io.write(io.stdout(), get_string(code[ip+1]))
+            io.write(io.stdout(), get_string(code[ip + 1]))
             ip := ip + 2
         WHEN INT_Q_BRANCH DO
             LET x: Number := stack.pop()
             IF x = 0 THEN
-                ip := code[ip+1]
+                ip := code[ip + 1]
             ELSE
                 ip := ip + 2
             END IF
         WHEN INT_S_QUOTE DO
-            stack.push(code[ip+1]+1)
-            stack.push(storage[code[ip+1]])
+            stack.push(code[ip + 1] + 1)
+            stack.push(storage[code[ip + 1]])
             ip := ip + 2
         WHEN INT_UNLOOP DO
-            return.resize(return.size()-1)
+            return.resize(return.size() - 1)
         ELSE
             print("Unknown instruction: \(instr)")
             sys.exit(1)
@@ -1089,7 +1089,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
                 code.append(INT_PRINT_QUOTE)
                 code.append(storage.size())
                 storage.append(s.length())
-                FOR i := 0 TO s.length()-1 DO
+                FOR i := 0 TO s.length() - 1 DO
                     storage.append(ord(s[i]))
                 END FOR
             END IF
@@ -1111,7 +1111,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
         WHEN CORE_DOES DO
             ASSERT NOT interpreting
             code.append(INT_DOES)
-            code.append(code.size()+2)
+            code.append(code.size() + 2)
             code.append(0)
         WHEN CORE_ELSE DO
             ASSERT NOT interpreting
@@ -1161,7 +1161,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
             code.append(INT_S_QUOTE)
             code.append(storage.size())
             storage.append(s.length())
-            FOR i := 0 TO s.length()-1 DO
+            FOR i := 0 TO s.length() - 1 DO
                 storage.append(ord(s[i]))
             END FOR
         WHEN CORE_THEN DO
@@ -1245,7 +1245,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
 END FUNCTION
 
 FUNCTION skip()
-    WHILE storage[cell_in] < storage[cell_input_length] AND chr(storage[cell_input+storage[cell_in]]) <= " " DO
+    WHILE storage[cell_in] < storage[cell_input_length] AND chr(storage[cell_input + storage[cell_in]]) <= " " DO
         inc(storage[cell_in])
     END WHILE
 END FUNCTION
@@ -1286,7 +1286,7 @@ FUNCTION execute(word: String)
         VAR n: Number
         VAR m: regex.Match
         LET base: Number := storage[cell_base]
-        IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word, m) THEN
+        IF regex.search("^-?[\(Digits[0 TO base - 1])]+$", word, m) THEN
             n := convert(word, base)
         ELSIF regex.search(@"^#-?[0-9]+$", word, m) THEN
             n := convert(word[1 TO LAST], 10)
@@ -1322,8 +1322,8 @@ FUNCTION refill(): Boolean
     IF NOT io.readLine(current_file, s) THEN
         RETURN FALSE
     END IF
-    FOR i := 0 TO s.length()-1 DO
-        storage[cell_input+i] := ord(s[i])
+    FOR i := 0 TO s.length() - 1 DO
+        storage[cell_input + i] := ord(s[i])
     END FOR
     storage[cell_input_length] := s.length()
     storage[cell_in] := 0
@@ -1333,7 +1333,7 @@ END FUNCTION
 FUNCTION parse(delimiter: String): String
     VAR r: String
     WHILE storage[cell_in] < storage[cell_input_length] DO
-        LET c: String := chr(storage[cell_input+storage[cell_in]])
+        LET c: String := chr(storage[cell_input + storage[cell_in]])
         inc(storage[cell_in])
         IF c = delimiter OR (delimiter = " " AND c <= delimiter) THEN
             EXIT WHILE

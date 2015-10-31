@@ -12,7 +12,7 @@ TYPE rec IS RECORD
     Age: Number
     Superpower: Powers
 END RECORD
-VAR Recs:Array<rec> := [
+VAR Recs: Array<rec> := [
     rec("Spider", "Man", 24, Powers()),
     rec("Bat", "Man", 35, Powers()),
     rec("Super", "Man", 39, Powers()),

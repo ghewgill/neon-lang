@@ -33,7 +33,7 @@ FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
     dt := dt.minusDuration(86400 * p.days)
     LET title: String := IF year_in_title THEN "\(MonthName[month]) \(year)" ELSE MonthName[month]
     VAR r: Array<String> := ["\(title:^21)", "Su Mo Tu We Th Fr Sa "]
-    FOR i := 1 TO 6*7 DO
+    FOR i := 1 TO 6 * 7 DO
         IF dt.weekday = 7 THEN
             r.append("")
         END IF
@@ -75,9 +75,9 @@ FUNCTION main(argv: Array<String>)
     IF month > 0 THEN
         IF "-3" IN options THEN
             VAR months: Array<Array<String>>
-            months[0] := IF month > 1 THEN build_month(year, month-1, TRUE) ELSE build_month(year-1, 12, TRUE)
+            months[0] := IF month > 1 THEN build_month(year, month - 1, TRUE) ELSE build_month(year - 1, 12, TRUE)
             months[1] := build_month(year, month, TRUE)
-            months[2] := IF month < 12 THEN build_month(year, month+1, TRUE) ELSE build_month(year+1, 1, TRUE)
+            months[2] := IF month < 12 THEN build_month(year, month + 1, TRUE) ELSE build_month(year + 1, 1, TRUE)
             FOR line := 0 TO 7 DO
                 VAR s: String := ""
                 FOR col := 0 TO 2 DO
@@ -102,7 +102,7 @@ FUNCTION main(argv: Array<String>)
             FOR line := 0 TO 7 DO
                 VAR s: String := ""
                 FOR col := 0 TO 2 DO
-                    s.append(months[3*row+col][line] & "  ")
+                    s.append(months[3 * row + col][line] & "  ")
                 END FOR
                 print(s)
             END FOR

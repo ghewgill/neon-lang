@@ -23,9 +23,9 @@ FUNCTION initialize()
     FOR i := 0 TO Board.size()-1 STEP 100 DO
         FOR j := 0 TO 99 DO
             IF j < 11 OR j > 88 OR (j + 1) MOD 10 < 2 THEN
-                Board[i+j] := 3
+                Board[i + j] := 3
             ELSE
-                Board[i+j] := 0
+                Board[i + j] := 0
             END IF
         END FOR
     END FOR
@@ -55,7 +55,7 @@ END FUNCTION
 
 FUNCTION dupeBoard(base: Number)
     VAR p: Number := base + 111
-    FOR i := base+11 TO base+88 DO
+    FOR i := base + 11 TO base + 88 DO
         Board[p] := Board[i]
         inc(p)
     END FOR
@@ -74,14 +74,14 @@ FUNCTION validMove(base, move, color, delta: Number): Boolean
         WHILE Board[n] = other DO
             n := n + dd
         END WHILE
-        IF Board[n] = color AND n-dd # p THEN
+        IF Board[n] = color AND n - dd # p THEN
             IF NOT ok THEN
                 ok := TRUE
                 dupeBoard(base)
             END IF
             WHILE n # p DO
                 n := n - dd
-                Board[n+delta] := color
+                Board[n + delta] := color
             END WHILE
         END IF
     END FOR
@@ -111,14 +111,14 @@ FUNCTION search(d, base, color, depth: Number, flag: Boolean, minscore, maxscore
     END IF
     VAR best: Number := 0
     VAR bestscore: Number := -9000
-    IF d < depth-1 THEN
+    IF d < depth - 1 THEN
         bestscore := minscore
     END IF
     VAR n: Number := 0
     FOR p := 11 TO 88 DO
         IF validMove(base, p, color, 100) THEN
             inc(n)
-            LET ss: Number := -search(d+1, base+100, other, depth, FALSE, -maxscore, -bestscore)
+            LET ss: Number := -search(d + 1, base + 100, other, depth, FALSE, -maxscore, -bestscore)
             IF ss > bestscore THEN
                 best := p
                 BestPos := p
@@ -132,7 +132,7 @@ FUNCTION search(d, base, color, depth: Number, flag: Boolean, minscore, maxscore
     IF n = 0 THEN
         best := 0
         IF flag THEN
-            FOR z := base+11 TO base+88 DO
+            FOR z := base + 11 TO base + 88 DO
                 IF Board[z] = color THEN
                     inc(n)
                 ELSIF Board[z] = other THEN
@@ -146,11 +146,11 @@ FUNCTION search(d, base, color, depth: Number, flag: Boolean, minscore, maxscore
             END IF
         END IF
         dupeBoard(base)
-        bestscore := -search(d+1, base+100, other, depth, TRUE, -maxscore, -bestscore)
+        bestscore := -search(d + 1, base + 100, other, depth, TRUE, -maxscore, -bestscore)
     END IF
     BestPos := best
-    IF d >= depth-1 THEN
-        RETURN bestscore + 8*n
+    IF d >= depth - 1 THEN
+        RETURN bestscore + 8 * n
     ELSE
         RETURN bestscore
     END IF
@@ -174,9 +174,9 @@ FUNCTION displayLabels(x, y: Number)
     curses.attrset(curses.COLOR_PAIR(0))
     FOR i := 1 TO 8 DO
         curses.attrset(curses.COLOR_PAIR(IF y = i THEN 2 ELSE 0))
-        curses.mvaddstr((i-1)*3, 0, " " & chr(ord("A") + i - 1) & " ")
+        curses.mvaddstr((i - 1) * 3, 0, " " & chr(ord("A") + i - 1) & " ")
         curses.attrset(curses.COLOR_PAIR(IF x = i THEN 2 ELSE 0))
-        curses.mvaddstr(23, (i-1)*5+5, " " & chr(ord("1") + i - 1) & " ")
+        curses.mvaddstr(23, (i - 1) * 5 + 5, " " & chr(ord("1") + i - 1) & " ")
     END FOR
 END FUNCTION
 
@@ -185,7 +185,7 @@ FUNCTION displayBoard(): Boolean
     VAR any: Boolean := FALSE
     FOR j := 0 TO 7 DO
         FOR i := 0 TO 7 DO
-            LET move: Number := 10*(j+1) + (i+1)
+            LET move: Number := 10 * (j + 1) + (i + 1)
             LET b: Number := Board[move]
             CASE b
                 WHEN 0 DO
@@ -197,9 +197,9 @@ FUNCTION displayBoard(): Boolean
                 WHEN 2 DO
                     inc(white)
             END CASE
-            curses.attrset(curses.COLOR_PAIR(1+b))
+            curses.attrset(curses.COLOR_PAIR(1 + b))
             FOR k := 0 TO 1 DO
-                curses.mvaddstr(3*j+k, 5*i+5, "    ")
+                curses.mvaddstr(3 * j + k, 5 * i + 5, "    ")
             END FOR
         END FOR
     END FOR
@@ -257,7 +257,7 @@ FUNCTION main()
                 game_over := TRUE
                 FOR j := 0 TO 7 DO
                     FOR i := 0 TO 7 DO
-                        IF validMove(0, 10*(j+1)+(i+1), 1, 100) THEN
+                        IF validMove(0, 10 * (j + 1) + (i + 1), 1, 100) THEN
                             game_over := FALSE
                         END IF
                     END FOR
@@ -295,7 +295,7 @@ FUNCTION main()
                     END CASE
                 END IF
                 IF x # 0 AND y # 0 THEN
-                    LET move: Number := 10*y + x
+                    LET move: Number := 10 * y + x
                     IF validMove(0, move, 2, 100) THEN
                         makeMove(move)
                         EXIT WHILE

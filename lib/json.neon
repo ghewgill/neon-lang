@@ -36,7 +36,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
             WHILE index < json.length() AND "a" <= json[index] <= "z" DO
                 inc(index)
             END WHILE
-            LET s: String := json[start TO index-1]
+            LET s: String := json[start TO index - 1]
             CASE s
                 WHEN "null" DO
                     RETURN variant.makeNull()
@@ -52,7 +52,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
             WHILE index < json.length() AND ("0" <= json[index] <= "9" OR json[index] = "-" OR json[index] = "+" OR json[index] = "." OR json[index] = "e" OR json[index] = "E") DO
                 inc(index)
             END WHILE
-            RETURN variant.makeNumber(num(json[start TO index-1]))
+            RETURN variant.makeNumber(num(json[start TO index - 1]))
         WHEN "\"" DO
             inc(index)
             VAR t: String := ""

@@ -110,7 +110,7 @@ FUNCTION main()
 
     % used in the FORTRAN version
     VAR N1, N2, N3, N4, N6, N7, N8, N9, N10, N11: Number
-    VAR X1,X2,X3,X4,x,y,z: Number
+    VAR X1, X2, X3, X4, x, y, z: Number
     VAR loop: Number
     VAR ii, jj: Number
 
@@ -191,7 +191,7 @@ C
                 X1 := (X1 + X2 + X3 - X4) * t
                 X2 := (X1 + X2 - X3 + X4) * t
                 X3 := (X1 - X2 + X3 + X4) * t
-                X4 := (-X1+ X2 + X3 + X4) * t
+                X4 := (-X1 + X2 + X3 + X4) * t
             END FOR
 %#ifdef PRINTOUT
 %            IF (JJ==II)POUT(N1,N1,N1,X1,X2,X3,X4);
@@ -273,11 +273,11 @@ C
             l := 3
 
             FOR i := 1 TO N6 DO
-                j := j * (k-j) * (l-k)
-                k := l * k - (l-j) * k
-                l := (l-k) * (k+j)
-                E1[l-1] := j + k + l
-                E1[k-1] := j * k * l
+                j := j * (k - j) * (l - k)
+                k := l * k - (l - j) * k
+                l := (l - k) * (k + j)
+                E1[l - 1] := j + k + l
+                E1[k - 1] := j * k * l
             END FOR
 
 %#ifdef PRINTOUT
@@ -293,8 +293,8 @@ C
             y := 0.5
 
             FOR i := 1 TO N7 DO
-                x := t * math.atan(T2*math.sin(x)*math.cos(x)/(math.cos(x+y)+math.cos(x-y)-1.0))
-                y := t * math.atan(T2*math.sin(y)*math.cos(y)/(math.cos(x+y)+math.cos(x-y)-1.0))
+                x := t * math.atan(T2 * math.sin(x) * math.cos(x) / (math.cos(x + y) + math.cos(x - y) - 1.0))
+                y := t * math.atan(T2 * math.sin(y) * math.cos(y) / (math.cos(x + y) + math.cos(x - y) - 1.0))
             END FOR
 
 %#ifdef PRINTOUT
@@ -311,7 +311,7 @@ C
             z := 1.0
 
             FOR i := 1 TO N8 DO
-                P3(x,y,z)
+                P3(x, y, z)
             END FOR
 
 %#ifdef PRINTOUT
@@ -365,7 +365,7 @@ C
             x := 0.75
 
             FOR i := 1 TO N11 DO
-                x := math.sqrt(math.exp(math.log(x)/T1))
+                x := math.sqrt(math.exp(math.log(x) / T1))
             END FOR
 
 %#ifdef PRINTOUT
@@ -397,16 +397,16 @@ C      where TIME is in seconds.
 C--------------------------------------------------------------------
 |%
         print("")
-        IF finisec-startsec <= 0 THEN
+        IF finisec - startsec <= 0 THEN
             print("Insufficient duration- Increase the LOOP count")
             % RETURN
         END IF
 
-        print("Loops: " & str(loop) & ", Iterations: " & str(ii) & ", Duration: " & str(finisec-startsec) & ".")
+        print("Loops: " & str(loop) & ", Iterations: " & str(ii) & ", Duration: " & str(finisec - startsec) & ".")
 
-        Kips := (100.0*loop*ii)/(finisec-startsec)
+        Kips := (100.0 * loop * ii) / (finisec - startsec)
         IF Kips >= 1000.0 THEN
-            print("Neon Converted Double Precision Whetstones: " & str(Kips/1000.0) & " MIPS")
+            print("Neon Converted Double Precision Whetstones: " & str(Kips / 1000.0) & " MIPS")
         ELSE
             print("Neon Converted Double Precision Whetstones: " & str(Kips) & " KIPS")
         END IF

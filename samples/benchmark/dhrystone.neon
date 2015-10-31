@@ -558,15 +558,15 @@ FUNCTION Proc_8 (INOUT Arr_1_Par_Ref: Arr_1_Dim, INOUT Arr_2_Par_Ref: Arr_2_Dim,
 
   Int_Loc := Int_1_Par_Val + 5
   Arr_1_Par_Ref [Int_Loc] := Int_2_Par_Val
-  Arr_1_Par_Ref [Int_Loc+1] := Arr_1_Par_Ref [Int_Loc]
-  Arr_1_Par_Ref [Int_Loc+30] := Int_Loc
+  Arr_1_Par_Ref [Int_Loc + 1] := Arr_1_Par_Ref [Int_Loc]
+  Arr_1_Par_Ref [Int_Loc + 30] := Int_Loc
   Int_Index := Int_Loc
-  WHILE Int_Index <= Int_Loc+1 DO
+  WHILE Int_Index <= Int_Loc + 1 DO
     Arr_2_Par_Ref [Int_Loc] [Int_Index] := Int_Loc
     Int_Index := Int_Index + 1
   END WHILE
-  Arr_2_Par_Ref [Int_Loc] [Int_Loc-1] := Arr_2_Par_Ref [Int_Loc] [Int_Loc-1] + 1
-  Arr_2_Par_Ref [Int_Loc+20] [Int_Loc] := Arr_1_Par_Ref [Int_Loc]
+  Arr_2_Par_Ref [Int_Loc] [Int_Loc - 1] := Arr_2_Par_Ref [Int_Loc] [Int_Loc - 1] + 1
+  Arr_2_Par_Ref [Int_Loc + 20] [Int_Loc] := Arr_1_Par_Ref [Int_Loc]
   Int_Glob := 5
 END FUNCTION % Proc_8
 
@@ -603,7 +603,7 @@ FUNCTION Func_2 (IN Str_1_Par_Ref: String, IN Str_2_Par_Ref: String): Boolean
   Int_Loc := 2
   WHILE Int_Loc <= 2 DO % loop body executed once
     IF Func_1 (Str_1_Par_Ref[Int_Loc],
-               Str_2_Par_Ref[Int_Loc+1]) = Enumeration.Ident_1 THEN
+               Str_2_Par_Ref[Int_Loc + 1]) = Enumeration.Ident_1 THEN
       % then, executed
       Ch_Loc := "A"
       Int_Loc := Int_Loc + 1

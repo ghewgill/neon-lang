@@ -65,7 +65,7 @@ LET Two: BigInt := BigInt(1, [2])
 
 FUNCTION normalise(INOUT r: BigInt)
     WHILE r.digits.size() >= 2 AND r.digits[LAST] = 0 DO
-        r.digits := r.digits[FIRST TO LAST-1]
+        r.digits := r.digits[FIRST TO LAST - 1]
     END WHILE
     IF r.digits = [0] THEN
         r.sign := 1
@@ -126,12 +126,12 @@ FUNCTION makeFromString(s: String): BigInt
     VAR i: Number := 0
     VAR j: Number := t.length() - Digits
     WHILE j >= 0 DO
-        r.digits[i] := num(t[j TO j+Digits-1])
+        r.digits[i] := num(t[j TO j + Digits - 1])
         inc(i)
         j := j - Digits
     END WHILE
     IF j > -Digits THEN
-        r.digits[i] := num(t[FIRST TO j+Digits-1])
+        r.digits[i] := num(t[FIRST TO j + Digits - 1])
     END IF
     RETURN r
 END FUNCTION
@@ -207,11 +207,11 @@ FUNCTION mul(x, y: BigInt): BigInt
         VAR carry: Number := 0
         FOR j := 0 TO x.digits.size()-1 DO
             LET z: Number := (IF j < x.digits.size() THEN x.digits[j] ELSE 0) * y.digits[i] + carry
-            p.digits[i+j] := z MOD Base
+            p.digits[i + j] := z MOD Base
             carry := math.floor(z / Base)
         END FOR
         IF carry # 0 THEN
-            p.digits[i+x.digits.size()] := carry
+            p.digits[i + x.digits.size()] := carry
         END IF
         r := r.add(p)
     END FOR
@@ -252,11 +252,11 @@ FUNCTION less(x, y: BigInt): Boolean
         RETURN x.sign < y.sign
     END IF
     IF x.digits.size() # y.digits.size() THEN
-        RETURN x.sign*x.digits.size() < y.sign*y.digits.size()
+        RETURN x.sign * x.digits.size() < y.sign * y.digits.size()
     END IF
     FOR i := x.digits.size()-1 TO 0 STEP -1 DO
         IF x.digits[i] # y.digits[i] THEN
-            RETURN x.sign*x.digits[i] < y.sign*y.digits[i]
+            RETURN x.sign * x.digits[i] < y.sign * y.digits[i]
         END IF
     END FOR
     RETURN FALSE

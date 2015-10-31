@@ -132,7 +132,7 @@ FUNCTION dlx_search(head: POINTER TO Node, INOUT solution: Array<Number>, k: Num
                             ASSERT FALSE
                         END IF
                     END WHILE
-                    IF dlx_search(head, solution, k+1, solutions, maxsolutions) THEN
+                    IF dlx_search(head, solution, k + 1, solutions, maxsolutions) THEN
                         RETURN TRUE
                     END IF
                     j := rr->left
@@ -161,20 +161,20 @@ END FUNCTION
 
 FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Number): Array<Array<Number>>
     VAR columns: Array<POINTER TO Node>
-    FOR i := 0 TO matrix[0].size()-1 DO
+    FOR i := 0 TO matrix[0].size() - 1 DO
         columns[i] := NEW Node
     END FOR
-    FOR i := 0 TO columns.size()-1 DO
+    FOR i := 0 TO columns.size() - 1 DO
         IF VALID columns[i] AS c THEN
             c->index := i
             c->up := c
             c->down := c
             IF i >= skip THEN
-                IF i-1 >= skip THEN
-                    c->left := columns[i-1]
+                IF i - 1 >= skip THEN
+                    c->left := columns[i - 1]
                 END IF
-                IF i+1 < columns.size() THEN
-                    c->right := columns[i+1]
+                IF i + 1 < columns.size() THEN
+                    c->right := columns[i + 1]
                 END IF
             ELSE
                 c->left := c
@@ -185,9 +185,9 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
             ASSERT FALSE
         END IF
     END FOR
-    FOR i := 0 TO matrix.size()-1 DO
+    FOR i := 0 TO matrix.size() - 1 DO
         VAR last: POINTER TO Node := NIL
-        FOR j := 0 TO matrix[i].size()-1 DO
+        FOR j := 0 TO matrix[i].size() - 1 DO
             IF VALID columns[j] AS c THEN
                 IF matrix[i][j] THEN
                     %print(str(runtime.get_allocated_object_count()))
@@ -272,22 +272,22 @@ FUNCTION solveSudoku(INOUT grid: multiarray.ArrayNumber2D): Number
             IF g >= 0 THEN
                 VAR row: Array<Boolean> := []
                 row.resize(324)
-                row[i*9+j] := TRUE
-                row[9*9+i*9+g] := TRUE
-                row[9*9*2+j*9+g] := TRUE
-                row[9*9*3+(math.floor(i/3)*3+math.floor(j/3))*9+g] := TRUE
+                row[i * 9 + j] := TRUE
+                row[9 * 9 + i * 9 + g] := TRUE
+                row[9 * 9 * 2 + j * 9 + g] := TRUE
+                row[9 * 9 * 3 + (math.floor(i / 3) * 3 + math.floor(j / 3)) * 9 + g] := TRUE
                 mat.append(row)
-                rinfo.append([i, j, g+1])
+                rinfo.append([i, j, g + 1])
             ELSE
                 FOR n := 0 TO 8 DO
                     VAR row: Array<Boolean> := []
                     row.resize(324)
-                    row[i*9+j] := TRUE
-                    row[9*9+i*9+n] := TRUE
-                    row[9*9*2+j*9+n] := TRUE
-                    row[9*9*3+(math.floor(i/3)*3+math.floor(j/3))*9+n] := TRUE
+                    row[i * 9 + j] := TRUE
+                    row[9 * 9 + i * 9 + n] := TRUE
+                    row[9 * 9 * 2 + j * 9 + n] := TRUE
+                    row[9 * 9 * 3 + (math.floor(i / 3) * 3 + math.floor(j / 3)) * 9 + n] := TRUE
                     mat.append(row)
-                    rinfo.append([i, j, n+1])
+                    rinfo.append([i, j, n + 1])
                 END FOR
             END IF
         END FOR
@@ -303,8 +303,8 @@ FUNCTION solveSudoku(INOUT grid: multiarray.ArrayNumber2D): Number
 END FUNCTION
 
 FUNCTION shuffle(INOUT a: Array<Number>)
-    FOR i := a.size()-1 TO 1 STEP -1 DO
-        LET j: Number := random.uint32() MOD (i+1)
+    FOR i := a.size() - 1 TO 1 STEP -1 DO
+        LET j: Number := random.uint32() MOD (i + 1)
         LET temp: Number := a[i]
         a[i] := a[j]
         a[j] := temp
@@ -353,11 +353,11 @@ END FUNCTION
 FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback: FUNCTION(n: Number)): multiarray.ArrayNumber2D
     VAR r: multiarray.ArrayNumber2D := solution
     VAR places: Array<Number>
-    FOR i := 0 TO 9*9-1 DO
+    FOR i := 0 TO 9 * 9 - 1 DO
         places[i] := i
     END FOR
     shuffle(places)
-    VAR n: Number := 9*9
+    VAR n: Number := 9 * 9
     FOREACH p OF places DO
         callback(n)
         LET i: Number := math.floor(p / 9)
@@ -367,11 +367,11 @@ FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback
         END IF
         VAR t: multiarray.ArrayNumber2D := r
         t[i][j] := 0
-        t[8-i][8-j] := 0
+        t[8 - i][8 - j] := 0
         LET s: Number := solveSudoku(t)
         IF s = 1 THEN
             r[i][j] := 0
-            r[8-i][8-j] := 0
+            r[8 - i][8 - j] := 0
             n := n - 2
             IF n <= filled THEN
                 RETURN r
@@ -416,13 +416,13 @@ FUNCTION findErrors(grid: multiarray.ArrayNumber2D): multiarray.ArrayBoolean2D
                 END IF
                 cols[j][n] := i
                 % Check for duplicate number in cell.
-                LET c: Number := math.floor(i / 3)*3 + math.floor(j / 3)
+                LET c: Number := math.floor(i / 3) * 3 + math.floor(j / 3)
                 LET z: Number := cels[c][n]
                 IF z >= 0 THEN
                     r[i][j] := TRUE
-                    r[math.floor(c / 3)*3 + math.floor(z / 3)][(c MOD 3)*3 + (z MOD 3)] := TRUE
+                    r[math.floor(c / 3) * 3 + math.floor(z / 3)][(c MOD 3) * 3 + (z MOD 3)] := TRUE
                 END IF
-                cels[c][n] := (i MOD 3)*3 + (j MOD 3)
+                cels[c][n] := (i MOD 3) * 3 + (j MOD 3)
             END IF
         END FOR
     END FOR
@@ -452,7 +452,7 @@ FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
     curses.mvaddstr(0, 0, "+---+---+---+---+---+---+---+---+---+")
     VAR any_errors: Boolean := FALSE
     FOR i := 0 TO 8 DO
-        curses.mvaddstr(1+2*i, 0, "|           |           |           |")
+        curses.mvaddstr(1 + 2 * i, 0, "|           |           |           |")
         FOR j := 0 TO 8 DO
             IF i = cy AND j = cx THEN
                 curses.attrset(curses.A_REVERSE)
@@ -461,16 +461,16 @@ FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
                 any_errors := TRUE
             END IF
             IF grid[i][j] > 0 THEN
-                curses.mvaddstr(1+2*i, 1+4*j, " \(grid[i][j]) ")
+                curses.mvaddstr(1 + 2 * i, 1 + 4 * j, " \(grid[i][j]) ")
             ELSE
-                curses.mvaddstr(1+2*i, 1+4*j, "   ")
+                curses.mvaddstr(1 + 2 * i, 1 + 4 * j, "   ")
             END IF
             curses.attrset(curses.A_NORMAL)
         END FOR
         IF i MOD 3 = 2 THEN
-            curses.mvaddstr(2+2*i, 0, "+---+---+---+---+---+---+---+---+---+")
+            curses.mvaddstr(2 + 2 * i, 0, "+---+---+---+---+---+---+---+---+---+")
         ELSE
-            curses.mvaddstr(2+2*i, 0, "+           +           +           +")
+            curses.mvaddstr(2 + 2 * i, 0, "+           +           +           +")
         END IF
     END FOR
     IF NOT any_errors AND puzzleFilled(grid) THEN
@@ -484,7 +484,7 @@ END FUNCTION
 FUNCTION popup_show(message: String): curses.Window
     LET w: curses.Window := curses.newwin(5, 40, 10, 20)
     curses.wborder(w, 0, 0, 0, 0, 0, 0, 0, 0)
-    curses.mvwaddstr(w, 2, (40-message.length())/2, message)
+    curses.mvwaddstr(w, 2, (40 - message.length()) / 2, message)
     curses.wrefresh(w)
     RETURN w
 END FUNCTION
@@ -510,15 +510,15 @@ BEGIN MAIN
     VAR start: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 9)
     start := [
         % https://en.wikipedia.org/wiki/Sudoku
-        [5,3,0,0,7,0,0,0,0],
-        [6,0,0,1,9,5,0,0,0],
-        [0,9,8,0,0,0,0,6,0],
-        [8,0,0,0,6,0,0,0,3],
-        [4,0,0,8,0,3,0,0,1],
-        [7,0,0,0,2,0,0,0,6],
-        [0,6,0,0,0,0,2,8,0],
-        [0,0,0,4,1,9,0,0,5],
-        [0,0,0,0,8,0,0,7,9],
+        [5, 3, 0, 0, 7, 0, 0, 0, 0],
+        [6, 0, 0, 1, 9, 5, 0, 0, 0],
+        [0, 9, 8, 0, 0, 0, 0, 6, 0],
+        [8, 0, 0, 0, 6, 0, 0, 0, 3],
+        [4, 0, 0, 8, 0, 3, 0, 0, 1],
+        [7, 0, 0, 0, 2, 0, 0, 0, 6],
+        [0, 6, 0, 0, 0, 0, 2, 8, 0],
+        [0, 0, 0, 4, 1, 9, 0, 0, 5],
+        [0, 0, 0, 0, 8, 0, 0, 7, 9],
     ]
     VAR known_start: Boolean := TRUE
     VAR moves: Array<multiarray.ArrayNumber2D> := []
@@ -584,7 +584,7 @@ BEGIN MAIN
                         WHEN "u" DO
                             IF moves.size() > 0 THEN
                                 grid := moves[LAST]
-                                moves.resize(moves.size()-1)
+                                moves.resize(moves.size() - 1)
                             END IF
                     END CASE
             END CASE

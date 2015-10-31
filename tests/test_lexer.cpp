@@ -12,6 +12,27 @@ static TokenizedSource dump(const TokenizedSource &tokens)
     return tokens;
 }
 
+void bad(const std::string &src)
+{
+    try {
+        tokenize("", src);
+        fprintf(stderr, "failed: %s\n", src.c_str());
+        assert(false);
+    } catch (SourceError *) {
+        // pass
+    }
+}
+
+void good(const std::string &src)
+{
+    try {
+        tokenize("", src);
+    } catch (SourceError *) {
+        fprintf(stderr, "failed: %s\n", src.c_str());
+        assert(false);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     auto tokens = dump(tokenize("", "1 a ( ) := + - * / , IF THEN END \"a\"")).tokens;
@@ -82,6 +103,23 @@ int main(int argc, char *argv[])
     assert(tokens[1].line == 3);
     assert(tokens[1].column == 1);
     assert(tokens[2].type == END_OF_FILE);
+
+    bad("a+b");
+    bad("a +b");
+    bad("a+ b");
+    good("a + b");
+
+    bad("a,b");
+    bad("a ,b");
+    good("a, b");
+    good("a , b");
+
+    good("-a");
+    bad("a-b");
+    good("(-a)");
+    good("[-a]");
+    good("{-a}");
+    good("STEP -1");
 
     int depth = 2;
     if (argc > 1) {
