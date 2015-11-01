@@ -1,0 +1,5 @@
+VAR a: Bytes
+VAR b: Bytes
+a := HEXBYTES "010203"
+b := HEXBYTES "c0c1c2"
+ASSERT a & b = HEXBYTES "010203c0c1c2"

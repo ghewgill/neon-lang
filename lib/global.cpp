@@ -239,6 +239,11 @@ std::string concat(const std::string &a, const std::string &b)
     return a + b;
 }
 
+std::string concatBytes(const std::string &a, const std::string &b)
+{
+    return a + b;
+}
+
 void dec(Number *a)
 {
     *a = number_subtract(*a, number_from_uint32(1));

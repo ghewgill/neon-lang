@@ -181,6 +181,13 @@ DECLARE NATIVE FUNCTION chr(x: Number): String
 DECLARE NATIVE FUNCTION concat(a: String, b: String): String
 
 %|
+ |  Function: concatBytes
+ |
+ |  Concatenate two bytes. Same as the & operator for <Bytes>.
+ |%
+DECLARE NATIVE FUNCTION concatBytes(a: Bytes, b: Bytes): Bytes
+
+%|
  |  Function: dec
  |
  |  Decrement a number by subtracting 1.

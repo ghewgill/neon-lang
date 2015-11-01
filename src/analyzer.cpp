@@ -1374,6 +1374,11 @@ const Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr)
         args.push_back(left);
         args.push_back(right);
         return new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("concat"))), args);
+    } else if (left->type->is_assignment_compatible(TYPE_BYTES) && right->type->is_assignment_compatible(TYPE_BYTES)) {
+        std::vector<const Expression *> args;
+        args.push_back(left);
+        args.push_back(right);
+        return new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("concatBytes"))), args);
     } else {
         error(3116, expr->token, "type mismatch");
     }

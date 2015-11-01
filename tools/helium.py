@@ -2039,6 +2039,7 @@ ExcludeTests = [
     "t/comments.neon",          # Nested comments not required
     "t/complex-test.neon",      # Module not required
     "t/compress-test.neon",     # Module not required
+    "t/concat-bytes.neon",      # Feature not required
     "t/datetime-test.neon",     # Module not required
     "t/debug-example.neon",     # Feature not required
     "t/debug-server.neon",      # Feature not required
