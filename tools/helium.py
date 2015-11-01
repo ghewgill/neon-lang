@@ -1750,6 +1750,8 @@ class ClassBytes(Class):
         class Bytes:
             def __init__(self):
                 self.a = []
+            def __eq__(self, rhs):
+                return self.a == rhs.a
             def fromArray(self, env, a):
                 self.a = list(a)
             def size(self, env):

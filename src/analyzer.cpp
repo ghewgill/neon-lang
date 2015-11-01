@@ -1399,7 +1399,7 @@ const Expression *Analyzer::analyze(const pt::ComparisonExpression *expr)
         return new BooleanComparisonExpression(left, right, comp);
     } else if (left->type->is_assignment_compatible(TYPE_NUMBER)) {
         return new NumericComparisonExpression(left, right, comp);
-    } else if (left->type->is_assignment_compatible(TYPE_STRING)) {
+    } else if (left->type->is_assignment_compatible(TYPE_STRING) || left->type->is_assignment_compatible(TYPE_BYTES)) {
         return new StringComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
         if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
