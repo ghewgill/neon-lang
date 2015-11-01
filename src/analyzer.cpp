@@ -850,7 +850,7 @@ const Expression *Analyzer::analyze(const pt::BytesLiteralExpression *expr)
         if (j < expr->data.length() && isxdigit(expr->data[j])) {
             j++;
         }
-        bytes.push_back(static_cast<unsigned char>(std::stoul(expr->data.substr(i, j), nullptr, 16)));
+        bytes.push_back(static_cast<unsigned char>(std::stoul(expr->data.substr(i, j-i), nullptr, 16)));
         i = j;
     }
     return new ConstantBytesExpression("HEXBYTES literal", bytes);
