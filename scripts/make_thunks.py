@@ -282,8 +282,7 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "        stack.push(Cell(static_cast<Cell *>(r)));"
             else:
                 print >>inc, "        stack.push(Cell(r));"
-        for i, a in enumerate(params):
-            # Not sure whether this should be forward or reversed.
+        for i, a in reversed(list(enumerate(params))):
             if a[1] == OUT:
                 if a[0].startswith("TYPE_ARRAY_"):
                     print >>inc, "        std::vector<Cell> o{};".format(i)
