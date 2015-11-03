@@ -26,6 +26,9 @@ dump(a)
 dump(a[FIRST TO LAST-1])
 %= [1, 5, 5, 5]
 
+dump(a[FIRST TO -1])
+%= []
+
 dump([a[FIRST]])
 %= [1]
 
