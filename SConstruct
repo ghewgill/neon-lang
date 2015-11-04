@@ -80,6 +80,7 @@ libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"]))
 liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"]))
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
+libsodium = add_external(SConscript("external/SConscript-libsodium", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
@@ -112,7 +113,7 @@ else:
         env.Append(CXXFLAGS=[
             "-g",
         ])
-env.Prepend(LIBS=[x for x in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma] if x])
+env.Prepend(LIBS=[x for x in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsodium] if x])
 env.Append(LIBS=libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
@@ -141,6 +142,7 @@ if coverage:
 
 rtl_const = [
     "lib/curses_const.cpp",
+    "lib/sodium_const.cpp",
 ]
 
 if os.name == "posix":
@@ -172,6 +174,7 @@ rtl_cpp = rtl_const + [
     "lib/random.cpp",
     "lib/runtime.cpp",
     "lib/regex.cpp",
+    "lib/sodium.cpp",
     "lib/sqlite.cpp",
     "lib/string.cpp",
     "lib/sys.cpp",
@@ -195,6 +198,7 @@ rtl_neon = [
     "lib/random.neon",
     "lib/runtime.neon",
     "lib/regex.neon",
+    "lib/sodium.neon",
     "lib/sqlite.neon",
     "lib/string.neon",
     "lib/sys.neon",

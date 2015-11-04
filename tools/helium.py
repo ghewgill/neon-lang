@@ -2083,6 +2083,7 @@ ExcludeTests = [
     "t/return-case.neon",       # Feature not required
     "t/rtl.neon",               # CURRENT_EXCEPTION not required
     "t/shebang.neon",           # Feature not required
+    "t/sodium-test.neon",       # Module not required
     "t/sqlite-test.neon",       # Module not required
     "t/string-multiline.neon",  # Feature not required
     "t/sudoku-test.neon",       # Sample not required
