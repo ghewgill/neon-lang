@@ -567,6 +567,13 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                     if (i == source.end()) {
                         error(1020, t, "unterminated raw string");
                     }
+                    if (c == '\n') {
+                        line++;
+                        startindex = i+1;
+                        column = 1;
+                        linestart = i+1;
+                        lineend = std::find(i+1, source.end(), '\n');
+                    }
                     utf8::append(c, std::back_inserter(t.text));
                 }
             }
