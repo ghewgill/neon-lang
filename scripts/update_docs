@@ -7,7 +7,7 @@ git pull --ff-only
 rm -rf html samples
 cp -r ../neon-lang/lib/html html
 cp -r ../neon-lang/samples/html samples
-git add html samples
+git add -f html samples
 git commit -m "Update generated documentation from $rev" || echo "Nothing to update"
 cd ../neon-lang
 echo "Done."
