@@ -164,8 +164,6 @@ exceptions = []
 for fn in sys.argv[1:]:
     if fn.endswith(".neon"):
         prefix = os.path.basename(fn)[:-5] + "$"
-        if prefix == "global$":
-            prefix = ""
         with open(fn) as f:
             in_enum = None
             for s in f:
@@ -330,7 +328,7 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "    struct {ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
-        print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {{{}}}}},".format(name, rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(rtypename) or "nullptr", len(params), ",".join("{{ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames)))
+        print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {{{}}}}},".format(name.replace("global$", ""), rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(rtypename) or "nullptr", len(params), ",".join("{{ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames)))
     print >>inc, "};";
 
 with open("src/functions_exec.inc", "w") as inc:
@@ -348,7 +346,7 @@ with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
-        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name, "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), name.replace(".", "::"))
+        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), name.replace(".", "::"))
     print >>inc, "};";
 
 with open("src/enums.inc", "w") as inc:
@@ -365,6 +363,6 @@ with open("src/exceptions.inc", "w") as inc:
     print >>inc
     print >>inc, "static const ExceptionName ExceptionNames[] = {"
     for prefix, name in exceptions:
-        if not prefix:
-            print >>inc, "    Exception_{},".format(name)
+        if prefix == "global$":
+            print >>inc, "    Exception_{},".format(prefix+name)
     print >>inc, "};"

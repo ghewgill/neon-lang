@@ -24,11 +24,11 @@ void_function_t rtl_external_function(const std::string &library, const std::str
 {
     HMODULE lib = get_library_handle(library);
     if (lib == NULL) {
-        throw RtlException(Exception_LibraryNotFound, library);
+        throw RtlException(Exception_global$LibraryNotFound, library);
     }
     void_function_t fp = reinterpret_cast<void_function_t>(GetProcAddress(lib, function.c_str()));
     if (fp == NULL) {
-        throw RtlException(Exception_FunctionNotFound, function);
+        throw RtlException(Exception_global$FunctionNotFound, function);
     }
     return fp;
 }

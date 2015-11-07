@@ -611,7 +611,7 @@ void Executor::exec_DIVN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise(Exception_DivideByZero, ExceptionInfo(""));
+        raise(Exception_global$DivideByZero, ExceptionInfo(""));
         return;
     }
     stack.push(Cell(number_divide(a, b)));
@@ -623,7 +623,7 @@ void Executor::exec_MODN()
     Number b = stack.top().number(); stack.pop();
     Number a = stack.top().number(); stack.pop();
     if (number_is_zero(b)) {
-        raise(Exception_DivideByZero, ExceptionInfo(""));
+        raise(Exception_global$DivideByZero, ExceptionInfo(""));
         return;
     }
     stack.push(Cell(number_modulo(a, b)));
@@ -838,15 +838,15 @@ void Executor::exec_INDEXAR()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(Exception_ArrayIndex, ExceptionInfo(number_to_string(index)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(Exception_ArrayIndex, ExceptionInfo(std::to_string(i)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= addr->array().size()) {
-        raise(Exception_ArrayIndex, ExceptionInfo(std::to_string(j)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(std::to_string(j)));
         return;
     }
     stack.push(Cell(&addr->array_index_for_read(j)));
@@ -858,11 +858,11 @@ void Executor::exec_INDEXAW()
     Number index = stack.top().number(); stack.pop();
     Cell *addr = stack.top().address(); stack.pop();
     if (not number_is_integer(index)) {
-        raise(Exception_ArrayIndex, ExceptionInfo(number_to_string(index)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(Exception_ArrayIndex, ExceptionInfo(std::to_string(i)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     stack.push(Cell(&addr->array_index_for_write(j)));
@@ -874,15 +874,15 @@ void Executor::exec_INDEXAV()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(Exception_ArrayIndex, ExceptionInfo(number_to_string(index)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(Exception_ArrayIndex, ExceptionInfo(std::to_string(i)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     if (j >= array.size()) {
-        raise(Exception_ArrayIndex, ExceptionInfo(std::to_string(j)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(std::to_string(j)));
         return;
     }
     assert(j < array.size());
@@ -897,11 +897,11 @@ void Executor::exec_INDEXAN()
     Number index = stack.top().number(); stack.pop();
     const std::vector<Cell> &array = stack.top().array();
     if (not number_is_integer(index)) {
-        raise(Exception_ArrayIndex, ExceptionInfo(number_to_string(index)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(number_to_string(index)));
     }
     int64_t i = number_to_sint64(index);
     if (i < 0) {
-        raise(Exception_ArrayIndex, ExceptionInfo(std::to_string(i)));
+        raise(Exception_global$ArrayIndex, ExceptionInfo(std::to_string(i)));
     }
     uint64_t j = static_cast<uint64_t>(i);
     Cell val = j < array.size() ? array.at(j) : Cell();
@@ -916,7 +916,7 @@ void Executor::exec_INDEXDR()
     Cell *addr = stack.top().address(); stack.pop();
     auto e = addr->dictionary().find(index);
     if (e == addr->dictionary().end()) {
-        raise(Exception_DictionaryIndex, ExceptionInfo(index));
+        raise(Exception_global$DictionaryIndex, ExceptionInfo(index));
         return;
     }
     stack.push(Cell(&addr->dictionary_index_for_read(index)));
@@ -937,7 +937,7 @@ void Executor::exec_INDEXDV()
     const std::map<utf8string, Cell> &dictionary = stack.top().dictionary();
     auto e = dictionary.find(index);
     if (e == dictionary.end()) {
-        raise(Exception_DictionaryIndex, ExceptionInfo(index));
+        raise(Exception_global$DictionaryIndex, ExceptionInfo(index));
         return;
     }
     Cell val = e->second;
@@ -985,7 +985,7 @@ void Executor::exec_CALLF()
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
     if (callstack.size() >= param_recursion_limit) {
-        raise(Exception_StackOverflow, ExceptionInfo(""));
+        raise(Exception_global$StackOverflow, ExceptionInfo(""));
     }
     callstack.push_back(std::make_pair(module, ip));
     ip = val;
@@ -999,7 +999,7 @@ void Executor::exec_CALLMF()
     uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
     if (callstack.size() >= param_recursion_limit) {
-        raise(Exception_StackOverflow, ExceptionInfo(""));
+        raise(Exception_global$StackOverflow, ExceptionInfo(""));
     }
     callstack.push_back(std::make_pair(module, ip));
     auto m = modules.find(module->object.strtable[mod]);
@@ -1015,11 +1015,11 @@ void Executor::exec_CALLI()
 {
     ip++;
     if (callstack.size() >= param_recursion_limit) {
-        raise(Exception_StackOverflow, ExceptionInfo(""));
+        raise(Exception_global$StackOverflow, ExceptionInfo(""));
     }
     Number addr = stack.top().number(); stack.pop();
     if (number_is_zero(addr) || not number_is_integer(addr)) {
-        raise(Exception_InvalidFunction, ExceptionInfo(""));
+        raise(Exception_global$InvalidFunction, ExceptionInfo(""));
     }
     uint32_t addri = number_to_uint32(addr);
     callstack.push_back(std::make_pair(module, ip));

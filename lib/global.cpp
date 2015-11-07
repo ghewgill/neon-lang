@@ -11,30 +11,30 @@
 
 namespace rtl {
 
-void array__append(Cell *self, Cell &element)
+void global$array__append(Cell *self, Cell &element)
 {
     self->array_for_write().push_back(element);
 }
 
-void array__extend(Cell *self, Cell &elements)
+void global$array__extend(Cell *self, Cell &elements)
 {
     std::copy(elements.array().begin(), elements.array().end(), std::back_inserter(self->array_for_write()));
 }
 
-void array__resize(Cell *self, Number new_size)
+void global$array__resize(Cell *self, Number new_size)
 {
     if (not number_is_integer(new_size)) {
-        throw RtlException(Exception_ArrayIndex, number_to_string(new_size));
+        throw RtlException(Exception_global$ArrayIndex, number_to_string(new_size));
     }
     self->array_for_write().resize(number_to_sint64(new_size));
 }
 
-Number array__size(Cell &self)
+Number global$array__size(Cell &self)
 {
     return number_from_uint64(self.array().size());
 }
 
-Cell array__slice(Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
+Cell global$array__slice(Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     const std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);
@@ -56,7 +56,7 @@ Cell array__slice(Cell &a, Number first, bool first_from_end, Number last, bool 
     return Cell(r);
 }
 
-Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
+Cell global$array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     const std::vector<Cell> &array = a.array();
     int64_t fst = number_to_sint64(first);
@@ -82,7 +82,7 @@ Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number l
     return Cell(r);
 }
 
-std::string array__toString__number(const std::vector<Number> &a)
+std::string global$array__toString__number(const std::vector<Number> &a)
 {
     std::string r = "[";
     for (Number x: a) {
@@ -95,7 +95,7 @@ std::string array__toString__number(const std::vector<Number> &a)
     return r;
 }
 
-std::string array__toString__string(const std::vector<utf8string> &a)
+std::string global$array__toString__string(const std::vector<utf8string> &a)
 {
     std::string r = "[";
     for (utf8string x: a) {
@@ -109,17 +109,17 @@ std::string array__toString__string(const std::vector<utf8string> &a)
     return r;
 }
 
-std::string boolean__toString(bool self)
+std::string global$boolean__toString(bool self)
 {
     return self ? "TRUE" : "FALSE";
 }
 
-Number dictionary__size(Cell &self)
+Number global$dictionary__size(Cell &self)
 {
     return number_from_uint64(self.dictionary().size());
 }
 
-std::vector<utf8string> dictionary__keys(Cell &self)
+std::vector<utf8string> global$dictionary__keys(Cell &self)
 {
     std::vector<utf8string> r;
     for (auto d: self.dictionary()) {
@@ -128,22 +128,22 @@ std::vector<utf8string> dictionary__keys(Cell &self)
     return r;
 }
 
-std::string number__toString(Number self)
+std::string global$number__toString(Number self)
 {
     return number_to_string(self);
 }
 
-void string__append(utf8string *self, const std::string &t)
+void global$string__append(utf8string *self, const std::string &t)
 {
     self->append(t);
 }
 
-Number string__length(const std::string &self)
+Number global$string__length(const std::string &self)
 {
     return number_from_uint64(self.length());
 }
 
-std::string string__splice(const std::string &t, const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
+std::string global$string__splice(const std::string &t, const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     // TODO: utf8
     int64_t f = number_to_sint64(first);
@@ -157,7 +157,7 @@ std::string string__splice(const std::string &t, const std::string &s, Number fi
     return s.substr(0, f) + t + s.substr(l + 1);
 }
 
-std::string string__substring(const std::string &t, Number first, bool first_from_end, Number last, bool last_from_end)
+std::string global$string__substring(const std::string &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     const utf8string &s = reinterpret_cast<const utf8string &>(t);
     assert(number_is_integer(first));
@@ -175,30 +175,30 @@ std::string string__substring(const std::string &t, Number first, bool first_fro
     return s.substr(start, end-start);
 }
 
-std::string string__toBytes(const std::string &self)
+std::string global$string__toBytes(const std::string &self)
 {
     return self;
 }
 
-void bytes__fromArray(utf8string *self, const std::vector<Number> &a)
+void global$bytes__fromArray(utf8string *self, const std::vector<Number> &a)
 {
     self->clear();
     self->reserve(a.size());
     for (auto x: a) {
         uint64_t b = number_to_uint64(x);
         if (b >= 256) {
-            throw RtlException(Exception_ByteOutOfRange, std::to_string(b));
+            throw RtlException(Exception_global$ByteOutOfRange, std::to_string(b));
         }
         self->push_back(static_cast<unsigned char>(b));
     }
 }
 
-Number bytes__size(const std::string &self)
+Number global$bytes__size(const std::string &self)
 {
     return number_from_uint64(self.length());
 }
 
-std::vector<Number> bytes__toArray(const std::string &self)
+std::vector<Number> global$bytes__toArray(const std::string &self)
 {
     std::vector<Number> r;
     for (auto x: self) {
@@ -207,26 +207,26 @@ std::vector<Number> bytes__toArray(const std::string &self)
     return r;
 }
 
-std::string bytes__toString(const std::string &self)
+std::string global$bytes__toString(const std::string &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
-        throw RtlException(Exception_Utf8Encoding, "");
+        throw RtlException(Exception_global$Utf8Encoding, "");
     }
     return self;
 }
 
-std::string pointer__toString(void *p)
+std::string global$pointer__toString(void *p)
 {
     return "<p:" + std::to_string(reinterpret_cast<intptr_t>(p)) + ">";
 }
 
-std::string functionpointer__toString(Cell &p)
+std::string global$functionpointer__toString(Cell &p)
 {
     return "<fp:ip=" + number_to_string(p.number()) + ">";
 }
 
-std::string chr(Number x)
+std::string global$chr(Number x)
 {
     assert(number_is_integer(x));
     std::string r;
@@ -234,46 +234,46 @@ std::string chr(Number x)
     return r;
 }
 
-std::string concat(const std::string &a, const std::string &b)
+std::string global$concat(const std::string &a, const std::string &b)
 {
     return a + b;
 }
 
-std::string concatBytes(const std::string &a, const std::string &b)
+std::string global$concatBytes(const std::string &a, const std::string &b)
 {
     return a + b;
 }
 
-void dec(Number *a)
+void global$dec(Number *a)
 {
     *a = number_subtract(*a, number_from_uint32(1));
 }
 
-void inc(Number *a)
+void global$inc(Number *a)
 {
     *a = number_add(*a, number_from_uint32(1));
 }
 
-std::string format(const std::string &str, const std::string &fmt)
+std::string global$format(const std::string &str, const std::string &fmt)
 {
     format::Spec spec;
     if (not format::parse(fmt, spec)) {
-        throw RtlException(Exception_FormatException, fmt);
+        throw RtlException(Exception_global$FormatException, fmt);
     }
     return format::format(str, spec);
 }
 
-std::string input(const std::string &prompt)
+std::string global$input(const std::string &prompt)
 {
     std::cout << prompt;
     std::string r;
     if (not std::getline(std::cin, r)) {
-        throw RtlException(Exception_EndOfFile, "");
+        throw RtlException(Exception_global$EndOfFile, "");
     }
     return r;
 }
 
-Number max(Number a, Number b)
+Number global$max(Number a, Number b)
 {
     if (number_is_greater(a, b)) {
         return a;
@@ -282,7 +282,7 @@ Number max(Number a, Number b)
     }
 }
 
-Number min(Number a, Number b)
+Number global$min(Number a, Number b)
 {
     if (number_is_less(a, b)) {
         return a;
@@ -291,36 +291,36 @@ Number min(Number a, Number b)
     }
 }
 
-Number num(const std::string &s)
+Number global$num(const std::string &s)
 {
     return number_from_string(s);
 }
 
-Number ord(const std::string &s)
+Number global$ord(const std::string &s)
 {
     if (utf8::distance(s.begin(), s.end()) != 1) {
-        throw RtlException(Exception_ArrayIndex, "ord() requires string of length 1");
+        throw RtlException(Exception_global$ArrayIndex, "ord() requires string of length 1");
     }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));
 }
 
-void print(const std::string &s)
+void global$print(const std::string &s)
 {
     std::cout << s << "\n";
 }
 
-std::string str(Number x)
+std::string global$str(Number x)
 {
     return number_to_string(x);
 }
 
-std::string strb(bool x)
+std::string global$strb(bool x)
 {
     return x ? "TRUE" : "FALSE";
 }
 
-std::string substring(const std::string &s, Number offset, Number length)
+std::string global$substring(const std::string &s, Number offset, Number length)
 {
     assert(number_is_integer(offset));
     assert(number_is_integer(length));

@@ -19,11 +19,11 @@ std::vector<utf8string> sys$argv()
 void sys$exit(Number x)
 {
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_InvalidValue, "sys.exit invalid parameter: " + number_to_string(x));
+        throw RtlException(Exception_global$InvalidValue, "sys.exit invalid parameter: " + number_to_string(x));
     }
     int r = number_to_sint32(x);
     if (r < 0 || r > 255) {
-        throw RtlException(Exception_InvalidValue, "sys.exit invalid parameter: " + number_to_string(x));
+        throw RtlException(Exception_global$InvalidValue, "sys.exit invalid parameter: " + number_to_string(x));
     }
     exit(r);
 }
