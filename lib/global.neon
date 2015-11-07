@@ -218,6 +218,14 @@ DECLARE NATIVE FUNCTION inc(INOUT a: Number)
 DECLARE NATIVE FUNCTION input(prompt: String): String
 
 %|
+ |  Function: int
+ |
+ |  Truncate a floating point number to the nearest integer whose
+ |  absolute value is closest to zero.
+ |%
+DECLARE NATIVE FUNCTION int(a: Number): Number
+
+%|
  |  Function: max
  |
  |  Return the greater of two numbers.

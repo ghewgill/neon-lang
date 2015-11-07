@@ -254,6 +254,11 @@ void global$inc(Number *a)
     *a = number_add(*a, number_from_uint32(1));
 }
 
+Number global$int(Number a)
+{
+    return number_trunc(a);
+}
+
 std::string global$format(const std::string &str, const std::string &fmt)
 {
     format::Spec spec;

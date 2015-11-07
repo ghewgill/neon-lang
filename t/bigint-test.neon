@@ -31,8 +31,8 @@ print("\(bigint.make(-12345))")
 
 FOR lx := -30 TO 30 DO
     FOR ly := -30 TO 30 DO
-        LET x: Number := math.floor(math.exp(math.abs(lx))) * math.sign(lx)
-        LET y: Number := math.floor(math.exp(math.abs(ly))) * math.sign(ly)
+        LET x: Number := int(math.exp(math.abs(lx))) * math.sign(lx)
+        LET y: Number := int(math.exp(math.abs(ly))) * math.sign(ly)
         test_arithmetic(x, y)
         IF lx = 0 THEN
             test_arithmetic(0, y)
