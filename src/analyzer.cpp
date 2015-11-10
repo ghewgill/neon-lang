@@ -1379,6 +1379,18 @@ const Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr)
         args.push_back(left);
         args.push_back(right);
         return new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("concatBytes"))), args);
+    } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr
+            && dynamic_cast<const TypeArray *>(right->type) != nullptr
+            && dynamic_cast<const TypeArray *>(left->type)->elementtype == dynamic_cast<const TypeArray *>(right->type)->elementtype) {
+        std::vector<const Expression *> args;
+        args.push_back(left);
+        args.push_back(right);
+        VariableExpression *ve = new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("array__concat")));
+        // Since the array__concat function cannot be declared with its proper result type,
+        // we have to create a new appropriate function type based on the desired result type
+        // and the existing argument types.
+        ve->type = new TypeFunction(left->type, dynamic_cast<const TypeFunction *>(ve->type)->params);
+        return new FunctionCall(ve, args);
     } else {
         error(3116, expr->token, "type mismatch");
     }

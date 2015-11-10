@@ -16,6 +16,14 @@ void global$array__append(Cell *self, Cell &element)
     self->array_for_write().push_back(element);
 }
 
+Cell global$array__concat(Cell &left, Cell &right)
+{
+    std::vector<Cell> a = left.array();
+    const std::vector<Cell> &b = right.array();
+    std::copy(b.begin(), b.end(), std::back_inserter(a));
+    return Cell(a);
+}
+
 void global$array__extend(Cell *self, Cell &elements)
 {
     std::copy(elements.array().begin(), elements.array().end(), std::back_inserter(self->array_for_write()));
