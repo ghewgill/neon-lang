@@ -1,0 +1,9 @@
+LET d: Dictionary<String> := {"foo": "bar", "f)o": "baz", "f:o": "quux"}
+print("\(d["foo"])")
+%= bar
+
+print("\(d["f)o"])")
+%= baz
+
+print("\(d["f:o"])")
+%= quux

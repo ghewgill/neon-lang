@@ -454,6 +454,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                             auto start = i;
                             auto colon = start;
                             int nest = 1;
+                            bool inquote = false;
                             while (nest > 0) {
                                 if (i == source.end()) {
                                     error(1015, t, "unexpected end of file");
@@ -461,17 +462,23 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                                 c = utf8::next(i, source.end());
                                 switch (c) {
                                     case '(':
-                                        nest++;
+                                        if (not inquote) {
+                                            nest++;
+                                        }
                                         break;
                                     case ')':
-                                        nest--;
+                                        if (not inquote) {
+                                            nest--;
+                                        }
                                         break;
                                     case ':':
-                                        if (nest == 1) {
+                                        if (not inquote && nest == 1) {
                                             colon = i - 1;
                                         }
                                         break;
                                     case '"':
+                                        inquote = not inquote;
+                                        break;
                                     case '\\':
                                     case '\n':
                                         error(1014, t, "invalid char embedded in string substitution");

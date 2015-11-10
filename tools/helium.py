@@ -234,12 +234,14 @@ def tokenize_fragment(source):
                         start = i
                         colon = start
                         nest = 1
+                        inquote = False
                         while nest > 0:
                             c = source[i]
                             i += 1
-                            if   c == "(": nest += 1
-                            elif c == ")": nest -= 1
-                            elif c == ":" and nest == 1: colon = i - 1
+                            if   c == "(" and not inquote: nest += 1
+                            elif c == ")" and not inquote: nest -= 1
+                            elif c == ":" and not inquote and nest == 1: colon = i - 1
+                            elif c == "\"": inquote = not inquote
                         end = i - 1
                         if colon > start:
                             end = colon
