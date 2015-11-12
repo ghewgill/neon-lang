@@ -378,10 +378,16 @@ public:
 
 class FunctionCallExpression: public Expression {
 public:
-    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<std::pair<Token, const Expression *>> &args, const Token &rparen): Expression(token, base->get_start_column(), rparen.column+1), base(base), args(args), rparen(rparen) {}
+    class Argument {
+    public:
+        Argument(const Token &name, const Expression *expr): name(name), expr(expr) {}
+        Token name;
+        const Expression *expr;
+    };
+    FunctionCallExpression(const Token &token, const Expression *base, const std::vector<Argument> &args, const Token &rparen): Expression(token, base->get_start_column(), rparen.column+1), base(base), args(args), rparen(rparen) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const base;
-    const std::vector<std::pair<Token, const Expression *>> args;
+    const std::vector<Argument> args;
     const Token rparen;
 private:
     FunctionCallExpression(const FunctionCallExpression &);

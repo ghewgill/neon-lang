@@ -303,7 +303,7 @@ const Statement *Parser::parseConstantDefinition()
 const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
 {
     ++i;
-    std::vector<std::pair<Token, const Expression *>> args;
+    std::vector<FunctionCallExpression::Argument> args;
     if (tokens[i].type != RPAREN) {
         for (;;) {
             Token name;
@@ -312,7 +312,7 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
                 i += 2;
             }
             const Expression *e = parseExpression();
-            args.push_back(std::make_pair(name, e));
+            args.push_back(FunctionCallExpression::Argument(name, e));
             if (tokens[i].type != COMMA) {
                 break;
             }
@@ -1517,22 +1517,22 @@ const Statement *Parser::parseAssert()
     }
     std::vector<const Statement *> body;
     {
-        std::vector<std::pair<Token, const Expression *>> args;
-        args.push_back(std::make_pair(Token(), new StringLiteralExpression(Token(), 0, "Assert failed (" + source.source_path + " line " + std::to_string(tok_assert.line) + "):")));
+        std::vector<FunctionCallExpression::Argument> args;
+        args.push_back(FunctionCallExpression::Argument(Token(), new StringLiteralExpression(Token(), 0, "Assert failed (" + source.source_path + " line " + std::to_string(tok_assert.line) + "):")));
         const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
         const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
         body.push_back(s);
     }
     {
-        std::vector<std::pair<Token, const Expression *>> args;
-        args.push_back(std::make_pair(Token(), new StringLiteralExpression(Token(), 0, tok_assert.source)));
+        std::vector<FunctionCallExpression::Argument> args;
+        args.push_back(FunctionCallExpression::Argument(Token(), new StringLiteralExpression(Token(), 0, tok_assert.source)));
         const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
         const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
         body.push_back(s);
     }
     {
-        std::vector<std::pair<Token, const Expression *>> args;
-        args.push_back(std::make_pair(Token(), new StringLiteralExpression(Token(), 0, "Assert expression dump:")));
+        std::vector<FunctionCallExpression::Argument> args;
+        args.push_back(FunctionCallExpression::Argument(Token(), new StringLiteralExpression(Token(), 0, "Assert expression dump:")));
         const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
         const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
         body.push_back(s);
@@ -1549,8 +1549,8 @@ const Statement *Parser::parseAssert()
         iparts.push_back(std::make_pair(new StringLiteralExpression(Token(), 0, "  " + str + " is "), Token()));
         iparts.push_back(std::make_pair(e, Token()));
         const InterpolatedStringExpression *is = new InterpolatedStringExpression(Token(), iparts);
-        std::vector<std::pair<Token, const Expression *>> args;
-        args.push_back(std::make_pair(Token(), is));
+        std::vector<FunctionCallExpression::Argument> args;
+        args.push_back(FunctionCallExpression::Argument(Token(), is));
         const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
         const ExpressionStatement *s = new ExpressionStatement(e->token, p);
         body.push_back(s);

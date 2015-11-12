@@ -102,7 +102,7 @@ public:
         write("FunctionCallExpression");
         child(node->base);
         for (auto x: node->args) {
-            child(x.second);
+            child(x.expr);
         }
     }
     virtual void visit(const UnaryPlusExpression *node) override {
