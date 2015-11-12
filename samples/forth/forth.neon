@@ -1286,15 +1286,15 @@ FUNCTION execute(word: String)
         VAR n: Number
         VAR m: regex.Match
         LET base: Number := storage[cell_base]
-        IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word, m) THEN
+        IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word, OUT m) THEN
             n := convert(word, base)
-        ELSIF regex.search(@"^#-?[0-9]+$", word, m) THEN
+        ELSIF regex.search(@"^#-?[0-9]+$", word, OUT m) THEN
             n := convert(word[1 TO LAST], 10)
-        ELSIF regex.search(@"^\$-?[0-9A-F]+$", word, m) THEN
+        ELSIF regex.search(@"^\$-?[0-9A-F]+$", word, OUT m) THEN
             n := convert(word[1 TO LAST], 0x10)
-        ELSIF regex.search(@"^%-?[01]+$", word, m) THEN
+        ELSIF regex.search(@"^%-?[01]+$", word, OUT m) THEN
             n := convert(word[1 TO LAST], 0b10)
-        ELSIF regex.search(@"'.'?$", word, m) THEN
+        ELSIF regex.search(@"'.'?$", word, OUT m) THEN
             n := ord(word[1])
         ELSE
             print("Unknown word: \(word)")
@@ -1319,7 +1319,7 @@ FUNCTION refill(): Boolean
         RETURN FALSE
     END IF
     VAR s: String
-    IF NOT io.readLine(current_file, s) THEN
+    IF NOT io.readLine(current_file, OUT s) THEN
         RETURN FALSE
     END IF
     FOR i := 0 TO s.length()-1 DO

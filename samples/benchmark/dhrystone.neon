@@ -424,12 +424,12 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
             % then, executed
             Next_Record->Int_Comp := 6
             Proc_6 (Ptr_Val_Par->Enum_Comp,
-                    Next_Record->Enum_Comp)
+                    OUT Next_Record->Enum_Comp)
             IF VALID Ptr_Glob AS pg THEN
                 Next_Record->Ptr_Comp := pg->Ptr_Comp
             END IF
             Proc_7 (Next_Record->Int_Comp, 10,
-                    Next_Record->Int_Comp)
+                    OUT Next_Record->Int_Comp)
           ELSE
             valueCopy(Ptr_Val_Par, Next_Record)
           END IF
@@ -464,7 +464,7 @@ FUNCTION Proc_3 (INOUT Ptr_Ref_Par: POINTER TO Record)
   IF VALID Ptr_Glob THEN
     % then, executed
     Ptr_Ref_Par := Ptr_Glob->Ptr_Comp
-    Proc_7 (10, Int_Glob, Ptr_Glob->Int_Comp)
+    Proc_7 (10, Int_Glob, OUT Ptr_Glob->Int_Comp)
   END IF
 END FUNCTION % Proc_3
 
@@ -691,7 +691,7 @@ FUNCTION main()
     WHILE Int_1_Loc < Int_2_Loc DO  % loop body executed once
       Int_3_Loc := 5 * Int_1_Loc - Int_2_Loc
         % Int_3_Loc == 7
-      Proc_7 (Int_1_Loc, Int_2_Loc, Int_3_Loc)
+      Proc_7 (Int_1_Loc, Int_2_Loc, OUT Int_3_Loc)
         % Int_3_Loc == 7
       Int_1_Loc := Int_1_Loc + 1
     END WHILE
@@ -704,7 +704,7 @@ FUNCTION main()
                              % loop body executed twice
       IF Enum_Loc = Func_1 (Ch_Index, "C") THEN
           % then, not executed
-        Proc_6 (Enumeration.Ident_1, Enum_Loc)
+        Proc_6 (Enumeration.Ident_1, OUT Enum_Loc)
         Str_2_Loc := "DHRYSTONE PROGRAM, 3'RD STRING"
         Int_2_Loc := Run_Index
         Int_Glob := Run_Index

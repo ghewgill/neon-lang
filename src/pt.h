@@ -380,7 +380,18 @@ class FunctionCallExpression: public Expression {
 public:
     class Argument {
     public:
-        Argument(const Token &name, const Expression *expr): name(name), expr(expr) {}
+        Argument(const Token &mode, const Token &name, const Expression *expr): mode(mode), name(name), expr(expr) {}
+        Argument(const Argument &rhs): mode(rhs.mode), name(rhs.name), expr(rhs.expr) {}
+        Argument &operator=(const Argument &rhs) {
+            if (this == &rhs) {
+                return *this;
+            }
+            mode = rhs.mode;
+            name = rhs.name;
+            expr = rhs.expr;
+            return *this;
+        }
+        Token mode;
         Token name;
         const Expression *expr;
     };

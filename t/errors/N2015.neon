@@ -3,5 +3,5 @@ FUNCTION a(IN y: Number, INOUT z: Number) : Number
     RETURN 1
 END FUNCTION
 
-print(a(IN 1, 2))
+print(a(AS 1, 2))
         %<

@@ -1156,6 +1156,8 @@ class Parser:
         args = []
         if self.tokens[self.i] is not RPAREN:
             while True:
+                if self.tokens[self.i] in [IN, OUT, INOUT]:
+                    self.i += 1
                 name = None
                 if isinstance(self.tokens[self.i], Identifier) and self.tokens[self.i+1] is AS:
                     name = self.tokens[self.i].name

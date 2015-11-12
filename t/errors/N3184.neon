@@ -1,0 +1,6 @@
+FUNCTION f(OUT a: Number)
+END FUNCTION
+
+VAR x: Number
+f(x)
+  %<

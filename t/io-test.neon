@@ -11,7 +11,7 @@ io.write(stdout, "World\n")
 
 VAR f: io.File := io.open("LICENSE.txt", io.Mode.read)
 VAR s: String
-print(strb(io.readLine(f, s)))
+print(strb(io.readLine(f, OUT s)))
 %= TRUE
 print(s)
 %= The MIT License (MIT)
@@ -30,7 +30,7 @@ io.seek(f, 7, io.SeekBase.absolute)
 io.truncate(f)
 io.close(f)
 f := io.open("tmp/io-test.tmp", io.Mode.read)
-print(strb(io.readLine(f, s)))
+print(strb(io.readLine(f, OUT s)))
 %= TRUE
 print(s)
 %= Hello w

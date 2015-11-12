@@ -3181,9 +3181,9 @@ END FUNCTION
 FUNCTION test_box7()
     FOR mlen := 0 TO 999 DO
         VAR alicepk, alicesk: Bytes
-        sodium.box_keypair(alicepk, alicesk)
+        sodium.box_keypair(OUT alicepk, OUT alicesk)
         VAR bobpk, bobsk: Bytes
-        sodium.box_keypair(bobpk, bobsk)
+        sodium.box_keypair(OUT bobpk, OUT bobsk)
         LET n: Bytes := sodium.randombytes(sodium.box_NONCEBYTES)
         LET m: Bytes := sodium.randombytes(mlen)
         LET c: Bytes := sodium.box(m, n, bobpk, alicesk)
@@ -3194,9 +3194,9 @@ END FUNCTION
 FUNCTION test_box8()
     FOR mlen := 0 TO 999 DO
         VAR alicepk, alicesk: Bytes
-        sodium.box_keypair(alicepk, alicesk)
+        sodium.box_keypair(OUT alicepk, OUT alicesk)
         VAR bobpk, bobsk: Bytes
-        sodium.box_keypair(bobpk, bobsk)
+        sodium.box_keypair(OUT bobpk, OUT bobsk)
         LET n: Bytes := sodium.randombytes(sodium.box_NONCEBYTES)
         LET m: Bytes := sodium.randombytes(mlen)
         VAR c: Bytes := sodium.box(m, n, bobpk, alicesk)
@@ -3216,7 +3216,7 @@ END FUNCTION
 
 FUNCTION test_box_seal()
     VAR pk, sk: Bytes
-    sodium.box_keypair(pk, sk)
+    sodium.box_keypair(OUT pk, OUT sk)
     LET m_len: Number := sodium.randombytes_uniform(1000)
     LET m: Bytes := sodium.randombytes(m_len)
     LET c: Bytes := sodium.box_seal(m, pk)
@@ -3243,7 +3243,7 @@ END FUNCTION
 FUNCTION test_box_seed()
     LET seed: Bytes := HEXBYTES "77076d0a7318a57d3c16c17251b26645df4c2f87ebc0992ab177fba51db92c2a"
     VAR pk, sk: Bytes
-    sodium.box_seed_keypair(pk, sk, seed)
+    sodium.box_seed_keypair(OUT pk, OUT sk, seed)
     ASSERT pk = HEXBYTES "ed7749b4d989f6957f3bfde6c56767e988e21c9f8784d91d610011cd553f9b06"
     ASSERT sk = HEXBYTES "accd44eb8e93319c0570bc11005c0e0189d34ff02f6c17773411ad191293c98f"
 END FUNCTION
@@ -5252,8 +5252,8 @@ FUNCTION test_sign()
 
         LET keypair_seed: Bytes := HEXBYTES "421151a459faeade3d247115f94aedae42318124095afabe4d1451a559faedee"
         VAR pk, sk: Bytes
-        sodium.sign_keypair(pk, sk)
-        sodium.sign_seed_keypair(pk, sk, keypair_seed)
+        sodium.sign_keypair(OUT pk, OUT sk)
+        sodium.sign_seed_keypair(OUT pk, OUT sk, keypair_seed)
         ASSERT sodium.sign_ed25519_sk_to_seed(sk) = keypair_seed
         ASSERT sodium.sign_ed25519_sk_to_pk(sk) = pk
         ASSERT pk = HEXBYTES "b5076a8474a832daee4dd5b4040983b6623b5f344aca57d4d6ee4baf3f259e6e"

@@ -1254,6 +1254,12 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
             error2(3019, a.expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
         }
+        if (ftype->params[p]->mode == ParameterType::OUT && a.mode.type != OUT) {
+            error(3184, a.expr->token, "OUT keyword required");
+        } else if ((a.mode.type == IN && ftype->params[p]->mode != ParameterType::IN)
+                || (a.mode.type == INOUT && ftype->params[p]->mode != ParameterType::INOUT)) {
+            error(3185, a.mode, "parameter mode must match if specified");
+        }
         args[p] = e;
     }
     int p = 0;

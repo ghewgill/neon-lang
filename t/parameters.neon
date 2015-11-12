@@ -32,12 +32,12 @@ print(str(a))
 %= 6
 
 a := 5
-out(a)
+out(OUT a)
 print(str(a))
 %= 0
 %= 1
 
 a := 5
-print(outf(a))
+print(outf(OUT a))
 %= 0
 %= foo

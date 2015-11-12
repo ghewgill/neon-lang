@@ -90,7 +90,7 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     VAR found: Boolean := FALSE
     FOREACH h OF self.handlers DO
         VAR m: regex.Match
-        IF regex.search(h.path, path, m) THEN
+        IF regex.search(h.path, path, OUT m) THEN
             % TODO: Should be able to do h.callback(path, params),
             % but that syntax seems to be handled only as a method
             LET rh: RequestHandler := h.callback

@@ -1,7 +1,7 @@
 IMPORT regex
 
 VAR m: regex.Match
-IF regex.search("fo+bar", "This is a foobar", m) THEN
+IF regex.search("fo+bar", "This is a foobar", OUT m) THEN
     print("\(m[0].start)")
     print("\(m[0].end)")
     print(m[0].group)
@@ -10,5 +10,5 @@ END IF
 %= 16
 %= foobar
 
-print(strb(regex.search("asdf", "foobar", m)))
+print(strb(regex.search("asdf", "foobar", OUT m)))
 %= FALSE

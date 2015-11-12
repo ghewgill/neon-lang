@@ -311,7 +311,7 @@ C
             z := 1.0
 
             FOR i := 1 TO N8 DO
-                P3(x,y,z)
+                P3(x,y,OUT z)
             END FOR
 
 %#ifdef PRINTOUT

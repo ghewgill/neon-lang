@@ -201,7 +201,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
             END WHILE
             LET t: String := s[start TO i-1]
             VAR m: regex.Match
-            IF regex.search(@"^[-+]?\d+$", t, m) THEN
+            IF regex.search(@"^[-+]?\d+$", t, OUT m) THEN
                 RETURN make_number(num(t))
             ELSE
                 RETURN make_symbol(t)
@@ -236,7 +236,7 @@ END FUNCTION
 
 FUNCTION read(f: io.File): POINTER TO Value
     VAR s: String
-    IF NOT io.readLine(f, s) THEN
+    IF NOT io.readLine(f, OUT s) THEN
         sys.exit(0)
     END IF
     RETURN parse(s)
