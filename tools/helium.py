@@ -128,6 +128,8 @@ ASSERT = Keyword("ASSERT")
 EMBED = Keyword("EMBED")
 ALIAS = Keyword("ALIAS")
 IS = Keyword("IS")
+INC = Keyword("INC")
+DEC = Keyword("DEC")
 
 def identifier_start(c):
     return c.isalpha()
@@ -868,6 +870,15 @@ class IfStatement:
                 s.run(env)
         env = env.parent
 
+class IncrementStatement:
+    def __init__(self, expr, delta):
+        self.expr = expr
+        self.delta = delta
+    def declare(self, env):
+        pass
+    def run(self, env):
+        self.expr.set(env, self.expr.eval(env) + self.delta)
+
 class LoopStatement:
     def __init__(self, statements):
         self.statements = statements
@@ -1547,6 +1558,17 @@ class Parser:
         self.expect(IF)
         return IfStatement(condition_statements, else_statements)
 
+    def parse_increment_statement(self):
+        if self.tokens[self.i] is INC:
+            delta = 1
+        elif self.tokens[self.i] is DEC:
+            delta = -1
+        else:
+            assert False, self.tokens[self.i]
+        self.i += 1
+        expr = self.parse_expression()
+        return IncrementStatement(expr, delta)
+
     def parse_for_statement(self):
         self.expect(FOR)
         var = self.identifier()
@@ -1698,6 +1720,7 @@ class Parser:
         if self.tokens[self.i] is DECLARE:  return self.parse_declaration()
         if self.tokens[self.i] is EXPORT:   return self.parse_export()
         if self.tokens[self.i] is IF:       return self.parse_if_statement()
+        if self.tokens[self.i] in [INC,DEC]:return self.parse_increment_statement()
         if self.tokens[self.i] is RETURN:   return self.parse_return_statement()
         if self.tokens[self.i] is VAR:      return self.parse_var_statement()
         if self.tokens[self.i] is LET:      return self.parse_let_statement()

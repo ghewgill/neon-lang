@@ -102,6 +102,8 @@ std::string reconstitute(const Token &t)
         case BEGIN:       return "BEGIN";
         case MAIN:        return "MAIN";
         case HEXBYTES:    return "HEXBYTES";
+        case INC:         return "INC";
+        case DEC:         return "DEC";
         case MAX_TOKEN:   return "";
     }
     return "";

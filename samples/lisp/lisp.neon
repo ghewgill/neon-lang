@@ -140,11 +140,11 @@ END FUNCTION
 
 FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
     WHILE i < s.length() AND s[i] = " " DO
-        inc(i)
+        INC i
     END WHILE
     CASE s[i]
         WHEN "(" DO
-            inc(i)
+            INC i
             VAR r: POINTER TO Value := NIL
             VAR p: POINTER TO Value
             TRY
@@ -169,14 +169,14 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                 % nothing
             END TRY
             IF s[i] = ")" THEN
-                inc(i)
+                INC i
             END IF
             RETURN r
         WHEN "#" DO
             LET start: Number := i
-            inc(i)
+            INC i
             WHILE i < s.length() AND "a" <= s[i] <= "z" DO
-                inc(i)
+                INC i
             END WHILE
             LET t: String := s[start TO i-1]
             IF t = "#t" THEN
@@ -188,16 +188,16 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
             END IF
         WHEN "0" TO "9" DO
             LET start: Number := i
-            inc(i)
+            INC i
             WHILE i < s.length() AND "0" <= s[i] <= "9" DO
-                inc(i)
+                INC i
             END WHILE
             RETURN make_number(num(s[start TO i-1]))
         WHEN "-", "+" DO
             LET start: Number := i
-            inc(i)
+            INC i
             WHILE i < s.length() AND "0" <= s[i] <= "9" DO
-                inc(i)
+                INC i
             END WHILE
             LET t: String := s[start TO i-1]
             VAR m: regex.Match
@@ -208,19 +208,19 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
             END IF
         WHEN "a" TO "z", "!", "$", "%", "&", "*", "/", ":", "<", "=", ">", "?", "~", "_", "^" DO
             LET start: Number := i
-            inc(i)
+            INC i
             WHILE i < s.length() AND ("a" <= s[i] <= "z" OR "0" <= s[i] <= "9" OR s[i] = "!" OR s[i] = "$" OR s[i] = "%" OR s[i] = "&" OR s[i] = "*" OR s[i] = "/" OR s[i] = ":" OR s[i] = "<" OR s[i] = "=" OR s[i] = ">" OR s[i] = "?" OR s[i] = "~" OR s[i] = "_" OR s[i] = "^" OR s[i] = "." OR s[i] = "+" OR s[i] = "-") DO
-                inc(i)
+                INC i
             END WHILE
             RETURN make_symbol(s[start TO i-1])
         WHEN "\"" DO
-            inc(i)
+            INC i
             LET start: Number := i
             WHILE i < s.length() AND s[i] # "\"" DO
-                inc(i)
+                INC i
             END WHILE
             IF i < s.length() THEN
-                inc(i)
+                INC i
             END IF
             RETURN make_string(s[start TO i-2])
 %        ELSE

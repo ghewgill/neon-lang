@@ -3208,7 +3208,7 @@ FUNCTION test_box8()
             TRY
                 ASSERT sodium.box_open(c, n, alicepk, bobsk) = m
             EXCEPTION sodium.DecryptionFailed
-                inc(caught)
+                INC caught
             END TRY
         END WHILE
     END FOR
@@ -4993,7 +4993,7 @@ FUNCTION test_randombytes()
         freq[i] := 0
     END FOR
     FOR i := 0 TO 65535 DO
-        inc(freq[sodium.randombytes_uniform(256)])
+        INC freq[sodium.randombytes_uniform(256)]
     END FOR
     FOR i := 0 TO 255 DO
         ASSERT freq[i] > 0
@@ -5008,7 +5008,7 @@ FUNCTION test_randombytes()
         freq[i] := 0
     END FOR
     FOR i := 0 TO 65535 DO
-        inc(freq[sodium.randombytes_uniform(256)])
+        INC freq[sodium.randombytes_uniform(256)]
     END FOR
     FOR i := 0 TO 255 DO
         ASSERT freq[i] > 0
@@ -5020,7 +5020,7 @@ FUNCTION test_randombytes()
         freq[i] := 0
     END FOR
     FOR i := 0 TO x.size()-1 DO
-        inc(freq[x[i]])
+        INC freq[x[i]]
     END FOR
     FOR i := 0 TO 255 DO
         ASSERT freq[i] > 0
@@ -5093,7 +5093,7 @@ FUNCTION test_secretbox8()
             TRY
                 ASSERT sodium.secretbox_open(c, n, k) = m
             EXCEPTION sodium.DecryptionFailed
-                inc(caught)
+                INC caught
             END TRY
         END WHILE
     END FOR

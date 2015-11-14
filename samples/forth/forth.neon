@@ -433,7 +433,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET ud2: Number := math.floor(ud1 / storage[cell_base])
             stack.push(ud2 MOD 0x100000000)
             stack.push(math.floor(ud2 / 0x100000000))
-            inc(number_buffer_size)
+            INC number_buffer_size
             storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
         WHEN CORE_NUMBER_GT DO
             LET xdh: Number := stack.pop()
@@ -447,7 +447,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             REPEAT
                 LET dig: Number := ud1 MOD storage[cell_base]
                 ud1 := math.floor(ud1 / storage[cell_base])
-                inc(number_buffer_size)
+                INC number_buffer_size
                 storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
             UNTIL ud1 = 0
             stack.push(0)
@@ -602,8 +602,8 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
                     EXIT WHILE
                 END IF
                 ud1 := ud1 * storage[cell_base] + dig
-                inc(addr)
-                dec(u)
+                INC addr
+                DEC u
             END WHILE
             stack.push(ud1 MOD 0x100000000)
             stack.push(math.floor(ud1 / 0x100000000))
@@ -739,8 +739,8 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             VAR addr: Number := stack.pop()
             WHILE u > 0 DO
                 storage[addr] := char
-                inc(addr)
-                dec(u)
+                INC addr
+                DEC u
             END WHILE
         WHEN CORE_FIND DO
             LET addr: Number := stack.pop()
@@ -765,7 +765,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             storage[cell_base] := 0x10
         WHEN CORE_HOLD DO
             LET char: Number := stack.pop()
-            inc(number_buffer_size)
+            INC number_buffer_size
             storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := char
         WHEN CORE_I DO
             stack.push(return[LAST].index)
@@ -805,18 +805,18 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             IF addr2 < addr1 THEN
                 WHILE u > 0 DO
                     storage[addr2] := storage[addr1]
-                    inc(addr1)
-                    inc(addr2)
-                    dec(u)
+                    INC addr1
+                    INC addr2
+                    DEC u
                 END WHILE
             ELSIF addr1 < addr2 THEN
                 addr1 := addr1 + u
                 addr2 := addr2 + u
                 WHILE u > 0 DO
-                    dec(addr1)
-                    dec(addr2)
+                    DEC addr1
+                    DEC addr2
                     storage[addr2] := storage[addr1]
-                    dec(u)
+                    DEC u
                 END WHILE
             END IF
         WHEN CORE_NEGATE DO
@@ -856,7 +856,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_SIGN DO
             LET n: Number := signed32(stack.pop())
             IF n < 0 THEN
-                inc(number_buffer_size)
+                INC number_buffer_size
                 storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord("-")
             END IF
         WHEN CORE_SM_REM DO
@@ -875,7 +875,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             VAR n: Number := signed32(stack.pop())
             WHILE n > 0 DO
                 io.write(io.stdout(), " ")
-                dec(n)
+                DEC n
             END WHILE
         WHEN CORE_STATE DO
             stack.push(cell_state)
@@ -964,7 +964,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
                         IF code[a] = 0 THEN
                             EXIT LOOP
                         END IF
-                        inc(a)
+                        INC a
                     END LOOP
                 ELSE
                     print("built-in")
@@ -1059,7 +1059,7 @@ FUNCTION run_compiled(start_ip: Number)
         LET prev_ip: Number := ip
         run_instruction(code[ip], ip)
         IF ip = prev_ip THEN
-            inc(ip)
+            INC ip
         END IF
     END WHILE
 END FUNCTION
@@ -1200,12 +1200,12 @@ FUNCTION run(instr: Number, interpreting: Boolean)
             LOOP
                 LET s: String := next_word()
                 IF s = "[IF]" THEN
-                    inc(depth)
+                    INC depth
                 ELSIF s = "[THEN]" THEN
                     IF depth = 0 THEN
                         EXIT LOOP
                     END IF
-                    dec(depth)
+                    DEC depth
                 END IF
             END LOOP
         WHEN TOOLS_EXT_IF DO
@@ -1215,7 +1215,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
                 LOOP
                     LET s: String := next_word()
                     IF s = "[IF]" THEN
-                        inc(depth)
+                        INC depth
                     ELSIF s = "[ELSE]" THEN
                         IF depth = 0 THEN
                             EXIT LOOP
@@ -1224,7 +1224,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
                         IF depth = 0 THEN
                             EXIT LOOP
                         END IF
-                        dec(depth)
+                        DEC depth
                     END IF
                 END LOOP
             END IF
@@ -1246,7 +1246,7 @@ END FUNCTION
 
 FUNCTION skip()
     WHILE storage[cell_in] < storage[cell_input_length] AND chr(storage[cell_input+storage[cell_in]]) <= " " DO
-        inc(storage[cell_in])
+        INC storage[cell_in]
     END WHILE
 END FUNCTION
 
@@ -1266,11 +1266,11 @@ FUNCTION convert(word: String, base: Number): Number
     LET negative: Boolean := word[0] = "-"
     VAR i: Number := 0
     IF negative THEN
-        inc(i)
+        INC i
     END IF
     WHILE i < word.length() DO
         n := n * base + digit(word[i])
-        inc(i)
+        INC i
     END WHILE
     IF negative THEN
         n := -n
@@ -1334,7 +1334,7 @@ FUNCTION parse(delimiter: String): String
     VAR r: String
     WHILE storage[cell_in] < storage[cell_input_length] DO
         LET c: String := chr(storage[cell_input+storage[cell_in]])
-        inc(storage[cell_in])
+        INC storage[cell_in]
         IF c = delimiter OR (delimiter = " " AND c <= delimiter) THEN
             EXIT WHILE
         END IF

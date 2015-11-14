@@ -1349,6 +1349,17 @@ void ExpressionStatement::generate_code(Emitter &emitter) const
     expr->generate(emitter);
 }
 
+void IncrementStatement::generate_code(Emitter &emitter) const
+{
+    // TODO: This can be improved considerably.
+    ref->generate_address_read(emitter);
+    emitter.emit(LOADN);
+    emitter.emit(PUSHN, number_from_sint32(delta));
+    emitter.emit(ADDN);
+    ref->generate_address_write(emitter);
+    emitter.emit(STOREN);
+}
+
 void IfStatement::generate_code(Emitter &emitter) const
 {
     auto end_label = emitter.create_label();

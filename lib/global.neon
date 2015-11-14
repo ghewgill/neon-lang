@@ -189,13 +189,6 @@ DECLARE NATIVE FUNCTION concat(a: String, b: String): String
 DECLARE NATIVE FUNCTION concatBytes(a: Bytes, b: Bytes): Bytes
 
 %|
- |  Function: dec
- |
- |  Decrement a number by subtracting 1.
- |%
-DECLARE NATIVE FUNCTION dec(INOUT a: Number)
-
-%|
  |  Function: format
  |
  |  Format a string based on the formatting mini-language.
@@ -203,13 +196,6 @@ DECLARE NATIVE FUNCTION dec(INOUT a: Number)
  |  TODO
  |%
 DECLARE NATIVE FUNCTION format(str: String, fmt: String): String
-
-%|
- |  Function: inc
- |
- |  Increment a number by adding 1.
- |%
-DECLARE NATIVE FUNCTION inc(INOUT a: Number)
 
 %|
  |  Function: input

@@ -1583,6 +1583,23 @@ private:
     ReturnStatement &operator=(const ReturnStatement &);
 };
 
+class IncrementStatement: public Statement {
+public:
+    IncrementStatement(int line, const ReferenceExpression *ref, int delta): Statement(line), ref(ref), delta(delta) {}
+
+    const ReferenceExpression *ref;
+    int delta;
+
+    virtual void generate_code(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        return "IncrementStatement(" + ref->text() + ", " + std::to_string(delta) + ")";
+    }
+private:
+    IncrementStatement(const IncrementStatement &);
+    IncrementStatement &operator=(const IncrementStatement &);
+};
+
 class IfStatement: public Statement {
 public:
     IfStatement(int line, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(line), condition_statements(condition_statements), else_statements(else_statements) {}

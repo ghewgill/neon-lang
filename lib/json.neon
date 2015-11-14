@@ -24,7 +24,7 @@ DECLARE EXCEPTION JsonFormat
 
 FUNCTION skipWhitespace(json: String, INOUT index: Number)
     WHILE index < json.length() AND (json[index] = " " OR json[index] = "\t" OR json[index] = "\r" OR json[index] = "\n") DO
-        inc(index)
+        INC index
     END WHILE
 END FUNCTION
 
@@ -34,7 +34,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
         WHEN "a" TO "z" DO
             LET start: Number := index
             WHILE index < json.length() AND "a" <= json[index] <= "z" DO
-                inc(index)
+                INC index
             END WHILE
             LET s: String := json[start TO index-1]
             CASE s
@@ -50,26 +50,26 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
         WHEN "-", "0" TO "9" DO
             LET start: Number := index
             WHILE index < json.length() AND ("0" <= json[index] <= "9" OR json[index] = "-" OR json[index] = "+" OR json[index] = "." OR json[index] = "e" OR json[index] = "E") DO
-                inc(index)
+                INC index
             END WHILE
             RETURN variant.makeNumber(num(json[start TO index-1]))
         WHEN "\"" DO
-            inc(index)
+            INC index
             VAR t: String := ""
             LET start: Number := index
             WHILE index < json.length() AND json[index] # "\"" DO
                 IF json[index] = "\\" THEN
                     % TODO: This just skips over the backslash.
                     % Need to add specific processing for control characters.
-                    inc(index)
+                    INC index
                 END IF
                 t.append(json[index])
-                inc(index)
+                INC index
             END WHILE
-            inc(index)
+            INC index
             RETURN variant.makeString(t)
         WHEN "[" DO
-            inc(index)
+            INC index
             VAR a: Array<Variant>
             LOOP
                 skipWhitespace(json, index)
@@ -79,15 +79,15 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 a.append(decodePart(json, index))
                 skipWhitespace(json, index)
                 IF json[index] = "," THEN
-                    inc(index)
+                    INC index
                 ELSIF json[index] # "]" THEN
                     RAISE JsonFormat(", or ] expected")
                 END IF
             END LOOP
-            inc(index)
+            INC index
             RETURN variant.makeArray(a)
         WHEN "{" DO
-            inc(index)
+            INC index
             VAR d: Dictionary<Variant>
             LOOP
                 skipWhitespace(json, index)
@@ -103,16 +103,16 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 IF json[index] # ":" THEN
                     RAISE JsonFormat(": expected")
                 END IF
-                inc(index)
+                INC index
                 d[key] := decodePart(json, index)
                 skipWhitespace(json, index)
                 IF json[index] = "," THEN
-                    inc(index)
+                    INC index
                 ELSIF json[index] # "}" THEN
                     RAISE JsonFormat(", or } expected")
                 END IF
             END LOOP
-            inc(index)
+            INC index
             RETURN variant.makeDictionary(d)
     END CASE
     RETURN variant.makeNull()

@@ -252,16 +252,6 @@ std::string global$concatBytes(const std::string &a, const std::string &b)
     return a + b;
 }
 
-void global$dec(Number *a)
-{
-    *a = number_subtract(*a, number_from_uint32(1));
-}
-
-void global$inc(Number *a)
-{
-    *a = number_add(*a, number_from_uint32(1));
-}
-
 Number global$int(Number a)
 {
     return number_trunc(a);

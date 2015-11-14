@@ -95,7 +95,7 @@ FUNCTION make(x: Number): BigInt
     WHILE n > 0 DO
         r.digits[i] := n MOD Base
         n := math.floor(n / Base)
-        inc(i)
+        INC i
     END WHILE
     RETURN r
 END FUNCTION
@@ -127,7 +127,7 @@ FUNCTION makeFromString(s: String): BigInt
     VAR j: Number := t.length() - Digits
     WHILE j >= 0 DO
         r.digits[i] := num(t[j TO j+Digits-1])
-        inc(i)
+        INC i
         j := j - Digits
     END WHILE
     IF j > -Digits THEN
@@ -155,7 +155,7 @@ FUNCTION add(x, y: BigInt): BigInt
             ELSE
                 carry := 0
             END IF
-            inc(i)
+            INC i
         END WHILE
         RETURN r
     ELSE
@@ -183,7 +183,7 @@ FUNCTION sub(x, y: BigInt): BigInt
                 ELSE
                     borrow := 0
                 END IF
-                inc(i)
+                INC i
             END WHILE
             normalise(r)
             RETURN r

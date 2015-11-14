@@ -134,7 +134,7 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
         CASE self.fields[f].type
             WHEN Type.bool DO
                 r[self.fields[f].name] := variant.makeBoolean(a[i] # 0)
-                inc(i)
+                INC i
             WHEN Type.int DO
                 r[self.fields[f].name] := variant.makeNumber(
                     bitwise.shiftLeft32(a[i  ], 24) +

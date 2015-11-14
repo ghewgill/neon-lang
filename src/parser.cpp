@@ -52,6 +52,7 @@ public:
     const Statement *parseExternalDefinition();
     const Statement *parseDeclaration();
     const Statement *parseExport();
+    const Statement *parseIncrementStatement();
     const Statement *parseIfStatement();
     const Statement *parseReturnStatement();
     const Statement *parseVarStatement();
@@ -988,6 +989,15 @@ const Statement *Parser::parseExport()
     return new ExportDeclaration(tok_name, tok_name);
 }
 
+const Statement *Parser::parseIncrementStatement()
+{
+    auto &tok_op = tokens[i];
+    ++i;
+    int delta = tok_op.type == INC ? 1 : tok_op.type == DEC ? -1 : 0;
+    const Expression *expr = parseExpression();
+    return new IncrementStatement(tok_op, expr, delta);
+}
+
 const Statement *Parser::parseIfStatement()
 {
     auto &tok_if = tokens[i];
@@ -1615,6 +1625,8 @@ const Statement *Parser::parseStatement()
         return parseDeclaration();
     } else if (tokens[i].type == EXPORT) {
         return parseExport();
+    } else if (tokens[i].type == INC || tokens[i].type == DEC) {
+        return parseIncrementStatement();
     } else if (tokens[i].type == IF) {
         return parseIfStatement();
     } else if (tokens[i].type == RETURN) {

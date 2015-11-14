@@ -102,6 +102,7 @@ public:
     const Statement *analyze(const pt::ForStatement *statement);
     const Statement *analyze(const pt::ForeachStatement *statement);
     const Statement *analyze(const pt::IfStatement *statement);
+    const Statement *analyze(const pt::IncrementStatement *statement);
     const Statement *analyze(const pt::LoopStatement *statement);
     const Statement *analyze(const pt::NextStatement *statement);
     const Statement *analyze(const pt::RaiseStatement *statement);
@@ -182,6 +183,7 @@ public:
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForeachStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::IfStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::IncrementStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
@@ -262,6 +264,7 @@ public:
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForeachStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::IfStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::IncrementStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::LoopStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::NextStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::RaiseStatement *) override { internal_error("pt::Statement"); }
@@ -341,6 +344,7 @@ public:
     virtual void visit(const pt::ForStatement *) override {}
     virtual void visit(const pt::ForeachStatement *) override {}
     virtual void visit(const pt::IfStatement *) override {}
+    virtual void visit(const pt::IncrementStatement *) override {}
     virtual void visit(const pt::LoopStatement *) override {}
     virtual void visit(const pt::NextStatement *) override {}
     virtual void visit(const pt::RaiseStatement *) override {}
@@ -420,6 +424,7 @@ public:
     virtual void visit(const pt::ForStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ForeachStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::IfStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::IncrementStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::LoopStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::NextStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::RaiseStatement *p) override { v.push_back(a->analyze(p)); }
@@ -2700,6 +2705,22 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
     std::vector<const Statement *> else_statements = analyze(statement->else_statements);
     scope.pop();
     return new IfStatement(statement->token.line, condition_statements, else_statements);
+}
+
+const Statement *Analyzer::analyze(const pt::IncrementStatement *statement)
+{
+    const Expression *e = analyze(statement->expr);
+    if (not e->type->is_assignment_compatible(TYPE_NUMBER)) {
+        error(3187, statement->expr->token, "INC and DEC parameter must be Number");
+    }
+    const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
+    if (ref == nullptr) {
+        error(3188, statement->expr->token, "INC and DEC call argument must be reference");
+    }
+    if (ref->is_readonly) {
+        error(3189, statement->expr->token, "readonly parameter to INC or DEC");
+    }
+    return new IncrementStatement(statement->token.line, ref, statement->delta);
 }
 
 const Statement *Analyzer::analyze(const pt::LoopStatement *statement)

@@ -39,19 +39,19 @@ FUNCTION sprintf(fmt: String, value: Array<Variant>): String
     VAR i: Number := 0
     WHILE i < fmt.length() DO
         IF fmt[i] = "%" THEN
-            inc(i)
+            INC i
             CASE fmt[i]
                 WHEN "d" DO
                     r.append(value[a].getNumber().toString())
-                    inc(a)
+                    INC a
                 WHEN "s" DO
                     r.append(value[a].getString())
-                    inc(a)
+                    INC a
             END CASE
         ELSE
             r.append(fmt[i])
         END IF
-        inc(i)
+        INC i
     END WHILE
     RETURN r
 END FUNCTION

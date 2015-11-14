@@ -45,7 +45,7 @@ FUNCTION dlx_cover(c: POINTER TO Node)
                         d->up := jj->up
                         u->down := jj->down
                         IF VALID jj->column AS col THEN
-                            dec(col->size)
+                            DEC col->size
                         ELSE
                             ASSERT FALSE
                         END IF
@@ -73,7 +73,7 @@ FUNCTION dlx_uncover(c: POINTER TO Node)
                 WHILE j # i DO
                     IF VALID j AS jj, jj->up AS u, jj->down AS d THEN
                         IF VALID jj->column AS col THEN
-                            inc(col->size)
+                            INC col->size
                         ELSE
                             ASSERT FALSE
                         END IF
@@ -215,7 +215,7 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
                         ASSERT FALSE
                     END IF
                     c->up := node
-                    inc(c->size)
+                    INC c->size
                     last := node
                 END IF
             ELSE

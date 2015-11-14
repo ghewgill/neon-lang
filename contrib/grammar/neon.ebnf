@@ -39,6 +39,7 @@ Statement =
     ForStatement |
     ForeachStatement |
     IfStatement |
+    IncrementStatement |
     LoopStatement |
     NextStatement |
     RaiseStatement |
@@ -106,6 +107,8 @@ ForStatement = 'FOR', Identifier, ':=', Expression, 'TO', Expression, ['STEP', E
 ForeachStatement = 'FOREACH', Identifier, 'OF', Expression, ['INDEX', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
 
 IfStatement = 'IF', IfExpression, 'THEN', {Statement}, {'ELSIF', IfExpression, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
+
+IncrementStatement = ('INC' | 'DEC'), Expression;
 
 IfExpression = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
 

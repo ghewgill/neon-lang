@@ -1,9 +1,9 @@
 VAR a: Number
 a := 1
 print(a.toString())
-inc(a)
+INC a
 print(a.toString())
-dec(a)
+DEC a
 print(a.toString())
 
 %= 1

@@ -340,6 +340,10 @@ public:
             child(x);
         }
     }
+    virtual void visit(const IncrementStatement *node) override {
+        write("IncrementStatement");
+        child(node->expr);
+    }
     virtual void visit(const LoopStatement *node) override {
         write("LoopStatement");
         for (auto x: node->body) {

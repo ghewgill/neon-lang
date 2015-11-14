@@ -169,7 +169,7 @@ FUNCTION remove_rows(INOUT score, rows: Number)
     VAR j: Number := BOARD_HEIGHT-1
     WHILE j >= 0 DO
         IF row_complete(j) THEN
-            inc(count)
+            INC count
             FOR k := j TO 1 STEP -1 DO
                 Board[k] := Board[k-1]
                 FOR i := 0 TO BOARD_WIDTH-1 DO
@@ -178,7 +178,7 @@ FUNCTION remove_rows(INOUT score, rows: Number)
                 END FOR
             END FOR
         ELSE
-            dec(j)
+            DEC j
         END IF
     END WHILE
     score := score + count*count
@@ -281,7 +281,7 @@ FUNCTION main()
                     IF NOT piece_fits(p, x, y+1, r) THEN
                         new_piece := TRUE
                     ELSE
-                        inc(y)
+                        INC y
                     END IF
                     last_drop := now
                     EXIT LOOP
@@ -291,23 +291,23 @@ FUNCTION main()
                     CASE chr(k)
                         WHEN " " DO
                             WHILE piece_fits(p, x, y+1, r) DO
-                                inc(y)
+                                INC y
                             END WHILE
                             new_piece := TRUE
                             EXIT LOOP
                         WHEN "j" DO
-                            dec(x)
+                            DEC x
                             EXIT LOOP
                         WHEN "k" DO
                             IF piece_fits(p, x, y+1, r) THEN
-                                inc(y)
+                                INC y
                                 last_drop := now
                             ELSE
                                 new_piece := TRUE
                             END IF
                             EXIT LOOP
                         WHEN "l" DO
-                            inc(x)
+                            INC x
                             EXIT LOOP
                         WHEN "u" DO
                             r := (r - 1) MOD Pieces[p].rot

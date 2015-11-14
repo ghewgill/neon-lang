@@ -57,7 +57,7 @@ FUNCTION dupeBoard(base: Number)
     VAR p: Number := base + 111
     FOR i := base+11 TO base+88 DO
         Board[p] := Board[i]
-        inc(p)
+        INC p
     END FOR
 END FUNCTION
 
@@ -117,7 +117,7 @@ FUNCTION search(d, base, color, depth: Number, flag: Boolean, minscore, maxscore
     VAR n: Number := 0
     FOR p := 11 TO 88 DO
         IF validMove(base, p, color, 100) THEN
-            inc(n)
+            INC n
             LET ss: Number := -search(d+1, base+100, other, depth, FALSE, -maxscore, -bestscore)
             IF ss > bestscore THEN
                 best := p
@@ -134,9 +134,9 @@ FUNCTION search(d, base, color, depth: Number, flag: Boolean, minscore, maxscore
         IF flag THEN
             FOR z := base+11 TO base+88 DO
                 IF Board[z] = color THEN
-                    inc(n)
+                    INC n
                 ELSIF Board[z] = other THEN
-                    dec(n)
+                    DEC n
                 END IF
             END FOR
             IF n > 0 THEN
@@ -193,9 +193,9 @@ FUNCTION displayBoard(): Boolean
                         any := TRUE
                     END IF
                 WHEN 1 DO
-                    inc(black)
+                    INC black
                 WHEN 2 DO
-                    inc(white)
+                    INC white
             END CASE
             curses.attrset(curses.COLOR_PAIR(1+b))
             FOR k := 0 TO 1 DO

@@ -100,6 +100,8 @@ enum TokenType {
     BEGIN,
     MAIN,
     HEXBYTES,
+    INC,
+    DEC,
     MAX_TOKEN
 };
 
