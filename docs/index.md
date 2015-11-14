@@ -950,8 +950,8 @@ Example:
     END FUNCTION
 
     VAR value: Number := 5
-    add(value)
-    add(value, 2)
+    add(INOUT value)
+    add(INOUT value, 2)
 
 When a parameter is not specified and it has a default value, the function call is executed as if the parameter were present and had the given value.
 Default parameter values only apply to `IN` mode parameters.
