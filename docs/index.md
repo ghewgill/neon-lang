@@ -799,7 +799,7 @@ Example:
     VAR i: Number := 0
 
     LOOP
-        inc(i)
+        INC i
         IF i >= 10 THEN
             EXIT LOOP
         END IF
@@ -854,7 +854,7 @@ Example:
     
     REPEAT
         print("x is \(x)")
-        inc(x)
+        INC x
     UNTIL x = 10
 
 The above loop will print the whole numbers 0 through 9.
@@ -906,7 +906,7 @@ Example:
     
     WHILE x < 10 DO
         print("x is \(x)")
-        inc(x)
+        INC x
     END WHILE
 
 The above loop will print the whole numbers 0 through 9.
