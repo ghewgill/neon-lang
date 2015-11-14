@@ -383,15 +383,15 @@ FUNCTION alloc(n: Number, INOUT i: Number): Number
 END FUNCTION
 
 VAR index: Number := 0
-LET cell_state: Number := alloc(1, index)
-LET cell_normal_input: Number := alloc(200, index)
-LET cell_normal_input_length: Number := alloc(1, index)
-LET cell_normal_in: Number := alloc(1, index)
-LET cell_eval_input_length: Number := alloc(1, index)
-LET cell_eval_in: Number := alloc(1, index)
-LET cell_base: Number := alloc(1, index)
-LET cell_pad: Number := alloc(84, index)
-LET cell_number_buffer: Number := alloc(NUMBER_BUFFER_MAX, index)
+LET cell_state: Number := alloc(1, INOUT index)
+LET cell_normal_input: Number := alloc(200, INOUT index)
+LET cell_normal_input_length: Number := alloc(1, INOUT index)
+LET cell_normal_in: Number := alloc(1, INOUT index)
+LET cell_eval_input_length: Number := alloc(1, INOUT index)
+LET cell_eval_in: Number := alloc(1, INOUT index)
+LET cell_base: Number := alloc(1, INOUT index)
+LET cell_pad: Number := alloc(84, INOUT index)
+LET cell_number_buffer: Number := alloc(NUMBER_BUFFER_MAX, INOUT index)
 VAR number_buffer_size: Number
 storage[cell_base] := 10
 storage[index] := 0
@@ -729,7 +729,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             IF xt > 0 THEN
                 run_compiled(xt)
             ELSE
-                run_instruction(xt, ip)
+                run_instruction(xt, INOUT ip)
             END IF
         WHEN CORE_FALSE DO
             stack.push(0)
@@ -1057,7 +1057,7 @@ FUNCTION run_compiled(start_ip: Number)
     WHILE ip > 0 DO
         % print("ip=\(ip) instr=\(code[ip]) size=\(stack.stack.size()) ret=\(return.size()))")
         LET prev_ip: Number := ip
-        run_instruction(code[ip], ip)
+        run_instruction(code[ip], INOUT ip)
         IF ip = prev_ip THEN
             INC ip
         END IF
@@ -1236,7 +1236,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
                     run_compiled(instr)
                 ELSE
                     VAR ip: Number := 0
-                    run_instruction(instr, ip)
+                    run_instruction(instr, INOUT ip)
                 END IF
             ELSE
                 code.append(instr)
@@ -1370,7 +1370,7 @@ LET files: Array<String> := sys.argv()[1 TO LAST]
 FOREACH fn OF files DO
     current_file := io.open(fn, io.Mode.read)
     interpret()
-    io.close(current_file)
+    io.close(INOUT current_file)
 END FOREACH
 
 current_file := io.stdin()

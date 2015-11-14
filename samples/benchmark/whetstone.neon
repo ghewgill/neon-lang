@@ -224,7 +224,7 @@ C       Module 3: Array as parameter
 C
 |%
             FOR i := 1 TO N3 DO
-                pa(E1)
+                pa(INOUT E1)
             END FOR
 
 %#ifdef PRINTOUT

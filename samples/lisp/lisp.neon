@@ -149,7 +149,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
             VAR p: POINTER TO Value
             TRY
                 LOOP
-                    LET value: POINTER TO Value := parse2(s, i)
+                    LET value: POINTER TO Value := parse2(s, INOUT i)
                     IF value = NIL THEN % TODO: remove this check when the exception handling works
                         EXIT LOOP
                     END IF
@@ -231,7 +231,7 @@ END FUNCTION
 
 FUNCTION parse(s: String): POINTER TO Value
     VAR i: Number := 0
-    RETURN parse2(s, i)
+    RETURN parse2(s, INOUT i)
 END FUNCTION
 
 FUNCTION read(f: io.File): POINTER TO Value

@@ -97,4 +97,4 @@ ASSERT r.getArray().size() = 0
 
 r := post("/continue", "")
 
-LET rc: Number := os.wait(p)
+LET rc: Number := os.wait(INOUT p)

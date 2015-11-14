@@ -3133,9 +3133,9 @@ FUNCTION test_auth5()
         VAR a: Bytes := sodium.auth(c, key)
         ASSERT sodium.auth_verify(a, c, key)
         IF clen > 0 THEN
-            tweak(c, random.uint32() MOD clen, 1 + random.uint32() MOD 255)
+            tweak(INOUT c, random.uint32() MOD clen, 1 + random.uint32() MOD 255)
             ASSERT NOT sodium.auth_verify(a, c, key)
-            tweak(a, random.uint32() MOD a.size(), 1 + random.uint32() MOD 255)
+            tweak(INOUT a, random.uint32() MOD a.size(), 1 + random.uint32() MOD 255)
             ASSERT NOT sodium.auth_verify(a, c, key)
         END IF
     END FOR
@@ -3154,9 +3154,9 @@ FUNCTION test_auth7()
         VAR a: Bytes := sodium.auth_hmacsha512(c, key)
         ASSERT sodium.auth_hmacsha512_verify(a, c, key)
         IF clen > 0 THEN
-            tweak(c, random.uint32() MOD clen, 1 + random.uint32() MOD 255)
+            tweak(INOUT c, random.uint32() MOD clen, 1 + random.uint32() MOD 255)
             ASSERT NOT sodium.auth_hmacsha512_verify(a, c, key)
-            tweak(a, random.uint32() MOD a.size(), 1 + random.uint32() MOD 255)
+            tweak(INOUT a, random.uint32() MOD a.size(), 1 + random.uint32() MOD 255)
             ASSERT NOT sodium.auth_hmacsha512_verify(a, c, key)
         END IF
     END FOR
@@ -4653,9 +4653,9 @@ FUNCTION test_onetimeauth7()
         VAR a: Bytes := sodium.onetimeauth(c, key)
         ASSERT sodium.onetimeauth_verify(a, c, key)
         IF clen > 0 THEN
-            tweak(c, random.uint32() MOD clen, 1 + random.uint32() MOD 255)
+            tweak(INOUT c, random.uint32() MOD clen, 1 + random.uint32() MOD 255)
             ASSERT NOT sodium.onetimeauth_verify(a, c, key)
-            tweak(a, random.uint32() MOD a.size(), 1 + random.uint32() MOD 255)
+            tweak(INOUT a, random.uint32() MOD a.size(), 1 + random.uint32() MOD 255)
             ASSERT NOT sodium.onetimeauth_verify(a, c, key)
         END IF
     END FOR
@@ -5236,10 +5236,10 @@ FUNCTION test_sign()
         ASSERT b = td.sig
         VAR m: Bytes := sodium.sign_open(sm, td.pk)
         ASSERT m = td.m
-        add_l(sm, 32)
+        add_l(INOUT sm, 32)
         m := sodium.sign_open(sm, td.pk)
         ASSERT m = td.m
-        tweak(sm, i + sodium.sign_BYTES - 1, 1)
+        tweak(INOUT sm, i + sodium.sign_BYTES - 1, 1)
         TRY
             m := sodium.sign_open(sm, td.pk)
         EXCEPTION sodium.DecryptionFailed

@@ -26,7 +26,7 @@ print(str(a))
 %= 5
 
 a := 5
-inout(a)
+inout(INOUT a)
 print(str(a))
 %= 5
 %= 6

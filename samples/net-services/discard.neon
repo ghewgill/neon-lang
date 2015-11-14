@@ -11,7 +11,7 @@ LOOP
     END FOREACH
     VAR write: Array<net.Socket> := []
     VAR error: Array<net.Socket> := []
-    IF net.select(read, write, error, -1) THEN
+    IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
         IF server IN read THEN
             clients.append(server.accept())
         END IF

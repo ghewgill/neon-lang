@@ -1,6 +1,6 @@
-FUNCTION f(INOUT a: Number)
+FUNCTION f(a: Number)
 END FUNCTION
 
 VAR x: Number
-f(x)
+f(INOUT x)
   %<

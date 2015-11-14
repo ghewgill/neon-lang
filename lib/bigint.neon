@@ -185,7 +185,7 @@ FUNCTION sub(x, y: BigInt): BigInt
                 END IF
                 INC i
             END WHILE
-            normalise(r)
+            normalise(INOUT r)
             RETURN r
         ELSE
             RETURN neg(sub(y, x))
@@ -216,7 +216,7 @@ FUNCTION mul(x, y: BigInt): BigInt
         r := r.add(p)
     END FOR
     r.sign := x.sign * y.sign
-    normalise(r)
+    normalise(INOUT r)
     RETURN r
 END FUNCTION
 

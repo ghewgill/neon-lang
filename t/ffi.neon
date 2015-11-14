@@ -232,7 +232,7 @@ print(str(string_length("Hello")))
 
 VAR s: String
 s := "Hello World"
-upper_string(s)
+upper_string(INOUT s)
 print(s)
 %= HELLO WORLD
 

@@ -22,17 +22,17 @@ print(io.readBytes(f, 5).toString())
 print(str(io.tell(f)))
 %= 9
 
-io.close(f)
+io.close(INOUT f)
 
 f := io.open("tmp/io-test.tmp", io.Mode.write)
 io.fprint(f, "Hello world")
 io.seek(f, 7, io.SeekBase.absolute)
 io.truncate(f)
-io.close(f)
+io.close(INOUT f)
 f := io.open("tmp/io-test.tmp", io.Mode.read)
 print(strb(io.readLine(f, OUT s)))
 %= TRUE
 print(s)
 %= Hello w
 
-io.close(f)
+io.close(INOUT f)

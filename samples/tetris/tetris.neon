@@ -330,7 +330,7 @@ FUNCTION main()
             IF new_piece THEN
                 drop_piece(p, x, y, r)
             END IF
-            remove_rows(score, rows)
+            remove_rows(INOUT score, INOUT rows)
         END WHILE
         quit := quit OR NOT play_again()
     END WHILE

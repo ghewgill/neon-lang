@@ -121,7 +121,7 @@ END FUNCTION
 
 FUNCTION FindFirstFile(lpFileName: String, INOUT lpFindFileData: WIN32_FIND_DATA): Handle
     VAR fd: Bytes := lpFindFileData.pack()
-    LET r: Handle := FindFirstFileA(lpFileName, fd)
+    LET r: Handle := FindFirstFileA(lpFileName, INOUT fd)
     lpFindFileData.unpack(fd)
     RETURN r
 END FUNCTION
@@ -140,7 +140,7 @@ END FUNCTION
 
 FUNCTION FindNextFile(hFindFile: Handle, INOUT lpFindFileData: WIN32_FIND_DATA): Boolean
     VAR fd: Bytes := lpFindFileData.pack()
-    LET r: Boolean := FindNextFileA(hFindFile, fd)
+    LET r: Boolean := FindNextFileA(hFindFile, INOUT fd)
     lpFindFileData.unpack(fd)
     RETURN r
 END FUNCTION

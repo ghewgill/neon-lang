@@ -29,7 +29,7 @@ FUNCTION skipWhitespace(json: String, INOUT index: Number)
 END FUNCTION
 
 FUNCTION decodePart(json: String, INOUT index: Number): Variant
-    skipWhitespace(json, index)
+    skipWhitespace(json, INOUT index)
     CASE json[index]
         WHEN "a" TO "z" DO
             LET start: Number := index
@@ -72,12 +72,12 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
             INC index
             VAR a: Array<Variant>
             LOOP
-                skipWhitespace(json, index)
+                skipWhitespace(json, INOUT index)
                 IF json[index] = "]" THEN
                     EXIT LOOP
                 END IF
-                a.append(decodePart(json, index))
-                skipWhitespace(json, index)
+                a.append(decodePart(json, INOUT index))
+                skipWhitespace(json, INOUT index)
                 IF json[index] = "," THEN
                     INC index
                 ELSIF json[index] # "]" THEN
@@ -90,22 +90,22 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
             INC index
             VAR d: Dictionary<Variant>
             LOOP
-                skipWhitespace(json, index)
+                skipWhitespace(json, INOUT index)
                 IF json[index] = "}" THEN
                     EXIT LOOP
                 END IF
-                LET vkey: Variant := decodePart(json, index)
+                LET vkey: Variant := decodePart(json, INOUT index)
                 IF vkey.getType() # Type.string THEN
                     RAISE JsonFormat("string key expected")
                 END IF
                 LET key: String := vkey.getString()
-                skipWhitespace(json, index)
+                skipWhitespace(json, INOUT index)
                 IF json[index] # ":" THEN
                     RAISE JsonFormat(": expected")
                 END IF
                 INC index
-                d[key] := decodePart(json, index)
-                skipWhitespace(json, index)
+                d[key] := decodePart(json, INOUT index)
+                skipWhitespace(json, INOUT index)
                 IF json[index] = "," THEN
                     INC index
                 ELSIF json[index] # "}" THEN
@@ -125,7 +125,7 @@ END FUNCTION
  |%
 FUNCTION decode(json: String): Variant
     VAR i: Number := 0
-    RETURN decodePart(json, i)
+    RETURN decodePart(json, INOUT i)
 END FUNCTION
 
 %|

@@ -5,7 +5,7 @@ IMPORT sys
 
 VAR p: os.Process
 IF os.fork(OUT p) THEN
-    print(str(os.wait(p)))
+    print(str(os.wait(INOUT p)))
     print("parent")
 ELSE
     print("child")

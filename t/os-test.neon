@@ -10,7 +10,7 @@ print(str(r))
 
 VAR p: os.Process := os.spawn(@@"python -c "import time; time.sleep(0.1)""@@)
 LET start: Number := time.now()
-r := os.wait(p)
+r := os.wait(INOUT p)
 LET end: Number := time.now()
 print(strb(end - start >= 0.1))
 %= TRUE

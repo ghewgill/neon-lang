@@ -49,7 +49,7 @@ DECLARE NATIVE FUNCTION socket_select(INOUT read, write, error: Array<Socket>, t
 FUNCTION select(INOUT read, write, error: Array<Socket>, timeout_seconds: Number): Boolean
     % TODO: This function works around some problem with calling a predefined
     % function with an Array<Socket> parameter.
-    RETURN socket_select(read, write, error, timeout_seconds)
+    RETURN socket_select(INOUT read, INOUT write, INOUT error, timeout_seconds)
 END FUNCTION
 
 %|

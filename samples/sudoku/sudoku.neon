@@ -132,7 +132,7 @@ FUNCTION dlx_search(head: POINTER TO Node, INOUT solution: Array<Number>, k: Num
                             ASSERT FALSE
                         END IF
                     END WHILE
-                    IF dlx_search(head, solution, k+1, solutions, maxsolutions) THEN
+                    IF dlx_search(head, INOUT solution, k+1, INOUT solutions, maxsolutions) THEN
                         RETURN TRUE
                     END IF
                     j := rr->left
@@ -238,7 +238,7 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
     END IF
     VAR solution: Array<Number> := []
     VAR solutions: Array<Array<Number>> := []
-    LET r: Boolean := dlx_search(head, solution, 0, solutions, maxsolutions)
+    LET r: Boolean := dlx_search(head, INOUT solution, 0, INOUT solutions, maxsolutions)
     RETURN solutions
 END FUNCTION
 
@@ -327,8 +327,8 @@ END FUNCTION
 FUNCTION makeSolution(): multiarray.ArrayNumber2D
     VAR r: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 9)
     r[0] := [1, 2, 3, 4, 5, 6, 7, 8, 9]
-    shuffle(r[0])
-    LET n: Number := solveSudoku(r)
+    shuffle(INOUT r[0])
+    LET n: Number := solveSudoku(INOUT r)
     RETURN r
 END FUNCTION
 
@@ -356,7 +356,7 @@ FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback
     FOR i := 0 TO 9*9-1 DO
         places[i] := i
     END FOR
-    shuffle(places)
+    shuffle(INOUT places)
     VAR n: Number := 9*9
     FOREACH p OF places DO
         callback(n)
@@ -368,7 +368,7 @@ FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback
         VAR t: multiarray.ArrayNumber2D := r
         t[i][j] := 0
         t[8-i][8-j] := 0
-        LET s: Number := solveSudoku(t)
+        LET s: Number := solveSudoku(INOUT t)
         IF s = 1 THEN
             r[i][j] := 0
             r[8-i][8-j] := 0
@@ -579,7 +579,7 @@ BEGIN MAIN
                             IF known_start THEN
                                 grid := start
                             END IF
-                            LET n: Number := solveSudoku(grid)
+                            LET n: Number := solveSudoku(INOUT grid)
                             popup_close(popup)
                         WHEN "u" DO
                             IF moves.size() > 0 THEN

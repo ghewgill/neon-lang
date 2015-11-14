@@ -55,13 +55,13 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
         END FOREACH
         VAR write: Array<net.Socket> := []
         VAR error: Array<net.Socket> := []
-        IF net.select(read, write, error, -1) THEN
+        IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
             IF self.server IN read THEN
                 self.clients.append(Client(socket AS self.server.accept()))
             END IF
             FOR i := self.clients.size()-1 TO 0 STEP -1 DO
                 IF self.clients[i].socket IN read THEN
-                    IF self.handle_incoming(self.clients[i]) THEN
+                    IF self.handle_incoming(INOUT self.clients[i]) THEN
                         self.clients[i].socket.close()
                         self.clients[i TO i] := [] % TODO: need an array remove method
                     END IF
@@ -74,7 +74,7 @@ END FUNCTION
 FUNCTION HttpServer.handle_incoming(INOUT self: HttpServer, INOUT client: Client): Boolean
     client.header.append(client.socket.recv(1000).toString())
     IF client.header[LAST-3 TO LAST] = "\r\n\r\n" THEN
-        self.handle_request(client)
+        self.handle_request(INOUT client)
         RETURN TRUE
     END IF
     RETURN FALSE
