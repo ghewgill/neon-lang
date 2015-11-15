@@ -1450,7 +1450,7 @@ const Expression *Analyzer::analyze(const pt::ComparisonExpression *expr)
         return new PointerComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const TypeFunctionPointer *>(left->type) != nullptr) {
         if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
-            error(3180, expr->token, "comparison not available for POINTER");
+            error(3180, expr->token, "comparison not available for FUNCTION");
         }
         return new FunctionPointerComparisonExpression(left, right, comp);
     } else {
