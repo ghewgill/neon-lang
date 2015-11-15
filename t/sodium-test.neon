@@ -11,7 +11,7 @@ FUNCTION pad_bytes(s: String, len: Number): Bytes
     WHILE r.size() < len DO
         VAR a: Array<Number> := r.toArray()
         a.append(0)
-        r.fromArray(a)
+        r := a.toBytes()
     END WHILE
     RETURN r
 END FUNCTION
@@ -19,7 +19,7 @@ END FUNCTION
 FUNCTION tweak(INOUT b: Bytes, i: Number, t: Number)
     VAR a: Array<Number> := b.toArray()
     a[i] := (a[i] + t) MOD 256
-    b.fromArray(a)
+    b := a.toBytes()
 END FUNCTION
 
 FUNCTION test_aead_aes256gcm()
@@ -3204,7 +3204,7 @@ FUNCTION test_box8()
         WHILE caught < 10 DO
             VAR a: Array<Number> := c.toArray()
             a[random.uint32() MOD c.size()] := random.uint32() MOD 256
-            c.fromArray(a)
+            c := a.toBytes()
             TRY
                 ASSERT sodium.box_open(c, n, alicepk, bobsk) = m
             EXCEPTION sodium.DecryptionFailed
@@ -3227,8 +3227,7 @@ FUNCTION test_box_seal()
     EXCEPTION sodium.InvalidParameterLength
     END TRY
     TRY
-        VAR c2: Bytes := HEXBYTES ""
-        c2.fromArray(c.toArray()[FIRST TO LAST-1])
+        LET c2: Bytes := c.toArray()[FIRST TO LAST-1].toBytes()
         LET x: Bytes := sodium.box_seal_open(c2, pk, sk)
         ASSERT FALSE
     EXCEPTION sodium.DecryptionFailed
@@ -4612,15 +4611,14 @@ FUNCTION test_generichash()
         ka[h] := h
     END FOR
     VAR ina: Array<Number> := []
-    VAR in: Bytes := HEXBYTES ""
+    VAR in: Bytes
     FOR i := 0 TO 63 DO
         ina[i] := i
-        in.fromArray(ina[FIRST TO i-1])
-        VAR k: Bytes := HEXBYTES ""
-        k.fromArray(ka[FIRST TO i MOD sodium.generichash_KEYBYTES_MAX])
+        in := ina[FIRST TO i-1].toBytes()
+        LET k: Bytes := ka[FIRST TO i MOD sodium.generichash_KEYBYTES_MAX].toBytes()
         ASSERT sodium.generichash(1 + i MOD sodium.generichash_BYTES_MAX, in, k) = result[i]
     END FOR
-    in.fromArray(ina)
+    in := ina.toBytes()
     ASSERT sodium.generichash(sodium.generichash_BYTES_MAX, in, HEXBYTES "") = HEXBYTES "2fc6e69fa26a89a5ed269092cb9b2a449a4409a7a44011eecad13d7c4b0456602d402fa5844f1a7a758136ce3d5d8d0e8b86921ffff4f692dd95bdc8e5ff0052"
 END FUNCTION
 
@@ -5089,7 +5087,7 @@ FUNCTION test_secretbox8()
         WHILE caught < 10 DO
             VAR a: Array<Number> := c.toArray()
             a[random.uint32() MOD c.size()] := random.uint32() MOD 256
-            c.fromArray(a)
+            c := a.toBytes()
             TRY
                 ASSERT sodium.secretbox_open(c, n, k) = m
             EXCEPTION sodium.DecryptionFailed
@@ -5173,12 +5171,10 @@ FUNCTION test_shorthash()
     FOR i := 0 TO sodium.shorthash_KEYBYTES-1 DO
         ka[i] := i
     END FOR
-    VAR k: Bytes := HEXBYTES ""
-    k.fromArray(ka)
-    VAR ina: Array<Number> := []
+    LET k: Bytes := ka.toBytes()
+    VAR ina: Array<Number>
     FOR i := 0 TO MAX_LEN-1 DO
-        VAR in: Bytes := HEXBYTES ""
-        in.fromArray(ina)
+        VAR in: Bytes := ina.toBytes()
         ASSERT sodium.shorthash(in, k) = result[i]
         ina[i] := i
     END FOR
@@ -5198,7 +5194,7 @@ FUNCTION add_l(INOUT b: Bytes, o: Number)
         sa[o+i] := s MOD 256
         c := bitwise.and32(bitwise.shiftRight32(s, 8), 1)
     END FOR
-    b.fromArray(sa)
+    b := sa.toBytes()
 END FUNCTION
 
 FUNCTION test_sign()
@@ -5231,8 +5227,7 @@ FUNCTION test_sign()
     FOREACH td OF test_data INDEX i DO
         VAR sm: Bytes := sodium.sign(td.m, td.sk & td.pk)
         VAR a: Array<Number> := sm.toArray()
-        VAR b: Bytes := HEXBYTES ""
-        b.fromArray(a[0 TO sodium.sign_BYTES-1])
+        LET b: Bytes := a[0 TO sodium.sign_BYTES-1].toBytes()
         ASSERT b = td.sig
         VAR m: Bytes := sodium.sign_open(sm, td.pk)
         ASSERT m = td.m
@@ -5267,16 +5262,14 @@ FUNCTION test_stream()
     VAR output: Bytes := sodium.stream(4194304, nonce, firstkey)
     ASSERT sodium.hash_sha256(output) = HEXBYTES "662b9d0e3463029156069b12f918691a98f7dfb2ca0393c96bbfc6b1fbd630a2"
 
-    VAR output2: Bytes := HEXBYTES ""
-    output2.fromArray(output.toArray()[0 TO 3999])
+    VAR output2: Bytes := output.toArray()[0 TO 3999].toBytes()
     output2 := sodium.stream_xsalsa20_xor_ic(output2, nonce, 0, firstkey)
     LET a: Array<Number> := output2.toArray()
     FOREACH b OF a DO
         ASSERT b = 0
     END FOREACH
 
-    VAR second: Bytes := HEXBYTES ""
-    second.fromArray(output.toArray()[4000 TO output.size()-1])
+    LET second: Bytes := output.toArray()[4000 TO output.size()-1].toBytes()
     output := sodium.stream_xsalsa20_xor_ic(output2, nonce, 1, firstkey)
     ASSERT sodium.hash_sha256(output & second) = HEXBYTES "0cc9ffaf60a99d221b548e9762385a231121ab226d1c610d2661ced26b6ad5ee"
 END FUNCTION
@@ -5287,16 +5280,14 @@ FUNCTION test_stream2()
     VAR output: Bytes := sodium.stream_salsa20(4194304, noncesuffix, secondkey)
     ASSERT sodium.hash_sha256(output) = HEXBYTES "662b9d0e3463029156069b12f918691a98f7dfb2ca0393c96bbfc6b1fbd630a2"
 
-    VAR output2: Bytes := HEXBYTES ""
-    output2.fromArray(output.toArray()[0 TO 3999])
+    VAR output2: Bytes := output.toArray()[0 TO 3999].toBytes()
     output2 := sodium.stream_salsa20_xor_ic(output2, noncesuffix, 0, secondkey)
     LET a: Array<Number> := output2.toArray()
     FOREACH b OF a DO
         ASSERT b = 0
     END FOREACH
 
-    VAR second: Bytes := HEXBYTES ""
-    second.fromArray(output.toArray()[4000 TO output.size()-1])
+    LET second: Bytes := output.toArray()[4000 TO output.size()-1].toBytes()
     output := sodium.stream_salsa20_xor_ic(output2, noncesuffix, 1, secondkey)
     ASSERT sodium.hash_sha256(output & second) = HEXBYTES "0cc9ffaf60a99d221b548e9762385a231121ab226d1c610d2661ced26b6ad5ee"
 END FUNCTION
@@ -5312,8 +5303,7 @@ FUNCTION test_stream4()
     LET nonce: Bytes := HEXBYTES "69696ee955b62b73cd62bda875fc73d68219e0036b7a0b37"
     LET m: Bytes := HEXBYTES "0000000000000000000000000000000000000000000000000000000000000000be075fc53c81f2d5cf141316ebeb0c7b5228c52a4c62cbd44b66849b64244ffce5ecbaaf33bd751a1ac728d45e6c61296cdc3c01233561f41db66cce314adb310e3be8250c46f06dceea3a7fa1348057e2f6556ad6b1318a024a838f21af1fde048977eb48f59ffd4924ca1c60902e52f0a089bc76897040e082f937763848645e0705"
     LET c: Bytes := sodium.stream_xor(m, nonce, firstkey)
-    VAR c2: Bytes := HEXBYTES ""
-    c2.fromArray(c.toArray()[32 TO 162])
+    LET c2: Bytes := c.toArray()[32 TO 162].toBytes()
     ASSERT c2 = HEXBYTES "8e993b9f48681273c29650ba32fc76ce48332ea7164d96a4476fb8c531a1186ac0dfc17c98dce87b4da7f011ec48c97271d2c20f9b928fe2270d6fb863d51738b48eeee314a7cc8ab932164548e526ae90224368517acfeabd6bb3732bc0e9da99832b61ca01b6de56244a9e88d5f9b37973f622a43d14a6599b1f654cb45a74e355a5"
 END FUNCTION
 

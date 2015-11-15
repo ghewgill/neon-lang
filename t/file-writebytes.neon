@@ -1,9 +1,7 @@
 IMPORT file
 
-VAR buf: Bytes := HEXBYTES ""
-
-buf.fromArray([4, 3, 2, 0, 1])
-
+LET an: Array<Number> := [4, 3, 2, 0, 1]
+LET buf: Bytes := an.toBytes()
 file.writeBytes("tmp/bytetest.bin", buf)
 
 VAR a: Array<Number> := file.readBytes("tmp/bytetest.bin").toArray()

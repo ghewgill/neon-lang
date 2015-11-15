@@ -1,6 +1,5 @@
-VAR buf: Bytes := HEXBYTES ""
-
-buf.fromArray([1, 2, 3, 0, 4])
+LET n: Array<Number> := [1, 2, 3, 0, 4]
+LET buf: Bytes := n.toBytes()
 print("\(buf.size())")
 %= 5
 

@@ -103,9 +103,7 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
             buf.resize(buf.size() + self.fields[f].width)
         END IF
     END FOR
-    VAR r: Bytes := HEXBYTES ""
-    r.fromArray(buf)
-    RETURN r
+    RETURN buf.toBytes()
 END FUNCTION
 
 %|
@@ -153,9 +151,7 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
                 r[self.fields[f].name] := variant.makeString(s)
                 i := i + self.fields[f].width
             WHEN Type.bytes DO
-                VAR b: Bytes := HEXBYTES ""
-                b.fromArray(a[i TO i+self.fields[f].width-1])
-                r[self.fields[f].name] := variant.makeBytes(b)
+                r[self.fields[f].name] := variant.makeBytes(a[i TO i+self.fields[f].width-1].toBytes())
                 i := i + self.fields[f].width
         END CASE
     END FOR

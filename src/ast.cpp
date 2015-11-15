@@ -114,6 +114,7 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
         // TODO: This is just a hack to make this work for now.
         // Need to do this properly in a general purpose way.
         if (elementtype == TYPE_NUMBER) {
+            methods["toBytes"] = new PredefinedFunction("array__toBytes__number", new TypeFunction(TYPE_BYTES, params));
             methods["toString"] = new PredefinedFunction("array__toString__number", new TypeFunction(TYPE_STRING, params));
         } else if (elementtype == TYPE_STRING) {
             methods["toString"] = new PredefinedFunction("array__toString__string", new TypeFunction(TYPE_STRING, params));
@@ -674,7 +675,6 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_BYTES, nullptr));
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_ARRAY_NUMBER, nullptr));
-        TYPE_BYTES->methods["fromArray"] = new PredefinedFunction("bytes__fromArray", new TypeFunction(TYPE_NOTHING, params));
     }
     {
         std::vector<const ParameterType *> params;

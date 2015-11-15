@@ -90,6 +90,20 @@ Cell global$array__splice(Cell &b, Cell &a, Number first, bool first_from_end, N
     return Cell(r);
 }
 
+std::string global$array__toBytes__number(const std::vector<Number> &a)
+{
+    std::string r;
+    r.reserve(a.size());
+    for (auto x: a) {
+        uint64_t b = number_to_uint64(x);
+        if (b >= 256) {
+            throw RtlException(Exception_global$ByteOutOfRange, std::to_string(b));
+        }
+        r.push_back(static_cast<unsigned char>(b));
+    }
+    return r;
+}
+
 std::string global$array__toString__number(const std::vector<Number> &a)
 {
     std::string r = "[";
@@ -186,19 +200,6 @@ std::string global$string__substring(const std::string &t, Number first, bool fi
 std::string global$string__toBytes(const std::string &self)
 {
     return self;
-}
-
-void global$bytes__fromArray(utf8string *self, const std::vector<Number> &a)
-{
-    self->clear();
-    self->reserve(a.size());
-    for (auto x: a) {
-        uint64_t b = number_to_uint64(x);
-        if (b >= 256) {
-            throw RtlException(Exception_global$ByteOutOfRange, std::to_string(b));
-        }
-        self->push_back(static_cast<unsigned char>(b));
-    }
 }
 
 Number global$bytes__size(const std::string &self)

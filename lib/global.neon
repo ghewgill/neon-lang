@@ -61,7 +61,7 @@ DECLARE EXCEPTION AssertFailed
 %|
  |  Exception: ByteOutOfRange
  |
- |  A byte is out of range in Bytes.fromArray().
+ |  A byte is out of range in toBytes().
  |%
 DECLARE EXCEPTION ByteOutOfRange
 
@@ -149,6 +149,7 @@ DECLARE NATIVE FUNCTION array__resize(INOUT self: Array, new_size: Number)
 DECLARE NATIVE FUNCTION array__size(self: Array): Number
 DECLARE NATIVE FUNCTION array__slice(a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array
 DECLARE NATIVE FUNCTION array__splice(b: Array, a: Array, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): Array
+DECLARE NATIVE FUNCTION array__toBytes__number(self: Array<Number>): Bytes
 DECLARE NATIVE FUNCTION array__toString__number(self: Array<Number>): String
 DECLARE NATIVE FUNCTION array__toString__string(self: Array<String>): String
 DECLARE NATIVE FUNCTION boolean__toString(self: Boolean): String
@@ -160,7 +161,6 @@ DECLARE NATIVE FUNCTION string__length(self: String): Number
 DECLARE NATIVE FUNCTION string__splice(t: String, s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__substring(s: String, first: Number, first_from_end: Boolean, last: Number, last_from_end: Boolean): String
 DECLARE NATIVE FUNCTION string__toBytes(self: String): Bytes
-DECLARE NATIVE FUNCTION bytes__fromArray(INOUT self: Bytes, a: Array<Number>)
 DECLARE NATIVE FUNCTION bytes__size(self: Bytes): Number
 DECLARE NATIVE FUNCTION bytes__toArray(self: Bytes): Array<Number>
 DECLARE NATIVE FUNCTION bytes__toString(self: Bytes): String
