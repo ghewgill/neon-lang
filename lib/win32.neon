@@ -119,7 +119,7 @@ EXTERNAL FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes
 }
 END FUNCTION
 
-FUNCTION FindFirstFile(lpFileName: String, INOUT lpFindFileData: WIN32_FIND_DATA): Handle
+FUNCTION FindFirstFile(lpFileName: String, OUT lpFindFileData: WIN32_FIND_DATA): Handle
     VAR fd: Bytes := lpFindFileData.pack()
     LET r: Handle := FindFirstFileA(lpFileName, INOUT fd)
     lpFindFileData.unpack(fd)

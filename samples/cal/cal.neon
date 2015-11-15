@@ -7,6 +7,9 @@
 IMPORT datetime
 IMPORT sys
 
+TYPE DateTime IS datetime.DateTime
+TYPE Period IS datetime.Period
+
 CONSTANT MonthName: Array<String> := [
     "", % Month numbers start at 1
     "January",
@@ -24,10 +27,10 @@ CONSTANT MonthName: Array<String> := [
 ]
 
 FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
-    VAR dt: datetime.DateTime
+    VAR dt: DateTime := DateTime()
     dt := dt.withDate(year, month, 1)
     % TODO: module record constructor
-    VAR p: datetime.Period
+    VAR p: Period := Period()
     p.days := dt.weekday MOD 7
     %dt := dt.minusPeriod(p)
     dt := dt.minusDuration(86400 * p.days)
@@ -50,7 +53,7 @@ END FUNCTION
 
 FUNCTION main(argv: Array<String>)
 
-    VAR month, year: Number
+    VAR month, year: Number := 0
     VAR options: Dictionary<Boolean>
 
     FOREACH a OF argv[1 TO LAST] DO

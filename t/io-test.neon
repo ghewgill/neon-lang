@@ -10,7 +10,7 @@ io.write(stdout, "World\n")
 %= Hello World
 
 VAR f: io.File := io.open("LICENSE.txt", io.Mode.read)
-VAR s: String
+VAR s: String := ""
 print(strb(io.readLine(f, OUT s)))
 %= TRUE
 print(s)

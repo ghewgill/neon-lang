@@ -6,5 +6,5 @@ FUNCTION Record.setValue(INOUT self: Record, value: Number)
     self.value := value
 END FUNCTION
 
-VAR r: Record
+VAR r: Record := Record()
 r.setValue(0)

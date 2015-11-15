@@ -1,0 +1,12 @@
+VAR s: String
+IF TRUE THEN
+    IF TRUE THEN
+        s := "hello"
+    ELSE
+        s := "hola"
+    END IF
+ELSE
+    s := "hi"
+END IF
+print(s)
+%= hello

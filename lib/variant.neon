@@ -67,7 +67,7 @@ END RECORD
  |  Make a <Variant> with a null value.
  |%
 FUNCTION makeNull(): Variant
-    VAR r: Variant
+    VAR r: Variant := Variant()
     r.setNull()
     RETURN r
 END FUNCTION
@@ -78,7 +78,7 @@ END FUNCTION
  |  Make a <Variant> with a boolean value.
  |%
 FUNCTION makeBoolean(b: Boolean): Variant
-    VAR r: Variant
+    VAR r: Variant := Variant()
     r.setBoolean(b)
     RETURN r
 END FUNCTION
@@ -89,7 +89,7 @@ END FUNCTION
  |  Make a <Variant> with a number value.
  |%
 FUNCTION makeNumber(n: Number): Variant
-    VAR r: Variant
+    VAR r: Variant := Variant()
     r.setNumber(n)
     RETURN r
 END FUNCTION
@@ -100,7 +100,7 @@ END FUNCTION
  |  Make a <Variant> with a string value.
  |%
 FUNCTION makeString(s: String): Variant
-    VAR r: Variant
+    VAR r: Variant := Variant()
     r.setString(s)
     RETURN r
 END FUNCTION
@@ -111,7 +111,7 @@ END FUNCTION
  |  Make a <Variant> with a bytes value.
  |%
 FUNCTION makeBytes(b: Bytes): Variant
-    VAR r: Variant
+    VAR r: Variant := Variant()
     r.setBytes(b)
     RETURN r
 END FUNCTION
@@ -122,7 +122,7 @@ END FUNCTION
  |  Make a <Variant> with an array value.
  |%
 FUNCTION makeArray(a: Array<Variant>): Variant
-    VAR r: Variant
+    VAR r: Variant := Variant()
     r.setArray(a)
     RETURN r
 END FUNCTION
@@ -133,7 +133,7 @@ END FUNCTION
  |  Make a <Variant> with a dictionary value.
  |%
 FUNCTION makeDictionary(d: Dictionary<Variant>): Variant
-    VAR r: Variant
+    VAR r: Variant := Variant()
     r.setDictionary(d)
     RETURN r
 END FUNCTION

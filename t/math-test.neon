@@ -1,6 +1,6 @@
 IMPORT math
 
-VAR exp: Number
+VAR exp: Number := 0
 
 print(str(math.Pi))
 %= 3.141592653589793238462643383279503

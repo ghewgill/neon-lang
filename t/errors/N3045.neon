@@ -4,7 +4,7 @@ TYPE Recordset IS RECORD
     Name: String
 END RECORD
 
-VAR a: Recordset
+VAR a: Recordset := Recordset()
 
 a.LastName
   %<1

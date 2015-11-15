@@ -1,6 +1,6 @@
 IMPORT net
 
-VAR clients: Array<net.Socket>
+VAR clients: Array<net.Socket> := []
 
 LET server: net.Socket := net.tcpSocket()
 server.listen(10007)

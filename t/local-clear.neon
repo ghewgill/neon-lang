@@ -1,5 +1,5 @@
 FUNCTION foo(): String
-    VAR a: String
+    VAR a: String := ""
     a := "foo" & a
     RETURN a
 END FUNCTION

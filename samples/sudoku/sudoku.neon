@@ -160,7 +160,7 @@ FUNCTION dlx_search(head: POINTER TO Node, INOUT solution: Array<Number>, k: Num
 END FUNCTION
 
 FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Number): Array<Array<Number>>
-    VAR columns: Array<POINTER TO Node>
+    VAR columns: Array<POINTER TO Node> := []
     FOR i := 0 TO matrix[0].size()-1 DO
         columns[i] := NEW Node
     END FOR
@@ -352,7 +352,7 @@ END FUNCTION
 
 FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback: FUNCTION(n: Number)): multiarray.ArrayNumber2D
     VAR r: multiarray.ArrayNumber2D := solution
-    VAR places: Array<Number>
+    VAR places: Array<Number> := []
     FOR i := 0 TO 9*9-1 DO
         places[i] := i
     END FOR

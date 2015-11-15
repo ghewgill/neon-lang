@@ -1,5 +1,5 @@
 TYPE Rec IS RECORD END RECORD
-VAR p: POINTER TO Rec
-VAR a: Rec
+VAR p: POINTER TO Rec := NIL
+VAR a: Rec := Rec()
 valueCopy(a, p)
              %<

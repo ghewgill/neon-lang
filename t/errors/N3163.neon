@@ -2,7 +2,7 @@ TYPE Record IS RECORD
     PRIVATE value: Number
 END RECORD
 
-VAR p: POINTER TO Record
+VAR p: POINTER TO Record := NIL
 IF VALID p AS q THEN
     q->value := 0
        %<

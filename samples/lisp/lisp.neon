@@ -282,9 +282,9 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                     VAR args: Array<Value>
                     VAR a: POINTER TO Value := e->val_pair.cdr
                     LOOP
-                        VAR next: POINTER TO Value
+                        VAR next: POINTER TO Value := NIL % FIXME: shouldn't need init here
                         IF VALID a THEN
-                            VAR arg: Value
+                            VAR arg: Value := Value()
                             IF VALID eval2(a->val_pair.car, env) AS q THEN
                                 valueCopy(arg, q)
                             ELSE

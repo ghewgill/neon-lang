@@ -3,7 +3,7 @@ TYPE Rec IS RECORD
     value: Number
 END RECORD
 
-VAR a, b: Rec
+VAR a, b: Rec := Rec()
 VAR p, q: POINTER TO Rec
 
 p := NEW Rec

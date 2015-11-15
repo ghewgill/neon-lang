@@ -1,4 +1,4 @@
-VAR a: POINTER TO Node
+VAR a: POINTER TO Node := NIL
                   %<2
 
 IF VALID a AS p THEN

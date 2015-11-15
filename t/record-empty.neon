@@ -6,7 +6,7 @@ FUNCTION foo(): Rec
     RETURN Rec("")
 END FUNCTION
 
-VAR r: Rec
+VAR r: Rec := Rec()
 print("value=\(r.value)")
 %= value=
 

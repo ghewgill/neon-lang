@@ -1,0 +1,9 @@
+VAR s: String
+
+FUNCTION foo()
+    print(s)
+END FUNCTION
+
+s := "hello"
+foo()
+%= hello

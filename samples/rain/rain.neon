@@ -57,7 +57,7 @@ END FUNCTION
 
 FUNCTION main()
     VAR x, y, j, r, c, k: Number
-    VAR xpos, ypos: Array<Number>
+    VAR xpos, ypos: Array<Number> := []
 
     curses.initscr()
 

@@ -1,4 +1,4 @@
-VAR buf: Bytes
+VAR buf: Bytes := HEXBYTES ""
 
 buf.fromArray([1, 2, 3, 0, 4])
 print("\(buf.size())")

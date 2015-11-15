@@ -4,7 +4,7 @@ TYPE Recordset IS RECORD
     Name: String
 END RECORD
 
-VAR a: POINTER TO Recordset
+VAR a: POINTER TO Recordset := NIL
 
 IF VALID a AS p THEN
     p->LastName

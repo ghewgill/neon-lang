@@ -1,0 +1,7 @@
+VAR s: String
+IF TRUE THEN
+    s := "hello"
+END IF
+print(s)
+
+%! Uninitialised

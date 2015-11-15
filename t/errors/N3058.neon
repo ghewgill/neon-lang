@@ -1,6 +1,6 @@
 CONSTANT a: String := "Hello, World!"
 CONSTANT b: Number := 11
-VAR c: String
+VAR c: String := ""
 
 a := c + " This is Neon here!"
 %<

@@ -4,7 +4,7 @@ TYPE Recordset IS RECORD
 END RECORD
 
 VAR a: Recordset
-VAR b: Number
+VAR b: Number := 0
 
 b.Id
 %<

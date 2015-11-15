@@ -598,7 +598,7 @@ FUNCTION Func_2 (IN Str_1_Par_Ref: String, IN Str_2_Par_Ref: String): Boolean
     % Str_2_Par_Ref == "DHRYSTONE PROGRAM, 2'ND STRING"
 
   VAR Int_Loc: One_Thirty
-  VAR Ch_Loc: Capital_Letter
+  VAR Ch_Loc: Capital_Letter := ""
 
   Int_Loc := 2
   WHILE Int_Loc <= 2 DO % loop body executed once
@@ -634,13 +634,13 @@ FUNCTION main()
   % main program, corresponds to procedures
   % Main and Proc_0 in the Ada version
 
-  VAR Int_1_Loc: One_Fifty
-  VAR Int_2_Loc: One_Fifty
-  VAR Int_3_Loc: One_Fifty
+  VAR Int_1_Loc: One_Fifty := 0
+  VAR Int_2_Loc: One_Fifty := 0
+  VAR Int_3_Loc: One_Fifty := 0
   VAR Ch_Index: String
-  VAR Enum_Loc: Enumeration
+  VAR Enum_Loc: Enumeration := Enumeration.Ident_1
   VAR Str_1_Loc: Str_30
-  VAR Str_2_Loc: Str_30
+  VAR Str_2_Loc: Str_30 := ""
   VAR Run_Index: Number
   VAR Number_Of_Runs: Number
 

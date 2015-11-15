@@ -1,4 +1,4 @@
-VAR a: Number
+VAR a: Number := 0
 
 CASE a
     WHEN 5 DO

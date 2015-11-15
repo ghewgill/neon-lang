@@ -3,8 +3,8 @@ TYPE lh IS RECORD
   var2: String
 END RECORD
 
-VAR a: lh
-VAR b: lh
+VAR a: lh := lh()
+VAR b: lh := lh()
 
 IF a <= b THEN
      %<

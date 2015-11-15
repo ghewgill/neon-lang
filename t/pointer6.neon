@@ -2,7 +2,7 @@ TYPE Node IS RECORD
     value: Number
 END RECORD
 
-VAR a, b: POINTER TO Node
+VAR a, b: POINTER TO Node := NIL
 
 IF VALID a AS p THEN
     p := b

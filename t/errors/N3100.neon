@@ -2,8 +2,8 @@ TYPE Rec IS RECORD
   a: Number
 END RECORD
 
-VAR a: POINTER TO Rec
-VAR b: POINTER TO Rec
+VAR a: POINTER TO Rec := NIL
+VAR b: POINTER TO Rec := NIL
 
 IF a <= b THEN
      %<

@@ -3,7 +3,7 @@
 IMPORT os
 IMPORT sys
 
-VAR p: os.Process
+VAR p: os.Process := NIL
 IF os.fork(OUT p) THEN
     print(str(os.wait(INOUT p)))
     print("parent")

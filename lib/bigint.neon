@@ -171,7 +171,7 @@ END FUNCTION
 FUNCTION sub(x, y: BigInt): BigInt
     IF x.sign = y.sign THEN
         IF NOT less(abs(x), abs(y)) THEN
-            VAR r: BigInt
+            VAR r: BigInt := BigInt()
             r.sign := x.sign
             VAR i: Number := 0
             VAR borrow: Number := 0

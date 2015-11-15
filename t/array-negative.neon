@@ -1,4 +1,4 @@
-VAR a: Array<Number>
+VAR a: Array<Number> := []
 print(a[-1].toString())
 
 %! ArrayIndex (-1)

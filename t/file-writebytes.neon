@@ -1,6 +1,6 @@
 IMPORT file
 
-VAR buf: Bytes
+VAR buf: Bytes := HEXBYTES ""
 
 buf.fromArray([4, 3, 2, 0, 1])
 

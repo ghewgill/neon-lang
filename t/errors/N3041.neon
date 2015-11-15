@@ -1,4 +1,4 @@
-VAR Records: Array<Number>
+VAR Records: Array<Number> := []
              %<2
 
 Records["UserName"]

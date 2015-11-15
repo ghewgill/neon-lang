@@ -1,4 +1,4 @@
-VAR p: POINTER
+VAR p: POINTER := NIL
 
 IF VALID p AS q THEN
     print(q->foo)

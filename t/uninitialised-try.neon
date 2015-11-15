@@ -1,0 +1,6 @@
+VAR s: String
+TRY
+    s := "hello"
+END TRY
+print(s)
+%= hello

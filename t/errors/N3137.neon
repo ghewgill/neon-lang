@@ -1,4 +1,4 @@
 TYPE Foo IS RECORD END RECORD
-VAR f: Foo
+VAR f: Foo := Foo()
 f.bar()
   %<

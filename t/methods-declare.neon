@@ -3,7 +3,7 @@ TYPE Rec IS RECORD
     value: Number
 END RECORD
 
-VAR r: Rec
+VAR r: Rec := Rec()
 r.name := "foo"
 r.value := 5
 print(r.toString())

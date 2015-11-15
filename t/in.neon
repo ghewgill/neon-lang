@@ -1,4 +1,4 @@
-VAR a: Array<Number>
+VAR a: Array<Number> := []
 
 a[0] := 5
 a[1] := 6
@@ -9,7 +9,7 @@ print(strb(7 IN a))
 print(strb(7 NOT IN a))
 %= TRUE
 
-VAR d: Dictionary<Number>
+VAR d: Dictionary<Number> := {}
 
 d["foo"] := 5
 d["bar"] := 6

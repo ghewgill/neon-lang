@@ -6,7 +6,7 @@ VAR b: Boolean
 VAR p: win32.Handle
 
 VAR fd: win32.WIN32_FIND_DATA
-p := win32.FindFirstFile(@"lib\*.neon", INOUT fd)
+p := win32.FindFirstFile(@"lib\*.neon", OUT fd)
 REPEAT
     LET fn: String := fd.cFileName
     IF fn = "win32.neon" THEN

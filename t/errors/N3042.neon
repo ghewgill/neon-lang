@@ -1,4 +1,4 @@
-VAR Records: Dictionary<String>
+VAR Records: Dictionary<String> := {}
              %<2
 
 Records[1]

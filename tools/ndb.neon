@@ -43,7 +43,7 @@ TYPE Global IS RECORD
 END RECORD
 
 VAR Source: Array<String>
-VAR LineFromAddress: Array<Number>
+VAR LineFromAddress: Array<Number> := []
 VAR AddressFromLine: Array<Number>
 VAR Globals: Dictionary<Global>
 

@@ -86,7 +86,7 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     LET method: String := request[0]
     LET path: String := request[1]
     LET version: String := request[2]
-    VAR response: Response
+    VAR response: Response := Response()
     VAR found: Boolean := FALSE
     FOREACH h OF self.handlers DO
         VAR m: regex.Match
@@ -126,7 +126,7 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
         ELSE
             r.code := 200
             r.content_type := "text/html"
-            VAR page: String
+            VAR page: String := ""
             page.append("<html>\n")
             page.append("<body>\n")
             page.append("<table>\n")

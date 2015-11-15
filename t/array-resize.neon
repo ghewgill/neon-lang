@@ -1,4 +1,4 @@
-VAR a: Array<Number>
+VAR a: Array<Number> := []
 
 a[0] := 0
 ASSERT a.size() = 1

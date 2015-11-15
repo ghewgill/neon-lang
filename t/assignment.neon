@@ -1,11 +1,14 @@
-VAR b1, b2: Boolean
-VAR n1, n2: Number
-VAR s1, s2: String
-VAR a1, a2: Array<String>
-VAR d1, d2: Dictionary<String>
-VAR r1, r2: RECORD x: Number END RECORD
-VAR e1, e2: ENUM one two END ENUM
-VAR p1, p2: POINTER TO RECORD x: Number END RECORD
+TYPE Rec IS RECORD x: Number END RECORD
+TYPE Enum IS ENUM one two END ENUM
+
+VAR b1, b2: Boolean := FALSE
+VAR n1, n2: Number := 0
+VAR s1, s2: String := ""
+VAR a1, a2: Array<String> := []
+VAR d1, d2: Dictionary<String> := {}
+VAR r1, r2: Rec := Rec()
+VAR e1, e2: Enum := Enum.one
+VAR p1, p2: POINTER TO RECORD x: Number END RECORD := NIL
 
 b2 := b1
 n2 := n1

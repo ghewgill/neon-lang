@@ -70,7 +70,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
             RETURN variant.makeString(t)
         WHEN "[" DO
             INC index
-            VAR a: Array<Variant>
+            VAR a: Array<Variant> := []
             LOOP
                 skipWhitespace(json, INOUT index)
                 IF json[index] = "]" THEN

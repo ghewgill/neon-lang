@@ -1,7 +1,7 @@
 IMPORT variant
 IMPORT variant.Variant
 
-VAR v: Variant
+VAR v: Variant := Variant()
 
 v.setNull()
 print("\(v.isNull())")

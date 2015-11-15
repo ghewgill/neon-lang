@@ -1,5 +1,5 @@
-VAR a: Number
-VAR b: Boolean
+VAR a: Number := 0
+VAR b: Boolean := FALSE
 print(a + b)
 
 %! type mismatch

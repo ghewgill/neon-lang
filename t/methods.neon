@@ -7,7 +7,7 @@ FUNCTION Rec.toString(self: Rec): String
     RETURN self.name & self.value.toString()
 END FUNCTION
 
-VAR r: Rec
+VAR r: Rec := Rec()
 r.name := "foo"
 r.value := 5
 print(r.toString())

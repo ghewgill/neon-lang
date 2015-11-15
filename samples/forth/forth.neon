@@ -590,7 +590,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             VAR ud1: Number := ud1h * 0x100000000 + ud1l
             WHILE u > 0 DO
                 LET char: String := chr(storage[addr])
-                VAR dig: Number
+                VAR dig: Number := 0 % FIXME: shouldn't need init here
                 IF "0" <= char <= "9" THEN
                     dig := ord(char) - ord("0")
                 ELSIF "A" <= char <= "Z" THEN

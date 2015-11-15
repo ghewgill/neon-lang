@@ -1,0 +1,4 @@
+VAR s: String
+print(s)
+
+%! uninitialised

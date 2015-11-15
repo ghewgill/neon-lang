@@ -2902,7 +2902,251 @@ const Program *Analyzer::analyze()
     return r;
 }
 
+class UninitialisedFinder: public pt::IParseTreeVisitor {
+public:
+    UninitialisedFinder(): variables(), assigned() {
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
+    }
+    virtual void visit(const pt::TypeSimple *) {}
+    virtual void visit(const pt::TypeEnum *) {}
+    virtual void visit(const pt::TypeRecord *) {}
+    virtual void visit(const pt::TypePointer *) {}
+    virtual void visit(const pt::TypeFunctionPointer *) {}
+    virtual void visit(const pt::TypeParameterised *) {}
+    virtual void visit(const pt::TypeImport *) {}
+
+    virtual void visit(const pt::IdentityExpression *node) { node->expr->accept(this); }
+    virtual void visit(const pt::BooleanLiteralExpression *) {}
+    virtual void visit(const pt::NumberLiteralExpression *) {}
+    virtual void visit(const pt::StringLiteralExpression *) {}
+    virtual void visit(const pt::FileLiteralExpression *) {}
+    virtual void visit(const pt::BytesLiteralExpression *) {}
+    virtual void visit(const pt::ArrayLiteralExpression *node) { for (auto x: node->elements) x->accept(this); }
+    virtual void visit(const pt::DictionaryLiteralExpression *node) { for (auto x: node->elements) x.second->accept(this); }
+    virtual void visit(const pt::NilLiteralExpression *) {}
+    virtual void visit(const pt::IdentifierExpression *node) {
+        for (auto v = variables.rbegin(); v != variables.rend(); ++v) {
+            auto i = v->find(node->name);
+            if (i != v->end() && not i->second.second) {
+                error2(3190, node->token, "Uninitialised variable: " + node->name, i->second.first, "Variable declared here");
+            }
+        }
+    }
+    virtual void visit(const pt::DotExpression *node) { node->base->accept(this); }
+    virtual void visit(const pt::ArrowExpression *node) { node->base->accept(this); }
+    virtual void visit(const pt::SubscriptExpression *node) { node->base->accept(this); node->index->accept(this); }
+    virtual void visit(const pt::InterpolatedStringExpression *node) { for (auto x: node->parts) x.first->accept(this); }
+    virtual void visit(const pt::FunctionCallExpression *node) {
+        node->base->accept(this);
+        for (auto x: node->args) {
+            if (x.mode.type == OUT) {
+                const pt::IdentifierExpression *expr = dynamic_cast<const pt::IdentifierExpression *>(x.expr);
+                if (expr != nullptr) {
+                    mark_assigned(expr->name);
+                }
+            } else {
+                x.expr->accept(this);
+            }
+        }
+    }
+    virtual void visit(const pt::UnaryPlusExpression *node) { node->expr->accept(this); }
+    virtual void visit(const pt::UnaryMinusExpression *node) { node->expr->accept(this); }
+    virtual void visit(const pt::LogicalNotExpression *node) { node->expr->accept(this); }
+    virtual void visit(const pt::ExponentiationExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::MultiplicationExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::DivisionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::ModuloExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::AdditionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::SubtractionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::ConcatenationExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::ComparisonExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::ChainedComparisonExpression *node) { for (auto x: node->comps) x->accept(this); }
+    virtual void visit(const pt::MembershipExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::ConjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::DisjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::ConditionalExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::NewRecordExpression *) {}
+    virtual void visit(const pt::ValidPointerExpression *node) { for (auto x: node->tests) x.expr->accept(this); }
+    virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->first->accept(this); node->range->last->accept(this); }
+
+    virtual void visit(const pt::ImportDeclaration *) {}
+    virtual void visit(const pt::TypeDeclaration *) {}
+    virtual void visit(const pt::ConstantDeclaration *) {}
+    virtual void visit(const pt::VariableDeclaration *node) {
+        if (node->value == nullptr) {
+            for (auto name: node->names) {
+                variables.back()[name.text] = std::make_pair(name, false);
+            }
+        }
+    }
+    virtual void visit(const pt::LetDeclaration *) {}
+    virtual void visit(const pt::FunctionDeclaration *node) {
+        UninitialisedFinder uf;
+        for (auto s: node->body) {
+            s->accept(&uf);
+        }
+    }
+    virtual void visit(const pt::ExternalFunctionDeclaration *) {}
+    virtual void visit(const pt::NativeFunctionDeclaration *) {}
+    virtual void visit(const pt::ExceptionDeclaration *) {}
+    virtual void visit(const pt::ExportDeclaration *) {}
+    virtual void visit(const pt::MainBlock *) {}
+
+    virtual void visit(const pt::AssertStatement *node) { node->expr->accept(this); }
+    virtual void visit(const pt::AssignmentStatement *node) {
+        node->expr->accept(this);
+        for (auto x: node->variables) {
+            const pt::IdentifierExpression *expr = dynamic_cast<const pt::IdentifierExpression *>(x);
+            if (expr != nullptr) {
+                mark_assigned(expr->name);
+            }
+        }
+    }
+    virtual void visit(const pt::CaseStatement *node) {
+        node->expr->accept(this);
+        std::set<std::string> assigned;
+        bool first = true;
+        for (auto c: node->clauses) {
+            for (auto w: c.first) {
+                auto *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(w);
+                auto *rwc = dynamic_cast<const pt::CaseStatement::RangeWhenCondition *>(w);
+                if (cwc != nullptr) {
+                    cwc->expr->accept(this);
+                } else if (rwc != nullptr) {
+                    rwc->low_expr->accept(this);
+                    rwc->high_expr->accept(this);
+                }
+            }
+            UninitialisedFinder uf;
+            for (auto s: c.second) {
+                s->accept(&uf);
+            }
+            if (first) {
+                assigned = uf.assigned;
+                first = false;
+            } else {
+                intersect(assigned, uf.assigned);
+            }
+        }
+        for (auto a: assigned) {
+            mark_assigned(a);
+        }
+    }
+    virtual void visit(const pt::ExitStatement *) {}
+    virtual void visit(const pt::ExpressionStatement *node) { node->expr->accept(this); }
+    virtual void visit(const pt::ForStatement *node) {
+        node->start->accept(this);
+        node->end->accept(this);
+        if (node->step != nullptr) {
+            node->step->accept(this);
+        }
+        UninitialisedFinder uf;
+        for (auto s: node->body) {
+            s->accept(&uf);
+        }
+    }
+    virtual void visit(const pt::ForeachStatement *node) {
+        node->array->accept(this);
+        UninitialisedFinder uf;
+        for (auto s: node->body) {
+            s->accept(&uf);
+        }
+    }
+    virtual void visit(const pt::IfStatement *node) {
+        std::set<std::string> assigned;
+        bool first = true;
+        for (auto x: node->condition_statements) {
+            x.first->accept(this);
+            UninitialisedFinder uf;
+            for (auto s: x.second) {
+                s->accept(&uf);
+            }
+            if (first) {
+                assigned = uf.assigned;
+                first = false;
+            } else {
+                intersect(assigned, uf.assigned);
+            }
+        }
+        UninitialisedFinder uf;
+        for (auto s: node->else_statements) {
+            s->accept(&uf);
+        }
+        intersect(assigned, uf.assigned);
+        for (auto a: assigned) {
+            mark_assigned(a);
+        }
+    }
+    virtual void visit(const pt::IncrementStatement *) {
+    }
+    virtual void visit(const pt::LoopStatement *node) {
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
+        for (auto s: node->body) {
+            s->accept(this);
+        }
+        variables.pop_back();
+    }
+    virtual void visit(const pt::NextStatement *) {}
+    virtual void visit(const pt::RaiseStatement *) {}
+    virtual void visit(const pt::RepeatStatement *node) {
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
+        for (auto s: node->body) {
+            s->accept(this);
+        }
+        variables.pop_back();
+    }
+    virtual void visit(const pt::ReturnStatement *) {}
+    virtual void visit(const pt::TryStatement *node) {
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
+        for (auto s: node->body) {
+            s->accept(this);
+        }
+        variables.pop_back();
+    }
+    virtual void visit(const pt::WhileStatement *node) {
+        node->cond->accept(this);
+        UninitialisedFinder uf;
+        for (auto s: node->body) {
+            s->accept(&uf);
+        }
+    }
+    virtual void visit(const pt::Program *node) {
+        for (auto s: node->body) {
+            s->accept(this);
+        }
+    }
+private:
+    std::list<std::map<std::string, std::pair<Token, bool>>> variables;
+    std::set<std::string> assigned;
+
+    void mark_assigned(const std::string &name) {
+        for (auto v = variables.rbegin(); v != variables.rend(); ++v) {
+            auto i = v->find(name);
+            if (i != v->end()) {
+                i->second.second = true;
+                break;
+            }
+        }
+        assigned.insert(name);
+    }
+
+    template <typename T> void intersect(std::set<T> &lhs, const std::set<T> &rhs) {
+        for (auto i = lhs.begin(); i != lhs.end(); ) {
+            if (rhs.find(*i) == rhs.end()) {
+                auto tmp = i;
+                ++i;
+                lhs.erase(tmp);
+            } else {
+                ++i;
+            }
+        }
+    }
+};
+
 const Program *analyze(ICompilerSupport *support, const pt::Program *program)
 {
-    return Analyzer(support, program).analyze();
+    const Program *r = Analyzer(support, program).analyze();
+    UninitialisedFinder uf;
+    program->accept(&uf);
+    return r;
 }

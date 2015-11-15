@@ -6,7 +6,7 @@
 
 CONSTANT Max: Number := 100
 
-VAR sieve: Array<Boolean>
+VAR sieve: Array<Boolean> := []
 
 FOR i := 0 TO Max DO
     sieve[i] := TRUE

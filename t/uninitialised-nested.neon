@@ -1,0 +1,6 @@
+VAR s: String
+REPEAT
+    print(s)
+UNTIL TRUE
+
+%! Uninitialised

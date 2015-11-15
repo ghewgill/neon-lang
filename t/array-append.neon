@@ -1,4 +1,4 @@
-VAR a: Array<Number>
+VAR a: Array<Number> := []
 print("\(a.size())")
 %= 0
 a.append(5)
