@@ -80,7 +80,7 @@ To resolve this problem, Neon introduces the idea of a "valid" pointer. A valid 
         value: String
     END RECORD
 
-    VAR node: POINTER TO Node
+    VAR node: POINTER TO Node := NIL
     
     IF VALID node AS p THEN
         print(p->value)
@@ -103,10 +103,11 @@ The trailing `;` on the `while` statement is in fact an empty loop body and the 
 
 To resolve this problem, Neon requires an explicitly terminated block in every compound statement:
 
-    VAR x: Number
+    VAR x: Number := 0
 
     WHILE x < 5 DO
         print(x.toString())
+        INC x
     END WHILE
 
 <a name="logical_alternative"></a>

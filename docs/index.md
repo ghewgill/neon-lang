@@ -344,7 +344,7 @@ Example:
         RETURN self.apples + self.oranges
     END FUNCTION
 
-    VAR c: Cart
+    VAR c: Cart := Cart()
     c.apples := 5
     c.oranges := 6
     print(str(c.total_fruit()))
@@ -660,7 +660,7 @@ The `CASE` statement selects one of a number of alternative code paths based on 
 
 Example:
 
-    VAR x: Number
+    VAR x: Number := 0
     
     CASE x
         WHEN < 2 DO
@@ -739,7 +739,7 @@ The `IF` statement tests a condition of type `Boolean` and executes one of two a
 
 Example:
 
-    VAR x: Number
+    VAR x: Number := 0
 
     IF x < 10 THEN
         print("x is less than 10")
@@ -751,7 +751,7 @@ The `ELSE` clause is optional.
 
 Additional alternatives may be introduced with the `ELSIF` clause:
 
-    VAR x: Number
+    VAR x: Number := 0
 
     IF x < 10 THEN
         print("x is less than 10")
@@ -767,7 +767,7 @@ The `IF VALID` form is used to test a pointer value to check whether it is `NIL`
         name: String
     END RECORD
 
-    VAR p: POINTER TO Record
+    VAR p: POINTER TO Record := NIL
 
     IF VALID p AS q THEN
         print(q->name)
