@@ -1664,6 +1664,14 @@ const Statement *Parser::parseStatement()
         return parseBegin();
     } else if (tokens[i].type == IDENTIFIER) {
         const Token &start = tokens[i];
+        if (tokens[i+1].type != ASSIGN
+         && tokens[i+1].type != EQUAL // Note that this is an error, but error 3060 is better.
+         && tokens[i+1].type != LBRACKET
+         && tokens[i+1].type != LPAREN
+         && tokens[i+1].type != DOT
+         && tokens[i+1].type != ARROW) {
+            error(2096, tokens[i], "plain identifier cannot be a statement");
+        }
         const Expression *expr = parseExpression();
         if (tokens[i].type == ASSIGN) {
             auto &tok_assign = tokens[i];
