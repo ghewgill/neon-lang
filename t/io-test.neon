@@ -1,4 +1,5 @@
 IMPORT io
+IMPORT random
 
 LET stdout: io.File := io.stdout()
 
@@ -35,4 +36,16 @@ print(strb(io.readLine(f, OUT s)))
 print(s)
 %= Hello w
 
+io.close(INOUT f)
+
+s := ""
+FOR i := 1 TO 100000 DO
+    s.append(chr(32 + random.uint32() MOD 96))
+END FOR
+f := io.open("tmp/io-test.tmp", io.Mode.write)
+io.fprint(f, s)
+io.close(INOUT f)
+f := io.open("tmp/io-test.tmp", io.Mode.read)
+VAR t: String
+ASSERT io.readLine(f, OUT t) AND t = s
 io.close(INOUT f)
