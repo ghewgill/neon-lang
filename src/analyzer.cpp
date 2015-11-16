@@ -555,6 +555,56 @@ StringValueIndexExpression::StringValueIndexExpression(const Expression *str, co
     }
 }
 
+BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+  : ReferenceExpression(ref->type, ref->is_readonly),
+    ref(ref),
+    first(first),
+    first_from_end(first_from_end),
+    last(last),
+    last_from_end(last_from_end),
+    load(nullptr),
+    store(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(first);
+        args.push_back(new ConstantBooleanExpression(first_from_end));
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(last_from_end));
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__range"))), args);
+    }
+    {
+        std::vector<const Expression *> args;
+        args.push_back(ref);
+        args.push_back(first);
+        args.push_back(new ConstantBooleanExpression(first_from_end));
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(last_from_end));
+        store = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__splice"))), args);
+    }
+}
+
+BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+  : Expression(str->type, str->is_readonly),
+    str(str),
+    first(first),
+    first_from_end(first_from_end),
+    last(last),
+    last_from_end(last_from_end),
+    load(nullptr)
+{
+    {
+        std::vector<const Expression *> args;
+        args.push_back(str);
+        args.push_back(first);
+        args.push_back(new ConstantBooleanExpression(first_from_end));
+        args.push_back(last);
+        args.push_back(new ConstantBooleanExpression(last_from_end));
+        load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("bytes__range"))), args);
+    }
+}
+
 ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
@@ -1595,6 +1645,13 @@ const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
             return new StringReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
             return new StringValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+        }
+    } else if (type == TYPE_BYTES) {
+        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+        if (ref != nullptr) {
+            return new BytesReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+        } else {
+            return new BytesValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
     } else {
         error2(3143, expr->base->token, "not an array or string", type->declaration, "declaration here");

@@ -202,9 +202,37 @@ std::string global$string__toBytes(const std::string &self)
     return self;
 }
 
+std::string global$bytes__range(const std::string &t, Number first, bool first_from_end, Number last, bool last_from_end)
+{
+    assert(number_is_integer(first));
+    assert(number_is_integer(last));
+    int64_t f = number_to_sint64(first);
+    int64_t l = number_to_sint64(last);
+    if (first_from_end) {
+        f += t.size() - 1;
+    }
+    if (last_from_end) {
+        l += t.size() - 1;
+    }
+    return t.substr(f, l + 1 - f);
+}
+
 Number global$bytes__size(const std::string &self)
 {
     return number_from_uint64(self.length());
+}
+
+std::string global$bytes__splice(const std::string &t, const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
+{
+    int64_t f = number_to_sint64(first);
+    int64_t l = number_to_sint64(last);
+    if (first_from_end) {
+        f += s.size() - 1;
+    }
+    if (last_from_end) {
+        l += s.size() - 1;
+    }
+    return s.substr(0, f) + t + s.substr(l + 1);
 }
 
 std::vector<Number> global$bytes__toArray(const std::string &self)

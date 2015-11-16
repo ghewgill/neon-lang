@@ -1322,6 +1322,56 @@ private:
     StringValueIndexExpression &operator=(const StringValueIndexExpression &);
 };
 
+class BytesReferenceIndexExpression: public ReferenceExpression {
+public:
+    BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+
+    const ReferenceExpression *ref;
+    const Expression *first;
+    const bool first_from_end;
+    const Expression *last;
+    const bool last_from_end;
+
+    const FunctionCall *load;
+    const FunctionCall *store;
+
+    virtual bool eval_boolean() const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_address_read(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_load(Emitter &) const override;
+    virtual void generate_store(Emitter &) const override;
+
+    virtual std::string text() const override { return "BytesReferenceIndexExpression(" + ref->text() + ", " + first->text() + ", " + last->text() + ")"; }
+private:
+    BytesReferenceIndexExpression(const BytesReferenceIndexExpression &);
+    BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &);
+};
+
+class BytesValueIndexExpression: public Expression {
+public:
+    BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+
+    const Expression *str;
+    const Expression *first;
+    const bool first_from_end;
+    const Expression *last;
+    const bool last_from_end;
+
+    const FunctionCall *load;
+
+    virtual bool eval_boolean() const override { internal_error("BytesValueIndexExpression"); }
+    virtual Number eval_number() const override { internal_error("BytesValueIndexExpression"); }
+    virtual std::string eval_string() const override { internal_error("BytesValueIndexExpression"); }
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "BytesValueIndexExpression(" + str->text() + ", " + first->text() + ", " + last->text() + ")"; }
+private:
+    BytesValueIndexExpression(const BytesValueIndexExpression &);
+    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &);
+};
+
 class ArrayReferenceRangeExpression: public ReferenceExpression {
 public:
     ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);

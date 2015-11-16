@@ -1198,6 +1198,22 @@ void StringValueIndexExpression::generate_expr(Emitter &emitter) const
     load->generate(emitter);
 }
 
+void BytesReferenceIndexExpression::generate_load(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
+void BytesReferenceIndexExpression::generate_store(Emitter &emitter) const
+{
+    store->generate(emitter);
+    ref->generate_store(emitter);
+}
+
+void BytesValueIndexExpression::generate_expr(Emitter &emitter) const
+{
+    load->generate(emitter);
+}
+
 void ArrayReferenceRangeExpression::generate_load(Emitter &emitter) const
 {
     load->generate(emitter);
@@ -1244,6 +1260,7 @@ void FunctionCall::generate_parameters(Emitter &emitter) const
     // StringIndexExpression::store is not really legal. This assertion
     // holds true for any other function call.
     if (func->text() != "VariableExpression(PredefinedFunction(string__splice, TypeFunction(...)))"
+     && func->text() != "VariableExpression(PredefinedFunction(bytes__splice, TypeFunction(...)))"
      && func->text() != "VariableExpression(PredefinedFunction(array__splice, TypeFunction(...)))") {
         assert(args.size() == ftype->params.size());
     }
