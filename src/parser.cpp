@@ -521,6 +521,9 @@ const Expression *Parser::parseAtom()
             ++i;
             return new NilLiteralExpression(tok_nil);
         }
+        case IF: {
+            error(2095, tokens[i], "Use parentheses around (IF ... THEN ... ELSE ...) when used inside an expression");
+        }
         case IDENTIFIER: {
             const Expression *expr = new IdentifierExpression(tokens[i], tokens[i].text);
             ++i;
