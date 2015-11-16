@@ -1932,8 +1932,6 @@ def run(program):
     program.env.declare("Bytes", Class(), ClassBytes())
     program.env.declare("chr", None, neon_chr)
     program.env.declare("concat", None, neon_concat)
-    program.env.declare("dec", None, neon_dec)
-    program.env.declare("inc", None, neon_inc)
     program.env.declare("max", None, neon_max)
     program.env.declare("min", None, neon_min)
     program.env.declare("num", None, neon_num)
@@ -1967,19 +1965,11 @@ def neon_chr(env, x):
 def neon_concat(env, x, y):
     return x + y
 
-def neon_dec(env, x):
-    neon_dec._outs = [True]
-    return None, x - 1
-
 def neon_format(env, s, fmt):
     if fmt.endswith("x"):
         return format(int(s), fmt)
     else:
         return format(s, fmt)
-
-def neon_inc(env, x):
-    neon_inc._outs = [True]
-    return None, x + 1
 
 def neon_max(env, x, y):
     return max(x, y)
