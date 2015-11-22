@@ -116,7 +116,7 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
 END FUNCTION
 
 FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
-    VAR r: Response
+    VAR r: Response := Response()
     LET local_path: String := params[0].getString() & path
     IF file.isDirectory(local_path) THEN
         IF path[LAST] # "/" THEN

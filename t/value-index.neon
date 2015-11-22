@@ -12,7 +12,7 @@ TYPE Rec IS RECORD
 END RECORD
 
 FUNCTION r(): Rec
-    VAR x: Rec
+    VAR x: Rec := Rec()
     x.name := "foo"
     x.value := "three"
     RETURN x

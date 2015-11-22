@@ -401,7 +401,7 @@ VAR cell_input_length: Number := cell_normal_input_length
 VAR cell_in: Number := cell_normal_in
 
 FUNCTION get_string_len(addr, len: Number): String
-    VAR r: String
+    VAR r: String := ""
     FOR i := 0 TO len-1 DO
         r.append(chr(storage[addr+i]))
     END FOR
@@ -1331,7 +1331,7 @@ FUNCTION refill(): Boolean
 END FUNCTION
 
 FUNCTION parse(delimiter: String): String
-    VAR r: String
+    VAR r: String := ""
     WHILE storage[cell_in] < storage[cell_input_length] DO
         LET c: String := chr(storage[cell_input+storage[cell_in]])
         INC storage[cell_in]

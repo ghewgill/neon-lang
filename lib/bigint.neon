@@ -87,7 +87,7 @@ END FUNCTION
  |      This function discards any fractional part of the input value.
  |%
 FUNCTION make(x: Number): BigInt
-    VAR r: BigInt
+    VAR r: BigInt := BigInt()
     r.sign := IF x < 0 THEN -1 ELSE 1
     VAR n: Number := math.floor(math.abs(x))
     r.digits[0] := 0
@@ -116,7 +116,7 @@ END FUNCTION
  |      digits, optionally preceded by a minus sign (-).
  |%
 FUNCTION makeFromString(s: String): BigInt
-    VAR r: BigInt
+    VAR r: BigInt := BigInt()
     VAR t: String := s
     r.sign := 1
     IF t[0] = "-" THEN
@@ -143,7 +143,7 @@ END FUNCTION
  |%
 FUNCTION add(x, y: BigInt): BigInt
     IF x.sign = y.sign THEN
-        VAR r: BigInt
+        VAR r: BigInt := BigInt()
         r.sign := x.sign
         VAR i: Number := 0
         VAR carry: Number := 0

@@ -77,10 +77,11 @@ FUNCTION main(argv: Array<String>)
 
     IF month > 0 THEN
         IF "-3" IN options THEN
-            VAR months: Array<Array<String>>
-            months[0] := IF month > 1 THEN build_month(year, month-1, TRUE) ELSE build_month(year-1, 12, TRUE)
-            months[1] := build_month(year, month, TRUE)
-            months[2] := IF month < 12 THEN build_month(year, month+1, TRUE) ELSE build_month(year+1, 1, TRUE)
+            LET months: Array<Array<String>> := [
+                IF month > 1 THEN build_month(year, month-1, TRUE) ELSE build_month(year-1, 12, TRUE),
+                build_month(year, month, TRUE),
+                IF month < 12 THEN build_month(year, month+1, TRUE) ELSE build_month(year+1, 1, TRUE),
+            ]
             FOR line := 0 TO 7 DO
                 VAR s: String := ""
                 FOR col := 0 TO 2 DO
@@ -95,7 +96,7 @@ FUNCTION main(argv: Array<String>)
             END FOREACH
         END IF
     ELSE
-        VAR months: Array<Array<String>>
+        VAR months: Array<Array<String>> := []
         FOR m := 1 TO 12 DO
             months.append(build_month(year, m, FALSE))
         END FOR

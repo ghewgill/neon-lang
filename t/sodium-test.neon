@@ -4606,7 +4606,7 @@ FUNCTION test_generichash()
         HEXBYTES "bd965bf31e87d70327536f2a341cebc4768eca275fa05ef98f7f1b71a0351298de006fba73fe6733ed01d75801b4a928e54231b38e38c562b2e33ea1284992fa",
     ]
 
-    VAR ka: Array<Number>
+    VAR ka: Array<Number> := []
     FOR h := 0 TO sodium.generichash_KEYBYTES_MAX - 1 DO
         ka[h] := h
     END FOR
@@ -4974,7 +4974,7 @@ FUNCTION test_pwhash()
 END FUNCTION
 
 FUNCTION test_randombytes()
-    VAR freq: Array<Number>
+    VAR freq: Array<Number> := []
 
     VAR f: Number := 0
     REPEAT
@@ -5172,7 +5172,7 @@ FUNCTION test_shorthash()
         ka[i] := i
     END FOR
     LET k: Bytes := ka.toBytes()
-    VAR ina: Array<Number>
+    VAR ina: Array<Number> := []
     FOR i := 0 TO MAX_LEN-1 DO
         VAR in: Bytes := ina.toBytes()
         ASSERT sodium.shorthash(in, k) = result[i]

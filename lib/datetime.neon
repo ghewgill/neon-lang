@@ -186,7 +186,7 @@ END FUNCTION
  |  This function must be called after filling in an empty DateTime.
  |%
 FUNCTION makeFromParts(dt: DateTime): DateTime
-    VAR tm: struct_tm
+    VAR tm: struct_tm := struct_tm()
     tm.tm_sec := dt.second
     tm.tm_min := dt.minute
     tm.tm_hour := dt.hour

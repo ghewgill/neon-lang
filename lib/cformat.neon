@@ -34,7 +34,7 @@ IMPORT variant.Variant
 FUNCTION sprintf(fmt: String, value: Array<Variant>): String
     % TODO: This needs a lot more functionality, it is intended
     % as a functional equivalent to the C sprintf function.
-    VAR r: String
+    VAR r: String := ""
     VAR a: Number := 0
     VAR i: Number := 0
     WHILE i < fmt.length() DO

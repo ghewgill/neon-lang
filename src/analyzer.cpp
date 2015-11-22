@@ -3030,13 +3030,17 @@ public:
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *) {}
     virtual void visit(const pt::VariableDeclaration *node) {
-        if (node->value == nullptr) {
+        if (node->value != nullptr) {
+            node->value->accept(this);
+        } else {
             for (auto name: node->names) {
                 variables.back()[name.text] = std::make_pair(name, false);
             }
         }
     }
-    virtual void visit(const pt::LetDeclaration *) {}
+    virtual void visit(const pt::LetDeclaration *node) {
+        node->value->accept(this);
+    }
     virtual void visit(const pt::FunctionDeclaration *node) {
         UninitialisedFinder uf;
         for (auto s: node->body) {
@@ -3097,17 +3101,19 @@ public:
         if (node->step != nullptr) {
             node->step->accept(this);
         }
-        UninitialisedFinder uf;
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
         for (auto s: node->body) {
-            s->accept(&uf);
+            s->accept(this);
         }
+        variables.pop_back();
     }
     virtual void visit(const pt::ForeachStatement *node) {
         node->array->accept(this);
-        UninitialisedFinder uf;
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
         for (auto s: node->body) {
-            s->accept(&uf);
+            s->accept(this);
         }
+        variables.pop_back();
     }
     virtual void visit(const pt::IfStatement *node) {
         std::set<std::string> assigned;
@@ -3134,7 +3140,8 @@ public:
             mark_assigned(a);
         }
     }
-    virtual void visit(const pt::IncrementStatement *) {
+    virtual void visit(const pt::IncrementStatement *node) {
+        node->expr->accept(this);
     }
     virtual void visit(const pt::LoopStatement *node) {
         variables.push_back(std::map<std::string, std::pair<Token, bool>>());
@@ -3152,7 +3159,9 @@ public:
         }
         variables.pop_back();
     }
-    virtual void visit(const pt::ReturnStatement *) {}
+    virtual void visit(const pt::ReturnStatement *node) {
+        node->expr->accept(this);
+    }
     virtual void visit(const pt::TryStatement *node) {
         variables.push_back(std::map<std::string, std::pair<Token, bool>>());
         for (auto s: node->body) {
@@ -3162,10 +3171,11 @@ public:
     }
     virtual void visit(const pt::WhileStatement *node) {
         node->cond->accept(this);
-        UninitialisedFinder uf;
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
         for (auto s: node->body) {
-            s->accept(&uf);
+            s->accept(this);
         }
+        variables.pop_back();
     }
     virtual void visit(const pt::Program *node) {
         for (auto s: node->body) {

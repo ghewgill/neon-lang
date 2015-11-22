@@ -46,7 +46,7 @@ LET Struct_WIN32_FIND_DATA: struct.Struct := struct.make([
 ])
 
 FUNCTION WIN32_FIND_DATA.pack(self: WIN32_FIND_DATA): Bytes
-    VAR d: Dictionary<variant.Variant>
+    VAR d: Dictionary<variant.Variant> := {}
     d["dwFileAttributes"]   := variant.makeNumber(self.dwFileAttributes)
     d["ftCreationTime"]     := variant.makeBytes(self.ftCreationTime)
     d["ftLastAccessTime"]   := variant.makeBytes(self.ftLastAccessTime)

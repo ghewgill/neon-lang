@@ -244,7 +244,7 @@ FUNCTION main()
             END FOR
         END FOR
         VAR p, x, y, r: Number := 0
-        VAR rows, score: Number
+        VAR rows, score: Number := 0
         VAR next: Number := 1 + random.uint32() MOD 7
         VAR drop_time: Number := 1
         VAR new_piece: Boolean := TRUE

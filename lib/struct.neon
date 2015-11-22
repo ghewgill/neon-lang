@@ -112,7 +112,7 @@ END FUNCTION
  |  Return the total size of a structure definition.
  |%
 FUNCTION Struct.sizeof(self: Struct): Number
-    VAR r: Number
+    VAR r: Number := 0
     FOR f := 0 TO self.fields.size()-1 DO
         r := r + self.fields[f].width
     END FOR
@@ -125,7 +125,7 @@ END FUNCTION
  |  Convert a structure into a dictionary of values.
  |%
 FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
-    VAR r: Dictionary<variant.Variant>
+    VAR r: Dictionary<variant.Variant> := {}
     LET a: Array<Number> := data.toArray()
     VAR i: Number := 0
     FOR f := 0 TO self.fields.size()-1 DO

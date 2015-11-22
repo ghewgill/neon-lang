@@ -1,5 +1,5 @@
 FUNCTION repeat(n: Number, s: String): String
-    VAR r: String
+    VAR r: String := ""
     FOR i := 1 TO n DO
         r.append(s)
     END FOR
