@@ -1,0 +1,12 @@
+% TODO
+VAR i: Number := 0
+
+FUNCTION f(): Number
+    INC i
+    RETURN i
+END FUNCTION
+
+VAR a: Array<Number> := [0, 0]
+INC a[f()]
+print("\(a)")
+%= [0, 1]
