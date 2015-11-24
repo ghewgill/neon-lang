@@ -9,6 +9,36 @@ EXPORT Field
 EXPORT Type
 EXPORT make
 EXPORT field
+EXPORT packBool
+EXPORT packInt8
+EXPORT packInt16BE
+EXPORT packInt16LE
+EXPORT packInt32BE
+EXPORT packInt32LE
+EXPORT packInt64BE
+EXPORT packInt64LE
+EXPORT packUInt8
+EXPORT packUInt16BE
+EXPORT packUInt16LE
+EXPORT packUInt32BE
+EXPORT packUInt32LE
+EXPORT packUInt64BE
+EXPORT packUInt64LE
+EXPORT unpackBool
+EXPORT unpackInt8
+EXPORT unpackInt16BE
+EXPORT unpackInt16LE
+EXPORT unpackInt32BE
+EXPORT unpackInt32LE
+EXPORT unpackInt64BE
+EXPORT unpackInt64LE
+EXPORT unpackUInt8
+EXPORT unpackUInt16BE
+EXPORT unpackUInt16LE
+EXPORT unpackUInt32BE
+EXPORT unpackUInt32LE
+EXPORT unpackUInt64BE
+EXPORT unpackUInt64LE
 
 IMPORT bitwise
 IMPORT variant
@@ -20,13 +50,39 @@ IMPORT variant
  |
  |  Values:
  |      bool - boolean
- |      int - integer
+ |      int8 - signed 8 bit integer
+ |      int16BE - signed 16 bit integer, big endian
+ |      int16LE - signed 16 bit integer, little endian
+ |      int32BE - signed 32 bit integer, big endian
+ |      int32LE - signed 32 bit integer, little endian
+ |      int64BE - signed 64 bit integer, big endian
+ |      int64LE - signed 64 bit integer, little endian
+ |      uint8 - unsigned 8 bit integer
+ |      uint16BE - unsigned 16 bit integer, big endian
+ |      uint16LE - unsigned 16 bit integer, little endian
+ |      uint32BE - unsigned 32 bit integer, big endian
+ |      uint32LE - unsigned 32 bit integer, little endian
+ |      uint64BE - unsigned 64 bit integer, big endian
+ |      uint64LE - unsigned 64 bit integer, little endian
  |      string - string
  |      bytes - bytes
  |%
 TYPE Type IS ENUM
     bool
-    int
+    int8
+    int16BE
+    int16LE
+    int32BE
+    int32LE
+    int64BE
+    int64LE
+    uint8
+    uint16BE
+    uint16LE
+    uint32BE
+    uint32LE
+    uint64BE
+    uint64LE
     string
     bytes
 END ENUM
@@ -70,6 +126,444 @@ FUNCTION field(name: String, type: Type, width: Number): Field
 END FUNCTION
 
 %|
+ |  Function: packBool
+ |
+ |  Pack a <Boolean> value into a <Bytes>.
+ |%
+FUNCTION packBool(b: Boolean): Bytes
+    RETURN IF b THEN HEXBYTES "01" ELSE HEXBYTES "00"
+END FUNCTION
+
+%|
+ |  Function: packInt8
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 1.
+ |%
+FUNCTION packInt8(n: Number): Bytes
+    IF NOT (-0x80 <= n <= 0x7F) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    RETURN packUInt8(IF n < 0 THEN 0x100 + n ELSE n)
+END FUNCTION
+
+%|
+ |  Function: packInt16BE
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 2.
+ |%
+FUNCTION packInt16BE(n: Number): Bytes
+    IF NOT (-0x8000 <= n <= 0x7FFF) THEN
+        RAISE InvalidValue
+    END IF
+    RETURN packUInt16BE(IF n < 0 THEN 0x10000 + n ELSE n)
+END FUNCTION
+
+%|
+ |  Function: packInt16LE
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 2.
+ |%
+FUNCTION packInt16LE(n: Number): Bytes
+    IF NOT (-0x8000 <= n <= 0x7FFF) THEN
+        RAISE InvalidValue
+    END IF
+    RETURN packUInt16LE(IF n < 0 THEN 0x10000 + n ELSE n)
+END FUNCTION
+
+%|
+ |  Function: packInt32BE
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 4.
+ |%
+FUNCTION packInt32BE(n: Number): Bytes
+    IF NOT (-0x80000000 <= n <= 0x7FFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    RETURN packUInt32BE(IF n < 0 THEN 0x100000000 + n ELSE n)
+END FUNCTION
+
+%|
+ |  Function: packInt32LE
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 4.
+ |%
+FUNCTION packInt32LE(n: Number): Bytes
+    IF NOT (-0x80000000 <= n <= 0x7FFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    RETURN packUInt32LE(IF n < 0 THEN 0x100000000 + n ELSE n)
+END FUNCTION
+
+%|
+ |  Function: packInt64BE
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 8.
+ |%
+FUNCTION packInt64BE(n: Number): Bytes
+    IF NOT (-0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    RETURN packUInt64BE(IF n < 0 THEN 0x10000000000000000 + n ELSE n)
+END FUNCTION
+
+%|
+ |  Function: packInt64LE
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 8.
+ |%
+FUNCTION packInt64LE(n: Number): Bytes
+    IF NOT (-0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    RETURN packUInt64LE(IF n < 0 THEN 0x10000000000000000 + n ELSE n)
+END FUNCTION
+
+%|
+ |  Function: packUInt8
+ |
+ |  Pack a signed <Number> into a <Bytes> of width 1.
+ |%
+FUNCTION packUInt8(n: Number): Bytes
+    IF NOT (0 <= n <= 0xFF) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    r[0] := bitwise.and32(n, 0xFF)
+    RETURN r.toBytes()
+END FUNCTION
+
+%|
+ |  Function: packUInt16BE
+ |
+ |  Pack an unsigned <Number> into a <Bytes> of width 2.
+ |%
+FUNCTION packUInt16BE(n: Number): Bytes
+    IF NOT (0 <= n <= 0xFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    r[0] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
+    r[1] := bitwise.and32(n, 0xFF)
+    RETURN r.toBytes()
+END FUNCTION
+
+%|
+ |  Function: packUInt16LE
+ |
+ |  Pack an unsigned <Number> into a <Bytes> of width 2.
+ |%
+FUNCTION packUInt16LE(n: Number): Bytes
+    IF NOT (0 <= n <= 0xFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    r[0] := bitwise.and32(n, 0xFF)
+    r[1] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
+    RETURN r.toBytes()
+END FUNCTION
+
+%|
+ |  Function: packUInt32BE
+ |
+ |  Pack an unsigned <Number> into a <Bytes> of width 4.
+ |%
+FUNCTION packUInt32BE(n: Number): Bytes
+    IF NOT (0 <= n <= 0xFFFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    r[0] := bitwise.and32(bitwise.shiftRight32(n, 24), 0xFF)
+    r[1] := bitwise.and32(bitwise.shiftRight32(n, 16), 0xFF)
+    r[2] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
+    r[3] := bitwise.and32(n, 0xFF)
+    RETURN r.toBytes()
+END FUNCTION
+
+%|
+ |  Function: packUInt32LE
+ |
+ |  Pack an unsigned <Number> into a <Bytes> of width 4.
+ |%
+FUNCTION packUInt32LE(n: Number): Bytes
+    IF NOT (0 <= n <= 0xFFFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    r[0] := bitwise.and32(n, 0xFF)
+    r[1] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
+    r[2] := bitwise.and32(bitwise.shiftRight32(n, 16), 0xFF)
+    r[3] := bitwise.and32(bitwise.shiftRight32(n, 24), 0xFF)
+    RETURN r.toBytes()
+END FUNCTION
+
+%|
+ |  Function: packUInt64BE
+ |
+ |  Pack an unsigned <Number> into a <Bytes> of width 8.
+ |%
+FUNCTION packUInt64BE(n: Number): Bytes
+    IF NOT (0 <= n <= 0xFFFFFFFFFFFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    r[0] := bitwise.and64(bitwise.shiftRight64(n, 56), 0xFF)
+    r[1] := bitwise.and64(bitwise.shiftRight64(n, 48), 0xFF)
+    r[2] := bitwise.and64(bitwise.shiftRight64(n, 40), 0xFF)
+    r[3] := bitwise.and64(bitwise.shiftRight64(n, 32), 0xFF)
+    r[4] := bitwise.and64(bitwise.shiftRight64(n, 24), 0xFF)
+    r[5] := bitwise.and64(bitwise.shiftRight64(n, 16), 0xFF)
+    r[6] := bitwise.and64(bitwise.shiftRight64(n, 8), 0xFF)
+    r[7] := bitwise.and64(n, 0xFF)
+    RETURN r.toBytes()
+END FUNCTION
+
+%|
+ |  Function: packUInt64LE
+ |
+ |  Pack an unsigned <Number> into a <Bytes> of width 8.
+ |%
+FUNCTION packUInt64LE(n: Number): Bytes
+    IF NOT (0 <= n <= 0xFFFFFFFFFFFFFFFF) THEN
+        RAISE InvalidValue
+    END IF
+    VAR r: Array<Number> := []
+    r[0] := bitwise.and64(n, 0xFF)
+    r[1] := bitwise.and64(bitwise.shiftRight64(n, 8), 0xFF)
+    r[2] := bitwise.and64(bitwise.shiftRight64(n, 16), 0xFF)
+    r[3] := bitwise.and64(bitwise.shiftRight64(n, 24), 0xFF)
+    r[4] := bitwise.and64(bitwise.shiftRight64(n, 32), 0xFF)
+    r[5] := bitwise.and64(bitwise.shiftRight64(n, 40), 0xFF)
+    r[6] := bitwise.and64(bitwise.shiftRight64(n, 48), 0xFF)
+    r[7] := bitwise.and64(bitwise.shiftRight64(n, 56), 0xFF)
+    RETURN r.toBytes()
+END FUNCTION
+
+%|
+ |  Function: unpackBool
+ |
+ |  Unpack a <Boolean> from a <Bytes>.
+ |%
+FUNCTION unpackBool(b: Bytes): Boolean
+    IF b.size() # 1 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN a[0] # 0
+END FUNCTION
+
+%|
+ |  Function: unpackInt8
+ |
+ |  Unpack a <Number> from a <Bytes> of size 1.
+ |%
+FUNCTION unpackInt8(b: Bytes): Number
+    LET r: Number := unpackUInt8(b)
+    IF r < 0x80 THEN
+        RETURN r
+    ELSE
+        RETURN r - 0x100
+    END IF
+END FUNCTION
+
+%|
+ |  Function: unpackInt16BE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 2.
+ |%
+FUNCTION unpackInt16BE(b: Bytes): Number
+    LET r: Number := unpackUInt16BE(b)
+    IF r < 0x8000 THEN
+        RETURN r
+    ELSE
+        RETURN r - 0x10000
+    END IF
+END FUNCTION
+
+%|
+ |  Function: unpackInt16LE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 2.
+ |%
+FUNCTION unpackInt16LE(b: Bytes): Number
+    LET r: Number := unpackUInt16LE(b)
+    IF r < 0x8000 THEN
+        RETURN r
+    ELSE
+        RETURN r - 0x10000
+    END IF
+END FUNCTION
+
+%|
+ |  Function: unpackInt32BE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 4.
+ |%
+FUNCTION unpackInt32BE(b: Bytes): Number
+    LET r: Number := unpackUInt32BE(b)
+    IF r < 0x80000000 THEN
+        RETURN r
+    ELSE
+        RETURN r - 0x100000000
+    END IF
+END FUNCTION
+
+%|
+ |  Function: unpackInt32LE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 4.
+ |%
+FUNCTION unpackInt32LE(b: Bytes): Number
+    LET r: Number := unpackUInt32LE(b)
+    IF r < 0x80000000 THEN
+        RETURN r
+    ELSE
+        RETURN r - 0x100000000
+    END IF
+END FUNCTION
+
+%|
+ |  Function: unpackInt64BE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 8.
+ |%
+FUNCTION unpackInt64BE(b: Bytes): Number
+    LET r: Number := unpackUInt64BE(b)
+    IF r < 0x8000000000000000 THEN
+        RETURN r
+    ELSE
+        RETURN r - 0x10000000000000000
+    END IF
+END FUNCTION
+
+%|
+ |  Function: unpackInt64LE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 8.
+ |%
+FUNCTION unpackInt64LE(b: Bytes): Number
+    LET r: Number := unpackUInt64LE(b)
+    IF r < 0x8000000000000000 THEN
+        RETURN r
+    ELSE
+        RETURN r - 0x10000000000000000
+    END IF
+END FUNCTION
+
+%|
+ |  Function: unpackUInt8
+ |
+ |  Unpack a <Number> from a <Bytes> of size 1.
+ |%
+FUNCTION unpackUInt8(b: Bytes): Number
+    IF b.size() # 1 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN a[0]
+END FUNCTION
+
+%|
+ |  Function: unpackUInt16BE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 2.
+ |%
+FUNCTION unpackUInt16BE(b: Bytes): Number
+    IF b.size() # 2 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN bitwise.shiftLeft32(a[0],  8) +
+           a[1]
+END FUNCTION
+
+%|
+ |  Function: unpackUInt16LE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 2.
+ |%
+FUNCTION unpackUInt16LE(b: Bytes): Number
+    IF b.size() # 2 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN bitwise.shiftLeft32(a[1],  8) +
+           a[0]
+END FUNCTION
+
+%|
+ |  Function: unpackUInt32BE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 4.
+ |%
+FUNCTION unpackUInt32BE(b: Bytes): Number
+    IF b.size() # 4 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN bitwise.shiftLeft32(a[0], 24) +
+           bitwise.shiftLeft32(a[1], 16) +
+           bitwise.shiftLeft32(a[2],  8) +
+           a[3]
+END FUNCTION
+
+%|
+ |  Function: unpackUInt32LE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 4.
+ |%
+FUNCTION unpackUInt32LE(b: Bytes): Number
+    IF b.size() # 4 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN bitwise.shiftLeft32(a[3], 24) +
+           bitwise.shiftLeft32(a[2], 16) +
+           bitwise.shiftLeft32(a[1],  8) +
+           a[0]
+END FUNCTION
+
+%|
+ |  Function: unpackUInt64BE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 8.
+ |%
+FUNCTION unpackUInt64BE(b: Bytes): Number
+    IF b.size() # 8 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN bitwise.shiftLeft64(a[0], 56) +
+           bitwise.shiftLeft64(a[1], 48) +
+           bitwise.shiftLeft64(a[2], 40) +
+           bitwise.shiftLeft64(a[3], 32) +
+           bitwise.shiftLeft64(a[4], 24) +
+           bitwise.shiftLeft64(a[5], 16) +
+           bitwise.shiftLeft64(a[6],  8) +
+           a[7]
+END FUNCTION
+
+%|
+ |  Function: unpackUInt64LE
+ |
+ |  Unpack a <Number> from a <Bytes> of size 8.
+ |%
+FUNCTION unpackUInt64LE(b: Bytes): Number
+    IF b.size() # 8 THEN
+        RAISE InvalidValue
+    END IF
+    LET a: Array<Number> := b.toArray()
+    RETURN bitwise.shiftLeft64(a[7], 56) +
+           bitwise.shiftLeft64(a[6], 48) +
+           bitwise.shiftLeft64(a[5], 40) +
+           bitwise.shiftLeft64(a[4], 32) +
+           bitwise.shiftLeft64(a[3], 24) +
+           bitwise.shiftLeft64(a[2], 16) +
+           bitwise.shiftLeft64(a[1],  8) +
+           a[0]
+END FUNCTION
+
+%|
  |  Function: Struct.pack
  |
  |  Convert a dictionary of values into a structure.
@@ -78,16 +572,38 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
     VAR buf: Array<Number> := []
     FOR f := 0 TO self.fields.size()-1 DO
         IF self.fields[f].name IN values THEN
+            LET v: variant.Variant := values[self.fields[f].name]
             CASE self.fields[f].type
                 WHEN Type.bool DO
-                    LET b: Boolean := values[self.fields[f].name].getBoolean()
-                    buf.append(IF b THEN 1 ELSE 0)
-                WHEN Type.int DO
-                    LET n: Number := values[self.fields[f].name].getNumber()
-                    buf.append(bitwise.and32(bitwise.shiftRight32(n, 24), 0xff))
-                    buf.append(bitwise.and32(bitwise.shiftRight32(n, 16), 0xff))
-                    buf.append(bitwise.and32(bitwise.shiftRight32(n, 8), 0xff))
-                    buf.append(bitwise.and32(n, 0xff))
+                    buf.extend(packBool(v.getBoolean()).toArray())
+                WHEN Type.int8 DO
+                    buf.extend(packInt8(v.getNumber()).toArray())
+                WHEN Type.int16BE DO
+                    buf.extend(packInt16BE(v.getNumber()).toArray())
+                WHEN Type.int16LE DO
+                    buf.extend(packInt16LE(v.getNumber()).toArray())
+                WHEN Type.int32BE DO
+                    buf.extend(packInt32BE(v.getNumber()).toArray())
+                WHEN Type.int32LE DO
+                    buf.extend(packInt32LE(v.getNumber()).toArray())
+                WHEN Type.int64BE DO
+                    buf.extend(packInt64BE(v.getNumber()).toArray())
+                WHEN Type.int64LE DO
+                    buf.extend(packInt64LE(v.getNumber()).toArray())
+                WHEN Type.uint8 DO
+                    buf.extend(packUInt8(v.getNumber()).toArray())
+                WHEN Type.uint16BE DO
+                    buf.extend(packUInt16BE(v.getNumber()).toArray())
+                WHEN Type.uint16LE DO
+                    buf.extend(packUInt16LE(v.getNumber()).toArray())
+                WHEN Type.uint32BE DO
+                    buf.extend(packUInt32BE(v.getNumber()).toArray())
+                WHEN Type.uint32LE DO
+                    buf.extend(packUInt32LE(v.getNumber()).toArray())
+                WHEN Type.uint64BE DO
+                    buf.extend(packUInt64BE(v.getNumber()).toArray())
+                WHEN Type.uint64LE DO
+                    buf.extend(packUInt64LE(v.getNumber()).toArray())
                 WHEN Type.string DO
                     LET s: String := values[self.fields[f].name].getString()
                     FOR i := 0 TO self.fields[f].width-1 DO
@@ -129,17 +645,53 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
     LET a: Array<Number> := data.toArray()
     VAR i: Number := 0
     FOR f := 0 TO self.fields.size()-1 DO
+        VAR v: variant.Variant := variant.makeNull()
         CASE self.fields[f].type
             WHEN Type.bool DO
-                r[self.fields[f].name] := variant.makeBoolean(a[i] # 0)
+                v := variant.makeBoolean(unpackBool(data[i TO i]))
                 INC i
-            WHEN Type.int DO
-                r[self.fields[f].name] := variant.makeNumber(
-                    bitwise.shiftLeft32(a[i  ], 24) +
-                    bitwise.shiftLeft32(a[i+1], 16) +
-                    bitwise.shiftLeft32(a[i+2],  8) +
-                    a[i+3])
+            WHEN Type.int8 DO
+                v := variant.makeNumber(unpackInt8(data[i TO i]))
+                INC i
+            WHEN Type.int16BE DO
+                v := variant.makeNumber(unpackInt16BE(data[i TO i+1]))
+                i := i + 2
+            WHEN Type.int16LE DO
+                v := variant.makeNumber(unpackInt16LE(data[i TO i+1]))
+                i := i + 2
+            WHEN Type.int32BE DO
+                v := variant.makeNumber(unpackInt32BE(data[i TO i+3]))
                 i := i + 4
+            WHEN Type.int32LE DO
+                v := variant.makeNumber(unpackInt32LE(data[i TO i+3]))
+                i := i + 4
+            WHEN Type.int64BE DO
+                v := variant.makeNumber(unpackInt64BE(data[i TO i+7]))
+                i := i + 8
+            WHEN Type.int64LE DO
+                v := variant.makeNumber(unpackInt64LE(data[i TO i+7]))
+                i := i + 8
+            WHEN Type.uint8 DO
+                v := variant.makeNumber(unpackInt8(data[i TO i]))
+                i := i + 2
+            WHEN Type.uint16BE DO
+                v := variant.makeNumber(unpackInt16BE(data[i TO i+1]))
+                i := i + 2
+            WHEN Type.uint16LE DO
+                v := variant.makeNumber(unpackInt16LE(data[i TO i+1]))
+                i := i + 2
+            WHEN Type.uint32BE DO
+                v := variant.makeNumber(unpackInt32BE(data[i TO i+3]))
+                i := i + 4
+            WHEN Type.uint32LE DO
+                v := variant.makeNumber(unpackInt32LE(data[i TO i+3]))
+                i := i + 4
+            WHEN Type.uint64BE DO
+                v := variant.makeNumber(unpackInt64BE(data[i TO i+7]))
+                i := i + 8
+            WHEN Type.uint64LE DO
+                v := variant.makeNumber(unpackInt64LE(data[i TO i+7]))
+                i := i + 8
             WHEN Type.string DO
                 VAR s: String := ""
                 FOR j := 0 TO self.fields[f].width-1 DO
@@ -148,12 +700,175 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<variant.Variant>
                     END IF
                     s.append(chr(a[i+j]))
                 END FOR
-                r[self.fields[f].name] := variant.makeString(s)
+                v := variant.makeString(s)
                 i := i + self.fields[f].width
             WHEN Type.bytes DO
-                r[self.fields[f].name] := variant.makeBytes(a[i TO i+self.fields[f].width-1].toBytes())
+                v := variant.makeBytes(a[i TO i+self.fields[f].width-1].toBytes())
                 i := i + self.fields[f].width
         END CASE
+        r[self.fields[f].name] := v
     END FOR
     RETURN r
 END FUNCTION
+
+BEGIN MAIN
+    ASSERT packBool(FALSE) = HEXBYTES "00"
+    ASSERT packBool(TRUE) = HEXBYTES "01"
+
+    ASSERT packInt8(-128) = HEXBYTES "80"
+    ASSERT packInt8(-1) = HEXBYTES "FF"
+    ASSERT packInt8(0) = HEXBYTES "00"
+    ASSERT packInt8(1) = HEXBYTES "01"
+    ASSERT packInt8(127) = HEXBYTES "7F"
+
+    ASSERT packInt16BE(-32768) = HEXBYTES "80 00"
+    ASSERT packInt16BE(-1) = HEXBYTES "FF FF"
+    ASSERT packInt16BE(0) = HEXBYTES "00 00"
+    ASSERT packInt16BE(1) = HEXBYTES "00 01"
+    ASSERT packInt16BE(32767) = HEXBYTES "7F FF"
+
+    ASSERT packInt16LE(-32768) = HEXBYTES "00 80"
+    ASSERT packInt16LE(-1) = HEXBYTES "FF FF"
+    ASSERT packInt16LE(0) = HEXBYTES "00 00"
+    ASSERT packInt16LE(1) = HEXBYTES "01 00"
+    ASSERT packInt16LE(32767) = HEXBYTES "FF 7F"
+
+    ASSERT packInt32BE(-2147483648) = HEXBYTES "80 00 00 00"
+    ASSERT packInt32BE(-1) = HEXBYTES "FF FF FF FF"
+    ASSERT packInt32BE(0) = HEXBYTES "00 00 00 00"
+    ASSERT packInt32BE(1) = HEXBYTES "00 00 00 01"
+    ASSERT packInt32BE(2147483647) = HEXBYTES "7F FF FF FF"
+
+    ASSERT packInt32LE(-2147483648) = HEXBYTES "00 00 00 80"
+    ASSERT packInt32LE(-1) = HEXBYTES "FF FF FF FF"
+    ASSERT packInt32LE(0) = HEXBYTES "00 00 00 00"
+    ASSERT packInt32LE(1) = HEXBYTES "01 00 00 00"
+    ASSERT packInt32LE(2147483647) = HEXBYTES "FF FF FF 7F"
+
+    ASSERT packInt64BE(-9223372036854775808) = HEXBYTES "80 00 00 00 00 00 00 00"
+    ASSERT packInt64BE(-1) = HEXBYTES "FF FF FF FF FF FF FF FF"
+    ASSERT packInt64BE(0) = HEXBYTES "00 00 00 00 00 00 00 00"
+    ASSERT packInt64BE(1) = HEXBYTES "00 00 00 00 00 00 00 01"
+    ASSERT packInt64BE(9223372036854775807) = HEXBYTES "7F FF FF FF FF FF FF FF"
+
+    ASSERT packInt64LE(-9223372036854775808) = HEXBYTES "00 00 00 00 00 00 00 80"
+    ASSERT packInt64LE(-1) = HEXBYTES "FF FF FF FF FF FF FF FF"
+    ASSERT packInt64LE(0) = HEXBYTES "00 00 00 00 00 00 00 00"
+    ASSERT packInt64LE(1) = HEXBYTES "01 00 00 00 00 00 00 00"
+    ASSERT packInt64LE(9223372036854775807) = HEXBYTES "FF FF FF FF FF FF FF 7F"
+
+    ASSERT packUInt8(0) = HEXBYTES "00"
+    ASSERT packUInt8(1) = HEXBYTES "01"
+    ASSERT packUInt8(127) = HEXBYTES "7F"
+    ASSERT packUInt8(255) = HEXBYTES "FF"
+
+    ASSERT packUInt16BE(0) = HEXBYTES "00 00"
+    ASSERT packUInt16BE(1) = HEXBYTES "00 01"
+    ASSERT packUInt16BE(32767) = HEXBYTES "7F FF"
+    ASSERT packUInt16BE(65535) = HEXBYTES "FF FF"
+
+    ASSERT packUInt16LE(0) = HEXBYTES "00 00"
+    ASSERT packUInt16LE(1) = HEXBYTES "01 00"
+    ASSERT packUInt16LE(32767) = HEXBYTES "FF 7F"
+    ASSERT packUInt16LE(65535) = HEXBYTES "FF FF"
+
+    ASSERT packUInt32BE(0) = HEXBYTES "00 00 00 00"
+    ASSERT packUInt32BE(1) = HEXBYTES "00 00 00 01"
+    ASSERT packUInt32BE(2147483647) = HEXBYTES "7F FF FF FF"
+    ASSERT packUInt32BE(4294967295) = HEXBYTES "FF FF FF FF"
+
+    ASSERT packUInt32LE(0) = HEXBYTES "00 00 00 00"
+    ASSERT packUInt32LE(1) = HEXBYTES "01 00 00 00"
+    ASSERT packUInt32LE(2147483647) = HEXBYTES "FF FF FF 7F"
+    ASSERT packUInt32LE(4294967295) = HEXBYTES "FF FF FF FF"
+
+    ASSERT packUInt64BE(0) = HEXBYTES "00 00 00 00 00 00 00 00"
+    ASSERT packUInt64BE(1) = HEXBYTES "00 00 00 00 00 00 00 01"
+    ASSERT packUInt64BE(9223372036854775807) = HEXBYTES "7F FF FF FF FF FF FF FF"
+    ASSERT packUInt64BE(18446744073709551615) = HEXBYTES "FF FF FF FF FF FF FF FF"
+
+    ASSERT packUInt64LE(0) = HEXBYTES "00 00 00 00 00 00 00 00"
+    ASSERT packUInt64LE(1) = HEXBYTES "01 00 00 00 00 00 00 00"
+    ASSERT packUInt64LE(9223372036854775807) = HEXBYTES "FF FF FF FF FF FF FF 7F"
+    ASSERT packUInt64LE(18446744073709551615) = HEXBYTES "FF FF FF FF FF FF FF FF"
+
+    ASSERT unpackBool(HEXBYTES "00") = FALSE
+    ASSERT unpackBool(HEXBYTES "01") = TRUE
+
+    ASSERT unpackInt8(HEXBYTES "80") = -128
+    ASSERT unpackInt8(HEXBYTES "FF") = -1
+    ASSERT unpackInt8(HEXBYTES "00") = 0
+    ASSERT unpackInt8(HEXBYTES "01") = 1
+    ASSERT unpackInt8(HEXBYTES "7F") = 127
+
+    ASSERT unpackInt16BE(HEXBYTES "80 00") = -32768
+    ASSERT unpackInt16BE(HEXBYTES "FF FF") = -1
+    ASSERT unpackInt16BE(HEXBYTES "00 00") = 0
+    ASSERT unpackInt16BE(HEXBYTES "00 01") = 1
+    ASSERT unpackInt16BE(HEXBYTES "7F FF") = 32767
+
+    ASSERT unpackInt16LE(HEXBYTES "00 80") = -32768
+    ASSERT unpackInt16LE(HEXBYTES "FF FF") = -1
+    ASSERT unpackInt16LE(HEXBYTES "00 00") = 0
+    ASSERT unpackInt16LE(HEXBYTES "01 00") = 1
+    ASSERT unpackInt16LE(HEXBYTES "FF 7F") = 32767
+
+    ASSERT unpackInt32BE(HEXBYTES "80 00 00 00") = -2147483648
+    ASSERT unpackInt32BE(HEXBYTES "FF FF FF FF") = -1
+    ASSERT unpackInt32BE(HEXBYTES "00 00 00 00") = 0
+    ASSERT unpackInt32BE(HEXBYTES "00 00 00 01") = 1
+    ASSERT unpackInt32BE(HEXBYTES "7F FF FF FF") = 2147483647
+
+    ASSERT unpackInt32LE(HEXBYTES "00 00 00 80") = -2147483648
+    ASSERT unpackInt32LE(HEXBYTES "FF FF FF FF") = -1
+    ASSERT unpackInt32LE(HEXBYTES "00 00 00 00") = 0
+    ASSERT unpackInt32LE(HEXBYTES "01 00 00 00") = 1
+    ASSERT unpackInt32LE(HEXBYTES "FF FF FF 7F") = 2147483647
+
+    ASSERT unpackInt64BE(HEXBYTES "80 00 00 00 00 00 00 00") = -9223372036854775808
+    ASSERT unpackInt64BE(HEXBYTES "FF FF FF FF FF FF FF FF") = -1
+    ASSERT unpackInt64BE(HEXBYTES "00 00 00 00 00 00 00 00") = 0
+    ASSERT unpackInt64BE(HEXBYTES "00 00 00 00 00 00 00 01") = 1
+    ASSERT unpackInt64BE(HEXBYTES "7F FF FF FF FF FF FF FF") = 9223372036854775807
+
+    ASSERT unpackInt64LE(HEXBYTES "00 00 00 00 00 00 00 80") = -9223372036854775808
+    ASSERT unpackInt64LE(HEXBYTES "FF FF FF FF FF FF FF FF") = -1
+    ASSERT unpackInt64LE(HEXBYTES "00 00 00 00 00 00 00 00") = 0
+    ASSERT unpackInt64LE(HEXBYTES "01 00 00 00 00 00 00 00") = 1
+    ASSERT unpackInt64LE(HEXBYTES "FF FF FF FF FF FF FF 7F") = 9223372036854775807
+
+    ASSERT unpackUInt8(HEXBYTES "00") = 0
+    ASSERT unpackUInt8(HEXBYTES "01") = 1
+    ASSERT unpackUInt8(HEXBYTES "7F") = 127
+    ASSERT unpackUInt8(HEXBYTES "FF") = 255
+
+    ASSERT unpackUInt16BE(HEXBYTES "00 00") = 0
+    ASSERT unpackUInt16BE(HEXBYTES "00 01") = 1
+    ASSERT unpackUInt16BE(HEXBYTES "7F FF") = 32767
+    ASSERT unpackUInt16BE(HEXBYTES "FF FF") = 65535
+
+    ASSERT unpackUInt16LE(HEXBYTES "00 00") = 0
+    ASSERT unpackUInt16LE(HEXBYTES "01 00") = 1
+    ASSERT unpackUInt16LE(HEXBYTES "FF 7F") = 32767
+    ASSERT unpackUInt16LE(HEXBYTES "FF FF") = 65535
+
+    ASSERT unpackUInt32BE(HEXBYTES "00 00 00 00") = 0
+    ASSERT unpackUInt32BE(HEXBYTES "00 00 00 01") = 1
+    ASSERT unpackUInt32BE(HEXBYTES "7F FF FF FF") = 2147483647
+    ASSERT unpackUInt32BE(HEXBYTES "FF FF FF FF") = 4294967295
+
+    ASSERT unpackUInt32LE(HEXBYTES "00 00 00 00") = 0
+    ASSERT unpackUInt32LE(HEXBYTES "01 00 00 00") = 1
+    ASSERT unpackUInt32LE(HEXBYTES "FF FF FF 7F") = 2147483647
+    ASSERT unpackUInt32LE(HEXBYTES "FF FF FF FF") = 4294967295
+
+    ASSERT unpackUInt64BE(HEXBYTES "00 00 00 00 00 00 00 00") = 0
+    ASSERT unpackUInt64BE(HEXBYTES "00 00 00 00 00 00 00 01") = 1
+    ASSERT unpackUInt64BE(HEXBYTES "7F FF FF FF FF FF FF FF") = 9223372036854775807
+    ASSERT unpackUInt64BE(HEXBYTES "FF FF FF FF FF FF FF FF") = 18446744073709551615
+
+    ASSERT unpackUInt64LE(HEXBYTES "00 00 00 00 00 00 00 00") = 0
+    ASSERT unpackUInt64LE(HEXBYTES "01 00 00 00 00 00 00 00") = 1
+    ASSERT unpackUInt64LE(HEXBYTES "FF FF FF FF FF FF FF 7F") = 9223372036854775807
+    ASSERT unpackUInt64LE(HEXBYTES "FF FF FF FF FF FF FF FF") = 18446744073709551615
+END MAIN

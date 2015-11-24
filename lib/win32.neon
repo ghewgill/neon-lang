@@ -33,14 +33,14 @@ TYPE WIN32_FIND_DATA IS RECORD
 END RECORD
 
 LET Struct_WIN32_FIND_DATA: struct.Struct := struct.make([
-    struct.field("dwFileAttributes",    struct.Type.int,      4),
+    struct.field("dwFileAttributes",    struct.Type.int32LE,  4),
     struct.field("ftCreationTime",      struct.Type.bytes,    8),
     struct.field("ftLastAccessTime",    struct.Type.bytes,    8),
     struct.field("ftLastWriteTime",     struct.Type.bytes,    8),
-    struct.field("nFileSizeHigh",       struct.Type.int,      4),
-    struct.field("nFileSizeLow",        struct.Type.int,      4),
-    struct.field("dwReserved0",         struct.Type.int,      4),
-    struct.field("dwReserved1",         struct.Type.int,      4),
+    struct.field("nFileSizeHigh",       struct.Type.int32LE,  4),
+    struct.field("nFileSizeLow",        struct.Type.int32LE,  4),
+    struct.field("dwReserved0",         struct.Type.int32LE,  4),
+    struct.field("dwReserved1",         struct.Type.int32LE,  4),
     struct.field("cFileName",           struct.Type.string, 260),
     struct.field("cAlternateFileName",  struct.Type.string,  14),
 ])

@@ -2,7 +2,7 @@ IMPORT struct
 IMPORT variant
 
 VAR s: struct.Struct := struct.make([
-    struct.field("field1", struct.Type.int, 4),
+    struct.field("field1", struct.Type.int32BE, 4),
     struct.field("field2", struct.Type.string, 20),
 ])
 
