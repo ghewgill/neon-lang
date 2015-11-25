@@ -17,6 +17,16 @@ Number string$find(const std::string &s, const std::string &t)
     return number_from_uint64(i);
 }
 
+bool string$hasPrefix(const std::string &s, const std::string &prefix)
+{
+    return s.substr(0, prefix.length()) == prefix;
+}
+
+bool string$hasSuffix(const std::string &s, const std::string &suffix)
+{
+    return s.length() >= suffix.length() && s.substr(s.length() - suffix.length()) == suffix;
+}
+
 std::string string$join(const std::vector<utf8string> &a, const std::string &d)
 {
     std::string r;

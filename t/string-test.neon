@@ -27,3 +27,13 @@ print(string.trim(" "))
 
 print(string.upper("Hello World"))
 %= HELLO WORLD
+
+print(strb(string.hasPrefix("Hello World", "He")))
+print(strb(string.hasPrefix("Hello World", "he")))
+%= TRUE
+%= FALSE
+
+print(strb(string.hasSuffix("Hello World", "orld")))
+print(strb(string.hasSuffix("Hello World", "old")))
+%= TRUE
+%= FALSE
