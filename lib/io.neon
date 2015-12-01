@@ -53,6 +53,27 @@ TYPE File IS POINTER
 DECLARE EXCEPTION InvalidFile
 
 %|
+ |  Variable: stdin
+ |
+ |  The standard input file.
+ |%
+DECLARE NATIVE VAR stdin: File
+
+%|
+ |  Variable: stdout
+ |
+ |  The standard output file.
+ |%
+DECLARE NATIVE VAR stdout: File
+
+%|
+ |  Variable: stderr
+ |
+ |  The standard error file.
+ |%
+DECLARE NATIVE VAR stderr: File
+
+%|
  |  Function: close
  |
  |  Close a file.
@@ -96,27 +117,6 @@ DECLARE NATIVE FUNCTION readLine(f: File, OUT s: String): Boolean
  |  Seek to a specific position within a file.
  |%
 DECLARE NATIVE FUNCTION seek(f: File, offset: Number, whence: SeekBase DEFAULT SeekBase.absolute)
-
-%|
- |  Function: stdin
- |
- |  Return the standard input file.
- |%
-DECLARE NATIVE FUNCTION stdin(): File
-
-%|
- |  Function: stdout
- |
- |  Return the standard output file.
- |%
-DECLARE NATIVE FUNCTION stdout(): File
-
-%|
- |  Function: stderr
- |
- |  Return the standard error file.
- |%
-DECLARE NATIVE FUNCTION stderr(): File
 
 %|
  |  Function: tell

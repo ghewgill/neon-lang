@@ -485,7 +485,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(n1 - n2)
         WHEN CORE_PRINT DO
             LET n: Number := signed32(stack.pop())
-            io.write(io.stdout(), "\(n) ")
+            io.write(io.stdout, "\(n) ")
         WHEN CORE_DIV DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
@@ -705,7 +705,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(x)
         WHEN CORE_EMIT DO
             LET x: Number := stack.pop()
-            io.write(io.stdout(), chr(x))
+            io.write(io.stdout, chr(x))
         WHEN CORE_ENVIRONMENT_Q DO
             LET u: Number := stack.pop()
             LET addr: Number := stack.pop()
@@ -870,11 +870,11 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(cell_input)
             stack.push(storage[cell_input_length])
         WHEN CORE_SPACE DO
-            io.write(io.stdout(), " ")
+            io.write(io.stdout, " ")
         WHEN CORE_SPACES DO
             VAR n: Number := signed32(stack.pop())
             WHILE n > 0 DO
-                io.write(io.stdout(), " ")
+                io.write(io.stdout, " ")
                 DEC n
             END WHILE
         WHEN CORE_STATE DO
@@ -896,10 +896,10 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET u: Number := stack.pop()
             LET addr: Number := stack.pop()
             LET s: String := get_string_len(addr, u)
-            io.write(io.stdout(), s)
+            io.write(io.stdout, s)
         WHEN CORE_U_PRINT DO
             LET n: Number := stack.pop()
-            io.write(io.stdout(), "\(n) ")
+            io.write(io.stdout, "\(n) ")
         WHEN CORE_U_LESS DO
             LET u2: Number := stack.pop()
             LET u1: Number := stack.pop()
@@ -1030,7 +1030,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             run(code[ip+1], TRUE)
             ip := ip + 2
         WHEN INT_PRINT_QUOTE DO
-            io.write(io.stdout(), get_string(code[ip+1]))
+            io.write(io.stdout, get_string(code[ip+1]))
             ip := ip + 2
         WHEN INT_Q_BRANCH DO
             LET x: Number := stack.pop()
@@ -1084,7 +1084,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
         WHEN CORE_PRINT_QUOTE DO
             LET s: String := parse("\"")
             IF interpreting THEN
-                io.write(io.stdout(), s)
+                io.write(io.stdout, s)
             ELSE
                 code.append(INT_PRINT_QUOTE)
                 code.append(storage.size())
@@ -1373,5 +1373,5 @@ FOREACH fn OF files DO
     io.close(INOUT current_file)
 END FOREACH
 
-current_file := io.stdin()
+current_file := io.stdin
 interpret()

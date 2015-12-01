@@ -1,7 +1,7 @@
 IMPORT io
 IMPORT random
 
-LET stdout: io.File := io.stdout()
+LET stdout: io.File := io.stdout
 
 io.fprint(stdout, "Hello World")
 %= Hello World

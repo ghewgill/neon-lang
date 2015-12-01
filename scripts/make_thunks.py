@@ -220,6 +220,7 @@ for fn in sys.argv[1:]:
                     ntype = m.group(2)
                     atype = {
                         "Array<String>": "TYPE_ARRAY_STRING",
+                        "File": "dynamic_cast<const Type *>(scope->lookupName(\"File\"))",
                     }[ntype]
                     variables[name] = [name, atype]
                 elif a[:2] == ["DECLARE", "EXCEPTION"]:

@@ -375,8 +375,8 @@ END FUNCTION
 
 FUNCTION repl()
     LOOP
-        print(repr(eval(read(io.stdin()))))
-        %print(repr(read(io.stdin())))
+        print(repr(eval(read(io.stdin))))
+        %print(repr(read(io.stdin)))
     END LOOP
 END FUNCTION
 

@@ -28,6 +28,10 @@ FILE *check_file(void *pf)
 
 namespace rtl {
 
+Cell io$stdin(reinterpret_cast<Cell *>(stdin));
+Cell io$stdout(reinterpret_cast<Cell *>(stdout));
+Cell io$stderr(reinterpret_cast<Cell *>(stderr));
+
 void io$close(Cell **ppf)
 {
     FILE *f = check_file(*ppf);
@@ -93,21 +97,6 @@ void io$seek(void *pf, Number offset, Cell &whence)
             return;
     }
     fseek(f, static_cast<long>(number_to_sint64(offset)), w);
-}
-
-void *io$stdin()
-{
-    return stdin;
-}
-
-void *io$stdout()
-{
-    return stdout;
-}
-
-void *io$stderr()
-{
-    return stderr;
 }
 
 Number io$tell(void *pf)
