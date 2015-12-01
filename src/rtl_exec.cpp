@@ -9,9 +9,11 @@
 typedef void (*Thunk)(opstack<Cell> &stack, void *func);
 
 static std::map<std::string, size_t> FunctionNames;
+static std::map<std::string, size_t> VariableNames;
 
 #include "thunks.inc"
 #include "functions_exec.inc"
+#include "variables_exec.inc"
 
 void rtl_exec_init(int argc, char *argv[])
 {
@@ -21,6 +23,12 @@ void rtl_exec_init(int argc, char *argv[])
     size_t i = 0;
     for (auto f: BuiltinFunctions) {
         FunctionNames[f.name] = i;
+        i++;
+    }
+
+    i = 0;
+    for (auto v: BuiltinVariables) {
+        VariableNames[v.name] = i;
         i++;
     }
 }
@@ -37,4 +45,9 @@ void rtl_call(opstack<Cell> &stack, const std::string &name, size_t &token)
     }
     auto &fn = BuiltinFunctions[token];
     fn.thunk(stack, fn.func);
+}
+
+Cell *rtl_variable(const std::string &name)
+{
+    return BuiltinVariables[VariableNames[name]].value;
 }

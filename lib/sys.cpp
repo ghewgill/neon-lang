@@ -7,14 +7,9 @@
 #include "rtl_exec.h"
 #include "utf8string.h"
 
-static std::vector<utf8string> g_argv;
-
 namespace rtl {
 
-std::vector<utf8string> sys$argv()
-{
-    return g_argv;
-}
+Cell sys$args;
 
 void sys$exit(Number x)
 {
@@ -32,6 +27,9 @@ void sys$exit(Number x)
 
 void rtl_sys_init(int argc, char *argv[])
 {
-    g_argv.clear();
-    std::copy(argv, argv+argc, std::back_inserter(g_argv));
+    std::vector<Cell> &a = rtl::sys$args.array_for_write();
+    a.resize(argc);
+    for (int i = 0; i < argc; i++) {
+        a[i] = Cell(argv[i]);
+    }
 }

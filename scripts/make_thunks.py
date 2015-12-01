@@ -158,6 +158,7 @@ def parse_params(paramstr):
 
 constants = dict()
 enums = dict()
+variables = dict()
 functions = dict()
 exceptions = []
 
@@ -212,6 +213,15 @@ for fn in sys.argv[1:]:
                     if ctype == "String":
                         ctype = "std::string"
                     constants[name] = [name, ctype, "new Constant{}Expression(rtl::{})".format(ntype, name)]
+                elif a[:3] == ["DECLARE", "NATIVE", "VAR"]:
+                    m = re.search(r"(\w+)\s*:\s*(\S+)", s)
+                    assert m is not None
+                    name = prefix + m.group(1)
+                    ntype = m.group(2)
+                    ctype, atype = {
+                        "Array<String>": ("std::vector<std::string>", "TYPE_ARRAY_STRING"),
+                    }[ntype]
+                    variables[name] = [name, ctype, atype]
                 elif a[:2] == ["DECLARE", "EXCEPTION"]:
                     exceptions.append((prefix, a[2]))
                 elif in_enum:
@@ -315,6 +325,29 @@ with open("src/constants_compile.inc", "w") as inc:
         modname = name[i+1:]
         print >>inc, "    if (module == \"{}\") scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(module, modname, modname, init)
     print >>inc, "}";
+
+with open("src/variables_compile.inc", "w") as inc:
+    print >>inc, "static void init_builtin_variables(const std::string &module, Scope *scope)"
+    print >>inc, "{"
+    for name, ctype, atype in variables.values():
+        i = name.index("$")
+        module = name[:i]
+        modname = name[i+1:]
+        print >>inc, "    if (module == \"{}\") scope->addName(Token(), \"{}\", new PredefinedVariable(\"{}\", {}));".format(module, modname, name, atype)
+    print >>inc, "}"
+
+with open("src/variables_exec.inc", "w") as inc:
+    print >>inc, "namespace rtl {"
+    for name, ctype, atype in variables.values():
+        print >>inc, "extern Cell {};".format(name)
+    print >>inc, "}"
+    print >>inc, "static struct {"
+    print >>inc, "    const char *name;"
+    print >>inc, "    Cell *value;"
+    print >>inc, "} BuiltinVariables[] = {"
+    for name, ctype, atype, in variables.values():
+        print >>inc, "    {{\"{}\", &rtl::{}}},".format(name, name)
+    print >>inc, "};"
 
 with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "struct PredefinedType {"

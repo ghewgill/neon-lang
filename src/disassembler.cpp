@@ -28,6 +28,7 @@ private:
     void disasm_PUSHN();
     void disasm_PUSHS();
     void disasm_PUSHPG();
+    void disasm_PUSHPPG();
     void disasm_PUSHPMG();
     void disasm_PUSHPL();
     void disasm_PUSHPOL();
@@ -157,6 +158,13 @@ void Disassembler::disasm_PUSHPG()
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 5;
     out << "PUSHPG " << addr << "\n";
+}
+
+void Disassembler::disasm_PUSHPPG()
+{
+    uint32_t name = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "PUSHPPG " << obj.strtable[name] << "\n";
 }
 
 void Disassembler::disasm_PUSHPMG()
@@ -713,6 +721,7 @@ void Disassembler::disassemble()
             case PUSHN:   disasm_PUSHN(); break;
             case PUSHS:   disasm_PUSHS(); break;
             case PUSHPG:  disasm_PUSHPG(); break;
+            case PUSHPPG: disasm_PUSHPPG(); break;
             case PUSHPMG: disasm_PUSHPMG(); break;
             case PUSHPL:  disasm_PUSHPL(); break;
             case PUSHPOL: disasm_PUSHPOL(); break;

@@ -24,6 +24,7 @@ Statement =
     ConstantDeclaration |
     NativeConstantDeclaration |
     VariableDeclaration |
+    NativeVariableDeclaration |
     LetDeclaration |
     FunctionDeclaration |
     ExternalFunctionDeclaration |
@@ -69,6 +70,8 @@ ConstantDeclaration = 'CONSTANT', Identifier, ':', Type, ':=', Expression;
 NativeConstantDeclaration = 'DECLARE', 'NATIVE', 'CONSTANT', Identifier, ':', Type;
 
 VariableDeclaration = 'VAR', Identifier, {',', Identifier}, ':', Type, [':=', Expression];
+
+NativeVariableDeclaration = 'DECLARE', 'NATIVE', 'VAR', Identifier, ':', Type;
 
 LetDeclaration = 'LET', Identifier, ':', Type, ':=', Expression;
 

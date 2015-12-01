@@ -654,6 +654,18 @@ class NativeFunction:
     def run(self, env):
         pass
 
+class NativeVariable:
+    def __init__(self, name, type):
+        self.name = name
+        self.type = type
+    def declare(self, env):
+        if self.name == "args":
+            env.declare(self.name, self.type.resolve(env), sys.argv[1:])
+        else:
+            assert False, self.name
+    def run(self, env):
+        pass
+
 class FunctionParameter:
     def __init__(self, name, type, mode, default):
         self.name = name
@@ -1509,6 +1521,12 @@ class Parser:
             elif self.tokens[self.i] == FUNCTION:
                 type, name, returntype, args = self.parse_function_header()
                 return NativeFunction(name, returntype, args)
+            elif self.tokens[self.i] == VAR:
+                self.i += 1
+                name = self.identifier()
+                self.expect(COLON)
+                type = self.parse_type()
+                return NativeVariable(name, type)
 
     def parse_exit_statement(self):
         self.expect(EXIT)
@@ -2047,9 +2065,6 @@ def neon_file_writeBytes(env, fn, bytes):
 def neon_file_writeLines(env, fn, lines):
     with open(fn, "wb") as f:
         f.writelines(x.encode()+"\n" for x in lines)
-
-def neon_sys_argv(env):
-    return sys.argv[1:]
 
 def neon_sys_exit(env, n):
     sys.exit(n)

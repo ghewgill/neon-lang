@@ -664,6 +664,11 @@ void Variable::generate_call(Emitter &emitter) const
     type->generate_call(emitter);
 }
 
+void PredefinedVariable::generate_address(Emitter &emitter, int) const
+{
+    emitter.emit(PUSHPPG, emitter.str(name));
+}
+
 void ModuleVariable::predeclare(Emitter &emitter) const
 {
     emitter.add_import(module);

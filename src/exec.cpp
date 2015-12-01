@@ -236,6 +236,7 @@ private:
     void exec_PUSHN();
     void exec_PUSHS();
     void exec_PUSHPG();
+    void exec_PUSHPPG();
     void exec_PUSHPMG();
     void exec_PUSHPL();
     void exec_PUSHPOL();
@@ -434,6 +435,13 @@ void Executor::exec_PUSHPG()
     ip += 5;
     assert(addr < module->globals.size());
     stack.push(Cell(&module->globals.at(addr)));
+}
+
+void Executor::exec_PUSHPPG()
+{
+    uint32_t name = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    stack.push(Cell(rtl_variable(module->object.strtable[name])));
 }
 
 void Executor::exec_PUSHPMG()
@@ -1507,6 +1515,7 @@ void Executor::exec()
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
             case PUSHPG:  exec_PUSHPG(); break;
+            case PUSHPPG: exec_PUSHPPG(); break;
             case PUSHPMG: exec_PUSHPMG(); break;
             case PUSHPL:  exec_PUSHPL(); break;
             case PUSHPOL: exec_PUSHPOL(); break;

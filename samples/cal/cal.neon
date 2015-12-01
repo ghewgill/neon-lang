@@ -51,12 +51,12 @@ FUNCTION build_month(year, month: Number, year_in_title: Boolean): Array<String>
     RETURN r
 END FUNCTION
 
-FUNCTION main(argv: Array<String>)
+FUNCTION main(args: Array<String>)
 
     VAR month, year: Number := 0
     VAR options: Dictionary<Boolean>
 
-    FOREACH a OF argv[1 TO LAST] DO
+    FOREACH a OF args[1 TO LAST] DO
         IF a[0] = "-" THEN
             options[a] := TRUE
         ELSIF year = 0 THEN
@@ -114,4 +114,4 @@ FUNCTION main(argv: Array<String>)
     END IF
 END FUNCTION
 
-main(sys.argv())
+main(sys.args)

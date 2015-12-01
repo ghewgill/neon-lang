@@ -2,6 +2,7 @@
 
 #include "constants_compile.inc"
 #include "functions_compile.inc"
+#include "variables_compile.inc"
 
 static const Type *resolve_type(const PredefinedType &ptype, Scope *scope)
 {
@@ -30,6 +31,7 @@ bool rtl_import(const std::string &module, Module *mod)
 {
     std::string prefix = module + "$";
     init_builtin_constants(module, mod->scope);
+    init_builtin_variables(module, mod->scope);
     bool any = false;
     for (auto f: BuiltinFunctions) {
         std::string qualified_name(f.name);

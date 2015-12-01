@@ -1366,7 +1366,7 @@ FUNCTION interpret()
     END LOOP
 END FUNCTION
 
-LET files: Array<String> := sys.argv()[1 TO LAST]
+LET files: Array<String> := sys.args[1 TO LAST]
 FOREACH fn OF files DO
     current_file := io.open(fn, io.Mode.read)
     interpret()

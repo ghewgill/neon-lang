@@ -3,7 +3,7 @@
 IMPORT sys
 
 VAR a: Array<String>
-a := sys.argv()
+a := sys.args
 print(substring(a[0], 2, 12))
 print(a[1])
 print(a[2])
