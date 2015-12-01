@@ -2,6 +2,9 @@ IMPORT bitwise
 IMPORT random
 IMPORT sodium
 
+LET FullTests: Boolean := FALSE
+LET Iterations: Number := IF FullTests THEN 999 ELSE 9
+
 FUNCTION bytes(s: String): Bytes
     RETURN s.toBytes()
 END FUNCTION
@@ -3127,7 +3130,7 @@ FUNCTION test_auth3()
 END FUNCTION
 
 FUNCTION test_auth5()
-    FOR clen := 0 TO 999 DO
+    FOR clen := 0 TO Iterations DO
         LET key: Bytes := sodium.randombytes(32)
         VAR c: Bytes := sodium.randombytes(clen)
         VAR a: Bytes := sodium.auth(c, key)
@@ -3148,7 +3151,7 @@ FUNCTION test_auth6()
 END FUNCTION
 
 FUNCTION test_auth7()
-    FOR clen := 0 TO 999 DO
+    FOR clen := 0 TO Iterations DO
         LET key: Bytes := sodium.randombytes(32)
         VAR c: Bytes := sodium.randombytes(clen)
         VAR a: Bytes := sodium.auth_hmacsha512(c, key)
@@ -3179,7 +3182,7 @@ FUNCTION test_box2()
 END FUNCTION
 
 FUNCTION test_box7()
-    FOR mlen := 0 TO 999 DO
+    FOR mlen := 0 TO Iterations DO
         VAR alicepk, alicesk: Bytes
         sodium.box_keypair(OUT alicepk, OUT alicesk)
         VAR bobpk, bobsk: Bytes
@@ -3192,7 +3195,7 @@ FUNCTION test_box7()
 END FUNCTION
 
 FUNCTION test_box8()
-    FOR mlen := 0 TO 999 DO
+    FOR mlen := 0 TO Iterations DO
         VAR alicepk, alicesk: Bytes
         sodium.box_keypair(OUT alicepk, OUT alicesk)
         VAR bobpk, bobsk: Bytes
@@ -4645,7 +4648,7 @@ FUNCTION test_onetimeauth2()
 END FUNCTION
 
 FUNCTION test_onetimeauth7()
-    FOR clen := 0 TO 999 DO
+    FOR clen := 0 TO Iterations DO
         LET key: Bytes := sodium.randombytes(32)
         VAR c: Bytes := sodium.randombytes(clen)
         VAR a: Bytes := sodium.onetimeauth(c, key)
@@ -4956,9 +4959,13 @@ FUNCTION test_pwhash_tv3()
 END FUNCTION
 
 FUNCTION test_pwhash()
-    test_pwhash_tv()
+    IF FullTests THEN
+        test_pwhash_tv()
+    END IF
     test_pwhash_tv2()
-    test_pwhash_tv3()
+    IF FullTests THEN
+        test_pwhash_tv3()
+    END IF
 
     CONSTANT OPS_LIMIT: Number := 1000000
     CONSTANT MEM_LIMIT: Number := 10000000
@@ -5068,7 +5075,7 @@ FUNCTION test_secretbox2()
 END FUNCTION
 
 FUNCTION test_secretbox7()
-    FOR mlen := 0 TO 999 DO
+    FOR mlen := 0 TO Iterations DO
         LET k: Bytes := sodium.randombytes(sodium.secretbox_KEYBYTES)
         LET n: Bytes := sodium.randombytes(sodium.secretbox_NONCEBYTES)
         LET m: Bytes := sodium.randombytes(mlen)
@@ -5078,7 +5085,7 @@ FUNCTION test_secretbox7()
 END FUNCTION
 
 FUNCTION test_secretbox8()
-    FOR mlen := 0 TO 999 DO
+    FOR mlen := 0 TO Iterations DO
         LET k: Bytes := sodium.randombytes(sodium.secretbox_KEYBYTES)
         LET n: Bytes := sodium.randombytes(sodium.secretbox_NONCEBYTES)
         LET m: Bytes := sodium.randombytes(mlen)
