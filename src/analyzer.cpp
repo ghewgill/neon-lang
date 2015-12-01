@@ -2961,7 +2961,10 @@ const Program *Analyzer::analyze()
 
 class UninitialisedFinder: public pt::IParseTreeVisitor {
 public:
-    UninitialisedFinder(): variables(), assigned() {
+    UninitialisedFinder(): variables(), assigned(), out_parameters(), outer_scope(nullptr) {
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
+    }
+    UninitialisedFinder(const UninitialisedFinder *outer): variables(), assigned(), out_parameters(), outer_scope(outer) {
         variables.push_back(std::map<std::string, std::pair<Token, bool>>());
     }
     virtual void visit(const pt::TypeSimple *) {}
@@ -3043,9 +3046,16 @@ public:
     }
     virtual void visit(const pt::FunctionDeclaration *node) {
         UninitialisedFinder uf;
+        for (auto a: node->args) {
+            if (a->mode == pt::FunctionParameter::OUT) {
+                uf.variables.back()[a->name.text] = std::make_pair(a->name, false);
+                uf.out_parameters.push_back(a->name.text);
+            }
+        }
         for (auto s: node->body) {
             s->accept(&uf);
         }
+        uf.check_out_parameters(node->end_function);
     }
     virtual void visit(const pt::ExternalFunctionDeclaration *) {}
     virtual void visit(const pt::NativeFunctionDeclaration *) {}
@@ -3078,7 +3088,7 @@ public:
                     rwc->high_expr->accept(this);
                 }
             }
-            UninitialisedFinder uf;
+            UninitialisedFinder uf(this);
             for (auto s: c.second) {
                 s->accept(&uf);
             }
@@ -3093,7 +3103,11 @@ public:
             mark_assigned(a);
         }
     }
-    virtual void visit(const pt::ExitStatement *) {}
+    virtual void visit(const pt::ExitStatement *node) {
+        if (node->type == FUNCTION) {
+            check_out_parameters(node->token);
+        }
+    }
     virtual void visit(const pt::ExpressionStatement *node) { node->expr->accept(this); }
     virtual void visit(const pt::ForStatement *node) {
         node->start->accept(this);
@@ -3120,7 +3134,7 @@ public:
         bool first = true;
         for (auto x: node->condition_statements) {
             x.first->accept(this);
-            UninitialisedFinder uf;
+            UninitialisedFinder uf(this);
             for (auto s: x.second) {
                 s->accept(&uf);
             }
@@ -3131,7 +3145,7 @@ public:
                 intersect(assigned, uf.assigned);
             }
         }
-        UninitialisedFinder uf;
+        UninitialisedFinder uf(this);
         for (auto s: node->else_statements) {
             s->accept(&uf);
         }
@@ -3161,6 +3175,7 @@ public:
     }
     virtual void visit(const pt::ReturnStatement *node) {
         node->expr->accept(this);
+        check_out_parameters(node->token);
     }
     virtual void visit(const pt::TryStatement *node) {
         variables.push_back(std::map<std::string, std::pair<Token, bool>>());
@@ -3185,6 +3200,8 @@ public:
 private:
     std::list<std::map<std::string, std::pair<Token, bool>>> variables;
     std::set<std::string> assigned;
+    std::vector<std::string> out_parameters;
+    const UninitialisedFinder *outer_scope;
 
     void mark_assigned(const std::string &name) {
         for (auto v = variables.rbegin(); v != variables.rend(); ++v) {
@@ -3195,6 +3212,32 @@ private:
             }
         }
         assigned.insert(name);
+    }
+
+    void check_out_parameters(const Token &token)
+    {
+        const UninitialisedFinder *top_finder = this;
+        while (top_finder->outer_scope != nullptr) {
+            top_finder = top_finder->outer_scope;
+        }
+        for (auto p: top_finder->out_parameters) {
+            for (const UninitialisedFinder *uf = this; uf != nullptr; uf = uf->outer_scope) {
+                if (uf->assigned.find(p) != uf->assigned.end()) {
+                    break;
+                }
+                for (auto v = uf->variables.rbegin(); v != uf->variables.rend(); ++v) {
+                    auto i = v->find(p);
+                    if (i != v->end()) {
+                        if (i->second.second) {
+                            uf = nullptr;
+                            break;
+                        } else {
+                            error2(3191, token, "Uninitialised OUT parameter: " + p, i->second.first, "Variable declared here");
+                        }
+                    }
+                }
+            }
+        }
     }
 
     template <typename T> void intersect(std::set<T> &lhs, const std::set<T> &rhs) {
@@ -3208,6 +3251,10 @@ private:
             }
         }
     }
+
+private:
+    UninitialisedFinder(const UninitialisedFinder &);
+    UninitialisedFinder &operator=(const UninitialisedFinder &);
 };
 
 const Program *analyze(ICompilerSupport *support, const pt::Program *program)

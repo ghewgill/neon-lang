@@ -8,11 +8,13 @@ FUNCTION inout(INOUT x: Number)
 END FUNCTION
 
 FUNCTION out(OUT x: Number)
+    x := 0
     print(str(x))
     x := x + 1
 END FUNCTION
 
 FUNCTION outf(OUT x: Number): String
+    x := 0
     print(str(x))
     RETURN "foo"
 END FUNCTION
