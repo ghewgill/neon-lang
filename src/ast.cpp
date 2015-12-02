@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string.h>
 
+#include "intrinsic.h"
 #include "rtl_compile.h"
 
 #include "exceptions.inc"
@@ -489,6 +490,62 @@ std::string FunctionCall::text() const
     }
     s << "])";
     return s.str();
+}
+
+Number FunctionCall::eval_number() const
+{
+    const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
+    const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
+    if (f->name == "ord") return rtl::global$ord(args[0]->eval_string());
+    if (f->name == "int") return rtl::global$int(args[0]->eval_number());
+    if (f->name == "max") return rtl::global$max(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "min") return rtl::global$min(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "num") return rtl::global$num(args[0]->eval_string());
+    internal_error("unexpected intrinsic");
+}
+
+std::string FunctionCall::eval_string() const
+{
+    const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
+    const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
+    if (f->name == "chr") return rtl::global$chr(args[0]->eval_number());
+    if (f->name == "concat") return rtl::global$concat(args[0]->eval_string(), args[1]->eval_string());
+    if (f->name == "format") return rtl::global$format(args[0]->eval_string(), args[1]->eval_string());
+    if (f->name == "str") return rtl::global$str(args[0]->eval_number());
+    if (f->name == "strb") return rtl::global$strb(args[0]->eval_boolean());
+    if (f->name == "substring") return rtl::global$substring(args[0]->eval_string(), args[1]->eval_number(), args[2]->eval_number());
+    internal_error("unexpected intrinsic");
+}
+
+bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const Expression *> &args)
+{
+    for (auto a: args) {
+        if (not a->is_constant) {
+            return false;
+        }
+    }
+    const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
+    if (ve == nullptr) {
+        return false;
+    }
+    const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
+    if (f == nullptr) {
+        return false;
+    }
+    if (f->name == "chr"
+     || f->name == "concat"
+     || f->name == "format"
+     || f->name == "int"
+     || f->name == "max"
+     || f->name == "min"
+     || f->name == "num"
+     || f->name == "ord"
+     || f->name == "str"
+     || f->name == "strb"
+     || f->name == "substring") {
+        return true;
+    }
+    return false;
 }
 
 void CompoundStatement::dumpsubnodes(std::ostream &out, int depth) const

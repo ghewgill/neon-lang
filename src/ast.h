@@ -1490,14 +1490,14 @@ private:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const Expression *func, const std::vector<const Expression *> &args): Expression(get_expr_type(func), false), func(func), args(args) {}
+    FunctionCall(const Expression *func, const std::vector<const Expression *> &args): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), args(args) {}
 
     const Expression *const func;
     const std::vector<const Expression *> args;
 
     virtual bool eval_boolean() const override { internal_error("FunctionCall"); }
-    virtual Number eval_number() const override { internal_error("FunctionCall"); }
-    virtual std::string eval_string() const override { internal_error("FunctionCall"); }
+    virtual Number eval_number() const override;
+    virtual std::string eval_string() const override;
     virtual void generate_expr(Emitter &emitter) const override;
     void generate_parameters(Emitter &emitter) const;
     bool all_in_parameters() const;
@@ -1518,6 +1518,8 @@ private:
         }
         internal_error("not function or functionpointer");
     }
+
+    static bool is_intrinsic(const Expression *func, const std::vector<const Expression *> &args);
 };
 
 class StatementExpression: public Expression {
