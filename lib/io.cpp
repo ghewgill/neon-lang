@@ -92,7 +92,7 @@ void io$seek(void *pf, Number offset, Cell &whence)
     switch (number_to_uint32(whence.number())) {
         case ENUM_SeekBase_absolute: w = SEEK_SET; break;
         case ENUM_SeekBase_relative: w = SEEK_CUR; break;
-        case ENUM_SeekBase_from_end: w = SEEK_END; break;
+        case ENUM_SeekBase_fromEnd:  w = SEEK_END; break;
         default:
             return;
     }

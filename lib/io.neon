@@ -30,12 +30,12 @@ END ENUM
  |  Values:
  |      absolute - set absolute position
  |      relative - set position relative to current
- |      from_end - set position relative to end
+ |      fromEnd - set position relative to end
  |%
 TYPE SeekBase IS ENUM
     absolute
     relative
-    from_end
+    fromEnd
 END ENUM
 
 %|
