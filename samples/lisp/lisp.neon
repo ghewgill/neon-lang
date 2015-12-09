@@ -13,7 +13,6 @@ IMPORT io
 IMPORT math
 IMPORT regex
 IMPORT sys
-IMPORT time
 
 DECLARE EXCEPTION ParseEndOfInput
 DECLARE EXCEPTION SyntaxError

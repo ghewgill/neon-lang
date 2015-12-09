@@ -1,5 +1,5 @@
 IMPORT http
-IMPORT io
+%IMPORT io
 IMPORT json
 IMPORT os
 IMPORT time

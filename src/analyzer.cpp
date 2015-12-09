@@ -3260,7 +3260,18 @@ private:
 const Program *analyze(ICompilerSupport *support, const pt::Program *program)
 {
     const Program *r = Analyzer(support, program).analyze();
+
+    // Find uninitalised variables.
     UninitialisedFinder uf;
     program->accept(&uf);
+
+    // Find unused imports.
+    for (size_t i = 0; i < r->frame->getCount(); i++) {
+        Frame::Slot s = r->frame->getSlot(i);
+        if (dynamic_cast<Module *>(s.ref) != nullptr && not s.referenced) {
+            error(3192, s.token, "Unused import");
+        }
+    }
+
     return r;
 }

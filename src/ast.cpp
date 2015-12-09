@@ -590,13 +590,15 @@ bool Scope::allocateName(const Token &token, const std::string &name)
     return true;
 }
 
-Name *Scope::lookupName(const std::string &name)
+Name *Scope::lookupName(const std::string &name, bool mark_referenced)
 {
     Scope *s = this;
     while (s != nullptr) {
         auto n = s->names.find(name);
         if (n != s->names.end()) {
-            s->frame->setReferenced(n->second);
+            if (mark_referenced) {
+                s->frame->setReferenced(n->second);
+            }
             return s->frame->getSlot(n->second).ref;
         }
         s = s->parent;
@@ -619,7 +621,7 @@ Token Scope::getDeclaration(const std::string &name) const
 
 void Scope::addName(const Token &token, const std::string &name, Name *ref, bool init_referenced, bool allow_shadow)
 {
-    if (not allow_shadow and lookupName(name) != nullptr) {
+    if (not allow_shadow and lookupName(name, false) != nullptr) {
         // If this error occurs, it means a new name was introduced
         // but no check was made with lookupName() to see whether the
         // name already exists yet. This error needs to be detected

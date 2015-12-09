@@ -14,7 +14,6 @@ IMPORT curses
 IMPORT math
 IMPORT multiarray
 IMPORT random
-IMPORT runtime
 
 %|
  |  The dlx_* functions are an implementation of Knuth's "Dancing Links"
@@ -190,7 +189,6 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
         FOR j := 0 TO matrix[i].size()-1 DO
             IF VALID columns[j] AS c THEN
                 IF matrix[i][j] THEN
-                    %print(str(runtime.get_allocated_object_count()))
                     LET node: POINTER TO Node := NEW Node
                     node->row := i
                     node->column := c

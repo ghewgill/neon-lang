@@ -90,7 +90,7 @@ public:
     virtual ~Scope() {}
 
     bool allocateName(const Token &token, const std::string &name);
-    Name *lookupName(const std::string &name);
+    Name *lookupName(const std::string &name, bool mark_referenced = true);
     Token getDeclaration(const std::string &name) const;
     void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false, bool allow_shadow = false);
     void addForward(const std::string &name, TypePointer *ptrtype);
