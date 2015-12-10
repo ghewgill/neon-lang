@@ -41,8 +41,8 @@ Bytecode::Bytecode(const std::vector<unsigned char> &obj)
     global_size = (obj[i] << 8 | obj[i+1]);
     i += 2;
 
-    unsigned int strtablesize = (obj[i] << 8) | obj[i+1];
-    i += 2;
+    unsigned int strtablesize = (obj[i] << 24) | (obj[i+1] << 16) | (obj[i+2] << 8) | obj[i+3];
+    i += 4;
     strtable = getstrtable(&obj[i], &obj[i] + strtablesize);
     i += strtablesize;
 
@@ -175,6 +175,8 @@ Bytecode::Bytes Bytecode::getBytes() const
         t.push_back(static_cast<unsigned char>(s.length() & 0xff));
         std::copy(s.begin(), s.end(), std::back_inserter(t));
     }
+    obj.push_back(static_cast<unsigned char>(t.size() >> 24) & 0xff);
+    obj.push_back(static_cast<unsigned char>(t.size() >> 16) & 0xff);
     obj.push_back(static_cast<unsigned char>(t.size() >> 8) & 0xff);
     obj.push_back(static_cast<unsigned char>(t.size() & 0xff));
     std::copy(t.begin(), t.end(), std::back_inserter(obj));
