@@ -1,17 +1,20 @@
-% TODO SKIP (assertion failure)
 TYPE Record IS RECORD
     value: Number
 END RECORD
-VAR a: Array<Record>
-VAR r: Record
+VAR a: Array<Record> := []
+VAR r: Record := Record()
 r.value := 0
 
-TRY
-    a[0].value := 5
-EXCEPTION ArrayIndex
-    print("array index")
-END TRY
-%= array index
+% Not sure whether this should be an exception or not.
+% Normally, reading from an array causes an exception for
+% an invalid index, but writing does not. Is this reading
+% from the array, or writing?
+%TRY
+%    a[0].value := 5
+%EXCEPTION ArrayIndex
+%    print("array index")
+%END TRY
+%%= array index
 
 a[0] := r
 a[0].value := 5

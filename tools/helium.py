@@ -1,6 +1,7 @@
 from __future__ import division, print_function
 
 import codecs
+import copy
 import math
 import os
 import re
@@ -754,7 +755,7 @@ class AssignmentStatement:
     def declare(self, env):
         pass
     def run(self, env):
-        self.var.set(env, self.rhs.eval(env))
+        self.var.set(env, self.rhs.eval(copy.deepcopy(env)))
 
 class CaseStatement:
     class ComparisonWhenCondition:
