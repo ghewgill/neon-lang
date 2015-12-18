@@ -1899,6 +1899,8 @@ class Environment:
             e = e.parent
         assert False, name
     def get_value(self, name):
+        if name == "_":
+            return None
         e = self
         while e is not None:
             if name in e.names:

@@ -173,6 +173,6 @@ CompoundExpressionTail =
     ('.', Identifier) |
     ('->', Identifier);
 
-FunctionArgument = ['IN' | 'INOUT' | 'OUT'], (Expression | (Identifier, 'AS', Expression));
+FunctionArgument = ['IN' | 'INOUT' | 'OUT'], ((Expression | '_') | (Identifier, 'AS', (Expression | '_')));
 
 ArrayIndexExpression = Expression | (Expression, 'TO', Expression);

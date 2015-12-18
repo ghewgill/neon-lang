@@ -1307,7 +1307,14 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 error(3147, a.name, "parameter already specified");
             }
         }
-        if (ftype->params[p]->mode != ParameterType::IN) {
+        if (dynamic_cast<const DummyExpression *>(e) != nullptr && a.mode.type != OUT) {
+            error2(3193, a.expr->token, "Underscore can only be used with OUT parameter", ftype->params[p]->declaration, "function argument here");
+        }
+        if (ftype->params[p]->mode == ParameterType::IN) {
+            if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
+                error2(3019, a.expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
+            }
+        } else {
             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
             if (ref == nullptr) {
                 error2(3018, a.expr->token, "function call argument must be reference", ftype->params[p]->declaration, "function argument here");
@@ -1315,9 +1322,9 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (ref->is_readonly) {
                 error(3106, a.expr->token, "readonly parameter to OUT");
             }
-        }
-        if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
-            error2(3019, a.expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
+            if (not e->type->is_assignment_compatible(ftype->params[p]->type)) {
+                error2(3194, a.expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
+            }
         }
         if (ftype->params[p]->mode == ParameterType::OUT && a.mode.type != OUT) {
             error(3184, a.expr->token, "OUT keyword required");

@@ -323,7 +323,13 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
                 name = tokens[i];
                 i += 2;
             }
-            const Expression *e = parseExpression();
+            const Expression *e = nullptr;
+            if (tokens[i].type == UNDERSCORE) {
+                e = new DummyExpression(tokens[i], tokens[i].column, tokens[i].column);
+                ++i;
+            } else {
+                e = parseExpression();
+            }
             args.push_back(FunctionCallExpression::Argument(mode, name, e));
             if (tokens[i].type != COMMA) {
                 break;

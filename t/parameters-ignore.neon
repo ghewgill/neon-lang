@@ -1,6 +1,6 @@
-% TODO
 FUNCTION f(OUT x: Number)
+    x := 0
 END FUNCTION
 
-f(OUT zzz)
-f(OUT x AS zzz)
+f(OUT _)
+f(OUT x AS _)
