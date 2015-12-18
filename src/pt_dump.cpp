@@ -36,6 +36,9 @@ public:
         write("TypeImport(" + node->modname.text + "." + node->subname.text + ")");
     }
 
+    virtual void visit(const DummyExpression *) override {
+        write("DummyExpression");
+    }
     virtual void visit(const IdentityExpression *node) override {
         write("IdentityExpression");
         child(node->expr);

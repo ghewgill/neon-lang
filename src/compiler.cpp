@@ -1137,6 +1137,11 @@ void ReferenceExpression::generate_store(Emitter &emitter) const
     type->generate_store(emitter);
 }
 
+void DummyExpression::generate_store(Emitter &emitter) const
+{
+    emitter.emit(DROP);
+}
+
 void ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
     array->generate_address_read(emitter);

@@ -102,6 +102,7 @@ enum TokenType {
     HEXBYTES,
     INC,
     DEC,
+    UNDERSCORE,
     MAX_TOKEN
 };
 

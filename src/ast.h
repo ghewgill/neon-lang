@@ -159,6 +159,23 @@ public:
 
 extern TypeNothing *TYPE_NOTHING;
 
+class TypeDummy: public Type {
+public:
+    TypeDummy(): Type(Token(), "Dummy") {}
+    virtual bool is_assignment_compatible(const Type *) const override { return true; }
+    virtual void generate_load(Emitter &) const override { internal_error("TypeDummy"); }
+    virtual void generate_store(Emitter &) const override { internal_error("TypeDummy"); }
+    virtual void generate_call(Emitter &) const override { internal_error("TypeDummy"); }
+    virtual std::string get_type_descriptor(Emitter &) const override { internal_error("TypeDummy"); }
+    virtual std::string serialize(const Expression *) const override { internal_error("TypeDummy"); }
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeDummy"); }
+    virtual void debuginfo(Emitter &, minijson::object_writer &) const override { internal_error("TypeDummy"); }
+
+    virtual std::string text() const override { return "TypeNothing"; }
+};
+
+extern TypeDummy *TYPE_DUMMY;
+
 class TypeBoolean: public Type {
 public:
     TypeBoolean(): Type(Token(), "Boolean") {}
@@ -1203,6 +1220,21 @@ public:
 private:
     ReferenceExpression(const ReferenceExpression &);
     ReferenceExpression &operator=(const ReferenceExpression &);
+};
+
+class DummyExpression: public ReferenceExpression {
+public:
+    DummyExpression(): ReferenceExpression(TYPE_DUMMY, false) {}
+
+    virtual bool eval_boolean() const override { internal_error("DummyExpression"); }
+    virtual Number eval_number() const override { internal_error("DummyExpression"); }
+    virtual std::string eval_string() const override { internal_error("DummyExpression"); }
+    virtual void generate_address_read(Emitter &) const override { internal_error("DummyExpression"); }
+    virtual void generate_address_write(Emitter &) const override { internal_error("DummyExpression"); }
+    virtual void generate_load(Emitter &) const override { internal_error("DummyExpression"); }
+    virtual void generate_store(Emitter &) const override;
+
+    virtual std::string text() const override { return "DummyExpression"; }
 };
 
 class ArrayReferenceIndexExpression: public ReferenceExpression {

@@ -134,7 +134,7 @@ INC = Keyword("INC")
 DEC = Keyword("DEC")
 
 def identifier_start(c):
-    return c.isalpha()
+    return c.isalpha() or c == "_"
 
 def identifier_body(c):
     return c.isalnum() or c == "_"
@@ -1908,6 +1908,8 @@ class Environment:
     def module(self):
         return self.parent.module() if self.parent else self.module_name
     def set(self, name, value):
+        if name == "_":
+            return
         e = self
         while e is not None:
             if name in e.names:

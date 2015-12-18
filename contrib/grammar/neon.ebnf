@@ -95,7 +95,7 @@ MainBlock = 'BEGIN', 'MAIN', {Statement}, 'END', 'MAIN';
 
 AssertStatement = 'ASSERT', Expression, {',', Expression};
 
-AssignmentStatement = CompoundExpression, ':=', Expression;
+AssignmentStatement = (CompoundExpression | '_'), ':=', Expression;
 
 CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['ELSE', {Statement}], 'END', 'CASE';
 

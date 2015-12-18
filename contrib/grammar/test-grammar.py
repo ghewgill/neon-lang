@@ -47,4 +47,5 @@ for fn in reduce(lambda x, y: x + y, [glob.glob(x) for x in sys.argv[1:]]):
         if fn in KnownParseFailures:
             print "Known failure:", e
         else:
+            print >>sys.stderr, "Failure parsing:", fn
             raise

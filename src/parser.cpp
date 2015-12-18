@@ -1683,6 +1683,18 @@ const Statement *Parser::parseStatement()
         } else {
             return new ExpressionStatement(start, expr);
         }
+    } else if (tokens[i].type == UNDERSCORE) {
+        auto &tok_underscore = tokens[i];
+        ++i;
+        if (tokens[i].type != ASSIGN) {
+            error(2097, tokens[i], ":= expected");
+        }
+        auto &tok_assign = tokens[i];
+        ++i;
+        const Expression *rhs = parseExpression();
+        std::vector<const Expression *> vars;
+        vars.push_back(new DummyExpression(tok_underscore, tok_underscore.column, tok_underscore.column));
+        return new AssignmentStatement(tok_assign, vars, rhs);
     } else {
         error(2033, tokens[i], "Identifier expected");
     }

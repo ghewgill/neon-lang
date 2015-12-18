@@ -11,6 +11,7 @@
 #include "exceptions.inc"
 
 TypeNothing *TYPE_NOTHING = new TypeNothing();
+TypeDummy *TYPE_DUMMY = new TypeDummy();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber(Token());
 TypeString *TYPE_STRING = new TypeString();

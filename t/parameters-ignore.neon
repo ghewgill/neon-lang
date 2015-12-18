@@ -1,0 +1,6 @@
+% TODO
+FUNCTION f(OUT x: Number)
+END FUNCTION
+
+f(OUT zzz)
+f(OUT x AS zzz)

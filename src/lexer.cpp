@@ -110,6 +110,7 @@ std::string Token::tostring() const
         case HEXBYTES:    s << "HEXBYTES"; break;
         case INC:         s << "INC"; break;
         case DEC:         s << "DEC"; break;
+        case UNDERSCORE:  s << "_"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -118,7 +119,7 @@ std::string Token::tostring() const
 
 inline bool identifier_start(uint32_t c)
 {
-    return c < 256 && isalpha(c);
+    return c < 256 && (isalpha(c) || c == '_');
 }
 
 inline bool identifier_body(uint32_t c)
@@ -308,10 +309,13 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
             else if (t.text == "HEXBYTES") t.type = HEXBYTES;
             else if (t.text == "INC") t.type = INC;
             else if (t.text == "DEC") t.type = DEC;
+            else if (t.text == "_") t.type = UNDERSCORE;
             else if (all_upper(t.text)) {
                 error(1023, t, "identifier cannot be all upper case (reserved for keywords)");
             } else if (t.text.find("__") != std::string::npos) {
                 error(1024, t, "identifier cannot contain double underscore (reserved)");
+            } else if (t.text.length() >= 2 && t.text[0] == '_') {
+                error(1025, t, "identifier cannot start with underscore");
             }
         } else if (number_start(c)) {
             t.type = NUMBER;

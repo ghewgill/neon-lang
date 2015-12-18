@@ -17,6 +17,7 @@ class TypeFunctionPointer;
 class TypeParameterised;
 class TypeImport;
 
+class DummyExpression;
 class IdentityExpression;
 class BooleanLiteralExpression;
 class NumberLiteralExpression;
@@ -95,6 +96,7 @@ public:
     virtual void visit(const TypeParameterised *) = 0;
     virtual void visit(const TypeImport *) = 0;
 
+    virtual void visit(const DummyExpression *) = 0;
     virtual void visit(const IdentityExpression *) = 0;
     virtual void visit(const BooleanLiteralExpression *) = 0;
     virtual void visit(const NumberLiteralExpression *) = 0;
@@ -264,6 +266,12 @@ public:
 private:
     size_t start_column;
     size_t end_column;
+};
+
+class DummyExpression: public Expression {
+public:
+    DummyExpression(const Token &token, size_t start_column, size_t end_column): Expression(token, start_column, end_column) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class IdentityExpression: public Expression {

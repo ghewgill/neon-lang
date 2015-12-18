@@ -42,6 +42,7 @@ public:
     const Type *analyze(const pt::TypeParameterised *type, const std::string &name);
     const Type *analyze(const pt::TypeImport *type, const std::string &name);
     const Expression *analyze(const pt::Expression *expr);
+    const Expression *analyze(const pt::DummyExpression *expr);
     const Expression *analyze(const pt::IdentityExpression *expr);
     const Expression *analyze(const pt::BooleanLiteralExpression *expr);
     const Expression *analyze(const pt::NumberLiteralExpression *expr);
@@ -130,6 +131,7 @@ public:
     virtual void visit(const pt::TypeFunctionPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -211,6 +213,7 @@ public:
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::DummyExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::IdentityExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::BooleanLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NumberLiteralExpression *p) override { expr = a->analyze(p); }
@@ -291,6 +294,7 @@ public:
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -371,6 +375,7 @@ public:
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::DummyExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentityExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BooleanLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NumberLiteralExpression *) override { internal_error("pt::Expression"); }
@@ -855,6 +860,11 @@ const Expression *Analyzer::analyze(const pt::Expression *expr)
     ExpressionAnalyzer ea(this);
     expr->accept(&ea);
     return ea.expr;
+}
+
+const Expression *Analyzer::analyze(const pt::DummyExpression *)
+{
+    return new DummyExpression();
 }
 
 const Expression *Analyzer::analyze(const pt::IdentityExpression *expr)
@@ -2975,6 +2985,7 @@ public:
     virtual void visit(const pt::TypeParameterised *) {}
     virtual void visit(const pt::TypeImport *) {}
 
+    virtual void visit(const pt::DummyExpression *) {}
     virtual void visit(const pt::IdentityExpression *node) { node->expr->accept(this); }
     virtual void visit(const pt::BooleanLiteralExpression *) {}
     virtual void visit(const pt::NumberLiteralExpression *) {}
