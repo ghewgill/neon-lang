@@ -25,9 +25,14 @@ bool regex$search(const std::string &pattern, const std::string &subject, Cell *
     PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(md);
     for (uint32_t i = 0; i < n*2; i += 2) {
         std::vector<Cell> g;
-        g.push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i]))));
-        g.push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i+1]))));
-        g.push_back(Cell(subject.substr(ovector[i], ovector[i+1]-ovector[i])));
+        if (ovector[i] != PCRE2_UNSET) {
+            g.push_back(Cell(true));
+            g.push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i]))));
+            g.push_back(Cell(number_from_uint32(static_cast<uint32_t>(ovector[i+1]))));
+            g.push_back(Cell(subject.substr(ovector[i], ovector[i+1]-ovector[i])));
+        } else {
+            g.push_back(Cell(false));
+        }
         matches.push_back(Cell(g));
     }
     pcre2_match_data_free(md);

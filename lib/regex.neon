@@ -17,6 +17,7 @@ EXPORT Match
  |      group - text of group
  |%
 TYPE Group IS RECORD
+    matched: Boolean
     start: Number
     end: Number
     group: String
