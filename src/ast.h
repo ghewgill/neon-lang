@@ -20,10 +20,108 @@ class Analyzer;
 // Compiler
 class Emitter;
 
+class IAstVisitor {
+public:
+    virtual ~IAstVisitor();
+    virtual void visit(const class TypeNothing *node) = 0;
+    virtual void visit(const class TypeDummy *node) = 0;
+    virtual void visit(const class TypeBoolean *node) = 0;
+    virtual void visit(const class TypeNumber *node) = 0;
+    virtual void visit(const class TypeString *node) = 0;
+    virtual void visit(const class TypeBytes *node) = 0;
+    virtual void visit(const class TypeFunction *node) = 0;
+    virtual void visit(const class TypeArray *node) = 0;
+    virtual void visit(const class TypeDictionary *node) = 0;
+    virtual void visit(const class TypeRecord *node) = 0;
+    virtual void visit(const class TypePointer *node) = 0;
+    virtual void visit(const class TypeFunctionPointer *node) = 0;
+    virtual void visit(const class TypeEnum *node) = 0;
+    virtual void visit(const class TypeModule *node) = 0;
+    virtual void visit(const class TypeException *node) = 0;
+    virtual void visit(const class PredefinedVariable *node) = 0;
+    virtual void visit(const class ModuleVariable *node) = 0;
+    virtual void visit(const class GlobalVariable *node) = 0;
+    virtual void visit(const class LocalVariable *node) = 0;
+    virtual void visit(const class FunctionParameter *node) = 0;
+    virtual void visit(const class Exception *node) = 0;
+    virtual void visit(const class Constant *node) = 0;
+    virtual void visit(const class ConstantBooleanExpression *node) = 0;
+    virtual void visit(const class ConstantNumberExpression *node) = 0;
+    virtual void visit(const class ConstantStringExpression *node) = 0;
+    virtual void visit(const class ConstantBytesExpression *node) = 0;
+    virtual void visit(const class ConstantEnumExpression *node) = 0;
+    virtual void visit(const class ConstantNilExpression *node) = 0;
+    virtual void visit(const class ArrayLiteralExpression *node) = 0;
+    virtual void visit(const class DictionaryLiteralExpression *node) = 0;
+    virtual void visit(const class RecordLiteralExpression *node) = 0;
+    virtual void visit(const class NewRecordExpression *node) = 0;
+    virtual void visit(const class UnaryMinusExpression *node) = 0;
+    virtual void visit(const class LogicalNotExpression *node) = 0;
+    virtual void visit(const class ConditionalExpression *node) = 0;
+    virtual void visit(const class DisjunctionExpression *node) = 0;
+    virtual void visit(const class ConjunctionExpression *node) = 0;
+    virtual void visit(const class ArrayInExpression *node) = 0;
+    virtual void visit(const class DictionaryInExpression *node) = 0;
+    virtual void visit(const class ChainedComparisonExpression *node) = 0;
+    virtual void visit(const class BooleanComparisonExpression *node) = 0;
+    virtual void visit(const class NumericComparisonExpression *node) = 0;
+    virtual void visit(const class StringComparisonExpression *node) = 0;
+    virtual void visit(const class ArrayComparisonExpression *node) = 0;
+    virtual void visit(const class DictionaryComparisonExpression *node) = 0;
+    virtual void visit(const class PointerComparisonExpression *node) = 0;
+    virtual void visit(const class FunctionPointerComparisonExpression *node) = 0;
+    virtual void visit(const class AdditionExpression *node) = 0;
+    virtual void visit(const class SubtractionExpression *node) = 0;
+    virtual void visit(const class MultiplicationExpression *node) = 0;
+    virtual void visit(const class DivisionExpression *node) = 0;
+    virtual void visit(const class ModuloExpression *node) = 0;
+    virtual void visit(const class ExponentiationExpression *node) = 0;
+    virtual void visit(const class DummyExpression *node) = 0;
+    virtual void visit(const class ArrayReferenceIndexExpression *node) = 0;
+    virtual void visit(const class ArrayValueIndexExpression *node) = 0;
+    virtual void visit(const class DictionaryReferenceIndexExpression *node) = 0;
+    virtual void visit(const class DictionaryValueIndexExpression *node) = 0;
+    virtual void visit(const class StringReferenceIndexExpression *node) = 0;
+    virtual void visit(const class StringValueIndexExpression *node) = 0;
+    virtual void visit(const class BytesReferenceIndexExpression *node) = 0;
+    virtual void visit(const class BytesValueIndexExpression *node) = 0;
+    virtual void visit(const class ArrayReferenceRangeExpression *node) = 0;
+    virtual void visit(const class ArrayValueRangeExpression *node) = 0;
+    virtual void visit(const class PointerDereferenceExpression *node) = 0;
+    virtual void visit(const class ConstantExpression *node) = 0;
+    virtual void visit(const class VariableExpression *node) = 0;
+    virtual void visit(const class FunctionCall *node) = 0;
+    virtual void visit(const class StatementExpression *node) = 0;
+    virtual void visit(const class NullStatement *node) = 0;
+    virtual void visit(const class AssertStatement *node) = 0;
+    virtual void visit(const class AssignmentStatement *node) = 0;
+    virtual void visit(const class ExpressionStatement *node) = 0;
+    virtual void visit(const class ReturnStatement *node) = 0;
+    virtual void visit(const class IncrementStatement *node) = 0;
+    virtual void visit(const class IfStatement *node) = 0;
+    virtual void visit(const class WhileStatement *node) = 0;
+    virtual void visit(const class ForStatement *node) = 0;
+    virtual void visit(const class ForeachStatement *node) = 0;
+    virtual void visit(const class LoopStatement *node) = 0;
+    virtual void visit(const class RepeatStatement *node) = 0;
+    virtual void visit(const class CaseStatement *node) = 0;
+    virtual void visit(const class ExitStatement *node) = 0;
+    virtual void visit(const class NextStatement *node) = 0;
+    virtual void visit(const class TryStatement *node) = 0;
+    virtual void visit(const class RaiseStatement *node) = 0;
+    virtual void visit(const class ResetStatement *node) = 0;
+    virtual void visit(const class Function *node) = 0;
+    virtual void visit(const class PredefinedFunction *node) = 0;
+    virtual void visit(const class ModuleFunction *node) = 0;
+    virtual void visit(const class Module *node) = 0;
+    virtual void visit(const class Program *node) = 0;
+};
+
 class AstNode {
 public:
     AstNode() {}
     virtual ~AstNode() {}
+    virtual void accept(IAstVisitor *visitor) const = 0;
     void dump(std::ostream &out, int depth = 0) const;
     virtual std::string text() const = 0;
     virtual void dumpsubnodes(std::ostream &/*out*/, int /*depth*/) const {}
@@ -146,6 +244,7 @@ public:
 class TypeNothing: public Type {
 public:
     TypeNothing(): Type(Token(), "Nothing") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_load(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeNothing"); }
@@ -162,6 +261,7 @@ extern TypeNothing *TYPE_NOTHING;
 class TypeDummy: public Type {
 public:
     TypeDummy(): Type(Token(), "Dummy") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual bool is_assignment_compatible(const Type *) const override { return true; }
     virtual void generate_load(Emitter &) const override { internal_error("TypeDummy"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeDummy"); }
@@ -179,6 +279,7 @@ extern TypeDummy *TYPE_DUMMY;
 class TypeBoolean: public Type {
 public:
     TypeBoolean(): Type(Token(), "Boolean") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -196,6 +297,7 @@ class TypeNumber: public Type {
 public:
     TypeNumber(const Token &declaration): Type(declaration, "Number") {}
     TypeNumber(const Token &declaration, const std::string &name): Type(declaration, name) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -212,6 +314,7 @@ extern TypeNumber *TYPE_NUMBER;
 class TypeString: public Type {
 public:
     TypeString(): Type(Token(), "String") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -230,6 +333,7 @@ extern TypeString *TYPE_STRING;
 class TypeBytes: public TypeString {
 public:
     TypeBytes(): TypeString() {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual std::string get_type_descriptor(Emitter &) const override { return "Y"; }
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
@@ -259,6 +363,7 @@ private:
 class TypeFunction: public Type {
 public:
     TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
@@ -282,6 +387,7 @@ private:
 class TypeArray: public Type {
 public:
     TypeArray(const Token &declaration, const Type *elementtype);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Type *elementtype;
 
     virtual void predeclare(Emitter &emitter) const override;
@@ -307,6 +413,7 @@ extern TypeArray *TYPE_ARRAY_STRING;
 class TypeDictionary: public Type {
 public:
     TypeDictionary(const Token &declaration, const Type *elementtype);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Type *elementtype;
 
     virtual void predeclare(Emitter &emitter) const override;
@@ -345,6 +452,7 @@ public:
         bool is_private;
     };
     TypeRecord(const Token &declaration, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)), predeclared(false), postdeclared(false) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
@@ -383,6 +491,7 @@ public:
 class TypePointer: public Type {
 public:
     TypePointer(const Token &declaration, const TypeRecord *reftype);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const TypeRecord *reftype;
 
@@ -415,6 +524,7 @@ public:
 class TypeFunctionPointer: public Type {
 public:
     TypeFunctionPointer(const Token &declaration, const TypeFunction *functype);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const TypeFunction *functype;
 
@@ -437,6 +547,7 @@ private:
 class TypeEnum: public TypeNumber {
 public:
     TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::map<std::string, int> names;
 
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
@@ -448,6 +559,7 @@ public:
 class TypeModule: public Type {
 public:
     TypeModule(): Type(Token(), "module") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void generate_load(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeModule"); }
@@ -465,6 +577,7 @@ extern TypeModule *TYPE_MODULE;
 class TypeException: public Type {
 public:
     TypeException(): Type(Token(), "Exception") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void generate_load(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeException"); }
@@ -497,6 +610,7 @@ public:
 class PredefinedVariable: public Variable {
 public:
     PredefinedVariable(const std::string &name, const Type *type): Variable(Token(), name, type, true) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void generate_address(Emitter &emitter, int enclosing) const override;
 
@@ -506,6 +620,7 @@ public:
 class ModuleVariable: public Variable {
 public:
     ModuleVariable(const std::string &module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, false), module(module), index(index) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
     const int index;
 
@@ -518,6 +633,7 @@ public:
 class GlobalVariable: public Variable {
 public:
     GlobalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     mutable int index;
 
     virtual void predeclare(Emitter &emitter) const override;
@@ -530,6 +646,7 @@ public:
 class LocalVariable: public Variable {
 public:
     LocalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     int index;
 
     virtual void predeclare(Emitter &) const override { internal_error("LocalVariable"); }
@@ -545,6 +662,7 @@ private:
 class FunctionParameter: public LocalVariable {
 public:
     FunctionParameter(const Token &declaration, const std::string &name, const Type *type, ParameterType::Mode mode, const Expression *default_value): LocalVariable(declaration, name, type, mode == ParameterType::IN), mode(mode), default_value(default_value) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     ParameterType::Mode mode;
     const Expression *default_value;
 
@@ -559,6 +677,7 @@ private:
 class Exception: public Name {
 public:
     Exception(const Token &declaration, const std::string &name): Name(declaration, name, TYPE_EXCEPTION) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "Exception(" + name + ")"; }
@@ -589,6 +708,7 @@ private:
 class Constant: public Name {
 public:
     Constant(const Token &declaration, const std::string &name, const Expression *value): Name(declaration, name, value->type), value(value) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *value;
 
@@ -603,6 +723,7 @@ private:
 class ConstantBooleanExpression: public Expression {
 public:
     ConstantBooleanExpression(bool value): Expression(TYPE_BOOLEAN, true), value(value) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const bool value;
 
@@ -617,6 +738,7 @@ public:
 class ConstantNumberExpression: public Expression {
 public:
     ConstantNumberExpression(Number value): Expression(TYPE_NUMBER, true), value(value) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Number value;
 
@@ -631,6 +753,7 @@ public:
 class ConstantStringExpression: public Expression {
 public:
     ConstantStringExpression(const std::string &value): Expression(TYPE_STRING, true), value(value) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string value;
 
@@ -645,6 +768,7 @@ public:
 class ConstantBytesExpression: public Expression {
 public:
     ConstantBytesExpression(const std::string &name, const std::string &contents): Expression(TYPE_BYTES, true), name(name), contents(contents) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string name;
     const std::string contents;
@@ -660,6 +784,7 @@ public:
 class ConstantEnumExpression: public Expression {
 public:
     ConstantEnumExpression(const TypeEnum *type, int value): Expression(type, true), value(value) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const int value;
 
@@ -674,6 +799,7 @@ public:
 class ConstantNilExpression: public Expression {
 public:
     ConstantNilExpression(): Expression(new TypePointerNil(), true) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("ConstantNilExpression"); }
     virtual Number eval_number() const override { internal_error("ConstantNilExpression"); }
@@ -686,6 +812,7 @@ public:
 class ArrayLiteralExpression: public Expression {
 public:
     ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(Token(), elementtype), all_constant(elements)), elementtype(elementtype), elements(elements) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Type *elementtype;
     const std::vector<const Expression *> elements;
@@ -706,6 +833,7 @@ private:
 class DictionaryLiteralExpression: public Expression {
 public:
     DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(Token(), elementtype), all_constant(elements)), elementtype(elementtype), dict(make_dictionary(elements)) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Type *elementtype;
     const std::map<std::string, const Expression *> dict;
@@ -727,6 +855,7 @@ private:
 class RecordLiteralExpression: public Expression {
 public:
     RecordLiteralExpression(const TypeRecord *type, const std::vector<const Expression *> &values): Expression(type, all_constant(values)), values(values) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Expression *> values;
 
@@ -746,6 +875,7 @@ private:
 class NewRecordExpression: public Expression {
 public:
     NewRecordExpression(const TypeRecord *reftype): Expression(new TypePointer(Token(), reftype), false), fields(reftype->fields.size()) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const size_t fields;
 
@@ -767,6 +897,7 @@ public:
             internal_error("UnaryMinusExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const value;
 
@@ -790,6 +921,7 @@ public:
             internal_error("LogicalNotExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const value;
 
@@ -813,6 +945,7 @@ public:
             internal_error("ConditionalExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *condition;
     const Expression *left;
@@ -838,6 +971,7 @@ public:
             internal_error("DisjunctionExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -862,6 +996,7 @@ public:
             internal_error("ConjunctionExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -882,6 +1017,7 @@ private:
 class ArrayInExpression: public Expression {
 public:
     ArrayInExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, false), left(left), right(right) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *left;
     const Expression *right;
@@ -900,6 +1036,7 @@ private:
 class DictionaryInExpression: public Expression {
 public:
     DictionaryInExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, false), left(left), right(right) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *left;
     const Expression *right;
@@ -936,6 +1073,7 @@ private:
 class ChainedComparisonExpression: public Expression {
 public:
     ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(TYPE_BOOLEAN, false), comps(comps) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ComparisonExpression *> comps;
 
@@ -953,6 +1091,7 @@ private:
 class BooleanComparisonExpression: public ComparisonExpression {
 public:
     BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("BooleanComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("BooleanComparisonExpression"); }
@@ -967,6 +1106,7 @@ public:
 class NumericComparisonExpression: public ComparisonExpression {
 public:
     NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("NumericComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("NumericComparisonExpression"); }
@@ -981,6 +1121,7 @@ public:
 class StringComparisonExpression: public ComparisonExpression {
 public:
     StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("StringComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("StringComparisonExpression"); }
@@ -995,6 +1136,7 @@ public:
 class ArrayComparisonExpression: public ComparisonExpression {
 public:
     ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("ArrayComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayComparisonExpression"); }
@@ -1009,6 +1151,7 @@ public:
 class DictionaryComparisonExpression: public ComparisonExpression {
 public:
     DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("DictionaryComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("DictionaryComparisonExpression"); }
@@ -1023,6 +1166,7 @@ public:
 class PointerComparisonExpression: public ComparisonExpression {
 public:
     PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("PointerComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("PointerComparisonExpression"); }
@@ -1053,6 +1197,7 @@ private:
 class FunctionPointerComparisonExpression: public ComparisonExpression {
 public:
     FunctionPointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("FunctionPointerComparisonExpression"); }
     virtual Number eval_number() const override { internal_error("FunctionPointerComparisonExpression"); }
@@ -1071,6 +1216,7 @@ public:
             internal_error("AdditionExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -1095,6 +1241,7 @@ public:
             internal_error("SubtractionExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -1119,6 +1266,7 @@ public:
             internal_error("MultiplicationExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -1143,6 +1291,7 @@ public:
             internal_error("DivisionExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -1167,6 +1316,7 @@ public:
             internal_error("ModuloExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -1191,6 +1341,7 @@ public:
             internal_error("ExponentiationExpression");
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const left;
     const Expression *const right;
@@ -1225,6 +1376,7 @@ private:
 class DummyExpression: public ReferenceExpression {
 public:
     DummyExpression(): ReferenceExpression(TYPE_DUMMY, false) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("DummyExpression"); }
     virtual Number eval_number() const override { internal_error("DummyExpression"); }
@@ -1240,6 +1392,7 @@ public:
 class ArrayReferenceIndexExpression: public ReferenceExpression {
 public:
     ArrayReferenceIndexExpression(const Type *type, const ReferenceExpression *array, const Expression *index, bool always_create): ReferenceExpression(type, array->is_readonly), array(array), index(index), always_create(always_create) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *array;
     const Expression *index;
@@ -1260,6 +1413,7 @@ private:
 class ArrayValueIndexExpression: public Expression {
 public:
     ArrayValueIndexExpression(const Type *type, const Expression *array, const Expression *index, bool always_create): Expression(type, false), array(array), index(index), always_create(always_create) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *array;
     const Expression *index;
@@ -1279,6 +1433,7 @@ private:
 class DictionaryReferenceIndexExpression: public ReferenceExpression {
 public:
     DictionaryReferenceIndexExpression(const Type *type, const ReferenceExpression *dictionary, const Expression *index): ReferenceExpression(type, dictionary->is_readonly), dictionary(dictionary), index(index) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *dictionary;
     const Expression *index;
@@ -1298,6 +1453,7 @@ private:
 class DictionaryValueIndexExpression: public Expression {
 public:
     DictionaryValueIndexExpression(const Type *type, const Expression *dictionary, const Expression *index): Expression(type, false), dictionary(dictionary), index(index) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *dictionary;
     const Expression *index;
@@ -1316,6 +1472,7 @@ private:
 class StringReferenceIndexExpression: public ReferenceExpression {
 public:
     StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
     const Expression *first;
@@ -1343,6 +1500,7 @@ private:
 class StringValueIndexExpression: public Expression {
 public:
     StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *str;
     const Expression *first;
@@ -1366,6 +1524,7 @@ private:
 class BytesReferenceIndexExpression: public ReferenceExpression {
 public:
     BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
     const Expression *first;
@@ -1393,6 +1552,7 @@ private:
 class BytesValueIndexExpression: public Expression {
 public:
     BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *str;
     const Expression *first;
@@ -1416,6 +1576,7 @@ private:
 class ArrayReferenceRangeExpression: public ReferenceExpression {
 public:
     ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
     const Expression *first;
@@ -1443,6 +1604,7 @@ private:
 class ArrayValueRangeExpression: public Expression {
 public:
     ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *array;
     const Expression *first;
@@ -1466,6 +1628,7 @@ private:
 class PointerDereferenceExpression: public ReferenceExpression {
 public:
     PointerDereferenceExpression(const Type *type, const Expression *ptr): ReferenceExpression(type, false), ptr(ptr) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *ptr;
 
@@ -1484,6 +1647,7 @@ private:
 class ConstantExpression: public Expression {
 public:
     ConstantExpression(const Constant *constant): Expression(constant->type, true, true), constant(constant) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Constant *constant;
 
@@ -1501,6 +1665,7 @@ private:
 class VariableExpression: public ReferenceExpression {
 public:
     VariableExpression(const Variable *var): ReferenceExpression(var->type, var->is_readonly), var(var) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Variable *var;
 
@@ -1523,6 +1688,7 @@ private:
 class FunctionCall: public Expression {
 public:
     FunctionCall(const Expression *func, const std::vector<const Expression *> &args): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), args(args) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const func;
     const std::vector<const Expression *> args;
@@ -1557,6 +1723,7 @@ private:
 class StatementExpression: public Expression {
 public:
     StatementExpression(const Statement *stmt): Expression(TYPE_NOTHING, false), stmt(stmt) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Statement *const stmt;
 
@@ -1594,6 +1761,7 @@ public:
 class NullStatement: public Statement {
 public:
     NullStatement(int line): Statement(line) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void generate_code(Emitter &) const override {}
 
@@ -1603,6 +1771,7 @@ public:
 class AssertStatement: public CompoundStatement {
 public:
     AssertStatement(int line, const std::vector<const Statement *> &statements, const Expression *expr, const std::string &source): CompoundStatement(line, statements), expr(expr), source(source) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
     const std::string source;
@@ -1625,6 +1794,7 @@ public:
             }
         }
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ReferenceExpression *> variables;
     const Expression *const expr;
@@ -1647,6 +1817,7 @@ private:
 class ExpressionStatement: public Statement {
 public:
     ExpressionStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
 
@@ -1663,6 +1834,7 @@ private:
 class ReturnStatement: public Statement {
 public:
     ReturnStatement(int line, const Expression *expr): Statement(line), expr(expr) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
 
@@ -1679,6 +1851,7 @@ private:
 class IncrementStatement: public Statement {
 public:
     IncrementStatement(int line, const ReferenceExpression *ref, int delta): Statement(line), ref(ref), delta(delta) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const ReferenceExpression *ref;
     int delta;
@@ -1696,6 +1869,7 @@ private:
 class IfStatement: public Statement {
 public:
     IfStatement(int line, const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> &condition_statements, const std::vector<const Statement *> &else_statements): Statement(line), condition_statements(condition_statements), else_statements(else_statements) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
     const std::vector<const Statement *> else_statements;
@@ -1722,6 +1896,7 @@ public:
 class WhileStatement: public BaseLoopStatement {
 public:
     WhileStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), condition(condition) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *condition;
 
@@ -1739,6 +1914,7 @@ class ForStatement: public BaseLoopStatement {
 public:
     ForStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *start, const Expression *end, const Expression *step, const VariableExpression *bound, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end), step(step), bound(bound) {
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const VariableExpression *var;
     const Expression *start;
@@ -1760,6 +1936,7 @@ class ForeachStatement: public BaseLoopStatement {
 public:
     ForeachStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *array, const VariableExpression *index, const VariableExpression *bound, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), array(array), index(index), bound(bound) {
     }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const VariableExpression *var;
     const Expression *array;
@@ -1779,6 +1956,7 @@ private:
 class LoopStatement: public BaseLoopStatement {
 public:
     LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool always_returns() const override;
 
@@ -1793,6 +1971,7 @@ private:
 class RepeatStatement: public BaseLoopStatement {
 public:
     RepeatStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), condition(condition) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *condition;
 
@@ -1840,6 +2019,7 @@ public:
         RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
     CaseStatement(int line, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(line), expr(expr), clauses(clauses) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr;
     const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
@@ -1859,6 +2039,7 @@ private:
 class ExitStatement: public Statement {
 public:
     ExitStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const unsigned int loop_id;
 
@@ -1873,6 +2054,7 @@ private:
 class NextStatement: public Statement {
 public:
     NextStatement(int line, unsigned int loop_id): Statement(line), loop_id(loop_id) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const unsigned int loop_id;
 
@@ -1887,6 +2069,7 @@ private:
 class TryStatement: public Statement {
 public:
     TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> &catches): Statement(line), statements(statements), catches(catches) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> statements;
     const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
@@ -1904,6 +2087,7 @@ private:
 class RaiseStatement: public Statement {
 public:
     RaiseStatement(int line, const Exception *exception, const Expression *info): Statement(line), exception(exception), info(info) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Exception *exception;
     const Expression *info;
@@ -1921,6 +2105,7 @@ private:
 class ResetStatement: public Statement {
 public:
     ResetStatement(int line, const std::vector<const ReferenceExpression *> &vars): Statement(line), variables(vars) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ReferenceExpression *> variables;
 
@@ -1942,6 +2127,7 @@ private:
 class Function: public Variable {
 public:
     Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Frame *frame;
     Scope *scope;
@@ -1971,6 +2157,7 @@ private:
 class PredefinedFunction: public Variable {
 public:
     PredefinedFunction(const std::string &name, const Type *type): Variable(Token(), name, type, true), name_index(-1) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     mutable int name_index;
 
     virtual void predeclare(Emitter &emitter) const override;
@@ -1985,6 +2172,7 @@ public:
 class ModuleFunction: public Variable {
 public:
     ModuleFunction(const std::string &module, const std::string &name, const Type *type, unsigned int entry): Variable(Token(), name, type, true), module(module), entry(entry) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
     const unsigned int entry;
 
@@ -2017,6 +2205,7 @@ private:
 class Module: public Name {
 public:
     Module(const Token &declaration, Scope *scope, const std::string &name): Name(declaration, name, TYPE_MODULE), scope(new Scope(scope, scope->frame)) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Scope *scope;
 
@@ -2032,6 +2221,7 @@ private:
 class Program: public AstNode {
 public:
     Program(const std::string &source_path, const std::string &source_hash);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string source_path;
     const std::string source_hash;
