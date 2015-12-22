@@ -1,0 +1,6 @@
+VAR s: String := "Hello, World!"
+print(substring(s, 0, 5))
+%= Hello
+
+print(substring(s, 5, 10))
+%! StringIndex
