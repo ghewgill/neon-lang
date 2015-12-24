@@ -1,14 +1,11 @@
 #!/bin/sh -e
 
 rev=$(git describe --always)
-scons docs
-cd ../neon-pages
-git pull --ff-only
-rm -rf html samples
-cp -r ../neon-lang/lib/html html
-cp -r ../neon-lang/samples/html samples
-git add -f html samples
-git commit -m "Update generated documentation from $rev" || echo "Nothing to update"
-cd ../neon-lang
-echo "Done."
-echo "(cd ../neon-pages && git push)"
+scons docs docs_samples
+git clone -b gh-pages . tmp-gh-pages
+(cd tmp-gh-pages && git pull --ff-only .. origin/gh-pages)
+rm -rf tmp-gh-pages/html tmp-gh-pages/samples
+cp -r gh-pages/ tmp-gh-pages/
+(cd tmp-gh-pages && git add -f . && git commit -m "Update documentation from $rev" && git push)
+rm -rf tmp-gh-pages
+echo "git push origin gh-pages:gh-pages"

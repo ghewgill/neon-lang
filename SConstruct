@@ -442,5 +442,5 @@ env.Command("test_cal", cal_exe, cal_exe[0].path)
 # on Windows with the GitHub command prompt).
 perl = distutils.spawn.find_executable("perl")
 if perl:
-    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML lib/html -p lib/nd.proj")
-    env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML samples/html -p samples/nd.proj")
+    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro")
+    env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
