@@ -1,0 +1,30 @@
+body {
+    background-color: white;
+    font-family: Georgia, "Liberation Serif", serif;
+}
+
+#page {
+    max-width: 780px;
+    text-align: left;
+    margin: 2.5em auto 2em;
+}
+
+#page .title {
+    text-align: center;
+    font-size: 300%;
+    font-family: sans-serif;
+    text-shadow: 0 0 0.5em red;
+}
+
+#page .title a {
+    text-decoration: none;
+}
+
+#page .links {
+    text-align: center;
+}
+
+pre {
+    padding: 1em 2em 1em 2em;
+    background-color: #eeeeee;
+}
