@@ -1311,8 +1311,12 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             error2(3193, a.expr->token, "Underscore can only be used with OUT parameter", ftype->params[p]->declaration, "function argument here");
         }
         if (ftype->params[p]->mode == ParameterType::IN) {
-            if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
-                error2(3019, a.expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
+            if (ftype->params[p]->type != nullptr) {
+                // TODO: Above check works around problem in sdl.RenderDrawLines.
+                // Something about a compound type in a predefined function parameter list.
+                if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
+                    error2(3019, a.expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
+                }
             }
         } else {
             const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);

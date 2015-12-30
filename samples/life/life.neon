@@ -1,0 +1,90 @@
+IMPORT multiarray
+IMPORT random
+IMPORT sdl
+
+TYPE Rect IS sdl.Rect
+
+FUNCTION rect(x, y, w, h: Number): sdl.Rect
+    VAR r: sdl.Rect := Rect()
+    r.x := x
+    r.y := y
+    r.w := w
+    r.h := h
+    RETURN r
+END FUNCTION
+
+VAR grid: multiarray.ArrayBoolean2D
+
+FUNCTION handle(e: sdl.Event, INOUT quit: Boolean)
+    CASE e.type
+        WHEN sdl.SDL_QUIT DO
+            quit := TRUE
+    END CASE
+END FUNCTION
+
+FUNCTION render(ren: sdl.Renderer)
+    sdl.SetRenderDrawColor(ren, 0, 0, 0, 255)
+    sdl.RenderClear(ren)
+    sdl.SetRenderDrawColor(ren, 255, 255, 255, 255)
+    FOREACH row OF grid INDEX i DO
+        FOREACH cell OF row INDEX j DO
+            IF cell THEN
+                sdl.RenderFillRect(ren, rect(j*10, i*10, 10, 10))
+            END IF
+        END FOREACH
+    END FOREACH
+    sdl.RenderPresent(ren)
+END FUNCTION
+
+FUNCTION update()
+    VAR newgrid: multiarray.ArrayBoolean2D := []
+    FOR i := 0 TO grid.size()-1 DO
+        FOR j := 0 TO grid[i].size()-1 DO
+            VAR count: Number := 0
+            FOR y := -1 TO 1 DO
+                FOR x := -1 TO 1 DO
+                    IF x # 0 OR y # 0 THEN
+                        IF grid[(i+y) MOD grid.size()][(j+x) MOD grid[0].size()] THEN
+                            INC count
+                        END IF
+                    END IF
+                END FOR
+            END FOR
+            CASE count
+                WHEN 0 TO 1 DO
+                    newgrid[i][j] := FALSE
+                WHEN 2 DO
+                    newgrid[i][j] := grid[i][j]
+                WHEN 3 DO
+                    newgrid[i][j] := TRUE
+                WHEN >= 4 DO
+                    newgrid[i][j] := FALSE
+            END CASE
+        END FOR
+    END FOR
+    grid := newgrid
+END FUNCTION
+
+BEGIN MAIN
+    sdl.Init(sdl.INIT_VIDEO)
+    LET win: sdl.Window := sdl.CreateWindow("Hello World!", 100, 100, 640, 480, sdl.WINDOW_SHOWN)
+    LET ren: sdl.Renderer := sdl.CreateRenderer(win, -1, sdl.RENDERER_ACCELERATED + sdl.RENDERER_PRESENTVSYNC)
+    grid := multiarray.makeBoolean2D(48, 64)
+    FOR i := 0 TO grid.size()-1 DO
+        FOR j := 0 TO grid[i].size()-1 DO
+            grid[i][j] := random.uint32() MOD 4 = 0
+        END FOR
+    END FOR
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        VAR e: sdl.Event
+        WHILE sdl.PollEvent(OUT e) DO
+            handle(e, INOUT quit)
+        END WHILE
+        render(ren)
+        update()
+    END WHILE
+    sdl.DestroyRenderer(ren)
+    sdl.DestroyWindow(win)
+    sdl.Quit()
+END MAIN

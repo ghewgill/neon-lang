@@ -1,0 +1,80 @@
+IMPORT random
+IMPORT sdl
+
+TYPE Rect IS sdl.Rect
+
+FUNCTION rect(x, y, w, h: Number): sdl.Rect
+    VAR r: sdl.Rect := Rect()
+    r.x := x
+    r.y := y
+    r.w := w
+    r.h := h
+    RETURN r
+END FUNCTION
+
+TYPE Player IS RECORD
+    y: Number
+    dy: Number
+END RECORD
+
+TYPE Pipe IS RECORD
+    x: Number
+    gap: Number
+END RECORD
+
+VAR player: Player
+VAR pipes: Array<Pipe>
+
+BEGIN MAIN
+    sdl.Init(sdl.INIT_VIDEO)
+    LET win: sdl.Window := sdl.CreateWindow("Hello World!", 100, 100, 640, 480, sdl.WINDOW_SHOWN)
+    LET ren: sdl.Renderer := sdl.CreateRenderer(win, -1, sdl.RENDERER_ACCELERATED + sdl.RENDERER_PRESENTVSYNC)
+    LET bmp: sdl.Surface := sdl.LoadBMP("tmp/hello.bmp")
+    LET tex: sdl.Texture := sdl.CreateTextureFromSurface(ren, bmp)
+    sdl.FreeSurface(bmp)
+    player.y := 0
+    player.dy := 0
+    FOR i := 0 TO 4 DO
+        pipes[i].x := 640 + i * 320
+        pipes[i].gap := random.uint32() MOD 300 + 100
+    END FOR
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        VAR e: sdl.Event
+        WHILE sdl.PollEvent(OUT e) DO
+            CASE e.type
+                WHEN sdl.SDL_QUIT DO
+                    quit := TRUE
+                WHEN sdl.SDL_KEYDOWN DO
+                    player.dy := -3
+            END CASE
+        END WHILE
+        sdl.RenderClear(ren)
+        sdl.RenderCopy(ren, tex, sdl.NullRect, sdl.NullRect)
+        sdl.SetRenderDrawColor(ren, 0, 255, 0, 255)
+        sdl.RenderFillRect(ren, rect(300, player.y, 50, 50))
+        FOREACH pipe OF pipes DO
+            sdl.RenderFillRect(ren, rect(pipe.x, 0, 100, pipe.gap))
+            sdl.RenderFillRect(ren, rect(pipe.x, pipe.gap+200, 100, 480))
+        END FOREACH
+        sdl.RenderPresent(ren)
+        player.y := player.y + player.dy
+        player.dy := player.dy + 0.1
+        FOR i := 0 TO pipes.size()-1 DO
+            pipes[i].x := pipes[i].x - 2
+        END FOR
+        WHILE pipes[0].x < -100 DO
+            pipes[0 TO 0] := []
+        END WHILE
+        WHILE pipes.size() < 5 DO
+            VAR p: Pipe
+            p.x := pipes[LAST].x + 320
+            p.gap := random.uint32() MOD 300 + 100
+            pipes.append(p)
+        END WHILE
+    END WHILE
+    sdl.DestroyTexture(tex)
+    sdl.DestroyRenderer(ren)
+    sdl.DestroyWindow(win)
+    sdl.Quit()
+END MAIN

@@ -1,0 +1,223 @@
+IMPORT math
+IMPORT random
+IMPORT sdl
+
+TYPE Rect IS sdl.Rect
+
+FUNCTION rect(x, y, w, h: Number): sdl.Rect
+    VAR r: sdl.Rect := Rect()
+    r.x := x
+    r.y := y
+    r.w := w
+    r.h := h
+    RETURN r
+END FUNCTION
+
+TYPE Player IS RECORD
+    x: Number
+    y: Number
+    dx: Number
+    dy: Number
+    rot: Number
+    turn: Number
+    thrust: Boolean
+END RECORD
+
+TYPE Rock IS RECORD
+    x: Number
+    y: Number
+    dx: Number
+    dy: Number
+    size: Number
+END RECORD
+
+TYPE Shot IS RECORD
+    x: Number
+    y: Number
+    dx: Number
+    dy: Number
+    count: Number
+END RECORD
+
+VAR player: Player
+VAR rocks: Array<Rock>
+VAR shots: Array<Shot>
+
+FUNCTION handle(e: sdl.Event, INOUT quit: Boolean)
+    CASE e.type
+        WHEN sdl.SDL_QUIT DO
+            quit := TRUE
+        WHEN sdl.SDL_KEYDOWN DO
+            CASE e.key.keysym.sym
+                WHEN sdl.SDLK_LEFT DO
+                    player.turn := -0.1
+                WHEN sdl.SDLK_RIGHT DO
+                    player.turn := 0.1
+                WHEN sdl.SDLK_SPACE DO
+                    VAR shot: Shot := Shot()
+                    shot.x := player.x + 20 * math.cos(player.rot)
+                    shot.y := player.y + 20 * math.sin(player.rot)
+                    shot.dx := player.dx + 2 * math.cos(player.rot)
+                    shot.dy := player.dy + 2 * math.sin(player.rot)
+                    shot.count := 100
+                    shots.append(shot)
+                WHEN sdl.SDLK_UP DO
+                    player.thrust := TRUE
+            END CASE
+        WHEN sdl.SDL_KEYUP DO
+            CASE e.key.keysym.sym
+                WHEN sdl.SDLK_LEFT DO
+                    player.turn := 0
+                WHEN sdl.SDLK_RIGHT DO
+                    player.turn := 0
+                WHEN sdl.SDLK_UP DO
+                    player.thrust := FALSE
+            END CASE
+    END CASE
+END FUNCTION
+
+FUNCTION render(ren: sdl.Renderer)
+    sdl.SetRenderDrawColor(ren, 0, 0, 0, 255)
+    sdl.RenderClear(ren)
+    sdl.SetRenderDrawColor(ren, 255, 255, 255, 255)
+    sdl.RenderDrawLines(ren, [
+        [player.x+15*math.cos(player.rot), player.y+15*math.sin(player.rot)],
+        [player.x+10*math.cos(player.rot+2.5), player.y+10*math.sin(player.rot+2.5)],
+        [player.x+7*math.cos(player.rot+2.7), player.y+7*math.sin(player.rot+2.7)],
+        [player.x+7*math.cos(player.rot-2.7), player.y+7*math.sin(player.rot-2.7)],
+        [player.x+10*math.cos(player.rot-2.5), player.y+10*math.sin(player.rot-2.5)],
+        [player.x+15*math.cos(player.rot), player.y+15*math.sin(player.rot)],
+    ])
+    IF player.thrust THEN
+        sdl.RenderDrawLines(ren, [
+            [player.x+8*math.cos(player.rot+2.8), player.y+8*math.sin(player.rot+2.8)],
+            [player.x+12*math.cos(player.rot+math.Pi), player.y+12*math.sin(player.rot+math.Pi)],
+            [player.x+8*math.cos(player.rot-2.8), player.y+8*math.sin(player.rot-2.8)],
+        ])
+    END IF
+    FOREACH r OF rocks DO
+        CASE r.size
+            WHEN 3 DO
+                sdl.RenderDrawLines(ren, [
+                    [r.x+15, r.y+15],
+                    [r.x+15, r.y-15],
+                    [r.x-15, r.y-15],
+                    [r.x-15, r.y+15],
+                    [r.x+15, r.y+15],
+                ])
+            WHEN 2 DO
+                sdl.RenderDrawLines(ren, [
+                    [r.x+10, r.y+10],
+                    [r.x+10, r.y-10],
+                    [r.x-10, r.y-10],
+                    [r.x-10, r.y+10],
+                    [r.x+10, r.y+10],
+                ])
+            WHEN 1 DO
+                sdl.RenderDrawLines(ren, [
+                    [r.x+5, r.y+5],
+                    [r.x+5, r.y-5],
+                    [r.x-5, r.y-5],
+                    [r.x-5, r.y+5],
+                    [r.x+5, r.y+5],
+                ])
+        END CASE
+    END FOREACH
+    FOREACH s OF shots DO
+        sdl.RenderFillRect(ren, rect(s.x-1, s.y-1, 3, 3))
+    END FOREACH
+    sdl.RenderPresent(ren)
+END FUNCTION
+
+FUNCTION update()
+    player.x := (player.x + player.dx) MOD 640
+    player.y := (player.y + player.dy) MOD 480
+    player.rot := player.rot + player.turn
+    IF player.thrust THEN
+        IF math.hypot(player.dx, player.dy) < 10 THEN
+            player.dx := player.dx + 0.05*math.cos(player.rot)
+            player.dy := player.dy + 0.05*math.sin(player.rot)
+        END IF
+    ELSE
+        player.dx := player.dx * 0.995
+        player.dy := player.dy * 0.995
+    END IF
+    VAR i: Number := 0
+    WHILE i < rocks.size() DO
+        rocks[i].x := (rocks[i].x + rocks[i].dx) MOD 640
+        rocks[i].y := (rocks[i].y + rocks[i].dy) MOD 480
+        LET radius: Number := 5 * rocks[i].size
+        VAR bounds: sdl.Rect := rect(rocks[i].x-radius, rocks[i].y-radius, 2*radius, 2*radius)
+        VAR gone: Boolean := FALSE
+        VAR s: Number := 0
+        WHILE s < shots.size() DO
+            IF bounds.x <= shots[s].x <= bounds.x+bounds.w AND bounds.y <= shots[s].y <= bounds.y+bounds.h THEN
+                IF rocks[i].size > 1 THEN
+                    FOR j := 1 TO 2 DO
+                        VAR rock: Rock := Rock()
+                        rock.x := rocks[i].x
+                        rock.y := rocks[i].y
+                        rock.dx := random.uint32() MOD 10 / 5 - 1
+                        rock.dy := random.uint32() MOD 10 / 5 - 1
+                        rock.size := rocks[i].size - 1
+                        rocks.append(rock)
+                    END FOR
+                END IF
+                gone := TRUE
+                shots[s].count := 0
+                EXIT WHILE
+            END IF
+            INC s
+        END WHILE
+        IF gone THEN
+            rocks[i TO i] := []
+        ELSE
+            INC i
+        END IF
+    END WHILE
+    i := 0
+    WHILE i < shots.size() DO
+        shots[i].x := (shots[i].x + shots[i].dx) MOD 640
+        shots[i].y := (shots[i].y + shots[i].dy) MOD 480
+        DEC shots[i].count
+        IF shots[i].count > 0 THEN
+            INC i
+        ELSE
+            shots[i TO i] := []
+        END IF
+    END WHILE
+END FUNCTION
+
+BEGIN MAIN
+    sdl.Init(sdl.INIT_VIDEO)
+    LET win: sdl.Window := sdl.CreateWindow("Hello World!", 100, 100, 640, 480, sdl.WINDOW_SHOWN)
+    LET ren: sdl.Renderer := sdl.CreateRenderer(win, -1, sdl.RENDERER_ACCELERATED + sdl.RENDERER_PRESENTVSYNC)
+    player.x := 320
+    player.y := 240
+    player.dx := 0
+    player.dy := 0
+    player.rot := 0
+    player.turn := 0
+    player.thrust := FALSE
+    FOR i := 0 TO 1 DO
+        VAR rock: Rock
+        rock.x := random.uint32() MOD 640
+        rock.y := random.uint32() MOD 480
+        rock.dx := random.uint32() MOD 10 / 5 - 1
+        rock.dy := random.uint32() MOD 10 / 5 - 1
+        rock.size := 3
+        rocks.append(rock)
+    END FOR
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        VAR e: sdl.Event
+        WHILE sdl.PollEvent(OUT e) DO
+            handle(e, INOUT quit)
+        END WHILE
+        render(ren)
+        update()
+    END WHILE
+    sdl.DestroyRenderer(ren)
+    sdl.DestroyWindow(win)
+    sdl.Quit()
+END MAIN

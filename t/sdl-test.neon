@@ -1,0 +1,19 @@
+% SKIP (pops up a window)
+IMPORT sdl
+
+sdl.Init(sdl.INIT_VIDEO)
+LET win: sdl.Window := sdl.CreateWindow("Hello World!", 100, 100, 640, 480, sdl.WINDOW_SHOWN)
+LET ren: sdl.Renderer := sdl.CreateRenderer(win, -1, sdl.RENDERER_ACCELERATED + sdl.RENDERER_PRESENTVSYNC)
+LET bmp: sdl.Surface := sdl.LoadBMP("tmp/hello.bmp")
+LET tex: sdl.Texture := sdl.CreateTextureFromSurface(ren, bmp)
+sdl.FreeSurface(bmp)
+FOR i := 1 TO 3 DO
+    sdl.RenderClear(ren)
+    sdl.RenderCopy(ren, tex, sdl.NullRect, sdl.NullRect)
+    sdl.RenderPresent(ren)
+    sdl.Delay(1000)
+END FOR
+sdl.DestroyTexture(tex)
+sdl.DestroyRenderer(ren)
+sdl.DestroyWindow(win)
+sdl.Quit()

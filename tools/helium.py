@@ -2131,6 +2131,7 @@ ExcludeTests = [
     "t/regex-test.neon",        # Module not required
     "t/return-case.neon",       # Feature not required
     "t/rtl.neon",               # CURRENT_EXCEPTION not required
+    "t/sdl-test.neon",          # Module not required
     "t/shebang.neon",           # Feature not required
     "t/sodium-test.neon",       # Module not required
     "t/sqlite-test.neon",       # Module not required

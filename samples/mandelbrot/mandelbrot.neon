@@ -1,0 +1,126 @@
+%|
+ |  File: mandelbrot
+ |
+ |  Mandelbrot set generator.
+ |%
+
+IMPORT math
+IMPORT multiarray
+IMPORT sdl
+
+TYPE Rect IS sdl.Rect
+
+CONSTANT MAX_ITERATIONS: Number := 36
+
+FUNCTION rect(x, y, w, h: Number): sdl.Rect
+    VAR r: sdl.Rect := Rect()
+    r.x := x
+    r.y := y
+    r.w := w
+    r.h := h
+    RETURN r
+END FUNCTION
+
+TYPE Colour IS RECORD
+    r: Number
+    g: Number
+    b: Number
+END RECORD
+
+VAR bitmap: sdl.Surface
+VAR bmpren: sdl.Renderer
+VAR done: multiarray.ArrayBoolean2D
+VAR palette: Array<Colour>
+VAR line: Number
+VAR stride: Number
+
+FUNCTION handle(e: sdl.Event, INOUT quit: Boolean)
+    CASE e.type
+        WHEN sdl.SDL_QUIT DO
+            quit := TRUE
+    END CASE
+END FUNCTION
+
+FUNCTION render(ren: sdl.Renderer)
+    LET tex: sdl.Texture := sdl.CreateTextureFromSurface(ren, bitmap)
+    sdl.RenderCopy(ren, tex, sdl.NullRect, sdl.NullRect)
+    sdl.RenderPresent(ren)
+    sdl.DestroyTexture(tex)
+END FUNCTION
+
+FUNCTION update()
+    IF line >= 480 THEN
+        EXIT FUNCTION
+    END IF
+    VAR x: Number := 0
+    WHILE x < 640 DO
+        IF NOT done[line][x] THEN
+            LET p_re: Number := (x - 420) / 200
+            LET p_im: Number := (line - 240) / 200
+            VAR z_re, z_im: Number := 0
+            VAR n: Number := 0
+            LOOP
+                LET re2: Number := z_re * z_re
+                LET im2: Number := z_im * z_im
+                IF re2 + im2 < 4 AND n < MAX_ITERATIONS THEN
+                    z_im := 2 * z_re * z_im + p_im
+                    z_re := re2 - im2 + p_re
+                    INC n
+                ELSE
+                    EXIT LOOP
+                END IF
+            END LOOP
+            sdl.SetRenderDrawColor(bmpren, palette[n].r, palette[n].g, palette[n].b, 0)
+            IF stride > 1 THEN
+                sdl.RenderFillRect(bmpren, rect(x, line, stride, stride))
+            ELSE
+                sdl.RenderDrawPoint(bmpren, x, line)
+            END IF
+            done[line][x] := TRUE
+        END IF
+        x := x + stride
+    END WHILE
+    line := line + stride
+    IF line >= 480 THEN
+        %print("done stride \(stride)")
+        IF stride > 1 THEN
+            stride := stride / 2
+            line := 0
+        END IF
+    END IF
+END FUNCTION
+
+BEGIN MAIN
+    sdl.Init(sdl.INIT_VIDEO)
+    LET win: sdl.Window := sdl.CreateWindow("Hello World!", 100, 100, 640, 480, sdl.WINDOW_SHOWN)
+    LET winren: sdl.Renderer := sdl.CreateRenderer(win, -1, sdl.RENDERER_ACCELERATED + sdl.RENDERER_PRESENTVSYNC)
+    bitmap := sdl.CreateRGBSurface(0, 640, 480, 32, 0, 0, 0, 0)
+    bmpren := sdl.CreateSoftwareRenderer(bitmap)
+    done := multiarray.makeBoolean2D(480, 640)
+    FOR i := 0 TO MAX_ITERATIONS-1 DO
+        LET x: Number := i MOD (MAX_ITERATIONS/6) * 255 / (MAX_ITERATIONS/6)
+        CASE math.floor(i/(MAX_ITERATIONS/6))
+            WHEN 0 DO palette[i] := Colour(0, x, 255)
+            WHEN 1 DO palette[i] := Colour(0, 255, 255-x)
+            WHEN 2 DO palette[i] := Colour(x, 255, 0)
+            WHEN 3 DO palette[i] := Colour(255, 255-x, 0)
+            WHEN 4 DO palette[i] := Colour(255, 0, x)
+            WHEN 5 DO palette[i] := Colour(255-x, 0, 255)
+        END CASE
+    END FOR
+    palette[MAX_ITERATIONS] := Colour(0, 0, 0)
+    line := 0
+    stride := 64
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        VAR e: sdl.Event
+        WHILE sdl.PollEvent(OUT e) DO
+            handle(e, INOUT quit)
+        END WHILE
+        render(winren)
+        update()
+    END WHILE
+    sdl.DestroyRenderer(winren)
+    sdl.DestroyWindow(win)
+    sdl.Quit()
+END MAIN
