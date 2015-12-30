@@ -38,7 +38,7 @@ def get_path_files(prefix):
                 yield (fn, open(fn).read())
 
 if len(sys.argv) < 2:
-    path = "origin/gh-pages:"
+    path = "."
 else:
     path = sys.argv[1]
 

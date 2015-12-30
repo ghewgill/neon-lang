@@ -111,11 +111,15 @@ In many common systems languages (eg. C, C++, Java, C#), a pointer may hold a "n
 
 To resolve this problem, Neon introduces the idea of a "valid" pointer. A valid pointer is one that has been checked against `NIL` (the null reference) using a special form of the `IF` statement. The resulting valid pointer can be dereferenced without causing a null pointer exception.
 
-    VAR node: POINTER TO Node
-    
-    IF VALID p := node THEN
-        print(p.value)
-    END IF
+    TYPE Node IS RECORD
+        value: String
+    END RECORD
+
+    FUNCTION output(node: POINTER TO Node)
+        IF VALID node AS p THEN
+            print(p->value)
+        END IF
+    END FUNCTION
 
 <a name="empty_loop"></a>
 ### Unintended empty loop with `while (condition);`
@@ -126,6 +130,7 @@ In C and derived languages, sometimes a loop or conditional is mistakenly writte
 while (x < 5);
 {
     printf("%d\n", x);
+    x++;
 }
 ```
 
@@ -133,9 +138,12 @@ The trailing `;` on the `while` statement is in fact an empty loop body and the 
 
 To resolve this problem, Neon requires an explicitly terminated block in every compound statement:
 
-    WHILE x < 5
-        print(x)
-    END
+    VAR x: Number := 0
+
+    WHILE x < 5 DO
+        print("\(x)")
+        INC x
+    END WHILE
 
 <a name="logical_alternative"></a>
 ### Writing `if a == b or c` (in Python) to test whether `a` is equal to either `b` or `c`
