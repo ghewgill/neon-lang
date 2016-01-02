@@ -1,0 +1,134 @@
+%|
+ |  File: encoding
+ |
+ |  Functions for encoding and decoding ASCII or Binary data in various formats.
+ |%
+IMPORT bitwise
+
+EXPORT base64Encode
+EXPORT base64Decode
+
+TYPE State IS ENUM
+    byte1
+    byte2
+    byte3
+    byte4
+END ENUM
+
+CONSTANT Base64EncodeTable: String := "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+LET Base64DecodeTable: Array<Number> := [
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0x00 - 0x0f
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0x10 - 0x1f
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  62,  -1,  -1,  -1,  63,    % 0x20 - 0x2f
+     52,  53,  54,  55,  56,  57,  58,  59,  60,  61,  -1,  -1,  -1,  -1,  -1,  -1,    % 0x30 - 0x3f
+     -1,   0,   1,   2,   3,   4,   5,   6,   7,   8,   9,  10,  11,  12,  13,  14,    % 0x40 - 0x4f
+     15,  16,  17,  18,  19,  20,  21,  22,  23,  24,  25,  -1,  -1,  -1,  -1,  -1,    % 0x50 - 0x5f
+     -1,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,  36,  37,  38,  39,  40,    % 0x60 - 0x6f
+     41,  42,  43,  44,  45,  46,  47,  48,  49,  50,  51,  -1,  -1,  -1,  -1,  -1,    % 0x70 - 0x7f
+    % This table simply ignores these values.
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0x80 - 0x8f
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0x90 - 0x9f
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0xa0 - 0xaf
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0xb0 - 0xbf
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0xc0 - 0xcf
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0xd0 - 0xdf
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0xe0 - 0xef
+     -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,    % 0xf0 - 0xff
+]
+
+%|
+ |  Function: base64Encode
+ |
+ |  Encodes the provided Bytes into Base64 encoded data.
+ |
+ |  Parameters:
+ |      src - The source data to encode.
+ |
+ |%
+FUNCTION base64Encode(src: Bytes): String
+    VAR encoded: String := ""
+    VAR char1, char2: Number
+    VAR status: State := State.byte1
+
+    LET source: Array<Number> := src.toArray()
+
+    FOREACH n OF source DO
+        CASE status
+            WHEN State.byte1 DO
+                encoded.append(Base64EncodeTable[bitwise.shiftRight32(n, 2)])
+                char1 := bitwise.and32(bitwise.shiftLeft32(n, 4), 0b00110000)
+                status := State.byte2
+            WHEN State.byte2 DO
+                encoded.append(Base64EncodeTable[bitwise.or32(char1, bitwise.shiftRight32(n, 4))])
+                char2 := bitwise.and32(bitwise.shiftLeft32(n, 2), 0b00111100)
+                status := State.byte3
+            WHEN State.byte3 DO
+                encoded.append(Base64EncodeTable[bitwise.or32(char2, bitwise.shiftRight32(n, 6))])
+                encoded.append(Base64EncodeTable[bitwise.and32(n, 0b00111111)])
+                status := State.byte1
+        END CASE
+    END FOREACH
+
+    CASE status
+        % In base64, when the data being encoded is NOT a multiple of 6 bits, 
+        % needs to be padded.  The following pads the output data and signals 
+        % we've hit the end of the encoded data when decoding.
+        WHEN State.byte2 DO
+            encoded.append(Base64EncodeTable[char1])
+            encoded.append("==")
+        WHEN State.byte3 DO
+            encoded.append(Base64EncodeTable[char2])
+            encoded.append("=")
+    END CASE
+    RETURN encoded
+END FUNCTION
+
+%|
+ |  Function: base64Decode
+ |
+ |  Decodes the provided Base64 string data back into binary data.
+ |
+ |  Parameters:
+ |      src - The source Base64 to decode.
+ |
+ |%
+FUNCTION base64Decode(src: String): Bytes
+    VAR char1, char2, char3: Number := 0
+    VAR decoded: Array<Number> := []
+    VAR state: State := State.byte1
+
+    FOR i := 0 TO src.length() - 1 DO
+        LET char: String := src[i]
+        IF char = "=" THEN
+            % If src[i] is the ASCII "=", then we've hit the end of the ACTUAL
+            % base64 encoded data, so we can break out now.
+            EXIT FOR
+        END IF
+        
+        LET bits: Number := Base64DecodeTable[ord(char)]
+        IF bits = -1 THEN   
+            % Eat chars that are not part of the Base64 alphabet, 
+            % including \r and \n, and whitespace.
+            NEXT FOR
+        END IF
+
+        CASE state
+            WHEN State.byte1 DO
+                char1 := bits
+                state := State.byte2
+            WHEN State.byte2 DO
+                char2 := bits
+                decoded.append(bitwise.and32(bitwise.or32(bitwise.shiftLeft32(char1, 2), bitwise.shiftRight32(char2, 4)), 0xFF))
+                state := State.byte3
+            WHEN State.byte3 DO
+                char3 := bits
+                decoded.append(bitwise.and32(bitwise.or32(bitwise.shiftLeft32(char2, 4), bitwise.shiftRight32(char3, 2)), 0xFF))
+                state := State.byte4
+            WHEN State.byte4 DO
+                decoded.append(bitwise.and32(bitwise.or32(bitwise.shiftLeft32(char3, 6), bits), 0xFF))
+                state := State.byte1
+        END CASE
+    END FOR
+    RETURN decoded.toBytes()
+END FUNCTION

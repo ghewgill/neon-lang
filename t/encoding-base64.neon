@@ -1,0 +1,96 @@
+IMPORT encoding
+
+FUNCTION stringToBytes(s: String): Bytes
+    RETURN s.toBytes()
+END FUNCTION
+
+FUNCTION t(b: Bytes)
+    ASSERT b = encoding.base64Decode(encoding.base64Encode(b))
+END FUNCTION
+
+% First, perform encoding tests using the RFC examples...
+ASSERT encoding.base64Encode(stringToBytes("")) = ""
+ASSERT encoding.base64Encode(stringToBytes("f")) = "Zg=="
+ASSERT encoding.base64Encode(stringToBytes("fo")) = "Zm8="
+ASSERT encoding.base64Encode(stringToBytes("foo")) = "Zm9v"
+ASSERT encoding.base64Encode(stringToBytes("foob")) = "Zm9vYg=="
+ASSERT encoding.base64Encode(stringToBytes("fooba")) = "Zm9vYmE="
+ASSERT encoding.base64Encode(stringToBytes("foobar")) = "Zm9vYmFy"
+ASSERT encoding.base64Encode(stringToBytes("foobar\r\nfoobar")) = "Zm9vYmFyDQpmb29iYXI="
+
+% Then perform decode tests based on RFC samples...
+ASSERT encoding.base64Decode("").toString() = ""
+ASSERT encoding.base64Decode("Zg==").toString() = "f"
+ASSERT encoding.base64Decode("Zm8=").toString() = "fo"
+ASSERT encoding.base64Decode("Zm9v").toString() = "foo"
+ASSERT encoding.base64Decode("Zm9vYg==").toString() = "foob"
+ASSERT encoding.base64Decode("Zm9vYmE=").toString() = "fooba"
+ASSERT encoding.base64Decode("Zm9vYmFy").toString() = "foobar"
+
+% Perform minimal "fuzz" tests...
+ASSERT encoding.base64Decode("Zm9vYmFy\r   \nZm9vYmFy").toString() = "foobarfoobar"
+ASSERT encoding.base64Decode("Zm9vYmFyDQ  pmb29iYXI=").toString() = "foobar\r\nfoobar"
+ASSERT encoding.base64Decode("!@#$%^&*)(_+_)==").toString() = ""
+ASSERT encoding.base64Decode(encoding.base64Encode(stringToBytes("foobar"))).toString() = "foobar"
+
+% Most thorough tests of all, test every bit, at every position across all 3 base64 Bytes.
+t(HEXBYTES "00 00 00")
+t(HEXBYTES "00 00 01")
+t(HEXBYTES "00 00 02")
+t(HEXBYTES "00 00 04")
+t(HEXBYTES "00 00 08")
+t(HEXBYTES "00 00 10")
+t(HEXBYTES "00 00 20")
+t(HEXBYTES "00 00 40")
+t(HEXBYTES "00 00 80")
+t(HEXBYTES "00 01 00")
+t(HEXBYTES "00 02 00")
+t(HEXBYTES "00 04 00")
+t(HEXBYTES "00 08 00")
+t(HEXBYTES "00 10 00")
+t(HEXBYTES "00 20 00")
+t(HEXBYTES "00 40 00")
+t(HEXBYTES "00 80 00")
+t(HEXBYTES "01 00 00")
+t(HEXBYTES "02 00 00")
+t(HEXBYTES "04 00 00")
+t(HEXBYTES "08 00 00")
+t(HEXBYTES "10 00 00")
+t(HEXBYTES "20 00 00")
+t(HEXBYTES "40 00 00")
+t(HEXBYTES "80 00 00")
+
+% Lastly, full 32 bit values...
+t(HEXBYTES "00 00 00 00")
+t(HEXBYTES "00 00 00 01")
+t(HEXBYTES "00 00 00 02")
+t(HEXBYTES "00 00 00 04")
+t(HEXBYTES "00 00 00 08")
+t(HEXBYTES "00 00 00 10")
+t(HEXBYTES "00 00 00 20")
+t(HEXBYTES "00 00 00 40")
+t(HEXBYTES "00 00 00 80")
+t(HEXBYTES "00 00 01 00")
+t(HEXBYTES "00 00 02 00")
+t(HEXBYTES "00 00 04 00")
+t(HEXBYTES "00 00 08 00")
+t(HEXBYTES "00 00 10 00")
+t(HEXBYTES "00 00 20 00")
+t(HEXBYTES "00 00 40 00")
+t(HEXBYTES "00 00 80 00")
+t(HEXBYTES "00 01 00 00")
+t(HEXBYTES "00 02 00 00")
+t(HEXBYTES "00 04 00 00")
+t(HEXBYTES "00 08 00 00")
+t(HEXBYTES "00 10 00 00")
+t(HEXBYTES "00 20 00 00")
+t(HEXBYTES "00 40 00 00")
+t(HEXBYTES "00 80 00 00")
+t(HEXBYTES "01 00 00 00")
+t(HEXBYTES "02 00 00 00")
+t(HEXBYTES "04 00 00 00")
+t(HEXBYTES "08 00 00 00")
+t(HEXBYTES "10 00 00 00")
+t(HEXBYTES "20 00 00 00")
+t(HEXBYTES "40 00 00 00")
+t(HEXBYTES "80 00 00 00")
