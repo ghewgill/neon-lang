@@ -1943,6 +1943,13 @@ const Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declarati
     if (not value->is_constant) {
         error(3016, declaration->value->token, "value must be constant");
     }
+    if (type == TYPE_BOOLEAN) {
+        value = new ConstantBooleanExpression(value->eval_boolean(declaration->value->token));
+    } else if (type == TYPE_NUMBER) {
+        value = new ConstantNumberExpression(value->eval_number(declaration->value->token));
+    } else if (type == TYPE_STRING) {
+        value = new ConstantStringExpression(value->eval_string(declaration->value->token));
+    }
     scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, value));
     return new NullStatement(declaration->token.line);
 }
@@ -2210,7 +2217,7 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
     if (kname == library_dict.end()) {
         error(3076, declaration->dict->token, "\"name\" key not found in library");
     }
-    std::string library_name = kname->second->eval_string();
+    std::string library_name = kname->second->eval_string(declaration->dict->token);
 
     auto ktypes = dict->dict.find("types");
     if (ktypes == dict->dict.end()) {
@@ -2219,7 +2226,7 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
     auto &types_dict = dynamic_cast<const DictionaryLiteralExpression *>(ktypes->second)->dict;
     std::map<std::string, std::string> param_types;
     for (auto paramtype: types_dict) {
-        param_types[paramtype.first] = paramtype.second->eval_string();
+        param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
     }
     for (auto p: function->params) {
         if (p->mode == ParameterType::OUT) {
@@ -2407,11 +2414,11 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                     error(3056, rwc->high_expr->token, "WHEN condition must be constant");
                 }
                 if (when->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(when->type) != nullptr) {
-                    if (number_is_greater(when->eval_number(), when2->eval_number())) {
+                    if (number_is_greater(when->eval_number(rwc->low_expr->token), when2->eval_number(rwc->high_expr->token))) {
                         error(3109, rwc->high_expr->token, "WHEN numeric range condition must be low..high");
                     }
                 } else if (when->type->is_assignment_compatible(TYPE_STRING)) {
-                    if (when->eval_string() > when2->eval_string()) {
+                    if (when->eval_string(rwc->low_expr->token) > when2->eval_string(rwc->high_expr->token)) {
                         error(3110, rwc->high_expr->token, "WHEN string range condition must be low..high");
                     }
                 } else {
@@ -2539,17 +2546,17 @@ bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond)
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
         if (expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
-            return overlap::check(comp, expr->eval_number(), cwhen->comp, cwhen->expr->eval_number());
+            return overlap::check(comp, expr->eval_number(cond->token), cwhen->comp, cwhen->expr->eval_number(cond->token));
         } else if (expr->type->is_assignment_compatible(TYPE_STRING)) {
-            return overlap::check(comp, expr->eval_string(), cwhen->comp, cwhen->expr->eval_string());
+            return overlap::check(comp, expr->eval_string(cond->token), cwhen->comp, cwhen->expr->eval_string(cond->token));
         } else {
             internal_error("ComparisonWhenCondition");
         }
     } else if (rwhen != nullptr) {
         if (expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
-            return overlap::check(comp, expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
+            return overlap::check(comp, expr->eval_number(cond->token), rwhen->low_expr->eval_number(cond->token), rwhen->high_expr->eval_number(cond->token));
         } else if (expr->type->is_assignment_compatible(TYPE_STRING)) {
-            return overlap::check(comp, expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
+            return overlap::check(comp, expr->eval_string(cond->token), rwhen->low_expr->eval_string(cond->token), rwhen->high_expr->eval_string(cond->token));
         } else {
             internal_error("ComparisonWhenCondition");
         }
@@ -2564,17 +2571,17 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
         if (low_expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
-            return overlap::check(cwhen->comp, cwhen->expr->eval_number(), low_expr->eval_number(), high_expr->eval_number());
+            return overlap::check(cwhen->comp, cwhen->expr->eval_number(cwhen->token), low_expr->eval_number(cwhen->token), high_expr->eval_number(cwhen->token));
         } else if (low_expr->type->is_assignment_compatible(TYPE_STRING)) {
-            return overlap::check(cwhen->comp, cwhen->expr->eval_string(), low_expr->eval_string(), high_expr->eval_string());
+            return overlap::check(cwhen->comp, cwhen->expr->eval_string(cwhen->token), low_expr->eval_string(cwhen->token), high_expr->eval_string(cwhen->token));
         } else {
             internal_error("RangeWhenCondition");
         }
     } else if (rwhen != nullptr) {
         if (low_expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
-            return overlap::check(low_expr->eval_number(), high_expr->eval_number(), rwhen->low_expr->eval_number(), rwhen->high_expr->eval_number());
+            return overlap::check(low_expr->eval_number(cwhen->token), high_expr->eval_number(cwhen->token), rwhen->low_expr->eval_number(cwhen->token), rwhen->high_expr->eval_number(cwhen->token));
         } else if (low_expr->type->is_assignment_compatible(TYPE_STRING)) {
-            return overlap::check(low_expr->eval_string(), high_expr->eval_string(), rwhen->low_expr->eval_string(), rwhen->high_expr->eval_string());
+            return overlap::check(low_expr->eval_string(cwhen->token), high_expr->eval_string(cwhen->token), rwhen->low_expr->eval_string(cwhen->token), rwhen->high_expr->eval_string(cwhen->token));
         } else {
             internal_error("RangeWhenCondition");
         }
@@ -2659,7 +2666,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
         if (not step->is_constant) {
             error(3070, statement->step->token, "numeric expression must be constant");
         }
-        if (number_is_zero(step->eval_number())) {
+        if (number_is_zero(step->eval_number(statement->step->token))) {
             error(3091, statement->step->token, "STEP value cannot be zero");
         }
     } else {

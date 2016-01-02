@@ -690,9 +690,9 @@ class Expression: public AstNode {
 public:
     Expression(const Type *type, bool is_constant, bool is_readonly = true): type(type), is_constant(is_constant), is_readonly(is_readonly) {}
 
-    virtual bool eval_boolean() const = 0;
-    virtual Number eval_number() const = 0;
-    virtual std::string eval_string() const = 0;
+    bool eval_boolean(const Token &token) const;
+    Number eval_number(const Token &token) const;
+    std::string eval_string(const Token &token) const;
     void generate(Emitter &emitter) const;
     virtual void generate_expr(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
@@ -700,6 +700,29 @@ public:
     const Type *type;
     const bool is_constant;
     const bool is_readonly;
+protected:
+    virtual bool eval_boolean() const = 0;
+    virtual Number eval_number() const = 0;
+    virtual std::string eval_string() const = 0;
+    friend class TypeBoolean;
+    friend class TypeNumber;
+    friend class TypeString;
+    friend class UnaryMinusExpression;
+    friend class LogicalNotExpression;
+    friend class DisjunctionExpression;
+    friend class ConjunctionExpression;
+    friend class AdditionExpression;
+    friend class SubtractionExpression;
+    friend class MultiplicationExpression;
+    friend class DivisionExpression;
+    friend class ModuloExpression;
+    friend class ExponentiationExpression;
+    friend class BooleanComparisonExpression;
+    friend class NumericComparisonExpression;
+    friend class StringComparisonExpression;
+    friend class ConstantExpression;
+    friend class FunctionCall;
+    friend class ForStatement;
 private:
     Expression(const Expression &);
     Expression &operator=(const Expression &);

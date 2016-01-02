@@ -7,8 +7,7 @@
 
 #include "intrinsic.h"
 #include "rtl_compile.h"
-
-#include "exceptions.inc"
+#include "rtl_exec.h"
 
 TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeDummy *TYPE_DUMMY = new TypeDummy();
@@ -359,6 +358,33 @@ const Expression *TypeFunctionPointer::deserialize_value(const Bytecode::Bytes &
     return new ConstantNumberExpression(number_from_sint32(0));
 }
 
+bool Expression::eval_boolean(const Token &token) const
+{
+    try {
+        return eval_boolean();
+    } catch (RtlException &e) {
+        error(3195, token, "Boolean evaluation exception: " + e.name + ": " + e.info);
+    }
+}
+
+Number Expression::eval_number(const Token &token) const
+{
+    try {
+        return eval_number();
+    } catch (RtlException &e) {
+        error(3196, token, "Numeric evaluation exception: " + e.name + ": " + e.info);
+    }
+}
+
+std::string Expression::eval_string(const Token &token) const
+{
+    try {
+        return eval_string();
+    } catch (RtlException &e) {
+        error(3197, token, "String evaluation exception: " + e.name + ": " + e.info);
+    }
+}
+
 std::string ConstantBooleanExpression::text() const
 {
     std::stringstream s;
@@ -444,6 +470,7 @@ bool BooleanComparisonExpression::eval_boolean() const
         case GE:
             internal_error("BooleanComparisonExpression");
     }
+    internal_error("BooleanComparisonExpression");
 }
 
 bool NumericComparisonExpression::eval_boolean() const
@@ -456,6 +483,7 @@ bool NumericComparisonExpression::eval_boolean() const
         case LE: return number_is_less_equal   (left->eval_number(), right->eval_number());
         case GE: return number_is_greater_equal(left->eval_number(), right->eval_number());
     }
+    internal_error("NumericComparisonExpression");
 }
 
 bool StringComparisonExpression::eval_boolean() const
@@ -468,6 +496,7 @@ bool StringComparisonExpression::eval_boolean() const
         case LE: return left->eval_string() <= right->eval_string();
         case GE: return left->eval_string() >= right->eval_string();
     }
+    internal_error("StringComparisonExpression");
 }
 
 bool IfStatement::always_returns() const

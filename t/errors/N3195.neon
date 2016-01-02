@@ -1,0 +1,2 @@
+CONSTANT b: Boolean := ord("AA") = 1
+                                 %<
