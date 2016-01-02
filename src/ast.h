@@ -1093,7 +1093,7 @@ public:
     BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    virtual bool eval_boolean() const override { internal_error("BooleanComparisonExpression"); }
+    virtual bool eval_boolean() const override;
     virtual Number eval_number() const override { internal_error("BooleanComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("BooleanComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -1108,7 +1108,7 @@ public:
     NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    virtual bool eval_boolean() const override { internal_error("NumericComparisonExpression"); }
+    virtual bool eval_boolean() const override;
     virtual Number eval_number() const override { internal_error("NumericComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("NumericComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
@@ -1123,7 +1123,7 @@ public:
     StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    virtual bool eval_boolean() const override { internal_error("StringComparisonExpression"); }
+    virtual bool eval_boolean() const override;
     virtual Number eval_number() const override { internal_error("StringComparisonExpression"); }
     virtual std::string eval_string() const override { internal_error("StringComparisonExpression"); }
     virtual void generate_comparison_opcode(Emitter &emitter) const override;

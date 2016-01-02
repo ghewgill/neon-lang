@@ -433,6 +433,43 @@ std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dict
     return dict;
 }
 
+bool BooleanComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case EQ: return left->eval_boolean() == right->eval_boolean();
+        case NE: return left->eval_boolean() != right->eval_boolean();
+        case LT:
+        case GT:
+        case LE:
+        case GE:
+            internal_error("BooleanComparisonExpression");
+    }
+}
+
+bool NumericComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case EQ: return number_is_equal        (left->eval_number(), right->eval_number());
+        case NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
+        case LT: return number_is_less         (left->eval_number(), right->eval_number());
+        case GT: return number_is_greater      (left->eval_number(), right->eval_number());
+        case LE: return number_is_less_equal   (left->eval_number(), right->eval_number());
+        case GE: return number_is_greater_equal(left->eval_number(), right->eval_number());
+    }
+}
+
+bool StringComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case EQ: return left->eval_string() == right->eval_string();
+        case NE: return left->eval_string() != right->eval_string();
+        case LT: return left->eval_string() <  right->eval_string();
+        case GT: return left->eval_string() >  right->eval_string();
+        case LE: return left->eval_string() <= right->eval_string();
+        case GE: return left->eval_string() >= right->eval_string();
+    }
+}
+
 bool IfStatement::always_returns() const
 {
     for (auto cond: condition_statements) {
