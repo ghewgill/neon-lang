@@ -40,7 +40,7 @@ Another well-known example is the classic "FizzBuzz" program:
         ELSIF i MOD 5 = 0 THEN
             print("Buzz")
         ELSE
-            print(i.toString())
+            print("\(i)")
         END IF
     END FOR
 
