@@ -44,7 +44,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                     RETURN variant.makeBoolean(FALSE)
                 WHEN "true" DO
                     RETURN variant.makeBoolean(TRUE)
-                ELSE
+                WHEN OTHERS DO
                     RAISE JsonFormat("null or false or true expected")
             END CASE
         WHEN "-", "0" TO "9" DO

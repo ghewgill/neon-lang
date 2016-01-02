@@ -712,7 +712,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             CASE get_string_len(addr, u)
                 WHEN "FLOATING" DO
                     stack.push(0)
-                ELSE
+                WHEN OTHERS DO
                     stack.push(0)
             END CASE
         WHEN CORE_EVALUATE DO
@@ -1045,7 +1045,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             ip := ip + 2
         WHEN INT_UNLOOP DO
             return.resize(return.size()-1)
-        ELSE
+        WHEN OTHERS DO
             print("Unknown instruction: \(instr)")
             sys.exit(1)
     END CASE
@@ -1230,7 +1230,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
             END IF
         WHEN TOOLS_EXT_THEN DO
             % nothing
-        ELSE
+        WHEN OTHERS DO
             IF interpreting THEN
                 IF instr > 0 THEN
                     run_compiled(instr)

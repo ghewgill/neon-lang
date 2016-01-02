@@ -5,7 +5,7 @@ CASE a
         VAR x: Number := a
     WHEN 6 DO
         VAR x: Number := a
-    ELSE
+    WHEN OTHERS DO
         VAR x: Number := a
 END CASE
 

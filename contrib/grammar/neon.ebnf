@@ -97,7 +97,7 @@ AssertStatement = 'ASSERT', Expression, {',', Expression};
 
 AssignmentStatement = (CompoundExpression | '_'), ':=', Expression;
 
-CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['ELSE', {Statement}], 'END', 'CASE';
+CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['WHEN', 'OTHERS', 'DO', {Statement}], 'END', 'CASE';
 
 WhenCondition = (('=' | '#' | '<' | '>' | '<=' | '>='), Expression) | (Expression, ['TO', Expression]);
 

@@ -303,14 +303,14 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                             WHEN Type.proc DO
                                 LET f: FUNCTION(args: Array<Value>): POINTER TO Value := proc->val_proc % TODO: should be able to call this directly
                                 RETURN f(args)
-                            ELSE
+                            WHEN OTHERS DO
                                 print("can't call \(proc->type)")
                         END CASE
                     END IF
                 ELSE
                     print("can't call nil")
                 END IF
-            ELSE
+            WHEN OTHERS DO
                 print("can't eval \(e->type)")
         END CASE
         RETURN make_string("TODO")
@@ -365,7 +365,7 @@ FUNCTION repr(e: POINTER TO Value): String
                 RETURN r
             WHEN Type.proc DO
                 RETURN "\(e->val_proc)"
-        ELSE
+        WHEN OTHERS DO
             ASSERT FALSE, e->type
         END CASE
     END IF
