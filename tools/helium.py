@@ -132,6 +132,7 @@ IS = Keyword("IS")
 HEXBYTES = Keyword("HEXBYTES")
 INC = Keyword("INC")
 DEC = Keyword("DEC")
+OTHERS = Keyword("OTHERS")
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -1464,7 +1465,7 @@ class Parser:
         self.expect(CASE)
         expr = self.parse_expression()
         clauses = []
-        while self.tokens[self.i] is WHEN:
+        while self.tokens[self.i] is WHEN and self.tokens[self.i+1] is not OTHERS:
             self.i += 1
             conditions = []
             while True:
@@ -1487,21 +1488,21 @@ class Parser:
                 self.i += 1
             self.expect(DO)
             statements = []
-            while self.tokens[self.i] is not WHEN and self.tokens[self.i] is not ELSE and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
+            while self.tokens[self.i] is not WHEN and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
                 s = self.parse_statement()
                 if s is not None:
                     statements.append(s)
             clauses.append((conditions, statements))
-        else_statements = []
-        if self.tokens[self.i] is ELSE:
-            self.i += 1
+        others_statements = []
+        if self.tokens[self.i] is WHEN and self.tokens[self.i+1] is OTHERS and self.tokens[self.i+2] is DO:
+            self.i += 3
             while self.tokens[self.i] is not END:
                 s = self.parse_statement()
                 if s is not None:
-                    else_statements.append(s)
+                    others_statements.append(s)
         self.expect(END)
         self.expect(CASE)
-        clauses.append((None, else_statements))
+        clauses.append((None, others_statements))
         return CaseStatement(expr, clauses)
 
     def parse_declaration(self):

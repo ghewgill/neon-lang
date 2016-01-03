@@ -8,7 +8,7 @@ CASE x
         print("First letter")
     WHEN Last DO
         print("Last Letter")
-    ELSE
+    WHEN OTHERS DO
         print("inbetween")
 END CASE
 

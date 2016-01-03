@@ -1162,7 +1162,7 @@ const Statement *Parser::parseCaseStatement()
     const Expression *expr = parseExpression();
     TemporaryMinimumIndent indent(this, tok_case.column + 1);
     std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
-    while (tokens[i].type == WHEN) {
+    while (tokens[i].type == WHEN && tokens[i+1].type != OTHERS) {
         auto &tok_when = tokens[i];
         std::vector<const CaseStatement::WhenCondition *> conditions;
         do {
@@ -1201,7 +1201,7 @@ const Statement *Parser::parseCaseStatement()
         }
         ++i;
         std::vector<const Statement *> statements;
-        while (tokens[i].type != WHEN && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        while (tokens[i].type != WHEN && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             const Statement *stmt = parseStatement();
             if (stmt != nullptr) {
                 statements.push_back(stmt);
@@ -1209,13 +1209,13 @@ const Statement *Parser::parseCaseStatement()
         }
         clauses.push_back(std::make_pair(conditions, statements));
     }
-    std::vector<const Statement *> else_statements;
-    if (tokens[i].type == ELSE) {
-        ++i;
+    std::vector<const Statement *> others_statements;
+    if (tokens[i].type == WHEN && tokens[i+1].type == OTHERS && tokens[i+2].type == DO) {
+        i += 3;
         while (tokens[i].type != END) {
             const Statement *stmt = parseStatement();
             if (stmt != nullptr) {
-                else_statements.push_back(stmt);
+                others_statements.push_back(stmt);
             }
         }
     }
@@ -1227,7 +1227,7 @@ const Statement *Parser::parseCaseStatement()
         error_a(2039, tokens[i-1], tokens[i], "CASE expected");
     }
     ++i;
-    clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), else_statements));
+    clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), others_statements));
     return new CaseStatement(tok_case, expr, clauses);
 }
 

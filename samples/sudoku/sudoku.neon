@@ -536,7 +536,7 @@ BEGIN MAIN
                     cx := (cx + 1) MOD 9
                 WHEN curses.KEY_UP DO
                     cy := (cy - 1) MOD 9
-                ELSE
+                WHEN OTHERS DO
                     CASE chr(k)
                         WHEN " ", "0" DO
                             IF start[cy][cx] = 0 THEN

@@ -11,7 +11,7 @@ WHILE a < 10 DO
             s := "three to five"
         WHEN 7, 9 DO
             s := "seven or nine"
-        ELSE
+        WHEN OTHERS DO
             s := "is something else"
     END CASE
     print(str(a) & " " & s)

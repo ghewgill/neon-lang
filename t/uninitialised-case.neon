@@ -2,7 +2,7 @@ VAR s: String
 CASE 1
     WHEN 1 DO
         s := "hello"
-    ELSE
+    WHEN OTHERS DO
         s := "hola"
 END CASE
 print(s)

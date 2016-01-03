@@ -103,6 +103,7 @@ enum TokenType {
     INC,
     DEC,
     UNDERSCORE,
+    OTHERS,
     MAX_TOKEN
 };
 

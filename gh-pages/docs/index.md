@@ -171,6 +171,7 @@ The following keywords are predefined and may not be used for any other purpose.
 | <a href="#keyword-NOT">`NOT`</a> | logical negation |
 | <a href="#keyword-OR">`OR`</a> | logical disjunction |
 | <a href="#keyword-OUT">`OUT`</a> | function parameter passing mode |
+| <a href="#keyword-OTHERS">`OTHERS`</a> | alternative condition in a `CASE` statement |
 | <a href="#keyword-POINTER">`POINTER`</a> | pointer type declaration |
 | <a href="#keyword-PRIVATE">`PRIVATE`</a> | private record field |
 | <a href="#keyword-RAISE">`RAISE`</a> | initiate exception search |
@@ -671,7 +672,7 @@ Example:
             print("three to five")
         WHEN 7, 9 DO
             print("seven or nine")
-        ELSE
+        WHEN OTHERS DO
             print("is something else")
     END CASE
 
@@ -686,7 +687,7 @@ The possible kinds of `WHEN` clauses are:
 
 More than one of the above forms may be included in a `WHEN` clause, separated by commas.
 The values of `WHEN` clauses must not overlap.
-The optional `ELSE` clause is executed when none of the `WHEN` clauses match.
+The optional `WHEN OTHERS` clause is executed when no other `WHEN` clauses match.
 
 <a name="statements-exit"></a>
 
