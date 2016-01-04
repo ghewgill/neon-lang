@@ -6,6 +6,8 @@ git clone -b gh-pages . tmp-gh-pages
 (cd tmp-gh-pages && git pull --ff-only .. origin/gh-pages)
 rm -rf tmp-gh-pages/html tmp-gh-pages/samples
 cp -r gh-pages/ tmp-gh-pages/
-(cd tmp-gh-pages && git add -f . && git commit -m "Update documentation from $rev" && git push)
+rm tmp-gh-pages/html/.gitignore tmp-gh-pages/samples/.gitignore
+cp .git/info/exclude tmp-gh-pages/.git/info/
+(cd tmp-gh-pages && git add --all . && git commit -m "Update documentation from $rev" && git push)
 rm -rf tmp-gh-pages
 echo "git push origin gh-pages:gh-pages"
