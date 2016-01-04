@@ -132,21 +132,27 @@ Example:
 
 ### Keywords
 
-The following keywords are predefined and may not be used for any other purpose.
+All words that consist of only uppercase letters are reserved for keywords.
+The following keywords are defined by the language.
 
 | Keyword | Description |
 | ------- | ----------- |
+| <a href="#keyword-ALIAS">`ALIAS`</a> | used in `IMPORT` to optionally rename a module |
 | <a href="#keyword-AND">`AND`</a> | logical conjunction |
 | <a href="#keyword-AS">`AS`</a> | parameter specification for named parameters |
+| <a href="#keyword-ASSERT">`ASSERT`</a> | assert that an expression is true, used for diagnostics |
 | <a href="#keyword-Array">`Array`</a> | generic array type |
+| <a href="#keyword-BEGIN">`BEGIN`</a> | used in `BEGIN MAIN` to indicate a program entry point |
 | <a href="#keyword-CASE">`CASE`</a> | multiple value matching from a range |
 | <a href="#keyword-CONSTANT">`CONSTANT`</a> | constant declaration |
 | <a href="#keyword-DECLARE">`DECLARE`</a> | exception and forward function declaration |
 | <a href="#keyword-DEFAULT">`DEFAULT`</a> | default value for function parameter |
+| <a href="#keyword-DEC">`DEC`</a> | decrement a `Number` variable |
 | <a href="#keyword-Dictionary">`Dictionary`</a> | generic dictionary type |
 | <a href="#keyword-DO">`DO`</a> | used in `CASE`, `FOR`, and `WHILE` statements |
 | <a href="#keyword-ELSE">`ELSE`</a> | alternative condition in `IF` statement |
 | <a href="#keyword-ELSIF">`ELSIF`</a> | alternative and test in `IF` statement |
+| <a href="#keyword-EMBED">`EMBED`</a> | include an external file directly into the compiled code |
 | <a href="#keyword-ENUM">`ENUM`</a> | enumeration type declaration |
 | <a href="#keyword-END">`END`</a> | end of most kinds of blocks of code |
 | <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration and handling |
@@ -156,21 +162,30 @@ The following keywords are predefined and may not be used for any other purpose.
 | <a href="#keyword-FALSE">`FALSE`</a> | boolean constant |
 | <a href="#keyword-FIRST">`FIRST`</a> | indicates first value in array subscript |
 | <a href="#keyword-FOR">`FOR`</a> | loop with a sequential control variable |
+| <a href="#keyword-FOREACH">`FOREACH`</a> | loop over an array of values |
 | <a href="#keyword-FUNCTION">`FUNCTION`</a> | definition of subprogram |
+| <a href="#keyword-HEXBYTES">`HEXBYTES`</a> | literal `Bytes` value |
 | <a href="#keyword-IF">`IF`</a> | conditional test and branch |
 | <a href="#keyword-IN">`IN`</a> | function parameter passing mode; aggregate membership test |
+| <a href="#keyword-INC">`INC`</a> | increment a `Number` variable |
+| <a href="#keyword-INDEX">`INDEX`</a> | used in `FOREACH` statement for counting values |
 | <a href="#keyword-INOUT">`INOUT`</a> | function parameter passing mode |
 | <a href="#keyword-IMPORT">`IMPORT`</a> | access code in another module |
+| <a href="#keyword-IS">`IS`</a> | used in a `TYPE` declaration |
 | <a href="#keyword-LAST">`LAST`</a> | indicates last value in array subscript |
 | <a href="#keyword-LET">`LET`</a> | assignment to read-only value |
 | <a href="#keyword-LOOP">`LOOP`</a> | generic loop |
+| <a href="#keyword-MAIN">`MAIN`</a> | used in `BEGIN MAIN` to indicate a program entry point |
 | <a href="#keyword-MOD">`MOD`</a> | arithmetic modulus |
+| <a href="#keyword-NATIVE">`NATIVE`</a> | declares a predefined function in the standard library |
 | <a href="#keyword-NEXT">`NEXT`</a> | early skip to next loop iteration |
 | <a href="#keyword-NEW">`NEW`</a> | dynamic memory allocation |
 | <a href="#keyword-NIL">`NIL`</a> | pointer value constant |
 | <a href="#keyword-NOT">`NOT`</a> | logical negation |
+| <a href="#keyword-OF">`OF`</a> | used in `FOREACH` statement |
 | <a href="#keyword-OR">`OR`</a> | logical disjunction |
 | <a href="#keyword-OUT">`OUT`</a> | function parameter passing mode |
+| <a href="#keyword-OTHERS">`OTHERS`</a> | alternative condition in a `CASE` statement |
 | <a href="#keyword-POINTER">`POINTER`</a> | pointer type declaration |
 | <a href="#keyword-PRIVATE">`PRIVATE`</a> | private record field |
 | <a href="#keyword-RAISE">`RAISE`</a> | initiate exception search |
@@ -194,6 +209,7 @@ The following keywords are predefined and may not be used for any other purpose.
 ### Identifiers
 
 An identifier is a letter followed by any number of letters, digits, or underscore.
+Identifiers which consist of all uppercase letters are reserved for [keywords](#lexical-keywords).
 
 <a name="lexical-numbers"></a>
 
@@ -228,7 +244,7 @@ The allowed character escapes are:
 | `\n`   | chr(10)     | newline |
 | `\r`   | chr(13)     | carriage return |
 | `\t`   | chr(9)      | tab |
-| `\uXXXX` | chr(XXXX) | unicode character XXXX (where XXXX is a 4-digit hex number) |
+| `\uXXXX` | chr(XXXX) | Unicode character XXXX (where XXXX is a 4-digit hex number) |
 | `\()`  | expression  | see <a href="#expressions-substitution">expression substitution</a> |
 
 Example:
@@ -274,11 +290,11 @@ Example:
 
 ### Number
 
-Number values are 64-bit decimal floating point (specifically, [decimal64](https://en.wikipedia.org/wiki/Decimal64_floating-point_format)).
+Number values are 128-bit decimal floating point (specifically, [decimal128](https://en.wikipedia.org/wiki/Decimal128_floating-point_format)).
 The valid magnitude range of numbers are (in addition to zero):
 
-* Minimum: 1.000000000000000e-383
-* Maximum: 9.999999999999999e384
+* Minimum: 1.000000000000000000000000000000000e-6143
+* Maximum: 9.999999999999999999999999999999999e6144
 
 Example:
 
@@ -340,14 +356,14 @@ Example:
         oranges: Number
     END RECORD
 
-    FUNCTION Cart.total_fruit(self: Cart): Number
+    FUNCTION Cart.totalFruit(self: Cart): Number
         RETURN self.apples + self.oranges
     END FUNCTION
 
     VAR c: Cart := Cart()
     c.apples := 5
     c.oranges := 6
-    print(str(c.total_fruit()))
+    print(str(c.totalFruit()))
 
 Record fields may be marked `PRIVATE`, which means that only code within associated methods may access that field.
 
@@ -394,7 +410,7 @@ Example:
 Pointers are addresses of dynamically allocated records.
 The `NEW` keyword allocates a new record of a given type and returns a pointer to it.
 Pointers may have the value `NIL` that does not point to any object.
-To use (dereference) a pointer, it must first be checked for vaildity (not `NIL`) using the `IF VALID` construct.
+To use (dereference) a pointer, it must first be checked for validity (not `NIL`) using the `IF VALID` construct.
 
 Example:
 
@@ -421,7 +437,7 @@ Operators are logical, arithmetic, or string and the valid operators depend on t
 
 <a name="expressions-literal"></a>
 
-### Literal Valeus
+### Literal Values
 
 Literal values can be individual lexical elements such as <a href="lexical-identifiers">identifiers</a>, <a href="lexical-numbers">numbers</a>, and <a href="lexical-strings">strings</a>.
 
@@ -517,7 +533,7 @@ The following operators take two string values.
 | -------- | ----------- |
 | `->`     | pointer dereference |
 
-<a name="expresssions-precedence"></a>
+<a name="expressions-precedence"></a>
 
 ### Operator Precedence
 
@@ -671,7 +687,7 @@ Example:
             print("three to five")
         WHEN 7, 9 DO
             print("seven or nine")
-        ELSE
+        WHEN OTHERS DO
             print("is something else")
     END CASE
 
@@ -686,7 +702,7 @@ The possible kinds of `WHEN` clauses are:
 
 More than one of the above forms may be included in a `WHEN` clause, separated by commas.
 The values of `WHEN` clauses must not overlap.
-The optional `ELSE` clause is executed when none of the `WHEN` clauses match.
+The optional `WHEN OTHERS` clause is executed when no other `WHEN` clauses match.
 
 <a name="statements-exit"></a>
 
@@ -697,6 +713,7 @@ The `EXIT` statement has five different forms:
 | Form | Description |
 | ---- | ----------- |
 | `EXIT FOR` | stop iteration of the nearest enclosing `FOR` loop |
+| `EXIT FOREACH` | stop iteration of the nearest enclosing `FOREACH` loop |
 | `EXIT FUNCTION` | immediately return from a function (only for functions that do not return a value) |
 | `EXIT LOOP` | stop iteration of the nearest enclosing `LOOP` loop |
 | `EXIT REPEAT` | stop iteration of the nearest enclosing `REPEAT` loop |
@@ -815,6 +832,7 @@ The `NEXT` statement has four different forms:
 | Form | Description |
 | ---- | ----------- |
 | `NEXT FOR` | next iteration of the nearest enclosing `FOR` loop |
+| `NEXT FOREACH` | next iteration of the nearest enclosing `FOREACH` loop |
 | `NEXT LOOP` | next iteration of the nearest enclosing `LOOP` loop |
 | `NEXT REPEAT` | next iteration of the nearest enclosing `REPEAT` loop |
 | `NEXT WHILE` | next iteration of the nearest enclosing `WHILE` loop |
@@ -937,6 +955,15 @@ Function parameters may be declared with a parameter mode:
 The default parameter mode is `IN`.
 For `INOUT` and `OUT` parameters, the caller must supply an actual variable rather than the result of an expression.
 
+When calling a function with a parameter that has `INOUT` or `OUT` modes, the parameter mode must also be declared in the call.
+
+    FUNCTION double(INOUT x: Number)
+        x := x * 2
+    END FUNCTION
+
+    VAR a: Number := 5
+    double(INOUT a)
+
 <a name="functions-default"></a>
 
 ### Default Parameter Value
@@ -964,11 +991,11 @@ When calling a function, function parameters may be named using the `AS` keyword
 
 Example:
 
-    FUNCTION birthday_party(name: String, balloons: Number, cake: String, clown: Boolean)
+    FUNCTION birthdayParty(name: String, balloons: Number, cake: String, clown: Boolean)
         % ...
     END FUNCTION
 
-    birthday_party(name AS "Helen", balloons AS 10, cake AS "Chocolate", clown AS TRUE)
+    birthdayParty(name AS "Helen", balloons AS 10, cake AS "Chocolate", clown AS TRUE)
 
 Parameters may be passed in order without using `AS`, and then switch to using `AS` for the remainder of the function call.
 Each non-default parameter must be specified exactly once in the function call.
