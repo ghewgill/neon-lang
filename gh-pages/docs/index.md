@@ -229,7 +229,7 @@ The allowed character escapes are:
 | `\n`   | chr(10)     | newline |
 | `\r`   | chr(13)     | carriage return |
 | `\t`   | chr(9)      | tab |
-| `\uXXXX` | chr(XXXX) | unicode character XXXX (where XXXX is a 4-digit hex number) |
+| `\uXXXX` | chr(XXXX) | Unicode character XXXX (where XXXX is a 4-digit hex number) |
 | `\()`  | expression  | see <a href="#expressions-substitution">expression substitution</a> |
 
 Example:
@@ -395,7 +395,7 @@ Example:
 Pointers are addresses of dynamically allocated records.
 The `NEW` keyword allocates a new record of a given type and returns a pointer to it.
 Pointers may have the value `NIL` that does not point to any object.
-To use (dereference) a pointer, it must first be checked for vaildity (not `NIL`) using the `IF VALID` construct.
+To use (dereference) a pointer, it must first be checked for validity (not `NIL`) using the `IF VALID` construct.
 
 Example:
 
@@ -422,7 +422,7 @@ Operators are logical, arithmetic, or string and the valid operators depend on t
 
 <a name="expressions-literal"></a>
 
-### Literal Valeus
+### Literal Values
 
 Literal values can be individual lexical elements such as <a href="lexical-identifiers">identifiers</a>, <a href="lexical-numbers">numbers</a>, and <a href="lexical-strings">strings</a>.
 
@@ -518,7 +518,7 @@ The following operators take two string values.
 | -------- | ----------- |
 | `->`     | pointer dereference |
 
-<a name="expresssions-precedence"></a>
+<a name="expressions-precedence"></a>
 
 ### Operator Precedence
 
