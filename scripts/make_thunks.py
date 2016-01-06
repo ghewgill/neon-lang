@@ -301,7 +301,7 @@ with open("src/thunks.inc", "w") as inc:
                     print >>inc, "        stack.push(Cell(t{}));".format(i)
         print >>inc, "    } catch (RtlException &) {"
         if params:
-            print >>inc, "        stack.drop({});".format(len(params))
+            print >>inc, "        stack.drop({});".format(stack_count)
         print >>inc, "        throw;"
         print >>inc, "    }"
         print >>inc, "}"
