@@ -147,7 +147,7 @@ else:
         env.Append(LIBS=["iconv", "objc"])
         env.Append(FRAMEWORKS=["AppKit", "AudioUnit", "Carbon", "CoreAudio", "CoreFoundation", "CoreGraphics", "ForceFeedback", "IOKit"])
     else:
-        pass
+        env.Append(LIBS="pthread")
 
 env.Append(CPPPATH=["external/SDL2-2.0.3/include"])
 
