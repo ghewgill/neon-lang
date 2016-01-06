@@ -82,8 +82,11 @@ liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"]
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
 libsdl = add_external(SConscript("external/SConscript-libsdl", exports=["env"]))
 libsodium = add_external(SConscript("external/SConscript-libsodium", exports=["env"]))
+libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
+
+env.Depends(libcurl, libssl)
 
 SConscript("external/SConscript-naturaldocs")
 
@@ -114,7 +117,7 @@ else:
         env.Append(CXXFLAGS=[
             "-g",
         ])
-env.Prepend(LIBS=[x for x in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium] if x])
+env.Prepend(LIBS=[x for x in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium, libssl] if x])
 env.Append(LIBS=libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
@@ -183,6 +186,8 @@ rtl_cpp = rtl_const + [
     "lib/sys.cpp",
     "lib/time.cpp",
 ]
+
+env.Depends("lib/http.cpp", libcurl)
 
 rtl_neon = [
     "lib/bitwise.neon",

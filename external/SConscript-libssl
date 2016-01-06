@@ -1,0 +1,29 @@
+import os
+import shutil
+import sys
+import tarfile
+
+Import("env")
+
+libssl = None
+
+sslenv = Environment()
+if not env["RELEASE"]:
+    if sys.platform == "win32":
+        sslenv.Append(CFLAGS=["/MTd"])
+
+if GetOption("clean"):
+    shutil.rmtree("libressl-2.2.4", ignore_errors=True)
+elif not os.path.exists("libressl-2.2.4/configure"):
+    tarfile.open("libressl-2.2.4.tar.gz").extractall(".")
+
+if sys.platform == "win32":
+    pass
+else:
+    conf = Configure(env)
+    if True or not conf.CheckLibWithHeader("ressl", "crypto.h", "C++"):
+        libssl = sslenv.Command(["lib/libssl.a", "lib/libcrypto.a"], "libressl-2.2.4/configure", "cd external/libressl-2.2.4 && ./configure --prefix={} && make install".format(os.path.abspath(".")))
+        env.Append(CPPPATH=["external/include"])
+    conf.Finish()
+
+Return(["libssl"])
