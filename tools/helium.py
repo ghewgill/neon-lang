@@ -2096,6 +2096,7 @@ ExcludeTests = [
     "t/debug-example.neon",     # Feature not required
     "t/debug-server.neon",      # Feature not required
     "t/decimal.neon",           # Module not required
+    "t/encoding-base64.neon",   # HEXBYTES not implemented yet
     "t/exception-clear.neon",   # CURRENT_EXCEPTION not required
     "t/exception-code.neon",    # CURRENT_EXCEPTION not required
     "t/exception-current.neon", # CURRENT_EXCEPTION not required
