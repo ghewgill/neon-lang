@@ -30,7 +30,7 @@ if sys.platform == "win32":
     env.Append(LIBS=["ws2_32"])
 else:
     conf = Configure(env)
-    if True or not conf.CheckLibWithHeader("curl", "curl/curl.h", "C++"):
+    if not conf.CheckLibWithHeader("curl", "curl/curl.h", "C++"):
         libcurl = curlenv.Command("curl-7.41.0/lib/.libs/libcurl.a", "curl-7.41.0/configure", " ".join(["cd external/curl-7.41.0 &&",
             "./configure",
             "--disable-ares",
