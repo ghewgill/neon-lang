@@ -53,6 +53,18 @@ else:
         with open("config.py", "w") as config:
             print >>config, "release={}".format(release)
 
+# Check for any files that accidentally contain \r\n. Only do this
+# on non-windows platforms, because windows users may set Git to
+# use crlf line endings.
+if sys.platform != "nt":
+    for subdir in ["contrib", "gh-pages", "lib", "samples", "scripts", "src", "t", "tests", "tools"]:
+        for path, files, dirs in os.walk(subdir):
+            for fn in files:
+                if fn.endswith((".cpp", ".neon", ".txt", ".md")):
+                    with open(os.path.join(path, fn), "rb") as f:
+                        data = f.read()
+                        assert "\r\n" not in data, fn
+
 env = Environment()
 
 env["RELEASE"] = release
