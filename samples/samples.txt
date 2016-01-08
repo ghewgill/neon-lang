@@ -5,12 +5,16 @@ Neon samples.
 - <99-bottles>      - Print the lyrics to the "99 Bottles of Beer" song
 - <cal>             - Print monthly and yearly calendars
 - <fizzbuzz>        - Implementation of the FizzBuzz problem
+- <flappy>          - Implementation of a "Flappy Bird" clone (SDL)
 - <forth>           - Implementation of the Forth programming language
 - <hello>           - Hello World
 - <httpd>           - HTTP server
+- <life>            - Conway's Game of Life (SDL)
 - <lisp>            - Implementation of a Scheme-like Lisp dialect
+- <mandelbrot>      - Mandelbrot set generator (SDL)
 - <net-services>    - Simple network services (daytime, discard, echo)
 - <othello>         - Othello game (curses)
 - <sieve>           - Sieve of Eratosthenes
+- <spacedebris>     - Vector based space rocks game (SDL)
 - <sudoku>          - Sudoku game (curses)
 - <tetris>          - Tetris game (curses)

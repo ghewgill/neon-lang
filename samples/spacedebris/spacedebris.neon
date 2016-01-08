@@ -1,3 +1,9 @@
+%|
+ |  File: spacedebris
+ |
+ |  Vector base space rocks game.
+ |%
+
 IMPORT math
 IMPORT random
 IMPORT sdl
