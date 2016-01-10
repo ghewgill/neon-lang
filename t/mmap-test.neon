@@ -1,0 +1,5 @@
+IMPORT mmap
+
+VAR f: mmap.MemoryFile := mmap.open("LICENSE.txt", mmap.Mode.read)
+ASSERT mmap.read(f, 0, 21).toString() = "The MIT License (MIT)"
+mmap.close(INOUT f)

@@ -213,6 +213,7 @@ rtl_neon = [
     "lib/http.neon",
     "lib/io.neon",
     "lib/math.neon",
+    "lib/mmap.neon",
     "lib/net.neon",
     "lib/os.neon",
     "lib/random.neon",
@@ -229,6 +230,7 @@ rtl_neon = [
 if os.name == "posix":
     rtl_cpp.extend([
         "lib/file_posix.cpp",
+        "lib/mmap_posix.cpp",
         "lib/os_posix.cpp",
         "lib/time_posix.cpp",
     ])
@@ -247,6 +249,7 @@ if os.name == "posix":
 elif os.name == "nt":
     rtl_cpp.extend([
         "lib/file_win32.cpp",
+        "lib/mmap_win32.cpp",
         "lib/os_win32.cpp",
         "lib/time_win32.cpp",
     ])

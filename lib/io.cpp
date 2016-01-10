@@ -17,7 +17,7 @@
 
 #include "enums.inc"
 
-FILE *check_file(void *pf)
+static FILE *check_file(void *pf)
 {
     FILE *f = static_cast<FILE *>(pf);
     if (f == NULL) {

@@ -2117,6 +2117,7 @@ ExcludeTests = [
     "t/lisp-test.neon",         # Sample not required
     "t/math-test.neon",         # Module not required
     "t/mkdir.neon",             # Feature not required
+    "t/mmap-test.neon",         # Module not required
     "t/module-alias.neon",      # Feature not required
     "t/module-alias2.neon",     # Feature not required
     "t/module-import-name-alias.neon", # Feature not required
