@@ -125,7 +125,7 @@ RepeatStatement = 'REPEAT', {Statement}, 'UNTIL', Expression;
 
 ReturnStatement = 'RETURN', Expression;
 
-TryStatement = 'TRY', {Statement}, {'EXCEPTION', Identifier, ['.', Identifier], {Statement}}, 'END', 'TRY';
+TryStatement = 'TRY', {Statement}, {'EXCEPTION', Identifier, ['.', Identifier], 'DO', {Statement}}, 'END', 'TRY';
 
 WhileStatement = 'WHILE', Expression, 'DO', {Statement}, 'END', 'WHILE';
 

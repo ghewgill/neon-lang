@@ -6,7 +6,7 @@ END FUNCTION
 
 TRY
     doit()
-EXCEPTION PrinterOnFire
+EXCEPTION PrinterOnFire DO
     print("conflagration")
 END TRY
 

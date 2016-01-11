@@ -4,7 +4,7 @@ print(d["hello"])
 
 TRY
     print(d["foo"])
-EXCEPTION DictionaryIndex
+EXCEPTION DictionaryIndex DO
     print("dictionary index")
 END TRY
 

@@ -1432,6 +1432,10 @@ const Statement *Parser::parseTryStatement()
         }
         std::vector<std::pair<Token, Token>> exceptions;
         exceptions.push_back(name);
+        if (tokens[i].type != DO) {
+            error(2098, tokens[i], "DO expected");
+        }
+        ++i;
         std::vector<const Statement *> statements;
         while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             const Statement *stmt = parseStatement();

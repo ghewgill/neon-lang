@@ -2,7 +2,7 @@ DECLARE EXCEPTION PrinterOnFire
 
 TRY
     RAISE PrinterOnFire
-EXCEPTION PrinterOnFire
+EXCEPTION PrinterOnFire DO
     print("conflagration")
 END TRY
 

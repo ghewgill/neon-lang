@@ -4,10 +4,10 @@ TRY
     print("one")
     TRY
         RAISE PrinterOnFire
-    EXCEPTION PrinterOnFire
+    EXCEPTION PrinterOnFire DO
         print("two")
     END TRY
-EXCEPTION PrinterOnFire
+EXCEPTION PrinterOnFire DO
     print("three")
 END TRY
 

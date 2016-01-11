@@ -1,4 +1,4 @@
 TRY
-EXCEPTION Foo
+EXCEPTION Foo DO
           %<
 END TRY

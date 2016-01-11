@@ -1,5 +1,5 @@
 VAR module: Number
 TRY
-EXCEPTION module.exception
+EXCEPTION module.exception DO
           %<
 END TRY

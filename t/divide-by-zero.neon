@@ -3,7 +3,7 @@ a := 5
 b := 0
 TRY
     print(str(a / b))
-EXCEPTION DivideByZero
+EXCEPTION DivideByZero DO
     print("divide by zero")
 END TRY
 

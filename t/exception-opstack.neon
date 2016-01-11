@@ -15,7 +15,7 @@ FUNCTION bar(): Number
     VAR x: Number
     TRY
         x := foo(5, quux())
-    EXCEPTION PrinterOnFire
+    EXCEPTION PrinterOnFire DO
     END TRY
     RETURN 3
 END FUNCTION

@@ -1706,6 +1706,7 @@ class Parser:
                 n = self.identifier()
                 name = (name[1], n)
             exceptions = [name]
+            self.expect(DO)
             handler = []
             while self.tokens[self.i] is not EXCEPTION and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
                 s = self.parse_statement()

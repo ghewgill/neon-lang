@@ -907,7 +907,7 @@ Example:
         IF size > 4 THEN
             RAISE InvalidWidgetSize(size.toString())
         END IF
-    EXCEPTION InvalidWidgetSize
+    EXCEPTION InvalidWidgetSize DO
         print("Invalid size \(CURRENT_EXCEPTION.info)")
     END TRY
 

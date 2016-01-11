@@ -3,7 +3,7 @@ DECLARE EXCEPTION FileNotFound
 FUNCTION foo(): Number
     TRY
         RETURN 1
-    EXCEPTION FileNotFound
+    EXCEPTION FileNotFound DO
         RETURN -1
     END TRY
 END FUNCTION
