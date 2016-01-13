@@ -43,15 +43,15 @@ LET Base64DecodeTable: Array<Number> := [
  |  Encodes the provided Bytes into Base64 encoded data.
  |
  |  Parameters:
- |      src - The source data to encode.
+ |      data - The binary data to be encoded to Base64.
  |
  |%
-FUNCTION base64Encode(src: Bytes): String
+FUNCTION base64Encode(data: Bytes): String
     VAR encoded: String := ""
     VAR char1, char2: Number
     VAR status: State := State.byte1
 
-    LET source: Array<Number> := src.toArray()
+    LET source: Array<Number> := data.toArray()
 
     FOREACH n OF source DO
         CASE status
@@ -90,18 +90,19 @@ END FUNCTION
  |  Decodes the provided Base64 string data back into binary data.
  |
  |  Parameters:
- |      src - The source Base64 to decode.
+ |      encoded - The Base64 encoded data string to be decoded back into
+ |                its original form.
  |
  |%
-FUNCTION base64Decode(src: String): Bytes
+FUNCTION base64Decode(encoded: String): Bytes
     VAR char1, char2, char3: Number := 0
     VAR decoded: Array<Number> := []
     VAR state: State := State.byte1
 
-    FOR i := 0 TO src.length() - 1 DO
-        LET char: String := src[i]
+    FOR i := 0 TO encoded.length() - 1 DO
+        LET char: String := encoded[i]
         IF char = "=" THEN
-            % If src[i] is the ASCII "=", then we've hit the end of the ACTUAL
+            % If encoded[i] is the ASCII "=", then we've hit the end of the ACTUAL
             % base64 encoded data, so we can break out now.
             EXIT FOR
         END IF
