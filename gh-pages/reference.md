@@ -590,7 +590,7 @@ The type of the embedded expression must have a `.toString()` method which will 
 Example:
 
     LET a: Array<String> := ["one", "two", "three"]
-    FOR i := 1 TO 3 DO
+    FOR i := 0 TO 2 DO
         print("i is \(i) and the array element is \(a[i])")
     END FOR
 
@@ -851,7 +851,7 @@ Example:
 
     DECLARE EXCEPTION InvalidWidgetSize
     
-    VAR size: Number := 5
+    VAR size: Number := 3
     IF size > 4 THEN
         RAISE InvalidWidgetSize(size.toString())
     END IF

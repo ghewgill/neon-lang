@@ -1,6 +1,15 @@
 import os
+import re
 import subprocess
 import sys
+
+def test(code):
+    if code:
+        compile_only = re.search(r"\binput\b", code) is not None
+        p = subprocess.Popen(["bin/neonc" if compile_only else "bin/neon", "-"], stdin=subprocess.PIPE)
+        p.communicate(code)
+        p.wait()
+        assert p.returncode == 0
 
 def check_file(source):
     lines = source.split("\n")
@@ -13,13 +22,10 @@ def check_file(source):
         if s.startswith("    ") and (code or lastblank):
             code += s[4:] + "\n"
         else:
-            if code:
-                p = subprocess.Popen(["bin/neonc", "-"], stdin=subprocess.PIPE)
-                p.communicate(code)
-                p.wait()
-                assert p.returncode == 0
+            test(code)
             code = ""
         lastblank = False
+    test(code)
 
 def get_branch_files(prefix):
     try:
