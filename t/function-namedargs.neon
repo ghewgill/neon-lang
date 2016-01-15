@@ -5,8 +5,8 @@ END FUNCTION
 print(foo(1, 2, 3).toString())
 %= -1
 
-print(foo(x AS 1, y AS 2, z AS 3).toString())
+print(foo(x WITH 1, y WITH 2, z WITH 3).toString())
 %= -1
 
-print(foo(y AS 2, z AS 3, x AS 1).toString())
+print(foo(y WITH 2, z WITH 3, x WITH 1).toString())
 %= -1

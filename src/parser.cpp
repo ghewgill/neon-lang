@@ -319,7 +319,7 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
                     break;
             }
             Token name;
-            if (tokens[i].type == IDENTIFIER && tokens[i+1].type == AS) {
+            if (tokens[i].type == IDENTIFIER && tokens[i+1].type == WITH) {
                 name = tokens[i];
                 i += 2;
             }

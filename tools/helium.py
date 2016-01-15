@@ -133,6 +133,7 @@ HEXBYTES = Keyword("HEXBYTES")
 INC = Keyword("INC")
 DEC = Keyword("DEC")
 OTHERS = Keyword("OTHERS")
+WITH = Keyword("WITH")
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -1185,7 +1186,7 @@ class Parser:
                 if self.tokens[self.i] in [IN, OUT, INOUT]:
                     self.i += 1
                 name = None
-                if isinstance(self.tokens[self.i], Identifier) and self.tokens[self.i+1] is AS:
+                if isinstance(self.tokens[self.i], Identifier) and self.tokens[self.i+1] is WITH:
                     name = self.tokens[self.i].name
                     self.i += 2
                 e = self.parse_expression()

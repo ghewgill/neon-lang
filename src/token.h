@@ -104,6 +104,7 @@ enum TokenType {
     DEC,
     UNDERSCORE,
     OTHERS,
+    WITH,
     MAX_TOKEN
 };
 

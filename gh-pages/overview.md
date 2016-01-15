@@ -176,7 +176,7 @@ Callers may use parameters in any order if the parameters are explicitly named.
 
     VAR uname: String
     VAR n: Number := 0
-    func("charlie", INOUT count AS n, OUT result AS uname)
+    func("charlie", INOUT count WITH n, OUT result WITH uname)
     ASSERT uname = "CHARLIE"
     ASSERT n = 1
 

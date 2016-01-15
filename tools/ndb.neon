@@ -65,8 +65,8 @@ FOREACH ln OF r.getDictionary()["line_numbers"].getArray() DO
 END FOREACH
 FOREACH g OF r.getDictionary()["globals"].getArray() DO
     Globals[g.getDictionary()["name"].getString()] := Global(
-        index AS g.getDictionary()["index"].getNumber(),
-        repr AS g.getDictionary()["type"].getDictionary()["representation"].getString()
+        index WITH g.getDictionary()["index"].getNumber(),
+        repr WITH g.getDictionary()["type"].getDictionary()["representation"].getString()
     )
 END FOREACH
 

@@ -2,5 +2,5 @@ FUNCTION foo(x, y, z: Number): Number
     RETURN x * (y - z)
 END FUNCTION
 
-print(foo(x AS 1, x AS 2, 3).to_string())
-                  %<
+print(foo(x WITH 1, x WITH 2, 3).to_string())
+                    %<

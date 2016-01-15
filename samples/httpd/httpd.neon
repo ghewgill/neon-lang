@@ -57,7 +57,7 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
         VAR error: Array<net.Socket> := []
         IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
             IF self.server IN read THEN
-                self.clients.append(Client(socket AS self.server.accept()))
+                self.clients.append(Client(socket WITH self.server.accept()))
             END IF
             FOR i := self.clients.size()-1 TO 0 STEP -1 DO
                 IF self.clients[i].socket IN read THEN
@@ -152,6 +152,6 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
     RETURN r
 END FUNCTION
 
-VAR server: HttpServer := HttpServer(port AS 8080)
+VAR server: HttpServer := HttpServer(port WITH 8080)
 server.addHandler("/", path_handler, [variant.makeString(".")])
 server.serve()

@@ -168,14 +168,14 @@ END FUNCTION
 FUNCTION makeFromInstant(inst: Instant): DateTime
     LET tm: struct_tm := gmtime(inst)
     RETURN DateTime(
-        instant AS inst,
-        year AS 1900 + tm.tm_year,
-        month AS 1 + tm.tm_mon,
-        day AS tm.tm_mday,
-        weekday AS 1 + (tm.tm_wday + 6) MOD 7,
-        hour AS tm.tm_hour,
-        minute AS tm.tm_min,
-        second AS tm.tm_sec
+        instant WITH inst,
+        year WITH 1900 + tm.tm_year,
+        month WITH 1 + tm.tm_mon,
+        day WITH tm.tm_mday,
+        weekday WITH 1 + (tm.tm_wday + 6) MOD 7,
+        hour WITH tm.tm_hour,
+        minute WITH tm.tm_min,
+        second WITH tm.tm_sec
     )
 END FUNCTION
 

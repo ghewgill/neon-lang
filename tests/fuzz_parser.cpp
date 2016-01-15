@@ -106,6 +106,7 @@ std::string reconstitute(const Token &t)
         case DEC:         return "DEC";
         case UNDERSCORE:  return "_";
         case OTHERS:      return "OTHERS";
+        case WITH:        return "WITH";
         case MAX_TOKEN:   return "";
     }
     return "";

@@ -4,7 +4,7 @@ rev=$(git describe --always)
 scons docs docs_samples
 git clone -b gh-pages . tmp-gh-pages
 (cd tmp-gh-pages && git pull --ff-only .. origin/gh-pages)
-rm -rf tmp-gh-pages/html tmp-gh-pages/samples
+rm -rf tmp-gh-pages/*
 cp -r gh-pages/ tmp-gh-pages/
 rm tmp-gh-pages/html/.gitignore tmp-gh-pages/samples/.gitignore
 cp .git/info/exclude tmp-gh-pages/.git/info/

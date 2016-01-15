@@ -3,4 +3,4 @@ FUNCTION f(OUT x: Number)
 END FUNCTION
 
 f(OUT _)
-f(OUT x AS _)
+f(OUT x WITH _)
