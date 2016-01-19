@@ -29,6 +29,24 @@ void global$array__extend(Cell *self, Cell &elements)
     std::copy(elements.array().begin(), elements.array().end(), std::back_inserter(self->array_for_write()));
 }
 
+std::vector<Number> global$array__range(Number first, Number last, Number step)
+{
+    std::vector<Number> r;
+    if (number_is_zero(step)) {
+        throw RtlException(Exception_global$ValueRange, number_to_string(step));
+    }
+    if (number_is_negative(step)) {
+        for (Number i = first; number_is_greater_equal(i, last); i = number_add(i, step)) {
+            r.push_back(i);
+        }
+    } else {
+        for (Number i = first; number_is_less_equal(i, last); i = number_add(i, step)) {
+            r.push_back(i);
+        }
+    }
+    return r;
+}
+
 void global$array__resize(Cell *self, Number new_size)
 {
     if (not number_is_integer(new_size)) {

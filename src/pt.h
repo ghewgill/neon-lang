@@ -25,6 +25,7 @@ class StringLiteralExpression;
 class FileLiteralExpression;
 class BytesLiteralExpression;
 class ArrayLiteralExpression;
+class ArrayLiteralRangeExpression;
 class DictionaryLiteralExpression;
 class NilLiteralExpression;
 class IdentifierExpression;
@@ -104,6 +105,7 @@ public:
     virtual void visit(const FileLiteralExpression *) = 0;
     virtual void visit(const BytesLiteralExpression *) = 0;
     virtual void visit(const ArrayLiteralExpression *) = 0;
+    virtual void visit(const ArrayLiteralRangeExpression *) = 0;
     virtual void visit(const DictionaryLiteralExpression *) = 0;
     virtual void visit(const NilLiteralExpression *) = 0;
     virtual void visit(const IdentifierExpression *) = 0;
@@ -324,6 +326,18 @@ public:
     ArrayLiteralExpression(const Token &token, size_t end_column, const std::vector<const Expression *> &elements): Expression(token, token.column, end_column), elements(elements) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const Expression *> elements;
+};
+
+class ArrayLiteralRangeExpression: public Expression {
+public:
+    ArrayLiteralRangeExpression(const Token &token, size_t end_column, const Expression *first, const Expression *last, const Expression *step): Expression(token, token.column, end_column), first(first), last(last), step(step) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Expression *first;
+    const Expression *last;
+    const Expression *step;
+private:
+    ArrayLiteralRangeExpression(const ArrayLiteralRangeExpression &);
+    ArrayLiteralRangeExpression &operator=(const ArrayLiteralRangeExpression &);
 };
 
 class DictionaryLiteralExpression: public Expression {

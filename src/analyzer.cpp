@@ -50,6 +50,7 @@ public:
     const Expression *analyze(const pt::FileLiteralExpression *expr);
     const Expression *analyze(const pt::BytesLiteralExpression *expr);
     const Expression *analyze(const pt::ArrayLiteralExpression *expr);
+    const Expression *analyze(const pt::ArrayLiteralRangeExpression *expr);
     const Expression *analyze(const pt::DictionaryLiteralExpression *expr);
     const Expression *analyze(const pt::NilLiteralExpression *expr);
     const Expression *analyze(const pt::IdentifierExpression *expr);
@@ -139,6 +140,7 @@ public:
     virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BytesLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrayLiteralRangeExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
@@ -221,6 +223,7 @@ public:
     virtual void visit(const pt::FileLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::BytesLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ArrayLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::ArrayLiteralRangeExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DictionaryLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NilLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::IdentifierExpression *p) override { expr = a->analyze(p); }
@@ -302,6 +305,7 @@ public:
     virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BytesLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrayLiteralRangeExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
@@ -383,6 +387,7 @@ public:
     virtual void visit(const pt::FileLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::BytesLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrayLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::ArrayLiteralRangeExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
@@ -935,6 +940,28 @@ const Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
         elements.push_back(element);
     }
     return new ArrayLiteralExpression(elementtype, elements);
+}
+
+const Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *expr)
+{
+    const Expression *first = analyze(expr->first);
+    if (not first->type->is_assignment_compatible(TYPE_NUMBER)) {
+        error(2100, expr->first->token, "numeric expression expected");
+    }
+    const Expression *last = analyze(expr->last);
+    if (not last->type->is_assignment_compatible(TYPE_NUMBER)) {
+        error(2101, expr->last->token, "numeric expression expected");
+    }
+    const Expression *step = analyze(expr->step);
+    if (not step->type->is_assignment_compatible(TYPE_NUMBER)) {
+        error(2102, expr->step->token, "numeric expression expected");
+    }
+    const VariableExpression *range = new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("array__range")));
+    std::vector<const Expression *> args;
+    args.push_back(first);
+    args.push_back(last);
+    args.push_back(step);
+    return new FunctionCall(range, args);
 }
 
 const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
@@ -3011,6 +3038,7 @@ public:
     virtual void visit(const pt::FileLiteralExpression *) {}
     virtual void visit(const pt::BytesLiteralExpression *) {}
     virtual void visit(const pt::ArrayLiteralExpression *node) { for (auto x: node->elements) x->accept(this); }
+    virtual void visit(const pt::ArrayLiteralRangeExpression *node) { node->first->accept(this); node->last->accept(this); node->step->accept(this); }
     virtual void visit(const pt::DictionaryLiteralExpression *node) { for (auto x: node->elements) x.second->accept(this); }
     virtual void visit(const pt::NilLiteralExpression *) {}
     virtual void visit(const pt::IdentifierExpression *node) {

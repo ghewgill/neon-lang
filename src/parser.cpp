@@ -32,7 +32,7 @@ public:
     const Statement *parseTypeDefinition();
     const Statement *parseConstantDefinition();
     const FunctionCallExpression *parseFunctionCall(const Expression *func);
-    const ArrayLiteralExpression *parseArrayLiteral();
+    const Expression *parseArrayLiteral();
     const DictionaryLiteralExpression *parseDictionaryLiteral();
     const Expression *parseInterpolatedStringExpression();
     const Expression *parseAtom();
@@ -345,7 +345,7 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
     return new FunctionCallExpression(func->token, func, args, tok_rparen);
 }
 
-const ArrayLiteralExpression *Parser::parseArrayLiteral()
+const Expression *Parser::parseArrayLiteral()
 {
     auto &tok_lbracket = tokens[i];
     ++i;
@@ -355,6 +355,22 @@ const ArrayLiteralExpression *Parser::parseArrayLiteral()
         elements.push_back(element);
         if (tokens[i].type == COMMA) {
             ++i;
+        } else if (tokens[i].type == TO) {
+            ++i;
+            const Expression *first = element;
+            const Expression *last = parseExpression();
+            const Expression *step = nullptr;
+            if (tokens[i].type == STEP) {
+                ++i;
+                step = parseExpression();
+            } else {
+                step = new NumberLiteralExpression(Token(), number_from_uint32(1));
+            }
+            if (tokens[i].type != RBRACKET) {
+                error2(2099, tokens[i], "']' expected", tok_lbracket, "opening '[' here");
+            }
+            ++i;
+            return new ArrayLiteralRangeExpression(tok_lbracket, tokens[i-1].column+1, first, last, step);
         } else if (tokens[i].type != RBRACKET) {
             error2(2053, tokens[i], "',' or ']' expected", tok_lbracket, "opening '[' here");
         }

@@ -64,6 +64,12 @@ public:
             child(x);
         }
     }
+    virtual void visit(const ArrayLiteralRangeExpression *node) override {
+        write("ArrayLiteralRangeExpression");
+        child(node->first);
+        child(node->last);
+        child(node->step);
+    }
     virtual void visit(const DictionaryLiteralExpression *node) override {
         write("DictionaryLiteralExpression");
         depth++;

@@ -1,0 +1,2 @@
+LET a: Array<Number> := [1 TO 10 STEP "a"]
+                                      %<

@@ -149,7 +149,7 @@ ExponentiationExpression = Atom, {'^', Atom};
 
 Atom =
     ('(', Expression, ')') |
-    ArrayLiteral |
+    ArrayLiteral | ArrayRangeLiteral |
     DictionaryLiteral |
     ('FALSE' | 'TRUE') |
     Number |
@@ -162,6 +162,8 @@ Atom =
     CompoundExpression;
 
 ArrayLiteral = '[', [Expression, {',', Expression}, [',']], ']';
+
+ArrayRangeLiteral = '[', Expression, 'TO', Expression, ['STEP', Expression], ']';
 
 DictionaryLiteral = '{', {StringLiteral, ':', Expression, [',']}, '}';
 

@@ -427,6 +427,29 @@ class ArrayLiteralExpression:
     def eval(self, env):
         return [x.eval(env) for x in self.elements]
 
+class ArrayLiteralRangeExpression:
+    def __init__(self, first, last, step):
+        self.first = first
+        self.last = last
+        self.step = step
+    def eval(self, env):
+        r = []
+        step = self.step.eval(env)
+        assert step != 0
+        if step < 0:
+            i = self.first.eval(env)
+            last = self.last.eval(env)
+            while i >= last:
+                r.append(i)
+                i += step
+        else:
+            i = self.first.eval(env)
+            last = self.last.eval(env)
+            while i <= last:
+                r.append(i)
+                i += step
+        return r
+
 class DictionaryLiteralExpression:
     def __init__(self, elements):
         self.elements = elements
@@ -1205,6 +1228,17 @@ class Parser:
             elements.append(element)
             if self.tokens[self.i] is COMMA:
                 self.i += 1
+            elif self.tokens[self.i] is TO:
+                self.i += 1
+                first = element
+                last = self.parse_expression()
+                if self.tokens[self.i] is STEP:
+                    self.i += 1
+                    step = self.parse_expression()
+                else:
+                    step = NumberLiteralExpression(1)
+                self.expect(RBRACKET)
+                return ArrayLiteralRangeExpression(first, last, step)
         self.expect(RBRACKET)
         return ArrayLiteralExpression(elements)
 
