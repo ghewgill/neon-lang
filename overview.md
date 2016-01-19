@@ -6,11 +6,14 @@ title: Neon Overview
 # Neon Overview
 
 The following is a brief description of Neon for experienced programmers.
+There are plenty of examples, because experienced programmers know how to read code, and can pick up concepts more quickly by reading code than by reading a description of code.
 
-Neon is a statically typed imperative language, with roots in Pascal and Modula-2.
+Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and [others](motivation.html).
 Program structure and modules are influenced by Python.
 
-    % This sample program greets the user until an empty line is entered.
+    % This sample program greets the user
+    % until an empty line is entered.
+
     LOOP
         LET name: String := input("What is your name? ")
         IF name = "" THEN
@@ -165,7 +168,6 @@ Execution stops with a diagnostic dump if the condition is not satisfied.
 Functions may or may not return a value.
 If a function returns a value, then the return value cannot be silently ignored by the caller.
 Function parameters can be `IN` (default), `OUT` (passed back to caller), or `INOUT` (references caller value).
-Callers may use parameters in any order if the parameters are explicitly named.
 
     IMPORT string
 
@@ -176,9 +178,17 @@ Callers may use parameters in any order if the parameters are explicitly named.
 
     VAR uname: String
     VAR n: Number := 0
-    func("charlie", INOUT count AS n, OUT result AS uname)
+
+    % The parameter mode (if not IN) must be explicitly indicated
+    % on the function call.
+    func("charlie", OUT uname, INOUT n)
+
+    % The caller may choose to pass parameters in a different
+    % order using the WITH keyword.
+    func("charlie", INOUT count WITH n, OUT result WITH uname)
+
     ASSERT uname = "CHARLIE"
-    ASSERT n = 1
+    ASSERT n = 2
 
 ## Methods
 
@@ -202,3 +212,30 @@ Records may have methods attached to them, to be called with the usual method sy
     ASSERT r.area() = 20
     r.expand(1)
     ASSERT r.area() = 42
+
+## Pointers
+
+Pointers can only point to records.
+Pointers are declared with `POINTER TO` and allocated with `NEW`.
+
+    TYPE Person IS RECORD
+        name: String
+        age: Number
+    END RECORD
+
+    LET p: POINTER TO Person := NEW Person
+    p->name := "Alice"
+    p->age := 23
+
+Pointers must be checked for validity (non-NIL) before they can be used using the `IF VALID` block.
+
+    TYPE Person IS RECORD
+        name: String
+        age: Number
+    END RECORD
+
+    FUNCTION incrementAge(p: POINTER TO Person)
+        IF VALID p THEN
+            INC p->age
+        END IF
+    END FUNCTION

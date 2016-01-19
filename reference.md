@@ -139,7 +139,7 @@ The following keywords are defined by the language.
 | ------- | ----------- |
 | <a href="#keyword-ALIAS">`ALIAS`</a> | used in `IMPORT` to optionally rename a module |
 | <a href="#keyword-AND">`AND`</a> | logical conjunction |
-| <a href="#keyword-AS">`AS`</a> | parameter specification for named parameters |
+| <a href="#keyword-AS">`AS`</a> | names a tested expression in `IF VALID` statement |
 | <a href="#keyword-ASSERT">`ASSERT`</a> | assert that an expression is true, used for diagnostics |
 | <a href="#keyword-Array">`Array`</a> | generic array type |
 | <a href="#keyword-BEGIN">`BEGIN`</a> | used in `BEGIN MAIN` to indicate a program entry point |
@@ -203,6 +203,7 @@ The following keywords are defined by the language.
 | <a href="#keyword-VALID">`VALID`</a> | used in `IF VALID` pointer test statement |
 | <a href="#keyword-WHEN">`WHEN`</a> | used in `CASE` statement |
 | <a href="#keyword-WHILE">`WHILE`</a> | top-tested loop |
+| <a href="#keyword-WITH">`WITH`</a> | parameter specification for named parameters |
 
 <a name="lexical-identifiers"></a>
 
@@ -987,7 +988,7 @@ Default parameter values only apply to `IN` mode parameters.
 
 ### Named Parameters
 
-When calling a function, function parameters may be named using the `AS` keyword.
+When calling a function, function parameters may be named using the `WITH` keyword.
 
 Example:
 
@@ -995,9 +996,9 @@ Example:
         % ...
     END FUNCTION
 
-    birthdayParty(name AS "Helen", balloons AS 10, cake AS "Chocolate", clown AS TRUE)
+    birthdayParty(name WITH "Helen", balloons WITH 10, cake WITH "Chocolate", clown WITH TRUE)
 
-Parameters may be passed in order without using `AS`, and then switch to using `AS` for the remainder of the function call.
+Parameters may be passed in order without using `WITH`, and then switch to using `WITH` for the remainder of the function call.
 Each non-default parameter must be specified exactly once in the function call.
 
 <a name="modules"></a>
