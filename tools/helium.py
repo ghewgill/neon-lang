@@ -1331,29 +1331,36 @@ class Parser:
             while True:
                 if self.tokens[self.i] is LBRACKET:
                     self.i += 1
-                    if self.tokens[self.i] == FIRST:
-                        self.i += 1
-                        if self.tokens[self.i] in [PLUS, MINUS]:
-                            index = self.parse_expression()
-                        else:
-                            index = NumberLiteralExpression(0)
-                    elif self.tokens[self.i] == LAST:
-                        self.i += 1
-                        index = NumberLiteralExpression(-1) # TODO: refer to last
-                    else:
-                        index = self.parse_expression()
-                    if self.tokens[self.i] == TO:
-                        self.i += 1
-                        if self.tokens[self.i] == LAST:
+                    while True:
+                        if self.tokens[self.i] == FIRST:
                             self.i += 1
                             if self.tokens[self.i] in [PLUS, MINUS]:
-                                last = self.parse_expression()
+                                index = self.parse_expression()
                             else:
-                                last = NumberLiteralExpression(-1) # TODO: refer to last
+                                index = NumberLiteralExpression(0)
+                        elif self.tokens[self.i] == LAST:
+                            self.i += 1
+                            index = NumberLiteralExpression(-1) # TODO: refer to last
                         else:
-                            last = self.parse_expression()
-                    self.expect(RBRACKET)
-                    expr = SubscriptExpression(expr, index)
+                            index = self.parse_expression()
+                        if self.tokens[self.i] == TO:
+                            self.i += 1
+                            if self.tokens[self.i] == LAST:
+                                self.i += 1
+                                if self.tokens[self.i] in [PLUS, MINUS]:
+                                    last = self.parse_expression()
+                                else:
+                                    last = NumberLiteralExpression(-1) # TODO: refer to last
+                            else:
+                                last = self.parse_expression()
+                        expr = SubscriptExpression(expr, index)
+                        if self.tokens[self.i] is RBRACKET:
+                            self.i += 1
+                            break
+                        elif self.tokens[self.i] is COMMA:
+                            self.i += 1
+                        else:
+                            self.expect(RBRACKET)
                 elif self.tokens[self.i] is LPAREN:
                     expr = self.parse_function_call(expr)
                 elif self.tokens[self.i] is DOT:

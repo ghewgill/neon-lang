@@ -188,7 +188,7 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
         VAR last: POINTER TO Node := NIL
         FOR j := 0 TO matrix[i].size()-1 DO
             IF VALID columns[j] AS c THEN
-                IF matrix[i][j] THEN
+                IF matrix[i, j] THEN
                     LET node: POINTER TO Node := NEW Node
                     node->row := i
                     node->column := c
@@ -266,7 +266,7 @@ FUNCTION solveSudoku(INOUT grid: multiarray.ArrayNumber2D): Number
     VAR rinfo: Array<Array<Number>>
     FOR i := 0 TO 8 DO
         FOR j := 0 TO 8 DO
-            LET g: Number := grid[i][j] - 1
+            LET g: Number := grid[i, j] - 1
             IF g >= 0 THEN
                 VAR row: Array<Boolean> := []
                 row.resize(324)
@@ -294,7 +294,7 @@ FUNCTION solveSudoku(INOUT grid: multiarray.ArrayNumber2D): Number
     IF solutions.size() > 0 THEN
         LET r: Array<Number> := solutions[0]
         FOREACH i OF r DO
-            grid[rinfo[i][0]][rinfo[i][1]] := rinfo[i][2]
+            grid[rinfo[i, 0], rinfo[i, 1]] := rinfo[i, 2]
         END FOREACH
     END IF
     RETURN solutions.size()
@@ -360,16 +360,16 @@ FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback
         callback(n)
         LET i: Number := math.floor(p / 9)
         LET j: Number := p MOD 9
-        IF r[i][j] = 0 THEN
+        IF r[i, j] = 0 THEN
             NEXT FOREACH
         END IF
         VAR t: multiarray.ArrayNumber2D := r
-        t[i][j] := 0
-        t[8-i][8-j] := 0
+        t[i, j] := 0
+        t[8-i, 8-j] := 0
         LET s: Number := solveSudoku(INOUT t)
         IF s = 1 THEN
-            r[i][j] := 0
-            r[8-i][8-j] := 0
+            r[i, j] := 0
+            r[8-i, 8-j] := 0
             n := n - 2
             IF n <= filled THEN
                 RETURN r
@@ -397,30 +397,30 @@ FUNCTION findErrors(grid: multiarray.ArrayNumber2D): multiarray.ArrayBoolean2D
     VAR cels: multiarray.ArrayNumber2D := multiarray.makeNumber2DValue(9, 10, -1)
     FOR i := 0 TO 8 DO
         FOR j := 0 TO 8 DO
-            LET n: Number := grid[i][j]
+            LET n: Number := grid[i, j]
             IF n > 0 THEN
                 % Check for duplicate number in row.
-                LET x: Number := rows[i][n]
+                LET x: Number := rows[i, n]
                 IF x >= 0 THEN
-                    r[i][j] := TRUE
-                    r[i][x] := TRUE
+                    r[i, j] := TRUE
+                    r[i, x] := TRUE
                 END IF
-                rows[i][n] := j
+                rows[i, n] := j
                 % Check for duplicate number in column.
-                LET y: Number := cols[j][n]
+                LET y: Number := cols[j, n]
                 IF y >= 0 THEN
-                    r[i][j] := TRUE
-                    r[y][j] := TRUE
+                    r[i, j] := TRUE
+                    r[y, j] := TRUE
                 END IF
-                cols[j][n] := i
+                cols[j, n] := i
                 % Check for duplicate number in cell.
                 LET c: Number := math.floor(i / 3)*3 + math.floor(j / 3)
-                LET z: Number := cels[c][n]
+                LET z: Number := cels[c, n]
                 IF z >= 0 THEN
-                    r[i][j] := TRUE
-                    r[math.floor(c / 3)*3 + math.floor(z / 3)][(c MOD 3)*3 + (z MOD 3)] := TRUE
+                    r[i, j] := TRUE
+                    r[math.floor(c / 3)*3 + math.floor(z / 3), (c MOD 3)*3 + (z MOD 3)] := TRUE
                 END IF
-                cels[c][n] := (i MOD 3)*3 + (j MOD 3)
+                cels[c, n] := (i MOD 3)*3 + (j MOD 3)
             END IF
         END FOR
     END FOR
@@ -454,12 +454,12 @@ FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
         FOR j := 0 TO 8 DO
             IF i = cy AND j = cx THEN
                 curses.attrset(curses.A_REVERSE)
-            ELSIF errors[i][j] THEN
+            ELSIF errors[i, j] THEN
                 curses.attrset(curses.COLOR_PAIR(1))
                 any_errors := TRUE
             END IF
-            IF grid[i][j] > 0 THEN
-                curses.mvaddstr(1+2*i, 1+4*j, " \(grid[i][j]) ")
+            IF grid[i, j] > 0 THEN
+                curses.mvaddstr(1+2*i, 1+4*j, " \(grid[i, j]) ")
             ELSE
                 curses.mvaddstr(1+2*i, 1+4*j, "   ")
             END IF
@@ -539,14 +539,14 @@ BEGIN MAIN
                 WHEN OTHERS DO
                     CASE chr(k)
                         WHEN " ", "0" DO
-                            IF start[cy][cx] = 0 THEN
+                            IF start[cy, cx] = 0 THEN
                                 moves.append(grid)
-                                grid[cy][cx] := 0
+                                grid[cy, cx] := 0
                             END IF
                         WHEN "1" TO "9" DO
-                            IF start[cy][cx] = 0 THEN
+                            IF start[cy, cx] = 0 THEN
                                 moves.append(grid)
-                                grid[cy][cx] := k - ord("0")
+                                grid[cy, cx] := k - ord("0")
                             END IF
                         WHEN "c" DO
                             moves := []

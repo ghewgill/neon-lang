@@ -553,56 +553,58 @@ const Expression *Parser::parseAtom()
                 if (tokens[i].type == LBRACKET) {
                     auto &tok_lbracket = tokens[i];
                     ++i;
-                    const Expression *index = nullptr;
-                    bool first_from_end = false;
-                    if (tokens[i].type == FIRST || tokens[i].type == LAST) {
-                        first_from_end = tokens[i].type == LAST;
-                        ++i;
-                        if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
-                            index = new NumberLiteralExpression(Token(), number_from_uint32(0));
-                        } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
-                            error(2072, tokens[i], "'+' or '-' expected");
-                        }
-                    }
-                    if (index == nullptr) {
-                        index = parseExpression();
-                    }
-                    const ArrayRange *range = nullptr;
-                    const Expression *last = nullptr;
-                    if (tokens[i].type == TO) {
-                        ++i;
-                        last = nullptr;
-                        bool last_from_end = false;
+                    do {
+                        const Expression *index = nullptr;
+                        bool first_from_end = false;
                         if (tokens[i].type == FIRST || tokens[i].type == LAST) {
-                            last_from_end = tokens[i].type == LAST;
+                            first_from_end = tokens[i].type == LAST;
                             ++i;
-                            if (tokens[i].type == RBRACKET) {
-                                last = new NumberLiteralExpression(Token(), number_from_uint32(0));
+                            if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
+                                index = new NumberLiteralExpression(Token(), number_from_uint32(0));
                             } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
-                                error(2073, tokens[i], "'+' or '-' expected");
+                                error(2072, tokens[i], "'+' or '-' expected");
                             }
                         }
-                        if (last == nullptr) {
-                            last = parseExpression();
+                        if (index == nullptr) {
+                            index = parseExpression();
                         }
-                        range = new ArrayRange(tok_lbracket, index, first_from_end, last, last_from_end);
-                    } else {
-                        if (first_from_end) {
-                            range = new ArrayRange(tok_lbracket, index, first_from_end, index, first_from_end);
+                        const ArrayRange *range = nullptr;
+                        const Expression *last = nullptr;
+                        if (tokens[i].type == TO) {
+                            ++i;
+                            last = nullptr;
+                            bool last_from_end = false;
+                            if (tokens[i].type == FIRST || tokens[i].type == LAST) {
+                                last_from_end = tokens[i].type == LAST;
+                                ++i;
+                                if (tokens[i].type == RBRACKET) {
+                                    last = new NumberLiteralExpression(Token(), number_from_uint32(0));
+                                } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
+                                    error(2073, tokens[i], "'+' or '-' expected");
+                                }
+                            }
+                            if (last == nullptr) {
+                                last = parseExpression();
+                            }
+                            range = new ArrayRange(tok_lbracket, index, first_from_end, last, last_from_end);
+                        } else {
+                            if (first_from_end) {
+                                range = new ArrayRange(tok_lbracket, index, first_from_end, index, first_from_end);
+                            }
                         }
-                    }
-                    if (tokens[i].type != RBRACKET) {
-                        error(2020, tokens[i], "']' expected");
-                    }
-                    ++i;
-                    if (range != nullptr) {
-                        expr = new RangeSubscriptExpression(tok_lbracket, tokens[i].column, expr, range);
-                        if (first_from_end && last == nullptr) {
-                            expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, new NumberLiteralExpression(Token(), number_from_uint32(0)));
+                        if (tokens[i].type != COMMA && tokens[i].type != RBRACKET) {
+                            error(2020, tokens[i], "']' expected");
                         }
-                    } else {
-                        expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, index);
-                    }
+                        ++i;
+                        if (range != nullptr) {
+                            expr = new RangeSubscriptExpression(tok_lbracket, tokens[i].column, expr, range);
+                            if (first_from_end && last == nullptr) {
+                                expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, new NumberLiteralExpression(Token(), number_from_uint32(0)));
+                            }
+                        } else {
+                            expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, index);
+                        }
+                    } while (tokens[i-1].type == COMMA);
                 } else if (tokens[i].type == LPAREN) {
                     expr = parseFunctionCall(expr);
                 } else if (tokens[i].type == DOT) {

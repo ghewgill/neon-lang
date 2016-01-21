@@ -170,7 +170,7 @@ DictionaryLiteral = '{', {StringLiteral, ':', Expression, [',']}, '}';
 CompoundExpression = Identifier, {CompoundExpressionTail};
 
 CompoundExpressionTail =
-    ('[', ArrayIndexExpression, ']') |
+    ('[', ArrayIndexExpression, {',', ArrayIndexExpression}, ']') |
     ('(', [FunctionArgument, {',', FunctionArgument}], ')') |
     ('.', Identifier) |
     ('->', Identifier);
