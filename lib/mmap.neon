@@ -29,18 +29,18 @@ END ENUM
 TYPE MemoryFile IS POINTER
 
 %|
- |  Exception: InvalidFile
+ |  Exception: InvalidFileException
  |
  |  An invalid (NIL) file was used.
  |%
-DECLARE EXCEPTION InvalidFile
+DECLARE EXCEPTION InvalidFileException
 
 %|
- |  Exception: OpenFile
+ |  Exception: OpenFileException
  |
  |  An error occured while trying to open the file.
  |%
-DECLARE EXCEPTION OpenFile
+DECLARE EXCEPTION OpenFileException
 
 %|
  |  Function: close

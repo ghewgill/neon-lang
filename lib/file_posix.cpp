@@ -15,11 +15,11 @@
 static void handle_error(int error, const std::string &path)
 {
     switch (error) {
-        case EACCES: throw RtlException(Exception_file$PermissionDenied, path);
-        case EEXIST: throw RtlException(Exception_file$DirectoryExists, path);
-        case ENOENT: throw RtlException(Exception_file$PathNotFound, path);
+        case EACCES: throw RtlException(Exception_file$PermissionDeniedException, path);
+        case EEXIST: throw RtlException(Exception_file$DirectoryExistsException, path);
+        case ENOENT: throw RtlException(Exception_file$PathNotFoundException, path);
         default:
-            throw RtlException(Exception_file$FileError, path + ": " + strerror(error));
+            throw RtlException(Exception_file$FileException, path + ": " + strerror(error));
     }
 }
 

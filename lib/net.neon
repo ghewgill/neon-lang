@@ -5,15 +5,15 @@
  |%
 
 EXPORT Socket
-EXPORT SocketError
+EXPORT SocketException
 EXPORT select
 
 %|
- |  Exception: SocketError
+ |  Exception: SocketException
  |
  |  Indicates some kind of socket error.
  |%
-DECLARE EXCEPTION SocketError
+DECLARE EXCEPTION SocketException
 
 TYPE Handle IS Number
 

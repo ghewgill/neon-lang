@@ -21,7 +21,7 @@ static MemoryFile *check_file(void *pf)
 {
     MemoryFile *f = static_cast<MemoryFile *>(pf);
     if (f == NULL) {
-        throw RtlException(Exception_mmap$InvalidFile, "");
+        throw RtlException(Exception_mmap$InvalidFileException, "");
     }
     return f;
 }
@@ -44,7 +44,7 @@ void *mmap$open(const std::string &name, Cell &)
     if (f->fd < 0) {
         int e = errno;
         delete f;
-        throw RtlException(Exception_mmap$OpenFile, "open: error (" + std::to_string(e) + ") " + strerror(e));
+        throw RtlException(Exception_mmap$OpenFileException, "open: error (" + std::to_string(e) + ") " + strerror(e));
     }
     struct stat st;
     fstat(f->fd, &st);
@@ -54,7 +54,7 @@ void *mmap$open(const std::string &name, Cell &)
         int e = errno;
         close(f->fd);
         delete f;
-        throw RtlException(Exception_mmap$OpenFile, "mmap: error (" + std::to_string(e) + ") " + strerror(e));
+        throw RtlException(Exception_mmap$OpenFileException, "mmap: error (" + std::to_string(e) + ") " + strerror(e));
     }
     return f;
 }
@@ -84,10 +84,10 @@ void mmap$write(void *pf, Number offset, const std::string &data)
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        throw RtlException(Exception_global$ValueRange, "");
+        throw RtlException(Exception_global$ValueRangeException, "");
     }
     if (o + data.length() > f->len) {
-        throw RtlException(Exception_global$ValueRange, "");
+        throw RtlException(Exception_global$ValueRangeException, "");
     }
     memcpy(f->view + o, data.data(), data.length());
 }

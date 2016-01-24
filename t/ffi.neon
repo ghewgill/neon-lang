@@ -238,14 +238,14 @@ print(s)
 
 TRY
     nonexistent_function()
-EXCEPTION FunctionNotFound DO
+EXCEPTION FunctionNotFoundException DO
     print("function not found")
 END TRY
 %= function not found
 
 TRY
     nonexistent_library()
-EXCEPTION LibraryNotFound DO
+EXCEPTION LibraryNotFoundException DO
     print("library not found")
 END TRY
 %= library not found

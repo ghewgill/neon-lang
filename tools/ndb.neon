@@ -76,7 +76,7 @@ LOOP
         time.sleep(0.1)
         TRY
             r := get("/status")
-        EXCEPTION http.HttpError DO
+        EXCEPTION http.HttpException DO
             EXIT LOOP
         END TRY
     UNTIL r.getDictionary()["state"].getString() = "stopped"

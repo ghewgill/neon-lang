@@ -850,11 +850,11 @@ The `RAISE` statement raises an exception.
 
 Example:
 
-    DECLARE EXCEPTION InvalidWidgetSize
+    DECLARE EXCEPTION InvalidWidgetSizeException
     
     VAR size: Number := 3
     IF size > 4 THEN
-        RAISE InvalidWidgetSize(size.toString())
+        RAISE InvalidWidgetSizeException(size.toString())
     END IF
 
 The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
@@ -901,14 +901,14 @@ If an exception matching a clause is raised, the corresponding exception handler
 
 Example:
 
-    DECLARE EXCEPTION InvalidWidgetSize
+    DECLARE EXCEPTION InvalidWidgetSizeException
     
     VAR size: Number := 5
     TRY
         IF size > 4 THEN
-            RAISE InvalidWidgetSize(size.toString())
+            RAISE InvalidWidgetSizeException(size.toString())
         END IF
-    EXCEPTION InvalidWidgetSize DO
+    EXCEPTION InvalidWidgetSizeException DO
         print("Invalid size \(CURRENT_EXCEPTION.info)")
     END TRY
 

@@ -7,11 +7,11 @@
 static void handle_error(DWORD error, const std::string &path)
 {
     switch (error) {
-        case ERROR_ALREADY_EXISTS: throw RtlException(Exception_file$DirectoryExists, path);
-        case ERROR_ACCESS_DENIED: throw RtlException(Exception_file$PermissionDenied, path);
-        case ERROR_PATH_NOT_FOUND: throw RtlException(Exception_file$PathNotFound, path);
+        case ERROR_ALREADY_EXISTS: throw RtlException(Exception_file$DirectoryExistsException, path);
+        case ERROR_ACCESS_DENIED: throw RtlException(Exception_file$PermissionDeniedException, path);
+        case ERROR_PATH_NOT_FOUND: throw RtlException(Exception_file$PathNotFoundException, path);
         default:
-            throw RtlException(Exception_file$FileError, path + ": " + std::to_string(error));
+            throw RtlException(Exception_file$FileException, path + ": " + std::to_string(error));
     }
 }
 

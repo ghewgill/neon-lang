@@ -53,7 +53,7 @@ print(strb(file.isDirectory("tmp/foo")))
 file.writeLines("tmp/foo/bar.txt", ["hello", "world"])
 TRY
     file.removeEmptyDirectory("tmp/foo")
-EXCEPTION file.FileError DO
+EXCEPTION file.FileException DO
     print("ok")
 END TRY
 %= ok

@@ -4,11 +4,11 @@
  |  Interface file for https://libsodium.org.
  |%
 
-EXPORT DecryptionFailed
-EXPORT InvalidParameterLength
+EXPORT DecryptionFailedException
+EXPORT InvalidParameterLengthException
 
-DECLARE EXCEPTION DecryptionFailed
-DECLARE EXCEPTION InvalidParameterLength
+DECLARE EXCEPTION DecryptionFailedException
+DECLARE EXCEPTION InvalidParameterLengthException
 
 DECLARE NATIVE CONSTANT box_NONCEBYTES: Number
 DECLARE NATIVE CONSTANT generichash_BYTES_MAX: Number

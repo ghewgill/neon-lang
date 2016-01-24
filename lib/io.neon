@@ -46,11 +46,11 @@ END ENUM
 TYPE File IS POINTER
 
 %|
- |  Exception: InvalidFile
+ |  Exception: InvalidFileException
  |
  |  An invalid (NIL) file was used.
  |%
-DECLARE EXCEPTION InvalidFile
+DECLARE EXCEPTION InvalidFileException
 
 %|
  |  Variable: stdin

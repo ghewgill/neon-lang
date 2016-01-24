@@ -60,7 +60,7 @@ LOOP
             s[rbrace] := ")*"
         END LOOP
 
-    EXCEPTION EndOfFile DO
+    EXCEPTION EndOfFileException DO
         EXIT LOOP
     END TRY
     print(s)

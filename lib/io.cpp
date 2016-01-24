@@ -21,7 +21,7 @@ static FILE *check_file(void *pf)
 {
     FILE *f = static_cast<FILE *>(pf);
     if (f == NULL) {
-        throw RtlException(Exception_io$InvalidFile, "");
+        throw RtlException(Exception_io$InvalidFileException, "");
     }
     return f;
 }

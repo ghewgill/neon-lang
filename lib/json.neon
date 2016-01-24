@@ -16,11 +16,11 @@ IMPORT variant.Variant
 % TODO: Also, this could probably be improved a lot by using regex.
 
 %|
- |  Exception: JsonFormat
+ |  Exception: JsonFormatException
  |
  |  Indicates that a formatting error was encountered when reading JSON.
  |%
-DECLARE EXCEPTION JsonFormat
+DECLARE EXCEPTION JsonFormatException
 
 FUNCTION skipWhitespace(json: String, INOUT index: Number)
     WHILE index < json.length() AND (json[index] = " " OR json[index] = "\t" OR json[index] = "\r" OR json[index] = "\n") DO
@@ -45,7 +45,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 WHEN "true" DO
                     RETURN variant.makeBoolean(TRUE)
                 WHEN OTHERS DO
-                    RAISE JsonFormat("null or false or true expected")
+                    RAISE JsonFormatException("null or false or true expected")
             END CASE
         WHEN "-", "0" TO "9" DO
             LET start: Number := index
@@ -81,7 +81,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 IF json[index] = "," THEN
                     INC index
                 ELSIF json[index] # "]" THEN
-                    RAISE JsonFormat(", or ] expected")
+                    RAISE JsonFormatException(", or ] expected")
                 END IF
             END LOOP
             INC index
@@ -96,12 +96,12 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 END IF
                 LET vkey: Variant := decodePart(json, INOUT index)
                 IF vkey.getType() # Type.string THEN
-                    RAISE JsonFormat("string key expected")
+                    RAISE JsonFormatException("string key expected")
                 END IF
                 LET key: String := vkey.getString()
                 skipWhitespace(json, INOUT index)
                 IF json[index] # ":" THEN
-                    RAISE JsonFormat(": expected")
+                    RAISE JsonFormatException(": expected")
                 END IF
                 INC index
                 d[key] := decodePart(json, INOUT index)
@@ -109,7 +109,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 IF json[index] = "," THEN
                     INC index
                 ELSIF json[index] # "}" THEN
-                    RAISE JsonFormat(", or } expected")
+                    RAISE JsonFormatException(", or } expected")
                 END IF
             END LOOP
             INC index

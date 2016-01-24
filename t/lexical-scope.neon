@@ -30,7 +30,7 @@ UNTIL x = 0
 
 TRY
     VAR x: Number := a
-EXCEPTION DivideByZero DO
+EXCEPTION DivideByZeroException DO
     VAR x: Number := a
 END TRY
 

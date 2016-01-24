@@ -37,7 +37,7 @@ EXPORT Sunday
 IMPORT math
 IMPORT time
 
-DECLARE EXCEPTION Todo
+DECLARE EXCEPTION TodoException
 
 CONSTANT January  : Number := 1
 CONSTANT February : Number := 2
@@ -202,7 +202,7 @@ END FUNCTION
  |  Make a DateTime from a string representation.
  |%
 FUNCTION makeFromString(s: String): DateTime
-    RAISE Todo
+    RAISE TodoException
 END FUNCTION
 
 %|
@@ -220,7 +220,7 @@ END FUNCTION
  |  Subtract a <Period> from a <DateTime> and return a new <DateTime>.
  |%
 FUNCTION DateTime.minusPeriod(self: DateTime, period: Period): DateTime
-    RAISE Todo
+    RAISE TodoException
 END FUNCTION
 
 %|

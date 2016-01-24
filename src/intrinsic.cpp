@@ -65,7 +65,7 @@ Number global$num(const std::string &s)
 Number global$ord(const std::string &s)
 {
     if (utf8::distance(s.begin(), s.end()) != 1) {
-        throw RtlException(Exception_global$ArrayIndex, "ord() requires string of length 1");
+        throw RtlException(Exception_global$ArrayIndexException, "ord() requires string of length 1");
     }
     auto it = s.begin();
     return number_from_uint32(utf8::next(it, s.end()));

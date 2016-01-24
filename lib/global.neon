@@ -45,46 +45,46 @@
  |%
 
 %|
- |  Exception: ArrayIndex
+ |  Exception: ArrayIndexException
  |
  |  An array index is not valid or out of range.
  |%
-DECLARE EXCEPTION ArrayIndex
+DECLARE EXCEPTION ArrayIndexException
 
 %|
- |  Exception: AssertFailed
+ |  Exception: AssertFailedException
  |
  |  Assert failed.
  |%
-DECLARE EXCEPTION AssertFailed
+DECLARE EXCEPTION AssertFailedException
 
 %|
- |  Exception: ByteOutOfRange
+ |  Exception: ByteOutOfRangeException
  |
  |  A byte is out of range in toBytes().
  |%
-DECLARE EXCEPTION ByteOutOfRange
+DECLARE EXCEPTION ByteOutOfRangeException
 
 %|
- |  Exception: DictionaryIndex
+ |  Exception: DictionaryIndexException
  |
  |  A dictionary index value does not exist.
  |%
-DECLARE EXCEPTION DictionaryIndex
+DECLARE EXCEPTION DictionaryIndexException
 
 %|
- |  Exception: DivideByZero
+ |  Exception: DivideByZeroException
  |
  |  Divide by zero.
  |%
-DECLARE EXCEPTION DivideByZero
+DECLARE EXCEPTION DivideByZeroException
 
 %|
- |  Exception: EndOfFile
+ |  Exception: EndOfFileException
  |
  |  End of input file.
  |%
-DECLARE EXCEPTION EndOfFile
+DECLARE EXCEPTION EndOfFileException
 
 %|
  |  Exception: FormatException
@@ -94,53 +94,53 @@ DECLARE EXCEPTION EndOfFile
 DECLARE EXCEPTION FormatException
 
 %|
- |  Exception: InvalidFunction
+ |  Exception: InvalidFunctionException
  |
  |  An invalid function pointer was called.
  |%
-DECLARE EXCEPTION InvalidFunction
+DECLARE EXCEPTION InvalidFunctionException
 
 %|
- |  Exception: InvalidValue
+ |  Exception: InvalidValueException
  |
  |  An invalid value was passed to a library function.
  |%
-DECLARE EXCEPTION InvalidValue
+DECLARE EXCEPTION InvalidValueException
 
 %|
- |  Exception: FunctionNotFound
+ |  Exception: FunctionNotFoundException
  |
  |  Function not found.
  |%
-DECLARE EXCEPTION FunctionNotFound
+DECLARE EXCEPTION FunctionNotFoundException
 
 %|
- |  Exception: LibraryNotFound
+ |  Exception: LibraryNotFoundException
  |
  |  Library not found.
  |%
-DECLARE EXCEPTION LibraryNotFound
+DECLARE EXCEPTION LibraryNotFoundException
 
 %|
- |  Exception: StackOverflow
+ |  Exception: StackOverflowException
  |
  |  Call stack exceeded limit.
  |%
-DECLARE EXCEPTION StackOverflow
+DECLARE EXCEPTION StackOverflowException
 
 %|
- |  Exception: Utf8Encoding
+ |  Exception: Utf8EncodingException
  |
  |  Invalid UTF-8 encoding in Bytes.toString().
  |%
-DECLARE EXCEPTION Utf8Encoding
+DECLARE EXCEPTION Utf8EncodingException
 
 %|
- |  Exception: ValueRange
+ |  Exception: ValueRangeException
  |
  |  An input value is out of range.
  |%
-DECLARE EXCEPTION ValueRange
+DECLARE EXCEPTION ValueRangeException
 
 DECLARE NATIVE FUNCTION array__append(INOUT self: Array, element: Cell)
 DECLARE NATIVE FUNCTION array__concat(left: Array, right: Array): Array

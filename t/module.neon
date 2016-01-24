@@ -6,7 +6,7 @@ EXPORT var
 EXPORT var2
 EXPORT function
 EXPORT modify
-EXPORT exception
+EXPORT Exception
 EXPORT raise
 EXPORT functionpointer
 
@@ -43,10 +43,10 @@ FUNCTION modify(INOUT x: Number)
 END FUNCTION
 
 FUNCTION raise()
-    RAISE exception
+    RAISE Exception
 END FUNCTION
 
-DECLARE EXCEPTION exception
+DECLARE EXCEPTION Exception
 
 VAR functionpointer: FUNCTION(x: Number): Number
 functionpointer := function

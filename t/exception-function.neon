@@ -1,12 +1,12 @@
-DECLARE EXCEPTION PrinterOnFire
+DECLARE EXCEPTION PrinterOnFireException
 
 FUNCTION doit()
-    RAISE PrinterOnFire
+    RAISE PrinterOnFireException
 END FUNCTION
 
 TRY
     doit()
-EXCEPTION PrinterOnFire DO
+EXCEPTION PrinterOnFireException DO
     print("conflagration")
 END TRY
 

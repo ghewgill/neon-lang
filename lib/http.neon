@@ -4,14 +4,14 @@
  |  Functions for making HTTP requests.
  |%
 
-EXPORT HttpError
+EXPORT HttpException
 
 %|
- |  Exception: HttpError
+ |  Exception: HttpException
  |
  |  Raised when an HTTP request returns anything other than 200 OK.
  |%
-DECLARE EXCEPTION HttpError
+DECLARE EXCEPTION HttpException
 
 %|
  |  Function: get

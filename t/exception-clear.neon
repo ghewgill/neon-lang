@@ -1,10 +1,10 @@
 % TODO
-DECLARE EXCEPTION PrinterOnFire
+DECLARE EXCEPTION PrinterOnFireException
 
 FUNCTION foo()
     TRY
-        RAISE PrinterOnFire("A4")
-    EXCEPTION PrinterOnFire DO
+        RAISE PrinterOnFireException("A4")
+    EXCEPTION PrinterOnFireException DO
         print(CURRENT_EXCEPTION.name)
         print(CURRENT_EXCEPTION.info)
         EXIT FUNCTION
@@ -14,6 +14,6 @@ END FUNCTION
 foo()
 print(CURRENT_EXCEPTION.name)
 
-%= PrinterOnFire
+%= PrinterOnFireException
 %= A4
 %=

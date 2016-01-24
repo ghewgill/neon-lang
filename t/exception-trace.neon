@@ -1,13 +1,13 @@
-DECLARE EXCEPTION Error
+DECLARE EXCEPTION Exception
 
 FUNCTION foo()
     bar()
 END FUNCTION
 
 FUNCTION bar()
-    RAISE Error
+    RAISE Exception
 END FUNCTION
 
 foo()
 
-%! Unhandled exception Error
+%! Unhandled exception Exception

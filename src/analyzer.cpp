@@ -2310,6 +2310,9 @@ const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3115, declaration->token, "duplicate definition of name", scope.top()->getDeclaration(name), "first declaration here");
     }
+    if (name.length() < 9 || name.substr(name.length()-9) != "Exception") {
+        error(3198, declaration->name, "Exception name must end in 'Exception'");
+    }
     scope.top()->addName(declaration->name, name, new Exception(declaration->name, name));
     return new NullStatement(declaration->token.line);
 }

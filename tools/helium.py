@@ -509,9 +509,9 @@ class SubscriptExpression:
         try:
             return self.expr.eval(env)[self.index.eval(env)]
         except IndexError:
-            raise NeonException("ArrayIndex")
+            raise NeonException("ArrayIndexException")
         except KeyError:
-            raise NeonException("DictionaryIndex")
+            raise NeonException("DictionaryIndexException")
     def set(self, env, value):
         a = self.expr.eval(env)
         i = self.index.eval(env)
@@ -610,7 +610,7 @@ class DivisionExpression:
         try:
             return self.left.eval(env) / self.right.eval(env)
         except ZeroDivisionError:
-            raise NeonException("DivideByZero")
+            raise NeonException("DivideByZeroException")
 
 class ModuloExpression:
     def __init__(self, left, right):
@@ -2022,7 +2022,7 @@ def eval_cond(left, cond, right):
 
 def neon_array_resize(a, n):
     if n != int(n):
-        raise NeonException("ArrayIndex")
+        raise NeonException("ArrayIndexException")
     if n < len(a):
         del a[int(n):]
     elif n > len(a):
@@ -2054,7 +2054,7 @@ def neon_num(env, x):
 
 def neon_ord(env, x):
     if len(x) != 1:
-        raise NeonException("ArrayIndex")
+        raise NeonException("ArrayIndexException")
     return ord(x)
 
 def neon_print(env, x):
@@ -2107,7 +2107,7 @@ def neon_file_removeEmptyDirectory(env, path):
     try:
         os.rmdir(path)
     except OSError:
-        raise NeonException("FileError")
+        raise NeonException("FileException")
 
 def neon_file_rename(env, old, new):
     os.rename(old, new)

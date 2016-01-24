@@ -6,7 +6,7 @@
 
 EXPORT Variant
 EXPORT Type
-EXPORT TypeMismatch
+EXPORT TypeMismatchException
 EXPORT makeNull
 EXPORT makeBoolean
 EXPORT makeNumber
@@ -16,11 +16,11 @@ EXPORT makeArray
 EXPORT makeDictionary
 
 %|
- |  Exception: TypeMismatch
+ |  Exception: TypeMismatchException
  |
  |  Indicates an attempt to read a value of the wrong type from a <Variant>.
  |%
-DECLARE EXCEPTION TypeMismatch
+DECLARE EXCEPTION TypeMismatchException
 
 %|
  |  Enumeration: Type
@@ -172,7 +172,7 @@ END FUNCTION
  |%
 FUNCTION Variant.getBoolean(IN self: Variant): Boolean
     IF self.type # Type.boolean THEN
-        RAISE TypeMismatch
+        RAISE TypeMismatchException
     END IF
     RETURN self.val_boolean
 END FUNCTION
@@ -189,7 +189,7 @@ END FUNCTION
  |%
 FUNCTION Variant.getNumber(IN self: Variant): Number
     IF self.type # Type.number THEN
-        RAISE TypeMismatch
+        RAISE TypeMismatchException
     END IF
     RETURN self.val_number
 END FUNCTION
@@ -206,7 +206,7 @@ END FUNCTION
  |%
 FUNCTION Variant.getString(IN self: Variant): String
     IF self.type # Type.string THEN
-        RAISE TypeMismatch
+        RAISE TypeMismatchException
     END IF
     RETURN self.val_string
 END FUNCTION
@@ -223,7 +223,7 @@ END FUNCTION
  |%
 FUNCTION Variant.getBytes(IN self: Variant): Bytes
     IF self.type # Type.bytes THEN
-        RAISE TypeMismatch
+        RAISE TypeMismatchException
     END IF
     RETURN self.val_bytes
 END FUNCTION
@@ -240,7 +240,7 @@ END FUNCTION
  |%
 FUNCTION Variant.getArray(IN self: Variant): Array<Variant>
     IF self.type # Type.array THEN
-        RAISE TypeMismatch
+        RAISE TypeMismatchException
     END IF
     RETURN self.val_array
 END FUNCTION
@@ -257,7 +257,7 @@ END FUNCTION
  |%
 FUNCTION Variant.getDictionary(IN self: Variant): Dictionary<Variant>
     IF self.type # Type.dictionary THEN
-        RAISE TypeMismatch
+        RAISE TypeMismatchException
     END IF
     RETURN self.val_dictionary
 END FUNCTION

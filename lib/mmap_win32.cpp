@@ -17,7 +17,7 @@ static MemoryFile *check_file(void *pf)
 {
     MemoryFile *f = static_cast<MemoryFile *>(pf);
     if (f == NULL) {
-        throw RtlException(Exception_mmap$InvalidFile, "");
+        throw RtlException(Exception_mmap$InvalidFileException, "");
     }
     return f;
 }
@@ -43,7 +43,7 @@ void *mmap$open(const std::string &name, Cell &)
         if (f->file == INVALID_HANDLE_VALUE) {
             DWORD e = GetLastError();
             delete f;
-            throw RtlException(Exception_mmap$OpenFile, "CreateFile: error (" + std::to_string(e) + ")");
+            throw RtlException(Exception_mmap$OpenFileException, "CreateFile: error (" + std::to_string(e) + ")");
         }
     }
     LARGE_INTEGER size;
@@ -51,7 +51,7 @@ void *mmap$open(const std::string &name, Cell &)
         DWORD e = GetLastError();
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_mmap$OpenFile, "GetFileSizeEx: error (" + std::to_string(e) + ")");
+        throw RtlException(Exception_mmap$OpenFileException, "GetFileSizeEx: error (" + std::to_string(e) + ")");
     }
     f->len = size.QuadPart;
     f->map = CreateFileMapping(f->file, NULL, PAGE_READONLY, 0, 0, NULL);
@@ -59,7 +59,7 @@ void *mmap$open(const std::string &name, Cell &)
         DWORD e = GetLastError();
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_mmap$OpenFile, "CreateFileMapping: error (" + std::to_string(e) + ")");
+        throw RtlException(Exception_mmap$OpenFileException, "CreateFileMapping: error (" + std::to_string(e) + ")");
     }
     f->view = reinterpret_cast<BYTE *>(MapViewOfFile(f->map, FILE_MAP_READ, 0, 0, 0));
     if (f->view == NULL) {
@@ -67,7 +67,7 @@ void *mmap$open(const std::string &name, Cell &)
         CloseHandle(f->map);
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_mmap$OpenFile, "MapViewOfFile: error (" + std::to_string(e) + ")");
+        throw RtlException(Exception_mmap$OpenFileException, "MapViewOfFile: error (" + std::to_string(e) + ")");
     }
     return f;
 }
@@ -97,10 +97,10 @@ void mmap$write(void *pf, Number offset, const std::string &data)
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        throw RtlException(Exception_global$ValueRange, "");
+        throw RtlException(Exception_global$ValueRangeException, "");
     }
     if (o + data.length() > f->len) {
-        throw RtlException(Exception_global$ValueRange, "");
+        throw RtlException(Exception_global$ValueRangeException, "");
     }
     memcpy(f->view + o, data.data(), data.length());
 }

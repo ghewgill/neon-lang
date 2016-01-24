@@ -57,10 +57,10 @@ const Number traits<uint64_t>::MAX = traits<uint64_t>::to_number(std::numeric_li
 template <typename T> void range_check(Number x)
 {
     if (number_is_less(x, traits<T>::MIN) || number_is_greater(x, traits<T>::MAX)) {
-        throw RtlException(Exception_global$ValueRange, number_to_string(x));
+        throw RtlException(Exception_global$ValueRangeException, number_to_string(x));
     }
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_global$ValueRange, number_to_string(x));
+        throw RtlException(Exception_global$ValueRangeException, number_to_string(x));
     }
 }
 

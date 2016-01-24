@@ -4,12 +4,12 @@
  |  Functions for working with files and directories.
  |%
 
-EXPORT DirectoryExists
-EXPORT FileError
-EXPORT FileOpenError
-EXPORT FileWriteError
-EXPORT PathNotFound
-EXPORT PermissionDenied
+EXPORT DirectoryExistsException
+EXPORT FileException
+EXPORT FileOpenException
+EXPORT FileWriteException
+EXPORT PathNotFoundException
+EXPORT PermissionDeniedException
 EXPORT pathJoin
 EXPORT pathSplit
 EXPORT removeDirectoryTree
@@ -17,46 +17,46 @@ EXPORT removeDirectoryTree
 DECLARE NATIVE CONSTANT Separator: String
 
 %|
- |  Exception: DirectoryExists
+ |  Exception: DirectoryExistsException
  |
  |  Indicates that a directory already exists when calling <mkdir>.
  |%
-DECLARE EXCEPTION DirectoryExists
+DECLARE EXCEPTION DirectoryExistsException
 
 %|
- |  Exception: FileError
+ |  Exception: FileException
  |
  |  Generic file error.
  |%
-DECLARE EXCEPTION FileError
+DECLARE EXCEPTION FileException
 
 %|
- |  Exception: FileOpenError
+ |  Exception: FileOpenException
  |
  |  Indicates that an error occurred when opening a file.
  |%
-DECLARE EXCEPTION FileOpenError
+DECLARE EXCEPTION FileOpenException
 
 %|
- |  Exception: FileWriteError
+ |  Exception: FileWriteException
  |
  |  Indicates that an error occurred while writing to a file.
  |%
-DECLARE EXCEPTION FileWriteError
+DECLARE EXCEPTION FileWriteException
 
 %|
- |  Exception: PathNotFound
+ |  Exception: PathNotFoundException
  |
  |  Indicates that a path was not found.
  |%
-DECLARE EXCEPTION PathNotFound
+DECLARE EXCEPTION PathNotFoundException
 
 %|
- |  Exception: PermissionDenied
+ |  Exception: PermissionDeniedException
  |
  |  Indicates that an operation was denied due to filesystem permisssions.
  |%
-DECLARE EXCEPTION PermissionDenied
+DECLARE EXCEPTION PermissionDeniedException
 
 %|
  |  Function: copy

@@ -1,4 +1,4 @@
 VAR a: Array<Number>
 a[1.5] := 1
 
-%! ArrayIndex (1.5)
+%! ArrayIndexException (1.5)

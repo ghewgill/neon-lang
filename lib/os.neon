@@ -6,22 +6,22 @@
 
 EXPORT Platform
 EXPORT Process
-EXPORT SystemError
-EXPORT UnsupportedFunction
+EXPORT SystemException
+EXPORT UnsupportedFunctionException
 
 %|
- |  Exception: SystemError
+ |  Exception: SystemException
  |
  |  Error from system.
  |%
-DECLARE EXCEPTION SystemError
+DECLARE EXCEPTION SystemException
 
 %|
- |  Exception: UnsupportedFunction
+ |  Exception: UnsupportedFunctionException
  |
  |  Operation is unsupported on this platform.
  |%
-DECLARE EXCEPTION UnsupportedFunction
+DECLARE EXCEPTION UnsupportedFunctionException
 
 %|
  |  Enumeration: Platform

@@ -23,7 +23,7 @@ print("\(v.getString())")
 
 TRY
     LET b: Boolean := v.getBoolean()
-EXCEPTION variant.TypeMismatch DO
+EXCEPTION variant.TypeMismatchException DO
     print("TypeMismatch")
 END TRY
 %= TypeMismatch

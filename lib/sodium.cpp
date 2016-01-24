@@ -81,7 +81,7 @@ const crypto_hash_verify_f AuthTraits_hmacsha512::verify = crypto_auth_hmacsha51
 template <typename AuthTraits> std::string crypto_auth_internal(const std::string &message, const std::string &key)
 {
     if (key.size() != AuthTraits::KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     unsigned char mac[AuthTraits::BYTES];
     AuthTraits::auth(
@@ -96,10 +96,10 @@ template <typename AuthTraits> std::string crypto_auth_internal(const std::strin
 template <typename AuthTraits> bool crypto_auth_verify_internal(const std::string &auth, const std::string &message, const std::string &key)
 {
     if (auth.size() != AuthTraits::BYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "auth");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "auth");
     }
     if (key.size() != AuthTraits::KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     return AuthTraits::verify(
         reinterpret_cast<const unsigned char *>(auth.data()),
@@ -142,10 +142,10 @@ bool sodium$auth_hmacsha512_verify(const std::string &auth, const std::string &m
 std::string sodium$aead_aes256gcm_encrypt(const std::string &message, const std::string &ad, const std::string &nonce, const std::string &key)
 {
     if (nonce.size() != crypto_aead_aes256gcm_NPUBBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_aead_aes256gcm_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> ciphertext(message.size() + crypto_aead_aes256gcm_ABYTES);
     unsigned long long ciphertext_len;
@@ -166,10 +166,10 @@ std::string sodium$aead_aes256gcm_encrypt(const std::string &message, const std:
 std::string sodium$aead_aes256gcm_decrypt(const std::string &ciphertext, const std::string &ad, const std::string &nonce, const std::string &key)
 {
     if (nonce.size() != crypto_aead_aes256gcm_NPUBBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_aead_aes256gcm_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> decrypted(ciphertext.size());
     unsigned long long decrypted_len;
@@ -190,13 +190,13 @@ std::string sodium$aead_aes256gcm_decrypt(const std::string &ciphertext, const s
 std::string sodium$box(const std::string &message, const std::string &nonce, const std::string &pk, const std::string &sk)
 {
     if (nonce.size() != crypto_box_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (pk.size() != crypto_box_PUBLICKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "public key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "public key");
     }
     if (sk.size() != crypto_box_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "secret key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "secret key");
     }
     unsigned long long ciphertext_len = crypto_box_MACBYTES + message.size();
     std::vector<unsigned char> ciphertext(ciphertext_len);
@@ -223,16 +223,16 @@ void sodium$box_keypair(std::string *pk, std::string *sk)
 std::string sodium$box_open(const std::string &ciphertext, const std::string &nonce, const std::string &pk, const std::string &sk)
 {
     if (ciphertext.size() < crypto_box_MACBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "ciphertext");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "ciphertext");
     }
     if (nonce.size() != crypto_box_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (pk.size() != crypto_box_PUBLICKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "public key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "public key");
     }
     if (sk.size() != crypto_box_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "secret key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "secret key");
     }
     std::vector<unsigned char> decrypted(ciphertext.size() - crypto_box_MACBYTES);
     if (crypto_box_open_easy(
@@ -243,7 +243,7 @@ std::string sodium$box_open(const std::string &ciphertext, const std::string &no
         reinterpret_cast<const unsigned char *>(pk.data()),
         reinterpret_cast<const unsigned char *>(sk.data())
     ) != 0) {
-        throw RtlException(Exception_sodium$DecryptionFailed, "");
+        throw RtlException(Exception_sodium$DecryptionFailedException, "");
     }
     return std::string(reinterpret_cast<const char *>(decrypted.data()), decrypted.size());
 }
@@ -251,7 +251,7 @@ std::string sodium$box_open(const std::string &ciphertext, const std::string &no
 std::string sodium$box_seal(const std::string &message, const std::string &pk)
 {
     if (pk.size() != crypto_box_PUBLICKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "public key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "public key");
     }
     std::vector<unsigned char> ciphertext(crypto_box_SEALBYTES + message.size());
     crypto_box_seal(
@@ -266,13 +266,13 @@ std::string sodium$box_seal(const std::string &message, const std::string &pk)
 std::string sodium$box_seal_open(const std::string &ciphertext, const std::string &pk, const std::string &sk)
 {
     if (ciphertext.size() < crypto_box_SEALBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "ciphertext");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "ciphertext");
     }
     if (pk.size() != crypto_box_PUBLICKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "public key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "public key");
     }
     if (sk.size() != crypto_box_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "secret key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "secret key");
     }
     std::vector<unsigned char> decrypted(ciphertext.size() - crypto_box_SEALBYTES);
     if (crypto_box_seal_open(
@@ -282,7 +282,7 @@ std::string sodium$box_seal_open(const std::string &ciphertext, const std::strin
         reinterpret_cast<const unsigned char *>(pk.data()),
         reinterpret_cast<const unsigned char *>(sk.data())
     ) != 0) {
-        throw RtlException(Exception_sodium$DecryptionFailed, "");
+        throw RtlException(Exception_sodium$DecryptionFailedException, "");
     }
     return std::string(reinterpret_cast<const char *>(decrypted.data()), decrypted.size());
 }
@@ -290,7 +290,7 @@ std::string sodium$box_seal_open(const std::string &ciphertext, const std::strin
 void sodium$box_seed_keypair(std::string *pk, std::string *sk, const std::string &seed)
 {
     if (seed.size() != crypto_box_SEEDBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "seed");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "seed");
     }
     unsigned char pkbytes[crypto_box_PUBLICKEYBYTES];
     unsigned char skbytes[crypto_box_SECRETKEYBYTES];
@@ -303,10 +303,10 @@ std::string sodium$generichash(Number outlen, const std::string &in, const std::
 {
     size_t len = number_to_uint32(outlen);
     if (len < 1 /*crypto_generichash_BYTES_MIN*/ || len > crypto_generichash_BYTES_MAX) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "outlen");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "outlen");
     }
     if (key.size() > crypto_generichash_KEYBYTES_MAX) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(len);
     crypto_generichash(
@@ -345,7 +345,7 @@ std::string sodium$hash_sha256(const std::string &in)
 std::string sodium$onetimeauth(const std::string &in, const std::string &key)
 {
     if (key.size() != crypto_onetimeauth_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(crypto_onetimeauth_BYTES);
     crypto_onetimeauth(
@@ -360,10 +360,10 @@ std::string sodium$onetimeauth(const std::string &in, const std::string &key)
 bool sodium$onetimeauth_verify(const std::string &auth, const std::string &in, const std::string &key)
 {
     if (auth.size() != crypto_onetimeauth_BYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "auth");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "auth");
     }
     if (key.size() != crypto_onetimeauth_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     return crypto_onetimeauth_verify(
         reinterpret_cast<const unsigned char *>(auth.data()),
@@ -376,7 +376,7 @@ bool sodium$onetimeauth_verify(const std::string &auth, const std::string &in, c
 std::string sodium$pwhash_scryptsalsa208sha256(Number outlen, const std::string &passwd, const std::string &salt, Number opslimit, Number memlimit)
 {
     if (salt.size() != crypto_pwhash_scryptsalsa208sha256_SALTBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "salt");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "salt");
     }
     std::vector<unsigned char> out(number_to_uint32(outlen));
     crypto_pwhash_scryptsalsa208sha256(
@@ -416,10 +416,10 @@ bool sodium$pwhash_scryptsalsa208sha256_str_verify(const std::string &str, const
 std::string sodium$scalarmult(const std::string &sk, const std::string &pk)
 {
     if (sk.size() != crypto_box_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "sk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "sk");
     }
     if (pk.size() != crypto_box_PUBLICKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "pk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "pk");
     }
     std::vector<unsigned char> out(crypto_scalarmult_BYTES);
     crypto_scalarmult(
@@ -433,7 +433,7 @@ std::string sodium$scalarmult(const std::string &sk, const std::string &pk)
 std::string sodium$scalarmult_base(const std::string &sk)
 {
     if (sk.size() != crypto_box_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "sk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "sk");
     }
     std::vector<unsigned char> out(crypto_box_PUBLICKEYBYTES);
     crypto_scalarmult_base(
@@ -446,10 +446,10 @@ std::string sodium$scalarmult_base(const std::string &sk)
 std::string sodium$secretbox(const std::string &message, const std::string &nonce, const std::string &key)
 {
     if (nonce.size() != crypto_secretbox_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_secretbox_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(crypto_secretbox_MACBYTES + message.size());
     crypto_secretbox_easy(
@@ -465,13 +465,13 @@ std::string sodium$secretbox(const std::string &message, const std::string &nonc
 std::string sodium$secretbox_open(const std::string &ciphertext, const std::string &nonce, const std::string &key)
 {
     if (ciphertext.size() < crypto_secretbox_MACBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "ciphertext");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "ciphertext");
     }
     if (nonce.size() != crypto_secretbox_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_secretbox_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(ciphertext.size() - crypto_secretbox_MACBYTES);
     if (crypto_secretbox_open_easy(
@@ -481,7 +481,7 @@ std::string sodium$secretbox_open(const std::string &ciphertext, const std::stri
         reinterpret_cast<const unsigned char *>(nonce.data()),
         reinterpret_cast<const unsigned char *>(key.data())
     ) != 0) {
-        throw RtlException(Exception_sodium$DecryptionFailed, "");
+        throw RtlException(Exception_sodium$DecryptionFailedException, "");
     }
     return std::string(reinterpret_cast<const char *>(out.data()), out.size());
 }
@@ -489,7 +489,7 @@ std::string sodium$secretbox_open(const std::string &ciphertext, const std::stri
 std::string sodium$shorthash(const std::string &in, const std::string &key)
 {
     if (key.size() != crypto_shorthash_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(crypto_shorthash_BYTES);
     crypto_shorthash(
@@ -504,7 +504,7 @@ std::string sodium$shorthash(const std::string &in, const std::string &key)
 std::string sodium$sign(const std::string &message, const std::string &sk)
 {
     if (sk.size() != crypto_sign_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "sk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "sk");
     }
     std::vector<unsigned char> out(crypto_sign_BYTES + message.size());
     unsigned long long outlen;
@@ -521,10 +521,10 @@ std::string sodium$sign(const std::string &message, const std::string &sk)
 std::string sodium$sign_open(const std::string &signedmessage, const std::string &pk)
 {
     if (signedmessage.size() < crypto_sign_BYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "signedmessage");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "signedmessage");
     }
     if (pk.size() != crypto_sign_PUBLICKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "pk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "pk");
     }
     std::vector<unsigned char> out(signedmessage.size() - crypto_sign_BYTES);
     unsigned long long outlen;
@@ -535,7 +535,7 @@ std::string sodium$sign_open(const std::string &signedmessage, const std::string
         signedmessage.size(),
         reinterpret_cast<const unsigned char *>(pk.data())
     ) != 0) {
-        throw RtlException(Exception_sodium$DecryptionFailed, "");
+        throw RtlException(Exception_sodium$DecryptionFailedException, "");
     }
     return std::string(reinterpret_cast<const char *>(out.data()), outlen);
 }
@@ -543,7 +543,7 @@ std::string sodium$sign_open(const std::string &signedmessage, const std::string
 std::string sodium$sign_detached(const std::string &message, const std::string &sk)
 {
     if (sk.size() != crypto_sign_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "sk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "sk");
     }
     std::vector<unsigned char> out(crypto_sign_BYTES);
     unsigned long long outlen;
@@ -560,10 +560,10 @@ std::string sodium$sign_detached(const std::string &message, const std::string &
 bool sodium$sign_verify_detached(const std::string &sig, const std::string &message, const std::string &pk)
 {
     if (sig.size() != crypto_sign_BYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "sig");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "sig");
     }
     if (pk.size() != crypto_sign_PUBLICKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "pk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "pk");
     }
     return crypto_sign_verify_detached(
         reinterpret_cast<const unsigned char *>(sig.data()),
@@ -585,7 +585,7 @@ void sodium$sign_keypair(std::string *pk, std::string *sk)
 void sodium$sign_seed_keypair(std::string *pk, std::string *sk, const std::string &seed)
 {
     if (seed.size() != crypto_sign_SEEDBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "seed");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "seed");
     }
     unsigned char pkbytes[crypto_sign_PUBLICKEYBYTES];
     unsigned char skbytes[crypto_sign_SECRETKEYBYTES];
@@ -597,7 +597,7 @@ void sodium$sign_seed_keypair(std::string *pk, std::string *sk, const std::strin
 std::string sodium$sign_ed25519_sk_to_seed(const std::string &sk)
 {
     if (sk.size() != crypto_sign_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "sk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "sk");
     }
     unsigned char seedbytes[crypto_sign_SEEDBYTES];
     crypto_sign_ed25519_sk_to_seed(
@@ -610,7 +610,7 @@ std::string sodium$sign_ed25519_sk_to_seed(const std::string &sk)
 std::string sodium$sign_ed25519_sk_to_pk(const std::string &sk)
 {
     if (sk.size() != crypto_sign_SECRETKEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "sk");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "sk");
     }
     unsigned char pkbytes[crypto_sign_PUBLICKEYBYTES];
     crypto_sign_ed25519_sk_to_pk(
@@ -623,10 +623,10 @@ std::string sodium$sign_ed25519_sk_to_pk(const std::string &sk)
 std::string sodium$stream(Number len, const std::string &nonce, const std::string &key)
 {
     if (nonce.size() != crypto_stream_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_stream_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(number_to_uint32(len));
     crypto_stream(
@@ -641,10 +641,10 @@ std::string sodium$stream(Number len, const std::string &nonce, const std::strin
 std::string sodium$stream_xor(const std::string &in, const std::string &nonce, const std::string &key)
 {
     if (nonce.size() != crypto_stream_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_stream_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(in.size());
     crypto_stream_xor(
@@ -660,10 +660,10 @@ std::string sodium$stream_xor(const std::string &in, const std::string &nonce, c
 std::string sodium$stream_xsalsa20_xor_ic(const std::string &in, const std::string &nonce, Number ic, const std::string &key)
 {
     if (nonce.size() != crypto_stream_xsalsa20_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_stream_xsalsa20_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(in.size());
     crypto_stream_xsalsa20_xor_ic(
@@ -680,10 +680,10 @@ std::string sodium$stream_xsalsa20_xor_ic(const std::string &in, const std::stri
 std::string sodium$stream_salsa20(Number len, const std::string &nonce, const std::string &key)
 {
     if (nonce.size() != crypto_stream_salsa20_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_stream_salsa20_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(number_to_uint32(len));
     crypto_stream_salsa20(
@@ -698,10 +698,10 @@ std::string sodium$stream_salsa20(Number len, const std::string &nonce, const st
 std::string sodium$stream_salsa20_xor_ic(const std::string &in, const std::string &nonce, Number ic, const std::string &key)
 {
     if (nonce.size() != crypto_stream_salsa20_NONCEBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "nonce");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "nonce");
     }
     if (key.size() != crypto_stream_salsa20_KEYBYTES) {
-        throw RtlException(Exception_sodium$InvalidParameterLength, "key");
+        throw RtlException(Exception_sodium$InvalidParameterLengthException, "key");
     }
     std::vector<unsigned char> out(in.size());
     crypto_stream_salsa20_xor_ic(

@@ -1,9 +1,9 @@
-DECLARE EXCEPTION FileNotFound
+DECLARE EXCEPTION FileNotFoundException
 
 FUNCTION foo(): Number
     TRY
         RETURN 1
-    EXCEPTION FileNotFound DO
+    EXCEPTION FileNotFoundException DO
         RETURN -1
     END TRY
 END FUNCTION

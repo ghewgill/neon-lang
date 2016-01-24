@@ -33,7 +33,7 @@ std::vector<Number> global$array__range(Number first, Number last, Number step)
 {
     std::vector<Number> r;
     if (number_is_zero(step)) {
-        throw RtlException(Exception_global$ValueRange, number_to_string(step));
+        throw RtlException(Exception_global$ValueRangeException, number_to_string(step));
     }
     if (number_is_negative(step)) {
         for (Number i = first; number_is_greater_equal(i, last); i = number_add(i, step)) {
@@ -50,7 +50,7 @@ std::vector<Number> global$array__range(Number first, Number last, Number step)
 void global$array__resize(Cell *self, Number new_size)
 {
     if (not number_is_integer(new_size)) {
-        throw RtlException(Exception_global$ArrayIndex, number_to_string(new_size));
+        throw RtlException(Exception_global$ArrayIndexException, number_to_string(new_size));
     }
     self->array_for_write().resize(number_to_sint64(new_size));
 }
@@ -115,7 +115,7 @@ std::string global$array__toBytes__number(const std::vector<Number> &a)
     for (auto x: a) {
         uint64_t b = number_to_uint64(x);
         if (b >= 256) {
-            throw RtlException(Exception_global$ByteOutOfRange, std::to_string(b));
+            throw RtlException(Exception_global$ByteOutOfRangeException, std::to_string(b));
         }
         r.push_back(static_cast<unsigned char>(b));
     }
@@ -266,7 +266,7 @@ std::string global$bytes__toString(const std::string &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
-        throw RtlException(Exception_global$Utf8Encoding, "");
+        throw RtlException(Exception_global$Utf8EncodingException, "");
     }
     return self;
 }
@@ -291,7 +291,7 @@ std::string global$input(const std::string &prompt)
     std::cout << prompt;
     std::string r;
     if (not std::getline(std::cin, r)) {
-        throw RtlException(Exception_global$EndOfFile, "");
+        throw RtlException(Exception_global$EndOfFileException, "");
     }
     return r;
 }

@@ -1,4 +1,4 @@
-DECLARE EXCEPTION a
+DECLARE EXCEPTION Exception
                   %<2
-DECLARE EXCEPTION a
+DECLARE EXCEPTION Exception
                   %<1

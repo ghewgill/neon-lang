@@ -141,7 +141,7 @@ END FUNCTION
  |%
 FUNCTION packInt8(n: Number): Bytes
     IF NOT (-0x80 <= n <= 0x7F) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     RETURN packUInt8(IF n < 0 THEN 0x100 + n ELSE n)
@@ -154,7 +154,7 @@ END FUNCTION
  |%
 FUNCTION packInt16BE(n: Number): Bytes
     IF NOT (-0x8000 <= n <= 0x7FFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     RETURN packUInt16BE(IF n < 0 THEN 0x10000 + n ELSE n)
 END FUNCTION
@@ -166,7 +166,7 @@ END FUNCTION
  |%
 FUNCTION packInt16LE(n: Number): Bytes
     IF NOT (-0x8000 <= n <= 0x7FFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     RETURN packUInt16LE(IF n < 0 THEN 0x10000 + n ELSE n)
 END FUNCTION
@@ -178,7 +178,7 @@ END FUNCTION
  |%
 FUNCTION packInt32BE(n: Number): Bytes
     IF NOT (-0x80000000 <= n <= 0x7FFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     RETURN packUInt32BE(IF n < 0 THEN 0x100000000 + n ELSE n)
 END FUNCTION
@@ -190,7 +190,7 @@ END FUNCTION
  |%
 FUNCTION packInt32LE(n: Number): Bytes
     IF NOT (-0x80000000 <= n <= 0x7FFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     RETURN packUInt32LE(IF n < 0 THEN 0x100000000 + n ELSE n)
 END FUNCTION
@@ -202,7 +202,7 @@ END FUNCTION
  |%
 FUNCTION packInt64BE(n: Number): Bytes
     IF NOT (-0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     RETURN packUInt64BE(IF n < 0 THEN 0x10000000000000000 + n ELSE n)
 END FUNCTION
@@ -214,7 +214,7 @@ END FUNCTION
  |%
 FUNCTION packInt64LE(n: Number): Bytes
     IF NOT (-0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     RETURN packUInt64LE(IF n < 0 THEN 0x10000000000000000 + n ELSE n)
 END FUNCTION
@@ -226,7 +226,7 @@ END FUNCTION
  |%
 FUNCTION packUInt8(n: Number): Bytes
     IF NOT (0 <= n <= 0xFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     r[0] := bitwise.and32(n, 0xFF)
@@ -240,7 +240,7 @@ END FUNCTION
  |%
 FUNCTION packUInt16BE(n: Number): Bytes
     IF NOT (0 <= n <= 0xFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     r[0] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
@@ -255,7 +255,7 @@ END FUNCTION
  |%
 FUNCTION packUInt16LE(n: Number): Bytes
     IF NOT (0 <= n <= 0xFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     r[0] := bitwise.and32(n, 0xFF)
@@ -270,7 +270,7 @@ END FUNCTION
  |%
 FUNCTION packUInt32BE(n: Number): Bytes
     IF NOT (0 <= n <= 0xFFFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     r[0] := bitwise.and32(bitwise.shiftRight32(n, 24), 0xFF)
@@ -287,7 +287,7 @@ END FUNCTION
  |%
 FUNCTION packUInt32LE(n: Number): Bytes
     IF NOT (0 <= n <= 0xFFFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     r[0] := bitwise.and32(n, 0xFF)
@@ -304,7 +304,7 @@ END FUNCTION
  |%
 FUNCTION packUInt64BE(n: Number): Bytes
     IF NOT (0 <= n <= 0xFFFFFFFFFFFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     r[0] := bitwise.and64(bitwise.shiftRight64(n, 56), 0xFF)
@@ -325,7 +325,7 @@ END FUNCTION
  |%
 FUNCTION packUInt64LE(n: Number): Bytes
     IF NOT (0 <= n <= 0xFFFFFFFFFFFFFFFF) THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
     r[0] := bitwise.and64(n, 0xFF)
@@ -346,7 +346,7 @@ END FUNCTION
  |%
 FUNCTION unpackBool(b: Bytes): Boolean
     IF b.size() # 1 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN a[0] # 0
@@ -457,7 +457,7 @@ END FUNCTION
  |%
 FUNCTION unpackUInt8(b: Bytes): Number
     IF b.size() # 1 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN a[0]
@@ -470,7 +470,7 @@ END FUNCTION
  |%
 FUNCTION unpackUInt16BE(b: Bytes): Number
     IF b.size() # 2 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN bitwise.shiftLeft32(a[0],  8) +
@@ -484,7 +484,7 @@ END FUNCTION
  |%
 FUNCTION unpackUInt16LE(b: Bytes): Number
     IF b.size() # 2 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN bitwise.shiftLeft32(a[1],  8) +
@@ -498,7 +498,7 @@ END FUNCTION
  |%
 FUNCTION unpackUInt32BE(b: Bytes): Number
     IF b.size() # 4 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN bitwise.shiftLeft32(a[0], 24) +
@@ -514,7 +514,7 @@ END FUNCTION
  |%
 FUNCTION unpackUInt32LE(b: Bytes): Number
     IF b.size() # 4 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN bitwise.shiftLeft32(a[3], 24) +
@@ -530,7 +530,7 @@ END FUNCTION
  |%
 FUNCTION unpackUInt64BE(b: Bytes): Number
     IF b.size() # 8 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN bitwise.shiftLeft64(a[0], 56) +
@@ -550,7 +550,7 @@ END FUNCTION
  |%
 FUNCTION unpackUInt64LE(b: Bytes): Number
     IF b.size() # 8 THEN
-        RAISE InvalidValue
+        RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
     RETURN bitwise.shiftLeft64(a[7], 56) +

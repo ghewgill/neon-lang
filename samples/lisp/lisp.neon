@@ -14,9 +14,9 @@ IMPORT math
 IMPORT regex
 IMPORT sys
 
-DECLARE EXCEPTION ParseEndOfInput
-DECLARE EXCEPTION SyntaxError
-DECLARE EXCEPTION TypeMismatch
+DECLARE EXCEPTION ParseEndOfInputException
+DECLARE EXCEPTION SyntaxErrorException
+DECLARE EXCEPTION TypeMismatchException
 
 TYPE Environment IS RECORD
     parent: POINTER TO Environment
@@ -164,7 +164,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                     END IF
                     p := new
                 END LOOP
-            EXCEPTION ParseEndOfInput DO
+            EXCEPTION ParseEndOfInputException DO
                 % nothing
             END TRY
             IF s[i] = ")" THEN
@@ -223,9 +223,9 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
             END IF
             RETURN make_string(s[start TO i-2])
 %        ELSE
-%            RAISE SyntaxError
+%            RAISE SyntaxErrorException
     END CASE
-    RETURN NIL %RAISE ParseEndOfInput
+    RETURN NIL %RAISE ParseEndOfInputException
 END FUNCTION
 
 FUNCTION parse(s: String): POINTER TO Value

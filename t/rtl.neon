@@ -18,7 +18,7 @@ print(str(ord("B")))
 
 TRY
     print(str(ord("AB")))
-EXCEPTION ArrayIndex DO
+EXCEPTION ArrayIndexException DO
     print(CURRENT_EXCEPTION.info)
 END TRY
 %= ord() requires string of length 1
