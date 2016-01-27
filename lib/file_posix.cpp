@@ -1,4 +1,4 @@
-#ifdef BSD
+#ifdef __APPLE__
 #include <copyfile.h>
 #endif
 #include <dirent.h>
@@ -27,10 +27,10 @@ namespace rtl {
 
 void file$copy(const std::string &filename, const std::string &destination)
 {
-#ifdef BSD
+#ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL);
     if (r != 0) {
-       handle_error(errno, filename);
+        handle_error(errno, filename);
     }
 #else
     int sourcefd = open(filename.c_str(), O_RDONLY);
