@@ -20,6 +20,9 @@ CONSTANT Pi: Number := 3.141592653589793238462643383279503
  |
  |  Reference:
  |      http://mathworld.wolfram.com/AbsoluteValue.html
+ |
+ |  Example:
+ |      ASSERT math.abs(-5) = 5
  |%
 DECLARE NATIVE FUNCTION abs(x: Number): Number
 
