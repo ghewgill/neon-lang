@@ -28,6 +28,69 @@ namespace rtl {
 void file$copy(const std::string &filename, const std::string &destination)
 {
 #ifdef __APPLE__
+    int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL|COPYFILE_EXCL);
+    if (r != 0) {
+        if (errno == EEXIST) {
+            throw RtlException(Exception_file$FileExistsException, destination);
+        }
+        handle_error(errno, filename);
+    }
+#else
+    int sourcefd = open(filename.c_str(), O_RDONLY);
+    if (sourcefd < 0) {
+        handle_error(errno, filename);
+    }
+    struct stat statbuf;
+    int r = fstat(sourcefd, &statbuf);
+    if (r != 0) {
+        int error = errno;
+        close(sourcefd);
+        handle_error(error, filename);
+    }
+    int destfd = open(destination.c_str(), O_CREAT|O_WRONLY|O_TRUNC|O_EXCL, 0);
+    if (destfd < 0) {
+        int error = errno;
+        close(sourcefd);
+        if (error == EEXIST) {
+            throw RtlException(Exception_file$FileExistsException, destination.c_str());
+        }
+        handle_error(error, destination);
+    }
+    char buf[BUFSIZ];
+    for (;;) {
+        ssize_t n = read(sourcefd, buf, sizeof(buf));
+        if (n < 0) {
+            int error = errno;
+            close(sourcefd);
+            close(destfd);
+            unlink(destination.c_str());
+            handle_error(error, filename);
+        } else if (n == 0) {
+            break;
+        }
+        ssize_t written = write(destfd, buf, n);
+        if (written < n) {
+            int error = errno;
+            close(sourcefd);
+            close(destfd);
+            unlink(destination.c_str());
+            handle_error(error, destination);
+        }
+    }
+    close(sourcefd);
+    fchmod(destfd, statbuf.st_mode);
+    fchown(destfd, statbuf.st_uid, statbuf.st_gid);
+    close(destfd);
+    struct utimbuf utimebuf;
+    utimebuf.actime = statbuf.st_atime;
+    utimebuf.modtime = statbuf.st_mtime;
+    utime(destination.c_str(), &utimebuf);
+#endif
+}
+
+void file$copyOverwriteIfExists(const std::string &filename, const std::string &destination)
+{
+#ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL);
     if (r != 0) {
         handle_error(errno, filename);

@@ -1,0 +1,18 @@
+IMPORT file
+
+file.delete("tmp/license-copy.txt")
+file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."])
+
+TRY 
+    file.copyOverwriteIfExists("LICENSE.txt", "tmp/license-copy.txt")
+    LET lines: Array<String> := file.readLines("tmp/license-copy.txt")
+    IF lines[FIRST] = "The MIT License (MIT)" THEN
+        print("copyOverwriteIfExists Success")
+    ELSE
+        print("copy failed")
+    END IF
+EXCEPTION file.FileExistsException DO
+    print("Failed")
+END TRY
+
+%= copyOverwriteIfExists Success

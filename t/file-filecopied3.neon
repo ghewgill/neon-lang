@@ -1,0 +1,18 @@
+IMPORT file
+
+% This ensures that the file.copyOverwriteIfExists() will 
+% actually CREATE the file if it does not exist already.
+file.delete("tmp/NEW_LICENSE.txt")
+
+TRY 
+    file.copyOverwriteIfExists("LICENSE.txt", "tmp/NEW_LICENSE.txt")
+    IF file.exists("tmp/NEW_LICENSE.txt") THEN
+        print("File copied")
+    ELSE
+        print("File not copied")
+    END IF
+EXCEPTION file.FileExistsException DO
+    print("Failed")
+END TRY
+
+%= File copied

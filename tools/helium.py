@@ -2126,6 +2126,11 @@ def neon_substring(env, s, start, length):
     return s[start:start+length]
 
 def neon_file_copy(env, src, dest):
+    if neon_file_exists(env, dest):
+        raise NeonException("FileExistsException")
+    shutil.copyfile(src, dest)
+
+def neon_file_copyOverwriteIfExists(env, src, dest):
     shutil.copyfile(src, dest)
 
 def neon_file_delete(env, fn):
