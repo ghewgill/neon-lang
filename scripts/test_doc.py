@@ -36,7 +36,7 @@ def check_file_neon(fn, source):
             doc = itertools.dropwhile(lambda x: "Example:" not in x, [x[1] for x in full])
             try:
                 next(doc)
-                test("IMPORT {}\n".format(os.path.basename(fn)[:-5]) + "\n".join(x[3:] for x in doc))
+                test("IMPORT {}\n".format(os.path.basename(fn)[:-5]) + "\n".join(re.sub(r"^ \|\s*[>:|]", "", x) for x in doc if x.startswith(" | ")))
             except StopIteration:
                 firstline = next(itertools.dropwhile(lambda x: not x[1][3:].strip(), full))
                 undocumented.append("no example in {}:{} for {}".format(fn, firstline[0], firstline[1][3:].strip()))
