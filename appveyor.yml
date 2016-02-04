@@ -1,0 +1,17 @@
+# Use Visual Studio 2013, the target platform for Neon.
+# Later, we'll move up to VS2015.
+os: Visual Studio 2013
+install:
+- ps: >-
+    if (-not (Test-Path C:\Python27)){
+      Start-FileDownload "https://www.python.org/ftp/python/2.7.9/python-2.7.9.amd64.msi" -FileName python-2.7.9.amd64.msi
+      Start-Process "python-2.7.9.amd64.msi" -ArgumentList "/quiet" -Wait
+    }
+- ps: >-
+    if (-not (Test-Path C:\Python27\Lib\site-packages\scons-2.4.1)){
+      Start-FileDownload "http://downloads.sourceforge.net/project/scons/scons/2.4.1/scons-2.4.1.zip" -FileName "scons-2.4.1.zip"
+      7z x -y scons-2.4.1.zip
+    }
+build_script:
+- cmd: C:\Python27\python.exe scons-2.4.1\setup.py install
+- cmd: c:\python27\scons
