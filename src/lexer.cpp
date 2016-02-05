@@ -358,7 +358,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                         error(1003, t, "invalid base character");
                     }
                     Number value = number_from_uint32(0);
-                    const auto start = i;
+                    const auto nstart = i;
                     while (i != source.end()) {
                         c = static_cast<char>(tolower(*i));
                         if (c == '.') {
@@ -376,7 +376,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
                         }
                         utf8::advance(i, 1, source.end());
                     }
-                    if (i == start) {
+                    if (i == nstart) {
                         error(1008, t, "numeric constants must have at least one digit");
                     }
                     t.value = value;
