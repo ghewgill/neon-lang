@@ -135,9 +135,9 @@ int main(int argc, char *argv[])
         }
         i++;
     }
-    Token t;
-    t.type = END_OF_FILE;
-    tokens.tokens.push_back(t);
+    Token eof;
+    eof.type = END_OF_FILE;
+    tokens.tokens.push_back(eof);
     for (auto t: tokens.tokens) {
         std::cout << reconstitute(t) << " ";
     }
