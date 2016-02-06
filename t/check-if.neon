@@ -1,0 +1,11 @@
+FUNCTION test(x: Number)
+    CHECK x > 0 ELSE
+        IF x = 0 THEN
+            EXIT FUNCTION
+        ELSE
+            EXIT FUNCTION
+        END IF
+    END CHECK
+END FUNCTION
+
+test(0)

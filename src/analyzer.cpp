@@ -99,6 +99,7 @@ public:
     const Statement *analyze(const pt::AssertStatement *statement);
     const Statement *analyze(const pt::AssignmentStatement *statement);
     const Statement *analyze(const pt::CaseStatement *statement);
+    const Statement *analyze(const pt::CheckStatement *statement);
     const Statement *analyze(const pt::ExitStatement *statement);
     const Statement *analyze(const pt::ExpressionStatement *statement);
     const Statement *analyze(const pt::ForStatement *statement);
@@ -182,6 +183,7 @@ public:
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::CheckStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
@@ -265,6 +267,7 @@ public:
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::CheckStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
@@ -347,6 +350,7 @@ public:
     virtual void visit(const pt::AssertStatement *) override {}
     virtual void visit(const pt::AssignmentStatement *) override {}
     virtual void visit(const pt::CaseStatement *) override {}
+    virtual void visit(const pt::CheckStatement *) override {}
     virtual void visit(const pt::ExitStatement *) override {}
     virtual void visit(const pt::ExpressionStatement *) override {}
     virtual void visit(const pt::ForStatement *) override {}
@@ -429,6 +433,7 @@ public:
     virtual void visit(const pt::AssertStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::CaseStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::CheckStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExitStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExpressionStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ForStatement *p) override { v.push_back(a->analyze(p)); }
@@ -2620,6 +2625,26 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
     }
 }
 
+const Statement *Analyzer::analyze(const pt::CheckStatement *statement)
+{
+    scope.push(new Scope(scope.top(), frame.top()));
+    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    const Expression *cond = analyze(statement->cond);
+    if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+        error(3199, statement->cond->token, "boolean value expected");
+    }
+    condition_statements.push_back(std::make_pair(cond, std::vector<const Statement *>()));
+    std::vector<const Statement *> else_statements = analyze(statement->body);
+    if (else_statements.empty()) {
+        error(3200, statement->token, "body cannot be empty");
+    }
+    if (not else_statements.back()->is_scope_exit_statement()) {
+        error(3201, statement->body.back()->token, "CHECK body must end in EXIT, NEXT, RAISE, or RETURN");
+    }
+    scope.pop();
+    return new IfStatement(statement->token.line, condition_statements, else_statements);
+}
+
 const Statement *Analyzer::analyze(const pt::ExitStatement *statement)
 {
     if (statement->type == FUNCTION) {
@@ -3162,6 +3187,14 @@ public:
         for (auto a: assigned) {
             mark_assigned(a);
         }
+    }
+    virtual void visit(const pt::CheckStatement *node) {
+        node->cond->accept(this);
+        variables.push_back(std::map<std::string, std::pair<Token, bool>>());
+        for (auto s: node->body) {
+            s->accept(this);
+        }
+        variables.pop_back();
     }
     virtual void visit(const pt::ExitStatement *node) {
         if (node->type == FUNCTION) {

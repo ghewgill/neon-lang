@@ -1,0 +1,59 @@
+FUNCTION testExit(x: Number)
+    LOOP
+        CHECK x > 0 ELSE
+            print("check exit")
+            EXIT LOOP
+        END CHECK
+        print("ok exit")
+        EXIT FUNCTION
+    END LOOP
+END FUNCTION
+
+FUNCTION testNext(x: Number)
+    FOR i := 1 TO 1 DO
+        CHECK x > 0 ELSE
+            print("check next")
+            NEXT FOR
+        END CHECK
+        print("ok next")
+        EXIT FUNCTION
+    END FOR
+END FUNCTION
+
+FUNCTION testRaise(x: Number)
+    CHECK x > 0 ELSE
+        print("check raise")
+        RAISE InvalidValueException
+    END CHECK
+    print("ok raise")
+END FUNCTION
+
+FUNCTION testReturn(x: Number): Boolean
+    CHECK x > 0 ELSE
+        print("check return")
+        RETURN FALSE
+    END CHECK
+    print("ok return")
+    RETURN TRUE
+END FUNCTION
+
+testExit(0)
+%= check exit
+testNext(0)
+%= check next
+TRY
+    testRaise(0)
+EXCEPTION InvalidValueException DO
+END TRY
+%= check raise
+_ := testReturn(0)
+%= check return
+
+testExit(1)
+%= ok exit
+testNext(1)
+%= ok next
+testRaise(1)
+%= ok raise
+_ := testReturn(1)
+%= ok return

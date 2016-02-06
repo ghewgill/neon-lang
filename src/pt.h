@@ -69,6 +69,7 @@ class MainBlock;
 class AssertStatement;
 class AssignmentStatement;
 class CaseStatement;
+class CheckStatement;
 class ExitStatement;
 class ExpressionStatement;
 class ForStatement;
@@ -149,6 +150,7 @@ public:
     virtual void visit(const AssertStatement *) = 0;
     virtual void visit(const AssignmentStatement *) = 0;
     virtual void visit(const CaseStatement *) = 0;
+    virtual void visit(const CheckStatement *) = 0;
     virtual void visit(const ExitStatement *) = 0;
     virtual void visit(const ExpressionStatement *) = 0;
     virtual void visit(const ForStatement *) = 0;
@@ -822,6 +824,16 @@ public:
 private:
     CaseStatement(const CaseStatement &);
     CaseStatement &operator=(const CaseStatement &);
+};
+
+class CheckStatement: public BlockStatement {
+public:
+    CheckStatement(const Token &token, const Expression *cond, const std::vector<const Statement *> &body): BlockStatement(token, body), cond(cond) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Expression *const cond;
+private:
+    CheckStatement(const CheckStatement &);
+    CheckStatement &operator=(const CheckStatement &);
 };
 
 class ExitStatement: public Statement {

@@ -314,6 +314,13 @@ public:
         }
         depth--;
     }
+    virtual void visit(const CheckStatement *node) override {
+        write("CheckStatement");
+        child(node->cond);
+        for (auto x: node->body) {
+            child(x);
+        }
+    }
     virtual void visit(const ExitStatement *node) override {
         write("ExitStatement(" + std::to_string(node->type) + ")");
     }

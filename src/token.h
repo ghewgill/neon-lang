@@ -105,6 +105,7 @@ enum TokenType {
     UNDERSCORE,
     OTHERS,
     WITH,
+    CHECK,
     MAX_TOKEN
 };
 

@@ -512,6 +512,19 @@ bool IfStatement::always_returns() const
     return true;
 }
 
+bool IfStatement::is_scope_exit_statement() const
+{
+    for (auto cond: condition_statements) {
+        if (cond.second.empty() || not cond.second.back()->is_scope_exit_statement()) {
+            return false;
+        }
+    }
+    if (else_statements.empty() || not else_statements.back()->is_scope_exit_statement()) {
+        return false;
+    }
+    return true;
+}
+
 bool LoopStatement::always_returns() const
 {
     for (auto s: statements) {

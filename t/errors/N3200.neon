@@ -1,0 +1,4 @@
+LET x: Number := 0
+CHECK x > 0 ELSE
+%<
+END CHECK

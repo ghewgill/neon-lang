@@ -134,6 +134,7 @@ INC = Keyword("INC")
 DEC = Keyword("DEC")
 OTHERS = Keyword("OTHERS")
 WITH = Keyword("WITH")
+CHECK = Keyword("CHECK")
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -1547,6 +1548,19 @@ class Parser:
         clauses.append((None, others_statements))
         return CaseStatement(expr, clauses)
 
+    def parse_check_statement(self):
+        self.expect(CHECK)
+        cond = self.parse_expression()
+        self.expect(ELSE)
+        statements = []
+        while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
+            s = self.parse_statement()
+            if s is not None:
+                statements.append(s)
+        self.expect(END)
+        self.expect(CHECK)
+        return IfStatement([(cond, [])], statements)
+
     def parse_declaration(self):
         self.expect(DECLARE)
         if self.tokens[self.i] == EXCEPTION:
@@ -1805,6 +1819,7 @@ class Parser:
         if self.tokens[self.i] is TRY:      return self.parse_try_statement()
         if self.tokens[self.i] is RAISE:    return self.parse_raise_statement()
         if self.tokens[self.i] is ASSERT:   return self.parse_assert()
+        if self.tokens[self.i] is CHECK:    return self.parse_check_statement()
         if isinstance(self.tokens[self.i], Identifier):
             expr = self.parse_expression()
             if self.tokens[self.i] is ASSIGN:

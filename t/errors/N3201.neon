@@ -1,0 +1,5 @@
+LET x: Number := 0
+CHECK x > 0 ELSE
+    print("hi")
+    %<
+END CHECK

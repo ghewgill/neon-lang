@@ -1767,6 +1767,7 @@ public:
     const int line;
 
     virtual bool always_returns() const { return false; }
+    virtual bool is_scope_exit_statement() const { return false; }
 
     void generate(Emitter &emitter) const;
     virtual void generate_code(Emitter &emitter) const = 0;
@@ -1862,6 +1863,7 @@ public:
     const Expression *const expr;
 
     virtual bool always_returns() const override { return true; }
+    virtual bool is_scope_exit_statement() const override { return true; }
 
     virtual void generate_code(Emitter &emitter) const override;
 
@@ -1898,6 +1900,7 @@ public:
     const std::vector<const Statement *> else_statements;
 
     virtual bool always_returns() const override;
+    virtual bool is_scope_exit_statement() const override;
 
     virtual void generate_code(Emitter &emitter) const override;
 
@@ -2066,6 +2069,8 @@ public:
 
     const unsigned int loop_id;
 
+    virtual bool is_scope_exit_statement() const override { return true; }
+
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ExitStatement(...)"; }
@@ -2080,6 +2085,8 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const unsigned int loop_id;
+
+    virtual bool is_scope_exit_statement() const override { return true; }
 
     virtual void generate_code(Emitter &emitter) const override;
 
@@ -2116,6 +2123,7 @@ public:
     const Expression *info;
 
     virtual bool always_returns() const override { return true; }
+    virtual bool is_scope_exit_statement() const override { return true; }
 
     virtual void generate_code(Emitter &emitter) const override;
 

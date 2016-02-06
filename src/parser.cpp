@@ -54,6 +54,7 @@ public:
     const Statement *parseExport();
     const Statement *parseIncrementStatement();
     const Statement *parseIfStatement();
+    const Statement *parseCheckStatement();
     const Statement *parseReturnStatement();
     const Statement *parseVarStatement();
     const Statement *parseLetStatement();
@@ -1102,6 +1103,34 @@ const Statement *Parser::parseIfStatement()
     return new IfStatement(tok_if, condition_statements, else_statements);
 }
 
+const Statement *Parser::parseCheckStatement()
+{
+    auto &tok_check = tokens[i];
+    ++i;
+    const Expression *cond = parseExpression();
+    if (tokens[i].type != ELSE) {
+        error_a(2103, tokens[i-1], tokens[i], "ELSE expected");
+    }
+    ++i;
+    TemporaryMinimumIndent indent(this, tok_check.column + 1);
+    std::vector<const Statement *> statements;
+    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        const Statement *s = parseStatement();
+        if (s != nullptr) {
+            statements.push_back(s);
+        }
+    }
+    if (tokens[i].type != END) {
+        error(2104, tokens[i], "END expected");
+    }
+    ++i;
+    if (tokens[i].type != CHECK) {
+        error_a(2105, tokens[i-1], tokens[i], "CHECK expected");
+    }
+    ++i;
+    return new CheckStatement(tok_check, cond, statements);
+}
+
 const Statement *Parser::parseReturnStatement()
 {
     auto &tok_return = tokens[i];
@@ -1690,6 +1719,8 @@ const Statement *Parser::parseStatement()
         return parseAssert();
     } else if (tokens[i].type == BEGIN) {
         return parseBegin();
+    } else if (tokens[i].type == CHECK) {
+        return parseCheckStatement();
     } else if (tokens[i].type == IDENTIFIER) {
         const Token &start = tokens[i];
         if (tokens[i+1].type != ASSIGN
