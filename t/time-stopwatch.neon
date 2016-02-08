@@ -5,5 +5,5 @@ TYPE Stopwatch IS time.Stopwatch
 VAR timer: Stopwatch := Stopwatch()
 timer.start()
 time.sleep(0.1)
-print(strb(0.09 <= timer.elapsed() < 0.15))
-%= TRUE
+LET e: Number := timer.elapsed()
+ASSERT 0.09 <= e < 0.15
