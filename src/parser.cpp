@@ -1568,6 +1568,10 @@ static void deconstruct(const Expression *expr, std::vector<const Expression *> 
     const IdentityExpression *ie = dynamic_cast<const IdentityExpression *>(expr);
     const UnaryExpression *ue = dynamic_cast<const UnaryExpression *>(expr);
     const BinaryExpression *be = dynamic_cast<const BinaryExpression *>(expr);
+    const SubscriptExpression *se = dynamic_cast<const SubscriptExpression *>(expr);
+    const ChainedComparisonExpression *che = dynamic_cast<const ChainedComparisonExpression *>(expr);
+    const ConditionalExpression *ce = dynamic_cast<const ConditionalExpression *>(expr);
+    const RangeSubscriptExpression *re = dynamic_cast<const RangeSubscriptExpression *>(expr);
     if (ie != nullptr) {
         deconstruct(ie->expr, parts);
         return;
@@ -1576,6 +1580,21 @@ static void deconstruct(const Expression *expr, std::vector<const Expression *> 
     } else if (be != nullptr) {
         deconstruct(be->left, parts);
         deconstruct(be->right, parts);
+    } else if (se != nullptr) {
+        deconstruct(se->base, parts);
+        deconstruct(se->index, parts);
+    } else if (che != nullptr) {
+        for (auto c: che->comps) {
+            deconstruct(c, parts);
+        }
+    } else if (ce != nullptr) {
+        deconstruct(ce->cond, parts);
+        deconstruct(ce->left, parts);
+        deconstruct(ce->right, parts);
+    } else if (re != nullptr) {
+        deconstruct(re->base, parts);
+        deconstruct(re->range->first, parts);
+        deconstruct(re->range->last, parts);
     } else if (dynamic_cast<const BooleanLiteralExpression *>(expr) != nullptr
             || dynamic_cast<const NumberLiteralExpression *>(expr) != nullptr
             || dynamic_cast<const StringLiteralExpression *>(expr) != nullptr) {
