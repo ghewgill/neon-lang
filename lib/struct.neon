@@ -131,7 +131,7 @@ END FUNCTION
  |  Pack a <Boolean> value into a <Bytes>.
  |%
 FUNCTION packBool(b: Boolean): Bytes
-    RETURN IF b THEN HEXBYTES "01" ELSE HEXBYTES "00"
+    RETURN (IF b THEN HEXBYTES "01" ELSE HEXBYTES "00")
 END FUNCTION
 
 %|
@@ -144,7 +144,7 @@ FUNCTION packInt8(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    RETURN packUInt8(IF n < 0 THEN 0x100 + n ELSE n)
+    RETURN packUInt8((IF n < 0 THEN 0x100 + n ELSE n))
 END FUNCTION
 
 %|
@@ -156,7 +156,7 @@ FUNCTION packInt16BE(n: Number): Bytes
     IF NOT (-0x8000 <= n <= 0x7FFF) THEN
         RAISE InvalidValueException
     END IF
-    RETURN packUInt16BE(IF n < 0 THEN 0x10000 + n ELSE n)
+    RETURN packUInt16BE((IF n < 0 THEN 0x10000 + n ELSE n))
 END FUNCTION
 
 %|
@@ -168,7 +168,7 @@ FUNCTION packInt16LE(n: Number): Bytes
     IF NOT (-0x8000 <= n <= 0x7FFF) THEN
         RAISE InvalidValueException
     END IF
-    RETURN packUInt16LE(IF n < 0 THEN 0x10000 + n ELSE n)
+    RETURN packUInt16LE((IF n < 0 THEN 0x10000 + n ELSE n))
 END FUNCTION
 
 %|
@@ -180,7 +180,7 @@ FUNCTION packInt32BE(n: Number): Bytes
     IF NOT (-0x80000000 <= n <= 0x7FFFFFFF) THEN
         RAISE InvalidValueException
     END IF
-    RETURN packUInt32BE(IF n < 0 THEN 0x100000000 + n ELSE n)
+    RETURN packUInt32BE((IF n < 0 THEN 0x100000000 + n ELSE n))
 END FUNCTION
 
 %|
@@ -192,7 +192,7 @@ FUNCTION packInt32LE(n: Number): Bytes
     IF NOT (-0x80000000 <= n <= 0x7FFFFFFF) THEN
         RAISE InvalidValueException
     END IF
-    RETURN packUInt32LE(IF n < 0 THEN 0x100000000 + n ELSE n)
+    RETURN packUInt32LE((IF n < 0 THEN 0x100000000 + n ELSE n))
 END FUNCTION
 
 %|
@@ -204,7 +204,7 @@ FUNCTION packInt64BE(n: Number): Bytes
     IF NOT (-0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF) THEN
         RAISE InvalidValueException
     END IF
-    RETURN packUInt64BE(IF n < 0 THEN 0x10000000000000000 + n ELSE n)
+    RETURN packUInt64BE((IF n < 0 THEN 0x10000000000000000 + n ELSE n))
 END FUNCTION
 
 %|
@@ -216,7 +216,7 @@ FUNCTION packInt64LE(n: Number): Bytes
     IF NOT (-0x8000000000000000 <= n <= 0x7FFFFFFFFFFFFFFF) THEN
         RAISE InvalidValueException
     END IF
-    RETURN packUInt64LE(IF n < 0 THEN 0x10000000000000000 + n ELSE n)
+    RETURN packUInt64LE((IF n < 0 THEN 0x10000000000000000 + n ELSE n))
 END FUNCTION
 
 %|
@@ -607,12 +607,12 @@ FUNCTION Struct.pack(self: Struct, values: Dictionary<variant.Variant>): Bytes
                 WHEN Type.string DO
                     LET s: String := values[self.fields[f].name].getString()
                     FOR i := 0 TO self.fields[f].width-1 DO
-                        buf.append(IF i < s.length() THEN ord(s[i]) ELSE 0)
+                        buf.append((IF i < s.length() THEN ord(s[i]) ELSE 0))
                     END FOR
                 WHEN Type.bytes DO
                     LET a: Array<Number> := values[self.fields[f].name].getBytes().toArray()
                     FOR i := 0 TO self.fields[f].width-1 DO
-                        buf.append(IF i < a.size() THEN a[i] ELSE 0)
+                        buf.append((IF i < a.size() THEN a[i] ELSE 0))
                     END FOR
             END CASE
         ELSE

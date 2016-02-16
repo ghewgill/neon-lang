@@ -272,7 +272,7 @@ FUNCTION Variant.toString(IN self: Variant): String
         WHEN Type.null DO
             RETURN "null"
         WHEN Type.boolean DO
-            RETURN IF self.val_boolean THEN "true" ELSE "false"
+            RETURN (IF self.val_boolean THEN "true" ELSE "false")
         WHEN Type.number DO
             RETURN str(self.val_number)
         WHEN Type.string DO

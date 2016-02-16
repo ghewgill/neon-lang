@@ -88,7 +88,7 @@ END FUNCTION
  |%
 FUNCTION make(x: Number): BigInt
     VAR r: BigInt := BigInt()
-    r.sign := IF x < 0 THEN -1 ELSE 1
+    r.sign := (IF x < 0 THEN -1 ELSE 1)
     VAR n: Number := math.floor(math.abs(x))
     r.digits[0] := 0
     VAR i: Number := 0

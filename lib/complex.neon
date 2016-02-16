@@ -63,7 +63,7 @@ FUNCTION sign(x: Number): Number
     IF x = 0 THEN
         RETURN 0
     END IF
-    RETURN IF x > 0 THEN 1 ELSE -1
+    RETURN (IF x > 0 THEN 1 ELSE -1)
 END FUNCTION
 
 FUNCTION rsinh(x: Number): Number

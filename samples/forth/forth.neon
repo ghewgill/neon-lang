@@ -41,7 +41,7 @@ FUNCTION Stack.size(self: Stack): Number
 END FUNCTION
 
 FUNCTION signed32(n: Number): Number
-    RETURN IF n >= 0x80000000 THEN n - 0x100000000 ELSE n
+    RETURN (IF n >= 0x80000000 THEN n - 0x100000000 ELSE n)
 END FUNCTION
 
 TYPE ReturnEntry IS RECORD
@@ -497,10 +497,10 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(math.floor(n1 / n2))
         WHEN CORE_0_LESS DO
             LET n: Number := signed32(stack.pop())
-            stack.push(IF n < 0 THEN -1 ELSE 0)
+            stack.push((IF n < 0 THEN -1 ELSE 0))
         WHEN CORE_0_EQUAL DO
             LET n: Number := stack.pop()
-            stack.push(IF n = 0 THEN -1 ELSE 0)
+            stack.push((IF n = 0 THEN -1 ELSE 0))
         WHEN CORE_1_PLUS DO
             LET n1: Number := signed32(stack.pop())
             stack.push(n1 + 1)
@@ -559,21 +559,21 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_LESS DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 < n2 THEN -1 ELSE 0)
+            stack.push((IF n1 < n2 THEN -1 ELSE 0))
         WHEN CORE_LESS_NUMBER DO
             number_buffer_size := 0
         WHEN CORE_NOT_EQUAL DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 # n2 THEN -1 ELSE 0)
+            stack.push((IF n1 # n2 THEN -1 ELSE 0))
         WHEN CORE_EQUAL DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 = n2 THEN -1 ELSE 0)
+            stack.push((IF n1 = n2 THEN -1 ELSE 0))
         WHEN CORE_GREATER DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
-            stack.push(IF n1 > n2 THEN -1 ELSE 0)
+            stack.push((IF n1 > n2 THEN -1 ELSE 0))
         WHEN CORE_TO_BODY DO
             LET xt: Number := stack.pop()
             ASSERT code[xt] = INT_LITERAL
@@ -747,7 +747,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET s: String := get_string(addr)
             IF s IN words THEN
                 stack.push(words[s].xt)
-                stack.push(IF words[s].immediate THEN 1 ELSE -1)
+                stack.push((IF words[s].immediate THEN 1 ELSE -1))
             ELSE
                 stack.push(addr)
                 stack.push(0)
@@ -824,7 +824,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(-n1)
         WHEN CORE_NOT DO
             LET n: Number := stack.pop()
-            stack.push(IF n # 0 THEN 0 ELSE -1)
+            stack.push((IF n # 0 THEN 0 ELSE -1))
         WHEN CORE_OR DO
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
@@ -852,7 +852,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_S_TO_D DO
             LET n: Number := signed32(stack.pop())
             stack.push(n)
-            stack.push(IF n < 0 THEN -1 ELSE 0)
+            stack.push((IF n < 0 THEN -1 ELSE 0))
         WHEN CORE_SIGN DO
             LET n: Number := signed32(stack.pop())
             IF n < 0 THEN
@@ -903,7 +903,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_U_LESS DO
             LET u2: Number := stack.pop()
             LET u1: Number := stack.pop()
-            stack.push(IF u1 < u2 THEN -1 ELSE 0)
+            stack.push((IF u1 < u2 THEN -1 ELSE 0))
         WHEN CORE_UM_MOD DO
             LET u1: Number := stack.pop()
             LET udh: Number := stack.pop()
@@ -1143,7 +1143,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
         WHEN CORE_POSTPONE DO
             ASSERT NOT interpreting
             LET s: String := next_word()
-            code.append(IF words[s].immediate THEN INT_POSTPONE_IMM ELSE INT_POSTPONE)
+            code.append((IF words[s].immediate THEN INT_POSTPONE_IMM ELSE INT_POSTPONE))
             code.append(words[s].xt)
         WHEN CORE_RECURSE DO
             ASSERT NOT interpreting

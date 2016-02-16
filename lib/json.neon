@@ -138,7 +138,7 @@ FUNCTION encode(data: Variant): String
         WHEN Type.null DO
             RETURN "null"
         WHEN Type.boolean DO
-            RETURN IF data.getBoolean() THEN "true" ELSE "false"
+            RETURN (IF data.getBoolean() THEN "true" ELSE "false")
         WHEN Type.number DO
             RETURN str(data.getNumber())
         WHEN Type.string DO

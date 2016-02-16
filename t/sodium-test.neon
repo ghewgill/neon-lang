@@ -3,7 +3,7 @@ IMPORT random
 IMPORT sodium
 
 LET FullTests: Boolean := FALSE
-LET Iterations: Number := IF FullTests THEN 999 ELSE 9
+LET Iterations: Number := (IF FullTests THEN 999 ELSE 9)
 
 FUNCTION bytes(s: String): Bytes
     RETURN s.toBytes()

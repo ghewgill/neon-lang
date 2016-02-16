@@ -173,9 +173,9 @@ END FUNCTION
 FUNCTION displayLabels(x, y: Number)
     curses.attrset(curses.COLOR_PAIR(0))
     FOR i := 1 TO 8 DO
-        curses.attrset(curses.COLOR_PAIR(IF y = i THEN 2 ELSE 0))
+        curses.attrset(curses.COLOR_PAIR((IF y = i THEN 2 ELSE 0)))
         curses.mvaddstr((i-1)*3, 0, " " & chr(ord("A") + i - 1) & " ")
-        curses.attrset(curses.COLOR_PAIR(IF x = i THEN 2 ELSE 0))
+        curses.attrset(curses.COLOR_PAIR((IF x = i THEN 2 ELSE 0)))
         curses.mvaddstr(23, (i-1)*5+5, " " & chr(ord("1") + i - 1) & " ")
     END FOR
 END FUNCTION

@@ -118,7 +118,7 @@ FUNCTION Value.to_string(IN self: Value): String
         WHEN Type.null DO
             RETURN "null"
         WHEN Type.boolean DO
-            RETURN IF self.val_boolean THEN "true" ELSE "false"
+            RETURN (IF self.val_boolean THEN "true" ELSE "false")
         WHEN Type.number DO
             RETURN str(self.val_number)
         WHEN Type.symbol DO
@@ -329,7 +329,7 @@ FUNCTION repr(e: POINTER TO Value): String
             WHEN Type.null DO
                 RETURN "null"
             WHEN Type.boolean DO
-                RETURN IF e->val_boolean THEN "#t" ELSE "#f"
+                RETURN (IF e->val_boolean THEN "#t" ELSE "#f")
             WHEN Type.number DO
                 RETURN str(e->val_number)
             WHEN Type.symbol DO

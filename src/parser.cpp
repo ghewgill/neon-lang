@@ -458,7 +458,7 @@ const Expression *Parser::parseAtom()
         case LPAREN: {
             auto &tok_lparen = tokens[i];
             ++i;
-            const Expression *expr = parseExpression();
+            const Expression *expr = parseConditional();
             if (tokens[i].type != RPAREN) {
                 error2(2014, tokens[i], ") expected", tok_lparen, "opening '(' here");
             }
@@ -545,7 +545,7 @@ const Expression *Parser::parseAtom()
             return new NilLiteralExpression(tok_nil);
         }
         case IF: {
-            error(2095, tokens[i], "Use parentheses around (IF ... THEN ... ELSE ...) when used inside an expression");
+            error(2095, tokens[i], "Use parentheses around (IF ... THEN ... ELSE ...)");
         }
         case IDENTIFIER: {
             const Expression *expr = new IdentifierExpression(tokens[i], tokens[i].text);
@@ -809,7 +809,7 @@ const Expression *Parser::parseConditional()
         const Expression *right = parseExpression();
         return new ConditionalExpression(tok_if, cond, left, right);
     } else {
-        return parseDisjunction();
+        return parseExpression();
     }
 }
 
@@ -819,7 +819,7 @@ const Expression *Parser::parseExpression()
     if (expression_depth > 100) {
         error(2067, tokens[i], "exceeded maximum nesting depth");
     }
-    const Expression *r = parseConditional();
+    const Expression *r = parseDisjunction();
     expression_depth--;
     return r;
 }

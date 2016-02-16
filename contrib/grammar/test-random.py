@@ -23,7 +23,7 @@ class Generator:
         self.depth += 1
         if hasattr(node, "name") and node.name == "Statement":
             self.tokens.append("\n" + " "*self.depth)
-        if hasattr(node, "name") and node.name == "Expression" and (random.uniform(0, 1) >= 0.05 or self.depth > 5):
+        if hasattr(node, "name") and node.name in ["Expression", "BracketedExpression"] and (random.uniform(0, 1) >= 0.05 or self.depth > 5):
             ident = grammar.table["Identifier"].exprs[1]
             self.tokens.append(random_ident(ident))
         elif node is grammar.table["Number"]:

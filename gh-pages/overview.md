@@ -70,7 +70,7 @@ There is a rich expression syntax including arithmetic, array slicing, condition
     LET a: Array<String> := ["fork", "knife", "spoon"]
     ASSERT a[1 TO LAST] = ["knife", "spoon"]
 
-    LET r: String := IF y < 5 THEN "small" ELSE "big"
+    LET r: String := (IF y < 5 THEN "small" ELSE "big")
     ASSERT r = "big"
 
     LET t: String := "y is a \(r) value"
