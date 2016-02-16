@@ -58,6 +58,7 @@ public:
     virtual void visit(const class UnaryMinusExpression *node) = 0;
     virtual void visit(const class LogicalNotExpression *node) = 0;
     virtual void visit(const class ConditionalExpression *node) = 0;
+    virtual void visit(const class TryExpression *node) = 0;
     virtual void visit(const class DisjunctionExpression *node) = 0;
     virtual void visit(const class ConjunctionExpression *node) = 0;
     virtual void visit(const class ArrayInExpression *node) = 0;
@@ -985,6 +986,27 @@ public:
 private:
     ConditionalExpression(const ConditionalExpression &);
     ConditionalExpression &operator=(const ConditionalExpression &);
+};
+
+class TryExpression: public Expression {
+public:
+    TryExpression(const Expression *expr, const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> &catches): Expression(expr->type, false), expr(expr), catches(catches) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *expr;
+    const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
+
+    virtual bool eval_boolean() const override { internal_error("TryExpression"); }
+    virtual Number eval_number() const override { internal_error("TryExpression"); }
+    virtual std::string eval_string() const override { internal_error("TryExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        return "TryExpression(" + expr->text() + ")";
+    }
+private:
+    TryExpression(const TryExpression &);
+    TryExpression &operator=(const TryExpression &);
 };
 
 class DisjunctionExpression: public Expression {

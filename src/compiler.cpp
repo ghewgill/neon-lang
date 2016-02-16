@@ -969,6 +969,34 @@ void ConditionalExpression::generate_expr(Emitter &emitter) const
     emitter.jump_target(end_label);
 }
 
+void TryExpression::generate_expr(Emitter &emitter) const
+{
+    Bytecode::ExceptionInfo ei;
+    ei.start = emitter.current_ip();
+    expr->generate(emitter);
+    auto skip = emitter.create_label();
+    emitter.emit_jump(JUMP, skip);
+    ei.end = emitter.current_ip();
+    for (auto c: catches) {
+        for (auto e: c.first) {
+            ei.excid = emitter.str(e->name);
+            ei.handler = emitter.current_ip();
+            emitter.add_exception(ei);
+        }
+        for (auto stmt: c.second) {
+            stmt->generate(emitter);
+        }
+        // TODO: Currently CLREXC only happens when exiting the
+        // exception handler block normally. How would the exception
+        // get cleared if the handler block is exited some other way,
+        // such as a RETURN or EXIT?
+        // See: t/exception-clear.neon
+        emitter.emit(CLREXC);
+        emitter.emit_jump(JUMP, skip);
+    }
+    emitter.jump_target(skip);
+}
+
 void DisjunctionExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);

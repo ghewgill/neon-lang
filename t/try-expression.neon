@@ -1,0 +1,30 @@
+FUNCTION bar(n: Number): Number
+    IF n > 0 THEN
+        RETURN n
+    ELSE
+        RAISE InvalidValueException
+    END IF
+END FUNCTION
+
+FUNCTION foo1(n: Number)
+    LET x: Number := (TRY bar(n) EXCEPTION InvalidValueException DO
+        print("exception")
+        EXIT FUNCTION
+    )
+    print("ok")
+END FUNCTION
+
+%FUNCTION foo2(n: Number): Number
+%    LET x: Number := (TRY bar(n) EXCEPTION InvalidValueException GIVES 0)
+%    RETURN x
+%END FUNCTION
+
+foo1(5)
+%= ok
+foo1(-1)
+%= exception
+
+%print(foo2(5))
+%%= 5
+%print(foo2(-1))
+%%= 0

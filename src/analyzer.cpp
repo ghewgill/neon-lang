@@ -76,6 +76,7 @@ public:
     const Expression *analyze(const pt::ConjunctionExpression *expr);
     const Expression *analyze(const pt::DisjunctionExpression *expr);
     const Expression *analyze(const pt::ConditionalExpression *expr);
+    const Expression *analyze(const pt::TryExpression *expr);
     const Expression *analyze(const pt::NewRecordExpression *expr);
     const Expression *analyze(const pt::ValidPointerExpression *expr);
     const Expression *analyze(const pt::RangeSubscriptExpression *expr);
@@ -118,6 +119,7 @@ private:
     Module *import_module(const Token &token, const std::string &name);
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
+    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const pt::Statement *>>> &catches);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -166,6 +168,7 @@ public:
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
@@ -250,6 +253,7 @@ public:
     virtual void visit(const pt::ConjunctionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DisjunctionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ConditionalExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::TryExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NewRecordExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ValidPointerExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::RangeSubscriptExpression *p) override { expr = a->analyze(p); }
@@ -333,6 +337,7 @@ public:
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
@@ -416,6 +421,7 @@ public:
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
@@ -1655,6 +1661,23 @@ const Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
         error(3037, expr->left->token, "type of THEN and ELSE must match");
     }
     return new ConditionalExpression(cond, left, right);
+}
+
+const Expression *Analyzer::analyze(const pt::TryExpression *expr)
+{
+    const Expression *e = analyze(expr->expr);
+    auto catches = analyze_catches(expr->catches);
+    auto eci = expr->catches.begin();
+    for (auto c: catches) {
+        if (c.second.empty()) {
+            error(3202, expr->expr->token, "body cannot be empty");
+        }
+        if (not c.second.back()->is_scope_exit_statement()) {
+            error(3203, eci->second.back()->token, "handler must end in EXIT, NEXT, RAISE, or RETURN");
+        }
+        ++eci;
+    }
+    return new TryExpression(e, catches);
 }
 
 const Expression *Analyzer::analyze(const pt::NewRecordExpression *expr)
@@ -2949,13 +2972,10 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     return new ReturnStatement(statement->token.line, expr);
 }
 
-const Statement *Analyzer::analyze(const pt::TryStatement *statement)
+std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> Analyzer::analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const pt::Statement *>>> &catches)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
-    std::vector<const Statement *> statements = analyze(statement->body);
-    scope.pop();
-    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
-    for (auto x: statement->catches) {
+    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> r;
+    for (auto x: catches) {
         Scope *s = scope.top();
         if (x.first.at(0).first.type != NONE) {
             const Name *modname = scope.top()->lookupName(x.first.at(0).first.text);
@@ -2981,8 +3001,17 @@ const Statement *Analyzer::analyze(const pt::TryStatement *statement)
         scope.push(new Scope(scope.top(), frame.top()));
         std::vector<const Statement *> statements = analyze(x.second);
         scope.pop();
-        catches.push_back(std::make_pair(exceptions, statements));
+        r.push_back(std::make_pair(exceptions, statements));
     }
+    return r;
+}
+
+const Statement *Analyzer::analyze(const pt::TryStatement *statement)
+{
+    scope.push(new Scope(scope.top(), frame.top()));
+    std::vector<const Statement *> statements = analyze(statement->body);
+    scope.pop();
+    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches = analyze_catches(statement->catches);
     return new TryStatement(statement->token.line, statements, catches);
 }
 
@@ -3109,7 +3138,10 @@ public:
     virtual void visit(const pt::MembershipExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ConjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::DisjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
-    virtual void visit(const pt::ConditionalExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::ConditionalExpression *node) { node->cond->accept(this); node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::TryExpression *node) {
+        node->expr->accept(this);
+    }
     virtual void visit(const pt::NewRecordExpression *) {}
     virtual void visit(const pt::ValidPointerExpression *node) { for (auto x: node->tests) x.expr->accept(this); }
     virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->first->accept(this); node->range->last->accept(this); }

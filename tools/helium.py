@@ -644,6 +644,24 @@ class ConditionalExpression:
     def eval(self, env):
         return self.left.eval(env) if self.cond.eval(env) else self.right.eval(env)
 
+class TryExpression:
+    def __init__(self, expr, catches):
+        self.expr = expr
+        self.catches = catches
+    def eval(self, env):
+        try:
+            return self.expr.eval(env)
+        except NeonException as x:
+            for exceptions, statements in self.catches:
+                if x.name in [x[1] for x in exceptions]:
+                    for s in statements:
+                        s.declare(env)
+                    for s in statements:
+                        s.run(env)
+                    break
+            else:
+                raise
+
 class MembershipExpression:
     def __init__(self, left, right):
         self.left = left
@@ -1488,6 +1506,26 @@ class Parser:
             self.expect(ELSE)
             right = self.parse_expression()
             return ConditionalExpression(cond, left, right)
+        elif self.tokens[self.i] is TRY:
+            self.i += 1
+            expr = self.parse_expression()
+            catches = []
+            while self.tokens[self.i] is EXCEPTION:
+                self.i += 1
+                name = (None, self.identifier())
+                if self.tokens[self.i] is DOT:
+                    self.i += 1
+                    n = self.identifier()
+                    name = (name[1], n)
+                exceptions = [name]
+                self.expect(DO)
+                handler = []
+                while self.tokens[self.i] is not EXCEPTION and self.tokens[self.i] is not RPAREN and self.tokens[self.i] is not END_OF_FILE:
+                    s = self.parse_statement()
+                    if s is not None:
+                        handler.append(s)
+                catches.append((exceptions, handler))
+            return TryExpression(expr, catches)
         else:
             return self.parse_disjunction()
 

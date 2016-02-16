@@ -50,6 +50,7 @@ class MembershipExpression;
 class ConjunctionExpression;
 class DisjunctionExpression;
 class ConditionalExpression;
+class TryExpression;
 class NewRecordExpression;
 class ValidPointerExpression;
 class RangeSubscriptExpression;
@@ -66,6 +67,7 @@ class ExceptionDeclaration;
 class ExportDeclaration;
 class MainBlock;
 
+class Statement;
 class AssertStatement;
 class AssignmentStatement;
 class CaseStatement;
@@ -131,6 +133,7 @@ public:
     virtual void visit(const ConjunctionExpression *) = 0;
     virtual void visit(const DisjunctionExpression *) = 0;
     virtual void visit(const ConditionalExpression *) = 0;
+    virtual void visit(const TryExpression *) = 0;
     virtual void visit(const NewRecordExpression *) = 0;
     virtual void visit(const ValidPointerExpression *) = 0;
     virtual void visit(const RangeSubscriptExpression *) = 0;
@@ -555,6 +558,17 @@ public:
 private:
     ConditionalExpression(const ConditionalExpression &);
     ConditionalExpression &operator=(const ConditionalExpression &);
+};
+
+class TryExpression: public Expression {
+public:
+    TryExpression(const Token &token, const Expression *expr, const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> &catches): Expression(token, token.column, token.column), expr(expr), catches(catches) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Expression *const expr;
+    const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
+private:
+    TryExpression(const TryExpression &);
+    TryExpression &operator=(const TryExpression &);
 };
 
 class NewRecordExpression: public Expression {

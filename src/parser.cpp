@@ -547,6 +547,9 @@ const Expression *Parser::parseAtom()
         case IF: {
             error(2095, tokens[i], "Use parentheses around (IF ... THEN ... ELSE ...)");
         }
+        case TRY: {
+            error(2106, tokens[i], "Use parentheses around (TRY ... EXCEPTION ...)");
+        }
         case IDENTIFIER: {
             const Expression *expr = new IdentifierExpression(tokens[i], tokens[i].text);
             ++i;
@@ -808,6 +811,41 @@ const Expression *Parser::parseConditional()
         ++i;
         const Expression *right = parseExpression();
         return new ConditionalExpression(tok_if, cond, left, right);
+    } else if (tokens[i].type == TRY) {
+        auto &tok_try = tokens[i];
+        ++i;
+        const Expression *expr = parseExpression();
+        std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
+        while (tokens[i].type == EXCEPTION) {
+            ++i;
+            std::pair<Token, Token> name;
+            name.second = tokens[i];
+            ++i;
+            if (tokens[i].type == DOT) {
+                ++i;
+                if (tokens[i].type != IDENTIFIER) {
+                    error(2107, tokens[i], "identifier expected");
+                }
+                name.first = name.second;
+                name.second = tokens[i];
+                ++i;
+            }
+            std::vector<std::pair<Token, Token>> exceptions;
+            exceptions.push_back(name);
+            if (tokens[i].type != DO) {
+                error(2108, tokens[i], "DO expected");
+            }
+            ++i;
+            std::vector<const Statement *> statements;
+            while (tokens[i].type != EXCEPTION && tokens[i].type != RPAREN && tokens[i].type != END_OF_FILE) {
+                const Statement *stmt = parseStatement();
+                if (stmt != nullptr) {
+                    statements.push_back(stmt);
+                }
+            }
+            catches.push_back(std::make_pair(exceptions, statements));
+        }
+        return new TryExpression(tok_try, expr, catches);
     } else {
         return parseExpression();
     }

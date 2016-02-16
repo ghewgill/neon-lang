@@ -1,0 +1,2 @@
+LET n: Number := (TRY 1 EXCEPTION a.1 DO)
+                                    %<

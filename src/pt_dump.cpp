@@ -193,6 +193,10 @@ public:
         child(node->left);
         child(node->right);
     }
+    virtual void visit(const TryExpression *node) override {
+        write("TryExpression");
+        child(node->expr);
+    }
     virtual void visit(const NewRecordExpression *node) override {
         write("NewRecordExpression");
         child(node->type);
