@@ -165,6 +165,9 @@ Number math$sinh(Number x)
 
 Number math$sqrt(Number x)
 {
+    if (number_is_negative(x)) {
+        throw RtlException(Exception_global$ValueRangeException, number_to_string(x));
+    }
     return number_sqrt(x);
 }
 

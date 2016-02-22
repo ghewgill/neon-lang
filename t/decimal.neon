@@ -1,4 +1,4 @@
-IMPORT math
+%IMPORT math
 
 print(str(0))
 %= 0
@@ -93,5 +93,6 @@ print(str(-1e9999))
 %= +Inf
 %= -Inf
 
-print(str(math.sqrt(-1)))
-%= +NaN
+% Removed because math.sqrt() no longer returns NaN, but raises an exception
+%print(str(math.sqrt(-1)))
+%%= +NaN
