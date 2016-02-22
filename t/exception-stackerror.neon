@@ -1,0 +1,16 @@
+% SKIP
+
+FUNCTION foo()
+    RAISE InvalidValueException
+END FUNCTION
+
+FUNCTION bar()
+    VAR x: Number := 0
+    TRY
+        foo()
+    EXCEPTION InvalidValueException DO
+        x := 5
+    END TRY
+END FUNCTION
+
+bar()
