@@ -10,6 +10,7 @@ static void handle_error(DWORD error, const std::string &path)
         case ERROR_ALREADY_EXISTS: throw RtlException(Exception_file$DirectoryExistsException, path);
         case ERROR_ACCESS_DENIED: throw RtlException(Exception_file$PermissionDeniedException, path);
         case ERROR_PATH_NOT_FOUND: throw RtlException(Exception_file$PathNotFoundException, path);
+        case ERROR_FILE_EXISTS: throw RtlException(Exception_file$FileExistsException, path);
         default:
             throw RtlException(Exception_file$FileException, path + ": " + std::to_string(error));
     }
@@ -18,6 +19,14 @@ static void handle_error(DWORD error, const std::string &path)
 namespace rtl {
 
 void file$copy(const std::string &filename, const std::string &destination)
+{
+    BOOL r = CopyFile(filename.c_str(), destination.c_str(), TRUE);
+    if (!r) {
+        handle_error(GetLastError(), destination);
+    }
+}
+
+void file$copyOverwriteIfExists(const std::string &filename, const std::string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), FALSE);
     if (!r) {

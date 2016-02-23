@@ -6,6 +6,7 @@
 
 EXPORT DirectoryExistsException
 EXPORT FileException
+EXPORT FileExistsException
 EXPORT FileOpenException
 EXPORT FileWriteException
 EXPORT PathNotFoundException
@@ -29,6 +30,13 @@ DECLARE EXCEPTION DirectoryExistsException
  |  Generic file error.
  |%
 DECLARE EXCEPTION FileException
+
+%|
+ |  Exception: FileExistsException
+ |
+ |  Indicates that a an attempt was made to create, or overwrite an existing file.
+ |%
+DECLARE EXCEPTION FileExistsException
 
 %|
  |  Exception: FileOpenException
@@ -61,9 +69,41 @@ DECLARE EXCEPTION PermissionDeniedException
 %|
  |  Function: copy
  |
- |  Copy a file.
+ |  Copies a file to a new destination.  If the destination file already exists, a FileExistsException
+ |  is raised, and the file is not copied.
+ |
+ |  Exceptions:
+ |      - <FileExistsException> - If the file provided by the destination parameter already exists.
+ |
+ |  See Also:
+ |      <copyOverwriteIfExists>
+ |      <exists>
+ |      <delete>
+ |
+ |  Example:
+ |      > TRY
+ |      >     file.copy("LICENSE.txt", "tmp/Copy_of_LICENSE.txt")
+ |      > EXCEPTION file.FileExistsException DO
+ |      >     print("File copy failed.  Destination file already exists.")
+ |      > END TRY
+ |
  |%
 DECLARE NATIVE FUNCTION copy(filename: String, destination: String)
+
+%|
+ |  Function: copyOverwriteIfExists
+ |
+ |  Copies a file to a new destination.  If the destination file exists, it will be overwritten.
+ |  If the destination file does not exist, it will be created.
+ |
+ |  See Also:
+ |      <copy>
+ |
+ |  Example:
+ |      > file.copyOverwriteIfExists("LICENSE.txt", "tmp/Copy_of_LICENSE.txt")
+ |
+ |%
+DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: String)
 
 %|
  |  Function: delete

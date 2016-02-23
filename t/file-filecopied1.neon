@@ -1,0 +1,13 @@
+IMPORT file
+
+file.delete("tmp/license-copy.txt")
+file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."])
+
+TRY
+    file.copy("LICENSE.txt", "tmp/license-copy.txt")
+    print("File copied")
+EXCEPTION file.FileExistsException DO
+    print("Failed")
+END TRY
+
+%= Failed

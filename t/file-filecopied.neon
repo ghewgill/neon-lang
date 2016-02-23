@@ -1,0 +1,11 @@
+IMPORT file
+
+file.delete("tmp/license-copy.txt")
+TRY 
+    file.copy("LICENSE.txt", "tmp/license-copy.txt")
+    print("File copied")
+EXCEPTION file.FileExistsException DO
+    print("Failed")
+END TRY
+
+%= File copied

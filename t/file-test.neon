@@ -41,7 +41,7 @@ print(strb(file.exists("tmp/file-test.tmp")))
 print(strb(file.exists("tmp/file-test2.tmp")))
 %= TRUE
 
-file.copy("tmp/file-test2.tmp", "tmp/file-test3.tmp")
+file.copyOverwriteIfExists("tmp/file-test2.tmp", "tmp/file-test3.tmp")
 print(strb(file.exists("tmp/file-test2.tmp")))
 %= TRUE
 print(strb(file.exists("tmp/file-test3.tmp")))
