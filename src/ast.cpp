@@ -551,7 +551,11 @@ bool TryStatement::always_returns() const
         return false;
     }
     for (auto c: catches) {
-        if (c.second.empty() || not c.second.back()->always_returns()) {
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
+        if (ehs == nullptr) {
+            return false;
+        }
+        if (ehs->statements.empty() || not ehs->statements.back()->always_returns()) {
             return false;
         }
     }

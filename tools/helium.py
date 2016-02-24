@@ -135,6 +135,7 @@ DEC = Keyword("DEC")
 OTHERS = Keyword("OTHERS")
 WITH = Keyword("WITH")
 CHECK = Keyword("CHECK")
+GIVES = Keyword("GIVES")
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -507,8 +508,13 @@ class SubscriptExpression:
         self.expr = expr
         self.index = index
     def eval(self, env):
+        i = self.index.eval(env)
         try:
-            return self.expr.eval(env)[self.index.eval(env)]
+            return self.expr.eval(env)[i]
+        except TypeError:
+            if i != int(i):
+                raise NeonException("ArrayIndexException")
+            assert False
         except IndexError:
             raise NeonException("ArrayIndexException")
         except KeyError:
@@ -654,10 +660,13 @@ class TryExpression:
         except NeonException as x:
             for exceptions, statements in self.catches:
                 if x.name in [x[1] for x in exceptions]:
-                    for s in statements:
-                        s.declare(env)
-                    for s in statements:
-                        s.run(env)
+                    if isinstance(statements, list):
+                        for s in statements:
+                            s.declare(env)
+                        for s in statements:
+                            s.run(env)
+                    else:
+                        return statements.eval(env)
                     break
             else:
                 raise
@@ -1518,13 +1527,18 @@ class Parser:
                     n = self.identifier()
                     name = (name[1], n)
                 exceptions = [name]
-                self.expect(DO)
-                handler = []
-                while self.tokens[self.i] is not EXCEPTION and self.tokens[self.i] is not RPAREN and self.tokens[self.i] is not END_OF_FILE:
-                    s = self.parse_statement()
-                    if s is not None:
-                        handler.append(s)
-                catches.append((exceptions, handler))
+                if self.tokens[self.i] is DO:
+                    self.i += 1
+                    handler = []
+                    while self.tokens[self.i] is not EXCEPTION and self.tokens[self.i] is not RPAREN and self.tokens[self.i] is not END_OF_FILE:
+                        s = self.parse_statement()
+                        if s is not None:
+                            handler.append(s)
+                    catches.append((exceptions, handler))
+                elif self.tokens[self.i] is GIVES:
+                    self.i += 1
+                    g = self.parse_expression()
+                    catches.append((exceptions, g))
             return TryExpression(expr, catches)
         else:
             return self.parse_disjunction()

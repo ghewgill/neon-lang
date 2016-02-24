@@ -114,6 +114,7 @@ std::string Token::tostring() const
         case OTHERS:      s << "OTHERS"; break;
         case WITH:        s << "WITH"; break;
         case CHECK:       s << "CHECK"; break;
+        case GIVES:       s << "GIVES"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -316,6 +317,7 @@ static std::vector<Token> tokenize_fragment(const std::string &source_path, int 
             else if (t.text == "OTHERS") t.type = OTHERS;
             else if (t.text == "WITH") t.type = WITH;
             else if (t.text == "CHECK") t.type = CHECK;
+            else if (t.text == "GIVES") t.type = GIVES;
             else if (all_upper(t.text)) {
                 error(1023, t, "identifier cannot be all upper case (reserved for keywords)");
             } else if (t.text.find("__") != std::string::npos) {

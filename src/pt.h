@@ -84,6 +84,7 @@ class RaiseStatement;
 class RepeatStatement;
 class ReturnStatement;
 class TryStatement;
+class TryHandlerStatement;
 class WhileStatement;
 
 class Program;
@@ -166,6 +167,7 @@ public:
     virtual void visit(const RepeatStatement *) = 0;
     virtual void visit(const ReturnStatement *) = 0;
     virtual void visit(const TryStatement *) = 0;
+    virtual void visit(const TryHandlerStatement *) = 0;
     virtual void visit(const WhileStatement *) = 0;
     virtual void visit(const Program *) = 0;
 };
@@ -562,10 +564,10 @@ private:
 
 class TryExpression: public Expression {
 public:
-    TryExpression(const Token &token, const Expression *expr, const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> &catches): Expression(token, token.column, token.column), expr(expr), catches(catches) {}
+    TryExpression(const Token &token, const Expression *expr, const std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> &catches): Expression(token, token.column, token.column), expr(expr), catches(catches) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Expression *const expr;
-    const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
+    const std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> catches;
 private:
     TryExpression(const TryExpression &);
     TryExpression &operator=(const TryExpression &);
@@ -957,9 +959,15 @@ private:
 
 class TryStatement: public BlockStatement {
 public:
-    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> &catches): BlockStatement(token, body), catches(catches) {}
+    TryStatement(const Token &token, const std::vector<const Statement *> &body, const std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> &catches): BlockStatement(token, body), catches(catches) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
+    const std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> catches;
+};
+
+class TryHandlerStatement: public BlockStatement {
+public:
+    TryHandlerStatement(const Token &token, const std::vector<const Statement *> &body): BlockStatement(token, body) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class WhileStatement: public BlockStatement {

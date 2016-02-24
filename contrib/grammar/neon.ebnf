@@ -132,9 +132,11 @@ TryStatement = 'TRY', {Statement}, {'EXCEPTION', Identifier, ['.', Identifier], 
 
 WhileStatement = 'WHILE', Expression, 'DO', {Statement}, 'END', 'WHILE';
 
-BracketedExpression  = ('IF', Expression, 'THEN', Expression, 'ELSE', Expression) |
-                       ('TRY', Expression, {'EXCEPTION', Identifier, ['.', Identifier], 'DO', {Statement}}) |
-                       DisjunctionExpression;
+BracketedExpression = ConditionalExpression | TryExpression | DisjunctionExpression;
+
+ConditionalExpression = ('IF', Expression, 'THEN', Expression, 'ELSE', Expression);
+
+TryExpression = ('TRY', Expression, {'EXCEPTION', Identifier, ['.', Identifier], (('DO', {Statement}) | 'GIVES', Expression)});
 
 Expression = DisjunctionExpression;
 

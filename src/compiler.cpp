@@ -983,8 +983,16 @@ void TryExpression::generate_expr(Emitter &emitter) const
             ei.handler = emitter.current_ip();
             emitter.add_exception(ei);
         }
-        for (auto stmt: c.second) {
-            stmt->generate(emitter);
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
+        const Expression *e = dynamic_cast<const Expression *>(c.second);
+        if (ehs != nullptr) {
+            for (auto stmt: ehs->statements) {
+                stmt->generate(emitter);
+            }
+        } else if (e != nullptr) {
+            e->generate(emitter);
+        } else {
+            internal_error("unexpected catch type");
         }
         // TODO: Currently CLREXC only happens when exiting the
         // exception handler block normally. How would the exception
@@ -1374,6 +1382,13 @@ void Statement::generate(Emitter &emitter) const
     generate_code(emitter);
 }
 
+void ExceptionHandlerStatement::generate_code(Emitter &emitter) const
+{
+    for (auto stmt: statements) {
+        stmt->generate(emitter);
+    }
+}
+
 void AssertStatement::generate_code(Emitter &emitter) const
 {
     auto skip_label = emitter.create_label();
@@ -1692,8 +1707,13 @@ void TryStatement::generate_code(Emitter &emitter) const
             ei.handler = emitter.current_ip();
             emitter.add_exception(ei);
         }
-        for (auto stmt: c.second) {
-            stmt->generate(emitter);
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
+        if (ehs != nullptr) {
+            for (auto stmt: ehs->statements) {
+                stmt->generate(emitter);
+            }
+        } else {
+            internal_error("unexpected catch type");
         }
         // TODO: Currently CLREXC only happens when exiting the
         // exception handler block normally. How would the exception

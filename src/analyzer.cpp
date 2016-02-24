@@ -113,13 +113,14 @@ public:
     const Statement *analyze(const pt::RepeatStatement *statement);
     const Statement *analyze(const pt::ReturnStatement *statement);
     const Statement *analyze(const pt::TryStatement *statement);
+    const Statement *analyze(const pt::TryHandlerStatement *statement);
     const Statement *analyze(const pt::WhileStatement *statement);
     const Program *analyze();
 private:
     Module *import_module(const Token &token, const std::string &name);
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
-    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const pt::Statement *>>> &catches);
+    std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, const pt::ParseTreeNode *>> &catches);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -199,6 +200,7 @@ public:
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
     const Type *type;
@@ -284,6 +286,7 @@ public:
     virtual void visit(const pt::RepeatStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
     const Expression *expr;
@@ -368,6 +371,7 @@ public:
     virtual void visit(const pt::RepeatStatement *) override {}
     virtual void visit(const pt::ReturnStatement *) override {}
     virtual void visit(const pt::TryStatement *) override {}
+    virtual void visit(const pt::TryHandlerStatement *) override {}
     virtual void visit(const pt::WhileStatement *) override {}
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
@@ -452,6 +456,7 @@ public:
     virtual void visit(const pt::RepeatStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ReturnStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TryStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::TryHandlerStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::WhileStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
@@ -1669,11 +1674,19 @@ const Expression *Analyzer::analyze(const pt::TryExpression *expr)
     auto catches = analyze_catches(expr->catches);
     auto eci = expr->catches.begin();
     for (auto c: catches) {
-        if (c.second.empty()) {
-            error(3202, expr->expr->token, "body cannot be empty");
-        }
-        if (not c.second.back()->is_scope_exit_statement()) {
-            error(3203, eci->second.back()->token, "handler must end in EXIT, NEXT, RAISE, or RETURN");
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
+        const Expression *e = dynamic_cast<const Expression *>(c.second);
+        if (ehs != nullptr) {
+            if (ehs->statements.empty()) {
+                error(3202, expr->expr->token, "body cannot be empty");
+            }
+            if (not ehs->statements.back()->is_scope_exit_statement()) {
+                error(3203, dynamic_cast<const pt::TryHandlerStatement *>(eci->second)->body.back()->token, "handler must end in EXIT, NEXT, RAISE, or RETURN");
+            }
+        } else if (e != nullptr) {
+            // pass
+        } else {
+            internal_error("unexpected catch type");
         }
         ++eci;
     }
@@ -2972,9 +2985,9 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     return new ReturnStatement(statement->token.line, expr);
 }
 
-std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> Analyzer::analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const pt::Statement *>>> &catches)
+std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> Analyzer::analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, const pt::ParseTreeNode *>> &catches)
 {
-    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> r;
+    std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> r;
     for (auto x: catches) {
         Scope *s = scope.top();
         if (x.first.at(0).first.type != NONE) {
@@ -2999,9 +3012,18 @@ std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statemen
         std::vector<const Exception *> exceptions;
         exceptions.push_back(exception);
         scope.push(new Scope(scope.top(), frame.top()));
-        std::vector<const Statement *> statements = analyze(x.second);
+        const pt::TryHandlerStatement *ths = dynamic_cast<const pt::TryHandlerStatement *>(x.second);
+        const pt::Expression *e = dynamic_cast<const pt::Expression *>(x.second);
+        if (ths != nullptr) {
+            std::vector<const Statement *> statements = analyze(ths->body);
+            r.push_back(std::make_pair(exceptions, new ExceptionHandlerStatement(0 /*TODO*/, statements)));
+        } else if (e != nullptr) {
+            const Expression *g = analyze(e);
+            r.push_back(std::make_pair(exceptions, g));
+        } else {
+            internal_error("unexpected catch type");
+        }
         scope.pop();
-        r.push_back(std::make_pair(exceptions, statements));
     }
     return r;
 }
@@ -3011,8 +3033,16 @@ const Statement *Analyzer::analyze(const pt::TryStatement *statement)
     scope.push(new Scope(scope.top(), frame.top()));
     std::vector<const Statement *> statements = analyze(statement->body);
     scope.pop();
-    std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches = analyze_catches(statement->catches);
+    auto catches = analyze_catches(statement->catches);
     return new TryStatement(statement->token.line, statements, catches);
+}
+
+const Statement *Analyzer::analyze(const pt::TryHandlerStatement *statement)
+{
+    scope.push(new Scope(scope.top(), frame.top()));
+    std::vector<const Statement *> statements = analyze(statement->body);
+    scope.pop();
+    return new ExceptionHandlerStatement(statement->token.line, statements);
 }
 
 const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
@@ -3308,6 +3338,11 @@ public:
             s->accept(this);
         }
         variables.pop_back();
+    }
+    virtual void visit(const pt::TryHandlerStatement *node) {
+        for (auto s: node->body) {
+            s->accept(this);
+        }
     }
     virtual void visit(const pt::WhileStatement *node) {
         node->cond->accept(this);

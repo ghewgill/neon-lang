@@ -106,6 +106,7 @@ enum TokenType {
     OTHERS,
     WITH,
     CHECK,
+    GIVES,
     MAX_TOKEN
 };
 

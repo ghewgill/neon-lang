@@ -94,6 +94,7 @@ public:
     virtual void visit(const class FunctionCall *node) = 0;
     virtual void visit(const class StatementExpression *node) = 0;
     virtual void visit(const class NullStatement *node) = 0;
+    virtual void visit(const class ExceptionHandlerStatement *node) = 0;
     virtual void visit(const class AssertStatement *node) = 0;
     virtual void visit(const class AssignmentStatement *node) = 0;
     virtual void visit(const class ExpressionStatement *node) = 0;
@@ -990,11 +991,11 @@ private:
 
 class TryExpression: public Expression {
 public:
-    TryExpression(const Expression *expr, const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> &catches): Expression(expr->type, false), expr(expr), catches(catches) {}
+    TryExpression(const Expression *expr, const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> &catches): Expression(expr->type, false), expr(expr), catches(catches) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr;
-    const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
+    const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> catches;
 
     virtual bool eval_boolean() const override { internal_error("TryExpression"); }
     virtual Number eval_number() const override { internal_error("TryExpression"); }
@@ -1814,6 +1815,16 @@ public:
     virtual std::string text() const override { return "NullStatement"; }
 };
 
+class ExceptionHandlerStatement: public CompoundStatement {
+public:
+    ExceptionHandlerStatement(int line, const std::vector<const Statement *> &statements): CompoundStatement(line, statements) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual void generate_code(Emitter &) const override;
+
+    virtual std::string text() const override { return "ExceptionHandlerStatement"; }
+};
+
 class AssertStatement: public CompoundStatement {
 public:
     AssertStatement(int line, const std::vector<const Statement *> &statements, const Expression *expr, const std::string &source): CompoundStatement(line, statements), expr(expr), source(source) {}
@@ -2120,11 +2131,11 @@ private:
 
 class TryStatement: public Statement {
 public:
-    TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> &catches): Statement(line), statements(statements), catches(catches) {}
+    TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> &catches): Statement(line), statements(statements), catches(catches) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> statements;
-    const std::vector<std::pair<std::vector<const Exception *>, std::vector<const Statement *>>> catches;
+    const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> catches;
 
     virtual bool always_returns() const override;
 

@@ -108,6 +108,7 @@ std::string reconstitute(const Token &t)
         case OTHERS:      return "OTHERS";
         case WITH:        return "WITH";
         case CHECK:       return "CHECK";
+        case GIVES:       return "GIVES";
         case MAX_TOKEN:   return "";
     }
     return "";

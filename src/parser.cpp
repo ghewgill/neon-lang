@@ -815,7 +815,7 @@ const Expression *Parser::parseConditional()
         auto &tok_try = tokens[i];
         ++i;
         const Expression *expr = parseExpression();
-        std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
+        std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> catches;
         while (tokens[i].type == EXCEPTION) {
             ++i;
             std::pair<Token, Token> name;
@@ -832,18 +832,23 @@ const Expression *Parser::parseConditional()
             }
             std::vector<std::pair<Token, Token>> exceptions;
             exceptions.push_back(name);
-            if (tokens[i].type != DO) {
-                error(2108, tokens[i], "DO expected");
-            }
-            ++i;
-            std::vector<const Statement *> statements;
-            while (tokens[i].type != EXCEPTION && tokens[i].type != RPAREN && tokens[i].type != END_OF_FILE) {
-                const Statement *stmt = parseStatement();
-                if (stmt != nullptr) {
-                    statements.push_back(stmt);
+            if (tokens[i].type == DO) {
+                auto &tok_do = tokens[i];
+                std::vector<const Statement *> statements;
+                ++i;
+                while (tokens[i].type != EXCEPTION && tokens[i].type != RPAREN && tokens[i].type != END_OF_FILE) {
+                    const Statement *stmt = parseStatement();
+                    if (stmt != nullptr) {
+                        statements.push_back(stmt);
+                    }
                 }
+                catches.push_back(std::make_pair(exceptions, new TryHandlerStatement(tok_do, statements)));
+            } else if (tokens[i].type == GIVES) {
+                ++i;
+                catches.push_back(std::make_pair(exceptions, parseExpression()));
+            } else {
+                error(2108, tokens[i], "DO or GIVES expected");
             }
-            catches.push_back(std::make_pair(exceptions, statements));
         }
         return new TryExpression(tok_try, expr, catches);
     } else {
@@ -1497,7 +1502,7 @@ const Statement *Parser::parseTryStatement()
             statements.push_back(stmt);
         }
     }
-    std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::vector<const Statement *>>> catches;
+    std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> catches;
     while (tokens[i].type == EXCEPTION) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
@@ -1520,6 +1525,7 @@ const Statement *Parser::parseTryStatement()
         if (tokens[i].type != DO) {
             error(2098, tokens[i], "DO expected");
         }
+        auto &tok_do = tokens[i];
         ++i;
         std::vector<const Statement *> statements;
         while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
@@ -1528,7 +1534,7 @@ const Statement *Parser::parseTryStatement()
                 statements.push_back(stmt);
             }
         }
-        catches.push_back(std::make_pair(exceptions, statements));
+        catches.push_back(std::make_pair(exceptions, new TryHandlerStatement(tok_do, statements)));
     }
     if (tokens[i].type != END) {
         error(2062, tokens[i], "'END' expected");

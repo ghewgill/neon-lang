@@ -395,6 +395,12 @@ public:
         }
         // TODO: internal_error("TODO: TryStatement");
     }
+    virtual void visit(const TryHandlerStatement *node) override {
+        write("TryHandlerStatement");
+        for (auto x: node->body) {
+            child(x);
+        }
+    }
     virtual void visit(const WhileStatement *node) override {
         write("WhileStatement");
         child(node->cond);
