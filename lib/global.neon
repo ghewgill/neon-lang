@@ -129,11 +129,11 @@ DECLARE EXCEPTION LibraryNotFoundException
 DECLARE EXCEPTION StackOverflowException
 
 %|
- |  Exception: Utf8EncodingException
+ |  Exception: Utf8DecodingException
  |
- |  Invalid UTF-8 encoding in Bytes.toString().
+ |  Invalid UTF-8 encoding found in Bytes.toString() while decoding.
  |%
-DECLARE EXCEPTION Utf8EncodingException
+DECLARE EXCEPTION Utf8DecodingException
 
 %|
  |  Exception: ValueRangeException

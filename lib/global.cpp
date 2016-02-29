@@ -266,7 +266,7 @@ std::string global$bytes__toString(const std::string &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
-        throw RtlException(Exception_global$Utf8EncodingException, "");
+        throw RtlException(Exception_global$Utf8DecodingException, "");
     }
     return self;
 }
