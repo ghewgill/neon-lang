@@ -138,6 +138,11 @@ CHECK = Keyword("CHECK")
 GIVES = Keyword("GIVES")
 NOWHERE = Keyword("NOWHERE")
 
+# TODO: Nothing really uses this yet.
+# But it's a subclass because we need to tell the difference for toString().
+class bytes(str):
+    pass
+
 def identifier_start(c):
     return c.isalpha() or c == "_"
 
@@ -546,11 +551,14 @@ class DotExpression:
         elif isinstance(obj, int):
             if self.field == "toString": return lambda env: str(obj)
             assert False, self.field
+        elif isinstance(obj, bytes):
+            if self.field == "decodeToString": return lambda env: obj.decode("utf-8")
+            if self.field == "toString": return lambda env: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj))
         elif isinstance(obj, (str, unicode)):
             if self.field == "append": return neon_string_append
             if self.field == "toArray": return lambda env: [ord(x) for x in obj]
             if self.field == "toBytes": return lambda env: "".join(x for x in obj.encode("utf-8"))
-            if self.field == "toString": return lambda env: obj.decode("utf-8")
+            if self.field == "toString": return lambda env: obj
             assert False, self.field
         elif isinstance(obj, list):
             if self.field == "append": return lambda env, x: obj.append(x)
@@ -1932,6 +1940,8 @@ class ClassBytes(Class):
                 return len(self.a)
             def toArray(self, env):
                 return list(self.a)
+            def decodeToString(self, env):
+                return self.a.decode("utf-8")
         return Bytes()
 
 class ClassArray(Class):
@@ -2216,6 +2226,7 @@ ExcludeTests = [
     "t/bitwise-test.neon",      # Module not required
     "t/bytes-embed.neon",       # Feature not required
     "t/bytes-literal.neon",     # Feature not required
+    "t/bytes-tostring.neon",    # HEXBYTES not implemented yet
     "t/cal-test.neon",          # Sample not required
     "t/cformat-test.neon",      # Module not required
     "t/comments.neon",          # Nested comments not required
@@ -2296,6 +2307,7 @@ ExcludeTests = [
     "t/module2.neon",           # Feature not required yet
     "t/pointer-method.neon",    # Feature not required yet
     "t/record-private.neon",    # Feature not required yet
+    "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
     "t/string-test.neon",       # Module not required yet
     "t/strings.neon",           # Feature not required yet
     "t/struct-test.neon",       # Module not required yet

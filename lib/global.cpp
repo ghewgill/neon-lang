@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <iso646.h>
 #include <iostream>
+#include <sstream>
 
 #include <utf8.h>
 
@@ -253,6 +254,15 @@ std::string global$bytes__splice(const std::string &t, const std::string &s, Num
     return s.substr(0, f) + t + s.substr(l + 1);
 }
 
+std::string global$bytes__decodeToString(const std::string &self)
+{
+    auto inv = utf8::find_invalid(self.begin(), self.end());
+    if (inv != self.end()) {
+        throw RtlException(Exception_global$Utf8DecodingException, "");
+    }
+    return self;
+}
+
 std::vector<Number> global$bytes__toArray(const std::string &self)
 {
     std::vector<Number> r;
@@ -264,11 +274,21 @@ std::vector<Number> global$bytes__toArray(const std::string &self)
 
 std::string global$bytes__toString(const std::string &self)
 {
-    auto inv = utf8::find_invalid(self.begin(), self.end());
-    if (inv != self.end()) {
-        throw RtlException(Exception_global$Utf8DecodingException, "");
+    std::stringstream r;
+    r << "HEXBYTES \"";
+    bool first = true;
+    for (char c: self) {
+        if (first) {
+            first = false;
+        } else {
+            r << ' ';
+        }
+        char buf[3];
+        snprintf(buf, sizeof(buf), "%02x", static_cast<unsigned char>(c));
+        r << buf;
     }
-    return self;
+    r << "\"";
+    return r.str();
 }
 
 std::string global$pointer__toString(void *p)

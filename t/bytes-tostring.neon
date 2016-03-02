@@ -1,0 +1,3 @@
+LET b: Bytes := HEXBYTES "00 01 23 45 67 89"
+print(b.toString())
+%= HEXBYTES "00 01 23 45 67 89"

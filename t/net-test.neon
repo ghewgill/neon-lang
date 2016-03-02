@@ -11,7 +11,7 @@ LET t: net.Socket := server.accept()
 LET s: String := "GET / HTTP/1.0"
 client.send(s.toBytes())
 LET buf: Bytes := t.recv(1000)
-print(buf.toString())
+print(buf.decodeToString())
 %= GET / HTTP/1.0
 
 client.close()

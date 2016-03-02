@@ -18,7 +18,7 @@ print(s)
 %= The MIT License (MIT)
 
 io.seek(f, 4, io.SeekBase.absolute)
-print(io.readBytes(f, 5).toString())
+print(io.readBytes(f, 5).decodeToString())
 %= MIT L
 print(str(io.tell(f)))
 %= 9
