@@ -28,7 +28,7 @@ public:
     Scope *global_scope;
     std::stack<Frame *> frame;
     std::stack<Scope *> scope;
-    std::set<std::string> exports;
+    std::map<std::string, Token> exports;
 
     std::stack<std::pair<const Type *, const TypeFunction *>> functiontypes;
     std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
@@ -2363,7 +2363,7 @@ const Statement *Analyzer::analyze(const pt::ExportDeclaration *declaration)
     if (scope.top()->getDeclaration(declaration->name.text).type == NONE) {
         error(3152, declaration->name, "export name not declared");
     }
-    exports.insert(declaration->name.text);
+    exports[declaration->name.text] = declaration->name;
     return new NullStatement(declaration->token.line);
 }
 
@@ -3087,15 +3087,22 @@ const Program *Analyzer::analyze()
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();
-    for (auto n: exports) {
-        const Name *name = scope.top()->lookupName(n);
+    for (auto nt: exports) {
+        const Name *name = scope.top()->lookupName(nt.first);
         if (name == nullptr) {
             internal_error("export name not found");
         }
-        if (r->exports.find(n) != r->exports.end()) {
+        if (r->exports.find(nt.first) != r->exports.end()) {
             internal_error("export name already exported");
         }
-        r->exports[n] = name;
+        if (dynamic_cast<const Type *>(name) == nullptr
+         && dynamic_cast<const Exception *>(name) == nullptr
+         && dynamic_cast<const GlobalVariable *>(name) == nullptr
+         && dynamic_cast<const Constant *>(name) == nullptr
+         && dynamic_cast<const Function *>(name) == nullptr) {
+            error2(3204, nt.second, "EXPORT must be type, exception, global variable, constant, or function", name->declaration, "Name defined here");
+        }
+        r->exports[nt.first] = name;
     }
     scope.pop();
     return r;
