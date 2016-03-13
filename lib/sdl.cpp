@@ -28,6 +28,17 @@ void unpack_Event(Cell *out, const SDL_Event &in)
             out->array_index_for_write(1).array_index_for_write(4).array_index_for_write(1) = Cell(number_from_uint32(in.key.keysym.sym));
             out->array_index_for_write(1).array_index_for_write(4).array_index_for_write(2) = Cell(number_from_uint16(in.key.keysym.mod));
             break;
+        case SDL_MOUSEBUTTONDOWN:
+        case SDL_MOUSEBUTTONUP:
+            out->array_index_for_write(2).array_index_for_write(0) = Cell(number_from_uint32(in.button.timestamp));
+            out->array_index_for_write(2).array_index_for_write(1) = Cell(number_from_uint32(in.button.windowID));
+            out->array_index_for_write(2).array_index_for_write(2) = Cell(number_from_uint32(in.button.which));
+            out->array_index_for_write(2).array_index_for_write(3) = Cell(number_from_uint8(in.button.button));
+            out->array_index_for_write(2).array_index_for_write(4) = Cell(number_from_uint8(in.button.state));
+            out->array_index_for_write(2).array_index_for_write(5) = Cell(number_from_uint8(in.button.clicks));
+            out->array_index_for_write(2).array_index_for_write(6) = Cell(number_from_sint32(in.button.x));
+            out->array_index_for_write(2).array_index_for_write(7) = Cell(number_from_sint32(in.button.y));
+            break;
     }
 }
 
@@ -184,6 +195,16 @@ void SetRenderDrawColor(void *renderer, Number r, Number g, Number b, Number a)
         number_to_uint8(b),
         number_to_uint8(a)
     );
+}
+
+bool sdl$WaitEvent(Cell *event)
+{
+    SDL_Event e;
+    int r = SDL_WaitEvent(&e);
+    if (r != 0) {
+        unpack_Event(event, e);
+    }
+    return r != 0;
 }
 
 } // namespace sdl
