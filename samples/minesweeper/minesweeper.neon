@@ -1,0 +1,194 @@
+IMPORT random
+IMPORT sdl
+
+CONSTANT Height: Number := 16
+CONSTANT Width: Number := 30
+
+CONSTANT CellHeight: Number := 24
+CONSTANT CellWidth: Number := 24
+
+TYPE Rect IS sdl.Rect
+
+FUNCTION rect(x, y, w, h: Number): sdl.Rect
+    VAR r: sdl.Rect := Rect()
+    r.x := x
+    r.y := y
+    r.w := w
+    r.h := h
+    RETURN r
+END FUNCTION
+
+TYPE Cell IS RECORD
+    mine: Boolean
+    revealed: Boolean
+    flag: Boolean
+END RECORD
+
+VAR Board: Array<Array<Cell>>
+VAR Shift: Boolean
+
+FUNCTION minesAround(j, i: Number): Number
+    VAR count: Number := 0
+    FOR y := -1 TO 1 DO
+        FOR x := -1 TO 1 DO
+            IF (x # 0 OR y # 0) AND 0 <= j+y < Height AND 0 <= i+x < Width AND Board[j+y, i+x].mine THEN
+                INC count
+            END IF
+        END FOR
+    END FOR
+    RETURN count
+END FUNCTION
+
+FUNCTION flagsAround(j, i: Number): Number
+    VAR count: Number := 0
+    FOR y := -1 TO 1 DO
+        FOR x := -1 TO 1 DO
+            IF (x # 0 OR y # 0) AND 0 <= j+y < Height AND 0 <= i+x < Width AND Board[j+y, i+x].flag THEN
+                INC count
+            END IF
+        END FOR
+    END FOR
+    RETURN count
+END FUNCTION
+
+FUNCTION reveal(j, i: Number)
+    Board[j,i].revealed := TRUE
+    IF minesAround(j, i) = flagsAround(j, i) THEN
+        FOR y := -1 TO 1 DO
+            FOR x := -1 TO 1 DO
+                IF (x # 0 OR y # 0) AND 0 <= j+y < Height AND 0 <= i+x < Width AND NOT Board[j+y, i+x].revealed AND NOT Board[j+y, i+x].flag THEN
+                    reveal(j+y, i+x)
+                END IF
+            END FOR
+        END FOR
+    END IF
+END FUNCTION
+
+FUNCTION handle(e: sdl.Event, INOUT quit: Boolean, INOUT restart: Boolean): Boolean
+    CASE e.type
+        WHEN sdl.SDL_QUIT DO
+            quit := TRUE
+        WHEN sdl.SDL_KEYDOWN DO
+            CASE e.key.keysym.sym
+                WHEN sdl.SDLK_LSHIFT, sdl.SDLK_RSHIFT DO
+                    Shift := TRUE
+                WHEN sdl.SDLK_SPACE DO
+                    restart := TRUE
+            END CASE
+        WHEN sdl.SDL_KEYUP DO
+            CASE e.key.keysym.sym
+                WHEN sdl.SDLK_LSHIFT, sdl.SDLK_RSHIFT DO
+                    Shift := FALSE
+            END CASE
+        WHEN sdl.SDL_MOUSEBUTTONUP DO
+            LET j: Number := int(e.button.y / CellHeight)
+            LET i: Number := int(e.button.x / CellHeight)
+            CASE e.button.button
+                WHEN sdl.SDL_BUTTON_LEFT DO
+                    IF Shift THEN
+                        Board[j,i].flag := NOT Board[j,i].flag
+                    ELSE
+                        reveal(j, i)
+                    END IF
+                WHEN sdl.SDL_BUTTON_RIGHT DO
+                    IF NOT Board[j,i].revealed THEN
+                        Board[j,i].flag := TRUE
+                    END IF
+            END CASE
+            RETURN TRUE
+    END CASE
+    RETURN FALSE
+END FUNCTION
+
+FUNCTION drawDigit(ren: sdl.Renderer, x, y, w, h: Number, n: Number)
+    CONSTANT Pattern: Array<String> := [
+        " ooo", % 0
+        "o   ", % 1
+        "o o ", % 2
+        "oo  ", % 3
+        "oo o", % 4
+        "o  o", % 5
+        "ooo ", % 6
+        "oooo", % 7
+        "o oo", % 8
+    ]
+    sdl.SetRenderDrawColor(ren, 0, 255, 0, 255)
+    FOR i := 0 TO 3 DO
+        IF Pattern[n][i] # " " THEN
+            sdl.RenderFillRect(ren, rect(x+4+(i MOD 2)*8, y+4+int(i/2)*8, 6, 6))
+        END IF
+    END FOR
+END FUNCTION
+
+FUNCTION render(ren: sdl.Renderer)
+    sdl.SetRenderDrawColor(ren, 0, 0, 0, 255)
+    sdl.RenderClear(ren)
+    FOR j := 0 TO Height-1 DO
+        FOR i := 0 TO Width-1 DO
+            IF Board[j,i].revealed THEN
+                IF Board[j,i].mine THEN
+                    sdl.SetRenderDrawColor(ren, 255, 0, 0, 255)
+                    sdl.RenderFillRect(ren, rect(i*CellWidth, j*CellHeight, CellWidth, CellHeight))
+                ELSE
+                    sdl.SetRenderDrawColor(ren, 128, 128, 128, 255)
+                    sdl.RenderFillRect(ren, rect(i*CellWidth, j*CellHeight, CellWidth, CellHeight))
+                    LET count: Number := minesAround(j, i)
+                    IF count > 0 THEN
+                        drawDigit(ren, i*CellWidth, j*CellHeight, CellWidth, CellHeight, count)
+                    END IF
+                END IF
+            ELSE
+                sdl.SetRenderDrawColor(ren, 0, 0, 255, 255)
+                %IF Board[j,i].mine THEN
+                %    sdl.SetRenderDrawColor(ren, 255, 0, 0, 255)
+                %END IF
+                sdl.RenderFillRect(ren, rect(i*CellWidth, j*CellHeight, CellWidth, CellHeight))
+                IF Board[j,i].flag THEN
+                    sdl.SetRenderDrawColor(ren, 255, 0, 0, 255)
+                    sdl.RenderFillRect(ren, rect(i*CellWidth+CellWidth/4, j*CellHeight+CellHeight/4, CellWidth/2, CellHeight/2))
+                END IF
+            END IF
+        END FOR
+    END FOR
+    sdl.RenderPresent(ren)
+END FUNCTION
+
+BEGIN MAIN
+    sdl.Init(sdl.INIT_VIDEO)
+    LET win: sdl.Window := sdl.CreateWindow("Minesweeper", 100, 100, CellWidth*Width, CellHeight*Height, sdl.WINDOW_SHOWN)
+    LET ren: sdl.Renderer := sdl.CreateRenderer(win, -1, sdl.RENDERER_ACCELERATED)
+
+    VAR quit: Boolean := FALSE
+    WHILE NOT quit DO
+        FOR j := 0 TO Height-1 DO
+            FOR i := 0 TO Width-1 DO
+                Board[j,i] := Cell()
+            END FOR
+        END FOR
+
+        VAR n: Number := 99
+        WHILE n > 0 DO
+            LET j: Number := random.uint32() MOD Height
+            LET i: Number := random.uint32() MOD Width
+            IF NOT Board[j,i].mine THEN
+                Board[j,i].mine := TRUE
+                DEC n
+            END IF
+        END WHILE
+
+        render(ren)
+        VAR restart: Boolean := FALSE
+        WHILE NOT quit AND NOT restart DO
+            VAR e: sdl.Event
+            IF sdl.WaitEvent(OUT e) THEN
+                IF handle(e, INOUT quit, INOUT restart) THEN
+                    render(ren)
+                END IF
+            END IF
+        END WHILE
+    END WHILE
+
+    sdl.DestroyRenderer(ren)
+    sdl.DestroyWindow(win)
+    sdl.Quit()
+END MAIN
