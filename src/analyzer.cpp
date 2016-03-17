@@ -510,9 +510,9 @@ TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std:
 {
     {
         std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, ParameterType::IN, nullptr);
+        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, 1, ParameterType::IN, nullptr);
         params.push_back(fp);
-        Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params);
+        Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params, 1);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -2041,7 +2041,7 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
         if (frame.top() == global_frame) {
             v = new GlobalVariable(name, name.text, type, false);
         } else {
-            v = new LocalVariable(name, name.text, type, false);
+            v = new LocalVariable(name, name.text, type, frame.size()-1, false);
         }
         variables.push_back(v);
     }
@@ -2087,7 +2087,7 @@ const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
     if (frame.top() == global_frame) {
         v = new GlobalVariable(declaration->name, declaration->name.text, type, true);
     } else {
-        v = new LocalVariable(declaration->name, declaration->name.text, type, true);
+        v = new LocalVariable(declaration->name, declaration->name.text, type, frame.size()-1, true);
     }
     scope.top()->addName(v->declaration, v->name, v, true);
     std::vector<const ReferenceExpression *> refs;
@@ -2150,7 +2150,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         if (scope.top()->lookupName(x->name.text)) {
             error(3174, x->name, "duplicate identifier");
         }
-        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, def);
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, frame.size()-1, mode, def);
         args.push_back(fp);
     }
     if (type != nullptr && args.empty()) {
@@ -2162,14 +2162,14 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         if (f != type->methods.end()) {
             function = dynamic_cast<Function *>(f->second);
         } else {
-            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args);
+            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.size());
             type->methods[name] = function;
         }
     } else {
         Name *ident = scope.top()->lookupName(name);
         function = dynamic_cast<Function *>(ident);
         if (function == nullptr) {
-            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args);
+            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.size());
             scope.top()->addName(declaration->name, name, function);
         }
     }
@@ -2249,7 +2249,7 @@ const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *d
         } else if (in_default) {
             error(3151, x->token, "default value must be specified for this parameter");
         }
-        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, mode, def);
+        FunctionParameter *fp = new FunctionParameter(x->name, x->name.text, ptype, frame.size()-1, mode, def);
         args.push_back(fp);
     }
     ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
@@ -2728,7 +2728,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     if (frame.top() == global_frame) {
         var = new GlobalVariable(name, name.text, TYPE_NUMBER, false);
     } else {
-        var = new LocalVariable(name, name.text, TYPE_NUMBER, false);
+        var = new LocalVariable(name, name.text, TYPE_NUMBER, frame.size()-1, false);
     }
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
@@ -2736,7 +2736,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     if (frame.top() == global_frame) {
         bound = new GlobalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, false);
     } else {
-        bound = new LocalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, false);
+        bound = new LocalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, frame.size()-1, false);
     }
     // TODO: Need better way of declaring unnamed local variable.
     scope.top()->addName(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
@@ -2789,7 +2789,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     if (frame.top() == global_frame) {
         var = new GlobalVariable(var_name, var_name.text, atype->elementtype, false);
     } else {
-        var = new LocalVariable(var_name, var_name.text, atype->elementtype, false);
+        var = new LocalVariable(var_name, var_name.text, atype->elementtype, frame.size()-1, false);
     }
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
@@ -2803,7 +2803,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         if (frame.top() == global_frame) {
             index = new GlobalVariable(index_name, index_name.text, TYPE_NUMBER, false);
         } else {
-            index = new LocalVariable(index_name, index_name.text, TYPE_NUMBER, false);
+            index = new LocalVariable(index_name, index_name.text, TYPE_NUMBER, frame.size()-1, false);
         }
         scope.top()->addName(index->declaration, index->name, index, true);
     } else {
@@ -2812,7 +2812,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         if (frame.top() == global_frame) {
             index = new GlobalVariable(Token(), index_name.text, TYPE_NUMBER, false);
         } else {
-            index = new LocalVariable(Token(), index_name.text, TYPE_NUMBER, false);
+            index = new LocalVariable(Token(), index_name.text, TYPE_NUMBER, frame.size()-1, false);
         }
         scope.top()->addName(Token(), index_name.text, index, true);
     }
@@ -2824,7 +2824,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     if (frame.top() == global_frame) {
         bound = new GlobalVariable(Token(), bound_name, TYPE_NUMBER, false);
     } else {
-        bound = new LocalVariable(Token(), bound_name, TYPE_NUMBER, false);
+        bound = new LocalVariable(Token(), bound_name, TYPE_NUMBER, frame.size()-1, false);
     }
     scope.top()->addName(Token(), bound_name, bound, true);
     // TODO: make loop_id a void*
@@ -2860,7 +2860,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
                 if (functiontypes.empty()) {
                     var = new GlobalVariable(v.name, v.name.text, vtype, true);
                 } else {
-                    var = new LocalVariable(v.name, v.name.text, vtype, true);
+                    var = new LocalVariable(v.name, v.name.text, vtype, frame.size()-1, true);
                 }
                 scope.top()->addName(v.name, v.name.text, var, true, v.shorthand);
                 const Expression *ve = new ValidPointerExpression(var, ptr);

@@ -212,6 +212,7 @@ private:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
+    std::vector<ActivationFrame *> nested_frames;
 
     std::list<Cell> allocs;
     unsigned int allocations;
@@ -349,6 +350,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     stack(),
     callstack(),
     frames(),
+    nested_frames(),
     allocs(),
     allocations(0),
     debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
@@ -395,9 +397,14 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
 
 void Executor::exec_ENTER()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t nest = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
     frames.push_back(ActivationFrame(val));
+    nested_frames.resize(nest-1);
+    nested_frames.push_back(&frames.back());
 }
 
 void Executor::exec_LEAVE()
@@ -469,16 +476,12 @@ void Executor::exec_PUSHPL()
 
 void Executor::exec_PUSHPOL()
 {
-    fprintf(stderr, "unimplemented: PUSHPOL\n");
-    exit(1);
-    /*
     ip++;
-    uint32_t enclosing = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    uint32_t back = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
     uint32_t addr = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
-    stack.push(Cell(&frames[frames.size()-1-enclosing].locals.at(addr)));
-    */
+    stack.push(Cell(&nested_frames[nested_frames.size()-1-back]->locals.at(addr)));
 }
 
 void Executor::exec_PUSHI()

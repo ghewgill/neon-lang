@@ -34,7 +34,7 @@ class Emitter {
         Label *next;
     };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), loop_labels(), exported_types(), debug_info(debug) {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug) {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -59,6 +59,8 @@ public:
     void push_function_exit(Label &label);
     void pop_function_exit();
     Label &get_function_exit();
+    void set_current_function_depth(size_t function_depth);
+    size_t get_function_depth();
     void declare_export_type(const Type *type);
     void add_export_type(const std::string &name, const std::string &descriptor);
     void add_export_constant(const std::string &name, const std::string &type, const std::string &value);
@@ -73,6 +75,7 @@ private:
     std::vector<std::string> globals;
     std::vector<Label> functions;
     std::stack<Label *> function_exit;
+    size_t current_function_depth;
     std::map<size_t, LoopLabels> loop_labels;
     std::set<const Type *> exported_types;
     DebugInfo *debug_info;
@@ -233,6 +236,8 @@ void Emitter::add_exception(const Bytecode::ExceptionInfo &ei)
 
 void Emitter::push_function_exit(Label &exit)
 {
+    // Turns out the function_exit stack is never more than one function deep. Apparently.
+    assert(function_exit.empty());
     function_exit.push(&exit);
 }
 
@@ -247,6 +252,16 @@ Emitter::Label &Emitter::get_function_exit()
         internal_error("get_function_exit");
     }
     return *function_exit.top();
+}
+
+void Emitter::set_current_function_depth(size_t function_depth)
+{
+    current_function_depth = function_depth;
+}
+
+size_t Emitter::get_function_depth()
+{
+    return current_function_depth;
 }
 
 void Emitter::declare_export_type(const Type *type)
@@ -658,13 +673,13 @@ void Variable::generate_call(Emitter &emitter) const
     // I'm not quite sure why this doesn't cause an internal compiler error
     // for other things like PredefinedFunction (since its generate_address
     // is not implemented), but nevertheless this seems to work.
-    generate_address(emitter, 0);
+    generate_address(emitter);
     type->generate_load(emitter);
 
     type->generate_call(emitter);
 }
 
-void PredefinedVariable::generate_address(Emitter &emitter, int) const
+void PredefinedVariable::generate_address(Emitter &emitter) const
 {
     emitter.emit(PUSHPPG, emitter.str(name));
 }
@@ -674,7 +689,7 @@ void ModuleVariable::predeclare(Emitter &emitter) const
     emitter.add_import(module);
 }
 
-void ModuleVariable::generate_address(Emitter &emitter, int) const
+void ModuleVariable::generate_address(Emitter &emitter) const
 {
     emitter.emit(PUSHPMG, emitter.str(module), index);
 }
@@ -685,7 +700,7 @@ void GlobalVariable::predeclare(Emitter &emitter) const
     index = emitter.global(name);
 }
 
-void GlobalVariable::generate_address(Emitter &emitter, int) const
+void GlobalVariable::generate_address(Emitter &emitter) const
 {
     if (index < 0) {
         internal_error("invalid global index: " + name);
@@ -704,19 +719,20 @@ void LocalVariable::predeclare(Emitter &emitter, int slot)
     index = slot;
 }
 
-void LocalVariable::generate_address(Emitter &emitter, int enclosing) const
+void LocalVariable::generate_address(Emitter &emitter) const
 {
     if (index < 0) {
         internal_error("invalid local index: " + name);
     }
-    if (enclosing > 0) {
-        emitter.emit(PUSHPOL, enclosing, index);
+    assert(emitter.get_function_depth() >= nesting_depth);
+    if (emitter.get_function_depth() > nesting_depth) {
+        emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
     } else {
         emitter.emit(PUSHPL, index);
     }
 }
 
-void FunctionParameter::generate_address(Emitter &emitter, int) const
+void FunctionParameter::generate_address(Emitter &emitter) const
 {
     if (index < 0) {
         internal_error("invalid local index: " + name);
@@ -749,11 +765,11 @@ void Function::postdeclare(Emitter &emitter) const
 {
     emitter.debug_line(declaration.line);
     emitter.jump_target(emitter.function_label(entry_label));
-    emitter.emit(ENTER, static_cast<uint32_t>(frame->getCount()));
+    emitter.emit(ENTER, static_cast<uint32_t>(nesting_depth), static_cast<uint32_t>(frame->getCount()));
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::IN:
-                (*p)->generate_address(emitter, 0);
+                (*p)->generate_address(emitter);
                 (*p)->generate_store(emitter);
                 break;
             case ParameterType::INOUT:
@@ -766,6 +782,7 @@ void Function::postdeclare(Emitter &emitter) const
     }
     auto exit = emitter.create_label();
     emitter.push_function_exit(exit);
+    emitter.set_current_function_depth(nesting_depth);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
@@ -777,7 +794,7 @@ void Function::postdeclare(Emitter &emitter) const
             case ParameterType::INOUT:
                 break;
             case ParameterType::OUT:
-                (*p)->generate_address(emitter, 0);
+                (*p)->generate_address(emitter);
                 (*p)->generate_load(emitter);
                 break;
         }
@@ -1114,7 +1131,7 @@ void ValidPointerExpression::generate_expr(Emitter &emitter) const
 {
     left->generate(emitter);
     emitter.emit(DUP);
-    var->generate_address(emitter, 0);
+    var->generate_address(emitter);
     var->generate_store(emitter);
     right->generate(emitter);
     emitter.emit(NEP);

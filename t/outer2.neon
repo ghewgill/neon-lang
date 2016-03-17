@@ -1,17 +1,15 @@
-% TODO SKIP (crash)
-
 FUNCTION foo()
     VAR outer: String
         FUNCTION bar1()
             outer := "one"
+            bar2()
         END FUNCTION
         FUNCTION bar2()
             outer := "two"
-            bar1()
         END FUNCTION
     outer := "zero"
     print(outer)
-    bar2()
+    bar1()
     print(outer)
 END FUNCTION
 

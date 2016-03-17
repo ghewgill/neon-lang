@@ -119,9 +119,12 @@ Disassembler::Disassembler(std::ostream &out, const Bytecode::Bytes &obj, const 
 
 void Disassembler::disasm_ENTER()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
-    out << "ENTER " << val << "\n";
+    index++;
+    uint32_t nest = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t val = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "ENTER " << nest << "," << val << "\n";
 }
 
 void Disassembler::disasm_LEAVE()
@@ -191,7 +194,7 @@ void Disassembler::disasm_PUSHPOL()
     index += 4;
     uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
     index += 4;
-    out << "PUSHPL " << enclosing << "," << addr << "\n";
+    out << "PUSHPOL " << enclosing << "," << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHI()

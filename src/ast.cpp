@@ -749,11 +749,12 @@ void Scope::checkForward()
     }
 }
 
-Function::Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params)
+Function::Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, size_t nesting_depth)
   : Variable(declaration, name, makeFunctionType(returntype, params), true),
     frame(new Frame(outer)),
     scope(new Scope(parent, frame)),
     params(params),
+    nesting_depth(nesting_depth),
     entry_label(UINT_MAX),
     statements()
 {

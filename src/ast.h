@@ -600,7 +600,7 @@ public:
 
     bool is_readonly;
 
-    virtual void generate_address(Emitter &emitter, int enclosing) const = 0;
+    virtual void generate_address(Emitter &emitter) const = 0;
     virtual void generate_load(Emitter &emitter) const;
     virtual void generate_store(Emitter &emitter) const;
     virtual void generate_call(Emitter &emitter) const;
@@ -614,7 +614,7 @@ public:
     PredefinedVariable(const std::string &name, const Type *type): Variable(Token(), name, type, true) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    virtual void generate_address(Emitter &emitter, int enclosing) const override;
+    virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "PredefinedVariable(" + name + ", " + type->text() + ")"; }
 };
@@ -627,7 +627,7 @@ public:
     const int index;
 
     virtual void predeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &emitter, int enclosing) const override;
+    virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ModuleVariable(" + module + "." + name + ")"; }
 };
@@ -639,7 +639,7 @@ public:
     mutable int index;
 
     virtual void predeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &emitter, int enclosing) const override;
+    virtual void generate_address(Emitter &emitter) const override;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
@@ -647,13 +647,14 @@ public:
 
 class LocalVariable: public Variable {
 public:
-    LocalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly), index(-1) {}
+    LocalVariable(const Token &declaration, const std::string &name, const Type *type, size_t nesting_depth, bool is_readonly): Variable(declaration, name, type, is_readonly), nesting_depth(nesting_depth), index(-1) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    const size_t nesting_depth;
     int index;
 
     virtual void predeclare(Emitter &) const override { internal_error("LocalVariable"); }
     virtual void predeclare(Emitter &emitter, int slot);
-    virtual void generate_address(Emitter &emitter, int enclosing) const override;
+    virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "LocalVariable(" + name + ", " + type->text() + ")"; }
 private:
@@ -663,12 +664,12 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, ParameterType::Mode mode, const Expression *default_value): LocalVariable(declaration, name, type, mode == ParameterType::IN), mode(mode), default_value(default_value) {}
+    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, size_t nesting_depth, ParameterType::Mode mode, const Expression *default_value): LocalVariable(declaration, name, type, nesting_depth, mode == ParameterType::IN), mode(mode), default_value(default_value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     ParameterType::Mode mode;
     const Expression *default_value;
 
-    virtual void generate_address(Emitter &emitter, int enclosing) const override;
+    virtual void generate_address(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "FunctionParameter(" + name + ", " + type->text() + ")"; }
 private:
@@ -1720,8 +1721,8 @@ public:
     virtual std::string eval_string() const override { internal_error("VariableExpression"); }
     virtual void generate_expr(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override { var->generate_call(emitter); }
-    virtual void generate_address_read(Emitter &emitter) const override { var->generate_address(emitter, 0); }
-    virtual void generate_address_write(Emitter &emitter) const override { var->generate_address(emitter, 0); }
+    virtual void generate_address_read(Emitter &emitter) const override { var->generate_address(emitter); }
+    virtual void generate_address_write(Emitter &emitter) const override { var->generate_address(emitter); }
 
     virtual std::string text() const override {
         return "VariableExpression(" + var->text() + ")";
@@ -2190,12 +2191,13 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params);
+    Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, size_t nesting_depth);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Frame *frame;
     Scope *scope;
     const std::vector<FunctionParameter *> params;
+    size_t nesting_depth;
     mutable unsigned int entry_label;
 
     std::vector<const Statement *> statements;
@@ -2204,7 +2206,7 @@ public:
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &, int) const override {}
+    virtual void generate_address(Emitter &) const override {}
     virtual void generate_load(Emitter &) const override;
     virtual void generate_store(Emitter &) const override { internal_error("Function"); }
     virtual void generate_call(Emitter &emitter) const override;
@@ -2225,7 +2227,7 @@ public:
     mutable int name_index;
 
     virtual void predeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &, int) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_address(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_load(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
@@ -2241,7 +2243,7 @@ public:
     const unsigned int entry;
 
     virtual void predeclare(Emitter &emitter) const override;
-    virtual void generate_address(Emitter &, int) const override { internal_error("ModuleFunction"); }
+    virtual void generate_address(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_load(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_store(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
@@ -2251,7 +2253,7 @@ public:
 
 class ExternalFunction: public Function {
 public:
-    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params), library_name(), param_types(), external_index(-1) {}
+    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, 1), library_name(), param_types(), external_index(-1) {}
 
     std::string library_name;
     std::map<std::string, std::string> param_types;
