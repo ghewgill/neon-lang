@@ -161,23 +161,26 @@ bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seco
         return false;
     }
 
-    for (auto i = ra.end(); i != ra.begin(); ) {
-        --i;
-        if (not FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &rfds)) {
+    for (auto i = ra.begin(); i != ra.end(); ) {
+        if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &rfds)) {
+            ++i;
+        } else {
             ra.erase(i);
         }
     }
 
-    for (auto i = wa.end(); i != wa.begin(); ) {
-        --i;
-        if (not FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &wfds)) {
+    for (auto i = wa.begin(); i != wa.end(); ) {
+        if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &wfds)) {
+            ++i;
+        } else {
             wa.erase(i);
         }
     }
 
-    for (auto i = ea.end(); i != ea.begin(); ) {
-        --i;
-        if (not FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &efds)) {
+    for (auto i = ea.begin(); i != ea.end(); ) {
+        if (FD_ISSET(number_to_sint32(i->array_for_write()[0].number()), &efds)) {
+            ++i;
+        } else {
             ea.erase(i);
         }
     }
