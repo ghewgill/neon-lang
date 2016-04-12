@@ -1503,22 +1503,6 @@ void ReturnStatement::generate_code(Emitter &emitter) const
     emitter.emit_jump(JUMP, emitter.get_function_exit());
 }
 
-void WhileStatement::generate_code(Emitter &emitter) const
-{
-    auto top = emitter.create_label();
-    emitter.jump_target(top);
-    condition->generate(emitter);
-    auto skip = emitter.create_label();
-    emitter.emit_jump(JF, skip);
-    emitter.add_loop_labels(loop_id, skip, top);
-    for (auto stmt: statements) {
-        stmt->generate(emitter);
-    }
-    emitter.emit_jump(JUMP, top);
-    emitter.jump_target(skip);
-    emitter.remove_loop_labels(loop_id);
-}
-
 void CaseStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);

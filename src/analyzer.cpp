@@ -3054,10 +3054,17 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(WHILE, loop_id));
     scope.push(new Scope(scope.top(), frame.top()));
-    std::vector<const Statement *> statements = analyze(statement->body);
+    std::vector<const Statement *> exit_statement;
+    exit_statement.push_back(new ExitStatement(statement->token.line, loop_id));
+    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    condition_statements.push_back(std::make_pair(new LogicalNotExpression(cond), exit_statement));
+    std::vector<const Statement *> statements;
+    statements.push_back(new IfStatement(statement->token.line, condition_statements, std::vector<const Statement *>()));
+    std::vector<const Statement *> body = analyze(statement->body);
+    std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
     loops.top().pop_back();
-    return new WhileStatement(statement->token.line, loop_id, cond, statements);
+    return new LoopStatement(statement->token.line, loop_id, statements);
 }
 
 const Program *Analyzer::analyze()

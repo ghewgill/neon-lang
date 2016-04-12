@@ -101,7 +101,6 @@ public:
     virtual void visit(const class ReturnStatement *node) = 0;
     virtual void visit(const class IncrementStatement *node) = 0;
     virtual void visit(const class IfStatement *node) = 0;
-    virtual void visit(const class WhileStatement *node) = 0;
     virtual void visit(const class ForStatement *node) = 0;
     virtual void visit(const class ForeachStatement *node) = 0;
     virtual void visit(const class LoopStatement *node) = 0;
@@ -1951,23 +1950,6 @@ public:
     BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): CompoundStatement(line, statements), loop_id(loop_id) {}
 
     const unsigned int loop_id;
-};
-
-class WhileStatement: public BaseLoopStatement {
-public:
-    WhileStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), condition(condition) {}
-    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-
-    const Expression *condition;
-
-    virtual void generate_code(Emitter &emitter) const override;
-
-    virtual std::string text() const override {
-        return "WhileStatement(" + condition->text() + ")";
-    }
-private:
-    WhileStatement(const WhileStatement &);
-    WhileStatement &operator=(const WhileStatement &);
 };
 
 class ForStatement: public BaseLoopStatement {
