@@ -2967,9 +2967,14 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         error(3086, statement->cond->token, "boolean value expected");
     }
+    std::vector<const Statement *> exit_statement;
+    exit_statement.push_back(new ExitStatement(statement->cond->token.line, loop_id));
+    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    condition_statements.push_back(std::make_pair(cond, exit_statement));
+    statements.push_back(new IfStatement(statement->cond->token.line, condition_statements, std::vector<const Statement *>()));
     scope.pop();
     loops.top().pop_back();
-    return new RepeatStatement(statement->token.line, loop_id, cond, statements);
+    return new LoopStatement(statement->token.line, loop_id, statements);
 }
 
 const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)

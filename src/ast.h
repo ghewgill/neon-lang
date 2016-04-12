@@ -104,7 +104,6 @@ public:
     virtual void visit(const class ForStatement *node) = 0;
     virtual void visit(const class ForeachStatement *node) = 0;
     virtual void visit(const class LoopStatement *node) = 0;
-    virtual void visit(const class RepeatStatement *node) = 0;
     virtual void visit(const class CaseStatement *node) = 0;
     virtual void visit(const class ExitStatement *node) = 0;
     virtual void visit(const class NextStatement *node) = 0;
@@ -2008,21 +2007,6 @@ public:
 private:
     LoopStatement(const LoopStatement &);
     LoopStatement &operator=(const LoopStatement &);
-};
-
-class RepeatStatement: public BaseLoopStatement {
-public:
-    RepeatStatement(int line, unsigned int loop_id, const Expression *condition, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), condition(condition) {}
-    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-
-    const Expression *condition;
-
-    virtual void generate_code(Emitter &emitter) const override;
-
-    virtual std::string text() const override { return "RepeatStatement(" + condition->text() + ")"; }
-private:
-    RepeatStatement(const RepeatStatement &);
-    RepeatStatement &operator=(const RepeatStatement &);
 };
 
 class CaseStatement: public Statement {
