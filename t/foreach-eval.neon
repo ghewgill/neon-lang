@@ -1,0 +1,10 @@
+VAR count: Number := 0
+
+FUNCTION foo(): Array<Number>
+    INC count
+    RETURN [1, 2, 3]
+END FUNCTION
+
+FOREACH x OF foo() DO
+END FOREACH
+ASSERT count = 1

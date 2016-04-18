@@ -2810,6 +2810,15 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     if (atype == nullptr) {
         error(3170, statement->array->token, "array expected");
     }
+    Variable *array_copy;
+    std::string array_copy_name = std::to_string(reinterpret_cast<intptr_t>(statement)+2);
+    if (frame.top() == global_frame) {
+        array_copy = new GlobalVariable(Token(), array_copy_name, atype, false);
+    } else {
+        array_copy = new LocalVariable(Token(), array_copy_name, atype, frame.size()-1, false);
+    }
+    scope.top()->addName(Token(), array_copy_name, array_copy, true);
+
     Variable *var;
     if (frame.top() == global_frame) {
         var = new GlobalVariable(var_name, var_name.text, atype->elementtype, false);
@@ -2855,9 +2864,10 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(FOREACH, loop_id));
-    std::vector<const ReferenceExpression *> index_vars { new VariableExpression(index) };
     std::vector<const Statement *> init_statements {
-        new AssignmentStatement(statement->token.line, index_vars, new ConstantNumberExpression(number_from_uint32(0))),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(index) }, new ConstantNumberExpression(number_from_uint32(0))),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(array_copy) }, array),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(bound) }, new FunctionCall(new VariableExpression(atype->methods.at("size")), { new VariableExpression(array_copy) })),
     };
     std::vector<const Statement *> statements {
         new IfStatement(
@@ -2866,7 +2876,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
                 std::make_pair(
                     new NumericComparisonExpression(
                         new VariableExpression(index),
-                        new FunctionCall(new VariableExpression(atype->methods.at("size")), { array }),
+                        new VariableExpression(bound),
                         ComparisonExpression::GE
                     ),
                     std::vector<const Statement *> { new ExitStatement(statement->token.line, loop_id) }
@@ -2874,7 +2884,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
             },
             std::vector<const Statement *>()
         ),
-        new AssignmentStatement(statement->token.line, { new VariableExpression(var) }, new ArrayValueIndexExpression(var->type, array, new VariableExpression(index), false)),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(var) }, new ArrayValueIndexExpression(var->type, new VariableExpression(array_copy), new VariableExpression(index), false)),
     };
     std::vector<const Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
