@@ -1943,14 +1943,7 @@ private:
 
 class BaseLoopStatement: public CompoundStatement {
 public:
-    BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): CompoundStatement(line, statements), loop_id(loop_id) {}
-
-    const unsigned int loop_id;
-};
-
-class BaseLoopStatement2: public CompoundStatement {
-public:
-    BaseLoopStatement2(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail): CompoundStatement(line, statements), prologue(prologue), tail(tail), loop_id(loop_id) {}
+    BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail): CompoundStatement(line, statements), prologue(prologue), tail(tail), loop_id(loop_id) {}
     virtual void accept(IAstVisitor *) const override { /* TODO */ }
 
     const std::vector<const Statement *> prologue;

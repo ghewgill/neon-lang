@@ -1574,7 +1574,7 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
     emitter.jump_target(result_label);
 }
 
-void BaseLoopStatement2::generate_code(Emitter &emitter) const
+void BaseLoopStatement::generate_code(Emitter &emitter) const
 {
     for (auto stmt: prologue) {
         stmt->generate(emitter);

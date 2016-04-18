@@ -2795,7 +2795,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new BaseLoopStatement2(statement->token.line, loop_id, init_statements, statements, tail_statements);
+    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements);
 }
 
 const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
@@ -2884,7 +2884,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new BaseLoopStatement2(statement->token.line, loop_id, init_statements, statements, tail_statements);
+    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements);
 }
 
 const Statement *Analyzer::analyze(const pt::IfStatement *statement)
@@ -2959,7 +2959,7 @@ const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
     std::vector<const Statement *> statements = analyze(statement->body);
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement2(statement->token.line, loop_id, {}, statements, {});
+    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
 }
 
 const Statement *Analyzer::analyze(const pt::NextStatement *statement)
@@ -3024,7 +3024,7 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     statements.push_back(new IfStatement(statement->cond->token.line, condition_statements, std::vector<const Statement *>()));
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement2(statement->token.line, loop_id, {}, statements, {});
+    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
 }
 
 const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
@@ -3119,7 +3119,7 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement2(statement->token.line, loop_id, {}, statements, {});
+    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
 }
 
 const Program *Analyzer::analyze()

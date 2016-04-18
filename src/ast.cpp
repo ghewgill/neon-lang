@@ -525,7 +525,7 @@ bool IfStatement::is_scope_exit_statement() const
     return true;
 }
 
-bool BaseLoopStatement2::always_returns() const
+bool BaseLoopStatement::always_returns() const
 {
     for (auto s: statements) {
         if (dynamic_cast<const ExitStatement *>(s) != nullptr) {
