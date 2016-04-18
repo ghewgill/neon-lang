@@ -101,7 +101,6 @@ public:
     virtual void visit(const class ReturnStatement *node) = 0;
     virtual void visit(const class IncrementStatement *node) = 0;
     virtual void visit(const class IfStatement *node) = 0;
-    virtual void visit(const class ForeachStatement *node) = 0;
     virtual void visit(const class LoopStatement *node) = 0;
     virtual void visit(const class CaseStatement *node) = 0;
     virtual void visit(const class ExitStatement *node) = 0;
@@ -1966,27 +1965,6 @@ public:
     virtual std::string text() const override {
         return "BaseLoopStatement(...)";
     }
-};
-
-class ForeachStatement: public BaseLoopStatement {
-public:
-    ForeachStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *array, const VariableExpression *index, const VariableExpression *bound, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), array(array), index(index), bound(bound) {
-    }
-    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-
-    const VariableExpression *var;
-    const Expression *array;
-    const VariableExpression *index;
-    const VariableExpression *bound;
-
-    virtual void generate_code(Emitter &emitter) const override;
-
-    virtual std::string text() const override {
-        return "ForeachStatement(" + var->text() + "(" + array->text() + ")";
-    }
-private:
-    ForeachStatement(const ForeachStatement &);
-    ForeachStatement &operator=(const ForeachStatement &);
 };
 
 class CaseStatement: public Statement {

@@ -2855,11 +2855,36 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(FOREACH, loop_id));
-    std::vector<const Statement *> statements = analyze(statement->body);
+    std::vector<const ReferenceExpression *> index_vars { new VariableExpression(index) };
+    std::vector<const Statement *> init_statements {
+        new AssignmentStatement(statement->token.line, index_vars, new ConstantNumberExpression(number_from_uint32(0))),
+    };
+    std::vector<const Statement *> statements {
+        new IfStatement(
+            statement->token.line,
+            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+                std::make_pair(
+                    new NumericComparisonExpression(
+                        new VariableExpression(index),
+                        new FunctionCall(new VariableExpression(atype->methods.at("size")), { array }),
+                        ComparisonExpression::GE
+                    ),
+                    std::vector<const Statement *> { new ExitStatement(statement->token.line, loop_id) }
+                ),
+            },
+            std::vector<const Statement *>()
+        ),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(var) }, new ArrayValueIndexExpression(var->type, array, new VariableExpression(index), false)),
+    };
+    std::vector<const Statement *> body = analyze(statement->body);
+    std::copy(body.begin(), body.end(), std::back_inserter(statements));
+    std::vector<const Statement *> tail_statements {
+        new IncrementStatement(statement->token.line, new VariableExpression(index), 1),
+    };
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new ForeachStatement(statement->token.line, loop_id, new VariableExpression(var), array, new VariableExpression(index), new VariableExpression(bound), statements);
+    return new BaseLoopStatement2(statement->token.line, loop_id, init_statements, statements, tail_statements);
 }
 
 const Statement *Analyzer::analyze(const pt::IfStatement *statement)
