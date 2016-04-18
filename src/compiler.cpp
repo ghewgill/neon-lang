@@ -1574,42 +1574,24 @@ void CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
     emitter.jump_target(result_label);
 }
 
-void ForStatement::generate_code(Emitter &emitter) const
+void BaseLoopStatement2::generate_code(Emitter &emitter) const
 {
-    // Decide if we are looping forward or backwards, based on the step value.
-    Opcode comp = GEN;
-    if (number_is_negative(step->eval_number())) {
-        comp = LEN;
+    for (auto stmt: prologue) {
+        stmt->generate(emitter);
     }
-
+    auto top = emitter.create_label();
+    emitter.jump_target(top);
     auto skip = emitter.create_label();
-    auto loop = emitter.create_label();
     auto next = emitter.create_label();
-
-    start->generate(emitter);
-    var->generate_store(emitter);
-    end->generate(emitter);
-    bound->generate_store(emitter);
-    emitter.jump_target(loop);
-
-    bound->generate_load(emitter);
-    var->generate_load(emitter);
-    emitter.emit(static_cast<char>(comp));
-    emitter.emit_jump(JF, skip);
-
     emitter.add_loop_labels(loop_id, skip, next);
-
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
-
     emitter.jump_target(next);
-    step->generate(emitter);
-    var->generate_load(emitter);
-    emitter.emit(ADDN);
-    var->generate_store(emitter);
-    emitter.emit_jump(JUMP, loop);
-
+    for (auto stmt: tail) {
+        stmt->generate(emitter);
+    }
+    emitter.emit_jump(JUMP, top);
     emitter.jump_target(skip);
     emitter.remove_loop_labels(loop_id);
 }
@@ -1649,20 +1631,6 @@ void ForeachStatement::generate_code(Emitter &emitter) const
     index->generate_store(emitter);
     emitter.emit_jump(JUMP, loop);
 
-    emitter.jump_target(skip);
-    emitter.remove_loop_labels(loop_id);
-}
-
-void LoopStatement::generate_code(Emitter &emitter) const
-{
-    auto top = emitter.create_label();
-    emitter.jump_target(top);
-    auto skip = emitter.create_label();
-    emitter.add_loop_labels(loop_id, skip, top);
-    for (auto stmt: statements) {
-        stmt->generate(emitter);
-    }
-    emitter.emit_jump(JUMP, top);
     emitter.jump_target(skip);
     emitter.remove_loop_labels(loop_id);
 }

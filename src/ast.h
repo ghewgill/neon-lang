@@ -101,7 +101,6 @@ public:
     virtual void visit(const class ReturnStatement *node) = 0;
     virtual void visit(const class IncrementStatement *node) = 0;
     virtual void visit(const class IfStatement *node) = 0;
-    virtual void visit(const class ForStatement *node) = 0;
     virtual void visit(const class ForeachStatement *node) = 0;
     virtual void visit(const class LoopStatement *node) = 0;
     virtual void visit(const class CaseStatement *node) = 0;
@@ -723,7 +722,6 @@ protected:
     friend class StringComparisonExpression;
     friend class ConstantExpression;
     friend class FunctionCall;
-    friend class ForStatement;
 private:
     Expression(const Expression &);
     Expression &operator=(const Expression &);
@@ -1951,26 +1949,23 @@ public:
     const unsigned int loop_id;
 };
 
-class ForStatement: public BaseLoopStatement {
+class BaseLoopStatement2: public CompoundStatement {
 public:
-    ForStatement(int line, unsigned int loop_id, const VariableExpression *var, const Expression *start, const Expression *end, const Expression *step, const VariableExpression *bound, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements), var(var), start(start), end(end), step(step), bound(bound) {
-    }
-    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    BaseLoopStatement2(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail): CompoundStatement(line, statements), prologue(prologue), tail(tail), loop_id(loop_id) {}
+    virtual void accept(IAstVisitor *) const override { /* TODO */ }
 
-    const VariableExpression *var;
-    const Expression *start;
-    const Expression *end;
-    const Expression *step;
-    const VariableExpression *bound;
+    const std::vector<const Statement *> prologue;
+    const std::vector<const Statement *> tail;
+
+    const unsigned int loop_id;
+
+    virtual bool always_returns() const override;
 
     virtual void generate_code(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "ForStatement(" + var->text() + "(" + start->text() + " TO " + end->text() + " STEP " + step->text() + ")";
+        return "BaseLoopStatement(...)";
     }
-private:
-    ForStatement(const ForStatement &);
-    ForStatement &operator=(const ForStatement &);
 };
 
 class ForeachStatement: public BaseLoopStatement {
@@ -1992,21 +1987,6 @@ public:
 private:
     ForeachStatement(const ForeachStatement &);
     ForeachStatement &operator=(const ForeachStatement &);
-};
-
-class LoopStatement: public BaseLoopStatement {
-public:
-    LoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &statements): BaseLoopStatement(line, loop_id, statements) {}
-    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-
-    virtual bool always_returns() const override;
-
-    virtual void generate_code(Emitter &emitter) const override;
-
-    virtual std::string text() const override { return "LoopStatement()"; }
-private:
-    LoopStatement(const LoopStatement &);
-    LoopStatement &operator=(const LoopStatement &);
 };
 
 class CaseStatement: public Statement {

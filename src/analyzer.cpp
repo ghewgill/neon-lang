@@ -2766,11 +2766,36 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(FOR, loop_id));
-    std::vector<const Statement *> statements = analyze(statement->body);
+    std::vector<const ReferenceExpression *> vars { new VariableExpression(var) };
+    std::vector<const Statement *> init_statements {
+        new AssignmentStatement(statement->token.line, vars, start),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(bound) }, end),
+    };
+    std::vector<const Statement *> statements {
+        new IfStatement(
+            statement->token.line,
+            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+                std::make_pair(
+                    new NumericComparisonExpression(
+                        new VariableExpression(var),
+                        new VariableExpression(bound),
+                        number_is_negative(step->eval_number(statement->step->token)) ? ComparisonExpression::LT : ComparisonExpression::GT
+                    ),
+                    std::vector<const Statement *> { new ExitStatement(statement->token.line, loop_id) }
+                )
+            },
+            std::vector<const Statement *>()
+        ),
+    };
+    std::vector<const Statement *> body = analyze(statement->body);
+    std::copy(body.begin(), body.end(), std::back_inserter(statements));
+    std::vector<const Statement *> tail_statements {
+        new AssignmentStatement(statement->token.line, vars, new AdditionExpression(new VariableExpression(var), step)),
+    };
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new ForStatement(statement->token.line, loop_id, new VariableExpression(var), start, end, step, new VariableExpression(bound), statements);
+    return new BaseLoopStatement2(statement->token.line, loop_id, init_statements, statements, tail_statements);
 }
 
 const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
@@ -2909,7 +2934,7 @@ const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
     std::vector<const Statement *> statements = analyze(statement->body);
     scope.pop();
     loops.top().pop_back();
-    return new LoopStatement(statement->token.line, loop_id, statements);
+    return new BaseLoopStatement2(statement->token.line, loop_id, {}, statements, {});
 }
 
 const Statement *Analyzer::analyze(const pt::NextStatement *statement)
@@ -2974,7 +2999,7 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     statements.push_back(new IfStatement(statement->cond->token.line, condition_statements, std::vector<const Statement *>()));
     scope.pop();
     loops.top().pop_back();
-    return new LoopStatement(statement->token.line, loop_id, statements);
+    return new BaseLoopStatement2(statement->token.line, loop_id, {}, statements, {});
 }
 
 const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
@@ -3069,7 +3094,7 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
     loops.top().pop_back();
-    return new LoopStatement(statement->token.line, loop_id, statements);
+    return new BaseLoopStatement2(statement->token.line, loop_id, {}, statements, {});
 }
 
 const Program *Analyzer::analyze()
