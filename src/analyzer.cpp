@@ -3027,11 +3027,18 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         error(3086, statement->cond->token, "boolean value expected");
     }
-    std::vector<const Statement *> exit_statement;
-    exit_statement.push_back(new ExitStatement(statement->cond->token.line, loop_id));
-    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
-    condition_statements.push_back(std::make_pair(cond, exit_statement));
-    statements.push_back(new IfStatement(statement->cond->token.line, condition_statements, std::vector<const Statement *>()));
+    statements.push_back(
+        new IfStatement(
+            statement->cond->token.line,
+            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+                std::make_pair(
+                    cond,
+                    std::vector<const Statement *> { new ExitStatement(statement->cond->token.line, loop_id) }
+                )
+            },
+            std::vector<const Statement *>()
+        )
+    );
     scope.pop();
     loops.top().pop_back();
     return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
@@ -3119,12 +3126,18 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(WHILE, loop_id));
     scope.push(new Scope(scope.top(), frame.top()));
-    std::vector<const Statement *> exit_statement;
-    exit_statement.push_back(new ExitStatement(statement->token.line, loop_id));
-    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
-    condition_statements.push_back(std::make_pair(new LogicalNotExpression(cond), exit_statement));
-    std::vector<const Statement *> statements;
-    statements.push_back(new IfStatement(statement->token.line, condition_statements, std::vector<const Statement *>()));
+    std::vector<const Statement *> statements {
+        new IfStatement(
+            statement->token.line,
+            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+                std::make_pair(
+                    new LogicalNotExpression(cond),
+                    std::vector<const Statement *> { new ExitStatement(statement->token.line, loop_id) }
+                )
+            },
+            std::vector<const Statement *>()
+        )
+    };
     std::vector<const Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
