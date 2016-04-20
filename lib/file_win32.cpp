@@ -11,6 +11,7 @@ static void handle_error(DWORD error, const std::string &path)
         case ERROR_ACCESS_DENIED: throw RtlException(Exception_file$PermissionDeniedException, path);
         case ERROR_PATH_NOT_FOUND: throw RtlException(Exception_file$PathNotFoundException, path);
         case ERROR_FILE_EXISTS: throw RtlException(Exception_file$FileExistsException, path);
+        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(Exception_file$PermissionDeniedException, path);
         default:
             throw RtlException(Exception_file$FileException, path + ": " + std::to_string(error));
     }
@@ -91,6 +92,14 @@ void file$rename(const std::string &oldname, const std::string &newname)
     BOOL r = MoveFile(oldname.c_str(), newname.c_str());
     if (!r) {
         handle_error(GetLastError(), oldname);
+    }
+}
+
+void file$symlink(const std::string &target, const std::string &newlink, bool targetIsDirectory)
+{
+    BOOL r = CreateSymbolicLink(newlink.c_str(), target.c_str(), targetIsDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
+    if (!r) {
+        handle_error(GetLastError(), newlink);
     }
 }
 

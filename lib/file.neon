@@ -249,6 +249,16 @@ DECLARE NATIVE FUNCTION removeEmptyDirectory(path: String)
 DECLARE NATIVE FUNCTION rename(oldname: String, newname: String)
 
 %|
+ |  Function: symlink
+ |
+ |  Create a symlink named newlink that points to target.
+ |
+ |  Exceptions:
+ |      - <PathNotFound> - if the path does not exist
+ |%
+DECLARE NATIVE FUNCTION symlink(target: String, newlink: String, targetIsDirectory: Boolean DEFAULT FALSE)
+
+%|
  |  Function: writeBytes
  |
  |  Write a complete file from data in <Bytes>.

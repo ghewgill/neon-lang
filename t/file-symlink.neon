@@ -1,0 +1,15 @@
+IMPORT file
+IMPORT os
+
+file.delete("tmp/LICENSE.txt")
+TRY
+    file.symlink("../LICENSE.txt", "tmp/LICENSE.txt", FALSE)
+    LET text: Bytes := file.readBytes("tmp/LICENSE.txt")
+    ASSERT text = file.readBytes("LICENSE.txt")
+EXCEPTION file.PermissionDeniedException DO
+    % Creating a symlink not always possible on win32
+    ASSERT os.platform() = os.Platform.win32
+EXCEPTION file.FileOpenException DO
+    % Creating a symlink not always possible on win32
+    ASSERT os.platform() = os.Platform.win32
+END TRY

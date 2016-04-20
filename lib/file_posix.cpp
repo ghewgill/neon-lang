@@ -207,4 +207,12 @@ void file$rename(const std::string &oldname, const std::string &newname)
     }
 }
 
+void file$symlink(const std::string &target, const std::string &newlink, bool /*targetIsDirectory*/)
+{
+    int r = symlink(target.c_str(), newlink.c_str());
+    if (r != 0) {
+        handle_error(errno, newlink);
+    }
+}
+
 } // namespace rtl
