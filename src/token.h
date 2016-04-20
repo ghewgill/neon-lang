@@ -107,6 +107,7 @@ enum TokenType {
     WITH,
     CHECK,
     GIVES,
+    NOWHERE,
     MAX_TOKEN
 };
 

@@ -51,6 +51,7 @@ public:
     virtual void visit(const class ConstantBytesExpression *node) = 0;
     virtual void visit(const class ConstantEnumExpression *node) = 0;
     virtual void visit(const class ConstantNilExpression *node) = 0;
+    virtual void visit(const class ConstantNowhereExpression *node) = 0;
     virtual void visit(const class ArrayLiteralExpression *node) = 0;
     virtual void visit(const class DictionaryLiteralExpression *node) = 0;
     virtual void visit(const class RecordLiteralExpression *node) = 0;
@@ -542,6 +543,11 @@ private:
     TypeFunctionPointer &operator=(const TypeFunctionPointer &);
 };
 
+class TypeFunctionPointerNowhere: public TypeFunctionPointer {
+public:
+    TypeFunctionPointerNowhere(): TypeFunctionPointer(Token(), nullptr) {}
+};
+
 class TypeEnum: public TypeNumber {
 public:
     TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer);
@@ -828,6 +834,19 @@ public:
     virtual void generate_expr(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ConstantNilExpression"; }
+};
+
+class ConstantNowhereExpression: public Expression {
+public:
+    ConstantNowhereExpression(): Expression(new TypeFunctionPointerNowhere(), true) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual bool eval_boolean() const override { internal_error("ConstantNowhereExpression"); }
+    virtual Number eval_number() const override { internal_error("ConstantNowhereExpression"); }
+    virtual std::string eval_string() const override { internal_error("ConstantNowhereExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ConstantNowhereExpression"; }
 };
 
 class ArrayLiteralExpression: public Expression {

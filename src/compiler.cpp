@@ -931,6 +931,11 @@ void ConstantNilExpression::generate_expr(Emitter &emitter) const
     emitter.emit(PUSHNIL);
 }
 
+void ConstantNowhereExpression::generate_expr(Emitter &emitter) const
+{
+    emitter.emit(PUSHN, number_from_uint32(0));
+}
+
 void ArrayLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {

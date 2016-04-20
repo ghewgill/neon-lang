@@ -136,6 +136,7 @@ OTHERS = Keyword("OTHERS")
 WITH = Keyword("WITH")
 CHECK = Keyword("CHECK")
 GIVES = Keyword("GIVES")
+NOWHERE = Keyword("NOWHERE")
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -459,6 +460,12 @@ class DictionaryLiteralExpression:
         return {k: v.eval(env) for k, v in self.elements}
 
 class NilLiteralExpression:
+    def __init__(self):
+        pass
+    def eval(self, env):
+        return None
+
+class NowhereLiteralExpression:
     def __init__(self):
         pass
     def eval(self, env):
@@ -1353,6 +1360,9 @@ class Parser:
         elif t is NIL:
             self.i += 1
             return NilLiteralExpression()
+        elif t is NOWHERE:
+            self.i += 1
+            return NowhereLiteralExpression()
         elif isinstance(t, Identifier):
             self.i += 1
             expr = IdentifierExpression(t.name)

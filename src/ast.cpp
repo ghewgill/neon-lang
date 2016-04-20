@@ -135,6 +135,9 @@ bool TypeFunction::is_assignment_compatible(const Type *rhs) const
             return false;
         }
         f = p->functype;
+        if (f == nullptr) {
+            return true;
+        }
     }
     if (not returntype->is_assignment_compatible(f->returntype)) {
         return false;

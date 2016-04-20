@@ -166,6 +166,7 @@ Atom =
     (('+' | '-' | 'NOT'), Atom) |
     ('NEW', Type) |
     'NIL' |
+    'NOWHERE' |
     CompoundExpression;
 
 ArrayLiteral = '[', [Expression, {',', Expression}, [',']], ']';

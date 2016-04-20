@@ -53,6 +53,7 @@ public:
     const Expression *analyze(const pt::ArrayLiteralRangeExpression *expr);
     const Expression *analyze(const pt::DictionaryLiteralExpression *expr);
     const Expression *analyze(const pt::NilLiteralExpression *expr);
+    const Expression *analyze(const pt::NowhereLiteralExpression *expr);
     const Expression *analyze(const pt::IdentifierExpression *expr);
     const Name *analyze_qualified_name(const pt::Expression *expr);
     const Expression *analyze(const pt::DotExpression *expr);
@@ -147,6 +148,7 @@ public:
     virtual void visit(const pt::ArrayLiteralRangeExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NowhereLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DotExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrowExpression *) override { internal_error("pt::Expression"); }
@@ -233,6 +235,7 @@ public:
     virtual void visit(const pt::ArrayLiteralRangeExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DictionaryLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NilLiteralExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::NowhereLiteralExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::IdentifierExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DotExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ArrowExpression *p) override { expr = a->analyze(p); }
@@ -318,6 +321,7 @@ public:
     virtual void visit(const pt::ArrayLiteralRangeExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NowhereLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DotExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrowExpression *) override { internal_error("pt::Expression"); }
@@ -403,6 +407,7 @@ public:
     virtual void visit(const pt::ArrayLiteralRangeExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DictionaryLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NilLiteralExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NowhereLiteralExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::IdentifierExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DotExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ArrowExpression *) override { internal_error("pt::Expression"); }
@@ -1006,6 +1011,11 @@ const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
 const Expression *Analyzer::analyze(const pt::NilLiteralExpression *)
 {
     return new ConstantNilExpression();
+}
+
+const Expression *Analyzer::analyze(const pt::NowhereLiteralExpression *)
+{
+    return new ConstantNowhereExpression();
 }
 
 const Expression *Analyzer::analyze(const pt::IdentifierExpression *expr)
@@ -3220,6 +3230,7 @@ public:
     virtual void visit(const pt::ArrayLiteralRangeExpression *node) { node->first->accept(this); node->last->accept(this); node->step->accept(this); }
     virtual void visit(const pt::DictionaryLiteralExpression *node) { for (auto x: node->elements) x.second->accept(this); }
     virtual void visit(const pt::NilLiteralExpression *) {}
+    virtual void visit(const pt::NowhereLiteralExpression *) {}
     virtual void visit(const pt::IdentifierExpression *node) {
         for (auto v = variables.rbegin(); v != variables.rend(); ++v) {
             auto i = v->find(node->name);

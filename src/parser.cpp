@@ -544,6 +544,11 @@ const Expression *Parser::parseAtom()
             ++i;
             return new NilLiteralExpression(tok_nil);
         }
+        case NOWHERE: {
+            auto &tok_nowhere = tokens[i];
+            ++i;
+            return new NowhereLiteralExpression(tok_nowhere);
+        }
         case IF: {
             error(2095, tokens[i], "Use parentheses around (IF ... THEN ... ELSE ...)");
         }

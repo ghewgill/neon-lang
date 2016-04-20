@@ -82,6 +82,9 @@ public:
     virtual void visit(const NilLiteralExpression *) override {
         write("NilLiteralExpression");
     }
+    virtual void visit(const NowhereLiteralExpression *) override {
+        write("NowhereLiteralExpression");
+    }
     virtual void visit(const IdentifierExpression *node) override {
         write("IdentifierExpression(" + node->name + ")");
     }

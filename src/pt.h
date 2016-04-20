@@ -28,6 +28,7 @@ class ArrayLiteralExpression;
 class ArrayLiteralRangeExpression;
 class DictionaryLiteralExpression;
 class NilLiteralExpression;
+class NowhereLiteralExpression;
 class IdentifierExpression;
 class DotExpression;
 class ArrowExpression;
@@ -112,6 +113,7 @@ public:
     virtual void visit(const ArrayLiteralRangeExpression *) = 0;
     virtual void visit(const DictionaryLiteralExpression *) = 0;
     virtual void visit(const NilLiteralExpression *) = 0;
+    virtual void visit(const NowhereLiteralExpression *) = 0;
     virtual void visit(const IdentifierExpression *) = 0;
     virtual void visit(const DotExpression *) = 0;
     virtual void visit(const ArrowExpression *) = 0;
@@ -357,6 +359,12 @@ public:
 class NilLiteralExpression: public Expression {
 public:
     NilLiteralExpression(const Token &token): Expression(token, token.column, token.column+3) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+};
+
+class NowhereLiteralExpression: public Expression {
+public:
+    NowhereLiteralExpression(const Token &token): Expression(token, token.column, token.column+3) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
