@@ -3,37 +3,48 @@ VAR a: Number := 0
 CASE a
     WHEN 5 DO
         VAR x: Number := a
+        _ := x
     WHEN 6 DO
         VAR x: Number := a
+        _ := x
     WHEN OTHERS DO
         VAR x: Number := a
+        _ := x
 END CASE
 
 FOR i := 1 TO 10 DO
     VAR x: Number := a
+    _ := x
 END FOR
 
 IF a = 0 THEN
     VAR x: Number := a
+    _ := x
 ELSE
     VAR x: Number := a
+    _ := x
 END IF
 
 LOOP
     VAR x: Number := a
+    _ := x
     EXIT LOOP
 END LOOP
 
 REPEAT
     VAR x: Number := a
+    _ := x
 UNTIL x = 0
 
 TRY
     VAR x: Number := a
+    _ := x
 EXCEPTION DivideByZeroException DO
     VAR x: Number := a
+    _ := x
 END TRY
 
 WHILE a > 0 DO
     VAR x: Number := a
+    _ := x
 END WHILE

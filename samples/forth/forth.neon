@@ -436,8 +436,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             INC number_buffer_size
             storage[cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size] := ord(Digits[dig])
         WHEN CORE_NUMBER_GT DO
-            LET xdh: Number := stack.pop()
-            LET xdl: Number := stack.pop()
+            stack.drop(2)
             stack.push(cell_number_buffer + NUMBER_BUFFER_MAX - number_buffer_size)
             stack.push(number_buffer_size)
         WHEN CORE_NUMBER_S DO
@@ -1076,7 +1075,7 @@ FUNCTION run(instr: Number, interpreting: Boolean)
                 code.append(words[s].xt)
             END IF
         WHEN CORE_COMMENT DO
-            LET comment: String := parse(")")
+            _ := parse(")")
         WHEN CORE_PLUS_LOOP DO
             ASSERT NOT interpreting
             code.append(INT_PLUS_LOOP)
@@ -1284,17 +1283,16 @@ FUNCTION execute(word: String)
         run(words[word].xt, interpreting OR words[word].immediate)
     ELSE
         VAR n: Number
-        VAR m: regex.Match
         LET base: Number := storage[cell_base]
-        IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word, OUT m) THEN
+        IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word, OUT _) THEN
             n := convert(word, base)
-        ELSIF regex.search(@"^#-?[0-9]+$", word, OUT m) THEN
+        ELSIF regex.search(@"^#-?[0-9]+$", word, OUT _) THEN
             n := convert(word[1 TO LAST], 10)
-        ELSIF regex.search(@"^\$-?[0-9A-F]+$", word, OUT m) THEN
+        ELSIF regex.search(@"^\$-?[0-9A-F]+$", word, OUT _) THEN
             n := convert(word[1 TO LAST], 0x10)
-        ELSIF regex.search(@"^%-?[01]+$", word, OUT m) THEN
+        ELSIF regex.search(@"^%-?[01]+$", word, OUT _) THEN
             n := convert(word[1 TO LAST], 0b10)
-        ELSIF regex.search(@"'.'?$", word, OUT m) THEN
+        ELSIF regex.search(@"'.'?$", word, OUT _) THEN
             n := ord(word[1])
         ELSE
             print("Unknown word: \(word)")

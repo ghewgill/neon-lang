@@ -199,8 +199,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                 INC i
             END WHILE
             LET t: String := s[start TO i-1]
-            VAR m: regex.Match
-            IF regex.search(@"^[-+]?\d+$", t, OUT m) THEN
+            IF regex.search(@"^[-+]?\d+$", t, OUT _) THEN
                 RETURN make_number(num(t))
             ELSE
                 RETURN make_symbol(t)
@@ -249,7 +248,8 @@ FUNCTION eval_special(e: POINTER TO Value, env: POINTER TO Environment): POINTER
         IF VALID car->val_symbol AS sym THEN
             CASE sym->name
                 WHEN "let" DO
-                    LET env2: POINTER TO Environment := new_env(env)
+                    % TODO: Something does not seem complete here.
+                    %LET env2: POINTER TO Environment := new_env(env)
                     IF VALID e->val_pair.cdr AS bindings THEN
                         ASSERT bindings->type = Type.pair
                     ELSE

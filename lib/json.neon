@@ -56,7 +56,6 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
         WHEN "\"" DO
             INC index
             VAR t: String := ""
-            LET start: Number := index
             WHILE index < json.length() AND json[index] # "\"" DO
                 IF json[index] = "\\" THEN
                     % TODO: This just skips over the backslash.

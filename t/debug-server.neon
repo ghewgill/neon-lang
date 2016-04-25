@@ -8,17 +8,15 @@ IMPORT variant
 CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): variant.Variant
-    VAR headers: Array<String>
     %io.write(io.stderr(), "get \(url)\n")
-    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", OUT headers).toString()
+    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", OUT headers WITH _).toString()
     %io.write(io.stderr(), "\(data)\n")
     RETURN json.decode(data)
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): variant.Variant
-    VAR headers: Array<String>
     %io.write(io.stderr(), "post \(url)\n")
-    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, OUT headers).toString()
+    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, OUT headers WITH _).toString()
     RETURN json.decode(data)
 END FUNCTION
 

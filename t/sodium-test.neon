@@ -3225,18 +3225,18 @@ FUNCTION test_box_seal()
     LET c: Bytes := sodium.box_seal(m, pk)
     ASSERT sodium.box_seal_open(c, pk, sk) = m
     TRY
-        LET x: Bytes := sodium.box_seal_open(HEXBYTES "", pk, sk)
+        _ := sodium.box_seal_open(HEXBYTES "", pk, sk)
         ASSERT FALSE
     EXCEPTION sodium.InvalidParameterLengthException DO
     END TRY
     TRY
         LET c2: Bytes := c.toArray()[FIRST TO LAST-1].toBytes()
-        LET x: Bytes := sodium.box_seal_open(c2, pk, sk)
+        _ := sodium.box_seal_open(c2, pk, sk)
         ASSERT FALSE
     EXCEPTION sodium.DecryptionFailedException DO
     END TRY
     TRY
-        LET x: Bytes := sodium.box_seal_open(c, sk, pk)
+        _ := sodium.box_seal_open(c, sk, pk)
         ASSERT FALSE
     EXCEPTION sodium.DecryptionFailedException DO
     END TRY
@@ -4970,7 +4970,7 @@ FUNCTION test_pwhash()
     CONSTANT OPS_LIMIT: Number := 1000000
     CONSTANT MEM_LIMIT: Number := 10000000
     LET passwd: String := "Correct Horse Battery Staple"
-    LET salt: Bytes := bytes("[<~A 32-bytes salt for scrypt~>]")
+    %LET salt: Bytes := bytes("[<~A 32-bytes salt for scrypt~>]")
     VAR out: String := sodium.pwhash_scryptsalsa208sha256_str(passwd, OPS_LIMIT, MEM_LIMIT)
     VAR out2: String := sodium.pwhash_scryptsalsa208sha256_str(passwd, OPS_LIMIT, MEM_LIMIT)
     ASSERT out # out2
@@ -5034,7 +5034,7 @@ FUNCTION test_randombytes()
     ASSERT sodium.randombytes_uniform(1) = 0
     sodium.randombytes_close()
 
-    LET y: Bytes := sodium.randombytes(1)
+    _ := sodium.randombytes(1)
     sodium.randombytes_close()
 END FUNCTION
 

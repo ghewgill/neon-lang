@@ -47,7 +47,7 @@ FUNCTION updateBoard()
     VAR color: Number := 2
     FOREACH m OF Moves DO
         IF m # 0 THEN
-            LET dummy: Boolean := validMove(0, m, color, 0)
+            _ := validMove(0, m, color, 0)
         END IF
         color := 3 - color
     END FOREACH
@@ -213,15 +213,15 @@ END FUNCTION
 FUNCTION makeMove(move: Number)
     VAR valid: Boolean := validMove(0, move, 2, 0)
     Moves.append(move)
-    LET any: Boolean := displayBoard()
+    _ := displayBoard()
     curses.refresh()
-    LET score: Number := search(0, 0, 1, Level, FALSE, -9000, 9000)
+    _ := search(0, 0, 1, Level, FALSE, -9000, 9000)
     valid := validMove(0, BestPos, 1, 0)
     Moves.append(BestPos)
 END FUNCTION
 
 FUNCTION kibitz(): Number
-    LET score: Number := search(0, 0, 2, Level, FALSE, -9000, 9000)
+    _ := search(0, 0, 2, Level, FALSE, -9000, 9000)
     IF validMove(0, BestPos, 2, 100) THEN
         RETURN BestPos
     END IF

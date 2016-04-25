@@ -1,0 +1,8 @@
+FUNCTION foo()
+    VAR s: String := ""
+    FUNCTION bar()
+        print(s)
+    END FUNCTION
+END FUNCTION
+
+%! Unused variable

@@ -143,7 +143,6 @@ FUNCTION packInt8(n: Number): Bytes
     IF NOT (-0x80 <= n <= 0x7F) THEN
         RAISE InvalidValueException
     END IF
-    VAR r: Array<Number> := []
     RETURN packUInt8((IF n < 0 THEN 0x100 + n ELSE n))
 END FUNCTION
 

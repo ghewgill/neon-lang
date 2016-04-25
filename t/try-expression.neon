@@ -11,7 +11,7 @@ FUNCTION foo1(n: Number)
         print("exception")
         EXIT FUNCTION
     )
-    print("ok")
+    print("ok \(x)")
 END FUNCTION
 
 %FUNCTION foo2(n: Number): Number
@@ -20,7 +20,7 @@ END FUNCTION
 %END FUNCTION
 
 foo1(5)
-%= ok
+%= ok 5
 foo1(-1)
 %= exception
 

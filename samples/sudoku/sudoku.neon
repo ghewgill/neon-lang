@@ -236,7 +236,7 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
     END IF
     VAR solution: Array<Number> := []
     VAR solutions: Array<Array<Number>> := []
-    LET r: Boolean := dlx_search(head, INOUT solution, 0, INOUT solutions, maxsolutions)
+    _ := dlx_search(head, INOUT solution, 0, INOUT solutions, maxsolutions)
     RETURN solutions
 END FUNCTION
 
@@ -326,7 +326,7 @@ FUNCTION makeSolution(): multiarray.ArrayNumber2D
     VAR r: multiarray.ArrayNumber2D := multiarray.makeNumber2D(9, 9)
     r[0] := [1, 2, 3, 4, 5, 6, 7, 8, 9]
     shuffle(INOUT r[0])
-    LET n: Number := solveSudoku(INOUT r)
+    _ := solveSudoku(INOUT r)
     RETURN r
 END FUNCTION
 

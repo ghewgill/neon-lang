@@ -85,12 +85,11 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     LET request: Array<String> := string.split(a[0], " ")
     LET method: String := request[0]
     LET path: String := request[1]
-    LET version: String := request[2]
+    %LET version: String := request[2]
     VAR response: Response := Response()
     VAR found: Boolean := FALSE
     FOREACH h OF self.handlers DO
-        VAR m: regex.Match
-        IF regex.search(h.path, path, OUT m) THEN
+        IF regex.search(h.path, path, OUT _) THEN
             % TODO: Should be able to do h.callback(path, params),
             % but that syntax seems to be handled only as a method
             LET rh: RequestHandler := h.callback

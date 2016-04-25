@@ -1,0 +1,7 @@
+FUNCTION foo()
+    IF TRUE THEN
+        VAR i: Number
+    END IF
+END FUNCTION
+
+%! Unused variable
