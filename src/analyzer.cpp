@@ -3717,6 +3717,7 @@ public:
         for (auto s: node->body) {
             s->accept(this);
         }
+        node->cond->accept(this);
         leave();
     }
     virtual void visit(const pt::ReturnStatement *node) {
