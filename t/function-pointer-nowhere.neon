@@ -1,0 +1,18 @@
+FUNCTION foo()
+    print("foo")
+END FUNCTION
+
+VAR p: FUNCTION() := NOWHERE
+
+IF p = NOWHERE THEN
+    print("nowhere")
+END IF
+%= nowhere
+
+p := foo
+IF p = NOWHERE THEN
+    print("nowhere")
+ELSE
+    print("somewhere")
+END IF
+%= somewhere
