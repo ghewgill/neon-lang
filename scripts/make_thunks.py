@@ -161,6 +161,7 @@ enums = dict()
 variables = dict()
 functions = dict()
 exceptions = []
+exported = set()
 
 for fn in sys.argv[1:]:
     if fn.endswith(".neon"):
@@ -199,6 +200,7 @@ for fn in sys.argv[1:]:
                         name,
                         AstFromNeon[rtype],
                         rtype.split()[-1] if rtype is not None else None,
+                        name in exported,
                         [AstFromNeon[x[0]] for x in params],
                         [x[0].split()[-1] for x in params],
                         [x[1] for x in params]
@@ -225,6 +227,8 @@ for fn in sys.argv[1:]:
                     variables[name] = [name, atype]
                 elif a[:2] == ["DECLARE", "EXCEPTION"]:
                     exceptions.append((prefix, a[2]))
+                elif a[:1] == ["EXPORT"]:
+                    exported.add(prefix + a[1])
                 elif in_enum:
                     if a[:2] == ["END", "ENUM"]:
                         in_enum = None
@@ -236,7 +240,7 @@ for fn in sys.argv[1:]:
 
 thunks = set()
 
-for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
+for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
     thunks.add((rtype, tuple(params)))
 
 with open("src/thunks.inc", "w") as inc:
@@ -358,16 +362,24 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    PredefinedType returntype;"
+    print >>inc, "    bool exported;"
     print >>inc, "    int count;"
     print >>inc, "    struct {ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
     print >>inc, "} BuiltinFunctions[] = {"
-    for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
-        print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {{{}}}}},".format(name.replace("global$", ""), rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(rtypename) or "nullptr", len(params), ",".join("{{ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames)))
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
+        print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}}},".format(
+            name.replace("global$", ""),
+            rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr",
+            "\"{}\"".format(rtypename) or "nullptr",
+            "true" if exported else "false",
+            len(params),
+            ",".join("{{ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
+        )
     print >>inc, "};";
 
 with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "namespace rtl {"
-    for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
         if "." in name:
             namespace, name = name.split(".")
             print >>inc, "namespace {} {{ extern {} {}({}); }}".format(namespace, CppFromAstReturn[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
@@ -379,7 +391,7 @@ with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "    Thunk thunk;"
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
-    for name, rtype, rtypename, params, paramtypes, paramnames in functions.values():
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
         print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), name.replace(".", "::"))
     print >>inc, "};";
 

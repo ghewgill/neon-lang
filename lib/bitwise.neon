@@ -4,6 +4,29 @@
  |  Bitwise binary logical operations on 32-bit words.
  |%
 
+EXPORT and32
+EXPORT and64
+EXPORT extract32
+EXPORT extract64
+EXPORT get32
+EXPORT get64
+EXPORT not32
+EXPORT not64
+EXPORT or32
+EXPORT or64
+EXPORT replace32
+EXPORT replace64
+EXPORT set32
+EXPORT set64
+EXPORT shiftLeft32
+EXPORT shiftLeft64
+EXPORT shiftRight32
+EXPORT shiftRight64
+EXPORT shiftRightSigned32
+EXPORT shiftRightSigned64
+EXPORT xor32
+EXPORT xor64
+
 %|
  |  Function: and32
  |

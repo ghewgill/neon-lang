@@ -11,9 +11,24 @@ EXPORT FileOpenException
 EXPORT FileWriteException
 EXPORT PathNotFoundException
 EXPORT PermissionDeniedException
+
+EXPORT copy
+EXPORT copyOverwriteIfExists
+EXPORT delete
+EXPORT exists
+EXPORT files
+EXPORT isDirectory
+EXPORT mkdir
 EXPORT pathJoin
 EXPORT pathSplit
+EXPORT readBytes
+EXPORT readLines
 EXPORT removeDirectoryTree
+EXPORT removeEmptyDirectory
+EXPORT rename
+EXPORT symlink
+EXPORT writeBytes
+EXPORT writeLines
 
 DECLARE NATIVE CONSTANT Separator: String
 

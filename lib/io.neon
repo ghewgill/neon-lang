@@ -8,6 +8,17 @@ EXPORT File
 EXPORT Mode
 EXPORT SeekBase
 
+EXPORT close
+EXPORT fprint
+EXPORT open
+EXPORT readBytes
+EXPORT readLine
+EXPORT seek
+EXPORT tell
+EXPORT truncate
+EXPORT write
+EXPORT writeBytes
+
 %|
  |  Enumeration: Mode
  |

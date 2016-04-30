@@ -8,6 +8,10 @@ EXPORT Database
 EXPORT Row
 EXPORT Rows
 
+EXPORT open
+EXPORT exec
+EXPORT close
+
 %|
  |  Type: Database
  |

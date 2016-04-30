@@ -13,6 +13,29 @@ EXPORT Surface
 EXPORT Texture
 EXPORT Window
 
+EXPORT CreateRGBSurface
+EXPORT CreateRenderer
+EXPORT CreateSoftwareRenderer
+EXPORT CreateTextureFromSurface
+EXPORT CreateWindow
+EXPORT Delay
+EXPORT DestroyRenderer
+EXPORT DestroyTexture
+EXPORT DestroyWindow
+EXPORT FreeSurface
+EXPORT Init
+EXPORT LoadBMP
+EXPORT PollEvent
+EXPORT Quit
+EXPORT RenderClear
+EXPORT RenderCopy
+EXPORT RenderDrawLine
+EXPORT RenderDrawLines
+EXPORT RenderDrawPoint
+EXPORT RenderFillRect
+EXPORT RenderPresent
+EXPORT SetRenderDrawColor
+
 TYPE Renderer IS POINTER
 TYPE Surface IS POINTER
 TYPE Texture IS POINTER

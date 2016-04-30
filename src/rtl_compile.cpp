@@ -35,7 +35,7 @@ bool rtl_import(const std::string &module, Module *mod)
     bool any = false;
     for (auto f: BuiltinFunctions) {
         std::string qualified_name(f.name);
-        if (qualified_name.substr(0, prefix.length()) == prefix) {
+        if (f.exported && qualified_name.substr(0, prefix.length()) == prefix) {
             std::vector<const ParameterType *> params;
             for (int i = 0; i < f.count; i++) {
                 auto &p = f.params[i];

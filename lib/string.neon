@@ -4,6 +4,15 @@
  |  Functions for common string operations.
  |%
 
+EXPORT find
+EXPORT hasPrefix
+EXPORT hasSuffix
+EXPORT join
+EXPORT lower
+EXPORT split
+EXPORT trim
+EXPORT upper
+
 %|
  |  Function: find
  |

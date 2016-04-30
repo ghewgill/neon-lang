@@ -6,7 +6,9 @@
 
 EXPORT Socket
 EXPORT SocketException
+
 EXPORT select
+EXPORT tcpSocket
 
 %|
  |  Exception: SocketException

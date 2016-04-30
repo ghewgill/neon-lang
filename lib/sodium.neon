@@ -7,6 +7,53 @@
 EXPORT DecryptionFailedException
 EXPORT InvalidParameterLengthException
 
+EXPORT init
+EXPORT randombytes
+EXPORT randombytes_close
+EXPORT randombytes_random
+EXPORT randombytes_uniform
+EXPORT aead_aes256gcm_is_available
+EXPORT auth
+EXPORT auth_verify
+EXPORT auth_hmacsha256
+EXPORT auth_hmacsha256_verify
+EXPORT auth_hmacsha512
+EXPORT auth_hmacsha512_verify
+EXPORT aead_aes256gcm_encrypt
+EXPORT aead_aes256gcm_decrypt
+EXPORT box
+EXPORT box_keypair
+EXPORT box_open
+EXPORT box_seal
+EXPORT box_seal_open
+EXPORT box_seed_keypair
+EXPORT generichash
+EXPORT hash
+EXPORT hash_sha256
+EXPORT onetimeauth
+EXPORT onetimeauth_verify
+EXPORT pwhash_scryptsalsa208sha256
+EXPORT pwhash_scryptsalsa208sha256_str
+EXPORT pwhash_scryptsalsa208sha256_str_verify
+EXPORT scalarmult
+EXPORT scalarmult_base
+EXPORT secretbox
+EXPORT secretbox_open
+EXPORT shorthash
+EXPORT sign
+EXPORT sign_open
+EXPORT sign_detached
+EXPORT sign_verify_detached
+EXPORT sign_keypair
+EXPORT sign_seed_keypair
+EXPORT sign_ed25519_sk_to_seed
+EXPORT sign_ed25519_sk_to_pk
+EXPORT stream
+EXPORT stream_xor
+EXPORT stream_xsalsa20_xor_ic
+EXPORT stream_salsa20
+EXPORT stream_salsa20_xor_ic
+
 DECLARE EXCEPTION DecryptionFailedException
 DECLARE EXCEPTION InvalidParameterLengthException
 

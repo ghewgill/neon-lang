@@ -9,6 +9,16 @@ EXPORT Process
 EXPORT SystemException
 EXPORT UnsupportedFunctionException
 
+EXPORT chdir
+EXPORT getcwd
+EXPORT getenv
+EXPORT platform
+EXPORT system
+EXPORT fork
+EXPORT kill
+EXPORT spawn
+EXPORT wait
+
 %|
  |  Exception: SystemException
  |

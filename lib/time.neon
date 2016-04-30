@@ -6,6 +6,10 @@
 
 EXPORT Stopwatch
 
+EXPORT now
+EXPORT sleep
+EXPORT tick
+
 %|
  |  Function: now
  |

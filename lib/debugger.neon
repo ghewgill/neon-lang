@@ -5,6 +5,9 @@
  |  None of the functions in this module have any effect if a debugger is not attached.
  |%
 
+EXPORT breakpoint
+EXPORT log
+
 %|
  |  Function: breakpoint
  |

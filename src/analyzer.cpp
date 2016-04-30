@@ -3194,8 +3194,9 @@ const Program *Analyzer::analyze()
          && dynamic_cast<const Exception *>(name) == nullptr
          && dynamic_cast<const GlobalVariable *>(name) == nullptr
          && dynamic_cast<const Constant *>(name) == nullptr
-         && dynamic_cast<const Function *>(name) == nullptr) {
-            error2(3204, nt.second, "EXPORT must be type, exception, global variable, constant, or function", name->declaration, "Name defined here");
+         && dynamic_cast<const Function *>(name) == nullptr
+         && dynamic_cast<const PredefinedFunction *>(name) == nullptr) {
+            internal_error("Attempt to export something that can't be exported: " + nt.first);
         }
         r->exports[nt.first] = name;
     }

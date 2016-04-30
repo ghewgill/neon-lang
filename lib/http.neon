@@ -6,6 +6,9 @@
 
 EXPORT HttpException
 
+EXPORT get
+EXPORT post
+
 %|
  |  Exception: HttpException
  |

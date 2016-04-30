@@ -7,6 +7,12 @@
 EXPORT MemoryFile
 EXPORT Mode
 
+EXPORT close
+EXPORT open
+EXPORT read
+EXPORT size
+EXPORT write
+
 %|
  |  Enumeration: Mode
  |

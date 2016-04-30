@@ -2167,6 +2167,7 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_export(Emitter &, const std::string &) const override {}
 
     virtual std::string text() const override { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
 };

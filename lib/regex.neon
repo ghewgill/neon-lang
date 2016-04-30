@@ -6,6 +6,8 @@
 
 EXPORT Match
 
+EXPORT search
+
 %|
  |  Type: Group
  |

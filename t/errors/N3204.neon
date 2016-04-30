@@ -1,5 +1,0 @@
-% NOTE: This is currently an error but eventually native functions
-% will need to be exported.
-EXPORT foo
-       %<
-DECLARE NATIVE FUNCTION foo()

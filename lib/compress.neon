@@ -4,6 +4,13 @@
  |  Functions for in-memory compression using several different algorithms.
  |%
 
+EXPORT gzip
+EXPORT gunzip
+EXPORT bzip2
+EXPORT bunzip2
+EXPORT lzma
+EXPORT unlzma
+
 %|
  |  Function: gzip
  |

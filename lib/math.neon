@@ -6,6 +6,42 @@
 
 EXPORT Pi
 
+EXPORT abs
+EXPORT acos
+EXPORT acosh
+EXPORT asin
+EXPORT asinh
+EXPORT atan
+EXPORT atanh
+EXPORT atan2
+EXPORT cbrt
+EXPORT ceil
+EXPORT cos
+EXPORT cosh
+EXPORT erf
+EXPORT erfc
+EXPORT exp
+EXPORT exp2
+EXPORT expm1
+EXPORT floor
+EXPORT frexp
+EXPORT hypot
+EXPORT ldexp
+EXPORT lgamma
+EXPORT log
+EXPORT log10
+EXPORT log1p
+EXPORT log2
+EXPORT nearbyint
+EXPORT sign
+EXPORT sin
+EXPORT sinh
+EXPORT sqrt
+EXPORT tan
+EXPORT tanh
+EXPORT tgamma
+EXPORT trunc
+
 %|
  |  Constant: Pi
  |

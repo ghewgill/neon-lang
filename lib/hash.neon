@@ -4,6 +4,25 @@
  |  Functions for hashing data using a variety of algorithms.
  |%
 
+EXPORT crc32
+EXPORT crc32Bytes
+EXPORT md5
+EXPORT md5Raw
+EXPORT md5Bytes
+EXPORT md5BytesRaw
+EXPORT sha1
+EXPORT sha1Raw
+EXPORT sha1Bytes
+EXPORT sha1BytesRaw
+EXPORT sha256
+EXPORT sha256Raw
+EXPORT sha256Bytes
+EXPORT sha256BytesRaw
+EXPORT sha3
+EXPORT sha3Raw
+EXPORT sha3Bytes
+EXPORT sha3BytesRaw
+
 %|
  |  Function: crc32
  |

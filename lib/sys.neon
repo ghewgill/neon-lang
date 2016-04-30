@@ -4,6 +4,8 @@
  |  Functions for interacting with the system.
  |%
 
+EXPORT exit
+
 %|
  |  Variable: args
  |

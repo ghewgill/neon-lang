@@ -4,6 +4,8 @@
  |  Functions for generating random numbers.
  |%
 
+EXPORT uint32
+
 %|
  |  Function: uint32
  |
