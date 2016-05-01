@@ -59,6 +59,7 @@ class RangeSubscriptExpression;
 class ImportDeclaration;
 class TypeDeclaration;
 class ConstantDeclaration;
+class NativeConstantDeclaration;
 class VariableDeclaration;
 class LetDeclaration;
 class FunctionDeclaration;
@@ -144,6 +145,7 @@ public:
     virtual void visit(const ImportDeclaration *) = 0;
     virtual void visit(const TypeDeclaration *) = 0;
     virtual void visit(const ConstantDeclaration *) = 0;
+    virtual void visit(const NativeConstantDeclaration *) = 0;
     virtual void visit(const VariableDeclaration *) = 0;
     virtual void visit(const LetDeclaration *) = 0;
     virtual void visit(const FunctionDeclaration *) = 0;
@@ -698,6 +700,17 @@ public:
 private:
     ConstantDeclaration(const ConstantDeclaration &);
     ConstantDeclaration &operator=(const ConstantDeclaration &);
+};
+
+class NativeConstantDeclaration: public Declaration {
+public:
+    NativeConstantDeclaration(const Token &token, const Token &name, const Type *type): Declaration(token), name(name), type(type) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token name;
+    const Type *const type;
+private:
+    NativeConstantDeclaration(const NativeConstantDeclaration &);
+    NativeConstantDeclaration &operator=(const NativeConstantDeclaration &);
 };
 
 class VariableDeclaration: public Declaration {

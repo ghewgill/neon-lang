@@ -229,6 +229,10 @@ public:
         child(node->type);
         child(node->value);
     }
+    virtual void visit(const NativeConstantDeclaration *node) override {
+        write("ConstantDeclaration(" + node->name.text + ")");
+        child(node->type);
+    }
     virtual void visit(const VariableDeclaration *node) override {
         write("VariableDeclaration(" + join(node->names) + ")");
         child(node->type);

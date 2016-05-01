@@ -214,7 +214,12 @@ for fn in sys.argv[1:]:
                     ctype = ntype
                     if ctype == "String":
                         ctype = "std::string"
-                    constants[name] = [name, ctype, "new Constant{}Expression(rtl::{})".format(ntype, name)]
+                    constants[name] = [
+                        name,
+                        ctype,
+                        name in exported,
+                        "new Constant{}Expression(rtl::{})".format(ntype, name)
+                    ]
                 elif a[:3] == ["DECLARE", "NATIVE", "VAR"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
                     assert m is not None
@@ -313,22 +318,23 @@ with open("src/thunks.inc", "w") as inc:
 
 with open("src/constants_compile.inc", "w") as inc:
     print >>inc, "namespace rtl {"
-    for name, ctype, init in constants.values():
-        print >>inc, "extern const {} {};".format(ctype, name)
+    for name, ctype, exported, init in constants.values():
+        if exported:
+            print >>inc, "extern const {} {};".format(ctype, name)
     print >>inc, "}"
-    print >>inc, "static void init_builtin_constants(Scope *{})".format("scope" if any("$" not in x[0] for x in constants.values()) else "")
+    # There aren't currently any global predefined constants.
+    #print >>inc, "static void init_builtin_constants(Scope *{})".format("scope" if any("$" not in x[0] for x in constants.values()) else "")
+    #print >>inc, "{"
+    #for name, ctype, exported, init in constants.values():
+    #    if "$" not in name:
+    #        print >>inc, "    scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(name, name, init)
+    #print >>inc, "}";
+    print >>inc, "static const Expression *get_native_constant_value(const std::string &{})".format("name" if any("$" in x[0] for x in constants.values()) else "")
     print >>inc, "{"
-    for name, ctype, init in constants.values():
-        if "$" not in name:
-            print >>inc, "    scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(name, name, init)
-    print >>inc, "}";
-    print >>inc, "static void init_builtin_constants(const std::string &{}, Scope *{})".format("module" if any("$" in x[0] for x in constants.values()) else "", "scope" if any("$" in x[0] for x in constants.values()) else "")
-    print >>inc, "{"
-    for name, ctype, init in constants.values():
-        i = name.index("$")
-        module = name[:i]
-        modname = name[i+1:]
-        print >>inc, "    if (module == \"{}\") scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(module, modname, modname, init)
+    for name, ctype, exported, init in constants.values():
+        if exported:
+            print >>inc, "    if (name == \"{}\") return {};".format(name, init)
+    print >>inc, "    internal_error(\"native constant not found: \" + name);"
     print >>inc, "}";
 
 with open("src/variables_compile.inc", "w") as inc:

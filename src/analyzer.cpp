@@ -23,6 +23,7 @@ public:
 
     ICompilerSupport *support;
     const pt::Program *program;
+    const std::string module_name;
     std::map<std::string, Module *> modules;
     Frame *global_frame;
     Scope *global_scope;
@@ -85,6 +86,8 @@ public:
     const Statement *analyze(const pt::TypeDeclaration *declaration);
     const Statement *analyze_decl(const pt::ConstantDeclaration *declaration);
     const Statement *analyze_body(const pt::ConstantDeclaration *declaration);
+    const Statement *analyze_decl(const pt::NativeConstantDeclaration *declaration);
+    const Statement *analyze_body(const pt::NativeConstantDeclaration *declaration);
     const Statement *analyze_decl(const pt::VariableDeclaration *declaration);
     const Statement *analyze_body(const pt::VariableDeclaration *declaration);
     const Statement *analyze_decl(const pt::LetDeclaration *declaration);
@@ -118,6 +121,7 @@ public:
     const Statement *analyze(const pt::WhileStatement *statement);
     const Program *analyze();
 private:
+    static std::string extract_module_name(const pt::Program *program);
     Module *import_module(const Token &token, const std::string &name);
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
@@ -178,6 +182,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::NativeConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
@@ -265,6 +270,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::NativeConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
@@ -351,6 +357,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TypeDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::NativeConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
@@ -437,6 +444,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *) override {}
     virtual void visit(const pt::TypeDeclaration *) override {}
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::NativeConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
@@ -498,6 +506,7 @@ static std::string path_stripext(const std::string &name)
 Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program)
   : support(support),
     program(program),
+    module_name(extract_module_name(program)),
     modules(),
     global_frame(nullptr),
     global_scope(nullptr),
@@ -684,6 +693,19 @@ ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, co
         args.push_back(new ConstantBooleanExpression(last_from_end));
         load = new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("array__slice"))), args);
     }
+}
+
+std::string Analyzer::extract_module_name(const pt::Program *program)
+{
+    std::string module_name = program->source_path;
+    std::string::size_type i = module_name.find_last_of("/\\");
+    if (i != std::string::npos) {
+        module_name = module_name.substr(i+1);
+    }
+    if (module_name.size() >= 6 && module_name.substr(module_name.size() - 5) == ".neon") {
+        module_name = module_name.substr(0, module_name.size() - 5);
+    }
+    return module_name;
 }
 
 Module *Analyzer::import_module(const Token &token, const std::string &name)
@@ -2032,6 +2054,22 @@ const Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declarati
     return new NullStatement(declaration->token.line);
 }
 
+const Statement *Analyzer::analyze_decl(const pt::NativeConstantDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
+    if (not scope.top()->allocateName(declaration->name, name)) {
+        error2(3206, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
+    }
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
+    scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, get_native_constant_value(module_name + "$" + name)));
+    return new NullStatement(declaration->token.line);
+}
+
 const Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declaration)
 {
     for (auto name: declaration->names) {
@@ -3163,20 +3201,7 @@ const Program *Analyzer::analyze()
     frame.push(global_frame);
     scope.push(global_scope);
 
-    // TODO: This bit makes sure that the native constants are
-    // actually available in the module where they are declared.
-    // There's certainly a better way that doesn't involve this
-    // roundabout way.
-    init_builtin_constants(global_scope);
-    std::string module_name = program->source_path;
-    std::string::size_type i = module_name.find_last_of("/\\");
-    if (i != std::string::npos) {
-        module_name = module_name.substr(i+1);
-    }
-    if (module_name.size() >= 6 && module_name.substr(module_name.size() - 5) == ".neon") {
-        module_name = module_name.substr(0, module_name.size() - 5);
-    }
-    init_builtin_constants(module_name, global_scope);
+    //init_builtin_constants(global_scope);
 
     loops.push(std::list<std::pair<TokenType, unsigned int>>());
     r->statements = analyze(program->body);
@@ -3283,6 +3308,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *) {}
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *) {}
+    virtual void visit(const pt::NativeConstantDeclaration *) {}
     virtual void visit(const pt::VariableDeclaration *node) {
         if (node->value != nullptr) {
             node->value->accept(this);
@@ -3593,6 +3619,7 @@ public:
     virtual void visit(const pt::ImportDeclaration *) {}
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *) {}
+    virtual void visit(const pt::NativeConstantDeclaration *) {}
     virtual void visit(const pt::VariableDeclaration *node) {
         if (node->value != nullptr) {
             node->value->accept(this);

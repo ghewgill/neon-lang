@@ -12,6 +12,8 @@ EXPORT FileWriteException
 EXPORT PathNotFoundException
 EXPORT PermissionDeniedException
 
+EXPORT Separator
+
 EXPORT copy
 EXPORT copyOverwriteIfExists
 EXPORT delete

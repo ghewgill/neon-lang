@@ -1,6 +1,5 @@
 #include "rtl_compile.h"
 
-#include "constants_compile.inc"
 #include "functions_compile.inc"
 #include "variables_compile.inc"
 
@@ -16,7 +15,7 @@ static const Type *resolve_type(const PredefinedType &ptype, Scope *scope)
 
 void rtl_compile_init(Scope *scope)
 {
-    init_builtin_constants(scope);
+    //init_builtin_constants(scope);
     for (auto f: BuiltinFunctions) {
         std::vector<const ParameterType *> params;
         for (int i = 0; i < f.count; i++) {
@@ -30,7 +29,6 @@ void rtl_compile_init(Scope *scope)
 bool rtl_import(const std::string &module, Module *mod)
 {
     std::string prefix = module + "$";
-    init_builtin_constants(module, mod->scope);
     init_builtin_variables(module, mod->scope);
     bool any = false;
     for (auto f: BuiltinFunctions) {

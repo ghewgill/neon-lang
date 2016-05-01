@@ -1031,12 +1031,19 @@ const Statement *Parser::parseDeclaration()
         case NATIVE: {
             ++i;
             if (tokens[i].type == CONSTANT) {
+                auto &tok_constant = tokens[i];
                 ++i;
-                // This just skips over the (assumed syntactically correct)
-                // identifier, colon, and type declaration of a constant.
+                // The form of the native constant declaration is assumed
+                // to be syntactically correct:
+                //  DECLARE NATIVE CONSTANT name: type
+                Token name = tokens[i];
                 ++i;
+                if (tokens[i].type != COLON) {
+                    internal_error("colon expected");
+                }
                 ++i;
-                parseType();
+                const Type *type = parseType();
+                return new NativeConstantDeclaration(tok_constant, name, type);
             } else if (tokens[i].type == FUNCTION) {
                 auto &tok_function = tokens[i];
                 Token type;

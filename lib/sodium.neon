@@ -7,6 +7,14 @@
 EXPORT DecryptionFailedException
 EXPORT InvalidParameterLengthException
 
+EXPORT box_NONCEBYTES
+EXPORT generichash_BYTES_MAX
+EXPORT generichash_KEYBYTES_MAX
+EXPORT secretbox_KEYBYTES
+EXPORT secretbox_NONCEBYTES
+EXPORT shorthash_KEYBYTES
+EXPORT sign_BYTES
+
 EXPORT init
 EXPORT randombytes
 EXPORT randombytes_close
