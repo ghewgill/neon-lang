@@ -4,6 +4,7 @@ EXPORT enum
 EXPORT const
 EXPORT var
 EXPORT var2
+EXPORT let
 EXPORT function
 EXPORT modify
 EXPORT Exception
@@ -33,6 +34,8 @@ CONSTANT const: Number := 5
 VAR var: String := "test"
 
 VAR var2: enum := enum.blue
+
+LET let: String := "green"
 
 FUNCTION function(x: Number): Number
     RETURN x * x
