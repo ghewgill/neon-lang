@@ -1091,6 +1091,7 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (var != nullptr) {
             return new VariableExpression(var);
         }
+        internal_error("qualified name resolved but not matched");
     }
     name = analyze_qualified_name(expr->base);
     if (name != nullptr) {
@@ -1253,6 +1254,10 @@ const Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr
 
 const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
 {
+    // TODO: This stuff works, but it's increasingly becoming a mess. There seem
+    // to be quite a few cases of x.y(), and this function tries to handle them all
+    // in a haphazard fashion.
+    const TypeRecord *recordtype = nullptr;
     const pt::IdentifierExpression *fname = dynamic_cast<const pt::IdentifierExpression *>(expr->base);
     if (fname != nullptr) {
         if (fname->name == "valueCopy") {
@@ -1293,23 +1298,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             vars.push_back(lhs);
             return new StatementExpression(new AssignmentStatement(expr->token.line, vars, rhs));
         }
-        const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
-        if (recordtype != nullptr) {
-            if (expr->args.size() > recordtype->fields.size()) {
-                error2(3130, expr->args[recordtype->fields.size()].expr->token, "wrong number of fields", recordtype->declaration, "record declared here");
-            }
-            std::vector<const Expression *> elements;
-            auto f = recordtype->fields.begin();
-            for (auto x: expr->args) {
-                const Expression *element = analyze(x.expr);
-                if (not element->type->is_assignment_compatible(f->type)) {
-                    error2(3131, x.expr->token, "type mismatch", f->name, "field declared here");
-                }
-                elements.push_back(element);
-                ++f;
-            }
-            return new RecordLiteralExpression(recordtype, elements);
-        }
+        recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
     }
     const pt::DotExpression *dotmethod = dynamic_cast<const pt::DotExpression *>(expr->base);
     const Expression *self = nullptr;
@@ -1333,10 +1322,29 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             }
             func = new VariableExpression(m->second);
         } else {
-            func = analyze(expr->base);
+            recordtype = dynamic_cast<const TypeRecord *>(analyze_qualified_name(expr->base));
+            if (recordtype == nullptr) {
+                func = analyze(expr->base);
+            }
         }
-    } else {
+    } else if (recordtype == nullptr) {
         func = analyze(expr->base);
+    }
+    if (recordtype != nullptr) {
+        if (expr->args.size() > recordtype->fields.size()) {
+            error2(3130, expr->args[recordtype->fields.size()].expr->token, "wrong number of fields", recordtype->declaration, "record declared here");
+        }
+        std::vector<const Expression *> elements;
+        auto f = recordtype->fields.begin();
+        for (auto x: expr->args) {
+            const Expression *element = analyze(x.expr);
+            if (not element->type->is_assignment_compatible(f->type)) {
+                error2(3131, x.expr->token, "type mismatch", f->name, "field declared here");
+            }
+            elements.push_back(element);
+            ++f;
+        }
+        return new RecordLiteralExpression(recordtype, elements);
     }
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     if (ftype == nullptr) {

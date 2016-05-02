@@ -1,8 +1,6 @@
 IMPORT time
 
-TYPE Stopwatch IS time.Stopwatch
-
-VAR timer: Stopwatch := Stopwatch()
+VAR timer: time.Stopwatch := time.Stopwatch()
 timer.start()
 time.sleep(0.2)
 LET e: Number := timer.elapsed()

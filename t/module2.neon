@@ -1,8 +1,7 @@
-% TODO (module.type() initialiser)
 IMPORT module
 IMPORT module.enum
 
-VAR r: module.type
+VAR r: module.type := module.type()
 r.string := "hello"
 print(r.string)
 %= hello

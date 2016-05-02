@@ -8,10 +8,8 @@ IMPORT multiarray
 IMPORT random
 IMPORT sdl
 
-TYPE Rect IS sdl.Rect
-
 FUNCTION rect(x, y, w, h: Number): sdl.Rect
-    VAR r: sdl.Rect := Rect()
+    VAR r: sdl.Rect := sdl.Rect()
     r.x := x
     r.y := y
     r.w := w
