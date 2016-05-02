@@ -31,15 +31,15 @@ print("\(x)")
 %= 14
 
 TRY
-    RAISE module.exception
-EXCEPTION module.exception DO
+    RAISE module.Exception
+EXCEPTION module.Exception DO
     print("exception 1")
 END TRY
 %= exception 1
 
 TRY
     module.raise()
-EXCEPTION module.exception DO
+EXCEPTION module.Exception DO
     print("exception 2")
 END TRY
 %= exception 2
