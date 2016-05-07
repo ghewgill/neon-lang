@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <iso646.h>
 
 #include "cell.h"
@@ -150,7 +151,13 @@ bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seco
         actual_tv.tv_usec = number_to_sint32(number_modulo(number_multiply(timeout_seconds, number_from_sint32(1000000)), number_from_sint32(1000000)));
         tv = &actual_tv;
     }
-    int r = select(nfds, &rfds, &wfds, &efds, tv);
+    int r;
+    do {
+        r = select(nfds, &rfds, &wfds, &efds, tv);
+        if (r < 0 && errno == EAGAIN) {
+            continue;
+        }
+    } while (false);
     if (r < 0) {
         throw RtlException(Exception_net$SocketException, "");
     }
