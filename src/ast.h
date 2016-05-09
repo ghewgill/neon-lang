@@ -623,7 +623,7 @@ public:
 
 class ModuleVariable: public Variable {
 public:
-    ModuleVariable(const std::string &module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, false), module(module), index(index) {}
+    ModuleVariable(const std::string &module, const std::string &name, const Type *type, int index): Variable(Token(), name, type, true), module(module), index(index) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
     const int index;

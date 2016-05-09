@@ -8,9 +8,6 @@ print(r.string)
 
 print("\(module.var2)")
 %= blue
-module.var2 := enum.red
-print("\(module.var2)")
-%= red
 
 print(r.method())
 %= hellohello
