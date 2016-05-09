@@ -283,9 +283,9 @@ std::string global$bytes__toString(const std::string &self)
         } else {
             r << ' ';
         }
-        char buf[3];
-        snprintf(buf, sizeof(buf), "%02x", static_cast<unsigned char>(c));
-        r << buf;
+        static const char hex[] = "0123456789abcdef";
+        r << hex[(c >> 4) & 0xf];
+        r << hex[c & 0xf];
     }
     r << "\"";
     return r.str();
