@@ -679,6 +679,12 @@ const Expression *Parser::parseMultiplication()
                 left = new DivisionExpression(tok_op, left, right);
                 break;
             }
+            case INTDIV: {
+                ++i;
+                const Expression *right = parseExponentiation();
+                left = new IntegerDivisionExpression(tok_op, left, right);
+                break;
+            }
             case MOD: {
                 ++i;
                 const Expression *right = parseExponentiation();

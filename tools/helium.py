@@ -137,6 +137,7 @@ WITH = Keyword("WITH")
 CHECK = Keyword("CHECK")
 GIVES = Keyword("GIVES")
 NOWHERE = Keyword("NOWHERE")
+INTDIV = Keyword("INTDIV")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -631,6 +632,16 @@ class DivisionExpression:
     def eval(self, env):
         try:
             return self.left.eval(env) / self.right.eval(env)
+        except ZeroDivisionError:
+            raise NeonException("DivideByZeroException")
+
+class IntegerDivisionExpression:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+    def eval(self, env):
+        try:
+            return math.trunc(self.left.eval(env) / self.right.eval(env))
         except ZeroDivisionError:
             raise NeonException("DivideByZeroException")
 
@@ -1445,6 +1456,10 @@ class Parser:
                 self.i += 1
                 right = self.parse_exponentiation()
                 left = DivisionExpression(left, right)
+            elif self.tokens[self.i] is INTDIV:
+                self.i += 1
+                right = self.parse_exponentiation()
+                left = IntegerDivisionExpression(left, right)
             elif self.tokens[self.i] is MOD:
                 self.i += 1
                 right = self.parse_exponentiation()

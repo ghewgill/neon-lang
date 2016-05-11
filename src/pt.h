@@ -41,6 +41,7 @@ class LogicalNotExpression;
 class ExponentiationExpression;
 class MultiplicationExpression;
 class DivisionExpression;
+class IntegerDivisionExpression;
 class ModuloExpression;
 class AdditionExpression;
 class SubtractionExpression;
@@ -127,6 +128,7 @@ public:
     virtual void visit(const ExponentiationExpression *) = 0;
     virtual void visit(const MultiplicationExpression *) = 0;
     virtual void visit(const DivisionExpression *) = 0;
+    virtual void visit(const IntegerDivisionExpression *) = 0;
     virtual void visit(const ModuloExpression *) = 0;
     virtual void visit(const AdditionExpression *) = 0;
     virtual void visit(const SubtractionExpression *) = 0;
@@ -498,6 +500,12 @@ public:
 class DivisionExpression: public BinaryExpression {
 public:
     DivisionExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+};
+
+class IntegerDivisionExpression: public BinaryExpression {
+public:
+    IntegerDivisionExpression(const Token &token, const Expression *left, const Expression *right): BinaryExpression(token, left, right) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 

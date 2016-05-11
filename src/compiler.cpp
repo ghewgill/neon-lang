@@ -828,7 +828,11 @@ void PredefinedFunction::predeclare(Emitter &emitter) const
 void PredefinedFunction::generate_call(Emitter &emitter) const
 {
     if (name_index == -1) {
-        internal_error("predefined function not generated: "+name);
+        //internal_error("predefined function not generated: "+name);
+        // If we get here, that means predeclare() wasn't called for this
+        // because the traversal never got here. But at this point it's
+        // safe to call predeclare() ourselves and sort it out.
+        predeclare(emitter);
     }
     emitter.emit(CALLP, name_index);
 }

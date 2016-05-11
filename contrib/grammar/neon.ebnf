@@ -150,7 +150,7 @@ ComparisonExpression = AdditionExpression, {('=' | '#' | '<' | '>' | '<=' | '>='
 
 AdditionExpression = MultiplicationExpression, {('+' | '-' | '&'), MultiplicationExpression};
 
-MultiplicationExpression = ExponentiationExpression, {('*' | '/' | 'MOD'), ExponentiationExpression};
+MultiplicationExpression = ExponentiationExpression, {('*' | '/' | 'INTDIV' | 'MOD'), ExponentiationExpression};
 
 ExponentiationExpression = Atom, {'^', Atom};
 

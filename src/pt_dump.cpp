@@ -144,6 +144,11 @@ public:
         child(node->left);
         child(node->right);
     }
+    virtual void visit(const IntegerDivisionExpression *node) override {
+        write("IntegerDivisionExpression");
+        child(node->left);
+        child(node->right);
+    }
     virtual void visit(const ModuloExpression *node) override {
         write("ModuloExpression");
         child(node->left);

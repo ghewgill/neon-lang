@@ -68,6 +68,7 @@ public:
     const Expression *analyze(const pt::ExponentiationExpression *expr);
     const Expression *analyze(const pt::MultiplicationExpression *expr);
     const Expression *analyze(const pt::DivisionExpression *expr);
+    const Expression *analyze(const pt::IntegerDivisionExpression *expr);
     const Expression *analyze(const pt::ModuloExpression *expr);
     const Expression *analyze(const pt::AdditionExpression *expr);
     const Expression *analyze(const pt::SubtractionExpression *expr);
@@ -165,6 +166,7 @@ public:
     virtual void visit(const pt::ExponentiationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MultiplicationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DivisionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::IntegerDivisionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ModuloExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::AdditionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::SubtractionExpression *) override { internal_error("pt::Expression"); }
@@ -253,6 +255,7 @@ public:
     virtual void visit(const pt::ExponentiationExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::MultiplicationExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DivisionExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::IntegerDivisionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ModuloExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::AdditionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::SubtractionExpression *p) override { expr = a->analyze(p); }
@@ -340,6 +343,7 @@ public:
     virtual void visit(const pt::ExponentiationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MultiplicationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DivisionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::IntegerDivisionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ModuloExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::AdditionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::SubtractionExpression *) override { internal_error("pt::Expression"); }
@@ -427,6 +431,7 @@ public:
     virtual void visit(const pt::ExponentiationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MultiplicationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DivisionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::IntegerDivisionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ModuloExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::AdditionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::SubtractionExpression *) override { internal_error("pt::Expression"); }
@@ -1494,6 +1499,17 @@ const Expression *Analyzer::analyze(const pt::DivisionExpression *expr)
         return new DivisionExpression(left, right);
     } else {
         error(3026, expr->token, "type mismatch");
+    }
+}
+
+const Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *expr)
+{
+    const Expression *left = analyze(expr->left);
+    const Expression *right = analyze(expr->right);
+    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
+        return new FunctionCall(new VariableExpression(new PredefinedFunction("math$trunc", new TypeFunction(TYPE_NUMBER, {new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER, nullptr)}))), {new DivisionExpression(left, right)});
+    } else {
+        error(3207, expr->token, "type mismatch");
     }
 }
 
@@ -3296,6 +3312,7 @@ public:
     virtual void visit(const pt::ExponentiationExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::MultiplicationExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::DivisionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::IntegerDivisionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ModuloExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::AdditionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::SubtractionExpression *node) { node->left->accept(this); node->right->accept(this); }
@@ -3607,6 +3624,7 @@ public:
     virtual void visit(const pt::ExponentiationExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::MultiplicationExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::DivisionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::IntegerDivisionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ModuloExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::AdditionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::SubtractionExpression *node) { node->left->accept(this); node->right->accept(this); }
