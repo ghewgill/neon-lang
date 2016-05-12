@@ -68,8 +68,8 @@ for _ in range(100):
     #print source
     p = subprocess.Popen(["bin/neonc", "-"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate(source)
-    p.wait()
-    if "Error N1" in err or "Error N2" in err:
+    r = p.wait()
+    if r < 0 or "Error N1" in err or "Error N2" in err:
         with open("tmp/random.out", "w") as f:
             f.write(source)
         print err
