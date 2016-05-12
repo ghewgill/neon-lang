@@ -1337,7 +1337,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     }
     if (recordtype != nullptr) {
         if (expr->args.size() > recordtype->fields.size()) {
-            error2(3130, expr->args[recordtype->fields.size()].expr->token, "wrong number of fields", recordtype->declaration, "record declared here");
+            error2(3130, expr->args[recordtype->fields.size()].expr->token, "too many fields", recordtype->declaration, "record declared here");
         }
         std::vector<const Expression *> elements;
         auto f = recordtype->fields.begin();
