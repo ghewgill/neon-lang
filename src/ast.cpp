@@ -348,7 +348,7 @@ TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFun
 
 bool TypeFunctionPointer::is_assignment_compatible(const Type *rhs) const
 {
-    return functype->is_assignment_compatible(rhs);
+    return functype != nullptr && functype->is_assignment_compatible(rhs);
 }
 
 std::string TypeFunctionPointer::serialize(const Expression *) const
