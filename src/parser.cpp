@@ -29,8 +29,8 @@ public:
     const Type *parsePointerType();
     const Type *parseFunctionType();
     const Type *parseType();
-    const Statement *parseTypeDefinition();
-    const Statement *parseConstantDefinition();
+    const Declaration *parseTypeDefinition();
+    const Declaration *parseConstantDefinition();
     const FunctionCallExpression *parseFunctionCall(const Expression *func);
     const Expression *parseArrayLiteral();
     const DictionaryLiteralExpression *parseDictionaryLiteral();
@@ -48,16 +48,16 @@ public:
     const VariableInfo parseVariableDeclaration();
     void parseFunctionParameters(const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen);
     void parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen);
-    const Statement *parseFunctionDefinition();
-    const Statement *parseExternalDefinition();
-    const Statement *parseDeclaration();
+    const Declaration *parseFunctionDefinition();
+    const Declaration *parseExternalDefinition();
+    const Declaration *parseDeclaration();
     const Statement *parseExport();
     const Statement *parseIncrementStatement();
     const Statement *parseIfStatement();
     const Statement *parseCheckStatement();
     const Statement *parseReturnStatement();
-    const Statement *parseVarStatement();
-    const Statement *parseLetStatement();
+    const Declaration *parseVarStatement();
+    const Declaration *parseLetStatement();
     const Statement *parseWhileStatement();
     const Statement *parseCaseStatement();
     const Statement *parseForStatement();
@@ -265,7 +265,7 @@ const Type *Parser::parseType()
     }
 }
 
-const Statement *Parser::parseTypeDefinition()
+const Declaration *Parser::parseTypeDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -281,7 +281,7 @@ const Statement *Parser::parseTypeDefinition()
     return new TypeDeclaration(tok_name, type);
 }
 
-const Statement *Parser::parseConstantDefinition()
+const Declaration *Parser::parseConstantDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -967,7 +967,7 @@ void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returnty
     parseFunctionParameters(returntype, args, rparen);
 }
 
-const Statement *Parser::parseFunctionDefinition()
+const Declaration *Parser::parseFunctionDefinition()
 {
     auto &tok_function = tokens[i];
     Token type;
@@ -993,7 +993,7 @@ const Statement *Parser::parseFunctionDefinition()
     return new FunctionDeclaration(tok_function, type, name, returntype, args, rparen, body, tok_end_function);
 }
 
-const Statement *Parser::parseExternalDefinition()
+const Declaration *Parser::parseExternalDefinition()
 {
     auto &tok_external = tokens[i];
     ++i;
@@ -1021,7 +1021,7 @@ const Statement *Parser::parseExternalDefinition()
     return new ExternalFunctionDeclaration(tok_external, type, name, returntype, args, rparen, dict);
 }
 
-const Statement *Parser::parseDeclaration()
+const Declaration *Parser::parseDeclaration()
 {
     ++i;
     switch (tokens[i].type) {
@@ -1069,13 +1069,46 @@ const Statement *Parser::parseDeclaration()
 
 const Statement *Parser::parseExport()
 {
+    auto &tok_export = tokens[i];
     ++i;
+    switch (tokens[i].type) {
+        case TYPE: {
+            const Declaration *type = parseTypeDefinition();
+            return new ExportDeclaration(tok_export, {type->token}, type);
+        }
+        case CONSTANT: {
+            const Declaration *constant = parseConstantDefinition();
+            return new ExportDeclaration(tok_export, constant->names, constant);
+        }
+        case VAR: {
+            const VariableDeclaration *var = dynamic_cast<const VariableDeclaration *>(parseVarStatement());
+            return new ExportDeclaration(tok_export, var->names, var);
+        }
+        case LET: {
+            const Declaration *let = parseLetStatement();
+            return new ExportDeclaration(tok_export, let->names, let);
+        }
+        case FUNCTION: {
+            const Declaration *function = parseFunctionDefinition();
+            return new ExportDeclaration(tok_export, function->names, function);
+        }
+        case EXTERNAL: {
+            const Declaration *external = parseExternalDefinition();
+            return new ExportDeclaration(tok_export, external->names, external);
+        }
+        case DECLARE: {
+            const Declaration *declare = parseDeclaration();
+            return new ExportDeclaration(tok_export, declare->names, declare);
+        }
+        default:
+            break;
+    }
     if (tokens[i].type != IDENTIFIER) {
         error(2074, tokens[i], "identifier expected");
     }
     auto &tok_name = tokens[i];
     ++i;
-    return new ExportDeclaration(tok_name, tok_name);
+    return new ExportDeclaration(tok_name, {tok_name}, nullptr);
 }
 
 const Statement *Parser::parseIncrementStatement()
@@ -1200,7 +1233,7 @@ const Statement *Parser::parseReturnStatement()
     return new ReturnStatement(tok_return, expr);
 }
 
-const Statement *Parser::parseVarStatement()
+const Declaration *Parser::parseVarStatement()
 {
     auto &tok_var = tokens[i];
     ++i;
@@ -1213,7 +1246,7 @@ const Statement *Parser::parseVarStatement()
     return new VariableDeclaration(tok_var, vars.first, vars.second, expr);
 }
 
-const Statement *Parser::parseLetStatement()
+const Declaration *Parser::parseLetStatement()
 {
     auto &tok_let = tokens[i];
     ++i;

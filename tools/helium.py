@@ -730,7 +730,7 @@ class NativeFunction:
         self.returntype = returntype
         self.args = args
     def declare(self, env):
-        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), globals()["neon_{}_{}".format(env.module(), self.name)])
+        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), globals().get("neon_{}_{}".format(env.module(), self.name)))
     def run(self, env):
         pass
 
@@ -1244,6 +1244,13 @@ class Parser:
         self.expect(FUNCTION)
         return FunctionDeclaration(type, name, returntype, args, statements)
 
+    def parse_external_definition(self):
+        self.expect(EXTERNAL)
+        type, name, returntype, args = self.parse_function_header()
+        self.parse_dictionary_literal()
+        self.expect(END)
+        self.expect(FUNCTION)
+
     def parse_variable_declaration(self):
         names = []
         while True:
@@ -1679,7 +1686,10 @@ class Parser:
 
     def parse_export(self):
         self.expect(EXPORT)
-        name = self.identifier()
+        if isinstance(self.tokens[self.i], Identifier):
+            name = self.identifier()
+        else:
+            return self.parse_statement()
 
     def parse_if_statement(self):
         self.expect(IF)

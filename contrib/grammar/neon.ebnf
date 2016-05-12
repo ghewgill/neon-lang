@@ -90,7 +90,7 @@ FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':'
 
 ExceptionDeclaration = 'DECLARE', 'EXCEPTION', Identifier;
 
-ExportDeclaration = 'EXPORT', Identifier;
+ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ExternalFunctionDeclaration | NativeFunctionDeclaration | ExceptionDeclaration | Identifier);
 
 MainBlock = 'BEGIN', 'MAIN', {Statement}, 'END', 'MAIN';
 

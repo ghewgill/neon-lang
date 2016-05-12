@@ -286,7 +286,9 @@ public:
         write("ExceptionDeclaration(" + node->name.text + ")");
     }
     virtual void visit(const ExportDeclaration *node) override {
-        write("ExportDeclaration(" + node->name.text + ")");
+        for (auto &name: node->names) {
+            write("ExportDeclaration(" + name.text + ")");
+        }
     }
     virtual void visit(const MainBlock *node) override {
         write("MainBlock");

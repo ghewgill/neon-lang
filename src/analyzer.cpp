@@ -99,7 +99,8 @@ public:
     const Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
     const Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
     const Statement *analyze(const pt::ExceptionDeclaration *declaration);
-    const Statement *analyze(const pt::ExportDeclaration *declaration);
+    const Statement *analyze_decl(const pt::ExportDeclaration *declaration);
+    const Statement *analyze_body(const pt::ExportDeclaration *declaration);
     const Statement *analyze(const pt::MainBlock *statement);
     std::vector<const Statement *> analyze(const std::vector<const pt::Statement *> &statement);
     const Statement *analyze(const pt::AssertStatement *statement);
@@ -368,7 +369,7 @@ public:
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
-    virtual void visit(const pt::ExportDeclaration *) override {}
+    virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::MainBlock *) override {}
     virtual void visit(const pt::AssertStatement *) override {}
     virtual void visit(const pt::AssignmentStatement *) override {}
@@ -456,7 +457,7 @@ public:
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override {}
     virtual void visit(const pt::ExceptionDeclaration *) override {}
-    virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::MainBlock *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssertStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
@@ -2430,12 +2431,35 @@ const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
     return new NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze(const pt::ExportDeclaration *declaration)
+const Statement *Analyzer::analyze_decl(const pt::ExportDeclaration *declaration)
 {
-    if (scope.top()->getDeclaration(declaration->name.text).type == NONE) {
-        error(3152, declaration->name, "export name not declared");
+    if (declaration->declaration != nullptr) {
+        std::vector<const Statement *> statements;
+        DeclarationAnalyzer da(this, statements);
+        declaration->declaration->accept(&da);
+        if (not statements.empty()) {
+            return statements[0];
+        }
     }
-    exports[declaration->name.text] = declaration->name;
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::ExportDeclaration *declaration)
+{
+    for (auto &name: declaration->names) {
+        if (scope.top()->getDeclaration(name.text).type == NONE) {
+            error(3152, name, "export name not declared");
+        }
+        exports[name.text] = name;
+    }
+    if (declaration->declaration != nullptr) {
+        std::vector<const Statement *> statements;
+        StatementAnalyzer sa(this, statements);
+        declaration->declaration->accept(&sa);
+        if (not statements.empty()) {
+            return statements[0];
+        }
+    }
     return new NullStatement(declaration->token.line);
 }
 
@@ -3234,7 +3258,7 @@ const Program *Analyzer::analyze()
     for (auto nt: exports) {
         const Name *name = scope.top()->lookupName(nt.first);
         if (name == nullptr) {
-            internal_error("export name not found");
+            internal_error("export name not found: " + nt.first);
         }
         if (r->exports.find(nt.first) != r->exports.end()) {
             internal_error("export name already exported");
@@ -3362,7 +3386,11 @@ public:
     virtual void visit(const pt::ExternalFunctionDeclaration *) {}
     virtual void visit(const pt::NativeFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}
-    virtual void visit(const pt::ExportDeclaration *) {}
+    virtual void visit(const pt::ExportDeclaration *node) {
+        if (node->declaration != nullptr) {
+            node->declaration->accept(this);
+        }
+    }
     virtual void visit(const pt::MainBlock *) {}
 
     virtual void visit(const pt::AssertStatement *node) { node->expr->accept(this); }
@@ -3668,7 +3696,11 @@ public:
     virtual void visit(const pt::ExternalFunctionDeclaration *) {}
     virtual void visit(const pt::NativeFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}
-    virtual void visit(const pt::ExportDeclaration *) {}
+    virtual void visit(const pt::ExportDeclaration *node) {
+        if (node->declaration != nullptr) {
+            node->declaration->accept(this);
+        }
+    }
     virtual void visit(const pt::MainBlock *) {}
 
     virtual void visit(const pt::AssertStatement *node) { node->expr->accept(this); }

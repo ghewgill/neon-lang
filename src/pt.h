@@ -676,12 +676,13 @@ public:
 
 class Declaration: public Statement {
 public:
-    Declaration(const Token &token): Statement(token) {}
+    Declaration(const Token &token, const std::vector<Token> &names): Statement(token), names(names) {}
+    const std::vector<Token> names;
 };
 
 class ImportDeclaration: public Declaration {
 public:
-    ImportDeclaration(const Token &token, const Token &module, const Token &name, const Token &alias): Declaration(token), module(module), name(name), alias(alias) {}
+    ImportDeclaration(const Token &token, const Token &module, const Token &name, const Token &alias): Declaration(token, {name}), module(module), name(name), alias(alias) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token module;
     const Token name;
@@ -690,7 +691,7 @@ public:
 
 class TypeDeclaration: public Declaration {
 public:
-    TypeDeclaration(const Token &token, const Type *type): Declaration(token), type(type) {}
+    TypeDeclaration(const Token &token, const Type *type): Declaration(token, {}), type(type) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Type *const type;
 private:
@@ -700,7 +701,7 @@ private:
 
 class ConstantDeclaration: public Declaration {
 public:
-    ConstantDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token), name(name), type(type), value(value) {}
+    ConstantDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token, {name}), name(name), type(type), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     const Type *const type;
@@ -712,7 +713,7 @@ private:
 
 class NativeConstantDeclaration: public Declaration {
 public:
-    NativeConstantDeclaration(const Token &token, const Token &name, const Type *type): Declaration(token), name(name), type(type) {}
+    NativeConstantDeclaration(const Token &token, const Token &name, const Type *type): Declaration(token, {name}), name(name), type(type) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     const Type *const type;
@@ -723,9 +724,8 @@ private:
 
 class VariableDeclaration: public Declaration {
 public:
-    VariableDeclaration(const Token &token, const std::vector<Token> &names, const Type *type, const Expression *value): Declaration(token), names(names), type(type), value(value) {}
+    VariableDeclaration(const Token &token, const std::vector<Token> &names, const Type *type, const Expression *value): Declaration(token, names), type(type), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::vector<Token> names;
     const Type *const type;
     const Expression *const value;
 private:
@@ -735,7 +735,7 @@ private:
 
 class LetDeclaration: public Declaration {
 public:
-    LetDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token), name(name), type(type), value(value) {}
+    LetDeclaration(const Token &token, const Token &name, const Type *type, const Expression *value): Declaration(token, {name}), name(name), type(type), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     const Type *const type;
@@ -747,7 +747,7 @@ private:
 
 class BaseFunctionDeclaration: public Declaration {
 public:
-    BaseFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Token &rparen): Declaration(token), type(type), name(name), returntype(returntype), args(args), rparen(rparen) {}
+    BaseFunctionDeclaration(const Token &token, const Token &type, const Token &name, const Type *returntype, const std::vector<const FunctionParameter *> &args, const Token &rparen): Declaration(token, {name}), type(type), name(name), returntype(returntype), args(args), rparen(rparen) {}
     const Token type;
     const Token name;
     const Type *const returntype;
@@ -787,16 +787,19 @@ private:
 
 class ExceptionDeclaration: public Declaration {
 public:
-    ExceptionDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
+    ExceptionDeclaration(const Token &token, const Token &name): Declaration(token, {name}), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
 };
 
 class ExportDeclaration: public Declaration {
 public:
-    ExportDeclaration(const Token &token, const Token &name): Declaration(token), name(name) {}
+    ExportDeclaration(const Token &token, const std::vector<Token> &names, const Declaration *declaration): Declaration(token, names), declaration(declaration) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const Token name;
+    const Declaration *declaration;
+private:
+    ExportDeclaration(const ExportDeclaration &);
+    ExportDeclaration &operator=(const ExportDeclaration &);
 };
 
 class BlockStatement: public Statement {
