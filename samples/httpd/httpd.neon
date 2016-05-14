@@ -42,7 +42,7 @@ TYPE HttpServer IS RECORD
 END RECORD
 
 FUNCTION HttpServer.addHandler(INOUT self: HttpServer, path: String, callback: RequestHandler, params: Array<variant.Variant>)
-    self.handlers.append(Handler(path, callback, params))
+    self.handlers.append(Handler(path WITH path, callback WITH callback, params WITH params))
 END FUNCTION
 
 FUNCTION HttpServer.serve(INOUT self: HttpServer)

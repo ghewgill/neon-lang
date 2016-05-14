@@ -98,15 +98,15 @@ BEGIN MAIN
     FOR i := 0 TO MAX_ITERATIONS-1 DO
         LET x: Number := i MOD (MAX_ITERATIONS/6) * 255 / (MAX_ITERATIONS/6)
         CASE math.floor(i/(MAX_ITERATIONS/6))
-            WHEN 0 DO palette[i] := Colour(0, x, 255)
-            WHEN 1 DO palette[i] := Colour(0, 255, 255-x)
-            WHEN 2 DO palette[i] := Colour(x, 255, 0)
-            WHEN 3 DO palette[i] := Colour(255, 255-x, 0)
-            WHEN 4 DO palette[i] := Colour(255, 0, x)
-            WHEN 5 DO palette[i] := Colour(255-x, 0, 255)
+            WHEN 0 DO palette[i] := Colour(r WITH 0, g WITH x, b WITH 255)
+            WHEN 1 DO palette[i] := Colour(r WITH 0, g WITH 255, b WITH 255-x)
+            WHEN 2 DO palette[i] := Colour(r WITH x, g WITH 255, b WITH 0)
+            WHEN 3 DO palette[i] := Colour(r WITH 255, g WITH 255-x, b WITH 0)
+            WHEN 4 DO palette[i] := Colour(r WITH 255, g WITH 0, b WITH x)
+            WHEN 5 DO palette[i] := Colour(r WITH 255-x, g WITH 0, b WITH 255)
         END CASE
     END FOR
-    palette[MAX_ITERATIONS] := Colour(0, 0, 0)
+    palette[MAX_ITERATIONS] := Colour(r WITH 0, g WITH 0, b WITH 0)
     line := 0
     stride := 64
     VAR quit: Boolean := FALSE

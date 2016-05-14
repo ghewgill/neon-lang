@@ -1,0 +1,7 @@
+TYPE Rec IS RECORD
+    name: String
+    count: Number
+END RECORD
+
+_ := Rec(name WITH "foo", name WITH "bar")
+                          %<

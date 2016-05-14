@@ -37,7 +37,7 @@ CONSTANT cn: Number := 1
 CONSTANT cs: String := "a"
 CONSTANT ca: Array<Number> := [1]
 CONSTANT cd: Dictionary<Number> := {"a": 1}
-CONSTANT cr: Record := Record(1)
+CONSTANT cr: Record := Record(n WITH 1)
 CONSTANT ce: Enum := Enum.green
 
 VAR vb: Boolean

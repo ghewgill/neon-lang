@@ -47,21 +47,21 @@ END RECORD
  |
  |  The integer zero (0) as a BigInt.
  |%
-LET Zero: BigInt := BigInt(1, [0])
+LET Zero: BigInt := BigInt(sign WITH 1, digits WITH [0])
 
 %|
  |  Constant: One
  |
  |  The integer one (1) as a BigInt.
  |%
-LET One: BigInt := BigInt(1, [1])
+LET One: BigInt := BigInt(sign WITH 1, digits WITH [1])
 
 %|
  |  Constant: Two
  |
  |  The integer two (2) as a BigInt.
  |%
-LET Two: BigInt := BigInt(1, [2])
+LET Two: BigInt := BigInt(sign WITH 1, digits WITH [2])
 
 FUNCTION normalise(INOUT r: BigInt)
     WHILE r.digits.size() >= 2 AND r.digits[LAST] = 0 DO

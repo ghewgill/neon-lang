@@ -26,6 +26,11 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
+const Expression *TypeBoolean::make_default_value() const
+{
+    return new ConstantBooleanExpression(false);
+}
+
 std::string TypeBoolean::serialize(const Expression *value) const
 {
     return value->eval_boolean() ? std::string(1, 1) : std::string(1, 0);
@@ -36,6 +41,11 @@ const Expression *TypeBoolean::deserialize_value(const Bytecode::Bytes &value, i
     unsigned char b = value.at(i);
     i++;
     return new ConstantBooleanExpression(b != 0);
+}
+
+const Expression *TypeNumber::make_default_value() const
+{
+    return new ConstantNumberExpression(number_from_uint32(0));
 }
 
 std::string TypeNumber::serialize(const Expression *value) const
@@ -51,6 +61,11 @@ const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, in
     memcpy(&x, &value.at(i), sizeof(Number));
     i += sizeof(Number);
     return new ConstantNumberExpression(x);
+}
+
+const Expression *TypeString::make_default_value() const
+{
+    return new ConstantStringExpression("");
 }
 
 std::string TypeString::serialize(const std::string &value)
@@ -121,6 +136,11 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
             methods["toString"] = new PredefinedFunction("array__toString__string", new TypeFunction(TYPE_STRING, params));
         }
     }
+}
+
+const Expression *TypeArray::make_default_value() const
+{
+    return new ArrayLiteralExpression(nullptr, {});
 }
 
 bool TypeFunction::is_assignment_compatible(const Type *rhs) const
@@ -210,6 +230,11 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
     }
 }
 
+const Expression *TypeDictionary::make_default_value() const
+{
+    return new DictionaryLiteralExpression(nullptr, {});
+}
+
 bool TypeDictionary::is_assignment_compatible(const Type *rhs) const
 {
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
@@ -245,6 +270,11 @@ const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value
         len--;
     }
     return new DictionaryLiteralExpression(elementtype, dict);
+}
+
+const Expression *TypeRecord::make_default_value() const
+{
+    return new ArrayLiteralExpression(nullptr, {});
 }
 
 bool TypeRecord::is_assignment_compatible(const Type *rhs) const
@@ -306,6 +336,11 @@ TypePointer::TypePointer(const Token &declaration, const TypeRecord *reftype)
     }
 }
 
+const Expression *TypePointer::make_default_value() const
+{
+    return new ConstantNilExpression();
+}
+
 bool TypePointer::is_assignment_compatible(const Type *rhs) const
 {
     if (this == rhs) {
@@ -344,6 +379,11 @@ TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFun
         params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
         methods["toString"] = new PredefinedFunction("functionpointer__toString", new TypeFunction(TYPE_STRING, params));
     }
+}
+
+const Expression *TypeFunctionPointer::make_default_value() const
+{
+    return new ConstantNowhereExpression();
 }
 
 bool TypeFunctionPointer::is_assignment_compatible(const Type *rhs) const

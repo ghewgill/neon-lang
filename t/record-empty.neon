@@ -3,7 +3,7 @@ TYPE Rec IS RECORD
 END RECORD
 
 FUNCTION foo(): Rec
-    RETURN Rec("")
+    RETURN Rec(value WITH "")
 END FUNCTION
 
 VAR r: Rec := Rec()

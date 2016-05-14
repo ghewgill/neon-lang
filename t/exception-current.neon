@@ -1,7 +1,7 @@
 DECLARE EXCEPTION PrinterOnFireException
 
 TRY
-    RAISE PrinterOnFireException("A4")
+    RAISE PrinterOnFireException(info WITH "A4")
 EXCEPTION PrinterOnFireException DO
     print(CURRENT_EXCEPTION.name)
     print(CURRENT_EXCEPTION.info)
@@ -11,5 +11,5 @@ print(CURRENT_EXCEPTION.name)
 
 %= PrinterOnFireException
 %= A4
-%= 10
+%= 27
 %=

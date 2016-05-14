@@ -3,5 +3,5 @@ TYPE Point IS RECORD
     y: Number
     %<2
 END RECORD
-Point(1, "foo")
-         %<1
+Point(x WITH 1, y WITH "foo")
+                       %<1

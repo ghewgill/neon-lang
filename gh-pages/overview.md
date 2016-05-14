@@ -54,7 +54,7 @@ Dynamic heap allocation is supported by a `POINTER` type.
     LET s: String := "Hello world"
     LET y: Bytes := HEXBYTES "00 01 02 03"
     LET e: Colour := Colour.green
-    LET r: Person := Person("Alice", Colour.green)
+    LET r: Person := Person(name WITH "Alice", eyes WITH Colour.green)
     LET a: Array<String> := ["fork", "knife", "spoon"]
     LET d: Dictionary<Number> := {"fork": 5, "knife": 6, "spoon": 1}
     LET p: POINTER TO Person := NEW Person
@@ -208,7 +208,7 @@ Records may have methods attached to them, to be called with the usual method sy
         self.height := self.height + 2 * edge
     END FUNCTION
 
-    LET r: Rectangle := Rectangle(4, 5)
+    LET r: Rectangle := Rectangle(width WITH 4, height WITH 5)
     ASSERT r.area() = 20
     r.expand(1)
     ASSERT r.area() = 42

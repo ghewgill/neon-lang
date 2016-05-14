@@ -854,7 +854,7 @@ Example:
     
     VAR size: Number := 3
     IF size > 4 THEN
-        RAISE InvalidWidgetSizeException(size.toString())
+        RAISE InvalidWidgetSizeException(info WITH size.toString())
     END IF
 
 The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
@@ -906,7 +906,7 @@ Example:
     VAR size: Number := 5
     TRY
         IF size > 4 THEN
-            RAISE InvalidWidgetSizeException(size.toString())
+            RAISE InvalidWidgetSizeException(info WITH size.toString())
         END IF
     EXCEPTION InvalidWidgetSizeException DO
         print("Invalid size \(CURRENT_EXCEPTION.info)")

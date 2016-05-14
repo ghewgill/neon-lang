@@ -3,15 +3,15 @@ TYPE Point IS RECORD
     y: Number
 END RECORD
 
-VAR p: Point := Point(1, 2)
+VAR p: Point := Point(x WITH 1, y WITH 2)
 print(p.x.toString())
 %= 1
 print(p.y.toString())
 %= 2
 
 VAR points: Array<Point> := [
-    Point(1, 2),
-    Point(3, 4),
+    Point(x WITH 1, y WITH 2),
+    Point(x WITH 3, y WITH 4),
 ]
 print(points[1].y.toString())
 %= 4

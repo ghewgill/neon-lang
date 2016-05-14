@@ -226,6 +226,7 @@ public:
 
     std::map<std::string, Variable *> methods;
 
+    virtual const Expression *make_default_value() const = 0;
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const { return this == rhs; }
@@ -244,6 +245,7 @@ class TypeNothing: public Type {
 public:
     TypeNothing(): Type(Token(), "Nothing") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    virtual const Expression *make_default_value() const override { internal_error("TypeNothing"); }
     virtual void generate_load(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeNothing"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeNothing"); }
@@ -261,6 +263,7 @@ class TypeDummy: public Type {
 public:
     TypeDummy(): Type(Token(), "Dummy") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    virtual const Expression *make_default_value() const override { internal_error("TypeDummy"); }
     virtual bool is_assignment_compatible(const Type *) const override { return true; }
     virtual void generate_load(Emitter &) const override { internal_error("TypeDummy"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeDummy"); }
@@ -279,6 +282,7 @@ class TypeBoolean: public Type {
 public:
     TypeBoolean(): Type(Token(), "Boolean") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    virtual const Expression *make_default_value() const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -297,6 +301,7 @@ public:
     TypeNumber(const Token &declaration): Type(declaration, "Number") {}
     TypeNumber(const Token &declaration, const std::string &name): Type(declaration, name) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    virtual const Expression *make_default_value() const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -314,6 +319,7 @@ class TypeString: public Type {
 public:
     TypeString(): Type(Token(), "String") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    virtual const Expression *make_default_value() const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -364,6 +370,7 @@ public:
     TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual const Expression *make_default_value() const override { internal_error("TypeFunction"); }
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
@@ -389,6 +396,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Type *elementtype;
 
+    virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
@@ -415,6 +423,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const Type *elementtype;
 
+    virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
@@ -455,6 +464,7 @@ public:
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
+    virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
@@ -494,6 +504,7 @@ public:
 
     const TypeRecord *reftype;
 
+    virtual const Expression *make_default_value() const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
@@ -527,6 +538,7 @@ public:
 
     const TypeFunction *functype;
 
+    virtual const Expression *make_default_value() const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
@@ -565,6 +577,7 @@ public:
     TypeModule(): Type(Token(), "module") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual const Expression *make_default_value() const override { internal_error("TypeModule"); }
     virtual void generate_load(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeModule"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeModule"); }
@@ -583,6 +596,7 @@ public:
     TypeException(): Type(Token(), "Exception") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual const Expression *make_default_value() const override { internal_error("TypeException"); }
     virtual void generate_load(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeException"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeException"); }

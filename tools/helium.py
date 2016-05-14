@@ -496,7 +496,7 @@ class NewRecordExpression:
     def __init__(self, type):
         self.type = type
     def eval(self, env):
-        return self.type.resolve(env).make(env, [])
+        return self.type.resolve(env).make(env, [], [])
 
 class UnaryPlusExpression:
     def __init__(self, expr):
@@ -807,7 +807,7 @@ class FunctionCallExpression:
                     r = r[0]
                 return r
         elif isinstance(f, ClassRecord):
-            return f.make(env, args)
+            return f.make(env, [x[0] for x in self.args], args)
         assert False, (self.func, f)
 
 class ExpressionStatement:
@@ -1996,10 +1996,10 @@ class ClassRecord(Class):
         for f in self.fields:
             setattr(r, f.name, f.type.resolve(env).default(env))
         return r
-    def make(self, env, args):
+    def make(self, env, names, values):
         r = self.default(env)
-        for f, a in zip(self.fields, args):
-            setattr(r, f.name, a)
+        for n, v in zip(names, values):
+            setattr(r, n, v)
         return r
 
 class ClassEnum(Class):

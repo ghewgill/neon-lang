@@ -55,9 +55,9 @@ TYPE Complex IS RECORD
 END RECORD
 
 LET LN10: Number := math.log(10)
-CONSTANT Zero: Complex := Complex(0, 0)
-CONSTANT One: Complex := Complex(1, 0)
-CONSTANT i: Complex := Complex(0, 1)
+CONSTANT Zero: Complex := Complex(re WITH 0, im WITH 0)
+CONSTANT One: Complex := Complex(re WITH 1, im WITH 0)
+CONSTANT i: Complex := Complex(re WITH 0, im WITH 1)
 
 FUNCTION sign(x: Number): Number
     IF x = 0 THEN
@@ -88,7 +88,7 @@ END FUNCTION
  |      im - imaginary part
  |%
 FUNCTION make(re: Number, im: Number): Complex
-    RETURN Complex(re, im)
+    RETURN Complex(re WITH re, im WITH im)
 END FUNCTION
 
 %|
@@ -100,12 +100,12 @@ END FUNCTION
  |      http://mathworld.wolfram.com/InverseCosine.html
  |%
 FUNCTION acos(a: Complex): Complex
-    LET s1: Complex := Complex(1 - a.re, -a.im).sqrt()
-    LET s2: Complex := Complex(1 + a.re, a.im).sqrt()
+    LET s1: Complex := make(1 - a.re, -a.im).sqrt()
+    LET s2: Complex := make(1 + a.re, a.im).sqrt()
     LET r1: Number := 2 * math.atan2(s1.re, s2.re)
     VAR i1: Number := (s2.re*s1.im) - (s2.im*s1.re)
     i1 := sign(i1) * math.log(math.abs(i1) + math.sqrt(i1*i1 + 1))
-    RETURN Complex(r1, i1)
+    RETURN make(r1, i1)
 END FUNCTION
 
 %|
@@ -117,12 +117,12 @@ END FUNCTION
  |      http://mathworld.wolfram.com/InverseHyperbolicCosine.html
  |%
 FUNCTION acosh(a: Complex): Complex
-    LET s1: Complex := Complex(a.re - 1, a.im).sqrt()
-    LET s2: Complex := Complex(a.re + 1, a.im).sqrt()
+    LET s1: Complex := make(a.re - 1, a.im).sqrt()
+    LET s2: Complex := make(a.re + 1, a.im).sqrt()
     VAR r1: Number := (s1.re*s2.re) + (s1.im*s2.im)
     r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt(r1*r1 + 1))
     LET i1: Number := 2 * math.atan2(s1.im, s2.re)
-    RETURN Complex(r1, i1)
+    RETURN make(r1, i1)
 END FUNCTION
 
 %|
@@ -146,7 +146,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/ComplexAddition.html
  |%
 FUNCTION add(a, b: Complex): Complex
-    RETURN Complex(a.re + b.re, a.im + b.im)
+    RETURN make(a.re + b.re, a.im + b.im)
 END FUNCTION
 
 %|
@@ -170,12 +170,12 @@ END FUNCTION
  |      http://mathworld.wolfram.com/InverseSine.html
  |%
 FUNCTION asin(a: Complex): Complex
-    LET s1: Complex := Complex(1 + a.re, a.im).sqrt()
-    LET s2: Complex := Complex(1 - a.re, -a.im).sqrt()
+    LET s1: Complex := make(1 + a.re, a.im).sqrt()
+    LET s2: Complex := make(1 - a.re, -a.im).sqrt()
     VAR r1: Number := (s1.re*s2.im) - (s2.re*s1.im)
     r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt(r1*r1 + 1))
     LET i1: Number := math.atan2(a.re, (s1.re*s2.re) - (s1.im*s2.im))
-    RETURN Complex(i1, -r1)
+    RETURN make(i1, -r1)
 END FUNCTION
 
 %|
@@ -187,12 +187,12 @@ END FUNCTION
  |      http://mathworld.wolfram.com/InverseHyperbolicSine.html
  |%
 FUNCTION asinh(a: Complex): Complex
-    LET s1: Complex := Complex(1 + a.im, -a.re).sqrt()
-    LET s2: Complex := Complex(1 - a.im, a.re).sqrt()
+    LET s1: Complex := make(1 + a.im, -a.re).sqrt()
+    LET s2: Complex := make(1 - a.im, a.re).sqrt()
     VAR r1: Number := (s1.re * s2.im) - (s2.re * s1.im)
     r1 := sign(r1) * math.log(math.abs(r1) + math.sqrt(r1 * r1 + 1))
     LET i1: Number := math.atan2(a.im, (s1.re * s2.re) - (s1.im * s2.im))
-    RETURN Complex(r1, i1)
+    RETURN make(r1, i1)
 END FUNCTION
 
 %|
@@ -205,7 +205,7 @@ END FUNCTION
  |%
 FUNCTION atan(a: Complex): Complex
     IF a.re = 0 AND math.abs(a.im) = 1 THEN
-        RETURN Complex(0, sign(a.im) * Max)
+        RETURN make(0, sign(a.im) * Max)
     END IF
     VAR rsign: Number := 1
     IF a.re = 0 AND math.abs(a.im) > 1 THEN
@@ -213,7 +213,7 @@ FUNCTION atan(a: Complex): Complex
     END IF
     LET u: Complex := i.add(a).div(i.sub(a))
     LET w: Complex := u.log()
-    RETURN Complex(rsign * -w.im/2, w.re/2)
+    RETURN make(rsign * -w.im/2, w.re/2)
 END FUNCTION
 
 %|
@@ -226,10 +226,10 @@ END FUNCTION
  |%
 FUNCTION atanh(a: Complex): Complex
     IF a.im = 0 AND math.abs(a.re) = 1 THEN
-        RETURN Complex(sign(a.re) * Max, 0)
+        RETURN make(sign(a.re) * Max, 0)
     END IF
     LET u: Complex := One.add(a).div(One.sub(a)).log()
-    RETURN Complex(u.re/2, u.im/2)
+    RETURN make(u.re/2, u.im/2)
 END FUNCTION
 
 %|
@@ -241,7 +241,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/Cosine.html
  |%
 FUNCTION cos(a: Complex): Complex
-    RETURN Complex(math.cos(a.re)*rcosh(a.im), -math.sin(a.re)*rsinh(a.im))
+    RETURN make(math.cos(a.re)*rcosh(a.im), -math.sin(a.re)*rsinh(a.im))
 END FUNCTION
 
 %|
@@ -253,7 +253,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/HyperbolicCosine.html
  |%
 FUNCTION cosh(a: Complex): Complex
-    RETURN Complex(rcosh(a.re)*math.cos(a.im), rsinh(a.re)*math.sin(a.im))
+    RETURN make(rcosh(a.re)*math.cos(a.im), rsinh(a.re)*math.sin(a.im))
 END FUNCTION
 
 %|
@@ -266,7 +266,7 @@ END FUNCTION
  |%
 FUNCTION div(a, b: Complex): Complex
     LET d: Number := b.re^2 + b.im^2
-    RETURN Complex((a.re*b.re + a.im*b.im) / d, (a.im*b.re - a.re*b.im) / d)
+    RETURN make((a.re*b.re + a.im*b.im) / d, (a.im*b.re - a.re*b.im) / d)
 END FUNCTION
 
 %|
@@ -279,7 +279,7 @@ END FUNCTION
  |%
 FUNCTION exp(a: Complex): Complex
     LET r: Number := math.exp(a.re)
-    RETURN Complex(r * math.cos(a.im), r * math.sin(a.im))
+    RETURN make(r * math.cos(a.im), r * math.sin(a.im))
 END FUNCTION
 
 %|
@@ -293,7 +293,7 @@ END FUNCTION
 FUNCTION exp10(a: Complex): Complex
     LET r: Number := 10^a.re
     LET t: Number := a.im * LN10
-    RETURN Complex(r * math.cos(t), r * math.sin(t))
+    RETURN make(r * math.cos(t), r * math.sin(t))
 END FUNCTION
 
 %|
@@ -306,7 +306,7 @@ END FUNCTION
  |%
 FUNCTION inv(a: Complex): Complex
     LET d: Number := a.re*a.re + a.im*a.im
-    RETURN Complex(a.re/d, -a.im/d)
+    RETURN make(a.re/d, -a.im/d)
 END FUNCTION
 
 %|
@@ -318,7 +318,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/Logarithm.html
  |%
 FUNCTION log(a: Complex): Complex
-    RETURN Complex(math.log(a.re*a.re + a.im*a.im)/2, a.arg())
+    RETURN make(math.log(a.re*a.re + a.im*a.im)/2, a.arg())
 END FUNCTION
 
 %|
@@ -331,7 +331,7 @@ END FUNCTION
  |%
 FUNCTION log10(a: Complex): Complex
     LET u: Complex := a.log()
-    RETURN Complex(u.re / LN10, u.im / LN10)
+    RETURN make(u.re / LN10, u.im / LN10)
 END FUNCTION
 
 %|
@@ -343,7 +343,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/ComplexMultiplication.html
  |%
 FUNCTION mul(a, b: Complex): Complex
-    RETURN Complex(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re)
+    RETURN make(a.re * b.re - a.im * b.im, a.re * b.im + a.im * b.re)
 END FUNCTION
 
 %|
@@ -359,7 +359,7 @@ FUNCTION pow(a, b: Complex): Complex
     LET m: Number := a.abs()
     LET r: Number := m^b.re * math.exp(-b.im * p)
     LET t: Number := b.re * p + b.im * math.log(m)
-    RETURN Complex(r * math.cos(t), r * math.sin(t))
+    RETURN make(r * math.cos(t), r * math.sin(t))
 END FUNCTION
 
 %|
@@ -371,7 +371,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/Sine.html
  |%
 FUNCTION sin(a: Complex): Complex
-    RETURN Complex(math.sin(a.re)*rcosh(a.im), math.cos(a.re)*rsinh(a.im))
+    RETURN make(math.sin(a.re)*rcosh(a.im), math.cos(a.re)*rsinh(a.im))
 END FUNCTION
 
 %|
@@ -383,7 +383,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/HyperbolicSine.html
  |%
 FUNCTION sinh(a: Complex): Complex
-    RETURN Complex(rsinh(a.re)*math.cos(a.im), rcosh(a.re)*math.sin(a.im))
+    RETURN make(rsinh(a.re)*math.cos(a.im), rcosh(a.re)*math.sin(a.im))
 END FUNCTION
 
 %|
@@ -396,7 +396,7 @@ END FUNCTION
  |%
 FUNCTION sqrt(a: Complex): Complex
     LET m: Number := a.abs()
-    RETURN Complex(math.sqrt((a.re + m) / 2), (IF a.im < 0 THEN -1 ELSE 1) * math.sqrt((-a.re + m) / 2))
+    RETURN make(math.sqrt((a.re + m) / 2), (IF a.im < 0 THEN -1 ELSE 1) * math.sqrt((-a.re + m) / 2))
 END FUNCTION
 
 %|
@@ -408,7 +408,7 @@ END FUNCTION
  |      http://mathworld.wolfram.com/ComplexSubtraction.html
  |%
 FUNCTION sub(a, b: Complex): Complex
-    RETURN Complex(a.re - b.re, a.im - b.im)
+    RETURN make(a.re - b.re, a.im - b.im)
 END FUNCTION
 
 %|
@@ -417,7 +417,7 @@ END FUNCTION
  |  Complex square (a^2).
  |%
 FUNCTION square(a: Complex): Complex
-    RETURN Complex(a.re*a.re - a.im*a.im, 2*a.re*a.im)
+    RETURN make(a.re*a.re - a.im*a.im, 2*a.re*a.im)
 END FUNCTION
 
 %|
@@ -429,8 +429,8 @@ END FUNCTION
  |      http://mathworld.wolfram.com/Tangent.html
  |%
 FUNCTION tan(a: Complex): Complex
-    LET u: Complex := Complex(math.tan(a.re), rtanh(a.im))
-    RETURN u.div(Complex(1, -u.re*u.im))
+    LET u: Complex := make(math.tan(a.re), rtanh(a.im))
+    RETURN u.div(make(1, -u.re*u.im))
 END FUNCTION
 
 %|
@@ -442,8 +442,8 @@ END FUNCTION
  |      http://mathworld.wolfram.com/HyperbolicTangent.html
  |%
 FUNCTION tanh(a: Complex): Complex
-    LET u: Complex := Complex(rtanh(a.re), math.tan(a.im))
-    RETURN u.div(Complex(1, u.re*u.im))
+    LET u: Complex := make(rtanh(a.re), math.tan(a.im))
+    RETURN u.div(make(1, u.re*u.im))
 END FUNCTION
 
 FUNCTION Complex.acos(self: Complex): Complex

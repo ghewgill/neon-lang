@@ -1340,15 +1340,35 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         if (expr->args.size() > recordtype->fields.size()) {
             error2(3130, expr->args[recordtype->fields.size()].expr->token, "too many fields", recordtype->declaration, "record declared here");
         }
-        std::vector<const Expression *> elements;
-        auto f = recordtype->fields.begin();
+        std::vector<const Expression *> elements(recordtype->fields.size());
         for (auto x: expr->args) {
+            if (x.name.text.empty()) {
+                error(3208, x.expr->token, "field name must be specified using WITH");
+            }
+            auto f = recordtype->fields.begin();
+            for (;;) {
+                if (f == recordtype->fields.end()) {
+                    error(3209, x.name, "field name not found");
+                }
+                if (x.name.text == f->name.text) {
+                    break;
+                }
+                ++f;
+            }
+            auto p = std::distance(recordtype->fields.begin(), f);
             const Expression *element = analyze(x.expr);
             if (not element->type->is_assignment_compatible(f->type)) {
                 error2(3131, x.expr->token, "type mismatch", f->name, "field declared here");
             }
-            elements.push_back(element);
-            ++f;
+            if (elements[p] != nullptr) {
+                error(3210, x.name, "field name already specified");
+            }
+            elements[p] = element;
+        }
+        for (size_t p = 0; p < elements.size(); p++) {
+            if (elements[p] == nullptr) {
+                elements[p] = recordtype->fields[p].type->make_default_value();
+            }
         }
         return new RecordLiteralExpression(recordtype, elements);
     }

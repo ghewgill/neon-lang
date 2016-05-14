@@ -45,7 +45,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 WHEN "true" DO
                     RETURN variant.makeBoolean(TRUE)
                 WHEN OTHERS DO
-                    RAISE JsonFormatException("null or false or true expected")
+                    RAISE JsonFormatException(info WITH "null or false or true expected")
             END CASE
         WHEN "-", "0" TO "9" DO
             LET start: Number := index
@@ -80,7 +80,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 IF json[index] = "," THEN
                     INC index
                 ELSIF json[index] # "]" THEN
-                    RAISE JsonFormatException(", or ] expected")
+                    RAISE JsonFormatException(info WITH ", or ] expected")
                 END IF
             END LOOP
             INC index
@@ -95,12 +95,12 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 END IF
                 LET vkey: Variant := decodePart(json, INOUT index)
                 IF vkey.getType() # Type.string THEN
-                    RAISE JsonFormatException("string key expected")
+                    RAISE JsonFormatException(info WITH "string key expected")
                 END IF
                 LET key: String := vkey.getString()
                 skipWhitespace(json, INOUT index)
                 IF json[index] # ":" THEN
-                    RAISE JsonFormatException(": expected")
+                    RAISE JsonFormatException(info WITH ": expected")
                 END IF
                 INC index
                 d[key] := decodePart(json, INOUT index)
@@ -108,7 +108,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 IF json[index] = "," THEN
                     INC index
                 ELSIF json[index] # "}" THEN
-                    RAISE JsonFormatException(", or } expected")
+                    RAISE JsonFormatException(info WITH ", or } expected")
                 END IF
             END LOOP
             INC index

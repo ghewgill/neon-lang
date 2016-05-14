@@ -113,7 +113,7 @@ END RECORD
  |  Make a <Struct> based on an array of <Fields>.
  |%
 FUNCTION make(fields: Array<Field>): Struct
-    RETURN Struct(fields)
+    RETURN Struct(fields WITH fields)
 END FUNCTION
 
 %|
@@ -122,7 +122,7 @@ END FUNCTION
  |  Helper function to create <Field> records.
  |%
 FUNCTION field(name: String, type: Type, width: Number): Field
-    RETURN Field(name, type, width)
+    RETURN Field(name WITH name, type WITH type, width WITH width)
 END FUNCTION
 
 %|

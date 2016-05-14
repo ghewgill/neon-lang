@@ -13,7 +13,7 @@ TYPE rec IS RECORD
     Superpower: Powers
 END RECORD
 VAR Recs:Array<rec> := [
-    rec("Spider", "Man", 24, Powers()),
-    rec("Bat", "Man", 35, Powers()),
-    rec("Super", "Man", 39, Powers()),
+    rec(FirstName WITH "Spider", LastName WITH "Man", Age WITH 24, Superpower WITH Powers()),
+    rec(FirstName WITH "Bat", LastName WITH "Man", Age WITH 35, Superpower WITH Powers()),
+    rec(FirstName WITH "Super", LastName WITH "Man", Age WITH 39, Superpower WITH Powers()),
 ]
