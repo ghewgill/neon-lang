@@ -122,7 +122,7 @@ LoopStatement = 'LOOP', {Statement}, 'END', 'LOOP';
 
 NextStatement = 'NEXT', ('WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT');
 
-RaiseStatement = 'RAISE', Identifier, ['.', Identifier], ['(', Expression, {',', Expression}, ')'];
+RaiseStatement = 'RAISE', Identifier, ['.', Identifier], ['(', Identifier, 'WITH', Expression, {',', Identifier, 'WITH', Expression}, ')'];
 
 RepeatStatement = 'REPEAT', {Statement}, 'UNTIL', Expression;
 
