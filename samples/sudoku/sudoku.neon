@@ -577,7 +577,7 @@ BEGIN MAIN
                             IF known_start THEN
                                 grid := start
                             END IF
-                            LET n: Number := solveSudoku(INOUT grid)
+                            _ := solveSudoku(INOUT grid)
                             popup_close(popup)
                         WHEN "u" DO
                             IF moves.size() > 0 THEN
