@@ -71,7 +71,7 @@ BEGIN MAIN
             pipes[0 TO 0] := []
         END WHILE
         WHILE pipes.size() < 5 DO
-            VAR p: Pipe
+            VAR p: Pipe := Pipe()
             p.x := pipes[LAST].x + 320
             p.gap := random.uint32() MOD 300 + 100
             pipes.append(p)

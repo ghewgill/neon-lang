@@ -204,7 +204,7 @@ BEGIN MAIN
     player.turn := 0
     player.thrust := FALSE
     FOR i := 0 TO 1 DO
-        VAR rock: Rock
+        VAR rock: Rock := Rock()
         rock.x := random.uint32() MOD 640
         rock.y := random.uint32() MOD 480
         rock.dx := random.uint32() MOD 10 / 5 - 1
