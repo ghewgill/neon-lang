@@ -187,6 +187,7 @@ public:
     const Token token;
 private:
     ParseTreeNode(const ParseTreeNode &) = delete;
+    ParseTreeNode &operator=(const ParseTreeNode &) = delete;
 };
 
 class Type: public ParseTreeNode {
@@ -726,6 +727,9 @@ public:
         WhenCondition(const Token &token): token(token) {}
         virtual ~WhenCondition() {}
         const Token token;
+    private:
+        WhenCondition(const WhenCondition &) = delete;
+        WhenCondition &operator=(const WhenCondition &) = delete;
     };
     class ComparisonWhenCondition: public WhenCondition {
     public:
