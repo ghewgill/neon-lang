@@ -6,6 +6,7 @@
 
 #include <sha256.h>
 
+#include "ast.h"
 #include "lexer.h"
 #include "parser.h"
 #include "compiler.h"
@@ -54,7 +55,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
         {
             auto tokens = tokenize(names.first, source);
             auto parsetree = parse(tokens);
-            auto ast = analyze(this, parsetree);
+            auto ast = analyze(this, parsetree.get());
             auto bytecode = compile(ast, nullptr);
             std::ofstream outf(objname, std::ios::binary);
             outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());

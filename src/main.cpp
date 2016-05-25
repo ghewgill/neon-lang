@@ -109,10 +109,10 @@ int main(int argc, char *argv[])
 
             auto parsetree = parse(tokens);
             if (dump_parse) {
-                dump(parsetree);
+                dump(parsetree.get());
             }
 
-            auto ast = analyze(&compiler_support, parsetree);
+            auto ast = analyze(&compiler_support, parsetree.get());
             if (dump_ast) {
                 dump(ast);
             }

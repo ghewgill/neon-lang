@@ -21,58 +21,58 @@ public:
     int expression_depth;
     size_t minimum_column;
 
-    typedef std::pair<std::vector<Token>, const Type *> VariableInfo;
+    typedef std::pair<std::vector<Token>, std::unique_ptr<Type>> VariableInfo;
 
-    const Type *parseParameterisedType();
-    const Type *parseRecordType();
-    const Type *parseEnumType();
-    const Type *parsePointerType();
-    const Type *parseFunctionType();
-    const Type *parseType();
-    const Declaration *parseTypeDefinition();
-    const Declaration *parseConstantDefinition();
-    const FunctionCallExpression *parseFunctionCall(const Expression *func);
-    const Expression *parseArrayLiteral();
-    const DictionaryLiteralExpression *parseDictionaryLiteral();
-    const Expression *parseInterpolatedStringExpression();
-    const Expression *parseAtom();
-    const Expression *parseExponentiation();
-    const Expression *parseMultiplication();
-    const Expression *parseAddition();
-    const Expression *parseComparison();
-    const Expression *parseMembership();
-    const Expression *parseConjunction();
-    const Expression *parseDisjunction();
-    const Expression *parseConditional();
-    const Expression *parseExpression();
-    const VariableInfo parseVariableDeclaration();
-    void parseFunctionParameters(const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen);
-    void parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen);
-    const Declaration *parseFunctionDefinition();
-    const Declaration *parseExternalDefinition();
-    const Declaration *parseDeclaration();
-    const Statement *parseExport();
-    const Statement *parseIncrementStatement();
-    const Statement *parseIfStatement();
-    const Statement *parseCheckStatement();
-    const Statement *parseReturnStatement();
-    const Declaration *parseVarStatement();
-    const Declaration *parseLetStatement();
-    const Statement *parseWhileStatement();
-    const Statement *parseCaseStatement();
-    const Statement *parseForStatement();
-    const Statement *parseForeachStatement();
-    const Statement *parseLoopStatement();
-    const Statement *parseRepeatStatement();
-    const Statement *parseExitStatement();
-    const Statement *parseNextStatement();
-    const Statement *parseTryStatement();
-    const Statement *parseRaiseStatement();
-    const Statement *parseImport();
-    const Statement *parseAssert();
-    const Statement *parseBegin();
-    const Statement *parseStatement();
-    const Program *parse();
+    std::unique_ptr<Type> parseParameterisedType();
+    std::unique_ptr<Type> parseRecordType();
+    std::unique_ptr<Type> parseEnumType();
+    std::unique_ptr<Type> parsePointerType();
+    std::unique_ptr<Type> parseFunctionType();
+    std::unique_ptr<Type> parseType();
+    std::unique_ptr<Declaration> parseTypeDefinition();
+    std::unique_ptr<Declaration> parseConstantDefinition();
+    std::unique_ptr<FunctionCallExpression> parseFunctionCall(std::unique_ptr<Expression> &&func);
+    std::unique_ptr<Expression> parseArrayLiteral();
+    std::unique_ptr<DictionaryLiteralExpression> parseDictionaryLiteral();
+    std::unique_ptr<Expression> parseInterpolatedStringExpression();
+    std::unique_ptr<Expression> parseAtom();
+    std::unique_ptr<Expression> parseExponentiation();
+    std::unique_ptr<Expression> parseMultiplication();
+    std::unique_ptr<Expression> parseAddition();
+    std::unique_ptr<Expression> parseComparison();
+    std::unique_ptr<Expression> parseMembership();
+    std::unique_ptr<Expression> parseConjunction();
+    std::unique_ptr<Expression> parseDisjunction();
+    std::unique_ptr<Expression> parseConditional();
+    std::unique_ptr<Expression> parseExpression();
+    VariableInfo parseVariableDeclaration();
+    void parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
+    void parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
+    std::unique_ptr<Declaration> parseFunctionDefinition();
+    std::unique_ptr<Declaration> parseExternalDefinition();
+    std::unique_ptr<Declaration> parseDeclaration();
+    std::unique_ptr<Statement> parseExport();
+    std::unique_ptr<Statement> parseIncrementStatement();
+    std::unique_ptr<Statement> parseIfStatement();
+    std::unique_ptr<Statement> parseCheckStatement();
+    std::unique_ptr<Statement> parseReturnStatement();
+    std::unique_ptr<Declaration> parseVarStatement();
+    std::unique_ptr<Declaration> parseLetStatement();
+    std::unique_ptr<Statement> parseWhileStatement();
+    std::unique_ptr<Statement> parseCaseStatement();
+    std::unique_ptr<Statement> parseForStatement();
+    std::unique_ptr<Statement> parseForeachStatement();
+    std::unique_ptr<Statement> parseLoopStatement();
+    std::unique_ptr<Statement> parseRepeatStatement();
+    std::unique_ptr<Statement> parseExitStatement();
+    std::unique_ptr<Statement> parseNextStatement();
+    std::unique_ptr<Statement> parseTryStatement();
+    std::unique_ptr<Statement> parseRaiseStatement();
+    std::unique_ptr<Statement> parseImport();
+    std::unique_ptr<Statement> parseAssert();
+    std::unique_ptr<Statement> parseBegin();
+    std::unique_ptr<Statement> parseStatement();
+    std::unique_ptr<Program> parse();
 private:
     Parser(const Parser &);
     Parser &operator=(const Parser &);
@@ -117,7 +117,7 @@ static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
     }
 }
 
-const Type *Parser::parseParameterisedType()
+std::unique_ptr<Type> Parser::parseParameterisedType()
 {
     auto &tok_type = tokens[i];
     switch (tok_type.type) {
@@ -132,22 +132,22 @@ const Type *Parser::parseParameterisedType()
     }
     auto &tok_less = tokens[i];
     i++;
-    const Type *elementtype = parseType();
+    std::unique_ptr<Type> elementtype = parseType();
     if (tokens[i].type != GREATER) {
         error2(2003, tokens[i], "'>' expected", tok_less, "opening '<' here");
     }
     i++;
-    return new TypeParameterised(tok_type, elementtype);
+    return std::unique_ptr<Type> { new TypeParameterised(tok_type, std::move(elementtype)) };
 }
 
-const Type *Parser::parseRecordType()
+std::unique_ptr<Type> Parser::parseRecordType()
 {
     if (tokens[i].type != RECORD) {
         internal_error("RECORD expected");
     }
     auto &tok_record = tokens[i];
     i++;
-    std::vector<TypeRecord::Field> fields;
+    std::vector<std::unique_ptr<TypeRecord::Field>> fields;
     while (tokens[i].type != END) {
         bool is_private = false;
         if (tokens[i].type == PRIVATE) {
@@ -163,18 +163,18 @@ const Type *Parser::parseRecordType()
             error(2005, tokens[i], "colon expected");
         }
         ++i;
-        const Type *t = parseType();
-        fields.push_back(TypeRecord::Field(name, t, is_private));
+        std::unique_ptr<Type> t = parseType();
+        fields.emplace_back(new TypeRecord::Field(name, std::move(t), is_private));
     }
     i++;
     if (tokens[i].type != RECORD) {
         error_a(2034, tokens[i-1], tokens[i], "'RECORD' expected");
     }
     i++;
-    return new TypeRecord(tok_record, fields);
+    return std::unique_ptr<Type> { new TypeRecord(tok_record, std::move(fields)) };
 }
 
-const Type *Parser::parseEnumType()
+std::unique_ptr<Type> Parser::parseEnumType()
 {
     if (tokens[i].type != ENUM) {
         internal_error("ENUM expected");
@@ -197,10 +197,10 @@ const Type *Parser::parseEnumType()
         error_a(2035, tokens[i-1], tokens[i], "'ENUM' expected");
     }
     i++;
-    return new TypeEnum(tok_enum, names);
+    return std::unique_ptr<Type> { new TypeEnum(tok_enum, names) };
 }
 
-const Type *Parser::parsePointerType()
+std::unique_ptr<Type> Parser::parsePointerType()
 {
     if (tokens[i].type != POINTER) {
         internal_error("POINTER expected");
@@ -209,28 +209,28 @@ const Type *Parser::parsePointerType()
     i++;
     if (tokens[i].type == TO) {
         i++;
-        const Type *reftype = parseType();
-        return new TypePointer(tok_pointer, reftype);
+        std::unique_ptr<Type> reftype = parseType();
+        return std::unique_ptr<Type> { new TypePointer(tok_pointer, std::move(reftype)) };
     } else {
-        return new TypePointer(tok_pointer, nullptr);
+        return std::unique_ptr<Type> { new TypePointer(tok_pointer, nullptr) };
     }
 }
 
-const Type *Parser::parseFunctionType()
+std::unique_ptr<Type> Parser::parseFunctionType()
 {
     if (tokens[i].type != FUNCTION) {
         internal_error("FUNCTION expected");
     }
     auto &tok_function = tokens[i];
     i++;
-    const Type *returntype;
-    std::vector<const FunctionParameter *> args;
+    std::unique_ptr<Type> returntype;
+    std::vector<std::unique_ptr<FunctionParameterGroup>> args;
     Token rparen;
     parseFunctionParameters(returntype, args, rparen);
-    return new TypeFunctionPointer(tok_function, returntype, args);
+    return std::unique_ptr<Type> { new TypeFunctionPointer(tok_function, std::move(returntype), std::move(args)) };
 }
 
-const Type *Parser::parseType()
+std::unique_ptr<Type> Parser::parseType()
 {
     if (tokens[i].type == ARRAY || tokens[i].type == DICTIONARY) {
         return parseParameterisedType();
@@ -259,13 +259,13 @@ const Type *Parser::parseType()
         }
         const Token &subname = tokens[i];
         i++;
-        return new TypeImport(name, name, subname);
+        return std::unique_ptr<Type> { new TypeImport(name, name, subname) };
     } else {
-        return new TypeSimple(name, name.text);
+        return std::unique_ptr<Type> { new TypeSimple(name, name.text) };
     }
 }
 
-const Declaration *Parser::parseTypeDefinition()
+std::unique_ptr<Declaration> Parser::parseTypeDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -277,11 +277,11 @@ const Declaration *Parser::parseTypeDefinition()
         error(2009, tokens[i], "'IS' expected");
     }
     ++i;
-    const Type *type = parseType();
-    return new TypeDeclaration(tok_name, type);
+    std::unique_ptr<Type> type = parseType();
+    return std::unique_ptr<Declaration> { new TypeDeclaration(tok_name, std::move(type)) };
 }
 
-const Declaration *Parser::parseConstantDefinition()
+std::unique_ptr<Declaration> Parser::parseConstantDefinition()
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -293,19 +293,19 @@ const Declaration *Parser::parseConstantDefinition()
         error(2011, tokens[i], "':' expected");
     }
     ++i;
-    const Type *type = parseType();
+    std::unique_ptr<Type> type = parseType();
     if (tokens[i].type != ASSIGN) {
         error(2012, tokens[i], "':=' expected");
     }
     ++i;
-    const Expression *value = parseExpression();
-    return new ConstantDeclaration(tok_name, tok_name, type, value);
+    std::unique_ptr<Expression> value = parseExpression();
+    return std::unique_ptr<Declaration> { new ConstantDeclaration(tok_name, tok_name, std::move(type), std::move(value)) };
 }
 
-const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
+std::unique_ptr<FunctionCallExpression> Parser::parseFunctionCall(std::unique_ptr<Expression> &&func)
 {
     ++i;
-    std::vector<FunctionCallExpression::Argument> args;
+    std::vector<std::unique_ptr<FunctionCallExpression::Argument>> args;
     if (tokens[i].type != RPAREN) {
         for (;;) {
             Token mode;
@@ -324,14 +324,14 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
                 name = tokens[i];
                 i += 2;
             }
-            const Expression *e = nullptr;
+            std::unique_ptr<Expression> e { nullptr };
             if (tokens[i].type == UNDERSCORE) {
-                e = new DummyExpression(tokens[i], tokens[i].column, tokens[i].column);
+                e.reset(new DummyExpression(tokens[i], tokens[i].column, tokens[i].column));
                 ++i;
             } else {
                 e = parseExpression();
             }
-            args.push_back(FunctionCallExpression::Argument(mode, name, e));
+            args.emplace_back(new FunctionCallExpression::Argument(mode, name, std::move(e)));
             if (tokens[i].type != COMMA) {
                 break;
             }
@@ -343,48 +343,48 @@ const FunctionCallExpression *Parser::parseFunctionCall(const Expression *func)
     }
     auto &tok_rparen = tokens[i];
     ++i;
-    return new FunctionCallExpression(func->token, func, args, tok_rparen);
+    return std::unique_ptr<FunctionCallExpression> { new FunctionCallExpression(func->token, std::move(func), std::move(args), tok_rparen) };
 }
 
-const Expression *Parser::parseArrayLiteral()
+std::unique_ptr<Expression> Parser::parseArrayLiteral()
 {
     auto &tok_lbracket = tokens[i];
     ++i;
-    std::vector<const Expression *> elements;
+    std::vector<std::unique_ptr<Expression>> elements;
     while (tokens[i].type != RBRACKET) {
-        const Expression *element = parseExpression();
-        elements.push_back(element);
+        std::unique_ptr<Expression> element = parseExpression();
         if (tokens[i].type == COMMA) {
             ++i;
         } else if (tokens[i].type == TO) {
             ++i;
-            const Expression *first = element;
-            const Expression *last = parseExpression();
-            const Expression *step = nullptr;
+            std::unique_ptr<Expression> first { std::move(element) };
+            std::unique_ptr<Expression> last = parseExpression();
+            std::unique_ptr<Expression> step { nullptr };
             if (tokens[i].type == STEP) {
                 ++i;
                 step = parseExpression();
             } else {
-                step = new NumberLiteralExpression(Token(), number_from_uint32(1));
+                step = std::unique_ptr<Expression> { new NumberLiteralExpression(Token(), number_from_uint32(1)) };
             }
             if (tokens[i].type != RBRACKET) {
                 error2(2099, tokens[i], "']' expected", tok_lbracket, "opening '[' here");
             }
             ++i;
-            return new ArrayLiteralRangeExpression(tok_lbracket, tokens[i-1].column+1, first, last, step);
+            return std::unique_ptr<Expression> { new ArrayLiteralRangeExpression(tok_lbracket, tokens[i-1].column+1, std::move(first), std::move(last), std::move(step)) };
         } else if (tokens[i].type != RBRACKET) {
             error2(2053, tokens[i], "',' or ']' expected", tok_lbracket, "opening '[' here");
         }
+        elements.push_back(std::move(element));
     }
     ++i;
-    return new ArrayLiteralExpression(tok_lbracket, tokens[i-1].column+1, elements);
+    return std::unique_ptr<Expression> { new ArrayLiteralExpression(tok_lbracket, tokens[i-1].column+1, std::move(elements)) };
 }
 
-const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
+std::unique_ptr<DictionaryLiteralExpression> Parser::parseDictionaryLiteral()
 {
     auto &tok_lbrace = tokens[i];
     ++i;
-    std::vector<std::pair<Token, const Expression *>> elements;
+    std::vector<std::pair<Token, std::unique_ptr<Expression>>> elements;
     while (tokens[i].type == STRING) {
         auto &key = tokens[i];
         ++i;
@@ -392,8 +392,8 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
             error(2048, tokens[i], "':' expected");
         }
         ++i;
-        const Expression *element = parseExpression();
-        elements.push_back(std::make_pair(key, element));
+        std::unique_ptr<Expression> element = parseExpression();
+        elements.push_back(std::make_pair(key, std::move(element)));
         if (tokens[i].type == COMMA) {
             ++i;
         }
@@ -402,20 +402,20 @@ const DictionaryLiteralExpression *Parser::parseDictionaryLiteral()
         error2(2049, tokens[i], "'}' expected", tok_lbrace, "opening '{' here");
     }
     ++i;
-    return new DictionaryLiteralExpression(tok_lbrace, tokens[i-1].column+1, elements);
+    return std::unique_ptr<DictionaryLiteralExpression> { new DictionaryLiteralExpression(tok_lbrace, tokens[i-1].column+1, std::move(elements)) };
 }
 
-const Expression *Parser::parseInterpolatedStringExpression()
+std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
 {
-    std::vector<std::pair<const Expression *, Token>> parts;
-    parts.push_back(std::make_pair(new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text), Token()));
+    std::vector<std::pair<std::unique_ptr<Expression>, Token>> parts;
+    parts.push_back(std::make_pair(std::unique_ptr<Expression> { new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text) }, Token()));
     for (;;) {
         ++i;
         if (tokens[i].type != SUBBEGIN) {
             break;
         }
         ++i;
-        const Expression *e = parseExpression();
+        std::unique_ptr<Expression> e = parseExpression();
         Token fmt;
         if (tokens[i].type == SUBFMT) {
             ++i;
@@ -425,7 +425,7 @@ const Expression *Parser::parseInterpolatedStringExpression()
             fmt = tokens[i];
             ++i;
         }
-        parts.push_back(std::make_pair(e, fmt));
+        parts.push_back(std::make_pair(std::move(e), fmt));
         if (tokens[i].type != SUBEND) {
             internal_error("parseInterpolatedStringExpression");
         }
@@ -433,10 +433,10 @@ const Expression *Parser::parseInterpolatedStringExpression()
         if (tokens[i].type != STRING) {
             internal_error("parseInterpolatedStringExpression");
         }
-        e = new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text);
-        parts.push_back(std::make_pair(e, Token()));
+        e.reset(new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text));
+        parts.push_back(std::make_pair(std::move(e), Token()));
     }
-    return new InterpolatedStringExpression(parts[0].first->token, parts);
+    return std::unique_ptr<Expression> { new InterpolatedStringExpression(parts[0].first->token, std::move(parts)) };
 }
 
 /*
@@ -452,41 +452,41 @@ const Expression *Parser::parseInterpolatedStringExpression()
  *  if       conditional                        parseConditional
  */
 
-const Expression *Parser::parseAtom()
+std::unique_ptr<Expression> Parser::parseAtom()
 {
     switch (tokens[i].type) {
         case LPAREN: {
             auto &tok_lparen = tokens[i];
             ++i;
-            const Expression *expr = parseConditional();
+            std::unique_ptr<Expression> expr = parseConditional();
             if (tokens[i].type != RPAREN) {
                 error2(2014, tokens[i], ") expected", tok_lparen, "opening '(' here");
             }
             ++i;
-            return new IdentityExpression(tok_lparen, tok_lparen.column, tokens[i-1].column+1, expr);
+            return std::unique_ptr<Expression> { new IdentityExpression(tok_lparen, tok_lparen.column, tokens[i-1].column+1, std::move(expr)) };
         }
         case LBRACKET: {
-            const Expression *array = parseArrayLiteral();
+            std::unique_ptr<Expression> array = parseArrayLiteral();
             return array;
         }
         case LBRACE: {
-            const Expression *dict = parseDictionaryLiteral();
+            std::unique_ptr<Expression> dict = parseDictionaryLiteral();
             return dict;
         }
         case FALSE: {
             auto &tok_false = tokens[i];
             ++i;
-            return new BooleanLiteralExpression(tok_false, false);
+            return std::unique_ptr<Expression> { new BooleanLiteralExpression(tok_false, false) };
         }
         case TRUE: {
             auto &tok_true = tokens[i];
             ++i;
-            return new BooleanLiteralExpression(tok_true, true);
+            return std::unique_ptr<Expression> { new BooleanLiteralExpression(tok_true, true) };
         }
         case NUMBER: {
             auto &tok_number = tokens[i];
             i++;
-            return new NumberLiteralExpression(tok_number, tok_number.value);
+            return std::unique_ptr<Expression> { new NumberLiteralExpression(tok_number, tok_number.value) };
         }
         case STRING: {
             if (tokens[i+1].type == SUBBEGIN) {
@@ -494,7 +494,7 @@ const Expression *Parser::parseAtom()
             } else {
                 auto &tok_string = tokens[i];
                 i++;
-                return new StringLiteralExpression(tok_string, tokens[i].column, tok_string.text);
+                return std::unique_ptr<Expression> { new StringLiteralExpression(tok_string, tokens[i].column, tok_string.text) };
             }
         }
         case EMBED: {
@@ -504,7 +504,7 @@ const Expression *Parser::parseAtom()
             if (tok_file.type != STRING) {
                 error(2090, tok_file, "string literal expected");
             }
-            return new FileLiteralExpression(tok_file, tokens[i].column, tok_file.text);
+            return std::unique_ptr<Expression> { new FileLiteralExpression(tok_file, tokens[i].column, tok_file.text) };
         }
         case HEXBYTES: {
             ++i;
@@ -513,41 +513,41 @@ const Expression *Parser::parseAtom()
             if (tok_literal.type != STRING) {
                 error(2094, tok_literal, "string literal expected");
             }
-            return new BytesLiteralExpression(tok_literal, tokens[i].column, tok_literal.text);
+            return std::unique_ptr<Expression> { new BytesLiteralExpression(tok_literal, tokens[i].column, tok_literal.text) };
         }
         case PLUS: {
             auto &tok_plus = tokens[i];
             ++i;
-            const Expression *atom = parseAtom();
-            return new UnaryPlusExpression(tok_plus, atom);
+            std::unique_ptr<Expression> atom = parseAtom();
+            return std::unique_ptr<Expression> { new UnaryPlusExpression(tok_plus, std::move(atom)) };
         }
         case MINUS: {
             auto &tok_minus = tokens[i];
             ++i;
-            const Expression *atom = parseAtom();
-            return new UnaryMinusExpression(tok_minus, atom);
+            std::unique_ptr<Expression> atom = parseAtom();
+            return std::unique_ptr<Expression> { new UnaryMinusExpression(tok_minus, std::move(atom)) };
         }
         case NOT: {
             auto &tok_not = tokens[i];
             ++i;
-            const Expression *atom = parseAtom();
-            return new LogicalNotExpression(tok_not, atom);
+            std::unique_ptr<Expression> atom = parseAtom();
+            return std::unique_ptr<Expression> { new LogicalNotExpression(tok_not, std::move(atom)) };
         }
         case NEW: {
             auto &tok_new = tokens[i];
             ++i;
-            const Type *type = parseType();
-            return new NewRecordExpression(tok_new, tokens[i].column, type);
+            std::unique_ptr<Type> type = parseType();
+            return std::unique_ptr<Expression> { new NewRecordExpression(tok_new, tokens[i].column, std::move(type)) };
         }
         case NIL: {
             auto &tok_nil = tokens[i];
             ++i;
-            return new NilLiteralExpression(tok_nil);
+            return std::unique_ptr<Expression> { new NilLiteralExpression(tok_nil) };
         }
         case NOWHERE: {
             auto &tok_nowhere = tokens[i];
             ++i;
-            return new NowhereLiteralExpression(tok_nowhere);
+            return std::unique_ptr<Expression> { new NowhereLiteralExpression(tok_nowhere) };
         }
         case IF: {
             error(2095, tokens[i], "Use parentheses around (IF ... THEN ... ELSE ...)");
@@ -556,20 +556,20 @@ const Expression *Parser::parseAtom()
             error(2106, tokens[i], "Use parentheses around (TRY ... EXCEPTION ...)");
         }
         case IDENTIFIER: {
-            const Expression *expr = new IdentifierExpression(tokens[i], tokens[i].text);
+            std::unique_ptr<Expression> expr { new IdentifierExpression(tokens[i], tokens[i].text) };
             ++i;
             for (;;) {
                 if (tokens[i].type == LBRACKET) {
                     auto &tok_lbracket = tokens[i];
                     ++i;
                     do {
-                        const Expression *index = nullptr;
+                        std::unique_ptr<Expression> index { nullptr };
                         bool first_from_end = false;
                         if (tokens[i].type == FIRST || tokens[i].type == LAST) {
                             first_from_end = tokens[i].type == LAST;
                             ++i;
                             if (tokens[i].type == RBRACKET || tokens[i].type == TO) {
-                                index = new NumberLiteralExpression(Token(), number_from_uint32(0));
+                                index.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
                             } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
                                 error(2072, tokens[i], "'+' or '-' expected");
                             }
@@ -577,9 +577,10 @@ const Expression *Parser::parseAtom()
                         if (index == nullptr) {
                             index = parseExpression();
                         }
-                        const ArrayRange *range = nullptr;
-                        const Expression *last = nullptr;
-                        if (tokens[i].type == TO) {
+                        std::unique_ptr<ArrayRange> range { nullptr };
+                        std::unique_ptr<Expression> last { nullptr };
+                        const bool has_range = tokens[i].type == TO;
+                        if (has_range) {
                             ++i;
                             last = nullptr;
                             bool last_from_end = false;
@@ -587,7 +588,7 @@ const Expression *Parser::parseAtom()
                                 last_from_end = tokens[i].type == LAST;
                                 ++i;
                                 if (tokens[i].type == RBRACKET) {
-                                    last = new NumberLiteralExpression(Token(), number_from_uint32(0));
+                                    last.reset(new NumberLiteralExpression(Token(), number_from_uint32(0)));
                                 } else if (tokens[i].type != PLUS && tokens[i].type != MINUS) {
                                     error(2073, tokens[i], "'+' or '-' expected");
                                 }
@@ -595,10 +596,10 @@ const Expression *Parser::parseAtom()
                             if (last == nullptr) {
                                 last = parseExpression();
                             }
-                            range = new ArrayRange(tok_lbracket, index, first_from_end, last, last_from_end);
+                            range.reset(new ArrayRange(tok_lbracket, std::move(index), first_from_end, std::move(last), last_from_end));
                         } else {
                             if (first_from_end) {
-                                range = new ArrayRange(tok_lbracket, index, first_from_end, index, first_from_end);
+                                range.reset(new ArrayRange(tok_lbracket, std::move(index), first_from_end, nullptr /*std::move(index)*/, first_from_end));
                             }
                         }
                         if (tokens[i].type != COMMA && tokens[i].type != RBRACKET) {
@@ -606,16 +607,17 @@ const Expression *Parser::parseAtom()
                         }
                         ++i;
                         if (range != nullptr) {
-                            expr = new RangeSubscriptExpression(tok_lbracket, tokens[i].column, expr, range);
-                            if (first_from_end && last == nullptr) {
-                                expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, new NumberLiteralExpression(Token(), number_from_uint32(0)));
+                            expr.reset(new RangeSubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(range)));
+                            if (first_from_end && not has_range) {
+                                std::unique_ptr<Expression> index { new NumberLiteralExpression(Token(), number_from_uint32(0)) };
+                                expr.reset(new SubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(index)));
                             }
                         } else {
-                            expr = new SubscriptExpression(tok_lbracket, tokens[i].column, expr, index);
+                            expr.reset(new SubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(index)));
                         }
                     } while (tokens[i-1].type == COMMA);
                 } else if (tokens[i].type == LPAREN) {
-                    expr = parseFunctionCall(expr);
+                    expr = parseFunctionCall(std::move(expr));
                 } else if (tokens[i].type == DOT) {
                     auto &tok_dot = tokens[i];
                     ++i;
@@ -624,7 +626,7 @@ const Expression *Parser::parseAtom()
                     }
                     const Token &field = tokens[i];
                     ++i;
-                    expr = new DotExpression(tok_dot, expr, field);
+                    expr.reset(new DotExpression(tok_dot, std::move(expr), field));
                 } else if (tokens[i].type == ARROW) {
                     auto &tok_arrow = tokens[i];
                     ++i;
@@ -633,7 +635,7 @@ const Expression *Parser::parseAtom()
                     }
                     const Token &field = tokens[i];
                     ++i;
-                    expr = new ArrowExpression(tok_arrow, expr, field);
+                    expr.reset(new ArrowExpression(tok_arrow, std::move(expr), field));
                 } else {
                     // TODO: what happens here?
                     break;
@@ -646,49 +648,49 @@ const Expression *Parser::parseAtom()
     }
 }
 
-const Expression *Parser::parseExponentiation()
+std::unique_ptr<Expression> Parser::parseExponentiation()
 {
-    const Expression *left = parseAtom();
+    std::unique_ptr<Expression> left = parseAtom();
     for (;;) {
         auto &tok_op = tokens[i];
         if (tokens[i].type == EXP) {
             ++i;
-            const Expression *right = parseAtom();
-            left = new ExponentiationExpression(tok_op, left, right);
+            std::unique_ptr<Expression> right = parseAtom();
+            left.reset(new ExponentiationExpression(tok_op, std::move(left), std::move(right)));
         } else {
             return left;
         }
     }
 }
 
-const Expression *Parser::parseMultiplication()
+std::unique_ptr<Expression> Parser::parseMultiplication()
 {
-    const Expression *left = parseExponentiation();
+    std::unique_ptr<Expression> left = parseExponentiation();
     for (;;) {
         auto &tok_op = tokens[i];
         switch (tokens[i].type) {
             case TIMES: {
                 ++i;
-                const Expression *right = parseExponentiation();
-                left = new MultiplicationExpression(tok_op, left, right);
+                std::unique_ptr<Expression> right = parseExponentiation();
+                left.reset(new MultiplicationExpression(tok_op, std::move(left), std::move(right)));
                 break;
             }
             case DIVIDE: {
                 ++i;
-                const Expression *right = parseExponentiation();
-                left = new DivisionExpression(tok_op, left, right);
+                std::unique_ptr<Expression> right = parseExponentiation();
+                left.reset(new DivisionExpression(tok_op, std::move(left), std::move(right)));
                 break;
             }
             case INTDIV: {
                 ++i;
-                const Expression *right = parseExponentiation();
-                left = new IntegerDivisionExpression(tok_op, left, right);
+                std::unique_ptr<Expression> right = parseExponentiation();
+                left.reset(new IntegerDivisionExpression(tok_op, std::move(left), std::move(right)));
                 break;
             }
             case MOD: {
                 ++i;
-                const Expression *right = parseExponentiation();
-                left = new ModuloExpression(tok_op, left, right);
+                std::unique_ptr<Expression> right = parseExponentiation();
+                left.reset(new ModuloExpression(tok_op, std::move(left), std::move(right)));
                 break;
             }
             default:
@@ -697,28 +699,28 @@ const Expression *Parser::parseMultiplication()
     }
 }
 
-const Expression *Parser::parseAddition()
+std::unique_ptr<Expression> Parser::parseAddition()
 {
-    const Expression *left = parseMultiplication();
+    std::unique_ptr<Expression> left = parseMultiplication();
     for (;;) {
         auto &tok_op = tokens[i];
         switch (tokens[i].type) {
             case PLUS: {
                 ++i;
-                const Expression *right = parseMultiplication();
-                left = new AdditionExpression(tok_op, left, right);
+                std::unique_ptr<Expression> right = parseMultiplication();
+                left.reset(new AdditionExpression(tok_op, std::move(left), std::move(right)));
                 break;
             }
             case MINUS: {
                 ++i;
-                const Expression *right = parseMultiplication();
-                left = new SubtractionExpression(tok_op, left, right);
+                std::unique_ptr<Expression> right = parseMultiplication();
+                left.reset(new SubtractionExpression(tok_op, std::move(left), std::move(right)));
                 break;
             }
             case CONCAT: {
                 ++i;
-                const Expression *right = parseMultiplication();
-                left = new ConcatenationExpression(tok_op, left, right);
+                std::unique_ptr<Expression> right = parseMultiplication();
+                left.reset(new ConcatenationExpression(tok_op, std::move(left), std::move(right)));
                 break;
             }
             default:
@@ -727,36 +729,35 @@ const Expression *Parser::parseAddition()
     }
 }
 
-const Expression *Parser::parseComparison()
+std::unique_ptr<Expression> Parser::parseComparison()
 {
-    const Expression *left = parseAddition();
-    std::vector<const ComparisonExpression *> comps;
+    std::unique_ptr<Expression> left = parseAddition();
+    std::vector<std::unique_ptr<ChainedComparisonExpression::Part>> comps;
+    Token tok_comp;
     while (tokens[i].type == EQUAL  || tokens[i].type == NOTEQUAL
         || tokens[i].type == LESS   || tokens[i].type == GREATER
         || tokens[i].type == LESSEQ || tokens[i].type == GREATEREQ) {
-        auto &tok_comp = tokens[i];
+        tok_comp = tokens[i];
         if (tok_comp.type == EQUAL && tokens[i+1].type == EQUAL) {
             error(2078, tok_comp, "'==' not expected, use '=' for comparison");
         }
         ComparisonExpression::Comparison comp = comparisonFromToken(tok_comp);
         ++i;
-        const Expression *right = parseAddition();
-        const ComparisonExpression *c = new ComparisonExpression(tok_comp, left, right, comp);
-        comps.push_back(c);
-        left = right;
+        std::unique_ptr<Expression> right = parseAddition();
+        comps.emplace_back(new ChainedComparisonExpression::Part(comp, std::move(right)));
     }
     if (comps.empty()) {
         return left;
     } else if (comps.size() == 1) {
-        return comps[0];
+        return std::unique_ptr<Expression> { new ComparisonExpression(tok_comp, std::move(left), std::move(comps[0]->right), comps[0]->comp) };
     } else {
-        return new ChainedComparisonExpression(comps);
+        return std::unique_ptr<Expression> { new ChainedComparisonExpression(std::move(left), std::move(comps)) };
     }
 }
 
-const Expression *Parser::parseMembership()
+std::unique_ptr<Expression> Parser::parseMembership()
 {
-    const Expression *left = parseComparison();
+    std::unique_ptr<Expression> left = parseComparison();
     if (tokens[i].type == IN || (tokens[i].type == NOT && tokens[i+1].type == IN)) {
         auto &tok_op = tokens[i];
         bool notin = tokens[i].type == NOT;
@@ -764,10 +765,10 @@ const Expression *Parser::parseMembership()
             ++i;
         }
         ++i;
-        const Expression *right = parseComparison();
-        const Expression *r = new MembershipExpression(tok_op, left, right);
+        std::unique_ptr<Expression> right = parseComparison();
+        std::unique_ptr<Expression> r { new MembershipExpression(tok_op, std::move(left), std::move(right)) };
         if (notin) {
-            r = new LogicalNotExpression(tok_op, r);
+            r.reset(new LogicalNotExpression(tok_op, std::move(r)));
         }
         return r;
     } else {
@@ -775,58 +776,58 @@ const Expression *Parser::parseMembership()
     }
 }
 
-const Expression *Parser::parseConjunction()
+std::unique_ptr<Expression> Parser::parseConjunction()
 {
-    const Expression *left = parseMembership();
+    std::unique_ptr<Expression> left = parseMembership();
     for (;;) {
         auto &tok_op = tokens[i];
         if (tokens[i].type == AND) {
             ++i;
-            const Expression *right = parseMembership();
-            left = new ConjunctionExpression(tok_op, left, right);
+            std::unique_ptr<Expression> right = parseMembership();
+            left.reset(new ConjunctionExpression(tok_op, std::move(left), std::move(right)));
         } else {
             return left;
         }
     }
 }
 
-const Expression *Parser::parseDisjunction()
+std::unique_ptr<Expression> Parser::parseDisjunction()
 {
-    const Expression *left = parseConjunction();
+    std::unique_ptr<Expression> left = parseConjunction();
     for (;;) {
         auto &tok_op = tokens[i];
         if (tokens[i].type == OR) {
             ++i;
-            const Expression *right = parseConjunction();
-            left = new DisjunctionExpression(tok_op, left, right);
+            std::unique_ptr<Expression> right = parseConjunction();
+            left.reset(new DisjunctionExpression(tok_op, std::move(left), std::move(right)));
         } else {
             return left;
         }
     }
 }
 
-const Expression *Parser::parseConditional()
+std::unique_ptr<Expression> Parser::parseConditional()
 {
     if (tokens[i].type == IF) {
         auto &tok_if = tokens[i];
         ++i;
-        const Expression *cond = parseExpression();
+        std::unique_ptr<Expression> cond = parseExpression();
         if (tokens[i].type != THEN) {
             error(2016, tokens[i], "'THEN' expected");
         }
         ++i;
-        const Expression *left = parseExpression();
+        std::unique_ptr<Expression> left = parseExpression();
         if (tokens[i].type != ELSE) {
             error(2017, tokens[i], "'ELSE' expected");
         }
         ++i;
-        const Expression *right = parseExpression();
-        return new ConditionalExpression(tok_if, cond, left, right);
+        std::unique_ptr<Expression> right = parseExpression();
+        return std::unique_ptr<Expression> { new ConditionalExpression(tok_if, std::move(cond), std::move(left), std::move(right)) };
     } else if (tokens[i].type == TRY) {
         auto &tok_try = tokens[i];
         ++i;
-        const Expression *expr = parseExpression();
-        std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> catches;
+        std::unique_ptr<Expression> expr = parseExpression();
+        std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> catches;
         while (tokens[i].type == EXCEPTION) {
             ++i;
             std::pair<Token, Token> name;
@@ -845,15 +846,15 @@ const Expression *Parser::parseConditional()
             exceptions.push_back(name);
             if (tokens[i].type == DO) {
                 auto &tok_do = tokens[i];
-                std::vector<const Statement *> statements;
+                std::vector<std::unique_ptr<Statement>> statements;
                 ++i;
                 while (tokens[i].type != EXCEPTION && tokens[i].type != RPAREN && tokens[i].type != END_OF_FILE) {
-                    const Statement *stmt = parseStatement();
+                    std::unique_ptr<Statement> stmt = parseStatement();
                     if (stmt != nullptr) {
-                        statements.push_back(stmt);
+                        statements.push_back(std::move(stmt));
                     }
                 }
-                catches.push_back(std::make_pair(exceptions, new TryHandlerStatement(tok_do, statements)));
+                catches.push_back(std::make_pair(exceptions, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(statements)) }));
             } else if (tokens[i].type == GIVES) {
                 ++i;
                 catches.push_back(std::make_pair(exceptions, parseExpression()));
@@ -861,24 +862,24 @@ const Expression *Parser::parseConditional()
                 error(2108, tokens[i], "DO or GIVES expected");
             }
         }
-        return new TryExpression(tok_try, expr, catches);
+        return std::unique_ptr<Expression> { new TryExpression(tok_try, std::move(expr), std::move(catches)) };
     } else {
         return parseExpression();
     }
 }
 
-const Expression *Parser::parseExpression()
+std::unique_ptr<Expression> Parser::parseExpression()
 {
     expression_depth++;
     if (expression_depth > 100) {
         error(2067, tokens[i], "exceeded maximum nesting depth");
     }
-    const Expression *r = parseDisjunction();
+    std::unique_ptr<Expression> r = parseDisjunction();
     expression_depth--;
     return r;
 }
 
-const Parser::VariableInfo Parser::parseVariableDeclaration()
+Parser::VariableInfo Parser::parseVariableDeclaration()
 {
     std::vector<Token> names;
     for (;;) {
@@ -897,11 +898,11 @@ const Parser::VariableInfo Parser::parseVariableDeclaration()
         error(2019, tokens[i], "colon expected");
     }
     ++i;
-    const Type *t = parseType();
-    return make_pair(names, t);
+    std::unique_ptr<Type> t = parseType();
+    return make_pair(names, std::move(t));
 }
 
-void Parser::parseFunctionParameters(const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen)
+void Parser::parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen)
 {
     if (tokens[i].type != LPAREN) {
         error(2024, tokens[i], "'(' expected");
@@ -909,25 +910,23 @@ void Parser::parseFunctionParameters(const Type *&returntype, std::vector<const 
     ++i;
     if (tokens[i].type != RPAREN) {
         for (;;) {
-            FunctionParameter::Mode mode = FunctionParameter::IN;
+            FunctionParameterGroup::Mode mode = FunctionParameterGroup::IN;
             switch (tokens[i].type) {
-                case IN:    mode = FunctionParameter::IN;       i++; break;
-                case INOUT: mode = FunctionParameter::INOUT;    i++; break;
-                case OUT:   mode = FunctionParameter::OUT;      i++; break;
+                case IN:    mode = FunctionParameterGroup::IN;       i++; break;
+                case INOUT: mode = FunctionParameterGroup::INOUT;    i++; break;
+                case OUT:   mode = FunctionParameterGroup::OUT;      i++; break;
                 default:
                     break;
             }
             auto &tok_param = tokens[i];
-            const VariableInfo vars = parseVariableDeclaration();
-            const Expression *default_value = nullptr;
+            VariableInfo vars = parseVariableDeclaration();
+            std::unique_ptr<Expression> default_value { nullptr };
             if (tokens[i].type == DEFAULT) {
                 ++i;
                 default_value = parseExpression();
             }
-            for (auto name: vars.first) {
-                FunctionParameter *fp = new FunctionParameter(tok_param, name, vars.second, mode, default_value);
-                args.push_back(fp);
-            }
+            std::unique_ptr<FunctionParameterGroup> fp { new FunctionParameterGroup(tok_param, vars.first, std::move(vars.second), mode, std::move(default_value)) };
+            args.push_back(std::move(fp));
             if (tokens[i].type != COMMA) {
                 break;
             }
@@ -947,7 +946,7 @@ void Parser::parseFunctionParameters(const Type *&returntype, std::vector<const 
     }
 }
 
-void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returntype, std::vector<const FunctionParameter *> &args, Token &rparen)
+void Parser::parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen)
 {
     ++i;
     if (tokens[i].type != IDENTIFIER) {
@@ -967,21 +966,21 @@ void Parser::parseFunctionHeader(Token &type, Token &name, const Type *&returnty
     parseFunctionParameters(returntype, args, rparen);
 }
 
-const Declaration *Parser::parseFunctionDefinition()
+std::unique_ptr<Declaration> Parser::parseFunctionDefinition()
 {
     auto &tok_function = tokens[i];
     Token type;
     Token name;
-    const Type *returntype;
-    std::vector<const FunctionParameter *> args;
+    std::unique_ptr<Type> returntype;
+    std::vector<std::unique_ptr<FunctionParameterGroup>> args;
     Token rparen;
     parseFunctionHeader(type, name, returntype, args, rparen);
     TemporaryMinimumIndent indent(this, tok_function.column + 1);
-    std::vector<const Statement *> body;
+    std::vector<std::unique_ptr<Statement>> body;
     while (tokens[i].type != END) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            body.push_back(s);
+            body.push_back(std::move(s));
         }
     }
     auto &tok_end_function = tokens[i];
@@ -990,10 +989,10 @@ const Declaration *Parser::parseFunctionDefinition()
         error_a(2036, tokens[i-1], tokens[i], "'FUNCTION' expected");
     }
     ++i;
-    return new FunctionDeclaration(tok_function, type, name, returntype, args, rparen, body, tok_end_function);
+    return std::unique_ptr<Declaration> { new FunctionDeclaration(tok_function, type, name, std::move(returntype), std::move(args), rparen, std::move(body), tok_end_function) };
 }
 
-const Declaration *Parser::parseExternalDefinition()
+std::unique_ptr<Declaration> Parser::parseExternalDefinition()
 {
     auto &tok_external = tokens[i];
     ++i;
@@ -1002,14 +1001,14 @@ const Declaration *Parser::parseExternalDefinition()
     }
     Token type;
     Token name;
-    const Type *returntype;
-    std::vector<const FunctionParameter *> args;
+    std::unique_ptr<Type> returntype;
+    std::vector<std::unique_ptr<FunctionParameterGroup>> args;
     Token rparen;
     parseFunctionHeader(type, name, returntype, args, rparen);
     if (tokens[i].type != LBRACE) {
         error(2046, tokens[i], "{ expected");
     }
-    const DictionaryLiteralExpression *dict = parseDictionaryLiteral();
+    std::unique_ptr<DictionaryLiteralExpression> dict = parseDictionaryLiteral();
     if (tokens[i].type != END) {
         error(2050, tokens[i], "'END' expected");
     }
@@ -1018,10 +1017,10 @@ const Declaration *Parser::parseExternalDefinition()
         error_a(2051, tokens[i-1], tokens[i], "'END FUNCTION' expected");
     }
     ++i;
-    return new ExternalFunctionDeclaration(tok_external, type, name, returntype, args, rparen, dict);
+    return std::unique_ptr<Declaration> { new ExternalFunctionDeclaration(tok_external, type, name, std::move(returntype), std::move(args), rparen, std::move(dict)) };
 }
 
-const Declaration *Parser::parseDeclaration()
+std::unique_ptr<Declaration> Parser::parseDeclaration()
 {
     ++i;
     switch (tokens[i].type) {
@@ -1032,7 +1031,7 @@ const Declaration *Parser::parseDeclaration()
                 error(2059, tokens[i], "identifier expected");
             }
             ++i;
-            return new ExceptionDeclaration(tok_name, tok_name);
+            return std::unique_ptr<Declaration> { new ExceptionDeclaration(tok_name, tok_name) };
         }
         case NATIVE: {
             ++i;
@@ -1048,17 +1047,17 @@ const Declaration *Parser::parseDeclaration()
                     internal_error("colon expected");
                 }
                 ++i;
-                const Type *type = parseType();
-                return new NativeConstantDeclaration(tok_constant, name, type);
+                std::unique_ptr<Type> type = parseType();
+                return std::unique_ptr<Declaration> { new NativeConstantDeclaration(tok_constant, name, std::move(type)) };
             } else if (tokens[i].type == FUNCTION) {
                 auto &tok_function = tokens[i];
                 Token type;
                 Token name;
-                const Type *returntype;
-                std::vector<const FunctionParameter *> args;
+                std::unique_ptr<Type> returntype;
+                std::vector<std::unique_ptr<FunctionParameterGroup>> args;
                 Token rparen;
                 parseFunctionHeader(type, name, returntype, args, rparen);
-                return new NativeFunctionDeclaration(tok_function, type, name, returntype, args, rparen);
+                return std::unique_ptr<Declaration> { new NativeFunctionDeclaration(tok_function, std::move(type), name, std::move(returntype), std::move(args), rparen) };
             }
             return nullptr;
         }
@@ -1067,38 +1066,38 @@ const Declaration *Parser::parseDeclaration()
     }
 }
 
-const Statement *Parser::parseExport()
+std::unique_ptr<Statement> Parser::parseExport()
 {
     auto &tok_export = tokens[i];
     ++i;
     switch (tokens[i].type) {
         case TYPE: {
-            const Declaration *type = parseTypeDefinition();
-            return new ExportDeclaration(tok_export, {type->token}, type);
+            std::unique_ptr<Declaration> type = parseTypeDefinition();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, {type->token}, std::move(type)) };
         }
         case CONSTANT: {
-            const Declaration *constant = parseConstantDefinition();
-            return new ExportDeclaration(tok_export, constant->names, constant);
+            std::unique_ptr<Declaration> constant = parseConstantDefinition();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, constant->names, std::move(constant)) };
         }
         case VAR: {
-            const VariableDeclaration *var = dynamic_cast<const VariableDeclaration *>(parseVarStatement());
-            return new ExportDeclaration(tok_export, var->names, var);
+            std::unique_ptr<Declaration> var = parseVarStatement();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, var->names, std::move(var)) };
         }
         case LET: {
-            const Declaration *let = parseLetStatement();
-            return new ExportDeclaration(tok_export, let->names, let);
+            std::unique_ptr<Declaration> let = parseLetStatement();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, let->names, std::move(let)) };
         }
         case FUNCTION: {
-            const Declaration *function = parseFunctionDefinition();
-            return new ExportDeclaration(tok_export, function->names, function);
+            std::unique_ptr<Declaration> function = parseFunctionDefinition();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, function->names, std::move(function)) };
         }
         case EXTERNAL: {
-            const Declaration *external = parseExternalDefinition();
-            return new ExportDeclaration(tok_export, external->names, external);
+            std::unique_ptr<Declaration> external = parseExternalDefinition();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, external->names, std::move(external)) };
         }
         case DECLARE: {
-            const Declaration *declare = parseDeclaration();
-            return new ExportDeclaration(tok_export, declare->names, declare);
+            std::unique_ptr<Declaration> declare = parseDeclaration();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, declare->names, std::move(declare)) };
         }
         default:
             break;
@@ -1108,34 +1107,34 @@ const Statement *Parser::parseExport()
     }
     auto &tok_name = tokens[i];
     ++i;
-    return new ExportDeclaration(tok_name, {tok_name}, nullptr);
+    return std::unique_ptr<Statement> { new ExportDeclaration(tok_name, {tok_name}, nullptr) };
 }
 
-const Statement *Parser::parseIncrementStatement()
+std::unique_ptr<Statement> Parser::parseIncrementStatement()
 {
     auto &tok_op = tokens[i];
     ++i;
     int delta = tok_op.type == INC ? 1 : tok_op.type == DEC ? -1 : 0;
-    const Expression *expr = parseExpression();
-    return new IncrementStatement(tok_op, expr, delta);
+    std::unique_ptr<Expression> expr = parseExpression();
+    return std::unique_ptr<Statement> { new IncrementStatement(tok_op, std::move(expr), delta) };
 }
 
-const Statement *Parser::parseIfStatement()
+std::unique_ptr<Statement> Parser::parseIfStatement()
 {
     auto &tok_if = tokens[i];
-    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    std::vector<std::pair<std::unique_ptr<Expression>, std::vector<std::unique_ptr<Statement>>>> condition_statements;
     TemporaryMinimumIndent indent(this, tok_if.column + 1);
-    std::vector<const Statement *> else_statements;
+    std::vector<std::unique_ptr<Statement>> else_statements;
     do {
         ++i;
-        const Expression *cond = nullptr;
+        std::unique_ptr<Expression> cond { nullptr };
         if (tokens[i].type == VALID) {
             auto &tok_valid = tokens[i];
-            std::vector<ValidPointerExpression::Clause> tests;
+            std::vector<std::unique_ptr<ValidPointerExpression::Clause>> tests;
             for (;;) {
                 ++i;
                 const Token &tok_expr = tokens[i];
-                const Expression *ptr = parseExpression();
+                std::unique_ptr<Expression> ptr = parseExpression();
                 Token name;
                 bool shorthand = false;
                 if (tokens[i].type == AS) {
@@ -1146,7 +1145,7 @@ const Statement *Parser::parseIfStatement()
                     name = tokens[i];
                     ++i;
                 } else {
-                    const IdentifierExpression *ident = dynamic_cast<const IdentifierExpression *>(ptr);
+                    const IdentifierExpression *ident = dynamic_cast<const IdentifierExpression *>(ptr.get());
                     if (ident != nullptr) {
                         name = ident->token;
                         shorthand = true;
@@ -1154,12 +1153,12 @@ const Statement *Parser::parseIfStatement()
                         error(2065, tok_expr, "single identifier expected (otherwise use AS alias)");
                     }
                 }
-                tests.push_back(ValidPointerExpression::Clause(ptr, name, shorthand));
+                tests.emplace_back(new ValidPointerExpression::Clause(std::move(ptr), name, shorthand));
                 if (tokens[i].type != COMMA) {
                     break;
                 }
             }
-            cond = new ValidPointerExpression(tok_valid, tests);
+            cond.reset(new ValidPointerExpression(tok_valid, std::move(tests)));
         } else {
             cond = parseExpression();
         }
@@ -1168,21 +1167,21 @@ const Statement *Parser::parseIfStatement()
         }
         ++i;
         TemporaryMinimumIndent indent(this, tok_if.column + 1);
-        std::vector<const Statement *> statements;
+        std::vector<std::unique_ptr<Statement>> statements;
         while (tokens[i].type != ELSIF && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement();
+            std::unique_ptr<Statement> s = parseStatement();
             if (s != nullptr) {
-                statements.push_back(s);
+                statements.push_back(std::move(s));
             }
         }
-        condition_statements.push_back(std::make_pair(cond, statements));
+        condition_statements.push_back(std::make_pair(std::move(cond), std::move(statements)));
     } while (tokens[i].type == ELSIF);
     if (tokens[i].type == ELSE) {
         ++i;
         while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *s = parseStatement();
+            std::unique_ptr<Statement> s = parseStatement();
             if (s != nullptr) {
-                else_statements.push_back(s);
+                else_statements.push_back(std::move(s));
             }
         }
     }
@@ -1194,24 +1193,24 @@ const Statement *Parser::parseIfStatement()
         error_a(2037, tokens[i-1], tokens[i], "IF expected");
     }
     ++i;
-    return new IfStatement(tok_if, condition_statements, else_statements);
+    return std::unique_ptr<Statement> { new IfStatement(tok_if, std::move(condition_statements), std::move(else_statements)) };
 }
 
-const Statement *Parser::parseCheckStatement()
+std::unique_ptr<Statement> Parser::parseCheckStatement()
 {
     auto &tok_check = tokens[i];
     ++i;
-    const Expression *cond = parseExpression();
+    std::unique_ptr<Expression> cond = parseExpression();
     if (tokens[i].type != ELSE) {
         error_a(2103, tokens[i-1], tokens[i], "ELSE expected");
     }
     ++i;
     TemporaryMinimumIndent indent(this, tok_check.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
     if (tokens[i].type != END) {
@@ -1222,31 +1221,31 @@ const Statement *Parser::parseCheckStatement()
         error_a(2105, tokens[i-1], tokens[i], "CHECK expected");
     }
     ++i;
-    return new CheckStatement(tok_check, cond, statements);
+    return std::unique_ptr<Statement> { new CheckStatement(tok_check, std::move(cond), std::move(statements)) };
 }
 
-const Statement *Parser::parseReturnStatement()
+std::unique_ptr<Statement> Parser::parseReturnStatement()
 {
     auto &tok_return = tokens[i];
     ++i;
-    const Expression *expr = parseExpression();
-    return new ReturnStatement(tok_return, expr);
+    std::unique_ptr<Expression> expr = parseExpression();
+    return std::unique_ptr<Statement> { new ReturnStatement(tok_return, std::move(expr)) };
 }
 
-const Declaration *Parser::parseVarStatement()
+std::unique_ptr<Declaration> Parser::parseVarStatement()
 {
     auto &tok_var = tokens[i];
     ++i;
-    const VariableInfo vars = parseVariableDeclaration();
-    const Expression *expr = nullptr;
+    VariableInfo vars = parseVariableDeclaration();
+    std::unique_ptr<Expression> expr = nullptr;
     if (tokens[i].type == ASSIGN) {
         ++i;
         expr = parseExpression();
     }
-    return new VariableDeclaration(tok_var, vars.first, vars.second, expr);
+    return std::unique_ptr<Declaration> { new VariableDeclaration(tok_var, vars.first, std::move(vars.second), std::move(expr)) };
 }
 
-const Declaration *Parser::parseLetStatement()
+std::unique_ptr<Declaration> Parser::parseLetStatement()
 {
     auto &tok_let = tokens[i];
     ++i;
@@ -1259,30 +1258,30 @@ const Declaration *Parser::parseLetStatement()
         error(2070, tokens[i], "':' expected");
     }
     ++i;
-    const Type *type = parseType();
+    std::unique_ptr<Type> type = parseType();
     if (tokens[i].type != ASSIGN) {
         error(2071, tokens[i], "':=' expected");
     }
     ++i;
-    const Expression *expr = parseExpression();
-    return new LetDeclaration(tok_let, name, type, expr);
+    std::unique_ptr<Expression> expr = parseExpression();
+    return std::unique_ptr<Declaration> { new LetDeclaration(tok_let, name, std::move(type), std::move(expr)) };
 }
 
-const Statement *Parser::parseWhileStatement()
+std::unique_ptr<Statement> Parser::parseWhileStatement()
 {
     auto &tok_while = tokens[i];
     ++i;
-    const Expression *cond = parseExpression();
+    std::unique_ptr<Expression> cond = parseExpression();
     if (tokens[i].type != DO) {
         error_a(2028, tokens[i-1], tokens[i], "DO expected");
     }
     ++i;
     TemporaryMinimumIndent indent(this, tok_while.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
     if (tokens[i].type != END) {
@@ -1293,19 +1292,19 @@ const Statement *Parser::parseWhileStatement()
         error_a(2038, tokens[i-1], tokens[i], "WHILE expected");
     }
     ++i;
-    return new WhileStatement(tok_while, cond, statements);
+    return std::unique_ptr<Statement> { new WhileStatement(tok_while, std::move(cond), std::move(statements)) };
 }
 
-const Statement *Parser::parseCaseStatement()
+std::unique_ptr<Statement> Parser::parseCaseStatement()
 {
     auto &tok_case = tokens[i];
     ++i;
-    const Expression *expr = parseExpression();
+    std::unique_ptr<Expression> expr = parseExpression();
     TemporaryMinimumIndent indent(this, tok_case.column + 1);
-    std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
+    std::vector<std::pair<std::vector<std::unique_ptr<CaseStatement::WhenCondition>>, std::vector<std::unique_ptr<Statement>>>> clauses;
     while (tokens[i].type == WHEN && tokens[i+1].type != OTHERS) {
         auto &tok_when = tokens[i];
-        std::vector<const CaseStatement::WhenCondition *> conditions;
+        std::vector<std::unique_ptr<CaseStatement::WhenCondition>> conditions;
         do {
             ++i;
             switch (tokens[i].type) {
@@ -1317,21 +1316,21 @@ const Statement *Parser::parseCaseStatement()
                 case GREATEREQ: {
                     auto op = tokens[i];
                     ++i;
-                    const Expression *when = parseExpression();
-                    const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(tok_when, comparisonFromToken(op), when);
-                    conditions.push_back(cond);
+                    std::unique_ptr<Expression> when = parseExpression();
+                    std::unique_ptr<CaseStatement::WhenCondition> cond { new CaseStatement::ComparisonWhenCondition(tok_when, comparisonFromToken(op), std::move(when)) };
+                    conditions.push_back(std::move(cond));
                     break;
                 }
                 default: {
-                    const Expression *when = parseExpression();
+                    std::unique_ptr<Expression> when = parseExpression();
                     if (tokens[i].type == TO) {
                         ++i;
-                        const Expression *when2 = parseExpression();
-                        const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(tok_when, when, when2);
-                        conditions.push_back(cond);
+                        std::unique_ptr<Expression> when2 = parseExpression();
+                        std::unique_ptr<CaseStatement::WhenCondition> cond { new CaseStatement::RangeWhenCondition(tok_when, std::move(when), std::move(when2)) };
+                        conditions.push_back(std::move(cond));
                     } else {
-                        const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(tok_when, ComparisonExpression::EQ, when);
-                        conditions.push_back(cond);
+                        std::unique_ptr<CaseStatement::WhenCondition> cond { new CaseStatement::ComparisonWhenCondition(tok_when, ComparisonExpression::EQ, std::move(when)) };
+                        conditions.push_back(std::move(cond));
                     }
                     break;
                 }
@@ -1341,22 +1340,22 @@ const Statement *Parser::parseCaseStatement()
             error_a(2030, tokens[i-1], tokens[i], "'DO' expected");
         }
         ++i;
-        std::vector<const Statement *> statements;
+        std::vector<std::unique_ptr<Statement>> statements;
         while (tokens[i].type != WHEN && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *stmt = parseStatement();
+            std::unique_ptr<Statement> stmt = parseStatement();
             if (stmt != nullptr) {
-                statements.push_back(stmt);
+                statements.push_back(std::move(stmt));
             }
         }
-        clauses.push_back(std::make_pair(conditions, statements));
+        clauses.push_back(std::make_pair(std::move(conditions), std::move(statements)));
     }
-    std::vector<const Statement *> others_statements;
+    std::vector<std::unique_ptr<Statement>> others_statements;
     if (tokens[i].type == WHEN && tokens[i+1].type == OTHERS && tokens[i+2].type == DO) {
         i += 3;
         while (tokens[i].type != END) {
-            const Statement *stmt = parseStatement();
+            std::unique_ptr<Statement> stmt = parseStatement();
             if (stmt != nullptr) {
-                others_statements.push_back(stmt);
+                others_statements.push_back(std::move(stmt));
             }
         }
     }
@@ -1368,11 +1367,11 @@ const Statement *Parser::parseCaseStatement()
         error_a(2039, tokens[i-1], tokens[i], "CASE expected");
     }
     ++i;
-    clauses.push_back(std::make_pair(std::vector<const CaseStatement::WhenCondition *>(), others_statements));
-    return new CaseStatement(tok_case, expr, clauses);
+    clauses.push_back(std::make_pair(std::vector<std::unique_ptr<CaseStatement::WhenCondition>>(), std::move(others_statements)));
+    return std::unique_ptr<Statement> { new CaseStatement(tok_case, std::move(expr), std::move(clauses)) };
 }
 
-const Statement *Parser::parseForStatement()
+std::unique_ptr<Statement> Parser::parseForStatement()
 {
     auto &tok_for = tokens[i];
     ++i;
@@ -1385,13 +1384,13 @@ const Statement *Parser::parseForStatement()
         error(2044, tokens[i], "':=' expected");
     }
     ++i;
-    const Expression *start = parseExpression();
+    std::unique_ptr<Expression> start = parseExpression();
     if (tokens[i].type != TO) {
         error(2040, tokens[i], "TO expected");
     }
     ++i;
-    const Expression *end = parseExpression();
-    const Expression *step = nullptr;
+    std::unique_ptr<Expression> end = parseExpression();
+    std::unique_ptr<Expression> step = nullptr;
     if (tokens[i].type == STEP) {
         ++i;
         step = parseExpression();
@@ -1401,11 +1400,11 @@ const Statement *Parser::parseForStatement()
     }
     ++i;
     TemporaryMinimumIndent indent(this, tok_for.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
     if (tokens[i].type != END) {
@@ -1416,10 +1415,10 @@ const Statement *Parser::parseForStatement()
         error_a(2043, tokens[i-1], tokens[i], "'END FOR' expected");
     }
     ++i;
-    return new ForStatement(tok_for, var, start, end, step, statements);
+    return std::unique_ptr<Statement> { new ForStatement(tok_for, var, std::move(start), std::move(end), std::move(step), std::move(statements)) };
 }
 
-const Statement *Parser::parseForeachStatement()
+std::unique_ptr<Statement> Parser::parseForeachStatement()
 {
     auto &tok_foreach = tokens[i];
     ++i;
@@ -1432,7 +1431,7 @@ const Statement *Parser::parseForeachStatement()
         error(2082, tokens[i], "OF expected");
     }
     ++i;
-    const Expression *array = parseExpression();
+    std::unique_ptr<Expression> array = parseExpression();
     Token index;
     if (tokens[i].type == INDEX) {
         ++i;
@@ -1447,11 +1446,11 @@ const Statement *Parser::parseForeachStatement()
     }
     ++i;
     TemporaryMinimumIndent indent(this, tok_foreach.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
     if (tokens[i].type != END) {
@@ -1462,19 +1461,19 @@ const Statement *Parser::parseForeachStatement()
         error_a(2086, tokens[i-1], tokens[i], "'END FOREACH' expected");
     }
     ++i;
-    return new ForeachStatement(tok_foreach, var, array, index, statements);
+    return std::unique_ptr<Statement> { new ForeachStatement(tok_foreach, var, std::move(array), index, std::move(statements)) };
 }
 
-const Statement *Parser::parseLoopStatement()
+std::unique_ptr<Statement> Parser::parseLoopStatement()
 {
     auto &tok_loop = tokens[i];
     ++i;
     TemporaryMinimumIndent indent(this, tok_loop.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
     if (tokens[i].type != END) {
@@ -1485,30 +1484,30 @@ const Statement *Parser::parseLoopStatement()
         error_a(2056, tokens[i-1], tokens[i], "LOOP expected");
     }
     ++i;
-    return new LoopStatement(tok_loop, statements);
+    return std::unique_ptr<Statement> { new LoopStatement(tok_loop, std::move(statements)) };
 }
 
-const Statement *Parser::parseRepeatStatement()
+std::unique_ptr<Statement> Parser::parseRepeatStatement()
 {
     auto &tok_repeat = tokens[i];
     ++i;
     TemporaryMinimumIndent indent(this, tok_repeat.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != UNTIL && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
     if (tokens[i].type != UNTIL) {
         error(2057, tokens[i], "UNTIL expected");
     }
     ++i;
-    const Expression *cond = parseExpression();
-    return new RepeatStatement(tok_repeat, cond, statements);
+    std::unique_ptr<Expression> cond = parseExpression();
+    return std::unique_ptr<Statement> { new RepeatStatement(tok_repeat, std::move(cond), std::move(statements)) };
 }
 
-const Statement *Parser::parseExitStatement()
+std::unique_ptr<Statement> Parser::parseExitStatement()
 {
     auto &tok_exit = tokens[i];
     ++i;
@@ -1522,10 +1521,10 @@ const Statement *Parser::parseExitStatement()
         error_a(2052, tokens[i-1], tokens[i], "loop type expected");
     }
     ++i;
-    return new ExitStatement(tok_exit, type);
+    return std::unique_ptr<Statement> { new ExitStatement(tok_exit, type) };
 }
 
-const Statement *Parser::parseNextStatement()
+std::unique_ptr<Statement> Parser::parseNextStatement()
 {
     auto &tok_next = tokens[i];
     ++i;
@@ -1538,22 +1537,22 @@ const Statement *Parser::parseNextStatement()
         error_a(2054, tokens[i-1], tokens[i], "loop type expected");
     }
     ++i;
-    return new NextStatement(tok_next, type);
+    return std::unique_ptr<Statement> { new NextStatement(tok_next, type) };
 }
 
-const Statement *Parser::parseTryStatement()
+std::unique_ptr<Statement> Parser::parseTryStatement()
 {
     auto &tok_try = tokens[i];
     ++i;
     TemporaryMinimumIndent indent(this, tok_try.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *stmt = parseStatement();
+        std::unique_ptr<Statement> stmt = parseStatement();
         if (stmt != nullptr) {
-            statements.push_back(stmt);
+            statements.push_back(std::move(stmt));
         }
     }
-    std::vector<std::pair<std::vector<std::pair<Token, Token>>, const ParseTreeNode *>> catches;
+    std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> catches;
     while (tokens[i].type == EXCEPTION) {
         ++i;
         if (tokens[i].type != IDENTIFIER) {
@@ -1578,14 +1577,14 @@ const Statement *Parser::parseTryStatement()
         }
         auto &tok_do = tokens[i];
         ++i;
-        std::vector<const Statement *> statements;
+        std::vector<std::unique_ptr<Statement>> statements;
         while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-            const Statement *stmt = parseStatement();
+            std::unique_ptr<Statement> stmt = parseStatement();
             if (stmt != nullptr) {
-                statements.push_back(stmt);
+                statements.push_back(std::move(stmt));
             }
         }
-        catches.push_back(std::make_pair(exceptions, new TryHandlerStatement(tok_do, statements)));
+        catches.push_back(std::make_pair(exceptions, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(statements)) }));
     }
     if (tokens[i].type != END) {
         error(2062, tokens[i], "'END' expected");
@@ -1595,10 +1594,10 @@ const Statement *Parser::parseTryStatement()
         error_a(2063, tokens[i-1], tokens[i], "TRY expected");
     }
     ++i;
-    return new TryStatement(tok_try, statements, catches);
+    return std::unique_ptr<Statement> { new TryStatement(tok_try, std::move(statements), std::move(catches)) };
 }
 
-const Statement *Parser::parseRaiseStatement()
+std::unique_ptr<Statement> Parser::parseRaiseStatement()
 {
     auto &tok_raise = tokens[i];
     ++i;
@@ -1617,16 +1616,17 @@ const Statement *Parser::parseRaiseStatement()
         name.second = tokens[i];
         ++i;
     }
-    const Expression *info = nullptr;
+    std::unique_ptr<Expression> info { nullptr };
     if (tokens[i].type == LPAREN) {
-        info = parseFunctionCall(new IdentifierExpression(Token(), "ExceptionInfo"));
+        std::unique_ptr<Expression> expr { new IdentifierExpression(Token(), "ExceptionInfo") };
+        info = parseFunctionCall(std::move(expr));
     } else {
         info = nullptr;
     }
-    return new RaiseStatement(tok_raise, name, info);
+    return std::unique_ptr<Statement> { new RaiseStatement(tok_raise, name, std::move(info)) };
 }
 
-const Statement *Parser::parseImport()
+std::unique_ptr<Statement> Parser::parseImport()
 {
     auto &tok_import = tokens[i];
     ++i;
@@ -1655,120 +1655,39 @@ const Statement *Parser::parseImport()
     } else if (module.type == STRING) {
         error(2087, module, "named import requires ALIAS");
     }
-    return new ImportDeclaration(tok_import, module, name, alias);
+    return std::unique_ptr<Statement> { new ImportDeclaration(tok_import, module, name, alias) };
 }
 
-static void deconstruct(const Expression *expr, std::vector<const Expression *> &parts)
-{
-    const IdentityExpression *ie = dynamic_cast<const IdentityExpression *>(expr);
-    const UnaryExpression *ue = dynamic_cast<const UnaryExpression *>(expr);
-    const BinaryExpression *be = dynamic_cast<const BinaryExpression *>(expr);
-    // TODO: Most arrays don't have a toString() method, so this fails for some test code.
-    // Handle this somehow.
-    //const SubscriptExpression *se = dynamic_cast<const SubscriptExpression *>(expr);
-    const ChainedComparisonExpression *che = dynamic_cast<const ChainedComparisonExpression *>(expr);
-    const ConditionalExpression *ce = dynamic_cast<const ConditionalExpression *>(expr);
-    const RangeSubscriptExpression *re = dynamic_cast<const RangeSubscriptExpression *>(expr);
-    if (ie != nullptr) {
-        deconstruct(ie->expr, parts);
-        return;
-    } else if (ue != nullptr) {
-        deconstruct(ue->expr, parts);
-    } else if (be != nullptr) {
-        deconstruct(be->left, parts);
-        deconstruct(be->right, parts);
-    //} else if (se != nullptr) {
-    //    deconstruct(se->base, parts);
-    //    deconstruct(se->index, parts);
-    } else if (che != nullptr) {
-        for (auto c: che->comps) {
-            deconstruct(c, parts);
-        }
-    } else if (ce != nullptr) {
-        deconstruct(ce->cond, parts);
-        deconstruct(ce->left, parts);
-        deconstruct(ce->right, parts);
-    } else if (re != nullptr) {
-        deconstruct(re->base, parts);
-        deconstruct(re->range->first, parts);
-        deconstruct(re->range->last, parts);
-    } else if (dynamic_cast<const BooleanLiteralExpression *>(expr) != nullptr
-            || dynamic_cast<const NumberLiteralExpression *>(expr) != nullptr
-            || dynamic_cast<const StringLiteralExpression *>(expr) != nullptr) {
-        return;
-    }
-    parts.push_back(expr);
-}
-
-const Statement *Parser::parseAssert()
+std::unique_ptr<Statement> Parser::parseAssert()
 {
     auto &tok_assert = tokens[i];
     ++i;
-    const Expression *expr = parseExpression();
-    std::vector<const Expression *> parts;
-    deconstruct(expr, parts);
+    std::unique_ptr<Expression> e = parseExpression();
+    std::vector<std::unique_ptr<Expression>> exprs;
+    exprs.push_back(std::move(e));
     while (tokens[i].type == COMMA) {
         ++i;
-        const Expression *e = parseExpression();
-        parts.push_back(e);
+        std::unique_ptr<Expression> e = parseExpression();
+        exprs.push_back(std::move(e));
     }
-    std::vector<const Statement *> body;
-    {
-        std::vector<FunctionCallExpression::Argument> args;
-        args.push_back(FunctionCallExpression::Argument(Token(), Token(), new StringLiteralExpression(Token(), 0, "Assert failed (" + source.source_path + " line " + std::to_string(tok_assert.line) + "):")));
-        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
-        const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
-        body.push_back(s);
-    }
-    {
-        std::vector<FunctionCallExpression::Argument> args;
-        args.push_back(FunctionCallExpression::Argument(Token(), Token(), new StringLiteralExpression(Token(), 0, tok_assert.source)));
-        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
-        const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
-        body.push_back(s);
-    }
-    {
-        std::vector<FunctionCallExpression::Argument> args;
-        args.push_back(FunctionCallExpression::Argument(Token(), Token(), new StringLiteralExpression(Token(), 0, "Assert expression dump:")));
-        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
-        const ExpressionStatement *s = new ExpressionStatement(tok_assert, p);
-        body.push_back(s);
-    }
-    std::set<std::string> seen;
-    for (auto e: parts) {
-        const std::string str = tok_assert.source.substr(e->get_start_column()-1, e->get_end_column()-e->get_start_column());
-        if (seen.find(str) != seen.end()) {
-            continue;
-        }
-        seen.insert(str);
-
-        std::vector<std::pair<const Expression *, Token>> iparts;
-        iparts.push_back(std::make_pair(new StringLiteralExpression(Token(), 0, "  " + str + " is "), Token()));
-        iparts.push_back(std::make_pair(e, Token()));
-        const InterpolatedStringExpression *is = new InterpolatedStringExpression(Token(), iparts);
-        std::vector<FunctionCallExpression::Argument> args;
-        args.push_back(FunctionCallExpression::Argument(Token(), Token(), is));
-        const FunctionCallExpression *p = new FunctionCallExpression(Token(), new IdentifierExpression(Token(), "print"), args, Token());
-        const ExpressionStatement *s = new ExpressionStatement(e->token, p);
-        body.push_back(s);
-    }
-    return new AssertStatement(tok_assert, body, expr, tok_assert.source);
+    return std::unique_ptr<Statement> { new AssertStatement(tok_assert, std::move(exprs), tok_assert.source) };
 }
 
-const Statement *Parser::parseBegin()
+std::unique_ptr<Statement> Parser::parseBegin()
 {
     auto &tok_begin = tokens[i];
     ++i;
     if (tokens[i].type != MAIN) {
         error(2091, tokens[i], "'MAIN' expected");
     }
+    auto &tok_main = tokens[i];
     ++i;
     TemporaryMinimumIndent indent(this, tok_begin.column + 1);
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
     if (tokens[i].type != END) {
@@ -1779,10 +1698,10 @@ const Statement *Parser::parseBegin()
         error_a(2093, tokens[i-1], tokens[i], "'MAIN' expected");
     }
     ++i;
-    return new MainBlock(tok_begin, statements);
+    return std::unique_ptr<pt::FunctionDeclaration> { new FunctionDeclaration(tok_begin, Token(), tok_main, nullptr, {}, Token(), std::move(statements), Token()) };
 }
 
-const Statement *Parser::parseStatement()
+std::unique_ptr<Statement> Parser::parseStatement()
 {
     if (tokens[i].column < minimum_column) {
         error(2089, tokens[i], "indent must be at least column " + std::to_string(minimum_column));
@@ -1847,16 +1766,16 @@ const Statement *Parser::parseStatement()
          && tokens[i+1].type != ARROW) {
             error(2096, tokens[i], "plain identifier cannot be a statement");
         }
-        const Expression *expr = parseExpression();
+        std::unique_ptr<Expression> expr = parseExpression();
         if (tokens[i].type == ASSIGN) {
             auto &tok_assign = tokens[i];
             ++i;
-            const Expression *rhs = parseExpression();
-            std::vector<const Expression *> vars;
-            vars.push_back(expr);
-            return new AssignmentStatement(tok_assign, vars, rhs);
+            std::unique_ptr<Expression> rhs = parseExpression();
+            std::vector<std::unique_ptr<Expression>> vars;
+            vars.push_back(std::move(expr));
+            return std::unique_ptr<Statement> { new AssignmentStatement(tok_assign, std::move(vars), std::move(rhs)) };
         } else {
-            return new ExpressionStatement(start, expr);
+            return std::unique_ptr<Statement> { new ExpressionStatement(start, std::move(expr)) };
         }
     } else if (tokens[i].type == UNDERSCORE) {
         auto &tok_underscore = tokens[i];
@@ -1866,29 +1785,29 @@ const Statement *Parser::parseStatement()
         }
         auto &tok_assign = tokens[i];
         ++i;
-        const Expression *rhs = parseExpression();
-        std::vector<const Expression *> vars;
-        vars.push_back(new DummyExpression(tok_underscore, tok_underscore.column, tok_underscore.column));
-        return new AssignmentStatement(tok_assign, vars, rhs);
+        std::unique_ptr<Expression> rhs = parseExpression();
+        std::vector<std::unique_ptr<Expression>> vars;
+        vars.emplace_back(new DummyExpression(tok_underscore, tok_underscore.column, tok_underscore.column));
+        return std::unique_ptr<Statement> { new AssignmentStatement(tok_assign, std::move(vars), std::move(rhs)) };
     } else {
         error(2033, tokens[i], "Identifier expected");
     }
 }
 
-const Program *Parser::parse()
+std::unique_ptr<Program> Parser::parse()
 {
     auto &tok_program = tokens[i];
-    std::vector<const Statement *> statements;
+    std::vector<std::unique_ptr<Statement>> statements;
     while (tokens[i].type != END_OF_FILE) {
-        const Statement *s = parseStatement();
+        std::unique_ptr<Statement> s = parseStatement();
         if (s != nullptr) {
-            statements.push_back(s);
+            statements.push_back(std::move(s));
         }
     }
-    return new Program(tok_program, statements, source.source_path, source.source_hash);
+    return std::unique_ptr<Program> { new Program(tok_program, std::move(statements), source.source_path, source.source_hash) };
 }
 
-const Program *parse(const TokenizedSource &tokens)
+std::unique_ptr<Program> parse(const TokenizedSource &tokens)
 {
     return Parser(tokens).parse();
 }
