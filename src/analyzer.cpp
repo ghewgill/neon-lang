@@ -3374,6 +3374,62 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
 }
 
+// This code attempts to check for every type that is used in an exported
+// declaration, and has a name, that it is also exported. There seem to be
+// a bunch of corner cases, such as types declared inline (without their own
+// name), and types imported from other modules that have no name, that need
+// to be handled here. Also, recursive types need to be handled (kept track
+// of by the seen set).
+//
+// All this to try to prevent going recursive in Emitter::get_type_reference
+// way over in the compiler.
+
+class ExportedTypeChecker {
+public:
+    ExportedTypeChecker(const std::set<const Name *> &exported): exported(exported), seen() {}
+    void check(const Type *type) {
+        if (seen.find(type) != seen.end()) {
+            return;
+        }
+        seen.insert(type);
+        if (type == TYPE_NOTHING
+         || type == TYPE_BOOLEAN
+         || type == TYPE_NUMBER
+         || type == TYPE_STRING
+         || type == TYPE_BYTES) {
+            return;
+        }
+        const TypeArray *ta = dynamic_cast<const TypeArray *>(type);
+        const TypeDictionary *td = dynamic_cast<const TypeDictionary *>(type);
+        const TypePointer *tp = dynamic_cast<const TypePointer *>(type);
+        if (ta != nullptr) {
+            check(ta->elementtype);
+            return;
+        } else if (td != nullptr) {
+            check(td->elementtype);
+            return;
+        } else if (tp != nullptr) {
+            if (tp->reftype != nullptr) {
+                check(tp->reftype);
+            }
+            return;
+        }
+        if (exported.find(type) == exported.end() && not type->name.empty() && type->declaration.line > 0) {
+            error(3211, type->declaration, "dependent type must be exported: " + type->name + ", " + type->text());
+        }
+        const TypeRecord *tr = dynamic_cast<const TypeRecord *>(type);
+        if (tr != nullptr) {
+            for (auto &f: tr->fields) {
+                check(f.type);
+            }
+        }
+    }
+private:
+    const std::set<const Name *> &exported;
+    std::set<const Name *> seen;
+    ExportedTypeChecker &operator=(const ExportedTypeChecker &) = delete;
+};
+
 const Program *Analyzer::analyze()
 {
     Program *r = new Program(program->source_path, program->source_hash);
@@ -3388,6 +3444,7 @@ const Program *Analyzer::analyze()
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();
+    std::set<const Name *> exported;
     for (auto nt: exports) {
         const Name *name = scope.top()->lookupName(nt.first);
         if (name == nullptr) {
@@ -3405,6 +3462,28 @@ const Program *Analyzer::analyze()
             internal_error("Attempt to export something that can't be exported: " + nt.first);
         }
         r->exports[nt.first] = name;
+        exported.insert(name);
+    }
+    ExportedTypeChecker etc(exported);
+    for (auto nt: exports) {
+        const Name *name = scope.top()->lookupName(nt.first);
+        if (dynamic_cast<const Type *>(name) != nullptr) {
+            // pass
+        } else if (dynamic_cast<const Exception *>(name) != nullptr) {
+            // pass
+        } else if (dynamic_cast<const GlobalVariable *>(name) != nullptr) {
+            etc.check(dynamic_cast<const GlobalVariable *>(name)->type);
+        } else if (dynamic_cast<const Constant *>(name) != nullptr) {
+            etc.check(dynamic_cast<const Constant *>(name)->type);
+        } else if (dynamic_cast<const Function *>(name) != nullptr) {
+            const Function *f = dynamic_cast<const Function *>(name);
+            for (auto p: f->params) {
+                etc.check(p->type);
+            }
+            etc.check(dynamic_cast<const TypeFunction *>(f->type)->returntype);
+        } else if (dynamic_cast<const PredefinedFunction *>(name) != nullptr) {
+            // pass
+        }
     }
     scope.pop();
     return r;

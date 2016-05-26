@@ -5,6 +5,7 @@
  |%
 
 EXPORT parse
+EXPORT Document
 
 %|
  |  Type: Document

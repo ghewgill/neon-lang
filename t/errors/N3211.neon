@@ -1,0 +1,9 @@
+EXPORT foo
+
+TYPE Rec IS RECORD
+            %<
+    a: Number
+END RECORD
+
+FUNCTION foo(r: Rec)
+END FUNCTION

@@ -8,6 +8,8 @@ EXPORT eval
 EXPORT parse
 EXPORT repr
 EXPORT Value
+EXPORT Type
+EXPORT Symbol
 
 IMPORT io
 IMPORT math

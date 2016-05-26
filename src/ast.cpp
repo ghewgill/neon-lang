@@ -98,7 +98,7 @@ const Expression *TypeString::deserialize_value(const Bytecode::Bytes &value, in
 }
 
 TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
-  : Type(declaration, "array"),
+  : Type(declaration, ""),
     elementtype(elementtype)
 {
     {
@@ -215,7 +215,7 @@ const Expression *TypeArray::deserialize_value(const Bytecode::Bytes &value, int
 }
 
 TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype)
-  : Type(declaration, "dictionary"),
+  : Type(declaration, ""),
     elementtype(elementtype)
 {
     {
@@ -326,7 +326,7 @@ std::string TypeRecord::text() const
 }
 
 TypePointer::TypePointer(const Token &declaration, const TypeRecord *reftype)
-  : Type(declaration, "pointer"),
+  : Type(declaration, ""),
     reftype(reftype)
 {
     {
@@ -371,7 +371,7 @@ const Expression *TypePointer::deserialize_value(const Bytecode::Bytes &, int &)
 }
 
 TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFunction *functype)
-  : Type(declaration, "function-pointer"),
+  : Type(declaration, ""),
     functype(functype)
 {
     {
