@@ -48,7 +48,7 @@ public:
     VariableInfo parseVariableDeclaration();
     void parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
     void parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
-    std::unique_ptr<Declaration> parseFunctionDefinition(int start_column);
+    std::unique_ptr<Declaration> parseFunctionDefinition(size_t start_column);
     std::unique_ptr<Declaration> parseExternalDefinition();
     std::unique_ptr<Declaration> parseDeclaration();
     std::unique_ptr<Statement> parseExport();
@@ -966,7 +966,7 @@ void Parser::parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type>
     parseFunctionParameters(returntype, args, rparen);
 }
 
-std::unique_ptr<Declaration> Parser::parseFunctionDefinition(int start_column)
+std::unique_ptr<Declaration> Parser::parseFunctionDefinition(size_t start_column)
 {
     auto &tok_function = tokens[i];
     Token type;
