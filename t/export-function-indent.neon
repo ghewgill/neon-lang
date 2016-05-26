@@ -1,0 +1,3 @@
+EXPORT FUNCTION foo(): Number
+    RETURN 5
+END FUNCTION

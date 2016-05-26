@@ -48,7 +48,7 @@ public:
     VariableInfo parseVariableDeclaration();
     void parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
     void parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
-    std::unique_ptr<Declaration> parseFunctionDefinition();
+    std::unique_ptr<Declaration> parseFunctionDefinition(int start_column);
     std::unique_ptr<Declaration> parseExternalDefinition();
     std::unique_ptr<Declaration> parseDeclaration();
     std::unique_ptr<Statement> parseExport();
@@ -966,7 +966,7 @@ void Parser::parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type>
     parseFunctionParameters(returntype, args, rparen);
 }
 
-std::unique_ptr<Declaration> Parser::parseFunctionDefinition()
+std::unique_ptr<Declaration> Parser::parseFunctionDefinition(int start_column)
 {
     auto &tok_function = tokens[i];
     Token type;
@@ -975,7 +975,7 @@ std::unique_ptr<Declaration> Parser::parseFunctionDefinition()
     std::vector<std::unique_ptr<FunctionParameterGroup>> args;
     Token rparen;
     parseFunctionHeader(type, name, returntype, args, rparen);
-    TemporaryMinimumIndent indent(this, tok_function.column + 1);
+    TemporaryMinimumIndent indent(this, (start_column > 0 ? start_column : tok_function.column) + 1);
     std::vector<std::unique_ptr<Statement>> body;
     while (tokens[i].type != END) {
         std::unique_ptr<Statement> s = parseStatement();
@@ -1088,7 +1088,7 @@ std::unique_ptr<Statement> Parser::parseExport()
             return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, let->names, std::move(let)) };
         }
         case FUNCTION: {
-            std::unique_ptr<Declaration> function = parseFunctionDefinition();
+            std::unique_ptr<Declaration> function = parseFunctionDefinition(tok_export.column);
             return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, function->names, std::move(function)) };
         }
         case EXTERNAL: {
@@ -1713,7 +1713,7 @@ std::unique_ptr<Statement> Parser::parseStatement()
     } else if (tokens[i].type == CONSTANT) {
         return parseConstantDefinition();
     } else if (tokens[i].type == FUNCTION) {
-        return parseFunctionDefinition();
+        return parseFunctionDefinition(0);
     } else if (tokens[i].type == EXTERNAL) {
         return parseExternalDefinition();
     } else if (tokens[i].type == DECLARE) {
