@@ -10,7 +10,11 @@ libpcre = None
 pcreenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        pcreenv.Append(CFLAGS=["/MTd"])
+        pcreenv.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("pcre2-10.10", ignore_errors=True)

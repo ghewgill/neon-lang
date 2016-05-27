@@ -11,7 +11,11 @@ libsdl = None
 libsdlenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        libsdlenv.Append(CFLAGS=["/MTd"])
+        libsdlenv.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("SDL2-2.0.3", ignore_errors=True)

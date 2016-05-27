@@ -10,7 +10,11 @@ libminizip = None
 libminizipenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        libminizipenv.Append(CFLAGS=["/MTd"])
+        libminizipenv.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("minizip11", ignore_errors=True)

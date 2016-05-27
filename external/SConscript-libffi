@@ -56,7 +56,11 @@ Import("env")
 ffienv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        ffienv.Append(CFLAGS=["/MTd"])
+        ffienv.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("libffi-3.2.1", ignore_errors=True)

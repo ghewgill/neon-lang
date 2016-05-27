@@ -10,7 +10,11 @@ libbz2 = None
 bz2env = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        bz2env.Append(CFLAGS=["/MTd"])
+        bz2env.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("bzip2-1.0.6", ignore_errors=True)

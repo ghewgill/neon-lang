@@ -10,7 +10,11 @@ liblzma = None
 lzmaenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        lzmaenv.Append(CFLAGS=["/MTd"])
+        lzmaenv.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("xz-5.2.1", ignore_errors=True)

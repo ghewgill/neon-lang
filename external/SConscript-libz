@@ -10,7 +10,11 @@ libz = None
 libzenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        libzenv.Append(CFLAGS=["/MTd"])
+        libzenv.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("zlib-1.2.8", ignore_errors=True)
