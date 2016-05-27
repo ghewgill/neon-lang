@@ -78,9 +78,6 @@ public:
     Bytes code;
 
     Bytes getBytes() const;
-
-private:
-    std::vector<std::string> getstrtable(const unsigned char *start, const unsigned char *end);
 };
 
 #endif
