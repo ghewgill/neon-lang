@@ -14,11 +14,11 @@
 
 class Disassembler {
 public:
-    Disassembler(std::ostream &out, const Bytecode::Bytes &obj, const DebugInfo *debug);
+    Disassembler(std::ostream &out, const Bytecode::Bytes &bytes, const DebugInfo *debug);
     void disassemble();
 private:
     std::ostream &out;
-    const Bytecode obj;
+    Bytecode obj;
     const DebugInfo *debug;
     Bytecode::Bytes::size_type index;
 
@@ -112,9 +112,10 @@ private:
     Disassembler &operator=(const Disassembler &);
 };
 
-Disassembler::Disassembler(std::ostream &out, const Bytecode::Bytes &obj, const DebugInfo *debug)
-  : out(out), obj(obj), debug(debug), index(0)
+Disassembler::Disassembler(std::ostream &out, const Bytecode::Bytes &bytes, const DebugInfo *debug)
+  : out(out), obj(), debug(debug), index(0)
 {
+    obj.load(bytes);
 }
 
 void Disassembler::disasm_ENTER()

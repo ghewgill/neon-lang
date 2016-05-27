@@ -125,6 +125,8 @@ bool RuntimeSupport::loadBytecode(const std::string &name, Bytecode &object)
     std::vector<unsigned char> bytecode;
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
-    object = Bytecode(bytecode);
+    if (not object.load(bytecode)) {
+        return false;
+    }
     return true;
 }

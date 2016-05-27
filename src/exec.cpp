@@ -361,7 +361,12 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
 {
     assert(g_executor == nullptr);
     g_executor = this;
-    module = new Module(source_path, Bytecode(bytes), debuginfo, this, support);
+    Bytecode b;
+    if (not b.load(bytes)) {
+        fprintf(stderr, "error loading bytecode\n");
+        exit(1);
+    }
+    module = new Module(source_path, b, debuginfo, this, support);
     modules[""] = module;
 }
 

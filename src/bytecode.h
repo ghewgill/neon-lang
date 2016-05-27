@@ -7,7 +7,7 @@
 class Bytecode {
 public:
     Bytecode();
-    explicit Bytecode(const std::vector<unsigned char> &obj);
+    bool load(const std::vector<unsigned char> &bytes);
 
     typedef std::vector<unsigned char> Bytes;
 

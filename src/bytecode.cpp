@@ -1,6 +1,9 @@
 #include "bytecode.h"
 
 #include <assert.h>
+#include <stdint.h>
+
+class BytecodeException: public std::exception {};
 
 static void put_uint16(std::vector<unsigned char> &obj, uint16_t x)
 {
@@ -18,7 +21,9 @@ static void put_uint32(std::vector<unsigned char> &obj, uint32_t x)
 
 static uint16_t get_uint16(const std::vector<unsigned char> &obj, size_t &i)
 {
-    assert(i+2 <= obj.size());
+    if (i+2 > obj.size()) {
+        throw BytecodeException();
+    }
     uint16_t r = (obj[i] << 8) | obj[i+1];
     i += 2;
     return r;
@@ -26,7 +31,9 @@ static uint16_t get_uint16(const std::vector<unsigned char> &obj, size_t &i)
 
 static uint32_t get_uint32(const std::vector<unsigned char> &obj, size_t &i)
 {
-    assert(i+4 <= obj.size());
+    if (i+4 > obj.size()) {
+        throw BytecodeException();
+    }
     uint32_t r = (obj[i] << 24) | (obj[i+1] << 16) | (obj[i+2] << 8) | obj[i+3];
     i += 4;
     return r;
@@ -60,106 +67,111 @@ Bytecode::Bytecode()
 {
 }
 
-Bytecode::Bytecode(const std::vector<unsigned char> &obj)
-  : obj(obj),
-    source_hash(),
-    global_size(0),
-    strtable(),
-    types(),
-    constants(),
-    variables(),
-    functions(),
-    exception_exports(),
-    imports(),
-    exceptions(),
-    code()
+bool Bytecode::load(const std::vector<unsigned char> &bytes)
 {
+    obj = bytes;
+
     size_t i = 0;
 
-    assert(obj.size() > 32);
-    source_hash = std::string(&obj[i], &obj[i]+32);
-    i += 32;
-
-    global_size = get_uint16(obj, i);
-
-    unsigned int strtablesize = get_uint32(obj, i);
-    assert(i+strtablesize <= obj.size());
-    strtable = getstrtable(&obj[i], &obj[i] + strtablesize);
-    i += strtablesize;
-
-    unsigned int typesize = get_uint16(obj, i);
-    while (typesize > 0) {
-        Type t;
-        t.name = get_uint16(obj, i);
-        t.descriptor = get_uint16(obj, i);
-        types.push_back(t);
-        typesize--;
-    }
-
-    unsigned int constantsize = get_uint16(obj, i);
-    while (constantsize > 0) {
-        Constant c;
-        c.name = get_uint16(obj, i);
-        c.type = get_uint16(obj, i);
-        unsigned int size = get_uint16(obj, i);
-        assert(i+size <= obj.size());
-        c.value = Bytes(&obj[i], &obj[i+size]);
-        i += size;
-        constants.push_back(c);
-        constantsize--;
-    }
-
-    unsigned int variablesize = get_uint16(obj, i);
-    while (variablesize > 0) {
-        Variable v;
-        v.name = get_uint16(obj, i);
-        v.type = get_uint16(obj, i);
-        v.index = get_uint16(obj, i);
-        variables.push_back(v);
-        variablesize--;
-    }
-
-    unsigned int functionsize = get_uint16(obj, i);
-    while (functionsize > 0) {
-        Function f;
-        f.name = get_uint16(obj, i);
-        f.descriptor = get_uint16(obj, i);
-        f.entry = get_uint16(obj, i);
-        functions.push_back(f);
-        functionsize--;
-    }
-
-    unsigned int exceptionexportsize = get_uint16(obj, i);
-    while (exceptionexportsize > 0) {
-        ExceptionExport e;
-        e.name = get_uint16(obj, i);
-        exception_exports.push_back(e);
-        exceptionexportsize--;
-    }
-
-    unsigned int importsize = get_uint16(obj, i);
-    while (importsize > 0) {
-        std::pair<unsigned int, std::string> imp;
-        imp.first = get_uint16(obj, i);
-        assert(i+32 <= obj.size());
-        imp.second = std::string(&obj[i], &obj[i]+32);
+    try {
+        if (obj.size() < 32) {
+            throw BytecodeException();
+        }
+        source_hash = std::string(&obj[i], &obj[i]+32);
         i += 32;
-        imports.push_back(imp);
-        importsize--;
+
+        global_size = get_uint16(obj, i);
+
+        unsigned int strtablesize = get_uint32(obj, i);
+        if (i+strtablesize > obj.size()) {
+            throw BytecodeException();
+        }
+        strtable = getstrtable(&obj[i], &obj[i] + strtablesize);
+        i += strtablesize;
+
+        unsigned int typesize = get_uint16(obj, i);
+        while (typesize > 0) {
+            Type t;
+            t.name = get_uint16(obj, i);
+            t.descriptor = get_uint16(obj, i);
+            types.push_back(t);
+            typesize--;
+        }
+
+        unsigned int constantsize = get_uint16(obj, i);
+        while (constantsize > 0) {
+            Constant c;
+            c.name = get_uint16(obj, i);
+            c.type = get_uint16(obj, i);
+            unsigned int size = get_uint16(obj, i);
+            if (i+size > obj.size()) {
+                throw BytecodeException();
+            }
+            c.value = Bytes(&obj[i], &obj[i+size]);
+            i += size;
+            constants.push_back(c);
+            constantsize--;
+        }
+
+        unsigned int variablesize = get_uint16(obj, i);
+        while (variablesize > 0) {
+            Variable v;
+            v.name = get_uint16(obj, i);
+            v.type = get_uint16(obj, i);
+            v.index = get_uint16(obj, i);
+            variables.push_back(v);
+            variablesize--;
+        }
+
+        unsigned int functionsize = get_uint16(obj, i);
+        while (functionsize > 0) {
+            Function f;
+            f.name = get_uint16(obj, i);
+            f.descriptor = get_uint16(obj, i);
+            f.entry = get_uint16(obj, i);
+            functions.push_back(f);
+            functionsize--;
+        }
+
+        unsigned int exceptionexportsize = get_uint16(obj, i);
+        while (exceptionexportsize > 0) {
+            ExceptionExport e;
+            e.name = get_uint16(obj, i);
+            exception_exports.push_back(e);
+            exceptionexportsize--;
+        }
+
+        unsigned int importsize = get_uint16(obj, i);
+        while (importsize > 0) {
+            std::pair<unsigned int, std::string> imp;
+            imp.first = get_uint16(obj, i);
+            if (i+32 > obj.size()) {
+                throw BytecodeException();
+            }
+            imp.second = std::string(&obj[i], &obj[i]+32);
+            i += 32;
+            imports.push_back(imp);
+            importsize--;
+        }
+
+        unsigned int exceptionsize = get_uint16(obj, i);
+        while (exceptionsize > 0) {
+            ExceptionInfo e;
+            e.start = get_uint16(obj, i);
+            e.end = get_uint16(obj, i);
+            e.excid = get_uint16(obj, i);
+            e.handler = get_uint16(obj, i);
+            exceptions.push_back(e);
+            exceptionsize--;
+        }
+
+        code = Bytes(obj.begin() + i, obj.end());
+
+    } catch (BytecodeException &) {
+        return false;
     }
 
-    unsigned int exceptionsize = get_uint16(obj, i);
-    while (exceptionsize > 0) {
-        ExceptionInfo e;
-        e.start = get_uint16(obj, i);
-        e.end = get_uint16(obj, i);
-        e.excid = get_uint16(obj, i);
-        e.handler = get_uint16(obj, i);
-        exceptions.push_back(e);
-        exceptionsize--;
-    }
-
-    code = Bytes(obj.begin() + i, obj.end());
+    return true;
 }
 
 Bytecode::Bytes Bytecode::getBytes() const
@@ -171,64 +183,64 @@ Bytecode::Bytes Bytecode::getBytes() const
         obj.push_back(source_hash[i]);
     }
 
-    put_uint16(obj, global_size);
+    put_uint16(obj, static_cast<uint16_t>(global_size));
 
     std::vector<unsigned char> t;
     for (auto s: strtable) {
-        put_uint32(t, s.length());
+        put_uint32(t, static_cast<uint32_t>(s.length()));
         std::copy(s.begin(), s.end(), std::back_inserter(t));
     }
-    put_uint32(obj, t.size());
+    put_uint32(obj, static_cast<uint32_t>(t.size()));
     std::copy(t.begin(), t.end(), std::back_inserter(obj));
 
-    put_uint16(obj, types.size());
+    put_uint16(obj, static_cast<uint16_t>(types.size()));
     for (auto t: types) {
-        put_uint16(obj, t.name);
-        put_uint16(obj, t.descriptor);
+        put_uint16(obj, static_cast<uint16_t>(t.name));
+        put_uint16(obj, static_cast<uint16_t>(t.descriptor));
     }
 
-    put_uint16(obj, constants.size());
+    put_uint16(obj, static_cast<uint16_t>(constants.size()));
     for (auto c: constants) {
-        put_uint16(obj, c.name);
-        put_uint16(obj, c.type);
-        put_uint16(obj, c.value.size());
+        put_uint16(obj, static_cast<uint16_t>(c.name));
+        put_uint16(obj, static_cast<uint16_t>(c.type));
+        put_uint16(obj, static_cast<uint16_t>(c.value.size()));
         std::copy(c.value.begin(), c.value.end(), std::back_inserter(obj));
     }
 
-    put_uint16(obj, variables.size());
+    put_uint16(obj, static_cast<uint16_t>(variables.size()));
     for (auto v: variables) {
-        put_uint16(obj, v.name);
-        put_uint16(obj, v.type);
-        put_uint16(obj, v.index);
+        put_uint16(obj, static_cast<uint16_t>(v.name));
+        put_uint16(obj, static_cast<uint16_t>(v.type));
+        put_uint16(obj, static_cast<uint16_t>(v.index));
     }
 
-    put_uint16(obj, functions.size());
+    put_uint16(obj, static_cast<uint16_t>(functions.size()));
     for (auto f: functions) {
-        put_uint16(obj, f.name);
-        put_uint16(obj, f.descriptor);
-        put_uint16(obj, f.entry);
+        put_uint16(obj, static_cast<uint16_t>(f.name));
+        put_uint16(obj, static_cast<uint16_t>(f.descriptor));
+        put_uint16(obj, static_cast<uint16_t>(f.entry));
     }
 
-    put_uint16(obj, exception_exports.size());
+    put_uint16(obj, static_cast<uint16_t>(exception_exports.size()));
     for (auto e: exception_exports) {
-        put_uint16(obj, e.name);
+        put_uint16(obj, static_cast<uint16_t>(e.name));
     }
 
-    put_uint16(obj, imports.size());
+    put_uint16(obj, static_cast<uint16_t>(imports.size()));
     for (auto i: imports) {
-        put_uint16(obj, i.first);
+        put_uint16(obj, static_cast<uint16_t>(i.first));
         assert(i.second.length() == 32);
         for (int j = 0; j < 32; j++) {
             obj.push_back(i.second[j]);
         }
     }
 
-    put_uint16(obj, exceptions.size());
+    put_uint16(obj, static_cast<uint16_t>(exceptions.size()));
     for (auto e: exceptions) {
-        put_uint16(obj, e.start);
-        put_uint16(obj, e.end);
-        put_uint16(obj, e.excid);
-        put_uint16(obj, e.handler);
+        put_uint16(obj, static_cast<uint16_t>(e.start));
+        put_uint16(obj, static_cast<uint16_t>(e.end));
+        put_uint16(obj, static_cast<uint16_t>(e.excid));
+        put_uint16(obj, static_cast<uint16_t>(e.handler));
     }
 
     std::copy(code.begin(), code.end(), std::back_inserter(obj));

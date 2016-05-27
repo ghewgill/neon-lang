@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <iso646.h>
 #include <map>
 #include <sstream>
 #include <vector>
@@ -24,7 +25,9 @@ bool ZipSupport::loadBytecode(const std::string &module, Bytecode &bytecode)
     if (i == g_Contents.end()) {
         return false;
     }
-    bytecode = Bytecode(i->second);
+    if (not bytecode.load(i->second)) {
+        return false;
+    }
     return true;
 }
 

@@ -82,7 +82,12 @@ int main(int argc, char *argv[])
         std::vector<unsigned char> bytecode;
         std::string s = buf.str();
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
-        modules[""] = Bytecode(bytecode);
+        Bytecode b;
+        if (not b.load(bytecode)) {
+            fprintf(stderr, "could not load bytecode\n");
+            exit(1);
+        }
+        modules[""] = b;
     }
     get_modules(modules[""], modules);
 
