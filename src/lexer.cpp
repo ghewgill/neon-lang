@@ -110,7 +110,7 @@ std::string Token::tostring() const
         case HEXBYTES:    s << "HEXBYTES"; break;
         case INC:         s << "INC"; break;
         case DEC:         s << "DEC"; break;
-        case UNDERSCORE:  s << "_"; break;
+        case UNDERSCORE:  s << "UNDERSCORE"; break;
         case OTHERS:      s << "OTHERS"; break;
         case WITH:        s << "WITH"; break;
         case CHECK:       s << "CHECK"; break;
