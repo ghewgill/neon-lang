@@ -313,8 +313,9 @@ class Field:
 class TypeRecord:
     def __init__(self, fields):
         self.fields = fields
+        self.methods = {}
     def resolve(self, env):
-        return ClassRecord(self.fields)
+        return ClassRecord(self.fields, self.methods)
 
 class TypeEnum:
     def __init__(self, names):
@@ -547,29 +548,29 @@ class DotExpression:
     def eval(self, env):
         obj = self.expr.eval(env)
         if isinstance(obj, bool):
-            if self.field == "toString": return lambda env: neon_strb(env, obj)
+            if self.field == "toString": return lambda env, self: neon_strb(env, obj)
             assert False, self.field
         elif isinstance(obj, int):
-            if self.field == "toString": return lambda env: str(obj)
+            if self.field == "toString": return lambda env, self: str(obj)
             assert False, self.field
         elif isinstance(obj, bytes):
-            if self.field == "decodeToString": return lambda env: obj.decode("utf-8")
-            if self.field == "toString": return lambda env: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj))
+            if self.field == "decodeToString": return lambda env, self: obj.decode("utf-8")
+            if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj))
         elif isinstance(obj, (str, unicode)):
             if self.field == "append": return neon_string_append
-            if self.field == "toArray": return lambda env: [ord(x) for x in obj]
-            if self.field == "toBytes": return lambda env: "".join(x for x in obj.encode("utf-8"))
-            if self.field == "toString": return lambda env: obj
+            if self.field == "toArray": return lambda env, self: [ord(x) for x in obj]
+            if self.field == "toBytes": return lambda env, self: "".join(x for x in obj.encode("utf-8"))
+            if self.field == "toString": return lambda env, self: obj
             assert False, self.field
         elif isinstance(obj, list):
-            if self.field == "append": return lambda env, x: obj.append(x)
-            if self.field == "extend": return lambda env, x: obj.extend(x)
-            if self.field == "resize": return lambda env, n: neon_array_resize(obj, n)
-            if self.field == "size": return lambda env: len(obj)
-            if self.field == "toString": return lambda env: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
+            if self.field == "append": return lambda env, self, x: obj.append(x)
+            if self.field == "extend": return lambda env, self, x: obj.extend(x)
+            if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
+            if self.field == "size": return lambda env, self: len(obj)
+            if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
             assert False, self.field
         elif isinstance(obj, dict):
-            if self.field == "keys": return lambda env: obj.keys()
+            if self.field == "keys": return lambda env, self: obj.keys()
             assert False, self.field
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
@@ -780,7 +781,10 @@ class FunctionDeclaration:
         outs = [x.mode is not IN for x in self.args]
         if any(outs):
             func._outs = outs
-        env.declare(self.name, type, func)
+        if self.type is not None:
+            env.get_value(self.type).methods[self.name] = func
+        else:
+            env.declare(self.name, type, func)
     def run(self, env):
         pass
 
@@ -792,20 +796,19 @@ class FunctionCallExpression:
         args = [a[1].eval(env) for a in self.args]
         f = self.func.eval(env)
         if callable(f):
-            #if isinstance(self.func, DotExpression):
-            #    return f(self.func.expr.eval(env), *args)
-            #else:
-                e = env
-                while e.parent is not None:
-                    e = e.parent
-                funcenv = Environment(e)
-                r = f(funcenv, *args)
-                if hasattr(f, "_outs"):
-                    for i, out in enumerate(f._outs):
-                        if out:
-                            self.args[i][1].set(env, r[1+i])
-                    r = r[0]
-                return r
+            e = env
+            while e.parent is not None:
+                e = e.parent
+            funcenv = Environment(e)
+            if isinstance(self.func, DotExpression) and not (isinstance(self.func.expr, IdentifierExpression) and isinstance(env.get_type(self.func.expr.name), ClassModule)):
+                args = [self.func.expr.eval(env)] + args
+            r = f(funcenv, *args)
+            if hasattr(f, "_outs"):
+                for i, out in enumerate(f._outs):
+                    if out:
+                        self.args[i][1].set(env, r[1+i])
+                r = r[0]
+            return r
         elif isinstance(f, ClassRecord):
             return f.make(env, [x[0] for x in self.args], args)
         assert False, (self.func, f)
@@ -1230,8 +1233,12 @@ class Parser:
     def parse_function_header(self):
         self.expect(FUNCTION)
         name = self.identifier()
-        # TODO: DOT
-        return tuple([None, name] + list(self.parse_function_parameters()))
+        type = None
+        if self.tokens[self.i] is DOT:
+            self.i += 1
+            type = name
+            name = self.identifier()
+        return tuple([type, name] + list(self.parse_function_parameters()))
 
     def parse_function_definition(self):
         type, name, returntype, args = self.parse_function_header()
@@ -1989,12 +1996,15 @@ class ClassRecord(Class):
                 setattr(self, x.name, None) # TODO: default()
         def __eq__(self, other):
             return all(getattr(self, x.name) == getattr(other, x.name) for x in self._fields)
-    def __init__(self, fields):
+    def __init__(self, fields, methods):
         self.fields = fields
+        self.methods = methods
     def default(self, env):
         r = ClassRecord.Instance(self.fields)
         for f in self.fields:
             setattr(r, f.name, f.type.resolve(env).default(env))
+        for n, f in self.methods.items():
+            setattr(r, n, f)
         return r
     def make(self, env, names, values):
         r = self.default(env)
@@ -2006,7 +2016,7 @@ class ClassEnum(Class):
     class Instance:
         def __init__(self, name):
             self.name = name
-        def toString(self, env):
+        def toString(self, env, obj):
             return self.name
     def __init__(self, names):
         self.names = names
@@ -2326,11 +2336,8 @@ ExcludeTests = [
     "t/hash-test.neon",         # Module not required yet
     "t/import.neon",            # Module import not required yet
     "t/io-test.neon",           # Module not required yet
-    "t/methods-declare.neon",   # Methods not required yet
-    "t/methods.neon",           # Methods not required yet
     "t/module.neon",            # Feature not required yet
     "t/module2.neon",           # Feature not required yet
-    "t/pointer-method.neon",    # Feature not required yet
     "t/record-private.neon",    # Feature not required yet
     "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
     "t/string-test.neon",       # Module not required yet
