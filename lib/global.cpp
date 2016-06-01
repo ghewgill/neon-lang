@@ -258,7 +258,7 @@ std::string global$bytes__decodeToString(const std::string &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
-        throw RtlException(Exception_global$Utf8DecodingException, "");
+        throw RtlException(Exception_global$Utf8DecodingException, std::to_string(std::distance(self.begin(), inv)));
     }
     return self;
 }
