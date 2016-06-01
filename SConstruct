@@ -469,7 +469,7 @@ if perl:
     env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro")
     env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
 
-for fn in Glob("t/*.neon"):
+for fn in Glob("t/*.neon") + Glob("t/errors/*.neon"):
     if fn.name in ["lexer-unicode.neon", "string-bytes.neon", "unicode-char.neon", "unicode-length.neon", "unicode-source.neon", "unicode-string.neon", "utf8-invalid.neon"]:
         continue # TODO (see t/unicode-length.neon)
     dump_cpp = env.Command("tmp/"+fn.name+".dump_cpp", [fn, test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))

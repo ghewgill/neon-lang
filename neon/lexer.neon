@@ -517,7 +517,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                                     WHEN "\"" DO
                                         inquote := NOT inquote
                                     WHEN "\\", "\n" DO
-                                        error(1015, t, "invalid char embedded in string substitution")
+                                        error(1014, t, "invalid char embedded in string substitution")
                                 END CASE
                             END WHILE
                             LET end: Number := (IF colon > start THEN colon ELSE i - 1)
@@ -584,7 +584,6 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     delimiter.append(c)
                 END WHILE
                 IF i >= source.length() OR source[i] # "\"" THEN
-                    print(source[i])
                     error(1019, t, "'\"' expected")
                 END IF
                 INC i
@@ -661,7 +660,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                 INC i
             END WHILE
         ELSE
-            error(1007, t, "unexpected character")
+            error(1007, t, "Unexpected character")
         END IF
         IF t.type # Type.none THEN
             tokens.append(t)
@@ -706,11 +705,47 @@ FUNCTION tokenize(source_path: String, orig_source: String): Array<Token>
     RETURN r
 END FUNCTION
 
+FUNCTION count(s: String, t: String): Number
+    VAR r: Number := 0
+    VAR i: Number := 0
+    LOOP
+        LET next: Number := string.find(s[i TO LAST], t)
+        IF next < 0 THEN
+            EXIT LOOP
+        END IF
+        i := next + 1
+        INC r
+    END LOOP
+    RETURN r
+END FUNCTION
+
+FUNCTION findLast(s: String, t: String): Number
+    VAR i: Number := s.length()
+    WHILE i > 0 DO
+        DEC i
+        IF s[i TO i+t.length()-1] = t THEN
+            RETURN i
+        END IF
+    END WHILE
+    RETURN -1
+END FUNCTION
+
 BEGIN MAIN
     FOREACH fn OF sys.args[1 TO LAST] DO
-        LET tokens: Array<Token> := tokenize(fn, file.readBytes(fn).decodeToString())
-        FOREACH t OF tokens DO
-            print("\(t)")
-        END FOREACH
+        LET bytes: Bytes := file.readBytes(fn)
+        TRY
+            LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString())
+            FOREACH t OF tokens DO
+                print("\(t)")
+            END FOREACH
+        EXCEPTION Utf8DecodingException DO
+            LET offset: Number := num(CURRENT_EXCEPTION.info)
+            LET source: String := bytes[FIRST TO offset-1].decodeToString()
+            LET line: Number := 1 + count(source, "\n")
+            LET bol: Number := findLast(source, "\n") + 1
+            LET column: Number := 1 + offset - bol
+            LET t: Token := Token(line WITH line, column WITH column)
+            error(1000, t, "invalid UTF-8 data in source")
+        END TRY
     END FOREACH
 END MAIN
