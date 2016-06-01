@@ -129,6 +129,8 @@ ASSERT = Keyword("ASSERT")
 EMBED = Keyword("EMBED")
 ALIAS = Keyword("ALIAS")
 IS = Keyword("IS")
+BEGIN = Keyword("BEGIN")
+MAIN = Keyword("MAIN")
 HEXBYTES = Keyword("HEXBYTES")
 INC = Keyword("INC")
 DEC = Keyword("DEC")
@@ -213,6 +215,8 @@ def tokenize_fragment(source):
             text = source[start:i]
             if text in Keyword.keywords:
                 r.append(Keyword.keywords[text])
+            elif all(c.isupper() for c in text):
+                assert False, text
             else:
                 r.append(Identifier(text))
         elif number_start(source[i]):
@@ -1105,6 +1109,9 @@ class Program:
             s.declare(env)
         for s in self.statements:
             s.run(env)
+        main = env.names.get("MAIN")
+        if main is not None:
+            main[1](env)
 
 class Parser:
     def __init__(self, tokens):
@@ -1814,6 +1821,18 @@ class Parser:
         self.expect(LOOP)
         return LoopStatement(statements)
 
+    def parse_main_statement(self):
+        self.expect(BEGIN)
+        self.expect(MAIN)
+        statements = []
+        while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
+            s = self.parse_statement()
+            if s is not None:
+                statements.append(s)
+        self.expect(END)
+        self.expect(MAIN)
+        return FunctionDeclaration(None, "MAIN", None, [], statements)
+
     def parse_next_statement(self):
         self.expect(NEXT)
         type = self.tokens[self.i]
@@ -1922,6 +1941,7 @@ class Parser:
         if self.tokens[self.i] is RAISE:    return self.parse_raise_statement()
         if self.tokens[self.i] is ASSERT:   return self.parse_assert()
         if self.tokens[self.i] is CHECK:    return self.parse_check_statement()
+        if self.tokens[self.i] is BEGIN:    return self.parse_main_statement()
         if isinstance(self.tokens[self.i], Identifier):
             expr = self.parse_expression()
             if self.tokens[self.i] is ASSIGN:
@@ -2336,7 +2356,6 @@ ExcludeTests = [
     "t/hash-test.neon",         # Module not required yet
     "t/import.neon",            # Module import not required yet
     "t/io-test.neon",           # Module not required yet
-    "t/module.neon",            # Feature not required yet
     "t/module2.neon",           # Feature not required yet
     "t/record-private.neon",    # Feature not required yet
     "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
