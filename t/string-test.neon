@@ -37,3 +37,6 @@ print(strb(string.hasSuffix("Hello World", "orld")))
 print(strb(string.hasSuffix("Hello World", "old")))
 %= TRUE
 %= FALSE
+
+ASSERT string.repeat("*", 5) = "*****"
+ASSERT string.repeat("XY", 2) = "XYXY"

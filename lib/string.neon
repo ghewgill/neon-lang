@@ -9,6 +9,7 @@ EXPORT hasPrefix
 EXPORT hasSuffix
 EXPORT join
 EXPORT lower
+EXPORT repeat
 EXPORT split
 EXPORT trim
 EXPORT upper
@@ -47,6 +48,22 @@ DECLARE NATIVE FUNCTION join(a: Array<String>, d: String): String
  |  Return a string with all alphabetic characters converted to lower case.
  |%
 DECLARE NATIVE FUNCTION lower(s: String): String
+
+%|
+ |  Function: repeat
+ |
+ |  Return a string with a given string repeated the specified number of times.
+ |%
+FUNCTION repeat(s: String, n: Number): String
+    CHECK n >= 0 ELSE
+        RAISE InvalidValueException
+    END CHECK
+    VAR r: String := ""
+    FOR i := 1 TO n DO
+        r.append(s)
+    END FOR
+    RETURN r
+END FUNCTION
 
 %|
  |  Function: split
