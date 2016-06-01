@@ -1,0 +1,716 @@
+IMPORT file
+IMPORT string
+IMPORT sys
+
+TYPE Type IS ENUM
+    none
+    end_of_file
+    number
+    string
+    identifier
+    lparen
+    rparen
+    lbracket
+    rbracket
+    lbrace
+    rbrace
+    colon
+    assign
+    plus
+    minus
+    times
+    divide
+    mod
+    exp
+    concat
+    equal
+    notequal
+    less
+    greater
+    lesseq
+    greatereq
+    comma
+    if
+    then
+    else
+    end
+    while
+    do
+    var
+    function
+    return
+    false
+    true
+    and
+    or
+    not
+    for
+    to
+    step
+    array
+    dictionary
+    dot
+    type
+    record
+    enum
+    constant
+    import
+    in
+    out
+    inout
+    elsif
+    case
+    when
+    external
+    exit
+    next
+    loop
+    repeat
+    until
+    declare
+    exception
+    try
+    raise
+    pointer
+    new
+    nil
+    valid
+    arrow
+    subbegin
+    subfmt
+    subend
+    let
+    first
+    last
+    as
+    default
+    export
+    private
+    native
+    foreach
+    of
+    index
+    assert
+    embed
+    alias
+    is
+    begin
+    main
+    hexbytes
+    inc
+    dec
+    underscore
+    others
+    with
+    check
+    gives
+    nowhere
+    intdiv
+    max_token
+END ENUM
+
+TYPE Token IS RECORD
+    file: String
+    source: String
+    line: Number
+    column: Number
+    type: Type
+    text: String
+    value: Number
+END RECORD
+
+FUNCTION Token.toString(self: Token): String
+    VAR r: String := "<\(self.line):\(self.column) \(string.upper(self.type.toString()))"
+    CASE self.type
+        WHEN Type.number DO
+            r.append(":\(self.value)")
+        WHEN Type.string DO
+            r.append(":\(self.text)")
+        WHEN Type.identifier DO
+            r.append(":\(self.text)")
+    END CASE
+    r.append(">")
+    RETURN r
+END FUNCTION
+
+FUNCTION error(number: Number, token: Token, message: String)
+    FUNCTION len(s: String): Number RETURN s.length() END FUNCTION
+    print("Error in file: \(token.file)")
+    print("")
+    print("\(token.line)| \(token.source)")
+    print(format("^", ">\(len(token.line.toString())+2+token.column)"))
+    print("Error N\(number): \(token.line):\(token.column) \(message)")
+    sys.exit(1)
+END FUNCTION
+
+FUNCTION identifier_start(c: String): Boolean
+    RETURN ord(c) < 256 AND ("A" <= c <= "Z" OR "a" <= c <= "z" OR c = "_")
+END FUNCTION
+
+FUNCTION identifier_body(c: String): Boolean
+    RETURN ord(c) < 256 AND ("0" <= c <= "9" OR "A" <= c <= "Z" OR "a" <= c <= "z" OR c = "_")
+END FUNCTION
+
+FUNCTION all_upper(s: String): Boolean
+    FOR i := 0 TO s.length()-1 DO
+        IF NOT ("A" <= s[i] <= "Z") THEN
+            RETURN FALSE
+        END IF
+    END FOR
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION number_start(c: String): Boolean
+    RETURN "0" <= c <= "9"
+END FUNCTION
+
+FUNCTION number_body(c: String): Boolean
+    RETURN "0" <= c <= "9" OR "A" <= c <= "Z" OR "a" <= c <= "z" OR c = "_"
+END FUNCTION
+
+FUNCTION number_base(c: String): Boolean
+    RETURN c = "#" OR "A" <= c <= "Z" OR "a" <= c <= "z"
+END FUNCTION
+
+FUNCTION number_decimal_body(c: String): Boolean
+    RETURN "0" <= c <= "9" OR c = "_"
+END FUNCTION
+
+FUNCTION hex_char(c: String): Boolean
+    RETURN "0" <= c <= "9" OR "a" <= c <= "f"
+END FUNCTION
+
+FUNCTION space(c: String): Boolean
+    RETURN c IN [" ", "\t", "\r", "\n"]
+END FUNCTION
+
+FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start: Number, source: String, actual_source_line: String DEFAULT ""): Array<Token>
+    VAR column: Number := column_start
+    VAR tokens: Array<Token> := []
+    VAR linestart: Number := 0
+    VAR lineend: Number := string.find(source, "\n")
+    VAR i: Number := 0
+    WHILE i < source.length() DO
+        VAR c: String := source[i]
+        VAR startindex: Number := i
+        VAR t: Token := Token(
+            file WITH source_path,
+            source WITH (IF actual_source_line # "" THEN actual_source_line ELSE source[linestart TO lineend-1]),
+            line WITH line,
+            column WITH column,
+            type WITH Type.none
+        )
+           IF c = "(" THEN t.type := Type.lparen INC i
+        ELSIF c = ")" THEN t.type := Type.rparen INC i
+        ELSIF c = "[" THEN t.type := Type.lbracket INC i
+        ELSIF c = "]" THEN t.type := Type.rbracket INC i
+        ELSIF c = "{" THEN t.type := Type.lbrace INC i
+        ELSIF c = "}" THEN t.type := Type.rbrace INC i
+        ELSIF c = "+" THEN t.type := Type.plus INC i
+        ELSIF c = "*" THEN t.type := Type.times INC i
+        ELSIF c = "/" THEN t.type := Type.divide INC i
+        ELSIF c = "^" THEN t.type := Type.exp INC i
+        ELSIF c = "&" THEN t.type := Type.concat INC i
+        ELSIF c = "=" THEN t.type := Type.equal INC i
+        ELSIF c = "#" THEN t.type := Type.notequal INC i
+        ELSIF c = "," THEN t.type := Type.comma INC i
+        ELSIF c = "." THEN t.type := Type.dot INC i
+        ELSIF c = "\u2212" %|'−'|% THEN t.type := Type.minus INC i
+        ELSIF c = "\u00D7" %|'×'|% THEN t.type := Type.times INC i
+        ELSIF c = "\u2215" %|'∕'|% THEN t.type := Type.divide INC i
+        ELSIF c = "\u00F7" %|'÷'|% THEN t.type := Type.divide INC i
+        ELSIF c = "\u2260" %|'≠'|% THEN t.type := Type.notequal INC i
+        ELSIF c = "\u2264" %|'≤'|% THEN t.type := Type.lesseq INC i
+        ELSIF c = "\u2265" %|'≥'|% THEN t.type := Type.greatereq INC i
+        ELSIF c = "\u00ac" %|'¬'|% THEN t.type := Type.not INC i
+        ELSIF c = "\u2227" %|'∧'|% THEN t.type := Type.and INC i
+        ELSIF c = "\u2228" %|'∨'|% THEN t.type := Type.or INC i
+        ELSIF c = "\u2208" %|'∈'|% THEN t.type := Type.in INC i
+        % TODO ELSIF c = 0x2209 %|'∉'|% THEN t.type := Type.notin INC i
+        ELSIF c = "-" THEN
+            IF source[i+1] = ">" THEN
+                t.type := Type.arrow
+                i := i + 2
+            ELSE
+                t.type := Type.minus
+                INC i
+            END IF
+        ELSIF c = "<" THEN
+            IF source[i+1] = "=" THEN
+                t.type := Type.lesseq
+                i := i + 2
+            ELSE
+                t.type := Type.less
+                INC i
+            END IF
+        ELSIF c = ">" THEN
+            IF source[i+1] = "=" THEN
+                t.type := Type.greatereq
+                i := i + 2
+            ELSE
+                t.type := Type.greater
+                INC i
+            END IF
+        ELSIF c = ":" THEN
+            IF source[i+1] = "=" THEN
+                t.type := Type.assign
+                i := i + 2
+            ELSE
+                t.type := Type.colon
+                INC i
+            END IF
+        ELSIF identifier_start(c) THEN
+            t.type := Type.identifier
+            LET start: Number := i
+            WHILE i < source.length() AND identifier_body(source[i]) DO
+                INC i
+            END WHILE
+            t.text := source[start TO i-1]
+               IF t.text = "IF" THEN t.type := Type.if
+            ELSIF t.text = "THEN" THEN t.type := Type.then
+            ELSIF t.text = "ELSE" THEN t.type := Type.else
+            ELSIF t.text = "END" THEN t.type := Type.end
+            ELSIF t.text = "WHILE" THEN t.type := Type.while
+            ELSIF t.text = "DO" THEN t.type := Type.do
+            ELSIF t.text = "VAR" THEN t.type := Type.var
+            ELSIF t.text = "FUNCTION" THEN t.type := Type.function
+            ELSIF t.text = "RETURN" THEN t.type := Type.return
+            ELSIF t.text = "FALSE" THEN t.type := Type.false
+            ELSIF t.text = "TRUE" THEN t.type := Type.true
+            ELSIF t.text = "MOD" THEN t.type := Type.mod
+            ELSIF t.text = "AND" THEN t.type := Type.and
+            ELSIF t.text = "OR" THEN t.type := Type.or
+            ELSIF t.text = "NOT" THEN t.type := Type.not
+            ELSIF t.text = "FOR" THEN t.type := Type.for
+            ELSIF t.text = "TO" THEN t.type := Type.to
+            ELSIF t.text = "STEP" THEN t.type := Type.step
+            ELSIF t.text = "Array" THEN t.type := Type.array
+            ELSIF t.text = "Dictionary" THEN t.type := Type.dictionary
+            ELSIF t.text = "TYPE" THEN t.type := Type.type
+            ELSIF t.text = "RECORD" THEN t.type := Type.record
+            ELSIF t.text = "ENUM" THEN t.type := Type.enum
+            ELSIF t.text = "CONSTANT" THEN t.type := Type.constant
+            ELSIF t.text = "IMPORT" THEN t.type := Type.import
+            ELSIF t.text = "IN" THEN t.type := Type.in
+            ELSIF t.text = "OUT" THEN t.type := Type.out
+            ELSIF t.text = "INOUT" THEN t.type := Type.inout
+            ELSIF t.text = "ELSIF" THEN t.type := Type.elsif
+            ELSIF t.text = "CASE" THEN t.type := Type.case
+            ELSIF t.text = "WHEN" THEN t.type := Type.when
+            ELSIF t.text = "EXTERNAL" THEN t.type := Type.external
+            ELSIF t.text = "EXIT" THEN t.type := Type.exit
+            ELSIF t.text = "NEXT" THEN t.type := Type.next
+            ELSIF t.text = "LOOP" THEN t.type := Type.loop
+            ELSIF t.text = "REPEAT" THEN t.type := Type.repeat
+            ELSIF t.text = "UNTIL" THEN t.type := Type.until
+            ELSIF t.text = "DECLARE" THEN t.type := Type.declare
+            ELSIF t.text = "EXCEPTION" THEN t.type := Type.exception
+            ELSIF t.text = "TRY" THEN t.type := Type.try
+            ELSIF t.text = "RAISE" THEN t.type := Type.raise
+            ELSIF t.text = "POINTER" THEN t.type := Type.pointer
+            ELSIF t.text = "NEW" THEN t.type := Type.new
+            ELSIF t.text = "NIL" THEN t.type := Type.nil
+            ELSIF t.text = "VALID" THEN t.type := Type.valid
+            ELSIF t.text = "LET" THEN t.type := Type.let
+            ELSIF t.text = "FIRST" THEN t.type := Type.first
+            ELSIF t.text = "LAST" THEN t.type := Type.last
+            ELSIF t.text = "AS" THEN t.type := Type.as
+            ELSIF t.text = "DEFAULT" THEN t.type := Type.default
+            ELSIF t.text = "EXPORT" THEN t.type := Type.export
+            ELSIF t.text = "PRIVATE" THEN t.type := Type.private
+            ELSIF t.text = "NATIVE" THEN t.type := Type.native
+            ELSIF t.text = "FOREACH" THEN t.type := Type.foreach
+            ELSIF t.text = "OF" THEN t.type := Type.of
+            ELSIF t.text = "INDEX" THEN t.type := Type.index
+            ELSIF t.text = "ASSERT" THEN t.type := Type.assert
+            ELSIF t.text = "EMBED" THEN t.type := Type.embed
+            ELSIF t.text = "ALIAS" THEN t.type := Type.alias
+            ELSIF t.text = "IS" THEN t.type := Type.is
+            ELSIF t.text = "BEGIN" THEN t.type := Type.begin
+            ELSIF t.text = "MAIN" THEN t.type := Type.main
+            ELSIF t.text = "HEXBYTES" THEN t.type := Type.hexbytes
+            ELSIF t.text = "INC" THEN t.type := Type.inc
+            ELSIF t.text = "DEC" THEN t.type := Type.dec
+            ELSIF t.text = "_" THEN t.type := Type.underscore
+            ELSIF t.text = "OTHERS" THEN t.type := Type.others
+            ELSIF t.text = "WITH" THEN t.type := Type.with
+            ELSIF t.text = "CHECK" THEN t.type := Type.check
+            ELSIF t.text = "GIVES" THEN t.type := Type.gives
+            ELSIF t.text = "NOWHERE" THEN t.type := Type.nowhere
+            ELSIF t.text = "INTDIV" THEN t.type := Type.intdiv
+            ELSIF all_upper(t.text) THEN
+                error(1023, t, "identifier cannot be all upper case (reserved for keywords)")
+            ELSIF string.find(t.text, "__") >= 0 THEN
+                error(1024, t, "identifier cannot contain double underscore (reserved)")
+            ELSIF t.text.length() >= 2 AND t.text[0] = "_" THEN
+                error(1025, t, "identifier cannot start with underscore")
+            END IF
+        ELSIF number_start(c) THEN
+            t.type := Type.number
+            LET start: Number := i
+            IF c = "0" AND source[i+1] # "." AND string.lower(source[i+1]) # "e" AND NOT number_decimal_body(source[i+1]) THEN
+                INC i
+                LET b: String := string.lower(source[i])
+                IF number_base(b) THEN
+                    VAR base: Number := 0
+                    IF b = "b" THEN
+                        base := 2
+                        INC i
+                    ELSIF b = "o" THEN
+                        base := 8
+                        INC i
+                    ELSIF b = "x" THEN
+                        base := 16
+                        INC i
+                    ELSIF b = "#" THEN
+                        INC i
+                        VAR j: Number := i
+                        WHILE "0" <= source[j] <= "9" DO
+                            INC j
+                        END WHILE
+                        base := num(source[i TO j-1])
+                        IF NOT (2 <= base <= 36) THEN
+                            error(1001, t, "invalid base")
+                        END IF
+                        i := j
+                        IF source[i] # "#" THEN
+                            error(1002, t, "'#' expected")
+                        END IF
+                        INC i
+                    ELSE
+                        error(1003, t, "invalid base character")
+                    END IF
+                    VAR value: Number := 0
+                    LET nstart: Number := i
+                    LOOP
+                        LET d: String := string.lower(source[i])
+                        IF d = "." THEN
+                            error(1004, t, "non-decimal fraction not supported")
+                        END IF
+                        IF NOT number_body(d) THEN
+                            EXIT LOOP
+                        END IF
+                        IF d # "_" THEN
+                            LET x: Number := (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
+                            IF x < 0 OR x >= base THEN
+                                error(1005, t, "invalid digit for given base")
+                            END IF
+                            % TODO decimal
+                            value := value * base + x
+                        END IF
+                        INC i
+                    END LOOP
+                    IF i = nstart THEN
+                        error(1008, t, "numeric constants must have at least one digit")
+                    END IF
+                    t.value := value
+                ELSE
+                    t.value := 0
+                END IF
+            ELSE
+                VAR n: String := ""
+                WHILE i < source.length() AND number_decimal_body(source[i]) DO
+                    IF source[i] # "_" THEN
+                        n.append(source[i])
+                    END IF
+                    INC i
+                END WHILE
+                IF i < source.length() AND source[i] = "." THEN
+                    n.append(source[i])
+                    INC i
+                    WHILE i < source.length() AND number_decimal_body(source[i]) DO
+                        IF source[i] # "_" THEN
+                            n.append(source[i])
+                        END IF
+                        INC i
+                    END WHILE
+                END IF
+                IF i < source.length() AND string.lower(source[i]) = "e" THEN
+                    n.append(source[i])
+                    INC i
+                    IF i < source.length() AND source[i] IN ["+", "-"] THEN
+                        n.append(source[i])
+                        INC i
+                    END IF
+                    WHILE i < source.length() AND number_decimal_body(source[i]) DO
+                        IF source[i] # "_" THEN
+                            n.append(source[i])
+                        END IF
+                        INC i
+                    END WHILE
+                END IF
+                t.value := num(n)
+            END IF
+            t.text := source[start TO i-1]
+        ELSIF c = "\"" THEN
+            INC i
+            t.type := Type.string
+            t.text := ""
+            WHILE i < source.length() DO
+                c := source[i]
+                INC i
+                IF c = "\"" THEN
+                    EXIT WHILE
+                END IF
+                IF i >= source.length() THEN
+                    error(1010, t, "unterminated string")
+                END IF
+                IF c = "\n" THEN
+                    error(1021, t, "unterminated string (must be single line)")
+                END IF
+                IF c = "\\" THEN
+                    c := source[i]
+                    INC i
+                    IF i >= source.length() THEN
+                        error(1011, t, "unterminated string")
+                    END IF
+                    CASE c
+                        WHEN "\"" DO
+                        WHEN "\\" DO
+                        WHEN "b" DO c := "\b"
+                        WHEN "f" DO c := "\f"
+                        WHEN "n" DO c := "\n"
+                        WHEN "r" DO c := "\r"
+                        WHEN "t" DO c := "\t"
+                        WHEN "u" DO
+                            IF source.length() - i < 4 THEN
+                                error(1012, t, "unterminated string")
+                            END IF
+                            VAR x: Number := 0
+                            FOR j := 0 TO 3 DO
+                                LET d: String := string.lower(source[i+j])
+                                IF NOT hex_char(d) THEN
+                                    error(1013, t, "invalid hex character")
+                                END IF
+                                x := x * 0x10 + (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
+                            END FOR
+                            c := chr(x)
+                            i := i + 4
+                        WHEN "(" DO
+                            tokens.append(t)
+                            t.column := column + (i - startindex) - 1
+                            t.type := Type.subbegin
+                            tokens.append(t)
+                            LET start: Number := i
+                            VAR colon: Number := start
+                            VAR nest: Number := 1
+                            VAR inquote: Boolean := FALSE
+                            WHILE nest > 0 DO
+                                IF i >= source.length() THEN
+                                    error(1015, t, "unexpected end of file")
+                                END IF
+                                c := source[i]
+                                INC i
+                                CASE c
+                                    WHEN "(" DO
+                                        IF NOT inquote THEN
+                                            INC nest
+                                        END IF
+                                    WHEN ")" DO
+                                        IF NOT inquote THEN
+                                            DEC nest
+                                        END IF
+                                    WHEN ":" DO
+                                        IF NOT inquote AND nest = 1 THEN
+                                            colon := i - 1
+                                        END IF
+                                    WHEN "\"" DO
+                                        inquote := NOT inquote
+                                    WHEN "\\", "\n" DO
+                                        error(1015, t, "invalid char embedded in string substitution")
+                                END CASE
+                            END WHILE
+                            LET end: Number := (IF colon > start THEN colon ELSE i - 1)
+                            LET col: Number := column + (start - startindex)
+                            LET subtokens: Array<Token> := tokenize_fragment(source_path, INOUT line, col, source[start TO end-1], t.source)
+                            tokens.extend(subtokens)
+                            IF colon > start THEN
+                                t.column := column + (colon - startindex)
+                                t.type := Type.subfmt
+                                tokens.append(t)
+                                INC t.column
+                                t.type := Type.string
+                                t.text := source[colon+1 TO i-2]
+                                tokens.append(t)
+                            END IF
+                            t.column := column + (i - startindex) - 1
+                            t.type := Type.subend
+                            tokens.append(t)
+                            t.column := column + (i - startindex)
+                            t.type := Type.string
+                            t.text := ""
+                            NEXT WHILE
+                        WHEN OTHERS DO
+                            error(1009, t, "invalid escape character")
+                    END CASE
+                END IF
+                t.text.append(c)
+            END WHILE
+        ELSIF c = "@" THEN
+            INC i
+            t.type := Type.string
+            t.text := ""
+            IF i >= source.length() THEN
+                error(1016, t, "unterminated raw string")
+            END IF
+            c := source[i]
+            IF c = "\"" THEN
+                INC i
+                WHILE i < source.length() DO
+                    c := source[i]
+                    INC i
+                    IF c = "\"" THEN
+                        EXIT WHILE
+                    END IF
+                    IF i >= source.length() THEN
+                        error(1017, t, "unterminated raw string")
+                    END IF
+                    IF c = "\n" THEN
+                        error(1022, t, "unterminated raw string (must be single line)")
+                    END IF
+                    t.text.append(c)
+                END WHILE
+            ELSE
+                VAR delimiter: String := ""
+                WHILE i < source.length() DO
+                    c := source[i]
+                    INC i
+                    IF c = "@" THEN
+                        EXIT WHILE
+                    END IF
+                    IF i >= source.length() THEN
+                        error(1018, t, "unterminated delimiter")
+                    END IF
+                    delimiter.append(c)
+                END WHILE
+                IF i >= source.length() OR source[i] # "\"" THEN
+                    print(source[i])
+                    error(1019, t, "'\"' expected")
+                END IF
+                INC i
+                delimiter := "\"@\(delimiter)@"
+                VAR d: Number := 0
+                WHILE i < source.length() DO
+                    c := source[i]
+                    INC i
+                    IF c = delimiter[d] THEN
+                        INC d
+                        IF d >= delimiter.length() THEN
+                            t.text := t.text[FIRST TO LAST-(delimiter.length()-1)]
+                            EXIT WHILE
+                        END IF
+                    ELSE
+                        d := 0
+                        IF c = "\"" THEN
+                            INC d
+                        END IF
+                    END IF
+                    IF i >= source.length() THEN
+                        error(1020, t, "unterminated raw string")
+                    END IF
+                    IF c = "\n" THEN
+                        INC line
+                        startindex := i + 1
+                        column := 1
+                        linestart := i + 1
+                        lineend := i+1 + string.find(source[i+1 TO LAST], "\n")
+                    END IF
+                    t.text.append(c)
+                END WHILE
+            END IF
+        ELSIF c = "%" THEN
+            IF i+1 >= source.length() THEN
+                EXIT WHILE
+            END IF
+            IF source[i+1] = "|" THEN
+                VAR level: Number := 0
+                REPEAT
+                    IF i+1 >= source.length() THEN
+                        error(1006, t, "Missing closing comment '|%'")
+                    END IF
+                    IF source[i TO i+1] = "%|" THEN
+                        INC level
+                        i := i + 2
+                    ELSIF source[i TO i+1] = "|%" THEN
+                        DEC level
+                        i := i + 2
+                    ELSIF source[i] = "\n" THEN
+                        INC line
+                        column := 0
+                        linestart := i + 1
+                        lineend := i + string.find(source[i TO LAST], "\n")
+                        INC i
+                    ELSE
+                        INC i
+                    END IF
+                UNTIL level = 0
+            ELSE
+                WHILE i < source.length() AND source[i] # "\n" DO
+                    INC i
+                END WHILE
+            END IF
+        ELSIF space(c) THEN
+            WHILE i < source.length() AND space(source[i]) DO
+                IF source[i] = "\n" THEN
+                    INC line
+                    startindex := i + 1
+                    column := 1
+                    linestart := i + 1
+                    lineend := i+1 + string.find(source[i+1 TO LAST], "\n")
+                END IF
+                INC i
+            END WHILE
+        ELSE
+            error(1007, t, "unexpected character")
+        END IF
+        IF t.type # Type.none THEN
+            tokens.append(t)
+        END IF
+        column := column + (i - startindex)
+    END WHILE
+    RETURN tokens
+END FUNCTION
+
+FUNCTION expand_tabs(s: String): String
+    VAR r: String := ""
+    VAR column: Number := 0
+    FOR i := 0 TO s.length()-1 DO
+        LET c: String := s[i]
+        CASE c
+            WHEN "\n" DO
+                r.append(c)
+                column := 0
+            WHEN "\t" DO
+                r.append(string.repeat(" ", 8 - (column MOD 8)))
+                column := (column + 8) - (column MOD 8)
+            WHEN OTHERS DO
+                r.append(c)
+                INC column
+        END CASE
+    END FOR
+    RETURN r
+END FUNCTION
+
+FUNCTION tokenize(source_path: String, orig_source: String): Array<Token>
+    LET source: String := expand_tabs(orig_source)
+    VAR i: Number := 0
+    IF source[0 TO 1] = "#!" THEN
+        LET eol: Number := string.find(source, "\n")
+        IF eol > 0 THEN
+            i := eol
+        END IF
+    END IF
+    VAR line: Number := 1
+    VAR r: Array<Token> := tokenize_fragment(source_path, INOUT line, 1, source[i TO LAST])
+    r.append(Token(line WITH line, column WITH 1, type WITH Type.end_of_file))
+    RETURN r
+END FUNCTION
+
+BEGIN MAIN
+    FOREACH fn OF sys.args[1 TO LAST] DO
+        LET tokens: Array<Token> := tokenize(fn, file.readBytes(fn).decodeToString())
+        FOREACH t OF tokens DO
+            print("\(t)")
+        END FOREACH
+    END FOREACH
+END MAIN

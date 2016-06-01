@@ -382,7 +382,7 @@ test_number_to_string = env.Program("bin/test_number_to_string", [
 ] + coverage_lib,
 )
 
-env.UnitTest("bin/test_lexer", [
+test_lexer = env.UnitTest("bin/test_lexer", [
     "tests/test_lexer.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
@@ -468,3 +468,13 @@ perl = distutils.spawn.find_executable("perl")
 if perl:
     env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro")
     env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
+
+for fn in Glob("t/*.neon"):
+    if fn.name in ["lexer-unicode.neon", "string-bytes.neon", "unicode-char.neon", "unicode-length.neon", "unicode-source.neon", "unicode-string.neon", "utf8-invalid.neon"]:
+        continue # TODO (see t/unicode-length.neon)
+    dump_cpp = env.Command("tmp/"+fn.name+".dump_cpp", [fn, test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
+    dump_neon = env.Command("tmp/"+fn.name+".dump_neon", [fn, "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
+    #env.Command(fn.path+".dump_helium", [fn, "neon/lexer.neon", "tools/helium.py"], "python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
+    def compare(target, source, env):
+        assert open(source[0].path).read() == open(source[1].path).read()
+    env.Command("tmp/"+fn.name+".dump.dummy", [dump_cpp, dump_neon], compare)
