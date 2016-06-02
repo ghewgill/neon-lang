@@ -649,6 +649,20 @@ class ConcatenationExpression:
     def eval(self, env):
         return self.left.eval(env) + self.right.eval(env)
 
+class AppendExpression:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+    def eval(self, env):
+        left = self.left.eval(env)
+        right = self.right.eval(env)
+        if isinstance(left, (str, unicode)):
+            return left + right
+        elif isinstance(left, list):
+            return left + [right]
+        else:
+            assert False
+
 class ExponentiationExpression:
     def __init__(self, left, right):
         self.left = left
@@ -875,6 +889,11 @@ class AssignmentStatement:
         pass
     def run(self, env):
         self.var.set(env, self.rhs.eval(copy.deepcopy(env)))
+    def eval(self, env):
+        # This is used in the rewrite of a.append(b) to a := a & b.
+        r = self.rhs.eval(copy.deepcopy(env))
+        self.var.set(env, r)
+        return r
 
 class CaseStatement:
     class ComparisonWhenCondition:
@@ -1499,6 +1518,12 @@ class Parser:
                     expr = ArrowExpression(expr, field)
                 else:
                     break
+            # This hack transforms a statement like a.append(b) into a := a & b.
+            # The magic AppendExpression does the assignment and (because it's an expression)
+            # returns the result, which should be unused since .append() doesn't actually
+            # return a value.
+            if isinstance(expr, FunctionCallExpression) and isinstance(expr.func, DotExpression) and expr.func.field == "append":
+                return AssignmentStatement(expr.func.expr, AppendExpression(expr.func.expr, expr.args[0][1]))
             return expr
         else:
             assert False, t
@@ -2394,7 +2419,6 @@ ExcludeTests = [
     "t/variant-test.neon",      # Module not required
     "t/win32-test.neon",        # Module not required
 
-    "t/array-slice.neon",       # Probably going to need this
     "t/array2d.neon",           # Not implemented in helium yet
     "t/bytes.neon",             # FIXME
     "t/bytes-slice.neon",       # FIXME
