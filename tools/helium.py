@@ -851,9 +851,11 @@ class FunctionCallExpression:
                 args = [self.func.expr.eval(env)] + args
             r = f(funcenv, *args)
             if hasattr(f, "_outs"):
+                j = 1
                 for i, out in enumerate(f._outs):
                     if out:
-                        self.args[i][1].set(env, r[1+i])
+                        self.args[i][1].set(env, r[j])
+                        j += 1
                 r = r[0]
             return r
         elif isinstance(f, ClassRecord):
@@ -2108,6 +2110,8 @@ class ClassEnum(Class):
     class Instance:
         def __init__(self, name):
             self.name = name
+        def __call__(self, env):
+            return self
         def toString(self, env, obj):
             return self.name
     def __init__(self, names):
