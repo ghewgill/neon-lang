@@ -586,29 +586,25 @@ class DotExpression:
         obj = self.expr.eval(env)
         if isinstance(obj, bool):
             if self.field == "toString": return lambda env, self: neon_strb(env, obj)
-            assert False, self.field
         elif isinstance(obj, int):
             if self.field == "toString": return lambda env, self: str(obj)
-            assert False, self.field
         elif isinstance(obj, bytes):
             if self.field == "decodeToString": return lambda env, self: obj.decode("utf-8")
             if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj))
         elif isinstance(obj, (str, unicode)):
             if self.field == "append": return neon_string_append
+            if self.field == "length": return lambda env, self: len(self)
             if self.field == "toArray": return lambda env, self: [ord(x) for x in obj]
             if self.field == "toBytes": return lambda env, self: "".join(x for x in obj.encode("utf-8"))
             if self.field == "toString": return lambda env, self: obj
-            assert False, self.field
         elif isinstance(obj, list):
             if self.field == "append": return lambda env, self, x: obj.append(x)
             if self.field == "extend": return lambda env, self, x: obj.extend(x)
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "size": return lambda env, self: len(obj)
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
-            assert False, self.field
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: obj.keys()
-            assert False, self.field
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):
@@ -782,7 +778,7 @@ class NativeFunction:
         self.returntype = returntype
         self.args = args
     def declare(self, env):
-        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), globals().get("neon_{}_{}".format(env.module(), self.name)))
+        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), globals()["neon_{}_{}".format(env.module(), self.name)])
     def run(self, env):
         pass
 
@@ -2065,7 +2061,10 @@ class ClassBytes(Class):
                 return len(self.a)
             def toArray(self, env):
                 return list(self.a)
-            def decodeToString(self, env):
+            def decodeToString(self, env, obj):
+                if isinstance(self.a, list):
+                    # Convert bytes to string.
+                    self.a = "".join(map(chr, self.a))
                 return self.a.decode("utf-8")
         return Bytes()
 
@@ -2345,6 +2344,30 @@ def neon_file_writeLines(env, fn, lines):
     with open(fn, "wb") as f:
         f.writelines(x.encode()+"\n" for x in lines)
 
+def neon_string_find(env, s, t):
+    return s.find(t)
+
+def neon_string_hasPrefix(env, s, t):
+    return s.startswith(t)
+
+def neon_string_hasSuffix(env, s, t):
+    return s.endswith(t)
+
+def neon_string_join(env, a, d):
+    return d.join(a)
+
+def neon_string_lower(env, s):
+    return s.lower()
+
+def neon_string_split(env, s, d):
+    return s.split(d)
+
+def neon_string_trim(env, s):
+    return s.strip()
+
+def neon_string_upper(env, s):
+    return s.upper()
+
 def neon_sys_exit(env, n):
     sys.exit(n)
 
@@ -2369,6 +2392,7 @@ ExcludeTests = [
     "t/exception-clear.neon",   # CURRENT_EXCEPTION not required
     "t/exception-code.neon",    # CURRENT_EXCEPTION not required
     "t/exception-current.neon", # CURRENT_EXCEPTION not required
+    "t/export-inline.neon",     # Native mul not required
     "t/ffi.neon",               # FFI not required
     "t/file-symlink.neon",      # Feature not required
     "t/fork.neon",              # fork not required
