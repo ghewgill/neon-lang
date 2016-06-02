@@ -545,6 +545,39 @@ class SubscriptExpression:
                 a.append(None) # TODO: default()
         a[i] = value
 
+class RangeSubscriptExpression:
+    def __init__(self, expr, first, first_from_end, last, last_from_end):
+        self.expr = expr
+        self.first = first
+        self.first_from_end = first_from_end
+        self.last = last
+        self.last_from_end = last_from_end
+    def eval(self, env):
+        f = self.first.eval(env)
+        l = self.last.eval(env)
+        if self.first_from_end:
+            f = f if f < 0 else None
+        else:
+            f = max(0, f)
+        if self.last_from_end:
+            l = l if l < 0 else None
+        else:
+            l = max(0, l+1)
+        return self.expr.eval(env)[f:l]
+    def set(self, env, value):
+        a = self.expr.eval(env)
+        f = self.first.eval(env)
+        l = self.last.eval(env)
+        if self.first_from_end:
+            f = f if f < 0 else None
+        else:
+            f = max(0, f)
+        if self.last_from_end:
+            l = l if l < 0 else None
+        else:
+            l = max(0, l+1)
+        a[f:l] = value
+
 class DotExpression:
     def __init__(self, expr, field):
         self.expr = expr
@@ -1410,7 +1443,9 @@ class Parser:
                 if self.tokens[self.i] is LBRACKET:
                     self.i += 1
                     while True:
-                        if self.tokens[self.i] == FIRST:
+                        first_from_end = False
+                        last_from_end = False
+                        if self.tokens[self.i] is FIRST:
                             self.i += 1
                             if self.tokens[self.i] in [PLUS, MINUS]:
                                 index = self.parse_expression()
@@ -1418,20 +1453,33 @@ class Parser:
                                 index = NumberLiteralExpression(0)
                         elif self.tokens[self.i] == LAST:
                             self.i += 1
-                            index = NumberLiteralExpression(-1) # TODO: refer to last
+                            first_from_end = True
+                            if self.tokens[self.i] in [PLUS, MINUS]:
+                                index = SubtractionExpression(self.parse_expression(), NumberLiteralExpression(1))
+                            else:
+                                index = NumberLiteralExpression(-1)
                         else:
                             index = self.parse_expression()
                         if self.tokens[self.i] == TO:
                             self.i += 1
-                            if self.tokens[self.i] == LAST:
+                            if self.tokens[self.i] is FIRST:
                                 self.i += 1
                                 if self.tokens[self.i] in [PLUS, MINUS]:
                                     last = self.parse_expression()
                                 else:
-                                    last = NumberLiteralExpression(-1) # TODO: refer to last
+                                    last = NumberLiteralExpression(0)
+                            elif self.tokens[self.i] is LAST:
+                                self.i += 1
+                                last_from_end = True
+                                if self.tokens[self.i] in [PLUS, MINUS]:
+                                    last = self.parse_expression()
+                                else:
+                                    last = NumberLiteralExpression(0)
                             else:
                                 last = self.parse_expression()
-                        expr = SubscriptExpression(expr, index)
+                            expr = RangeSubscriptExpression(expr, index, first_from_end, last, last_from_end)
+                        else:
+                            expr = SubscriptExpression(expr, index)
                         if self.tokens[self.i] is RBRACKET:
                             self.i += 1
                             break
