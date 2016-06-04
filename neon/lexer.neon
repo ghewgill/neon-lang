@@ -237,7 +237,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF c = "\u2208" %|'∈'|% THEN t.type := Type.in INC i
         % TODO ELSIF c = 0x2209 %|'∉'|% THEN t.type := Type.notin INC i
         ELSIF c = "-" THEN
-            IF source[i+1] = ">" THEN
+            IF i+1 < source.length() AND source[i+1] = ">" THEN
                 t.type := Type.arrow
                 i := i + 2
             ELSE
@@ -245,7 +245,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                 INC i
             END IF
         ELSIF c = "<" THEN
-            IF source[i+1] = "=" THEN
+            IF i+1 < source.length() AND source[i+1] = "=" THEN
                 t.type := Type.lesseq
                 i := i + 2
             ELSE
@@ -253,7 +253,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                 INC i
             END IF
         ELSIF c = ">" THEN
-            IF source[i+1] = "=" THEN
+            IF i+1 < source.length() AND source[i+1] = "=" THEN
                 t.type := Type.greatereq
                 i := i + 2
             ELSE
@@ -261,7 +261,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                 INC i
             END IF
         ELSIF c = ":" THEN
-            IF source[i+1] = "=" THEN
+            IF i+1 < source.length() AND source[i+1] = "=" THEN
                 t.type := Type.assign
                 i := i + 2
             ELSE
@@ -357,7 +357,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF number_start(c) THEN
             t.type := Type.number
             LET start: Number := i
-            IF c = "0" AND source[i+1] # "." AND string.lower(source[i+1]) # "e" AND NOT number_decimal_body(source[i+1]) THEN
+            IF c = "0" AND i+1 < source.length() AND source[i+1] # "." AND string.lower(source[i+1]) # "e" AND NOT number_decimal_body(source[i+1]) THEN
                 INC i
                 LET b: String := string.lower(source[i])
                 IF number_base(b) THEN
