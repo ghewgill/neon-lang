@@ -491,7 +491,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                                 IF NOT hex_char(d) THEN
                                     error(1013, t, "invalid hex character")
                                 END IF
-                                x := x * 0x10 + (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
+                                x := x * 16 + (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
                             END FOR
                             c := chr(x)
                             i := i + 4
