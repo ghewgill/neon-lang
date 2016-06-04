@@ -2112,6 +2112,8 @@ class ClassEnum(Class):
             self.name = name
         def __call__(self, env):
             return self
+        def __eq__(self, rhs):
+            return self.name == rhs.name
         def toString(self, env, obj):
             return self.name
     def __init__(self, names):
