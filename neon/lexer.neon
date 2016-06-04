@@ -184,11 +184,20 @@ FUNCTION space(c: String): Boolean
     RETURN c IN [" ", "\t", "\r", "\n"]
 END FUNCTION
 
+FUNCTION findLineEnd(source: String, start: Number): Number
+    LET r: Number := string.find(source[start TO LAST], "\n")
+    IF r >= 0 THEN
+        RETURN start + r
+    ELSE
+        RETURN source.length()
+    END IF
+END FUNCTION
+
 FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start: Number, source: String, actual_source_line: String DEFAULT ""): Array<Token>
     VAR column: Number := column_start
     VAR tokens: Array<Token> := []
     VAR linestart: Number := 0
-    VAR lineend: Number := string.find(source, "\n")
+    VAR lineend: Number := findLineEnd(source, 0)
     VAR i: Number := 0
     WHILE i < source.length() DO
         VAR c: String := source[i]
@@ -612,7 +621,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         startindex := i + 1
                         column := 1
                         linestart := i + 1
-                        lineend := i+1 + string.find(source[i+1 TO LAST], "\n")
+                        lineend := findLineEnd(source, i+1)
                     END IF
                     t.text.append(c)
                 END WHILE
@@ -637,7 +646,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         INC line
                         column := 0
                         linestart := i + 1
-                        lineend := i + string.find(source[i TO LAST], "\n")
+                        lineend := findLineEnd(source, i+1)
                         INC i
                     ELSE
                         INC i
@@ -655,7 +664,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     startindex := i + 1
                     column := 1
                     linestart := i + 1
-                    lineend := i+1 + string.find(source[i+1 TO LAST], "\n")
+                    lineend := findLineEnd(source, i+1)
                 END IF
                 INC i
             END WHILE
