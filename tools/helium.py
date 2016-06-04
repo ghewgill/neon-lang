@@ -886,10 +886,10 @@ class AssignmentStatement:
     def declare(self, env):
         pass
     def run(self, env):
-        self.var.set(env, self.rhs.eval(copy.deepcopy(env)))
+        self.var.set(env, copy.deepcopy(self.rhs.eval(env)))
     def eval(self, env):
         # This is used in the rewrite of a.append(b) to a := a & b.
-        r = self.rhs.eval(copy.deepcopy(env))
+        r = copy.deepcopy(self.rhs.eval(env))
         self.var.set(env, r)
         return r
 
