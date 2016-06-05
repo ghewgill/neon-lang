@@ -75,7 +75,7 @@ It is not intended as an introduction to the language.
   <li><a href="#library">Standard Library</a>
     <ol>
       <li><a href="#library-bigint">bigint</a></li>
-      <li><a href="#library-bitwise">bitwise</a></li>
+      <li><a href="#library-binary">binary</a></li>
       <li><a href="#library-cformat">cformat</a></li>
       <li><a href="#library-complex">complex</a></li>
       <li><a href="#library-compress">compress</a></li>
@@ -854,7 +854,7 @@ Example:
     
     VAR size: Number := 3
     IF size > 4 THEN
-        RAISE InvalidWidgetSizeException(size.toString())
+        RAISE InvalidWidgetSizeException(info WITH size.toString())
     END IF
 
 The executor searches for an exception handler that can handle the given expression type, and execution resumes with the exception handler.
@@ -906,7 +906,7 @@ Example:
     VAR size: Number := 5
     TRY
         IF size > 4 THEN
-            RAISE InvalidWidgetSizeException(size.toString())
+            RAISE InvalidWidgetSizeException(info WITH size.toString())
         END IF
     EXCEPTION InvalidWidgetSizeException DO
         print("Invalid size \(CURRENT_EXCEPTION.info)")
@@ -1059,11 +1059,11 @@ The followed directories are searched in order:
 
 The `bigint` library provides functions for performing arithmetic with aribitrary precision integers.
 
-<a name="library-bitwise"></a>
+<a name="library-binary"></a>
 
-### bitwise
+### binary
 
-The `bitwise` library provides functions for working with `Number` values treated as 32-bit binary integers.
+The `binary` library provides functions for working with `Number` values treated as 32-bit binary integers.
 
 <a name="library-cformat"></a>
 
