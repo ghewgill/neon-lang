@@ -2283,7 +2283,10 @@ def neon_print(env, x):
 def neon_str(env, x):
     r = str(x)
     if isinstance(x, float):
-        r = re.sub(r"\.0+$", "", r)
+        if x == int(x):
+            r = str(int(x))
+        else:
+            r = re.sub(r"\.0+$", "", r)
     return r
 
 def neon_strb(env, x):
