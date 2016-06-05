@@ -23,4 +23,15 @@ int main()
             assert(false);
         }
     }
+    assert(number_to_string(number_from_string("1234.5678e5")) == "123456780");
+    assert(number_to_string(number_from_string("1234.5678e4")) == "12345678");
+    assert(number_to_string(number_from_string("1234.5678e3")) == "1234567.8");
+    assert(number_to_string(number_from_string("1234.5678e2")) == "123456.78");
+    assert(number_to_string(number_from_string("1234.5678e1")) == "12345.678");
+    assert(number_to_string(number_from_string("1234.5678e0")) == "1234.5678");
+    assert(number_to_string(number_from_string("1234.5678e-1")) == "123.45678");
+    assert(number_to_string(number_from_string("1234.5678e-2")) == "12.345678");
+    assert(number_to_string(number_from_string("1234.5678e-3")) == "1.2345678");
+    assert(number_to_string(number_from_string("1234.5678e-4")) == "0.12345678");
+    assert(number_to_string(number_from_string("1234.5678e-5")) == "0.012345678");
 }

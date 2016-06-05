@@ -301,7 +301,7 @@ std::string number_to_string(Number x)
         } else if (exponent < 0 && -exponent == static_cast<int>(sbuf.length()-1)) {
             sbuf = sbuf.substr(0, 1) + "0." + sbuf.substr(1);
         } else if (exponent < 0 && sbuf.length() - exponent <= PRECISION+2) {
-            sbuf.insert(1, "0." + std::string(-exponent-1, '0'));
+            sbuf.insert(1, "0." + std::string(-exponent-(sbuf.length()-1), '0'));
         } else {
             exponent += static_cast<int>(sbuf.length() - 2);
             if (sbuf.length() >= 3) {
