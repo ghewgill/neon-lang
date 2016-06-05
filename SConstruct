@@ -437,7 +437,7 @@ env.Command("tests_number", test_number_to_string, test_number_to_string[0].path
 
 samples = []
 for path, dirs, files in os.walk("."):
-    if "t" not in path.split(os.sep):
+    if all(x not in ["t", "tests"] for x in path.split(os.sep)):
         samples.extend(os.path.join(path, x) for x in files if x.endswith(".neon") and x != "global.neon")
 for sample in samples:
     env.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
@@ -469,23 +469,31 @@ if perl:
     env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro")
     env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
 
-for fn in Glob("t/*.neon") + Glob("t/errors/*.neon"):
-    if fn.name in ["N1000.neon"]:
-        continue # Unicode issues
-    if fn.name in ["bigint-test.neon", "decimal.neon", "number-ceil.neon", "number-underscore.neon"]:
-        continue # Python floats are not decimal floating point
-    if fn.name in ["sodium-test.neon"]:
-        continue # Just too big
-    if fn.name in ["string-escape.neon"]:
-        continue # Unicode output to file not working with ascii codec
-    if fn.name in ["lexer-unicode.neon", "string-bytes.neon", "unicode-char.neon", "unicode-length.neon", "unicode-source.neon", "unicode-string.neon", "utf8-invalid.neon"]:
-        continue # TODO (see t/unicode-length.neon)
-    dump_cpp = env.Command("tmp/"+fn.name+".dump_cpp", [fn, test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
-    dump_neon = env.Command("tmp/"+fn.name+".dump_neon", [fn, "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
-    dump_helium = env.Command("tmp/"+fn.name+".dump_helium", [fn, "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
-    def compare(target, source, env):
-        os.system("diff -u {} {}".format(source[0].path, source[1].path))
-        assert open(source[0].path).read() == open(source[1].path).read()
-    comp1 = env.Command("tmp/"+fn.name+".dump.dummy1", [dump_cpp, dump_neon], compare)
-    comp2 = env.Command("tmp/"+fn.name+".dump.dummy2", [dump_cpp, dump_helium], compare)
-    env.Depends("test_compiler", [comp1, comp2])
+def compare(target, source, env):
+    os.system("diff -u {} {}".format(source[0].path, source[1].path))
+    assert open(source[0].path).read() == open(source[1].path).read()
+
+dump_cpp = env.Command("tmp/lexer-coverage.dump_cpp", ["tests/lexer-coverage.neon", test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
+dump_neon = env.Command("tmp/lexer-coverage.dump_neon", ["tests/lexer-coverage.neon", "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
+dump_helium = env.Command("tmp/lexer-coverage.dump_helium", ["tests/lexer-coverage.neon", "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
+for i, d in enumerate([dump_cpp, dump_neon, dump_helium]):
+    env.Command("tmp/lexer-coverage.dump.dummy{}".format(i), [d, "tests/lexer-coverage.expected"], compare)
+
+if False: # This takes rather too long.
+    for fn in Glob("t/*.neon") + Glob("t/errors/*.neon"):
+        if fn.name in ["N1000.neon"]:
+            continue # Unicode issues
+        if fn.name in ["bigint-test.neon", "decimal.neon", "number-ceil.neon", "number-underscore.neon"]:
+            continue # Python floats are not decimal floating point
+        if fn.name in ["sodium-test.neon"]:
+            continue # Just too big
+        if fn.name in ["string-escape.neon"]:
+            continue # Unicode output to file not working with ascii codec
+        if fn.name in ["lexer-unicode.neon", "string-bytes.neon", "unicode-char.neon", "unicode-length.neon", "unicode-source.neon", "unicode-string.neon", "utf8-invalid.neon"]:
+            continue # TODO (see t/unicode-length.neon)
+        dump_cpp = env.Command("tmp/"+fn.name+".dump_cpp", [fn, test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
+        dump_neon = env.Command("tmp/"+fn.name+".dump_neon", [fn, "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
+        dump_helium = env.Command("tmp/"+fn.name+".dump_helium", [fn, "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
+        comp1 = env.Command("tmp/"+fn.name+".dump.dummy1", [dump_cpp, dump_neon], compare)
+        comp2 = env.Command("tmp/"+fn.name+".dump.dummy2", [dump_cpp, dump_helium], compare)
+        env.Depends("test_compiler", [comp1, comp2])
