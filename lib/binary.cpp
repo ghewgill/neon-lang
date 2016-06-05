@@ -64,14 +64,14 @@ template <typename T> void range_check(Number x)
     }
 }
 
-template <typename T> Number bitwise_and(Number x, Number y)
+template <typename T> Number binary_and(Number x, Number y)
 {
     range_check<T>(x);
     range_check<T>(y);
     return traits<T>::to_number(traits<T>::from_number(x) & traits<T>::from_number(y));
 }
 
-template <typename T> Number bitwise_extract(Number x, Number n, Number w)
+template <typename T> Number binary_extract(Number x, Number n, Number w)
 {
     range_check<T>(x);
     range_check<uint32_t>(n);
@@ -90,7 +90,7 @@ template <typename T> Number bitwise_extract(Number x, Number n, Number w)
     return traits<T>::to_number((traits<T>::from_number(x) >> b) & (static_cast<T>(1 << v) - 1));
 }
 
-template <typename T> bool bitwise_get(Number x, Number n)
+template <typename T> bool binary_get(Number x, Number n)
 {
     range_check<T>(x);
     range_check<uint32_t>(n);
@@ -101,20 +101,20 @@ template <typename T> bool bitwise_get(Number x, Number n)
     return (traits<T>::from_number(x) & static_cast<T>(1 << b)) != 0;
 }
 
-template <typename T> Number bitwise_not(Number x)
+template <typename T> Number binary_not(Number x)
 {
     range_check<T>(x);
     return traits<T>::to_number(~traits<T>::from_number(x));
 }
 
-template <typename T> Number bitwise_or(Number x, Number y)
+template <typename T> Number binary_or(Number x, Number y)
 {
     range_check<T>(x);
     range_check<T>(y);
     return traits<T>::to_number(traits<T>::from_number(x) | traits<T>::from_number(y));
 }
 
-template <typename T> Number bitwise_replace(Number x, Number n, Number w, Number y)
+template <typename T> Number binary_replace(Number x, Number n, Number w, Number y)
 {
     range_check<T>(x);
     range_check<uint32_t>(n);
@@ -133,7 +133,7 @@ template <typename T> Number bitwise_replace(Number x, Number n, Number w, Numbe
     return traits<T>::to_number((traits<T>::from_number(x) & ~(mask << b)) | (z << b));
 }
 
-template <typename T> Number bitwise_set(Number x, Number n, bool v)
+template <typename T> Number binary_set(Number x, Number n, bool v)
 {
     range_check<T>(x);
     range_check<uint32_t>(n);
@@ -148,7 +148,7 @@ template <typename T> Number bitwise_set(Number x, Number n, bool v)
     }
 }
 
-template <typename T> Number bitwise_shift_left(Number x, Number n)
+template <typename T> Number binary_shift_left(Number x, Number n)
 {
     range_check<T>(x);
     range_check<uint32_t>(n);
@@ -159,7 +159,7 @@ template <typename T> Number bitwise_shift_left(Number x, Number n)
     return traits<T>::to_number(traits<T>::from_number(x) << b);
 }
 
-template <typename T> Number bitwise_shift_right(Number x, Number n)
+template <typename T> Number binary_shift_right(Number x, Number n)
 {
     range_check<T>(x);
     range_check<uint32_t>(n);
@@ -170,7 +170,7 @@ template <typename T> Number bitwise_shift_right(Number x, Number n)
     return traits<T>::to_number(traits<T>::from_number(x) >> b);
 }
 
-template <typename T> Number bitwise_shift_right_signed(Number x, Number n)
+template <typename T> Number binary_shift_right_signed(Number x, Number n)
 {
     range_check<T>(x);
     range_check<uint32_t>(n);
@@ -181,7 +181,7 @@ template <typename T> Number bitwise_shift_right_signed(Number x, Number n)
     return number_from_sint32(number_to_sint32(x) >> b);
 }
 
-template <typename T> Number bitwise_xor(Number x, Number y)
+template <typename T> Number binary_xor(Number x, Number y)
 {
     range_check<T>(x);
     range_check<T>(y);
@@ -190,27 +190,27 @@ template <typename T> Number bitwise_xor(Number x, Number y)
 
 namespace rtl {
 
-Number bitwise$and32(Number x, Number y)                            { return bitwise_and<uint32_t>(x, y); }
-Number bitwise$and64(Number x, Number y)                            { return bitwise_and<uint64_t>(x, y); }
-Number bitwise$extract32(Number x, Number n, Number w)              { return bitwise_extract<uint32_t>(x, n, w); }
-Number bitwise$extract64(Number x, Number n, Number w)              { return bitwise_extract<uint64_t>(x, n, w); }
-bool bitwise$get32(Number x, Number n)                              { return bitwise_get<uint32_t>(x, n); }
-bool bitwise$get64(Number x, Number n)                              { return bitwise_get<uint64_t>(x, n); }
-Number bitwise$not32(Number x)                                      { return bitwise_not<uint32_t>(x); }
-Number bitwise$not64(Number x)                                      { return bitwise_not<uint64_t>(x); }
-Number bitwise$or32(Number x, Number y)                             { return bitwise_or<uint32_t>(x, y); }
-Number bitwise$or64(Number x, Number y)                             { return bitwise_or<uint64_t>(x, y); }
-Number bitwise$replace32(Number x, Number n, Number w, Number y)    { return bitwise_replace<uint32_t>(x, n, w, y); }
-Number bitwise$replace64(Number x, Number n, Number w, Number y)    { return bitwise_replace<uint64_t>(x, n, w, y); }
-Number bitwise$set32(Number x, Number n, bool v)                    { return bitwise_set<uint32_t>(x, n, v); }
-Number bitwise$set64(Number x, Number n, bool v)                    { return bitwise_set<uint64_t>(x, n, v); }
-Number bitwise$shiftLeft32(Number x, Number n)                      { return bitwise_shift_left<uint32_t>(x, n); }
-Number bitwise$shiftLeft64(Number x, Number n)                      { return bitwise_shift_left<uint64_t>(x, n); }
-Number bitwise$shiftRight32(Number x, Number n)                     { return bitwise_shift_right<uint32_t>(x, n); }
-Number bitwise$shiftRight64(Number x, Number n)                     { return bitwise_shift_right<uint64_t>(x, n); }
-Number bitwise$shiftRightSigned32(Number x, Number n)               { return bitwise_shift_right_signed<int32_t>(x, n); }
-Number bitwise$shiftRightSigned64(Number x, Number n)               { return bitwise_shift_right_signed<int64_t>(x, n); }
-Number bitwise$xor32(Number x, Number y)                            { return bitwise_xor<uint32_t>(x, y); }
-Number bitwise$xor64(Number x, Number y)                            { return bitwise_xor<uint64_t>(x, y); }
+Number binary$and32(Number x, Number y)                            { return binary_and<uint32_t>(x, y); }
+Number binary$and64(Number x, Number y)                            { return binary_and<uint64_t>(x, y); }
+Number binary$extract32(Number x, Number n, Number w)              { return binary_extract<uint32_t>(x, n, w); }
+Number binary$extract64(Number x, Number n, Number w)              { return binary_extract<uint64_t>(x, n, w); }
+bool binary$get32(Number x, Number n)                              { return binary_get<uint32_t>(x, n); }
+bool binary$get64(Number x, Number n)                              { return binary_get<uint64_t>(x, n); }
+Number binary$not32(Number x)                                      { return binary_not<uint32_t>(x); }
+Number binary$not64(Number x)                                      { return binary_not<uint64_t>(x); }
+Number binary$or32(Number x, Number y)                             { return binary_or<uint32_t>(x, y); }
+Number binary$or64(Number x, Number y)                             { return binary_or<uint64_t>(x, y); }
+Number binary$replace32(Number x, Number n, Number w, Number y)    { return binary_replace<uint32_t>(x, n, w, y); }
+Number binary$replace64(Number x, Number n, Number w, Number y)    { return binary_replace<uint64_t>(x, n, w, y); }
+Number binary$set32(Number x, Number n, bool v)                    { return binary_set<uint32_t>(x, n, v); }
+Number binary$set64(Number x, Number n, bool v)                    { return binary_set<uint64_t>(x, n, v); }
+Number binary$shiftLeft32(Number x, Number n)                      { return binary_shift_left<uint32_t>(x, n); }
+Number binary$shiftLeft64(Number x, Number n)                      { return binary_shift_left<uint64_t>(x, n); }
+Number binary$shiftRight32(Number x, Number n)                     { return binary_shift_right<uint32_t>(x, n); }
+Number binary$shiftRight64(Number x, Number n)                     { return binary_shift_right<uint64_t>(x, n); }
+Number binary$shiftRightSigned32(Number x, Number n)               { return binary_shift_right_signed<int32_t>(x, n); }
+Number binary$shiftRightSigned64(Number x, Number n)               { return binary_shift_right_signed<int64_t>(x, n); }
+Number binary$xor32(Number x, Number y)                            { return binary_xor<uint32_t>(x, y); }
+Number binary$xor64(Number x, Number y)                            { return binary_xor<uint64_t>(x, y); }
 
 } // namespace rtl

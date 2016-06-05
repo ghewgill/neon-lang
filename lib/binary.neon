@@ -1,5 +1,5 @@
 %|
- |  File: bitwise
+ |  File: binary
  |
  |  Bitwise binary logical operations on 32-bit words.
  |%
@@ -82,7 +82,7 @@ DECLARE NATIVE FUNCTION and64(x, y: Number): Number
  |
  |      The function call
  |
- |      > bitwise.extract(x, 5, 3)
+ |      > binary.extract(x, 5, 3)
  |
  |      will extract the following bits from the word
  |
@@ -112,7 +112,7 @@ DECLARE NATIVE FUNCTION extract32(x, n, w: Number): Number
  |
  |      The function call
  |
- |      > bitwise.extract(x, 5, 3)
+ |      > binary.extract(x, 5, 3)
  |
  |      will extract the following bits from the word
  |
@@ -225,7 +225,7 @@ DECLARE NATIVE FUNCTION or64(x, y: Number): Number
  |
  |      The function call
  |
- |      > bitwise.replace(x, 5, 3, 7)
+ |      > binary.replace(x, 5, 3, 7)
  |
  |      will replace the following bits in the word
  |
@@ -259,7 +259,7 @@ DECLARE NATIVE FUNCTION replace32(x, n, w, y: Number): Number
  |
  |      The function call
  |
- |      > bitwise.replace(x, 5, 3, 7)
+ |      > binary.replace(x, 5, 3, 7)
  |
  |      will replace the following bits in the word
  |

@@ -42,7 +42,7 @@ Timestamp: Generated on day month, year
 
 File: global  (global.neon)
 File: bigint  (bigint.neon)
-File: bitwise  (bitwise.neon)
+File: binary  (binary.neon)
 File: cformat  (cformat.neon)
 File: complex  (complex.neon)
 File: compress  (compress.neon)

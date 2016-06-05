@@ -175,7 +175,7 @@ else:
     sys.exit(1)
 
 rtl_cpp = rtl_const + [
-    "lib/bitwise.cpp",
+    "lib/binary.cpp",
     "lib/compress.cpp",
     "lib/curses.cpp",
     "lib/datetime.cpp",
@@ -202,7 +202,7 @@ rtl_cpp = rtl_const + [
 env.Depends("lib/http.cpp", libcurl)
 
 rtl_neon = [
-    "lib/bitwise.neon",
+    "lib/binary.neon",
     "lib/compress.neon",
     "lib/curses.neon",
     "lib/datetime.neon",

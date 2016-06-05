@@ -1,0 +1,40 @@
+IMPORT binary
+
+print(str(binary.and32(10, 12)))
+%= 8
+
+print(str(binary.extract32(10, 1, 3)))
+%= 5
+
+print(strb(binary.get32(10, 1)))
+%= TRUE
+
+print(str(binary.not32(5)))
+%= 4294967290
+
+print(str(binary.or32(10, 12)))
+%= 14
+
+print(str(binary.replace32(10, 1, 3, 2)))
+%= 4
+
+print(str(binary.set32(10, 1, FALSE)))
+%= 8
+
+print(str(binary.set32(10, 2, TRUE)))
+%= 14
+
+print(str(binary.shiftLeft32(10, 2)))
+%= 40
+
+print(str(binary.shiftRight32(10, 2)))
+%= 2
+
+print(str(binary.shiftRightSigned32(-10, 2)))
+%= -3
+
+print(str(binary.xor32(10, 12)))
+%= 6
+
+print(str(binary.not64(5)))
+%= 18446744073709551610

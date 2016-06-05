@@ -3,7 +3,7 @@
  |
  |  Functions for encoding and decoding ASCII or Binary data in various formats.
  |%
-IMPORT bitwise
+IMPORT binary
 
 EXPORT base64Encode
 EXPORT base64Decode
@@ -56,16 +56,16 @@ FUNCTION base64Encode(data: Bytes): String
     FOREACH n OF source DO
         CASE status
             WHEN State.byte1 DO
-                encoded.append(Base64EncodeTable[bitwise.shiftRight32(n, 2)])
-                char1 := bitwise.and32(bitwise.shiftLeft32(n, 4), 0b00110000)
+                encoded.append(Base64EncodeTable[binary.shiftRight32(n, 2)])
+                char1 := binary.and32(binary.shiftLeft32(n, 4), 0b00110000)
                 status := State.byte2
             WHEN State.byte2 DO
-                encoded.append(Base64EncodeTable[bitwise.or32(char1, bitwise.shiftRight32(n, 4))])
-                char2 := bitwise.and32(bitwise.shiftLeft32(n, 2), 0b00111100)
+                encoded.append(Base64EncodeTable[binary.or32(char1, binary.shiftRight32(n, 4))])
+                char2 := binary.and32(binary.shiftLeft32(n, 2), 0b00111100)
                 status := State.byte3
             WHEN State.byte3 DO
-                encoded.append(Base64EncodeTable[bitwise.or32(char2, bitwise.shiftRight32(n, 6))])
-                encoded.append(Base64EncodeTable[bitwise.and32(n, 0b00111111)])
+                encoded.append(Base64EncodeTable[binary.or32(char2, binary.shiftRight32(n, 6))])
+                encoded.append(Base64EncodeTable[binary.and32(n, 0b00111111)])
                 status := State.byte1
         END CASE
     END FOREACH
@@ -120,14 +120,14 @@ FUNCTION base64Decode(encoded: String): Bytes
                 state := State.byte2
             WHEN State.byte2 DO
                 char2 := bits
-                decoded.append(bitwise.and32(bitwise.or32(bitwise.shiftLeft32(char1, 2), bitwise.shiftRight32(char2, 4)), 0xFF))
+                decoded.append(binary.and32(binary.or32(binary.shiftLeft32(char1, 2), binary.shiftRight32(char2, 4)), 0xFF))
                 state := State.byte3
             WHEN State.byte3 DO
                 char3 := bits
-                decoded.append(bitwise.and32(bitwise.or32(bitwise.shiftLeft32(char2, 4), bitwise.shiftRight32(char3, 2)), 0xFF))
+                decoded.append(binary.and32(binary.or32(binary.shiftLeft32(char2, 4), binary.shiftRight32(char3, 2)), 0xFF))
                 state := State.byte4
             WHEN State.byte4 DO
-                decoded.append(bitwise.and32(bitwise.or32(bitwise.shiftLeft32(char3, 6), bits), 0xFF))
+                decoded.append(binary.and32(binary.or32(binary.shiftLeft32(char3, 6), bits), 0xFF))
                 state := State.byte1
         END CASE
     END FOR

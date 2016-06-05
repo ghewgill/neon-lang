@@ -4,7 +4,7 @@
  |  Implementation of the Forth programming language.
  |%
 
-IMPORT bitwise
+IMPORT binary
 IMPORT io
 IMPORT math
 IMPORT regex
@@ -514,10 +514,10 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             storage[addr+1] := x1
         WHEN CORE_2_TIMES DO
             LET n1: Number := stack.pop()
-            stack.push(bitwise.shiftLeft32(n1, 1))
+            stack.push(binary.shiftLeft32(n1, 1))
         WHEN CORE_2_DIVIDE DO
             LET n1: Number := signed32(stack.pop())
-            stack.push(bitwise.shiftRightSigned32(n1, 1))
+            stack.push(binary.shiftRightSigned32(n1, 1))
         WHEN CORE_2_FETCH DO
             LET addr: Number := stack.pop()
             stack.push(storage[addr+1])
@@ -641,7 +641,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_AND DO
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
-            stack.push(bitwise.and32(x1, x2))
+            stack.push(binary.and32(x1, x2))
         WHEN CORE_BASE DO
             stack.push(cell_base)
         WHEN CORE_BL DO
@@ -772,13 +772,13 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             words[defining].immediate := TRUE
         WHEN CORE_INVERT DO
             LET x1: Number := stack.pop()
-            stack.push(bitwise.not32(x1))
+            stack.push(binary.not32(x1))
         WHEN CORE_J DO
             stack.push(return[LAST-1].index)
         WHEN CORE_LSHIFT DO
             LET u: Number := stack.pop()
             LET x1: Number := stack.pop()
-            stack.push(bitwise.shiftLeft32(x1, u))
+            stack.push(binary.shiftLeft32(x1, u))
         WHEN CORE_M_MUL DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
@@ -827,7 +827,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_OR DO
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
-            stack.push(bitwise.or32(x1, x2))
+            stack.push(binary.or32(x1, x2))
         WHEN CORE_OVER DO
             stack.push(stack.peek(1))
         WHEN CORE_PAD DO
@@ -847,7 +847,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_RSHIFT DO
             LET u: Number := stack.pop()
             LET x1: Number := stack.pop()
-            stack.push(bitwise.shiftRight32(x1, u))
+            stack.push(binary.shiftRight32(x1, u))
         WHEN CORE_S_TO_D DO
             LET n: Number := signed32(stack.pop())
             stack.push(n)
@@ -936,7 +936,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_XOR DO
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
-            stack.push(bitwise.xor32(x1, x2))
+            stack.push(binary.xor32(x1, x2))
         WHEN TOOLS_QUESTION DO
             LET addr: Number := stack.pop()
             print("\(storage[addr])")

@@ -1,4 +1,4 @@
-IMPORT bitwise
+IMPORT binary
 IMPORT random
 IMPORT sodium
 
@@ -4986,11 +4986,11 @@ FUNCTION test_randombytes()
     VAR f: Number := 0
     REPEAT
         LET n: Number := sodium.randombytes_random()
-        IF bitwise.shiftRight32(n, 24) > 1 THEN f := bitwise.or32(f,  1) END IF
-        IF bitwise.shiftRight32(n, 16) > 1 THEN f := bitwise.or32(f,  2) END IF
-        IF bitwise.shiftRight32(n,  8) > 1 THEN f := bitwise.or32(f,  4) END IF
-        IF n > 1                           THEN f := bitwise.or32(f,  8) END IF
-        IF n > 0x7fffffff                  THEN f := bitwise.or32(f, 16) END IF
+        IF binary.shiftRight32(n, 24) > 1 THEN f := binary.or32(f,  1) END IF
+        IF binary.shiftRight32(n, 16) > 1 THEN f := binary.or32(f,  2) END IF
+        IF binary.shiftRight32(n,  8) > 1 THEN f := binary.or32(f,  4) END IF
+        IF n > 1                          THEN f := binary.or32(f,  8) END IF
+        IF n > 0x7fffffff                 THEN f := binary.or32(f, 16) END IF
     UNTIL f = 0x1f
     sodium.randombytes_close()
 
@@ -5199,7 +5199,7 @@ FUNCTION add_l(INOUT b: Bytes, o: Number)
     FOR i := 0 TO 31 DO
         VAR s: Number := sa[o+i] + l[i] + c
         sa[o+i] := s MOD 256
-        c := bitwise.and32(bitwise.shiftRight32(s, 8), 1)
+        c := binary.and32(binary.shiftRight32(s, 8), 1)
     END FOR
     b := sa.toBytes()
 END FUNCTION

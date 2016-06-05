@@ -40,7 +40,7 @@ EXPORT unpackUInt32LE
 EXPORT unpackUInt64BE
 EXPORT unpackUInt64LE
 
-IMPORT bitwise
+IMPORT binary
 IMPORT variant
 
 %|
@@ -228,7 +228,7 @@ FUNCTION packUInt8(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    r[0] := bitwise.and32(n, 0xFF)
+    r[0] := binary.and32(n, 0xFF)
     RETURN r.toBytes()
 END FUNCTION
 
@@ -242,8 +242,8 @@ FUNCTION packUInt16BE(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    r[0] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
-    r[1] := bitwise.and32(n, 0xFF)
+    r[0] := binary.and32(binary.shiftRight32(n, 8), 0xFF)
+    r[1] := binary.and32(n, 0xFF)
     RETURN r.toBytes()
 END FUNCTION
 
@@ -257,8 +257,8 @@ FUNCTION packUInt16LE(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    r[0] := bitwise.and32(n, 0xFF)
-    r[1] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
+    r[0] := binary.and32(n, 0xFF)
+    r[1] := binary.and32(binary.shiftRight32(n, 8), 0xFF)
     RETURN r.toBytes()
 END FUNCTION
 
@@ -272,10 +272,10 @@ FUNCTION packUInt32BE(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    r[0] := bitwise.and32(bitwise.shiftRight32(n, 24), 0xFF)
-    r[1] := bitwise.and32(bitwise.shiftRight32(n, 16), 0xFF)
-    r[2] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
-    r[3] := bitwise.and32(n, 0xFF)
+    r[0] := binary.and32(binary.shiftRight32(n, 24), 0xFF)
+    r[1] := binary.and32(binary.shiftRight32(n, 16), 0xFF)
+    r[2] := binary.and32(binary.shiftRight32(n, 8), 0xFF)
+    r[3] := binary.and32(n, 0xFF)
     RETURN r.toBytes()
 END FUNCTION
 
@@ -289,10 +289,10 @@ FUNCTION packUInt32LE(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    r[0] := bitwise.and32(n, 0xFF)
-    r[1] := bitwise.and32(bitwise.shiftRight32(n, 8), 0xFF)
-    r[2] := bitwise.and32(bitwise.shiftRight32(n, 16), 0xFF)
-    r[3] := bitwise.and32(bitwise.shiftRight32(n, 24), 0xFF)
+    r[0] := binary.and32(n, 0xFF)
+    r[1] := binary.and32(binary.shiftRight32(n, 8), 0xFF)
+    r[2] := binary.and32(binary.shiftRight32(n, 16), 0xFF)
+    r[3] := binary.and32(binary.shiftRight32(n, 24), 0xFF)
     RETURN r.toBytes()
 END FUNCTION
 
@@ -306,14 +306,14 @@ FUNCTION packUInt64BE(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    r[0] := bitwise.and64(bitwise.shiftRight64(n, 56), 0xFF)
-    r[1] := bitwise.and64(bitwise.shiftRight64(n, 48), 0xFF)
-    r[2] := bitwise.and64(bitwise.shiftRight64(n, 40), 0xFF)
-    r[3] := bitwise.and64(bitwise.shiftRight64(n, 32), 0xFF)
-    r[4] := bitwise.and64(bitwise.shiftRight64(n, 24), 0xFF)
-    r[5] := bitwise.and64(bitwise.shiftRight64(n, 16), 0xFF)
-    r[6] := bitwise.and64(bitwise.shiftRight64(n, 8), 0xFF)
-    r[7] := bitwise.and64(n, 0xFF)
+    r[0] := binary.and64(binary.shiftRight64(n, 56), 0xFF)
+    r[1] := binary.and64(binary.shiftRight64(n, 48), 0xFF)
+    r[2] := binary.and64(binary.shiftRight64(n, 40), 0xFF)
+    r[3] := binary.and64(binary.shiftRight64(n, 32), 0xFF)
+    r[4] := binary.and64(binary.shiftRight64(n, 24), 0xFF)
+    r[5] := binary.and64(binary.shiftRight64(n, 16), 0xFF)
+    r[6] := binary.and64(binary.shiftRight64(n, 8), 0xFF)
+    r[7] := binary.and64(n, 0xFF)
     RETURN r.toBytes()
 END FUNCTION
 
@@ -327,14 +327,14 @@ FUNCTION packUInt64LE(n: Number): Bytes
         RAISE InvalidValueException
     END IF
     VAR r: Array<Number> := []
-    r[0] := bitwise.and64(n, 0xFF)
-    r[1] := bitwise.and64(bitwise.shiftRight64(n, 8), 0xFF)
-    r[2] := bitwise.and64(bitwise.shiftRight64(n, 16), 0xFF)
-    r[3] := bitwise.and64(bitwise.shiftRight64(n, 24), 0xFF)
-    r[4] := bitwise.and64(bitwise.shiftRight64(n, 32), 0xFF)
-    r[5] := bitwise.and64(bitwise.shiftRight64(n, 40), 0xFF)
-    r[6] := bitwise.and64(bitwise.shiftRight64(n, 48), 0xFF)
-    r[7] := bitwise.and64(bitwise.shiftRight64(n, 56), 0xFF)
+    r[0] := binary.and64(n, 0xFF)
+    r[1] := binary.and64(binary.shiftRight64(n, 8), 0xFF)
+    r[2] := binary.and64(binary.shiftRight64(n, 16), 0xFF)
+    r[3] := binary.and64(binary.shiftRight64(n, 24), 0xFF)
+    r[4] := binary.and64(binary.shiftRight64(n, 32), 0xFF)
+    r[5] := binary.and64(binary.shiftRight64(n, 40), 0xFF)
+    r[6] := binary.and64(binary.shiftRight64(n, 48), 0xFF)
+    r[7] := binary.and64(binary.shiftRight64(n, 56), 0xFF)
     RETURN r.toBytes()
 END FUNCTION
 
@@ -472,7 +472,7 @@ FUNCTION unpackUInt16BE(b: Bytes): Number
         RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
-    RETURN bitwise.shiftLeft32(a[0],  8) +
+    RETURN binary.shiftLeft32(a[0],  8) +
            a[1]
 END FUNCTION
 
@@ -486,7 +486,7 @@ FUNCTION unpackUInt16LE(b: Bytes): Number
         RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
-    RETURN bitwise.shiftLeft32(a[1],  8) +
+    RETURN binary.shiftLeft32(a[1],  8) +
            a[0]
 END FUNCTION
 
@@ -500,9 +500,9 @@ FUNCTION unpackUInt32BE(b: Bytes): Number
         RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
-    RETURN bitwise.shiftLeft32(a[0], 24) +
-           bitwise.shiftLeft32(a[1], 16) +
-           bitwise.shiftLeft32(a[2],  8) +
+    RETURN binary.shiftLeft32(a[0], 24) +
+           binary.shiftLeft32(a[1], 16) +
+           binary.shiftLeft32(a[2],  8) +
            a[3]
 END FUNCTION
 
@@ -516,9 +516,9 @@ FUNCTION unpackUInt32LE(b: Bytes): Number
         RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
-    RETURN bitwise.shiftLeft32(a[3], 24) +
-           bitwise.shiftLeft32(a[2], 16) +
-           bitwise.shiftLeft32(a[1],  8) +
+    RETURN binary.shiftLeft32(a[3], 24) +
+           binary.shiftLeft32(a[2], 16) +
+           binary.shiftLeft32(a[1],  8) +
            a[0]
 END FUNCTION
 
@@ -532,13 +532,13 @@ FUNCTION unpackUInt64BE(b: Bytes): Number
         RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
-    RETURN bitwise.shiftLeft64(a[0], 56) +
-           bitwise.shiftLeft64(a[1], 48) +
-           bitwise.shiftLeft64(a[2], 40) +
-           bitwise.shiftLeft64(a[3], 32) +
-           bitwise.shiftLeft64(a[4], 24) +
-           bitwise.shiftLeft64(a[5], 16) +
-           bitwise.shiftLeft64(a[6],  8) +
+    RETURN binary.shiftLeft64(a[0], 56) +
+           binary.shiftLeft64(a[1], 48) +
+           binary.shiftLeft64(a[2], 40) +
+           binary.shiftLeft64(a[3], 32) +
+           binary.shiftLeft64(a[4], 24) +
+           binary.shiftLeft64(a[5], 16) +
+           binary.shiftLeft64(a[6],  8) +
            a[7]
 END FUNCTION
 
@@ -552,13 +552,13 @@ FUNCTION unpackUInt64LE(b: Bytes): Number
         RAISE InvalidValueException
     END IF
     LET a: Array<Number> := b.toArray()
-    RETURN bitwise.shiftLeft64(a[7], 56) +
-           bitwise.shiftLeft64(a[6], 48) +
-           bitwise.shiftLeft64(a[5], 40) +
-           bitwise.shiftLeft64(a[4], 32) +
-           bitwise.shiftLeft64(a[3], 24) +
-           bitwise.shiftLeft64(a[2], 16) +
-           bitwise.shiftLeft64(a[1],  8) +
+    RETURN binary.shiftLeft64(a[7], 56) +
+           binary.shiftLeft64(a[6], 48) +
+           binary.shiftLeft64(a[5], 40) +
+           binary.shiftLeft64(a[4], 32) +
+           binary.shiftLeft64(a[3], 24) +
+           binary.shiftLeft64(a[2], 16) +
+           binary.shiftLeft64(a[1],  8) +
            a[0]
 END FUNCTION
 

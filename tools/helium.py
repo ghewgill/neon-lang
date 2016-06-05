@@ -2383,7 +2383,7 @@ def neon_sys_exit(env, n):
 ExcludeTests = [
     "t/base.neon",              # Won't need different base literals
     "t/bigint-test.neon",       # Module not required
-    "t/bitwise-test.neon",      # Module not required
+    "t/binary-test.neon",       # Module not required
     "t/bytes-embed.neon",       # Feature not required
     "t/bytes-literal.neon",     # Feature not required
     "t/bytes-tostring.neon",    # HEXBYTES not implemented yet
