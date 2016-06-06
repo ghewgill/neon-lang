@@ -470,7 +470,7 @@ if perl:
     env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
 
 def compare(target, source, env):
-    os.system("diff -u {} {}".format(source[0].path, source[1].path))
+    os.system("diff -u -w {} {}".format(source[0].path, source[1].path))
     assert open(source[0].path).read() == open(source[1].path).read()
 
 dump_cpp = env.Command("tmp/lexer-coverage.dump_cpp", ["tests/lexer-coverage.neon", test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
