@@ -9,7 +9,11 @@ Import("env")
 hashenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        hashenv.Append(CXXFLAGS=["/MTd"])
+        hashenv.Append(CXXFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("hash-library", ignore_errors=True)

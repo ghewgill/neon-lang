@@ -110,11 +110,21 @@ if sys.platform == "win32":
         "/EHsc",
         "/W4",
         "/WX",
+        "/FS",
     ])
     if not env["RELEASE"]:
+        env.Append(LINKFLAGS=[
+            "/DEBUG",
+        ])
         env.Append(CXXFLAGS=[
             "/MTd",
             "/Zi",
+            "/Od",
+        ])
+    else:
+        env.Append(CXXFLAGS=[
+            "/Ox",
+            "/MT",
         ])
 else:
     env.Append(CXXFLAGS=[

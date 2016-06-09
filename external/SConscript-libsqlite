@@ -8,7 +8,11 @@ Import("env")
 sqliteenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
-        sqliteenv.Append(CFLAGS=["/MTd"])
+        sqliteenv.Append(CFLAGS=[
+            "/MTd",
+            "/Zi",
+            "/Od",
+        ])
 
 if GetOption("clean"):
     shutil.rmtree("sqlite-amalgamation-3080803", ignore_errors=True)
