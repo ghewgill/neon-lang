@@ -336,13 +336,13 @@ public:
 
 class NilLiteralExpression: public Expression {
 public:
-    NilLiteralExpression(const Token &token): Expression(token, token.column, token.column+3) {}
+    NilLiteralExpression(const Token &token): Expression(token, token.column, token.column+token.text.length()) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class NowhereLiteralExpression: public Expression {
 public:
-    NowhereLiteralExpression(const Token &token): Expression(token, token.column, token.column+3) {}
+    NowhereLiteralExpression(const Token &token): Expression(token, token.column, token.column+token.text.length()) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
