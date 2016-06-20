@@ -2912,7 +2912,7 @@ const Statement *Analyzer::analyze(const pt::CheckStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::ExitStatement *statement)
 {
-    if (statement->type == FUNCTION) {
+    if (statement->type.type == FUNCTION) {
         if (functiontypes.empty()) {
             error(3107, statement->token, "EXIT FUNCTION not allowed outside function");
         } else if (functiontypes.top().second->returntype != TYPE_NOTHING) {
@@ -2920,7 +2920,7 @@ const Statement *Analyzer::analyze(const pt::ExitStatement *statement)
         }
         return new ReturnStatement(statement->token.line, nullptr);
     }
-    TokenType type = statement->type;
+    TokenType type = statement->type.type;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
@@ -3203,7 +3203,7 @@ const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::NextStatement *statement)
 {
-    TokenType type = statement->type;
+    TokenType type = statement->type.type;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
@@ -3655,7 +3655,7 @@ public:
         variables.pop_back();
     }
     virtual void visit(const pt::ExitStatement *node) {
-        if (node->type == FUNCTION) {
+        if (node->type.type == FUNCTION) {
             check_out_parameters(node->token);
         }
     }

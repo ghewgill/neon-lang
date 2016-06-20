@@ -343,7 +343,7 @@ public:
         }
     }
     virtual void visit(const ExitStatement *node) override {
-        write("ExitStatement(" + std::to_string(node->type) + ")");
+        write("ExitStatement(" + node->type.text + ")");
     }
     virtual void visit(const ExpressionStatement *node) override {
         write("ExpressionStatement");
@@ -388,7 +388,7 @@ public:
         }
     }
     virtual void visit(const NextStatement *node) override {
-        write("NextStatement(" + std::to_string(node->type) + ")");
+        write("NextStatement(" + node->type.text + ")");
     }
     virtual void visit(const RaiseStatement *node) override {
         write("RaiseStatement(" + node->name.first.text + "." + node->name.second.text + ")");

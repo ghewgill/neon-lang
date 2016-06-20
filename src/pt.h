@@ -758,9 +758,9 @@ public:
 
 class ExitStatement: public Statement {
 public:
-    ExitStatement(const Token &token, TokenType type): Statement(token), type(type) {}
+    ExitStatement(const Token &token, const Token &type): Statement(token), type(type) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const TokenType type;
+    const Token type;
 };
 
 class ExpressionStatement: public Statement {
@@ -813,9 +813,9 @@ public:
 
 class NextStatement: public Statement {
 public:
-    NextStatement(const Token &token, TokenType type): Statement(token), type(type) {}
+    NextStatement(const Token &token, const Token &type): Statement(token), type(type) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const TokenType type;
+    const Token type;
 };
 
 class RaiseStatement: public Statement {

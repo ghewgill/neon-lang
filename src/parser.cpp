@@ -1511,13 +1511,13 @@ std::unique_ptr<Statement> Parser::parseExitStatement()
 {
     auto &tok_exit = tokens[i];
     ++i;
-    TokenType type = tokens[i].type;
-    if (type != FUNCTION
-     && type != WHILE
-     && type != FOR
-     && type != FOREACH
-     && type != LOOP
-     && type != REPEAT) {
+    auto &type = tokens[i];
+    if (type.type != FUNCTION
+     && type.type != WHILE
+     && type.type != FOR
+     && type.type != FOREACH
+     && type.type != LOOP
+     && type.type != REPEAT) {
         error_a(2052, tokens[i-1], tokens[i], "loop type expected");
     }
     ++i;
@@ -1528,12 +1528,12 @@ std::unique_ptr<Statement> Parser::parseNextStatement()
 {
     auto &tok_next = tokens[i];
     ++i;
-    TokenType type = tokens[i].type;
-    if (type != WHILE
-     && type != FOR
-     && type != FOREACH
-     && type != LOOP
-     && type != REPEAT) {
+    auto &type = tokens[i];
+    if (type.type != WHILE
+     && type.type != FOR
+     && type.type != FOREACH
+     && type.type != LOOP
+     && type.type != REPEAT) {
         error_a(2054, tokens[i-1], tokens[i], "loop type expected");
     }
     ++i;
