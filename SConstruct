@@ -400,6 +400,16 @@ test_lexer = env.UnitTest("bin/test_lexer", [
 ] + coverage_lib,
 )
 
+test_parser = env.Program("bin/test_parser", [
+    "tests/test_parser.cpp",
+    "src/lexer.cpp",
+    "src/number.cpp",
+    "src/parser.cpp",
+    "src/pt_dump.cpp",
+    "src/util.cpp",
+] + coverage_lib,
+)
+
 env.UnitTest("bin/test_format", [
     "tests/test_format.cpp",
     "src/format.cpp",
