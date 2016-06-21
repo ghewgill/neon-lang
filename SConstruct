@@ -152,7 +152,7 @@ if "g++" in env.subst("$CXX"):
     # it supports everything else we need.)
     try:
         ver = subprocess.check_output([env.subst("$CXX"), "--version"])
-        if ver.startswith("g++"):
+        if "g++" in ver.split()[0]:
             ver = ver.split("\n")[0]
             ver = re.sub(r"\(.*?\)", "", ver)
             ver = float(re.search(r"(\d+\.\d+)\.", ver).group(1))
