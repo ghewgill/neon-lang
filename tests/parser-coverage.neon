@@ -1,0 +1,306 @@
+% ImportDeclaration
+IMPORT module
+IMPORT module.name
+IMPORT module ALIAS alias
+IMPORT module.name ALIAS alias
+IMPORT "module" ALIAS m
+
+% TypeDeclaration
+TYPE name IS type
+
+% Type, ParameterisedType
+TYPE name IS Array<type>
+TYPE name IS Dictionary<type>
+
+% Type, RecordType
+TYPE name IS RECORD END RECORD
+TYPE name IS RECORD name: type END RECORD
+TYPE name IS RECORD name: type PRIVATE name: type END RECORD
+
+% Type, EnumType
+TYPE name IS ENUM END ENUM
+TYPE name IS ENUM one END ENUM
+TYPE name IS ENUM one two END ENUM
+
+% Type, PointerType
+TYPE name IS POINTER TO type
+
+% Type, FunctionPointerType
+TYPE name IS FUNCTION()
+
+% ConstantDeclaration
+CONSTANT name: type := expr
+
+% NativeConstantDeclaration
+DECLARE NATIVE CONSTANT name: type
+
+% VariableDeclaration
+VAR name: type
+VAR name, name: type
+VAR name: type := expr
+
+% NativeVariableDeclaration
+DECLARE NATIVE VAR name: type
+
+% LetDeclaration
+LET name: type := expr
+
+% FunctionDeclaration
+FUNCTION name() END FUNCTION
+FUNCTION name() statement() END FUNCTION
+FUNCTION name() statement() statement() END FUNCTION
+
+% ExternalFunctionDeclaration
+EXTERNAL FUNCTION name() {} END FUNCTION
+
+% NativeFunctionDeclaration
+DECLARE NATIVE FUNCTION name()
+
+% FunctionHeader
+FUNCTION name() END FUNCTION
+FUNCTION type.name() END FUNCTION
+
+% FunctionParameterList
+FUNCTION name() END FUNCTION
+FUNCTION name(x: type) END FUNCTION
+FUNCTION name(x: type, y: type) END FUNCTION
+FUNCTION name(): type END FUNCTION
+
+% FunctionParameter
+FUNCTION name(x: type) END FUNCTION
+FUNCTION name(x, y: type) END FUNCTION
+FUNCTION name(IN x: type) END FUNCTION
+FUNCTION name(OUT x: type) END FUNCTION
+FUNCTION name(INOUT x: type) END FUNCTION
+FUNCTION name(x: type DEFAULT expr) END FUNCTION
+
+% ExceptionDeclaration
+DECLARE EXCEPTION name
+
+% ExportDeclaration
+EXPORT name
+
+% MainBlock
+BEGIN MAIN END MAIN
+BEGIN MAIN statement() END MAIN
+BEGIN MAIN statement() statement() END MAIN
+
+% AssertStatement
+ASSERT expr
+ASSERT expr, expr
+
+% AssignmentStatement
+name := expr
+_ := expr
+
+% CaseStatement
+CASE expr END CASE
+CASE expr WHEN cond DO END CASE
+CASE expr WHEN cond DO statement() END CASE
+CASE expr WHEN cond DO statement() statement() END CASE
+CASE expr WHEN cond DO statement() WHEN OTHERS DO END CASE
+CASE expr WHEN cond DO statement() WHEN OTHERS DO statement() END CASE
+CASE expr WHEN cond DO statement() WHEN OTHERS DO statement() statement() END CASE
+CASE expr WHEN cond, cond DO END CASE
+
+% CheckStatement
+CHECK expr ELSE END CHECK
+CHECK expr ELSE statement() END CHECK
+CHECK expr ELSE statement() statement() END CHECK
+
+% WhenCondition
+CASE expr WHEN = expr DO END CASE
+CASE expr WHEN # expr DO END CASE
+CASE expr WHEN < expr DO END CASE
+CASE expr WHEN > expr DO END CASE
+CASE expr WHEN <= expr DO END CASE
+CASE expr WHEN >= expr DO END CASE
+CASE expr WHEN expr DO END CASE
+CASE expr WHEN expr TO expr DO END CASE
+
+% ExitStatement
+EXIT FUNCTION
+EXIT WHILE
+EXIT FOR
+EXIT FOREACH
+EXIT LOOP
+EXIT REPEAT
+
+% ExpressionStatement
+statement()
+
+% ForStatement
+FOR name := expr TO expr DO END FOR
+FOR name := expr TO expr DO statement() END FOR
+FOR name := expr TO expr DO statement() statement() END FOR
+FOR name := expr TO expr STEP expr DO END FOR
+
+% ForeachStatement
+FOREACH name OF expr DO END FOREACH
+FOREACH name OF expr DO statement() END FOREACH
+FOREACH name OF expr DO statement() statement() END FOREACH
+FOREACH name OF expr INDEX name DO END FOREACH
+
+% IfStatement
+IF expr THEN END IF
+IF expr THEN statement() END IF
+IF expr THEN statement() statement() END IF
+IF expr THEN statement() ELSIF expr THEN statement() END IF
+IF expr THEN statement() ELSIF expr THEN statement() ELSE END IF
+IF expr THEN statement() ELSIF expr THEN statement() ELSE statement() END IF
+IF expr THEN statement() ELSIF expr THEN statement() ELSE statement() statement() END IF
+
+% IncrementStatement
+INC expr
+DEC expr
+
+% IfExpression
+IF expr THEN END IF
+IF VALID name THEN END IF
+IF VALID expr AS name THEN END IF
+IF VALID expr AS name, expr AS name THEN END IF
+
+% LoopStatement
+LOOP END LOOP
+LOOP statement() END LOOP
+LOOP statement() statement() END LOOP
+
+% NextStatement
+NEXT WHILE
+NEXT FOR
+NEXT FOREACH
+NEXT LOOP
+NEXT REPEAT
+
+% RaiseStatement
+RAISE name
+RAISE name.name
+RAISE name(expr)
+RAISE name(expr, expr)
+
+% RepeatStatement
+REPEAT UNTIL expr
+REPEAT statement() UNTIL expr
+REPEAT statement() statement() UNTIL expr
+
+% ReturnStatement
+RETURN expr
+
+% TryStatement
+TRY END TRY
+TRY statement() END TRY
+TRY statement() statement() END TRY
+TRY EXCEPTION name DO END TRY
+TRY EXCEPTION name.name DO END TRY
+TRY EXCEPTION name DO statement() END TRY
+TRY EXCEPTION name DO statement() statement() END TRY
+
+% WhileStatement
+WHILE expr DO END WHILE
+WHILE expr DO statement() END WHILE
+WHILE expr DO statement() statement() END WHILE
+
+% ConditionalExpression
+name := (IF expr THEN expr ELSE expr)
+
+% TryExpression
+name := (TRY expr)
+name := (TRY expr EXCEPTION name DO)
+name := (TRY expr EXCEPTION name DO statement())
+name := (TRY expr EXCEPTION name DO statement() statement())
+name := (TRY expr EXCEPTION name GIVES expr)
+name := (TRY expr EXCEPTION name GIVES expr EXCEPTION name GIVES expr)
+
+% DisjunctionExpression
+name := expr OR expr
+
+% ConjunctionExpression
+name := expr AND expr
+
+% MembershipExpression
+name := expr IN expr
+name := expr NOT IN expr
+
+% ComparisonExpression
+name := expr = expr
+name := expr # expr
+name := expr < expr
+name := expr > expr
+name := expr <= expr
+name := expr >= expr
+
+% ChainedComparisonExpression
+name := a < b < c
+
+% AdditionExpression
+name := expr + expr
+name := expr - expr
+name := expr & expr
+
+% MultiplicationExpression
+name := expr * expr
+name := expr / expr
+name := expr INTDIV expr
+name := expr MOD expr
+
+% ExponentiationExpression
+name := expr ^ expr
+
+% InterpolatedStringExpression
+name := "a\(b)c"
+
+% Atom
+name := (expr)
+name := []
+name := [1 TO 10]
+name := {}
+name := FALSE
+name := TRUE
+name := 10
+name := "abc"
+name := EMBED "file"
+name := HEXBYTES "01 02"
+name := +expr
+name := -expr
+name := NOT expr
+name := NEW type
+name := NIL
+name := NOWHERE
+
+% ArrayLiteral
+name := []
+name := [expr]
+name := [expr, expr]
+name := [expr, expr,]
+
+% ArrayRangeLiteral
+name := [expr TO expr]
+name := [expr TO expr STEP expr]
+
+% DictionaryLiteral
+name := {}
+name := {"key": expr}
+name := {"key": expr, "key": expr}
+name := {"key": expr, "key": expr,}
+
+% CompoundExpression
+name := name[expr]
+name := name[expr, expr]
+name := name()
+name := name(expr)
+name := name(expr, expr)
+name := name.name
+name := name->name
+
+% FunctionArgument
+name(expr)
+name(IN expr)
+name(OUT expr)
+name(INOUT expr)
+name(_)
+name(name WITH expr)
+name(name WITH _)
+
+% ArrayIndexExpression
+name := name[expr]
+name := name[expr TO expr]

@@ -2,6 +2,10 @@ IMPORT file
 IMPORT string
 IMPORT sys
 
+EXPORT Token
+EXPORT Type
+EXPORT tokenize
+
 TYPE Type IS ENUM
     none
     end_of_file

@@ -1,0 +1,3782 @@
+IMPORT file
+IMPORT string
+IMPORT sys
+
+IMPORT lexer
+
+TYPE TokenType IS lexer.Type % TODO: should not need this
+
+TYPE DictionaryLiteralKeyValue IS RECORD
+    key: lexer.Token
+    value: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE ParameterMode IS ENUM
+    in
+    inout
+    out
+END ENUM
+
+TYPE FunctionParameterGroup IS RECORD
+    token: lexer.Token
+    names: Array<lexer.Token>
+    type: POINTER TO ParseTreeNode
+    mode: ParameterMode
+    defaultValue: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE Comparison IS ENUM
+    eq
+    ne
+    lt
+    gt
+    le
+    ge
+END ENUM
+
+TYPE ChainedComparisonPart IS RECORD
+    comp: Comparison
+    right: POINTER TO ParseTreeNode
+END RECORD
+
+FUNCTION comparisonFromToken(token: lexer.Token): Comparison
+    CASE token.type
+        WHEN TokenType.equal     DO RETURN Comparison.eq
+        WHEN TokenType.notequal  DO RETURN Comparison.ne
+        WHEN TokenType.less      DO RETURN Comparison.lt
+        WHEN TokenType.greater   DO RETURN Comparison.gt
+        WHEN TokenType.lesseq    DO RETURN Comparison.le
+        WHEN TokenType.greatereq DO RETURN Comparison.ge
+    END CASE
+    internalError("invalid comparison type")
+    RETURN Comparison.eq
+END FUNCTION
+
+TYPE FunctionCallArgument IS RECORD
+    mode: lexer.Token
+    name: lexer.Token
+    expr: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE ArrayRange IS RECORD
+    token: lexer.Token
+    first: POINTER TO ParseTreeNode
+    firstFromEnd: Boolean
+    last: POINTER TO ParseTreeNode
+    lastFromEnd: Boolean
+END RECORD
+
+TYPE InterpolatedStringPart IS RECORD
+    expr: POINTER TO ParseTreeNode
+    format: lexer.Token
+END RECORD
+
+TYPE CaseWhenCondition IS RECORD
+    token: lexer.Token
+    cond: Comparison
+    expr: POINTER TO ParseTreeNode
+    high_expr: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE CaseWhenClause IS RECORD
+    conditions: Array<CaseWhenCondition>
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE IfConditionClause IS RECORD
+    condition: POINTER TO ParseTreeNode
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE ValidPointerExpressionClause IS RECORD
+    expr: POINTER TO ParseTreeNode
+    name: lexer.Token
+    shorthand: Boolean
+END RECORD
+
+TYPE TryStatementClause IS RECORD
+    exceptions: Array<Array<lexer.Token>>
+    body: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE Type IS ENUM
+    TypeSimple
+    TypeEnum
+    TypeRecord
+    TypePointer
+    TypeFunctionPointer
+    TypeParameterised
+    TypeImport
+    DummyExpression
+    IdentityExpression
+    BooleanLiteralExpression
+    NumberLiteralExpression
+    StringLiteralExpression
+    FileLiteralExpression
+    BytesLiteralExpression
+    ArrayLiteralExpression
+    ArrayLiteralRangeExpression
+    DictionaryLiteralExpression
+    NilLiteralExpression
+    NowhereLiteralExpression
+    IdentifierExpression
+    DotExpression
+    ArrowExpression
+    SubscriptExpression
+    InterpolatedStringExpression
+    FunctionCallExpression
+    UnaryPlusExpression
+    UnaryMinusExpression
+    LogicalNotExpression
+    ExponentiationExpression
+    MultiplicationExpression
+    DivisionExpression
+    IntegerDivisionExpression
+    ModuloExpression
+    AdditionExpression
+    SubtractionExpression
+    ConcatenationExpression
+    ComparisonExpression
+    ChainedComparisonExpression
+    MembershipExpression
+    ConjunctionExpression
+    DisjunctionExpression
+    ConditionalExpression
+    TryExpression
+    NewRecordExpression
+    ValidPointerExpression
+    RangeSubscriptExpression
+    ImportDeclaration
+    TypeDeclaration
+    ConstantDeclaration
+    NativeConstantDeclaration
+    VariableDeclaration
+    LetDeclaration
+    FunctionDeclaration
+    ExternalFunctionDeclaration
+    NativeFunctionDeclaration
+    ExceptionDeclaration
+    ExportDeclaration
+    AssertStatement
+    AssignmentStatement
+    CaseStatement
+    CheckStatement
+    ExitStatement
+    ExpressionStatement
+    ForStatement
+    ForeachStatement
+    IfStatement
+    IncrementStatement
+    LoopStatement
+    NextStatement
+    RaiseStatement
+    RepeatStatement
+    ReturnStatement
+    TryStatement
+    TryHandlerStatement
+    WhileStatement
+    Program
+END ENUM
+
+TYPE TypeSimple IS RECORD
+    name: String
+END RECORD
+
+TYPE TypeEnum IS RECORD
+    names: Array<lexer.Token>
+END RECORD
+
+TYPE Field IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+    isPrivate: Boolean
+END RECORD
+
+TYPE TypeRecord IS RECORD
+    fields: Array<Field>
+END RECORD
+
+TYPE TypePointer IS RECORD
+    reftype: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE TypeFunctionPointer IS RECORD
+    returntype: POINTER TO ParseTreeNode
+    args: Array<FunctionParameterGroup>
+END RECORD
+
+TYPE TypeParameterised IS RECORD
+    name: lexer.Token
+    elementtype: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE TypeImport IS RECORD
+    modname: lexer.Token
+    subname: lexer.Token
+END RECORD
+
+TYPE BaseExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+END RECORD
+
+TYPE UnaryExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    expr: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE BinaryExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    left: POINTER TO ParseTreeNode
+    right: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE BooleanLiteralExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    value: Boolean
+END RECORD
+
+TYPE NumberLiteralExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    value: Number
+END RECORD
+
+TYPE StringLiteralExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    value: String
+END RECORD
+
+TYPE FileLiteralExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    name: String
+END RECORD
+
+TYPE BytesLiteralExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    data: String
+END RECORD
+
+TYPE ArrayLiteralExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    elements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE ArrayLiteralRangeExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    first: POINTER TO ParseTreeNode
+    last: POINTER TO ParseTreeNode
+    step: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE DictionaryLiteralExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    elements: Array<DictionaryLiteralKeyValue>
+END RECORD
+
+TYPE IdentifierExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    name: String
+END RECORD
+
+TYPE DotExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    base: POINTER TO ParseTreeNode
+    name: lexer.Token
+END RECORD
+
+TYPE ArrowExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    base: POINTER TO ParseTreeNode
+    name: lexer.Token
+END RECORD
+
+TYPE SubscriptExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    base: POINTER TO ParseTreeNode
+    index: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE InterpolatedStringExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    parts: Array<InterpolatedStringPart>
+END RECORD
+
+TYPE FunctionCallExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    base: POINTER TO ParseTreeNode
+    args: Array<FunctionCallArgument>
+    rparen: lexer.Token
+END RECORD
+
+TYPE ComparisonExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    left: POINTER TO ParseTreeNode
+    right: POINTER TO ParseTreeNode
+    comp: Comparison
+END RECORD
+
+TYPE ChainedComparisonExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    left: POINTER TO ParseTreeNode
+    comps: Array<ChainedComparisonPart>
+END RECORD
+
+TYPE ConditionalExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    cond: POINTER TO ParseTreeNode
+    left: POINTER TO ParseTreeNode
+    right: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE TryExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    expr: POINTER TO ParseTreeNode
+    catches: Array<TryStatementClause>
+END RECORD
+
+TYPE NewRecordExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    type: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE ValidPointerExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    tests: Array<ValidPointerExpressionClause>
+END RECORD
+
+TYPE RangeSubscriptExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    base: POINTER TO ParseTreeNode
+    range: POINTER TO ArrayRange
+END RECORD
+
+TYPE ImportDeclaration IS RECORD
+    module: lexer.Token
+    name: lexer.Token
+    alias: lexer.Token
+END RECORD
+
+TYPE TypeDeclaration IS RECORD
+    type: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE ConstantDeclaration IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+    value: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE NativeConstantDeclaration IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE VariableDeclaration IS RECORD
+    names: Array<lexer.Token>
+    type: POINTER TO ParseTreeNode
+    value: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE LetDeclaration IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+    value: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE FunctionDeclaration IS RECORD
+    type: lexer.Token
+    name: lexer.Token
+    returntype: POINTER TO ParseTreeNode
+    args: Array<FunctionParameterGroup>
+    rparen: lexer.Token
+    body: Array<POINTER TO ParseTreeNode>
+    endToken: lexer.Token
+END RECORD
+
+TYPE ExternalFunctionDeclaration IS RECORD
+    type: lexer.Token
+    name: lexer.Token
+    returntype: POINTER TO ParseTreeNode
+    args: Array<FunctionParameterGroup>
+    rparen: lexer.Token
+    dict: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE ExceptionDeclaration IS RECORD
+    name: lexer.Token
+END RECORD
+
+TYPE ExportDeclaration IS RECORD
+    names: Array<lexer.Token>
+    declaration: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE AssertStatement IS RECORD
+    exprs: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE AssignmentStatement IS RECORD
+    variables: Array<POINTER TO ParseTreeNode>
+    expr: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE CaseStatement IS RECORD
+    expr: POINTER TO ParseTreeNode
+    clauses: Array<CaseWhenClause>
+END RECORD
+
+TYPE CheckStatement IS RECORD
+    cond: POINTER TO ParseTreeNode
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE ExitStatement IS RECORD
+    type: lexer.Token
+END RECORD
+
+TYPE ExpressionStatement IS RECORD
+    expr: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE ForStatement IS RECORD
+    var: lexer.Token
+    start: POINTER TO ParseTreeNode
+    end: POINTER TO ParseTreeNode
+    step: POINTER TO ParseTreeNode
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE ForeachStatement IS RECORD
+    var: lexer.Token
+    array: POINTER TO ParseTreeNode
+    index: lexer.Token
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE IfStatement IS RECORD
+    conditionStatements: Array<IfConditionClause>
+    elseStatements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE IncrementStatement IS RECORD
+    expr: POINTER TO ParseTreeNode
+    delta: Number
+END RECORD
+
+TYPE LoopStatement IS RECORD
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE NextStatement IS RECORD
+    type: lexer.Token
+END RECORD
+
+TYPE RaiseStatement IS RECORD
+    name: Array<lexer.Token>
+    info: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE RepeatStatement IS RECORD
+    cond: POINTER TO ParseTreeNode
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE ReturnStatement IS RECORD
+    expr: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE TryStatement IS RECORD
+    catches: Array<TryStatementClause>
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE TryHandlerStatement IS RECORD
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE WhileStatement IS RECORD
+    cond: POINTER TO ParseTreeNode
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE Program IS RECORD
+    statements: Array<POINTER TO ParseTreeNode>
+END RECORD
+
+TYPE VariableInfo IS RECORD
+    names: Array<lexer.Token>
+    type: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE ParseTreeNode IS RECORD
+    type: Type
+    token: lexer.Token
+    typesimple: TypeSimple
+    typeenum: TypeEnum
+    typerecord: TypeRecord
+    typepointer: TypePointer
+    typefunctionpointer: TypeFunctionPointer
+    typeparameterised: TypeParameterised
+    typeimport: TypeImport
+    baseexpression: BaseExpression
+    unaryexpression: UnaryExpression
+    binaryexpression: BinaryExpression
+    booleanliteralexpression: BooleanLiteralExpression
+    numberliteralexpression: NumberLiteralExpression
+    stringliteralexpression: StringLiteralExpression
+    fileliteralexpression: FileLiteralExpression
+    bytesliteralexpression: BytesLiteralExpression
+    arrayliteralexpression: ArrayLiteralExpression
+    arrayliteralrangeexpression: ArrayLiteralRangeExpression
+    dictionaryliteralexpression: DictionaryLiteralExpression
+    identifierexpression: IdentifierExpression
+    dotexpression: DotExpression
+    arrowexpression: ArrowExpression
+    subscriptexpression: SubscriptExpression
+    interpolatedstringexpression: InterpolatedStringExpression
+    functioncallexpression: FunctionCallExpression
+    comparisonexpression: ComparisonExpression
+    chainedcomparisonexpression: ChainedComparisonExpression
+    conditionalexpression: ConditionalExpression
+    tryexpression: TryExpression
+    newrecordexpression: NewRecordExpression
+    validpointerexpression: ValidPointerExpression
+    rangesubscriptexpression: RangeSubscriptExpression
+    importdeclaration: ImportDeclaration
+    typedeclaration: TypeDeclaration
+    constantdeclaration: ConstantDeclaration
+    nativeconstantdeclaration: NativeConstantDeclaration
+    variabledeclaration: VariableDeclaration
+    letdeclaration: LetDeclaration
+    functiondeclaration: FunctionDeclaration
+    externalfunctiondeclaration: ExternalFunctionDeclaration
+    exceptiondeclaration: ExceptionDeclaration
+    exportdeclaration: ExportDeclaration
+    assertstatement: AssertStatement
+    assignmentstatement: AssignmentStatement
+    casestatement: CaseStatement
+    checkstatement: CheckStatement
+    exitstatement: ExitStatement
+    expressionstatement: ExpressionStatement
+    forstatement: ForStatement
+    foreachstatement: ForeachStatement
+    ifstatement: IfStatement
+    incrementstatement: IncrementStatement
+    loopstatement: LoopStatement
+    nextstatement: NextStatement
+    raisestatement: RaiseStatement
+    repeatstatement: RepeatStatement
+    returnstatement: ReturnStatement
+    trystatement: TryStatement
+    tryhandlerstatement: TryHandlerStatement
+    whilestatement: WhileStatement
+    program: Program
+END RECORD
+
+TYPE IParseTreeVisitor IS Dictionary<FUNCTION(node: ParseTreeNode, depth: Number)>
+
+FUNCTION ParseTreeNode.accept(INOUT self: ParseTreeNode, visitor: IParseTreeVisitor, depth: Number)
+    % TODO: should not need a temporary here
+    LET f: FUNCTION(node: ParseTreeNode, depth: Number) := visitor[self.type.toString()]
+    f(self, depth)
+END FUNCTION
+
+FUNCTION internalError(message: String)
+    print(message)
+    sys.exit(1)
+END FUNCTION
+
+FUNCTION error(number: Number, token: lexer.Token, message: String)
+    FUNCTION len(s: String): Number RETURN s.length() END FUNCTION
+    print("Error in file: \(token.file)")
+    print("")
+    print("\(token.line)| \(token.source)")
+    print(format("^", ">\(len(token.line.toString())+2+token.column)"))
+    print("Error N\(number): \(token.line):\(token.column) \(message)")
+    sys.exit(1)
+END FUNCTION
+
+FUNCTION error_a(number: Number, token: lexer.Token, token_a: lexer.Token, message: String)
+    % TODO
+    print("error_a")
+    error(number, token, message)
+END FUNCTION
+
+FUNCTION error2(number: Number, token: lexer.Token, message: String, token2: lexer.Token, message2: String)
+    % TODO
+    print("error2")
+    error(number, token, message)
+END FUNCTION
+
+% TODO: don't need this once we have NEW-initialiser syntax
+FUNCTION makeParseTreeNode(ptn: ParseTreeNode): POINTER TO ParseTreeNode
+    LET p: POINTER TO ParseTreeNode := NEW ParseTreeNode
+    valueCopy(p, ptn)
+    RETURN p
+END FUNCTION
+
+FUNCTION getStartColumn(node: POINTER TO ParseTreeNode): Number
+    IF VALID node THEN
+        CASE node->type
+            WHEN Type.DummyExpression              DO RETURN node->baseexpression.startColumn
+            WHEN Type.IdentityExpression           DO RETURN node->unaryexpression.startColumn
+            WHEN Type.BooleanLiteralExpression     DO RETURN node->booleanliteralexpression.startColumn
+            WHEN Type.NumberLiteralExpression      DO RETURN node->numberliteralexpression.startColumn
+            WHEN Type.StringLiteralExpression      DO RETURN node->stringliteralexpression.startColumn
+            WHEN Type.FileLiteralExpression        DO RETURN node->fileliteralexpression.startColumn
+            WHEN Type.BytesLiteralExpression       DO RETURN node->bytesliteralexpression.startColumn
+            WHEN Type.ArrayLiteralExpression       DO RETURN node->arrayliteralexpression.startColumn
+            WHEN Type.ArrayLiteralRangeExpression  DO RETURN node->arrayliteralrangeexpression.startColumn
+            WHEN Type.DictionaryLiteralExpression  DO RETURN node->dictionaryliteralexpression.startColumn
+            WHEN Type.NilLiteralExpression         DO RETURN node->baseexpression.startColumn
+            WHEN Type.NowhereLiteralExpression     DO RETURN node->baseexpression.startColumn
+            WHEN Type.IdentifierExpression         DO RETURN node->identifierexpression.startColumn
+            WHEN Type.DotExpression                DO RETURN node->dotexpression.startColumn
+            WHEN Type.ArrowExpression              DO RETURN node->arrowexpression.startColumn
+            WHEN Type.SubscriptExpression          DO RETURN node->subscriptexpression.startColumn
+            WHEN Type.InterpolatedStringExpression DO RETURN node->interpolatedstringexpression.startColumn
+            WHEN Type.FunctionCallExpression       DO RETURN node->functioncallexpression.startColumn
+            WHEN Type.UnaryPlusExpression          DO RETURN node->unaryexpression.startColumn
+            WHEN Type.UnaryMinusExpression         DO RETURN node->unaryexpression.startColumn
+            WHEN Type.LogicalNotExpression         DO RETURN node->unaryexpression.startColumn
+            WHEN Type.ExponentiationExpression     DO RETURN node->binaryexpression.startColumn
+            WHEN Type.MultiplicationExpression     DO RETURN node->binaryexpression.startColumn
+            WHEN Type.DivisionExpression           DO RETURN node->binaryexpression.startColumn
+            WHEN Type.IntegerDivisionExpression    DO RETURN node->binaryexpression.startColumn
+            WHEN Type.ModuloExpression             DO RETURN node->binaryexpression.startColumn
+            WHEN Type.AdditionExpression           DO RETURN node->binaryexpression.startColumn
+            WHEN Type.SubtractionExpression        DO RETURN node->binaryexpression.startColumn
+            WHEN Type.ConcatenationExpression      DO RETURN node->binaryexpression.startColumn
+            WHEN Type.ComparisonExpression         DO RETURN node->comparisonexpression.startColumn
+            WHEN Type.ChainedComparisonExpression  DO RETURN node->chainedcomparisonexpression.startColumn
+            WHEN Type.MembershipExpression         DO RETURN node->binaryexpression.startColumn
+            WHEN Type.ConjunctionExpression        DO RETURN node->binaryexpression.startColumn
+            WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.startColumn
+            WHEN Type.ConditionalExpression        DO RETURN node->binaryexpression.startColumn
+            WHEN Type.TryExpression                DO RETURN node->tryexpression.startColumn
+            WHEN Type.NewRecordExpression          DO RETURN node->newrecordexpression.startColumn
+            WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.startColumn
+            WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.startColumn
+        END CASE
+    END IF
+    internalError("unexpected node type")
+    RETURN 0
+END FUNCTION
+
+FUNCTION getEndColumn(node: POINTER TO ParseTreeNode): Number
+    IF VALID node THEN
+        CASE node->type
+            WHEN Type.DummyExpression              DO RETURN node->baseexpression.endColumn
+            WHEN Type.IdentityExpression           DO RETURN node->unaryexpression.endColumn
+            WHEN Type.BooleanLiteralExpression     DO RETURN node->booleanliteralexpression.endColumn
+            WHEN Type.NumberLiteralExpression      DO RETURN node->numberliteralexpression.endColumn
+            WHEN Type.StringLiteralExpression      DO RETURN node->stringliteralexpression.endColumn
+            WHEN Type.FileLiteralExpression        DO RETURN node->fileliteralexpression.endColumn
+            WHEN Type.BytesLiteralExpression       DO RETURN node->bytesliteralexpression.endColumn
+            WHEN Type.ArrayLiteralExpression       DO RETURN node->arrayliteralexpression.endColumn
+            WHEN Type.ArrayLiteralRangeExpression  DO RETURN node->arrayliteralrangeexpression.endColumn
+            WHEN Type.DictionaryLiteralExpression  DO RETURN node->dictionaryliteralexpression.endColumn
+            WHEN Type.NilLiteralExpression         DO RETURN node->baseexpression.endColumn
+            WHEN Type.NowhereLiteralExpression     DO RETURN node->baseexpression.endColumn
+            WHEN Type.IdentifierExpression         DO RETURN node->identifierexpression.endColumn
+            WHEN Type.DotExpression                DO RETURN node->dotexpression.endColumn
+            WHEN Type.ArrowExpression              DO RETURN node->arrowexpression.endColumn
+            WHEN Type.SubscriptExpression          DO RETURN node->subscriptexpression.endColumn
+            WHEN Type.InterpolatedStringExpression DO RETURN node->interpolatedstringexpression.endColumn
+            WHEN Type.FunctionCallExpression       DO RETURN node->functioncallexpression.endColumn
+            WHEN Type.UnaryPlusExpression          DO RETURN node->unaryexpression.endColumn
+            WHEN Type.UnaryMinusExpression         DO RETURN node->unaryexpression.endColumn
+            WHEN Type.LogicalNotExpression         DO RETURN node->unaryexpression.endColumn
+            WHEN Type.ExponentiationExpression     DO RETURN node->binaryexpression.endColumn
+            WHEN Type.MultiplicationExpression     DO RETURN node->binaryexpression.endColumn
+            WHEN Type.DivisionExpression           DO RETURN node->binaryexpression.endColumn
+            WHEN Type.IntegerDivisionExpression    DO RETURN node->binaryexpression.endColumn
+            WHEN Type.ModuloExpression             DO RETURN node->binaryexpression.endColumn
+            WHEN Type.AdditionExpression           DO RETURN node->binaryexpression.endColumn
+            WHEN Type.SubtractionExpression        DO RETURN node->binaryexpression.endColumn
+            WHEN Type.ConcatenationExpression      DO RETURN node->binaryexpression.endColumn
+            WHEN Type.ComparisonExpression         DO RETURN node->comparisonexpression.endColumn
+            WHEN Type.ChainedComparisonExpression  DO RETURN node->chainedcomparisonexpression.endColumn
+            WHEN Type.MembershipExpression         DO RETURN node->binaryexpression.endColumn
+            WHEN Type.ConjunctionExpression        DO RETURN node->binaryexpression.endColumn
+            WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.endColumn
+            WHEN Type.ConditionalExpression        DO RETURN node->binaryexpression.endColumn
+            WHEN Type.TryExpression                DO RETURN node->tryexpression.endColumn
+            WHEN Type.NewRecordExpression          DO RETURN node->newrecordexpression.endColumn
+            WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.endColumn
+            WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.endColumn
+        END CASE
+    END IF
+    internalError("unexpected node type")
+    RETURN 0
+END FUNCTION
+
+TYPE Parser IS RECORD
+    tokens: Array<lexer.Token>
+    index: Number
+    token: lexer.Token
+    minimumColumn: Number
+    savedMinimumColumn: Array<Number>
+    expressionDepth: Number
+END RECORD
+
+FUNCTION Parser.pushMinimumIndent(INOUT self: Parser, newIndent: Number)
+    self.savedMinimumColumn.append(self.minimumColumn)
+    self.minimumColumn := newIndent
+END FUNCTION
+
+FUNCTION Parser.popMinimumIndent(INOUT self: Parser)
+    self.minimumColumn := self.savedMinimumColumn[LAST]
+    self.savedMinimumColumn[LAST TO LAST] := []
+END FUNCTION
+
+FUNCTION Parser.nextToken(INOUT self: Parser)
+    INC self.index
+    self.token := self.tokens[self.index]
+END FUNCTION
+
+% TODO maybe use these later, but not yet
+%FUNCTION Parser.expect(INOUT self: Parser, expected: TokenType, errorNumber: Number, message: String)
+%    IF self.token.type # expected THEN
+%        error(errorNumber, self.token, message)
+%    END IF
+%    self.nextToken()
+%END FUNCTION
+%
+%FUNCTION Parser.nextIdentifier(INOUT self: Parser, errorNumber: Number): lexer.Token
+%    IF self.token.type # TokenType.identifier THEN
+%        error(errorNumber, self.token, "identifier expected")
+%    END IF
+%    LET r: lexer.Token := self.token
+%    self.nextToken()
+%    RETURN r
+%END FUNCTION
+
+FUNCTION Parser.parseVariableDeclaration(INOUT self: Parser): VariableInfo
+    VAR names: Array<lexer.Token> := []
+    LOOP
+        IF self.token.type # TokenType.identifier THEN
+            error(2018, self.token, "identifier expected")
+        END IF
+        LET name: lexer.Token := self.token
+        self.nextToken()
+        names.append(name)
+        IF self.token.type # TokenType.comma THEN
+            EXIT LOOP
+        END IF
+        self.nextToken()
+    END LOOP
+    IF self.token.type # TokenType.colon THEN
+        error(2019, self.token, "colon expected")
+    END IF
+    self.nextToken()
+    LET type: POINTER TO ParseTreeNode := self.parseType()
+    RETURN VariableInfo(names WITH names, type WITH type)
+END FUNCTION
+
+FUNCTION Parser.parseFunctionParameters(INOUT self: Parser, OUT returntype: POINTER TO ParseTreeNode, OUT args: Array<FunctionParameterGroup>, OUT rparen: lexer.Token)
+    IF self.token.type # TokenType.lparen THEN
+        error(2024, self.token, "'(' expected")
+    END IF
+    self.nextToken()
+    args := []
+    IF self.token.type # TokenType.rparen THEN
+        LOOP
+            VAR mode: ParameterMode := ParameterMode.in
+            CASE self.token.type
+                WHEN TokenType.in    DO mode := ParameterMode.in    self.nextToken()
+                WHEN TokenType.inout DO mode := ParameterMode.inout self.nextToken()
+                WHEN TokenType.out   DO mode := ParameterMode.out   self.nextToken()
+            END CASE
+            LET tokParam: lexer.Token := self.token
+            LET vars: VariableInfo := self.parseVariableDeclaration()
+            VAR defaultValue: POINTER TO ParseTreeNode := NIL
+            IF self.token.type = TokenType.default THEN
+                self.nextToken()
+                defaultValue := self.parseExpression()
+            END IF
+            args.append(FunctionParameterGroup(
+                token WITH tokParam,
+                names WITH vars.names,
+                type WITH vars.type,
+                mode WITH mode,
+                defaultValue WITH defaultValue
+            ))
+            IF self.token.type # TokenType.comma THEN
+                EXIT LOOP
+            END IF
+            self.nextToken()
+        END LOOP
+        IF self.token.type # TokenType.rparen THEN
+            error(2025, self.token, "')' or ',' expected")
+        END IF
+    END IF
+    rparen := self.token
+    self.nextToken()
+    IF self.token.type = TokenType.colon THEN
+        self.nextToken()
+        returntype := self.parseType()
+    ELSE
+        returntype := NIL
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseFunctionHeader(INOUT self: Parser, OUT type: lexer.Token, OUT name: lexer.Token, OUT returntype: POINTER TO ParseTreeNode, OUT args: Array<FunctionParameterGroup>, OUT rparen: lexer.Token)
+    ASSERT self.token.type = TokenType.function
+    self.nextToken()
+    IF self.token.type # TokenType.identifier THEN
+        error(2023, self.token, "identifier expected")
+    END IF
+    name := self.token
+    self.nextToken()
+    IF self.token.type = TokenType.dot THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2068, self.token, "identifier expected")
+        END IF
+        type := name
+        name := self.token
+        self.nextToken()
+    ELSE
+        type := lexer.Token()
+    END IF
+    self.parseFunctionParameters(OUT returntype, OUT args, OUT rparen)
+END FUNCTION
+
+FUNCTION Parser.parseFunctionDefinition(INOUT self: Parser, startColumn: Number DEFAULT 0): POINTER TO ParseTreeNode
+    LET tokFunction: lexer.Token := self.token
+    VAR type: lexer.Token
+    VAR name: lexer.Token
+    VAR returntype: POINTER TO ParseTreeNode
+    VAR args: Array<FunctionParameterGroup>
+    VAR rparen: lexer.Token
+    self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
+    self.pushMinimumIndent((IF startColumn > 0 THEN startColumn ELSE tokFunction.column) + 1)
+    VAR body: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type # TokenType.end DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            body.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    LET tokEndFunction: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.function THEN
+        error_a(2036, self.tokens[self.index-1], self.token, "'FUNCTION' expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.FunctionDeclaration,
+        token WITH tokFunction,
+        functiondeclaration WITH FunctionDeclaration(
+            type WITH type,
+            name WITH name,
+            returntype WITH returntype,
+            args WITH args,
+            rparen WITH rparen,
+            body WITH body,
+            endToken WITH tokEndFunction
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseExternalDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.external
+    LET tokExternal: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.function THEN
+        error(2045, self.token, "FUNCTION expected")
+    END IF
+    VAR type: lexer.Token
+    VAR name: lexer.Token
+    VAR returntype: POINTER TO ParseTreeNode
+    VAR args: Array<FunctionParameterGroup>
+    VAR rparen: lexer.Token
+    self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
+    IF self.token.type # TokenType.lbrace THEN
+        error(2046, self.token, "{ expected")
+    END IF
+    LET dict: POINTER TO ParseTreeNode := self.parseDictionaryLiteral()
+    IF self.token.type # TokenType.end THEN
+        error(2050, self.token, "'END' expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.function THEN
+        error_a(2051, self.tokens[self.index-1], self.token, "'END FUNCTION' expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ExternalFunctionDeclaration,
+        token WITH tokExternal,
+        externalfunctiondeclaration WITH ExternalFunctionDeclaration(
+            type WITH type,
+            name WITH name,
+            returntype WITH returntype,
+            args WITH args,
+            rparen WITH rparen,
+            dict WITH dict
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTreeNode): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.lparen
+    self.nextToken()
+    VAR args: Array<FunctionCallArgument> := []
+    IF self.token.type # TokenType.rparen THEN
+        LOOP
+            VAR mode: lexer.Token := lexer.Token()
+            IF self.token.type IN [TokenType.in, TokenType.out, TokenType.inout] THEN
+                mode := self.token
+                self.nextToken()
+            END IF
+            VAR name: lexer.Token := lexer.Token()
+            IF self.token.type = TokenType.identifier AND self.tokens[self.index+1].type = TokenType.with THEN
+                name := self.token
+                self.nextToken()
+                self.nextToken()
+            END IF
+            VAR e: POINTER TO ParseTreeNode
+            IF self.token.type = TokenType.underscore THEN
+                e := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.DummyExpression,
+                    token WITH self.token,
+                    baseexpression WITH BaseExpression(
+                        startColumn WITH self.token.column,
+                        endColumn WITH self.token.column
+                    )
+                ))
+                self.nextToken()
+            ELSE
+                e := self.parseExpression()
+            END IF
+            args.append(FunctionCallArgument(mode WITH mode, name WITH name, expr WITH e))
+            IF self.token.type # TokenType.comma THEN
+                EXIT LOOP
+            END IF
+            self.nextToken()
+        END LOOP
+        IF self.token.type # TokenType.rparen THEN
+            error(2013, self.token, "')' or ',' expected")
+        END IF
+    END IF
+    LET tokRparen: lexer.Token := self.token
+    self.nextToken()
+    % TODO use CHECK VALID
+    IF VALID func THEN
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.FunctionCallExpression,
+            token WITH func->token,
+            functioncallexpression WITH FunctionCallExpression(
+                base WITH func,
+                args WITH args,
+                rparen WITH tokRparen
+            )
+        ))
+    ELSE
+        RETURN NIL
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.lbracket
+    LET tokLbracket: lexer.Token := self.token
+    self.nextToken()
+    VAR elements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type # TokenType.rbracket DO
+        LET element: POINTER TO ParseTreeNode := self.parseExpression()
+        IF self.token.type = TokenType.comma THEN
+            self.nextToken()
+        ELSIF self.token.type = TokenType.to THEN
+            self.nextToken()
+            LET first: POINTER TO ParseTreeNode := element
+            LET last: POINTER TO ParseTreeNode := self.parseExpression()
+            VAR step: POINTER TO ParseTreeNode := NIL
+            IF self.token.type = TokenType.step THEN
+                self.nextToken()
+                step := self.parseExpression()
+            ELSE
+                step := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.NumberLiteralExpression,
+                    numberliteralexpression WITH NumberLiteralExpression(
+                        value WITH 1
+                    )
+                ))
+            END IF
+            IF self.token.type # TokenType.rbracket THEN
+                error2(2099, self.token, "']' expected", tokLbracket, "opening '[' here")
+            END IF
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ArrayLiteralRangeExpression,
+                token WITH tokLbracket,
+                arrayliteralrangeexpression WITH ArrayLiteralRangeExpression(
+                    startColumn WITH tokLbracket.column,
+                    endColumn WITH self.tokens[self.index-1].column + 1,
+                    first WITH first,
+                    last WITH last,
+                    step WITH step
+                )
+            ))
+        ELSIF self.token.type # TokenType.rbracket THEN
+            error2(2053, self.token, "',' or ']' expected", tokLbracket, "opening '[' here")
+        END IF
+        elements.append(element)
+    END WHILE
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ArrayLiteralExpression,
+        token WITH tokLbracket,
+        arrayliteralexpression WITH ArrayLiteralExpression(
+            startColumn WITH tokLbracket.column,
+            endColumn WITH self.tokens[self.index-1].column + 1,
+            elements WITH elements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseDictionaryLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.lbrace
+    LET tokLbrace: lexer.Token := self.token
+    self.nextToken()
+    VAR elements: Array<DictionaryLiteralKeyValue> := []
+    WHILE self.token.type = TokenType.string DO
+        LET key: lexer.Token := self.token
+        self.nextToken()
+        IF self.token.type # TokenType.colon THEN
+            error(2048, self.token, "':' expected")
+        END IF
+        self.nextToken()
+        LET element: POINTER TO ParseTreeNode := self.parseExpression()
+        elements.append(DictionaryLiteralKeyValue(key WITH key, value WITH element))
+        IF self.token.type = TokenType.comma THEN
+            self.nextToken()
+        END IF
+    END WHILE
+    IF self.token.type # TokenType.rbrace THEN
+        error2(2049, self.token, "'}' expected", tokLbrace, "opening '{' here")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.DictionaryLiteralExpression,
+        token WITH tokLbrace,
+        dictionaryliteralexpression WITH DictionaryLiteralExpression(
+            startColumn WITH tokLbrace.column,
+            endColumn WITH self.tokens[self.index-1].column+1,
+            elements WITH elements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET first: lexer.Token := self.token
+    VAR parts: Array<InterpolatedStringPart> := [InterpolatedStringPart(
+        expr WITH makeParseTreeNode(ParseTreeNode(
+            type WITH Type.StringLiteralExpression,
+            token WITH self.token,
+            stringliteralexpression WITH StringLiteralExpression(
+                startColumn WITH self.token.column,
+                endColumn WITH self.token.column + self.token.text.length(),
+                value WITH self.token.text
+            )
+        ))
+    )]
+    LOOP
+        self.nextToken()
+        IF self.token.type # TokenType.subbegin THEN
+            EXIT LOOP
+        END IF
+        self.nextToken()
+        LET e: POINTER TO ParseTreeNode := self.parseExpression()
+        VAR fmt: lexer.Token := lexer.Token()
+        IF self.token.type = TokenType.subfmt THEN
+            self.nextToken()
+            IF self.token.type # TokenType.string THEN
+                internalError("parseInterpolatedStringExpression")
+            END IF
+            fmt := self.token
+            self.nextToken()
+        END IF
+        parts.append(InterpolatedStringPart(expr WITH e, format WITH fmt))
+        IF self.token.type # TokenType.subend THEN
+            internalError("parseInterpolatedStringExpression")
+        END IF
+        self.nextToken()
+        IF self.token.type # TokenType.string THEN
+            internalError("parseInterpolatedStringExpression")
+        END IF
+        LET s: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+            type WITH Type.StringLiteralExpression,
+            token WITH self.token,
+            stringliteralexpression WITH StringLiteralExpression(
+                startColumn WITH self.token.column,
+                endColumn WITH self.token.column + self.token.text.length(),
+                value WITH self.token.text
+            )
+        ))
+        parts.append(InterpolatedStringPart(expr WITH s))
+    END LOOP
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.InterpolatedStringExpression,
+        token WITH first,
+        interpolatedstringexpression WITH InterpolatedStringExpression(
+            startColumn WITH getStartColumn(parts[FIRST].expr),
+            endColumn WITH getEndColumn(parts[LAST].expr),
+            parts WITH parts
+        )
+    ))
+END FUNCTION
+
+%|
+ | Operator precedence:
+ |
+ |  ^        exponentiation                     parseExponentiation
+ |  * / MOD  multiplication, division, modulo   parseMultiplication
+ |  + -      addition, subtraction              parseAddition
+ |  < = >    comparison                         parseComparison
+ |  in       membership                         parseMembership
+ |  and      conjunction                        parseConjunction
+ |  or       disjunction                        parseDisjunction
+ |  if       conditional                        parseConditional
+ |%
+
+FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
+    CASE self.token.type
+        WHEN TokenType.lparen DO
+            LET tokLparen: lexer.Token := self.token
+            self.nextToken()
+            LET expr: POINTER TO ParseTreeNode := self.parseConditional()
+            IF self.token.type # TokenType.rparen THEN
+                error2(2014, self.token, ") expected", tokLparen, "opening '(' here")
+            END IF
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.IdentityExpression,
+                token WITH tokLparen,
+                unaryexpression WITH UnaryExpression(
+                    startColumn WITH tokLparen.column,
+                    endColumn WITH self.tokens[self.index-1].column + 1,
+                    expr WITH expr
+                )
+            ))
+        WHEN TokenType.lbracket DO
+            RETURN self.parseArrayLiteral()
+        WHEN TokenType.lbrace DO
+            RETURN self.parseDictionaryLiteral()
+        WHEN TokenType.false DO
+            LET tokFalse: lexer.Token := self.token
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.BooleanLiteralExpression,
+                token WITH tokFalse,
+                booleanliteralexpression WITH BooleanLiteralExpression(
+                    startColumn WITH tokFalse.column,
+                    endColumn WITH tokFalse.column + tokFalse.text.length(),
+                    value WITH FALSE
+                )
+            ))
+        WHEN TokenType.true DO
+            LET tokTrue: lexer.Token := self.token
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.BooleanLiteralExpression,
+                token WITH tokTrue,
+                booleanliteralexpression WITH BooleanLiteralExpression(
+                    startColumn WITH tokTrue.column,
+                    endColumn WITH tokTrue.column + tokTrue.text.length(),
+                    value WITH TRUE
+                )
+            ))
+        WHEN TokenType.number DO
+            LET tokNumber: lexer.Token := self.token
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.NumberLiteralExpression,
+                token WITH tokNumber,
+                numberliteralexpression WITH NumberLiteralExpression(
+                    startColumn WITH tokNumber.column,
+                    endColumn WITH tokNumber.column + tokNumber.text.length(),
+                    value WITH tokNumber.value
+                )
+            ))
+        WHEN TokenType.string DO
+            IF self.tokens[self.index+1].type = TokenType.subbegin THEN
+                RETURN self.parseInterpolatedStringExpression()
+            ELSE
+                LET tokString: lexer.Token := self.token
+                self.nextToken()
+                RETURN makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.StringLiteralExpression,
+                    token WITH tokString,
+                    stringliteralexpression WITH StringLiteralExpression(
+                        startColumn WITH tokString.column,
+                        endColumn WITH self.token.column,
+                        value WITH tokString.text
+                    )
+                ))
+            END IF
+        WHEN TokenType.embed DO
+            self.nextToken()
+            IF self.token.type # TokenType.string THEN
+                error(2090, self.token, "string literal expected")
+            END IF
+            LET tokFile: lexer.Token := self.token
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.FileLiteralExpression,
+                token WITH tokFile,
+                fileliteralexpression WITH FileLiteralExpression(
+                    startColumn WITH tokFile.column,
+                    endColumn WITH self.token.column,
+                    name WITH tokFile.text
+                )
+            ))
+        WHEN TokenType.hexbytes DO
+            self.nextToken()
+            IF self.token.type # TokenType.string THEN
+                error(2094, self.token, "string literal expected")
+            END IF
+            LET tokLiteral: lexer.Token := self.token
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.BytesLiteralExpression,
+                token WITH tokLiteral,
+                bytesliteralexpression WITH BytesLiteralExpression(
+                    startColumn WITH tokLiteral.column,
+                    endColumn WITH self.token.column,
+                    data WITH tokLiteral.text
+                )
+            ))
+        WHEN TokenType.plus DO
+            LET tokPlus: lexer.Token := self.token
+            self.nextToken()
+            LET atom: POINTER TO ParseTreeNode := self.parseAtom()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.UnaryPlusExpression,
+                token WITH tokPlus,
+                unaryexpression WITH UnaryExpression(
+                    startColumn WITH tokPlus.column,
+                    endColumn WITH getEndColumn(atom),
+                    expr WITH atom
+                )
+            ))
+        WHEN TokenType.minus DO
+            LET tokMinus: lexer.Token := self.token
+            self.nextToken()
+            LET atom: POINTER TO ParseTreeNode := self.parseAtom()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.UnaryMinusExpression,
+                token WITH tokMinus,
+                unaryexpression WITH UnaryExpression(
+                    startColumn WITH tokMinus.column,
+                    endColumn WITH getEndColumn(atom),
+                    expr WITH atom
+                )
+            ))
+        WHEN TokenType.not DO
+            LET tokNot: lexer.Token := self.token
+            self.nextToken()
+            LET atom: POINTER TO ParseTreeNode := self.parseAtom()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.LogicalNotExpression,
+                token WITH tokNot,
+                unaryexpression WITH UnaryExpression(
+                    startColumn WITH tokNot.column,
+                    endColumn WITH getEndColumn(atom),
+                    expr WITH atom
+                )
+            ))
+        WHEN TokenType.new DO
+            LET tokNew: lexer.Token := self.token
+            self.nextToken()
+            LET type: POINTER TO ParseTreeNode := self.parseType()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.NewRecordExpression,
+                token WITH tokNew,
+                newrecordexpression WITH NewRecordExpression(
+                    startColumn WITH tokNew.column,
+                    endColumn WITH self.token.column,
+                    type WITH type
+                )
+            ))
+        WHEN TokenType.nil DO
+            LET tokNil: lexer.Token := self.token
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.NilLiteralExpression,
+                token WITH tokNil,
+                baseexpression WITH BaseExpression(
+                    startColumn WITH tokNil.column,
+                    endColumn WITH tokNil.column + tokNil.text.length()
+                )
+            ))
+        WHEN TokenType.nowhere DO
+            LET tokNowhere: lexer.Token := self.token
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.NowhereLiteralExpression,
+                token WITH tokNowhere,
+                baseexpression WITH BaseExpression(
+                    startColumn WITH tokNowhere.column,
+                    endColumn WITH tokNowhere.column + tokNowhere.text.length()
+                )
+            ))
+        WHEN TokenType.if DO
+            error(2095, self.token, "Use parentheses around (IF ... THEN ... ELSE ...)")
+        WHEN TokenType.try DO
+            error(2106, self.token, "Use parentheses around (TRY ... EXCEPTION ...)")
+        WHEN TokenType.identifier DO
+            VAR expr: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+                type WITH Type.IdentifierExpression,
+                token WITH self.token,
+                identifierexpression WITH IdentifierExpression(
+                    name WITH self.token.text
+                )
+            ))
+            self.nextToken()
+            LOOP
+                IF self.token.type = TokenType.lbracket THEN
+                    LET tokLbracket: lexer.Token := self.token
+                    self.nextToken()
+                    REPEAT
+                        VAR index: POINTER TO ParseTreeNode := NIL
+                        VAR firstFromEnd: Boolean := FALSE
+                        IF self.token.type IN [TokenType.first, TokenType.last] THEN
+                            firstFromEnd := self.token.type = TokenType.last
+                            self.nextToken()
+                            IF self.token.type IN [TokenType.rbracket, TokenType.to] THEN
+                                index := makeParseTreeNode(ParseTreeNode(
+                                    type WITH Type.NumberLiteralExpression,
+                                    numberliteralexpression WITH NumberLiteralExpression(
+                                        value WITH 0
+                                    )
+                                ))
+                            ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
+                                error(2072, self.token, "'+' or '-' expected")
+                            END IF
+                        END IF
+                        IF index = NIL THEN
+                            index := self.parseExpression()
+                        END IF
+                        VAR range: POINTER TO ArrayRange := NIL
+                        VAR last: POINTER TO ParseTreeNode := NIL
+                        LET hasRange: Boolean := self.token.type = TokenType.to
+                        IF hasRange THEN
+                            self.nextToken()
+                            VAR lastFromEnd: Boolean := FALSE
+                            IF self.token.type IN [TokenType.first, TokenType.last] THEN
+                                lastFromEnd := self.token.type = TokenType.last
+                                self.nextToken()
+                                IF self.token.type = TokenType.rbracket THEN
+                                    last := makeParseTreeNode(ParseTreeNode(
+                                        type WITH Type.NumberLiteralExpression,
+                                        numberliteralexpression WITH NumberLiteralExpression(
+                                            value WITH 0
+                                        )
+                                    ))
+                                ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
+                                    error(2073, self.token, "'+' or '-' expected")
+                                END IF
+                            END IF
+                            IF last = NIL THEN
+                                last := self.parseExpression()
+                            END IF
+                            % TODO use initialiser when available
+                            range := NEW ArrayRange
+                            IF VALID range THEN
+                                range->token := tokLbracket
+                                range->first := index
+                                range->firstFromEnd := firstFromEnd
+                                range->last := last
+                                range->lastFromEnd := lastFromEnd
+                            END IF
+                        ELSE
+                            IF firstFromEnd THEN
+                                % TODO use initialiser when available
+                                range := NEW ArrayRange
+                                IF VALID range THEN
+                                    range->token := tokLbracket
+                                    range->first := index
+                                    range->firstFromEnd := firstFromEnd
+                                    range->last := index
+                                    range->lastFromEnd := firstFromEnd
+                                END IF
+                            END IF
+                        END IF
+                        IF self.token.type NOT IN [TokenType.comma, TokenType.rbracket] THEN
+                            error(2020, self.token, "']' expected")
+                        END IF
+                        self.nextToken()
+                        IF range # NIL THEN
+                            expr := makeParseTreeNode(ParseTreeNode(
+                                type WITH Type.RangeSubscriptExpression,
+                                token WITH tokLbracket,
+                                rangesubscriptexpression WITH RangeSubscriptExpression(
+                                    startColumn WITH tokLbracket.column,
+                                    endColumn WITH self.token.column,
+                                    base WITH expr,
+                                    range WITH range
+                                )
+                            ))
+                            IF firstFromEnd AND NOT hasRange THEN
+                                LET zero: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+                                    type WITH Type.NumberLiteralExpression,
+                                    numberliteralexpression WITH NumberLiteralExpression(
+                                        value WITH 0
+                                    )
+                                ))
+                                expr := makeParseTreeNode(ParseTreeNode(
+                                    type WITH Type.SubscriptExpression,
+                                    token WITH tokLbracket,
+                                    subscriptexpression WITH SubscriptExpression(
+                                        startColumn WITH tokLbracket.column,
+                                        endColumn WITH self.token.column,
+                                        base WITH expr,
+                                        index WITH zero
+                                    )
+                                ))
+                            END IF
+                        ELSE
+                            expr := makeParseTreeNode(ParseTreeNode(
+                                type WITH Type.SubscriptExpression,
+                                token WITH tokLbracket,
+                                subscriptexpression WITH SubscriptExpression(
+                                    startColumn WITH tokLbracket.column,
+                                    endColumn WITH self.token.column,
+                                    base WITH expr,
+                                    index WITH index
+                                )
+                            ))
+                        END IF
+                    UNTIL self.tokens[self.index-1].type # TokenType.comma
+                ELSIF self.token.type = TokenType.lparen THEN
+                    expr := self.parseFunctionCall(expr)
+                ELSIF self.token.type = TokenType.dot THEN
+                    LET tokDot: lexer.Token := self.token
+                    self.nextToken()
+                    IF self.token.type # TokenType.identifier THEN
+                        error(2021, self.token, "identifier expected")
+                    END IF
+                    LET field: lexer.Token := self.token
+                    self.nextToken()
+                    expr := makeParseTreeNode(ParseTreeNode(
+                        type WITH Type.DotExpression,
+                        token WITH tokDot,
+                        dotexpression WITH DotExpression(
+                            base WITH expr,
+                            name WITH field
+                        )
+                    ))
+                ELSIF self.token.type = TokenType.arrow THEN
+                    LET tokArrow: lexer.Token := self.token
+                    self.nextToken()
+                    IF self.token.type # TokenType.identifier THEN
+                        error(2066, self.token, "identifier expected")
+                    END IF
+                    LET field: lexer.Token := self.token
+                    self.nextToken()
+                    expr := makeParseTreeNode(ParseTreeNode(
+                        type WITH Type.ArrowExpression,
+                        token WITH tokArrow,
+                        arrowexpression WITH ArrowExpression(
+                            startColumn WITH getStartColumn(expr),
+                            endColumn WITH field.column + field.text.length(),
+                            base WITH expr,
+                            name WITH field
+                        )
+                    ))
+                ELSE
+                    % TODO: what happens here?
+                    EXIT LOOP
+                END IF
+            END LOOP
+            RETURN expr
+        WHEN OTHERS DO
+            error(2015, self.token, "Expression expected")
+    END CASE
+    RETURN NIL
+END FUNCTION
+
+FUNCTION Parser.parseExponentiation(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseAtom()
+    LOOP
+        LET tokOp: lexer.Token := self.token
+        IF tokOp.type = TokenType.exp THEN
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseAtom()
+            left := makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExponentiationExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            ))
+        ELSE
+            RETURN left
+        END IF
+    END LOOP
+END FUNCTION
+
+FUNCTION Parser.parseMultiplication(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseExponentiation()
+    LOOP
+        LET tokOp: lexer.Token := self.token
+        CASE tokOp.type
+            WHEN TokenType.times DO
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
+                left := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.MultiplicationExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                ))
+            WHEN TokenType.divide DO
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
+                left := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.DivisionExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                ))
+            WHEN TokenType.intdiv DO
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
+                left := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.IntegerDivisionExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                ))
+            WHEN TokenType.mod DO
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
+                left := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.ModuloExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                ))
+            WHEN OTHERS DO
+                RETURN left
+        END CASE
+    END LOOP
+END FUNCTION
+
+FUNCTION Parser.parseAddition(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseMultiplication()
+    LOOP
+        LET tokOp: lexer.Token := self.token
+        CASE tokOp.type
+            WHEN TokenType.plus DO
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
+                left := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.AdditionExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                ))
+            WHEN TokenType.minus DO
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
+                left := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.SubtractionExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                ))
+            WHEN TokenType.concat DO
+                self.nextToken()
+                LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
+                left := makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.ConcatenationExpression,
+                    token WITH tokOp,
+                    binaryexpression WITH BinaryExpression(
+                        startColumn WITH getStartColumn(left),
+                        endColumn WITH getEndColumn(right),
+                        left WITH left,
+                        right WITH right
+                    )
+                ))
+            WHEN OTHERS DO
+                RETURN left
+        END CASE
+    END LOOP
+END FUNCTION
+
+FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET left: POINTER TO ParseTreeNode := self.parseAddition()
+    VAR comps: Array<ChainedComparisonPart> := []
+    VAR tokComp: lexer.Token
+    WHILE self.token.type IN [TokenType.equal, TokenType.notequal, TokenType.less, TokenType.greater, TokenType.lesseq, TokenType.greatereq] DO
+        tokComp := self.token
+        IF tokComp.type = TokenType.equal AND self.tokens[self.index+1].type = TokenType.equal THEN
+            error(2078, tokComp, "'==' not expected, use '=' for comparison")
+        END IF
+        LET comp: Comparison := comparisonFromToken(tokComp)
+        self.nextToken()
+        LET right: POINTER TO ParseTreeNode := self.parseAddition()
+        comps.append(ChainedComparisonPart(comp WITH comp, right WITH right))
+    END WHILE
+    IF comps.size() = 0 THEN
+        RETURN left
+    ELSIF comps.size() = 1 THEN
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.ComparisonExpression,
+            token WITH tokComp,
+            comparisonexpression WITH ComparisonExpression(
+                startColumn WITH getStartColumn(left),
+                endColumn WITH getEndColumn(comps[0].right),
+                left WITH left,
+                right WITH comps[0].right,
+                comp WITH comps[0].comp
+            )
+        ))
+    ELSE
+        % TODO use CHECK VALID here
+        IF VALID left THEN
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ChainedComparisonExpression,
+                token WITH left->token,
+                chainedcomparisonexpression WITH ChainedComparisonExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(comps[comps.size()-1].right),
+                    left WITH left,
+                    comps WITH comps
+                )
+            ))
+        ELSE
+            RETURN NIL
+        END IF
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseComparison()
+    IF self.token.type = TokenType.in OR (self.token.type = TokenType.not AND self.tokens[self.index+1].type = TokenType.in) THEN
+        LET tokOp: lexer.Token := self.token
+        LET notin: Boolean := tokOp.type = TokenType.not
+        IF notin THEN
+            self.nextToken()
+        END IF
+        self.nextToken()
+        LET right: POINTER TO ParseTreeNode := self.parseComparison()
+        VAR r: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+            type WITH Type.MembershipExpression,
+            token WITH tokOp,
+            binaryexpression WITH BinaryExpression(
+                startColumn WITH getStartColumn(left),
+                endColumn WITH getEndColumn(right),
+                left WITH left,
+                right WITH right
+            )
+        ))
+        IF notin THEN
+            r := makeParseTreeNode(ParseTreeNode(
+                type WITH Type.LogicalNotExpression,
+                token WITH tokOp,
+                unaryexpression WITH UnaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    expr WITH r
+                )
+            ))
+        END IF
+        RETURN r
+    ELSE
+        RETURN left
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseConjunction(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseMembership()
+    LOOP
+        LET tokOp: lexer.Token := self.token
+        IF self.token.type = TokenType.and THEN
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseMembership()
+            left := makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ConjunctionExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            ))
+        ELSE
+            RETURN left
+        END IF
+    END LOOP
+END FUNCTION
+
+FUNCTION Parser.parseDisjunction(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseConjunction()
+    LOOP
+        LET tokOp: lexer.Token := self.token
+        IF self.token.type = TokenType.or THEN
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseConjunction()
+            left := makeParseTreeNode(ParseTreeNode(
+                type WITH Type.DisjunctionExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            ))
+        ELSE
+            RETURN left
+        END IF
+    END LOOP
+END FUNCTION
+
+FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
+    IF self.token.type = TokenType.if THEN
+        LET tokIf: lexer.Token := self.token
+        self.nextToken()
+        LET cond: POINTER TO ParseTreeNode := self.parseExpression()
+        IF self.token.type # TokenType.then THEN
+            error(2016, self.token, "'THEN' expected")
+        END IF
+        self.nextToken()
+        LET left: POINTER TO ParseTreeNode := self.parseExpression()
+        IF self.token.type # TokenType.else THEN
+            error(2017, self.token, "'ELSE' expected")
+        END IF
+        self.nextToken()
+        LET right: POINTER TO ParseTreeNode := self.parseExpression()
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.ConditionalExpression,
+            token WITH tokIf,
+            conditionalexpression WITH ConditionalExpression(
+                startColumn WITH tokIf.column,
+                endColumn WITH getEndColumn(right),
+                cond WITH cond,
+                left WITH left,
+                right WITH right
+            )
+        ))
+    ELSIF self.token.type = TokenType.try THEN
+        LET tokTry: lexer.Token := self.token
+        self.nextToken()
+        LET expr: POINTER TO ParseTreeNode := self.parseExpression()
+        VAR catches: Array<TryStatementClause> := []
+        WHILE self.token.type = TokenType.exception DO
+            self.nextToken()
+            VAR name: Array<lexer.Token> := []
+            name[1] := self.token
+            self.nextToken()
+            IF self.token.type = TokenType.dot THEN
+                self.nextToken()
+                IF self.token.type # TokenType.identifier THEN
+                    error(2107, self.token, "identifier expected")
+                END IF
+                name[0] := name[1]
+                name[1] := self.token
+                self.nextToken()
+            END IF
+            LET exceptions: Array<Array<lexer.Token>> := [name]
+            IF self.token.type = TokenType.do THEN
+                LET tokDo: lexer.Token := self.token
+                VAR statements: Array<POINTER TO ParseTreeNode> := []
+                self.nextToken()
+                WHILE self.token.type NOT IN [TokenType.exception, TokenType.rparen, TokenType.end_of_file] DO
+                    LET s: POINTER TO ParseTreeNode := self.parseStatement()
+                    IF VALID s THEN
+                        statements.append(s)
+                    END IF
+                END WHILE
+                catches.append(TryStatementClause(
+                    exceptions WITH exceptions,
+                    body WITH makeParseTreeNode(ParseTreeNode(
+                        type WITH Type.TryHandlerStatement,
+                        token WITH tokDo,
+                        tryhandlerstatement WITH TryHandlerStatement(
+                            statements WITH statements
+                        )
+                    ))
+                ))
+            ELSIF self.token.type = TokenType.gives THEN
+                self.nextToken()
+                catches.append(TryStatementClause(
+                    exceptions WITH exceptions,
+                    body WITH self.parseExpression()
+                ))
+            ELSE
+                error(2108, self.token, "DO or GIVES expected")
+            END IF
+        END WHILE
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.TryExpression,
+            token WITH tokTry,
+            tryexpression WITH TryExpression(
+                startColumn WITH tokTry.column,
+                endColumn WITH self.token.column,
+                expr WITH expr,
+                catches WITH catches
+            )
+        ))
+    ELSE
+        RETURN self.parseExpression()
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseExpression(INOUT self: Parser): POINTER TO ParseTreeNode
+    INC self.expressionDepth
+    IF self.expressionDepth > 100 THEN
+        error(2067, self.token, "exceeded maximum nesting depth")
+    END IF
+    LET r: POINTER TO ParseTreeNode := self.parseDisjunction()
+    DEC self.expressionDepth
+    RETURN r
+END FUNCTION
+
+FUNCTION Parser.parseImport(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET tokImport: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type NOT IN [TokenType.identifier, TokenType.string] THEN
+        error(2032, self.token, "identifier or string expected")
+    END IF
+    LET module: lexer.Token := self.token
+    self.nextToken()
+    VAR name: lexer.Token := lexer.Token()
+    IF self.token.type = TokenType.dot THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2079, self.token, "identifier expected")
+        END IF
+        name := self.token
+        self.nextToken()
+    END IF
+    VAR alias: lexer.Token := lexer.Token()
+    IF self.token.type = TokenType.alias THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2080, self.token, "identifier expected")
+        END IF
+        alias := self.token
+        self.nextToken()
+    ELSIF module.type = TokenType.string THEN
+        error(2087, module, "named import requires ALIAS")
+    END IF
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ImportDeclaration,
+        token WITH tokImport,
+        importdeclaration WITH ImportDeclaration(
+            module WITH module,
+            name WITH name,
+            alias WITH alias
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.enum
+    LET tokEnum: lexer.Token := self.token
+    self.nextToken()
+    VAR names: Array<lexer.Token> := []
+    WHILE self.token.type # TokenType.end DO
+        IF self.token.type # TokenType.identifier THEN
+            error(2006, self.token, "identifier expected")
+        END IF
+        LET name: lexer.Token := self.token
+        self.nextToken()
+        names.append(name)
+    END WHILE
+    self.nextToken()
+    IF self.token.type # TokenType.enum THEN
+        error_a(2035, self.tokens[self.index-1], self.token, "'ENUM' expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.TypeEnum,
+        token WITH tokEnum,
+        typeenum WITH TypeEnum(
+            names WITH names
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.record
+    LET tokRecord: lexer.Token := self.token
+    self.nextToken()
+    VAR fields: Array<Field> := []
+    WHILE self.token.type # TokenType.end DO
+        LET isPrivate: Boolean := self.token.type = TokenType.private
+        IF isPrivate THEN
+            self.nextToken()
+        END IF
+        IF self.token.type # TokenType.identifier THEN
+            error(2004, self.token, "identifier expected")
+        END IF
+        LET name: lexer.Token := self.token
+        self.nextToken()
+        IF self.token.type # TokenType.colon THEN
+            error(2005, self.token, "colon expected")
+        END IF
+        self.nextToken()
+        LET t: POINTER TO ParseTreeNode := self.parseType()
+        fields.append(Field(
+            name WITH name,
+            type WITH t,
+            isPrivate WITH isPrivate
+        ))
+    END WHILE
+    self.nextToken()
+    IF self.token.type # TokenType.record THEN
+        error_a(2034, self.tokens[self.index-1], self.token, "'RECORD' expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.TypeRecord,
+        token WITH tokRecord,
+        typerecord WITH TypeRecord(
+            fields WITH fields
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parsePointerType(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.pointer
+    LET tokPointer: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type = TokenType.to THEN
+        self.nextToken()
+        LET reftype: POINTER TO ParseTreeNode := self.parseType()
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.TypePointer,
+            token WITH tokPointer,
+            typepointer WITH TypePointer(
+                reftype WITH reftype
+            )
+        ))
+    ELSE
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.TypePointer,
+            token WITH tokPointer,
+            typepointer WITH TypePointer(
+                reftype WITH NIL
+            )
+        ))
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseFunctionType(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.function
+    LET tokFunction: lexer.Token := self.token
+    self.nextToken()
+    VAR returntype: POINTER TO ParseTreeNode
+    VAR args: Array<FunctionParameterGroup>
+    self.parseFunctionParameters(OUT returntype, OUT args, OUT rparen WITH _)
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.TypeFunctionPointer,
+        token WITH tokFunction,
+        typefunctionpointer WITH TypeFunctionPointer(
+            returntype WITH returntype,
+            args WITH args
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseParameterisedType(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET tokType: lexer.Token := self.token
+    IF tokType.type NOT IN [TokenType.array, TokenType.dictionary] THEN
+        internalError("unexpected parameterised type")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.less THEN
+        error(2002, self.token, "'<' expected")
+    END IF
+    LET tokLess: lexer.Token := self.token
+    self.nextToken()
+    LET elementtype: POINTER TO ParseTreeNode := self.parseType()
+    IF self.token.type # TokenType.greater THEN
+        error2(2003, self.token, "'>' expected", tokLess, "opening '<' here")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.TypeParameterised,
+        token WITH tokType,
+        typeparameterised WITH TypeParameterised(
+            name WITH tokType,
+            elementtype WITH elementtype
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
+    CASE self.token.type
+        WHEN TokenType.array, TokenType.dictionary DO
+            RETURN self.parseParameterisedType()
+        WHEN TokenType.enum DO
+            RETURN self.parseEnumType()
+        WHEN TokenType.record DO
+            RETURN self.parseRecordType()
+        WHEN TokenType.pointer DO
+            RETURN self.parsePointerType()
+        WHEN TokenType.function DO
+            RETURN self.parseFunctionType()
+        WHEN OTHERS DO
+            IF self.token.type # TokenType.identifier THEN
+                error(2007, self.token, "identifier expected")
+            END IF
+    END CASE
+    LET name: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type = TokenType.dot THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2075, self.token, "identifier expected")
+        END IF
+        LET subname: lexer.Token := self.token
+        self.nextToken()
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.TypeImport,
+            token WITH name,
+            typeimport WITH TypeImport(
+                modname WITH name,
+                subname WITH subname
+            )
+        ))
+    ELSE
+        RETURN makeParseTreeNode(ParseTreeNode(
+            type WITH Type.TypeSimple,
+            token WITH name,
+            typesimple WITH TypeSimple(
+                name WITH name.text
+            )
+        ))
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseTypeDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
+    self.nextToken()
+    IF self.token.type # TokenType.identifier THEN
+        error(2008, self.token, "identifier expected")
+    END IF
+    LET tokName: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.is THEN
+        error(2009, self.token, "'IS' expected")
+    END IF
+    self.nextToken()
+    LET type: POINTER TO ParseTreeNode := self.parseType()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.TypeDeclaration,
+        token WITH tokName,
+        typedeclaration WITH TypeDeclaration(
+            type WITH type
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseConstantDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.constant
+    self.nextToken()
+    IF self.token.type # TokenType.identifier THEN
+        error(2010, self.token, "identifier expected")
+    END IF
+    LET tokName: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.colon THEN
+        error(2011, self.token, "':' expected")
+    END IF
+    self.nextToken()
+    LET type: POINTER TO ParseTreeNode := self.parseType()
+    IF self.token.type # TokenType.assign THEN
+        error(2012, self.token, "':=' expected")
+    END IF
+    self.nextToken()
+    LET value: POINTER TO ParseTreeNode := self.parseExpression()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ConstantDeclaration,
+        token WITH tokName,
+        constantdeclaration WITH ConstantDeclaration(
+            name WITH tokName,
+            type WITH type,
+            value WITH value
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.declare
+    self.nextToken()
+    CASE self.token.type
+        WHEN TokenType.exception DO
+            self.nextToken()
+            LET tokName: lexer.Token := self.token
+            IF self.token.type # TokenType.identifier THEN
+                error(2059, self.token, "identifier expected")
+            END IF
+            self.nextToken()
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExceptionDeclaration,
+                token WITH tokName,
+                exceptiondeclaration WITH ExceptionDeclaration(
+                    name WITH tokName
+                )
+            ))
+        WHEN TokenType.native DO
+            self.nextToken()
+            CASE self.token.type
+                WHEN TokenType.constant DO
+                    LET tokConstant: lexer.Token := self.token
+                    self.nextToken()
+                    IF self.token.type # TokenType.identifier THEN
+                        error(3212, self.token, "identifier expected")
+                    END IF
+                    LET name: lexer.Token := self.token
+                    self.nextToken()
+                    IF self.token.type # TokenType.colon THEN
+                        error(3213, self.token, "':' expected")
+                    END IF
+                    self.nextToken()
+                    LET type: POINTER TO ParseTreeNode := self.parseType()
+                    RETURN makeParseTreeNode(ParseTreeNode(
+                        type WITH Type.NativeConstantDeclaration,
+                        token WITH tokConstant,
+                        nativeconstantdeclaration WITH NativeConstantDeclaration(
+                            name WITH name,
+                            type WITH type
+                        )
+                    ))
+                WHEN TokenType.function DO
+                    LET tokFunction: lexer.Token := self.token
+                    VAR type: lexer.Token
+                    VAR name: lexer.Token
+                    VAR returntype: POINTER TO ParseTreeNode
+                    VAR args: Array<FunctionParameterGroup>
+                    VAR rparen: lexer.Token
+                    self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
+                    RETURN makeParseTreeNode(ParseTreeNode(
+                        type WITH Type.NativeFunctionDeclaration,
+                        token WITH tokFunction,
+                        functiondeclaration WITH FunctionDeclaration(
+                            type WITH type,
+                            name WITH name,
+                            returntype WITH returntype,
+                            args WITH args,
+                            rparen WITH rparen
+                        )
+                    ))
+            END CASE
+            RETURN NIL
+        WHEN OTHERS DO
+            error(2058, self.token, "EXCEPTION or NATIVE expected")
+    END CASE
+    RETURN NIL
+END FUNCTION
+
+FUNCTION Parser.parseExport(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.export
+    LET tokExport: lexer.Token := self.token
+    self.nextToken()
+    CASE self.token.type
+        WHEN TokenType.type DO
+            LET type: POINTER TO ParseTreeNode := self.parseTypeDefinition()
+            IF VALID type THEN RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExportDeclaration,
+                token WITH tokExport,
+                exportdeclaration WITH ExportDeclaration(
+                    names WITH [type->token],
+                    declaration WITH type
+                )
+            )) END IF
+        WHEN TokenType.constant DO
+            LET constant: POINTER TO ParseTreeNode := self.parseConstantDefinition()
+            IF VALID constant THEN RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExportDeclaration,
+                token WITH tokExport,
+                exportdeclaration WITH ExportDeclaration(
+                    names WITH [constant->constantdeclaration.name],
+                    declaration WITH constant
+                )
+            )) END IF
+        WHEN TokenType.var DO
+            LET var: POINTER TO ParseTreeNode := self.parseVarStatement()
+            IF VALID var THEN RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExportDeclaration,
+                token WITH tokExport,
+                exportdeclaration WITH ExportDeclaration(
+                    names WITH var->variabledeclaration.names,
+                    declaration WITH var
+                )
+            )) END IF
+        WHEN TokenType.let DO
+            LET let: POINTER TO ParseTreeNode := self.parseLetStatement()
+            IF VALID let THEN RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExportDeclaration,
+                token WITH tokExport,
+                exportdeclaration WITH ExportDeclaration(
+                    names WITH [let->letdeclaration.name],
+                    declaration WITH let
+                )
+            )) END IF
+        WHEN TokenType.function DO
+            LET function: POINTER TO ParseTreeNode := self.parseFunctionDefinition()
+            IF VALID function THEN RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExportDeclaration,
+                token WITH tokExport,
+                exportdeclaration WITH ExportDeclaration(
+                    names WITH [function->functiondeclaration.name],
+                    declaration WITH function
+                )
+            )) END IF
+        WHEN TokenType.external DO
+            LET external: POINTER TO ParseTreeNode := self.parseExternalDefinition()
+            IF VALID external THEN RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExportDeclaration,
+                token WITH tokExport,
+                exportdeclaration WITH ExportDeclaration(
+                    names WITH [external->externalfunctiondeclaration.name],
+                    declaration WITH external
+                )
+            )) END IF
+        %| TODO WHEN TokenType.declare DO
+            LET declare: POINTER TO ParseTreeNode := self.parseDeclaration()
+            IF VALID declare THEN RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ExportDeclaration,
+                token WITH tokExport,
+                exportdeclaration WITH ExportDeclaration(
+                    names WITH declare->names, % TODO needs generic list of names
+                    declaration WITH declare
+                )
+            )) END IF |%
+    END CASE
+    IF self.token.type # TokenType.identifier THEN
+        error(2074, self.token, "identifier expected")
+    END IF
+    LET tokName: lexer.Token := self.token
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ExportDeclaration,
+        token WITH tokExport,
+        exportdeclaration WITH ExportDeclaration(
+            names WITH [tokName]
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseBegin(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.begin
+    LET tokBegin: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.main THEN
+        error(2091, self.token, "'MAIN' expected")
+    END IF
+    LET tokMain: lexer.Token := self.token
+    self.nextToken()
+    self.pushMinimumIndent(tokBegin.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2092, self.token, "END expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.main THEN
+        error_a(2093, self.tokens[self.index-1], self.token, "'MAIN' expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.FunctionDeclaration,
+        token WITH tokBegin,
+        functiondeclaration WITH FunctionDeclaration(
+            type WITH lexer.Token(),
+            name WITH tokMain,
+            returntype WITH NIL,
+            args WITH [],
+            rparen WITH lexer.Token(),
+            body WITH statements,
+            endToken WITH lexer.Token()
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseVarStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET tokVar: lexer.Token := self.token
+    self.nextToken()
+    LET vars: VariableInfo := self.parseVariableDeclaration()
+    VAR value: POINTER TO ParseTreeNode := NIL
+    IF self.token.type = TokenType.assign THEN
+        self.nextToken()
+        value := self.parseExpression()
+    END IF
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.VariableDeclaration,
+        token WITH tokVar,
+        variabledeclaration WITH VariableDeclaration(
+            names WITH vars.names,
+            type WITH vars.type,
+            value WITH value
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseLetStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.let
+    LET tokVar: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.identifier THEN
+        error(2069, self.token, "identifier expected")
+    END IF
+    LET tokName: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.colon THEN
+        error(2070, self.token, "':' expected")
+    END IF
+    self.nextToken()
+    LET type: POINTER TO ParseTreeNode := self.parseType()
+    IF self.token.type # TokenType.assign THEN
+        error(2071, self.token, "':=' expected")
+    END IF
+    self.nextToken()
+    LET value: POINTER TO ParseTreeNode := self.parseExpression()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.LetDeclaration,
+        token WITH tokVar,
+        letdeclaration WITH LetDeclaration(
+            name WITH tokName,
+            type WITH type,
+            value WITH value
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseAssertStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    LET tokAssert: lexer.Token := self.token
+    self.nextToken()
+    VAR e: POINTER TO ParseTreeNode := self.parseExpression()
+    VAR exprs: Array<POINTER TO ParseTreeNode> := [e]
+    WHILE self.token.type = TokenType.comma DO
+        self.nextToken()
+        e := self.parseExpression()
+        exprs.append(e)
+    END WHILE
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.AssertStatement,
+        token WITH tokAssert,
+        assertstatement WITH AssertStatement(exprs WITH exprs)
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.case
+    LET tokCase: lexer.Token := self.token
+    self.nextToken()
+    LET expr: POINTER TO ParseTreeNode := self.parseExpression()
+    self.pushMinimumIndent(tokCase.column + 1)
+    VAR clauses: Array<CaseWhenClause> := []
+    WHILE self.token.type = TokenType.when AND self.tokens[self.index+1].type # TokenType.others DO
+        LET tokWhen: lexer.Token := self.token
+        VAR conditions: Array<CaseWhenCondition> := []
+        REPEAT
+            self.nextToken()
+            CASE self.token.type
+                WHEN TokenType.equal, TokenType.notequal, TokenType.less, TokenType.greater, TokenType.lesseq, TokenType.greatereq DO
+                    LET op: lexer.Token := self.token
+                    self.nextToken()
+                    LET when: POINTER TO ParseTreeNode := self.parseExpression()
+                    conditions.append(CaseWhenCondition(
+                        token WITH tokWhen,
+                        cond WITH comparisonFromToken(op),
+                        expr WITH when
+                    ))
+                WHEN OTHERS DO
+                    LET when: POINTER TO ParseTreeNode := self.parseExpression()
+                    IF self.token.type = TokenType.to THEN
+                        self.nextToken()
+                        LET when2: POINTER TO ParseTreeNode := self.parseExpression()
+                        conditions.append(CaseWhenCondition(
+                            token WITH tokWhen,
+                            expr WITH when,
+                            high_expr WITH when2
+                        ))
+                    ELSE
+                        conditions.append(CaseWhenCondition(
+                            token WITH tokWhen,
+                            cond WITH Comparison.eq,
+                            expr WITH when
+                        ))
+                    END IF
+            END CASE
+        UNTIL self.token.type # TokenType.comma
+        IF self.token.type # TokenType.do THEN
+            error_a(2030, self.tokens[self.index-1], self.token, "'DO' expected")
+        END IF
+        self.nextToken()
+        VAR statements: Array<POINTER TO ParseTreeNode> := []
+        WHILE self.token.type NOT IN [TokenType.when, TokenType.end, TokenType.end_of_file] DO
+            LET s: POINTER TO ParseTreeNode := self.parseStatement()
+            IF VALID s THEN
+                statements.append(s)
+            END IF
+        END WHILE
+        clauses.append(CaseWhenClause(
+            conditions WITH conditions,
+            statements WITH statements
+        ))
+    END WHILE
+    VAR othersStatements: Array<POINTER TO ParseTreeNode> := []
+    IF self.token.type = TokenType.when AND self.tokens[self.index+1].type = TokenType.others AND self.tokens[self.index+2].type = TokenType.do THEN
+        self.nextToken()
+        self.nextToken()
+        self.nextToken()
+        WHILE self.token.type # TokenType.end DO
+            LET s: POINTER TO ParseTreeNode := self.parseStatement()
+            IF VALID s THEN
+                othersStatements.append(s)
+            END IF
+        END WHILE
+    END IF
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2031, self.token, "'END' expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.case THEN
+        error_a(2039, self.tokens[self.index-1], self.token, "CASE expected")
+    END IF
+    self.nextToken()
+    clauses.append(CaseWhenClause(
+        conditions WITH [],
+        statements WITH othersStatements
+    ))
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.CaseStatement,
+        token WITH tokCase,
+        casestatement WITH CaseStatement(
+            expr WITH expr,
+            clauses WITH clauses
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseCheckStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.check
+    LET tokCheck: lexer.Token := self.token
+    self.nextToken()
+    LET cond: POINTER TO ParseTreeNode := self.parseExpression()
+    IF self.token.type # TokenType.else THEN
+        error_a(2103, self.tokens[self.index-1], self.token, "ELSE expected")
+    END IF
+    self.nextToken()
+    self.pushMinimumIndent(tokCheck.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2104, self.token, "END expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.check THEN
+        error_a(2105, self.tokens[self.index-1], self.token, "CHECK expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.CheckStatement,
+        token WITH tokCheck,
+        checkstatement WITH CheckStatement(
+            cond WITH cond,
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseExitStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.exit
+    LET tokExit: lexer.Token := self.token
+    self.nextToken()
+    LET type: lexer.Token := self.token
+    IF type.type NOT IN [TokenType.function, TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat] THEN
+        error_a(2052, self.tokens[self.index-1], self.token, "loop type expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ExitStatement,
+        token WITH tokExit,
+        exitstatement WITH ExitStatement(
+            type WITH type
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.for
+    LET tokFor: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.identifier THEN
+        error(2022, self.token, "identifier expected")
+    END IF
+    LET var: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.assign THEN
+        error(2044, self.token, "':=' expected")
+    END IF
+    self.nextToken()
+    LET start: POINTER TO ParseTreeNode := self.parseExpression()
+    IF self.token.type # TokenType.to THEN
+        error(2040, self.token, "TO expected")
+    END IF
+    self.nextToken()
+    LET end: POINTER TO ParseTreeNode := self.parseExpression()
+    VAR step: POINTER TO ParseTreeNode := NIL
+    IF self.token.type = TokenType.step THEN
+        self.nextToken()
+        step := self.parseExpression()
+    END IF
+    IF self.token.type # TokenType.do THEN
+        error_a(2041, self.tokens[self.index-1], self.token, "'DO' expected")
+    END IF
+    self.nextToken()
+    self.pushMinimumIndent(tokFor.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2042, self.token, "'END' expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.for THEN
+        error_a(2043, self.tokens[self.index-1], self.token, "'END FOR' expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ForStatement,
+        token WITH tokFor,
+        forstatement WITH ForStatement(
+            var WITH var,
+            start WITH start,
+            end WITH end,
+            step WITH step,
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.foreach
+    LET tokForeach: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.identifier THEN
+        error(2081, self.token, "identifier expected")
+    END IF
+    LET var: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.of THEN
+        error(2082, self.token, "OF expected")
+    END IF
+    self.nextToken()
+    LET array: POINTER TO ParseTreeNode := self.parseExpression()
+    VAR index: lexer.Token := lexer.Token()
+    IF self.token.type = TokenType.index THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2083, self.token, "identifier expected")
+        END IF
+        index := self.token
+        self.nextToken()
+    END IF
+    IF self.token.type # TokenType.do THEN
+        error_a(2084, self.tokens[self.index-1], self.token, "'DO' expected")
+    END IF
+    self.nextToken()
+    self.pushMinimumIndent(tokForeach.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2085, self.token, "'END' expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.foreach THEN
+        error_a(2086, self.tokens[self.index-1], self.token, "'END FOREACH' expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ForeachStatement,
+        token WITH tokForeach,
+        foreachstatement WITH ForeachStatement(
+            var WITH var,
+            array WITH array,
+            index WITH index,
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.if
+    LET tokIf: lexer.Token := self.token
+    VAR conditionStatements: Array<IfConditionClause> := []
+    VAR elseStatements: Array<POINTER TO ParseTreeNode> := []
+    self.pushMinimumIndent(tokIf.column + 1)
+    REPEAT
+        self.nextToken()
+        VAR cond: POINTER TO ParseTreeNode := NIL
+        IF self.token.type = TokenType.valid THEN
+            LET tokValid: lexer.Token := self.token
+            VAR tests: Array<ValidPointerExpressionClause> tests := []
+            LOOP
+                self.nextToken()
+                LET tokExpr: lexer.Token := self.token
+                LET ptr: POINTER TO ParseTreeNode := self.parseExpression()
+                VAR name: lexer.Token := lexer.Token()
+                VAR shorthand: Boolean := FALSE
+                IF self.token.type = TokenType.as THEN
+                    self.nextToken()
+                    IF self.token.type # TokenType.identifier THEN
+                        error(2064, self.token, "identifier expected")
+                    END IF
+                    name := self.token
+                    self.nextToken()
+                ELSIF VALID ptr THEN
+                    IF ptr->type = Type.IdentifierExpression THEN
+                        name := ptr->token
+                        shorthand := TRUE
+                    ELSE
+                        error(2065, tokExpr, "single identifier expected (otherwise use AS alias)")
+                    END IF
+                ELSE
+                    internalError("pointer not valid")
+                END IF
+                tests.append(ValidPointerExpressionClause(expr WITH ptr, name WITH name, shorthand WITH shorthand))
+                IF self.token.type # TokenType.comma THEN
+                    EXIT LOOP
+                END IF
+            END LOOP
+            cond := makeParseTreeNode(ParseTreeNode(
+                type WITH Type.ValidPointerExpression,
+                token WITH tokValid,
+                validpointerexpression WITH ValidPointerExpression(
+                    tests WITH tests
+                )
+            ))
+        ELSE
+            cond := self.parseExpression()
+        END IF
+        IF self.token.type # TokenType.then THEN
+            error(2026, self.token, "THEN expected")
+        END IF
+        self.nextToken()
+        self.pushMinimumIndent(tokIf.column + 1)
+        VAR statements: Array<POINTER TO ParseTreeNode> := []
+        WHILE self.token.type NOT IN [TokenType.elsif, TokenType.else, TokenType.end, TokenType.end_of_file] DO
+            LET s: POINTER TO ParseTreeNode := self.parseStatement()
+            IF VALID s THEN
+                statements.append(s)
+            END IF
+        END WHILE
+        self.popMinimumIndent()
+        conditionStatements.append(IfConditionClause(condition WITH cond, statements WITH statements))
+    UNTIL self.token.type # TokenType.elsif
+    IF self.token.type = TokenType.else THEN
+        self.nextToken()
+        WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
+            LET s: POINTER TO ParseTreeNode := self.parseStatement()
+            IF VALID s THEN
+                elseStatements.append(s)
+            END IF
+        END WHILE
+    END IF
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2027, self.token, "END expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.if THEN
+        error_a(2037, self.tokens[self.index-1], self.token, "IF expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.IfStatement,
+        token WITH tokIf,
+        ifstatement WITH IfStatement(
+            conditionStatements WITH conditionStatements,
+            elseStatements WITH elseStatements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseIncrementStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    % TODO the following should work, but causes segfault in compiler parse tree destructor
+    %ASSERT self.token.type IN [TokenType.inc, TokenType.dec]
+    ASSERT self.token.type = TokenType.inc OR self.token.type = TokenType.dec
+    LET tokOp: lexer.Token := self.token
+    self.nextToken()
+    LET delta: Number := (IF tokOp.type = TokenType.inc THEN 1 ELSE (IF tokOp.type = TokenType.dec THEN -1 ELSE 0))
+    LET expr: POINTER TO ParseTreeNode := self.parseExpression()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.IncrementStatement,
+        token WITH tokOp,
+        incrementstatement WITH IncrementStatement(
+            expr WITH expr,
+            delta WITH delta
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseLoopStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.loop
+    LET tokLoop: lexer.Token := self.token
+    self.nextToken()
+    self.pushMinimumIndent(tokLoop.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2055, self.token, "END expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.loop THEN
+        error_a(2056, self.tokens[self.index-1], self.token, "LOOP expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.LoopStatement,
+        token WITH tokLoop,
+        loopstatement WITH LoopStatement(
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseNextStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.next
+    LET tokNext: lexer.Token := self.token
+    self.nextToken()
+    LET type: lexer.Token := self.token
+    IF type.type NOT IN [TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat] THEN
+        error_a(2052, self.tokens[self.index-1], self.token, "loop type expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.NextStatement,
+        token WITH tokNext,
+        nextstatement WITH NextStatement(
+            type WITH type
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseRaiseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.raise
+    LET tokRaise: lexer.Token := self.token
+    self.nextToken()
+    IF self.token.type # TokenType.identifier THEN
+        error(2061, self.token, "identifier expected")
+    END IF
+    VAR name: Array<lexer.Token> := []
+    name[1] := self.token
+    self.nextToken()
+    IF self.token.type = TokenType.dot THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2076, self.token, "identifier expected")
+        END IF
+        name[0] := name[1]
+        name[1] := self.token
+        self.nextToken()
+    END IF
+    VAR info: POINTER TO ParseTreeNode := NIL
+    IF self.token.type = TokenType.lparen THEN
+        LET expr: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+            type WITH Type.IdentifierExpression,
+            identifierexpression WITH IdentifierExpression(
+                name WITH "ExceptionInfo"
+            )
+        ))
+        info := self.parseFunctionCall(expr)
+    ELSE
+        info := NIL
+    END IF
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.RaiseStatement,
+        token WITH tokRaise,
+        raisestatement WITH RaiseStatement(
+            name WITH name,
+            info WITH info
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseRepeatStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.repeat
+    LET tokRepeat: lexer.Token := self.token
+    self.nextToken()
+    self.pushMinimumIndent(tokRepeat.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.until, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.until THEN
+        error(2057, self.token, "UNTIL expected")
+    END IF
+    self.nextToken()
+    LET cond: POINTER TO ParseTreeNode := self.parseExpression()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.RepeatStatement,
+        token WITH tokRepeat,
+        repeatstatement WITH RepeatStatement(
+            cond WITH cond,
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseReturnStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.return
+    LET tokReturn: lexer.Token := self.token
+    self.nextToken()
+    LET expr: POINTER TO ParseTreeNode := self.parseExpression()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.ReturnStatement,
+        token WITH tokReturn,
+        returnstatement WITH ReturnStatement(
+            expr WITH expr
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.try
+    LET tokTry: lexer.Token := self.token
+    self.nextToken()
+    self.pushMinimumIndent(tokTry.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.exception, TokenType.end, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    VAR catches: Array<TryStatementClause> := []
+    WHILE self.token.type = TokenType.exception DO
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2060, self.token, "identifier expected")
+        END IF
+        VAR name: Array<lexer.Token> := []
+        name[1] := self.token
+        self.nextToken()
+        IF self.token.type = TokenType.dot THEN
+            self.nextToken()
+            IF self.token.type # TokenType.identifier THEN
+                error(2077, self.token, "identifier expected")
+            END IF
+            name[0] := name[1]
+            name[1] := self.token
+            self.nextToken()
+        END IF
+        LET exceptions: Array<Array<lexer.Token>> := [name]
+        IF self.token.type # TokenType.do THEN
+            error(2098, self.token, "DO expected")
+        END IF
+        LET tokDo: lexer.Token := self.token
+        self.nextToken()
+        VAR handler: Array<POINTER TO ParseTreeNode> := []
+        WHILE self.token.type NOT IN [TokenType.exception, TokenType.end, TokenType.end_of_file] DO
+            LET s: POINTER TO ParseTreeNode := self.parseStatement()
+            IF VALID s THEN
+                handler.append(s)
+            END IF
+        END WHILE
+        catches.append(TryStatementClause(
+            exceptions WITH exceptions,
+            body WITH makeParseTreeNode(ParseTreeNode(
+                type WITH Type.TryHandlerStatement,
+                token WITH tokDo,
+                tryhandlerstatement WITH TryHandlerStatement(
+                    statements WITH handler
+                )
+            ))
+        ))
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2062, self.token, "'END' expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.try THEN
+        error_a(2063, self.tokens[self.index-1], self.token, "TRY expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.TryStatement,
+        token WITH tokTry,
+        trystatement WITH TryStatement(
+            catches WITH catches,
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.while
+    LET tokWhile: lexer.Token := self.token
+    self.nextToken()
+    LET cond: POINTER TO ParseTreeNode := self.parseExpression()
+    IF self.token.type # TokenType.do THEN
+        error_a(2028, self.tokens[self.index-1], self.token, "DO expected")
+    END IF
+    self.nextToken()
+    self.pushMinimumIndent(tokWhile.column + 1)
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    self.popMinimumIndent()
+    IF self.token.type # TokenType.end THEN
+        error(2029, self.token, "END expected")
+    END IF
+    self.nextToken()
+    IF self.token.type # TokenType.while THEN
+        error_a(2038, self.tokens[self.index-1], self.token, "WHILE expected")
+    END IF
+    self.nextToken()
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.WhileStatement,
+        token WITH tokWhile,
+        whilestatement WITH WhileStatement(
+            cond WITH cond,
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    IF self.token.column < self.minimumColumn THEN
+        error(2089, self.token, "indent must be at least column \(self.minimumColumn)")
+    END IF
+    CASE self.token.type
+        WHEN TokenType.import DO
+            RETURN self.parseImport()
+        WHEN TokenType.type DO
+            RETURN self.parseTypeDefinition()
+        WHEN TokenType.constant DO
+            RETURN self.parseConstantDefinition()
+        WHEN TokenType.function DO
+            RETURN self.parseFunctionDefinition()
+        WHEN TokenType.external DO
+            RETURN self.parseExternalDefinition()
+        WHEN TokenType.declare DO
+            RETURN self.parseDeclaration()
+        WHEN TokenType.export DO
+            RETURN self.parseExport()
+        WHEN TokenType.begin DO
+            RETURN self.parseBegin()
+        WHEN TokenType.var DO
+            RETURN self.parseVarStatement()
+        WHEN TokenType.let DO
+            RETURN self.parseLetStatement()
+        WHEN TokenType.assert DO
+            RETURN self.parseAssertStatement()
+        WHEN TokenType.case DO
+            RETURN self.parseCaseStatement()
+        WHEN TokenType.check DO
+            RETURN self.parseCheckStatement()
+        WHEN TokenType.exit DO
+            RETURN self.parseExitStatement()
+        WHEN TokenType.for DO
+            RETURN self.parseForStatement()
+        WHEN TokenType.foreach DO
+            RETURN self.parseForeachStatement()
+        WHEN TokenType.if DO
+            RETURN self.parseIfStatement()
+        WHEN TokenType.inc, TokenType.dec DO
+            RETURN self.parseIncrementStatement()
+        WHEN TokenType.loop DO
+            RETURN self.parseLoopStatement()
+        WHEN TokenType.next DO
+            RETURN self.parseNextStatement()
+        WHEN TokenType.raise DO
+            RETURN self.parseRaiseStatement()
+        WHEN TokenType.repeat DO
+            RETURN self.parseRepeatStatement()
+        WHEN TokenType.return DO
+            RETURN self.parseReturnStatement()
+        WHEN TokenType.try DO
+            RETURN self.parseTryStatement()
+        WHEN TokenType.while DO
+            RETURN self.parseWhileStatement()
+        WHEN TokenType.identifier DO
+            LET start: lexer.Token := self.token
+            IF self.tokens[self.index+1].type NOT IN [
+                TokenType.assign,
+                TokenType.equal, % Note that this is an error, but error 3060 is better.
+                TokenType.lbracket,
+                TokenType.lparen,
+                TokenType.dot,
+                TokenType.arrow
+            ] THEN
+                error(2096, self.token, "plain identifier cannot be a statement")
+            END IF
+            LET expr: POINTER TO ParseTreeNode := self.parseExpression()
+            IF self.token.type = TokenType.assign THEN
+                LET tokAssign: lexer.Token := self.token
+                self.nextToken()
+                LET rhs: POINTER TO ParseTreeNode := self.parseExpression()
+                LET vars: Array<POINTER TO ParseTreeNode> := [expr]
+                RETURN makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.AssignmentStatement,
+                    token WITH tokAssign,
+                    assignmentstatement WITH AssignmentStatement(
+                        variables WITH vars,
+                        expr WITH rhs
+                    )
+                ))
+            ELSE
+                RETURN makeParseTreeNode(ParseTreeNode(
+                    type WITH Type.ExpressionStatement,
+                    token WITH start,
+                    expressionstatement WITH ExpressionStatement(
+                        expr WITH expr
+                    )
+                ))
+            END IF
+        WHEN TokenType.underscore DO
+            LET tokUnderscore: lexer.Token := self.token
+            self.nextToken()
+            IF self.token.type # TokenType.assign THEN
+                error(2097, self.token, ":= expected")
+            END IF
+            LET tokAssign: lexer.Token := self.token
+            self.nextToken()
+            LET rhs: POINTER TO ParseTreeNode := self.parseExpression()
+            LET vars: Array<POINTER TO ParseTreeNode> := [makeParseTreeNode(ParseTreeNode(
+                type WITH Type.DummyExpression,
+                token WITH tokUnderscore,
+                baseexpression WITH BaseExpression(
+                    startColumn WITH tokUnderscore.column,
+                    endColumn WITH tokUnderscore.column + tokUnderscore.text.length()
+                )
+            ))]
+            RETURN makeParseTreeNode(ParseTreeNode(
+                type WITH Type.AssignmentStatement,
+                token WITH tokAssign,
+                assignmentstatement WITH AssignmentStatement(
+                    variables WITH vars,
+                    expr WITH rhs
+                )
+            ))
+        WHEN OTHERS DO
+            error(2033, self.token, "Identifier expected")
+    END CASE
+    RETURN NIL
+END FUNCTION
+
+FUNCTION Parser.parse(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR statements: Array<POINTER TO ParseTreeNode> := []
+    WHILE self.token.type # lexer.Type.end_of_file DO
+        %print("line \(self.token.line)")
+        LET s: POINTER TO ParseTreeNode := self.parseStatement()
+        IF VALID s THEN
+            statements.append(s)
+        END IF
+    END WHILE
+    RETURN makeParseTreeNode(ParseTreeNode(
+        type WITH Type.Program,
+        token WITH self.tokens[0],
+        program WITH Program(
+            statements WITH statements
+        )
+    ))
+END FUNCTION
+
+FUNCTION makeParser(tokens: Array<lexer.Token>): Parser
+    VAR parser: Parser := Parser(tokens WITH tokens)
+    IF tokens.size() > 0 THEN
+        parser.token := parser.tokens[0]
+    END IF
+    RETURN parser
+END FUNCTION
+
+FUNCTION dumpNode(depth: Number, label: String)
+    print("\(string.repeat(" ", depth*2))\(label)")
+END FUNCTION
+
+FUNCTION dumpTypeSimple(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypeSimple(\(node.typesimple.name))")
+END FUNCTION
+
+FUNCTION dumpTypeEnum(node: ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH n OF node.typeenum.names DO
+        IF names # "" THEN
+            names.append(",")
+        END IF
+        names.append(n.text)
+    END FOREACH
+    dumpNode(depth, "TypeEnum(\(names))")
+END FUNCTION
+
+FUNCTION dumpTypeRecord(node: ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH f OF node.typerecord.fields DO
+        IF names # "" THEN
+            names.append(",")
+        END IF
+        names.append(f.name.text)
+    END FOREACH
+    dumpNode(depth, "TypeRecord(\(names))")
+END FUNCTION
+
+FUNCTION dumpTypePointer(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypePointer")
+    dumpParseTree(node.typepointer.reftype, depth+1)
+END FUNCTION
+
+FUNCTION dumpTypeFunctionPointer(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypeFunctionPointer")
+    dumpParseTree(node.typefunctionpointer.returntype, depth+1)
+END FUNCTION
+
+FUNCTION dumpTypeParameterised(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypeParameterised(\(node.typeparameterised.name.text))")
+    dumpParseTree(node.typeparameterised.elementtype, depth+1)
+END FUNCTION
+
+FUNCTION dumpTypeImport(node: ParseTreeNode, depth: Number)
+END FUNCTION
+
+FUNCTION dumpDummyExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "DummyExpression")
+END FUNCTION
+
+FUNCTION dumpIdentityExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "IdentityExpression")
+    dumpParseTree(node.unaryexpression.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpBooleanLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "BooleanLiteralExpression(\((IF node.booleanliteralexpression.value THEN "true" ELSE "false")))")
+END FUNCTION
+
+FUNCTION dumpNumberLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "NumberLiteralExpression(\(node.numberliteralexpression.value))")
+END FUNCTION
+
+FUNCTION dumpStringLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "StringLiteralExpression(\(node.stringliteralexpression.value))")
+END FUNCTION
+
+FUNCTION dumpFileLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "FileLiteralExpression(\(node.fileliteralexpression.name))")
+END FUNCTION
+
+FUNCTION dumpBytesLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "BytesLiteralExpression")
+END FUNCTION
+
+FUNCTION dumpArrayLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ArrayLiteralExpression")
+    FOREACH e OF node.arrayliteralexpression.elements DO
+        dumpParseTree(e, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpArrayLiteralRangeExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ArrayLiteralRangeExpression")
+    dumpParseTree(node.arrayliteralrangeexpression.first, depth+1)
+    dumpParseTree(node.arrayliteralrangeexpression.last, depth+1)
+    dumpParseTree(node.arrayliteralrangeexpression.step, depth+1)
+END FUNCTION
+
+FUNCTION dumpDictionaryLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "DictionaryLiteralExpression")
+    FOREACH e OF node.dictionaryliteralexpression.elements DO
+        dumpNode(depth+1, e.key.text)
+        dumpParseTree(e.value, depth+2)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpNilLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "NilLiteralExpression")
+END FUNCTION
+
+FUNCTION dumpNowhereLiteralExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "NowhereLiteralExpression")
+END FUNCTION
+
+FUNCTION dumpIdentifierExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "IdentifierExpression(\(node.identifierexpression.name))")
+END FUNCTION
+
+FUNCTION dumpDotExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "DotExpression(\(node.dotexpression.name.text))")
+    dumpParseTree(node.dotexpression.base, depth+1)
+END FUNCTION
+
+FUNCTION dumpArrowExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ArrowExpression(\(node.arrowexpression.name.text))")
+    dumpParseTree(node.arrowexpression.base, depth+1)
+END FUNCTION
+
+FUNCTION dumpSubscriptExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "SubscriptExpression")
+    dumpParseTree(node.subscriptexpression.base, depth+1)
+    dumpParseTree(node.subscriptexpression.index, depth+1)
+END FUNCTION
+
+FUNCTION dumpInterpolatedStringExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "InterpolatedStringExpression")
+    FOREACH p OF node.interpolatedstringexpression.parts DO
+        dumpNode(depth+1, "FormatString(\(p.format.text))")
+        dumpParseTree(p.expr, depth+2)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpFunctionCallExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "FunctionCallExpression")
+    dumpParseTree(node.functioncallexpression.base, depth+1)
+    FOREACH a OF node.functioncallexpression.args DO
+        dumpParseTree(a.expr, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpUnaryPlusExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "UnaryPlusExpression")
+    dumpParseTree(node.unaryexpression.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpUnaryMinusExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "UnaryMinusExpression")
+    dumpParseTree(node.unaryexpression.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpLogicalNotExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "LogicalNotExpression")
+    dumpParseTree(node.unaryexpression.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpExponentiationExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExponentiationExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpMultiplicationExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "MultiplicationExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpDivisionExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "DivisionExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpIntegerDivisionExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "IntegerDivisionExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpModuloExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ModuloExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpAdditionExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "AdditionExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpSubtractionExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "SubtractionExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpConcatenationExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ConcatenationExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpComparisonExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ComparisonExpression(\(node.comparisonexpression.comp))")
+    dumpParseTree(node.comparisonexpression.left, depth+1)
+    dumpParseTree(node.comparisonexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpChainedComparisonExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ChainedComparisonExpression")
+    dumpParseTree(node.chainedcomparisonexpression.left, depth+1)
+    FOREACH c OF node.chainedcomparisonexpression.comps DO
+        dumpParseTree(c.right, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpMembershipExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "MembershipExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpConjunctionExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ConjunctionExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpDisjunctionExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "DisjunctionExpression")
+    dumpParseTree(node.binaryexpression.left, depth+1)
+    dumpParseTree(node.binaryexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpConditionalExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ConditionalExpression")
+    dumpParseTree(node.conditionalexpression.cond, depth+1)
+    dumpParseTree(node.conditionalexpression.left, depth+1)
+    dumpParseTree(node.conditionalexpression.right, depth+1)
+END FUNCTION
+
+FUNCTION dumpTryExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "TryExpression")
+    dumpParseTree(node.tryexpression.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpNewRecordExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "NewRecordExpression")
+    dumpParseTree(node.newrecordexpression.type, depth+1)
+END FUNCTION
+
+FUNCTION dumpValidPointerExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ValidPointerExpression")
+    FOREACH t OF node.validpointerexpression.tests DO
+        dumpParseTree(t.expr, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpRangeSubscriptExpression(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "RangeSubscriptExpression")
+    dumpParseTree(node.rangesubscriptexpression.base, depth+1)
+    IF VALID node.rangesubscriptexpression.range AS r THEN
+        dumpParseTree(r->first, depth+1)
+        dumpParseTree(r->last, depth+1)
+    END IF
+END FUNCTION
+
+FUNCTION dumpImportDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ImportDeclaration(\(node.importdeclaration.module.text).\(node.importdeclaration.name.text), \(node.importdeclaration.alias.text))")
+END FUNCTION
+
+FUNCTION dumpTypeDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypeDeclaration")
+    dumpParseTree(node.typedeclaration.type, depth+1)
+END FUNCTION
+
+FUNCTION dumpConstantDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ConstantDeclaration(\(node.constantdeclaration.name.text))")
+    dumpParseTree(node.constantdeclaration.type, depth+1)
+    dumpParseTree(node.constantdeclaration.value, depth+1)
+END FUNCTION
+
+FUNCTION dumpNativeConstantDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "NativeConstantDeclaration(\(node.nativeconstantdeclaration.name.text))")
+    dumpParseTree(node.nativeconstantdeclaration.type, depth+1)
+END FUNCTION
+
+FUNCTION dumpVariableDeclaration(node: ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH n OF node.variabledeclaration.names DO
+        IF names # "" THEN
+            names.append(",")
+        END IF
+        names.append(n.text)
+    END FOREACH
+    dumpNode(depth, "VariableDeclaration(\(names))")
+    dumpParseTree(node.variabledeclaration.type, depth+1)
+    dumpParseTree(node.variabledeclaration.value, depth+1)
+END FUNCTION
+
+FUNCTION dumpLetDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "LetDeclaration(\(node.letdeclaration.name.text))")
+    dumpParseTree(node.letdeclaration.type, depth+1)
+    dumpParseTree(node.letdeclaration.value, depth+1)
+END FUNCTION
+
+FUNCTION dumpFunctionDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "FunctionDeclaration(\(node.functiondeclaration.name.text))")
+    dumpParseTree(node.functiondeclaration.returntype, depth+1)
+    FOREACH a OF node.functiondeclaration.args DO
+        FOREACH n OF a.names DO
+            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpParseTree(a.type, depth+2)
+        END FOREACH
+    END FOREACH
+    FOREACH s OF node.functiondeclaration.body DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpExternalFunctionDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExternalFunctionDeclaration(\(node.externalfunctiondeclaration.name.text))")
+    dumpParseTree(node.externalfunctiondeclaration.returntype, depth+1)
+    FOREACH a OF node.externalfunctiondeclaration.args DO
+        FOREACH n OF a.names DO
+            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpParseTree(a.type, depth+2)
+        END FOREACH
+    END FOREACH
+    dumpParseTree(node.externalfunctiondeclaration.dict, depth+1)
+END FUNCTION
+
+FUNCTION dumpNativeFunctionDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "NativeFunctionDeclaration(\(node.functiondeclaration.name.text))")
+    dumpParseTree(node.functiondeclaration.returntype, depth+1)
+    FOREACH a OF node.functiondeclaration.args DO
+        FOREACH n OF a.names DO
+            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpParseTree(a.type, depth+2)
+        END FOREACH
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpExceptionDeclaration(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExceptionDeclaration(\(node.exceptiondeclaration.name.text))")
+END FUNCTION
+
+FUNCTION dumpExportDeclaration(node: ParseTreeNode, depth: Number)
+    FOREACH n OF node.exportdeclaration.names DO
+        dumpNode(depth, "ExportDeclaration(\(n.text))")
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpAssertStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "AssertStatement")
+    FOREACH e OF node.assertstatement.exprs DO
+        dumpParseTree(e, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpAssignmentStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "AssignmentStatement")
+    FOREACH v OF node.assignmentstatement.variables DO
+        dumpParseTree(v, depth+1)
+    END FOREACH
+    dumpParseTree(node.assignmentstatement.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpCaseStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "CaseStatement")
+    dumpParseTree(node.casestatement.expr, depth+1)
+    FOREACH clause OF node.casestatement.clauses DO
+        FOREACH cond OF clause.conditions DO
+            IF cond.high_expr = NIL THEN
+                dumpNode(depth+1, "ComparisonWhenCondition(\(cond.cond))")
+                dumpParseTree(cond.expr, depth+2)
+            ELSE
+                dumpNode(depth+1, "RangeWhenCondition")
+                dumpParseTree(cond.expr, depth+2)
+                dumpParseTree(cond.high_expr, depth+2)
+            END IF
+        END FOREACH
+        FOREACH s OF clause.statements DO
+            dumpParseTree(s, depth+2)
+        END FOREACH
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpCheckStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "CheckStatement")
+    dumpParseTree(node.checkstatement.cond, depth+1)
+    FOREACH s OF node.checkstatement.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpExitStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExitStatement(\(node.exitstatement.type.text))")
+END FUNCTION
+
+FUNCTION dumpExpressionStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExpressionStatement")
+    dumpParseTree(node.expressionstatement.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpForStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ForStatement(\(node.forstatement.var.text))")
+    dumpParseTree(node.forstatement.start, depth+1)
+    dumpParseTree(node.forstatement.end, depth+1)
+    dumpParseTree(node.forstatement.step, depth+1)
+    FOREACH s OF node.forstatement.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpForeachStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ForeachStatement(\(node.foreachstatement.var.text))")
+    dumpParseTree(node.foreachstatement.array, depth+1)
+    FOREACH s OF node.foreachstatement.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpIfStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "IfStatement")
+    FOREACH c OF node.ifstatement.conditionStatements DO
+        dumpParseTree(c.condition, depth+1)
+        FOREACH s OF c.statements DO
+            dumpParseTree(s, depth+1)
+        END FOREACH
+    END FOREACH
+    FOREACH s OF node.ifstatement.elseStatements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpIncrementStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "IncrementStatement(\(node.incrementstatement.delta))")
+    dumpParseTree(node.incrementstatement.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpLoopStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "LoopStatement")
+    FOREACH s OF node.loopstatement.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpNextStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "NextStatement(\(node.nextstatement.type.text))")
+END FUNCTION
+
+FUNCTION dumpRaiseStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "RaiseStatement(\(node.raisestatement.name[0].text).\(node.raisestatement.name[1].text))")
+    dumpParseTree(node.raisestatement.info, depth+1)
+END FUNCTION
+
+FUNCTION dumpRepeatStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "RepeatStatement")
+    dumpParseTree(node.repeatstatement.cond, depth+1)
+    FOREACH s OF node.repeatstatement.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpReturnStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "ReturnStatement")
+    dumpParseTree(node.returnstatement.expr, depth+1)
+END FUNCTION
+
+FUNCTION dumpTryStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "TryStatement")
+    FOREACH s OF node.trystatement.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpTryHandlerStatement(node: ParseTreeNode, depth: Number)
+END FUNCTION
+
+FUNCTION dumpWhileStatement(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "WhileStatement")
+    dumpParseTree(node.whilestatement.cond, depth+1)
+    FOREACH s OF node.whilestatement.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+FUNCTION dumpProgram(node: ParseTreeNode, depth: Number)
+    dumpNode(depth, "Program")
+    FOREACH s OF node.program.statements DO
+        dumpParseTree(s, depth+1)
+    END FOREACH
+END FUNCTION
+
+LET Dumper: IParseTreeVisitor := {
+    % TODO: use values like Type.Program.toString() instead of literals
+    "TypeSimple":                           dumpTypeSimple,
+    "TypeEnum":                             dumpTypeEnum,
+    "TypeRecord":                           dumpTypeRecord,
+    "TypePointer":                          dumpTypePointer,
+    "TypeFunctionPointer":                  dumpTypeFunctionPointer,
+    "TypeParameterised":                    dumpTypeParameterised,
+    "TypeImport":                           dumpTypeImport,
+    "DummyExpression":                      dumpDummyExpression,
+    "IdentityExpression":                   dumpIdentityExpression,
+    "BooleanLiteralExpression":             dumpBooleanLiteralExpression,
+    "NumberLiteralExpression":              dumpNumberLiteralExpression,
+    "StringLiteralExpression":              dumpStringLiteralExpression,
+    "FileLiteralExpression":                dumpFileLiteralExpression,
+    "BytesLiteralExpression":               dumpBytesLiteralExpression,
+    "ArrayLiteralExpression":               dumpArrayLiteralExpression,
+    "ArrayLiteralRangeExpression":          dumpArrayLiteralRangeExpression,
+    "DictionaryLiteralExpression":          dumpDictionaryLiteralExpression,
+    "NilLiteralExpression":                 dumpNilLiteralExpression,
+    "NowhereLiteralExpression":             dumpNowhereLiteralExpression,
+    "IdentifierExpression":                 dumpIdentifierExpression,
+    "DotExpression":                        dumpDotExpression,
+    "ArrowExpression":                      dumpArrowExpression,
+    "SubscriptExpression":                  dumpSubscriptExpression,
+    "InterpolatedStringExpression":         dumpInterpolatedStringExpression,
+    "FunctionCallExpression":               dumpFunctionCallExpression,
+    "UnaryPlusExpression":                  dumpUnaryPlusExpression,
+    "UnaryMinusExpression":                 dumpUnaryMinusExpression,
+    "LogicalNotExpression":                 dumpLogicalNotExpression,
+    "ExponentiationExpression":             dumpExponentiationExpression,
+    "MultiplicationExpression":             dumpMultiplicationExpression,
+    "DivisionExpression":                   dumpDivisionExpression,
+    "IntegerDivisionExpression":            dumpIntegerDivisionExpression,
+    "ModuloExpression":                     dumpModuloExpression,
+    "AdditionExpression":                   dumpAdditionExpression,
+    "SubtractionExpression":                dumpSubtractionExpression,
+    "ConcatenationExpression":              dumpConcatenationExpression,
+    "ComparisonExpression":                 dumpComparisonExpression,
+    "ChainedComparisonExpression":          dumpChainedComparisonExpression,
+    "MembershipExpression":                 dumpMembershipExpression,
+    "ConjunctionExpression":                dumpConjunctionExpression,
+    "DisjunctionExpression":                dumpDisjunctionExpression,
+    "ConditionalExpression":                dumpConditionalExpression,
+    "TryExpression":                        dumpTryExpression,
+    "NewRecordExpression":                  dumpNewRecordExpression,
+    "ValidPointerExpression":               dumpValidPointerExpression,
+    "RangeSubscriptExpression":             dumpRangeSubscriptExpression,
+    "ImportDeclaration":                    dumpImportDeclaration,
+    "TypeDeclaration":                      dumpTypeDeclaration,
+    "ConstantDeclaration":                  dumpConstantDeclaration,
+    "NativeConstantDeclaration":            dumpNativeConstantDeclaration,
+    "VariableDeclaration":                  dumpVariableDeclaration,
+    "LetDeclaration":                       dumpLetDeclaration,
+    "FunctionDeclaration":                  dumpFunctionDeclaration,
+    "ExternalFunctionDeclaration":          dumpExternalFunctionDeclaration,
+    "NativeFunctionDeclaration":            dumpNativeFunctionDeclaration,
+    "ExceptionDeclaration":                 dumpExceptionDeclaration,
+    "ExportDeclaration":                    dumpExportDeclaration,
+    "AssertStatement":                      dumpAssertStatement,
+    "AssignmentStatement":                  dumpAssignmentStatement,
+    "CaseStatement":                        dumpCaseStatement,
+    "CheckStatement":                       dumpCheckStatement,
+    "ExitStatement":                        dumpExitStatement,
+    "ExpressionStatement":                  dumpExpressionStatement,
+    "ForStatement":                         dumpForStatement,
+    "ForeachStatement":                     dumpForeachStatement,
+    "IfStatement":                          dumpIfStatement,
+    "IncrementStatement":                   dumpIncrementStatement,
+    "LoopStatement":                        dumpLoopStatement,
+    "NextStatement":                        dumpNextStatement,
+    "RaiseStatement":                       dumpRaiseStatement,
+    "RepeatStatement":                      dumpRepeatStatement,
+    "ReturnStatement":                      dumpReturnStatement,
+    "TryStatement":                         dumpTryStatement,
+    "TryHandlerStatement":                  dumpTryHandlerStatement,
+    "WhileStatement":                       dumpWhileStatement,
+    "Program":                              dumpProgram,
+}
+
+FUNCTION dumpParseTree(pt: POINTER TO ParseTreeNode, depth: Number)
+    IF VALID pt THEN
+        % TODO: should be able to write pt->accept(Dumper) here
+        VAR node: ParseTreeNode := ParseTreeNode()
+        valueCopy(node, pt)
+        node.accept(Dumper, depth)
+    ELSE
+        dumpNode(depth, "nullptr")
+    END IF
+END FUNCTION
+
+BEGIN MAIN
+    LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], file.readBytes(sys.args[1]).decodeToString())
+    %print("tokens \(tokens.size())")
+    VAR parser: Parser := makeParser(tokens)
+    LET pt: POINTER TO ParseTreeNode := parser.parse()
+    %print("\(pt)")
+    dumpParseTree(pt, 0)
+END MAIN

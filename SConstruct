@@ -493,11 +493,17 @@ def compare(target, source, env):
     os.system("diff -u -w {} {}".format(source[0].path, source[1].path))
     assert open(source[0].path).read() == open(source[1].path).read()
 
-dump_cpp = env.Command("tmp/lexer-coverage.dump_cpp", ["tests/lexer-coverage.neon", test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
-dump_neon = env.Command("tmp/lexer-coverage.dump_neon", ["tests/lexer-coverage.neon", "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
-dump_helium = env.Command("tmp/lexer-coverage.dump_helium", ["tests/lexer-coverage.neon", "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
-for i, d in enumerate([dump_cpp, dump_neon, dump_helium]):
-    env.Command("tmp/lexer-coverage.dump.dummy{}".format(i), [d, "tests/lexer-coverage.expected"], compare)
+lexer_dump_cpp = env.Command("tmp/lexer-coverage.dump_cpp", ["tests/lexer-coverage.neon", test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
+lexer_dump_neon = env.Command("tmp/lexer-coverage.dump_neon", ["tests/lexer-coverage.neon", "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
+lexer_dump_helium = env.Command("tmp/lexer-coverage.dump_helium", ["tests/lexer-coverage.neon", "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
+for i, d in enumerate([lexer_dump_cpp, lexer_dump_neon, lexer_dump_helium]):
+    env.Command("tmp/lexer-coverage.dump.dummy{}".format(i), ["tests/lexer-coverage.expected", d], compare)
+
+parser_dump_cpp = env.Command("tmp/parser-coverage.dump_cpp", ["tests/parser-coverage.neon", test_parser], "-{} $SOURCE >$TARGET".format(test_parser[0]))
+parser_dump_neon = env.Command("tmp/parser-coverage.dump_neon", ["tests/parser-coverage.neon", "neon/parser.neon", neon], "-{} neon/parser.neon $SOURCE >$TARGET".format(neon[0]))
+# TODO parser_dump_helium = env.Command("tmp/parser-coverage.dump_helium", ["tests/parser-coverage.neon", "neon/parser.neon", "tools/helium.py"], "-python tools/helium.py neon/parser.neon $SOURCE >$TARGET")
+for i, d in enumerate([parser_dump_cpp, parser_dump_neon]): # TODO , parser_dump_helium]):
+    env.Command("tmp/parser-coverage.dump.dummy{}".format(i), ["tests/parser-coverage.expected", d], compare)
 
 if False: # This takes rather too long.
     for fn in Glob("t/*.neon") + Glob("t/errors/*.neon"):
