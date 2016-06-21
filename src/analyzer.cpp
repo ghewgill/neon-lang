@@ -1354,7 +1354,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             }
             auto p = std::distance(recordtype->fields.begin(), f);
             const Expression *element = analyze(x->expr.get());
-            if (not element->type->is_assignment_compatible(f->type)) {
+            if (not f->type->is_assignment_compatible(element->type)) {
                 error2(3131, x->expr->token, "type mismatch", f->name, "field declared here");
             }
             if (elements[p] != nullptr) {
