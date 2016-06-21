@@ -1094,7 +1094,7 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
         if (var != nullptr) {
             return new VariableExpression(var);
         }
-        internal_error("qualified name resolved but not matched");
+        internal_error("qualified name resolved but not matched: " + name->name);
     }
     name = analyze_qualified_name(expr->base.get());
     if (name != nullptr) {
