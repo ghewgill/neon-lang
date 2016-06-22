@@ -356,6 +356,9 @@ std::unique_ptr<Expression> Parser::parseArrayLiteral()
         if (tokens[i].type == COMMA) {
             ++i;
         } else if (tokens[i].type == TO) {
+            if (elements.size() >= 1) {
+                error(2109, tokens[i], "',' expected");
+            }
             ++i;
             std::unique_ptr<Expression> first { std::move(element) };
             std::unique_ptr<Expression> last = parseExpression();

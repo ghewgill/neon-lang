@@ -1012,6 +1012,9 @@ FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
         IF self.token.type = TokenType.comma THEN
             self.nextToken()
         ELSIF self.token.type = TokenType.to THEN
+            IF elements.size() >= 1 THEN
+                error(2109, self.token, "',' expected")
+            END IF
             self.nextToken()
             LET first: POINTER TO ParseTreeNode := element
             LET last: POINTER TO ParseTreeNode := self.parseExpression()
