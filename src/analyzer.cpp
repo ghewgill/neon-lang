@@ -2096,6 +2096,10 @@ const Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declarati
         value = new ConstantNumberExpression(value->eval_number(declaration->value->token));
     } else if (type == TYPE_STRING) {
         value = new ConstantStringExpression(value->eval_string(declaration->value->token));
+    } else {
+        Variable *v = new GlobalVariable(declaration->name, declaration->name.text, type, true);
+        scope.top()->addName(v->declaration, v->name, v, true);
+        return new AssignmentStatement(declaration->token.line, {new VariableExpression(v)}, value);
     }
     scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, value));
     return new NullStatement(declaration->token.line);
