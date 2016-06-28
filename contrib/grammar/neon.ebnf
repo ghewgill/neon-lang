@@ -58,7 +58,7 @@ Type = ParameterisedType | RecordType | EnumType | PointerType | FunctionPointer
 
 ParameterisedType = ('Array' | 'Dictionary'), '<', Type, '>';
 
-RecordType = 'RECORD', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'RECORD';
+RecordType = 'RECORD', ['EXTENDS', Identifier], { ['PRIVATE'], Identifier, ':', Type}, 'END', 'RECORD';
 
 EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
 
