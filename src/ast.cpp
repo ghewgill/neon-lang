@@ -897,7 +897,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         std::vector<TypeRecord::Field> fields;
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
-        Type *exception_info = new TypeRecord(Token(), "ExceptionInfo", fields);
+        Type *exception_info = new TypeRecord(Token(), "ExceptionInfo", nullptr, fields);
         scope->addName(Token(IDENTIFIER, "ExceptionInfo"), "ExceptionInfo", exception_info, true);
     }
     {
@@ -908,7 +908,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
-        Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
+        Type *exception_type = new TypeRecord(Token(), "ExceptionType", nullptr, fields);
         scope->addName(Token(IDENTIFIER, "ExceptionType"), "ExceptionType", exception_type, true);
         GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);
         scope->addName(Token(IDENTIFIER, "CURRENT_EXCEPTION"), "CURRENT_EXCEPTION", current_exception, true);

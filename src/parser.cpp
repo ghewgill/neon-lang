@@ -147,6 +147,14 @@ std::unique_ptr<Type> Parser::parseRecordType()
     }
     auto &tok_record = tokens[i];
     i++;
+    std::unique_ptr<pt::Type> base;
+    if (tokens[i].type == EXTENDS) {
+        i++;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2110, tokens[i], "identifier expected");
+        }
+        base = parseType();
+    }
     std::vector<std::unique_ptr<TypeRecord::Field>> fields;
     while (tokens[i].type != END) {
         bool is_private = false;
@@ -171,7 +179,7 @@ std::unique_ptr<Type> Parser::parseRecordType()
         error_a(2034, tokens[i-1], tokens[i], "'RECORD' expected");
     }
     i++;
-    return std::unique_ptr<Type> { new TypeRecord(tok_record, std::move(fields)) };
+    return std::unique_ptr<Type> { new TypeRecord(tok_record, std::move(base), std::move(fields)) };
 }
 
 std::unique_ptr<Type> Parser::parseEnumType()

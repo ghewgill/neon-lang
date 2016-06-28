@@ -109,6 +109,7 @@ enum TokenType {
     GIVES,
     NOWHERE,
     INTDIV,
+    EXTENDS,
     MAX_TOKEN
 };
 

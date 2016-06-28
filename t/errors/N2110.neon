@@ -1,0 +1,2 @@
+TYPE Rec IS RECORD EXTENDS 5
+                           %<

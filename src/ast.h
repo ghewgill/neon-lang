@@ -459,8 +459,9 @@ public:
         const Type *type;
         bool is_private;
     };
-    TypeRecord(const Token &declaration, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)), predeclared(false), postdeclared(false) {}
+    TypeRecord(const Token &declaration, const std::string &name, const Type *base, const std::vector<Field> &fields): Type(declaration, name), base(base), fields(fields), field_names(make_field_names(fields)), predeclared(false), postdeclared(false) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    const Type *base;
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
@@ -490,11 +491,14 @@ private:
         }
         return r;
     }
+private:
+    TypeRecord(const TypeRecord &);
+    TypeRecord &operator=(const TypeRecord &);
 };
 
 class TypeForwardRecord: public TypeRecord {
 public:
-    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, "forward", std::vector<Field>()) {}
+    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, "forward", nullptr, std::vector<Field>()) {}
 };
 
 class TypePointer: public Type {

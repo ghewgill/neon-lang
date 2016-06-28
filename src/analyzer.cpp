@@ -729,7 +729,7 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
     for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
-            TypeRecord *actual_record = new TypeRecord(Token(), name + "." + object.strtable[t.name], std::vector<TypeRecord::Field>());
+            TypeRecord *actual_record = new TypeRecord(Token(), name + "." + object.strtable[t.name], nullptr, std::vector<TypeRecord::Field>());
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_record);
             Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
             const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
@@ -806,8 +806,13 @@ const Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &
 
 const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
+    const TypeRecord *base = type->base ? dynamic_cast<const TypeRecord *>(analyze(type->base.get())) : nullptr;
     std::vector<TypeRecord::Field> fields;
     std::map<std::string, Token> field_names;
+    if (base != nullptr) {
+        fields = base->fields;
+        // TODO: field_names
+    }
     for (auto &x: type->fields) {
         std::string name = x->name.text;
         auto prev = field_names.find(name);
@@ -818,7 +823,7 @@ const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::stri
         fields.push_back(TypeRecord::Field(x->name, t, x->is_private));
         field_names[name] = x->name;
     }
-    return new TypeRecord(type->token, name, fields);
+    return new TypeRecord(type->token, name, base, fields);
 }
 
 const Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
@@ -1888,7 +1893,7 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 }
             }
             i++;
-            return new TypeRecord(Token(), "record", fields);
+            return new TypeRecord(Token(), "record", nullptr, fields);
         }
         case 'E': {
             i++;
@@ -2047,7 +2052,7 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
     if (recdecl != nullptr) {
         // Support recursive record type declarations.
-        actual_record = new TypeRecord(recdecl->token, name, std::vector<TypeRecord::Field>());
+        actual_record = new TypeRecord(recdecl->token, name, nullptr, std::vector<TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
     }
     const Type *type = analyze(declaration->type.get(), name);

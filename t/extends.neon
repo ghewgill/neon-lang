@@ -1,0 +1,13 @@
+TYPE Base IS RECORD
+    n: Number
+END RECORD
+
+TYPE Derived IS RECORD EXTENDS Base
+    s: String
+END RECORD
+
+VAR d: Derived := Derived()
+d.n := 5
+d.s := "hello"
+print("\(d.n) \(d.s)")
+%= 5 hello

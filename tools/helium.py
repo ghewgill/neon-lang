@@ -140,6 +140,7 @@ CHECK = Keyword("CHECK")
 GIVES = Keyword("GIVES")
 NOWHERE = Keyword("NOWHERE")
 INTDIV = Keyword("INTDIV")
+EXTENDS = Keyword("EXTENDS")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -315,11 +316,12 @@ class Field:
         self.type = type
 
 class TypeRecord:
-    def __init__(self, fields):
+    def __init__(self, base, fields):
+        self.base = base
         self.fields = fields
         self.methods = {}
     def resolve(self, env):
-        return ClassRecord(self.fields, self.methods)
+        return ClassRecord(self.base, self.fields, self.methods)
 
 class TypeEnum:
     def __init__(self, names):
@@ -1189,6 +1191,10 @@ class Parser:
 
     def parse_record_type(self):
         self.expect(RECORD)
+        base = None
+        if self.tokens[self.i] is EXTENDS:
+            self.i += 1
+            base = self.parse_type()
         fields = []
         while self.tokens[self.i] is not END:
             is_private = self.tokens[self.i] is PRIVATE
@@ -1200,7 +1206,7 @@ class Parser:
             fields.append(Field(name, type))
         self.expect(END)
         self.expect(RECORD)
-        return TypeRecord(fields)
+        return TypeRecord(base, fields)
 
     def parse_enum_type(self):
         self.expect(ENUM)
@@ -2090,7 +2096,8 @@ class ClassRecord(Class):
                 setattr(self, x.name, None) # TODO: default()
         def __eq__(self, other):
             return all(getattr(self, x.name) == getattr(other, x.name) for x in self._fields)
-    def __init__(self, fields, methods):
+    def __init__(self, base, fields, methods):
+        self.base = base
         self.fields = fields
         self.methods = methods
     def default(self, env):
