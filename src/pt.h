@@ -217,9 +217,9 @@ public:
         std::unique_ptr<Type> type;
         bool is_private;
     };
-    TypeRecord(const Token &token, std::unique_ptr<Type> &&base, std::vector<std::unique_ptr<Field>> &&fields): Type(token), base(std::move(base)), fields(std::move(fields)) {}
+    TypeRecord(const Token &token, const Token &base, std::vector<std::unique_ptr<Field>> &&fields): Type(token), base(base), fields(std::move(fields)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::unique_ptr<Type> base;
+    const Token base;
     const std::vector<std::unique_ptr<Field>> fields;
 };
 

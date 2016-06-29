@@ -1,0 +1,3 @@
+TYPE Rec IS RECORD EXTENDS Number
+                           %<
+END RECORD

@@ -806,7 +806,17 @@ const Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &
 
 const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
-    const TypeRecord *base = type->base ? dynamic_cast<const TypeRecord *>(analyze(type->base.get())) : nullptr;
+    const TypeRecord *base = nullptr;
+    if (type->base.type != NONE) {
+        const Name *n = scope.top()->lookupName(type->base.text);
+        if (n == nullptr) {
+            error(3212, type->base, "name not found");
+        }
+        base = dynamic_cast<const TypeRecord *>(n);
+        if (base == nullptr) {
+            error(3213, type->base, "name does not refer to RECORD type");
+        }
+    }
     std::vector<TypeRecord::Field> fields;
     std::map<std::string, Token> field_names;
     if (base != nullptr) {
@@ -2060,6 +2070,7 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     const Type *type = analyze(declaration->type.get(), name);
     if (actual_record != nullptr) {
         const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
+        const_cast<const TypeRecord *&>(actual_record->base) = rectype->base;
         const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         type = actual_record;

@@ -1194,7 +1194,7 @@ class Parser:
         base = None
         if self.tokens[self.i] is EXTENDS:
             self.i += 1
-            base = self.parse_type()
+            base = self.identifier()
         fields = []
         while self.tokens[self.i] is not END:
             is_private = self.tokens[self.i] is PRIVATE

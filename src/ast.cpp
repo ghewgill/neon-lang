@@ -356,8 +356,14 @@ bool TypePointer::is_assignment_compatible(const Type *rhs) const
     if (reftype == nullptr || p->reftype == nullptr) {
         return false;
     }
-    // Shortcut check avoids infinite recursion on records with pointer to itself.
-    return reftype == p->reftype || reftype->is_assignment_compatible(p->reftype);
+    const TypeRecord *b = dynamic_cast<const TypeRecord *>(p->reftype);
+    while (b != nullptr) {
+        if (reftype == b) {
+            return true;
+        }
+        b = b->base;
+    }
+    return false;
 }
 
 std::string TypePointer::serialize(const Expression *) const

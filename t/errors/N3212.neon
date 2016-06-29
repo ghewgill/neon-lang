@@ -1,0 +1,3 @@
+TYPE Rec IS RECORD EXTENDS unknown
+                           %<
+END RECORD

@@ -1,0 +1,10 @@
+TYPE Base IS RECORD
+    n: Number
+END RECORD
+
+TYPE Derived IS RECORD EXTENDS Base
+    s: String
+END RECORD
+
+LET d: POINTER TO Derived := NEW Derived
+LET b: POINTER TO Base := d
