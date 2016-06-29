@@ -811,7 +811,9 @@ const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::stri
     std::map<std::string, Token> field_names;
     if (base != nullptr) {
         fields = base->fields;
-        // TODO: field_names
+        for (auto &f: base->fields) {
+            field_names[f.name.text] = f.name;
+        }
     }
     for (auto &x: type->fields) {
         std::string name = x->name.text;
