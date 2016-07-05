@@ -344,7 +344,7 @@ with open("src/variables_compile.inc", "w") as inc:
         i = name.index("$")
         module = name[:i]
         modname = name[i+1:]
-        print >>inc, "    if (module == \"{}\") scope->addName(Token(), \"{}\", new PredefinedVariable(\"{}\", {}));".format(module, modname, name, atype)
+        print >>inc, "    if (module == \"{}\") scope->addName(Token(IDENTIFIER, \"{}\"), \"{}\", new PredefinedVariable(\"{}\", {}));".format(module, modname, modname, name, atype)
     print >>inc, "}"
 
 with open("src/variables_exec.inc", "w") as inc:

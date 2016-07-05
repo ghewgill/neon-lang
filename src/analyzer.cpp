@@ -525,7 +525,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std:
 {
     {
         std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter(Token(), "self", this, 1, ParameterType::IN, nullptr);
+        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::IN, nullptr);
         params.push_back(fp);
         Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params, 1);
         std::vector<const Expression *> values;
@@ -730,22 +730,22 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
             TypeRecord *actual_record = new TypeRecord(Token(), name + "." + object.strtable[t.name], std::vector<TypeRecord::Field>());
-            module->scope->addName(Token(), object.strtable[t.name], actual_record);
+            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_record);
             Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
             const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
             const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         } else {
-            module->scope->addName(Token(), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
+            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
     }
     for (auto c: object.constants) {
         const Type *type = deserialize_type(module->scope, object.strtable[c.type]);
         int i = 0;
-        module->scope->addName(Token(), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
     }
     for (auto v: object.variables) {
-        module->scope->addName(Token(), object.strtable[v.name], new ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
     }
     for (auto f: object.functions) {
         const std::string function_name = object.strtable[f.name];
@@ -757,11 +757,11 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
             Type *type = dynamic_cast<Type *>(n);
             type->methods[method] = new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
         } else {
-            module->scope->addName(Token(), function_name, new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
+            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
         }
     }
     for (auto e: object.exception_exports) {
-        module->scope->addName(Token(), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
     }
     s_importing.pop_back();
     modules[name] = module;
@@ -2972,7 +2972,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
         bound = new LocalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, frame.size()-1, false);
     }
     // TODO: Need better way of declaring unnamed local variable.
-    scope.top()->addName(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
+    scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
     const Expression *start = analyze(statement->start.get());
     if (not start->type->is_assignment_compatible(TYPE_NUMBER)) {
         error(3067, statement->start->token, "numeric expression expected");
@@ -3050,7 +3050,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     } else {
         array_copy = new LocalVariable(Token(), array_copy_name, atype, frame.size()-1, false);
     }
-    scope.top()->addName(Token(), array_copy_name, array_copy, true);
+    scope.top()->addName(Token(IDENTIFIER, ""), array_copy_name, array_copy, true);
 
     Variable *var;
     if (frame.top() == global_frame) {
@@ -3081,7 +3081,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         } else {
             index = new LocalVariable(Token(), index_name.text, TYPE_NUMBER, frame.size()-1, false);
         }
-        scope.top()->addName(Token(), index_name.text, index, true);
+        scope.top()->addName(Token(IDENTIFIER, ""), index_name.text, index, true);
     }
     index->is_readonly = true;
 
@@ -3093,7 +3093,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     } else {
         bound = new LocalVariable(Token(), bound_name, TYPE_NUMBER, frame.size()-1, false);
     }
-    scope.top()->addName(Token(), bound_name, bound, true);
+    scope.top()->addName(Token(IDENTIFIER, ""), bound_name, bound, true);
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     loops.top().push_back(std::make_pair(FOREACH, loop_id));

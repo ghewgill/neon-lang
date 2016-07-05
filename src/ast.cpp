@@ -748,6 +748,9 @@ Token Scope::getDeclaration(const std::string &name) const
 
 void Scope::addName(const Token &token, const std::string &name, Name *ref, bool init_referenced, bool allow_shadow)
 {
+    if (token.type == NONE) {
+        internal_error("no token for name: " + name + " " + ref->text());
+    }
     if (not allow_shadow and lookupName(name, false) != nullptr) {
         // If this error occurs, it means a new name was introduced
         // but no check was made with lookupName() to see whether the
@@ -823,10 +826,10 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
     statements(),
     exports()
 {
-    scope->addName(Token(), "Boolean", TYPE_BOOLEAN);
-    scope->addName(Token(), "Number", TYPE_NUMBER);
-    scope->addName(Token(), "String", TYPE_STRING);
-    scope->addName(Token(), "Bytes", TYPE_BYTES);
+    scope->addName(Token(IDENTIFIER, "Boolean"), "Boolean", TYPE_BOOLEAN);
+    scope->addName(Token(IDENTIFIER, "Number"), "Number", TYPE_NUMBER);
+    scope->addName(Token(IDENTIFIER, "String"), "String", TYPE_STRING);
+    scope->addName(Token(IDENTIFIER, "Bytes"), "Bytes", TYPE_BYTES);
 
     {
         std::vector<const ParameterType *> params;
@@ -885,7 +888,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
     }
 
     for (auto e: ExceptionNames) {
-        scope->addName(Token(), e.name, new Exception(Token(), e.name));
+        scope->addName(Token(IDENTIFIER, e.name), e.name, new Exception(Token(), e.name));
     }
 
     {
@@ -895,7 +898,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
         Type *exception_info = new TypeRecord(Token(), "ExceptionInfo", fields);
-        scope->addName(Token(), "ExceptionInfo", exception_info, true);
+        scope->addName(Token(IDENTIFIER, "ExceptionInfo"), "ExceptionInfo", exception_info, true);
     }
     {
         // The fields here must match the corresponding references to
@@ -906,9 +909,9 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
         Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
-        scope->addName(Token(), "ExceptionType", exception_type, true);
+        scope->addName(Token(IDENTIFIER, "ExceptionType"), "ExceptionType", exception_type, true);
         GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);
-        scope->addName(Token(), "CURRENT_EXCEPTION", current_exception, true);
+        scope->addName(Token(IDENTIFIER, "CURRENT_EXCEPTION"), "CURRENT_EXCEPTION", current_exception, true);
     }
 
     rtl_compile_init(scope);
