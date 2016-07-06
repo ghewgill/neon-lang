@@ -688,19 +688,19 @@ void Disassembler::disassemble()
 
     out << "Exports:\n";
     out << "  Types:\n";
-    for (auto t: obj.types) {
+    for (auto t: obj.export_types) {
         out << "    " << obj.strtable[t.name] << " " << obj.strtable[t.descriptor] << "\n";
     }
     out << "  Constants:\n";
-    for (auto c: obj.constants) {
+    for (auto c: obj.export_constants) {
         out << "    " << obj.strtable[c.name] << " " << obj.strtable[c.type] << " " << decode_value(obj.strtable[c.type], c.value) << "\n";
     }
     out << "  Variables:\n";
-    for (auto v: obj.variables) {
+    for (auto v: obj.export_variables) {
         out << "    " << obj.strtable[v.name] << " " << obj.strtable[v.type] << " " << v.index << "\n";
     }
     out << "  Functions:\n";
-    for (auto f: obj.functions) {
+    for (auto f: obj.export_functions) {
         out << "    " << obj.strtable[f.name] << " " << obj.strtable[f.descriptor] << " " << f.entry << "\n";
     }
 

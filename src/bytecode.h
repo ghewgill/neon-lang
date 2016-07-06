@@ -68,11 +68,11 @@ public:
     std::string source_hash;
     size_t global_size;
     std::vector<std::string> strtable;
-    std::vector<Type> types;
-    std::vector<Constant> constants;
-    std::vector<Variable> variables;
-    std::vector<Function> functions;
-    std::vector<ExceptionExport> exception_exports;
+    std::vector<Type> export_types;
+    std::vector<Constant> export_constants;
+    std::vector<Variable> export_variables;
+    std::vector<Function> export_functions;
+    std::vector<ExceptionExport> export_exceptions;
     std::vector<std::pair<unsigned int, std::string>> imports;
     std::vector<ExceptionInfo> exceptions;
     Bytes code;

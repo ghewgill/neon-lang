@@ -274,7 +274,7 @@ void Emitter::add_export_type(const std::string &name, const std::string &descri
     Bytecode::Type type;
     type.name = str(name);
     type.descriptor = str(descriptor);
-    object.types.push_back(type);
+    object.export_types.push_back(type);
 }
 
 void Emitter::add_export_constant(const std::string &name, const std::string &type, const std::string &value)
@@ -283,7 +283,7 @@ void Emitter::add_export_constant(const std::string &name, const std::string &ty
     constant.name = str(name);
     constant.type = str(type);
     constant.value = Bytecode::Bytes(value.data(), value.data()+value.length());
-    object.constants.push_back(constant);
+    object.export_constants.push_back(constant);
 }
 
 void Emitter::add_export_variable(const std::string &name, const std::string &type, int index)
@@ -292,7 +292,7 @@ void Emitter::add_export_variable(const std::string &name, const std::string &ty
     variable.name = str(name);
     variable.type = str(type);
     variable.index = index;
-    object.variables.push_back(variable);
+    object.export_variables.push_back(variable);
 }
 
 void Emitter::add_export_function(const std::string &name, const std::string &type, int entry)
@@ -301,14 +301,14 @@ void Emitter::add_export_function(const std::string &name, const std::string &ty
     function.name = str(name);
     function.descriptor = str(type);
     function.entry = entry;
-    object.functions.push_back(function);
+    object.export_functions.push_back(function);
 }
 
 void Emitter::add_export_exception(const std::string &name)
 {
     Bytecode::ExceptionExport exception;
     exception.name = str(name);
-    object.exception_exports.push_back(exception);
+    object.export_exceptions.push_back(exception);
 }
 
 void Emitter::add_import(const std::string &name)

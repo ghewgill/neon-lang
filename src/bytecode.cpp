@@ -56,11 +56,11 @@ Bytecode::Bytecode()
     source_hash(),
     global_size(0),
     strtable(),
-    types(),
-    constants(),
-    variables(),
-    functions(),
-    exception_exports(),
+    export_types(),
+    export_constants(),
+    export_variables(),
+    export_functions(),
+    export_exceptions(),
     imports(),
     exceptions(),
     code()
@@ -94,7 +94,7 @@ bool Bytecode::load(const std::vector<unsigned char> &bytes)
             Type t;
             t.name = get_uint16(obj, i);
             t.descriptor = get_uint16(obj, i);
-            types.push_back(t);
+            export_types.push_back(t);
             typesize--;
         }
 
@@ -109,7 +109,7 @@ bool Bytecode::load(const std::vector<unsigned char> &bytes)
             }
             c.value = Bytes(&obj[i], &obj[i+size]);
             i += size;
-            constants.push_back(c);
+            export_constants.push_back(c);
             constantsize--;
         }
 
@@ -119,7 +119,7 @@ bool Bytecode::load(const std::vector<unsigned char> &bytes)
             v.name = get_uint16(obj, i);
             v.type = get_uint16(obj, i);
             v.index = get_uint16(obj, i);
-            variables.push_back(v);
+            export_variables.push_back(v);
             variablesize--;
         }
 
@@ -129,7 +129,7 @@ bool Bytecode::load(const std::vector<unsigned char> &bytes)
             f.name = get_uint16(obj, i);
             f.descriptor = get_uint16(obj, i);
             f.entry = get_uint16(obj, i);
-            functions.push_back(f);
+            export_functions.push_back(f);
             functionsize--;
         }
 
@@ -137,7 +137,7 @@ bool Bytecode::load(const std::vector<unsigned char> &bytes)
         while (exceptionexportsize > 0) {
             ExceptionExport e;
             e.name = get_uint16(obj, i);
-            exception_exports.push_back(e);
+            export_exceptions.push_back(e);
             exceptionexportsize--;
         }
 
@@ -193,36 +193,36 @@ Bytecode::Bytes Bytecode::getBytes() const
     put_uint32(obj, static_cast<uint32_t>(t.size()));
     std::copy(t.begin(), t.end(), std::back_inserter(obj));
 
-    put_uint16(obj, static_cast<uint16_t>(types.size()));
-    for (auto t: types) {
+    put_uint16(obj, static_cast<uint16_t>(export_types.size()));
+    for (auto t: export_types) {
         put_uint16(obj, static_cast<uint16_t>(t.name));
         put_uint16(obj, static_cast<uint16_t>(t.descriptor));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(constants.size()));
-    for (auto c: constants) {
+    put_uint16(obj, static_cast<uint16_t>(export_constants.size()));
+    for (auto c: export_constants) {
         put_uint16(obj, static_cast<uint16_t>(c.name));
         put_uint16(obj, static_cast<uint16_t>(c.type));
         put_uint16(obj, static_cast<uint16_t>(c.value.size()));
         std::copy(c.value.begin(), c.value.end(), std::back_inserter(obj));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(variables.size()));
-    for (auto v: variables) {
+    put_uint16(obj, static_cast<uint16_t>(export_variables.size()));
+    for (auto v: export_variables) {
         put_uint16(obj, static_cast<uint16_t>(v.name));
         put_uint16(obj, static_cast<uint16_t>(v.type));
         put_uint16(obj, static_cast<uint16_t>(v.index));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(functions.size()));
-    for (auto f: functions) {
+    put_uint16(obj, static_cast<uint16_t>(export_functions.size()));
+    for (auto f: export_functions) {
         put_uint16(obj, static_cast<uint16_t>(f.name));
         put_uint16(obj, static_cast<uint16_t>(f.descriptor));
         put_uint16(obj, static_cast<uint16_t>(f.entry));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(exception_exports.size()));
-    for (auto e: exception_exports) {
+    put_uint16(obj, static_cast<uint16_t>(export_exceptions.size()));
+    for (auto e: export_exceptions) {
         put_uint16(obj, static_cast<uint16_t>(e.name));
     }
 

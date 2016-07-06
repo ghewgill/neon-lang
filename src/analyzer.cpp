@@ -726,7 +726,7 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
         internal_error("TODO module not found: " + name);
     }
     Module *module = new Module(Token(), scope.top(), name);
-    for (auto t: object.types) {
+    for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
             TypeRecord *actual_record = new TypeRecord(Token(), name + "." + object.strtable[t.name], std::vector<TypeRecord::Field>());
@@ -739,15 +739,15 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
     }
-    for (auto c: object.constants) {
+    for (auto c: object.export_constants) {
         const Type *type = deserialize_type(module->scope, object.strtable[c.type]);
         int i = 0;
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
     }
-    for (auto v: object.variables) {
+    for (auto v: object.export_variables) {
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
     }
-    for (auto f: object.functions) {
+    for (auto f: object.export_functions) {
         const std::string function_name = object.strtable[f.name];
         auto i = function_name.find('.');
         if (i != std::string::npos) {
@@ -760,7 +760,7 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
             module->scope->addName(Token(IDENTIFIER, ""), function_name, new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
         }
     }
-    for (auto e: object.exception_exports) {
+    for (auto e: object.export_exceptions) {
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
     }
     s_importing.pop_back();
