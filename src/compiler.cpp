@@ -45,7 +45,7 @@ public:
     unsigned int global(const std::string &name);
     unsigned int str(const std::string &s);
     unsigned int current_ip();
-    unsigned int next_function();
+    unsigned int next_function(const std::string &name);
     Label &function_label(int index);
     Label create_label();
     void emit_jump(unsigned char b, Label &label);
@@ -73,7 +73,7 @@ private:
     const std::string source_hash;
     Bytecode object;
     std::vector<std::string> globals;
-    std::vector<Label> functions;
+    std::vector<std::pair<std::string, Label>> functions;
     std::stack<Label *> function_exit;
     size_t current_function_depth;
     std::map<size_t, LoopLabels> loop_labels;
@@ -127,6 +127,9 @@ std::vector<unsigned char> Emitter::getObject()
 {
     object.source_hash = source_hash;
     object.global_size = globals.size();
+    for (auto f: functions) {
+        object.functions.push_back(Bytecode::FunctionInfo(str(f.first), f.second.get_target()));
+    }
     return object.getBytes();
 }
 
@@ -155,16 +158,16 @@ unsigned int Emitter::current_ip()
     return static_cast<unsigned int>(object.code.size());
 }
 
-unsigned int Emitter::next_function()
+unsigned int Emitter::next_function(const std::string &name)
 {
     auto i = functions.size();
-    functions.push_back(create_label());
+    functions.push_back(std::make_pair(name, create_label()));
     return static_cast<unsigned int>(i);
 }
 
 Emitter::Label &Emitter::function_label(int index)
 {
-    return functions[index];
+    return functions[index].second;
 }
 
 Emitter::Label Emitter::create_label()
@@ -757,7 +760,7 @@ void Function::predeclare(Emitter &emitter) const
     // entry label once, even if predeclare() is called
     // more than once.
     if (entry_label == UINT_MAX) {
-        entry_label = emitter.next_function();
+        entry_label = emitter.next_function(name);
     }
 }
 

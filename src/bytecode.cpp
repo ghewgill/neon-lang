@@ -62,6 +62,7 @@ Bytecode::Bytecode()
     export_functions(),
     export_exceptions(),
     imports(),
+    functions(),
     exceptions(),
     code()
 {
@@ -154,6 +155,15 @@ bool Bytecode::load(const std::vector<unsigned char> &bytes)
             importsize--;
         }
 
+        /*unsigned int*/ functionsize = get_uint16(obj, i);
+        while (functionsize > 0) {
+            FunctionInfo f;
+            f.name = get_uint16(obj, i);
+            f.entry = get_uint16(obj, i);
+            functions.push_back(f);
+            functionsize--;
+        }
+
         unsigned int exceptionsize = get_uint16(obj, i);
         while (exceptionsize > 0) {
             ExceptionInfo e;
@@ -233,6 +243,12 @@ Bytecode::Bytes Bytecode::getBytes() const
         for (int j = 0; j < 32; j++) {
             obj.push_back(i.second[j]);
         }
+    }
+
+    put_uint16(obj, static_cast<uint16_t>(functions.size()));
+    for (auto f: functions) {
+        put_uint16(obj, static_cast<uint16_t>(f.name));
+        put_uint16(obj, static_cast<uint16_t>(f.entry));
     }
 
     put_uint16(obj, static_cast<uint16_t>(exceptions.size()));

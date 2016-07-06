@@ -57,6 +57,13 @@ public:
         unsigned int name;
     };
 
+    struct FunctionInfo {
+        FunctionInfo(): name(0), entry(0) {}
+        FunctionInfo(unsigned int name, unsigned int entry): name(name), entry(entry) {}
+        unsigned int name;
+        unsigned int entry;
+    };
+
     struct ExceptionInfo {
         unsigned int start;
         unsigned int end;
@@ -74,6 +81,7 @@ public:
     std::vector<Function> export_functions;
     std::vector<ExceptionExport> export_exceptions;
     std::vector<std::pair<unsigned int, std::string>> imports;
+    std::vector<FunctionInfo> functions;
     std::vector<ExceptionInfo> exceptions;
     Bytes code;
 

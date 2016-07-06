@@ -709,6 +709,11 @@ void Disassembler::disassemble()
         out << "  " << obj.strtable[i.first] << "\n";
     }
 
+    out << "Functions:\n";
+    for (auto f: obj.functions) {
+        out << "  " << obj.strtable[f.name] << " " << f.entry << "\n";
+    }
+
     while (index < obj.code.size()) {
         if (debug != nullptr) {
             auto line = debug->line_numbers.find(index);

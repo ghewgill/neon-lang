@@ -2263,7 +2263,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         if (f != type->methods.end()) {
             function = dynamic_cast<Function *>(f->second);
         } else {
-            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.size());
+            function = new Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, frame.size());
             type->methods[name] = function;
         }
     } else {
