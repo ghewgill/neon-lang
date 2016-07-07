@@ -427,11 +427,9 @@ void Executor::exec_PUSHB()
 
 void Executor::exec_PUSHN()
 {
-    // TODO: endian
-    Number val;
-    memcpy(&val, &module->object.code[ip+1], sizeof(Number));
-    ip += 1 + sizeof(val);
-    stack.push(Cell(val));
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    stack.push(Cell(number_from_string(module->object.strtable[val])));
 }
 
 void Executor::exec_PUSHS()

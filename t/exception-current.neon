@@ -11,5 +11,5 @@ print(CURRENT_EXCEPTION.name)
 
 %= PrinterOnFireException
 %= A4
-%= 27
+%= 15
 %=

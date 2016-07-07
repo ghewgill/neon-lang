@@ -143,11 +143,9 @@ void Disassembler::disasm_PUSHB()
 
 void Disassembler::disasm_PUSHN()
 {
-    // TODO: endian
-    Number val;
-    memcpy(&val, &obj.code[index+1], sizeof(Number));
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
     index += 1 + sizeof(val);
-    out << "PUSHN " << number_to_string(val) << "\n";
+    out << "PUSHN " << obj.strtable[val] << "\n";
 }
 
 void Disassembler::disasm_PUSHS()

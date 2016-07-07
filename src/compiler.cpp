@@ -112,10 +112,7 @@ void Emitter::emit(unsigned char b, uint32_t value, uint32_t value2)
 
 void Emitter::emit(unsigned char b, const Number &value)
 {
-    emit(b);
-    // TODO: endian
-    const unsigned char *v = reinterpret_cast<const unsigned char *>(&value);
-    emit(std::vector<unsigned char>(v, v+sizeof(value)));
+    emit(b, str(number_to_string(value)));
 }
 
 void Emitter::emit(const std::vector<unsigned char> &instr)
