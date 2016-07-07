@@ -175,6 +175,7 @@ public:
     const DebugInfo *debug;
     std::vector<Cell> globals;
     std::vector<size_t> rtl_call_tokens;
+    std::vector<std::pair<bool, Number>> number_table;
     std::vector<ExternalCallInfo *> external_functions;
 private:
     Module(const Module &);
@@ -381,6 +382,7 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
     debug(debuginfo),
     globals(object.global_size),
     rtl_call_tokens(object.strtable.size(), SIZE_MAX),
+    number_table(object.strtable.size()),
     external_functions()
 {
     for (auto i: object.imports) {
@@ -429,7 +431,10 @@ void Executor::exec_PUSHN()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    stack.push(Cell(number_from_string(module->object.strtable[val])));
+    if (not module->number_table[val].first) {
+        module->number_table[val] = std::make_pair(true, number_from_string(module->object.strtable[val]));
+    }
+    stack.push(Cell(module->number_table[val].second));
 }
 
 void Executor::exec_PUSHS()
