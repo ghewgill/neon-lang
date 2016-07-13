@@ -139,6 +139,10 @@ else:
         env.Append(CXXFLAGS=[
             "-g",
         ])
+    else:
+        env.Append(CXXFLAGS=[
+            "-O3",
+        ])
 env.Prepend(LIBS=[x for x in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium, libssl] if x])
 env.Append(LIBS=libs_curses)
 if os.name == "posix":
