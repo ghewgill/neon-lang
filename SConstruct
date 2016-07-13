@@ -446,13 +446,14 @@ env.Program("bin/fuzz_parser", [
 ] + coverage_lib,
 )
 
-env.Program("bin/perf_lexer", [
-    "tests/perf_lexer.cpp",
-    "src/lexer.cpp",
-    "src/number.cpp",
-    "src/util.cpp",
-] + coverage_lib,
-)
+if sys.platform == "posix":
+    env.Program("bin/perf_lexer", [
+        "tests/perf_lexer.cpp",
+        "src/lexer.cpp",
+        "src/number.cpp",
+        "src/util.cpp",
+    ] + coverage_lib,
+    )
 
 if sys.platform == "win32":
     test_ffi = env.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")
