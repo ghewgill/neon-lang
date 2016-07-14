@@ -1,5 +1,6 @@
 import os
 import shutil
+import stat
 import sys
 import tarfile
 
@@ -17,7 +18,10 @@ if not env["RELEASE"]:
         ])
 
 if GetOption("clean"):
-    shutil.rmtree("libressl-2.2.4", ignore_errors=True)
+    def remove_readonly(function, path, excinfo):
+        os.chmod(path, stat.S_IWRITE)
+        os.remove(path)
+    shutil.rmtree("libressl-2.2.4", ignore_errors=True, onerror=remove_readonly)
 elif not os.path.exists("libressl-2.2.4/configure"):
     tarfile.open("libressl-2.2.4.tar.gz").extractall(".")
 
