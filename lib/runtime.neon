@@ -9,6 +9,7 @@ EXPORT getAllocatedObjectCount
 EXPORT moduleIsMain
 EXPORT setGarbageCollectionInterval
 EXPORT setRecursionLimit
+EXPORT isDebug
 
 %|
  |  Function: garbageCollect
@@ -53,3 +54,11 @@ DECLARE NATIVE FUNCTION setGarbageCollectionInterval(count: Number)
  |  1000. Exceeding this limit raises a <StackOverflow> exception.
  |%
 DECLARE NATIVE FUNCTION setRecursionLimit(depth: Number)
+
+%|
+ |  Function: isDebug
+ |
+ |  Check the current compilation mode of the Runtime.  If compiled
+ |  with debug symbols, isDebug() will return TRUE.  FALSE otherwise.
+ |%
+DECLARE NATIVE FUNCTION isDebug(): Boolean

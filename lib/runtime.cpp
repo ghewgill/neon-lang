@@ -28,4 +28,13 @@ void runtime$setRecursionLimit(Number depth)
     executor_set_recursion_limit(number_to_uint64(depth));
 }
 
+bool runtime$isDebug()
+{
+#ifdef _DEBUG
+    return true;
+#else
+    return false;
+#endif
+}
+
 } // namespace rtl
