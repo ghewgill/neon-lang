@@ -54,7 +54,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
         remove(objname.c_str());
         {
             auto tokens = tokenize(names.first, source);
-            auto parsetree = parse(tokens);
+            auto parsetree = parse(*tokens);
             auto ast = analyze(this, parsetree.get());
             auto bytecode = compile(ast, nullptr);
             std::ofstream outf(objname, std::ios::binary);

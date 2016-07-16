@@ -19,8 +19,8 @@ void abort_error_a(const char *compiler_file, int compiler_line, int number, con
         throw new SourceError(compiler_file, compiler_line, number, token, message);
     }
     Token tok = token_before;
-    tok.column = static_cast<int>(1 + tok.source.length());
-    if (tok.source[tok.source.length()-1] != ' ') {
+    tok.column = static_cast<int>(1 + tok.source_line().length());
+    if (tok.source_line()[tok.source_line().length()-1] != ' ') {
         tok.column++;
     }
     throw new SourceError(compiler_file, compiler_line, number, tok, message);
@@ -45,14 +45,14 @@ void SourceError::write(std::ostream &out)
 {
     out << "Error in file: " << token.file << "\n";
     out << "\n";
-    out << token.line << "| " << token.source << "\n";
+    out << token.line << "| " << token.source_line << "\n";
     out << std::setw(std::to_string(token.line).length()+2+token.column) << "^" << "\n";
     out << "Error N" << number << ": " << token.line << ":" << token.column << " " << message << "\n";
     if (token2.type != NONE) {
         out << "\n";
         out << "Related line information:\n";
         out << "\n";
-        out << token2.line << "| " << token2.source << "\n";
+        out << token2.line << "| " << token2.source_line << "\n";
         out << std::setw(std::to_string(token2.line).length()+2+token2.column) << "^" << "\n";
         out << "Error N" << number << ": " << token2.line << ":" << token2.column << " " << message2 << "\n";
     }

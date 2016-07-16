@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     ss << inf.rdbuf();
     try {
         auto tokens = tokenize(fn, ss.str());
-        auto tree = parse(tokens);
+        auto tree = parse(*tokens);
         pt::dump(std::cout, tree.get());
     } catch (SourceError *e) {
         e->write(std::cout);

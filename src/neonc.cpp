@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 
         try {
             auto tokens = tokenize(name, buf.str());
-            auto parsetree = parse(tokens);
+            auto parsetree = parse(*tokens);
             auto ast = analyze(&compiler_support, parsetree.get());
             DebugInfo debug(name, buf.str());
             auto bytecode = compile(ast, &debug);

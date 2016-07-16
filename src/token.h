@@ -112,20 +112,51 @@ enum TokenType {
     MAX_TOKEN
 };
 
+class TokenizedSource;
+
 class Token {
 public:
-    Token(): file(), source(), line(0), column(0), type(NONE), text(), value() {}
-    explicit Token(const std::string &text): file(), source(), line(0), column(0), type(NONE), text(text), value() {}
-    Token(TokenType type, const std::string &text): file(), source(), line(0), column(0), type(type), text(text), value() {}
-    std::string file;
-    std::string source;
+    explicit Token(const TokenizedSource *source = nullptr): source(source), source_line_start(std::string::npos), source_line_length(std::string::npos), line(0), column(0), type(NONE), text(), value() {}
+    explicit Token(const std::string &text): source(nullptr), source_line_start(std::string::npos), source_line_length(std::string::npos), line(0), column(0), type(NONE), text(text), value() {}
+    Token(TokenType type, const std::string &text): source(nullptr), source_line_start(std::string::npos), source_line_length(std::string::npos), line(0), column(0), type(type), text(text), value() {}
+    const TokenizedSource *source;
+    std::string::size_type source_line_start;
+    std::string::size_type source_line_length;
     int line;
     size_t column;
     TokenType type;
     std::string text;
     Number value;
 
+    std::string file() const;
+    std::string source_line() const;
     std::string tostring() const;
+
+    Token(const Token &rhs)
+      : source(rhs.source),
+        source_line_start(rhs.source_line_start),
+        source_line_length(rhs.source_line_length),
+        line(rhs.line),
+        column(rhs.column),
+        type(rhs.type),
+        text(rhs.text),
+        value(rhs.value)
+    {}
+
+    Token &operator=(const Token &rhs) {
+        if (this == &rhs) {
+            return *this;
+        }
+        source = rhs.source;
+        source_line_start = rhs.source_line_start;
+        source_line_length = rhs.source_line_length;
+        line = rhs.line;
+        column = rhs.column;
+        type = rhs.type;
+        text = rhs.text;
+        value = rhs.value;
+        return *this;
+    }
 };
 
 #endif

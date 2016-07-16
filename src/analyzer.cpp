@@ -2590,7 +2590,7 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             statement->token.line,
             new FunctionCall(
                 print,
-                {new ConstantStringExpression("Assert failed (" + statement->token.file + " line " + std::to_string(statement->token.line) + "):")}
+                {new ConstantStringExpression("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):")}
             )
         )
     );
@@ -2599,7 +2599,7 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             statement->token.line,
             new FunctionCall(
                 print,
-                {new ConstantStringExpression(statement->token.source)}
+                {new ConstantStringExpression(statement->token.source_line())}
             )
         )
     );
@@ -2614,7 +2614,7 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     );
     std::set<std::string> seen;
     for (auto e: parts) {
-        const std::string str = statement->token.source.substr(e->get_start_column()-1, e->get_end_column()-e->get_start_column());
+        const std::string str = statement->token.source_line().substr(e->get_start_column()-1, e->get_end_column()-e->get_start_column());
         if (seen.find(str) != seen.end()) {
             continue;
         }

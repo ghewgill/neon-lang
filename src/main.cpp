@@ -104,10 +104,10 @@ int main(int argc, char *argv[])
         try {
             auto tokens = tokenize(name, buf.str());
             if (dump_tokens) {
-                dump(tokens);
+                dump(*tokens);
             }
 
-            auto parsetree = parse(tokens);
+            auto parsetree = parse(*tokens);
             if (dump_parse) {
                 dump(parsetree.get());
             }

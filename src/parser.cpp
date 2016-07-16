@@ -1673,7 +1673,7 @@ std::unique_ptr<Statement> Parser::parseAssert()
         std::unique_ptr<Expression> e = parseExpression();
         exprs.push_back(std::move(e));
     }
-    return std::unique_ptr<Statement> { new AssertStatement(tok_assert, std::move(exprs), tok_assert.source) };
+    return std::unique_ptr<Statement> { new AssertStatement(tok_assert, std::move(exprs), tok_assert.source_line()) };
 }
 
 std::unique_ptr<Statement> Parser::parseBegin()

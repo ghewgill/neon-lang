@@ -23,14 +23,25 @@ public:
     virtual void write(std::ostream &out) override;
 };
 
+class SourceErrorToken {
+public:
+    SourceErrorToken(): file(), source_line(), line(0), column(0), type(NONE) {}
+    SourceErrorToken(const Token &token): file(token.file()), source_line(token.source_line()), line(token.line), column(token.column), type(token.type) {}
+    std::string file;
+    std::string source_line;
+    int line;
+    size_t column;
+    TokenType type;
+};
+
 class SourceError: public CompilerError {
 public:
     SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(), message2() {}
     SourceError(const std::string &compiler_file, int compiler_line, int number, const Token &token, const std::string &message, const Token &token2, const std::string &message2): CompilerError(compiler_file, compiler_line, message), number(number), token(token), token2(token2), message2(message2) {}
     virtual void write(std::ostream &out) override;
     const int number;
-    const Token token;
-    const Token token2;
+    const SourceErrorToken token;
+    const SourceErrorToken token2;
     const std::string message2;
 };
 
