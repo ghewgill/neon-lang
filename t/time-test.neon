@@ -4,7 +4,7 @@ VAR a, b, i: Number
 
 a := time.now()
 i := 0
-WHILE i < 5000 DO
+WHILE i < 100000 DO
     i := i + 1
 END WHILE
 b := time.now()
