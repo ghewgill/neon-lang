@@ -116,12 +116,10 @@ class TokenizedSource;
 
 class Token {
 public:
-    explicit Token(const TokenizedSource *source = nullptr): source(source), source_line_start(std::string::npos), source_line_length(std::string::npos), line(0), column(0), type(NONE), text(), value() {}
-    explicit Token(const std::string &text): source(nullptr), source_line_start(std::string::npos), source_line_length(std::string::npos), line(0), column(0), type(NONE), text(text), value() {}
-    Token(TokenType type, const std::string &text): source(nullptr), source_line_start(std::string::npos), source_line_length(std::string::npos), line(0), column(0), type(type), text(text), value() {}
+    explicit Token(const TokenizedSource *source = nullptr): source(source), line(0), column(0), type(NONE), text(), value() {}
+    explicit Token(const std::string &text): source(nullptr), line(0), column(0), type(NONE), text(text), value() {}
+    Token(TokenType type, const std::string &text): source(nullptr), line(0), column(0), type(type), text(text), value() {}
     const TokenizedSource *source;
-    std::string::size_type source_line_start;
-    std::string::size_type source_line_length;
     int line;
     size_t column;
     TokenType type;
@@ -134,8 +132,6 @@ public:
 
     Token(const Token &rhs)
       : source(rhs.source),
-        source_line_start(rhs.source_line_start),
-        source_line_length(rhs.source_line_length),
         line(rhs.line),
         column(rhs.column),
         type(rhs.type),
@@ -148,8 +144,6 @@ public:
             return *this;
         }
         source = rhs.source;
-        source_line_start = rhs.source_line_start;
-        source_line_length = rhs.source_line_length;
         line = rhs.line;
         column = rhs.column;
         type = rhs.type;

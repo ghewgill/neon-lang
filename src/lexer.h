@@ -8,10 +8,11 @@
 
 class TokenizedSource {
 public:
-    TokenizedSource(): source_path(), source_hash(), source_text(), tokens() {}
+    TokenizedSource(): source_path(), source_hash(), source_text(), source_lines(), tokens() {}
     std::string source_path;
     std::string source_hash;
     std::string source_text;
+    std::vector<std::pair<std::string::size_type, std::string::size_type>> source_lines;
     std::vector<Token> tokens;
 };
 

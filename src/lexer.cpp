@@ -16,10 +16,10 @@ std::string Token::file() const
 
 std::string Token::source_line() const
 {
-    if (source_line_start == std::string::npos) {
+    if (source == nullptr || line == 0 || static_cast<size_t>(line) >= source->source_lines.size()) {
         return std::string();
     }
-    return std::string(source->source_text, source_line_start, source_line_length);
+    return std::string(source->source_text, source->source_lines[line].first, source->source_lines[line].second);
 }
 
 std::string Token::tostring() const
@@ -181,24 +181,20 @@ inline bool space(uint32_t c)
     return c < 256 && isspace(c);
 }
 
-static std::vector<Token> tokenize_fragment(const TokenizedSource *tsource, const std::string &source_path, int &line, size_t column, const std::string &source, std::string::size_type actual_source_line_start = std::string::npos, std::string::size_type actual_source_line_length = std::string::npos)
+static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std::string &source_path, int &line, size_t column, const std::string &source)
 {
     std::vector<Token> tokens;
     std::string::const_iterator linestart = source.begin();
     std::string::const_iterator lineend = std::find(source.begin(), source.end(), '\n');
     std::string::const_iterator i = source.begin();
     while (i != source.end()) {
+        while (static_cast<size_t>(line) >= tsource->source_lines.size()) {
+            tsource->source_lines.push_back(std::make_pair(linestart - source.begin(), lineend - linestart));
+        }
         uint32_t c = utf8::peek_next(i, source.end());
         //printf("index %lu char %c\n", i, c);
         auto startindex = i;
         Token t(tsource);
-        if (actual_source_line_start == std::string::npos) {
-            t.source_line_start = linestart - source.begin();
-            t.source_line_length = lineend - linestart;
-        } else {
-            t.source_line_start = actual_source_line_start;
-            t.source_line_length = actual_source_line_length;
-        }
         t.line = line;
         t.column = column;
         t.type = NONE;
@@ -527,7 +523,7 @@ static std::vector<Token> tokenize_fragment(const TokenizedSource *tsource, cons
                                 end = colon;
                             }
                             size_t col = column + (start - startindex);
-                            auto subtokens = tokenize_fragment(tsource, source_path, line, col, std::string(start, end), t.source_line_start, t.source_line_length);
+                            auto subtokens = tokenize_fragment(tsource, source_path, line, col, std::string(start, end));
                             std::copy(subtokens.begin(), subtokens.end(), std::back_inserter(tokens));
                             if (colon > start) {
                                 t.column = column + (colon - startindex);
@@ -734,6 +730,7 @@ std::unique_ptr<TokenizedSource> tokenize(const std::string &source_path, const 
     r->source_path = source_path;
     r->source_hash = std::string(h, h+sizeof(h));
     r->source_text = source;
+    r->source_lines.resize(1); // Leave room for nonexistent line 0.
     r->tokens = tokenize_fragment(r.get(), source_path, line, 1, std::string(i, source.end()));
     Token t(r.get());
     t.line = line;
