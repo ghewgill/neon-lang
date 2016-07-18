@@ -163,7 +163,7 @@ FUNCTION drop_piece(p, x, y, r: Number)
 END FUNCTION
 
 FUNCTION row_complete(j: Number): Boolean
-    FOREACH x OF Board[j] DO
+    FOREACH x IN Board[j] DO
         IF x = 0 THEN
             RETURN FALSE
         END IF

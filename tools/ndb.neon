@@ -52,16 +52,16 @@ time.sleep(0.1)
 VAR r: variant.Variant
 
 r := get("/module/-/debuginfo")
-FOREACH s OF r.getDictionary()["source"].getArray() INDEX i DO
+FOREACH s IN r.getDictionary()["source"].getArray() INDEX i DO
     Source[i] := s.getString()
 END FOREACH
-FOREACH ln OF r.getDictionary()["line_numbers"].getArray() DO
+FOREACH ln IN r.getDictionary()["line_numbers"].getArray() DO
     LET addr: Number := ln.getArray()[0].getNumber()
     LET line: Number := ln.getArray()[1].getNumber()
     LineFromAddress[addr] := line
     AddressFromLine[line] := addr
 END FOREACH
-FOREACH g OF r.getDictionary()["globals"].getArray() DO
+FOREACH g IN r.getDictionary()["globals"].getArray() DO
     Globals[g.getDictionary()["name"].getString()] := Global(
         index WITH g.getDictionary()["index"].getNumber(),
         repr WITH g.getDictionary()["type"].getDictionary()["representation"].getString()
@@ -81,7 +81,7 @@ LOOP
 
     IF r.getDictionary()["log_messages"].getNumber() > 0 THEN
         LET log: variant.Variant := post("/log", "")
-        FOREACH message OF log.getArray() DO
+        FOREACH message IN log.getArray() DO
             print(message.getString())
         END FOREACH
     END IF

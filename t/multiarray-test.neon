@@ -2,20 +2,20 @@ IMPORT multiarray
 
 VAR b2: multiarray.ArrayBoolean2D := multiarray.makeBoolean2D(4, 5)
 ASSERT b2.size() = 4
-FOREACH row OF b2 DO
+FOREACH row IN b2 DO
     ASSERT row.size() = 5
-    FOREACH cell OF row DO
+    FOREACH cell IN row DO
         ASSERT cell = FALSE
     END FOREACH
 END FOREACH
 
 VAR b3: multiarray.ArrayBoolean3D := multiarray.makeBoolean3D(4, 5, 6)
 ASSERT b3.size() = 4
-FOREACH row OF b3 DO
+FOREACH row IN b3 DO
     ASSERT row.size() = 5
-    FOREACH core OF row DO
+    FOREACH core IN row DO
         ASSERT core.size() = 6
-        FOREACH cell OF core DO
+        FOREACH cell IN core DO
             ASSERT cell = FALSE
         END FOREACH
     END FOREACH
@@ -23,29 +23,29 @@ END FOREACH
 
 VAR n2: multiarray.ArrayNumber2D := multiarray.makeNumber2D(4, 5)
 ASSERT n2.size() = 4
-FOREACH row OF n2 DO
+FOREACH row IN n2 DO
     ASSERT row.size() = 5
-    FOREACH cell OF row DO
+    FOREACH cell IN row DO
         ASSERT cell = 0
     END FOREACH
 END FOREACH
 
 VAR n2v: multiarray.ArrayNumber2D := multiarray.makeNumber2DValue(4, 5, -1)
 ASSERT n2v.size() = 4
-FOREACH row OF n2v DO
+FOREACH row IN n2v DO
     ASSERT row.size() = 5
-    FOREACH cell OF row DO
+    FOREACH cell IN row DO
         ASSERT cell = -1
     END FOREACH
 END FOREACH
 
 VAR n3: multiarray.ArrayNumber3D := multiarray.makeNumber3D(4, 5, 6)
 ASSERT n3.size() = 4
-FOREACH row OF n3 DO
+FOREACH row IN n3 DO
     ASSERT row.size() = 5
-    FOREACH core OF row DO
+    FOREACH core IN row DO
         ASSERT core.size() = 6
-        FOREACH cell OF core DO
+        FOREACH cell IN core DO
             ASSERT cell = 0
         END FOREACH
     END FOREACH
@@ -53,20 +53,20 @@ END FOREACH
 
 VAR s2: multiarray.ArrayString2D := multiarray.makeString2D(4, 5)
 ASSERT s2.size() = 4
-FOREACH row OF s2 DO
+FOREACH row IN s2 DO
     ASSERT row.size() = 5
-    FOREACH cell OF row DO
+    FOREACH cell IN row DO
         ASSERT cell = ""
     END FOREACH
 END FOREACH
 
 VAR s3: multiarray.ArrayString3D := multiarray.makeString3D(4, 5, 6)
 ASSERT s3.size() = 4
-FOREACH row OF s3 DO
+FOREACH row IN s3 DO
     ASSERT row.size() = 5
-    FOREACH core OF row DO
+    FOREACH core IN row DO
         ASSERT core.size() = 6
-        FOREACH cell OF core DO
+        FOREACH cell IN core DO
             ASSERT cell = ""
         END FOREACH
     END FOREACH

@@ -112,7 +112,6 @@ std::string Token::tostring() const
         case PRIVATE:     s << "PRIVATE"; break;
         case NATIVE:      s << "NATIVE"; break;
         case FOREACH:     s << "FOREACH"; break;
-        case OF:          s << "OF"; break;
         case INDEX:       s << "INDEX"; break;
         case ASSERT:      s << "ASSERT"; break;
         case EMBED:       s << "EMBED"; break;
@@ -318,7 +317,6 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "PRIVATE") t.type = PRIVATE;
             else if (t.text == "NATIVE") t.type = NATIVE;
             else if (t.text == "FOREACH") t.type = FOREACH;
-            else if (t.text == "OF") t.type = OF;
             else if (t.text == "INDEX") t.type = INDEX;
             else if (t.text == "ASSERT") t.type = ASSERT;
             else if (t.text == "EMBED") t.type = EMBED;

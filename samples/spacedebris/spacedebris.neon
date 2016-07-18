@@ -99,7 +99,7 @@ FUNCTION render(ren: sdl.Renderer)
             [player.x+8*math.cos(player.rot-2.8), player.y+8*math.sin(player.rot-2.8)],
         ])
     END IF
-    FOREACH r OF rocks DO
+    FOREACH r IN rocks DO
         CASE r.size
             WHEN 3 DO
                 sdl.RenderDrawLines(ren, [
@@ -127,7 +127,7 @@ FUNCTION render(ren: sdl.Renderer)
                 ])
         END CASE
     END FOREACH
-    FOREACH s OF shots DO
+    FOREACH s IN shots DO
         sdl.RenderFillRect(ren, rect(s.x-1, s.y-1, 3, 3))
     END FOREACH
     sdl.RenderPresent(ren)

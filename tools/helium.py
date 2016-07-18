@@ -123,7 +123,6 @@ EXPORT = Keyword("EXPORT")
 PRIVATE = Keyword("PRIVATE")
 NATIVE = Keyword("NATIVE")
 FOREACH = Keyword("FOREACH")
-OF = Keyword("OF")
 INDEX = Keyword("INDEX")
 ASSERT = Keyword("ASSERT")
 EMBED = Keyword("EMBED")
@@ -1856,7 +1855,7 @@ class Parser:
     def parse_foreach_statement(self):
         self.expect(FOREACH)
         var = self.identifier()
-        self.expect(OF)
+        self.expect(IN)
         array = self.parse_expression()
         index = None
         if self.tokens[self.i] is INDEX:

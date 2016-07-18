@@ -233,7 +233,7 @@ DECLARE NATIVE FUNCTION readLines(filename: String): Array<String>
  |%
 FUNCTION removeDirectoryTree(path: String)
     LET names: Array<String> := files(path)
-    FOREACH name OF names DO
+    FOREACH name IN names DO
         IF name IN [".", ".."] THEN
             NEXT FOREACH
         END IF

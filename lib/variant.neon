@@ -281,7 +281,7 @@ FUNCTION Variant.toString(IN self: Variant): String
             RETURN "<bytes>"
         WHEN Type.array DO
             VAR r: String := "["
-            FOREACH x OF self.val_array INDEX i DO
+            FOREACH x IN self.val_array INDEX i DO
                 IF i > 0 THEN
                     r.append(", ")
                 END IF
@@ -296,7 +296,7 @@ FUNCTION Variant.toString(IN self: Variant): String
         WHEN Type.dictionary DO
             VAR r: String := "{"
             LET keys: Array<String> := self.val_dictionary.keys() % TODO: remove this temporary
-            FOREACH x OF keys INDEX i DO
+            FOREACH x IN keys INDEX i DO
                 IF i > 0 THEN
                     r.append(", ")
                 END IF

@@ -1,2 +1,2 @@
-FOREACH x OF a DO
+FOREACH x IN a DO
 %$

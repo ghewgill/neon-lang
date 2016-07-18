@@ -91,7 +91,6 @@ enum TokenType {
     PRIVATE,
     NATIVE,
     FOREACH,
-    OF,
     INDEX,
     ASSERT,
     EMBED,

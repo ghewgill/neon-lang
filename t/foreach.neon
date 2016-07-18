@@ -1,12 +1,12 @@
 LET a: Array<String> := ["foo", "bar", "baz"]
-FOREACH x OF a DO
+FOREACH x IN a DO
     print("x is \(x)")
 END FOREACH
 %= x is foo
 %= x is bar
 %= x is baz
 
-FOREACH x OF a INDEX i DO
+FOREACH x IN a INDEX i DO
     print("index \(i) is \(x)")
 END FOREACH
 %= index 0 is foo

@@ -1,2 +1,2 @@
-FOREACH x OF a do
+FOREACH x IN a do
                %<

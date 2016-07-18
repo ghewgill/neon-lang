@@ -1,5 +1,5 @@
 VAR i: Number
     %<2
-FOREACH x OF [] INDEX i DO
+FOREACH x IN [] INDEX i DO
                       %<1
 END FOREACH

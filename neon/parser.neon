@@ -2640,8 +2640,8 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
     END IF
     LET var: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.of THEN
-        error(2082, self.token, "OF expected")
+    IF self.token.type # TokenType.in THEN
+        error(2082, self.token, "IN expected")
     END IF
     self.nextToken()
     LET array: POINTER TO ParseTreeNode := self.parseExpression()
@@ -3195,7 +3195,7 @@ END FUNCTION
 
 FUNCTION dumpTypeEnum(node: ParseTreeNode, depth: Number)
     VAR names: String := ""
-    FOREACH n OF node.typeenum.names DO
+    FOREACH n IN node.typeenum.names DO
         IF names # "" THEN
             names.append(",")
         END IF
@@ -3206,7 +3206,7 @@ END FUNCTION
 
 FUNCTION dumpTypeRecord(node: ParseTreeNode, depth: Number)
     VAR names: String := ""
-    FOREACH f OF node.typerecord.fields DO
+    FOREACH f IN node.typerecord.fields DO
         IF names # "" THEN
             names.append(",")
         END IF
@@ -3264,7 +3264,7 @@ END FUNCTION
 
 FUNCTION dumpArrayLiteralExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "ArrayLiteralExpression")
-    FOREACH e OF node.arrayliteralexpression.elements DO
+    FOREACH e IN node.arrayliteralexpression.elements DO
         dumpParseTree(e, depth+1)
     END FOREACH
 END FUNCTION
@@ -3278,7 +3278,7 @@ END FUNCTION
 
 FUNCTION dumpDictionaryLiteralExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "DictionaryLiteralExpression")
-    FOREACH e OF node.dictionaryliteralexpression.elements DO
+    FOREACH e IN node.dictionaryliteralexpression.elements DO
         dumpNode(depth+1, e.key.text)
         dumpParseTree(e.value, depth+2)
     END FOREACH
@@ -3314,7 +3314,7 @@ END FUNCTION
 
 FUNCTION dumpInterpolatedStringExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "InterpolatedStringExpression")
-    FOREACH p OF node.interpolatedstringexpression.parts DO
+    FOREACH p IN node.interpolatedstringexpression.parts DO
         dumpNode(depth+1, "FormatString(\(p.format.text))")
         dumpParseTree(p.expr, depth+2)
     END FOREACH
@@ -3323,7 +3323,7 @@ END FUNCTION
 FUNCTION dumpFunctionCallExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "FunctionCallExpression")
     dumpParseTree(node.functioncallexpression.base, depth+1)
-    FOREACH a OF node.functioncallexpression.args DO
+    FOREACH a IN node.functioncallexpression.args DO
         dumpParseTree(a.expr, depth+1)
     END FOREACH
 END FUNCTION
@@ -3400,7 +3400,7 @@ END FUNCTION
 FUNCTION dumpChainedComparisonExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "ChainedComparisonExpression")
     dumpParseTree(node.chainedcomparisonexpression.left, depth+1)
-    FOREACH c OF node.chainedcomparisonexpression.comps DO
+    FOREACH c IN node.chainedcomparisonexpression.comps DO
         dumpParseTree(c.right, depth+1)
     END FOREACH
 END FUNCTION
@@ -3442,7 +3442,7 @@ END FUNCTION
 
 FUNCTION dumpValidPointerExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "ValidPointerExpression")
-    FOREACH t OF node.validpointerexpression.tests DO
+    FOREACH t IN node.validpointerexpression.tests DO
         dumpParseTree(t.expr, depth+1)
     END FOREACH
 END FUNCTION
@@ -3478,7 +3478,7 @@ END FUNCTION
 
 FUNCTION dumpVariableDeclaration(node: ParseTreeNode, depth: Number)
     VAR names: String := ""
-    FOREACH n OF node.variabledeclaration.names DO
+    FOREACH n IN node.variabledeclaration.names DO
         IF names # "" THEN
             names.append(",")
         END IF
@@ -3498,13 +3498,13 @@ END FUNCTION
 FUNCTION dumpFunctionDeclaration(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "FunctionDeclaration(\(node.functiondeclaration.name.text))")
     dumpParseTree(node.functiondeclaration.returntype, depth+1)
-    FOREACH a OF node.functiondeclaration.args DO
-        FOREACH n OF a.names DO
+    FOREACH a IN node.functiondeclaration.args DO
+        FOREACH n IN a.names DO
             dumpNode(depth+1, "\(a.mode) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
     END FOREACH
-    FOREACH s OF node.functiondeclaration.body DO
+    FOREACH s IN node.functiondeclaration.body DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3512,8 +3512,8 @@ END FUNCTION
 FUNCTION dumpExternalFunctionDeclaration(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "ExternalFunctionDeclaration(\(node.externalfunctiondeclaration.name.text))")
     dumpParseTree(node.externalfunctiondeclaration.returntype, depth+1)
-    FOREACH a OF node.externalfunctiondeclaration.args DO
-        FOREACH n OF a.names DO
+    FOREACH a IN node.externalfunctiondeclaration.args DO
+        FOREACH n IN a.names DO
             dumpNode(depth+1, "\(a.mode) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
@@ -3524,8 +3524,8 @@ END FUNCTION
 FUNCTION dumpNativeFunctionDeclaration(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "NativeFunctionDeclaration(\(node.functiondeclaration.name.text))")
     dumpParseTree(node.functiondeclaration.returntype, depth+1)
-    FOREACH a OF node.functiondeclaration.args DO
-        FOREACH n OF a.names DO
+    FOREACH a IN node.functiondeclaration.args DO
+        FOREACH n IN a.names DO
             dumpNode(depth+1, "\(a.mode) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
@@ -3537,21 +3537,21 @@ FUNCTION dumpExceptionDeclaration(node: ParseTreeNode, depth: Number)
 END FUNCTION
 
 FUNCTION dumpExportDeclaration(node: ParseTreeNode, depth: Number)
-    FOREACH n OF node.exportdeclaration.names DO
+    FOREACH n IN node.exportdeclaration.names DO
         dumpNode(depth, "ExportDeclaration(\(n.text))")
     END FOREACH
 END FUNCTION
 
 FUNCTION dumpAssertStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "AssertStatement")
-    FOREACH e OF node.assertstatement.exprs DO
+    FOREACH e IN node.assertstatement.exprs DO
         dumpParseTree(e, depth+1)
     END FOREACH
 END FUNCTION
 
 FUNCTION dumpAssignmentStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "AssignmentStatement")
-    FOREACH v OF node.assignmentstatement.variables DO
+    FOREACH v IN node.assignmentstatement.variables DO
         dumpParseTree(v, depth+1)
     END FOREACH
     dumpParseTree(node.assignmentstatement.expr, depth+1)
@@ -3560,8 +3560,8 @@ END FUNCTION
 FUNCTION dumpCaseStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "CaseStatement")
     dumpParseTree(node.casestatement.expr, depth+1)
-    FOREACH clause OF node.casestatement.clauses DO
-        FOREACH cond OF clause.conditions DO
+    FOREACH clause IN node.casestatement.clauses DO
+        FOREACH cond IN clause.conditions DO
             IF cond.high_expr = NIL THEN
                 dumpNode(depth+1, "ComparisonWhenCondition(\(cond.cond))")
                 dumpParseTree(cond.expr, depth+2)
@@ -3571,7 +3571,7 @@ FUNCTION dumpCaseStatement(node: ParseTreeNode, depth: Number)
                 dumpParseTree(cond.high_expr, depth+2)
             END IF
         END FOREACH
-        FOREACH s OF clause.statements DO
+        FOREACH s IN clause.statements DO
             dumpParseTree(s, depth+2)
         END FOREACH
     END FOREACH
@@ -3580,7 +3580,7 @@ END FUNCTION
 FUNCTION dumpCheckStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "CheckStatement")
     dumpParseTree(node.checkstatement.cond, depth+1)
-    FOREACH s OF node.checkstatement.statements DO
+    FOREACH s IN node.checkstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3599,7 +3599,7 @@ FUNCTION dumpForStatement(node: ParseTreeNode, depth: Number)
     dumpParseTree(node.forstatement.start, depth+1)
     dumpParseTree(node.forstatement.end, depth+1)
     dumpParseTree(node.forstatement.step, depth+1)
-    FOREACH s OF node.forstatement.statements DO
+    FOREACH s IN node.forstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3607,20 +3607,20 @@ END FUNCTION
 FUNCTION dumpForeachStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "ForeachStatement(\(node.foreachstatement.var.text))")
     dumpParseTree(node.foreachstatement.array, depth+1)
-    FOREACH s OF node.foreachstatement.statements DO
+    FOREACH s IN node.foreachstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
 FUNCTION dumpIfStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "IfStatement")
-    FOREACH c OF node.ifstatement.conditionStatements DO
+    FOREACH c IN node.ifstatement.conditionStatements DO
         dumpParseTree(c.condition, depth+1)
-        FOREACH s OF c.statements DO
+        FOREACH s IN c.statements DO
             dumpParseTree(s, depth+1)
         END FOREACH
     END FOREACH
-    FOREACH s OF node.ifstatement.elseStatements DO
+    FOREACH s IN node.ifstatement.elseStatements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3632,7 +3632,7 @@ END FUNCTION
 
 FUNCTION dumpLoopStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "LoopStatement")
-    FOREACH s OF node.loopstatement.statements DO
+    FOREACH s IN node.loopstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3649,7 +3649,7 @@ END FUNCTION
 FUNCTION dumpRepeatStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "RepeatStatement")
     dumpParseTree(node.repeatstatement.cond, depth+1)
-    FOREACH s OF node.repeatstatement.statements DO
+    FOREACH s IN node.repeatstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3661,7 +3661,7 @@ END FUNCTION
 
 FUNCTION dumpTryStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "TryStatement")
-    FOREACH s OF node.trystatement.statements DO
+    FOREACH s IN node.trystatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3672,14 +3672,14 @@ END FUNCTION
 FUNCTION dumpWhileStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "WhileStatement")
     dumpParseTree(node.whilestatement.cond, depth+1)
-    FOREACH s OF node.whilestatement.statements DO
+    FOREACH s IN node.whilestatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
 FUNCTION dumpProgram(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "Program")
-    FOREACH s OF node.program.statements DO
+    FOREACH s IN node.program.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION

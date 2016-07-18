@@ -136,10 +136,10 @@ FOR name := expr TO expr DO statement() statement() END FOR
 FOR name := expr TO expr STEP expr DO END FOR
 
 % ForeachStatement
-FOREACH name OF expr DO END FOREACH
-FOREACH name OF expr DO statement() END FOREACH
-FOREACH name OF expr DO statement() statement() END FOREACH
-FOREACH name OF expr INDEX name DO END FOREACH
+FOREACH name IN expr DO END FOREACH
+FOREACH name IN expr DO statement() END FOREACH
+FOREACH name IN expr DO statement() statement() END FOREACH
+FOREACH name IN expr INDEX name DO END FOREACH
 
 % IfStatement
 IF expr THEN END IF

@@ -53,7 +53,7 @@ FUNCTION base64Encode(data: Bytes): String
 
     LET source: Array<Number> := data.toArray()
 
-    FOREACH n OF source DO
+    FOREACH n IN source DO
         CASE status
             WHEN State.byte1 DO
                 encoded.append(Base64EncodeTable[binary.shiftRight32(n, 2)])

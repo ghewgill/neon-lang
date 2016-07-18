@@ -241,9 +241,9 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
 END FUNCTION
 
 FUNCTION print_grid(grid: multiarray.ArrayNumber2D)
-    FOREACH row OF grid DO
+    FOREACH row IN grid DO
         VAR s: String := ""
-        FOREACH n OF row DO
+        FOREACH n IN row DO
             IF n > 0 THEN
                 s.append("\(n) ")
             ELSE
@@ -293,7 +293,7 @@ FUNCTION solveSudoku(INOUT grid: multiarray.ArrayNumber2D): Number
     LET solutions: Array<Array<Number>> := dlx_solve(mat, 0, 2)
     IF solutions.size() > 0 THEN
         LET r: Array<Number> := solutions[0]
-        FOREACH i OF r DO
+        FOREACH i IN r DO
             grid[rinfo[i, 0], rinfo[i, 1]] := rinfo[i, 2]
         END FOREACH
     END IF
@@ -356,7 +356,7 @@ FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback
     END FOR
     shuffle(INOUT places)
     VAR n: Number := 9*9
-    FOREACH p OF places DO
+    FOREACH p IN places DO
         callback(n)
         LET i: Number := math.floor(p / 9)
         LET j: Number := p MOD 9
@@ -380,8 +380,8 @@ FUNCTION makePuzzle(solution: multiarray.ArrayNumber2D, filled: Number, callback
 END FUNCTION
 
 FUNCTION puzzleFilled(grid: multiarray.ArrayNumber2D): Boolean
-    FOREACH row OF grid DO
-        FOREACH cell OF row DO
+    FOREACH row IN grid DO
+        FOREACH cell IN row DO
             IF cell = 0 THEN
                 RETURN FALSE
             END IF

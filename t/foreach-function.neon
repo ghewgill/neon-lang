@@ -1,5 +1,5 @@
 LET d: Dictionary<Number> := {"abc": 12}
-FOREACH x OF d.keys() DO
+FOREACH x IN d.keys() DO
     print(x)
 END FOREACH
 %= abc

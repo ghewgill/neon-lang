@@ -9,7 +9,7 @@ data := file.readLines("tmp/linetest.txt")
 print("\(data.size()) lines read.")
 %= 4 lines read.
 
-FOREACH s OF data DO
+FOREACH s IN data DO
     print(s)
 END FOREACH
 

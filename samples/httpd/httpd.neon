@@ -50,7 +50,7 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
     self.server.listen(self.port)
     LOOP
         VAR read: Array<net.Socket> := [self.server]
-        FOREACH c OF self.clients DO
+        FOREACH c IN self.clients DO
             read.append(c.socket)
         END FOREACH
         VAR write: Array<net.Socket> := []
@@ -88,7 +88,7 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     %LET version: String := request[2]
     VAR response: Response := Response()
     VAR found: Boolean := FALSE
-    FOREACH h OF self.handlers DO
+    FOREACH h IN self.handlers DO
         IF regex.search(h.path, path, OUT _) THEN
             % TODO: Should be able to do h.callback(path, params),
             % but that syntax seems to be handled only as a method
@@ -106,7 +106,7 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     print("\(method) \(path) \(response.code)")
     client.socket.send(toBytes("HTTP/1.0 \(response.code) ok\r\n"))
     client.socket.send(toBytes("Content-type: \(response.content_type)\r\n"))
-    FOREACH h OF response.headers.keys() DO
+    FOREACH h IN response.headers.keys() DO
         client.socket.send(toBytes("\(h): \(response.headers[h])\r\n"))
     END FOREACH
     client.socket.send(toBytes("Content-length: \(response.content.size())\r\n"))
@@ -129,7 +129,7 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
             page.append("<html>\n")
             page.append("<body>\n")
             page.append("<table>\n")
-            FOREACH fn OF file.files(local_path) DO
+            FOREACH fn IN file.files(local_path) DO
                 page.append("<tr><td><a href=\"\(fn)\">\(fn)</a></td></tr>\n")
             END FOREACH
             page.append("</table>\n")

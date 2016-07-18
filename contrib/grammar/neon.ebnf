@@ -110,7 +110,7 @@ ExpressionStatement = Identifier, CompoundExpressionTail, {CompoundExpressionTai
 
 ForStatement = 'FOR', Identifier, ':=', Expression, 'TO', Expression, ['STEP', Expression], 'DO', {Statement}, 'END', 'FOR';
 
-ForeachStatement = 'FOREACH', Identifier, 'OF', Expression, ['INDEX', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
+ForeachStatement = 'FOREACH', Identifier, 'IN', Expression, ['INDEX', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
 
 IfStatement = 'IF', IfExpression, 'THEN', {Statement}, {'ELSIF', IfExpression, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
 

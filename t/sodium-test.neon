@@ -3101,7 +3101,7 @@ FUNCTION test_aead_aes256gcm()
         ),|%
     ]
     IF sodium.aead_aes256gcm_is_available() THEN
-        FOREACH test OF tests DO
+        FOREACH test IN tests DO
             LET ciphertext: Bytes := sodium.aead_aes256gcm_encrypt(test.message, test.ad, test.nonce, test.key)
             ASSERT ciphertext = test.ciphertext & test.mac
             LET decrypted: Bytes := sodium.aead_aes256gcm_decrypt(ciphertext, test.ad, test.nonce, test.key)
@@ -4538,7 +4538,7 @@ FUNCTION test_generichash()
             out WITH HEXBYTES "142709d62e28fcccd0af97fad0f8465b971e82201dc51070faa0372aa43e92484be1c1e73ba10906d5d1853db6a4106e0a7bf9800d373d6dee2d46d62ef2a461"
         ),
     ]
-    FOREACH t OF tests DO
+    FOREACH t IN tests DO
         ASSERT sodium.generichash(sodium.generichash_BYTES_MAX, t.in, t.key) = t.out
     END FOREACH
 
@@ -4765,7 +4765,7 @@ FUNCTION test_pwhash_tv()
             result WITH HEXBYTES "1839be14287053bfcd4ea60db82777fad1a6e9535c388b770743e61235449e668717199defd516c438b3ebd79b3529eb32482ef414525292ea1bbec09da10790a2330a4399f2fe6dd63d80954e3c547a5f1c619db5a30bde495b23f2214b4fa7572851d75246f2817775f0b521acc6efbc7832c9a76de7465e3c65cade88e86c973f85a882bb54f92b983977c6e937c88f083ba68c70fb49497065b158e2e789809b1d4cc9ec2d"
         ),
     ]
-    FOREACH t OF tests DO
+    FOREACH t IN tests DO
         ASSERT sodium.pwhash_scryptsalsa208sha256(t.outlen, t.passwd, t.salt, t.opslimit, t.memlimit) = t.result
     END FOREACH
 END FUNCTION
@@ -4799,7 +4799,7 @@ FUNCTION test_pwhash_tv2()
             result WITH HEXBYTES "d54916748076b9d9f72198c8fbef563462dc8c706e1ad38abd1fac570016721acd0a7659ab49a47299a996b43597690c0c947143069f35d83e606273dbf2d622321393949b8ed5a68315362c4f84804384d05e0e0e86bc00e3641233f9f975ab46b60ba185c5e5fe47f78efd207e69fd8f6390730828b93b9b3763ea1283caa03bc36726763715de811915681dd214524f5ad4dd386608cac6c7f2"
         ),
     ]
-    FOREACH t OF tests DO
+    FOREACH t IN tests DO
         ASSERT sodium.pwhash_scryptsalsa208sha256(t.outlen, t.passwd, t.salt, t.opslimit, t.memlimit) = t.result
     END FOREACH
 END FUNCTION
@@ -4953,7 +4953,7 @@ FUNCTION test_pwhash_tv3()
             expected WITH FALSE
         ),
     ]
-    FOREACH t OF tests DO
+    FOREACH t IN tests DO
         ASSERT sodium.pwhash_scryptsalsa208sha256_str_verify(t.out, t.passwd) = t.expected
     END FOREACH
 END FUNCTION
@@ -5231,7 +5231,7 @@ FUNCTION test_sign()
             m   WITH HEXBYTES "08b8b2b733424243760fe426a4b54908632110a66c2f6591eabd3345e3e4eb98fa6e264bf09efe12ee50f8f54e9f77b1e355f6c50544e23fb1433ddf73be84d879de7c0046dc4996d9e773f4bc9efe5738829adb26c81b37c93a1b270b20329d658675fc6ea534e0810a4432826bf58c941efb65d57a338bbd2e26640f89ffbc1a858efcb8550ee3a5e1998bd177e93a7363c344fe6b199ee5d02e82d522c4feba15452f80288a821a579116ec6dad2b3b310da903401aa62100ab5d1a36553e06203b33890cc9b832f79ef80560ccb9a39ce767967ed628c6ad573cb116dbefefd75499da96bd68a8a97b928a8bbc103b6621fcde2beca1231d206be6cd9ec7aff6f6c94fcd7204ed3455c68c83f4a41da4af2b74ef5c53f1d8ac70bdcb7ed185ce81bd84359d44254d95629e9855a94a7c1958d1f8ada5d0532ed8a5aa3fb2d17ba70eb6248e594e1a2297acbbb39d502f1a8c6eb6f1ce22b3de1a1f40cc24554119a831a9aad6079cad88425de6bde1a9187ebb6092cf67bf2b13fd65f27088d78b7e883c8759d2c4f5c65adb7553878ad575f9fad878e80a0c9ba63bcbcc2732e69485bbc9c90bfbd62481d9089beccf80cfe2df16a2cf65bd92dd597b0707e0917af48bbb75fed413d238f5555a7a569d80c3414a8d0859dc65a46128bab27af87a71314f318c782b23ebfe808b82b0ce26401d2e22f04d83d1255dc51addd3b75a2b1ae0784504df543af8969be3ea7082ff7fc9888c144da2af58429ec96031dbcad3dad9af0dcbaaaf268cb8fcffead94f3c7ca495e056a9b47acdb751fb73e666c6c655ade8297297d07ad1ba5e43f1bca32301651339e22904cc8c42f58c30c04aafdb038dda0847dd988dcda6f3bfd15c4b4c4525004aa06eeff8ca61783aacec57fb3d1f92b0fe2fd1a85f6724517b65e614ad6808d6f6ee34dff7310fdc82aebfd904b01e1dc54b2927094b2db68d6f903b68401adebf5a7e08d78ff4ef5d63653a65040cf9bfd4aca7984a74d37145986780fc0b16ac451649de6188a7dbdf191f64b5fc5e2ab47b57f7f7276cd419c17a3ca8e1b939ae49e488acba6b965610b5480109c8b17b80e1b7b750dfc7598d5d5011fd2dcc5600a32ef5b52a1ecc820e308aa342721aac0943bf6686b64b2579376504ccc493d97e6aed3fb0f9cd71a43dd497f01f17c0e2cb3797aa2a2f256656168e6c496afc5fb93246f6b1116398a346f1a641f3b041e989f7914f90cc2c7fff357876e506b50d334ba77c225bc307ba537152f3f1610e4eafe595f6d9d90d11faa933a15ef1369546868a7f3a45a96768d40fd9d03412c091c6315cf4fde7cb68606937380db2eaaa707b4c4185c32eddcdd306705e4dc1ffc872eeee475a64dfac86aba41c0618983f8741c5ef68d3a101e8a3b8cac60c905c15fc910840b94c00a0b9d0"
         ),
     ]
-    FOREACH td OF test_data INDEX i DO
+    FOREACH td IN test_data INDEX i DO
         VAR sm: Bytes := sodium.sign(td.m, td.sk & td.pk)
         VAR a: Array<Number> := sm.toArray()
         LET b: Bytes := a[0 TO sodium.sign_BYTES-1].toBytes()
@@ -5272,7 +5272,7 @@ FUNCTION test_stream()
     VAR output2: Bytes := output.toArray()[0 TO 3999].toBytes()
     output2 := sodium.stream_xsalsa20_xor_ic(output2, nonce, 0, firstkey)
     LET a: Array<Number> := output2.toArray()
-    FOREACH b OF a DO
+    FOREACH b IN a DO
         ASSERT b = 0
     END FOREACH
 
@@ -5290,7 +5290,7 @@ FUNCTION test_stream2()
     VAR output2: Bytes := output.toArray()[0 TO 3999].toBytes()
     output2 := sodium.stream_salsa20_xor_ic(output2, noncesuffix, 0, secondkey)
     LET a: Array<Number> := output2.toArray()
-    FOREACH b OF a DO
+    FOREACH b IN a DO
         ASSERT b = 0
     END FOREACH
 

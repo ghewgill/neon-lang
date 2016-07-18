@@ -1430,8 +1430,8 @@ std::unique_ptr<Statement> Parser::parseForeachStatement()
     }
     const Token &var = tokens[i];
     ++i;
-    if (tokens[i].type != OF) {
-        error(2082, tokens[i], "OF expected");
+    if (tokens[i].type != IN) {
+        error(2082, tokens[i], "IN expected");
     }
     ++i;
     std::unique_ptr<Expression> array = parseExpression();

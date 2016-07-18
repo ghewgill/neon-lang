@@ -45,7 +45,7 @@ FUNCTION updateBoard()
     Board[45] := 2
     Board[54] := 2
     VAR color: Number := 2
-    FOREACH m OF Moves DO
+    FOREACH m IN Moves DO
         IF m # 0 THEN
             _ := validMove(0, m, color, 0)
         END IF

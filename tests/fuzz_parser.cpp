@@ -93,7 +93,6 @@ std::string reconstitute(const Token &t)
         case PRIVATE:     return "PRIVATE";
         case NATIVE:      return "NATIVE";
         case FOREACH:     return "FOREACH";
-        case OF:          return "OF";
         case INDEX:       return "INDEX";
         case ASSERT:      return "ASSERT";
         case EMBED:       return "EMBED";

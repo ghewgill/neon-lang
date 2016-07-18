@@ -145,7 +145,7 @@ FUNCTION encode(data: Variant): String
         WHEN Type.array DO
             VAR r: String := "["
             LET a: Array<Variant> := data.getArray()
-            FOREACH x OF a DO
+            FOREACH x IN a DO
                 IF r.length() > 1 THEN
                     r.append(",")
                 END IF
@@ -158,7 +158,7 @@ FUNCTION encode(data: Variant): String
             LET d: Dictionary<Variant> := data.getDictionary()
             LET keys: Array<String> := d.keys()
             % TODO: This should just be d.keys(), see t/foreach-value.neon
-            FOREACH x OF keys DO
+            FOREACH x IN keys DO
                 IF r.length() > 1 THEN
                     r.append(",")
                 END IF
