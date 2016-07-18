@@ -111,6 +111,7 @@ std::string reconstitute(const Token &t)
         case GIVES:       return "GIVES";
         case NOWHERE:     return "NOWHERE";
         case INTDIV:      return "INTDIV";
+        case UNKNOWN:     return "(UNKNOWN)";
         case MAX_TOKEN:   return "";
     }
     return "";
