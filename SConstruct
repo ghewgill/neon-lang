@@ -19,39 +19,14 @@ if not hasattr(subprocess, "check_output"):
         return out
     subprocess.check_output = check_output
 
+squeeze = lambda a: [x for x in a if x]
+
 # Assume a UTF-8 capable terminal.
 os.putenv("PYTHONIOENCODING", "UTF-8")
 
 coverage = ARGUMENTS.get("coverage", 0)
 # This is needed on OS X because clang has a bug where this isn't included automatically.
 coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darwin/libclang_rt.profile_osx.a"] if coverage else [])
-
-default_release = 0
-if GetOption("clean"):
-    try:
-        os.remove("config.py")
-    except OSError:
-        pass
-    release = default_release
-else:
-    release = int(ARGUMENTS.get("release", default_release))
-    stored_release = None
-    try:
-        with open("config.py") as config:
-            for s in config:
-                a = s.strip().split("=")
-                if a[0] == "release":
-                    stored_release = int(a[1])
-    except IOError:
-        pass
-    if stored_release is not None:
-        if release != stored_release:
-            print >>sys.stderr, "Requested release flag ({}) different from last build ({}).".format(release, stored_release)
-            print >>sys.stderr, "Run 'scons -c' first."
-            sys.exit(1)
-    else:
-        with open("config.py", "w") as config:
-            print >>config, "release={}".format(release)
 
 # Check for any files that accidentally contain \r\n. Only do this
 # on non-windows platforms, because windows users may set Git to
@@ -67,7 +42,19 @@ if sys.platform != "nt":
 
 env = Environment()
 
-env["RELEASE"] = release
+vars = Variables(["config.cache", "config.py"])
+vars.AddVariables(
+    BoolVariable("MINIMAL", "Set to 1 to build without most 3rd party libraries", False),
+    BoolVariable("RELEASE", "Set to 1 to build for release", False),
+)
+vars.Update(env)
+if GetOption("clean"):
+    try:
+        os.remove("config.cache")
+    except OSError:
+        pass
+else:
+    vars.Save("config.cache", env)
 
 env["ENV"]["PROCESSOR_ARCHITECTURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
 env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
@@ -82,19 +69,19 @@ def add_external(target):
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libs_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"]))
-libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"]))
-libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"]))
-libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"]))
+libs_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"])) if not env["MINIMAL"] else None
+libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"])) if not env["MINIMAL"] else None
+libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"])) if not env["MINIMAL"] else None
+libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"])) if not env["MINIMAL"] else None
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
-libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
+libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"])) if not env["MINIMAL"] else None
 libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
-libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"]))
-liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"]))
+libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"])) if not env["MINIMAL"] else None
+liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"])) if not env["MINIMAL"] else None
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
-libsdl = add_external(SConscript("external/SConscript-libsdl", exports=["env"]))
-libsodium = add_external(SConscript("external/SConscript-libsodium", exports=["env"]))
-libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"]))
+libsdl = add_external(SConscript("external/SConscript-libsdl", exports=["env"])) if not env["MINIMAL"] else None
+libsodium = add_external(SConscript("external/SConscript-libsodium", exports=["env"])) if not env["MINIMAL"] else None
+libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"])) if not env["MINIMAL"] else None
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
@@ -126,6 +113,7 @@ if sys.platform == "win32":
             "/Ox",
             "/MT",
         ])
+    env.Append(LIBS=["wsock32"])
 else:
     env.Append(CXXFLAGS=[
         "-std=c++0x",
@@ -143,8 +131,9 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=[x for x in [libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium, libssl] if x])
-env.Append(LIBS=libs_curses)
+env.Prepend(LIBS=squeeze([libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium, libssl]))
+if libs_curses:
+    env.Append(LIBS=libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -170,11 +159,11 @@ if coverage:
         "--coverage", "-O0",
     ])
 
-rtl_const = [
-    "lib/curses_const.cpp",
-    "lib/sdl_const.cpp",
-    "lib/sodium_const.cpp",
-]
+rtl_const = squeeze([
+    "lib/curses_const.cpp" if libs_curses else None,
+    "lib/sdl_const.cpp" if libsdl else None,
+    "lib/sodium_const.cpp" if libsodium else None,
+])
 
 if os.name == "posix":
     rtl_const.extend([
@@ -188,43 +177,43 @@ else:
     print "Unsupported platform:", os.name
     sys.exit(1)
 
-rtl_cpp = rtl_const + [
+rtl_cpp = rtl_const + squeeze([
     "lib/binary.cpp",
-    "lib/compress.cpp",
-    "lib/curses.cpp",
+    "lib/compress.cpp" if libbz2 and liblzma else None,
+    "lib/curses.cpp" if libs_curses else None,
     "lib/datetime.cpp",
     "lib/debugger.cpp",
     "lib/global.cpp",
     "lib/file.cpp",
     "lib/hash.cpp",
-    "lib/http.cpp",
+    "lib/http.cpp" if libcurl else None,
     "lib/io.cpp",
     "lib/math.cpp",
     "lib/net.cpp",
     "lib/os.cpp",
     "lib/random.cpp",
     "lib/runtime.cpp",
-    "lib/regex.cpp",
-    "lib/sdl.cpp",
-    "lib/sodium.cpp",
-    "lib/sqlite.cpp",
+    "lib/regex.cpp" if libpcre else None,
+    "lib/sdl.cpp" if libsdl else None,
+    "lib/sodium.cpp" if libsodium else None,
+    "lib/sqlite.cpp" if libsqlite else None,
     "lib/string.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",
-]
+])
 
 env.Depends("lib/http.cpp", libcurl)
 
-rtl_neon = [
+rtl_neon = squeeze([
     "lib/binary.neon",
-    "lib/compress.neon",
-    "lib/curses.neon",
+    "lib/compress.neon" if libbz2 and liblzma else None,
+    "lib/curses.neon" if libs_curses else None,
     "lib/datetime.neon",
     "lib/debugger.neon",
     "lib/file.neon",
     "lib/global.neon",
     "lib/hash.neon",
-    "lib/http.neon",
+    "lib/http.neon" if libcurl else None,
     "lib/io.neon",
     "lib/math.neon",
     "lib/mmap.neon",
@@ -232,14 +221,14 @@ rtl_neon = [
     "lib/os.neon",
     "lib/random.neon",
     "lib/runtime.neon",
-    "lib/regex.neon",
-    "lib/sdl.neon",
-    "lib/sodium.neon",
-    "lib/sqlite.neon",
+    "lib/regex.neon" if libpcre else None,
+    "lib/sdl.neon" if libsdl else None,
+    "lib/sodium.neon" if libsodium else None,
+    "lib/sqlite.neon" if libsqlite else None,
     "lib/string.neon",
     "lib/sys.neon",
     "lib/time.neon",
-]
+])
 
 if os.name == "posix":
     rtl_cpp.extend([
@@ -459,8 +448,23 @@ if sys.platform == "win32":
 else:
     test_ffi = env.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
 
-tests = env.Command("tests_normal", [neon, "scripts/run_test.py", Glob("t/*.neon")], sys.executable + " scripts/run_test.py t")
-tests = env.Command("tests_helium", [neon, "scripts/run_test.py", Glob("t/*.neon")], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" t")
+test_sources = []
+for f in Glob("t/*.neon"):
+    if not libs_curses and f.name in ["sudoku-test.neon"]:
+        continue
+    if not libpcre and f.name in ["forth-test.neon", "lisp-test.neon", "regex-test.neon"]:
+        continue
+    if not libcurl and f.name in ["debug-server.neon", "http-test.neon"]:
+        continue
+    if not libsqlite and f.name in ["sqlite-test.neon"]:
+        continue
+    if not (libbz2 and liblzma) and f.name in ["compress-test.neon"]:
+        continue
+    if not libsodium and f.name in ["sodium-test.neon"]:
+        continue
+    test_sources.append(f)
+tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
+tests = env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" t")
 env.Depends(tests, test_ffi)
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
@@ -470,7 +474,19 @@ env.Command("tests_number", test_number_to_string, test_number_to_string[0].path
 samples = []
 for path, dirs, files in os.walk("."):
     if all(x not in ["t", "tests"] for x in path.split(os.sep)):
-        samples.extend(os.path.join(path, x) for x in files if x.endswith(".neon") and x != "global.neon")
+        for f in files:
+            if f.endswith(".neon") and f != "global.neon":
+                if not libs_curses and f in ["curses.neon", "hello-curses.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
+                    continue
+                if not libpcre and f in ["forth.neon", "httpd.neon", "lisp.neon"]:
+                    continue
+                if not libcurl and f in ["ndb.neon"]:
+                    continue
+                if not libsdl and f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
+                    continue
+                if not libsodium and f in ["sodium.neon"]:
+                    continue
+                samples.append(os.path.join(path, f))
 for sample in samples:
     env.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")

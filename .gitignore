@@ -16,7 +16,7 @@ config.log
 *.neond
 bin/
 errors.txt
-config.py
+config.cache
 test_grammar
 
 external/IntelRDFPMathLib20U1/
