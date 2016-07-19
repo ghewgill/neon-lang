@@ -110,9 +110,13 @@ void io$truncate(void *pf)
     FILE *f = check_file(pf);
     long ofs = ftell(f);
     #ifdef _WIN32
-        _chsize(_fileno(f), ofs);
+        if (_chsize(_fileno(f), ofs) != 0) {
+            throw RtlException(Exception_file$FileWriteException, "");
+        }
     #else
-        ftruncate(fileno(f), ofs);
+        if (ftruncate(fileno(f), ofs) != 0) {
+            throw RtlException(Exception_file$FileWriteException, "");
+        }
     #endif
 }
 
