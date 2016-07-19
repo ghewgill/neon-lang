@@ -78,8 +78,20 @@ void file$copy(const std::string &filename, const std::string &destination)
         }
     }
     close(sourcefd);
-    fchmod(destfd, statbuf.st_mode);
-    fchown(destfd, statbuf.st_uid, statbuf.st_gid);
+    if (fchmod(destfd, statbuf.st_mode) != 0) {
+        int error = errno;
+        close(sourcefd);
+        close(destfd);
+        unlink(destination.c_str());
+        handle_error(error, destination);
+    }
+    if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
+        int error = errno;
+        close(sourcefd);
+        close(destfd);
+        unlink(destination.c_str());
+        handle_error(error, destination);
+    }
     close(destfd);
     struct utimbuf utimebuf;
     utimebuf.actime = statbuf.st_atime;
@@ -135,8 +147,20 @@ void file$copyOverwriteIfExists(const std::string &filename, const std::string &
         }
     }
     close(sourcefd);
-    fchmod(destfd, statbuf.st_mode);
-    fchown(destfd, statbuf.st_uid, statbuf.st_gid);
+    if (fchmod(destfd, statbuf.st_mode) != 0) {
+        int error = errno;
+        close(sourcefd);
+        close(destfd);
+        unlink(destination.c_str());
+        handle_error(error, destination);
+    }
+    if (fchown(destfd, statbuf.st_uid, statbuf.st_gid) != 0) {
+        int error = errno;
+        close(sourcefd);
+        close(destfd);
+        unlink(destination.c_str());
+        handle_error(error, destination);
+    }
     close(destfd);
     struct utimbuf utimebuf;
     utimebuf.actime = statbuf.st_atime;
