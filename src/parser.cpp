@@ -1169,7 +1169,6 @@ std::unique_ptr<Statement> Parser::parseIfStatement()
             error(2026, tokens[i], "THEN expected");
         }
         ++i;
-        TemporaryMinimumIndent indent(this, tok_if.column + 1);
         std::vector<std::unique_ptr<Statement>> statements;
         while (tokens[i].type != ELSIF && tokens[i].type != ELSE && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             std::unique_ptr<Statement> s = parseStatement();
