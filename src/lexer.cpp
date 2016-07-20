@@ -727,9 +727,9 @@ std::unique_ptr<TokenizedSource> tokenize(const std::string &source_path, const 
     std::unique_ptr<TokenizedSource> r { new TokenizedSource() };
     r->source_path = source_path;
     r->source_hash = std::string(h, h+sizeof(h));
-    r->source_text = source;
+    r->source_text = std::string(i, source.end());
     r->source_lines.resize(1); // Leave room for nonexistent line 0.
-    r->tokens = tokenize_fragment(r.get(), source_path, line, 1, std::string(i, source.end()));
+    r->tokens = tokenize_fragment(r.get(), source_path, line, 1, r->source_text);
     Token t(r.get());
     t.line = line;
     t.column = 1;

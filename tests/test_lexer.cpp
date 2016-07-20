@@ -112,6 +112,20 @@ int main(int argc, char *argv[])
         assert(tokens[1].line == 3);
         assert(tokens[1].column == 1);
         assert(tokens[2].type == END_OF_FILE);
+
+        {
+            auto tokenized = tokenize("", "#!/bin/neon\na\n");
+            dump(*tokenized);
+            //for (size_t i = 0; i < tokenized->source_lines.size(); i++) {
+            //    printf("%lu: %lu %lu\n", i, tokenized->source_lines[i].first, tokenized->source_lines[i].second);
+            //}
+            auto &tokens = tokenized->tokens;
+            assert(tokens.size() == 2);
+            assert(tokens[0].type == IDENTIFIER); assert(tokens[0].line == 2); assert(tokens[0].column == 1); assert(tokens[0].text == "a");
+            assert(tokens[0].source->source_lines[2].first == 1); assert(tokens[0].source->source_lines[2].second == 1);
+            assert(tokens[0].source_line() == "a");
+            assert(tokens[1].type == END_OF_FILE);
+        }
     }
 
     exhaustive_test(2);
