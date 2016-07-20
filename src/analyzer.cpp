@@ -1334,9 +1334,6 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         func = analyze(expr->base.get());
     }
     if (recordtype != nullptr) {
-        if (expr->args.size() > recordtype->fields.size()) {
-            error2(3130, expr->args[recordtype->fields.size()]->expr->token, "too many fields", recordtype->declaration, "record declared here");
-        }
         std::vector<const Expression *> elements(recordtype->fields.size());
         for (auto &x: expr->args) {
             if (x->name.text.empty()) {

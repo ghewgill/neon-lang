@@ -1,7 +1,0 @@
-TYPE Point IS RECORD
-              %<2
-    x: Number
-    y: Number
-END RECORD
-Point(1, 2, 3)
-            %<1
