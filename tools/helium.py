@@ -2434,6 +2434,8 @@ ExcludeTests = [
     "t/os-test.neon",           # Module not required
     "t/outer.neon",             # Feature not required
     "t/outer2.neon",            # Feature not required
+    "t/parameter-out-array.neon", # Feature not required
+    "t/parameter-out-string.neon", # Feature not required
     "t/recursion-limit.neon",   # Feature not required
     "t/regex-test.neon",        # Module not required
     "t/return-case.neon",       # Feature not required
@@ -2461,6 +2463,8 @@ ExcludeTests = [
     "t/import.neon",            # Module import not required yet
     "t/io-test.neon",           # Module not required yet
     "t/module2.neon",           # Feature not required yet
+    "t/parameter-inout-array.neon", # Does not fail here
+    "t/parameter-inout-string.neon", # Does not fail here
     "t/record-private.neon",    # Feature not required yet
     "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
     "t/string-test.neon",       # Module not required yet

@@ -1,0 +1,8 @@
+FUNCTION s_out(OUT p: String)
+    p := "hi"
+END FUNCTION
+
+VAR s: String := "hello there"
+s_out(OUT s[0 TO 4])
+print(s)
+%= hi there

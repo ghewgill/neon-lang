@@ -1,0 +1,9 @@
+% TODO
+FUNCTION s_inout(INOUT p: String)
+    p := "hi"
+END FUNCTION
+
+VAR s: String := "hello there"
+s_inout(INOUT s[0 TO 4])
+print(s)
+%= hi there

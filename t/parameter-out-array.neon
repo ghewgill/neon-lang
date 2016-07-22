@@ -1,0 +1,8 @@
+FUNCTION a_out(OUT p: Array<Number>)
+    p := [1, 2]
+END FUNCTION
+
+VAR a: Array<Number> := [1, 2, 3, 4, 5, 6, 7, 8, 9]
+a_out(OUT a[0 TO 4])
+print("\(a)")
+%= [1, 2, 6, 7, 8, 9]
