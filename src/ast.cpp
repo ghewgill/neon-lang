@@ -159,7 +159,7 @@ bool TypeFunction::is_assignment_compatible(const Type *rhs) const
             return true;
         }
     }
-    if (not returntype->is_assignment_compatible(f->returntype)) {
+    if (returntype != TYPE_NOTHING && f->returntype != TYPE_NOTHING && not returntype->is_assignment_compatible(f->returntype)) {
         return false;
     }
     if (params.size() != f->params.size()) {
