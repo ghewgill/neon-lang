@@ -2436,6 +2436,7 @@ ExcludeTests = [
     "t/outer2.neon",            # Feature not required
     "t/parameter-out-array.neon", # Feature not required
     "t/parameter-out-string.neon", # Feature not required
+    "t/process-test.neon",      # Module not required
     "t/recursion-limit.neon",   # Feature not required
     "t/regex-test.neon",        # Module not required
     "t/return-case.neon",       # Feature not required

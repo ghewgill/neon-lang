@@ -219,6 +219,7 @@ rtl_neon = squeeze([
     "lib/mmap.neon",
     "lib/net.neon",
     "lib/os.neon",
+    "lib/process.neon",
     "lib/random.neon",
     "lib/runtime.neon",
     "lib/regex.neon" if libpcre else None,
@@ -235,6 +236,7 @@ if os.name == "posix":
         "lib/file_posix.cpp",
         "lib/mmap_posix.cpp",
         "lib/os_posix.cpp",
+        "lib/process_posix.cpp",
         "lib/time_posix.cpp",
     ])
     if sys.platform.startswith("darwin"):
@@ -254,6 +256,7 @@ elif os.name == "nt":
         "lib/file_win32.cpp",
         "lib/mmap_win32.cpp",
         "lib/os_win32.cpp",
+        "lib/process_win32.cpp",
         "lib/time_win32.cpp",
     ])
     rtl_platform = "src/rtl_win32.cpp"

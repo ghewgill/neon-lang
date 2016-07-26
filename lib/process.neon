@@ -1,0 +1,3 @@
+EXPORT call
+
+DECLARE NATIVE FUNCTION call(command: String, OUT stdout: Bytes, OUT stderr: Bytes): Number
