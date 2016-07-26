@@ -649,6 +649,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         column := 0
                         linestart := i + 1
                         lineend := findLineEnd(source, i+1)
+                        startindex := i
                         INC i
                     ELSE
                         INC i

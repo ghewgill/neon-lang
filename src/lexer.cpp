@@ -637,6 +637,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         column = 0;
                         linestart = i+1;
                         lineend = std::find(i+1, source.end(), '\n');
+                        startindex = i;
                         utf8::advance(i, 1, source.end());
                     } else {
                         utf8::advance(i, 1, source.end());

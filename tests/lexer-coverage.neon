@@ -55,3 +55,6 @@ NOWHERE INTDIV
  | comment
  |%
 %| Nested %| comment |% |%
+a%| |%b
+a%|
+|%b

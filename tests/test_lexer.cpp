@@ -101,6 +101,15 @@ int main(int argc, char *argv[])
         assert(tokens[17].type == STRING);      assert(tokens[17].column == 42);    assert(tokens[17].text == "");
         assert(tokens[18].type == END_OF_FILE);
 
+        tokens = dump(*tokenize("", "IF x THEN\n%|\n|%END LOOP")).tokens;
+        assert(tokens.size() == 6);
+        assert(tokens[0].type == IF);           assert(tokens[0].column == 1);
+        assert(tokens[1].type == IDENTIFIER);   assert(tokens[1].column == 4);
+        assert(tokens[2].type == THEN);         assert(tokens[2].column == 6);
+        assert(tokens[3].type == END);          assert(tokens[3].column == 3);
+        assert(tokens[4].type == LOOP);         assert(tokens[4].column == 7);
+        assert(tokens[5].type == END_OF_FILE);
+
         tokens = dump(*tokenize("", "a\n\nb")).tokens;
         assert(tokens.size() == 3);
         assert(tokens[0].type == IDENTIFIER);
