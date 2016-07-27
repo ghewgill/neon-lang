@@ -1,0 +1,23 @@
+IMPORT file
+IMPORT runtime
+IMPORT string
+
+VAR debugRT: Boolean := FALSE
+
+LET tokens: Array<String> := string.split(file.readLines("config.py")[0], "=")
+IF tokens[0] = "release" THEN
+    IF tokens[1] = "0" THEN
+        debugRT := TRUE
+    ELSE
+        debugRT := FALSE
+    END IF
+    IF runtime.isDebug() # debugRT THEN
+        print("runtime mismatch")
+    ELSE
+        print("runtime match")
+    END IF
+ELSE
+    print("unknown")
+END IF
+
+%= runtime match

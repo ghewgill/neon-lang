@@ -2457,6 +2457,7 @@ ExcludeTests = [
     "t/array2d.neon",           # Not implemented in helium yet
     "t/bytes.neon",             # FIXME
     "t/bytes-slice.neon",       # FIXME
+    "t/debug.neon",             # Not implemented in helium yet
     "t/file-test.neon",         # Code in module doesn't work yet
     "t/file-writebytes.neon",   # FIXME
     "t/function-pointer.neon",  # Function pointer not required yet

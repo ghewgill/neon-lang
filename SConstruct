@@ -137,6 +137,7 @@ else:
     if not env["RELEASE"]:
         env.Append(CXXFLAGS=[
             "-g",
+            "-D_DEBUG",
         ])
     else:
         env.Append(CXXFLAGS=[
