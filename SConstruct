@@ -66,22 +66,33 @@ def add_external(target):
     env.Depends("external", target)
     return target
 
+use_curses = not env["MINIMAL"]
+use_pcre = not env["MINIMAL"]
+use_curl = not env["MINIMAL"]
+use_easysid = not env["MINIMAL"]
+use_sqlite = not env["MINIMAL"]
+use_bz2 = not env["MINIMAL"]
+use_lzma = not env["MINIMAL"]
+use_sdl = not env["MINIMAL"]
+use_sodium = not env["MINIMAL"]
+use_ssl = not env["MINIMAL"]
+
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libs_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"])) if not env["MINIMAL"] else None
-libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"])) if not env["MINIMAL"] else None
-libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"])) if not env["MINIMAL"] else None
-libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"])) if not env["MINIMAL"] else None
+libs_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"])) if use_curses else None
+libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"])) if use_pcre else None
+libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"])) if use_curl else None
+libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"])) if use_easysid else None
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
-libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"])) if not env["MINIMAL"] else None
+libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"])) if use_sqlite else None
 libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
-libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"])) if not env["MINIMAL"] else None
-liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"])) if not env["MINIMAL"] else None
+libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"])) if use_bz2 else None
+liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"])) if use_lzma else None
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
-libsdl = add_external(SConscript("external/SConscript-libsdl", exports=["env"])) if not env["MINIMAL"] else None
-libsodium = add_external(SConscript("external/SConscript-libsodium", exports=["env"])) if not env["MINIMAL"] else None
-libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"])) if not env["MINIMAL"] else None
+libsdl = add_external(SConscript("external/SConscript-libsdl", exports=["env"])) if use_sdl else None
+libsodium = add_external(SConscript("external/SConscript-libsodium", exports=["env"])) if use_sodium else None
+libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"])) if use_ssl else None
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
@@ -160,9 +171,9 @@ if coverage:
     ])
 
 rtl_const = squeeze([
-    "lib/curses_const.cpp" if libs_curses else None,
-    "lib/sdl_const.cpp" if libsdl else None,
-    "lib/sodium_const.cpp" if libsodium else None,
+    "lib/curses_const.cpp" if use_curses else None,
+    "lib/sdl_const.cpp" if use_sdl else None,
+    "lib/sodium_const.cpp" if use_sodium else None,
 ])
 
 if os.name == "posix":
@@ -179,24 +190,24 @@ else:
 
 rtl_cpp = rtl_const + squeeze([
     "lib/binary.cpp",
-    "lib/compress.cpp" if libbz2 and liblzma else None,
-    "lib/curses.cpp" if libs_curses else None,
+    "lib/compress.cpp" if use_bz2 and use_lzma else None,
+    "lib/curses.cpp" if use_curses else None,
     "lib/datetime.cpp",
     "lib/debugger.cpp",
     "lib/global.cpp",
     "lib/file.cpp",
     "lib/hash.cpp",
-    "lib/http.cpp" if libcurl else None,
+    "lib/http.cpp" if use_curl else None,
     "lib/io.cpp",
     "lib/math.cpp",
     "lib/net.cpp",
     "lib/os.cpp",
     "lib/random.cpp",
     "lib/runtime.cpp",
-    "lib/regex.cpp" if libpcre else None,
-    "lib/sdl.cpp" if libsdl else None,
-    "lib/sodium.cpp" if libsodium else None,
-    "lib/sqlite.cpp" if libsqlite else None,
+    "lib/regex.cpp" if use_pcre else None,
+    "lib/sdl.cpp" if use_sdl else None,
+    "lib/sodium.cpp" if use_sodium else None,
+    "lib/sqlite.cpp" if use_sqlite else None,
     "lib/string.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",
@@ -206,14 +217,14 @@ env.Depends("lib/http.cpp", libcurl)
 
 rtl_neon = squeeze([
     "lib/binary.neon",
-    "lib/compress.neon" if libbz2 and liblzma else None,
-    "lib/curses.neon" if libs_curses else None,
+    "lib/compress.neon" if use_bz2 and use_lzma else None,
+    "lib/curses.neon" if use_curses else None,
     "lib/datetime.neon",
     "lib/debugger.neon",
     "lib/file.neon",
     "lib/global.neon",
     "lib/hash.neon",
-    "lib/http.neon" if libcurl else None,
+    "lib/http.neon" if use_curl else None,
     "lib/io.neon",
     "lib/math.neon",
     "lib/mmap.neon",
@@ -222,10 +233,10 @@ rtl_neon = squeeze([
     "lib/process.neon",
     "lib/random.neon",
     "lib/runtime.neon",
-    "lib/regex.neon" if libpcre else None,
-    "lib/sdl.neon" if libsdl else None,
-    "lib/sodium.neon" if libsodium else None,
-    "lib/sqlite.neon" if libsqlite else None,
+    "lib/regex.neon" if use_pcre else None,
+    "lib/sdl.neon" if use_sdl else None,
+    "lib/sodium.neon" if use_sodium else None,
+    "lib/sqlite.neon" if use_sqlite else None,
     "lib/string.neon",
     "lib/sys.neon",
     "lib/time.neon",
@@ -453,17 +464,17 @@ else:
 
 test_sources = []
 for f in Glob("t/*.neon"):
-    if not libs_curses and f.name in ["sudoku-test.neon"]:
+    if not use_curses and f.name in ["sudoku-test.neon"]:
         continue
-    if not libpcre and f.name in ["forth-test.neon", "lisp-test.neon", "regex-test.neon"]:
+    if not use_pcre and f.name in ["forth-test.neon", "lisp-test.neon", "regex-test.neon"]:
         continue
-    if not libcurl and f.name in ["debug-server.neon", "http-test.neon"]:
+    if not use_curl and f.name in ["debug-server.neon", "http-test.neon"]:
         continue
-    if not libsqlite and f.name in ["sqlite-test.neon"]:
+    if not use_sqlite and f.name in ["sqlite-test.neon"]:
         continue
-    if not (libbz2 and liblzma) and f.name in ["compress-test.neon"]:
+    if not (use_bz2 and use_lzma) and f.name in ["compress-test.neon"]:
         continue
-    if not libsodium and f.name in ["sodium-test.neon"]:
+    if not use_sodium and f.name in ["sodium-test.neon"]:
         continue
     test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
@@ -479,15 +490,15 @@ for path, dirs, files in os.walk("."):
     if all(x not in ["t", "tests"] for x in path.split(os.sep)):
         for f in files:
             if f.endswith(".neon") and f != "global.neon":
-                if not libs_curses and f in ["curses.neon", "hello-curses.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
+                if not use_curses and f in ["curses.neon", "hello-curses.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
                     continue
-                if not libpcre and f in ["forth.neon", "httpd.neon", "lisp.neon"]:
+                if not use_pcre and f in ["forth.neon", "httpd.neon", "lisp.neon"]:
                     continue
-                if not libcurl and f in ["ndb.neon"]:
+                if not use_curl and f in ["ndb.neon"]:
                     continue
-                if not libsdl and f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
+                if not use_sdl and f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
                     continue
-                if not libsodium and f in ["sodium.neon"]:
+                if not use_sodium and f in ["sodium.neon"]:
                     continue
                 samples.append(os.path.join(path, f))
 for sample in samples:
