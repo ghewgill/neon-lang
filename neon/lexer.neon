@@ -109,6 +109,7 @@ TYPE Type IS ENUM
     gives
     nowhere
     intdiv
+    unknown
     max_token
 END ENUM
 
@@ -350,7 +351,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "NOWHERE" THEN t.type := Type.nowhere
             ELSIF t.text = "INTDIV" THEN t.type := Type.intdiv
             ELSIF all_upper(t.text) THEN
-                error(1023, t, "identifier cannot be all upper case (reserved for keywords)")
+                t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN
                 error(1024, t, "identifier cannot contain double underscore (reserved)")
             ELSIF t.text.length() >= 2 AND t.text[0] = "_" THEN

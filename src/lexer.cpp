@@ -129,6 +129,7 @@ std::string Token::tostring() const
         case GIVES:       s << "GIVES"; break;
         case NOWHERE:     s << "NOWHERE"; break;
         case INTDIV:      s << "INTDIV"; break;
+        case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
     s << ">";
@@ -335,7 +336,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "NOWHERE") t.type = NOWHERE;
             else if (t.text == "INTDIV") t.type = INTDIV;
             else if (all_upper(t.text)) {
-                error(1023, t, "identifier cannot be all upper case (reserved for keywords)");
+                t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {
                 error(1024, t, "identifier cannot contain double underscore (reserved)");
             } else if (t.text.length() >= 2 && t.text[0] == '_') {
