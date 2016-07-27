@@ -171,9 +171,9 @@ END FUNCTION
  |  Get a boolean value from a <Variant>.
  |%
 FUNCTION Variant.getBoolean(IN self: Variant): Boolean
-    IF self.type # Type.boolean THEN
+    CHECK self.type = Type.boolean ELSE
         RAISE TypeMismatchException
-    END IF
+    END CHECK
     RETURN self.val_boolean
 END FUNCTION
 
@@ -188,9 +188,9 @@ END FUNCTION
  |  Get a number value from a <Variant>.
  |%
 FUNCTION Variant.getNumber(IN self: Variant): Number
-    IF self.type # Type.number THEN
+    CHECK self.type = Type.number ELSE
         RAISE TypeMismatchException
-    END IF
+    END CHECK
     RETURN self.val_number
 END FUNCTION
 
@@ -205,9 +205,9 @@ END FUNCTION
  |  Get a string value from a <Variant>.
  |%
 FUNCTION Variant.getString(IN self: Variant): String
-    IF self.type # Type.string THEN
+    CHECK self.type = Type.string ELSE
         RAISE TypeMismatchException
-    END IF
+    END CHECK
     RETURN self.val_string
 END FUNCTION
 
@@ -222,9 +222,9 @@ END FUNCTION
  |  Get a bytes value from a <Variant>.
  |%
 FUNCTION Variant.getBytes(IN self: Variant): Bytes
-    IF self.type # Type.bytes THEN
+    CHECK self.type = Type.bytes ELSE
         RAISE TypeMismatchException
-    END IF
+    END CHECK
     RETURN self.val_bytes
 END FUNCTION
 
@@ -239,9 +239,9 @@ END FUNCTION
  |  Get an array value from a <Variant>.
  |%
 FUNCTION Variant.getArray(IN self: Variant): Array<Variant>
-    IF self.type # Type.array THEN
+    CHECK self.type = Type.array ELSE
         RAISE TypeMismatchException
-    END IF
+    END CHECK
     RETURN self.val_array
 END FUNCTION
 
@@ -256,9 +256,9 @@ END FUNCTION
  |  Get a dictionary value from a <Variant>.
  |%
 FUNCTION Variant.getDictionary(IN self: Variant): Dictionary<Variant>
-    IF self.type # Type.dictionary THEN
+    CHECK self.type = Type.dictionary ELSE
         RAISE TypeMismatchException
-    END IF
+    END CHECK
     RETURN self.val_dictionary
 END FUNCTION
 
