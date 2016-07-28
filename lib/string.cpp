@@ -63,6 +63,26 @@ std::vector<utf8string> string$split(const std::string &s, const std::string &d)
     return r;
 }
 
+std::vector<utf8string> string$splitLines(const std::string &s)
+{
+    std::vector<utf8string> r;
+    std::string::size_type i = 0;
+    while (i < s.length()) {
+        std::string::size_type nl = s.find_first_of("\r\n", i);
+        if (nl == std::string::npos) {
+            r.push_back(s.substr(i));
+            break;
+        }
+        r.push_back(s.substr(i, nl-i));
+        if (s[nl] == '\r' && nl+1 < s.length() && s[nl+1] == '\n') {
+            i = nl + 2;
+        } else {
+            i = nl + 1;
+        }
+    }
+    return r;
+}
+
 std::string string$trim(const std::string &s)
 {
     std::string::size_type first = s.find_first_not_of(' ');

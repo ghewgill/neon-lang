@@ -2370,6 +2370,13 @@ def neon_string_lower(env, s):
 def neon_string_split(env, s, d):
     return s.split(d)
 
+def neon_string_splitLines(env, s):
+    if len(s) == 0:
+        return []
+    s = re.sub("\r\n", "\n", s)
+    s = re.sub("\n$", "", s, 1)
+    return s.split("\n")
+
 def neon_string_trim(env, s):
     return s.strip()
 
@@ -2469,7 +2476,6 @@ ExcludeTests = [
     "t/parameter-inout-string.neon", # Does not fail here
     "t/record-private.neon",    # Feature not required yet
     "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
-    "t/string-test.neon",       # Module not required yet
     "t/strings.neon",           # Feature not required yet
     "t/struct-test.neon",       # Module not required yet
     "t/unicode-length.neon",    # Currently works here, but still TODO in cpp

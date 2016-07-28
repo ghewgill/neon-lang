@@ -11,6 +11,7 @@ EXPORT join
 EXPORT lower
 EXPORT repeat
 EXPORT split
+EXPORT splitLines
 EXPORT trim
 EXPORT upper
 
@@ -71,6 +72,13 @@ END FUNCTION
  |  Split a string into parts using the given delimiter.
  |%
 DECLARE NATIVE FUNCTION split(s: String, d: String): Array<String>
+
+%|
+ |  Function: splitLines
+ |
+ |  Split a string into lines using any of CRLF or CR or LF line endings.
+ |%
+DECLARE NATIVE FUNCTION splitLines(s: String): Array<String>
 
 %|
  |  Function: trim

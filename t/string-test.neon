@@ -19,6 +19,14 @@ print(a[1])
 print(a[2])
 %= Everybody
 
+ASSERT string.splitLines("").size() = 0
+ASSERT string.splitLines("\n") = [""]
+ASSERT string.splitLines("\n\n") = ["", ""]
+ASSERT string.splitLines("a\n") = ["a"]
+ASSERT string.splitLines("a\nb") = ["a", "b"]
+ASSERT string.splitLines("a\nb\n") = ["a", "b"]
+ASSERT string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "everybody"]
+
 print(string.trim("  Hello World  "))
 %= Hello World
 
