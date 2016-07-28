@@ -57,7 +57,7 @@ Number process$call(const std::string &command, std::string *stdout, std::string
         if (r < 0) {
             throw RtlException(Exception_os$SystemException, std::to_string(errno));
         }
-        if (FD_ISSET(pout[0], &fds)) {
+        if (pout[0] >= 0 && FD_ISSET(pout[0], &fds)) {
             char buf[1024];
             ssize_t n = read(pout[0], buf, sizeof(buf));
             if (n > 0) {
@@ -67,7 +67,7 @@ Number process$call(const std::string &command, std::string *stdout, std::string
                 pout[0] = -1;
             }
         }
-        if (FD_ISSET(perr[0], &fds)) {
+        if (perr[0] >= 0 && FD_ISSET(perr[0], &fds)) {
             char buf[1024];
             ssize_t n = read(perr[0], buf, sizeof(buf));
             if (n > 0) {
