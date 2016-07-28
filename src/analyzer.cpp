@@ -2624,19 +2624,26 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), 0, "  " + str + " is ") }, Token()));
         iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(e) }, Token()));
         std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
-        statements.push_back(
-            new ExpressionStatement(
-                statement->token.line,
-                new FunctionCall(
-                    print,
-                    {analyze(ie.get())}
+        try {
+            statements.push_back(
+                new ExpressionStatement(
+                    statement->token.line,
+                    new FunctionCall(
+                        print,
+                        {analyze(ie.get())}
+                    )
                 )
-            )
-        );
-        // These pointers are borrowed from the real parse tree,
-        // so release them here before the above temporary tree
-        // fragment tries to delete them itself.
-        ie->parts[1].first.release();
+            );
+            // These pointers are borrowed from the real parse tree,
+            // so release them here before the above temporary tree
+            // fragment tries to delete them itself.
+            ie->parts[1].first.release();
+        } catch (...) {
+            // And also do this if the above call to analyze() throws
+            // any exception.
+            ie->parts[1].first.release();
+            throw;
+        }
     }
     return new AssertStatement(statement->token.line, statements, expr, statement->source);
 }

@@ -2455,6 +2455,7 @@ ExcludeTests = [
     "t/win32-test.neon",        # Module not required
 
     "t/array2d.neon",           # Not implemented in helium yet
+    "t/assert-empty-array.neon", # TODO only for C++ implementation
     "t/bytes.neon",             # FIXME
     "t/bytes-slice.neon",       # FIXME
     "t/file-test.neon",         # Code in module doesn't work yet

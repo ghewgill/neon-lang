@@ -1,0 +1,4 @@
+% TODO
+
+LET a: Array<String> := []
+ASSERT a = []
