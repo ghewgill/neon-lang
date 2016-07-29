@@ -7,7 +7,7 @@ IMPORT lexer
 TYPE TokenType IS lexer.Type % TODO: should not need this
 
 TYPE DictionaryLiteralKeyValue IS RECORD
-    key: lexer.Token
+    key: POINTER TO ParseTreeNode
     value: POINTER TO ParseTreeNode
 END RECORD
 
@@ -1067,9 +1067,8 @@ FUNCTION Parser.parseDictionaryLiteral(INOUT self: Parser): POINTER TO ParseTree
     LET tokLbrace: lexer.Token := self.token
     self.nextToken()
     VAR elements: Array<DictionaryLiteralKeyValue> := []
-    WHILE self.token.type = TokenType.string DO
-        LET key: lexer.Token := self.token
-        self.nextToken()
+    WHILE self.token.type # TokenType.rbrace DO
+        LET key: POINTER TO ParseTreeNode := self.parseExpression()
         IF self.token.type # TokenType.colon THEN
             error(2048, self.token, "':' expected")
         END IF
@@ -1080,9 +1079,6 @@ FUNCTION Parser.parseDictionaryLiteral(INOUT self: Parser): POINTER TO ParseTree
             self.nextToken()
         END IF
     END WHILE
-    IF self.token.type # TokenType.rbrace THEN
-        error2(2049, self.token, "'}' expected", tokLbrace, "opening '{' here")
-    END IF
     self.nextToken()
     RETURN makeParseTreeNode(ParseTreeNode(
         type WITH Type.DictionaryLiteralExpression,
@@ -3279,7 +3275,7 @@ END FUNCTION
 FUNCTION dumpDictionaryLiteralExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "DictionaryLiteralExpression")
     FOREACH e IN node.dictionaryliteralexpression.elements DO
-        dumpNode(depth+1, e.key.text)
+        dumpParseTree(e.key, depth+2)
         dumpParseTree(e.value, depth+2)
     END FOREACH
 END FUNCTION

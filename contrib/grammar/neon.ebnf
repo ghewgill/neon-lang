@@ -173,7 +173,7 @@ ArrayLiteral = '[', [Expression, {',', Expression}, [',']], ']';
 
 ArrayRangeLiteral = '[', Expression, 'TO', Expression, ['STEP', Expression], ']';
 
-DictionaryLiteral = '{', {StringLiteral, ':', Expression, [',']}, '}';
+DictionaryLiteral = '{', {Expression, ':', Expression, [',']}, '}';
 
 CompoundExpression = Identifier, {CompoundExpressionTail};
 

@@ -688,21 +688,28 @@ Program
   AssignmentStatement
     IdentifierExpression(name)
     DictionaryLiteralExpression
-      key
+        StringLiteralExpression(key)
         IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
     DictionaryLiteralExpression
-      key
+        StringLiteralExpression(key)
         IdentifierExpression(expr)
-      key
+        StringLiteralExpression(key)
         IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
     DictionaryLiteralExpression
-      key
+        StringLiteralExpression(key)
         IdentifierExpression(expr)
-      key
+        StringLiteralExpression(key)
+        IdentifierExpression(expr)
+  AssignmentStatement
+    IdentifierExpression(name)
+    DictionaryLiteralExpression
+        StringLiteralExpression(key)
+        IdentifierExpression(expr)
+        IdentifierExpression(key)
         IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)

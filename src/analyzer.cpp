@@ -1016,12 +1016,16 @@ const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
     std::map<std::string, Token> keys;
     const Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
-        std::string key = x.first.text;
+        const Expression *k = analyze(x.first.get());
+        if (not k->is_constant) {
+            error(3212, x.first->token, "key value must be constant");
+        }
+        std::string key = k->eval_string(x.first->token);
         auto i = keys.find(key);
         if (i != keys.end()) {
-            error2(3080, x.first, "duplicate key", i->second, "first key here");
+            error2(3080, x.first->token, "duplicate key", i->second, "first key here");
         }
-        keys[key] = x.first;
+        keys[key] = x.first->token;
         const Expression *element = analyze(x.second.get());
         if (elementtype == nullptr) {
             elementtype = element->type;

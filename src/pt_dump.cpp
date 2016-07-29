@@ -77,7 +77,7 @@ public:
         write("DictionaryLiteralExpression");
         depth++;
         for (auto &x: node->elements) {
-            write(x.first.text);
+            child(x.first.get());
             child(x.second.get());
         }
         depth--;

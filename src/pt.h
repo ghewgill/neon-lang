@@ -329,9 +329,9 @@ public:
 
 class DictionaryLiteralExpression: public Expression {
 public:
-    DictionaryLiteralExpression(const Token &token, size_t end_column, std::vector<std::pair<Token, std::unique_ptr<Expression>>> &&elements): Expression(token, token.column, end_column), elements(std::move(elements)) {}
+    DictionaryLiteralExpression(const Token &token, size_t end_column, std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>> &&elements): Expression(token, token.column, end_column), elements(std::move(elements)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    std::vector<std::pair<Token, std::unique_ptr<Expression>>> elements;
+    std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>> elements;
 };
 
 class NilLiteralExpression: public Expression {

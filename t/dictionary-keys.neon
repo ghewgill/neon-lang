@@ -1,0 +1,6 @@
+CONSTANT key: String := "key"
+
+LET d: Dictionary<String> := {
+    "foo": "bar",
+    key: "value",
+}

@@ -467,7 +467,7 @@ class DictionaryLiteralExpression:
     def __init__(self, elements):
         self.elements = elements
     def eval(self, env):
-        return {k: v.eval(env) for k, v in self.elements}
+        return {k.eval(env): v.eval(env) for k, v in self.elements}
 
 class NilLiteralExpression:
     def __init__(self):
@@ -1369,9 +1369,8 @@ class Parser:
     def parse_dictionary_literal(self):
         self.expect(LBRACE)
         elements = []
-        while isinstance(self.tokens[self.i], String):
-            key = self.tokens[self.i].value
-            self.i += 1
+        while self.tokens[self.i] is not RBRACE:
+            key = self.parse_expression()
             self.expect(COLON)
             element = self.parse_expression()
             elements.append((key, element))

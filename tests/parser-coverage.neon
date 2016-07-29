@@ -282,6 +282,7 @@ name := {}
 name := {"key": expr}
 name := {"key": expr, "key": expr}
 name := {"key": expr, "key": expr,}
+name := {"key": expr, key: expr}
 
 % CompoundExpression
 name := name[expr]

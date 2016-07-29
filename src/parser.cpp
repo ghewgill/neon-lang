@@ -387,22 +387,18 @@ std::unique_ptr<DictionaryLiteralExpression> Parser::parseDictionaryLiteral()
 {
     auto &tok_lbrace = tokens[i];
     ++i;
-    std::vector<std::pair<Token, std::unique_ptr<Expression>>> elements;
-    while (tokens[i].type == STRING) {
-        auto &key = tokens[i];
-        ++i;
+    std::vector<std::pair<std::unique_ptr<Expression>, std::unique_ptr<Expression>>> elements;
+    while (tokens[i].type != RBRACE) {
+        std::unique_ptr<Expression> key = parseExpression();
         if (tokens[i].type != COLON) {
             error(2048, tokens[i], "':' expected");
         }
         ++i;
         std::unique_ptr<Expression> element = parseExpression();
-        elements.push_back(std::make_pair(key, std::move(element)));
+        elements.push_back(std::make_pair(std::move(key), std::move(element)));
         if (tokens[i].type == COMMA) {
             ++i;
         }
-    }
-    if (tokens[i].type != RBRACE) {
-        error2(2049, tokens[i], "'}' expected", tok_lbrace, "opening '{' here");
     }
     ++i;
     return std::unique_ptr<DictionaryLiteralExpression> { new DictionaryLiteralExpression(tok_lbrace, tokens[i-1].column+1, std::move(elements)) };
