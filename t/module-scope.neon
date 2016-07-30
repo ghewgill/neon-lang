@@ -1,0 +1,9 @@
+IMPORT datetime
+
+FUNCTION foo()
+    print("foo")
+END FUNCTION
+
+datetime.foo()
+
+%! name not found: foo

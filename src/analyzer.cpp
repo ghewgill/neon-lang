@@ -725,7 +725,7 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
     if (not support->loadBytecode(name, object)) {
         internal_error("TODO module not found: " + name);
     }
-    Module *module = new Module(Token(), scope.top(), name);
+    Module *module = new Module(Token(), global_scope, name);
     for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
@@ -3449,6 +3449,11 @@ const Program *Analyzer::analyze()
     global_scope = r->scope;
     frame.push(global_frame);
     scope.push(global_scope);
+    // Create a new scope for the global things in the main program,
+    // so that modules can use the real global scope as their parent
+    // scope to avoid accidentally linking them up together (issue #30).
+    scope.push(new Scope(scope.top(), frame.top()));
+    r->scope = scope.top();
 
     //init_builtin_constants(global_scope);
 
