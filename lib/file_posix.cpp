@@ -15,23 +15,25 @@
 static void handle_error(int error, const std::string &path)
 {
     switch (error) {
-        case EACCES: throw RtlException(Exception_file$PermissionDeniedException, path);
-        case EEXIST: throw RtlException(Exception_file$DirectoryExistsException, path);
-        case ENOENT: throw RtlException(Exception_file$PathNotFoundException, path);
+        case EACCES: throw RtlException(rtl::file::Exception_PermissionDeniedException, path);
+        case EEXIST: throw RtlException(rtl::file::Exception_DirectoryExistsException, path);
+        case ENOENT: throw RtlException(rtl::file::Exception_PathNotFoundException, path);
         default:
-            throw RtlException(Exception_file$FileException, path + ": " + strerror(error));
+            throw RtlException(rtl::file::Exception_FileException, path + ": " + strerror(error));
     }
 }
 
 namespace rtl {
 
-void file$copy(const std::string &filename, const std::string &destination)
+namespace file {
+
+void copy(const std::string &filename, const std::string &destination)
 {
 #ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL|COPYFILE_EXCL);
     if (r != 0) {
         if (errno == EEXIST) {
-            throw RtlException(Exception_file$FileExistsException, destination);
+            throw RtlException(Exception_FileExistsException, destination);
         }
         handle_error(errno, filename);
     }
@@ -52,7 +54,7 @@ void file$copy(const std::string &filename, const std::string &destination)
         int error = errno;
         close(sourcefd);
         if (error == EEXIST) {
-            throw RtlException(Exception_file$FileExistsException, destination.c_str());
+            throw RtlException(Exception_FileExistsException, destination.c_str());
         }
         handle_error(error, destination);
     }
@@ -100,7 +102,7 @@ void file$copy(const std::string &filename, const std::string &destination)
 #endif
 }
 
-void file$copyOverwriteIfExists(const std::string &filename, const std::string &destination)
+void copyOverwriteIfExists(const std::string &filename, const std::string &destination)
 {
 #ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL);
@@ -169,7 +171,7 @@ void file$copyOverwriteIfExists(const std::string &filename, const std::string &
 #endif
 }
 
-void file$delete(const std::string &filename)
+void delete_(const std::string &filename)
 {
     int r = unlink(filename.c_str());
     if (r != 0) {
@@ -179,12 +181,12 @@ void file$delete(const std::string &filename)
     }
 }
 
-bool file$exists(const std::string &filename)
+bool exists(const std::string &filename)
 {
     return access(filename.c_str(), F_OK) == 0;
 }
 
-std::vector<utf8string> file$files(const std::string &path)
+std::vector<utf8string> files(const std::string &path)
 {
     std::vector<utf8string> r;
     DIR *d = opendir(path.c_str());
@@ -201,21 +203,21 @@ std::vector<utf8string> file$files(const std::string &path)
     return r;
 }
 
-bool file$isDirectory(const std::string &path)
+bool isDirectory(const std::string &path)
 {
     struct stat st;
     return stat(path.c_str(), &st) == 0 && (st.st_mode & S_IFDIR) != 0;
 }
 
-void file$mkdir(const std::string &path)
+void mkdir(const std::string &path)
 {
-    int r = mkdir(path.c_str(), 0755);
+    int r = ::mkdir(path.c_str(), 0755);
     if (r != 0) {
         handle_error(errno, path);
     }
 }
 
-void file$removeEmptyDirectory(const std::string &path)
+void removeEmptyDirectory(const std::string &path)
 {
     int r = rmdir(path.c_str());
     if (r != 0) {
@@ -223,20 +225,22 @@ void file$removeEmptyDirectory(const std::string &path)
     }
 }
 
-void file$rename(const std::string &oldname, const std::string &newname)
+void rename(const std::string &oldname, const std::string &newname)
 {
-    int r = rename(oldname.c_str(), newname.c_str());
+    int r = ::rename(oldname.c_str(), newname.c_str());
     if (r != 0) {
         handle_error(errno, oldname);
     }
 }
 
-void file$symlink(const std::string &target, const std::string &newlink, bool /*targetIsDirectory*/)
+void symlink(const std::string &target, const std::string &newlink, bool /*targetIsDirectory*/)
 {
-    int r = symlink(target.c_str(), newlink.c_str());
+    int r = ::symlink(target.c_str(), newlink.c_str());
     if (r != 0) {
         handle_error(errno, newlink);
     }
 }
+
+} // namespace file
 
 } // namespace rtl

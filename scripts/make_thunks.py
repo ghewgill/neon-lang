@@ -214,11 +214,12 @@ for fn in sys.argv[1:]:
                     ctype = ntype
                     if ctype == "String":
                         ctype = "std::string"
+                    a = name.split("$")
                     constants[name] = [
                         name,
                         ctype,
                         name in exported,
-                        "new Constant{}Expression(rtl::{})".format(ntype, name)
+                        "new Constant{}Expression(rtl::{}::CONSTANT_{})".format(ntype, a[0], a[1])
                     ]
                 elif a[:3] == ["DECLARE", "NATIVE", "VAR"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
@@ -320,7 +321,8 @@ with open("src/constants_compile.inc", "w") as inc:
     print >>inc, "namespace rtl {"
     for name, ctype, exported, init in constants.values():
         if exported:
-            print >>inc, "extern const {} {};".format(ctype, name)
+            a = name.split("$")
+            print >>inc, "namespace {} {{ extern const {} CONSTANT_{}; }}".format(a[0], ctype, a[1])
     print >>inc, "}"
     # There aren't currently any global predefined constants.
     #print >>inc, "static void init_builtin_constants(Scope *{})".format("scope" if any("$" not in x[0] for x in constants.values()) else "")
@@ -350,14 +352,16 @@ with open("src/variables_compile.inc", "w") as inc:
 with open("src/variables_exec.inc", "w") as inc:
     print >>inc, "namespace rtl {"
     for name, atype in variables.values():
-        print >>inc, "extern Cell {};".format(name)
+        a = name.split("$")
+        print >>inc, "namespace {} {{ extern Cell VAR_{}; }}".format(a[0], a[1])
     print >>inc, "}"
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
     print >>inc, "    Cell *value;"
     print >>inc, "} BuiltinVariables[] = {"
     for name, atype, in variables.values():
-        print >>inc, "    {{\"{}\", &rtl::{}}},".format(name, name)
+        a = name.split("$")
+        print >>inc, "    {{\"{}\", &rtl::{}::VAR_{}}},".format(name, a[0], a[1])
     print >>inc, "};"
 
 with open("src/functions_compile.inc", "w") as inc:
@@ -385,12 +389,17 @@ with open("src/functions_compile.inc", "w") as inc:
 
 with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "namespace rtl {"
+    cpp_name = {}
     for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
-        if "." in name:
-            namespace, name = name.split(".")
-            print >>inc, "namespace {} {{ extern {} {}({}); }}".format(namespace, CppFromAstReturn[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
-        else:
-            print >>inc, "extern {} {}({});".format(CppFromAstReturn[rtype], name, ", ".join(CppFromAstArg[x] for x in params))
+        assert "." not in name
+        a = name.split("$")
+        if a[1] in [
+            "int", "delete",
+            "timegm",
+        ] or a[0] in "curses":
+            a[1] += "_"
+        cpp_name[name] = "{}::{}".format(*a)
+        print >>inc, "namespace {} {{ extern {} {}({}); }}".format(a[0], CppFromAstReturn[rtype], a[1], ", ".join(CppFromAstArg[x] for x in params))
     print >>inc, "}"
     print >>inc, "static struct {"
     print >>inc, "    const char *name;"
@@ -398,7 +407,7 @@ with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
-        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), name.replace(".", "::"))
+        print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name])
     print >>inc, "};";
 
 with open("src/enums.inc", "w") as inc:
@@ -410,11 +419,13 @@ with open("src/exceptions.inc", "w") as inc:
     print >>inc, "struct ExceptionName {"
     print >>inc, "    const char *name;"
     print >>inc, "};"
+    print >>inc, "namespace rtl {"
     for prefix, name in exceptions:
-        print >>inc, "static const ExceptionName Exception_{} = {{\"{}\"}};".format(prefix+name, name)
+        print >>inc, "namespace {} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name, name)
     print >>inc
     print >>inc, "static const ExceptionName ExceptionNames[] = {"
     for prefix, name in exceptions:
         if prefix == "global$":
-            print >>inc, "    Exception_{},".format(prefix+name)
+            print >>inc, "    global::Exception_{},".format(name)
     print >>inc, "};"
+    print >>inc, "}"

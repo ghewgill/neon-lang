@@ -33,11 +33,11 @@ void_function_t rtl_external_function(const std::string &library, const std::str
 {
     void *lib = get_library_handle(library);
     if (lib == NULL) {
-        throw RtlException(Exception_global$LibraryNotFoundException, library);
+        throw RtlException(rtl::global::Exception_LibraryNotFoundException, library);
     }
     void (*fp)() = reinterpret_cast<void (*)()>(dlsym(lib, function.c_str()));
     if (fp == NULL) {
-        throw RtlException(Exception_global$FunctionNotFoundException, function);
+        throw RtlException(rtl::global::Exception_FunctionNotFoundException, function);
     }
     return fp;
 }

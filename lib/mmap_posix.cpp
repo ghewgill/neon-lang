@@ -21,45 +21,47 @@ static MemoryFile *check_file(void *pf)
 {
     MemoryFile *f = static_cast<MemoryFile *>(pf);
     if (f == NULL) {
-        throw RtlException(Exception_mmap$InvalidFileException, "");
+        throw RtlException(rtl::mmap::Exception_InvalidFileException, "");
     }
     return f;
 }
 
 namespace rtl {
 
-void mmap$close(Cell **ppf)
+namespace mmap {
+
+void close(Cell **ppf)
 {
     MemoryFile *f = check_file(*ppf);
     munmap(f->view, f->len);
-    close(f->fd);
+    ::close(f->fd);
     delete f;
     *ppf = NULL;
 }
 
-void *mmap$open(const std::string &name, Cell &)
+void *open(const std::string &name, Cell &)
 {
     MemoryFile *f = new MemoryFile;
-    f->fd = open(name.c_str(), O_RDONLY);
+    f->fd = ::open(name.c_str(), O_RDONLY);
     if (f->fd < 0) {
         int e = errno;
         delete f;
-        throw RtlException(Exception_mmap$OpenFileException, "open: error (" + std::to_string(e) + ") " + strerror(e));
+        throw RtlException(Exception_OpenFileException, "open: error (" + std::to_string(e) + ") " + strerror(e));
     }
     struct stat st;
     fstat(f->fd, &st);
     f->len = st.st_size;
-    f->view = static_cast<char *>(mmap(NULL, f->len, PROT_READ, MAP_PRIVATE, f->fd, 0));
+    f->view = static_cast<char *>(::mmap(NULL, f->len, PROT_READ, MAP_PRIVATE, f->fd, 0));
     if (f->view == MAP_FAILED) {
         int e = errno;
-        close(f->fd);
+        ::close(f->fd);
         delete f;
-        throw RtlException(Exception_mmap$OpenFileException, "mmap: error (" + std::to_string(e) + ") " + strerror(e));
+        throw RtlException(Exception_OpenFileException, "mmap: error (" + std::to_string(e) + ") " + strerror(e));
     }
     return f;
 }
 
-std::string mmap$read(void *pf, Number offset, Number count)
+std::string read(void *pf, Number offset, Number count)
 {
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
@@ -73,23 +75,25 @@ std::string mmap$read(void *pf, Number offset, Number count)
     return std::string(f->view + o, f->view + o + c);
 }
 
-Number mmap$size(void *pf)
+Number size(void *pf)
 {
     MemoryFile *f = check_file(pf);
     return number_from_uint64(f->len);
 }
 
-void mmap$write(void *pf, Number offset, const std::string &data)
+void write(void *pf, Number offset, const std::string &data)
 {
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        throw RtlException(Exception_global$ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, "");
     }
     if (o + data.length() > f->len) {
-        throw RtlException(Exception_global$ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, "");
     }
     memcpy(f->view + o, data.data(), data.length());
 }
 
-}
+} // namespace mmap
+
+} // namespace rtl

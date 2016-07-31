@@ -31,152 +31,154 @@ static std::vector<chtype> chtypes_from_numbers(const std::vector<Number> &chstr
 
 namespace rtl {
 
-Number curses$COLOR_PAIR(Number n)
+namespace curses {
+
+Number COLOR_PAIR_(Number n)
 {
     return number_from_uint32(COLOR_PAIR(number_to_uint32(n)));
 }
 
-Number curses$Cols()
+Number Cols_()
 {
     return number_from_sint32(COLS);
 }
 
-Number curses$KEY_F(Number c)
+Number KEY_F_(Number c)
 {
     return number_from_uint32(KEY_F(number_to_uint32(c)));
 }
 
-Number curses$Lines()
+Number Lines_()
 {
     return number_from_sint32(LINES);
 }
 
-Number curses$PAIR_NUMBER(Number n)
+Number PAIR_NUMBER_(Number n)
 {
     return number_from_uint32(PAIR_NUMBER(number_to_uint32(n)));
 }
 
-void curses$addch(Number ch)
+void addch_(Number ch)
 {
     addch(number_to_uint32(ch));
 }
 
-void curses$waddch(void *win, Number ch)
+void waddch_(void *win, Number ch)
 {
     waddch(static_cast<WINDOW *>(win), number_to_uint32(ch));
 }
 
-void curses$mvaddch(Number y, Number x, Number ch)
+void mvaddch_(Number y, Number x, Number ch)
 {
     mvaddch(number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch));
 }
 
-void curses$mvwaddch(void *win, Number y, Number x, Number ch)
+void mvwaddch_(void *win, Number y, Number x, Number ch)
 {
     mvwaddch(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch));
 }
 
-void curses$addchstr(const std::vector<Number> &chstr)
+void addchstr_(const std::vector<Number> &chstr)
 {
     addchstr(chtypes_from_numbers(chstr).data());
 }
 
-void curses$waddchstr(void *win, const std::vector<Number> &chstr)
+void waddchstr_(void *win, const std::vector<Number> &chstr)
 {
     waddchstr(static_cast<WINDOW *>(win), chtypes_from_numbers(chstr).data());
 }
 
-void curses$mvaddchstr(Number y, Number x, const std::vector<Number> &chstr)
+void mvaddchstr_(Number y, Number x, const std::vector<Number> &chstr)
 {
     mvaddchstr(number_to_sint32(y), number_to_sint32(x), chtypes_from_numbers(chstr).data());
 }
 
-void curses$mvwaddchstr(void *win, Number y, Number x, const std::vector<Number> &chstr)
+void mvwaddchstr_(void *win, Number y, Number x, const std::vector<Number> &chstr)
 {
     mvwaddchstr(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), chtypes_from_numbers(chstr).data());
 }
 
-void curses$addstr(const std::string &str)
+void addstr_(const std::string &str)
 {
     addstr(str.c_str());
 }
 
-void curses$waddstr(void *win, const std::string &str)
+void waddstr_(void *win, const std::string &str)
 {
     waddstr(static_cast<WINDOW *>(win), str.c_str());
 }
 
-void curses$mvaddstr(Number y, Number x, const std::string &str)
+void mvaddstr_(Number y, Number x, const std::string &str)
 {
     mvaddstr(number_to_sint32(y), number_to_sint32(x), str.c_str());
 }
 
-void curses$mvwaddstr(void *win, Number y, Number x, const std::string &str)
+void mvwaddstr_(void *win, Number y, Number x, const std::string &str)
 {
     mvwaddstr(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), str.c_str());
 }
 
-void curses$attroff(Number attrs)
+void attroff_(Number attrs)
 {
     attroff(number_to_uint32(attrs));
 }
 
-void curses$wattroff(void *win, Number attrs)
+void wattroff_(void *win, Number attrs)
 {
     wattroff(static_cast<WINDOW *>(win), number_to_uint32(attrs));
 }
 
-void curses$attron(Number attrs)
+void attron_(Number attrs)
 {
     attron(number_to_uint32(attrs));
 }
 
-void curses$wattron(void *win, Number attrs)
+void wattron_(void *win, Number attrs)
 {
     wattron(static_cast<WINDOW *>(win), number_to_uint32(attrs));
 }
 
-void curses$attrset(Number attrs)
+void attrset_(Number attrs)
 {
     attrset(number_to_uint32(attrs));
 }
 
-void curses$wattrset(void *win, Number attrs)
+void wattrset_(void *win, Number attrs)
 {
     wattrset(static_cast<WINDOW *>(win), number_to_uint32(attrs));
 }
 
-Number curses$baudrate()
+Number baudrate_()
 {
     return number_from_sint32(baudrate());
 }
 
-void curses$beep()
+void beep_()
 {
     beep();
 }
 
-void curses$bkgd(Number ch)
+void bkgd_(Number ch)
 {
     bkgd(number_to_uint32(ch));
 }
 
-void curses$wbkgd(void *win, Number ch)
+void wbkgd_(void *win, Number ch)
 {
     wbkgd(static_cast<WINDOW *>(win), number_to_uint32(ch));
 }
 
-void curses$bkgdset(Number ch)
+void bkgdset_(Number ch)
 {
     bkgdset(number_to_uint32(ch));
 }
 
-void curses$wbkgdset(void *win, Number ch)
+void wbkgdset_(void *win, Number ch)
 {
     wbkgdset(static_cast<WINDOW *>(win), number_to_uint32(ch));
 }
 
-void curses$border(Number ls, Number rs, Number ts, Number bs, Number tl, Number tr, Number bl, Number br)
+void border_(Number ls, Number rs, Number ts, Number bs, Number tl, Number tr, Number bl, Number br)
 {
     border(number_to_uint32(ls),
            number_to_uint32(rs),
@@ -188,7 +190,7 @@ void curses$border(Number ls, Number rs, Number ts, Number bs, Number tl, Number
            number_to_uint32(br));
 }
 
-void curses$wborder(void *win, Number ls, Number rs, Number ts, Number bs, Number tl, Number tr, Number bl, Number br)
+void wborder_(void *win, Number ls, Number rs, Number ts, Number bs, Number tl, Number tr, Number bl, Number br)
 {
     wborder(static_cast<WINDOW *>(win),
             number_to_uint32(ls),
@@ -201,82 +203,82 @@ void curses$wborder(void *win, Number ls, Number rs, Number ts, Number bs, Numbe
             number_to_uint32(br));
 }
 
-void curses$box(void *win, Number verch, Number horch)
+void box_(void *win, Number verch, Number horch)
 {
     box(static_cast<WINDOW *>(win), number_to_uint32(verch), number_to_uint32(horch));
 }
 
-bool curses$can_change_color()
+bool can_change_color_()
 {
     return can_change_color() != FALSE;
 }
 
-void curses$cbreak()
+void cbreak_()
 {
     cbreak();
 }
 
-void curses$nocbreak()
+void nocbreak_()
 {
     nocbreak();
 }
 
-void curses$chgat(Number n, Number attr, Number color, void *opts)
+void chgat_(Number n, Number attr, Number color, void *opts)
 {
     chgat(number_to_sint32(n), number_to_uint32(attr), static_cast<short>(number_to_uint32(color)), opts);
 }
 
-void curses$wchgat(void *win, Number n, Number attr, Number color, void *opts)
+void wchgat_(void *win, Number n, Number attr, Number color, void *opts)
 {
     wchgat(static_cast<WINDOW *>(win), number_to_sint32(n), number_to_uint32(attr), static_cast<short>(number_to_uint32(color)), opts);
 }
 
-void curses$mvchgat(Number y, Number x, Number n, Number attr, Number color, void *opts)
+void mvchgat_(Number y, Number x, Number n, Number attr, Number color, void *opts)
 {
     mvchgat(number_to_sint32(y), number_to_sint32(x), number_to_sint32(n), number_to_uint32(attr), static_cast<short>(number_to_uint32(color)), opts);
 }
 
-void curses$mvwchgat(void *win, Number y, Number x, Number n, Number attr, Number color, void *opts)
+void mvwchgat_(void *win, Number y, Number x, Number n, Number attr, Number color, void *opts)
 {
     mvwchgat(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), number_to_sint32(n), number_to_uint32(attr), static_cast<short>(number_to_uint32(color)), opts);
 }
 
-void curses$clear()
+void clear_()
 {
     clear();
 }
 
-void curses$wclear(void *win)
+void wclear_(void *win)
 {
     wclear(static_cast<WINDOW *>(win));
 }
 
-void curses$clearok(void *win, bool bf)
+void clearok_(void *win, bool bf)
 {
     clearok(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$clrtobot()
+void clrtobot_()
 {
     clrtobot();
 }
 
-void curses$wclrtobot(void *win)
+void wclrtobot_(void *win)
 {
     wclrtobot(static_cast<WINDOW *>(win));
 }
 
-void curses$clrtoeol()
+void clrtoeol_()
 {
     clrtoeol();
 }
 
-void curses$wclrtoeol(void *win)
+void wclrtoeol_(void *win)
 {
     wclrtoeol(static_cast<WINDOW *>(win));
 }
 
-std::vector<Number> curses$color_content(Number color)
+std::vector<Number> color_content_(Number color)
 {
     short r = 0, g = 0, b = 0;
     color_content(static_cast<short>(number_to_uint32(color)), &r, &g, &b);
@@ -287,17 +289,17 @@ std::vector<Number> curses$color_content(Number color)
     return a;
 }
 
-void curses$color_set(Number color_pair_number, void *opts)
+void color_set_(Number color_pair_number, void *opts)
 {
     color_set(static_cast<short>(number_to_uint32(color_pair_number)), opts);
 }
 
-void curses$wcolor_set(void *win, Number color_pair_number, void *opts)
+void wcolor_set_(void *win, Number color_pair_number, void *opts)
 {
     wcolor_set(static_cast<WINDOW *>(win), static_cast<short>(number_to_uint32(color_pair_number)), opts);
 }
 
-void curses$copywin(void *srcwin, void *dstwin, Number sminrow, Number smincol, Number dminrow, Number dmincol, Number dmaxrow, Number dmaxcol, bool overlay)
+void copywin_(void *srcwin, void *dstwin, Number sminrow, Number smincol, Number dminrow, Number dmincol, Number dmaxrow, Number dmaxcol, bool overlay)
 {
     copywin(static_cast<WINDOW *>(srcwin),
             static_cast<WINDOW *>(dstwin),
@@ -310,152 +312,152 @@ void curses$copywin(void *srcwin, void *dstwin, Number sminrow, Number smincol, 
             overlay);
 }
 
-void curses$curs_set(Number visibility)
+void curs_set_(Number visibility)
 {
     curs_set(number_to_sint32(visibility));
 }
 
-void *curses$curscr()
+void *curscr_()
 {
     return curscr;
 }
 
-std::string curses$curses_version()
+std::string curses_version_()
 {
     return curses_version();
 }
 
-void curses$def_prog_mode()
+void def_prog_mode_()
 {
     def_prog_mode();
 }
 
-void curses$def_shell_mode()
+void def_shell_mode_()
 {
     def_shell_mode();
 }
 
-void curses$delay_output(Number ms)
+void delay_output_(Number ms)
 {
     delay_output(number_to_sint32(ms));
 }
 
-void curses$delch()
+void delch_()
 {
     delch();
 }
 
-void curses$wdelch(void *win)
+void wdelch_(void *win)
 {
     wdelch(static_cast<WINDOW *>(win));
 }
 
-void curses$mvdelch(Number y, Number x)
+void mvdelch_(Number y, Number x)
 {
     mvdelch(number_to_sint32(y), number_to_sint32(x));
 }
 
-void curses$mvwdelch(void *win, Number y, Number x)
+void mvwdelch_(void *win, Number y, Number x)
 {
     mvwdelch(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x));
 }
 
-void curses$deleteln()
+void deleteln_()
 {
     deleteln();
 }
 
-void curses$wdeleteln(void *win)
+void wdeleteln_(void *win)
 {
     wdeleteln(static_cast<WINDOW *>(win));
 }
 
-void curses$delwin(void *win)
+void delwin_(void *win)
 {
     delwin(static_cast<WINDOW *>(win));
 }
 
-void *curses$derwin(void *orig, Number nlines, Number ncols, Number begin_y, Number begin_x)
+void *derwin_(void *orig, Number nlines, Number ncols, Number begin_y, Number begin_x)
 {
     return derwin(static_cast<WINDOW *>(orig), number_to_sint32(nlines), number_to_sint32(ncols), number_to_sint32(begin_y), number_to_sint32(begin_x));
 }
 
-void curses$doupdate()
+void doupdate_()
 {
     doupdate();
 }
 
-void *curses$dupwin(void *win)
+void *dupwin_(void *win)
 {
     return dupwin(static_cast<WINDOW *>(win));
 }
 
-void curses$echo()
+void echo_()
 {
     echo();
 }
 
-void curses$noecho()
+void noecho_()
 {
     noecho();
 }
 
-void curses$echochar(Number ch)
+void echochar_(Number ch)
 {
     echochar(number_to_uint32(ch));
 }
 
-void curses$wechochar(void *win, Number ch)
+void wechochar_(void *win, Number ch)
 {
     wechochar(static_cast<WINDOW *>(win), number_to_uint32(ch));
 }
 
-void curses$endwin()
+void endwin_()
 {
     endwin();
 }
 
-void curses$erase()
+void erase_()
 {
     erase();
 }
 
-void curses$werase(void *win)
+void werase_(void *win)
 {
     werase(static_cast<WINDOW *>(win));
 }
 
-std::string curses$erasechar()
+std::string erasechar_()
 {
     return std::string(1, erasechar());
 }
 
-void curses$filter()
+void filter_()
 {
     filter();
 }
 
-void curses$flash()
+void flash_()
 {
     flash();
 }
 
-void curses$flushinp()
+void flushinp_()
 {
     flushinp();
 }
 
-Number curses$getbegx(void *win)
+Number getbegx_(void *win)
 {
     return number_from_sint32(getbegx(static_cast<WINDOW *>(win)));
 }
 
-Number curses$getbegy(void *win)
+Number getbegy_(void *win)
 {
     return number_from_sint32(getbegy(static_cast<WINDOW *>(win)));
 }
 
-std::vector<Number> curses$getbegyx(void *win)
+std::vector<Number> getbegyx_(void *win)
 {
     int y = -1, x = -1;
     getbegyx(static_cast<WINDOW *>(win), y, x);
@@ -465,52 +467,52 @@ std::vector<Number> curses$getbegyx(void *win)
     return r;
 }
 
-Number curses$getbkgd(void *win)
+Number getbkgd_(void *win)
 {
     return number_from_uint32(getbkgd(static_cast<WINDOW *>(win)));
 }
 
-Number curses$getch()
+Number getch_()
 {
     return number_from_sint32(getch());
 }
 
-Number curses$wgetch(void *win)
+Number wgetch_(void *win)
 {
     return number_from_sint32(wgetch(static_cast<WINDOW *>(win)));
 }
 
-Number curses$mvgetch(Number y, Number x)
+Number mvgetch_(Number y, Number x)
 {
     return number_from_sint32(mvgetch(number_to_sint32(y), number_to_sint32(x)));
 }
 
-Number curses$mvwgetch(void *win, Number y, Number x)
+Number mvwgetch_(void *win, Number y, Number x)
 {
     return number_from_sint32(mvwgetch(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x)));
 }
 
-Number curses$getcurx(void *win)
+Number getcurx_(void *win)
 {
     return number_from_sint32(getcurx(static_cast<WINDOW *>(win)));
 }
 
-Number curses$getcury(void *win)
+Number getcury_(void *win)
 {
     return number_from_sint32(getcury(static_cast<WINDOW *>(win)));
 }
 
-Number curses$getmaxx(void *win)
+Number getmaxx_(void *win)
 {
     return number_from_sint32(getmaxx(static_cast<WINDOW *>(win)));
 }
 
-Number curses$getmaxy(void *win)
+Number getmaxy_(void *win)
 {
     return number_from_sint32(getmaxy(static_cast<WINDOW *>(win)));
 }
 
-std::vector<Number> curses$getmaxyx(void *win)
+std::vector<Number> getmaxyx_(void *win)
 {
     int y = -1, x = -1;
     getmaxyx(static_cast<WINDOW *>(win), y, x);
@@ -520,7 +522,7 @@ std::vector<Number> curses$getmaxyx(void *win)
     return r;
 }
 
-std::string curses$getnstr(Number n)
+std::string getnstr_(Number n)
 {
     int width = number_to_sint32(n);
     char *str = new char[width+1];
@@ -530,7 +532,7 @@ std::string curses$getnstr(Number n)
     return r;
 }
 
-std::string curses$wgetnstr(void *win, Number n)
+std::string wgetnstr_(void *win, Number n)
 {
     int width = number_to_sint32(n);
     char *str = new char[width+1];
@@ -540,7 +542,7 @@ std::string curses$wgetnstr(void *win, Number n)
     return r;
 }
 
-std::string curses$mvgetnstr(Number y, Number x, Number n)
+std::string mvgetnstr_(Number y, Number x, Number n)
 {
     int width = number_to_sint32(n);
     char *str = new char[width+1];
@@ -550,7 +552,7 @@ std::string curses$mvgetnstr(Number y, Number x, Number n)
     return r;
 }
 
-std::string curses$mvwgetnstr(void *win, Number y, Number x, Number n)
+std::string mvwgetnstr_(void *win, Number y, Number x, Number n)
 {
     int width = number_to_sint32(n);
     char *str = new char[width+1];
@@ -560,17 +562,17 @@ std::string curses$mvwgetnstr(void *win, Number y, Number x, Number n)
     return r;
 }
 
-Number curses$getparx(void *win)
+Number getparx_(void *win)
 {
     return number_from_sint32(getparx(static_cast<WINDOW *>(win)));
 }
 
-Number curses$getpary(void *win)
+Number getpary_(void *win)
 {
     return number_from_sint32(getpary(static_cast<WINDOW *>(win)));
 }
 
-std::vector<Number> curses$getparyx(void *win)
+std::vector<Number> getparyx_(void *win)
 {
     int y = -1, x = -1;
     getparyx(static_cast<WINDOW *>(win), y, x);
@@ -580,7 +582,7 @@ std::vector<Number> curses$getparyx(void *win)
     return r;
 }
 
-std::vector<Number> curses$getsyx()
+std::vector<Number> getsyx_()
 {
     int y = -1, x = -1;
     getsyx(y, x);
@@ -590,7 +592,7 @@ std::vector<Number> curses$getsyx()
     return r;
 }
 
-std::vector<Number> curses$getyx(void *win)
+std::vector<Number> getyx_(void *win)
 {
     int y = -1, x = -1;
     getyx(static_cast<WINDOW *>(win), y, x);
@@ -600,282 +602,282 @@ std::vector<Number> curses$getyx(void *win)
     return r;
 }
 
-void curses$halfdelay(Number tenths)
+void halfdelay_(Number tenths)
 {
     halfdelay(number_to_sint32(tenths));
 }
 
-bool curses$has_colors()
+bool has_colors_()
 {
     return has_colors() != FALSE;
 }
 
-bool curses$has_ic()
+bool has_ic_()
 {
     return has_ic() != FALSE;
 }
 
-bool curses$has_il()
+bool has_il_()
 {
     return has_il() != FALSE;
 }
 
-bool curses$has_key(Number ch)
+bool has_key_(Number ch)
 {
     return has_key(number_to_sint32(ch)) != FALSE;
 }
 
-void curses$hline(Number ch, Number n)
+void hline_(Number ch, Number n)
 {
     hline(number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$whline(void *win, Number ch, Number n)
+void whline_(void *win, Number ch, Number n)
 {
     whline(static_cast<WINDOW *>(win), number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$mvhline(Number y, Number x, Number ch, Number n)
+void mvhline_(Number y, Number x, Number ch, Number n)
 {
     mvhline(number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$mvwhline(void *win, Number y, Number x, Number ch, Number n)
+void mvwhline_(void *win, Number y, Number x, Number ch, Number n)
 {
     mvwhline(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$idcok(void *win, bool bf)
+void idcok_(void *win, bool bf)
 {
     idcok(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$idlok(void *win, bool bf)
+void idlok_(void *win, bool bf)
 {
     idlok(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$immedok(void *win, bool bf)
+void immedok_(void *win, bool bf)
 {
     immedok(static_cast<WINDOW *>(win), bf);
 }
 
-Number curses$inch()
+Number inch_()
 {
     return number_from_uint32(inch());
 }
 
-Number curses$winch(void *win)
+Number winch_(void *win)
 {
     return number_from_uint32(winch(static_cast<WINDOW *>(win)));
 }
 
-Number curses$mvinch(Number y, Number x)
+Number mvinch_(Number y, Number x)
 {
     return number_from_uint32(mvinch(number_to_sint32(y), number_to_sint32(x)));
 }
 
-Number curses$mvwinch(void *win, Number y, Number x)
+Number mvwinch_(void *win, Number y, Number x)
 {
     return number_from_uint32(mvwinch(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x)));
 }
 
-void curses$init_color(Number pair, Number r, Number g, Number b)
+void init_color_(Number pair, Number r, Number g, Number b)
 {
     init_color(static_cast<short>(number_to_uint32(pair)), static_cast<short>(number_to_uint32(r)), static_cast<short>(number_to_uint32(g)), static_cast<short>(number_to_uint32(b)));
 }
 
-void curses$init_pair(Number pair, Number f, Number b)
+void init_pair_(Number pair, Number f, Number b)
 {
     init_pair(static_cast<short>(number_to_uint32(pair)), static_cast<short>(number_to_uint32(f)), static_cast<short>(number_to_uint32(b)));
 }
 
-void curses$initscr()
+void initscr_()
 {
     initscr();
 }
 
-void curses$intrflush(void *win, bool bf)
+void intrflush_(void *win, bool bf)
 {
     intrflush(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$insch(Number ch)
+void insch_(Number ch)
 {
     insch(number_to_uint32(ch));
 }
 
-void curses$winsch(void *win, Number ch)
+void winsch_(void *win, Number ch)
 {
     winsch(static_cast<WINDOW *>(win), number_to_uint32(ch));
 }
 
-void curses$mvinsch(Number y, Number x, Number ch)
+void mvinsch_(Number y, Number x, Number ch)
 {
     mvinsch(number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch));
 }
 
-void curses$mvwinsch(void *win, Number y, Number x, Number ch)
+void mvwinsch_(void *win, Number y, Number x, Number ch)
 {
     mvwinsch(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch));
 }
 
-void curses$insdelln(Number n)
+void insdelln_(Number n)
 {
     insdelln(number_to_sint32(n));
 }
 
-void curses$winsdelln(void *win, Number n)
+void winsdelln_(void *win, Number n)
 {
     winsdelln(static_cast<WINDOW *>(win), number_to_sint32(n));
 }
 
-void curses$insertln()
+void insertln_()
 {
     insertln();
 }
 
-void curses$winsertln(void *win)
+void winsertln_(void *win)
 {
     winsertln(static_cast<WINDOW *>(win));
 }
 
-void curses$insstr(const std::string &str)
+void insstr_(const std::string &str)
 {
     insstr(str.c_str());
 }
 
-void curses$winsstr(void *win, const std::string &str)
+void winsstr_(void *win, const std::string &str)
 {
     winsstr(static_cast<WINDOW *>(win), str.c_str());
 }
 
-void curses$mvinsstr(Number y, Number x, const std::string &str)
+void mvinsstr_(Number y, Number x, const std::string &str)
 {
     mvinsstr(number_to_sint32(y), number_to_sint32(x), str.c_str());
 }
 
-void curses$mvwinsstr(void *win, Number y, Number x, const std::string &str)
+void mvwinsstr_(void *win, Number y, Number x, const std::string &str)
 {
     mvwinsstr(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), str.c_str());
 }
 
-bool curses$is_linetouched(void *win, Number line)
+bool is_linetouched_(void *win, Number line)
 {
     return is_linetouched(static_cast<WINDOW *>(win), number_to_sint32(line)) != FALSE;
 }
 
-bool curses$is_wintouched(void *win)
+bool is_wintouched_(void *win)
 {
     return is_wintouched(static_cast<WINDOW *>(win)) != FALSE;
 }
 
-bool curses$isendwin()
+bool isendwin_()
 {
     return isendwin() != FALSE;
 }
 
-std::string curses$keyname(Number c)
+std::string keyname_(Number c)
 {
     return keyname(number_to_sint32(c));
 }
 
-void curses$keypad(void *win, bool bf)
+void keypad_(void *win, bool bf)
 {
     keypad(static_cast<WINDOW *>(win), bf);
 }
 
-std::string curses$killchar()
+std::string killchar_()
 {
     return std::string(1, killchar());
 }
 
-void curses$leaveok(void *win, bool bf)
+void leaveok_(void *win, bool bf)
 {
     leaveok(static_cast<WINDOW *>(win), bf);
 }
 
-std::string curses$longname()
+std::string longname_()
 {
     return longname();
 }
 
-void curses$meta(void *win, bool bf)
+void meta_(void *win, bool bf)
 {
     meta(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$move(Number y, Number x)
+void move_(Number y, Number x)
 {
     move(number_to_sint32(y), number_to_sint32(x));
 }
 
-void curses$wmove(void *win, Number y, Number x)
+void wmove_(void *win, Number y, Number x)
 {
     wmove(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x));
 }
 
-void curses$mvderwin(void *win, Number par_y, Number par_x)
+void mvderwin_(void *win, Number par_y, Number par_x)
 {
     mvderwin(static_cast<WINDOW *>(win), number_to_sint32(par_y), number_to_sint32(par_x));
 }
 
-void curses$mvwin(void *win, Number y, Number x)
+void mvwin_(void *win, Number y, Number x)
 {
     mvwin(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x));
 }
 
-void curses$napms(Number ms)
+void napms_(Number ms)
 {
     napms(number_to_sint32(ms));
 }
 
-void *curses$newpad(Number nlines, Number ncols)
+void *newpad_(Number nlines, Number ncols)
 {
     return newpad(number_to_sint32(nlines), number_to_sint32(ncols));
 }
 
-void *curses$newwin(Number nlines, Number ncols, Number begin_y, Number begin_x)
+void *newwin_(Number nlines, Number ncols, Number begin_y, Number begin_x)
 {
     return newwin(number_to_sint32(nlines), number_to_sint32(ncols), number_to_sint32(begin_y), number_to_sint32(begin_x));
 }
 
-void curses$nl()
+void nl_()
 {
     nl();
 }
 
-void curses$nonl()
+void nonl_()
 {
     nonl();
 }
 
-void curses$nodelay(void *win, bool bf)
+void nodelay_(void *win, bool bf)
 {
     nodelay(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$noqiflush()
+void noqiflush_()
 {
     noqiflush();
 }
 
-void curses$notimeout(void *win, bool bf)
+void notimeout_(void *win, bool bf)
 {
     notimeout(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$overlay(void *srcwin, void *dstwin)
+void overlay_(void *srcwin, void *dstwin)
 {
     overlay(static_cast<WINDOW *>(srcwin), static_cast<WINDOW *>(dstwin));
 }
 
-void curses$overwrite(void *srcwin, void *dstwin)
+void overwrite_(void *srcwin, void *dstwin)
 {
     overwrite(static_cast<WINDOW *>(srcwin), static_cast<WINDOW *>(dstwin));
 }
 
-std::vector<Number> curses$pair_content(Number color)
+std::vector<Number> pair_content_(Number color)
 {
     short f = 0, b = 0;
     pair_content(static_cast<short>(number_to_uint32(color)), &f, &b);
@@ -885,12 +887,12 @@ std::vector<Number> curses$pair_content(Number color)
     return r;
 }
 
-void curses$pechochar(void *pad, Number ch)
+void pechochar_(void *pad, Number ch)
 {
     pechochar(static_cast<WINDOW *>(pad), number_to_uint32(ch));
 }
 
-void curses$pnoutrefresh(void *pad, Number pminrow, Number pmincol, Number sminrow, Number smincol, Number smaxrow, Number smaxcol)
+void pnoutrefresh_(void *pad, Number pminrow, Number pmincol, Number sminrow, Number smincol, Number smaxrow, Number smaxcol)
 {
     pnoutrefresh(static_cast<WINDOW *>(pad),
                  number_to_sint32(pminrow),
@@ -901,7 +903,7 @@ void curses$pnoutrefresh(void *pad, Number pminrow, Number pmincol, Number sminr
                  number_to_sint32(smaxcol));
 }
 
-void curses$prefresh(void *pad, Number pminrow, Number pmincol, Number sminrow, Number smincol, Number smaxrow, Number smaxcol)
+void prefresh_(void *pad, Number pminrow, Number pmincol, Number sminrow, Number smincol, Number smaxrow, Number smaxcol)
 {
     prefresh(static_cast<WINDOW *>(pad),
              number_to_sint32(pminrow),
@@ -912,254 +914,256 @@ void curses$prefresh(void *pad, Number pminrow, Number pmincol, Number sminrow, 
              number_to_sint32(smaxcol));
 }
 
-void curses$qiflush()
+void qiflush_()
 {
     qiflush();
 }
 
-void curses$raw()
+void raw_()
 {
     raw();
 }
 
-void curses$noraw()
+void noraw_()
 {
     noraw();
 }
 
-void curses$redrawwin(void *win)
+void redrawwin_(void *win)
 {
     redrawwin(static_cast<WINDOW *>(win));
 }
 
-void curses$refresh()
+void refresh_()
 {
     refresh();
 }
 
-void curses$wnoutrefresh(void *win)
+void wnoutrefresh_(void *win)
 {
     wnoutrefresh(static_cast<WINDOW *>(win));
 }
 
-void curses$wrefresh(void *win)
+void wrefresh_(void *win)
 {
     wrefresh(static_cast<WINDOW *>(win));
 }
 
-void curses$reset_prog_mode()
+void reset_prog_mode_()
 {
     reset_prog_mode();
 }
 
-void curses$reset_shell_mode()
+void reset_shell_mode_()
 {
     reset_shell_mode();
 }
 
-void curses$resetty()
+void resetty_()
 {
     resetty();
 }
 
-void curses$savetty()
+void savetty_()
 {
     savetty();
 }
 
-void curses$scr_dump(const std::string &filename)
+void scr_dump_(const std::string &filename)
 {
     scr_dump(filename.c_str());
 }
 
-void curses$scr_init(const std::string &filename)
+void scr_init_(const std::string &filename)
 {
     scr_init(filename.c_str());
 }
 
-void curses$scr_restore(const std::string &filename)
+void scr_restore_(const std::string &filename)
 {
     scr_restore(filename.c_str());
 }
 
-void curses$scr_set(const std::string &filename)
+void scr_set_(const std::string &filename)
 {
     scr_set(filename.c_str());
 }
 
-void curses$scroll(void *win)
+void scroll_(void *win)
 {
     scroll(static_cast<WINDOW *>(win));
 }
 
-void curses$scrollok(void *win, bool bf)
+void scrollok_(void *win, bool bf)
 {
     scrollok(static_cast<WINDOW *>(win), bf);
 }
 
-void curses$scrl(Number n)
+void scrl_(Number n)
 {
     scrl(number_to_sint32(n));
 }
 
-void curses$wscrl(void *win, Number n)
+void wscrl_(void *win, Number n)
 {
     wscrl(static_cast<WINDOW *>(win), number_to_sint32(n));
 }
 
-void curses$setscrreg(Number top, Number bottom)
+void setscrreg_(Number top, Number bottom)
 {
     setscrreg(number_to_sint32(top), number_to_sint32(bottom));
 }
 
-void curses$wsetscrreg(void *win, Number top, Number bottom)
+void wsetscrreg_(void *win, Number top, Number bottom)
 {
     wsetscrreg(static_cast<WINDOW *>(win), number_to_sint32(top), number_to_sint32(bottom));
 }
 
-void curses$setsyx(Number y, Number x)
+void setsyx_(Number y, Number x)
 {
     setsyx(number_to_sint32(y), number_to_sint32(x));
 }
 
-void curses$standend()
+void standend_()
 {
     standend();
 }
 
-void curses$wstandend(void *win)
+void wstandend_(void *win)
 {
     wstandend(static_cast<WINDOW *>(win));
 }
 
-void curses$standout()
+void standout_()
 {
     standout();
 }
 
-void curses$wstandout(void *win)
+void wstandout_(void *win)
 {
     wstandout(static_cast<WINDOW *>(win));
 }
 
-void curses$start_color()
+void start_color_()
 {
     start_color();
 }
 
-void *curses$stdscr()
+void *stdscr_()
 {
     return stdscr;
 }
 
-void *curses$subpad(void *orig, Number nlines, Number ncols, Number begin_y, Number begin_x)
+void *subpad_(void *orig, Number nlines, Number ncols, Number begin_y, Number begin_x)
 {
     return subpad(static_cast<WINDOW *>(orig), number_to_sint32(nlines), number_to_sint32(ncols), number_to_sint32(begin_y), number_to_sint32(begin_x));
 }
 
-void *curses$subwin(void *orig, Number nlines, Number ncols, Number begin_y, Number begin_x)
+void *subwin_(void *orig, Number nlines, Number ncols, Number begin_y, Number begin_x)
 {
     return subwin(static_cast<WINDOW *>(orig), number_to_sint32(nlines), number_to_sint32(ncols), number_to_sint32(begin_y), number_to_sint32(begin_x));
 }
 
-void curses$syncok(void *win, bool bf)
+void syncok_(void *win, bool bf)
 {
     syncok(static_cast<WINDOW *>(win), bf);
 }
 
-Number curses$termattrs()
+Number termattrs_()
 {
     return number_from_uint32(termattrs());
 }
 
-std::string curses$termname()
+std::string termname_()
 {
     return termname();
 }
 
-void curses$timeout(Number delay)
+void timeout_(Number delay)
 {
     timeout(number_to_sint32(delay));
 }
 
-void curses$wtimeout(void *win, Number delay)
+void wtimeout_(void *win, Number delay)
 {
     wtimeout(static_cast<WINDOW *>(win), number_to_sint32(delay));
 }
 
-void curses$touchline(void *win, Number start, Number count)
+void touchline_(void *win, Number start, Number count)
 {
     touchline(static_cast<WINDOW *>(win), number_to_sint32(start), number_to_sint32(count));
 }
 
-void curses$touchwin(void *win)
+void touchwin_(void *win)
 {
     touchwin(static_cast<WINDOW *>(win));
 }
 
-void curses$untouchwin(void *win)
+void untouchwin_(void *win)
 {
     untouchwin(static_cast<WINDOW *>(win));
 }
 
-std::string curses$unctrl(Number c)
+std::string unctrl_(Number c)
 {
     return unctrl(number_to_uint32(c));
 }
 
-void curses$ungetch(Number ch)
+void ungetch_(Number ch)
 {
     ungetch(number_to_sint32(ch));
 }
 
-void curses$use_env(bool f)
+void use_env_(bool f)
 {
     use_env(f);
 }
 
-void curses$vline(Number ch, Number n)
+void vline_(Number ch, Number n)
 {
     vline(number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$wvline(void *win, Number ch, Number n)
+void wvline_(void *win, Number ch, Number n)
 {
     wvline(static_cast<WINDOW *>(win), number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$mvvline(Number y, Number x, Number ch, Number n)
+void mvvline_(Number y, Number x, Number ch, Number n)
 {
     mvvline(number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$mvwvline(void *win, Number y, Number x, Number ch, Number n)
+void mvwvline_(void *win, Number y, Number x, Number ch, Number n)
 {
     mvwvline(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(x), number_to_uint32(ch), number_to_sint32(n));
 }
 
-void curses$wcursyncup(void *win)
+void wcursyncup_(void *win)
 {
     wcursyncup(static_cast<WINDOW *>(win));
 }
 
-void curses$wredrawln(void *win, Number beg_line, Number num_lines)
+void wredrawln_(void *win, Number beg_line, Number num_lines)
 {
     wredrawln(static_cast<WINDOW *>(win), number_to_sint32(beg_line), number_to_sint32(num_lines));
 }
 
-void curses$wsyncdown(void *win)
+void wsyncdown_(void *win)
 {
     wsyncdown(static_cast<WINDOW *>(win));
 }
 
-void curses$wsyncup(void *win)
+void wsyncup_(void *win)
 {
     wsyncup(static_cast<WINDOW *>(win));
 }
 
-void curses$wtouchln(void *win, Number y, Number n, bool changed)
+void wtouchln_(void *win, Number y, Number n, bool changed)
 {
     wtouchln(static_cast<WINDOW *>(win), number_to_sint32(y), number_to_sint32(n), changed);
 }
+
+} // namespace curses
 
 } // namespace rtl

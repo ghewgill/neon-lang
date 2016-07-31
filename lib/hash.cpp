@@ -40,7 +40,9 @@ static std::string to_binary(const std::string &str)
 
 namespace rtl {
 
-Number hash$crc32(const std::string &bytes)
+namespace hash {
+
+Number crc32(const std::string &bytes)
 {
     CRC32 crc32;
     crc32(bytes.data(), bytes.length());
@@ -49,12 +51,12 @@ Number hash$crc32(const std::string &bytes)
     return number_from_uint32(0);
 }
 
-Number hash$crc32Bytes(const std::string &bytes)
+Number crc32Bytes(const std::string &bytes)
 {
-    return hash$crc32(bytes);
+    return crc32(bytes);
 }
 
-std::string hash$md5Raw(const std::string &bytes)
+std::string md5Raw(const std::string &bytes)
 {
     MD5 md5;
     md5(bytes.data(), bytes.length());
@@ -63,22 +65,22 @@ std::string hash$md5Raw(const std::string &bytes)
     return std::string(reinterpret_cast<char *>(buf), sizeof(buf));
 }
 
-std::string hash$md5(const std::string &bytes)
+std::string md5(const std::string &bytes)
 {
-    return to_hex(hash$md5Raw(bytes));
+    return to_hex(md5Raw(bytes));
 }
 
-std::string hash$md5Bytes(const std::string &bytes)
+std::string md5Bytes(const std::string &bytes)
 {
-    return hash$md5(bytes);
+    return md5(bytes);
 }
 
-std::string hash$md5BytesRaw(const std::string &bytes)
+std::string md5BytesRaw(const std::string &bytes)
 {
-    return hash$md5Raw(bytes);
+    return md5Raw(bytes);
 }
 
-std::string hash$sha1Raw(const std::string &bytes)
+std::string sha1Raw(const std::string &bytes)
 {
     SHA1 sha1;
     sha1(bytes.data(), bytes.length());
@@ -87,22 +89,22 @@ std::string hash$sha1Raw(const std::string &bytes)
     return std::string(reinterpret_cast<char *>(buf), sizeof(buf));
 }
 
-std::string hash$sha1(const std::string &bytes)
+std::string sha1(const std::string &bytes)
 {
-    return to_hex(hash$sha1Raw(bytes));
+    return to_hex(sha1Raw(bytes));
 }
 
-std::string hash$sha1Bytes(const std::string &bytes)
+std::string sha1Bytes(const std::string &bytes)
 {
-    return hash$sha1(bytes);
+    return sha1(bytes);
 }
 
-std::string hash$sha1BytesRaw(const std::string &bytes)
+std::string sha1BytesRaw(const std::string &bytes)
 {
-    return hash$sha1Raw(bytes);
+    return sha1Raw(bytes);
 }
 
-std::string hash$sha256Raw(const std::string &bytes)
+std::string sha256Raw(const std::string &bytes)
 {
     SHA256 sha256;
     sha256(bytes.data(), bytes.length());
@@ -111,40 +113,42 @@ std::string hash$sha256Raw(const std::string &bytes)
     return std::string(reinterpret_cast<char *>(buf), sizeof(buf));
 }
 
-std::string hash$sha256(const std::string &bytes)
+std::string sha256(const std::string &bytes)
 {
-    return to_hex(hash$sha256Raw(bytes));
+    return to_hex(sha256Raw(bytes));
 }
 
-std::string hash$sha256Bytes(const std::string &bytes)
+std::string sha256Bytes(const std::string &bytes)
 {
-    return hash$sha256(bytes);
+    return sha256(bytes);
 }
 
-std::string hash$sha256BytesRaw(const std::string &bytes)
+std::string sha256BytesRaw(const std::string &bytes)
 {
-    return hash$sha256Raw(bytes);
+    return sha256Raw(bytes);
 }
 
-std::string hash$sha3(const std::string &bytes)
+std::string sha3(const std::string &bytes)
 {
     SHA3 sha3;
     return sha3(bytes.data(), bytes.length());
 }
 
-std::string hash$sha3Raw(const std::string &bytes)
+std::string sha3Raw(const std::string &bytes)
 {
-    return to_binary(hash$sha3(bytes));
+    return to_binary(sha3(bytes));
 }
 
-std::string hash$sha3Bytes(const std::string &bytes)
+std::string sha3Bytes(const std::string &bytes)
 {
-    return hash$sha3(bytes);
+    return sha3(bytes);
 }
 
-std::string hash$sha3BytesRaw(const std::string &bytes)
+std::string sha3BytesRaw(const std::string &bytes)
 {
-    return hash$sha3Raw(bytes);
+    return sha3Raw(bytes);
 }
 
-}
+} // namespace hash
+
+} // namespace rtl

@@ -21,32 +21,34 @@ static FILE *check_file(void *pf)
 {
     FILE *f = static_cast<FILE *>(pf);
     if (f == NULL) {
-        throw RtlException(Exception_io$InvalidFileException, "");
+        throw RtlException(rtl::io::Exception_InvalidFileException, "");
     }
     return f;
 }
 
 namespace rtl {
 
-Cell io$stdin(reinterpret_cast<Cell *>(stdin));
-Cell io$stdout(reinterpret_cast<Cell *>(stdout));
-Cell io$stderr(reinterpret_cast<Cell *>(stderr));
+namespace io {
 
-void io$close(Cell **ppf)
+Cell VAR_stdin(reinterpret_cast<Cell *>(stdin));
+Cell VAR_stdout(reinterpret_cast<Cell *>(stdout));
+Cell VAR_stderr(reinterpret_cast<Cell *>(stderr));
+
+void close(Cell **ppf)
 {
     FILE *f = check_file(*ppf);
     fclose(f);
     *ppf = NULL;
 }
 
-void io$fprint(void *pf, const std::string &s)
+void fprint(void *pf, const std::string &s)
 {
     FILE *f = check_file(pf);
     fputs(s.c_str(), f);
     fputs("\n", f);
 }
 
-void *io$open(const std::string &name, Cell &mode)
+void *open(const std::string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
@@ -58,7 +60,7 @@ void *io$open(const std::string &name, Cell &mode)
     return fopen(name.c_str(), m);
 }
 
-std::string io$readBytes(void *pf, Number count)
+std::string readBytes(void *pf, Number count)
 {
     FILE *f = check_file(pf);
     uint64_t ncount = number_to_uint64(count);
@@ -68,7 +70,7 @@ std::string io$readBytes(void *pf, Number count)
     return r;
 }
 
-bool io$readLine(void *pf, utf8string *s)
+bool readLine(void *pf, utf8string *s)
 {
     FILE *f = check_file(pf);
     s->clear();
@@ -85,7 +87,7 @@ bool io$readLine(void *pf, utf8string *s)
     }
 }
 
-void io$seek(void *pf, Number offset, Cell &whence)
+void seek(void *pf, Number offset, Cell &whence)
 {
     FILE *f = check_file(pf);
     int w;
@@ -99,37 +101,39 @@ void io$seek(void *pf, Number offset, Cell &whence)
     fseek(f, static_cast<long>(number_to_sint64(offset)), w);
 }
 
-Number io$tell(void *pf)
+Number tell(void *pf)
 {
     FILE *f = check_file(pf);
     return number_from_sint64(ftell(f));
 }
 
-void io$truncate(void *pf)
+void truncate(void *pf)
 {
     FILE *f = check_file(pf);
     long ofs = ftell(f);
     #ifdef _WIN32
         if (_chsize(_fileno(f), ofs) != 0) {
-            throw RtlException(Exception_file$FileWriteException, "");
+            throw RtlException(file::Exception_FileWriteException, "");
         }
     #else
         if (ftruncate(fileno(f), ofs) != 0) {
-            throw RtlException(Exception_file$FileWriteException, "");
+            throw RtlException(file::Exception_FileWriteException, "");
         }
     #endif
 }
 
-void io$write(void *pf, const std::string &s)
+void write(void *pf, const std::string &s)
 {
     FILE *f = check_file(pf);
     fputs(s.c_str(), f);
 }
 
-void io$writeBytes(void *pf, const std::string &b)
+void writeBytes(void *pf, const std::string &b)
 {
     FILE *f = check_file(pf);
     fwrite(b.data(), 1, b.size(), f);
 }
 
-}
+} // namespace io
+
+} // namespace rtl

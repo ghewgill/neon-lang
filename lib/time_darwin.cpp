@@ -5,9 +5,11 @@
 
 namespace rtl {
 
+namespace time {
+
 static const Number NANOSECONDS_PER_SECOND = number_from_uint64(NSEC_PER_SEC);
 
-Number time$tick()
+Number tick()
 {
     clock_serv_t cclock;
     mach_timespec_t mts;
@@ -18,5 +20,7 @@ Number time$tick()
 
     return number_add(number_from_uint64(mts.tv_sec), number_divide(number_from_uint64(mts.tv_nsec), NANOSECONDS_PER_SECOND));
 }
+
+} // namespace time
 
 } // namespace rtl

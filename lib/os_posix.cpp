@@ -26,32 +26,34 @@ void closer()
 
 namespace rtl {
 
-void os$chdir(const std::string &path)
+namespace os {
+
+void chdir(const std::string &path)
 {
-    int r = chdir(path.c_str());
+    int r = ::chdir(path.c_str());
     if (r != 0) {
-        throw RtlException(Exception_file$PathNotFoundException, path);
+        throw RtlException(file::Exception_PathNotFoundException, path);
     }
 }
 
-std::string os$getcwd()
+std::string getcwd()
 {
     char buf[MAXPATHLEN];
-    return getcwd(buf, sizeof(buf));
+    return ::getcwd(buf, sizeof(buf));
 }
 
-Cell os$platform()
+Cell platform()
 {
     return Cell(number_from_uint32(ENUM_Platform_posix));
 }
 
-bool os$fork(Cell **process)
+bool fork(Cell **process)
 {
     Process **pp = reinterpret_cast<Process **>(process);
     *pp = NULL;
-    pid_t child = fork();
+    pid_t child = ::fork();
     if (child < 0) {
-        throw RtlException(Exception_os$SystemException, std::to_string(errno));
+        throw RtlException(Exception_SystemException, std::to_string(errno));
     }
     if (child > 0) {
         *pp = new Process;
@@ -60,10 +62,10 @@ bool os$fork(Cell **process)
     return child > 0;
 }
 
-void os$kill(void *process)
+void kill(void *process)
 {
     Process *p = reinterpret_cast<Process *>(process);
-    kill(-p->pid, SIGTERM);
+    ::kill(-p->pid, SIGTERM);
     p->pid = 0;
     auto pi = std::find(g_children.begin(), g_children.end(), p);
     if (pi != g_children.end()) {
@@ -72,7 +74,7 @@ void os$kill(void *process)
     delete p;
 }
 
-void *os$spawn(const std::string &command)
+void *spawn(const std::string &command)
 {
     static bool init_closer = false;
     if (not init_closer) {
@@ -81,7 +83,7 @@ void *os$spawn(const std::string &command)
     }
 
     Process *p = new Process;
-    p->pid = fork();
+    p->pid = ::fork();
     if (p->pid == 0) {
         setpgid(0, 0);
         g_children.clear();
@@ -95,7 +97,7 @@ void *os$spawn(const std::string &command)
     return p;
 }
 
-Number os$wait(Cell **process)
+Number wait(Cell **process)
 {
     int r;
     {
@@ -115,4 +117,6 @@ Number os$wait(Cell **process)
     return number_from_sint8(-1);
 }
 
-}
+} // namespace os
+
+} // namespace rtl

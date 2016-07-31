@@ -7,12 +7,14 @@
 
 namespace rtl {
 
-std::string file$readBytes(const std::string &filename)
+namespace file {
+
+std::string readBytes(const std::string &filename)
 {
     std::string r;
     std::ifstream f(filename, std::ios::binary);
     if (not f.is_open()) {
-        throw RtlException(Exception_file$FileOpenException, filename);
+        throw RtlException(Exception_FileOpenException, filename);
     }
     for (;;) {
         char buf[16384];
@@ -26,12 +28,12 @@ std::string file$readBytes(const std::string &filename)
     return r;
 }
 
-std::vector<utf8string> file$readLines(const std::string &filename)
+std::vector<utf8string> readLines(const std::string &filename)
 {
     std::vector<utf8string> r;
     std::ifstream f(filename);
     if (not f.is_open()) {
-        throw RtlException(Exception_file$FileOpenException, filename);
+        throw RtlException(Exception_FileOpenException, filename);
     }
     std::string s;
     while (std::getline(f, s)) {
@@ -40,30 +42,32 @@ std::vector<utf8string> file$readLines(const std::string &filename)
     return r;
 }
 
-void file$writeBytes(const std::string &filename, const std::string &data)
+void writeBytes(const std::string &filename, const std::string &data)
 {
     std::ofstream f(filename, std::ios::binary);
     if (not f.is_open()) {
-        throw RtlException(Exception_file$FileOpenException, filename);
+        throw RtlException(Exception_FileOpenException, filename);
     }
     if (not f.write(data.c_str(), data.length())) {
-        throw RtlException(Exception_file$FileWriteException, filename);
+        throw RtlException(Exception_FileWriteException, filename);
     }
 }
 
-void file$writeLines(const std::string &filename, const std::vector<utf8string> &lines)
+void writeLines(const std::string &filename, const std::vector<utf8string> &lines)
 {
     std::ofstream f(filename, std::ios::out | std::ios::trunc); // Truncate the file every time we open it to write lines to it.
     if (not f.is_open()) {
-        throw RtlException(Exception_file$FileOpenException, filename);
+        throw RtlException(Exception_FileOpenException, filename);
     }
     for (auto s: lines) {
         f << s.str() << "\n";   // Write line, and line-ending for each element in the array.
         if (f.fail()) {
             // If the write fails for any reason, consider that a FileWriteError exception.
-            throw RtlException(Exception_file$FileWriteException, filename);
+            throw RtlException(Exception_FileWriteException, filename);
         }
     }
 }
+
+} // namespace file
 
 } // namespace rtl

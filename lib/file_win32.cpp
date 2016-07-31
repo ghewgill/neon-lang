@@ -7,19 +7,21 @@
 static void handle_error(DWORD error, const std::string &path)
 {
     switch (error) {
-        case ERROR_ALREADY_EXISTS: throw RtlException(Exception_file$DirectoryExistsException, path);
-        case ERROR_ACCESS_DENIED: throw RtlException(Exception_file$PermissionDeniedException, path);
-        case ERROR_PATH_NOT_FOUND: throw RtlException(Exception_file$PathNotFoundException, path);
-        case ERROR_FILE_EXISTS: throw RtlException(Exception_file$FileExistsException, path);
-        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(Exception_file$PermissionDeniedException, path);
+        case ERROR_ALREADY_EXISTS: throw RtlException(rtl::file::Exception_DirectoryExistsException, path);
+        case ERROR_ACCESS_DENIED: throw RtlException(rtl::file::Exception_PermissionDeniedException, path);
+        case ERROR_PATH_NOT_FOUND: throw RtlException(rtl::file::Exception_PathNotFoundException, path);
+        case ERROR_FILE_EXISTS: throw RtlException(rtl::file::Exception_FileExistsException, path);
+        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(rtl::file::Exception_PermissionDeniedException, path);
         default:
-            throw RtlException(Exception_file$FileException, path + ": " + std::to_string(error));
+            throw RtlException(rtl::file::Exception_FileException, path + ": " + std::to_string(error));
     }
 }
 
 namespace rtl {
 
-void file$copy(const std::string &filename, const std::string &destination)
+namespace file {
+
+void copy(const std::string &filename, const std::string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), TRUE);
     if (!r) {
@@ -27,7 +29,7 @@ void file$copy(const std::string &filename, const std::string &destination)
     }
 }
 
-void file$copyOverwriteIfExists(const std::string &filename, const std::string &destination)
+void copyOverwriteIfExists(const std::string &filename, const std::string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), FALSE);
     if (!r) {
@@ -35,7 +37,7 @@ void file$copyOverwriteIfExists(const std::string &filename, const std::string &
     }
 }
 
-void file$delete(const std::string &filename)
+void delete_(const std::string &filename)
 {
     BOOL r = DeleteFile(filename.c_str());
     if (!r) {
@@ -45,12 +47,12 @@ void file$delete(const std::string &filename)
     }
 }
 
-bool file$exists(const std::string &filename)
+bool exists(const std::string &filename)
 {
     return _access(filename.c_str(), 0) == 0;
 }
 
-std::vector<utf8string> file$files(const std::string &path)
+std::vector<utf8string> files(const std::string &path)
 {
     std::vector<utf8string> r;
     WIN32_FIND_DATA fd;
@@ -64,13 +66,13 @@ std::vector<utf8string> file$files(const std::string &path)
     return r;
 }
 
-bool file$isDirectory(const std::string &path)
+bool isDirectory(const std::string &path)
 {
     DWORD attr = GetFileAttributes(path.c_str());
     return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 
-void file$mkdir(const std::string &path)
+void mkdir(const std::string &path)
 {
     // TODO: Convert UTF-8 path to UCS-16 and call CreateDirectoryW.
     BOOL r = CreateDirectoryA(path.c_str(), NULL);
@@ -79,7 +81,7 @@ void file$mkdir(const std::string &path)
     }
 }
 
-void file$removeEmptyDirectory(const std::string &path)
+void removeEmptyDirectory(const std::string &path)
 {
     BOOL r = RemoveDirectory(path.c_str());
     if (!r) {
@@ -87,7 +89,7 @@ void file$removeEmptyDirectory(const std::string &path)
     }
 }
 
-void file$rename(const std::string &oldname, const std::string &newname)
+void rename(const std::string &oldname, const std::string &newname)
 {
     BOOL r = MoveFile(oldname.c_str(), newname.c_str());
     if (!r) {
@@ -95,12 +97,14 @@ void file$rename(const std::string &oldname, const std::string &newname)
     }
 }
 
-void file$symlink(const std::string &target, const std::string &newlink, bool targetIsDirectory)
+void symlink(const std::string &target, const std::string &newlink, bool targetIsDirectory)
 {
     BOOL r = CreateSymbolicLink(newlink.c_str(), target.c_str(), targetIsDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
     if (!r) {
         handle_error(GetLastError(), newlink);
     }
 }
+
+} // namespace file
 
 } // namespace rtl

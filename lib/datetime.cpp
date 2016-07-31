@@ -8,10 +8,12 @@
 
 namespace rtl {
 
-Cell datetime$gmtime(Number t)
+namespace datetime {
+
+Cell gmtime(Number t)
 {
     time_t x = number_to_sint32(t);
-    struct tm *tm = gmtime(&x);
+    struct tm *tm = ::gmtime(&x);
     Cell r;
     r.array_index_for_write(0) = Cell(number_from_uint32(tm->tm_sec));
     r.array_index_for_write(1) = Cell(number_from_uint32(tm->tm_min));
@@ -26,7 +28,7 @@ Cell datetime$gmtime(Number t)
     return r;
 }
 
-Number datetime$timegm(Cell &t)
+Number timegm_(Cell &t)
 {
     struct tm tm;
     tm.tm_sec  = number_to_uint32(t.array_index_for_read(0).number());
@@ -35,7 +37,9 @@ Number datetime$timegm(Cell &t)
     tm.tm_mday = number_to_uint32(t.array_index_for_read(3).number());
     tm.tm_mon  = number_to_uint32(t.array_index_for_read(4).number());
     tm.tm_year = number_to_uint32(t.array_index_for_read(5).number());
-    return number_from_uint64(timegm(&tm));
+    return number_from_uint64(::timegm(&tm));
 }
 
-}
+} // namespace datetime
+
+} // namespace rtl

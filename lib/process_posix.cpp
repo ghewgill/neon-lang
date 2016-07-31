@@ -6,19 +6,21 @@
 
 namespace rtl {
 
-Number process$call(const std::string &command, std::string *stdout, std::string *stderr)
+namespace process {
+
+Number call(const std::string &command, std::string *stdout, std::string *stderr)
 {
     int pout[2];
     int perr[2];
     if (pipe(pout) != 0) {
-        throw RtlException(Exception_os$SystemException, std::to_string(errno));
+        throw RtlException(os::Exception_SystemException, std::to_string(errno));
     }
     if (pipe(perr) != 0) {
-        throw RtlException(Exception_os$SystemException, std::to_string(errno));
+        throw RtlException(os::Exception_SystemException, std::to_string(errno));
     }
     pid_t child = fork();
     if (child < 0) {
-        throw RtlException(Exception_os$SystemException, std::to_string(errno));
+        throw RtlException(os::Exception_SystemException, std::to_string(errno));
     }
     if (child == 0) {
         close(pout[0]);
@@ -55,7 +57,7 @@ Number process$call(const std::string &command, std::string *stdout, std::string
         tv.tv_usec = 0;
         int r = select(nfds, &fds, NULL, NULL, &tv);
         if (r < 0) {
-            throw RtlException(Exception_os$SystemException, std::to_string(errno));
+            throw RtlException(os::Exception_SystemException, std::to_string(errno));
         }
         if (pout[0] >= 0 && FD_ISSET(pout[0], &fds)) {
             char buf[1024];
@@ -88,9 +90,11 @@ Number process$call(const std::string &command, std::string *stdout, std::string
             return number_from_sint32(-WTERMSIG(stat));
         }
     } else if (r < 0) {
-        throw RtlException(Exception_os$SystemException, std::to_string(errno));
+        throw RtlException(os::Exception_SystemException, std::to_string(errno));
     }
     return number_from_sint32(-1);
 }
 
-}
+} // namespace process
+
+} // namespace rtl

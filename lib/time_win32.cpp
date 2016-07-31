@@ -7,7 +7,9 @@ const ULONGLONG FILETIME_UNIX_EPOCH = 116444736000000000ULL;
 
 namespace rtl {
 
-Number time$now()
+namespace time {
+
+Number now()
 {
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
@@ -17,7 +19,7 @@ Number time$now()
     return number_divide(number_from_uint64(ticks.QuadPart - FILETIME_UNIX_EPOCH), number_from_uint32(10000000));
 }
 
-Number time$tick()
+Number tick()
 {
     static bool init = false;
     static Number frequency;
@@ -31,5 +33,7 @@ Number time$tick()
     QueryPerformanceCounter(&now);
     return number_divide(number_from_uint64(now.QuadPart), frequency);
 }
+
+} // namespace time
 
 } // namespace rtl

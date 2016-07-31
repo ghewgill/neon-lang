@@ -17,14 +17,16 @@ static MemoryFile *check_file(void *pf)
 {
     MemoryFile *f = static_cast<MemoryFile *>(pf);
     if (f == NULL) {
-        throw RtlException(Exception_mmap$InvalidFileException, "");
+        throw RtlException(rtl::mmap::Exception_InvalidFileException, "");
     }
     return f;
 }
 
 namespace rtl {
 
-void mmap$close(Cell **ppf)
+namespace mmap {
+
+void close(Cell **ppf)
 {
     MemoryFile *f = check_file(*ppf);
     UnmapViewOfFile(f->view);
@@ -34,7 +36,7 @@ void mmap$close(Cell **ppf)
     *ppf = NULL;
 }
 
-void *mmap$open(const std::string &name, Cell &)
+void *open(const std::string &name, Cell &)
 {
     MemoryFile *f = new MemoryFile;
     f->file = INVALID_HANDLE_VALUE;
@@ -43,7 +45,7 @@ void *mmap$open(const std::string &name, Cell &)
         if (f->file == INVALID_HANDLE_VALUE) {
             DWORD e = GetLastError();
             delete f;
-            throw RtlException(Exception_mmap$OpenFileException, "CreateFile: error (" + std::to_string(e) + ")");
+            throw RtlException(Exception_OpenFileException, "CreateFile: error (" + std::to_string(e) + ")");
         }
     }
     LARGE_INTEGER size;
@@ -51,7 +53,7 @@ void *mmap$open(const std::string &name, Cell &)
         DWORD e = GetLastError();
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_mmap$OpenFileException, "GetFileSizeEx: error (" + std::to_string(e) + ")");
+        throw RtlException(Exception_OpenFileException, "GetFileSizeEx: error (" + std::to_string(e) + ")");
     }
     f->len = size.QuadPart;
     f->map = CreateFileMapping(f->file, NULL, PAGE_READONLY, 0, 0, NULL);
@@ -59,7 +61,7 @@ void *mmap$open(const std::string &name, Cell &)
         DWORD e = GetLastError();
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_mmap$OpenFileException, "CreateFileMapping: error (" + std::to_string(e) + ")");
+        throw RtlException(Exception_OpenFileException, "CreateFileMapping: error (" + std::to_string(e) + ")");
     }
     f->view = reinterpret_cast<BYTE *>(MapViewOfFile(f->map, FILE_MAP_READ, 0, 0, 0));
     if (f->view == NULL) {
@@ -67,12 +69,12 @@ void *mmap$open(const std::string &name, Cell &)
         CloseHandle(f->map);
         CloseHandle(f->file);
         delete f;
-        throw RtlException(Exception_mmap$OpenFileException, "MapViewOfFile: error (" + std::to_string(e) + ")");
+        throw RtlException(Exception_OpenFileException, "MapViewOfFile: error (" + std::to_string(e) + ")");
     }
     return f;
 }
 
-std::string mmap$read(void *pf, Number offset, Number count)
+std::string read(void *pf, Number offset, Number count)
 {
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
@@ -86,23 +88,25 @@ std::string mmap$read(void *pf, Number offset, Number count)
     return std::string(f->view + o, f->view + o + c);
 }
 
-Number mmap$size(void *pf)
+Number size(void *pf)
 {
     MemoryFile *f = check_file(pf);
     return number_from_uint64(f->len);
 }
 
-void mmap$write(void *pf, Number offset, const std::string &data)
+void write(void *pf, Number offset, const std::string &data)
 {
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        throw RtlException(Exception_global$ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, "");
     }
     if (o + data.length() > f->len) {
-        throw RtlException(Exception_global$ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, "");
     }
     memcpy(f->view + o, data.data(), data.length());
 }
 
-}
+} // namespace mmap
+
+} // namespace rtl

@@ -33,7 +33,9 @@ void unpack_Event(Cell *out, const SDL_Event &in)
 
 namespace rtl {
 
-void *sdl$CreateRGBSurface(Number flags, Number width, Number height, Number depth, Number Rmask, Number Gmask, Number Bmask, Number Amask)
+namespace sdl {
+
+void *CreateRGBSurface(Number flags, Number width, Number height, Number depth, Number Rmask, Number Gmask, Number Bmask, Number Amask)
 {
     return SDL_CreateRGBSurface(
         number_to_uint32(flags),
@@ -47,62 +49,62 @@ void *sdl$CreateRGBSurface(Number flags, Number width, Number height, Number dep
     );
 }
 
-void *sdl$CreateRenderer(void *window, Number index, Number flags)
+void *CreateRenderer(void *window, Number index, Number flags)
 {
     return SDL_CreateRenderer(static_cast<SDL_Window *>(window), number_to_sint32(index), number_to_uint32(flags));
 }
 
-void *sdl$CreateSoftwareRenderer(void *surface)
+void *CreateSoftwareRenderer(void *surface)
 {
     return SDL_CreateSoftwareRenderer(static_cast<SDL_Surface *>(surface));
 }
 
-void *sdl$CreateTextureFromSurface(void *renderer, void *surface)
+void *CreateTextureFromSurface(void *renderer, void *surface)
 {
     return SDL_CreateTextureFromSurface(static_cast<SDL_Renderer *>(renderer), static_cast<SDL_Surface *>(surface));
 }
 
-void *sdl$CreateWindow(const std::string &title, Number x, Number y, Number w, Number h, Number flags)
+void *CreateWindow(const std::string &title, Number x, Number y, Number w, Number h, Number flags)
 {
     return SDL_CreateWindow(title.c_str(), number_to_sint32(x), number_to_sint32(y), number_to_sint32(w), number_to_sint32(h), number_to_uint32(flags));
 }
 
-void sdl$Delay(Number ms)
+void Delay(Number ms)
 {
     SDL_Delay(number_to_uint32(ms));
 }
 
-void sdl$DestroyRenderer(void *renderer)
+void DestroyRenderer(void *renderer)
 {
     SDL_DestroyRenderer(static_cast<SDL_Renderer *>(renderer));
 }
 
-void sdl$DestroyTexture(void *texture)
+void DestroyTexture(void *texture)
 {
     SDL_DestroyTexture(static_cast<SDL_Texture *>(texture));
 }
 
-void sdl$DestroyWindow(void *window)
+void DestroyWindow(void *window)
 {
     SDL_DestroyWindow(static_cast<SDL_Window *>(window));
 }
 
-void sdl$FreeSurface(void *surface)
+void FreeSurface(void *surface)
 {
     SDL_FreeSurface(static_cast<SDL_Surface *>(surface));
 }
 
-void sdl$Init(Number flags)
+void Init(Number flags)
 {
     SDL_Init(number_to_uint32(flags));
 }
 
-void *sdl$LoadBMP(const std::string &file)
+void *LoadBMP(const std::string &file)
 {
     return SDL_LoadBMP(file.c_str());
 }
 
-bool sdl$PollEvent(Cell *event)
+bool PollEvent(Cell *event)
 {
     SDL_Event e;
     int r = SDL_PollEvent(&e);
@@ -112,23 +114,23 @@ bool sdl$PollEvent(Cell *event)
     return r != 0;
 }
 
-void sdl$Quit()
+void Quit()
 {
     SDL_Quit();
 }
 
-void sdl$RenderClear(void *renderer)
+void RenderClear(void *renderer)
 {
     SDL_RenderClear(static_cast<SDL_Renderer *>(renderer));
 }
 
-void sdl$RenderCopy(void *renderer, void *texture, Cell &srcrect, Cell &dstrect)
+void RenderCopy(void *renderer, void *texture, Cell &srcrect, Cell &dstrect)
 {
     SDL_Rect src, dst;
     SDL_RenderCopy(static_cast<SDL_Renderer *>(renderer), static_cast<SDL_Texture *>(texture), pack_Rect(src, srcrect), pack_Rect(dst, dstrect));
 }
 
-void sdl$RenderDrawLine(void *renderer, Number x1, Number y1, Number x2, Number y2)
+void RenderDrawLine(void *renderer, Number x1, Number y1, Number x2, Number y2)
 {
     SDL_RenderDrawLine(
         static_cast<SDL_Renderer *>(renderer),
@@ -139,7 +141,7 @@ void sdl$RenderDrawLine(void *renderer, Number x1, Number y1, Number x2, Number 
     );
 }
 
-void sdl$RenderDrawLines(void *renderer, Cell &points)
+void RenderDrawLines(void *renderer, Cell &points)
 {
     std::vector<SDL_Point> p(points.array().size());
     for (size_t i = 0; i < points.array().size(); i++) {
@@ -153,7 +155,7 @@ void sdl$RenderDrawLines(void *renderer, Cell &points)
     );
 }
 
-void sdl$RenderDrawPoint(void *renderer, Number x, Number y)
+void RenderDrawPoint(void *renderer, Number x, Number y)
 {
     SDL_RenderDrawPoint(
         static_cast<SDL_Renderer *>(renderer),
@@ -162,18 +164,18 @@ void sdl$RenderDrawPoint(void *renderer, Number x, Number y)
     );
 }
 
-void sdl$RenderFillRect(void *renderer, Cell &rect)
+void RenderFillRect(void *renderer, Cell &rect)
 {
     SDL_Rect r;
     SDL_RenderFillRect(static_cast<SDL_Renderer *>(renderer), pack_Rect(r, rect));
 }
 
-void sdl$RenderPresent(void *renderer)
+void RenderPresent(void *renderer)
 {
     SDL_RenderPresent(static_cast<SDL_Renderer *>(renderer));
 }
 
-void sdl$SetRenderDrawColor(void *renderer, Number r, Number g, Number b, Number a)
+void SetRenderDrawColor(void *renderer, Number r, Number g, Number b, Number a)
 {
     SDL_SetRenderDrawColor(
         static_cast<SDL_Renderer *>(renderer),
@@ -183,5 +185,7 @@ void sdl$SetRenderDrawColor(void *renderer, Number r, Number g, Number b, Number
         number_to_uint8(a)
     );
 }
+
+} // namespace sdl
 
 } // namespace rtl

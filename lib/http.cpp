@@ -24,7 +24,9 @@ static size_t data_callback(char *ptr, size_t size, size_t nmemb, void *userdata
 
 namespace rtl {
 
-std::string http$get(const std::string &url, std::vector<utf8string> *headers)
+namespace http {
+
+std::string get(const std::string &url, std::vector<utf8string> *headers)
 {
     std::string data;
     headers->clear();
@@ -45,13 +47,13 @@ std::string http$get(const std::string &url, std::vector<utf8string> *headers)
     } else {
         curl_easy_cleanup(curl);
         //fprintf(stderr, "curl %d error %s\n", r, error);
-        throw RtlException(Exception_http$HttpException, error, r);
+        throw RtlException(Exception_HttpException, error, r);
     }
     curl_easy_cleanup(curl);
     return data;
 }
 
-std::string http$post(const std::string &url, const std::string &post_data, std::vector<utf8string> *headers)
+std::string post(const std::string &url, const std::string &post_data, std::vector<utf8string> *headers)
 {
     std::string data;
     headers->clear();
@@ -74,10 +76,12 @@ std::string http$post(const std::string &url, const std::string &post_data, std:
     } else {
         curl_easy_cleanup(curl);
         //fprintf(stderr, "curl %d error %s\n", r, error);
-        throw RtlException(Exception_http$HttpException, error, r);
+        throw RtlException(Exception_HttpException, error, r);
     }
     curl_easy_cleanup(curl);
     return data;
 }
 
-}
+} // namespace http
+
+} // namespace rtl

@@ -2,14 +2,18 @@
 
 namespace rtl {
 
-void debugger$breakpoint()
+namespace debugger {
+
+void breakpoint()
 {
     executor_breakpoint();
 }
 
-void debugger$log(const std::string &message)
+void log(const std::string &message)
 {
     executor_log(message);
 }
 
-}
+} // namespace debugger
+
+} // namespace rtl

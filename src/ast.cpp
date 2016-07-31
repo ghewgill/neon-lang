@@ -623,11 +623,11 @@ Number FunctionCall::eval_number() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
-    if (f->name == "ord") return rtl::global$ord(args[0]->eval_string());
-    if (f->name == "int") return rtl::global$int(args[0]->eval_number());
-    if (f->name == "max") return rtl::global$max(args[0]->eval_number(), args[1]->eval_number());
-    if (f->name == "min") return rtl::global$min(args[0]->eval_number(), args[1]->eval_number());
-    if (f->name == "num") return rtl::global$num(args[0]->eval_string());
+    if (f->name == "ord") return rtl::global::ord(args[0]->eval_string());
+    if (f->name == "int") return rtl::global::int_(args[0]->eval_number());
+    if (f->name == "max") return rtl::global::max(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "min") return rtl::global::min(args[0]->eval_number(), args[1]->eval_number());
+    if (f->name == "num") return rtl::global::num(args[0]->eval_string());
     internal_error("unexpected intrinsic");
 }
 
@@ -635,12 +635,12 @@ std::string FunctionCall::eval_string() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
-    if (f->name == "chr") return rtl::global$chr(args[0]->eval_number());
-    if (f->name == "concat") return rtl::global$concat(args[0]->eval_string(), args[1]->eval_string());
-    if (f->name == "format") return rtl::global$format(args[0]->eval_string(), args[1]->eval_string());
-    if (f->name == "str") return rtl::global$str(args[0]->eval_number());
-    if (f->name == "strb") return rtl::global$strb(args[0]->eval_boolean());
-    if (f->name == "substring") return rtl::global$substring(args[0]->eval_string(), args[1]->eval_number(), args[2]->eval_number());
+    if (f->name == "chr") return rtl::global::chr(args[0]->eval_number());
+    if (f->name == "concat") return rtl::global::concat(args[0]->eval_string(), args[1]->eval_string());
+    if (f->name == "format") return rtl::global::format(args[0]->eval_string(), args[1]->eval_string());
+    if (f->name == "str") return rtl::global::str(args[0]->eval_number());
+    if (f->name == "strb") return rtl::global::strb(args[0]->eval_boolean());
+    if (f->name == "substring") return rtl::global::substring(args[0]->eval_string(), args[1]->eval_number(), args[2]->eval_number());
     internal_error("unexpected intrinsic");
 }
 
@@ -887,7 +887,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         TYPE_BYTES->methods["toString"] = new PredefinedFunction("bytes__toString", new TypeFunction(TYPE_STRING, params));
     }
 
-    for (auto e: ExceptionNames) {
+    for (auto e: rtl::ExceptionNames) {
         scope->addName(Token(IDENTIFIER, e.name), e.name, new Exception(Token(), e.name));
     }
 

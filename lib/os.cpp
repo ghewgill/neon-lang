@@ -10,12 +10,14 @@
 
 namespace rtl {
 
-std::string os$getenv(const std::string &name)
+namespace os {
+
+std::string getenv(const std::string &name)
 {
-    return getenv(name.c_str());
+    return ::getenv(name.c_str());
 }
 
-Number os$system(const std::string &command)
+Number system(const std::string &command)
 {
     std::string cmd = command;
 #ifdef _WIN32
@@ -27,7 +29,9 @@ Number os$system(const std::string &command)
         }
     }
 #endif
-    return number_from_sint32(system(cmd.c_str()));
+    return number_from_sint32(::system(cmd.c_str()));
 }
 
-}
+} // namespace os
+
+} // namespace rtl

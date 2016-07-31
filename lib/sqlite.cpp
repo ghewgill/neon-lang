@@ -17,7 +17,9 @@ static int callback(void *rowscell, int columns, char **values, char ** /*names*
 
 namespace rtl {
 
-void *sqlite$open(const std::string &name)
+namespace sqlite {
+
+void *open(const std::string &name)
 {
     sqlite3 *db;
     int r = sqlite3_open(name.c_str(), &db);
@@ -26,7 +28,7 @@ void *sqlite$open(const std::string &name)
     return db;
 }
 
-Cell sqlite$exec(void *db, const std::string &sql)
+Cell exec(void *db, const std::string &sql)
 {
     std::vector<Cell> rows;
     char *errmsg;
@@ -37,9 +39,11 @@ Cell sqlite$exec(void *db, const std::string &sql)
     return Cell(rows);
 }
 
-void sqlite$close(void *db)
+void close(void *db)
 {
     sqlite3_close(static_cast<sqlite3 *>(db));
 }
+
+} // namespace sqlite
 
 } // namespace rtl

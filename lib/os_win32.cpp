@@ -12,34 +12,36 @@ struct Process {
 
 namespace rtl {
 
-void os$chdir(const std::string &path)
+namespace os {
+
+void chdir(const std::string &path)
 {
     BOOL r = SetCurrentDirectory(path.c_str());
     if (not r) {
-        throw RtlException(Exception_file$PathNotFoundException, path);
+        throw RtlException(file::Exception_PathNotFoundException, path);
     }
 }
 
-std::string os$getcwd()
+std::string getcwd()
 {
     char buf[MAX_PATH];
     GetCurrentDirectory(sizeof(buf), buf);
     return buf;
 }
 
-Cell os$platform()
+Cell platform()
 {
     return Cell(number_from_uint32(ENUM_Platform_win32));
 }
 
-bool os$fork(Cell **process)
+bool fork(Cell **process)
 {
     Process **pp = reinterpret_cast<Process **>(process);
     *pp = NULL;
-    throw RtlException(Exception_os$UnsupportedFunctionException, "os.fork");
+    throw RtlException(Exception_UnsupportedFunctionException, "os.fork");
 }
 
-void os$kill(void *process)
+void kill(void *process)
 {
     Process *p = reinterpret_cast<Process *>(process);
     TerminateProcess(p->process, 1);
@@ -48,7 +50,7 @@ void os$kill(void *process)
     delete p;
 }
 
-void *os$spawn(const std::string &command)
+void *spawn(const std::string &command)
 {
     static HANDLE job = INVALID_HANDLE_VALUE;
     if (job == INVALID_HANDLE_VALUE) {
@@ -76,7 +78,7 @@ void *os$spawn(const std::string &command)
         &si,
         &pi);
     if (not r) {
-        throw RtlException(Exception_file$PathNotFoundException, command.c_str());
+        throw RtlException(file::Exception_PathNotFoundException, command.c_str());
     }
     AssignProcessToJobObject(job, pi.hProcess);
     p->process = pi.hProcess;
@@ -84,7 +86,7 @@ void *os$spawn(const std::string &command)
     return p;
 }
 
-Number os$wait(Cell **process)
+Number wait(Cell **process)
 {
     DWORD r;
     {
@@ -99,4 +101,6 @@ Number os$wait(Cell **process)
     return number_from_uint32(r);
 }
 
-}
+} // namespace os
+
+} // namespace rtl

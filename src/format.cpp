@@ -93,7 +93,7 @@ std::string format(const std::string &str, const Spec &spec)
         case 'd': {
             Number x = number_from_string(str);
             if (number_is_nan(x)) {
-                throw RtlException(Exception_global$ValueRangeException, str);
+                throw RtlException(rtl::global::Exception_ValueRangeException, str);
             }
             break;
         }

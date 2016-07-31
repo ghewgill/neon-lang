@@ -10,7 +10,9 @@
 
 namespace rtl {
 
-bool regex$search(const std::string &pattern, const std::string &subject, Cell *match)
+namespace regex {
+
+bool search(const std::string &pattern, const std::string &subject, Cell *match)
 {
     std::vector<Cell> matches;
     int errorcode;
@@ -39,5 +41,7 @@ bool regex$search(const std::string &pattern, const std::string &subject, Cell *
     *match = Cell(matches);
     return true;
 }
+
+} // namespace regex
 
 } // namespace rtl

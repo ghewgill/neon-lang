@@ -2,6 +2,10 @@
 
 namespace rtl {
 
-extern const std::string file$Separator = "\\";
+namespace file {
+
+extern const std::string CONSTANT_Separator = "\\";
+
+} // namespace file
 
 } // namespace rtl

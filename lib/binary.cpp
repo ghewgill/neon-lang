@@ -57,10 +57,10 @@ const Number traits<uint64_t>::MAX = traits<uint64_t>::to_number(std::numeric_li
 template <typename T> void range_check(Number x)
 {
     if (number_is_less(x, traits<T>::MIN) || number_is_greater(x, traits<T>::MAX)) {
-        throw RtlException(Exception_global$ValueRangeException, number_to_string(x));
+        throw RtlException(rtl::global::Exception_ValueRangeException, number_to_string(x));
     }
     if (not number_is_integer(x)) {
-        throw RtlException(Exception_global$ValueRangeException, number_to_string(x));
+        throw RtlException(rtl::global::Exception_ValueRangeException, number_to_string(x));
     }
 }
 
@@ -190,27 +190,31 @@ template <typename T> Number binary_xor(Number x, Number y)
 
 namespace rtl {
 
-Number binary$and32(Number x, Number y)                            { return binary_and<uint32_t>(x, y); }
-Number binary$and64(Number x, Number y)                            { return binary_and<uint64_t>(x, y); }
-Number binary$extract32(Number x, Number n, Number w)              { return binary_extract<uint32_t>(x, n, w); }
-Number binary$extract64(Number x, Number n, Number w)              { return binary_extract<uint64_t>(x, n, w); }
-bool binary$get32(Number x, Number n)                              { return binary_get<uint32_t>(x, n); }
-bool binary$get64(Number x, Number n)                              { return binary_get<uint64_t>(x, n); }
-Number binary$not32(Number x)                                      { return binary_not<uint32_t>(x); }
-Number binary$not64(Number x)                                      { return binary_not<uint64_t>(x); }
-Number binary$or32(Number x, Number y)                             { return binary_or<uint32_t>(x, y); }
-Number binary$or64(Number x, Number y)                             { return binary_or<uint64_t>(x, y); }
-Number binary$replace32(Number x, Number n, Number w, Number y)    { return binary_replace<uint32_t>(x, n, w, y); }
-Number binary$replace64(Number x, Number n, Number w, Number y)    { return binary_replace<uint64_t>(x, n, w, y); }
-Number binary$set32(Number x, Number n, bool v)                    { return binary_set<uint32_t>(x, n, v); }
-Number binary$set64(Number x, Number n, bool v)                    { return binary_set<uint64_t>(x, n, v); }
-Number binary$shiftLeft32(Number x, Number n)                      { return binary_shift_left<uint32_t>(x, n); }
-Number binary$shiftLeft64(Number x, Number n)                      { return binary_shift_left<uint64_t>(x, n); }
-Number binary$shiftRight32(Number x, Number n)                     { return binary_shift_right<uint32_t>(x, n); }
-Number binary$shiftRight64(Number x, Number n)                     { return binary_shift_right<uint64_t>(x, n); }
-Number binary$shiftRightSigned32(Number x, Number n)               { return binary_shift_right_signed<int32_t>(x, n); }
-Number binary$shiftRightSigned64(Number x, Number n)               { return binary_shift_right_signed<int64_t>(x, n); }
-Number binary$xor32(Number x, Number y)                            { return binary_xor<uint32_t>(x, y); }
-Number binary$xor64(Number x, Number y)                            { return binary_xor<uint64_t>(x, y); }
+namespace binary {
+
+Number and32(Number x, Number y)                            { return binary_and<uint32_t>(x, y); }
+Number and64(Number x, Number y)                            { return binary_and<uint64_t>(x, y); }
+Number extract32(Number x, Number n, Number w)              { return binary_extract<uint32_t>(x, n, w); }
+Number extract64(Number x, Number n, Number w)              { return binary_extract<uint64_t>(x, n, w); }
+bool get32(Number x, Number n)                              { return binary_get<uint32_t>(x, n); }
+bool get64(Number x, Number n)                              { return binary_get<uint64_t>(x, n); }
+Number not32(Number x)                                      { return binary_not<uint32_t>(x); }
+Number not64(Number x)                                      { return binary_not<uint64_t>(x); }
+Number or32(Number x, Number y)                             { return binary_or<uint32_t>(x, y); }
+Number or64(Number x, Number y)                             { return binary_or<uint64_t>(x, y); }
+Number replace32(Number x, Number n, Number w, Number y)    { return binary_replace<uint32_t>(x, n, w, y); }
+Number replace64(Number x, Number n, Number w, Number y)    { return binary_replace<uint64_t>(x, n, w, y); }
+Number set32(Number x, Number n, bool v)                    { return binary_set<uint32_t>(x, n, v); }
+Number set64(Number x, Number n, bool v)                    { return binary_set<uint64_t>(x, n, v); }
+Number shiftLeft32(Number x, Number n)                      { return binary_shift_left<uint32_t>(x, n); }
+Number shiftLeft64(Number x, Number n)                      { return binary_shift_left<uint64_t>(x, n); }
+Number shiftRight32(Number x, Number n)                     { return binary_shift_right<uint32_t>(x, n); }
+Number shiftRight64(Number x, Number n)                     { return binary_shift_right<uint64_t>(x, n); }
+Number shiftRightSigned32(Number x, Number n)               { return binary_shift_right_signed<int32_t>(x, n); }
+Number shiftRightSigned64(Number x, Number n)               { return binary_shift_right_signed<int64_t>(x, n); }
+Number xor32(Number x, Number y)                            { return binary_xor<uint32_t>(x, y); }
+Number xor64(Number x, Number y)                            { return binary_xor<uint64_t>(x, y); }
+
+} // namespace binary
 
 } // namespace rtl

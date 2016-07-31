@@ -6,12 +6,14 @@
 
 namespace rtl {
 
-std::string compress$gzip(const std::string &input)
+namespace compress {
+
+std::string gzip(const std::string &input)
 {
     std::string buf;
     uLong destLen = compressBound(static_cast<uLong>(input.length()));
     buf.resize(destLen);
-    int r = compress(reinterpret_cast<Bytef *>(const_cast<char *>(buf.data())), &destLen, reinterpret_cast<Bytef *>(const_cast<char *>(input.data())), static_cast<uLong>(input.length()));
+    int r = ::compress(reinterpret_cast<Bytef *>(const_cast<char *>(buf.data())), &destLen, reinterpret_cast<Bytef *>(const_cast<char *>(input.data())), static_cast<uLong>(input.length()));
     if (r != Z_OK) {
         fprintf(stderr, "gzip r %d\n", r);
         return std::string(); // TODO: exception
@@ -20,7 +22,7 @@ std::string compress$gzip(const std::string &input)
     return buf;
 }
 
-std::string compress$gunzip(const std::string &input)
+std::string gunzip(const std::string &input)
 {
     std::string buf;
     uLong destLen = 12 * static_cast<uLong>(input.length());
@@ -41,7 +43,7 @@ std::string compress$gunzip(const std::string &input)
     return buf;
 }
 
-std::string compress$bzip2(const std::string &input)
+std::string bzip2(const std::string &input)
 {
     std::string buf;
     unsigned int destLen = static_cast<unsigned int>(input.length() + input.length()/100 + 600);
@@ -55,7 +57,7 @@ std::string compress$bzip2(const std::string &input)
     return buf;
 }
 
-std::string compress$bunzip2(const std::string &input)
+std::string bunzip2(const std::string &input)
 {
     std::string buf;
     unsigned int destLen = 20 * static_cast<unsigned int>(input.length());
@@ -76,7 +78,7 @@ std::string compress$bunzip2(const std::string &input)
     return buf;
 }
 
-std::string compress$lzma(const std::string &input)
+std::string lzma(const std::string &input)
 {
     std::string buf;
     size_t destLen = input.length() + 1000;
@@ -91,7 +93,7 @@ std::string compress$lzma(const std::string &input)
     return buf;
 }
 
-std::string compress$unlzma(const std::string &input)
+std::string unlzma(const std::string &input)
 {
     std::string buf;
     size_t destLen = 20 * input.length();
@@ -116,4 +118,6 @@ std::string compress$unlzma(const std::string &input)
     return buf;
 }
 
-}
+} // namespace compress
+
+} // namespace rtl

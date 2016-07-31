@@ -5,7 +5,9 @@
 
 namespace rtl {
 
-Number process$call(const std::string &command, std::string *out, std::string *err)
+namespace process {
+
+Number call(const std::string &command, std::string *out, std::string *err)
 {
     HANDLE out_read, out_write;
     HANDLE err_read, err_write;
@@ -14,16 +16,16 @@ Number process$call(const std::string &command, std::string *out, std::string *e
     sa.bInheritHandle = TRUE;
     sa.lpSecurityDescriptor = NULL;
     if (not CreatePipe(&out_read, &out_write, &sa, 0)) {
-        throw RtlException(Exception_os$SystemException, std::to_string(GetLastError()));
+        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
     }
     if (not SetHandleInformation(out_read, HANDLE_FLAG_INHERIT, 0)) {
-        throw RtlException(Exception_os$SystemException, std::to_string(GetLastError()));
+        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
     }
     if (not CreatePipe(&err_read, &err_write, &sa, 0)) {
-        throw RtlException(Exception_os$SystemException, std::to_string(GetLastError()));
+        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
     }
     if (not SetHandleInformation(err_read, HANDLE_FLAG_INHERIT, 0)) {
-        throw RtlException(Exception_os$SystemException, std::to_string(GetLastError()));
+        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
     }
     STARTUPINFO si;
     ZeroMemory(&si, sizeof(si));
@@ -35,7 +37,7 @@ Number process$call(const std::string &command, std::string *out, std::string *e
     std::string cmd = command;
     PROCESS_INFORMATION pi;
     if (not CreateProcess(NULL, const_cast<char *>(cmd.c_str()), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
-        throw RtlException(Exception_os$SystemException, std::to_string(GetLastError()));
+        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
     }
     CloseHandle(pi.hThread);
     CloseHandle(out_write);
@@ -75,4 +77,6 @@ Number process$call(const std::string &command, std::string *out, std::string *e
     return number_from_uint32(r);
 }
 
-}
+} // namespace process
+
+} // namespace rtl

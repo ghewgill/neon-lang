@@ -7,7 +7,9 @@
 
 namespace rtl {
 
-Cell net$tcpSocket()
+namespace net {
+
+Cell tcpSocket()
 {
 #ifdef _WIN32
     static bool initialized = false;
@@ -23,7 +25,7 @@ Cell net$tcpSocket()
     return r;
 }
 
-Cell net$socket_accept(Cell &handle)
+Cell socket_accept(Cell &handle)
 {
     SOCKET s = number_to_sint32(handle.number());
     sockaddr_in sin;
@@ -38,13 +40,13 @@ Cell net$socket_accept(Cell &handle)
     return client;
 }
 
-void net$socket_close(Cell &handle)
+void socket_close(Cell &handle)
 {
     SOCKET s = number_to_sint32(handle.number());
     closesocket(s);
 }
 
-void net$socket_connect(Cell &handle, const std::string &host, Number port)
+void socket_connect(Cell &handle, const std::string &host, Number port)
 {
     SOCKET s = number_to_sint32(handle.number());
     int p = number_to_sint32(port);
@@ -67,7 +69,7 @@ void net$socket_connect(Cell &handle, const std::string &host, Number port)
     }
 }
 
-void net$socket_listen(Cell &handle, Number port)
+void socket_listen(Cell &handle, Number port)
 {
     SOCKET s = number_to_sint32(handle.number());
     int on = 1;
@@ -89,7 +91,7 @@ void net$socket_listen(Cell &handle, Number port)
     }
 }
 
-std::string net$socket_recv(Cell &handle, Number count)
+std::string socket_recv(Cell &handle, Number count)
 {
     SOCKET s = number_to_sint32(handle.number());
     int n = number_to_sint32(count);
@@ -103,13 +105,13 @@ std::string net$socket_recv(Cell &handle, Number count)
     return buf;
 }
 
-void net$socket_send(Cell &handle, const std::string &data)
+void socket_send(Cell &handle, const std::string &data)
 {
     SOCKET s = number_to_sint32(handle.number());
     send(s, data.data(), static_cast<int>(data.length()), 0);
 }
 
-bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
+bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
 {
     fd_set rfds, wfds, efds;
     FD_ZERO(&rfds);
@@ -159,7 +161,7 @@ bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seco
         }
     } while (false);
     if (r < 0) {
-        throw RtlException(Exception_net$SocketException, "");
+        throw RtlException(Exception_SocketException, "");
     }
     if (r == 0) {
         ra.clear();
@@ -195,4 +197,6 @@ bool net$socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seco
     return true;
 }
 
-}
+} // namespace net
+
+} // namespace rtl
