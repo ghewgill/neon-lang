@@ -7,14 +7,12 @@
 EXPORT Platform
 EXPORT Process
 EXPORT SystemException
-EXPORT UnsupportedFunctionException
 
 EXPORT chdir
 EXPORT getcwd
 EXPORT getenv
 EXPORT platform
 EXPORT system
-EXPORT fork
 EXPORT kill
 EXPORT spawn
 EXPORT wait
@@ -25,13 +23,6 @@ EXPORT wait
  |  Error from system.
  |%
 DECLARE EXCEPTION SystemException
-
-%|
- |  Exception: UnsupportedFunctionException
- |
- |  Operation is unsupported on this platform.
- |%
-DECLARE EXCEPTION UnsupportedFunctionException
 
 %|
  |  Enumeration: Platform
@@ -88,13 +79,6 @@ DECLARE NATIVE FUNCTION platform(): Platform
  |  Execute a system (shell) command.
  |%
 DECLARE NATIVE FUNCTION system(command: String): Number
-
-%|
- |  Function: fork
- |
- |  Fork the current process (POSIX only).
- |%
-DECLARE NATIVE FUNCTION fork(OUT child: Process): Boolean
 
 %|
  |  Function: kill

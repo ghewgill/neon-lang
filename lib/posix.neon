@@ -1,0 +1,211 @@
+%|
+ |  File: posix
+ |
+ |  Posix API access functions.
+ |%
+
+EXPORT access
+% cfgetispeed
+% cfgetospeed
+% cfsetispeed
+% cfsetospeed
+EXPORT chdir
+EXPORT chmod
+EXPORT chown
+EXPORT close
+EXPORT dup
+EXPORT dup2
+EXPORT exit
+EXPORT execve
+% EXPORT faccessat
+EXPORT fchdir
+EXPORT fchmod
+% EXPORT fchmodat
+EXPORT fchown
+% EXPORT fchownat
+% fcntl
+EXPORT fork
+EXPORT fpathconf
+% fstat
+% fstatat
+EXPORT fsync
+EXPORT ftruncate
+EXPORT getegid
+EXPORT geteuid
+EXPORT getgid
+% getgrgid
+% getgrnam
+% getgroups
+EXPORT gethostname
+EXPORT getlogin
+EXPORT getpgid
+EXPORT getpgrp
+EXPORT getpid
+EXPORT getppid
+EXPORT getpriority
+% getpwnam
+% getpwuid
+% getrusage
+EXPORT getsid
+% gettimeofday
+EXPORT getuid
+EXPORT isatty
+EXPORT kill
+EXPORT lchown
+EXPORT link
+% EXPORT linkat
+EXPORT lockf
+EXPORT lseek
+% lstat
+EXPORT mkdir
+% EXPORT mkdirat
+EXPORT mkfifo
+EXPORT open
+EXPORT pathconf
+%ECLARE NATIVE FUNCTION pipe
+EXPORT pread
+EXPORT pwrite
+EXPORT read
+EXPORT readlink
+% EXPORT readlinkat
+EXPORT rename
+% EXPORT renameat
+EXPORT rmdir
+EXPORT setegid
+EXPORT seteuid
+EXPORT setgid
+EXPORT setpgid
+EXPORT setpriority
+EXPORT setregid
+EXPORT setreuid
+EXPORT setsid
+EXPORT setuid
+EXPORT sleep
+% stat
+EXPORT strerror
+EXPORT symlink
+% EXPORT symlinkat
+EXPORT sync
+EXPORT sysconf
+EXPORT tcdrain
+EXPORT tcflow
+EXPORT tcflush
+% tcgetattr
+EXPORT tcgetpgrp
+EXPORT tcsendbreak
+% tcsetattr
+EXPORT tcsetpgrp
+EXPORT truncate
+EXPORT ttyname
+% uname
+EXPORT unlink
+% EXPORT unlinkat
+EXPORT umask
+% utime
+EXPORT wait
+EXPORT waitpid
+EXPORT write
+
+DECLARE NATIVE VAR errno: Number
+
+DECLARE NATIVE FUNCTION access(path: String, amode: Number): Number
+% cfgetispeed
+% cfgetospeed
+% cfsetispeed
+% cfsetospeed
+DECLARE NATIVE FUNCTION chdir(path: String): Number
+DECLARE NATIVE FUNCTION chmod(path: String, mode: Number): Number
+DECLARE NATIVE FUNCTION chown(path: String, owner: Number, group: Number): Number
+DECLARE NATIVE FUNCTION close(fildes: Number): Number
+DECLARE NATIVE FUNCTION dup(fildes: Number): Number
+DECLARE NATIVE FUNCTION dup2(fildes: Number, fildes2: Number): Number
+DECLARE NATIVE FUNCTION exit(status: Number)
+DECLARE NATIVE FUNCTION execve(path: String, argv: Array<String>, envp: Array<String>): Number
+%ECLARE NATIVE FUNCTION faccessat(fd: Number, path: String, mode: Number, flag: Number): Number
+DECLARE NATIVE FUNCTION fchdir(fildes: Number): Number
+DECLARE NATIVE FUNCTION fchmod(fildes: Number, mode: Number): Number
+%ECLARE NATIVE FUNCTION fchmodat(fd: Number, path: String, mode: Number, flag: Number): Number
+DECLARE NATIVE FUNCTION fchown(fildes: Number, owner: Number, group: Number): Number
+%ECLARE NATIVE FUNCTION fchownat(fd: Number, path: String, owner: Number, group: Number, flag: Number): Number
+% fcntl
+DECLARE NATIVE FUNCTION fork(): Number
+DECLARE NATIVE FUNCTION fpathconf(fildes: Number, name: Number): Number
+% fstat
+% fstatat
+DECLARE NATIVE FUNCTION fsync(fildes: Number): Number
+DECLARE NATIVE FUNCTION ftruncate(fildes: Number, length: Number): Number
+DECLARE NATIVE FUNCTION getegid(): Number
+DECLARE NATIVE FUNCTION geteuid(): Number
+DECLARE NATIVE FUNCTION getgid(): Number
+% getgrgid
+% getgrnam
+% getgroups
+DECLARE NATIVE FUNCTION gethostname(OUT name: String): Number
+DECLARE NATIVE FUNCTION getlogin(): String
+DECLARE NATIVE FUNCTION getpgid(pid: Number): Number
+DECLARE NATIVE FUNCTION getpgrp(): Number
+DECLARE NATIVE FUNCTION getpid(): Number
+DECLARE NATIVE FUNCTION getppid(): Number
+DECLARE NATIVE FUNCTION getpriority(which: Number, who: Number): Number
+% getpwnam
+% getpwuid
+% getrusage
+DECLARE NATIVE FUNCTION getsid(pid: Number): Number
+% gettimeofday
+DECLARE NATIVE FUNCTION getuid(): Number
+DECLARE NATIVE FUNCTION isatty(fildes: Number): Boolean
+DECLARE NATIVE FUNCTION kill(pid: Number, sig: Number): Number
+DECLARE NATIVE FUNCTION lchown(path: String, owner: Number, group: Number): Number
+DECLARE NATIVE FUNCTION link(path1: String, path2: String): Number
+%ECLARE NATIVE FUNCTION linkat(fd1: Number, name1: String, fd2: Number, name2: String, flag: Number): Number
+DECLARE NATIVE FUNCTION lockf(fildes: Number, function: Number, size: Number): Number
+DECLARE NATIVE FUNCTION lseek(fildes: Number, offset: Number, whence: Number): Number
+% lstat
+DECLARE NATIVE FUNCTION mkdir(path: String, mode: Number): Number
+%ECLARE NATIVE FUNCTION mkdirat(fd: Number, path: String, mode: Number): Number
+DECLARE NATIVE FUNCTION mkfifo(path: String, mode: Number): Number
+DECLARE NATIVE FUNCTION open(path: String, oflag: Number, mode: Number DEFAULT 0): Number
+DECLARE NATIVE FUNCTION pathconf(path: String, name: Number): Number
+%ECLARE NATIVE FUNCTION pipe(OUT fildes: Array<Number>): Number
+DECLARE NATIVE FUNCTION pread(fildes: Number, OUT buf: Bytes, nbyte: Number, offset: Number): Number
+DECLARE NATIVE FUNCTION pwrite(fildes: Number, buf: Bytes, nbyte: Number, offset: Number): Number
+DECLARE NATIVE FUNCTION read(fildes: Number, OUT buf: Bytes, nbyte: Number): Number
+DECLARE NATIVE FUNCTION readlink(path: String, OUT buf: Bytes, bufsize: Number): Number
+%ECLARE NATIVE FUNCTION readlinkat(fd: Number, path: String, OUT buf: Bytes, bufsize: Number): Number
+DECLARE NATIVE FUNCTION rename(old: String, new: String): Number
+%ECLARE NATIVE FUNCTION renameat(fromfd: Number, from: String, tofd: Number, to: String): Number
+DECLARE NATIVE FUNCTION rmdir(path: String): Number
+DECLARE NATIVE FUNCTION setegid(egid: Number): Number
+DECLARE NATIVE FUNCTION seteuid(euid: Number): Number
+DECLARE NATIVE FUNCTION setgid(gid: Number): Number
+DECLARE NATIVE FUNCTION setpgid(pid: Number, pgrp: Number): Number
+DECLARE NATIVE FUNCTION setpriority(which: Number, who: Number, prio: Number): Number
+DECLARE NATIVE FUNCTION setregid(rgid: Number, egid: Number): Number
+DECLARE NATIVE FUNCTION setreuid(ruid: Number, euid: Number): Number
+DECLARE NATIVE FUNCTION setsid(): Number
+DECLARE NATIVE FUNCTION setuid(uid: Number): Number
+DECLARE NATIVE FUNCTION sleep(seconds: Number): Number
+% stat
+DECLARE NATIVE FUNCTION strerror(errnum: Number): String
+DECLARE NATIVE FUNCTION symlink(path1: String, path2: String): Number
+%ECLARE NATIVE FUNCTION symlinkat(name1: String, fd: Number, name2: String): Number
+DECLARE NATIVE FUNCTION sync()
+DECLARE NATIVE FUNCTION sysconf(name: Number): Number
+DECLARE NATIVE FUNCTION tcdrain(fildes: Number): Number
+DECLARE NATIVE FUNCTION tcflow(fildes: Number, action: Number): Number
+DECLARE NATIVE FUNCTION tcflush(fildes: Number, action: Number): Number
+% tcgetattr
+DECLARE NATIVE FUNCTION tcgetpgrp(fildes: Number): Number
+DECLARE NATIVE FUNCTION tcsendbreak(fildes: Number, duration: Number): Number
+% tcsetattr
+DECLARE NATIVE FUNCTION tcsetpgrp(fildes: Number, pgid_id: Number): Number
+DECLARE NATIVE FUNCTION truncate(path: String, length: Number): Number
+DECLARE NATIVE FUNCTION ttyname(fildes: Number): String
+% uname
+DECLARE NATIVE FUNCTION unlink(path: String): Number
+%ECLARE NATIVE FUNCTION unlinkat(fd: Number, path: String, flag: Number): Number
+DECLARE NATIVE FUNCTION umask(cmask: Number): Number
+% utime
+DECLARE NATIVE FUNCTION wait(OUT stat: Number): Number
+DECLARE NATIVE FUNCTION waitpid(pid: Number, OUT stat: Number, options: Number): Number
+DECLARE NATIVE FUNCTION write(fildes: Number, buf: Bytes): Number

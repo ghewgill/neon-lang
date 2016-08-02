@@ -76,6 +76,7 @@ use_lzma = not env["MINIMAL"]
 use_sdl = not env["MINIMAL"]
 use_sodium = not env["MINIMAL"]
 use_ssl = not env["MINIMAL"]
+use_posix = os.name == "posix"
 
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
@@ -202,6 +203,7 @@ rtl_cpp = rtl_const + squeeze([
     "lib/math.cpp",
     "lib/net.cpp",
     "lib/os.cpp",
+    "lib/posix.cpp" if use_posix else None,
     "lib/random.cpp",
     "lib/runtime.cpp",
     "lib/regex.cpp" if use_pcre else None,
@@ -230,6 +232,7 @@ rtl_neon = squeeze([
     "lib/mmap.neon",
     "lib/net.neon",
     "lib/os.neon",
+    "lib/posix.neon" if use_posix else None,
     "lib/process.neon",
     "lib/random.neon",
     "lib/runtime.neon",

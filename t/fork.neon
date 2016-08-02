@@ -1,11 +1,13 @@
 % PLATFORM:posix
 
-IMPORT os
+IMPORT posix
 IMPORT sys
 
-VAR p: os.Process := NIL
-IF os.fork(OUT p) THEN
-    print(str(os.wait(INOUT p)))
+LET p: Number := posix.fork()
+IF p # 0 THEN
+    VAR stat: Number := 0
+    _ := posix.wait(INOUT stat) % Why does this need to be INOUT? Should be OUT.
+    print(str(stat INTDIV 256))
     print("parent")
 ELSE
     print("child")

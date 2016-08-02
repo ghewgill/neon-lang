@@ -34,13 +34,6 @@ Cell platform()
     return Cell(number_from_uint32(ENUM_Platform_win32));
 }
 
-bool fork(Cell **process)
-{
-    Process **pp = reinterpret_cast<Process **>(process);
-    *pp = NULL;
-    throw RtlException(Exception_UnsupportedFunctionException, "os.fork");
-}
-
 void kill(void *process)
 {
     Process *p = reinterpret_cast<Process *>(process);

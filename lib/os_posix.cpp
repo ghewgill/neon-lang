@@ -47,21 +47,6 @@ Cell platform()
     return Cell(number_from_uint32(ENUM_Platform_posix));
 }
 
-bool fork(Cell **process)
-{
-    Process **pp = reinterpret_cast<Process **>(process);
-    *pp = NULL;
-    pid_t child = ::fork();
-    if (child < 0) {
-        throw RtlException(Exception_SystemException, std::to_string(errno));
-    }
-    if (child > 0) {
-        *pp = new Process;
-        (*pp)->pid = child;
-    }
-    return child > 0;
-}
-
 void kill(void *process)
 {
     Process *p = reinterpret_cast<Process *>(process);
