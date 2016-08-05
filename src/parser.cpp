@@ -535,8 +535,24 @@ std::unique_ptr<Expression> Parser::parseAtom()
         case NEW: {
             auto &tok_new = tokens[i];
             ++i;
-            std::unique_ptr<Type> type = parseType();
-            return std::unique_ptr<Expression> { new NewRecordExpression(tok_new, tokens[i].column, std::move(type)) };
+            if (tokens[i].type != IDENTIFIER) {
+                error(2110, tokens[i], "identifier expected");
+            }
+            std::unique_ptr<Expression> expr { new IdentifierExpression(tokens[i], tokens[i].text) };
+            ++i;
+            if (tokens[i].type == DOT) {
+                auto &tok_dot = tokens[i];
+                ++i;
+                if (tokens[i].type != IDENTIFIER) {
+                    error(2111, tokens[i], "identifier expected");
+                }
+                expr.reset(new DotExpression(tok_dot, std::move(expr), tokens[i]));
+                ++i;
+            }
+            if (tokens[i].type == LPAREN) {
+                expr = parseFunctionCall(std::move(expr));
+            }
+            return std::unique_ptr<Expression> { new NewRecordExpression(tok_new, tokens[i].column, std::move(expr)) };
         }
         case NIL: {
             auto &tok_nil = tokens[i];

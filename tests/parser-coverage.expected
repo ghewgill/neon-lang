@@ -646,7 +646,25 @@ Program
   AssignmentStatement
     IdentifierExpression(name)
     NewRecordExpression
-      TypeSimple(type)
+      IdentifierExpression(type)
+  AssignmentStatement
+    IdentifierExpression(name)
+    NewRecordExpression
+      DotExpression(type)
+        IdentifierExpression(module)
+  AssignmentStatement
+    IdentifierExpression(name)
+    NewRecordExpression
+      FunctionCallExpression
+        IdentifierExpression(type)
+        IdentifierExpression(arg)
+  AssignmentStatement
+    IdentifierExpression(name)
+    NewRecordExpression
+      FunctionCallExpression
+        DotExpression(type)
+          IdentifierExpression(module)
+        IdentifierExpression(arg)
   AssignmentStatement
     IdentifierExpression(name)
     NilLiteralExpression

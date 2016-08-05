@@ -37,8 +37,7 @@ FUNCTION get_symbol(name: String): POINTER TO Symbol
     IF name IN Symbols THEN
         RETURN Symbols[name]
     END IF
-    LET p: POINTER TO Symbol := NEW Symbol
-    p->name := name
+    LET p: POINTER TO Symbol := NEW Symbol(name WITH name)
     Symbols[name] := p
     RETURN p
 END FUNCTION
@@ -67,52 +66,34 @@ TYPE Value IS RECORD
 END RECORD
 
 FUNCTION make_null(): POINTER TO Value
-    LET r: POINTER TO Value := NEW Value
-    r->type := Type.null
-    RETURN r
+    RETURN NEW Value(type WITH Type.null)
 END FUNCTION
 
 FUNCTION make_boolean(b: Boolean): POINTER TO Value
-    LET r: POINTER TO Value := NEW Value
-    r->type := Type.boolean
-    r->val_boolean := b
-    RETURN r
+    RETURN NEW Value(type WITH Type.boolean, val_boolean WITH b)
 END FUNCTION
 
 FUNCTION make_number(n: Number): POINTER TO Value
-    LET r: POINTER TO Value := NEW Value
-    r->type := Type.number
-    r->val_number := n
-    RETURN r
+    RETURN NEW Value(type WITH Type.number, val_number WITH n)
 END FUNCTION
 
 FUNCTION make_symbol(name: String): POINTER TO Value
-    LET r: POINTER TO Value := NEW Value
-    r->type := Type.symbol
-    r->val_symbol := get_symbol(name)
-    RETURN r
+    RETURN NEW Value(type WITH Type.symbol, val_symbol WITH get_symbol(name))
 END FUNCTION
 
 FUNCTION make_string(s: String): POINTER TO Value
-    LET r: POINTER TO Value := NEW Value
-    r->type := Type.string
-    r->val_string := s
-    RETURN r
+    RETURN NEW Value(type WITH Type.string, val_string WITH s)
 END FUNCTION
 
 FUNCTION make_pair(car, cdr: POINTER TO Value): POINTER TO Value
-    LET r: POINTER TO Value := NEW Value
-    r->type := Type.pair
+    LET r: POINTER TO Value := NEW Value(type WITH Type.pair)
     r->val_pair.car := car
     r->val_pair.cdr := cdr
     RETURN r
 END FUNCTION
 
 FUNCTION make_proc(proc: FUNCTION(args: Array<Value>): POINTER TO Value): POINTER TO Value
-    LET r: POINTER TO Value := NEW Value
-    r->type := Type.proc
-    r->val_proc := proc
-    RETURN r
+    RETURN NEW Value(type WITH Type.proc, val_proc WITH proc)
 END FUNCTION
 
 FUNCTION Value.to_string(IN self: Value): String
@@ -154,8 +135,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                     IF value = NIL THEN % TODO: remove this check when the exception handling works
                         EXIT LOOP
                     END IF
-                    LET new: POINTER TO Value := NEW Value
-                    new->type := Type.pair
+                    LET new: POINTER TO Value := NEW Value(type WITH Type.pair)
                     new->val_pair.car := value
                     IF r = NIL THEN
                         r := new

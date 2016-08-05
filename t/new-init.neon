@@ -1,0 +1,19 @@
+TYPE Rec IS RECORD
+    n: Number
+    s: String
+END RECORD
+
+test_n()
+test_i()
+
+FUNCTION test_n()
+    LET p: POINTER TO Rec := NEW Rec
+    ASSERT p->n = 0
+    ASSERT p->s = ""
+END FUNCTION
+
+FUNCTION test_i()
+    LET p: POINTER TO Rec := NEW Rec(n WITH 5, s WITH "foo")
+    ASSERT p->n = 5
+    ASSERT p->s = "foo"
+END FUNCTION

@@ -967,7 +967,14 @@ void RecordLiteralExpression::generate_expr(Emitter &emitter) const
 
 void NewRecordExpression::generate_expr(Emitter &emitter) const
 {
+    if (value != nullptr) {
+        value->generate(emitter);
+    }
     emitter.emit(ALLOC, static_cast<uint32_t>(fields));
+    if (value != nullptr) {
+        emitter.emit(DUPX1);
+        emitter.emit(STOREA);
+    }
 }
 
 void UnaryMinusExpression::generate_expr(Emitter &emitter) const

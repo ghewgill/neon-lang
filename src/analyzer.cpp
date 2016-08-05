@@ -1775,11 +1775,20 @@ const Expression *Analyzer::analyze(const pt::TryExpression *expr)
 
 const Expression *Analyzer::analyze(const pt::NewRecordExpression *expr)
 {
-    const TypeRecord *type = dynamic_cast<const TypeRecord *>(analyze(expr->type.get()));
-    if (type == nullptr) {
-        error(3099, expr->type->token, "record type expected");
+    const pt::Expression *e = expr->expr.get();
+    const pt::Expression *type_expr = e;
+    const Expression *value = nullptr;
+    const pt::FunctionCallExpression *fc = dynamic_cast<const pt::FunctionCallExpression *>(e);
+    if (fc != nullptr) {
+        type_expr = fc->base.get();
+        value = analyze(fc);
     }
-    return new NewRecordExpression(type);
+    const Name *name = analyze_qualified_name(type_expr);
+    const TypeRecord *type = dynamic_cast<const TypeRecord *>(name);
+    if (type == nullptr) {
+        error(3099, type_expr->token, "record type expected");
+    }
+    return new NewRecordExpression(type, value);
 }
 
 const Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
@@ -3896,7 +3905,7 @@ public:
     virtual void visit(const pt::TryExpression *node) {
         node->expr->accept(this);
     }
-    virtual void visit(const pt::NewRecordExpression *) {}
+    virtual void visit(const pt::NewRecordExpression *node) { node->expr->accept(this); }
     virtual void visit(const pt::ValidPointerExpression *node) { for (auto &x: node->tests) x->expr->accept(this); }
     virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->get_first()->accept(this); node->range->get_last()->accept(this); }
 

@@ -211,7 +211,7 @@ public:
     }
     virtual void visit(const NewRecordExpression *node) override {
         write("NewRecordExpression");
-        child(node->type.get());
+        child(node->expr.get());
     }
     virtual void visit(const ValidPointerExpression *node) override {
         write("ValidPointerExpression");

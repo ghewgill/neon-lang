@@ -357,7 +357,7 @@ END RECORD
 TYPE NewRecordExpression IS RECORD
     startColumn: Number
     endColumn: Number
-    type: POINTER TO ParseTreeNode
+    expr: POINTER TO ParseTreeNode
 END RECORD
 
 TYPE ValidPointerExpression IS RECORD
@@ -631,13 +631,6 @@ FUNCTION error2(number: Number, token: lexer.Token, message: String, token2: lex
     error(number, token, message)
 END FUNCTION
 
-% TODO: don't need this once we have NEW-initialiser syntax
-FUNCTION makeParseTreeNode(ptn: ParseTreeNode): POINTER TO ParseTreeNode
-    LET p: POINTER TO ParseTreeNode := NEW ParseTreeNode
-    valueCopy(p, ptn)
-    RETURN p
-END FUNCTION
-
 FUNCTION getStartColumn(node: POINTER TO ParseTreeNode): Number
     IF VALID node THEN
         CASE node->type
@@ -889,7 +882,7 @@ FUNCTION Parser.parseFunctionDefinition(INOUT self: Parser, startColumn: Number 
         error_a(2036, self.tokens[self.index-1], self.token, "'FUNCTION' expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.FunctionDeclaration,
         token WITH tokFunction,
         functiondeclaration WITH FunctionDeclaration(
@@ -901,7 +894,7 @@ FUNCTION Parser.parseFunctionDefinition(INOUT self: Parser, startColumn: Number 
             body WITH body,
             endToken WITH tokEndFunction
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseExternalDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -929,7 +922,7 @@ FUNCTION Parser.parseExternalDefinition(INOUT self: Parser): POINTER TO ParseTre
         error_a(2051, self.tokens[self.index-1], self.token, "'END FUNCTION' expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ExternalFunctionDeclaration,
         token WITH tokExternal,
         externalfunctiondeclaration WITH ExternalFunctionDeclaration(
@@ -940,7 +933,7 @@ FUNCTION Parser.parseExternalDefinition(INOUT self: Parser): POINTER TO ParseTre
             rparen WITH rparen,
             dict WITH dict
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTreeNode): POINTER TO ParseTreeNode
@@ -962,14 +955,14 @@ FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTree
             END IF
             VAR e: POINTER TO ParseTreeNode
             IF self.token.type = TokenType.underscore THEN
-                e := makeParseTreeNode(ParseTreeNode(
+                e := NEW ParseTreeNode(
                     type WITH Type.DummyExpression,
                     token WITH self.token,
                     baseexpression WITH BaseExpression(
                         startColumn WITH self.token.column,
                         endColumn WITH self.token.column
                     )
-                ))
+                )
                 self.nextToken()
             ELSE
                 e := self.parseExpression()
@@ -988,7 +981,7 @@ FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTree
     self.nextToken()
     % TODO use CHECK VALID
     IF VALID func THEN
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.FunctionCallExpression,
             token WITH func->token,
             functioncallexpression WITH FunctionCallExpression(
@@ -996,7 +989,7 @@ FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTree
                 args WITH args,
                 rparen WITH tokRparen
             )
-        ))
+        )
     ELSE
         RETURN NIL
     END IF
@@ -1023,18 +1016,18 @@ FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
                 self.nextToken()
                 step := self.parseExpression()
             ELSE
-                step := makeParseTreeNode(ParseTreeNode(
+                step := NEW ParseTreeNode(
                     type WITH Type.NumberLiteralExpression,
                     numberliteralexpression WITH NumberLiteralExpression(
                         value WITH 1
                     )
-                ))
+                )
             END IF
             IF self.token.type # TokenType.rbracket THEN
                 error2(2099, self.token, "']' expected", tokLbracket, "opening '[' here")
             END IF
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.ArrayLiteralRangeExpression,
                 token WITH tokLbracket,
                 arrayliteralrangeexpression WITH ArrayLiteralRangeExpression(
@@ -1044,14 +1037,14 @@ FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
                     last WITH last,
                     step WITH step
                 )
-            ))
+            )
         ELSIF self.token.type # TokenType.rbracket THEN
             error2(2053, self.token, "',' or ']' expected", tokLbracket, "opening '[' here")
         END IF
         elements.append(element)
     END WHILE
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ArrayLiteralExpression,
         token WITH tokLbracket,
         arrayliteralexpression WITH ArrayLiteralExpression(
@@ -1059,7 +1052,7 @@ FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
             endColumn WITH self.tokens[self.index-1].column + 1,
             elements WITH elements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseDictionaryLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -1080,7 +1073,7 @@ FUNCTION Parser.parseDictionaryLiteral(INOUT self: Parser): POINTER TO ParseTree
         END IF
     END WHILE
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.DictionaryLiteralExpression,
         token WITH tokLbrace,
         dictionaryliteralexpression WITH DictionaryLiteralExpression(
@@ -1088,13 +1081,13 @@ FUNCTION Parser.parseDictionaryLiteral(INOUT self: Parser): POINTER TO ParseTree
             endColumn WITH self.tokens[self.index-1].column+1,
             elements WITH elements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER TO ParseTreeNode
     LET first: lexer.Token := self.token
     VAR parts: Array<InterpolatedStringPart> := [InterpolatedStringPart(
-        expr WITH makeParseTreeNode(ParseTreeNode(
+        expr WITH NEW ParseTreeNode(
             type WITH Type.StringLiteralExpression,
             token WITH self.token,
             stringliteralexpression WITH StringLiteralExpression(
@@ -1102,7 +1095,7 @@ FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER T
                 endColumn WITH self.token.column + self.token.text.length(),
                 value WITH self.token.text
             )
-        ))
+        )
     )]
     LOOP
         self.nextToken()
@@ -1128,7 +1121,7 @@ FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER T
         IF self.token.type # TokenType.string THEN
             internalError("parseInterpolatedStringExpression")
         END IF
-        LET s: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+        LET s: POINTER TO ParseTreeNode := NEW ParseTreeNode(
             type WITH Type.StringLiteralExpression,
             token WITH self.token,
             stringliteralexpression WITH StringLiteralExpression(
@@ -1136,10 +1129,10 @@ FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER T
                 endColumn WITH self.token.column + self.token.text.length(),
                 value WITH self.token.text
             )
-        ))
+        )
         parts.append(InterpolatedStringPart(expr WITH s))
     END LOOP
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.InterpolatedStringExpression,
         token WITH first,
         interpolatedstringexpression WITH InterpolatedStringExpression(
@@ -1147,7 +1140,7 @@ FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER T
             endColumn WITH getEndColumn(parts[LAST].expr),
             parts WITH parts
         )
-    ))
+    )
 END FUNCTION
 
 %|
@@ -1173,7 +1166,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                 error2(2014, self.token, ") expected", tokLparen, "opening '(' here")
             END IF
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.IdentityExpression,
                 token WITH tokLparen,
                 unaryexpression WITH UnaryExpression(
@@ -1181,7 +1174,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH self.tokens[self.index-1].column + 1,
                     expr WITH expr
                 )
-            ))
+            )
         WHEN TokenType.lbracket DO
             RETURN self.parseArrayLiteral()
         WHEN TokenType.lbrace DO
@@ -1189,7 +1182,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
         WHEN TokenType.false DO
             LET tokFalse: lexer.Token := self.token
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.BooleanLiteralExpression,
                 token WITH tokFalse,
                 booleanliteralexpression WITH BooleanLiteralExpression(
@@ -1197,11 +1190,11 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH tokFalse.column + tokFalse.text.length(),
                     value WITH FALSE
                 )
-            ))
+            )
         WHEN TokenType.true DO
             LET tokTrue: lexer.Token := self.token
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.BooleanLiteralExpression,
                 token WITH tokTrue,
                 booleanliteralexpression WITH BooleanLiteralExpression(
@@ -1209,11 +1202,11 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH tokTrue.column + tokTrue.text.length(),
                     value WITH TRUE
                 )
-            ))
+            )
         WHEN TokenType.number DO
             LET tokNumber: lexer.Token := self.token
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.NumberLiteralExpression,
                 token WITH tokNumber,
                 numberliteralexpression WITH NumberLiteralExpression(
@@ -1221,14 +1214,14 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH tokNumber.column + tokNumber.text.length(),
                     value WITH tokNumber.value
                 )
-            ))
+            )
         WHEN TokenType.string DO
             IF self.tokens[self.index+1].type = TokenType.subbegin THEN
                 RETURN self.parseInterpolatedStringExpression()
             ELSE
                 LET tokString: lexer.Token := self.token
                 self.nextToken()
-                RETURN makeParseTreeNode(ParseTreeNode(
+                RETURN NEW ParseTreeNode(
                     type WITH Type.StringLiteralExpression,
                     token WITH tokString,
                     stringliteralexpression WITH StringLiteralExpression(
@@ -1236,7 +1229,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                         endColumn WITH self.token.column,
                         value WITH tokString.text
                     )
-                ))
+                )
             END IF
         WHEN TokenType.embed DO
             self.nextToken()
@@ -1245,7 +1238,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
             END IF
             LET tokFile: lexer.Token := self.token
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.FileLiteralExpression,
                 token WITH tokFile,
                 fileliteralexpression WITH FileLiteralExpression(
@@ -1253,7 +1246,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH self.token.column,
                     name WITH tokFile.text
                 )
-            ))
+            )
         WHEN TokenType.hexbytes DO
             self.nextToken()
             IF self.token.type # TokenType.string THEN
@@ -1261,7 +1254,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
             END IF
             LET tokLiteral: lexer.Token := self.token
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.BytesLiteralExpression,
                 token WITH tokLiteral,
                 bytesliteralexpression WITH BytesLiteralExpression(
@@ -1269,12 +1262,12 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH self.token.column,
                     data WITH tokLiteral.text
                 )
-            ))
+            )
         WHEN TokenType.plus DO
             LET tokPlus: lexer.Token := self.token
             self.nextToken()
             LET atom: POINTER TO ParseTreeNode := self.parseAtom()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.UnaryPlusExpression,
                 token WITH tokPlus,
                 unaryexpression WITH UnaryExpression(
@@ -1282,12 +1275,12 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH getEndColumn(atom),
                     expr WITH atom
                 )
-            ))
+            )
         WHEN TokenType.minus DO
             LET tokMinus: lexer.Token := self.token
             self.nextToken()
             LET atom: POINTER TO ParseTreeNode := self.parseAtom()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.UnaryMinusExpression,
                 token WITH tokMinus,
                 unaryexpression WITH UnaryExpression(
@@ -1295,12 +1288,12 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH getEndColumn(atom),
                     expr WITH atom
                 )
-            ))
+            )
         WHEN TokenType.not DO
             LET tokNot: lexer.Token := self.token
             self.nextToken()
             LET atom: POINTER TO ParseTreeNode := self.parseAtom()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.LogicalNotExpression,
                 token WITH tokNot,
                 unaryexpression WITH UnaryExpression(
@@ -1308,54 +1301,83 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH getEndColumn(atom),
                     expr WITH atom
                 )
-            ))
+            )
         WHEN TokenType.new DO
             LET tokNew: lexer.Token := self.token
             self.nextToken()
-            LET type: POINTER TO ParseTreeNode := self.parseType()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            IF self.token.type # TokenType.identifier THEN
+                error(2110, self.token, "identifier expected")
+            END IF
+            VAR expr: POINTER TO ParseTreeNode := NEW ParseTreeNode(
+                type WITH Type.IdentifierExpression,
+                token WITH self.token,
+                identifierexpression WITH IdentifierExpression(
+                    name WITH self.token.text
+                )
+            )
+            self.nextToken()
+            IF self.token.type = TokenType.dot THEN
+                LET tokDot: lexer.Token := self.token
+                self.nextToken()
+                IF self.token.type # TokenType.identifier THEN
+                    error(2111, self.token, "identifier expected")
+                END IF
+                expr := NEW ParseTreeNode(
+                    type WITH Type.DotExpression,
+                    token WITH tokDot,
+                    dotexpression WITH DotExpression(
+                        base WITH expr,
+                        name WITH self.token
+                    )
+                )
+                self.nextToken()
+            END IF
+            IF self.token.type = TokenType.lparen THEN
+                expr := self.parseFunctionCall(expr)
+            END IF
+            RETURN NEW ParseTreeNode(
                 type WITH Type.NewRecordExpression,
                 token WITH tokNew,
                 newrecordexpression WITH NewRecordExpression(
                     startColumn WITH tokNew.column,
                     endColumn WITH self.token.column,
-                    type WITH type
+                    expr WITH expr
                 )
-            ))
+            )
         WHEN TokenType.nil DO
             LET tokNil: lexer.Token := self.token
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.NilLiteralExpression,
                 token WITH tokNil,
                 baseexpression WITH BaseExpression(
                     startColumn WITH tokNil.column,
                     endColumn WITH tokNil.column + tokNil.text.length()
                 )
-            ))
+            )
         WHEN TokenType.nowhere DO
             LET tokNowhere: lexer.Token := self.token
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.NowhereLiteralExpression,
                 token WITH tokNowhere,
                 baseexpression WITH BaseExpression(
                     startColumn WITH tokNowhere.column,
                     endColumn WITH tokNowhere.column + tokNowhere.text.length()
                 )
-            ))
+            )
         WHEN TokenType.if DO
             error(2095, self.token, "Use parentheses around (IF ... THEN ... ELSE ...)")
         WHEN TokenType.try DO
             error(2106, self.token, "Use parentheses around (TRY ... EXCEPTION ...)")
         WHEN TokenType.identifier DO
-            VAR expr: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+            VAR expr: POINTER TO ParseTreeNode := NEW ParseTreeNode(
                 type WITH Type.IdentifierExpression,
                 token WITH self.token,
                 identifierexpression WITH IdentifierExpression(
                     name WITH self.token.text
                 )
-            ))
+            )
             self.nextToken()
             LOOP
                 IF self.token.type = TokenType.lbracket THEN
@@ -1368,12 +1390,12 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                             firstFromEnd := self.token.type = TokenType.last
                             self.nextToken()
                             IF self.token.type IN [TokenType.rbracket, TokenType.to] THEN
-                                index := makeParseTreeNode(ParseTreeNode(
+                                index := NEW ParseTreeNode(
                                     type WITH Type.NumberLiteralExpression,
                                     numberliteralexpression WITH NumberLiteralExpression(
                                         value WITH 0
                                     )
-                                ))
+                                )
                             ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
                                 error(2072, self.token, "'+' or '-' expected")
                             END IF
@@ -1391,12 +1413,12 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                                 lastFromEnd := self.token.type = TokenType.last
                                 self.nextToken()
                                 IF self.token.type = TokenType.rbracket THEN
-                                    last := makeParseTreeNode(ParseTreeNode(
+                                    last := NEW ParseTreeNode(
                                         type WITH Type.NumberLiteralExpression,
                                         numberliteralexpression WITH NumberLiteralExpression(
                                             value WITH 0
                                         )
-                                    ))
+                                    )
                                 ELSIF self.token.type NOT IN [TokenType.plus, TokenType.minus] THEN
                                     error(2073, self.token, "'+' or '-' expected")
                                 END IF
@@ -1431,7 +1453,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                         END IF
                         self.nextToken()
                         IF range # NIL THEN
-                            expr := makeParseTreeNode(ParseTreeNode(
+                            expr := NEW ParseTreeNode(
                                 type WITH Type.RangeSubscriptExpression,
                                 token WITH tokLbracket,
                                 rangesubscriptexpression WITH RangeSubscriptExpression(
@@ -1440,15 +1462,15 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                                     base WITH expr,
                                     range WITH range
                                 )
-                            ))
+                            )
                             IF firstFromEnd AND NOT hasRange THEN
-                                LET zero: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+                                LET zero: POINTER TO ParseTreeNode := NEW ParseTreeNode(
                                     type WITH Type.NumberLiteralExpression,
                                     numberliteralexpression WITH NumberLiteralExpression(
                                         value WITH 0
                                     )
-                                ))
-                                expr := makeParseTreeNode(ParseTreeNode(
+                                )
+                                expr := NEW ParseTreeNode(
                                     type WITH Type.SubscriptExpression,
                                     token WITH tokLbracket,
                                     subscriptexpression WITH SubscriptExpression(
@@ -1457,10 +1479,10 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                                         base WITH expr,
                                         index WITH zero
                                     )
-                                ))
+                                )
                             END IF
                         ELSE
-                            expr := makeParseTreeNode(ParseTreeNode(
+                            expr := NEW ParseTreeNode(
                                 type WITH Type.SubscriptExpression,
                                 token WITH tokLbracket,
                                 subscriptexpression WITH SubscriptExpression(
@@ -1469,7 +1491,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                                     base WITH expr,
                                     index WITH index
                                 )
-                            ))
+                            )
                         END IF
                     UNTIL self.tokens[self.index-1].type # TokenType.comma
                 ELSIF self.token.type = TokenType.lparen THEN
@@ -1482,14 +1504,14 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     END IF
                     LET field: lexer.Token := self.token
                     self.nextToken()
-                    expr := makeParseTreeNode(ParseTreeNode(
+                    expr := NEW ParseTreeNode(
                         type WITH Type.DotExpression,
                         token WITH tokDot,
                         dotexpression WITH DotExpression(
                             base WITH expr,
                             name WITH field
                         )
-                    ))
+                    )
                 ELSIF self.token.type = TokenType.arrow THEN
                     LET tokArrow: lexer.Token := self.token
                     self.nextToken()
@@ -1498,7 +1520,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                     END IF
                     LET field: lexer.Token := self.token
                     self.nextToken()
-                    expr := makeParseTreeNode(ParseTreeNode(
+                    expr := NEW ParseTreeNode(
                         type WITH Type.ArrowExpression,
                         token WITH tokArrow,
                         arrowexpression WITH ArrowExpression(
@@ -1507,7 +1529,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                             base WITH expr,
                             name WITH field
                         )
-                    ))
+                    )
                 ELSE
                     % TODO: what happens here?
                     EXIT LOOP
@@ -1527,7 +1549,7 @@ FUNCTION Parser.parseExponentiation(INOUT self: Parser): POINTER TO ParseTreeNod
         IF tokOp.type = TokenType.exp THEN
             self.nextToken()
             LET right: POINTER TO ParseTreeNode := self.parseAtom()
-            left := makeParseTreeNode(ParseTreeNode(
+            left := NEW ParseTreeNode(
                 type WITH Type.ExponentiationExpression,
                 token WITH tokOp,
                 binaryexpression WITH BinaryExpression(
@@ -1536,7 +1558,7 @@ FUNCTION Parser.parseExponentiation(INOUT self: Parser): POINTER TO ParseTreeNod
                     left WITH left,
                     right WITH right
                 )
-            ))
+            )
         ELSE
             RETURN left
         END IF
@@ -1551,7 +1573,7 @@ FUNCTION Parser.parseMultiplication(INOUT self: Parser): POINTER TO ParseTreeNod
             WHEN TokenType.times DO
                 self.nextToken()
                 LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := makeParseTreeNode(ParseTreeNode(
+                left := NEW ParseTreeNode(
                     type WITH Type.MultiplicationExpression,
                     token WITH tokOp,
                     binaryexpression WITH BinaryExpression(
@@ -1560,11 +1582,11 @@ FUNCTION Parser.parseMultiplication(INOUT self: Parser): POINTER TO ParseTreeNod
                         left WITH left,
                         right WITH right
                     )
-                ))
+                )
             WHEN TokenType.divide DO
                 self.nextToken()
                 LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := makeParseTreeNode(ParseTreeNode(
+                left := NEW ParseTreeNode(
                     type WITH Type.DivisionExpression,
                     token WITH tokOp,
                     binaryexpression WITH BinaryExpression(
@@ -1573,11 +1595,11 @@ FUNCTION Parser.parseMultiplication(INOUT self: Parser): POINTER TO ParseTreeNod
                         left WITH left,
                         right WITH right
                     )
-                ))
+                )
             WHEN TokenType.intdiv DO
                 self.nextToken()
                 LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := makeParseTreeNode(ParseTreeNode(
+                left := NEW ParseTreeNode(
                     type WITH Type.IntegerDivisionExpression,
                     token WITH tokOp,
                     binaryexpression WITH BinaryExpression(
@@ -1586,11 +1608,11 @@ FUNCTION Parser.parseMultiplication(INOUT self: Parser): POINTER TO ParseTreeNod
                         left WITH left,
                         right WITH right
                     )
-                ))
+                )
             WHEN TokenType.mod DO
                 self.nextToken()
                 LET right: POINTER TO ParseTreeNode := self.parseExponentiation()
-                left := makeParseTreeNode(ParseTreeNode(
+                left := NEW ParseTreeNode(
                     type WITH Type.ModuloExpression,
                     token WITH tokOp,
                     binaryexpression WITH BinaryExpression(
@@ -1599,7 +1621,7 @@ FUNCTION Parser.parseMultiplication(INOUT self: Parser): POINTER TO ParseTreeNod
                         left WITH left,
                         right WITH right
                     )
-                ))
+                )
             WHEN OTHERS DO
                 RETURN left
         END CASE
@@ -1614,7 +1636,7 @@ FUNCTION Parser.parseAddition(INOUT self: Parser): POINTER TO ParseTreeNode
             WHEN TokenType.plus DO
                 self.nextToken()
                 LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
-                left := makeParseTreeNode(ParseTreeNode(
+                left := NEW ParseTreeNode(
                     type WITH Type.AdditionExpression,
                     token WITH tokOp,
                     binaryexpression WITH BinaryExpression(
@@ -1623,11 +1645,11 @@ FUNCTION Parser.parseAddition(INOUT self: Parser): POINTER TO ParseTreeNode
                         left WITH left,
                         right WITH right
                     )
-                ))
+                )
             WHEN TokenType.minus DO
                 self.nextToken()
                 LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
-                left := makeParseTreeNode(ParseTreeNode(
+                left := NEW ParseTreeNode(
                     type WITH Type.SubtractionExpression,
                     token WITH tokOp,
                     binaryexpression WITH BinaryExpression(
@@ -1636,11 +1658,11 @@ FUNCTION Parser.parseAddition(INOUT self: Parser): POINTER TO ParseTreeNode
                         left WITH left,
                         right WITH right
                     )
-                ))
+                )
             WHEN TokenType.concat DO
                 self.nextToken()
                 LET right: POINTER TO ParseTreeNode := self.parseMultiplication()
-                left := makeParseTreeNode(ParseTreeNode(
+                left := NEW ParseTreeNode(
                     type WITH Type.ConcatenationExpression,
                     token WITH tokOp,
                     binaryexpression WITH BinaryExpression(
@@ -1649,7 +1671,7 @@ FUNCTION Parser.parseAddition(INOUT self: Parser): POINTER TO ParseTreeNode
                         left WITH left,
                         right WITH right
                     )
-                ))
+                )
             WHEN OTHERS DO
                 RETURN left
         END CASE
@@ -1673,7 +1695,7 @@ FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
     IF comps.size() = 0 THEN
         RETURN left
     ELSIF comps.size() = 1 THEN
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.ComparisonExpression,
             token WITH tokComp,
             comparisonexpression WITH ComparisonExpression(
@@ -1683,11 +1705,11 @@ FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
                 right WITH comps[0].right,
                 comp WITH comps[0].comp
             )
-        ))
+        )
     ELSE
         % TODO use CHECK VALID here
         IF VALID left THEN
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.ChainedComparisonExpression,
                 token WITH left->token,
                 chainedcomparisonexpression WITH ChainedComparisonExpression(
@@ -1696,7 +1718,7 @@ FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
                     left WITH left,
                     comps WITH comps
                 )
-            ))
+            )
         ELSE
             RETURN NIL
         END IF
@@ -1713,7 +1735,7 @@ FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
         END IF
         self.nextToken()
         LET right: POINTER TO ParseTreeNode := self.parseComparison()
-        VAR r: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+        VAR r: POINTER TO ParseTreeNode := NEW ParseTreeNode(
             type WITH Type.MembershipExpression,
             token WITH tokOp,
             binaryexpression WITH BinaryExpression(
@@ -1722,9 +1744,9 @@ FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
                 left WITH left,
                 right WITH right
             )
-        ))
+        )
         IF notin THEN
-            r := makeParseTreeNode(ParseTreeNode(
+            r := NEW ParseTreeNode(
                 type WITH Type.LogicalNotExpression,
                 token WITH tokOp,
                 unaryexpression WITH UnaryExpression(
@@ -1732,7 +1754,7 @@ FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
                     endColumn WITH getEndColumn(right),
                     expr WITH r
                 )
-            ))
+            )
         END IF
         RETURN r
     ELSE
@@ -1747,7 +1769,7 @@ FUNCTION Parser.parseConjunction(INOUT self: Parser): POINTER TO ParseTreeNode
         IF self.token.type = TokenType.and THEN
             self.nextToken()
             LET right: POINTER TO ParseTreeNode := self.parseMembership()
-            left := makeParseTreeNode(ParseTreeNode(
+            left := NEW ParseTreeNode(
                 type WITH Type.ConjunctionExpression,
                 token WITH tokOp,
                 binaryexpression WITH BinaryExpression(
@@ -1756,7 +1778,7 @@ FUNCTION Parser.parseConjunction(INOUT self: Parser): POINTER TO ParseTreeNode
                     left WITH left,
                     right WITH right
                 )
-            ))
+            )
         ELSE
             RETURN left
         END IF
@@ -1770,7 +1792,7 @@ FUNCTION Parser.parseDisjunction(INOUT self: Parser): POINTER TO ParseTreeNode
         IF self.token.type = TokenType.or THEN
             self.nextToken()
             LET right: POINTER TO ParseTreeNode := self.parseConjunction()
-            left := makeParseTreeNode(ParseTreeNode(
+            left := NEW ParseTreeNode(
                 type WITH Type.DisjunctionExpression,
                 token WITH tokOp,
                 binaryexpression WITH BinaryExpression(
@@ -1779,7 +1801,7 @@ FUNCTION Parser.parseDisjunction(INOUT self: Parser): POINTER TO ParseTreeNode
                     left WITH left,
                     right WITH right
                 )
-            ))
+            )
         ELSE
             RETURN left
         END IF
@@ -1801,7 +1823,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
         END IF
         self.nextToken()
         LET right: POINTER TO ParseTreeNode := self.parseExpression()
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.ConditionalExpression,
             token WITH tokIf,
             conditionalexpression WITH ConditionalExpression(
@@ -1811,7 +1833,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 left WITH left,
                 right WITH right
             )
-        ))
+        )
     ELSIF self.token.type = TokenType.try THEN
         LET tokTry: lexer.Token := self.token
         self.nextToken()
@@ -1844,13 +1866,13 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 END WHILE
                 catches.append(TryStatementClause(
                     exceptions WITH exceptions,
-                    body WITH makeParseTreeNode(ParseTreeNode(
+                    body WITH NEW ParseTreeNode(
                         type WITH Type.TryHandlerStatement,
                         token WITH tokDo,
                         tryhandlerstatement WITH TryHandlerStatement(
                             statements WITH statements
                         )
-                    ))
+                    )
                 ))
             ELSIF self.token.type = TokenType.gives THEN
                 self.nextToken()
@@ -1862,7 +1884,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 error(2108, self.token, "DO or GIVES expected")
             END IF
         END WHILE
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.TryExpression,
             token WITH tokTry,
             tryexpression WITH TryExpression(
@@ -1871,7 +1893,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 expr WITH expr,
                 catches WITH catches
             )
-        ))
+        )
     ELSE
         RETURN self.parseExpression()
     END IF
@@ -1915,7 +1937,7 @@ FUNCTION Parser.parseImport(INOUT self: Parser): POINTER TO ParseTreeNode
     ELSIF module.type = TokenType.string THEN
         error(2087, module, "named import requires ALIAS")
     END IF
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ImportDeclaration,
         token WITH tokImport,
         importdeclaration WITH ImportDeclaration(
@@ -1923,7 +1945,7 @@ FUNCTION Parser.parseImport(INOUT self: Parser): POINTER TO ParseTreeNode
             name WITH name,
             alias WITH alias
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -1944,13 +1966,13 @@ FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2035, self.tokens[self.index-1], self.token, "'ENUM' expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.TypeEnum,
         token WITH tokEnum,
         typeenum WITH TypeEnum(
             names WITH names
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -1984,13 +2006,13 @@ FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2034, self.tokens[self.index-1], self.token, "'RECORD' expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.TypeRecord,
         token WITH tokRecord,
         typerecord WITH TypeRecord(
             fields WITH fields
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parsePointerType(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2000,21 +2022,21 @@ FUNCTION Parser.parsePointerType(INOUT self: Parser): POINTER TO ParseTreeNode
     IF self.token.type = TokenType.to THEN
         self.nextToken()
         LET reftype: POINTER TO ParseTreeNode := self.parseType()
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.TypePointer,
             token WITH tokPointer,
             typepointer WITH TypePointer(
                 reftype WITH reftype
             )
-        ))
+        )
     ELSE
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.TypePointer,
             token WITH tokPointer,
             typepointer WITH TypePointer(
                 reftype WITH NIL
             )
-        ))
+        )
     END IF
 END FUNCTION
 
@@ -2025,14 +2047,14 @@ FUNCTION Parser.parseFunctionType(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR returntype: POINTER TO ParseTreeNode
     VAR args: Array<FunctionParameterGroup>
     self.parseFunctionParameters(OUT returntype, OUT args, OUT rparen WITH _)
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.TypeFunctionPointer,
         token WITH tokFunction,
         typefunctionpointer WITH TypeFunctionPointer(
             returntype WITH returntype,
             args WITH args
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseParameterisedType(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2051,14 +2073,14 @@ FUNCTION Parser.parseParameterisedType(INOUT self: Parser): POINTER TO ParseTree
         error2(2003, self.token, "'>' expected", tokLess, "opening '<' here")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.TypeParameterised,
         token WITH tokType,
         typeparameterised WITH TypeParameterised(
             name WITH tokType,
             elementtype WITH elementtype
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2087,22 +2109,22 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
         END IF
         LET subname: lexer.Token := self.token
         self.nextToken()
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.TypeImport,
             token WITH name,
             typeimport WITH TypeImport(
                 modname WITH name,
                 subname WITH subname
             )
-        ))
+        )
     ELSE
-        RETURN makeParseTreeNode(ParseTreeNode(
+        RETURN NEW ParseTreeNode(
             type WITH Type.TypeSimple,
             token WITH name,
             typesimple WITH TypeSimple(
                 name WITH name.text
             )
-        ))
+        )
     END IF
 END FUNCTION
 
@@ -2118,13 +2140,13 @@ FUNCTION Parser.parseTypeDefinition(INOUT self: Parser): POINTER TO ParseTreeNod
     END IF
     self.nextToken()
     LET type: POINTER TO ParseTreeNode := self.parseType()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.TypeDeclaration,
         token WITH tokName,
         typedeclaration WITH TypeDeclaration(
             type WITH type
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseConstantDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2145,7 +2167,7 @@ FUNCTION Parser.parseConstantDefinition(INOUT self: Parser): POINTER TO ParseTre
     END IF
     self.nextToken()
     LET value: POINTER TO ParseTreeNode := self.parseExpression()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ConstantDeclaration,
         token WITH tokName,
         constantdeclaration WITH ConstantDeclaration(
@@ -2153,7 +2175,7 @@ FUNCTION Parser.parseConstantDefinition(INOUT self: Parser): POINTER TO ParseTre
             type WITH type,
             value WITH value
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2167,13 +2189,13 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                 error(2059, self.token, "identifier expected")
             END IF
             self.nextToken()
-            RETURN makeParseTreeNode(ParseTreeNode(
+            RETURN NEW ParseTreeNode(
                 type WITH Type.ExceptionDeclaration,
                 token WITH tokName,
                 exceptiondeclaration WITH ExceptionDeclaration(
                     name WITH tokName
                 )
-            ))
+            )
         WHEN TokenType.native DO
             self.nextToken()
             CASE self.token.type
@@ -2190,14 +2212,14 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                     END IF
                     self.nextToken()
                     LET type: POINTER TO ParseTreeNode := self.parseType()
-                    RETURN makeParseTreeNode(ParseTreeNode(
+                    RETURN NEW ParseTreeNode(
                         type WITH Type.NativeConstantDeclaration,
                         token WITH tokConstant,
                         nativeconstantdeclaration WITH NativeConstantDeclaration(
                             name WITH name,
                             type WITH type
                         )
-                    ))
+                    )
                 WHEN TokenType.function DO
                     LET tokFunction: lexer.Token := self.token
                     VAR type: lexer.Token
@@ -2206,7 +2228,7 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                     VAR args: Array<FunctionParameterGroup>
                     VAR rparen: lexer.Token
                     self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
-                    RETURN makeParseTreeNode(ParseTreeNode(
+                    RETURN NEW ParseTreeNode(
                         type WITH Type.NativeFunctionDeclaration,
                         token WITH tokFunction,
                         functiondeclaration WITH FunctionDeclaration(
@@ -2216,7 +2238,7 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                             args WITH args,
                             rparen WITH rparen
                         )
-                    ))
+                    )
             END CASE
             RETURN NIL
         WHEN OTHERS DO
@@ -2232,87 +2254,87 @@ FUNCTION Parser.parseExport(INOUT self: Parser): POINTER TO ParseTreeNode
     CASE self.token.type
         WHEN TokenType.type DO
             LET type: POINTER TO ParseTreeNode := self.parseTypeDefinition()
-            IF VALID type THEN RETURN makeParseTreeNode(ParseTreeNode(
+            IF VALID type THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
                     names WITH [type->token],
                     declaration WITH type
                 )
-            )) END IF
+            ) END IF
         WHEN TokenType.constant DO
             LET constant: POINTER TO ParseTreeNode := self.parseConstantDefinition()
-            IF VALID constant THEN RETURN makeParseTreeNode(ParseTreeNode(
+            IF VALID constant THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
                     names WITH [constant->constantdeclaration.name],
                     declaration WITH constant
                 )
-            )) END IF
+            ) END IF
         WHEN TokenType.var DO
             LET var: POINTER TO ParseTreeNode := self.parseVarStatement()
-            IF VALID var THEN RETURN makeParseTreeNode(ParseTreeNode(
+            IF VALID var THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
                     names WITH var->variabledeclaration.names,
                     declaration WITH var
                 )
-            )) END IF
+            ) END IF
         WHEN TokenType.let DO
             LET let: POINTER TO ParseTreeNode := self.parseLetStatement()
-            IF VALID let THEN RETURN makeParseTreeNode(ParseTreeNode(
+            IF VALID let THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
                     names WITH [let->letdeclaration.name],
                     declaration WITH let
                 )
-            )) END IF
+            ) END IF
         WHEN TokenType.function DO
             LET function: POINTER TO ParseTreeNode := self.parseFunctionDefinition()
-            IF VALID function THEN RETURN makeParseTreeNode(ParseTreeNode(
+            IF VALID function THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
                     names WITH [function->functiondeclaration.name],
                     declaration WITH function
                 )
-            )) END IF
+            ) END IF
         WHEN TokenType.external DO
             LET external: POINTER TO ParseTreeNode := self.parseExternalDefinition()
-            IF VALID external THEN RETURN makeParseTreeNode(ParseTreeNode(
+            IF VALID external THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
                     names WITH [external->externalfunctiondeclaration.name],
                     declaration WITH external
                 )
-            )) END IF
+            ) END IF
         %| TODO WHEN TokenType.declare DO
             LET declare: POINTER TO ParseTreeNode := self.parseDeclaration()
-            IF VALID declare THEN RETURN makeParseTreeNode(ParseTreeNode(
+            IF VALID declare THEN RETURN NEW ParseTreeNode(
                 type WITH Type.ExportDeclaration,
                 token WITH tokExport,
                 exportdeclaration WITH ExportDeclaration(
                     names WITH declare->names, % TODO needs generic list of names
                     declaration WITH declare
                 )
-            )) END IF |%
+            ) END IF |%
     END CASE
     IF self.token.type # TokenType.identifier THEN
         error(2074, self.token, "identifier expected")
     END IF
     LET tokName: lexer.Token := self.token
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ExportDeclaration,
         token WITH tokExport,
         exportdeclaration WITH ExportDeclaration(
             names WITH [tokName]
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseBegin(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2341,7 +2363,7 @@ FUNCTION Parser.parseBegin(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2093, self.tokens[self.index-1], self.token, "'MAIN' expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.FunctionDeclaration,
         token WITH tokBegin,
         functiondeclaration WITH FunctionDeclaration(
@@ -2353,7 +2375,7 @@ FUNCTION Parser.parseBegin(INOUT self: Parser): POINTER TO ParseTreeNode
             body WITH statements,
             endToken WITH lexer.Token()
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseVarStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2365,7 +2387,7 @@ FUNCTION Parser.parseVarStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         self.nextToken()
         value := self.parseExpression()
     END IF
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.VariableDeclaration,
         token WITH tokVar,
         variabledeclaration WITH VariableDeclaration(
@@ -2373,7 +2395,7 @@ FUNCTION Parser.parseVarStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             type WITH vars.type,
             value WITH value
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseLetStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2395,7 +2417,7 @@ FUNCTION Parser.parseLetStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     END IF
     self.nextToken()
     LET value: POINTER TO ParseTreeNode := self.parseExpression()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.LetDeclaration,
         token WITH tokVar,
         letdeclaration WITH LetDeclaration(
@@ -2403,7 +2425,7 @@ FUNCTION Parser.parseLetStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             type WITH type,
             value WITH value
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseAssertStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2416,11 +2438,11 @@ FUNCTION Parser.parseAssertStatement(INOUT self: Parser): POINTER TO ParseTreeNo
         e := self.parseExpression()
         exprs.append(e)
     END WHILE
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.AssertStatement,
         token WITH tokAssert,
         assertstatement WITH AssertStatement(exprs WITH exprs)
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2505,14 +2527,14 @@ FUNCTION Parser.parseCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         conditions WITH [],
         statements WITH othersStatements
     ))
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.CaseStatement,
         token WITH tokCase,
         casestatement WITH CaseStatement(
             expr WITH expr,
             clauses WITH clauses
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseCheckStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2541,14 +2563,14 @@ FUNCTION Parser.parseCheckStatement(INOUT self: Parser): POINTER TO ParseTreeNod
         error_a(2105, self.tokens[self.index-1], self.token, "CHECK expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.CheckStatement,
         token WITH tokCheck,
         checkstatement WITH CheckStatement(
             cond WITH cond,
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseExitStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2560,13 +2582,13 @@ FUNCTION Parser.parseExitStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2052, self.tokens[self.index-1], self.token, "loop type expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ExitStatement,
         token WITH tokExit,
         exitstatement WITH ExitStatement(
             type WITH type
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2614,7 +2636,7 @@ FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2043, self.tokens[self.index-1], self.token, "'END FOR' expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ForStatement,
         token WITH tokFor,
         forstatement WITH ForStatement(
@@ -2624,7 +2646,7 @@ FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             step WITH step,
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2671,7 +2693,7 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
         error_a(2086, self.tokens[self.index-1], self.token, "'END FOREACH' expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ForeachStatement,
         token WITH tokForeach,
         foreachstatement WITH ForeachStatement(
@@ -2680,7 +2702,7 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
             index WITH index,
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2723,13 +2745,13 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
                     EXIT LOOP
                 END IF
             END LOOP
-            cond := makeParseTreeNode(ParseTreeNode(
+            cond := NEW ParseTreeNode(
                 type WITH Type.ValidPointerExpression,
                 token WITH tokValid,
                 validpointerexpression WITH ValidPointerExpression(
                     tests WITH tests
                 )
-            ))
+            )
         ELSE
             cond := self.parseExpression()
         END IF
@@ -2766,14 +2788,14 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2037, self.tokens[self.index-1], self.token, "IF expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.IfStatement,
         token WITH tokIf,
         ifstatement WITH IfStatement(
             conditionStatements WITH conditionStatements,
             elseStatements WITH elseStatements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseIncrementStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2784,14 +2806,14 @@ FUNCTION Parser.parseIncrementStatement(INOUT self: Parser): POINTER TO ParseTre
     self.nextToken()
     LET delta: Number := (IF tokOp.type = TokenType.inc THEN 1 ELSE (IF tokOp.type = TokenType.dec THEN -1 ELSE 0))
     LET expr: POINTER TO ParseTreeNode := self.parseExpression()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.IncrementStatement,
         token WITH tokOp,
         incrementstatement WITH IncrementStatement(
             expr WITH expr,
             delta WITH delta
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseLoopStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2815,13 +2837,13 @@ FUNCTION Parser.parseLoopStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2056, self.tokens[self.index-1], self.token, "LOOP expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.LoopStatement,
         token WITH tokLoop,
         loopstatement WITH LoopStatement(
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseNextStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2833,13 +2855,13 @@ FUNCTION Parser.parseNextStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2052, self.tokens[self.index-1], self.token, "loop type expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.NextStatement,
         token WITH tokNext,
         nextstatement WITH NextStatement(
             type WITH type
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseRaiseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2863,24 +2885,24 @@ FUNCTION Parser.parseRaiseStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     END IF
     VAR info: POINTER TO ParseTreeNode := NIL
     IF self.token.type = TokenType.lparen THEN
-        LET expr: POINTER TO ParseTreeNode := makeParseTreeNode(ParseTreeNode(
+        LET expr: POINTER TO ParseTreeNode := NEW ParseTreeNode(
             type WITH Type.IdentifierExpression,
             identifierexpression WITH IdentifierExpression(
                 name WITH "ExceptionInfo"
             )
-        ))
+        )
         info := self.parseFunctionCall(expr)
     ELSE
         info := NIL
     END IF
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.RaiseStatement,
         token WITH tokRaise,
         raisestatement WITH RaiseStatement(
             name WITH name,
             info WITH info
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseRepeatStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2901,14 +2923,14 @@ FUNCTION Parser.parseRepeatStatement(INOUT self: Parser): POINTER TO ParseTreeNo
     END IF
     self.nextToken()
     LET cond: POINTER TO ParseTreeNode := self.parseExpression()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.RepeatStatement,
         token WITH tokRepeat,
         repeatstatement WITH RepeatStatement(
             cond WITH cond,
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseReturnStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2916,13 +2938,13 @@ FUNCTION Parser.parseReturnStatement(INOUT self: Parser): POINTER TO ParseTreeNo
     LET tokReturn: lexer.Token := self.token
     self.nextToken()
     LET expr: POINTER TO ParseTreeNode := self.parseExpression()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.ReturnStatement,
         token WITH tokReturn,
         returnstatement WITH ReturnStatement(
             expr WITH expr
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -2970,13 +2992,13 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         END WHILE
         catches.append(TryStatementClause(
             exceptions WITH exceptions,
-            body WITH makeParseTreeNode(ParseTreeNode(
+            body WITH NEW ParseTreeNode(
                 type WITH Type.TryHandlerStatement,
                 token WITH tokDo,
                 tryhandlerstatement WITH TryHandlerStatement(
                     statements WITH handler
                 )
-            ))
+            )
         ))
     END WHILE
     self.popMinimumIndent()
@@ -2988,14 +3010,14 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         error_a(2063, self.tokens[self.index-1], self.token, "TRY expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.TryStatement,
         token WITH tokTry,
         trystatement WITH TryStatement(
             catches WITH catches,
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -3024,14 +3046,14 @@ FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNod
         error_a(2038, self.tokens[self.index-1], self.token, "WHILE expected")
     END IF
     self.nextToken()
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.WhileStatement,
         token WITH tokWhile,
         whilestatement WITH WhileStatement(
             cond WITH cond,
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -3107,22 +3129,22 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
                 self.nextToken()
                 LET rhs: POINTER TO ParseTreeNode := self.parseExpression()
                 LET vars: Array<POINTER TO ParseTreeNode> := [expr]
-                RETURN makeParseTreeNode(ParseTreeNode(
+                RETURN NEW ParseTreeNode(
                     type WITH Type.AssignmentStatement,
                     token WITH tokAssign,
                     assignmentstatement WITH AssignmentStatement(
                         variables WITH vars,
                         expr WITH rhs
                     )
-                ))
+                )
             ELSE
-                RETURN makeParseTreeNode(ParseTreeNode(
+                RETURN NEW ParseTreeNode(
                     type WITH Type.ExpressionStatement,
                     token WITH start,
                     expressionstatement WITH ExpressionStatement(
                         expr WITH expr
                     )
-                ))
+                )
             END IF
         WHEN TokenType.underscore DO
             LET tokUnderscore: lexer.Token := self.token
@@ -3133,22 +3155,22 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             LET tokAssign: lexer.Token := self.token
             self.nextToken()
             LET rhs: POINTER TO ParseTreeNode := self.parseExpression()
-            LET vars: Array<POINTER TO ParseTreeNode> := [makeParseTreeNode(ParseTreeNode(
+            LET vars: Array<POINTER TO ParseTreeNode> := [NEW ParseTreeNode(
                 type WITH Type.DummyExpression,
                 token WITH tokUnderscore,
                 baseexpression WITH BaseExpression(
                     startColumn WITH tokUnderscore.column,
                     endColumn WITH tokUnderscore.column + tokUnderscore.text.length()
                 )
-            ))]
-            RETURN makeParseTreeNode(ParseTreeNode(
+            )]
+            RETURN NEW ParseTreeNode(
                 type WITH Type.AssignmentStatement,
                 token WITH tokAssign,
                 assignmentstatement WITH AssignmentStatement(
                     variables WITH vars,
                     expr WITH rhs
                 )
-            ))
+            )
         WHEN OTHERS DO
             error(2033, self.token, "Identifier expected")
     END CASE
@@ -3164,13 +3186,13 @@ FUNCTION Parser.parse(INOUT self: Parser): POINTER TO ParseTreeNode
             statements.append(s)
         END IF
     END WHILE
-    RETURN makeParseTreeNode(ParseTreeNode(
+    RETURN NEW ParseTreeNode(
         type WITH Type.Program,
         token WITH self.tokens[0],
         program WITH Program(
             statements WITH statements
         )
-    ))
+    )
 END FUNCTION
 
 FUNCTION makeParser(tokens: Array<lexer.Token>): Parser
@@ -3433,7 +3455,7 @@ END FUNCTION
 
 FUNCTION dumpNewRecordExpression(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "NewRecordExpression")
-    dumpParseTree(node.newrecordexpression.type, depth+1)
+    dumpParseTree(node.newrecordexpression.expr, depth+1)
 END FUNCTION
 
 FUNCTION dumpValidPointerExpression(node: ParseTreeNode, depth: Number)

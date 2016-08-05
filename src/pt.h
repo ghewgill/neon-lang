@@ -540,9 +540,9 @@ public:
 
 class NewRecordExpression: public Expression {
 public:
-    NewRecordExpression(const Token &token, size_t end_column, std::unique_ptr<Type> &&type): Expression(token, token.column, end_column), type(std::move(type)) {}
+    NewRecordExpression(const Token &token, size_t end_column, std::unique_ptr<Expression> &&expr): Expression(token, token.column, end_column), expr(std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    std::unique_ptr<Type> type;
+    std::unique_ptr<Expression> expr;
 };
 
 class ValidPointerExpression: public Expression {

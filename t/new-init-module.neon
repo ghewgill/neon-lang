@@ -1,0 +1,21 @@
+IMPORT module
+
+TYPE Rec IS RECORD
+    n: Number
+    s: String
+END RECORD
+
+test_n()
+test_i()
+
+FUNCTION test_n()
+    LET p: POINTER TO module.type := NEW module.type
+    ASSERT p->number = 0
+    ASSERT p->string = ""
+END FUNCTION
+
+FUNCTION test_i()
+    LET p: POINTER TO module.type := NEW module.type(number WITH 6, string WITH "bar")
+    ASSERT p->number = 6
+    ASSERT p->string = "bar"
+END FUNCTION

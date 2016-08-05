@@ -497,10 +497,14 @@ class InterpolatedStringExpression:
         return r
 
 class NewRecordExpression:
-    def __init__(self, type):
+    def __init__(self, type, value):
         self.type = type
+        self.value = value
     def eval(self, env):
-        return self.type.resolve(env).make(env, [], [])
+        if self.value:
+            return self.type.resolve(env).make(env, [x[0] for x in self.value.args], [x[1].eval(env) for x in self.value.args])
+        else:
+            return self.type.resolve(env).make(env, [], [])
 
 class UnaryPlusExpression:
     def __init__(self, expr):
@@ -1443,8 +1447,16 @@ class Parser:
             return LogicalNotExpression(atom)
         elif t is NEW:
             self.i += 1
-            type = self.parse_type()
-            return NewRecordExpression(type)
+            type = IdentifierExpression(self.identifier())
+            # TODO: modules
+            #if self.tokens[self.i] is DOT:
+            #    self.i += 1
+            #    type = DotExpression(type, self.identifier())
+            type = TypeSimple(type.name)
+            value = None
+            if self.tokens[self.i] is LPAREN:
+                value = self.parse_function_call(type)
+            return NewRecordExpression(type, value)
         elif t is NIL:
             self.i += 1
             return NilLiteralExpression()
@@ -2471,6 +2483,7 @@ ExcludeTests = [
     "t/import.neon",            # Module import not required yet
     "t/io-test.neon",           # Module not required yet
     "t/module2.neon",           # Feature not required yet
+    "t/new-init-module.neon",   # Feature not required yet (dotted type)
     "t/parameter-inout-array.neon", # Does not fail here
     "t/parameter-inout-string.neon", # Does not fail here
     "t/record-private.neon",    # Feature not required yet

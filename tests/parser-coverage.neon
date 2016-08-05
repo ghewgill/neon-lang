@@ -264,6 +264,9 @@ name := +expr
 name := -expr
 name := NOT expr
 name := NEW type
+name := NEW module.type
+name := NEW type(param WITH arg)
+name := NEW module.type(param WITH arg)
 name := NIL
 name := NOWHERE
 

@@ -189,11 +189,12 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
         FOR j := 0 TO matrix[i].size()-1 DO
             IF VALID columns[j] AS c THEN
                 IF matrix[i, j] THEN
-                    LET node: POINTER TO Node := NEW Node
-                    node->row := i
-                    node->column := c
-                    node->up := c->up
-                    node->down := c
+                    LET node: POINTER TO Node := NEW Node(
+                        row WITH i,
+                        column WITH c,
+                        up WITH c->up,
+                        down WITH c
+                    )
                     IF VALID last THEN
                         node->left := last
                         node->right := last->right
@@ -221,9 +222,7 @@ FUNCTION dlx_solve(matrix: Array<Array<Boolean>>, skip: Number, maxsolutions: Nu
             END IF
         END FOR
     END FOR
-    LET head: POINTER TO Node := NEW Node
-    head->right := columns[skip]
-    head->left := columns[LAST]
+    LET head: POINTER TO Node := NEW Node(right WITH columns[skip], left WITH columns[LAST])
     IF VALID columns[skip] AS cs THEN
         cs->left := head
     ELSE

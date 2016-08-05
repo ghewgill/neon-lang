@@ -929,10 +929,11 @@ private:
 
 class NewRecordExpression: public Expression {
 public:
-    NewRecordExpression(const TypeRecord *reftype): Expression(new TypePointer(Token(), reftype), false), fields(reftype->fields.size()) {}
+    NewRecordExpression(const TypeRecord *reftype, const Expression *value): Expression(new TypePointer(Token(), reftype), false), fields(reftype->fields.size()), value(value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const size_t fields;
+    const Expression *value;
 
     virtual bool eval_boolean() const override { internal_error("NewRecordExpression"); }
     virtual Number eval_number() const override { internal_error("NewRecordExpression"); }

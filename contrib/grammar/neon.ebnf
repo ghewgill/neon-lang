@@ -164,7 +164,7 @@ Atom =
     'EMBED', StringLiteral |
     'HEXBYTES', StringLiteral |
     (('+' | '-' | 'NOT'), Atom) |
-    ('NEW', Type) |
+    NewExpression |
     'NIL' |
     'NOWHERE' |
     CompoundExpression;
@@ -174,6 +174,8 @@ ArrayLiteral = '[', [Expression, {',', Expression}, [',']], ']';
 ArrayRangeLiteral = '[', Expression, 'TO', Expression, ['STEP', Expression], ']';
 
 DictionaryLiteral = '{', {Expression, ':', Expression, [',']}, '}';
+
+NewExpression = 'NEW', Identifier, ['.', Identifier], ['(', [FunctionArgument, {',', FunctionArgument}], ')'];
 
 CompoundExpression = Identifier, {CompoundExpressionTail};
 
