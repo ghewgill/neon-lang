@@ -27,6 +27,7 @@ AstFromNeon = {
     "INOUT Array<String>": ("TYPE_ARRAY_STRING", REF),
     "OUT Array<String>": ("TYPE_ARRAY_STRING", OUT),
     "Dictionary": ("TYPE_GENERIC", VALUE),
+    "Dictionary<String>": ("TYPE_DICTIONARY_STRING", VALUE),
 }
 
 CppFromAstParam = {
@@ -51,6 +52,7 @@ CppFromAstParam = {
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", OUT): "std::vector<utf8string>",
+    ("TYPE_DICTIONARY_STRING", VALUE): "std::map<utf8string, utf8string>",
 }
 
 CppFromAstReturn = {
@@ -93,6 +95,7 @@ CppFromAstArg = {
     ("TYPE_ARRAY_STRING", VALUE): "const std::vector<utf8string> &",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string> *",
     ("TYPE_ARRAY_STRING", OUT): "std::vector<utf8string> *",
+    ("TYPE_DICTIONARY_STRING", VALUE): "const std::map<utf8string, utf8string> &",
 }
 
 CellField = {
@@ -112,12 +115,14 @@ CellField = {
     ("TYPE_ARRAY_STRING", VALUE): "array()",
     ("TYPE_ARRAY_STRING", REF): "array()",
     ("TYPE_ARRAY_STRING", OUT): "array()",
+    ("TYPE_DICTIONARY_STRING", VALUE): "dictionary()",
 }
 
 ArrayElementField = {
     ("TYPE_ARRAY_NUMBER", VALUE): "number()",
     ("TYPE_ARRAY_STRING", VALUE): "string()",
     ("TYPE_ARRAY_STRING", REF): "string()",
+    ("TYPE_DICTIONARY_STRING", VALUE): "string()",
 }
 
 def parse_params(paramstr):
@@ -268,6 +273,9 @@ with open("src/thunks.inc", "w") as inc:
                 print >>inc, "    {} t{};".format(CppFromAstParam[a], i)
                 print >>inc, "    {} *a{} = &t{};".format(CppFromAstParam[a], i, i)
                 from_stack = False
+            elif a[0].startswith("TYPE_DICTIONARY_") and a[1] == VALUE:
+                print >>inc, "    {} a{};".format(CppFromAstParam[a], i)
+                print >>inc, "    for (auto x: stack.peek({}).dictionary()) a{}[x.first] = x.second.{};".format(d, i, ArrayElementField[a])
             elif a == ("TYPE_GENERIC", VALUE):
                 print >>inc, "    {} a{} = stack.peek({});".format(CppFromAstParam[a], i, d)
             elif a == ("TYPE_GENERIC", REF):

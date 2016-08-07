@@ -3,10 +3,14 @@ IMPORT sqlite
 VAR rows: sqlite.Rows
 
 LET db: sqlite.Database := sqlite.open("tmp/test.db")
-rows := sqlite.exec(db, "drop table if exists foo")
-rows := sqlite.exec(db, "create table foo(name string, value integer)")
-rows := sqlite.exec(db, "insert into foo values ('property', 234)")
-rows := sqlite.exec(db, "select * from foo")
+rows := sqlite.execRaw(db, "drop table if exists foo")
+rows := sqlite.execRaw(db, "create table foo(name string, value integer)")
+rows := sqlite.execRaw(db, "insert into foo values ('property', 234)")
+rows := sqlite.execRaw(db, "select * from foo")
 print("\(rows[0][0]) = \(rows[0][1])")
 %= property = 234
+rows := sqlite.exec(db, "insert into foo values (:prop, :val)", {":prop": "name", ":val": "345"})
+rows := sqlite.exec(db, "select * from foo where name = :prop", {":prop": "name"})
+print("\(rows[0][0]) = \(rows[0][1])")
+%= name = 345
 sqlite.close(db)

@@ -17,6 +17,7 @@ TypeString *TYPE_STRING = new TypeString();
 TypeBytes *TYPE_BYTES = new TypeBytes();
 TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(Token(), TYPE_NUMBER);
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
+TypeDictionary *TYPE_DICTIONARY_STRING = new TypeDictionary(Token(), TYPE_STRING);
 TypeModule *TYPE_MODULE = new TypeModule();
 TypeException *TYPE_EXCEPTION = new TypeException();
 

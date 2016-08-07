@@ -442,6 +442,8 @@ private:
     TypeDictionary &operator=(const TypeDictionary &);
 };
 
+extern TypeDictionary *TYPE_DICTIONARY_STRING;
+
 class TypeRecord: public Type {
 public:
     struct Field {

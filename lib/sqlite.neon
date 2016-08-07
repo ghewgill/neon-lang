@@ -10,7 +10,10 @@ EXPORT Rows
 
 EXPORT open
 EXPORT exec
+EXPORT execRaw
 EXPORT close
+
+DECLARE EXCEPTION ParameterNameException
 
 %|
  |  Type: Database
@@ -45,7 +48,14 @@ DECLARE NATIVE FUNCTION open(name: String): Database
  |
  |  Execute a SQL statement in the given database and return the result set.
  |%
-DECLARE NATIVE FUNCTION exec(db: Database, sql: String): Rows
+DECLARE NATIVE FUNCTION exec(db: Database, sql: String, parameters: Dictionary<String>): Rows
+
+%|
+ |  Function: execRaw
+ |
+ |  Execute a SQL statement in the given database and return the result set.
+ |%
+DECLARE NATIVE FUNCTION execRaw(db: Database, sql: String): Rows
 
 %|
  |  Function: close
