@@ -265,7 +265,7 @@ public:
     TypeDummy(): Type(Token(), "Dummy") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override { internal_error("TypeDummy"); }
-    virtual bool is_assignment_compatible(const Type *) const override { return true; }
+    virtual bool is_assignment_compatible(const Type *type) const override { return type != TYPE_NOTHING; }
     virtual void generate_load(Emitter &) const override { internal_error("TypeDummy"); }
     virtual void generate_store(Emitter &) const override { internal_error("TypeDummy"); }
     virtual void generate_call(Emitter &) const override { internal_error("TypeDummy"); }
