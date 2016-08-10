@@ -4,7 +4,8 @@ os:
   - osx
 compiler:
   - gcc
-  - clang
+  # It seems that the clang compiler on travis doesn't correctly build its own headers.
+  #- clang
 env:
   - MINIMAL=1 RELEASE=0
   - MINIMAL=1 RELEASE=1
