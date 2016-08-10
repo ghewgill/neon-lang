@@ -4,7 +4,7 @@ os:
   - osx
 compiler:
   - gcc
-  - clang
+  #- clang
 env:
   - MINIMAL=1 RELEASE=0
   - MINIMAL=1 RELEASE=1
