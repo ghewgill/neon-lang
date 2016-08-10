@@ -59,6 +59,9 @@ else:
 env["ENV"]["PROCESSOR_ARCHITECTURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
 env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 
+env["CC"] = os.getenv("CC", env["CC"])
+env["CXX"] = os.getenv("CXX", env["CXX"])
+
 # Add path of Python itself to shell PATH.
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.path.dirname(sys.executable)
 
