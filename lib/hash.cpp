@@ -51,11 +51,6 @@ Number crc32(const std::string &bytes)
     return number_from_uint32(0);
 }
 
-Number crc32Bytes(const std::string &bytes)
-{
-    return crc32(bytes);
-}
-
 std::string md5Raw(const std::string &bytes)
 {
     MD5 md5;
@@ -68,16 +63,6 @@ std::string md5Raw(const std::string &bytes)
 std::string md5(const std::string &bytes)
 {
     return to_hex(md5Raw(bytes));
-}
-
-std::string md5Bytes(const std::string &bytes)
-{
-    return md5(bytes);
-}
-
-std::string md5BytesRaw(const std::string &bytes)
-{
-    return md5Raw(bytes);
 }
 
 std::string sha1Raw(const std::string &bytes)
@@ -94,16 +79,6 @@ std::string sha1(const std::string &bytes)
     return to_hex(sha1Raw(bytes));
 }
 
-std::string sha1Bytes(const std::string &bytes)
-{
-    return sha1(bytes);
-}
-
-std::string sha1BytesRaw(const std::string &bytes)
-{
-    return sha1Raw(bytes);
-}
-
 std::string sha256Raw(const std::string &bytes)
 {
     SHA256 sha256;
@@ -118,16 +93,6 @@ std::string sha256(const std::string &bytes)
     return to_hex(sha256Raw(bytes));
 }
 
-std::string sha256Bytes(const std::string &bytes)
-{
-    return sha256(bytes);
-}
-
-std::string sha256BytesRaw(const std::string &bytes)
-{
-    return sha256Raw(bytes);
-}
-
 std::string sha3(const std::string &bytes)
 {
     SHA3 sha3;
@@ -137,16 +102,6 @@ std::string sha3(const std::string &bytes)
 std::string sha3Raw(const std::string &bytes)
 {
     return to_binary(sha3(bytes));
-}
-
-std::string sha3Bytes(const std::string &bytes)
-{
-    return sha3(bytes);
-}
-
-std::string sha3BytesRaw(const std::string &bytes)
-{
-    return sha3Raw(bytes);
 }
 
 } // namespace hash
