@@ -2146,12 +2146,7 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
     const Type *type = analyze(declaration->type.get());
     std::vector<Variable *> variables;
     for (auto name: declaration->names) {
-        Variable *v;
-        if (frame.top() == global_frame) {
-            v = new GlobalVariable(name, name.text, type, false);
-        } else {
-            v = new LocalVariable(name, name.text, type, frame.size()-1, false);
-        }
+        Variable *v = frame.top()->createVariable(name, name.text, type, false);
         variables.push_back(v);
     }
     std::vector<const ReferenceExpression *> refs;
@@ -2192,12 +2187,7 @@ const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
     if (ptype != nullptr && dynamic_cast<const NewRecordExpression *>(expr) != nullptr) {
         type = new TypeValidPointer(ptype);
     }
-    Variable *v;
-    if (frame.top() == global_frame) {
-        v = new GlobalVariable(declaration->name, declaration->name.text, type, true);
-    } else {
-        v = new LocalVariable(declaration->name, declaration->name.text, type, frame.size()-1, true);
-    }
+    Variable *v = frame.top()->createVariable(declaration->name, declaration->name.text, type, true);
     scope.top()->addName(v->declaration, v->name, v, true);
     std::vector<const ReferenceExpression *> refs;
     refs.push_back(new VariableExpression(v));
@@ -2974,20 +2964,10 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     if (scope.top()->lookupName(name.text) != nullptr) {
         error2(3118, name, "duplicate identifier", scope.top()->getDeclaration(name.text), "first declaration here");
     }
-    Variable *var;
-    if (frame.top() == global_frame) {
-        var = new GlobalVariable(name, name.text, TYPE_NUMBER, false);
-    } else {
-        var = new LocalVariable(name, name.text, TYPE_NUMBER, frame.size()-1, false);
-    }
+    Variable *var = frame.top()->createVariable(name, name.text, TYPE_NUMBER, false);
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
-    Variable *bound;
-    if (frame.top() == global_frame) {
-        bound = new GlobalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, false);
-    } else {
-        bound = new LocalVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, frame.size()-1, false);
-    }
+    Variable *bound = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, false);
     // TODO: Need better way of declaring unnamed local variable.
     scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
     const Expression *start = analyze(statement->start.get());
@@ -3060,21 +3040,11 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     if (atype == nullptr) {
         error(3170, statement->array->token, "array expected");
     }
-    Variable *array_copy;
     std::string array_copy_name = std::to_string(reinterpret_cast<intptr_t>(statement)+2);
-    if (frame.top() == global_frame) {
-        array_copy = new GlobalVariable(Token(), array_copy_name, atype, false);
-    } else {
-        array_copy = new LocalVariable(Token(), array_copy_name, atype, frame.size()-1, false);
-    }
+    Variable *array_copy = frame.top()->createVariable(Token(), array_copy_name, atype, false);
     scope.top()->addName(Token(IDENTIFIER, ""), array_copy_name, array_copy, true);
 
-    Variable *var;
-    if (frame.top() == global_frame) {
-        var = new GlobalVariable(var_name, var_name.text, atype->elementtype, false);
-    } else {
-        var = new LocalVariable(var_name, var_name.text, atype->elementtype, frame.size()-1, false);
-    }
+    Variable *var = frame.top()->createVariable(var_name, var_name.text, atype->elementtype, false);
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
 
@@ -3084,32 +3054,19 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         if (scope.top()->lookupName(index_name.text) != nullptr) {
             error2(3171, index_name, "duplicate identifier", scope.top()->getDeclaration(index_name.text), "first declaration here");
         }
-        if (frame.top() == global_frame) {
-            index = new GlobalVariable(index_name, index_name.text, TYPE_NUMBER, false);
-        } else {
-            index = new LocalVariable(index_name, index_name.text, TYPE_NUMBER, frame.size()-1, false);
-        }
+        index = frame.top()->createVariable(index_name, index_name.text, TYPE_NUMBER, false);
         scope.top()->addName(index->declaration, index->name, index, true);
     } else {
         // TODO: Need better way of declaring unnamed local variable.
         index_name.text = std::to_string(reinterpret_cast<intptr_t>(statement)+1);
-        if (frame.top() == global_frame) {
-            index = new GlobalVariable(Token(), index_name.text, TYPE_NUMBER, false);
-        } else {
-            index = new LocalVariable(Token(), index_name.text, TYPE_NUMBER, frame.size()-1, false);
-        }
+        index = frame.top()->createVariable(Token(), index_name.text, TYPE_NUMBER, false);
         scope.top()->addName(Token(IDENTIFIER, ""), index_name.text, index, true);
     }
     index->is_readonly = true;
 
-    Variable *bound;
     // TODO: Need better way of declaring unnamed local variable.
     std::string bound_name = std::to_string(reinterpret_cast<intptr_t>(statement));
-    if (frame.top() == global_frame) {
-        bound = new GlobalVariable(Token(), bound_name, TYPE_NUMBER, false);
-    } else {
-        bound = new LocalVariable(Token(), bound_name, TYPE_NUMBER, frame.size()-1, false);
-    }
+    Variable *bound = frame.top()->createVariable(Token(), bound_name, TYPE_NUMBER, false);
     scope.top()->addName(Token(IDENTIFIER, ""), bound_name, bound, true);
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));

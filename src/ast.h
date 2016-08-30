@@ -172,6 +172,9 @@ public:
     void setReferent(int slot, Name *ref);
     void setReferenced(int slot);
 
+    virtual size_t get_depth() { return 0; }
+    virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) = 0;
+
 private:
     Frame *const outer;
     bool predeclared;
@@ -179,6 +182,20 @@ private:
 private:
     Frame(const Frame &);
     Frame &operator=(const Frame &);
+};
+
+class GlobalFrame: public Frame {
+public:
+    GlobalFrame(Frame *outer): Frame(outer) {}
+    virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) override;
+};
+
+class LocalFrame: public Frame {
+public:
+    LocalFrame(Frame *outer): Frame(outer), nesting_depth(outer->get_depth()+1) {}
+    virtual size_t get_depth() override { return nesting_depth; }
+    virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) override;
+    size_t nesting_depth;
 };
 
 class Scope {

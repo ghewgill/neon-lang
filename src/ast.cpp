@@ -709,6 +709,16 @@ void Frame::setReferenced(int slot)
     slots.at(slot).referenced = true;
 }
 
+Variable *GlobalFrame::createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly)
+{
+    return new GlobalVariable(token, name, type, is_readonly);
+}
+
+Variable *LocalFrame::createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly)
+{
+    return new LocalVariable(token, name, type, nesting_depth, is_readonly);
+}
+
 bool Scope::allocateName(const Token &token, const std::string &name)
 {
     if (getDeclaration(name).type != NONE) {
@@ -798,7 +808,7 @@ void Scope::checkForward()
 
 Function::Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, size_t nesting_depth)
   : Variable(declaration, name, makeFunctionType(returntype, params), true),
-    frame(new Frame(outer)),
+    frame(new LocalFrame(outer)),
     scope(new Scope(parent, frame)),
     params(params),
     nesting_depth(nesting_depth),
@@ -822,7 +832,7 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
 Program::Program(const std::string &source_path, const std::string &source_hash)
   : source_path(source_path),
     source_hash(source_hash),
-    frame(new Frame(nullptr)),
+    frame(new GlobalFrame(nullptr)),
     scope(new Scope(nullptr, frame)),
     statements(),
     exports()
