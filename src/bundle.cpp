@@ -9,6 +9,7 @@
 
 #include <unzip.h>
 
+#include "bytecode.h"
 #include "exec.h"
 #include "support.h"
 

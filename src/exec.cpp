@@ -374,6 +374,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
 Executor::~Executor()
 {
     delete debug_server;
+    g_executor = nullptr;
 }
 
 Module::Module(const std::string &name, const Bytecode &object, const DebugInfo *debuginfo, Executor *executor, ICompilerSupport *support)

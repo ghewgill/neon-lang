@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-#include "analyzer.h"
+class Bytecode;
 
 class ICompilerSupport {
 public:

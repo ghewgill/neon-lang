@@ -17,6 +17,7 @@
 
 #include <zip.h>
 
+#include "bytecode.h"
 #include "support.h"
 
 #ifdef _WIN32

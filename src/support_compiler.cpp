@@ -6,6 +6,7 @@
 
 #include <sha256.h>
 
+#include "analyzer.h"
 #include "ast.h"
 #include "lexer.h"
 #include "parser.h"
