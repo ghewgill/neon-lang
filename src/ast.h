@@ -142,6 +142,7 @@ class Statement;
 class Frame {
 public:
     Frame(Frame *outer): outer(outer), predeclared(false), slots() {}
+    virtual ~Frame() {}
 
     void predeclare(Emitter &emitter);
     void postdeclare(Emitter &emitter);
