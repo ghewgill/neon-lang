@@ -1,0 +1,11 @@
+FUNCTION outer(): Number
+    VAR x: Number
+    FUNCTION sq(): Number
+        RETURN x*x
+    END FUNCTION
+    x := 5
+    RETURN sq()
+END FUNCTION
+
+print(str(outer()))
+%= 25

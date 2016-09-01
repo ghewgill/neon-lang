@@ -1494,6 +1494,8 @@ void ReturnStatement::generate_code(Emitter &emitter) const
     //    to do this with some kinds of INOUT parameters, but not in general)
     //  - The function is an ordinary function that we can jump to (not a
     //    predefined function or external function)
+    //  - The nesting level of the next function is at the same level or
+    //    further out than this function.
     // If possible, then generate the parameters for the next function,
     // emit a LEAVE instruction to discard our frame, and then jump to
     // the entry point for the next function.
@@ -1504,10 +1506,12 @@ void ReturnStatement::generate_code(Emitter &emitter) const
             if (var != nullptr) {
                 const Function *func = dynamic_cast<const Function *>(var->var);
                 if (func != nullptr) {
-                    call->generate_parameters(emitter);
-                    emitter.emit(LEAVE);
-                    emitter.emit_jump(JUMP, emitter.function_label(func->entry_label));
-                    return;
+                    if (func->nesting_depth <= emitter.get_function_depth()) {
+                        call->generate_parameters(emitter);
+                        emitter.emit(LEAVE);
+                        emitter.emit_jump(JUMP, emitter.function_label(func->entry_label));
+                        return;
+                    }
                 }
             }
         }
