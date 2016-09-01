@@ -737,13 +737,22 @@ void FunctionParameter::generate_address(Emitter &emitter) const
     if (index < 0) {
         internal_error("invalid local index: " + name);
     }
+    assert(emitter.get_function_depth() >= nesting_depth);
     switch (mode) {
         case ParameterType::IN:
         case ParameterType::OUT:
-            emitter.emit(PUSHPL, index);
+            if (emitter.get_function_depth() > nesting_depth) {
+                emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
+            } else {
+                emitter.emit(PUSHPL, index);
+            }
             break;
         case ParameterType::INOUT:
-            emitter.emit(PUSHPL, index);
+            if (emitter.get_function_depth() > nesting_depth) {
+                emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
+            } else {
+                emitter.emit(PUSHPL, index);
+            }
             emitter.emit(LOADP);
             break;
     }
@@ -765,6 +774,7 @@ void Function::postdeclare(Emitter &emitter) const
 {
     emitter.debug_line(declaration.line);
     emitter.jump_target(emitter.function_label(entry_label));
+    emitter.set_current_function_depth(nesting_depth);
     emitter.emit(ENTER, static_cast<uint32_t>(nesting_depth), static_cast<uint32_t>(frame->getCount()));
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
@@ -782,7 +792,6 @@ void Function::postdeclare(Emitter &emitter) const
     }
     auto exit = emitter.create_label();
     emitter.push_function_exit(exit);
-    emitter.set_current_function_depth(nesting_depth);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }

@@ -1,0 +1,9 @@
+FUNCTION outer(x: Number): Number
+    FUNCTION sq(): Number
+        RETURN x*x
+    END FUNCTION
+    RETURN sq()
+END FUNCTION
+
+print(str(outer(5)))
+%= 25

@@ -2250,7 +2250,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
             if (scope.top()->lookupName(name.text)) {
                 error(3174, name, "duplicate identifier");
             }
-            FunctionParameter *fp = new FunctionParameter(name, name.text, ptype, frame.size()-1, mode, def);
+            FunctionParameter *fp = new FunctionParameter(name, name.text, ptype, frame.size(), mode, def);
             args.push_back(fp);
         }
     }
