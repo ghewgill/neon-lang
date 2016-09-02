@@ -487,6 +487,10 @@ testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
 env.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
+for f in Glob("t/repl_*.neon"):
+    result = f.abspath + ".result"
+    t = env.Command(result, [f, neon], neon[0].abspath + " --repl-no-prompt --repl-stop-on-any-error <$SOURCE")
+    env.Alias("tests_repl", t)
 
 samples = []
 for path, dirs, files in os.walk("."):

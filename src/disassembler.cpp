@@ -105,6 +105,7 @@ private:
     void disasm_PUSHNIL();
     void disasm_JNASSERT();
     void disasm_RESETC();
+    void disasm_PUSHPEG();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -652,6 +653,13 @@ void Disassembler::disasm_RESETC()
     index++;
 }
 
+void Disassembler::disasm_PUSHPEG()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "PUSHPEG \"" << obj.strtable[val] << "\"\n";
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -676,6 +684,7 @@ std::string Disassembler::decode_value(const std::string &type, const Bytecode::
 
 void Disassembler::disassemble()
 {
+    out << "Global size: " << obj.global_size << "\n";
     out << "String table: [\n";
     int i = 0;
     for (auto s: obj.strtable) {
@@ -805,6 +814,7 @@ void Disassembler::disassemble()
             case PUSHNIL: disasm_PUSHNIL(); break;
             case JNASSERT:disasm_JNASSERT(); break;
             case RESETC:  disasm_RESETC(); break;
+            case PUSHPEG: disasm_PUSHPEG(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

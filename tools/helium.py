@@ -2459,6 +2459,7 @@ ExcludeTests = [
     "t/process-test.neon",      # Module not required
     "t/recursion-limit.neon",   # Feature not required
     "t/regex-test.neon",        # Module not required
+    "t/repl_import.neon",       # Module not required
     "t/return-case.neon",       # Feature not required
     "t/rtl.neon",               # CURRENT_EXCEPTION not required
     "t/sdl-test.neon",          # Module not required

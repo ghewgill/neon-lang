@@ -4,10 +4,10 @@ IMPORT string
 VAR out, err: Bytes
 VAR r: Number
 
-r := process.call("bin/neon", OUT out, OUT err)
+r := process.call("bin/neonc", OUT out, OUT err)
 ASSERT r = 1
 ASSERT out = HEXBYTES ""
-ASSERT string.splitLines(err.decodeToString()) = ["Usage: bin/neon filename.neon"]
+ASSERT string.splitLines(err.decodeToString()) = ["Usage: bin/neonc filename.neon"]
 
 r := process.call("bin/neon t/hello.neon", OUT out, OUT err)
 ASSERT r = 0

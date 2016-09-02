@@ -713,6 +713,11 @@ void GlobalVariable::generate_export(Emitter &emitter, const std::string &name) 
     emitter.add_export_variable(name, emitter.get_type_reference(type), index);
 }
 
+void ExternalGlobalVariable::generate_address(Emitter &emitter) const
+{
+    emitter.emit(PUSHPEG, emitter.str(name));
+}
+
 void LocalVariable::predeclare(Emitter &emitter, int slot)
 {
     type->predeclare(emitter);
@@ -1715,6 +1720,12 @@ void Frame::postdeclare(Emitter &emitter)
             s.ref->postdeclare(emitter);
         }
     }
+}
+
+void ExternalGlobalFrame::predeclare(Emitter &emitter)
+{
+    outer->predeclare(emitter);
+    Frame::predeclare(emitter);
 }
 
 void Module::predeclare(Emitter &) const

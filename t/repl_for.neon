@@ -1,0 +1,2 @@
+VAR n: Number := 0
+FOR i := 1  TO 5 DO n := n + i END FOR

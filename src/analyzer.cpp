@@ -19,13 +19,13 @@
 
 class Analyzer {
 public:
-    Analyzer(ICompilerSupport *support, const pt::Program *program);
+    Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ExternalGlobalInfo> *external_globals);
 
     ICompilerSupport *support;
     const pt::Program *program;
+    std::map<std::string, ExternalGlobalInfo> *const external_globals;
     const std::string module_name;
     std::map<std::string, Module *> modules;
-    Frame *global_frame;
     Scope *global_scope;
     std::stack<Frame *> frame;
     std::stack<Scope *> scope;
@@ -504,12 +504,17 @@ static std::string path_stripext(const std::string &name)
     return name.substr(0, i);
 }
 
-Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program)
+class GlobalScope: public Scope {
+public:
+    GlobalScope(): Scope(nullptr, nullptr) {}
+};
+
+Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ExternalGlobalInfo> *external_globals)
   : support(support),
     program(program),
+    external_globals(external_globals),
     module_name(extract_module_name(program)),
     modules(),
-    global_frame(nullptr),
     global_scope(nullptr),
     frame(),
     scope(),
@@ -527,7 +532,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std:
         std::vector<FunctionParameter *> params;
         FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::IN, nullptr);
         params.push_back(fp);
-        Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_frame, analyzer->global_scope, params, 1);
+        Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, 1);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -2250,7 +2255,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
             if (scope.top()->lookupName(name.text)) {
                 error(3174, name, "duplicate identifier");
             }
-            FunctionParameter *fp = new FunctionParameter(name, name.text, ptype, frame.size(), mode, def);
+            FunctionParameter *fp = new FunctionParameter(name, name.text, ptype, frame.top()->get_depth()+1, mode, def);
             args.push_back(fp);
         }
     }
@@ -2263,14 +2268,14 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         if (f != type->methods.end()) {
             function = dynamic_cast<Function *>(f->second);
         } else {
-            function = new Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, frame.size());
+            function = new Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
             type->methods[name] = function;
         }
     } else {
         Name *ident = scope.top()->lookupName(name);
         function = dynamic_cast<Function *>(ident);
         if (function == nullptr) {
-            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.size());
+            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
             scope.top()->addName(declaration->name, name, function);
         }
     }
@@ -3127,6 +3132,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
                 if (functiontypes.empty()) {
                     var = new GlobalVariable(v->name, v->name.text, vtype, true);
                 } else {
+                    // TODO: probably use frame.top()->get_depth() (add IF VALID to repl tests)
                     var = new LocalVariable(v->name, v->name.text, vtype, frame.size()-1, true);
                 }
                 scope.top()->addName(v->name, v->name.text, var, true, v->shorthand);
@@ -3411,15 +3417,21 @@ private:
 const Program *Analyzer::analyze()
 {
     Program *r = new Program(program->source_path, program->source_hash);
-    global_frame = r->frame;
     global_scope = r->scope;
-    frame.push(global_frame);
+    frame.push(r->frame);
     scope.push(global_scope);
     // Create a new scope for the global things in the main program,
     // so that modules can use the real global scope as their parent
     // scope to avoid accidentally linking them up together (issue #30).
-    scope.push(new Scope(scope.top(), frame.top()));
-    r->scope = scope.top();
+    if (external_globals != nullptr) {
+        frame.push(new ExternalGlobalFrame(frame.top(), *external_globals));
+        scope.push(new ExternalGlobalScope(scope.top(), frame.top(), *external_globals));
+        r->frame = frame.top();
+        r->scope = scope.top();
+    } else {
+        scope.push(new Scope(scope.top(), frame.top()));
+        r->scope = scope.top();
+    }
 
     //init_builtin_constants(global_scope);
 
@@ -4052,9 +4064,9 @@ private:
     UnusedFinder &operator=(const UnusedFinder &);
 };
 
-const Program *analyze(ICompilerSupport *support, const pt::Program *program)
+const Program *analyze(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ExternalGlobalInfo> *external_globals)
 {
-    const Program *r = Analyzer(support, program).analyze();
+    const Program *r = Analyzer(support, program, external_globals).analyze();
 
     // Find uninitalised variables.
     UninitialisedFinder uf;
@@ -4064,11 +4076,14 @@ const Program *analyze(ICompilerSupport *support, const pt::Program *program)
     UnusedFinder unf;
     program->accept(&unf);
 
-    // Find unused imports.
-    for (size_t i = 0; i < r->frame->getCount(); i++) {
-        Frame::Slot s = r->frame->getSlot(i);
-        if (dynamic_cast<Module *>(s.ref) != nullptr && not s.referenced) {
-            error(3192, s.token, "Unused import");
+    // Skip this if we're in the repl.
+    if (external_globals == nullptr) {
+        // Find unused imports.
+        for (size_t i = 0; i < r->frame->getCount(); i++) {
+            Frame::Slot s = r->frame->getSlot(i);
+            if (dynamic_cast<Module *>(s.ref) != nullptr && not s.referenced) {
+                error(3192, s.token, "Unused import");
+            }
         }
     }
 

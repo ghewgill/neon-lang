@@ -1,0 +1,2 @@
+IMPORT random
+LET r: Number := random.uint32()

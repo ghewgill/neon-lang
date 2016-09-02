@@ -709,6 +709,27 @@ void Frame::setReferenced(int slot)
     slots.at(slot).referenced = true;
 }
 
+Variable *ExternalGlobalFrame::createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly)
+{
+    return new ExternalGlobalVariable(token, name, type, is_readonly);
+}
+
+int ExternalGlobalFrame::addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced)
+{
+    external_globals.insert(std::make_pair(name, ExternalGlobalInfo(token, ref, init_referenced)));
+    return Frame::addSlot(token, name, ref, init_referenced);
+}
+
+void ExternalGlobalFrame::setReferent(int slot, Name *ref)
+{
+    auto g = external_globals.find(ref->name);
+    if (g == external_globals.end()) {
+        internal_error("external global does not exist");
+    }
+    g->second.ref = ref;
+    Frame::setReferent(slot, ref);
+}
+
 Variable *GlobalFrame::createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly)
 {
     return new GlobalVariable(token, name, type, is_readonly);
@@ -803,6 +824,15 @@ void Scope::checkForward()
     if (not forwards.empty()) {
         // TODO: Make this a real error that points to a token.
         internal_error("unresolved forward declaration: " + forwards.begin()->first);
+    }
+}
+
+ExternalGlobalScope::ExternalGlobalScope(Scope *parent, Frame *frame, std::map<std::string, ExternalGlobalInfo> &external_globals)
+  : Scope(parent, frame)
+{
+    for (auto &g: external_globals) {
+        g.second.ref->reset();
+        Scope::addName(g.second.declaration, g.first, g.second.ref, g.second.init_referenced);
     }
 }
 

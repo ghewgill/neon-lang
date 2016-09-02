@@ -184,7 +184,7 @@ private:
 
 class Executor: public IHttpServerHandler {
 public:
-    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port);
+    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, std::map<std::string, Cell *> *external_globals);
     virtual ~Executor();
 
     // Module: debugger
@@ -206,6 +206,7 @@ private:
     size_t param_garbage_collection_interval;
     size_t param_recursion_limit;
 
+    std::map<std::string, Cell *> *external_globals;
     std::map<std::string, Module *> modules;
     std::vector<std::string> init_order;
     Module *module;
@@ -315,6 +316,7 @@ private:
     void exec_PUSHNIL();
     void exec_JNASSERT();
     void exec_RESETC();
+    void exec_PUSHPEG();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -339,11 +341,12 @@ const char *Executor::DebuggerStateName[] = {
 
 static Executor *g_executor;
 
-Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port)
+Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, std::map<std::string, Cell *> *external_globals)
   : source_path(source_path),
     enable_assert(enable_assert),
     param_garbage_collection_interval(1000),
     param_recursion_limit(1000),
+    external_globals(external_globals),
     modules(),
     init_order(),
     module(nullptr),
@@ -1303,6 +1306,22 @@ void Executor::exec_RESETC()
     *addr = Cell();
 }
 
+void Executor::exec_PUSHPEG()
+{
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    if (external_globals == nullptr) {
+        fprintf(stderr, "internal error: no external globals\n");
+        exit(1);
+    }
+    auto i = external_globals->find(module->object.strtable[val]);
+    if (i == external_globals->end()) {
+        fprintf(stderr, "internal error: external global does not exist: %s\n", module->object.strtable[val].c_str());
+        exit(1);
+    }
+    stack.push(Cell(i->second));
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -1616,6 +1635,7 @@ void Executor::exec()
             case PUSHNIL: exec_PUSHNIL(); break;
             case JNASSERT:exec_JNASSERT(); break;
             case RESETC:  exec_RESETC(); break;
+            case PUSHPEG: exec_PUSHPEG(); break;
         }
         if (module == last_module && ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
@@ -1837,8 +1857,8 @@ void executor_set_recursion_limit(size_t depth)
     g_executor->set_recursion_limit(depth);
 }
 
-void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, int argc, char *argv[])
+void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals)
 {
     rtl_exec_init(argc, argv);
-    Executor(source_path, obj, debuginfo, support, enable_assert, debug_port).exec();
+    Executor(source_path, obj, debuginfo, support, enable_assert, debug_port, external_globals).exec();
 }

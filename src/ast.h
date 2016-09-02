@@ -41,6 +41,7 @@ public:
     virtual void visit(const class PredefinedVariable *node) = 0;
     virtual void visit(const class ModuleVariable *node) = 0;
     virtual void visit(const class GlobalVariable *node) = 0;
+    virtual void visit(const class ExternalGlobalVariable *node) = 0;
     virtual void visit(const class LocalVariable *node) = 0;
     virtual void visit(const class FunctionParameter *node) = 0;
     virtual void visit(const class Exception *node) = 0;
@@ -144,7 +145,7 @@ public:
     Frame(Frame *outer): outer(outer), predeclared(false), slots() {}
     virtual ~Frame() {}
 
-    void predeclare(Emitter &emitter);
+    virtual void predeclare(Emitter &emitter);
     void postdeclare(Emitter &emitter);
 
     struct Slot {
@@ -168,21 +169,50 @@ public:
     };
 
     size_t getCount() const { return slots.size(); }
-    int addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced);
+    virtual int addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced);
     const Slot getSlot(size_t slot);
-    void setReferent(int slot, Name *ref);
+    virtual void setReferent(int slot, Name *ref);
     void setReferenced(int slot);
 
     virtual size_t get_depth() { return 0; }
     virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) = 0;
 
-private:
+protected:
     Frame *const outer;
     bool predeclared;
     std::vector<Slot> slots;
 private:
     Frame(const Frame &);
     Frame &operator=(const Frame &);
+};
+
+class ExternalGlobalInfo {
+public:
+    ExternalGlobalInfo(const Token &declaration, Name *ref, bool init_referenced): declaration(declaration), ref(ref), init_referenced(init_referenced) {}
+    ExternalGlobalInfo(const ExternalGlobalInfo &rhs): declaration(rhs.declaration), ref(rhs.ref), init_referenced(rhs.init_referenced) {}
+    ExternalGlobalInfo &operator=(const ExternalGlobalInfo &rhs) {
+        if (this == &rhs) {
+            return *this;
+        }
+        declaration = rhs.declaration;
+        ref = rhs.ref;
+        init_referenced = rhs.init_referenced;
+        return *this;
+    }
+    Token declaration;
+    Name *ref;
+    bool init_referenced;
+};
+
+class ExternalGlobalFrame: public Frame {
+public:
+    ExternalGlobalFrame(Frame *outer, std::map<std::string, ExternalGlobalInfo> &external_globals): Frame(outer), external_globals(external_globals) {}
+    virtual void predeclare(Emitter &emitter) override;
+    virtual int addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced) override;
+    virtual void setReferent(int slot, Name *ref) override;
+    virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) override;
+private:
+    std::map<std::string, ExternalGlobalInfo> &external_globals;
 };
 
 class GlobalFrame: public Frame {
@@ -207,7 +237,7 @@ public:
     bool allocateName(const Token &token, const std::string &name);
     Name *lookupName(const std::string &name, bool mark_referenced = true);
     Token getDeclaration(const std::string &name) const;
-    void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false, bool allow_shadow = false);
+    virtual void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false, bool allow_shadow = false);
     void addForward(const std::string &name, TypePointer *ptrtype);
     void resolveForward(const std::string &name, const TypeRecord *rectype);
     void checkForward();
@@ -222,6 +252,11 @@ private:
     Scope &operator=(const Scope &);
 };
 
+class ExternalGlobalScope: public Scope {
+public:
+    ExternalGlobalScope(Scope *parent, Frame *frame, std::map<std::string, ExternalGlobalInfo> &external_globals);
+};
+
 class Name: public AstNode {
 public:
     Name(const Token &declaration, const std::string &name, const Type *type): declaration(declaration), name(name), type(type) {}
@@ -229,6 +264,7 @@ public:
     const std::string name;
     const Type *type;
 
+    virtual void reset() {}
     virtual void predeclare(Emitter &) const {}
     virtual void postdeclare(Emitter &) const {}
 
@@ -485,6 +521,7 @@ public:
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
+    virtual void reset() override { predeclared = false; postdeclared = false; }
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
@@ -675,11 +712,22 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     mutable int index;
 
+    virtual void reset() override { index = -1; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &emitter) const override;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual std::string text() const override { return "GlobalVariable(" + name + ", " + type->text() + ")"; }
+};
+
+class ExternalGlobalVariable: public Variable {
+public:
+    ExternalGlobalVariable(const Token &declaration, const std::string &name, const Type *type, bool is_readonly): Variable(declaration, name, type, is_readonly) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual void generate_address(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ExternalGlobalVariable(" + name + ")"; }
 };
 
 class LocalVariable: public Variable {
@@ -2176,6 +2224,7 @@ public:
 
     static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
 
+    virtual void reset() override { entry_label = UINT_MAX; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override {}
@@ -2198,6 +2247,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     mutable int name_index;
 
+    virtual void reset() override { name_index = -1; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_load(Emitter &) const override { internal_error("PredefinedFunction"); }
@@ -2232,6 +2282,7 @@ public:
     std::map<std::string, std::string> param_types;
     mutable int external_index;
 
+    virtual void reset() override { external_index = -1; }
     virtual void predeclare(Emitter &) const override;
     virtual void postdeclare(Emitter &) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -2248,6 +2299,7 @@ public:
 
     Scope *scope;
 
+    virtual void reset() override { for (size_t i = 0; i < scope->frame->getCount(); i++) { scope->frame->getSlot(i).ref->reset(); } }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_export(Emitter &, const std::string &) const override { internal_error("can't export module"); }
 

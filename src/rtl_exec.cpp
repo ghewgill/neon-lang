@@ -20,6 +20,9 @@ void rtl_exec_init(int argc, char *argv[])
     extern void rtl_sys_init(int, char *[]);
     rtl_sys_init(argc, argv);
 
+    FunctionNames.clear();
+    VariableNames.clear();
+
     size_t i = 0;
     for (auto f: BuiltinFunctions) {
         FunctionNames[f.name] = i;

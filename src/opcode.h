@@ -85,6 +85,7 @@ enum Opcode {
     PUSHNIL,    // push nil pointer
     JNASSERT,   // jump if assertions disabled
     RESETC,     // reset cell
+    PUSHPEG,    // push pointer to external global
 };
 
 #endif

@@ -4,6 +4,7 @@
 
 #include "analyzer.h"
 #include "ast.h"
+#include "cell.h"
 #include "compiler.h"
 #include "debuginfo.h"
 #include "disassembler.h"
@@ -12,6 +13,15 @@
 #include "parser.h"
 #include "pt_dump.h"
 #include "support.h"
+
+bool dump_tokens = false;
+bool dump_parse = false;
+bool dump_ast = false;
+bool dump_listing = false;
+bool enable_assert = true;
+unsigned short debug_port = 0;
+bool repl_no_prompt = false;
+bool repl_stop_on_any_error = false;
 
 static TokenizedSource dump(const TokenizedSource &tokens)
 {
@@ -33,16 +43,73 @@ static const Program *dump(const Program *program)
     return program;
 }
 
+static void repl(int argc, char *argv[])
+{
+    CompilerSupport compiler_support("");
+    RuntimeSupport runtime_support("");
+    if (not repl_no_prompt) {
+        std::cout << "Neon 0.1\n";
+        std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
+    }
+    std::map<std::string, ExternalGlobalInfo> globals_ast;
+    std::map<std::string, Cell *> globals_cells;
+    std::vector<std::unique_ptr<TokenizedSource>> input;
+    for (;;) {
+        if (not repl_no_prompt) {
+            std::cout << "> ";
+        }
+        std::string s;
+        if (not std::getline(std::cin, s)) {
+            if (not repl_no_prompt) {
+                std::cout << std::endl;
+            }
+            break;
+        }
+        if (s == "help") {
+            std::cout << "\n";
+            std::cout << "Welcome to Neon 0.1!\n";
+            std::cout << "\n";
+            std::cout << "See https://github.com/ghewgill/neon-lang for information.\n";
+        } else if (s == "exit" || s == "quit") {
+            exit(0);
+        } else {
+            try {
+                auto tokens = tokenize("", s);
+                auto parsetree = parse(*tokens);
+                // Grab a copy of the globals and let analyze() modify the copy.
+                // Some errors will be detected after things are added to the
+                // global scope, and we don't want to capture those global
+                // things if there was an error. (Errors are handled by exception
+                // so the assignment back to globals_ast won't happen.)
+                auto globals = globals_ast;
+                auto ast = analyze(&compiler_support, parsetree.get(), &globals);
+                globals_ast = globals;
+                for (auto g: globals_ast) {
+                    if (globals_cells.find(g.first) == globals_cells.end()) {
+                        globals_cells[g.first] = new Cell();
+                    }
+                }
+                DebugInfo debug("-", s);
+                auto bytecode = compile(ast, &debug);
+                if (dump_listing) {
+                    disassemble(bytecode, std::cerr, &debug);
+                }
+                exec("-", bytecode, &debug, &runtime_support, false, 0, argc, argv, &globals_cells);
+                input.emplace_back(std::move(tokens));
+            } catch (CompilerError *error) {
+                error->write(std::cerr);
+                if (repl_stop_on_any_error) {
+                    exit(1);
+                }
+            }
+        }
+    }
+    exit(0);
+}
+
 int main(int argc, char *argv[])
 {
-    bool dump_tokens = false;
-    bool dump_parse = false;
-    bool dump_ast = false;
-    bool dump_listing = false;
-    bool enable_assert = true;
-    unsigned short debug_port = 0;
-
-    if (argc < 2) {
+    if (argc < 1) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
         exit(1);
     }
@@ -63,11 +130,19 @@ int main(int argc, char *argv[])
             dump_listing = true;
         } else if (arg == "-n") {
             enable_assert = false;
+        } else if (arg == "--repl-no-prompt") {
+            repl_no_prompt = true;
+        } else if (arg == "--repl-stop-on-any-error") {
+            repl_stop_on_any_error = true;
         } else {
             fprintf(stderr, "Unknown option: %s\n", arg.c_str());
             exit(1);
         }
         a++;
+    }
+
+    if (a >= argc) {
+        repl(argc, argv);
     }
 
     const std::string name = argv[a];
