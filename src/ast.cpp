@@ -901,6 +901,11 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
         TYPE_STRING->methods["toBytes"] = new PredefinedFunction("string__toBytes", new TypeFunction(TYPE_BYTES, params));
     }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
+        TYPE_STRING->methods["toString"] = new PredefinedFunction("string__toString", new TypeFunction(TYPE_STRING, params));
+    }
 
     {
         std::vector<const ParameterType *> params;

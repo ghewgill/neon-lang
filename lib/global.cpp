@@ -223,6 +223,12 @@ std::string string__toBytes(const std::string &self)
     return self;
 }
 
+std::string string__toString(const std::string &self)
+{
+    // TODO: Escape things that need escaping.
+    return "\"" + self + "\"";
+}
+
 std::string bytes__range(const std::string &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     assert(number_is_integer(first));
