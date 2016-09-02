@@ -75,19 +75,63 @@ static void repl(int argc, char *argv[])
         } else {
             try {
                 auto tokens = tokenize("", s);
-                auto parsetree = parse(*tokens);
-                // Grab a copy of the globals and let analyze() modify the copy.
-                // Some errors will be detected after things are added to the
-                // global scope, and we don't want to capture those global
-                // things if there was an error. (Errors are handled by exception
-                // so the assignment back to globals_ast won't happen.)
-                auto globals = globals_ast;
-                auto ast = analyze(&compiler_support, parsetree.get(), &globals);
-                globals_ast = globals;
-                for (auto g: globals_ast) {
-                    if (globals_cells.find(g.first) == globals_cells.end()) {
-                        globals_cells[g.first] = new Cell();
+                const Program *ast;
+                try {
+                    auto parsetree = parse(*tokens);
+                    // Grab a copy of the globals and let analyze() modify the copy.
+                    // Some errors will be detected after things are added to the
+                    // global scope, and we don't want to capture those global
+                    // things if there was an error. (Errors are handled by exception
+                    // so the assignment back to globals_ast won't happen.)
+                    auto globals = globals_ast;
+                    ast = analyze(&compiler_support, parsetree.get(), &globals);
+                    globals_ast = globals;
+                    for (auto g: globals_ast) {
+                        if (globals_cells.find(g.first) == globals_cells.end()) {
+                            globals_cells[g.first] = new Cell();
+                        }
                     }
+                } catch (CompilerError *) {
+                    auto exprtree = parseExpression(*tokens);
+                    std::vector<std::unique_ptr<pt::FunctionCallExpression::Argument>> print_args;
+                    print_args.emplace_back(
+                        std::unique_ptr<pt::FunctionCallExpression::Argument> { new pt::FunctionCallExpression::Argument(
+                            Token(IN, "IN"),
+                            Token(),
+                            std::unique_ptr<pt::Expression> { new pt::FunctionCallExpression(
+                                Token(),
+                                std::unique_ptr<pt::DotExpression> { new pt::DotExpression(
+                                    Token(),
+                                    std::move(exprtree),
+                                    Token(IDENTIFIER, "toString")
+                                )},
+                                {},
+                                Token()
+                            )}
+                        )}
+                    );
+                    std::vector<std::unique_ptr<pt::Statement>> statements;
+                    statements.emplace_back(
+                        std::unique_ptr<pt::Statement> { new pt::ExpressionStatement(
+                            Token(),
+                            std::unique_ptr<pt::Expression> { new pt::FunctionCallExpression(
+                                Token(),
+                                std::unique_ptr<pt::Expression> { new pt::IdentifierExpression(
+                                    Token(),
+                                    "print"
+                                )},
+                                std::move(print_args),
+                                Token()
+                            )}
+                        )}
+                    );
+                    auto parsetree = std::unique_ptr<pt::Program> { new pt::Program(
+                        Token(),
+                        std::move(statements),
+                        "",
+                        "00000000000000000000000000000000"
+                    )};
+                    ast = analyze(&compiler_support, parsetree.get(), &globals_ast);
                 }
                 DebugInfo debug("-", s);
                 auto bytecode = compile(ast, &debug);

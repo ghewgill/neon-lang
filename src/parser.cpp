@@ -1825,3 +1825,8 @@ std::unique_ptr<Program> parse(const TokenizedSource &tokens)
 {
     return Parser(tokens).parse();
 }
+
+std::unique_ptr<pt::Expression> parseExpression(const TokenizedSource &tokens)
+{
+    return Parser(tokens).parseExpression();
+}
