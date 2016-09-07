@@ -106,6 +106,7 @@ public:
     const Statement *analyze(const pt::AssignmentStatement *statement);
     const Statement *analyze(const pt::CaseStatement *statement);
     const Statement *analyze(const pt::CheckStatement *statement);
+    const Statement *analyze(const pt::ExecStatement *statement);
     const Statement *analyze(const pt::ExitStatement *statement);
     const Statement *analyze(const pt::ExpressionStatement *statement);
     const Statement *analyze(const pt::ForStatement *statement);
@@ -127,6 +128,7 @@ private:
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
     std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches);
+    void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const Variable *function, std::vector<const Expression *> args, std::vector<const Statement *> &statements);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -196,6 +198,7 @@ public:
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CheckStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ExecStatement  *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
@@ -284,6 +287,7 @@ public:
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CaseStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::CheckStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::ExecStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExitStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ExpressionStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::ForStatement *) override { internal_error("pt::Statement"); }
@@ -371,6 +375,7 @@ public:
     virtual void visit(const pt::AssignmentStatement *) override {}
     virtual void visit(const pt::CaseStatement *) override {}
     virtual void visit(const pt::CheckStatement *) override {}
+    virtual void visit(const pt::ExecStatement *) override {}
     virtual void visit(const pt::ExitStatement *) override {}
     virtual void visit(const pt::ExpressionStatement *) override {}
     virtual void visit(const pt::ForStatement *) override {}
@@ -458,6 +463,7 @@ public:
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::CaseStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::CheckStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExecStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExitStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExpressionStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ForStatement *p) override { v.push_back(a->analyze(p)); }
@@ -2931,6 +2937,419 @@ const Statement *Analyzer::analyze(const pt::CheckStatement *statement)
     return new IfStatement(statement->token.line, condition_statements, else_statements);
 }
 
+static unsigned int get_loop_id(const Token &token, const std::stack<std::list<std::pair<TokenType, unsigned int>>> &loops, TokenType type)
+{
+    for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
+        if (j->first == type) {
+            return j->second;
+        }
+    }
+    error(4301, token, "statement not within loop type while WHENEVER condition in effect");
+}
+
+void Analyzer::process_into_results(const pt::ExecStatement *statement, const std::string &sql, const Variable *function, std::vector<const Expression *> args, std::vector<const Statement *> &statements)
+{
+    const Exception *sql_exception = dynamic_cast<const Exception *>(scope.top()->lookupName("SqlException"));
+    if (sql_exception == nullptr) {
+        internal_error("need exception SqlException");
+    }
+    const PredefinedFunction *print = dynamic_cast<const PredefinedFunction *>(scope.top()->lookupName("print"));
+    if (print == nullptr) {
+        internal_error("where's the print function");
+    }
+    const Module *sys = dynamic_cast<const Module *>(scope.top()->lookupName("sys"));
+    if (sys == nullptr) {
+        Module *module = import_module(Token(), "sys");
+        rtl_import("sys", module);
+        global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module);
+        sys = module;
+    }
+    const PredefinedFunction *fexit = dynamic_cast<const PredefinedFunction *>(sys->scope->lookupName("exit"));
+    if (fexit == nullptr) {
+        internal_error("where's the exit function");
+    }
+    const Module *sqlite = dynamic_cast<const Module *>(scope.top()->lookupName("sqlite"));
+    if (sqlite == nullptr) {
+        internal_error("need module sqlite");
+    }
+    const Type *type_row = dynamic_cast<const Type *>(sqlite->scope->lookupName("Row"));
+    if (type_row == nullptr) {
+        internal_error("need a Row type");
+    }
+    std::vector<const VariableExpression *> out_bindings;
+    for (auto name: statement->info->assignments) {
+        out_bindings.push_back(new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName(name))));
+    }
+    Variable *result = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), type_row, false);
+    Variable *found = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)+1), TYPE_BOOLEAN, false);
+    scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)), result, true);
+    scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)+1), found, true);
+    args.push_back(new VariableExpression(result));
+    statements.push_back(
+        new AssignmentStatement(
+            statement->token.line,
+            {new VariableExpression(found)},
+            new FunctionCall(
+                new VariableExpression(function),
+                args
+            )
+        )
+    );
+    std::vector<const Statement *> then_statements;
+    std::vector<const Statement *> else_statements;
+    uint32_t column = 0;
+    for (auto b: out_bindings) {
+        then_statements.push_back(
+            new AssignmentStatement(
+                statement->token.line,
+                {b},
+                new ArrayReferenceIndexExpression(
+                    TYPE_STRING,
+                    new VariableExpression(result),
+                    new ConstantNumberExpression(number_from_uint32(column)),
+                    false
+                )
+            )
+        );
+        column++;
+    }
+    switch (scope.top()->sql_whenever[NotFound]) {
+        case Continue:
+            break;
+        case SqlPrint:
+            else_statements.push_back(
+                new ExpressionStatement(
+                    statement->token.line,
+                    new FunctionCall(
+                        new VariableExpression(print),
+                        {new ConstantStringExpression(sql)}
+                    )
+                )
+            );
+            break;
+        case Stop:
+            else_statements.push_back(
+                new ExpressionStatement(
+                    statement->token.line,
+                    new FunctionCall(
+                        new VariableExpression(fexit),
+                        {new ConstantNumberExpression(number_from_uint32(1))}
+                    )
+                )
+            );
+            break;
+        case DoExitLoop:
+            else_statements.push_back(
+                new ExitStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, LOOP)
+                )
+            );
+            break;
+        case DoExitFor:
+            else_statements.push_back(
+                new ExitStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, FOR)
+                )
+            );
+            break;
+        case DoExitForeach:
+            else_statements.push_back(
+                new ExitStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, FOREACH)
+                )
+            );
+            break;
+        case DoExitRepeat:
+            else_statements.push_back(
+                new ExitStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, REPEAT)
+                )
+            );
+            break;
+        case DoExitWhile:
+            else_statements.push_back(
+                new ExitStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, WHILE)
+                )
+            );
+            break;
+        case DoNextLoop:
+            else_statements.push_back(
+                new NextStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, LOOP)
+                )
+            );
+            break;
+        case DoNextFor:
+            else_statements.push_back(
+                new NextStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, FOR)
+                )
+            );
+            break;
+        case DoNextForeach:
+            else_statements.push_back(
+                new NextStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, FOREACH)
+                )
+            );
+            break;
+        case DoNextRepeat:
+            else_statements.push_back(
+                new NextStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, REPEAT)
+                )
+            );
+            break;
+        case DoNextWhile:
+            else_statements.push_back(
+                new NextStatement(
+                    statement->token.line,
+                    get_loop_id(statement->token, loops, WHILE)
+                )
+            );
+            break;
+        case DoRaiseException:
+            else_statements.push_back(
+                new RaiseStatement(
+                    statement->token.line,
+                    sql_exception,
+                    new RecordLiteralExpression(dynamic_cast<const TypeRecord *>(scope.top()->lookupName("ExceptionInfo")->type), {
+                        new ConstantStringExpression("No records found")
+                    })
+                )
+            );
+            break;
+        default:
+            internal_error("unexpected whenever condition");
+    }
+    statements.push_back(
+        new IfStatement(
+            statement->token.line,
+            {std::make_pair(new VariableExpression(found), then_statements)},
+            else_statements
+        )
+    );
+}
+
+const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
+{
+    const Module *sqlite = dynamic_cast<const Module *>(scope.top()->lookupName("sqlite"));
+    if (sqlite == nullptr) {
+        Module *module = import_module(Token(), "sqlite");
+        rtl_import("sqlite", module);
+        global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module);
+        sqlite = module;
+    }
+    const PredefinedFunction *exec = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("exec"));
+    if (exec == nullptr) {
+        internal_error("where's the exec function");
+    }
+    const PredefinedFunction *execOne = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("execOne"));
+    if (execOne == nullptr) {
+        internal_error("where's the execOne function");
+    }
+    const Type *type_rows = dynamic_cast<const Type *>(sqlite->scope->lookupName("Rows"));
+    if (type_rows == nullptr) {
+        internal_error("need a Rows type");
+    }
+    std::vector<const Statement *> statements;
+    SqlCloseStatement *close = dynamic_cast<SqlCloseStatement *>(statement->info->sql.get());
+    SqlConnectStatement *connect = dynamic_cast<SqlConnectStatement *>(statement->info->sql.get());
+    SqlDeclareStatement *declare = dynamic_cast<SqlDeclareStatement *>(statement->info->sql.get());
+    SqlDisconnectStatement *disconnect = dynamic_cast<SqlDisconnectStatement *>(statement->info->sql.get());
+    SqlExecuteStatement *execute = dynamic_cast<SqlExecuteStatement *>(statement->info->sql.get());
+    SqlFetchStatement *fetch = dynamic_cast<SqlFetchStatement *>(statement->info->sql.get());
+    SqlOpenStatement *open = dynamic_cast<SqlOpenStatement *>(statement->info->sql.get());
+    SqlQueryStatement *query = dynamic_cast<SqlQueryStatement *>(statement->info->sql.get());
+    SqlWheneverStatement *whenever = dynamic_cast<SqlWheneverStatement *>(statement->info->sql.get());
+    if (close != nullptr) {
+        const PredefinedFunction *cursorClose = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorClose"));
+        statements.push_back(new ExpressionStatement(
+            statement->token.line,
+            new FunctionCall(
+                new VariableExpression(cursorClose),
+                {
+                    new ConstantStringExpression(close->name->text())
+                }
+            )
+        ));
+    } else if (connect != nullptr) {
+        const PredefinedFunction *open = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("open"));
+        const SqlValueLiteral *target_literal = dynamic_cast<const SqlValueLiteral *>(connect->target.get());
+        const SqlValueVariable *target_variable = dynamic_cast<const SqlValueVariable *>(connect->target.get());
+        const Expression *target;
+        if (target_literal != nullptr) {
+            target = new ConstantStringExpression(target_literal->value);
+        } else if (target_variable != nullptr) {
+            const Variable *var = dynamic_cast<Variable *>(scope.top()->lookupName(target_variable->variable.text));
+            if (var == nullptr) {
+                error(4302, target_variable->variable, "variable not found");
+            }
+            target = new VariableExpression(var);
+        } else {
+            internal_error("unexpected target type");
+        }
+        const SqlIdentifierSymbol *name_symbol = dynamic_cast<const SqlIdentifierSymbol *>(connect->name.get());
+        const SqlIdentifierVariable *name_variable = dynamic_cast<const SqlIdentifierVariable *>(connect->name.get());
+        if (name_symbol != nullptr) {
+            internal_error("todo");
+        } else if (name_variable != nullptr) {
+            const Variable *name = dynamic_cast<const Variable *>(scope.top()->lookupName(name_variable->variable.text));
+            if (name == nullptr) {
+                error(4304, name_variable->variable, "variable not found");
+            }
+            statements.push_back(new AssignmentStatement(
+                statement->token.line,
+                {new VariableExpression(name)},
+                new FunctionCall(
+                    new VariableExpression(open),
+                    {target}
+                )
+            ));
+        } else {
+            // TODO: handle default connection
+            const Variable *name = dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"));
+            statements.push_back(new AssignmentStatement(
+                statement->token.line,
+                {new VariableExpression(name)},
+                new FunctionCall(
+                    new VariableExpression(open),
+                    {target}
+                )
+            ));
+        }
+    } else if (declare != nullptr) {
+        const SqlDeclareQueryStatement *declare_query = dynamic_cast<const SqlDeclareQueryStatement *>(declare);
+        if (declare_query != nullptr) {
+            const PredefinedFunction *cursorDeclare = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorDeclare"));
+            statements.push_back(new AssignmentStatement(
+                statement->token.line,
+                {new DummyExpression()},
+                new FunctionCall(
+                    new VariableExpression(cursorDeclare),
+                    {
+                        new VariableExpression(dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"))),
+                        new ConstantStringExpression(declare_query->cursor->text()),
+                        new ConstantStringExpression(declare_query->query)
+                    }
+                )
+            ));
+        } else {
+            internal_error("unexpected declare type");
+        }
+    } else if (disconnect != nullptr) {
+        const PredefinedFunction *close = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("close"));
+        const SqlIdentifierSymbol *name_symbol = dynamic_cast<const SqlIdentifierSymbol *>(disconnect->name.get());
+        const SqlIdentifierVariable *name_variable = dynamic_cast<const SqlIdentifierVariable *>(disconnect->name.get());
+        if (name_symbol != nullptr) {
+            internal_error("todo");
+        } else if (name_variable != nullptr) {
+            const Variable *name = dynamic_cast<const Variable *>(scope.top()->lookupName(name_variable->variable.text));
+            statements.push_back(new ExpressionStatement(
+                statement->token.line,
+                new FunctionCall(
+                    new VariableExpression(close),
+                    {new VariableExpression(name)}
+                )
+            ));
+        } else if (disconnect->default_) {
+            internal_error("todo");
+        } else if (disconnect->all) {
+            internal_error("todo");
+        } else {
+            // TODO: handle default connection
+            const Variable *db = dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"));
+            statements.push_back(new ExpressionStatement(
+                statement->token.line,
+                new FunctionCall(
+                    new VariableExpression(close),
+                    {new VariableExpression(db)}
+                )
+            ));
+        }
+    } else if (execute != nullptr) {
+        const PredefinedFunction *execRaw = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("execRaw"));
+        const SqlValueLiteral *statement_literal = dynamic_cast<const SqlValueLiteral *>(execute->statement.get());
+        const SqlValueVariable *statement_variable = dynamic_cast<const SqlValueVariable *>(execute->statement.get());
+        const Expression *sqlstatement;
+        if (statement_literal != nullptr) {
+            sqlstatement = new ConstantStringExpression(statement_literal->value);
+        } else if (statement_variable != nullptr) {
+            const Variable *var = dynamic_cast<Variable *>(scope.top()->lookupName(statement_variable->variable.text));
+            if (var == nullptr) {
+                error(4303, statement_variable->variable, "variable not found");
+            }
+            sqlstatement = new VariableExpression(var);
+        } else {
+            internal_error("unexpected execute type");
+        }
+        statements.push_back(new AssignmentStatement(
+            statement->token.line,
+            {new DummyExpression()},
+            new FunctionCall(
+                new VariableExpression(execRaw),
+                {
+                    new VariableExpression(dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"))),
+                    sqlstatement
+                }
+            )
+        ));
+    } else if (fetch != nullptr) {
+        const PredefinedFunction *cursorFetch = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorFetch"));
+        process_into_results(
+            statement,
+            "FETCH",
+            cursorFetch,
+            {
+                new ConstantStringExpression(fetch->name->text()),
+            },
+            statements
+        );
+    } else if (open != nullptr) {
+        const PredefinedFunction *cursorOpen = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorOpen"));
+        statements.push_back(new ExpressionStatement(
+            statement->token.line,
+            new FunctionCall(
+                new VariableExpression(cursorOpen),
+                {
+                    new ConstantStringExpression(open->name->text())
+                }
+            )
+        ));
+    } else if (query != nullptr) {
+        std::vector<std::pair<std::string, const Expression *>> binding_vars;
+        for (auto p: statement->info->parameters) {
+            binding_vars.push_back(std::make_pair(p, new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName(p.substr(1))))));
+        }
+        process_into_results(
+            statement,
+            query->query,
+            execOne,
+            {
+                new VariableExpression(dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"))),
+                new ConstantStringExpression(query->query),
+                new DictionaryLiteralExpression(TYPE_STRING, binding_vars)
+            },
+            statements
+        );
+    } else if (whenever != nullptr) {
+        scope.top()->sql_whenever[whenever->condition] = whenever->action;
+    } else {
+        internal_error("unexpected statement type");
+    }
+    return new CompoundStatement(statement->token.line, statements);
+}
+
 const Statement *Analyzer::analyze(const pt::ExitStatement *statement)
 {
     if (statement->type.type == FUNCTION) {
@@ -3654,6 +4073,11 @@ public:
         }
         variables.pop_back();
     }
+    virtual void visit(const pt::ExecStatement *node) {
+        for (auto &var: node->info->assignments) {
+            mark_assigned(var);
+        }
+    }
     virtual void visit(const pt::ExitStatement *node) {
         if (node->type.type == FUNCTION) {
             check_out_parameters(node->token);
@@ -3960,6 +4384,17 @@ public:
             s->accept(this);
         }
         leave();
+    }
+    virtual void visit(const pt::ExecStatement *node) {
+        for (auto p: node->info->parameters) {
+            for (auto v = variables.rbegin(); v != variables.rend(); ++v) {
+                auto i = v->find(p.substr(1));
+                if (i != v->end()) {
+                    i->second.second = true;
+                    break;
+                }
+            }
+        }
     }
     virtual void visit(const pt::ExitStatement *) { }
     virtual void visit(const pt::ExpressionStatement *node) { node->expr->accept(this); }

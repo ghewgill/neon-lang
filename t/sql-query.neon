@@ -1,0 +1,9 @@
+FUNCTION f()
+    LET name: String := "name"
+    EXEC SQL SELECT * FROM user WHERE name = :name;
+END FUNCTION
+
+EXEC SQL CONNECT TO "tmp/tmp.db";
+EXEC SQL DROP TABLE IF EXISTS user;
+EXEC SQL CREATE TABLE user(name STRING PRIMARY KEY, password STRING);
+f()

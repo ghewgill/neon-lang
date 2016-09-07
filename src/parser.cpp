@@ -7,6 +7,7 @@
 
 #include "format.h"
 #include "pt.h"
+#include "sql.h"
 #include "util.h"
 
 using namespace pt;
@@ -68,6 +69,7 @@ public:
     std::unique_ptr<Statement> parseNextStatement();
     std::unique_ptr<Statement> parseTryStatement();
     std::unique_ptr<Statement> parseRaiseStatement();
+    std::unique_ptr<Statement> parseExecStatement();
     std::unique_ptr<Statement> parseImport();
     std::unique_ptr<Statement> parseAssert();
     std::unique_ptr<Statement> parseBegin();
@@ -1640,6 +1642,20 @@ std::unique_ptr<Statement> Parser::parseRaiseStatement()
     return std::unique_ptr<Statement> { new RaiseStatement(tok_raise, name, std::move(info)) };
 }
 
+std::unique_ptr<Statement> Parser::parseExecStatement()
+{
+    auto &tok_exec = tokens[i];
+    ++i;
+    if (tokens[i].type != STRING) {
+        internal_error("not a string");
+    }
+    auto &tok_text = tokens[i];
+    std::string text = tokens[i].text;
+    ++i;
+    std::unique_ptr<SqlStatementInfo> info = parseSqlStatement(tok_text, text);
+    return std::unique_ptr<Statement> { new ExecStatement(tok_exec, text, std::move(info)) };
+}
+
 std::unique_ptr<Statement> Parser::parseImport()
 {
     auto &tok_import = tokens[i];
@@ -1770,6 +1786,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseBegin();
     } else if (tokens[i].type == CHECK) {
         return parseCheckStatement();
+    } else if (tokens[i].type == EXEC) {
+        return parseExecStatement();
     } else if (tokens[i].type == IDENTIFIER) {
         const Token &start = tokens[i];
         if (tokens[i+1].type != ASSIGN

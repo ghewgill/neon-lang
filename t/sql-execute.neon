@@ -1,0 +1,4 @@
+EXEC SQL CONNECT TO "tmp/tmp.db";
+EXEC SQL EXECUTE IMMEDIATE "drop table if exists user";
+LET stmt: String := "create table user (name string, password string)"
+EXEC SQL EXECUTE IMMEDIATE :stmt;

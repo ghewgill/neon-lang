@@ -129,6 +129,7 @@ std::string Token::tostring() const
         case GIVES:       s << "GIVES"; break;
         case NOWHERE:     s << "NOWHERE"; break;
         case INTDIV:      s << "INTDIV"; break;
+        case EXEC:        s << "EXEC"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -335,6 +336,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "GIVES") t.type = GIVES;
             else if (t.text == "NOWHERE") t.type = NOWHERE;
             else if (t.text == "INTDIV") t.type = INTDIV;
+            else if (t.text == "EXEC") t.type = EXEC;
             else if (all_upper(t.text)) {
                 t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {
@@ -662,6 +664,28 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             }
         } else {
             error(1007, t, "Unexpected character");
+        }
+        if (t.type == EXEC) {
+            tokens.push_back(t);
+            t.type = STRING;
+            t.column = column + (i - startindex);
+            t.text = "";
+            while (i != source.end() && *i != ';') {
+                uint32_t c = utf8::peek_next(i, source.end());
+                utf8::advance(i, 1, source.end());
+                utf8::append(c, std::back_inserter(t.text));
+                if (c == '\n' && i != source.end()) {
+                    line++;
+                    column = 0;
+                    linestart = i+1;
+                    lineend = std::find(i+1, source.end(), '\n');
+                    startindex = i;
+                }
+            }
+            if (i == source.end()) {
+                error(4101, tokens.back(), "EXEC statement missing ';' terminator");
+            }
+            utf8::advance(i, 1, source.end());
         }
         if (t.type != NONE) {
             tokens.push_back(t);

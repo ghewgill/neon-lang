@@ -70,7 +70,7 @@ use_curses = not env["MINIMAL"]
 use_pcre = not env["MINIMAL"]
 use_curl = not env["MINIMAL"]
 use_easysid = not env["MINIMAL"]
-use_sqlite = not env["MINIMAL"]
+use_sqlite = not env["MINIMAL"] or True # Need this for embedded sql
 use_bz2 = not env["MINIMAL"]
 use_lzma = not env["MINIMAL"]
 use_sdl = not env["MINIMAL"]
@@ -301,6 +301,7 @@ neon = env.Program("bin/neon", [
     "src/rtl_exec.cpp",
     rtl_cpp,
     rtl_platform,
+    "src/sql.cpp",
     "src/support.cpp",
     "src/support_compiler.cpp",
     "src/util.cpp",
@@ -323,6 +324,7 @@ neonc = env.Program("bin/neonc", [
     "src/pt_dump.cpp",
     "src/rtl_compile.cpp",
     rtl_const,
+    "src/sql.cpp",
     "src/support.cpp",
     "src/support_compiler.cpp",
     "src/util.cpp",
@@ -416,6 +418,7 @@ test_parser = env.Program("bin/test_parser", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/pt_dump.cpp",
+    "src/sql.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -448,6 +451,7 @@ env.Program("bin/fuzz_parser", [
     "src/parser.cpp",
     "src/rtl_compile.cpp",
     rtl_const,
+    "src/sql.cpp",
     "src/util.cpp",
 ] + coverage_lib,
 )
@@ -478,6 +482,8 @@ for f in Glob("t/*.neon"):
     if not (use_bz2 and use_lzma) and f.name in ["compress-test.neon"]:
         continue
     if not use_sodium and f.name in ["sodium-test.neon"]:
+        continue
+    if not use_sqlite and f.name.startswith("sql-"):
         continue
     test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))

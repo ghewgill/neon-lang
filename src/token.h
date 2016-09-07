@@ -108,6 +108,7 @@ enum TokenType {
     GIVES,
     NOWHERE,
     INTDIV,
+    EXEC,
     UNKNOWN,
     MAX_TOKEN
 };

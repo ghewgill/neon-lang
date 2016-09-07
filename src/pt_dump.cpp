@@ -345,6 +345,9 @@ public:
             child(x.get());
         }
     }
+    virtual void visit(const ExecStatement *node) override {
+        write("ExecStatement(" + node->text + ")");
+    }
     virtual void visit(const ExitStatement *node) override {
         write("ExitStatement(" + node->type.text + ")");
     }

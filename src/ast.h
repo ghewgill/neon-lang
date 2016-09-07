@@ -12,6 +12,7 @@
 
 #include "bytecode.h"
 #include "number.h"
+#include "sql.h"
 #include "token.h"
 #include "util.h"
 
@@ -231,7 +232,11 @@ public:
 
 class Scope {
 public:
-    Scope(Scope *parent, Frame *frame): parent(parent), frame(frame), names(), forwards() {}
+    Scope(Scope *parent, Frame *frame): parent(parent), frame(frame), names(), forwards() {
+        for (int x = 0; x < SqlWheneverConditionCount; x++) {
+            sql_whenever[x] = parent != nullptr ? parent->sql_whenever[x] : Continue;
+        }
+    }
     virtual ~Scope() {}
 
     bool allocateName(const Token &token, const std::string &name);
@@ -244,6 +249,7 @@ public:
 
     Scope *const parent;
     Frame *const frame;
+    SqlWheneverAction sql_whenever[SqlWheneverConditionCount];
 private:
     std::map<std::string, int> names;
     std::map<std::string, std::vector<TypePointer *>> forwards;
@@ -1898,10 +1904,14 @@ public:
 class CompoundStatement: public Statement {
 public:
     CompoundStatement(int line, const std::vector<const Statement *> &statements): Statement(line), statements(statements) {}
+    virtual void accept(IAstVisitor *visitor) const override { for (auto s: statements) s->accept(visitor); }
 
     const std::vector<const Statement *> statements;
 
+    virtual void generate_code(Emitter &emitter) const override { for (auto s: statements) s->generate_code(emitter); }
+
     virtual void dumpsubnodes(std::ostream &out, int depth) const override;
+    virtual std::string text() const override { return "CompoundStatement"; }
 };
 
 class NullStatement: public Statement {

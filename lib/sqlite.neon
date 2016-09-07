@@ -8,12 +8,21 @@ EXPORT Database
 EXPORT Row
 EXPORT Rows
 
+EXPORT db
 EXPORT open
 EXPORT exec
+EXPORT execOne
 EXPORT execRaw
 EXPORT close
 
+EXPORT cursorDeclare
+EXPORT cursorOpen
+EXPORT cursorFetch
+EXPORT cursorClose
+
 DECLARE EXCEPTION ParameterNameException
+
+VAR db: Database
 
 %|
  |  Type: Database
@@ -50,6 +59,8 @@ DECLARE NATIVE FUNCTION open(name: String): Database
  |%
 DECLARE NATIVE FUNCTION exec(db: Database, sql: String, parameters: Dictionary<String>): Rows
 
+DECLARE NATIVE FUNCTION execOne(db: Database, sql: String, parameters: Dictionary<String>, OUT result: Row): Boolean
+
 %|
  |  Function: execRaw
  |
@@ -63,3 +74,8 @@ DECLARE NATIVE FUNCTION execRaw(db: Database, sql: String): Rows
  |  Close a database.
  |%
 DECLARE NATIVE FUNCTION close(db: Database)
+
+DECLARE NATIVE FUNCTION cursorDeclare(db: Database, name: String, query: String): String
+DECLARE NATIVE FUNCTION cursorOpen(cursor: String)
+DECLARE NATIVE FUNCTION cursorFetch(cursor: String, OUT result: Row): Boolean
+DECLARE NATIVE FUNCTION cursorClose(cursor: String)

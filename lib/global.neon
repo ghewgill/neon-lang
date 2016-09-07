@@ -122,6 +122,13 @@ DECLARE EXCEPTION FunctionNotFoundException
 DECLARE EXCEPTION LibraryNotFoundException
 
 %|
+ |  Exception: SqlException
+ |
+ |  SQL exception.
+ |%
+DECLARE EXCEPTION SqlException
+
+%|
  |  Exception: StackOverflowException
  |
  |  Call stack exceeded limit.

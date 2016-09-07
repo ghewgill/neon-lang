@@ -36,6 +36,7 @@ Statement =
     AssignmentStatement |
     CaseStatement |
     CheckStatement |
+    ExecStatement |
     ExitStatement |
     ExpressionStatement |
     ForStatement |
@@ -101,6 +102,8 @@ AssignmentStatement = (CompoundExpression | '_'), ':=', Expression;
 CaseStatement = 'CASE', Expression, {'WHEN', WhenCondition, {',', WhenCondition}, 'DO', {Statement}}, ['WHEN', 'OTHERS', 'DO', {Statement}], 'END', 'CASE';
 
 CheckStatement = 'CHECK', Expression, 'ELSE', {Statement}, 'END', 'CHECK';
+
+ExecStatement = 'EXEC', ExecBody;
 
 WhenCondition = (('=' | '#' | '<' | '>' | '<=' | '>='), Expression) | (Expression, ['TO', Expression]);
 

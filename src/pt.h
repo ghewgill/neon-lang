@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "number.h"
+#include "sql.h"
 #include "token.h"
 
 namespace pt {
@@ -75,6 +76,7 @@ class AssertStatement;
 class AssignmentStatement;
 class CaseStatement;
 class CheckStatement;
+class ExecStatement;
 class ExitStatement;
 class ExpressionStatement;
 class ForStatement;
@@ -160,6 +162,7 @@ public:
     virtual void visit(const AssignmentStatement *) = 0;
     virtual void visit(const CaseStatement *) = 0;
     virtual void visit(const CheckStatement *) = 0;
+    virtual void visit(const ExecStatement *) = 0;
     virtual void visit(const ExitStatement *) = 0;
     virtual void visit(const ExpressionStatement *) = 0;
     virtual void visit(const ForStatement *) = 0;
@@ -754,6 +757,14 @@ public:
     CheckStatement(const Token &token, std::unique_ptr<Expression> &&cond, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), cond(std::move(cond)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> cond;
+};
+
+class ExecStatement: public Statement {
+public:
+    ExecStatement(const Token &token, const std::string &text, std::unique_ptr<SqlStatementInfo> &&info): Statement(token), text(text), info(std::move(info)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const std::string text;
+    std::unique_ptr<SqlStatementInfo> info;
 };
 
 class ExitStatement: public Statement {

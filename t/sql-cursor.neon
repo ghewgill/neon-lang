@@ -1,0 +1,17 @@
+EXEC SQL CONNECT TO "tmp/tmp.db";
+EXEC SQL DROP TABLE IF EXISTS user;
+EXEC SQL CREATE TABLE user(name STRING PRIMARY KEY, password STRING);
+EXEC SQL INSERT INTO user (name, password) VALUES ('foo', 'bar');
+EXEC SQL INSERT INTO user (name, password) VALUES ('baz', 'quux');
+EXEC SQL WHENEVER NOT FOUND DO EXIT LOOP;
+EXEC SQL DECLARE foo CURSOR FOR SELECT name, password FROM user ORDER BY name DESC;
+EXEC SQL OPEN foo;
+LOOP
+    VAR name, password: String
+    EXEC SQL FETCH NEXT FROM foo INTO :name, :password;
+    print("\(name) \(password)")
+END LOOP
+EXEC SQL CLOSE foo;
+
+%= foo bar
+%= baz quux

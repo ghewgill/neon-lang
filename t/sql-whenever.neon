@@ -1,0 +1,11 @@
+EXEC SQL CONNECT TO "tmp/tmp.db";
+EXEC SQL DROP TABLE IF EXISTS user;
+EXEC SQL CREATE TABLE user(name STRING PRIMARY KEY, password STRING);
+EXEC SQL WHENEVER NOT FOUND DO RAISE SqlException;
+TRY
+    EXEC SQL SELECT * FROM user WHERE name = 'none';
+EXCEPTION SqlException DO
+    print("caught")
+END TRY
+
+%= caught

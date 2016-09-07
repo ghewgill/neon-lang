@@ -2465,6 +2465,12 @@ ExcludeTests = [
     "t/sdl-test.neon",          # Module not required
     "t/shebang.neon",           # Feature not required
     "t/sodium-test.neon",       # Module not required
+    "t/sql-connect.neon",       # Feature not required
+    "t/sql-cursor.neon",        # Feature not required
+    "t/sql-embed.neon",         # Feature not required
+    "t/sql-execute.neon",       # Feature not required
+    "t/sql-query.neon",         # Feature not required
+    "t/sql-whenever.neon",      # Feature not required
     "t/sqlite-test.neon",       # Module not required
     "t/string-multiline.neon",  # Feature not required
     "t/sudoku-test.neon",       # Sample not required
