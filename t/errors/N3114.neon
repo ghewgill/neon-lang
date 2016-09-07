@@ -1,4 +1,4 @@
-IMPORT math
-       %<2
-IMPORT math
-       %<1
+IMPORT math.abs
+            %<2
+IMPORT math.abs
+            %<1

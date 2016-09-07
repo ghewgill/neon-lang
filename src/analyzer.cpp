@@ -2033,6 +2033,11 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor)
 
 const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
+    if (declaration->alias.type == NONE && declaration->name.type == NONE) {
+        if (scope.top()->lookupName(declaration->module.text) != nullptr && modules.find(declaration->module.text) != modules.end()) {
+            return new NullStatement(declaration->token.line);
+        }
+    }
     const Token &localname = declaration->alias.type != NONE ? declaration->alias : declaration->name.type != NONE ? declaration->name : declaration->module;
     if (not scope.top()->allocateName(localname, localname.text)) {
         error2(3114, localname, "duplicate definition of name", scope.top()->getDeclaration(localname.text), "first declaration here");
