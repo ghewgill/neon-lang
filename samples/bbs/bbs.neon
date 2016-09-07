@@ -1,0 +1,234 @@
+IMPORT net
+IMPORT sodium
+IMPORT string
+
+CONSTANT BBS_PORT: Number := 20180
+
+EXEC SQL CONNECT TO "tmp/bbs.db";
+EXEC SQL CREATE TABLE IF NOT EXISTS user(name STRING PRIMARY KEY, pwhash STRING);
+EXEC SQL CREATE TABLE IF NOT EXISTS wall(date DATETIME DEFAULT CURRENT_TIMESTAMP, who STRING, body STRING);
+
+TYPE User IS RECORD
+    name: String
+    pwhash: String
+END RECORD
+
+TYPE Client IS RECORD
+    socket: net.Socket
+    buf: Bytes
+    handler: FUNCTION(INOUT self: Client, s: String) % ResponseHandler
+    user: User
+    chatting: Boolean
+END RECORD
+
+TYPE ResponseHandler IS FUNCTION(INOUT self: Client, s: String)
+
+VAR clients: Array<Client> := []
+
+FUNCTION Client.close(INOUT self: Client)
+    self.socket.close()
+END FUNCTION
+
+FUNCTION Client.handleInput(INOUT self: Client, buf: Bytes)
+    self.buf := self.buf & buf
+    LET a: Array<Number> := self.buf.toArray()
+    FOREACH b IN a INDEX i DO
+        IF b = 10 THEN
+            LET r: String := a[FIRST TO i-1].toBytes().decodeToString()
+            self.buf := a[i+1 TO LAST].toBytes()
+            LET h: ResponseHandler := self.handler
+            self.handler := NOWHERE
+            h(INOUT self, r)
+            EXIT FOREACH
+        END IF
+    END FOREACH
+END FUNCTION
+
+FUNCTION Client.send(self: Client, s: String)
+    LET t: String := s & "\n"
+    self.socket.send(t.toBytes())
+END FUNCTION
+
+FUNCTION Client.prompt(INOUT self: Client, prompt: String, handler: ResponseHandler)
+    self.socket.send(prompt.toBytes())
+    self.handler := handler
+END FUNCTION
+
+FUNCTION Client.welcome(INOUT self: Client)
+    self.send("Welcome to NeonBBS.")
+    self.send("")
+    self.prompt("What is your name? ", handleLoginName)
+END FUNCTION
+
+FUNCTION handleLoginName(INOUT self: Client, s: String)
+    self.send("")
+    self.send("Hi, \(s).")
+    EXEC SQL WHENEVER NOT FOUND DO RAISE SqlException;
+    TRY
+        VAR name, pwhash: String
+        EXEC SQL SELECT name, pwhash INTO :name, :pwhash FROM user WHERE name = :s;
+        self.user.name := name
+        self.user.pwhash := pwhash
+        self.prompt("What is your password? ", handleLoginPassword)
+    EXCEPTION SqlException DO
+        self.send("You must be new here.")
+        self.prompt("Choose a password: ", handleLoginNewPassword1)
+    END TRY
+END FUNCTION
+
+FUNCTION handleLoginNewPassword1(INOUT self: Client, s: String)
+    self.user.pwhash := s
+    self.prompt("Enter your password again to confirm: ", handleLoginNewPassword2)
+END FUNCTION
+
+FUNCTION handleLoginNewPassword2(INOUT self: Client, s: String)
+    IF s = self.user.pwhash THEN
+        self.user.pwhash := sodium.pwhash_scryptsalsa208sha256_str(s, 1000000, 10000000)
+        LET name: String := self.user.name
+        LET pwhash: String := self.user.pwhash
+        EXEC SQL INSERT INTO user (name, pwhash) VALUES (:name, :pwhash);
+        self.showMainMenu()
+    ELSE
+        self.send("Your passwords did not match.")
+        self.prompt("Choose a password: ", handleLoginNewPassword1)
+    END IF
+END FUNCTION
+
+FUNCTION handleLoginPassword(INOUT self: Client, s: String)
+    IF sodium.pwhash_scryptsalsa208sha256_str_verify(self.user.pwhash, s) THEN
+        self.showMainMenu()
+    ELSE
+        self.send("Wrong password.")
+        self.send("")
+        self.welcome()
+    END IF
+END FUNCTION
+
+FUNCTION Client.showMainMenu(INOUT self: Client)
+    self.send("")
+    self.send("Main menu:")
+    self.send("")
+    self.send("[C]hat")
+    self.send("[L]ogoff")
+    self.send("[O]nline users")
+    self.send("[R]ead the wall")
+    self.send("[W]rite on the wall")
+    self.send("")
+    self.prompt("Your choice: ", handleMainMenu)
+END FUNCTION
+
+FUNCTION handleMainMenu(INOUT self: Client, s: String)
+    CASE string.upper(s)
+        WHEN "C" DO
+            self.doChat()
+        WHEN "L" DO
+            self.send("Bye!")
+        WHEN "O" DO
+            self.doOnlineUsers()
+        WHEN "R" DO
+            self.doReadWall()
+        WHEN "W" DO
+            self.doWriteWall()
+        WHEN OTHERS DO
+            self.send("huh?")
+            self.showMainMenu()
+    END CASE
+END FUNCTION
+
+FUNCTION Client.doChat(INOUT self: Client)
+    self.chatting := TRUE
+    FOREACH c IN clients DO
+        IF c.chatting AND self.user.name # c.user.name THEN
+            c.send("\r\u001b[J\(self.user.name) joined chat")
+        END IF
+    END FOREACH
+    self.prompt("<\(self.user.name)> ", handleChat)
+END FUNCTION
+
+FUNCTION handleChat(INOUT self: Client, s: String)
+    IF string.upper(s) IN ["/Q", "/QUIT"] THEN
+        FOREACH c IN clients DO
+            IF c.chatting AND self.user.name # c.user.name THEN
+                c.send("\r\u001b[J\(self.user.name) left chat")
+            END IF
+        END FOREACH
+        self.showMainMenu()
+        EXIT FUNCTION
+    END IF
+    FOREACH c IN clients DO
+        IF c.chatting AND self.user.name # c.user.name THEN
+            c.send("\r\u001b[J<\(self.user.name)> \(s)")
+        END IF
+    END FOREACH
+    self.prompt("<\(self.user.name)> ", handleChat)
+END FUNCTION
+
+FUNCTION Client.doOnlineUsers(INOUT self: Client)
+    self.send("")
+    FOREACH c IN clients DO
+        self.send(c.user.name)
+    END FOREACH
+    self.showMainMenu()
+END FUNCTION
+
+FUNCTION Client.doReadWall(INOUT self: Client)
+    self.send("")
+    EXEC SQL DECLARE entries CURSOR FOR SELECT date, who, body FROM wall ORDER BY date DESC LIMIT 10;
+    EXEC SQL WHENEVER NOT FOUND DO EXIT LOOP;
+    EXEC SQL OPEN entries;
+    LOOP
+        VAR date, who, body: String
+        EXEC SQL FETCH NEXT FROM entries INTO :date, :who, :body;
+        self.send("\(date) <\(who)> \(body)")
+    END LOOP
+    self.showMainMenu()
+END FUNCTION
+
+FUNCTION Client.doWriteWall(INOUT self: Client)
+    self.send("")
+    self.prompt("Write what? ", handleWall)
+END FUNCTION
+
+FUNCTION handleWall(INOUT self: Client, s: String)
+    LET who: String := self.user.name
+    EXEC SQL INSERT INTO wall (who, body) VALUES (:who, :s);
+    self.showMainMenu()
+END FUNCTION
+
+FUNCTION newClient(s: net.Socket): Client
+    VAR c: Client := Client(socket WITH s)
+    c.welcome()
+    RETURN c
+END FUNCTION
+
+LET server: net.Socket := net.tcpSocket()
+server.listen(BBS_PORT)
+LOOP
+    VAR read: Array<net.Socket> := [server]
+    FOREACH c IN clients DO
+        read.append(c.socket)
+    END FOREACH
+    VAR write: Array<net.Socket> := []
+    VAR error: Array<net.Socket> := []
+    IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
+        IF server IN read THEN
+            LET s: net.Socket := server.accept()
+            clients.append(newClient(s))
+        END IF
+        FOR i := clients.size()-1 TO 0 STEP -1 DO
+            IF clients[i].socket IN read THEN
+                LET buf: Bytes := clients[i].socket.recv(1000)
+                IF buf.size() > 0 THEN
+                    clients[i].handleInput(buf)
+                    IF clients[i].handler = NOWHERE THEN
+                        clients[i].close()
+                        clients[i TO i] := []
+                    END IF
+                ELSE
+                    clients[i].close()
+                    clients[i TO i] := [] % TODO: need an array remove method
+                END IF
+            END IF
+        END FOR
+    END IF
+END LOOP

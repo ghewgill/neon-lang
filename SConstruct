@@ -511,7 +511,7 @@ for path, dirs, files in os.walk("."):
                     continue
                 if not use_sdl and f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
                     continue
-                if not use_sodium and f in ["sodium.neon"]:
+                if not use_sodium and f in ["bbs.neon", "sodium.neon"]:
                     continue
                 samples.append(os.path.join(path, f))
 for sample in samples:

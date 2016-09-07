@@ -3,6 +3,7 @@ Title: Neon Samples
 Neon samples.
 
 - <99-bottles>      - Print the lyrics to the "99 Bottles of Beer" song
+- <bbs>             - Simple multiuser BBS
 - <cal>             - Print monthly and yearly calendars
 - <fizzbuzz>        - Implementation of the FizzBuzz problem
 - <flappy>          - Implementation of a "Flappy Bird" clone (SDL)
