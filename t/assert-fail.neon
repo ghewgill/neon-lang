@@ -11,4 +11,4 @@ ASSERT (n - 2*(n+1)) = 0 % failing assert
 %=   (n - 2*(n+1)) = 0 is FALSE
 
 
-%! AssertFailed
+%! AssertFailedException

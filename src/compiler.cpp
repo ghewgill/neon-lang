@@ -1447,7 +1447,7 @@ void AssertStatement::generate_code(Emitter &emitter) const
     }
     emitter.emit(PUSHS, emitter.str(source));
     emitter.emit(CONSA, 1);
-    emitter.emit(EXCEPT, emitter.str("AssertFailed"));
+    emitter.emit(EXCEPT, emitter.str("AssertFailedException"));
     emitter.jump_target(skip_label);
 }
 

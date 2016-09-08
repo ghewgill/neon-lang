@@ -9,4 +9,4 @@ ASSERT n = 0, z % failing assert
 %=   n = 0 is FALSE
 %=   z is -2
 
-%! AssertFailed
+%! AssertFailedException
