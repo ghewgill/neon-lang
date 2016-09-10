@@ -1,0 +1,15 @@
+% SKIP
+
+TYPE Rec IS RECORD
+    n: Number
+END RECORD
+
+FUNCTION Rec.f(INOUT self: Rec, x: Number)
+    self.n := x
+END FUNCTION
+
+FUNCTION foo(): Rec
+    RETURN Rec(n WITH 1)
+END FUNCTION
+
+foo().f(5)
