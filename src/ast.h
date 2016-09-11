@@ -2253,11 +2253,10 @@ private:
 
 class PredefinedFunction: public Variable {
 public:
-    PredefinedFunction(const std::string &name, const Type *type): Variable(Token(), name, type, true), name_index(-1) {}
+    PredefinedFunction(const std::string &name, const Type *type): Variable(Token(), name, type, true) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
-    mutable int name_index;
 
-    virtual void reset() override { name_index = -1; }
+    virtual void reset() override {}
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_load(Emitter &) const override { internal_error("PredefinedFunction"); }

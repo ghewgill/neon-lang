@@ -34,7 +34,7 @@ class Emitter {
         Label *next;
     };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug) {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -79,6 +79,8 @@ private:
     std::map<size_t, LoopLabels> loop_labels;
     std::set<const Type *> exported_types;
     DebugInfo *debug_info;
+public:
+    std::map<const PredefinedFunction *, int> predefined_name_index;
 private:
     Emitter(const Emitter &);
     Emitter &operator=(const Emitter &);
@@ -836,19 +838,21 @@ void Function::generate_export(Emitter &emitter, const std::string &name) const
 
 void PredefinedFunction::predeclare(Emitter &emitter) const
 {
-    name_index = emitter.str(name);
+    emitter.predefined_name_index[this] = emitter.str(name);
 }
 
 void PredefinedFunction::generate_call(Emitter &emitter) const
 {
-    if (name_index == -1) {
+    auto i = emitter.predefined_name_index.find(this);
+    if (i == emitter.predefined_name_index.end()) {
         //internal_error("predefined function not generated: "+name);
         // If we get here, that means predeclare() wasn't called for this
         // because the traversal never got here. But at this point it's
         // safe to call predeclare() ourselves and sort it out.
         predeclare(emitter);
+        i = emitter.predefined_name_index.find(this);
     }
-    emitter.emit(CALLP, name_index);
+    emitter.emit(CALLP, i->second);
 }
 
 void ModuleFunction::predeclare(Emitter &emitter) const
