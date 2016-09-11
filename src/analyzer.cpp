@@ -2979,7 +2979,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     if (sys == nullptr) {
         Module *module = import_module(Token(), "sys");
         rtl_import("sys", module);
-        global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module);
+        global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module, true);
         sys = module;
     }
     const PredefinedFunction *fexit = dynamic_cast<const PredefinedFunction *>(sys->scope->lookupName("exit"));
@@ -3165,7 +3165,7 @@ const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     if (sqlite == nullptr) {
         Module *module = import_module(Token(), "sqlite");
         rtl_import("sqlite", module);
-        global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module);
+        global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module, true);
         sqlite = module;
     }
     const PredefinedFunction *exec = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("exec"));
