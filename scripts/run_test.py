@@ -42,6 +42,7 @@ def run(fn):
     expected_stdout = ""
     regex_stdout = None
     expected_stderr = ""
+    regex_stderr = None
     expected_error_pos = {}
 
     if errors:
@@ -62,8 +63,11 @@ def run(fn):
         else:
             expected_stdout = "".join([x[1] + "\n" for x in out_comments])
 
-        err_comments = re.findall("^%!\s*(.*)$", src, re.MULTILINE)
-        expected_stderr = "".join([x + "\n" for x in err_comments]).strip()
+        err_comments = re.findall("^(%[!~])\s(.*)$", src, re.MULTILINE)
+        if any(x[0] == "%~" for x in err_comments):
+            regex_stderr = "".join([(re.escape(x[1]) if x[0] == "%!" else x[1]) + "\n" for x in err_comments])
+        else:
+            expected_stderr = "".join([x[1] + "\n" for x in err_comments])
 
     p = subprocess.Popen(runner + [fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
@@ -77,15 +81,27 @@ def run(fn):
     except UnicodeDecodeError:
         err = repr(err)
 
-    if not expected_stderr:
+    if not expected_stderr and not regex_stderr:
         sys.stderr.write(err)
         if p.returncode != 0:
             if todo:
                 return False
             assert p.returncode == 0, p.returncode
 
-    if expected_stderr:
-        if expected_stderr not in err:
+    if regex_stderr:
+        if not re.match(regex_stderr, err):
+            print("*** EXPECTED OUTPUT (regex)")
+            print("")
+            sys.stdout.write(regex_stderr)
+            print("")
+            print("*** ACTUAL OUTPUT")
+            print("")
+            sys.stdout.write(err)
+            if todo:
+                return False
+            sys.exit(1)
+    elif expected_stderr:
+        if expected_stderr.strip() not in err:
             print("*** EXPECTED ERROR")
             print("")
             sys.stdout.write(expected_stderr)

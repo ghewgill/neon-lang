@@ -2591,13 +2591,31 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     for (auto x = statement->exprs.begin()+1; x != statement->exprs.end(); ++x) {
         parts.push_back(x->get());
     }
+    const Module *io = dynamic_cast<const Module *>(scope.top()->lookupName("io"));
+    if (io == nullptr) {
+        Module *module = import_module(Token(), "io");
+        rtl_import("io", module);
+        global_scope->addName(Token(IDENTIFIER, "io"), "io", module, true);
+        io = module;
+    }
     std::vector<const Statement *> statements;
-    Expression *print = new VariableExpression(
-        new PredefinedFunction(
-            "print",
-            new TypeFunction(
-                TYPE_NOTHING,
-                {new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr)}
+    const Variable *io_stderr = dynamic_cast<const Variable *>(io->scope->lookupName("stderr"));
+    if (io_stderr == nullptr) {
+        internal_error("need io.stderr");
+    }
+    const PredefinedFunction *fprint = dynamic_cast<const PredefinedFunction *>(io->scope->lookupName("fprint"));
+    if (fprint == nullptr) {
+        internal_error("need io.fprint");
+    }
+    statements.push_back(
+        new ExpressionStatement(
+            statement->token.line,
+            new FunctionCall(
+                new VariableExpression(fprint),
+                {
+                    new VariableExpression(io_stderr),
+                    new ConstantStringExpression("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):")
+                }
             )
         )
     );
@@ -2605,8 +2623,11 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         new ExpressionStatement(
             statement->token.line,
             new FunctionCall(
-                print,
-                {new ConstantStringExpression("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):")}
+                new VariableExpression(fprint),
+                {
+                    new VariableExpression(io_stderr),
+                    new ConstantStringExpression(statement->token.source_line())
+                }
             )
         )
     );
@@ -2614,17 +2635,11 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         new ExpressionStatement(
             statement->token.line,
             new FunctionCall(
-                print,
-                {new ConstantStringExpression(statement->token.source_line())}
-            )
-        )
-    );
-    statements.push_back(
-        new ExpressionStatement(
-            statement->token.line,
-            new FunctionCall(
-                print,
-                {new ConstantStringExpression("Assert expression dump:")}
+                new VariableExpression(fprint),
+                {
+                    new VariableExpression(io_stderr),
+                    new ConstantStringExpression("Assert expression dump:")
+                }
             )
         )
     );
@@ -2648,8 +2663,11 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
                 new ExpressionStatement(
                     statement->token.line,
                     new FunctionCall(
-                        print,
-                        {analyze(ie.get())}
+                        new VariableExpression(fprint),
+                        {
+                            new VariableExpression(io_stderr),
+                            analyze(ie.get())
+                        }
                     )
                 )
             );
