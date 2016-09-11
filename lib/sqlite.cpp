@@ -25,6 +25,7 @@ void *open(const std::string &name)
     sqlite3 *db;
     int r = sqlite3_open(name.c_str(), &db);
     if (r != SQLITE_OK) {
+        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(db), r);
     }
     return db;
 }
@@ -35,7 +36,7 @@ Cell exec(void *db, const std::string &sql, const std::map<utf8string, utf8strin
     sqlite3_stmt *stmt;
     int r = sqlite3_prepare_v2(static_cast<sqlite3 *>(db), sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        fprintf(stderr, "sqlite3_prepare error %d ext=%d\n", r, sqlite3_extended_errcode(static_cast<sqlite3 *>(db)));
+        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
@@ -44,7 +45,7 @@ Cell exec(void *db, const std::string &sql, const std::map<utf8string, utf8strin
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            fprintf(stderr, "sqlite3_bind_text error\n");
+            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -60,8 +61,7 @@ Cell exec(void *db, const std::string &sql, const std::map<utf8string, utf8strin
             }
             rows.push_back(Cell(row));
         } else {
-            fprintf(stderr, "sqlite3_step error\n");
-            break;
+            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
         }
     }
     sqlite3_finalize(stmt);
@@ -73,7 +73,7 @@ bool execOne(void *db, const std::string &sql, const std::map<utf8string, utf8st
     sqlite3_stmt *stmt;
     int r = sqlite3_prepare_v2(static_cast<sqlite3 *>(db), sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        fprintf(stderr, "sqlite3_prepare error %d ext=%d\n", r, sqlite3_extended_errcode(static_cast<sqlite3 *>(db)));
+        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
@@ -82,7 +82,7 @@ bool execOne(void *db, const std::string &sql, const std::map<utf8string, utf8st
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            fprintf(stderr, "sqlite3_bind_text error\n");
+            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -96,8 +96,7 @@ bool execOne(void *db, const std::string &sql, const std::map<utf8string, utf8st
             result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
         }
     } else {
-        //fprintf(stderr, "sqlite3_step error: %s\n", sql.c_str());
-        return false;
+        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
     }
     sqlite3_finalize(stmt);
     return true;
@@ -109,7 +108,7 @@ Cell execRaw(void *db, const std::string &sql)
     char *errmsg;
     int r = sqlite3_exec(static_cast<sqlite3 *>(db), sql.c_str(), callback, &rows, &errmsg);
     if (r != SQLITE_OK) {
-        fprintf(stderr, "sqlite3_exec error: %s\n", errmsg);
+        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
     }
     return Cell(rows);
 }
@@ -127,7 +126,7 @@ public:
     {
         int r = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
         if (r != SQLITE_OK) {
-            fprintf(stderr, "sqlite3_prepare error %d ext=%d\n", r, sqlite3_extended_errcode(db));
+            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
         }
         columns = sqlite3_column_count(stmt);
     }
@@ -143,8 +142,7 @@ public:
                 result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
             }
         } else {
-            //fprintf(stderr, "sqlite3_step error: %s\n", sql.c_str());
-            return false;
+            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
         }
         return true;
     }
