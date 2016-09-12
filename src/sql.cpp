@@ -649,7 +649,8 @@ public:
                 extractParameters(query);
                 return std::unique_ptr<SqlStatement> { new SqlQueryStatement(query) };
             default:
-                error(4228, lexer.get_this_token(), "SQL statement expected");
+                lexer.rest();
+                return std::unique_ptr<SqlStatement> { new SqlQueryStatement(query) };
         }
     }
 private:
