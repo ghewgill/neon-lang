@@ -2,72 +2,72 @@ IMPORT multiarray
 
 VAR b2: multiarray.ArrayBoolean2D := multiarray.makeBoolean2D(4, 5)
 ASSERT b2.size() = 4
-FOREACH row IN b2 DO
+FOR row IN b2 DO
     ASSERT row.size() = 5
-    FOREACH cell IN row DO
+    FOR cell IN row DO
         ASSERT cell = FALSE
-    END FOREACH
-END FOREACH
+    END FOR
+END FOR
 
 VAR b3: multiarray.ArrayBoolean3D := multiarray.makeBoolean3D(4, 5, 6)
 ASSERT b3.size() = 4
-FOREACH row IN b3 DO
+FOR row IN b3 DO
     ASSERT row.size() = 5
-    FOREACH core IN row DO
+    FOR core IN row DO
         ASSERT core.size() = 6
-        FOREACH cell IN core DO
+        FOR cell IN core DO
             ASSERT cell = FALSE
-        END FOREACH
-    END FOREACH
-END FOREACH
+        END FOR
+    END FOR
+END FOR
 
 VAR n2: multiarray.ArrayNumber2D := multiarray.makeNumber2D(4, 5)
 ASSERT n2.size() = 4
-FOREACH row IN n2 DO
+FOR row IN n2 DO
     ASSERT row.size() = 5
-    FOREACH cell IN row DO
+    FOR cell IN row DO
         ASSERT cell = 0
-    END FOREACH
-END FOREACH
+    END FOR
+END FOR
 
 VAR n2v: multiarray.ArrayNumber2D := multiarray.makeNumber2DValue(4, 5, -1)
 ASSERT n2v.size() = 4
-FOREACH row IN n2v DO
+FOR row IN n2v DO
     ASSERT row.size() = 5
-    FOREACH cell IN row DO
+    FOR cell IN row DO
         ASSERT cell = -1
-    END FOREACH
-END FOREACH
+    END FOR
+END FOR
 
 VAR n3: multiarray.ArrayNumber3D := multiarray.makeNumber3D(4, 5, 6)
 ASSERT n3.size() = 4
-FOREACH row IN n3 DO
+FOR row IN n3 DO
     ASSERT row.size() = 5
-    FOREACH core IN row DO
+    FOR core IN row DO
         ASSERT core.size() = 6
-        FOREACH cell IN core DO
+        FOR cell IN core DO
             ASSERT cell = 0
-        END FOREACH
-    END FOREACH
-END FOREACH
+        END FOR
+    END FOR
+END FOR
 
 VAR s2: multiarray.ArrayString2D := multiarray.makeString2D(4, 5)
 ASSERT s2.size() = 4
-FOREACH row IN s2 DO
+FOR row IN s2 DO
     ASSERT row.size() = 5
-    FOREACH cell IN row DO
+    FOR cell IN row DO
         ASSERT cell = ""
-    END FOREACH
-END FOREACH
+    END FOR
+END FOR
 
 VAR s3: multiarray.ArrayString3D := multiarray.makeString3D(4, 5, 6)
 ASSERT s3.size() = 4
-FOREACH row IN s3 DO
+FOR row IN s3 DO
     ASSERT row.size() = 5
-    FOREACH core IN row DO
+    FOR core IN row DO
         ASSERT core.size() = 6
-        FOREACH cell IN core DO
+        FOR cell IN core DO
             ASSERT cell = ""
-        END FOREACH
-    END FOREACH
-END FOREACH
+        END FOR
+    END FOR
+END FOR

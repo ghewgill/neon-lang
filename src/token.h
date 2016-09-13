@@ -90,7 +90,6 @@ enum TokenType {
     EXPORT,
     PRIVATE,
     NATIVE,
-    FOREACH,
     INDEX,
     ASSERT,
     EMBED,

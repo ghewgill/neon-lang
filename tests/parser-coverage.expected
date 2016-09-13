@@ -252,7 +252,6 @@ Program
   ExitStatement(FUNCTION)
   ExitStatement(WHILE)
   ExitStatement(FOR)
-  ExitStatement(FOREACH)
   ExitStatement(LOOP)
   ExitStatement(REPEAT)
   ExpressionStatement
@@ -390,7 +389,6 @@ Program
         IdentifierExpression(statement)
   NextStatement(WHILE)
   NextStatement(FOR)
-  NextStatement(FOREACH)
   NextStatement(LOOP)
   NextStatement(REPEAT)
   RaiseStatement(.name)

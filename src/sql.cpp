@@ -37,7 +37,6 @@ enum Token {
     EXIT,
     FETCH,
     FOR,
-    FOREACH,
     FOUND,
     FROM,
     HOLD,
@@ -202,7 +201,6 @@ public:
             if (keyword == "EXIT")          current = EXIT;
             if (keyword == "FETCH")         current = FETCH;
             if (keyword == "FOR")           current = FOR;
-            if (keyword == "FOREACH")       current = FOREACH;
             if (keyword == "FOUND")         current = FOUND;
             if (keyword == "FROM")          current = FROM;
             if (keyword == "HOLD")          current = HOLD;
@@ -523,7 +521,6 @@ public:
                         switch (lexer.next()) {
                             case LOOP:      action = DoExitLoop;    break;
                             case FOR:       action = DoExitFor;     break;
-                            case FOREACH:   action = DoExitForeach; break;
                             case REPEAT:    action = DoExitRepeat;  break;
                             case WHILE:     action = DoExitWhile;   break;
                             default:
@@ -534,7 +531,6 @@ public:
                         switch (lexer.next()) {
                             case LOOP:      action = DoNextLoop;    break;
                             case FOR:       action = DoNextFor;     break;
-                            case FOREACH:   action = DoNextForeach; break;
                             case REPEAT:    action = DoNextRepeat;  break;
                             case WHILE:     action = DoNextWhile;   break;
                             default:

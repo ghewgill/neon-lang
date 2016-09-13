@@ -91,7 +91,6 @@ TYPE Type IS ENUM
     export
     private
     native
-    foreach
     index
     assert
     embed
@@ -332,7 +331,6 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "EXPORT" THEN t.type := Type.export
             ELSIF t.text = "PRIVATE" THEN t.type := Type.private
             ELSIF t.text = "NATIVE" THEN t.type := Type.native
-            ELSIF t.text = "FOREACH" THEN t.type := Type.foreach
             ELSIF t.text = "INDEX" THEN t.type := Type.index
             ELSIF t.text = "ASSERT" THEN t.type := Type.assert
             ELSIF t.text = "EMBED" THEN t.type := Type.embed
@@ -744,13 +742,13 @@ FUNCTION findLast(s: String, t: String): Number
 END FUNCTION
 
 BEGIN MAIN
-    FOREACH fn IN sys.args[1 TO LAST] DO
+    FOR fn IN sys.args[1 TO LAST] DO
         LET bytes: Bytes := file.readBytes(fn)
         TRY
             LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString())
-            FOREACH t IN tokens DO
+            FOR t IN tokens DO
                 print("\(t)")
-            END FOREACH
+            END FOR
         EXCEPTION Utf8DecodingException DO
             LET offset: Number := num(CURRENT_EXCEPTION.info)
             LET source: String := bytes[FIRST TO offset-1].decodeToString()
@@ -760,5 +758,5 @@ BEGIN MAIN
             LET t: Token := Token(line WITH line, column WITH column)
             error(1000, t, "invalid UTF-8 data in source")
         END TRY
-    END FOREACH
+    END FOR
 END MAIN

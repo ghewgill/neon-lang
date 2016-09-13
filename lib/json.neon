@@ -145,12 +145,12 @@ FUNCTION encode(data: Variant): String
         WHEN Type.array DO
             VAR r: String := "["
             LET a: Array<Variant> := data.getArray()
-            FOREACH x IN a DO
+            FOR x IN a DO
                 IF r.length() > 1 THEN
                     r.append(",")
                 END IF
                 r.append(encode(x))
-            END FOREACH
+            END FOR
             r.append("]")
             RETURN r
         WHEN Type.dictionary DO
@@ -158,12 +158,12 @@ FUNCTION encode(data: Variant): String
             LET d: Dictionary<Variant> := data.getDictionary()
             LET keys: Array<String> := d.keys()
             % TODO: This should just be d.keys(), see t/foreach-value.neon
-            FOREACH x IN keys DO
+            FOR x IN keys DO
                 IF r.length() > 1 THEN
                     r.append(",")
                 END IF
                 r.append(encode(variant.makeString(x)) & ":" & encode(d[x]))
-            END FOREACH
+            END FOR
             r.append("}")
             RETURN r
     END CASE

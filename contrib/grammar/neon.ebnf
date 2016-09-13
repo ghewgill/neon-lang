@@ -40,7 +40,6 @@ Statement =
     ExitStatement |
     ExpressionStatement |
     ForStatement |
-    ForeachStatement |
     IfStatement |
     IncrementStatement |
     LoopStatement |
@@ -107,13 +106,11 @@ ExecStatement = 'EXEC', ExecBody;
 
 WhenCondition = (('=' | '#' | '<' | '>' | '<=' | '>='), Expression) | (Expression, ['TO', Expression]);
 
-ExitStatement = 'EXIT', ('FUNCTION' | 'WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT');
+ExitStatement = 'EXIT', ('FUNCTION' | 'WHILE' | 'FOR' | 'LOOP' | 'REPEAT');
 
 ExpressionStatement = Identifier, CompoundExpressionTail, {CompoundExpressionTail};
 
-ForStatement = 'FOR', Identifier, ':=', Expression, 'TO', Expression, ['STEP', Expression], 'DO', {Statement}, 'END', 'FOR';
-
-ForeachStatement = 'FOREACH', Identifier, 'IN', Expression, ['INDEX', Identifier], 'DO', {Statement}, 'END', 'FOREACH';
+ForStatement = 'FOR', Identifier, (':=', Expression, 'TO', Expression, ['STEP', Expression] | 'IN', Expression, ['INDEX', Identifier]), 'DO', {Statement}, 'END', 'FOR';
 
 IfStatement = 'IF', IfExpression, 'THEN', {Statement}, {'ELSIF', IfExpression, 'THEN', {Statement}}, ['ELSE', {Statement}], 'END', 'IF';
 
@@ -123,7 +120,7 @@ IfExpression = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifie
 
 LoopStatement = 'LOOP', {Statement}, 'END', 'LOOP';
 
-NextStatement = 'NEXT', ('WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT');
+NextStatement = 'NEXT', ('WHILE' | 'FOR' | 'LOOP' | 'REPEAT');
 
 RaiseStatement = 'RAISE', Identifier, ['.', Identifier], ['(', Identifier, 'WITH', Expression, {',', Identifier, 'WITH', Expression}, ')'];
 

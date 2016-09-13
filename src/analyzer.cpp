@@ -3072,14 +3072,6 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoExitForeach:
-            else_statements.push_back(
-                new ExitStatement(
-                    statement->token.line,
-                    get_loop_id(statement->token, loops, FOREACH)
-                )
-            );
-            break;
         case DoExitRepeat:
             else_statements.push_back(
                 new ExitStatement(
@@ -3109,14 +3101,6 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 new NextStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, FOR)
-                )
-            );
-            break;
-        case DoNextForeach:
-            else_statements.push_back(
-                new NextStatement(
-                    statement->token.line,
-                    get_loop_id(statement->token, loops, FOREACH)
                 )
             );
             break;
@@ -3517,7 +3501,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     scope.top()->addName(Token(IDENTIFIER, ""), bound_name, bound, true);
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
-    loops.top().push_back(std::make_pair(FOREACH, loop_id));
+    loops.top().push_back(std::make_pair(FOR, loop_id));
     std::vector<const Statement *> init_statements {
         new AssignmentStatement(statement->token.line, { new VariableExpression(index) }, new ConstantNumberExpression(number_from_uint32(0))),
         new AssignmentStatement(statement->token.line, { new VariableExpression(array_copy) }, array),

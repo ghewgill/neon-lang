@@ -122,7 +122,6 @@ DEFAULT = Keyword("DEFAULT")
 EXPORT = Keyword("EXPORT")
 PRIVATE = Keyword("PRIVATE")
 NATIVE = Keyword("NATIVE")
-FOREACH = Keyword("FOREACH")
 INDEX = Keyword("INDEX")
 ASSERT = Keyword("ASSERT")
 EMBED = Keyword("EMBED")
@@ -991,10 +990,10 @@ class ForeachStatement:
                     for s in self.statements:
                         s.run(env)
                 except NextException as x:
-                    if x.type is not FOREACH:
+                    if x.type is not FOR:
                         raise
         except ExitException as x:
-            if x.type is not FOREACH:
+            if x.type is not FOR:
                 raise
         env = env.parent
 
@@ -1845,42 +1844,40 @@ class Parser:
     def parse_for_statement(self):
         self.expect(FOR)
         var = self.identifier()
-        self.expect(ASSIGN)
-        start = self.parse_expression()
-        self.expect(TO)
-        end = self.parse_expression()
-        step = None
-        if self.tokens[self.i] is STEP:
-            self.i += 1
-            step = self.parse_expression()
-        self.expect(DO)
-        statements = []
-        while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
-            s = self.parse_statement()
-            if s is not None:
-                statements.append(s)
-        self.expect(END)
-        self.expect(FOR)
-        return ForStatement(var, start, end, step, statements)
-
-    def parse_foreach_statement(self):
-        self.expect(FOREACH)
-        var = self.identifier()
-        self.expect(IN)
-        array = self.parse_expression()
-        index = None
-        if self.tokens[self.i] is INDEX:
-            self.i += 1
-            index = self.identifier()
-        self.expect(DO)
-        statements = []
-        while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
-            s = self.parse_statement()
-            if s is not None:
-                statements.append(s)
-        self.expect(END)
-        self.expect(FOREACH)
-        return ForeachStatement(var, array, index, statements)
+        if self.tokens[self.i] is ASSIGN:
+            self.expect(ASSIGN)
+            start = self.parse_expression()
+            self.expect(TO)
+            end = self.parse_expression()
+            step = None
+            if self.tokens[self.i] is STEP:
+                self.i += 1
+                step = self.parse_expression()
+            self.expect(DO)
+            statements = []
+            while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
+                s = self.parse_statement()
+                if s is not None:
+                    statements.append(s)
+            self.expect(END)
+            self.expect(FOR)
+            return ForStatement(var, start, end, step, statements)
+        elif self.tokens[self.i] is IN:
+            self.expect(IN)
+            array = self.parse_expression()
+            index = None
+            if self.tokens[self.i] is INDEX:
+                self.i += 1
+                index = self.identifier()
+            self.expect(DO)
+            statements = []
+            while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
+                s = self.parse_statement()
+                if s is not None:
+                    statements.append(s)
+            self.expect(END)
+            self.expect(FOR)
+            return ForeachStatement(var, array, index, statements)
 
     def parse_let_statement(self):
         self.expect(LET)
@@ -2013,7 +2010,6 @@ class Parser:
         if self.tokens[self.i] is WHILE:    return self.parse_while_statement()
         if self.tokens[self.i] is CASE:     return self.parse_case_statement()
         if self.tokens[self.i] is FOR:      return self.parse_for_statement()
-        if self.tokens[self.i] is FOREACH:  return self.parse_foreach_statement()
         if self.tokens[self.i] is LOOP:     return self.parse_loop_statement()
         if self.tokens[self.i] is REPEAT:   return self.parse_repeat_statement()
         if self.tokens[self.i] is EXIT:     return self.parse_exit_statement()

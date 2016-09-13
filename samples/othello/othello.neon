@@ -45,12 +45,12 @@ FUNCTION updateBoard()
     Board[45] := 2
     Board[54] := 2
     VAR color: Number := 2
-    FOREACH m IN Moves DO
+    FOR m IN Moves DO
         IF m # 0 THEN
             _ := validMove(0, m, color, 0)
         END IF
         color := 3 - color
-    END FOREACH
+    END FOR
 END FUNCTION
 
 FUNCTION dupeBoard(base: Number)

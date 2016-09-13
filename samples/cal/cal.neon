@@ -53,7 +53,7 @@ FUNCTION main(args: Array<String>)
     VAR month, year: Number := 0
     VAR options: Dictionary<Boolean>
 
-    FOREACH a IN args[1 TO LAST] DO
+    FOR a IN args[1 TO LAST] DO
         IF a[0] = "-" THEN
             options[a] := TRUE
         ELSIF year = 0 THEN
@@ -62,7 +62,7 @@ FUNCTION main(args: Array<String>)
             month := year
             year := num(a)
         END IF
-    END FOREACH
+    END FOR
 
     IF year = 0 THEN
         LET today: datetime.DateTime := datetime.now()
@@ -88,9 +88,9 @@ FUNCTION main(args: Array<String>)
             END FOR
         ELSE
             LET grid: Array<String> := build_month(year, month, TRUE)
-            FOREACH s IN grid DO
+            FOR s IN grid DO
                 print(s)
-            END FOREACH
+            END FOR
         END IF
     ELSE
         VAR months: Array<Array<String>> := []

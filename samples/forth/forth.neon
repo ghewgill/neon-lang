@@ -973,9 +973,9 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             END IF
         WHEN TOOLS_WORDS DO
             LET a: Array<String> := words.keys()
-            FOREACH w IN a DO
+            FOR w IN a DO
                 print(w)
-            END FOREACH
+            END FOR
         WHEN TOOLS_EXT_BYE DO
             sys.exit(0)
         WHEN INT_BRANCH DO
@@ -1365,11 +1365,11 @@ FUNCTION interpret()
 END FUNCTION
 
 LET files: Array<String> := sys.args[1 TO LAST]
-FOREACH fn IN files DO
+FOR fn IN files DO
     current_file := io.open(fn, io.Mode.read)
     interpret()
     io.close(INOUT current_file)
-END FOREACH
+END FOR
 
 current_file := io.stdin
 interpret()

@@ -61,12 +61,12 @@ r := post("/step/source/0", "")
 r := get("/status")
 
 VAR entry_g: Number := 0
-FOREACH f IN debuginfo.getDictionary()["functions"].getArray() DO
+FOR f IN debuginfo.getDictionary()["functions"].getArray() DO
     IF f.getDictionary()["name"].getString() = "g" THEN
         entry_g := f.getDictionary()["entry"].getNumber()
-        EXIT FOREACH
+        EXIT FOR
     END IF
-END FOREACH
+END FOR
 ASSERT entry_g # 0
 
 r := post("/break/\(entry_g)", "true")

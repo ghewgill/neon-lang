@@ -30,13 +30,13 @@ FUNCTION render(ren: sdl.Renderer)
     sdl.SetRenderDrawColor(ren, 0, 0, 0, 255)
     sdl.RenderClear(ren)
     sdl.SetRenderDrawColor(ren, 255, 255, 255, 255)
-    FOREACH row IN grid INDEX i DO
-        FOREACH cell IN row INDEX j DO
+    FOR row IN grid INDEX i DO
+        FOR cell IN row INDEX j DO
             IF cell THEN
                 sdl.RenderFillRect(ren, rect(j*10, i*10, 10, 10))
             END IF
-        END FOREACH
-    END FOREACH
+        END FOR
+    END FOR
     sdl.RenderPresent(ren)
 END FUNCTION
 

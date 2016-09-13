@@ -6,9 +6,9 @@ LET server: net.Socket := net.tcpSocket()
 server.listen(10007)
 LOOP
     VAR read: Array<net.Socket> := [server]
-    FOREACH c IN clients DO
+    FOR c IN clients DO
         read.append(c)
-    END FOREACH
+    END FOR
     VAR write: Array<net.Socket> := []
     VAR error: Array<net.Socket> := []
     IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN

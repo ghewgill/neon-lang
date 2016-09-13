@@ -1,2 +1,2 @@
-FOREACH x IN a INDEX 5
-                     %<
+FOR x IN a INDEX 5
+                 %<

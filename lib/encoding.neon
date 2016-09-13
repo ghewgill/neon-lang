@@ -53,7 +53,7 @@ FUNCTION base64Encode(data: Bytes): String
 
     LET source: Array<Number> := data.toArray()
 
-    FOREACH n IN source DO
+    FOR n IN source DO
         CASE status
             WHEN State.byte1 DO
                 encoded.append(Base64EncodeTable[binary.shiftRight32(n, 2)])
@@ -68,7 +68,7 @@ FUNCTION base64Encode(data: Bytes): String
                 encoded.append(Base64EncodeTable[binary.and32(n, 0b00111111)])
                 status := State.byte1
         END CASE
-    END FOREACH
+    END FOR
 
     CASE status
         % In base64, when the data being encoded is NOT a multiple of 6 bits, 

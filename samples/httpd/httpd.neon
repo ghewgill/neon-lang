@@ -50,9 +50,9 @@ FUNCTION HttpServer.serve(INOUT self: HttpServer)
     self.server.listen(self.port)
     LOOP
         VAR read: Array<net.Socket> := [self.server]
-        FOREACH c IN self.clients DO
+        FOR c IN self.clients DO
             read.append(c.socket)
-        END FOREACH
+        END FOR
         VAR write: Array<net.Socket> := []
         VAR error: Array<net.Socket> := []
         IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN
@@ -88,16 +88,16 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     %LET version: String := request[2]
     VAR response: Response := Response()
     VAR found: Boolean := FALSE
-    FOREACH h IN self.handlers DO
+    FOR h IN self.handlers DO
         IF regex.search(h.path, path, OUT _) THEN
             % TODO: Should be able to do h.callback(path, params),
             % but that syntax seems to be handled only as a method
             LET rh: RequestHandler := h.callback
             response := rh(path, h.params)
             found := TRUE
-            EXIT FOREACH
+            EXIT FOR
         END IF
-    END FOREACH
+    END FOR
     IF NOT found THEN
         response.code := 404
         response.content_type := "text/plain"
@@ -106,9 +106,9 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     print("\(method) \(path) \(response.code)")
     client.socket.send(toBytes("HTTP/1.0 \(response.code) ok\r\n"))
     client.socket.send(toBytes("Content-type: \(response.content_type)\r\n"))
-    FOREACH h IN response.headers.keys() DO
+    FOR h IN response.headers.keys() DO
         client.socket.send(toBytes("\(h): \(response.headers[h])\r\n"))
-    END FOREACH
+    END FOR
     client.socket.send(toBytes("Content-length: \(response.content.size())\r\n"))
     client.socket.send(toBytes("\r\n"))
     client.socket.send(response.content)
@@ -129,9 +129,9 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
             page.append("<html>\n")
             page.append("<body>\n")
             page.append("<table>\n")
-            FOREACH fn IN file.files(local_path) DO
+            FOR fn IN file.files(local_path) DO
                 page.append("<tr><td><a href=\"\(fn)\">\(fn)</a></td></tr>\n")
-            END FOREACH
+            END FOR
             page.append("</table>\n")
             page.append("</body>\n")
             page.append("</html>\n")

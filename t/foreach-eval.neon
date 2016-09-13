@@ -5,6 +5,6 @@ FUNCTION foo(): Array<Number>
     RETURN [1, 2, 3]
 END FUNCTION
 
-FOREACH x IN foo() DO
-END FOREACH
+FOR x IN foo() DO
+END FOR
 ASSERT count = 1

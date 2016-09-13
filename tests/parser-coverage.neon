@@ -122,7 +122,6 @@ CASE expr WHEN expr TO expr DO END CASE
 EXIT FUNCTION
 EXIT WHILE
 EXIT FOR
-EXIT FOREACH
 EXIT LOOP
 EXIT REPEAT
 
@@ -136,10 +135,10 @@ FOR name := expr TO expr DO statement() statement() END FOR
 FOR name := expr TO expr STEP expr DO END FOR
 
 % ForeachStatement
-FOREACH name IN expr DO END FOREACH
-FOREACH name IN expr DO statement() END FOREACH
-FOREACH name IN expr DO statement() statement() END FOREACH
-FOREACH name IN expr INDEX name DO END FOREACH
+FOR name IN expr DO END FOR
+FOR name IN expr DO statement() END FOR
+FOR name IN expr DO statement() statement() END FOR
+FOR name IN expr INDEX name DO END FOR
 
 % IfStatement
 IF expr THEN END IF
@@ -168,7 +167,6 @@ LOOP statement() statement() END LOOP
 % NextStatement
 NEXT WHILE
 NEXT FOR
-NEXT FOREACH
 NEXT LOOP
 NEXT REPEAT
 

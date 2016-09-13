@@ -32,16 +32,16 @@ END FUNCTION
 FUNCTION Client.handleInput(INOUT self: Client, buf: Bytes)
     self.buf := self.buf & buf
     LET a: Array<Number> := self.buf.toArray()
-    FOREACH b IN a INDEX i DO
+    FOR b IN a INDEX i DO
         IF b = 10 THEN
             LET r: String := a[FIRST TO i-1].toBytes().decodeToString()
             self.buf := a[i+1 TO LAST].toBytes()
             LET h: ResponseHandler := self.handler
             self.handler := NOWHERE
             h(INOUT self, r)
-            EXIT FOREACH
+            EXIT FOR
         END IF
-    END FOREACH
+    END FOR
 END FUNCTION
 
 FUNCTION Client.send(self: Client, s: String)
@@ -137,37 +137,37 @@ END FUNCTION
 
 FUNCTION Client.doChat(INOUT self: Client)
     self.chatting := TRUE
-    FOREACH c IN clients DO
+    FOR c IN clients DO
         IF c.chatting AND self.user.name # c.user.name THEN
             c.send("\r\u001b[J\(self.user.name) joined chat")
         END IF
-    END FOREACH
+    END FOR
     self.prompt("<\(self.user.name)> ", handleChat)
 END FUNCTION
 
 FUNCTION handleChat(INOUT self: Client, s: String)
     IF string.upper(s) IN ["/Q", "/QUIT"] THEN
-        FOREACH c IN clients DO
+        FOR c IN clients DO
             IF c.chatting AND self.user.name # c.user.name THEN
                 c.send("\r\u001b[J\(self.user.name) left chat")
             END IF
-        END FOREACH
+        END FOR
         self.showMainMenu()
         EXIT FUNCTION
     END IF
-    FOREACH c IN clients DO
+    FOR c IN clients DO
         IF c.chatting AND self.user.name # c.user.name THEN
             c.send("\r\u001b[J<\(self.user.name)> \(s)")
         END IF
-    END FOREACH
+    END FOR
     self.prompt("<\(self.user.name)> ", handleChat)
 END FUNCTION
 
 FUNCTION Client.doOnlineUsers(INOUT self: Client)
     self.send("")
-    FOREACH c IN clients DO
+    FOR c IN clients DO
         self.send(c.user.name)
-    END FOREACH
+    END FOR
     self.showMainMenu()
 END FUNCTION
 
@@ -205,9 +205,9 @@ LET server: net.Socket := net.tcpSocket()
 server.listen(BBS_PORT)
 LOOP
     VAR read: Array<net.Socket> := [server]
-    FOREACH c IN clients DO
+    FOR c IN clients DO
         read.append(c.socket)
-    END FOREACH
+    END FOR
     VAR write: Array<net.Socket> := []
     VAR error: Array<net.Socket> := []
     IF net.select(INOUT read, INOUT write, INOUT error, -1) THEN

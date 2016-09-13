@@ -20,12 +20,10 @@ enum SqlWheneverAction {
     Stop,
     DoExitLoop,
     DoExitFor,
-    DoExitForeach,
     DoExitRepeat,
     DoExitWhile,
     DoNextLoop,
     DoNextFor,
-    DoNextForeach,
     DoNextRepeat,
     DoNextWhile,
     DoRaiseException

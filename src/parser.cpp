@@ -62,7 +62,6 @@ public:
     std::unique_ptr<Statement> parseWhileStatement();
     std::unique_ptr<Statement> parseCaseStatement();
     std::unique_ptr<Statement> parseForStatement();
-    std::unique_ptr<Statement> parseForeachStatement();
     std::unique_ptr<Statement> parseLoopStatement();
     std::unique_ptr<Statement> parseRepeatStatement();
     std::unique_ptr<Statement> parseExitStatement();
@@ -1396,88 +1395,76 @@ std::unique_ptr<Statement> Parser::parseForStatement()
     }
     const Token &var = tokens[i];
     ++i;
-    if (tokens[i].type != ASSIGN) {
+    if (tokens[i].type == ASSIGN) {
+        ++i;
+        std::unique_ptr<Expression> start = parseExpression();
+        if (tokens[i].type != TO) {
+            error(2040, tokens[i], "TO expected");
+        }
+        ++i;
+        std::unique_ptr<Expression> end = parseExpression();
+        std::unique_ptr<Expression> step = nullptr;
+        if (tokens[i].type == STEP) {
+            ++i;
+            step = parseExpression();
+        }
+        if (tokens[i].type != DO) {
+            error_a(2041, tokens[i-1], tokens[i], "'DO' expected");
+        }
+        ++i;
+        TemporaryMinimumIndent indent(this, tok_for.column + 1);
+        std::vector<std::unique_ptr<Statement>> statements;
+        while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+            std::unique_ptr<Statement> s = parseStatement();
+            if (s != nullptr) {
+                statements.push_back(std::move(s));
+            }
+        }
+        if (tokens[i].type != END) {
+            error(2042, tokens[i], "'END' expected");
+        }
+        ++i;
+        if (tokens[i].type != FOR) {
+            error_a(2043, tokens[i-1], tokens[i], "'END FOR' expected");
+        }
+        ++i;
+        return std::unique_ptr<Statement> { new ForStatement(tok_for, var, std::move(start), std::move(end), std::move(step), std::move(statements)) };
+    } else if (tokens[i].type == IN) {
+        ++i;
+        std::unique_ptr<Expression> array = parseExpression();
+        Token index;
+        if (tokens[i].type == INDEX) {
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2083, tokens[i], "identifier expected");
+            }
+            index = tokens[i];
+            ++i;
+        }
+        if (tokens[i].type != DO) {
+            error_a(2084, tokens[i-1], tokens[i], "'DO' expected");
+        }
+        ++i;
+        TemporaryMinimumIndent indent(this, tok_for.column + 1);
+        std::vector<std::unique_ptr<Statement>> statements;
+        while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+            std::unique_ptr<Statement> s = parseStatement();
+            if (s != nullptr) {
+                statements.push_back(std::move(s));
+            }
+        }
+        if (tokens[i].type != END) {
+            error(2085, tokens[i], "'END' expected");
+        }
+        ++i;
+        if (tokens[i].type != FOR) {
+            error_a(2086, tokens[i-1], tokens[i], "'END FOR' expected");
+        }
+        ++i;
+        return std::unique_ptr<Statement> { new ForeachStatement(tok_for, var, std::move(array), index, std::move(statements)) };
+    } else {
         error(2044, tokens[i], "':=' expected");
     }
-    ++i;
-    std::unique_ptr<Expression> start = parseExpression();
-    if (tokens[i].type != TO) {
-        error(2040, tokens[i], "TO expected");
-    }
-    ++i;
-    std::unique_ptr<Expression> end = parseExpression();
-    std::unique_ptr<Expression> step = nullptr;
-    if (tokens[i].type == STEP) {
-        ++i;
-        step = parseExpression();
-    }
-    if (tokens[i].type != DO) {
-        error_a(2041, tokens[i-1], tokens[i], "'DO' expected");
-    }
-    ++i;
-    TemporaryMinimumIndent indent(this, tok_for.column + 1);
-    std::vector<std::unique_ptr<Statement>> statements;
-    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        std::unique_ptr<Statement> s = parseStatement();
-        if (s != nullptr) {
-            statements.push_back(std::move(s));
-        }
-    }
-    if (tokens[i].type != END) {
-        error(2042, tokens[i], "'END' expected");
-    }
-    ++i;
-    if (tokens[i].type != FOR) {
-        error_a(2043, tokens[i-1], tokens[i], "'END FOR' expected");
-    }
-    ++i;
-    return std::unique_ptr<Statement> { new ForStatement(tok_for, var, std::move(start), std::move(end), std::move(step), std::move(statements)) };
-}
-
-std::unique_ptr<Statement> Parser::parseForeachStatement()
-{
-    auto &tok_foreach = tokens[i];
-    ++i;
-    if (tokens[i].type != IDENTIFIER) {
-        error(2081, tokens[i], "identifier expected");
-    }
-    const Token &var = tokens[i];
-    ++i;
-    if (tokens[i].type != IN) {
-        error(2082, tokens[i], "IN expected");
-    }
-    ++i;
-    std::unique_ptr<Expression> array = parseExpression();
-    Token index;
-    if (tokens[i].type == INDEX) {
-        ++i;
-        if (tokens[i].type != IDENTIFIER) {
-            error(2083, tokens[i], "identifier expected");
-        }
-        index = tokens[i];
-        ++i;
-    }
-    if (tokens[i].type != DO) {
-        error_a(2084, tokens[i-1], tokens[i], "'DO' expected");
-    }
-    ++i;
-    TemporaryMinimumIndent indent(this, tok_foreach.column + 1);
-    std::vector<std::unique_ptr<Statement>> statements;
-    while (tokens[i].type != END && tokens[i].type != END_OF_FILE) {
-        std::unique_ptr<Statement> s = parseStatement();
-        if (s != nullptr) {
-            statements.push_back(std::move(s));
-        }
-    }
-    if (tokens[i].type != END) {
-        error(2085, tokens[i], "'END' expected");
-    }
-    ++i;
-    if (tokens[i].type != FOREACH) {
-        error_a(2086, tokens[i-1], tokens[i], "'END FOREACH' expected");
-    }
-    ++i;
-    return std::unique_ptr<Statement> { new ForeachStatement(tok_foreach, var, std::move(array), index, std::move(statements)) };
 }
 
 std::unique_ptr<Statement> Parser::parseLoopStatement()
@@ -1531,7 +1518,6 @@ std::unique_ptr<Statement> Parser::parseExitStatement()
     if (type.type != FUNCTION
      && type.type != WHILE
      && type.type != FOR
-     && type.type != FOREACH
      && type.type != LOOP
      && type.type != REPEAT) {
         error_a(2052, tokens[i-1], tokens[i], "loop type expected");
@@ -1547,7 +1533,6 @@ std::unique_ptr<Statement> Parser::parseNextStatement()
     auto &type = tokens[i];
     if (type.type != WHILE
      && type.type != FOR
-     && type.type != FOREACH
      && type.type != LOOP
      && type.type != REPEAT) {
         error_a(2054, tokens[i-1], tokens[i], "loop type expected");
@@ -1766,8 +1751,6 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseCaseStatement();
     } else if (tokens[i].type == FOR) {
         return parseForStatement();
-    } else if (tokens[i].type == FOREACH) {
-        return parseForeachStatement();
     } else if (tokens[i].type == LOOP) {
         return parseLoopStatement();
     } else if (tokens[i].type == REPEAT) {

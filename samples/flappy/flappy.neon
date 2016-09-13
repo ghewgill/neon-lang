@@ -57,10 +57,10 @@ BEGIN MAIN
         sdl.RenderCopy(ren, tex, sdl.NullRect, sdl.NullRect)
         sdl.SetRenderDrawColor(ren, 0, 255, 0, 255)
         sdl.RenderFillRect(ren, rect(300, player.y, 50, 50))
-        FOREACH pipe IN pipes DO
+        FOR pipe IN pipes DO
             sdl.RenderFillRect(ren, rect(pipe.x, 0, 100, pipe.gap))
             sdl.RenderFillRect(ren, rect(pipe.x, pipe.gap+200, 100, 480))
-        END FOREACH
+        END FOR
         sdl.RenderPresent(ren)
         player.y := player.y + player.dy
         player.dy := player.dy + 0.1
