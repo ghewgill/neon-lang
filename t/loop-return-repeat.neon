@@ -1,0 +1,6 @@
+FUNCTION f(): String
+    REPEAT
+    UNTIL TRUE
+END FUNCTION
+
+%! missing RETURN

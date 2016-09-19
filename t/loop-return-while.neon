@@ -1,0 +1,6 @@
+FUNCTION f(): String
+    WHILE FALSE DO
+    END WHILE
+END FUNCTION
+
+%! missing RETURN

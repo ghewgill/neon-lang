@@ -1,0 +1,4 @@
+FUNCTION f(): String
+    WHILE TRUE DO
+    END WHILE
+END FUNCTION

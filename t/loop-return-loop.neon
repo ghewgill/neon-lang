@@ -1,0 +1,5 @@
+FUNCTION f(): String
+    LOOP
+    END LOOP
+END FUNCTION
+

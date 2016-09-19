@@ -576,7 +576,7 @@ bool BaseLoopStatement::always_returns() const
             return false;
         }
     }
-    return true;
+    return infinite_loop;
 }
 
 bool CaseStatement::always_returns() const

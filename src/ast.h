@@ -2056,12 +2056,13 @@ private:
 
 class BaseLoopStatement: public CompoundStatement {
 public:
-    BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail): CompoundStatement(line, statements), prologue(prologue), tail(tail), loop_id(loop_id) {}
+    BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop): CompoundStatement(line, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), loop_id(loop_id) {}
     virtual void accept(IAstVisitor *) const override { /* TODO */ }
 
     const std::vector<const Statement *> prologue;
     const std::vector<const Statement *> tail;
 
+    const bool infinite_loop;
     const unsigned int loop_id;
 
     virtual bool always_returns() const override;

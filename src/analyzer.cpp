@@ -3472,7 +3472,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements);
+    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
 }
 
 const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
@@ -3548,7 +3548,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements);
+    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
 }
 
 const Statement *Analyzer::analyze(const pt::IfStatement *statement)
@@ -3624,7 +3624,7 @@ const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
     std::vector<const Statement *> statements = analyze(statement->body);
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
+    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, true);
 }
 
 const Statement *Analyzer::analyze(const pt::NextStatement *statement)
@@ -3696,7 +3696,7 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     );
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
+    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == false);
 }
 
 const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
@@ -3797,7 +3797,7 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {});
+    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == true);
 }
 
 // This code attempts to check for every type that is used in an exported

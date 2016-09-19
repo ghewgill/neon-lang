@@ -1,0 +1,4 @@
+FUNCTION f(): String
+    REPEAT
+    UNTIL FALSE
+END FUNCTION

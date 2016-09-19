@@ -1,0 +1,6 @@
+FUNCTION f(): String
+    FOREACH x IN [1, 2, 3] DO
+    END FOREACH
+END FUNCTION
+
+%! missing RETURN
