@@ -571,6 +571,13 @@ bool IfStatement::is_scope_exit_statement() const
 
 bool BaseLoopStatement::always_returns() const
 {
+    // TODO: This doesn't look deep enough for exit statements, eg:
+    //
+    //  LOOP
+    //      IF condition THEN
+    //          EXIT LOOP
+    //      END IF
+    //  END LOOP
     for (auto s: statements) {
         if (dynamic_cast<const ExitStatement *>(s) != nullptr) {
             return false;
