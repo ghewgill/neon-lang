@@ -454,7 +454,7 @@ TYPE CheckStatement IS RECORD
 END RECORD
 
 TYPE ExitStatement IS RECORD
-    type: lexer.Token
+    label: lexer.Token
 END RECORD
 
 TYPE ExpressionStatement IS RECORD
@@ -466,6 +466,7 @@ TYPE ForStatement IS RECORD
     start: POINTER TO ParseTreeNode
     end: POINTER TO ParseTreeNode
     step: POINTER TO ParseTreeNode
+    label: lexer.Token
     statements: Array<POINTER TO ParseTreeNode>
 END RECORD
 
@@ -473,6 +474,7 @@ TYPE ForeachStatement IS RECORD
     var: lexer.Token
     array: POINTER TO ParseTreeNode
     index: lexer.Token
+    label: lexer.Token
     statements: Array<POINTER TO ParseTreeNode>
 END RECORD
 
@@ -487,11 +489,12 @@ TYPE IncrementStatement IS RECORD
 END RECORD
 
 TYPE LoopStatement IS RECORD
+    label: lexer.Token
     statements: Array<POINTER TO ParseTreeNode>
 END RECORD
 
 TYPE NextStatement IS RECORD
-    type: lexer.Token
+    label: lexer.Token
 END RECORD
 
 TYPE RaiseStatement IS RECORD
@@ -500,6 +503,7 @@ TYPE RaiseStatement IS RECORD
 END RECORD
 
 TYPE RepeatStatement IS RECORD
+    label: lexer.Token
     cond: POINTER TO ParseTreeNode
     statements: Array<POINTER TO ParseTreeNode>
 END RECORD
@@ -519,6 +523,7 @@ END RECORD
 
 TYPE WhileStatement IS RECORD
     cond: POINTER TO ParseTreeNode
+    label: lexer.Token
     statements: Array<POINTER TO ParseTreeNode>
 END RECORD
 
@@ -2577,16 +2582,16 @@ FUNCTION Parser.parseExitStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.exit
     LET tokExit: lexer.Token := self.token
     self.nextToken()
-    LET type: lexer.Token := self.token
-    IF type.type NOT IN [TokenType.function, TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat] THEN
-        error_a(2052, self.tokens[self.index-1], self.token, "loop type expected")
+    LET label: lexer.Token := self.token
+    IF label.type NOT IN [TokenType.function, TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat, TokenType.identifier] THEN
+        error_a(2052, self.tokens[self.index-1], self.token, "loop type or label expected")
     END IF
     self.nextToken()
     RETURN NEW ParseTreeNode(
         type WITH Type.ExitStatement,
         token WITH tokExit,
         exitstatement WITH ExitStatement(
-            type WITH type
+            label WITH label
         )
     )
 END FUNCTION
@@ -2614,6 +2619,15 @@ FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     IF self.token.type = TokenType.step THEN
         self.nextToken()
         step := self.parseExpression()
+    END IF
+    VAR label: lexer.Token := lexer.Token(type WITH TokenType.for, text WITH "FOR")
+    IF self.token.type = TokenType.label THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2112, self.token, "identifier expected")
+        END IF
+        label := self.token
+        self.nextToken()
     END IF
     IF self.token.type # TokenType.do THEN
         error_a(2041, self.tokens[self.index-1], self.token, "'DO' expected")
@@ -2644,6 +2658,7 @@ FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             start WITH start,
             end WITH end,
             step WITH step,
+            label WITH label,
             statements WITH statements
         )
     )
@@ -2670,6 +2685,15 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
             error(2083, self.token, "identifier expected")
         END IF
         index := self.token
+        self.nextToken()
+    END IF
+    VAR label: lexer.Token := lexer.Token(type WITH TokenType.foreach, text WITH "FOREACH")
+    IF self.token.type = TokenType.label THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2113, self.token, "identifier expected")
+        END IF
+        label := self.token
         self.nextToken()
     END IF
     IF self.token.type # TokenType.do THEN
@@ -2700,6 +2724,7 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
             var WITH var,
             array WITH array,
             index WITH index,
+            label WITH label,
             statements WITH statements
         )
     )
@@ -2820,6 +2845,15 @@ FUNCTION Parser.parseLoopStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.loop
     LET tokLoop: lexer.Token := self.token
     self.nextToken()
+    VAR label: lexer.Token := lexer.Token(type WITH TokenType.loop, text WITH "LOOP")
+    IF self.token.type = TokenType.label THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2114, self.token, "identifier expected")
+        END IF
+        label := self.token
+        self.nextToken()
+    END IF
     self.pushMinimumIndent(tokLoop.column + 1)
     VAR statements: Array<POINTER TO ParseTreeNode> := []
     WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
@@ -2841,6 +2875,7 @@ FUNCTION Parser.parseLoopStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         type WITH Type.LoopStatement,
         token WITH tokLoop,
         loopstatement WITH LoopStatement(
+            label WITH label,
             statements WITH statements
         )
     )
@@ -2850,16 +2885,16 @@ FUNCTION Parser.parseNextStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.next
     LET tokNext: lexer.Token := self.token
     self.nextToken()
-    LET type: lexer.Token := self.token
-    IF type.type NOT IN [TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat] THEN
-        error_a(2052, self.tokens[self.index-1], self.token, "loop type expected")
+    LET label: lexer.Token := self.token
+    IF label.type NOT IN [TokenType.while, TokenType.for, TokenType.foreach, TokenType.loop, TokenType.repeat, TokenType.identifier] THEN
+        error_a(2052, self.tokens[self.index-1], self.token, "loop type or label expected")
     END IF
     self.nextToken()
     RETURN NEW ParseTreeNode(
         type WITH Type.NextStatement,
         token WITH tokNext,
         nextstatement WITH NextStatement(
-            type WITH type
+            label WITH label
         )
     )
 END FUNCTION
@@ -2909,6 +2944,15 @@ FUNCTION Parser.parseRepeatStatement(INOUT self: Parser): POINTER TO ParseTreeNo
     ASSERT self.token.type = TokenType.repeat
     LET tokRepeat: lexer.Token := self.token
     self.nextToken()
+    VAR label: lexer.Token := lexer.Token(type WITH TokenType.repeat, text WITH "REPEAT")
+    IF self.token.type = TokenType.label THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2115, self.token, "identifier expected")
+        END IF
+        label := self.token
+        self.nextToken()
+    END IF
     self.pushMinimumIndent(tokRepeat.column + 1)
     VAR statements: Array<POINTER TO ParseTreeNode> := []
     WHILE self.token.type NOT IN [TokenType.until, TokenType.end_of_file] DO
@@ -2927,6 +2971,7 @@ FUNCTION Parser.parseRepeatStatement(INOUT self: Parser): POINTER TO ParseTreeNo
         type WITH Type.RepeatStatement,
         token WITH tokRepeat,
         repeatstatement WITH RepeatStatement(
+            label WITH label,
             cond WITH cond,
             statements WITH statements
         )
@@ -3025,6 +3070,15 @@ FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     LET tokWhile: lexer.Token := self.token
     self.nextToken()
     LET cond: POINTER TO ParseTreeNode := self.parseExpression()
+    VAR label: lexer.Token := lexer.Token(type WITH TokenType.while, text WITH "WHILE")
+    IF self.token.type = TokenType.label THEN
+        self.nextToken()
+        IF self.token.type # TokenType.identifier THEN
+            error(2116, self.token, "identifier expected")
+        END IF
+        label := self.token
+        self.nextToken()
+    END IF
     IF self.token.type # TokenType.do THEN
         error_a(2028, self.tokens[self.index-1], self.token, "DO expected")
     END IF
@@ -3051,6 +3105,7 @@ FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNod
         token WITH tokWhile,
         whilestatement WITH WhileStatement(
             cond WITH cond,
+            label WITH label,
             statements WITH statements
         )
     )
@@ -3604,7 +3659,7 @@ FUNCTION dumpCheckStatement(node: ParseTreeNode, depth: Number)
 END FUNCTION
 
 FUNCTION dumpExitStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ExitStatement(\(node.exitstatement.type.text))")
+    dumpNode(depth, "ExitStatement(\(node.exitstatement.label.text))")
 END FUNCTION
 
 FUNCTION dumpExpressionStatement(node: ParseTreeNode, depth: Number)
@@ -3617,6 +3672,7 @@ FUNCTION dumpForStatement(node: ParseTreeNode, depth: Number)
     dumpParseTree(node.forstatement.start, depth+1)
     dumpParseTree(node.forstatement.end, depth+1)
     dumpParseTree(node.forstatement.step, depth+1)
+    dumpNode(depth+1, node.forstatement.label.text)
     FOREACH s IN node.forstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
@@ -3625,6 +3681,7 @@ END FUNCTION
 FUNCTION dumpForeachStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "ForeachStatement(\(node.foreachstatement.var.text))")
     dumpParseTree(node.foreachstatement.array, depth+1)
+    dumpNode(depth+1, node.foreachstatement.label.text)
     FOREACH s IN node.foreachstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
@@ -3650,13 +3707,14 @@ END FUNCTION
 
 FUNCTION dumpLoopStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "LoopStatement")
+    dumpNode(depth+1, node.loopstatement.label.text)
     FOREACH s IN node.loopstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
 FUNCTION dumpNextStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "NextStatement(\(node.nextstatement.type.text))")
+    dumpNode(depth, "NextStatement(\(node.nextstatement.label.text))")
 END FUNCTION
 
 FUNCTION dumpRaiseStatement(node: ParseTreeNode, depth: Number)
@@ -3666,6 +3724,7 @@ END FUNCTION
 
 FUNCTION dumpRepeatStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "RepeatStatement")
+    dumpNode(depth+1, node.repeatstatement.label.text)
     dumpParseTree(node.repeatstatement.cond, depth+1)
     FOREACH s IN node.repeatstatement.statements DO
         dumpParseTree(s, depth+1)
@@ -3690,6 +3749,7 @@ END FUNCTION
 FUNCTION dumpWhileStatement(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "WhileStatement")
     dumpParseTree(node.whilestatement.cond, depth+1)
+    dumpNode(depth+1, node.whilestatement.label.text)
     FOREACH s IN node.whilestatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH

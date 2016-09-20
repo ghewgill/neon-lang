@@ -1,0 +1,5 @@
+REPEAT LABEL foo
+    REPEAT LABEL foo
+                 %<
+    UNTIL TRUE
+UNTIL TRUE

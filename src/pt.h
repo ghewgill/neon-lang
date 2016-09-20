@@ -707,6 +707,12 @@ public:
     std::vector<std::unique_ptr<Statement>> body;
 };
 
+class BaseLoopStatement: public BlockStatement {
+public:
+    BaseLoopStatement(const Token &token, const Token &label, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), label(label) {}
+    const Token label;
+};
+
 class AssertStatement: public Statement {
 public:
     AssertStatement(const Token &token, std::vector<std::unique_ptr<Expression>> &&exprs, const std::string &source): Statement(token), exprs(std::move(exprs)), source(source) {}
@@ -781,9 +787,9 @@ public:
     std::unique_ptr<Expression> expr;
 };
 
-class ForStatement: public BlockStatement {
+class ForStatement: public BaseLoopStatement {
 public:
-    ForStatement(const Token &token, const Token &var, std::unique_ptr<Expression> &&start, std::unique_ptr<Expression> &&end, std::unique_ptr<Expression> &&step, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), var(var), start(std::move(start)), end(std::move(end)), step(std::move(step)) {}
+    ForStatement(const Token &token, const Token &var, std::unique_ptr<Expression> &&start, std::unique_ptr<Expression> &&end, std::unique_ptr<Expression> &&step, const Token &label, std::vector<std::unique_ptr<Statement>> &&body): BaseLoopStatement(token, label, std::move(body)), var(var), start(std::move(start)), end(std::move(end)), step(std::move(step)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token var;
     std::unique_ptr<Expression> start;
@@ -791,9 +797,9 @@ public:
     std::unique_ptr<Expression> step;
 };
 
-class ForeachStatement: public BlockStatement {
+class ForeachStatement: public BaseLoopStatement {
 public:
-    ForeachStatement(const Token &token, const Token &var, std::unique_ptr<Expression> &&array, const Token &index, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), var(var), array(std::move(array)), index(index) {}
+    ForeachStatement(const Token &token, const Token &var, std::unique_ptr<Expression> &&array, const Token &index, const Token &label, std::vector<std::unique_ptr<Statement>> &&body): BaseLoopStatement(token, label, std::move(body)), var(var), array(std::move(array)), index(index) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token var;
     std::unique_ptr<Expression> array;
@@ -816,9 +822,9 @@ public:
     const int delta;
 };
 
-class LoopStatement: public BlockStatement {
+class LoopStatement: public BaseLoopStatement {
 public:
-    LoopStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)) {}
+    LoopStatement(const Token &token, const Token &label, std::vector<std::unique_ptr<Statement>> &&body): BaseLoopStatement(token, label, std::move(body)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
@@ -837,9 +843,9 @@ public:
     std::unique_ptr<Expression> info;
 };
 
-class RepeatStatement: public BlockStatement {
+class RepeatStatement: public BaseLoopStatement {
 public:
-    RepeatStatement(const Token &token, std::unique_ptr<Expression> &&cond, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), cond(std::move(cond)) {}
+    RepeatStatement(const Token &token, const Token &label, std::unique_ptr<Expression> &&cond, std::vector<std::unique_ptr<Statement>> &&body): BaseLoopStatement(token, label, std::move(body)), cond(std::move(cond)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> cond;
 };
@@ -864,9 +870,9 @@ public:
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
-class WhileStatement: public BlockStatement {
+class WhileStatement: public BaseLoopStatement {
 public:
-    WhileStatement(const Token &token, std::unique_ptr<Expression> &&cond, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), cond(std::move(cond)) {}
+    WhileStatement(const Token &token, std::unique_ptr<Expression> &&cond, const Token &label, std::vector<std::unique_ptr<Statement>> &&body): BaseLoopStatement(token, label, std::move(body)), cond(std::move(cond)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> cond;
 };

@@ -39,6 +39,7 @@ public:
     virtual void visit(const class TypeEnum *node) = 0;
     virtual void visit(const class TypeModule *node) = 0;
     virtual void visit(const class TypeException *node) = 0;
+    virtual void visit(const class LoopLabel *node) = 0;
     virtual void visit(const class PredefinedVariable *node) = 0;
     virtual void visit(const class ModuleVariable *node) = 0;
     virtual void visit(const class GlobalVariable *node) = 0;
@@ -673,6 +674,16 @@ public:
 };
 
 extern TypeException *TYPE_EXCEPTION;
+
+class LoopLabel: public Name {
+public:
+    LoopLabel(const Token &declaration): Name(declaration, declaration.text, nullptr) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual void generate_export(Emitter &, const std::string &) const override { internal_error("LoopLabel"); }
+
+    virtual std::string text() const override { return "LoopLable(" + declaration.text + ")"; }
+};
 
 class Variable: public Name {
 public:

@@ -255,6 +255,7 @@ Program
   ExitStatement(FOREACH)
   ExitStatement(LOOP)
   ExitStatement(REPEAT)
+  ExitStatement(label)
   ExpressionStatement
     FunctionCallExpression
       IdentifierExpression(statement)
@@ -262,10 +263,12 @@ Program
     IdentifierExpression(expr)
     IdentifierExpression(expr)
     nullptr
+    FOR
   ForStatement(name)
     IdentifierExpression(expr)
     IdentifierExpression(expr)
     nullptr
+    FOR
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
@@ -273,6 +276,7 @@ Program
     IdentifierExpression(expr)
     IdentifierExpression(expr)
     nullptr
+    FOR
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
@@ -283,15 +287,24 @@ Program
     IdentifierExpression(expr)
     IdentifierExpression(expr)
     IdentifierExpression(expr)
+    FOR
+  ForStatement(name)
+    IdentifierExpression(expr)
+    IdentifierExpression(expr)
+    nullptr
+    label
   ForeachStatement(name)
     IdentifierExpression(expr)
+    FOREACH
   ForeachStatement(name)
     IdentifierExpression(expr)
+    FOREACH
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
   ForeachStatement(name)
     IdentifierExpression(expr)
+    FOREACH
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
@@ -300,6 +313,10 @@ Program
         IdentifierExpression(statement)
   ForeachStatement(name)
     IdentifierExpression(expr)
+    FOREACH
+  ForeachStatement(name)
+    IdentifierExpression(expr)
+    label
   IfStatement
     IdentifierExpression(expr)
   IfStatement
@@ -377,14 +394,22 @@ Program
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   LoopStatement
+    LOOP
   LoopStatement
+    LOOP
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
   LoopStatement
+    LOOP
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
+    ExpressionStatement
+      FunctionCallExpression
+        IdentifierExpression(statement)
+  LoopStatement
+    label
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
@@ -393,6 +418,7 @@ Program
   NextStatement(FOREACH)
   NextStatement(LOOP)
   NextStatement(REPEAT)
+  NextStatement(label)
   RaiseStatement(.name)
     nullptr
   RaiseStatement(name.name)
@@ -407,17 +433,26 @@ Program
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   RepeatStatement
+    REPEAT
     IdentifierExpression(expr)
   RepeatStatement
+    REPEAT
     IdentifierExpression(expr)
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
   RepeatStatement
+    REPEAT
     IdentifierExpression(expr)
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
+    ExpressionStatement
+      FunctionCallExpression
+        IdentifierExpression(statement)
+  RepeatStatement
+    label
+    IdentifierExpression(expr)
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
@@ -441,16 +476,25 @@ Program
   TryStatement
   WhileStatement
     IdentifierExpression(expr)
+    WHILE
   WhileStatement
     IdentifierExpression(expr)
+    WHILE
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
   WhileStatement
     IdentifierExpression(expr)
+    WHILE
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
+    ExpressionStatement
+      FunctionCallExpression
+        IdentifierExpression(statement)
+  WhileStatement
+    IdentifierExpression(expr)
+    label
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)

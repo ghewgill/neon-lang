@@ -1,0 +1,4 @@
+VAR foo: String
+FOR i := 1 TO 10 LABEL foo DO
+                       %<
+END FOR

@@ -1,0 +1,5 @@
+FOREACH x IN [1, 2, 3] LABEL foo DO
+    FOREACH y IN [1, 2, 3] LABEL foo DO
+                                 %<
+    END FOREACH
+END FOREACH

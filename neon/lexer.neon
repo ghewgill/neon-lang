@@ -109,6 +109,7 @@ TYPE Type IS ENUM
     gives
     nowhere
     intdiv
+    label
     unknown
     max_token
 END ENUM
@@ -350,6 +351,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "GIVES" THEN t.type := Type.gives
             ELSIF t.text = "NOWHERE" THEN t.type := Type.nowhere
             ELSIF t.text = "INTDIV" THEN t.type := Type.intdiv
+            ELSIF t.text = "LABEL" THEN t.type := Type.label
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN

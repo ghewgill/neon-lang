@@ -125,6 +125,7 @@ EXIT FOR
 EXIT FOREACH
 EXIT LOOP
 EXIT REPEAT
+EXIT label
 
 % ExpressionStatement
 statement()
@@ -134,12 +135,14 @@ FOR name := expr TO expr DO END FOR
 FOR name := expr TO expr DO statement() END FOR
 FOR name := expr TO expr DO statement() statement() END FOR
 FOR name := expr TO expr STEP expr DO END FOR
+FOR name := expr TO expr LABEL label DO END FOR
 
 % ForeachStatement
 FOREACH name IN expr DO END FOREACH
 FOREACH name IN expr DO statement() END FOREACH
 FOREACH name IN expr DO statement() statement() END FOREACH
 FOREACH name IN expr INDEX name DO END FOREACH
+FOREACH name IN expr LABEL label DO END FOREACH
 
 % IfStatement
 IF expr THEN END IF
@@ -164,6 +167,7 @@ IF VALID expr AS name, expr AS name THEN END IF
 LOOP END LOOP
 LOOP statement() END LOOP
 LOOP statement() statement() END LOOP
+LOOP LABEL label statement() END LOOP
 
 % NextStatement
 NEXT WHILE
@@ -171,6 +175,7 @@ NEXT FOR
 NEXT FOREACH
 NEXT LOOP
 NEXT REPEAT
+NEXT label
 
 % RaiseStatement
 RAISE name
@@ -182,6 +187,7 @@ RAISE name(expr, expr)
 REPEAT UNTIL expr
 REPEAT statement() UNTIL expr
 REPEAT statement() statement() UNTIL expr
+REPEAT LABEL label statement() UNTIL expr
 
 % ReturnStatement
 RETURN expr
@@ -199,6 +205,7 @@ TRY EXCEPTION name DO statement() statement() END TRY
 WHILE expr DO END WHILE
 WHILE expr DO statement() END WHILE
 WHILE expr DO statement() statement() END WHILE
+WHILE expr LABEL label DO statement() END WHILE
 
 % ConditionalExpression
 name := (IF expr THEN expr ELSE expr)

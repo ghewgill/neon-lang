@@ -360,6 +360,7 @@ public:
         child(node->start.get());
         child(node->end.get());
         child(node->step.get());
+        write("  " + node->label.text);
         for (auto &x: node->body) {
             child(x.get());
         }
@@ -367,6 +368,7 @@ public:
     virtual void visit(const ForeachStatement *node) override {
         write("ForeachStatement(" + node->var.text + ")");
         child(node->array.get());
+        write("  " + node->label.text);
         for (auto &x: node->body) {
             child(x.get());
         }
@@ -389,6 +391,7 @@ public:
     }
     virtual void visit(const LoopStatement *node) override {
         write("LoopStatement");
+        write("  " + node->label.text);
         for (auto &x: node->body) {
             child(x.get());
         }
@@ -402,6 +405,7 @@ public:
     }
     virtual void visit(const RepeatStatement *node) override {
         write("RepeatStatement");
+        write("  " + node->label.text);
         child(node->cond.get());
         for (auto &x: node->body) {
             child(x.get());
@@ -427,6 +431,7 @@ public:
     virtual void visit(const WhileStatement *node) override {
         write("WhileStatement");
         child(node->cond.get());
+        write("  " + node->label.text);
         for (auto &x: node->body) {
             child(x.get());
         }

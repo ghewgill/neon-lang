@@ -32,7 +32,7 @@ public:
     std::map<std::string, Token> exports;
 
     std::stack<std::pair<const Type *, const TypeFunction *>> functiontypes;
-    std::stack<std::list<std::pair<TokenType, unsigned int>>> loops;
+    std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
 
     const Type *analyze(const pt::Type *type, const std::string &name = std::string());
     const Type *analyze(const pt::TypeSimple *type, const std::string &name);
@@ -2325,7 +2325,7 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     frame.push(function->frame);
     scope.push(function->scope);
     functiontypes.push(std::make_pair(type, dynamic_cast<const TypeFunction *>(function->type)));
-    loops.push(std::list<std::pair<TokenType, unsigned int>>());
+    loops.push(std::list<std::pair<std::string, unsigned int>>());
     function->statements = analyze(declaration->body);
     const Type *returntype = dynamic_cast<const TypeFunction *>(function->type)->returntype;
     if (returntype != TYPE_NOTHING) {
@@ -2955,7 +2955,7 @@ const Statement *Analyzer::analyze(const pt::CheckStatement *statement)
     return new IfStatement(statement->token.line, condition_statements, else_statements);
 }
 
-static unsigned int get_loop_id(const Token &token, const std::stack<std::list<std::pair<TokenType, unsigned int>>> &loops, TokenType type)
+static unsigned int get_loop_id(const Token &token, const std::stack<std::list<std::pair<std::string, unsigned int>>> &loops, const std::string &type)
 {
     for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
         if (j->first == type) {
@@ -3060,7 +3060,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new ExitStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, LOOP)
+                    get_loop_id(statement->token, loops, "LOOP")
                 )
             );
             break;
@@ -3068,7 +3068,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new ExitStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, FOR)
+                    get_loop_id(statement->token, loops, "FOR")
                 )
             );
             break;
@@ -3076,7 +3076,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new ExitStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, FOREACH)
+                    get_loop_id(statement->token, loops, "FOREACH")
                 )
             );
             break;
@@ -3084,7 +3084,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new ExitStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, REPEAT)
+                    get_loop_id(statement->token, loops, "REPEAT")
                 )
             );
             break;
@@ -3092,7 +3092,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new ExitStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, WHILE)
+                    get_loop_id(statement->token, loops, "WHILE")
                 )
             );
             break;
@@ -3100,7 +3100,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new NextStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, LOOP)
+                    get_loop_id(statement->token, loops, "LOOP")
                 )
             );
             break;
@@ -3108,7 +3108,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new NextStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, FOR)
+                    get_loop_id(statement->token, loops, "FOR")
                 )
             );
             break;
@@ -3116,7 +3116,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new NextStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, FOREACH)
+                    get_loop_id(statement->token, loops, "FOREACH")
                 )
             );
             break;
@@ -3124,7 +3124,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new NextStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, REPEAT)
+                    get_loop_id(statement->token, loops, "REPEAT")
                 )
             );
             break;
@@ -3132,7 +3132,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             else_statements.push_back(
                 new NextStatement(
                     statement->token.line,
-                    get_loop_id(statement->token, loops, WHILE)
+                    get_loop_id(statement->token, loops, "WHILE")
                 )
             );
             break;
@@ -3378,7 +3378,7 @@ const Statement *Analyzer::analyze(const pt::ExitStatement *statement)
         }
         return new ReturnStatement(statement->token.line, nullptr);
     }
-    TokenType type = statement->type.type;
+    std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
@@ -3442,7 +3442,13 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     }
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
-    loops.top().push_back(std::make_pair(FOR, loop_id));
+    if (statement->label.type == IDENTIFIER) {
+        if (scope.top()->lookupName(statement->label.text) != nullptr) {
+            error(3213, statement->label, "loop label already defined");
+        }
+        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+    }
+    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const ReferenceExpression *> vars { new VariableExpression(var) };
     std::vector<const Statement *> init_statements {
         new AssignmentStatement(statement->token.line, vars, start),
@@ -3517,7 +3523,13 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     scope.top()->addName(Token(IDENTIFIER, ""), bound_name, bound, true);
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
-    loops.top().push_back(std::make_pair(FOREACH, loop_id));
+    if (statement->label.type == IDENTIFIER) {
+        if (scope.top()->lookupName(statement->label.text) != nullptr) {
+            error(3214, statement->label, "loop label already defined");
+        }
+        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+    }
+    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const Statement *> init_statements {
         new AssignmentStatement(statement->token.line, { new VariableExpression(index) }, new ConstantNumberExpression(number_from_uint32(0))),
         new AssignmentStatement(statement->token.line, { new VariableExpression(array_copy) }, array),
@@ -3618,9 +3630,15 @@ const Statement *Analyzer::analyze(const pt::IncrementStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
 {
-    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
-    loops.top().push_back(std::make_pair(LOOP, loop_id));
     scope.push(new Scope(scope.top(), frame.top()));
+    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
+    if (statement->label.type == IDENTIFIER) {
+        if (scope.top()->lookupName(statement->label.text) != nullptr) {
+            error(3215, statement->label, "loop label already defined");
+        }
+        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+    }
+    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const Statement *> statements = analyze(statement->body);
     scope.pop();
     loops.top().pop_back();
@@ -3629,7 +3647,7 @@ const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::NextStatement *statement)
 {
-    TokenType type = statement->type.type;
+    std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
@@ -3674,9 +3692,15 @@ const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
 {
-    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
-    loops.top().push_back(std::make_pair(REPEAT, loop_id));
     scope.push(new Scope(scope.top(), frame.top()));
+    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
+    if (statement->label.type == IDENTIFIER) {
+        if (scope.top()->lookupName(statement->label.text) != nullptr) {
+            error(3216, statement->label, "loop label already defined");
+        }
+        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+    }
+    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const Statement *> statements = analyze(statement->body);
     const Expression *cond = analyze(statement->cond.get());
     if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
@@ -3778,9 +3802,15 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
         error(3049, statement->cond->token, "boolean value expected");
     }
-    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
-    loops.top().push_back(std::make_pair(WHILE, loop_id));
     scope.push(new Scope(scope.top(), frame.top()));
+    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
+    if (statement->label.type == IDENTIFIER) {
+        if (scope.top()->lookupName(statement->label.text) != nullptr) {
+            error(3217, statement->label, "loop label already defined");
+        }
+        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+    }
+    loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const Statement *> statements {
         new IfStatement(
             statement->token.line,
@@ -3877,7 +3907,7 @@ const Program *Analyzer::analyze()
 
     //init_builtin_constants(global_scope);
 
-    loops.push(std::list<std::pair<TokenType, unsigned int>>());
+    loops.push(std::list<std::pair<std::string, unsigned int>>());
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();

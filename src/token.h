@@ -109,6 +109,7 @@ enum TokenType {
     NOWHERE,
     INTDIV,
     EXEC,
+    LABEL,
     UNKNOWN,
     MAX_TOKEN
 };

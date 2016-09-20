@@ -1,0 +1,5 @@
+LOOP LABEL foo
+    LOOP LABEL foo
+               %<
+    END LOOP
+END LOOP

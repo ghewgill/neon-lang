@@ -139,6 +139,7 @@ CHECK = Keyword("CHECK")
 GIVES = Keyword("GIVES")
 NOWHERE = Keyword("NOWHERE")
 INTDIV = Keyword("INTDIV")
+LABEL = Keyword("LABEL")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -925,22 +926,23 @@ class CaseStatement:
                 break
 
 class ExitStatement:
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, label):
+        self.label = label
     def declare(self, env):
         pass
     def run(self, env):
-        if self.type is FUNCTION:
+        if self.label == "FUNCTION":
             raise ReturnException(None)
         else:
-            raise ExitException(self.type)
+            raise ExitException(self.label)
 
 class ForStatement:
-    def __init__(self, var, start, end, step, statements):
+    def __init__(self, var, start, end, step, label, statements):
         self.var = var
         self.start = start
         self.end = end
         self.step = step
+        self.label = label
         self.statements = statements
     def declare(self, env):
         pass
@@ -959,19 +961,20 @@ class ForStatement:
                     for s in self.statements:
                         s.run(env)
                 except NextException as x:
-                    if x.type is not FOR:
+                    if x.label != self.label:
                         raise
                 i += step
         except ExitException as x:
-            if x.type is not FOR:
+            if x.label != self.label:
                 raise
         env = env.parent
 
 class ForeachStatement:
-    def __init__(self, var, array, index, statements):
+    def __init__(self, var, array, index, label, statements):
         self.var = var
         self.array = array
         self.index = index
+        self.label = label
         self.statements = statements
     def declare(self, env):
         pass
@@ -991,10 +994,10 @@ class ForeachStatement:
                     for s in self.statements:
                         s.run(env)
                 except NextException as x:
-                    if x.type is not FOREACH:
+                    if x.label != self.label:
                         raise
         except ExitException as x:
-            if x.type is not FOREACH:
+            if x.label != self.label:
                 raise
         env = env.parent
 
@@ -1033,7 +1036,8 @@ class IncrementStatement:
         self.expr.set(env, self.expr.eval(env) + self.delta)
 
 class LoopStatement:
-    def __init__(self, statements):
+    def __init__(self, label, statements):
+        self.label = label
         self.statements = statements
     def declare(self, env):
         pass
@@ -1047,20 +1051,20 @@ class LoopStatement:
                     for s in self.statements:
                         s.run(env)
                 except NextException as x:
-                    if x.type is not LOOP:
+                    if x.label != self.label:
                         raise
         except ExitException as x:
-            if x.type is not LOOP:
+            if x.label != self.label:
                 raise
         env = env.parent
 
 class NextStatement:
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, label):
+        self.label = label
     def declare(self, env):
         pass
     def run(self, env):
-        raise NextException(self.type)
+        raise NextException(self.label)
 
 class RaiseStatement:
     def __init__(self, name, info):
@@ -1072,7 +1076,8 @@ class RaiseStatement:
         raise NeonException(self.name)
 
 class RepeatStatement:
-    def __init__(self, cond, statements):
+    def __init__(self, label, cond, statements):
+        self.label = label
         self.cond = cond
         self.statements = statements
     def declare(self, env):
@@ -1087,13 +1092,13 @@ class RepeatStatement:
                     for s in self.statements:
                         s.run(env)
                 except NextException as x:
-                    if x.type is not REPEAT:
+                    if x.label != self.label:
                         raise
                     continue
                 if self.cond.eval(env):
                     break
         except ExitException as x:
-            if x.type is not REPEAT:
+            if x.label != self.label:
                 raise
         env = env.parent
 
@@ -1131,8 +1136,9 @@ class TryStatement:
         env = env.parent
 
 class WhileStatement:
-    def __init__(self, cond, statements):
+    def __init__(self, cond, label, statements):
         self.cond = cond
+        self.label = label
         self.statements = statements
     def declare(self, env):
         pass
@@ -1146,10 +1152,10 @@ class WhileStatement:
                     for s in self.statements:
                         s.run(env)
                 except NextException as x:
-                    if x.type is not WHILE:
+                    if x.label != self.label:
                         raise
         except ExitException as x:
-            if x.type is not WHILE:
+            if x.label != self.label:
                 raise
         env = env.parent
 
@@ -1775,9 +1781,9 @@ class Parser:
 
     def parse_exit_statement(self):
         self.expect(EXIT)
-        type = self.tokens[self.i]
+        label = self.tokens[self.i].name
         self.i += 1
-        return ExitStatement(type)
+        return ExitStatement(label)
 
     def parse_export(self):
         self.expect(EXPORT)
@@ -1853,6 +1859,10 @@ class Parser:
         if self.tokens[self.i] is STEP:
             self.i += 1
             step = self.parse_expression()
+        label = "FOR"
+        if self.tokens[self.i] is LABEL:
+            self.i += 1
+            label = self.identifier()
         self.expect(DO)
         statements = []
         while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
@@ -1861,7 +1871,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(FOR)
-        return ForStatement(var, start, end, step, statements)
+        return ForStatement(var, start, end, step, label, statements)
 
     def parse_foreach_statement(self):
         self.expect(FOREACH)
@@ -1872,6 +1882,10 @@ class Parser:
         if self.tokens[self.i] is INDEX:
             self.i += 1
             index = self.identifier()
+        label = "FOREACH"
+        if self.tokens[self.i] is LABEL:
+            self.i += 1
+            label = self.identifier()
         self.expect(DO)
         statements = []
         while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
@@ -1880,7 +1894,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(FOREACH)
-        return ForeachStatement(var, array, index, statements)
+        return ForeachStatement(var, array, index, label, statements)
 
     def parse_let_statement(self):
         self.expect(LET)
@@ -1893,6 +1907,10 @@ class Parser:
 
     def parse_loop_statement(self):
         self.expect(LOOP)
+        label = "LOOP"
+        if self.tokens[self.i] is LABEL:
+            self.i += 1
+            label = self.identifier()
         statements = []
         while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
             s = self.parse_statement()
@@ -1900,7 +1918,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(LOOP)
-        return LoopStatement(statements)
+        return LoopStatement(label, statements)
 
     def parse_main_statement(self):
         self.expect(BEGIN)
@@ -1916,9 +1934,9 @@ class Parser:
 
     def parse_next_statement(self):
         self.expect(NEXT)
-        type = self.tokens[self.i]
+        label = self.tokens[self.i].name
         self.i += 1
-        return NextStatement(type)
+        return NextStatement(label)
 
     def parse_raise_statement(self):
         self.expect(RAISE)
@@ -1934,6 +1952,10 @@ class Parser:
 
     def parse_repeat_statement(self):
         self.expect(REPEAT)
+        label = "REPEAT"
+        if self.tokens[self.i] is LABEL:
+            self.i += 1
+            label = self.identifier()
         statements = []
         while self.tokens[self.i] is not UNTIL and self.tokens[self.i] is not END_OF_FILE:
             s = self.parse_statement()
@@ -1941,7 +1963,7 @@ class Parser:
                 statements.append(s)
         self.expect(UNTIL)
         cond = self.parse_expression()
-        return RepeatStatement(cond, statements)
+        return RepeatStatement(label, cond, statements)
 
     def parse_return_statement(self):
         self.expect(RETURN)
@@ -1987,6 +2009,10 @@ class Parser:
     def parse_while_statement(self):
         self.expect(WHILE)
         cond = self.parse_expression()
+        label = "WHILE"
+        if self.tokens[self.i] is LABEL:
+            self.i += 1
+            label = self.identifier()
         self.expect(DO)
         statements = []
         while self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
@@ -1995,7 +2021,7 @@ class Parser:
                 statements.append(s)
         self.expect(END)
         self.expect(WHILE)
-        return WhileStatement(cond, statements)
+        return WhileStatement(cond, label, statements)
 
     def parse_statement(self):
         if self.tokens[self.i] is IMPORT:   return self.parse_import()
@@ -2196,16 +2222,16 @@ class Environment:
             assert False, name
 
 class ExitException:
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, label):
+        self.label = label
 
 class NeonException:
     def __init__(self, name):
         self.name = name
 
 class NextException:
-    def __init__(self, type):
-        self.type = type
+    def __init__(self, label):
+        self.label = label
 
 class ReturnException:
     def __init__(self, expr):

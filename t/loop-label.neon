@@ -1,0 +1,87 @@
+VAR x: Number
+
+FOR i := 0 TO 10 LABEL foo DO
+    IF i < 3 THEN
+        NEXT foo
+    END IF
+    print("FOR \(i)")
+    IF i >= 5 THEN
+        EXIT foo
+    END IF
+END FOR
+
+%= FOR 3
+%= FOR 4
+%= FOR 5
+
+FOREACH i IN [1, 2, 3, 4, 5, 6] LABEL foo DO
+    IF i < 3 THEN
+        NEXT foo
+    END IF
+    print("FOREACH \(i)")
+    IF i >= 5 THEN
+        EXIT foo
+    END IF
+END FOREACH
+
+%= FOREACH 3
+%= FOREACH 4
+%= FOREACH 5
+
+x := 0
+LOOP LABEL foo
+    INC x
+    IF x < 3 THEN
+        NEXT foo
+    END IF
+    print("LOOP \(x)")
+    IF x >= 5 THEN
+        EXIT foo
+    END IF
+END LOOP
+
+%= LOOP 3
+%= LOOP 4
+%= LOOP 5
+
+x := 0
+REPEAT LABEL foo
+    INC x
+    IF x < 3 THEN
+        NEXT foo
+    END IF
+    print("REPEAT \(x)")
+    IF x >= 5 THEN
+        EXIT foo
+    END IF
+UNTIL x >= 10
+
+%= REPEAT 3
+%= REPEAT 4
+%= REPEAT 5
+
+x := 0
+WHILE x < 10 LABEL foo DO
+    INC x
+    IF x < 3 THEN
+        NEXT foo
+    END IF
+    print("WHILE \(x)")
+    IF x >= 5 THEN
+        EXIT foo
+    END IF
+END WHILE
+
+%= WHILE 3
+%= WHILE 4
+%= WHILE 5
+
+LOOP LABEL foo
+    LOOP LABEL bar
+        print("a")
+        EXIT foo
+    END LOOP
+    print("b")
+END LOOP
+
+%= a
