@@ -1,5 +1,6 @@
 FOREACH x IN [1, 2, 3] LABEL foo DO
-    FOREACH y IN [1, 2, 3] LABEL foo DO
-                                 %<
-    END FOREACH
+                             %<1
 END FOREACH
+
+VAR foo: String
+    %<2

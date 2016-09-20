@@ -1,5 +1,6 @@
 WHILE FALSE LABEL foo DO
+                  %<2
     WHILE FALSE LABEL foo DO
-                      %<
+                      %<1
     END WHILE
 END WHILE

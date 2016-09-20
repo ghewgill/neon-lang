@@ -3443,8 +3443,9 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
-        if (scope.top()->lookupName(statement->label.text) != nullptr) {
-            error(3213, statement->label, "loop label already defined");
+        Token label = scope.top()->getDeclaration(statement->label.text);
+        if (label.type != NONE) {
+            error2(3213, statement->label, "loop label already defined", label, "declaration here");
         }
         scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
     }
@@ -3524,8 +3525,9 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
-        if (scope.top()->lookupName(statement->label.text) != nullptr) {
-            error(3214, statement->label, "loop label already defined");
+        Token label = scope.top()->getDeclaration(statement->label.text);
+        if (label.type != NONE) {
+            error2(3214, statement->label, "loop label already defined", label, "declaration here");
         }
         scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
     }
@@ -3633,8 +3635,9 @@ const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
     scope.push(new Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
-        if (scope.top()->lookupName(statement->label.text) != nullptr) {
-            error(3215, statement->label, "loop label already defined");
+        Token label = scope.top()->getDeclaration(statement->label.text);
+        if (label.type != NONE) {
+            error2(3215, statement->label, "loop label already defined", label, "declaration here");
         }
         scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
     }
@@ -3695,8 +3698,9 @@ const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     scope.push(new Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
-        if (scope.top()->lookupName(statement->label.text) != nullptr) {
-            error(3216, statement->label, "loop label already defined");
+        Token label = scope.top()->getDeclaration(statement->label.text);
+        if (label.type != NONE) {
+            error2(3216, statement->label, "loop label already defined", label, "declaration here");
         }
         scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
     }
@@ -3805,8 +3809,9 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
     scope.push(new Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
-        if (scope.top()->lookupName(statement->label.text) != nullptr) {
-            error(3217, statement->label, "loop label already defined");
+        Token label = scope.top()->getDeclaration(statement->label.text);
+        if (label.type != NONE) {
+            error2(3217, statement->label, "loop label already defined", label, "declaration here");
         }
         scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
     }
