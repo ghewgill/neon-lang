@@ -3490,15 +3490,27 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         error2(3169, var_name, "duplicate identifier", scope.top()->getDeclaration(var_name.text), "first declaration here");
     }
     const Expression *array = analyze(statement->array.get());
-    const TypeArray *atype = dynamic_cast<const TypeArray *>(array->type);
-    if (atype == nullptr) {
-        error(3170, statement->array->token, "array expected");
+    const TypeArray *arrtype = dynamic_cast<const TypeArray *>(array->type);
+    const Type *strtype = dynamic_cast<const TypeString *>(array->type);
+    const Type *atype;
+    const Type *elementtype;
+    std::string len_method;
+    if (arrtype != nullptr) {
+        atype = arrtype;
+        elementtype = arrtype->elementtype;
+        len_method = "size";
+    } else if (strtype != nullptr) {
+        atype = strtype;
+        elementtype = TYPE_STRING;
+        len_method = "length";
+    } else {
+        error(3170, statement->array->token, "array or string expected");
     }
     std::string array_copy_name = std::to_string(reinterpret_cast<intptr_t>(statement)+2);
     Variable *array_copy = frame.top()->createVariable(Token(), array_copy_name, atype, false);
     scope.top()->addName(Token(IDENTIFIER, ""), array_copy_name, array_copy, true);
 
-    Variable *var = frame.top()->createVariable(var_name, var_name.text, atype->elementtype, false);
+    Variable *var = frame.top()->createVariable(var_name, var_name.text, elementtype, false);
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
 
@@ -3535,7 +3547,7 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     std::vector<const Statement *> init_statements {
         new AssignmentStatement(statement->token.line, { new VariableExpression(index) }, new ConstantNumberExpression(number_from_uint32(0))),
         new AssignmentStatement(statement->token.line, { new VariableExpression(array_copy) }, array),
-        new AssignmentStatement(statement->token.line, { new VariableExpression(bound) }, new FunctionCall(new VariableExpression(atype->methods.at("size")), { new VariableExpression(array_copy) })),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(bound) }, new FunctionCall(new VariableExpression(atype->methods.at(len_method)), { new VariableExpression(array_copy) })),
     };
     std::vector<const Statement *> statements {
         new IfStatement(
@@ -3552,7 +3564,11 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
             },
             std::vector<const Statement *>()
         ),
-        new AssignmentStatement(statement->token.line, { new VariableExpression(var) }, new ArrayValueIndexExpression(var->type, new VariableExpression(array_copy), new VariableExpression(index), false)),
+        new AssignmentStatement(statement->token.line, { new VariableExpression(var) },
+            arrtype ? static_cast<Expression *>(new ArrayValueIndexExpression(var->type, new VariableExpression(array_copy), new VariableExpression(index), false)) :
+            strtype ? static_cast<Expression *>(new StringValueIndexExpression(new VariableExpression(array_copy), new VariableExpression(index), false, new VariableExpression(index), false, this)) :
+            nullptr
+        ),
     };
     std::vector<const Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));

@@ -1,0 +1,10 @@
+LET s: String := "hello"
+FOREACH c IN s DO
+    print(c)
+END FOREACH
+
+%= h
+%= e
+%= l
+%= l
+%= o
