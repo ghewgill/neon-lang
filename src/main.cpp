@@ -169,7 +169,12 @@ int main(int argc, char *argv[])
             break;
         } else if (arg == "-d") {
             a++;
-            debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
+            try {
+                debug_port = static_cast<unsigned short>(std::stoul(argv[a]));
+            } catch(std::invalid_argument) {
+                fprintf(stderr, "%s: -d requires integer argument\n", argv[0]);
+                exit(1);
+            }
         } else if (arg == "-l") {
             dump_listing = true;
         } else if (arg == "-n") {
