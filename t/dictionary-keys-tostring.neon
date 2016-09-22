@@ -1,0 +1,12 @@
+% TODO
+TYPE Colour IS ENUM
+    red
+    green
+END ENUM
+
+LET d: Dictionary<String> := {
+    "red": "lucky"
+    Colour.green.toString(): "grass"
+}
+
+ASSERT d["green"] = "grass"

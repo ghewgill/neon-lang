@@ -2511,6 +2511,7 @@ ExcludeTests = [
     "t/assert-empty-array.neon", # TODO only for C++ implementation
     "t/bytes.neon",             # FIXME
     "t/bytes-slice.neon",       # FIXME
+    "t/dictionary-keys-tostring.neon", # Does not fail here
     "t/file-test.neon",         # Code in module doesn't work yet
     "t/file-writebytes.neon",   # FIXME
     "t/function-pointer.neon",  # Function pointer not required yet
