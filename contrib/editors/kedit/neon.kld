@@ -1,5 +1,5 @@
 * neon.kld - KEDIT Language Definition for the Neon Programming Language.
-* Version 1.7 - May, 2016
+* Version 1.8 - September, 2016
 
 :case
  respect
@@ -29,6 +29,7 @@
  CONSTANT
  DEC
  DECLARE
+ DEREFERENCE
  DO
  ELSE
  ELSIF
@@ -48,13 +49,13 @@
  INDEX
  INTDIV
  IS
+ LABEL
  LET
  LOOP
  MAIN
  NATIVE
  NEW
  NEXT
- OF
  POINTER
  PRIVATE
  RECORD
@@ -97,6 +98,56 @@
 * Boolean literals
  FALSE          alternate 2
  TRUE           alternate 2
+* Embedded SQL
+ ALL            alternate 3
+ BINARY         alternate 3
+ BY             alternate 3
+ CLOSE          alternate 3
+ CONNECT        alternate 3
+ CONNECTION     alternate 3
+ CONTINUE       alternate 3
+ CREATE         alternate 3
+ CURRENT        alternate 3
+ CURSOR         alternate 3
+ DATETIME       alternate 3
+ DELETE         alternate 3
+ DESCRIBE       alternate 3
+ DESC           alternate 3
+ DISCONNECT     alternate 3
+ DROP           alternate 3
+ EXECUTE        alternate 3
+ EXEC           alternate 3
+ EXISTS         alternate 3
+ FETCH          alternate 3
+ FOUND          alternate 3
+ FROM           alternate 3
+ HOLD           alternate 3
+ IMMEDIATE      alternate 3
+ INSENSITIVE    alternate 3
+ INSERT         alternate 3
+ INTEGER        alternate 3
+ INTO           alternate 3
+ KEY            alternate 3
+ LIMIT          alternate 3
+ NO             alternate 3
+ OPEN           alternate 3
+ ORDER          alternate 3
+ PREPARE        alternate 3
+ PRIMARY        alternate 3
+ SCROLL         alternate 3
+ SELECT         alternate 3
+ SET            alternate 3
+ STRING         alternate 3
+ SQL            alternate 3
+ SQLERROR       alternate 3
+ SQLPRINT       alternate 3
+ SQLWARNING     alternate 3
+ STOP           alternate 3
+ TABLE          alternate 3
+ USING          alternate 3
+ VALUES         alternate 3
+ WHENEVER       alternate 3
+ WITHOUT        alternate 3
 
 :postcompare
  text INTDIV    alternate 1
