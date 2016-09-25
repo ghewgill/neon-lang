@@ -4,8 +4,17 @@ file.delete("tmp/license-copy.txt")
 file.writeLines("tmp/license-copy.txt", ["This file is created as part of ", "the Neon test suite, and can be ", "safely deleted."])
 
 TRY
-    file.copy("LICENSE.txt", "tmp/license-copy.txt")
-    print("File copied")
+    % Try this a few times because sometimes on the OS X build on Travis,
+    % we get an ENOENT error from copyfile() which is not the result we
+    % expected. Trying again seems to fix it.
+    FOR i := 1 TO 3 DO
+        TRY
+            file.copy("LICENSE.txt", "tmp/license-copy.txt")
+            print("File copied")
+            EXIT FOR
+        EXCEPTION file.PathNotFoundException DO
+        END TRY
+    END FOR
 EXCEPTION file.FileExistsException DO
     print("Failed")
 END TRY
