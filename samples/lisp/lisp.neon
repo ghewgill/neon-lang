@@ -62,7 +62,7 @@ TYPE Value IS RECORD
         car: POINTER TO Value
         cdr: POINTER TO Value
     END RECORD
-    val_proc: FUNCTION(args: Array<Value>): POINTER TO Value
+    val_proc: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value
 END RECORD
 
 FUNCTION make_null(): POINTER TO Value
@@ -92,7 +92,7 @@ FUNCTION make_pair(car, cdr: POINTER TO Value): POINTER TO Value
     RETURN r
 END FUNCTION
 
-FUNCTION make_proc(proc: FUNCTION(args: Array<Value>): POINTER TO Value): POINTER TO Value
+FUNCTION make_proc(proc: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value): POINTER TO Value
     RETURN NEW Value(type WITH Type.proc, val_proc WITH proc)
 END FUNCTION
 
@@ -260,18 +260,12 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                     RETURN r
                 ELSIF VALID e->val_pair.car AS car THEN
                     LET proc: POINTER TO Value := eval2(car, env)
-                    VAR args: Array<Value>
+                    VAR args: Array<POINTER TO Value>
                     VAR a: POINTER TO Value := e->val_pair.cdr
                     LOOP
                         VAR next: POINTER TO Value := NIL % FIXME: shouldn't need init here
                         IF VALID a THEN
-                            VAR arg: Value := Value()
-                            IF VALID eval2(a->val_pair.car, env) AS q THEN
-                                valueCopy(arg, q)
-                            ELSE
-                                arg.type := Type.null
-                            END IF
-                            args.append(arg)
+                            args.append(eval2(a->val_pair.car, env))
                             next := a->val_pair.cdr
                         ELSE
                             EXIT LOOP
@@ -283,7 +277,7 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                             WHEN Type.pair DO
                                 % ...
                             WHEN Type.proc DO
-                                LET f: FUNCTION(args: Array<Value>): POINTER TO Value := proc->val_proc % TODO: should be able to call this directly
+                                LET f: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value := proc->val_proc % TODO: should be able to call this directly
                                 RETURN f(args)
                             WHEN OTHERS DO
                                 print("can't call \(proc->type)")
@@ -361,16 +355,25 @@ FUNCTION repl()
     END LOOP
 END FUNCTION
 
-FUNCTION multiply(args: Array<Value>): POINTER TO Value
-    RETURN make_number(args[0].val_number * args[1].val_number)
+FUNCTION multiply(args: Array<POINTER TO Value>): POINTER TO Value
+    IF VALID args[0] AS a0, args[1] AS a1 THEN
+        RETURN make_number(a0->val_number * a1->val_number)
+    END IF
+    RETURN NIL
 END FUNCTION
 
-FUNCTION add(args: Array<Value>): POINTER TO Value
-    RETURN make_number(args[0].val_number + args[1].val_number)
+FUNCTION add(args: Array<POINTER TO Value>): POINTER TO Value
+    IF VALID args[0] AS a0, args[1] AS a1 THEN
+        RETURN make_number(a0->val_number + a1->val_number)
+    END IF
+    RETURN NIL
 END FUNCTION
 
-FUNCTION abs(args: Array<Value>): POINTER TO Value
-    RETURN make_number(math.abs(args[0].val_number))
+FUNCTION abs(args: Array<POINTER TO Value>): POINTER TO Value
+    IF VALID args[0] AS a0 THEN
+        RETURN make_number(math.abs(a0->val_number))
+    END IF
+    RETURN NIL
 END FUNCTION
 
 FUNCTION test_repr()
