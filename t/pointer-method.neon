@@ -1,5 +1,3 @@
-% TODO
-
 TYPE Record IS RECORD
     name: String
 END RECORD

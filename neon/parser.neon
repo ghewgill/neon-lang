@@ -3844,10 +3844,7 @@ LET Dumper: IParseTreeVisitor := {
 
 FUNCTION dumpParseTree(pt: POINTER TO ParseTreeNode, depth: Number)
     IF VALID pt THEN
-        % TODO: should be able to write pt->accept(Dumper) here
-        VAR node: ParseTreeNode := ParseTreeNode()
-        valueCopy(node, pt)
-        node.accept(Dumper, depth)
+        pt->accept(Dumper, depth)
     ELSE
         dumpNode(depth, "nullptr")
     END IF

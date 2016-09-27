@@ -1,0 +1,7 @@
+TYPE Rec IS RECORD
+    name: String
+END RECORD
+
+LET p: POINTER TO Rec := NEW Rec
+p->hello()
+   %<

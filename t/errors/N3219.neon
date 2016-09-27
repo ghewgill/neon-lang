@@ -1,0 +1,7 @@
+TYPE Rec IS RECORD
+    name: String
+END RECORD
+
+VAR p: POINTER TO Rec
+p->hello()
+%<

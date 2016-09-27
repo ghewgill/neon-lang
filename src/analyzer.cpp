@@ -1319,6 +1319,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
     }
     const pt::DotExpression *dotmethod = dynamic_cast<const pt::DotExpression *>(expr->base.get());
+    const pt::ArrowExpression *arrowmethod = dynamic_cast<const pt::ArrowExpression *>(expr->base.get());
     const Expression *self = nullptr;
     const Expression *func = nullptr;
     if (dotmethod != nullptr) {
@@ -1345,6 +1346,21 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 func = analyze(expr->base.get());
             }
         }
+    } else if (arrowmethod != nullptr) {
+        const Expression *base = analyze(arrowmethod->base.get());
+        const TypePointer *ptype = dynamic_cast<const TypePointer *>(base->type);
+        if (ptype == nullptr) {
+            error(3218, arrowmethod->base->token, "pointer type expected");
+        }
+        if (dynamic_cast<const TypeValidPointer *>(ptype) == nullptr) {
+            error(3219, arrowmethod->base->token, "valid pointer required");
+        }
+        auto m = ptype->reftype->methods.find(arrowmethod->name.text);
+        if (m == ptype->reftype->methods.end()) {
+            error(3220, arrowmethod->name, "method not found");
+        }
+        self = new PointerDereferenceExpression(ptype->reftype, base);
+        func = new VariableExpression(m->second);
     } else if (recordtype == nullptr) {
         func = analyze(expr->base.get());
     }

@@ -853,6 +853,8 @@ class FunctionCallExpression:
             funcenv = Environment(e)
             if isinstance(self.func, DotExpression) and not (isinstance(self.func.expr, IdentifierExpression) and isinstance(env.get_type(self.func.expr.name), ClassModule)):
                 args = [self.func.expr.eval(env)] + args
+            elif isinstance(self.func, ArrowExpression):
+                args = [self.func.expr.eval(env)] + args
             r = f(funcenv, *args)
             if hasattr(f, "_outs"):
                 j = 1
