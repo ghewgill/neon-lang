@@ -88,9 +88,17 @@ std::string substring(const std::string &s, Number offset, Number length)
     assert(number_is_integer(offset));
     assert(number_is_integer(length));
     auto start = s.begin();
-    utf8::advance(start, number_to_uint32(offset), s.end());
+    try {
+        utf8::advance(start, number_to_uint32(offset), s.end());
+    } catch (utf8::not_enough_room) {
+        throw RtlException(global::Exception_ArrayIndexException, "offset");
+    }
     auto end = start;
-    utf8::advance(end, number_to_uint32(length), s.end());
+    try {
+        utf8::advance(end, number_to_uint32(length), s.end());
+    } catch (utf8::not_enough_room) {
+        throw RtlException(global::Exception_ArrayIndexException, "length");
+    }
     return std::string(start, end);
 }
 
