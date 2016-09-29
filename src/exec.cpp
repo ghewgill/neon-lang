@@ -317,6 +317,7 @@ private:
     void exec_JNASSERT();
     void exec_RESETC();
     void exec_PUSHPEG();
+    void exec_JUMPTBL();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -1322,6 +1323,23 @@ void Executor::exec_PUSHPEG()
     stack.push(Cell(i->second));
 }
 
+void Executor::exec_JUMPTBL()
+{
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    Number n = stack.top().number(); stack.pop();
+    if (number_is_integer(n)) {
+        uint32_t i = number_to_uint32(n);
+        if (i < val) {
+            ip += 5 * i;
+        } else {
+            ip += 5 * val;
+        }
+    } else {
+        ip += 5 * val;
+    }
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -1636,6 +1654,7 @@ void Executor::exec()
             case JNASSERT:exec_JNASSERT(); break;
             case RESETC:  exec_RESETC(); break;
             case PUSHPEG: exec_PUSHPEG(); break;
+            case JUMPTBL: exec_JUMPTBL(); break;
         }
         if (module == last_module && ip == last_ip) {
             fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);

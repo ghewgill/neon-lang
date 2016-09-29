@@ -13,9 +13,12 @@
 #include "opcode.h"
 
 class Emitter {
+public:
     class Label {
         friend class Emitter;
+    public:
         Label(): fixups(), target(UINT_MAX) {}
+    private:
         std::vector<unsigned int> fixups;
         unsigned int target;
     public:
@@ -1545,6 +1548,71 @@ void CaseStatement::generate_code(Emitter &emitter) const
 {
     expr->generate(emitter);
     auto end_label = emitter.create_label();
+
+    if (dynamic_cast<const TypeNumber *>(expr->type) != nullptr) {
+        std::map<int32_t, std::vector<const Statement *>> values;
+        std::vector<const Statement *> when_others;
+        bool all_integer_equality = true;
+        for (auto clause: clauses) {
+            for (auto cond: clause.first) {
+                const ComparisonWhenCondition *comp = dynamic_cast<const ComparisonWhenCondition *>(cond);
+                if (comp != nullptr && comp->comp == ComparisonExpression::EQ) {
+                    Number n = comp->expr->eval_number(Token());
+                    if (number_is_integer(n)) {
+                        int32_t x = number_to_sint32(n);
+                        if (x > INT32_MIN && x < INT32_MAX) {
+                            values[x] = clause.second;
+                        }
+                    } else {
+                        all_integer_equality = false;
+                    }
+                } else {
+                    all_integer_equality = false;
+                }
+            }
+            if (clause.first.empty()) {
+                when_others = clause.second;
+            }
+        }
+        if (all_integer_equality && not values.empty()) {
+            const int32_t min = values.begin()->first;
+            const int32_t max = values.rbegin()->first;
+            const int32_t range = max - min + 1;
+            if (range < 10000 && values.size() > static_cast<size_t>(range)/10) {
+                if (min != 0) {
+                    emitter.emit(PUSHN, number_from_sint32(min));
+                    emitter.emit(SUBN);
+                }
+                emitter.emit(JUMPTBL, range);
+                std::map<int32_t, Emitter::Label> labels;
+                auto others_label = emitter.create_label();
+                for (int32_t i = min; i <= max; i++) {
+                    auto v = values.find(i);
+                    if (v != values.end()) {
+                        labels[i] = emitter.create_label();
+                        emitter.emit_jump(JUMP, labels[i]);
+                    } else {
+                        emitter.emit_jump(JUMP, others_label);
+                    }
+                }
+                emitter.emit_jump(JUMP, others_label);
+                for (auto v: values) {
+                    emitter.jump_target(labels[v.first]);
+                    for (auto stmt: v.second) {
+                        stmt->generate(emitter);
+                    }
+                    emitter.emit_jump(JUMP, end_label);
+                }
+                emitter.jump_target(others_label);
+                for (auto stmt: when_others) {
+                    stmt->generate(emitter);
+                }
+                emitter.jump_target(end_label);
+                return;
+            }
+        }
+    }
+
     for (auto clause: clauses) {
         auto &conditions = clause.first;
         auto &statements = clause.second;

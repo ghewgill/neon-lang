@@ -86,6 +86,7 @@ enum Opcode {
     JNASSERT,   // jump if assertions disabled
     RESETC,     // reset cell
     PUSHPEG,    // push pointer to external global
+    JUMPTBL,    // jump table
 };
 
 #endif

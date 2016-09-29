@@ -414,10 +414,12 @@ FUNCTION get_string(addr: Number): String
 END FUNCTION
 
 FUNCTION run_instruction(instr: Number, INOUT ip: Number)
+    IF instr > 0 THEN
+        return.append(ReturnEntry(ip WITH ip+1))
+        ip := instr
+        EXIT FUNCTION
+    END IF
     CASE instr
-        WHEN > 0 DO
-            return.append(ReturnEntry(ip WITH ip+1))
-            ip := instr
         WHEN 0 DO
             ip := return[LAST].ip
             return.resize(return.size()-1)

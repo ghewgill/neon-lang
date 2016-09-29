@@ -106,6 +106,7 @@ private:
     void disasm_JNASSERT();
     void disasm_RESETC();
     void disasm_PUSHPEG();
+    void disasm_JUMPTBL();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -660,6 +661,13 @@ void Disassembler::disasm_PUSHPEG()
     out << "PUSHPEG \"" << obj.strtable[val] << "\"\n";
 }
 
+void Disassembler::disasm_JUMPTBL()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "JUMPTBL " << val << "\n";
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -815,6 +823,7 @@ void Disassembler::disassemble()
             case JNASSERT:disasm_JNASSERT(); break;
             case RESETC:  disasm_RESETC(); break;
             case PUSHPEG: disasm_PUSHPEG(); break;
+            case JUMPTBL: disasm_JUMPTBL(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";
