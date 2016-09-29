@@ -1550,10 +1550,10 @@ void CaseStatement::generate_code(Emitter &emitter) const
     auto end_label = emitter.create_label();
 
     if (dynamic_cast<const TypeNumber *>(expr->type) != nullptr) {
-        std::map<int32_t, std::vector<const Statement *>> values;
+        std::map<int32_t, const std::vector<const Statement *> *> values;
         std::vector<const Statement *> when_others;
         bool all_integer_equality = true;
-        for (auto clause: clauses) {
+        for (auto &clause: clauses) {
             for (auto cond: clause.first) {
                 const ComparisonWhenCondition *comp = dynamic_cast<const ComparisonWhenCondition *>(cond);
                 if (comp != nullptr && comp->comp == ComparisonExpression::EQ) {
@@ -1561,7 +1561,7 @@ void CaseStatement::generate_code(Emitter &emitter) const
                     if (number_is_integer(n)) {
                         int32_t x = number_to_sint32(n);
                         if (x > INT32_MIN && x < INT32_MAX) {
-                            values[x] = clause.second;
+                            values[x] = &clause.second;
                         }
                     } else {
                         all_integer_equality = false;
@@ -1584,21 +1584,24 @@ void CaseStatement::generate_code(Emitter &emitter) const
                     emitter.emit(SUBN);
                 }
                 emitter.emit(JUMPTBL, range);
-                std::map<int32_t, Emitter::Label> labels;
+                std::map<const std::vector<const Statement *> *, Emitter::Label> labels;
                 auto others_label = emitter.create_label();
                 for (int32_t i = min; i <= max; i++) {
                     auto v = values.find(i);
                     if (v != values.end()) {
-                        labels[i] = emitter.create_label();
-                        emitter.emit_jump(JUMP, labels[i]);
+                        auto label = labels.find(v->second);
+                        if (label == labels.end()) {
+                            labels[v->second] = emitter.create_label();
+                        }
+                        emitter.emit_jump(JUMP, labels[v->second]);
                     } else {
                         emitter.emit_jump(JUMP, others_label);
                     }
                 }
                 emitter.emit_jump(JUMP, others_label);
-                for (auto v: values) {
-                    emitter.jump_target(labels[v.first]);
-                    for (auto stmt: v.second) {
+                for (auto &label: labels) {
+                    emitter.jump_target(label.second);
+                    for (auto stmt: *label.first) {
                         stmt->generate(emitter);
                     }
                     emitter.emit_jump(JUMP, end_label);
