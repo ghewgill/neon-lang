@@ -1,7 +1,7 @@
-TYPE Node IS RECORD
+TYPE Node IS CLASS
     next: POINTER TO Node
     value: Number
-END RECORD
+END CLASS
 
 VAR a: POINTER TO Node
 

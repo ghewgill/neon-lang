@@ -20,16 +20,16 @@ DECLARE EXCEPTION ParseEndOfInputException
 DECLARE EXCEPTION SyntaxErrorException
 DECLARE EXCEPTION TypeMismatchException
 
-TYPE Environment IS RECORD
+TYPE Environment IS CLASS
     parent: POINTER TO Environment
     names: Dictionary<POINTER TO Value>
-END RECORD
+END CLASS
 
 LET g_env: POINTER TO Environment := NEW Environment
 
-TYPE Symbol IS RECORD
+TYPE Symbol IS CLASS
     name: String
-END RECORD
+END CLASS
 
 VAR Symbols: Dictionary<POINTER TO Symbol>
 
@@ -52,7 +52,7 @@ TYPE Type IS ENUM
     proc
 END ENUM
 
-TYPE Value IS RECORD
+TYPE Value IS CLASS
     type: Type
     val_boolean: Boolean
     val_number: Number
@@ -63,7 +63,7 @@ TYPE Value IS RECORD
         cdr: POINTER TO Value
     END RECORD
     val_proc: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value
-END RECORD
+END CLASS
 
 FUNCTION make_null(): POINTER TO Value
     RETURN NEW Value(type WITH Type.null)
@@ -96,20 +96,20 @@ FUNCTION make_proc(proc: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Val
     RETURN NEW Value(type WITH Type.proc, val_proc WITH proc)
 END FUNCTION
 
-FUNCTION Value.to_string(IN self: Value): String
-    CASE self.type
+FUNCTION Value.to_string(IN self: VALID POINTER TO Value): String
+    CASE self->type
         WHEN Type.null DO
             RETURN "null"
         WHEN Type.boolean DO
-            RETURN (IF self.val_boolean THEN "true" ELSE "false")
+            RETURN (IF self->val_boolean THEN "true" ELSE "false")
         WHEN Type.number DO
-            RETURN str(self.val_number)
+            RETURN str(self->val_number)
         WHEN Type.symbol DO
-            IF VALID self.val_symbol AS p THEN
+            IF VALID self->val_symbol AS p THEN
                 RETURN p->name
             END IF
         WHEN Type.string DO
-            RETURN self.val_string
+            RETURN self->val_string
         WHEN Type.pair DO
             RETURN "<pair>"
     END CASE

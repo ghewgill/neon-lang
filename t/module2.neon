@@ -1,7 +1,7 @@
 IMPORT module
 IMPORT module.enum
 
-VAR r: module.type := module.type()
+VAR r: module.record := module.record()
 r.string := "hello"
 print(r.string)
 %= hello

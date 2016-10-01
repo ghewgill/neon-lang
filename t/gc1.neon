@@ -1,8 +1,8 @@
 IMPORT runtime
 
-TYPE Node IS RECORD
+TYPE Node IS CLASS
     value: Number
-END RECORD
+END CLASS
 
 VAR a, b: POINTER TO Node
 

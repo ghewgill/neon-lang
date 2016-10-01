@@ -364,7 +364,7 @@ TYPE Str_30         IS String
 TYPE Arr_1_Dim      IS Array<Number>
 TYPE Arr_2_Dim      IS Array<Array<Number>>
 
-TYPE Record IS RECORD
+TYPE Record IS CLASS
     Ptr_Comp: POINTER TO Record
     Discr: Enumeration
 
@@ -377,7 +377,7 @@ TYPE Record IS RECORD
 
     Ch_1_Comp: String
     Ch_2_Comp: String
-END RECORD
+END CLASS
 
 % Global Variables:
 

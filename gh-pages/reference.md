@@ -415,10 +415,10 @@ To use (dereference) a pointer, it must first be checked for validity (not `NIL`
 
 Example:
 
-    TYPE Item IS RECORD
+    TYPE Item IS CLASS
         name: String
         size: Number
-    END RECORD
+    END CLASS
 
     VAR item: POINTER TO Item
 
@@ -781,9 +781,9 @@ Additional alternatives may be introduced with the `ELSIF` clause:
 
 The `IF VALID` form is used to test a pointer value to check whether it is `NIL`, and capture the pointer value in a new variable for use within the `IF VALID` block.
 
-    TYPE Record IS RECORD
+    TYPE Record IS CLASS
         name: String
-    END RECORD
+    END CLASS
 
     VAR p: POINTER TO Record := NIL
 

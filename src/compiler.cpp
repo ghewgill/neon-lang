@@ -588,6 +588,13 @@ void TypeRecord::get_type_references(std::set<const Type *> &references) const
     }
 }
 
+std::string TypeClass::get_type_descriptor(Emitter &emitter) const
+{
+    std::string r = TypeRecord::get_type_descriptor(emitter);
+    r[0] = 'C';
+    return r;
+}
+
 void TypePointer::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADP);
@@ -986,7 +993,7 @@ void RecordLiteralExpression::generate_expr(Emitter &emitter) const
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
 }
 
-void NewRecordExpression::generate_expr(Emitter &emitter) const
+void NewClassExpression::generate_expr(Emitter &emitter) const
 {
     if (value != nullptr) {
         value->generate(emitter);

@@ -58,13 +58,13 @@ TYPE FunctionCallArgument IS RECORD
     expr: POINTER TO ParseTreeNode
 END RECORD
 
-TYPE ArrayRange IS RECORD
+TYPE ArrayRange IS CLASS
     token: lexer.Token
     first: POINTER TO ParseTreeNode
     firstFromEnd: Boolean
     last: POINTER TO ParseTreeNode
     lastFromEnd: Boolean
-END RECORD
+END CLASS
 
 TYPE InterpolatedStringPart IS RECORD
     expr: POINTER TO ParseTreeNode
@@ -143,7 +143,7 @@ TYPE Type IS ENUM
     DisjunctionExpression
     ConditionalExpression
     TryExpression
-    NewRecordExpression
+    NewClassExpression
     ValidPointerExpression
     RangeSubscriptExpression
     ImportDeclaration
@@ -354,7 +354,7 @@ TYPE TryExpression IS RECORD
     catches: Array<TryStatementClause>
 END RECORD
 
-TYPE NewRecordExpression IS RECORD
+TYPE NewClassExpression IS RECORD
     startColumn: Number
     endColumn: Number
     expr: POINTER TO ParseTreeNode
@@ -536,7 +536,7 @@ TYPE VariableInfo IS RECORD
     type: POINTER TO ParseTreeNode
 END RECORD
 
-TYPE ParseTreeNode IS RECORD
+TYPE ParseTreeNode IS CLASS
     type: Type
     token: lexer.Token
     typesimple: TypeSimple
@@ -567,7 +567,7 @@ TYPE ParseTreeNode IS RECORD
     chainedcomparisonexpression: ChainedComparisonExpression
     conditionalexpression: ConditionalExpression
     tryexpression: TryExpression
-    newrecordexpression: NewRecordExpression
+    newclassexpression: NewClassExpression
     validpointerexpression: ValidPointerExpression
     rangesubscriptexpression: RangeSubscriptExpression
     importdeclaration: ImportDeclaration
@@ -599,13 +599,13 @@ TYPE ParseTreeNode IS RECORD
     tryhandlerstatement: TryHandlerStatement
     whilestatement: WhileStatement
     program: Program
-END RECORD
+END CLASS
 
-TYPE IParseTreeVisitor IS Dictionary<FUNCTION(node: ParseTreeNode, depth: Number)>
+TYPE IParseTreeVisitor IS Dictionary<FUNCTION(node: VALID POINTER TO ParseTreeNode, depth: Number)>
 
-FUNCTION ParseTreeNode.accept(INOUT self: ParseTreeNode, visitor: IParseTreeVisitor, depth: Number)
+FUNCTION ParseTreeNode.accept(self: VALID POINTER TO ParseTreeNode, visitor: IParseTreeVisitor, depth: Number)
     % TODO: should not need a temporary here
-    LET f: FUNCTION(node: ParseTreeNode, depth: Number) := visitor[self.type.toString()]
+    LET f: FUNCTION(node: VALID POINTER TO ParseTreeNode, depth: Number) := visitor[self->type.toString()]
     f(self, depth)
 END FUNCTION
 
@@ -675,7 +675,7 @@ FUNCTION getStartColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.startColumn
             WHEN Type.ConditionalExpression        DO RETURN node->binaryexpression.startColumn
             WHEN Type.TryExpression                DO RETURN node->tryexpression.startColumn
-            WHEN Type.NewRecordExpression          DO RETURN node->newrecordexpression.startColumn
+            WHEN Type.NewClassExpression           DO RETURN node->newclassexpression.startColumn
             WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.startColumn
             WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.startColumn
         END CASE
@@ -723,7 +723,7 @@ FUNCTION getEndColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.endColumn
             WHEN Type.ConditionalExpression        DO RETURN node->binaryexpression.endColumn
             WHEN Type.TryExpression                DO RETURN node->tryexpression.endColumn
-            WHEN Type.NewRecordExpression          DO RETURN node->newrecordexpression.endColumn
+            WHEN Type.NewClassExpression           DO RETURN node->newclassexpression.endColumn
             WHEN Type.ValidPointerExpression       DO RETURN node->validpointerexpression.endColumn
             WHEN Type.RangeSubscriptExpression     DO RETURN node->rangesubscriptexpression.endColumn
         END CASE
@@ -1341,9 +1341,9 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                 expr := self.parseFunctionCall(expr)
             END IF
             RETURN NEW ParseTreeNode(
-                type WITH Type.NewRecordExpression,
+                type WITH Type.NewClassExpression,
                 token WITH tokNew,
-                newrecordexpression WITH NewRecordExpression(
+                newclassexpression WITH NewClassExpression(
                     startColumn WITH tokNew.column,
                     endColumn WITH self.token.column,
                     expr WITH expr
@@ -3262,13 +3262,13 @@ FUNCTION dumpNode(depth: Number, label: String)
     print("\(string.repeat(" ", depth*2))\(label)")
 END FUNCTION
 
-FUNCTION dumpTypeSimple(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "TypeSimple(\(node.typesimple.name))")
+FUNCTION dumpTypeSimple(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypeSimple(\(node->typesimple.name))")
 END FUNCTION
 
-FUNCTION dumpTypeEnum(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTypeEnum(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
-    FOREACH n IN node.typeenum.names DO
+    FOREACH n IN node->typeenum.names DO
         IF names # "" THEN
             names.append(",")
         END IF
@@ -3277,9 +3277,9 @@ FUNCTION dumpTypeEnum(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "TypeEnum(\(names))")
 END FUNCTION
 
-FUNCTION dumpTypeRecord(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTypeRecord(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
-    FOREACH f IN node.typerecord.fields DO
+    FOREACH f IN node->typerecord.fields DO
         IF names # "" THEN
             names.append(",")
         END IF
@@ -3288,316 +3288,316 @@ FUNCTION dumpTypeRecord(node: ParseTreeNode, depth: Number)
     dumpNode(depth, "TypeRecord(\(names))")
 END FUNCTION
 
-FUNCTION dumpTypePointer(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTypePointer(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TypePointer")
-    dumpParseTree(node.typepointer.reftype, depth+1)
+    dumpParseTree(node->typepointer.reftype, depth+1)
 END FUNCTION
 
-FUNCTION dumpTypeFunctionPointer(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTypeFunctionPointer(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TypeFunctionPointer")
-    dumpParseTree(node.typefunctionpointer.returntype, depth+1)
+    dumpParseTree(node->typefunctionpointer.returntype, depth+1)
 END FUNCTION
 
-FUNCTION dumpTypeParameterised(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "TypeParameterised(\(node.typeparameterised.name.text))")
-    dumpParseTree(node.typeparameterised.elementtype, depth+1)
+FUNCTION dumpTypeParameterised(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypeParameterised(\(node->typeparameterised.name.text))")
+    dumpParseTree(node->typeparameterised.elementtype, depth+1)
 END FUNCTION
 
-FUNCTION dumpTypeImport(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTypeImport(node: VALID POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
-FUNCTION dumpDummyExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpDummyExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "DummyExpression")
 END FUNCTION
 
-FUNCTION dumpIdentityExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpIdentityExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "IdentityExpression")
-    dumpParseTree(node.unaryexpression.expr, depth+1)
+    dumpParseTree(node->unaryexpression.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpBooleanLiteralExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "BooleanLiteralExpression(\((IF node.booleanliteralexpression.value THEN "true" ELSE "false")))")
+FUNCTION dumpBooleanLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "BooleanLiteralExpression(\((IF node->booleanliteralexpression.value THEN "true" ELSE "false")))")
 END FUNCTION
 
-FUNCTION dumpNumberLiteralExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "NumberLiteralExpression(\(node.numberliteralexpression.value))")
+FUNCTION dumpNumberLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "NumberLiteralExpression(\(node->numberliteralexpression.value))")
 END FUNCTION
 
-FUNCTION dumpStringLiteralExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "StringLiteralExpression(\(node.stringliteralexpression.value))")
+FUNCTION dumpStringLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "StringLiteralExpression(\(node->stringliteralexpression.value))")
 END FUNCTION
 
-FUNCTION dumpFileLiteralExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "FileLiteralExpression(\(node.fileliteralexpression.name))")
+FUNCTION dumpFileLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "FileLiteralExpression(\(node->fileliteralexpression.name))")
 END FUNCTION
 
-FUNCTION dumpBytesLiteralExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpBytesLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "BytesLiteralExpression")
 END FUNCTION
 
-FUNCTION dumpArrayLiteralExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpArrayLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ArrayLiteralExpression")
-    FOREACH e IN node.arrayliteralexpression.elements DO
+    FOREACH e IN node->arrayliteralexpression.elements DO
         dumpParseTree(e, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpArrayLiteralRangeExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpArrayLiteralRangeExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ArrayLiteralRangeExpression")
-    dumpParseTree(node.arrayliteralrangeexpression.first, depth+1)
-    dumpParseTree(node.arrayliteralrangeexpression.last, depth+1)
-    dumpParseTree(node.arrayliteralrangeexpression.step, depth+1)
+    dumpParseTree(node->arrayliteralrangeexpression.first, depth+1)
+    dumpParseTree(node->arrayliteralrangeexpression.last, depth+1)
+    dumpParseTree(node->arrayliteralrangeexpression.step, depth+1)
 END FUNCTION
 
-FUNCTION dumpDictionaryLiteralExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpDictionaryLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "DictionaryLiteralExpression")
-    FOREACH e IN node.dictionaryliteralexpression.elements DO
+    FOREACH e IN node->dictionaryliteralexpression.elements DO
         dumpParseTree(e.key, depth+2)
         dumpParseTree(e.value, depth+2)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpNilLiteralExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpNilLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "NilLiteralExpression")
 END FUNCTION
 
-FUNCTION dumpNowhereLiteralExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpNowhereLiteralExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "NowhereLiteralExpression")
 END FUNCTION
 
-FUNCTION dumpIdentifierExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "IdentifierExpression(\(node.identifierexpression.name))")
+FUNCTION dumpIdentifierExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "IdentifierExpression(\(node->identifierexpression.name))")
 END FUNCTION
 
-FUNCTION dumpDotExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "DotExpression(\(node.dotexpression.name.text))")
-    dumpParseTree(node.dotexpression.base, depth+1)
+FUNCTION dumpDotExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "DotExpression(\(node->dotexpression.name.text))")
+    dumpParseTree(node->dotexpression.base, depth+1)
 END FUNCTION
 
-FUNCTION dumpArrowExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ArrowExpression(\(node.arrowexpression.name.text))")
-    dumpParseTree(node.arrowexpression.base, depth+1)
+FUNCTION dumpArrowExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ArrowExpression(\(node->arrowexpression.name.text))")
+    dumpParseTree(node->arrowexpression.base, depth+1)
 END FUNCTION
 
-FUNCTION dumpSubscriptExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpSubscriptExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "SubscriptExpression")
-    dumpParseTree(node.subscriptexpression.base, depth+1)
-    dumpParseTree(node.subscriptexpression.index, depth+1)
+    dumpParseTree(node->subscriptexpression.base, depth+1)
+    dumpParseTree(node->subscriptexpression.index, depth+1)
 END FUNCTION
 
-FUNCTION dumpInterpolatedStringExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpInterpolatedStringExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "InterpolatedStringExpression")
-    FOREACH p IN node.interpolatedstringexpression.parts DO
+    FOREACH p IN node->interpolatedstringexpression.parts DO
         dumpNode(depth+1, "FormatString(\(p.format.text))")
         dumpParseTree(p.expr, depth+2)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpFunctionCallExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpFunctionCallExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "FunctionCallExpression")
-    dumpParseTree(node.functioncallexpression.base, depth+1)
-    FOREACH a IN node.functioncallexpression.args DO
+    dumpParseTree(node->functioncallexpression.base, depth+1)
+    FOREACH a IN node->functioncallexpression.args DO
         dumpParseTree(a.expr, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpUnaryPlusExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpUnaryPlusExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "UnaryPlusExpression")
-    dumpParseTree(node.unaryexpression.expr, depth+1)
+    dumpParseTree(node->unaryexpression.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpUnaryMinusExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpUnaryMinusExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "UnaryMinusExpression")
-    dumpParseTree(node.unaryexpression.expr, depth+1)
+    dumpParseTree(node->unaryexpression.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpLogicalNotExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpLogicalNotExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "LogicalNotExpression")
-    dumpParseTree(node.unaryexpression.expr, depth+1)
+    dumpParseTree(node->unaryexpression.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpExponentiationExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpExponentiationExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ExponentiationExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpMultiplicationExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpMultiplicationExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "MultiplicationExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpDivisionExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpDivisionExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "DivisionExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpIntegerDivisionExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpIntegerDivisionExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "IntegerDivisionExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpModuloExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpModuloExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ModuloExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpAdditionExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpAdditionExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "AdditionExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpSubtractionExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpSubtractionExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "SubtractionExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpConcatenationExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpConcatenationExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ConcatenationExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpComparisonExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ComparisonExpression(\(node.comparisonexpression.comp))")
-    dumpParseTree(node.comparisonexpression.left, depth+1)
-    dumpParseTree(node.comparisonexpression.right, depth+1)
+FUNCTION dumpComparisonExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ComparisonExpression(\(node->comparisonexpression.comp))")
+    dumpParseTree(node->comparisonexpression.left, depth+1)
+    dumpParseTree(node->comparisonexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpChainedComparisonExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpChainedComparisonExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ChainedComparisonExpression")
-    dumpParseTree(node.chainedcomparisonexpression.left, depth+1)
-    FOREACH c IN node.chainedcomparisonexpression.comps DO
+    dumpParseTree(node->chainedcomparisonexpression.left, depth+1)
+    FOREACH c IN node->chainedcomparisonexpression.comps DO
         dumpParseTree(c.right, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpMembershipExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpMembershipExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "MembershipExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpConjunctionExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpConjunctionExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ConjunctionExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpDisjunctionExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpDisjunctionExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "DisjunctionExpression")
-    dumpParseTree(node.binaryexpression.left, depth+1)
-    dumpParseTree(node.binaryexpression.right, depth+1)
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpConditionalExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpConditionalExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ConditionalExpression")
-    dumpParseTree(node.conditionalexpression.cond, depth+1)
-    dumpParseTree(node.conditionalexpression.left, depth+1)
-    dumpParseTree(node.conditionalexpression.right, depth+1)
+    dumpParseTree(node->conditionalexpression.cond, depth+1)
+    dumpParseTree(node->conditionalexpression.left, depth+1)
+    dumpParseTree(node->conditionalexpression.right, depth+1)
 END FUNCTION
 
-FUNCTION dumpTryExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTryExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TryExpression")
-    dumpParseTree(node.tryexpression.expr, depth+1)
+    dumpParseTree(node->tryexpression.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpNewRecordExpression(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "NewRecordExpression")
-    dumpParseTree(node.newrecordexpression.expr, depth+1)
+FUNCTION dumpNewClassExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "NewClassExpression")
+    dumpParseTree(node->newclassexpression.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpValidPointerExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpValidPointerExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ValidPointerExpression")
-    FOREACH t IN node.validpointerexpression.tests DO
+    FOREACH t IN node->validpointerexpression.tests DO
         dumpParseTree(t.expr, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpRangeSubscriptExpression(node: ParseTreeNode, depth: Number)
+FUNCTION dumpRangeSubscriptExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "RangeSubscriptExpression")
-    dumpParseTree(node.rangesubscriptexpression.base, depth+1)
-    IF VALID node.rangesubscriptexpression.range AS r THEN
+    dumpParseTree(node->rangesubscriptexpression.base, depth+1)
+    IF VALID node->rangesubscriptexpression.range AS r THEN
         dumpParseTree(r->first, depth+1)
         dumpParseTree(r->last, depth+1)
     END IF
 END FUNCTION
 
-FUNCTION dumpImportDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ImportDeclaration(\(node.importdeclaration.module.text).\(node.importdeclaration.name.text), \(node.importdeclaration.alias.text))")
+FUNCTION dumpImportDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ImportDeclaration(\(node->importdeclaration.module.text).\(node->importdeclaration.name.text), \(node->importdeclaration.alias.text))")
 END FUNCTION
 
-FUNCTION dumpTypeDeclaration(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTypeDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TypeDeclaration")
-    dumpParseTree(node.typedeclaration.type, depth+1)
+    dumpParseTree(node->typedeclaration.type, depth+1)
 END FUNCTION
 
-FUNCTION dumpConstantDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ConstantDeclaration(\(node.constantdeclaration.name.text))")
-    dumpParseTree(node.constantdeclaration.type, depth+1)
-    dumpParseTree(node.constantdeclaration.value, depth+1)
+FUNCTION dumpConstantDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ConstantDeclaration(\(node->constantdeclaration.name.text))")
+    dumpParseTree(node->constantdeclaration.type, depth+1)
+    dumpParseTree(node->constantdeclaration.value, depth+1)
 END FUNCTION
 
-FUNCTION dumpNativeConstantDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "NativeConstantDeclaration(\(node.nativeconstantdeclaration.name.text))")
-    dumpParseTree(node.nativeconstantdeclaration.type, depth+1)
+FUNCTION dumpNativeConstantDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "NativeConstantDeclaration(\(node->nativeconstantdeclaration.name.text))")
+    dumpParseTree(node->nativeconstantdeclaration.type, depth+1)
 END FUNCTION
 
-FUNCTION dumpVariableDeclaration(node: ParseTreeNode, depth: Number)
+FUNCTION dumpVariableDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
-    FOREACH n IN node.variabledeclaration.names DO
+    FOREACH n IN node->variabledeclaration.names DO
         IF names # "" THEN
             names.append(",")
         END IF
         names.append(n.text)
     END FOREACH
     dumpNode(depth, "VariableDeclaration(\(names))")
-    dumpParseTree(node.variabledeclaration.type, depth+1)
-    dumpParseTree(node.variabledeclaration.value, depth+1)
+    dumpParseTree(node->variabledeclaration.type, depth+1)
+    dumpParseTree(node->variabledeclaration.value, depth+1)
 END FUNCTION
 
-FUNCTION dumpLetDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "LetDeclaration(\(node.letdeclaration.name.text))")
-    dumpParseTree(node.letdeclaration.type, depth+1)
-    dumpParseTree(node.letdeclaration.value, depth+1)
+FUNCTION dumpLetDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "LetDeclaration(\(node->letdeclaration.name.text))")
+    dumpParseTree(node->letdeclaration.type, depth+1)
+    dumpParseTree(node->letdeclaration.value, depth+1)
 END FUNCTION
 
-FUNCTION dumpFunctionDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "FunctionDeclaration(\(node.functiondeclaration.name.text))")
-    dumpParseTree(node.functiondeclaration.returntype, depth+1)
-    FOREACH a IN node.functiondeclaration.args DO
+FUNCTION dumpFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "FunctionDeclaration(\(node->functiondeclaration.name.text))")
+    dumpParseTree(node->functiondeclaration.returntype, depth+1)
+    FOREACH a IN node->functiondeclaration.args DO
         FOREACH n IN a.names DO
             dumpNode(depth+1, "\(a.mode) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
     END FOREACH
-    FOREACH s IN node.functiondeclaration.body DO
+    FOREACH s IN node->functiondeclaration.body DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpExternalFunctionDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ExternalFunctionDeclaration(\(node.externalfunctiondeclaration.name.text))")
-    dumpParseTree(node.externalfunctiondeclaration.returntype, depth+1)
-    FOREACH a IN node.externalfunctiondeclaration.args DO
+FUNCTION dumpExternalFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExternalFunctionDeclaration(\(node->externalfunctiondeclaration.name.text))")
+    dumpParseTree(node->externalfunctiondeclaration.returntype, depth+1)
+    FOREACH a IN node->externalfunctiondeclaration.args DO
         FOREACH n IN a.names DO
             dumpNode(depth+1, "\(a.mode) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
     END FOREACH
-    dumpParseTree(node.externalfunctiondeclaration.dict, depth+1)
+    dumpParseTree(node->externalfunctiondeclaration.dict, depth+1)
 END FUNCTION
 
-FUNCTION dumpNativeFunctionDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "NativeFunctionDeclaration(\(node.functiondeclaration.name.text))")
-    dumpParseTree(node.functiondeclaration.returntype, depth+1)
-    FOREACH a IN node.functiondeclaration.args DO
+FUNCTION dumpNativeFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "NativeFunctionDeclaration(\(node->functiondeclaration.name.text))")
+    dumpParseTree(node->functiondeclaration.returntype, depth+1)
+    FOREACH a IN node->functiondeclaration.args DO
         FOREACH n IN a.names DO
             dumpNode(depth+1, "\(a.mode) \(n.text)")
             dumpParseTree(a.type, depth+2)
@@ -3605,35 +3605,35 @@ FUNCTION dumpNativeFunctionDeclaration(node: ParseTreeNode, depth: Number)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpExceptionDeclaration(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ExceptionDeclaration(\(node.exceptiondeclaration.name.text))")
+FUNCTION dumpExceptionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExceptionDeclaration(\(node->exceptiondeclaration.name.text))")
 END FUNCTION
 
-FUNCTION dumpExportDeclaration(node: ParseTreeNode, depth: Number)
-    FOREACH n IN node.exportdeclaration.names DO
+FUNCTION dumpExportDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    FOREACH n IN node->exportdeclaration.names DO
         dumpNode(depth, "ExportDeclaration(\(n.text))")
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpAssertStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpAssertStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "AssertStatement")
-    FOREACH e IN node.assertstatement.exprs DO
+    FOREACH e IN node->assertstatement.exprs DO
         dumpParseTree(e, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpAssignmentStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpAssignmentStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "AssignmentStatement")
-    FOREACH v IN node.assignmentstatement.variables DO
+    FOREACH v IN node->assignmentstatement.variables DO
         dumpParseTree(v, depth+1)
     END FOREACH
-    dumpParseTree(node.assignmentstatement.expr, depth+1)
+    dumpParseTree(node->assignmentstatement.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpCaseStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpCaseStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "CaseStatement")
-    dumpParseTree(node.casestatement.expr, depth+1)
-    FOREACH clause IN node.casestatement.clauses DO
+    dumpParseTree(node->casestatement.expr, depth+1)
+    FOREACH clause IN node->casestatement.clauses DO
         FOREACH cond IN clause.conditions DO
             IF cond.high_expr = NIL THEN
                 dumpNode(depth+1, "ComparisonWhenCondition(\(cond.cond))")
@@ -3650,114 +3650,114 @@ FUNCTION dumpCaseStatement(node: ParseTreeNode, depth: Number)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpCheckStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpCheckStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "CheckStatement")
-    dumpParseTree(node.checkstatement.cond, depth+1)
-    FOREACH s IN node.checkstatement.statements DO
+    dumpParseTree(node->checkstatement.cond, depth+1)
+    FOREACH s IN node->checkstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpExitStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ExitStatement(\(node.exitstatement.label.text))")
+FUNCTION dumpExitStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExitStatement(\(node->exitstatement.label.text))")
 END FUNCTION
 
-FUNCTION dumpExpressionStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpExpressionStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ExpressionStatement")
-    dumpParseTree(node.expressionstatement.expr, depth+1)
+    dumpParseTree(node->expressionstatement.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpForStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ForStatement(\(node.forstatement.var.text))")
-    dumpParseTree(node.forstatement.start, depth+1)
-    dumpParseTree(node.forstatement.end, depth+1)
-    dumpParseTree(node.forstatement.step, depth+1)
-    dumpNode(depth+1, node.forstatement.label.text)
-    FOREACH s IN node.forstatement.statements DO
+FUNCTION dumpForStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ForStatement(\(node->forstatement.var.text))")
+    dumpParseTree(node->forstatement.start, depth+1)
+    dumpParseTree(node->forstatement.end, depth+1)
+    dumpParseTree(node->forstatement.step, depth+1)
+    dumpNode(depth+1, node->forstatement.label.text)
+    FOREACH s IN node->forstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpForeachStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "ForeachStatement(\(node.foreachstatement.var.text))")
-    dumpParseTree(node.foreachstatement.array, depth+1)
-    dumpNode(depth+1, node.foreachstatement.label.text)
-    FOREACH s IN node.foreachstatement.statements DO
+FUNCTION dumpForeachStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ForeachStatement(\(node->foreachstatement.var.text))")
+    dumpParseTree(node->foreachstatement.array, depth+1)
+    dumpNode(depth+1, node->foreachstatement.label.text)
+    FOREACH s IN node->foreachstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpIfStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpIfStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "IfStatement")
-    FOREACH c IN node.ifstatement.conditionStatements DO
+    FOREACH c IN node->ifstatement.conditionStatements DO
         dumpParseTree(c.condition, depth+1)
         FOREACH s IN c.statements DO
             dumpParseTree(s, depth+1)
         END FOREACH
     END FOREACH
-    FOREACH s IN node.ifstatement.elseStatements DO
+    FOREACH s IN node->ifstatement.elseStatements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpIncrementStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "IncrementStatement(\(node.incrementstatement.delta))")
-    dumpParseTree(node.incrementstatement.expr, depth+1)
+FUNCTION dumpIncrementStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "IncrementStatement(\(node->incrementstatement.delta))")
+    dumpParseTree(node->incrementstatement.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpLoopStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpLoopStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "LoopStatement")
-    dumpNode(depth+1, node.loopstatement.label.text)
-    FOREACH s IN node.loopstatement.statements DO
+    dumpNode(depth+1, node->loopstatement.label.text)
+    FOREACH s IN node->loopstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpNextStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "NextStatement(\(node.nextstatement.label.text))")
+FUNCTION dumpNextStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "NextStatement(\(node->nextstatement.label.text))")
 END FUNCTION
 
-FUNCTION dumpRaiseStatement(node: ParseTreeNode, depth: Number)
-    dumpNode(depth, "RaiseStatement(\(node.raisestatement.name[0].text).\(node.raisestatement.name[1].text))")
-    dumpParseTree(node.raisestatement.info, depth+1)
+FUNCTION dumpRaiseStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "RaiseStatement(\(node->raisestatement.name[0].text).\(node->raisestatement.name[1].text))")
+    dumpParseTree(node->raisestatement.info, depth+1)
 END FUNCTION
 
-FUNCTION dumpRepeatStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpRepeatStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "RepeatStatement")
-    dumpNode(depth+1, node.repeatstatement.label.text)
-    dumpParseTree(node.repeatstatement.cond, depth+1)
-    FOREACH s IN node.repeatstatement.statements DO
+    dumpNode(depth+1, node->repeatstatement.label.text)
+    dumpParseTree(node->repeatstatement.cond, depth+1)
+    FOREACH s IN node->repeatstatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpReturnStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpReturnStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ReturnStatement")
-    dumpParseTree(node.returnstatement.expr, depth+1)
+    dumpParseTree(node->returnstatement.expr, depth+1)
 END FUNCTION
 
-FUNCTION dumpTryStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTryStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TryStatement")
-    FOREACH s IN node.trystatement.statements DO
+    FOREACH s IN node->trystatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpTryHandlerStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpTryHandlerStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
-FUNCTION dumpWhileStatement(node: ParseTreeNode, depth: Number)
+FUNCTION dumpWhileStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "WhileStatement")
-    dumpParseTree(node.whilestatement.cond, depth+1)
-    dumpNode(depth+1, node.whilestatement.label.text)
-    FOREACH s IN node.whilestatement.statements DO
+    dumpParseTree(node->whilestatement.cond, depth+1)
+    dumpNode(depth+1, node->whilestatement.label.text)
+    FOREACH s IN node->whilestatement.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
 
-FUNCTION dumpProgram(node: ParseTreeNode, depth: Number)
+FUNCTION dumpProgram(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "Program")
-    FOREACH s IN node.program.statements DO
+    FOREACH s IN node->program.statements DO
         dumpParseTree(s, depth+1)
     END FOREACH
 END FUNCTION
@@ -3807,7 +3807,7 @@ LET Dumper: IParseTreeVisitor := {
     "DisjunctionExpression":                dumpDisjunctionExpression,
     "ConditionalExpression":                dumpConditionalExpression,
     "TryExpression":                        dumpTryExpression,
-    "NewRecordExpression":                  dumpNewRecordExpression,
+    "NewClassExpression":                   dumpNewClassExpression,
     "ValidPointerExpression":               dumpValidPointerExpression,
     "RangeSubscriptExpression":             dumpRangeSubscriptExpression,
     "ImportDeclaration":                    dumpImportDeclaration,

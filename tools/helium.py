@@ -140,6 +140,7 @@ GIVES = Keyword("GIVES")
 NOWHERE = Keyword("NOWHERE")
 INTDIV = Keyword("INTDIV")
 LABEL = Keyword("LABEL")
+CLASS = Keyword("CLASS")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -1213,6 +1214,21 @@ class Parser:
         self.expect(RECORD)
         return TypeRecord(fields)
 
+    def parse_class_type(self):
+        self.expect(CLASS)
+        fields = []
+        while self.tokens[self.i] is not END:
+            is_private = self.tokens[self.i] is PRIVATE
+            if is_private:
+                self.i += 1
+            name = self.identifier()
+            self.expect(COLON)
+            type = self.parse_type()
+            fields.append(Field(name, type))
+        self.expect(END)
+        self.expect(CLASS)
+        return TypeRecord(fields)
+
     def parse_enum_type(self):
         self.expect(ENUM)
         names = []
@@ -1229,6 +1245,13 @@ class Parser:
         type = self.parse_type()
         return TypePointer(type)
 
+    def parse_valid_pointer_type(self):
+        self.expect(VALID)
+        self.expect(POINTER)
+        self.expect(TO)
+        type = self.parse_type()
+        return TypePointer(type)
+
     def parse_function_type(self):
         self.expect(FUNCTION)
         returntype, args = self.parse_function_parameters()
@@ -1239,10 +1262,14 @@ class Parser:
             return self.parse_parameterised_type()
         if self.tokens[self.i] is RECORD:
             return self.parse_record_type()
+        if self.tokens[self.i] is CLASS:
+            return self.parse_class_type()
         if self.tokens[self.i] is ENUM:
             return self.parse_enum_type()
         if self.tokens[self.i] is POINTER:
             return self.parse_pointer_type()
+        if self.tokens[self.i] is VALID:
+            return self.parse_valid_pointer_type()
         if self.tokens[self.i] is FUNCTION:
             return self.parse_function_type()
         name = self.identifier()

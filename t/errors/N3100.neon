@@ -1,9 +1,9 @@
-TYPE Rec IS RECORD
+TYPE Cls IS CLASS
   a: Number
-END RECORD
+END CLASS
 
-VAR a: POINTER TO Rec := NIL
-VAR b: POINTER TO Rec := NIL
+VAR a: POINTER TO Cls := NIL
+VAR b: POINTER TO Cls := NIL
 
 IF a <= b THEN
      %<

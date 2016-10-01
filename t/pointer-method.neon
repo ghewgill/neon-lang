@@ -1,12 +1,12 @@
-TYPE Record IS RECORD
+TYPE Cls IS CLASS
     name: String
-END RECORD
+END CLASS
 
-FUNCTION Record.getName(self: Record): String
-    RETURN self.name
+FUNCTION Cls.getName(self: VALID POINTER TO Cls): String
+    RETURN self->name
 END FUNCTION
 
-LET p: POINTER TO Record := NEW Record
+LET p: POINTER TO Cls := NEW Cls
 p->name := "hello"
 print(p->getName())
 %= hello

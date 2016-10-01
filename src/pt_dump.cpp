@@ -23,8 +23,15 @@ public:
     virtual void visit(const TypeRecord *node) override {
         write("TypeRecord(" + join(node->fields) + ")");
     }
+    virtual void visit(const TypeClass *node) override {
+        write("TypeClass(" + join(node->fields) + ")");
+    }
     virtual void visit(const TypePointer *node) override {
         write("TypePointer");
+        child(node->reftype.get());
+    }
+    virtual void visit(const TypeValidPointer *node) override {
+        write("TypeValidPointer");
         child(node->reftype.get());
     }
     virtual void visit(const TypeFunctionPointer *node) override {
@@ -209,8 +216,8 @@ public:
         write("TryExpression");
         child(node->expr.get());
     }
-    virtual void visit(const NewRecordExpression *node) override {
-        write("NewRecordExpression");
+    virtual void visit(const NewClassExpression *node) override {
+        write("NewClassExpression");
         child(node->expr.get());
     }
     virtual void visit(const ValidPointerExpression *node) override {

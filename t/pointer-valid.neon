@@ -1,6 +1,6 @@
-TYPE Record IS RECORD
+TYPE Cls IS CLASS
     name: String
-END RECORD
+END CLASS
 
-LET p: POINTER TO Record := NEW Record
+LET p: POINTER TO Cls := NEW Cls
 p->name := "hello"

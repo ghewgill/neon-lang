@@ -1,7 +1,5 @@
 TYPE Cls IS CLASS
     name: String
+    next: VALID POINTER TO Cls
+          %<
 END CLASS
-
-VAR p: POINTER TO Cls
-p->hello()
-%<

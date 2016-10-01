@@ -1,4 +1,5 @@
 TYPE Rec IS RECORD x: Number END RECORD
+TYPE Cls IS CLASS x: Number END CLASS
 TYPE Enum IS ENUM one two END ENUM
 
 FUNCTION f(x: Number) END FUNCTION
@@ -11,7 +12,7 @@ VAR a1, a2: Array<String> := []
 VAR d1, d2: Dictionary<String> := {}
 VAR r1, r2: Rec := Rec()
 VAR e1, e2: Enum := Enum.one
-VAR p1, p2: POINTER TO Rec := NIL
+VAR p1, p2: POINTER TO Cls := NIL
 VAR f1, f2: FUNCTION(x: Number) := f
 
 print(strb(b2 = b1))

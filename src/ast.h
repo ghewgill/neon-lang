@@ -34,6 +34,7 @@ public:
     virtual void visit(const class TypeArray *node) = 0;
     virtual void visit(const class TypeDictionary *node) = 0;
     virtual void visit(const class TypeRecord *node) = 0;
+    virtual void visit(const class TypeClass *node) = 0;
     virtual void visit(const class TypePointer *node) = 0;
     virtual void visit(const class TypeFunctionPointer *node) = 0;
     virtual void visit(const class TypeEnum *node) = 0;
@@ -58,7 +59,7 @@ public:
     virtual void visit(const class ArrayLiteralExpression *node) = 0;
     virtual void visit(const class DictionaryLiteralExpression *node) = 0;
     virtual void visit(const class RecordLiteralExpression *node) = 0;
-    virtual void visit(const class NewRecordExpression *node) = 0;
+    virtual void visit(const class NewClassExpression *node) = 0;
     virtual void visit(const class UnaryMinusExpression *node) = 0;
     virtual void visit(const class LogicalNotExpression *node) = 0;
     virtual void visit(const class ConditionalExpression *node) = 0;
@@ -245,7 +246,7 @@ public:
     Token getDeclaration(const std::string &name) const;
     virtual void addName(const Token &token, const std::string &name, Name *ref, bool init_referenced = false, bool allow_shadow = false);
     void addForward(const std::string &name, TypePointer *ptrtype);
-    void resolveForward(const std::string &name, const TypeRecord *rectype);
+    void resolveForward(const std::string &name, const TypeClass *classtype);
     void checkForward();
 
     Scope *const parent;
@@ -557,17 +558,24 @@ private:
     }
 };
 
-class TypeForwardRecord: public TypeRecord {
+class TypeClass: public TypeRecord {
 public:
-    TypeForwardRecord(const Token &declaration): TypeRecord(declaration, "forward", std::vector<Field>()) {}
+    TypeClass(const Token &declaration, const std::string &name, const std::vector<Field> &fields): TypeRecord(declaration, name, fields) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
+};
+
+class TypeForwardClass: public TypeClass {
+public:
+    TypeForwardClass(const Token &declaration): TypeClass(declaration, "forward", std::vector<Field>()) {}
 };
 
 class TypePointer: public Type {
 public:
-    TypePointer(const Token &declaration, const TypeRecord *reftype);
+    TypePointer(const Token &declaration, const TypeClass *reftype);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    const TypeRecord *reftype;
+    const TypeClass *reftype;
 
     virtual const Expression *make_default_value() const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
@@ -593,7 +601,8 @@ public:
 
 class TypeValidPointer: public TypePointer {
 public:
-    TypeValidPointer(const TypePointer *ptrtype): TypePointer(Token(), ptrtype->reftype) {}
+    TypeValidPointer(const Token &declaration, const TypeClass *classtype): TypePointer(declaration, classtype) {}
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
 };
 
 class TypeFunctionPointer: public Type {
@@ -1012,23 +1021,23 @@ private:
     static bool all_constant(const std::vector<const Expression *> &values);
 };
 
-class NewRecordExpression: public Expression {
+class NewClassExpression: public Expression {
 public:
-    NewRecordExpression(const TypeRecord *reftype, const Expression *value): Expression(new TypePointer(Token(), reftype), false), fields(reftype->fields.size()), value(value) {}
+    NewClassExpression(const TypeClass *reftype, const Expression *value): Expression(new TypeValidPointer(Token(), reftype), false), fields(reftype->fields.size()), value(value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const size_t fields;
     const Expression *value;
 
-    virtual bool eval_boolean() const override { internal_error("NewRecordExpression"); }
-    virtual Number eval_number() const override { internal_error("NewRecordExpression"); }
-    virtual std::string eval_string() const override { internal_error("NewRecordExpression"); }
+    virtual bool eval_boolean() const override { internal_error("NewClassExpression"); }
+    virtual Number eval_number() const override { internal_error("NewClassExpression"); }
+    virtual std::string eval_string() const override { internal_error("NewClassExpression"); }
     virtual void generate_expr(Emitter &emitter) const override;
 
-    virtual std::string text() const override { return "NewRecordExpression(" + type->text() + ")"; }
+    virtual std::string text() const override { return "NewClassExpression(" + type->text() + ")"; }
 private:
-    NewRecordExpression(const NewRecordExpression &);
-    NewRecordExpression &operator=(const NewRecordExpression &);
+    NewClassExpression(const NewClassExpression &);
+    NewClassExpression &operator=(const NewClassExpression &);
 };
 
 class UnaryMinusExpression: public Expression {

@@ -1,13 +1,13 @@
-TYPE Rec IS RECORD
+TYPE Cls IS CLASS
     name: String
     value: Number
-END RECORD
+END CLASS
 
-VAR a, b: Rec := Rec()
-VAR p, q: POINTER TO Rec
+VAR a, b: Cls := Cls()
+VAR p, q: POINTER TO Cls
 
-p := NEW Rec
-q := NEW Rec
+p := NEW Cls
+q := NEW Cls
 
 a.name := "foo"
 valueCopy(b, a)

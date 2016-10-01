@@ -1,4 +1,5 @@
-EXPORT type
+EXPORT record
+EXPORT class
 EXPORT emptytype
 EXPORT enum
 EXPORT const
@@ -11,11 +12,17 @@ EXPORT Exception
 EXPORT raise
 EXPORT functionpointer
 
-TYPE type IS RECORD
+TYPE record IS RECORD
     boolean: Boolean
     number: Number
     string: String
 END RECORD
+
+TYPE class IS CLASS
+    boolean: Boolean
+    number: Number
+    string: String
+END CLASS
 
 TYPE emptytype IS RECORD END RECORD
 
@@ -25,7 +32,7 @@ TYPE enum IS ENUM
     blue
 END ENUM
 
-FUNCTION type.method(IN self: type): String
+FUNCTION record.method(IN self: record): String
     RETURN self.string & self.string
 END FUNCTION
 

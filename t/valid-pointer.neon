@@ -1,0 +1,19 @@
+TYPE Cls IS CLASS
+    name: String
+END CLASS
+
+FUNCTION foo(p: VALID POINTER TO Cls)
+    print(p->name)
+END FUNCTION
+
+FUNCTION bar(): VALID POINTER TO Cls
+    RETURN NEW Cls(name WITH "two")
+END FUNCTION
+
+VAR r: VALID POINTER TO Cls := NEW Cls(name WITH "one")
+foo(r)
+r := bar()
+foo(r)
+
+%= one
+%= two

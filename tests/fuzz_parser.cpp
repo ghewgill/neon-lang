@@ -112,6 +112,7 @@ std::string reconstitute(const Token &t)
         case INTDIV:      return "INTDIV";
         case EXEC:        return "EXEC";
         case LABEL:       return "LABEL";
+        case CLASS:       return "CLASS";
         case UNKNOWN:     return "UNKNOWN";
         case MAX_TOKEN:   return "";
     }

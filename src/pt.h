@@ -14,7 +14,9 @@ namespace pt {
 class TypeSimple;
 class TypeEnum;
 class TypeRecord;
+class TypeClass;
 class TypePointer;
+class TypeValidPointer;
 class TypeFunctionPointer;
 class TypeParameterised;
 class TypeImport;
@@ -55,7 +57,7 @@ class ConjunctionExpression;
 class DisjunctionExpression;
 class ConditionalExpression;
 class TryExpression;
-class NewRecordExpression;
+class NewClassExpression;
 class ValidPointerExpression;
 class RangeSubscriptExpression;
 
@@ -101,7 +103,9 @@ public:
     virtual void visit(const TypeSimple *) = 0;
     virtual void visit(const TypeEnum *) = 0;
     virtual void visit(const TypeRecord *) = 0;
+    virtual void visit(const TypeClass *) = 0;
     virtual void visit(const TypePointer *) = 0;
+    virtual void visit(const TypeValidPointer *) = 0;
     virtual void visit(const TypeFunctionPointer *) = 0;
     virtual void visit(const TypeParameterised *) = 0;
     virtual void visit(const TypeImport *) = 0;
@@ -142,7 +146,7 @@ public:
     virtual void visit(const DisjunctionExpression *) = 0;
     virtual void visit(const ConditionalExpression *) = 0;
     virtual void visit(const TryExpression *) = 0;
-    virtual void visit(const NewRecordExpression *) = 0;
+    virtual void visit(const NewClassExpression *) = 0;
     virtual void visit(const ValidPointerExpression *) = 0;
     virtual void visit(const RangeSubscriptExpression *) = 0;
 
@@ -225,11 +229,23 @@ public:
     const std::vector<std::unique_ptr<Field>> fields;
 };
 
+class TypeClass: public TypeRecord {
+public:
+    TypeClass(const Token &token, std::vector<std::unique_ptr<Field>> &&fields): TypeRecord(token, std::move(fields)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+};
+
 class TypePointer: public Type {
 public:
     TypePointer(const Token &token, std::unique_ptr<Type> &&reftype): Type(token), reftype(std::move(reftype)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Type> reftype;
+};
+
+class TypeValidPointer: public TypePointer {
+public:
+    TypeValidPointer(const Token &token, std::unique_ptr<Type> &&reftype): TypePointer(token, std::move(reftype)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class TypeFunctionPointer: public Type {
@@ -541,9 +557,9 @@ public:
     std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> catches;
 };
 
-class NewRecordExpression: public Expression {
+class NewClassExpression: public Expression {
 public:
-    NewRecordExpression(const Token &token, size_t end_column, std::unique_ptr<Expression> &&expr): Expression(token, token.column, end_column), expr(std::move(expr)) {}
+    NewClassExpression(const Token &token, size_t end_column, std::unique_ptr<Expression> &&expr): Expression(token, token.column, end_column), expr(std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
 };

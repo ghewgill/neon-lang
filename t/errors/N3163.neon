@@ -1,8 +1,8 @@
-TYPE Record IS RECORD
+TYPE Cls IS CLASS
     PRIVATE value: Number
-END RECORD
+END CLASS
 
-VAR p: POINTER TO Record := NIL
+VAR p: POINTER TO Cls := NIL
 IF VALID p AS q THEN
     q->value := 0
        %<

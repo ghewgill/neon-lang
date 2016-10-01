@@ -1,0 +1,5 @@
+TYPE Cls IS CLASS
+    Field1: Number
+    Field2: String
+END WHILE
+    %<

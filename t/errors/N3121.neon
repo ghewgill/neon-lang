@@ -1,5 +1,5 @@
-TYPE Rec IS RECORD END RECORD
-VAR p: POINTER TO Rec := NIL
-VAR a: Rec := Rec()
+TYPE Cls IS CLASS END CLASS
+VAR p: POINTER TO Cls := NIL
+VAR a: Cls := Cls()
 valueCopy(p, a)
           %<

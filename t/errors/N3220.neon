@@ -1,7 +1,7 @@
-TYPE Rec IS RECORD
+TYPE Cls IS CLASS
     name: String
-END RECORD
+END CLASS
 
-LET p: POINTER TO Rec := NEW Rec
+LET p: POINTER TO Cls := NEW Cls
 p->hello()
    %<

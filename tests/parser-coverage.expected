@@ -689,22 +689,22 @@ Program
       IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
-    NewRecordExpression
+    NewClassExpression
       IdentifierExpression(type)
   AssignmentStatement
     IdentifierExpression(name)
-    NewRecordExpression
+    NewClassExpression
       DotExpression(type)
         IdentifierExpression(module)
   AssignmentStatement
     IdentifierExpression(name)
-    NewRecordExpression
+    NewClassExpression
       FunctionCallExpression
         IdentifierExpression(type)
         IdentifierExpression(arg)
   AssignmentStatement
     IdentifierExpression(name)
-    NewRecordExpression
+    NewClassExpression
       FunctionCallExpression
         DotExpression(type)
           IdentifierExpression(module)

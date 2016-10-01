@@ -20,7 +20,7 @@ IMPORT random
  |  technique to solve his "Algorithm X" (exact cover).
  |%
 
-TYPE Node IS RECORD
+TYPE Node IS CLASS
     index: Number
     row: Number
     column: POINTER TO Node
@@ -29,7 +29,7 @@ TYPE Node IS RECORD
     left: POINTER TO Node
     right: POINTER TO Node
     size: Number
-END RECORD
+END CLASS
 
 FUNCTION dlx_cover(c: POINTER TO Node)
     IF VALID c, c->left AS l, c->right AS r THEN

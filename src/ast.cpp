@@ -326,7 +326,7 @@ std::string TypeRecord::text() const
     return r;
 }
 
-TypePointer::TypePointer(const Token &declaration, const TypeRecord *reftype)
+TypePointer::TypePointer(const Token &declaration, const TypeClass *reftype)
   : Type(declaration, ""),
     reftype(reftype)
 {
@@ -369,6 +369,20 @@ std::string TypePointer::serialize(const Expression *) const
 const Expression *TypePointer::deserialize_value(const Bytecode::Bytes &, int &) const
 {
     return new ConstantNilExpression();
+}
+
+bool TypeValidPointer::is_assignment_compatible(const Type *rhs) const
+{
+    if (this == rhs) {
+        return true;
+    }
+    if (not TypePointer::is_assignment_compatible(rhs)) {
+        return false;
+    }
+    if (dynamic_cast<const TypeValidPointer *>(rhs) == nullptr) {
+        return false;
+    }
+    return true;
 }
 
 TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFunction *functype)
@@ -814,13 +828,13 @@ void Scope::addForward(const std::string &name, TypePointer *ptrtype)
     forwards[name].push_back(ptrtype);
 }
 
-void Scope::resolveForward(const std::string &name, const TypeRecord *rectype)
+void Scope::resolveForward(const std::string &name, const TypeClass *classtype)
 {
     auto i = forwards.find(name);
     if (i != forwards.end()) {
         for (auto p: i->second) {
             delete p->reftype;
-            p->reftype = rectype;
+            p->reftype = classtype;
         }
         forwards.erase(i);
     }

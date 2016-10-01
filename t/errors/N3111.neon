@@ -1,10 +1,10 @@
-TYPE Recordset IS RECORD
-                  %<2
+TYPE Cls IS CLASS
+            %<2
     Id: Number
     Name: String
-END RECORD
+END CLASS
 
-VAR a: POINTER TO Recordset := NIL
+VAR a: POINTER TO Cls := NIL
 
 IF VALID a AS p THEN
     p->LastName

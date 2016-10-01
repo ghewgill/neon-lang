@@ -1,9 +1,9 @@
 IMPORT runtime
 
-TYPE Node IS RECORD
+TYPE Node IS CLASS
     next: POINTER TO Node
     value: Number
-END RECORD
+END CLASS
 
 FUNCTION make(next: POINTER TO Node): POINTER TO Node
     LET n: POINTER TO Node := NEW Node

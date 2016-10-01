@@ -26,8 +26,10 @@ public:
 
     std::unique_ptr<Type> parseParameterisedType();
     std::unique_ptr<Type> parseRecordType();
+    std::unique_ptr<Type> parseClassType();
     std::unique_ptr<Type> parseEnumType();
     std::unique_ptr<Type> parsePointerType();
+    std::unique_ptr<Type> parseValidPointerType();
     std::unique_ptr<Type> parseFunctionType();
     std::unique_ptr<Type> parseType();
     std::unique_ptr<Declaration> parseTypeDefinition();
@@ -76,6 +78,7 @@ public:
     std::unique_ptr<Statement> parseStatement();
     std::unique_ptr<Program> parse();
 private:
+    std::vector<std::unique_ptr<TypeRecord::Field>> parseFields();
     Parser(const Parser &);
     Parser &operator=(const Parser &);
 
@@ -142,13 +145,8 @@ std::unique_ptr<Type> Parser::parseParameterisedType()
     return std::unique_ptr<Type> { new TypeParameterised(tok_type, std::move(elementtype)) };
 }
 
-std::unique_ptr<Type> Parser::parseRecordType()
+std::vector<std::unique_ptr<TypeRecord::Field>> Parser::parseFields()
 {
-    if (tokens[i].type != RECORD) {
-        internal_error("RECORD expected");
-    }
-    auto &tok_record = tokens[i];
-    i++;
     std::vector<std::unique_ptr<TypeRecord::Field>> fields;
     while (tokens[i].type != END) {
         bool is_private = false;
@@ -169,11 +167,37 @@ std::unique_ptr<Type> Parser::parseRecordType()
         fields.emplace_back(new TypeRecord::Field(name, std::move(t), is_private));
     }
     i++;
+    return fields;
+}
+
+std::unique_ptr<Type> Parser::parseRecordType()
+{
+    if (tokens[i].type != RECORD) {
+        internal_error("RECORD expected");
+    }
+    auto &tok_record = tokens[i];
+    i++;
+    std::vector<std::unique_ptr<TypeRecord::Field>> fields = parseFields();
     if (tokens[i].type != RECORD) {
         error_a(2034, tokens[i-1], tokens[i], "'RECORD' expected");
     }
     i++;
     return std::unique_ptr<Type> { new TypeRecord(tok_record, std::move(fields)) };
+}
+
+std::unique_ptr<Type> Parser::parseClassType()
+{
+    if (tokens[i].type != CLASS) {
+        internal_error("CLASS expected");
+    }
+    auto &tok_class = tokens[i];
+    i++;
+    std::vector<std::unique_ptr<TypeRecord::Field>> fields = parseFields();
+    if (tokens[i].type != CLASS) {
+        error_a(2117, tokens[i-1], tokens[i], "'CLASS' expected");
+    }
+    i++;
+    return std::unique_ptr<Type> { new TypeClass(tok_class, std::move(fields)) };
 }
 
 std::unique_ptr<Type> Parser::parseEnumType()
@@ -218,6 +242,25 @@ std::unique_ptr<Type> Parser::parsePointerType()
     }
 }
 
+std::unique_ptr<Type> Parser::parseValidPointerType()
+{
+    if (tokens[i].type != VALID) {
+        internal_error("VALID expected");
+    }
+    auto &tok_valid = tokens[i];
+    i++;
+    if (tokens[i].type != POINTER) {
+        error(2118, tokens[i], "POINTER expected");
+    }
+    i++;
+    if (tokens[i].type != TO) {
+        error(2119, tokens[i], "TO expected");
+    }
+    i++;
+    std::unique_ptr<Type> reftype = parseType();
+    return std::unique_ptr<Type> { new TypeValidPointer(tok_valid, std::move(reftype)) };
+}
+
 std::unique_ptr<Type> Parser::parseFunctionType()
 {
     if (tokens[i].type != FUNCTION) {
@@ -240,11 +283,17 @@ std::unique_ptr<Type> Parser::parseType()
     if (tokens[i].type == RECORD) {
         return parseRecordType();
     }
+    if (tokens[i].type == CLASS) {
+        return parseClassType();
+    }
     if (tokens[i].type == ENUM) {
         return parseEnumType();
     }
     if (tokens[i].type == POINTER) {
         return parsePointerType();
+    }
+    if (tokens[i].type == VALID) {
+        return parseValidPointerType();
     }
     if (tokens[i].type == FUNCTION) {
         return parseFunctionType();
@@ -554,7 +603,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
             if (tokens[i].type == LPAREN) {
                 expr = parseFunctionCall(std::move(expr));
             }
-            return std::unique_ptr<Expression> { new NewRecordExpression(tok_new, tokens[i].column, std::move(expr)) };
+            return std::unique_ptr<Expression> { new NewClassExpression(tok_new, tokens[i].column, std::move(expr)) };
         }
         case NIL: {
             auto &tok_nil = tokens[i];

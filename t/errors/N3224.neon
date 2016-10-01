@@ -1,0 +1,7 @@
+TYPE Cls IS CLASS
+    name: String
+END CLASS
+
+FUNCTION Cls.foo(self: POINTER TO Cls)
+                       %<
+END FUNCTION

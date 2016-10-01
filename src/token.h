@@ -110,6 +110,7 @@ enum TokenType {
     INTDIV,
     EXEC,
     LABEL,
+    CLASS,
     UNKNOWN,
     MAX_TOKEN
 };

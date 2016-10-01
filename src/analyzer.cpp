@@ -38,7 +38,9 @@ public:
     const Type *analyze(const pt::TypeSimple *type, const std::string &name);
     const Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
     const Type *analyze_record(const pt::TypeRecord *type, const std::string &name);
+    const Type *analyze_class(const pt::TypeClass *type, const std::string &name);
     const Type *analyze(const pt::TypePointer *type, const std::string &name);
+    const Type *analyze(const pt::TypeValidPointer *type, const std::string &name);
     const Type *analyze(const pt::TypeFunctionPointer *type, const std::string &name);
     const Type *analyze(const pt::TypeParameterised *type, const std::string &name);
     const Type *analyze(const pt::TypeImport *type, const std::string &name);
@@ -80,7 +82,7 @@ public:
     const Expression *analyze(const pt::DisjunctionExpression *expr);
     const Expression *analyze(const pt::ConditionalExpression *expr);
     const Expression *analyze(const pt::TryExpression *expr);
-    const Expression *analyze(const pt::NewRecordExpression *expr);
+    const Expression *analyze(const pt::NewClassExpression *expr);
     const Expression *analyze(const pt::ValidPointerExpression *expr);
     const Expression *analyze(const pt::RangeSubscriptExpression *expr);
     const Statement *analyze(const pt::ImportDeclaration *declaration);
@@ -129,6 +131,7 @@ private:
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
     std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const Variable *function, std::vector<const Expression *> args, std::vector<const Statement *> &statements);
+    std::vector<TypeRecord::Field> analyze_fields(const pt::TypeRecord *type);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -140,7 +143,9 @@ public:
     virtual void visit(const pt::TypeSimple *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeEnum *t) override { type = a->analyze_enum(t, name); }
     virtual void visit(const pt::TypeRecord *t) override { type = a->analyze_record(t, name); }
+    virtual void visit(const pt::TypeClass *t) override { type = a->analyze_class(t, name); }
     virtual void visit(const pt::TypePointer *t) override { type = a->analyze(t, name); }
+    virtual void visit(const pt::TypeValidPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeFunctionPointer *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeParameterised *t) override { type = a->analyze(t, name); }
     virtual void visit(const pt::TypeImport *t) override { type = a->analyze(t, name); }
@@ -180,7 +185,7 @@ public:
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
@@ -229,7 +234,9 @@ public:
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
@@ -269,7 +276,7 @@ public:
     virtual void visit(const pt::DisjunctionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ConditionalExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::TryExpression *p) override { expr = a->analyze(p); }
-    virtual void visit(const pt::NewRecordExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::NewClassExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ValidPointerExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::RangeSubscriptExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ImportDeclaration *) override { internal_error("pt::Declaration"); }
@@ -317,7 +324,9 @@ public:
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
@@ -357,7 +366,7 @@ public:
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *p) override { v.push_back(a->analyze(p)); }
@@ -405,7 +414,9 @@ public:
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeClass *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypePointer *) override { internal_error("pt::Type"); }
+    virtual void visit(const pt::TypeValidPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeFunctionPointer *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeParameterised *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeImport *) override { internal_error("pt::Type"); }
@@ -445,7 +456,7 @@ public:
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
-    virtual void visit(const pt::NewRecordExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ValidPointerExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::RangeSubscriptExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ImportDeclaration *) override {}
@@ -746,6 +757,14 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
             const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
             const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
+        } else if (object.strtable[t.descriptor][0] == 'C') {
+            // Support recursive class type declarations.
+            TypeClass *actual_class = new TypeClass(Token(), name + "." + object.strtable[t.name], std::vector<TypeRecord::Field>());
+            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_class);
+            Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
+            const TypeRecord *classtype = dynamic_cast<const TypeClass *>(type);
+            const_cast<std::vector<TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
+            const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
         } else {
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
@@ -815,7 +834,7 @@ const Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &
     return new TypeEnum(type->token, name, names, this);
 }
 
-const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
+std::vector<TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type)
 {
     std::vector<TypeRecord::Field> fields;
     std::map<std::string, Token> field_names;
@@ -826,10 +845,25 @@ const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::stri
             error2(3009, x->name, "duplicate field: " + x->name.text, prev->second, "first declaration here");
         }
         const Type *t = analyze(x->type.get());
+        if (dynamic_cast<const TypeValidPointer *>(t) != nullptr) {
+            error(3223, x->type->token, "valid pointer type not permitted as record member");
+        }
         fields.push_back(TypeRecord::Field(x->name, t, x->is_private));
         field_names[name] = x->name;
     }
+    return fields;
+}
+
+const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
+{
+    std::vector<TypeRecord::Field> fields = analyze_fields(type);
     return new TypeRecord(type->token, name, fields);
+}
+
+const Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)
+{
+    std::vector<TypeRecord::Field> fields = analyze_fields(type);
+    return new TypeClass(type->token, name, fields);
 }
 
 const Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
@@ -838,19 +872,37 @@ const Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
         const pt::TypeSimple *simple = dynamic_cast<const pt::TypeSimple *>(type->reftype.get());
         if (simple != nullptr && scope.top()->lookupName(simple->name) == nullptr) {
             const std::string name = simple->name;
-            TypePointer *ptrtype = new TypePointer(type->token, new TypeForwardRecord(type->reftype->token));
+            TypePointer *ptrtype = new TypePointer(type->token, new TypeForwardClass(type->reftype->token));
             scope.top()->addForward(name, ptrtype);
             return ptrtype;
         } else {
             const Type *reftype = analyze(type->reftype.get());
-            const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(reftype);
-            if (rectype == nullptr) {
-                error(3098, type->reftype->token, "record type expected");
+            const TypeClass *classtype = dynamic_cast<const TypeClass *>(reftype);
+            if (classtype == nullptr) {
+                error(3098, type->reftype->token, "class type expected");
             }
-            return new TypePointer(type->token, rectype);
+            return new TypePointer(type->token, classtype);
         }
     } else {
         return new TypePointer(type->token, nullptr);
+    }
+}
+
+const Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::string &)
+{
+    const pt::TypeSimple *simple = dynamic_cast<const pt::TypeSimple *>(type->reftype.get());
+    if (simple != nullptr && scope.top()->lookupName(simple->name) == nullptr) {
+        const std::string name = simple->name;
+        TypeValidPointer *ptrtype = new TypeValidPointer(type->token, new TypeForwardClass(type->reftype->token));
+        scope.top()->addForward(name, ptrtype);
+        return ptrtype;
+    } else {
+        const Type *reftype = analyze(type->reftype.get());
+        const TypeClass *classtype = dynamic_cast<const TypeClass *>(reftype);
+        if (classtype == nullptr) {
+            error(3221, type->reftype->token, "class type expected");
+        }
+        return new TypeValidPointer(type->token, classtype);
     }
 }
 
@@ -888,7 +940,11 @@ const Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::st
 const Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
 {
     if (type->name.text == "Array") {
-        return new TypeArray(type->name, analyze(type->elementtype.get()));
+        const Type *elementtype = analyze(type->elementtype.get());
+        if (dynamic_cast<const TypeValidPointer *>(elementtype) != nullptr) {
+            error(3222, type->elementtype->token, "valid pointer type not permitted as array element type");
+        }
+        return new TypeArray(type->name, elementtype);
     }
     if (type->name.text == "Dictionary") {
         return new TypeDictionary(type->name, analyze(type->elementtype.get()));
@@ -1127,8 +1183,8 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
     if (recordtype == nullptr) {
         error(3046, expr->base->token, "not a record");
     }
-    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-        internal_error("record not defined yet");
+    if (dynamic_cast<const TypeForwardClass *>(recordtype) != nullptr) {
+        internal_error("class not defined yet");
     }
     auto f = recordtype->field_names.find(expr->name.text);
     if (f == recordtype->field_names.end()) {
@@ -1160,8 +1216,8 @@ const Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
     if (recordtype == nullptr) {
         error(3117, expr->base->token, "pointer must not be a generic pointer");
     }
-    if (dynamic_cast<const TypeForwardRecord *>(recordtype) != nullptr) {
-        error2(3104, expr->base->token, "record not defined yet", recordtype->declaration, "forward declaration here");
+    if (dynamic_cast<const TypeForwardClass *>(recordtype) != nullptr) {
+        error2(3104, expr->base->token, "class not defined yet", recordtype->declaration, "forward declaration here");
     }
     auto f = recordtype->field_names.find(expr->name.text);
     if (f == recordtype->field_names.end()) {
@@ -1359,7 +1415,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         if (m == ptype->reftype->methods.end()) {
             error(3220, arrowmethod->name, "method not found");
         }
-        self = new PointerDereferenceExpression(ptype->reftype, base);
+        self = base;
         func = new VariableExpression(m->second);
     } else if (recordtype == nullptr) {
         func = analyze(expr->base.get());
@@ -1800,7 +1856,7 @@ const Expression *Analyzer::analyze(const pt::TryExpression *expr)
     return new TryExpression(e, catches);
 }
 
-const Expression *Analyzer::analyze(const pt::NewRecordExpression *expr)
+const Expression *Analyzer::analyze(const pt::NewClassExpression *expr)
 {
     const pt::Expression *e = expr->expr.get();
     const pt::Expression *type_expr = e;
@@ -1811,11 +1867,11 @@ const Expression *Analyzer::analyze(const pt::NewRecordExpression *expr)
         value = analyze(fc);
     }
     const Name *name = analyze_qualified_name(type_expr);
-    const TypeRecord *type = dynamic_cast<const TypeRecord *>(name);
+    const TypeClass *type = dynamic_cast<const TypeClass *>(name);
     if (type == nullptr) {
-        error(3099, type_expr->token, "record type expected");
+        error(3099, type_expr->token, "class type expected");
     }
-    return new NewRecordExpression(type, value);
+    return new NewClassExpression(type, value);
 }
 
 const Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
@@ -1897,7 +1953,8 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
             i++;
             return new TypeDictionary(Token(), type);
         }
-        case 'R': {
+        case 'R': case 'C': {
+            char kind = descriptor.at(i);
             i++;
             std::vector<TypeRecord::Field> fields;
             if (descriptor.at(i) != '[') {
@@ -1925,7 +1982,13 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 }
             }
             i++;
-            return new TypeRecord(Token(), "record", fields);
+            if (kind == 'R') {
+                return new TypeRecord(Token(), "record", fields);
+            } else if (kind == 'C') {
+                return new TypeClass(Token(), "class", fields);
+            } else {
+                internal_error("what kind?");
+            }
         }
         case 'E': {
             i++;
@@ -1997,11 +2060,11 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 internal_error("deserialize_type");
             }
             i++;
-            const TypeRecord *rectype = nullptr;
+            const TypeClass *classtype = nullptr;
             if (descriptor.at(i) != '>') {
                 const Type *type = deserialize_type(scope, descriptor, i);
-                rectype = dynamic_cast<const TypeRecord *>(type);
-                if (rectype == nullptr) {
+                classtype = dynamic_cast<const TypeClass *>(type);
+                if (classtype == nullptr) {
                     internal_error("deserialize_type");
                 }
             }
@@ -2009,7 +2072,7 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 internal_error("deserialize_type");
             }
             i++;
-            return new TypePointer(Token(), rectype);
+            return new TypePointer(Token(), classtype);
         }
         case 'Q': {
             i++;
@@ -2085,15 +2148,26 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     if (not scope.top()->allocateName(declaration->token, name)) {
         error2(3013, declaration->token, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
+    TypeClass *actual_class = nullptr;
     TypeRecord *actual_record = nullptr;
+    const pt::TypeRecord *classdecl = dynamic_cast<const pt::TypeClass *>(declaration->type.get());
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
-    if (recdecl != nullptr) {
+    if (classdecl != nullptr) {
+        // Support recursive class type declarations.
+        actual_class = new TypeClass(classdecl->token, name, std::vector<TypeRecord::Field>());
+        scope.top()->addName(declaration->token, name, actual_class);
+    } else if (recdecl != nullptr) {
         // Support recursive record type declarations.
         actual_record = new TypeRecord(recdecl->token, name, std::vector<TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
     }
     const Type *type = analyze(declaration->type.get(), name);
-    if (actual_record != nullptr) {
+    if (actual_class != nullptr) {
+        const TypeClass *classtype = dynamic_cast<const TypeClass *>(type);
+        const_cast<std::vector<TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
+        const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
+        type = actual_class;
+    } else if (actual_record != nullptr) {
         const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
         const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
@@ -2105,9 +2179,9 @@ const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         }
         scope.top()->addName(declaration->token, name, t); // Still ugly.
     }
-    const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
-    if (rectype != nullptr) {
-        scope.top()->resolveForward(name, rectype);
+    const TypeClass *classtype = dynamic_cast<const TypeClass *>(type);
+    if (classtype != nullptr) {
+        scope.top()->resolveForward(name, classtype);
     }
     return new NullStatement(declaration->token.line);
 }
@@ -2216,8 +2290,8 @@ const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
         error(3140, declaration->value->token, "type mismatch");
     }
     const TypePointer *ptype = dynamic_cast<const TypePointer *>(type);
-    if (ptype != nullptr && dynamic_cast<const NewRecordExpression *>(expr) != nullptr) {
-        type = new TypeValidPointer(ptype);
+    if (ptype != nullptr && dynamic_cast<const NewClassExpression *>(expr) != nullptr) {
+        type = new TypeValidPointer(Token(), ptype->reftype);
     }
     Variable *v = frame.top()->createVariable(declaration->name, declaration->name.text, type, true);
     scope.top()->addName(v->declaration, v->name, v, true);
@@ -2261,8 +2335,16 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
         }
         const Type *ptype = analyze(x->type.get());
         if (type != nullptr && args.empty()) {
-            if (not ptype->is_assignment_compatible(type)) {
-                error(3128, x->type->token, "expected self parameter");
+            const TypeClass *ctype = dynamic_cast<const TypeClass *>(type);
+            if (ctype != nullptr) {
+                const TypeValidPointer *vptype = dynamic_cast<const TypeValidPointer *>(ptype);
+                if (vptype == nullptr || not vptype->reftype->is_assignment_compatible(type)) {
+                    error(3224, x->type->token, "valid pointer type expected");
+                }
+            } else {
+                if (not ptype->is_assignment_compatible(type)) {
+                    error(3128, x->type->token, "expected self parameter");
+                }
             }
         }
         const Expression *def = nullptr;
@@ -3614,7 +3696,7 @@ const Statement *Analyzer::analyze(const pt::IfStatement *statement)
                 if (ptrtype == nullptr) {
                     error(3101, v->expr->token, "pointer type expression expected");
                 }
-                const TypeValidPointer *vtype = new TypeValidPointer(ptrtype);
+                const TypeValidPointer *vtype = new TypeValidPointer(Token(), ptrtype->reftype);
                 Variable *var;
                 // TODO: Try to make this a local variable always (give the global scope a local space).
                 if (functiontypes.empty()) {
@@ -4004,7 +4086,9 @@ public:
     virtual void visit(const pt::TypeSimple *) {}
     virtual void visit(const pt::TypeEnum *) {}
     virtual void visit(const pt::TypeRecord *) {}
+    virtual void visit(const pt::TypeClass *) {}
     virtual void visit(const pt::TypePointer *) {}
+    virtual void visit(const pt::TypeValidPointer *) {}
     virtual void visit(const pt::TypeFunctionPointer *) {}
     virtual void visit(const pt::TypeParameterised *) {}
     virtual void visit(const pt::TypeImport *) {}
@@ -4066,7 +4150,7 @@ public:
     virtual void visit(const pt::TryExpression *node) {
         node->expr->accept(this);
     }
-    virtual void visit(const pt::NewRecordExpression *) {}
+    virtual void visit(const pt::NewClassExpression *) {}
     virtual void visit(const pt::ValidPointerExpression *node) { for (auto &x: node->tests) x->expr->accept(this); }
     virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->get_first()->accept(this); node->range->get_last()->accept(this); }
 
@@ -4330,7 +4414,9 @@ public:
     virtual void visit(const pt::TypeSimple *) {}
     virtual void visit(const pt::TypeEnum *) {}
     virtual void visit(const pt::TypeRecord *) {}
+    virtual void visit(const pt::TypeClass *) {}
     virtual void visit(const pt::TypePointer *) {}
+    virtual void visit(const pt::TypeValidPointer *) {}
     virtual void visit(const pt::TypeFunctionPointer *) {}
     virtual void visit(const pt::TypeParameterised *) {}
     virtual void visit(const pt::TypeImport *) {}
@@ -4388,7 +4474,7 @@ public:
     virtual void visit(const pt::TryExpression *node) {
         node->expr->accept(this);
     }
-    virtual void visit(const pt::NewRecordExpression *node) { node->expr->accept(this); }
+    virtual void visit(const pt::NewClassExpression *node) { node->expr->accept(this); }
     virtual void visit(const pt::ValidPointerExpression *node) { for (auto &x: node->tests) x->expr->accept(this); }
     virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->get_first()->accept(this); node->range->get_last()->accept(this); }
 

@@ -131,6 +131,7 @@ std::string Token::tostring() const
         case INTDIV:      s << "INTDIV"; break;
         case EXEC:        s << "EXEC"; break;
         case LABEL:       s << "LABEL"; break;
+        case CLASS:       s << "CLASS"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -339,6 +340,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "INTDIV") t.type = INTDIV;
             else if (t.text == "EXEC") t.type = EXEC;
             else if (t.text == "LABEL") t.type = LABEL;
+            else if (t.text == "CLASS") t.type = CLASS;
             else if (all_upper(t.text)) {
                 t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {

@@ -55,15 +55,17 @@ ImportDeclaration = 'IMPORT', (Identifier, ['.', Identifier], ['ALIAS', Identifi
 
 TypeDeclaration = 'TYPE', Identifier, 'IS', Type;
 
-Type = ParameterisedType | RecordType | EnumType | PointerType | FunctionPointerType | (Identifier, ['.', Identifier]);
+Type = ParameterisedType | RecordType | ClassType | EnumType | PointerType | FunctionPointerType | (Identifier, ['.', Identifier]);
 
 ParameterisedType = ('Array' | 'Dictionary'), '<', Type, '>';
 
 RecordType = 'RECORD', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'RECORD';
 
+ClassType = 'CLASS', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'CLASS';
+
 EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
 
-PointerType = 'POINTER', 'TO', Type;
+PointerType = ['VALID'], 'POINTER', 'TO', Type;
 
 FunctionPointerType = 'FUNCTION', FunctionParameterList;
 

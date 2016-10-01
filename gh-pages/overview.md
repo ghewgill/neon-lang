@@ -44,10 +44,10 @@ Dynamic heap allocation is supported by a `POINTER` type.
         blue
     END ENUM
 
-    TYPE Person IS RECORD
+    TYPE Person IS CLASS
         name: String
         eyes: Colour
-    END RECORD
+    END CLASS
 
     LET b: Boolean := TRUE
     LET n: Number := 123.456
@@ -218,10 +218,10 @@ Records may have methods attached to them, to be called with the usual method sy
 Pointers can only point to records.
 Pointers are declared with `POINTER TO` and allocated with `NEW`.
 
-    TYPE Person IS RECORD
+    TYPE Person IS CLASS
         name: String
         age: Number
-    END RECORD
+    END CLASS
 
     LET p: POINTER TO Person := NEW Person
     p->name := "Alice"
@@ -229,10 +229,10 @@ Pointers are declared with `POINTER TO` and allocated with `NEW`.
 
 Pointers must be checked for validity (non-NIL) before they can be used using the `IF VALID` block.
 
-    TYPE Person IS RECORD
+    TYPE Person IS CLASS
         name: String
         age: Number
-    END RECORD
+    END CLASS
 
     FUNCTION incrementAge(p: POINTER TO Person)
         IF VALID p THEN
