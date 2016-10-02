@@ -254,6 +254,10 @@ public:
         child(node->type.get());
         child(node->value.get());
     }
+    virtual void visit(const NativeVariableDeclaration *node) override {
+        write("NativeVariableDeclaration(" + node->name.text + ")");
+        child(node->type.get());
+    }
     virtual void visit(const LetDeclaration *node) override {
         write("LetDeclaration(" + node->name.text + ")");
         child(node->type.get());

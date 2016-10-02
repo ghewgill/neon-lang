@@ -1,0 +1,4 @@
+DECLARE NATIVE VAR foo: Number
+                   %<2
+DECLARE NATIVE VAR foo: Number
+                   %<1

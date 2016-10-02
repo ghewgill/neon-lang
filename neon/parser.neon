@@ -151,6 +151,7 @@ TYPE Type IS ENUM
     ConstantDeclaration
     NativeConstantDeclaration
     VariableDeclaration
+    NativeVariableDeclaration
     LetDeclaration
     FunctionDeclaration
     ExternalFunctionDeclaration
@@ -400,6 +401,11 @@ TYPE VariableDeclaration IS RECORD
     value: POINTER TO ParseTreeNode
 END RECORD
 
+TYPE NativeVariableDeclaration IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+END RECORD
+
 TYPE LetDeclaration IS RECORD
     name: lexer.Token
     type: POINTER TO ParseTreeNode
@@ -575,6 +581,7 @@ TYPE ParseTreeNode IS CLASS
     constantdeclaration: ConstantDeclaration
     nativeconstantdeclaration: NativeConstantDeclaration
     variabledeclaration: VariableDeclaration
+    nativevariabledeclaration: NativeVariableDeclaration
     letdeclaration: LetDeclaration
     functiondeclaration: FunctionDeclaration
     externalfunctiondeclaration: ExternalFunctionDeclaration
@@ -2244,6 +2251,27 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                             rparen WITH rparen
                         )
                     )
+                WHEN TokenType.var DO
+                    LET tokVar: lexer.Token := self.token
+                    self.nextToken()
+                    IF self.token.type # TokenType.identifier THEN
+                        error(3212, self.token, "identifier expected")
+                    END IF
+                    LET name: lexer.Token := self.token
+                    self.nextToken()
+                    IF self.token.type # TokenType.colon THEN
+                        error(3213, self.token, "':' expected")
+                    END IF
+                    self.nextToken()
+                    LET type: POINTER TO ParseTreeNode := self.parseType()
+                    RETURN NEW ParseTreeNode(
+                        type WITH Type.NativeVariableDeclaration,
+                        token WITH tokVar,
+                        nativevariabledeclaration WITH NativeVariableDeclaration(
+                            name WITH name,
+                            type WITH type
+                        )
+                    )
             END CASE
             RETURN NIL
         WHEN OTHERS DO
@@ -3562,6 +3590,11 @@ FUNCTION dumpVariableDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Nu
     dumpParseTree(node->variabledeclaration.value, depth+1)
 END FUNCTION
 
+FUNCTION dumpNativeVariableDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "NativeVariableDeclaration(\(node->nativevariabledeclaration.name.text))")
+    dumpParseTree(node->nativevariabledeclaration.type, depth+1)
+END FUNCTION
+
 FUNCTION dumpLetDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "LetDeclaration(\(node->letdeclaration.name.text))")
     dumpParseTree(node->letdeclaration.type, depth+1)
@@ -3815,6 +3848,7 @@ LET Dumper: IParseTreeVisitor := {
     "ConstantDeclaration":                  dumpConstantDeclaration,
     "NativeConstantDeclaration":            dumpNativeConstantDeclaration,
     "VariableDeclaration":                  dumpVariableDeclaration,
+    "NativeVariableDeclaration":            dumpNativeVariableDeclaration,
     "LetDeclaration":                       dumpLetDeclaration,
     "FunctionDeclaration":                  dumpFunctionDeclaration,
     "ExternalFunctionDeclaration":          dumpExternalFunctionDeclaration,

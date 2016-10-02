@@ -93,6 +93,8 @@ public:
     const Statement *analyze_body(const pt::NativeConstantDeclaration *declaration);
     const Statement *analyze_decl(const pt::VariableDeclaration *declaration);
     const Statement *analyze_body(const pt::VariableDeclaration *declaration);
+    const Statement *analyze_decl(const pt::NativeVariableDeclaration *declaration);
+    const Statement *analyze_body(const pt::NativeVariableDeclaration *declaration);
     const Statement *analyze_decl(const pt::LetDeclaration *declaration);
     const Statement *analyze_body(const pt::LetDeclaration *declaration);
     const Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
@@ -193,6 +195,7 @@ public:
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
@@ -284,6 +287,7 @@ public:
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
@@ -374,6 +378,7 @@ public:
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::NativeConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
@@ -464,6 +469,7 @@ public:
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::NativeConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
@@ -2272,6 +2278,22 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
     } else {
         return new ResetStatement(declaration->token.line, refs);
     }
+}
+
+const Statement *Analyzer::analyze_decl(const pt::NativeVariableDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
+    if (not scope.top()->allocateName(declaration->name, name)) {
+        error2(3225, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
+    }
+    return new NullStatement(declaration->token.line);
+}
+
+const Statement *Analyzer::analyze_body(const pt::NativeVariableDeclaration *declaration)
+{
+    //std::string name = declaration->name.text;
+    //scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, get_native_constant_value(module_name + "$" + name)));
+    return new NullStatement(declaration->token.line);
 }
 
 const Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
@@ -4167,6 +4189,7 @@ public:
             }
         }
     }
+    virtual void visit(const pt::NativeVariableDeclaration *) {}
     virtual void visit(const pt::LetDeclaration *node) {
         node->value->accept(this);
     }
@@ -4490,6 +4513,7 @@ public:
             variables.back()[name.text] = std::make_pair(name, false);
         }
     }
+    virtual void visit(const pt::NativeVariableDeclaration *) {}
     virtual void visit(const pt::LetDeclaration *node) {
         node->value->accept(this);
         variables.back()[node->name.text] = std::make_pair(node->name, false);

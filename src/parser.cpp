@@ -1124,8 +1124,22 @@ std::unique_ptr<Declaration> Parser::parseDeclaration()
                 Token rparen;
                 parseFunctionHeader(type, name, returntype, args, rparen);
                 return std::unique_ptr<Declaration> { new NativeFunctionDeclaration(tok_function, std::move(type), name, std::move(returntype), std::move(args), rparen) };
+            } else if (tokens[i].type == VAR) {
+                auto &tok_var = tokens[i];
+                ++i;
+                // The form of the native var declaration is assumed
+                // to be syntactically correct:
+                //  DECLARE NATIVE VAR name: type
+                Token name = tokens[i];
+                ++i;
+                if (tokens[i].type != COLON) {
+                    internal_error("colon expected");
+                }
+                ++i;
+                std::unique_ptr<Type> type = parseType();
+                return std::unique_ptr<Declaration> { new NativeVariableDeclaration(tok_var, name, std::move(type)) };
             }
-            return nullptr;
+            error(2120, tokens[i], "CONSTANT, FUNCTION or VAR expected");
         }
         default:
             error(2058, tokens[i], "EXCEPTION expected");

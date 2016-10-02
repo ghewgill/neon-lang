@@ -66,6 +66,7 @@ class TypeDeclaration;
 class ConstantDeclaration;
 class NativeConstantDeclaration;
 class VariableDeclaration;
+class NativeVariableDeclaration;
 class LetDeclaration;
 class FunctionDeclaration;
 class ExternalFunctionDeclaration;
@@ -155,6 +156,7 @@ public:
     virtual void visit(const ConstantDeclaration *) = 0;
     virtual void visit(const NativeConstantDeclaration *) = 0;
     virtual void visit(const VariableDeclaration *) = 0;
+    virtual void visit(const NativeVariableDeclaration *) = 0;
     virtual void visit(const LetDeclaration *) = 0;
     virtual void visit(const FunctionDeclaration *) = 0;
     virtual void visit(const ExternalFunctionDeclaration *) = 0;
@@ -661,6 +663,14 @@ public:
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Type> type;
     std::unique_ptr<Expression> value;
+};
+
+class NativeVariableDeclaration: public Declaration {
+public:
+    NativeVariableDeclaration(const Token &token, const Token &name, std::unique_ptr<Type> &&type): Declaration(token, {name}), name(name), type(std::move(type)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token name;
+    std::unique_ptr<Type> type;
 };
 
 class LetDeclaration: public Declaration {
