@@ -21,9 +21,9 @@
 #include "support.h"
 
 #ifdef _WIN32
-#define STUB_NAME "neonstub.exe"
+#define DEFAULT_STUB_NAME "neonstub.exe"
 #else
-#define STUB_NAME "neonstub"
+#define DEFAULT_STUB_NAME "neonstub"
 #endif
 
 RuntimeSupport support(".");
@@ -48,6 +48,7 @@ void get_modules(const Bytecode &obj, std::map<std::string, Bytecode> &modules)
 int main(int argc, char *argv[])
 {
     bool executable = false;
+    std::string stub_name = DEFAULT_STUB_NAME;
 
     if (argc < 3) {
         fprintf(stderr, "Usage: %s [-e] bundle module\n", argv[0]);
@@ -59,6 +60,9 @@ int main(int argc, char *argv[])
         if (argv[a][0] == '-') {
             if (strcmp(argv[a], "-e") == 0) {
                 executable = true;
+            } else if (strcmp(argv[a], "-stub") == 0) {
+                a++;
+                stub_name = argv[a];
             } else {
                 fprintf(stderr, "Unknown option: %s\n", argv[a]);
             }
@@ -112,9 +116,9 @@ int main(int argc, char *argv[])
     }
 
     if (executable) {
-        FILE *stub = fopen("bin/" STUB_NAME, "rb");
+        FILE *stub = fopen(("bin/"+stub_name).c_str(), "rb");
         if (stub == NULL) {
-            fprintf(stderr, "stub open\n");
+            fprintf(stderr, "stub open (%s)\n", stub_name.c_str());
             exit(1);
         }
         FILE *zip = fopen(zipname.c_str(), "rb");
