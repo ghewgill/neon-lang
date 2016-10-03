@@ -1,0 +1,8 @@
+TYPE Cls IS CLASS
+    name: String
+END CLASS
+
+TYPE Rec IS RECORD
+    c: Cls
+       %<
+END RECORD

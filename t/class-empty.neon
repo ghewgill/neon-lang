@@ -1,0 +1,10 @@
+TYPE Cls IS CLASS
+    value: String
+END CLASS
+
+VAR p: POINTER TO Cls
+p := NEW Cls
+IF VALID p AS q THEN
+    print("value=\(q->value)")
+END IF
+%= value=

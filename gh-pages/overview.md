@@ -44,9 +44,14 @@ Dynamic heap allocation is supported by a `POINTER` type.
         blue
     END ENUM
 
-    TYPE Person IS CLASS
+    TYPE Person IS RECORD
         name: String
         eyes: Colour
+    END RECORD
+
+    TYPE Node IS CLASS
+        value: String
+        next: POINTER TO Node
     END CLASS
 
     LET b: Boolean := TRUE
@@ -57,7 +62,7 @@ Dynamic heap allocation is supported by a `POINTER` type.
     LET r: Person := Person(name WITH "Alice", eyes WITH Colour.green)
     LET a: Array<String> := ["fork", "knife", "spoon"]
     LET d: Dictionary<Number> := {"fork": 5, "knife": 6, "spoon": 1}
-    LET p: POINTER TO Person := NEW Person
+    LET p: POINTER TO Node := NEW Node(value WITH "green")
 
 ## Expressions
 
@@ -215,7 +220,7 @@ Records may have methods attached to them, to be called with the usual method sy
 
 ## Pointers
 
-Pointers can only point to records.
+Pointers can only point to classes.
 Pointers are declared with `POINTER TO` and allocated with `NEW`.
 
     TYPE Person IS CLASS

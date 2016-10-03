@@ -851,6 +851,9 @@ std::vector<TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *ty
             error2(3009, x->name, "duplicate field: " + x->name.text, prev->second, "first declaration here");
         }
         const Type *t = analyze(x->type.get());
+        if (dynamic_cast<const TypeClass *>(t) != nullptr) {
+            error(3226, x->type->token, "class type not permitted as record member");
+        }
         if (dynamic_cast<const TypeValidPointer *>(t) != nullptr) {
             error(3223, x->type->token, "valid pointer type not permitted as record member");
         }
@@ -947,13 +950,20 @@ const Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::stri
 {
     if (type->name.text == "Array") {
         const Type *elementtype = analyze(type->elementtype.get());
+        if (dynamic_cast<const TypeClass *>(elementtype) != nullptr) {
+            error(3227, type->elementtype->token, "class type not permitted as array element type");
+        }
         if (dynamic_cast<const TypeValidPointer *>(elementtype) != nullptr) {
             error(3222, type->elementtype->token, "valid pointer type not permitted as array element type");
         }
         return new TypeArray(type->name, elementtype);
     }
     if (type->name.text == "Dictionary") {
-        return new TypeDictionary(type->name, analyze(type->elementtype.get()));
+        const Type *elementtype = analyze(type->elementtype.get());
+        if (dynamic_cast<const TypeClass *>(elementtype) != nullptr) {
+            error(3228, type->elementtype->token, "class type not permitted as dictionary element type");
+        }
+        return new TypeDictionary(type->name, elementtype);
     }
     internal_error("Invalid parameterized type");
 }
@@ -1340,44 +1350,6 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     const TypeRecord *recordtype = nullptr;
     const pt::IdentifierExpression *fname = dynamic_cast<const pt::IdentifierExpression *>(expr->base.get());
     if (fname != nullptr) {
-        if (fname->name == "valueCopy") {
-            if (expr->args.size() != 2) {
-                error(3136, expr->rparen, "two arguments expected");
-            }
-            const Expression *lhs_expr = analyze(expr->args[0]->expr.get());
-            const ReferenceExpression *lhs = dynamic_cast<const ReferenceExpression *>(lhs_expr);
-            if (lhs == nullptr) {
-                error(3119, expr->args[0]->expr->token, "expression is not assignable");
-            }
-            if (lhs_expr->is_readonly && dynamic_cast<const TypePointer *>(lhs_expr->type) == nullptr) {
-                error(3120, expr->args[0]->expr->token, "valueCopy to readonly expression");
-            }
-            const Expression *rhs = analyze(expr->args[1]->expr.get());
-            const Type *ltype = lhs->type;
-            const TypePointer *lptype = dynamic_cast<const TypePointer *>(ltype);
-            if (lptype != nullptr) {
-                if (dynamic_cast<const TypeValidPointer *>(lptype) == nullptr) {
-                    error(3121, expr->args[0]->expr->token, "valid pointer type required");
-                }
-                ltype = lptype->reftype;
-                lhs = new PointerDereferenceExpression(ltype, lhs);
-            }
-            const Type *rtype = rhs->type;
-            const TypePointer *rptype = dynamic_cast<const TypePointer *>(rtype);
-            if (rptype != nullptr) {
-                if (dynamic_cast<const TypeValidPointer *>(rptype) == nullptr) {
-                    error(3122, expr->args[1]->expr->token, "valid pointer type required");
-                }
-                rtype = rptype->reftype;
-                rhs = new PointerDereferenceExpression(rtype, rhs);
-            }
-            if (not ltype->is_assignment_compatible(rtype)) {
-                error(3123, expr->args[1]->expr->token, "type mismatch");
-            }
-            std::vector<const ReferenceExpression *> vars;
-            vars.push_back(lhs);
-            return new StatementExpression(new AssignmentStatement(expr->token.line, vars, rhs));
-        }
         recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
     }
     const pt::DotExpression *dotmethod = dynamic_cast<const pt::DotExpression *>(expr->base.get());
@@ -1399,6 +1371,9 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (m == base->type->methods.end()) {
                 error(3137, dotmethod->name, "method not found");
             } else {
+                if (dynamic_cast<const TypeClass *>(base->type) != nullptr) {
+                    internal_error("class not expected here");
+                }
                 self = base;
             }
             func = new VariableExpression(m->second);
@@ -2205,6 +2180,9 @@ const Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declarati
 {
     std::string name = declaration->name.text;
     const Type *type = analyze(declaration->type.get());
+    if (dynamic_cast<const TypeClass *>(type) != nullptr) {
+        error(3229, declaration->type->token, "class type not permitted as constant type");
+    }
     const Expression *value = analyze(declaration->value.get());
     if (not type->is_assignment_compatible(value->type)) {
         error(3015, declaration->value->token, "type mismatch");
@@ -2256,6 +2234,9 @@ const Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declarati
 const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
 {
     const Type *type = analyze(declaration->type.get());
+    if (dynamic_cast<const TypeClass *>(type) != nullptr) {
+        error(3230, declaration->type->token, "class type not perrmitted as variable type (use POINTER TO)");
+    }
     std::vector<Variable *> variables;
     for (auto name: declaration->names) {
         Variable *v = frame.top()->createVariable(name, name.text, type, false);
@@ -2307,6 +2288,9 @@ const Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
 const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
     const Type *type = analyze(declaration->type.get());
+    if (dynamic_cast<const TypeClass *>(type) != nullptr) {
+        error(3231, declaration->type->token, "class type not perrmitted as variable type (use POINTER TO)");
+    }
     const Expression *expr = analyze(declaration->value.get());
     if (not type->is_assignment_compatible(expr->type)) {
         error(3140, declaration->value->token, "type mismatch");
@@ -2356,6 +2340,9 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
             case pt::FunctionParameterGroup::OUT:   mode = ParameterType::OUT;      break;
         }
         const Type *ptype = analyze(x->type.get());
+        if (dynamic_cast<const TypeClass *>(ptype) != nullptr) {
+            error(3232, x->type->token, "class type not permitted as function parameter (use pointers)");
+        }
         if (type != nullptr && args.empty()) {
             const TypeClass *ctype = dynamic_cast<const TypeClass *>(type);
             if (ctype != nullptr) {

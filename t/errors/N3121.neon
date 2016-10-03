@@ -1,5 +1,0 @@
-TYPE Cls IS CLASS END CLASS
-VAR p: POINTER TO Cls := NIL
-VAR a: Cls := Cls()
-valueCopy(p, a)
-          %<

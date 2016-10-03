@@ -1,0 +1,7 @@
+TYPE Cls IS CLASS
+    name: String
+END CLASS
+
+FUNCTION foo(c: Cls)
+                %<
+END FUNCTION

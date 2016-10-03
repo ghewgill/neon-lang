@@ -1,21 +1,14 @@
-TYPE Cls IS CLASS
+TYPE Rec IS RECORD
     value: String
-END CLASS
+END RECORD
 
-FUNCTION foo(): Cls
-    RETURN Cls(value WITH "")
+FUNCTION foo(): Rec
+    RETURN Rec()
 END FUNCTION
 
-VAR r: Cls := Cls()
+VAR r: Rec := Rec()
 print("value=\(r.value)")
 %= value=
 
 print("value=\(foo().value)")
-%= value=
-
-VAR p: POINTER TO Cls
-p := NEW Cls
-IF VALID p AS q THEN
-    print("value=\(q->value)")
-END IF
 %= value=

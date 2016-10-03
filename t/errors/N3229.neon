@@ -1,0 +1,6 @@
+TYPE Cls IS CLASS
+    name: String
+END CLASS
+
+CONSTANT c: Cls := Cls()
+            %<

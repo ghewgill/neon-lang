@@ -1,4 +1,0 @@
-FUNCTION foo(a: Number)
-    valueCopy(a, 1)
-              %<
-END FUNCTION

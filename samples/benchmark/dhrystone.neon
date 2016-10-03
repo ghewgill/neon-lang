@@ -413,7 +413,7 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
           % corresponds to "rename" in Ada, "with" in Pascal
 
           IF VALID Ptr_Glob THEN
-            valueCopy(Next_Record, Ptr_Glob)
+            % No value copy available. valueCopy(Next_Record, Ptr_Glob)
           END IF
           Ptr_Val_Par->Int_Comp := 5
           Next_Record->Int_Comp := Ptr_Val_Par->Int_Comp
@@ -431,7 +431,7 @@ FUNCTION Proc_1 (Ptr_Val_Par: POINTER TO Record)
             Proc_7 (Next_Record->Int_Comp, 10,
                     OUT Next_Record->Int_Comp)
           ELSE
-            valueCopy(Ptr_Val_Par, Next_Record)
+            % No value copy available. valueCopy(Ptr_Val_Par, Next_Record)
           END IF
       END IF
   END IF
