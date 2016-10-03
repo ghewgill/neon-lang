@@ -93,65 +93,61 @@ FUNCTION dlx_uncover(c: POINTER TO Node)
     END IF
 END FUNCTION
 
-FUNCTION dlx_search(head: POINTER TO Node, INOUT solution: Array<Number>, k: Number, INOUT solutions: Array<Array<Number>>, maxsolutions: Number): Boolean
-    IF VALID head THEN
-        IF head->right = head THEN
-            solutions.append(solution)
-            RETURN solutions.size() >= maxsolutions
+FUNCTION dlx_search(head: VALID POINTER TO Node, INOUT solution: Array<Number>, k: Number, INOUT solutions: Array<Array<Number>>, maxsolutions: Number): Boolean
+    IF head->right = head THEN
+        solutions.append(solution)
+        RETURN solutions.size() >= maxsolutions
+    END IF
+    VAR c: POINTER TO Node := NIL
+    VAR s: Number := 99999
+    VAR d: POINTER TO Node := head->right
+    WHILE d # head DO
+        IF VALID d AS dd THEN
+            IF dd->size = 0 THEN
+                RETURN FALSE
+            END IF
+            IF dd->size < s THEN
+                s := dd->size
+                c := dd
+            END IF
+            d := dd->right
+        ELSE
+            ASSERT FALSE
         END IF
-        VAR c: POINTER TO Node := NIL
-        VAR s: Number := 99999
-        VAR d: POINTER TO Node := head->right
-        WHILE d # head DO
-            IF VALID d AS dd THEN
-                IF dd->size = 0 THEN
-                    RETURN FALSE
+    END WHILE
+    IF VALID c THEN
+        dlx_cover(c)
+        VAR r: POINTER TO Node := c->down
+        WHILE r # c DO
+            IF VALID r AS rr THEN
+                solution[k] := rr->row
+                VAR j: POINTER TO Node := rr->right
+                WHILE j # r DO
+                    IF VALID j AS jj THEN
+                        dlx_cover(jj->column)
+                        j := jj->right
+                    ELSE
+                        ASSERT FALSE
+                    END IF
+                END WHILE
+                IF dlx_search(head, INOUT solution, k+1, INOUT solutions, maxsolutions) THEN
+                    RETURN TRUE
                 END IF
-                IF dd->size < s THEN
-                    s := dd->size
-                    c := dd
-                END IF
-                d := dd->right
+                j := rr->left
+                WHILE j # r DO
+                    IF VALID j AS jj THEN
+                        dlx_uncover(jj->column)
+                        j := jj->left
+                    ELSE
+                        ASSERT FALSE
+                    END IF
+                END WHILE
+                r := rr->down
             ELSE
                 ASSERT FALSE
             END IF
         END WHILE
-        IF VALID c THEN
-            dlx_cover(c)
-            VAR r: POINTER TO Node := c->down
-            WHILE r # c DO
-                IF VALID r AS rr THEN
-                    solution[k] := rr->row
-                    VAR j: POINTER TO Node := rr->right
-                    WHILE j # r DO
-                        IF VALID j AS jj THEN
-                            dlx_cover(jj->column)
-                            j := jj->right
-                        ELSE
-                            ASSERT FALSE
-                        END IF
-                    END WHILE
-                    IF dlx_search(head, INOUT solution, k+1, INOUT solutions, maxsolutions) THEN
-                        RETURN TRUE
-                    END IF
-                    j := rr->left
-                    WHILE j # r DO
-                        IF VALID j AS jj THEN
-                            dlx_uncover(jj->column)
-                            j := jj->left
-                        ELSE
-                            ASSERT FALSE
-                        END IF
-                    END WHILE
-                    r := rr->down
-                ELSE
-                    ASSERT FALSE
-                END IF
-            END WHILE
-            dlx_uncover(c)
-        ELSE
-            ASSERT FALSE
-        END IF
+        dlx_uncover(c)
     ELSE
         ASSERT FALSE
     END IF

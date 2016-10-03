@@ -65,34 +65,34 @@ TYPE Value IS CLASS
     val_proc: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value
 END CLASS
 
-FUNCTION make_null(): POINTER TO Value
+FUNCTION make_null(): VALID POINTER TO Value
     RETURN NEW Value(type WITH Type.null)
 END FUNCTION
 
-FUNCTION make_boolean(b: Boolean): POINTER TO Value
+FUNCTION make_boolean(b: Boolean): VALID POINTER TO Value
     RETURN NEW Value(type WITH Type.boolean, val_boolean WITH b)
 END FUNCTION
 
-FUNCTION make_number(n: Number): POINTER TO Value
+FUNCTION make_number(n: Number): VALID POINTER TO Value
     RETURN NEW Value(type WITH Type.number, val_number WITH n)
 END FUNCTION
 
-FUNCTION make_symbol(name: String): POINTER TO Value
+FUNCTION make_symbol(name: String): VALID POINTER TO Value
     RETURN NEW Value(type WITH Type.symbol, val_symbol WITH get_symbol(name))
 END FUNCTION
 
-FUNCTION make_string(s: String): POINTER TO Value
+FUNCTION make_string(s: String): VALID POINTER TO Value
     RETURN NEW Value(type WITH Type.string, val_string WITH s)
 END FUNCTION
 
-FUNCTION make_pair(car, cdr: POINTER TO Value): POINTER TO Value
+FUNCTION make_pair(car, cdr: POINTER TO Value): VALID POINTER TO Value
     LET r: POINTER TO Value := NEW Value(type WITH Type.pair)
     r->val_pair.car := car
     r->val_pair.cdr := cdr
     RETURN r
 END FUNCTION
 
-FUNCTION make_proc(proc: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value): POINTER TO Value
+FUNCTION make_proc(proc: FUNCTION(args: Array<POINTER TO Value>): POINTER TO Value): VALID POINTER TO Value
     RETURN NEW Value(type WITH Type.proc, val_proc WITH proc)
 END FUNCTION
 
