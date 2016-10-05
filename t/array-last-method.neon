@@ -1,0 +1,4 @@
+% SKIP https://github.com/ghewgill/neon-lang/issues/163
+
+VAR a: Array<String> := []
+a[LAST].append("foo")
