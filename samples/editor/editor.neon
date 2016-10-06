@@ -1,0 +1,347 @@
+IMPORT curses
+IMPORT file
+IMPORT regex
+IMPORT string
+IMPORT sys
+
+FUNCTION highlight(s: String): String
+    VAR r: String := string.repeat(".", s.length())
+    VAR i: Number := 0
+    LOOP
+        VAR m: regex.Match
+        IF NOT regex.search(@@"([A-Z]+(?!\w))|([A-Za-z][A-Za-z0-9_]*)|(0b[01_]+|0o[0-7_]+|0x[0-9A-Fa-f_]+|0#[0-9]+#[0-9A-Za-z_]+|[0-9][0-9_]*(?:\.[0-9_]+)?(?:[eE][+-]?[0-9_]+)?)|("(?:[^"]|\")*"|@"[^"]*"|@(\w*)@".*?"@\5@)|(%.*)"@@, s[i TO LAST], OUT m) THEN
+            EXIT LOOP
+        END IF
+        VAR n: Number := 0
+        VAR h: String := ""
+        IF m[1].matched THEN
+            n := 1
+            h := "k"
+        ELSIF m[2].matched THEN
+            n := 2
+            h := "i"
+        ELSIF m[3].matched THEN
+            n := 3
+            h := "n"
+        ELSIF m[4].matched THEN
+            n := 4
+            h := "s"
+        ELSIF m[6].matched THEN
+            n := 6
+            h := "c"
+        ELSE
+            EXIT LOOP
+        END IF
+        r[i+m[n].start TO i+m[n].end-1] := string.repeat(h, m[n].end-m[n].start)
+        i := i + m[n].end
+    END LOOP
+    RETURN r
+END FUNCTION
+
+TYPE TextBufferActionType IS ENUM
+    insertLine
+    deleteLine
+    insertText
+    deleteText
+    multiple
+END ENUM
+
+TYPE TextBufferAction IS RECORD
+    type: TextBufferActionType
+    line: Number
+    column: Number
+    text: String
+    actions: Array<TextBufferAction>
+END RECORD
+
+TYPE TextBuffer IS RECORD
+    PRIVATE lines: Array<String>
+    PRIVATE actions: Array<TextBufferAction>
+    PRIVATE transactionBegin: Number
+END RECORD
+
+FUNCTION TextBuffer.load(INOUT self: TextBuffer, text: String)
+    self.lines := string.splitLines(text)
+    self.actions := []
+    self.transactionBegin := -1
+END FUNCTION
+
+FUNCTION TextBuffer.ensureLine(INOUT self: TextBuffer, line: Number)
+    WHILE self.lines.size() <= line DO
+        self.lines.append("")
+    END WHILE
+END FUNCTION
+
+FUNCTION TextBuffer.lines(self: TextBuffer): Number
+    RETURN self.lines.size()
+END FUNCTION
+
+FUNCTION TextBuffer.getLines(self: TextBuffer): Array<String>
+    RETURN self.lines
+END FUNCTION
+
+FUNCTION TextBuffer.getLine(self: TextBuffer, line: Number): String
+    CHECK line < self.lines.size() ELSE
+        RETURN ""
+    END CHECK
+    RETURN self.lines[line]
+END FUNCTION
+
+FUNCTION TextBuffer.begin(INOUT self: TextBuffer)
+    self.transactionBegin := self.actions.size()
+END FUNCTION
+
+FUNCTION TextBuffer.end(INOUT self: TextBuffer)
+    CHECK self.transactionBegin >= 0 ELSE
+        EXIT FUNCTION
+    END CHECK
+    self.actions[self.transactionBegin TO LAST] := [TextBufferAction(
+        type WITH TextBufferActionType.multiple,
+        actions WITH self.actions[self.transactionBegin TO LAST]
+    )]
+END FUNCTION
+
+FUNCTION TextBuffer.insertLine(INOUT self: TextBuffer, line: Number, text: String)
+    self.ensureLine(line-1)
+    self.lines := self.lines[0 TO line-1] & [text] & self.lines[line TO LAST]
+    self.actions.append(TextBufferAction(
+        type WITH TextBufferActionType.insertLine,
+        line WITH line,
+        text WITH text
+    ))
+END FUNCTION
+
+FUNCTION TextBuffer.deleteLine(INOUT self: TextBuffer, line: Number)
+    LET text: String := self.lines[line]
+    self.lines := self.lines[0 TO line-1] & self.lines[line+1 TO LAST]
+    self.actions.append(TextBufferAction(
+        type WITH TextBufferActionType.deleteLine,
+        line WITH line,
+        text WITH text
+    ))
+END FUNCTION
+
+FUNCTION TextBuffer.insertText(INOUT self: TextBuffer, line: Number, column: Number, text: String)
+    self.ensureLine(line)
+    WHILE self.lines[line].length() <= column DO
+        self.lines[line].append(" ")
+    END WHILE
+    self.lines[line] := self.lines[line][0 TO column-1] & text & self.lines[line][column TO LAST]
+    IF self.actions.size() > 0 AND self.actions[LAST].type = TextBufferActionType.insertText AND self.actions[LAST].line = line AND self.actions[LAST].column + self.actions[LAST].text.length() = column THEN
+        self.actions[self.actions.size()-1].text.append(text)
+    ELSE
+        self.actions.append(TextBufferAction(
+            type WITH TextBufferActionType.insertText,
+            line WITH line,
+            column WITH column,
+            text WITH text
+        ))
+    END IF
+END FUNCTION
+
+FUNCTION TextBuffer.deleteText(INOUT self: TextBuffer, line: Number, column: Number, length: Number)
+    self.ensureLine(line)
+    LET text: String := self.lines[line][column TO column+length-1]
+    self.lines[line] := self.lines[line][0 TO column-1] & self.lines[line][column+length TO LAST]
+    self.actions.append(TextBufferAction(
+        type WITH TextBufferActionType.deleteText,
+        line WITH line,
+        column WITH column,
+        text WITH text
+    ))
+END FUNCTION
+
+FUNCTION undoAction(INOUT self: TextBuffer, action: TextBufferAction)
+    CASE action.type
+        WHEN TextBufferActionType.insertLine DO
+            self.deleteLine(action.line)
+        WHEN TextBufferActionType.deleteLine DO
+            self.insertLine(action.line, action.text)
+        WHEN TextBufferActionType.insertText DO
+            self.deleteText(action.line, action.column, action.text.length())
+        WHEN TextBufferActionType.deleteText DO
+            self.insertText(action.line, action.column, action.text)
+        WHEN TextBufferActionType.multiple DO
+            FOR i := action.actions.size()-1 TO 0 STEP -1 DO
+                undoAction(INOUT self, action.actions[i])
+            END FOR
+    END CASE
+END FUNCTION
+
+FUNCTION TextBuffer.undo(INOUT self: TextBuffer)
+    CHECK self.actions.size() > 0 ELSE
+        EXIT FUNCTION
+    END CHECK
+    LET a: TextBufferAction := self.actions[LAST]
+    LET saveActions: Array<TextBufferAction> := self.actions
+    undoAction(INOUT self, a)
+    self.actions := saveActions[0 TO saveActions.size()-2]
+END FUNCTION
+
+FUNCTION testTextBuffer()
+    VAR buf: TextBuffer := TextBuffer()
+    buf.load("hello world\nfoo\nbar\n")
+    ASSERT buf.lines() = 3
+    ASSERT buf.getLine(0) = "hello world"
+    ASSERT buf.getLine(1) = "foo"
+    ASSERT buf.getLine(2) = "bar"
+
+    buf.insertLine(2, "baz")
+    ASSERT buf.lines() = 4
+    ASSERT buf.getLine(2) = "baz"
+
+    buf.undo()
+    ASSERT buf.lines() = 3
+    ASSERT buf.getLine(2) = "bar"
+
+    buf.deleteLine(0)
+    ASSERT buf.lines() = 2
+    ASSERT buf.getLine(0) = "foo"
+
+    buf.undo()
+    ASSERT buf.lines() = 3
+    ASSERT buf.getLine(0) = "hello world"
+
+    buf.insertText(0, 6, "there ")
+    ASSERT buf.getLine(0) = "hello there world"
+
+    buf.undo()
+    ASSERT buf.getLine(0) = "hello world"
+
+    buf.deleteText(0, 3, 7)
+    ASSERT buf.getLine(0) = "held"
+
+    buf.undo()
+    ASSERT buf.getLine(0) = "hello world"
+END FUNCTION
+
+TYPE Editor IS RECORD
+    frame: curses.Window
+    window: curses.Window
+    height: Number
+    filename: String
+    top: Number
+    line: Number
+    column: Number
+    buffer: TextBuffer
+END RECORD
+
+FUNCTION makeEditor(frame: curses.Window): Editor
+    LET origin: Array<Number> := curses.getbegyx(frame)
+    LET dims: Array<Number> := curses.getmaxyx(frame)
+    LET window: curses.Window := curses.newwin(dims[0]-2, dims[1]-2, origin[0]+1, origin[1]+1)
+    curses.keypad(window, TRUE)
+    RETURN Editor(frame WITH frame, window WITH window, height WITH dims[0]-2)
+END FUNCTION
+
+FUNCTION Editor.load(INOUT self: Editor, filename: String)
+    self.filename := filename
+    self.buffer.load(file.readBytes(filename).decodeToString())
+END FUNCTION
+
+FUNCTION Editor.refresh(self: Editor)
+    curses.werase(self.window)
+    LET dims: Array<Number> := curses.getmaxyx(self.window)
+    LET maxy: Number := dims[0]
+    LET maxx: Number := dims[1]
+    FOR i := self.top TO self.top + maxy - 1 DO
+        CONSTANT attrs: String := " kinsc"
+        LET code: String := self.buffer.getLine(i)
+        LET h: String := highlight(code)
+        FOR j := 0 TO min(code.length(), maxx)-1 DO
+            curses.wattrset(self.window, curses.COLOR_PAIR(string.find(attrs, h[j])))
+            curses.mvwaddstr(self.window, i - self.top, j, code[j])
+        END FOR
+    END FOR
+    curses.wmove(self.window, self.line - self.top, self.column)
+END FUNCTION
+
+FUNCTION Editor.run(INOUT self: Editor)
+    curses.werase(self.frame)
+    curses.box(self.frame, 0, 0)
+    LET name: String := (IF self.filename # "" THEN self.filename ELSE "untitled")
+    curses.mvwaddstr(self.frame, 0, 2, " \(name) ")
+    curses.wrefresh(self.frame)
+    LOOP
+        self.refresh()
+        LET k: Number := curses.wgetch(self.window)
+        IF ord(" ") <= k < 0x7f THEN
+            self.buffer.insertText(self.line, self.column, chr(k))
+            INC self.column
+        ELSE
+            IF k = curses.KEY_F(9) THEN
+                EXIT LOOP
+            END IF
+            CASE k
+                WHEN 17 DO
+                    EXIT LOOP
+                WHEN 8, 127, curses.KEY_BACKSPACE DO
+                    IF self.column > 0 THEN
+                        DEC self.column
+                        self.buffer.deleteText(self.line, self.column, 1)
+                    END IF
+                WHEN curses.KEY_DC DO
+                    self.buffer.deleteText(self.line, self.column, 1)
+                WHEN curses.KEY_DOWN DO
+                    INC self.line
+                    IF self.line - self.top >= self.height THEN
+                        INC self.top
+                    END IF
+                WHEN curses.KEY_END DO
+                    self.column := self.buffer.getLine(self.line).length()
+                WHEN 10, 13, curses.KEY_ENTER DO
+                    self.buffer.begin()
+                    LET tail: String := self.buffer.getLine(self.line)[self.column TO LAST]
+                    self.buffer.deleteText(self.line, self.column, self.buffer.getLine(self.line).length() - self.column)
+                    INC self.line
+                    IF self.line - self.top >= self.height THEN
+                        INC self.top
+                    END IF
+                    self.buffer.insertLine(self.line, tail)
+                    self.buffer.end()
+                    self.column := 0
+                WHEN curses.KEY_HOME DO
+                    self.column := 0
+                WHEN curses.KEY_LEFT DO
+                    IF self.column > 0 THEN
+                        DEC self.column
+                    END IF
+                WHEN curses.KEY_NPAGE DO
+                    self.top := self.top + self.height
+                    self.line := self.line + self.height
+                WHEN curses.KEY_PPAGE DO
+                    LET newtop: Number := max(0, self.top - self.height)
+                    self.line := self.line - (self.top - newtop)
+                    self.top := newtop
+                WHEN curses.KEY_RIGHT DO
+                    INC self.column
+                WHEN 26, curses.KEY_UNDO DO
+                    self.buffer.undo()
+                WHEN curses.KEY_UP DO
+                    IF self.line > 0 THEN
+                        DEC self.line
+                    END IF
+                    IF self.line < self.top THEN
+                        DEC self.top
+                    END IF
+            END CASE
+        END IF
+    END LOOP
+END FUNCTION
+
+testTextBuffer()
+curses.initscr()
+curses.start_color()
+curses.init_pair(1, curses.COLOR_YELLOW, curses.COLOR_BLACK)    % keyword
+curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLACK)     % identifier
+curses.init_pair(3, curses.COLOR_MAGENTA, curses.COLOR_BLACK)   % number
+curses.init_pair(4, curses.COLOR_CYAN, curses.COLOR_BLACK)      % string
+curses.init_pair(5, curses.COLOR_GREEN, curses.COLOR_BLACK)     % comment
+curses.raw()
+curses.noecho()
+VAR editor: Editor := makeEditor(curses.stdscr())
+IF sys.args.size() >= 2 THEN
+    editor.load(sys.args[1])
+END IF
+editor.run()
+curses.endwin()

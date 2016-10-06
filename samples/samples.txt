@@ -5,6 +5,7 @@ Neon samples.
 - <99-bottles>      - Print the lyrics to the "99 Bottles of Beer" song
 - <bbs>             - Simple multiuser BBS
 - <cal>             - Print monthly and yearly calendars
+- <editor>          - Simple text editor for Neon source files
 - <fizzbuzz>        - Implementation of the FizzBuzz problem
 - <flappy>          - Implementation of a "Flappy Bird" clone (SDL)
 - <forth>           - Implementation of the Forth programming language

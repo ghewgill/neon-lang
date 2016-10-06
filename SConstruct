@@ -503,7 +503,7 @@ for path, dirs, files in os.walk("."):
     if all(x not in ["t", "tests"] for x in path.split(os.sep)):
         for f in files:
             if f.endswith(".neon") and f != "global.neon":
-                if not use_curses and f in ["curses.neon", "hello-curses.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
+                if not use_curses and f in ["curses.neon", "editor.neon", "hello-curses.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
                     continue
                 if not use_pcre and f in ["forth.neon", "httpd.neon", "lisp.neon"]:
                     continue
