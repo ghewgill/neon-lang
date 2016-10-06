@@ -442,10 +442,18 @@ END FUNCTION
 
 FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
     LET errors: multiarray.ArrayBoolean2D := findErrors(grid)
-    curses.mvaddstr(0, 0, "+---+---+---+---+---+---+---+---+---+")
+    curses.mvhline(0, 0, curses.ACS_HLINE(), 37)
+    curses.mvaddch(0, 0, curses.ACS_ULCORNER())
+    FOR i := 4 TO 32 STEP 4 DO
+        curses.mvaddch(0, i, curses.ACS_TTEE())
+    END FOR
+    curses.mvaddch(0, 36, curses.ACS_URCORNER())
     VAR any_errors: Boolean := FALSE
     FOR i := 0 TO 8 DO
         curses.mvaddstr(1+2*i, 0, "|           |           |           |")
+        FOR j := 0 TO 36 STEP 12 DO
+            curses.mvaddch(1+2*i, j, curses.ACS_VLINE())
+        END FOR
         FOR j := 0 TO 8 DO
             IF i = cy AND j = cx THEN
                 curses.attrset(curses.A_REVERSE)
@@ -461,9 +469,26 @@ FUNCTION draw_grid(grid: multiarray.ArrayNumber2D, cx, cy: Number)
             curses.attrset(curses.A_NORMAL)
         END FOR
         IF i MOD 3 = 2 THEN
-            curses.mvaddstr(2+2*i, 0, "+---+---+---+---+---+---+---+---+---+")
+            IF i < 8 THEN
+                curses.mvhline(2+2*i, 0, curses.ACS_HLINE(), 37)
+                curses.mvaddch(2+2*i, 0, curses.ACS_LTEE())
+                FOR j := 4 TO 32 STEP 4 DO
+                    curses.mvaddch(2+2*i, j, curses.ACS_PLUS())
+                END FOR
+                curses.mvaddch(2+2*i, 36, curses.ACS_RTEE())
+            ELSE
+                curses.mvhline(2+2*i, 0, curses.ACS_HLINE(), 37)
+                curses.mvaddch(2+2*i, 0, curses.ACS_LLCORNER())
+                FOR j := 4 TO 32 STEP 4 DO
+                    curses.mvaddch(2+2*i, j, curses.ACS_BTEE())
+                END FOR
+                curses.mvaddch(2+2*i, 36, curses.ACS_LRCORNER())
+            END IF
         ELSE
-            curses.mvaddstr(2+2*i, 0, "+           +           +           +")
+            curses.mvaddch(2+2*i, 0, curses.ACS_LTEE())
+            curses.mvaddch(2+2*i, 12, curses.ACS_PLUS())
+            curses.mvaddch(2+2*i, 24, curses.ACS_PLUS())
+            curses.mvaddch(2+2*i, 36, curses.ACS_RTEE())
         END IF
     END FOR
     IF NOT any_errors AND puzzleFilled(grid) THEN

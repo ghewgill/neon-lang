@@ -33,6 +33,18 @@ namespace rtl {
 
 namespace curses {
 
+Number ACS_ULCORNER_() { return number_from_uint32(ACS_ULCORNER); }
+Number ACS_LLCORNER_() { return number_from_uint32(ACS_LLCORNER); }
+Number ACS_URCORNER_() { return number_from_uint32(ACS_URCORNER); }
+Number ACS_LRCORNER_() { return number_from_uint32(ACS_LRCORNER); }
+Number ACS_RTEE_() { return number_from_uint32(ACS_RTEE); }
+Number ACS_LTEE_() { return number_from_uint32(ACS_LTEE); }
+Number ACS_BTEE_() { return number_from_uint32(ACS_BTEE); }
+Number ACS_TTEE_() { return number_from_uint32(ACS_TTEE); }
+Number ACS_HLINE_() { return number_from_uint32(ACS_HLINE); }
+Number ACS_VLINE_() { return number_from_uint32(ACS_VLINE); }
+Number ACS_PLUS_() { return number_from_uint32(ACS_PLUS); }
+
 Number COLOR_PAIR_(Number n)
 {
     return number_from_uint32(COLOR_PAIR(number_to_uint32(n)));
