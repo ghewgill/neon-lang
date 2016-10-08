@@ -1,0 +1,83 @@
+IMPORT http
+IMPORT json
+IMPORT os
+IMPORT string
+IMPORT sys
+IMPORT time
+IMPORT variant
+
+CONSTANT Port: Number := 20179
+
+TYPE Status IS ENUM
+    none
+    nothit
+    hit
+END ENUM
+
+VAR LineFromAddress: Array<Number> := []
+VAR AddressFromLine: Array<Number> := []
+VAR LineStatus: Array<Status> := []
+
+FUNCTION get(url: String): variant.Variant
+    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", OUT headers WITH _).decodeToString()
+    RETURN json.decode(data)
+END FUNCTION
+
+FUNCTION post(url: String, post_data: String): variant.Variant
+    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, OUT headers WITH _).decodeToString()
+    RETURN json.decode(data)
+END FUNCTION
+
+IF sys.args.size() < 2 THEN
+    print("Usage: coverage.neon program [args]")
+    sys.exit(1)
+END IF
+
+LET source: String := sys.args[1]
+
+LET target: os.Process := os.spawn("bin/neon -d \(Port) " & string.join(sys.args[1 TO LAST], " "))
+time.sleep(1)
+
+LET debug: variant.Variant := get("/module/-/debuginfo")
+
+FOREACH ln IN debug.getDictionary()["line_numbers"].getArray() DO
+    LET addr: Number := ln.getArray()[0].getNumber()
+    LET line: Number := ln.getArray()[1].getNumber()
+    LineFromAddress[addr] := line
+    AddressFromLine[line] := addr
+    LineStatus[line] := Status.nothit
+END FOREACH
+
+VAR r: variant.Variant
+
+FOREACH status IN LineStatus INDEX line DO
+    IF status = Status.nothit THEN
+        r := post("/break/\(AddressFromLine[line])", "true")
+    END IF
+END FOREACH
+
+LOOP
+    REPEAT
+        time.sleep(0.1)
+        TRY
+            r := get("/status")
+        EXCEPTION http.HttpException DO
+            EXIT LOOP
+        END TRY
+    UNTIL r.getDictionary()["state"].getString() = "stopped"
+
+    LET ip: Number := r.getDictionary()["ip"].getNumber()
+    LET line: Number := LineFromAddress[ip]
+    IF line > 0 THEN
+        LineStatus[line] := Status.hit
+    END IF
+    r := post("/break/\(ip)", "false")
+
+    r := post("/continue", "")
+END LOOP
+
+LET sourcelines: Array<variant.Variant> := debug.getDictionary()["source"].getArray()
+FOR line := 1 TO sourcelines.size()-1 DO
+    LET status: Status := (IF line < LineStatus.size() THEN LineStatus[line] ELSE Status.none)
+    print("\(status:6) \(line:>4) | \(sourcelines[line].getString())")
+END FOR

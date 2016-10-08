@@ -507,7 +507,7 @@ for path, dirs, files in os.walk("."):
                     continue
                 if not use_pcre and f in ["forth.neon", "httpd.neon", "lisp.neon"]:
                     continue
-                if not use_curl and f in ["ndb.neon"]:
+                if not use_curl and f in ["coverage.neon", "ndb.neon"]:
                     continue
                 if not use_sdl and f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
                     continue
