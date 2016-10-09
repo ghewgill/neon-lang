@@ -1,7 +1,7 @@
 language: cpp
 os:
   - linux
-  - osx
+  #- osx
 osx_image: xcode6.4
 compiler:
   - gcc
@@ -9,9 +9,9 @@ compiler:
   #- clang
 env:
   - MINIMAL=1 RELEASE=0
-  - MINIMAL=1 RELEASE=1
-  - MINIMAL=0 RELEASE=0
-  - MINIMAL=0 RELEASE=1
+  #- MINIMAL=1 RELEASE=1
+  #- MINIMAL=0 RELEASE=0
+  #- MINIMAL=0 RELEASE=1
 before_install:
   - which scons || brew install scons
 script: scons MINIMAL=$MINIMAL RELEASE=$RELEASE COVERAGE=1
