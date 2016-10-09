@@ -25,6 +25,7 @@ squeeze = lambda a: [x for x in a if x]
 os.putenv("PYTHONIOENCODING", "UTF-8")
 
 coverage = ARGUMENTS.get("COVERAGE", 0)
+coverage_lib = None
 if sys.platform.startswith("darwin"):
     # This is needed on OS X because clang has a bug where this isn't included automatically.
     coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darwin/libclang_rt.profile_osx.a"] if coverage else [])
@@ -151,6 +152,8 @@ if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
     env.Append(LIBS=["rt"])
+if coverage and coverage_lib:
+    env.Append(LIBS=[coverage_lib])
 
 if "g++" in env.subst("$CXX"):
     # This adds -Doverride= for GCC earlier than 4.7.
@@ -306,8 +309,7 @@ neon = env.Program("bin/neon", [
     "src/support.cpp",
     "src/support_compiler.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 neonc = env.Program("bin/neonc", [
     "src/analyzer.cpp",
@@ -329,8 +331,7 @@ neonc = env.Program("bin/neonc", [
     "src/support.cpp",
     "src/support_compiler.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 neonx = env.Program("bin/neonx", [
     "src/bundle.cpp",
@@ -346,8 +347,7 @@ neonx = env.Program("bin/neonx", [
     rtl_cpp,
     rtl_platform,
     "src/support.cpp",
-] + coverage_lib,
-)
+])
 
 neonstub = env.Program("bin/neonstub", [
     "src/bundle.cpp",
@@ -363,8 +363,7 @@ neonstub = env.Program("bin/neonstub", [
     rtl_cpp,
     rtl_platform,
     "src/support.cpp",
-] + coverage_lib,
-)
+])
 
 neondis = env.Program("bin/neondis", [
     "src/bytecode.cpp",
@@ -375,8 +374,7 @@ neondis = env.Program("bin/neondis", [
     # The following are just to support internal_error()
     "src/lexer.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 neonbind = env.Program("bin/neonbind", [
     "src/bytecode.cpp",
@@ -402,16 +400,14 @@ SConsEnvironment.UnitTest = UnitTest
 test_number_to_string = env.Program("bin/test_number_to_string", [
     "tests/test_number_to_string.cpp",
     "src/number.cpp",
-] + coverage_lib,
-)
+])
 
 test_lexer = env.UnitTest("bin/test_lexer", [
     "tests/test_lexer.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 test_parser = env.Program("bin/test_parser", [
     "tests/test_parser.cpp",
@@ -421,23 +417,20 @@ test_parser = env.Program("bin/test_parser", [
     "src/pt_dump.cpp",
     "src/sql.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 env.UnitTest("bin/test_format", [
     "tests/test_format.cpp",
     "src/format.cpp",
     "src/number.cpp",
-] + coverage_lib,
-)
+])
 
 env.Program("bin/fuzz_lexer", [
     "tests/fuzz_lexer.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 env.Program("bin/fuzz_parser", [
     "tests/fuzz_parser.cpp",
@@ -454,16 +447,14 @@ env.Program("bin/fuzz_parser", [
     rtl_const,
     "src/sql.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 env.Program("bin/perf_lexer", [
     "tests/perf_lexer.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
     "src/util.cpp",
-] + coverage_lib,
-)
+])
 
 if sys.platform == "win32":
     test_ffi = env.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")
