@@ -16,6 +16,8 @@ before_install:
   - which scons || brew install scons
 script: scons MINIMAL=$MINIMAL RELEASE=$RELEASE COVERAGE=1
 after_success:
-  - gcov --object-directory src --object-directory lib --object-directory tests
+  - gcov --object-directory src src/*.cpp
+  - gcov --object-directory lib lib/*.cpp
+  - gcov --object-directory tests tests/*.cpp
   - bash <(curl -s https://codecov.io/bash)
 sudo: false
