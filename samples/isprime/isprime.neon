@@ -1,0 +1,238 @@
+%|  
+ |  File: isprime
+ |
+ |   Functions to test integers for probable prime numbers, using the
+ |   Rabin/Miller algorithm, as well as testing an integer to see if
+ |   it has a small factor, within the first 55 prime numbers. 
+ |
+ |%
+IMPORT random
+IMPORT string
+IMPORT sys
+
+EXPORT RabinMiller
+EXPORT HasSmallFactor
+EXPORT InvalidIntegerValueException
+
+EXCEPTION InvalidIntegerValueException
+
+LET SMALL_PRIMES: Array<Number> := [  3,   5,   7,  11,  13,  17,  19,  23,  29,  31,  37,  41,  43,  47,  53,  59,  61,  67,
+                                     71,  73,  79,  83,  89,  97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157,
+                                    163, 167, 173, 179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257 ]
+LET iDefaultTests:  Number      := 5
+VAR TestIterations: Number      := iDefaultTests % k in the algorithm.  This can be adjusted by the parameter -k.
+VAR bQuiet:         Boolean     := FALSE
+
+FUNCTION GetRandomA(n:Number): Number
+    RETURN (random.uint32() MOD (n - 2)) + 1
+END FUNCTION
+
+FUNCTION RabinMiller(n: Number, iIterations: Number): Boolean
+    VAR m:       Number := n - 1
+    VAR k:       Number := 0
+    
+    CHECK 0 < n < 0xFFFFFFFFFFFFFFFF ELSE
+        RAISE InvalidIntegerValueException
+    END CHECK
+
+    IF n < 3 OR NOT odd(n) THEN
+        % Rule: The number n is an EVEN number, and therefore CANNOT be prime.  EXCEPT for the number 2, the ONLY even prime number.
+        RETURN n = 2
+    END IF
+
+    IF m > 0 THEN
+        WHILE odd(m) DO
+            INC k
+            m := m INTDIV 2
+        END WHILE
+    END IF
+
+    VAR r: Number
+    FOR iCount := 1 TO iIterations LABEL WitnessLoop DO
+        LET a: Number := GetRandomA(n)
+        r := 1
+        FOR x := 1 TO m DO
+            r := ((r * a) MOD n)
+        END FOR
+        IF r = 1 OR r = (n - 1) THEN
+            NEXT WitnessLoop
+        END IF
+        FOR x := 1 TO k DO
+            r := ((r*r) MOD n)
+            IF r = 1 THEN
+                RETURN FALSE
+            END IF
+            IF r = (n - 1) THEN
+                NEXT WitnessLoop
+            END IF
+        END FOR
+        RETURN FALSE
+    END FOR
+    RETURN TRUE
+END FUNCTION
+
+FUNCTION HasSmallFactor(n: Number): Boolean
+    FOREACH p IN SMALL_PRIMES DO
+        IF n = p THEN
+            EXIT FOREACH
+        END IF
+        IF (n MOD p = 0) THEN
+            RETURN TRUE
+        END IF
+    END FOREACH
+    RETURN FALSE
+END FUNCTION
+
+FUNCTION output(s: String)
+    IF NOT bQuiet THEN
+        print(s)
+    END IF
+END FUNCTION
+
+FUNCTION Usage()
+    print("")
+    print("Usage: \(sys.args[0]) {-q | -k [num]} {Number | s-e | s- | -e}")
+    print(@@"
+  Where:
+        -k  [num]   Set the number of test iterations.  Values between 2-7 are 
+                    best suited for speed and accuracy.  Default: 5.
+        -q          Quiet output.  Will only output the result of the test.
+    and:
+        s is starting integer, and e is ending integer.
+"@@)
+    sys.exit(1)
+END FUNCTION
+
+BEGIN MAIN
+    IF sys.args.size() <= 1 THEN
+        Usage()
+    END IF
+
+    VAR suppliedNumTests: Boolean := FALSE
+    VAR sval: Number := 0
+    VAR eval: Number := 0
+    VAR nums: Array<String> := []
+    VAR bPar: Boolean := FALSE
+    VAR i   : Number := 1
+
+    WHILE i < sys.args.size() DO
+        LET p: String := sys.args[i]
+        IF p = "-q" THEN
+            print("Supplied a -q")
+            bQuiet := TRUE
+        ELSIF p = "-k" THEN
+            print("Supplied a -k")
+            suppliedNumTests := TRUE
+            IF ((sys.args.size()-1) < i+1) THEN
+                print("No parameter specified for test iteration parameter, -k")
+                sys.exit(1)
+            END IF
+            TRY
+                TestIterations := num(sys.args[i+1])
+            TRAP ValueRangeException DO
+                print("-k requires a valid integer")
+                sys.exit(1)
+            END TRY
+            IF TestIterations < 1 THEN
+                Usage()
+            END IF
+            i := i + 2
+            NEXT WHILE
+        ELSE
+            nums.append(p)
+        END IF
+        INC i
+    END WHILE
+
+    IF nums.size() = 0 THEN
+        Usage()
+    END IF
+
+    IF suppliedNumTests THEN
+        % Wait until after all the command line params are parsed, just in case we are supposed to be quiet.
+        output("Using \(TestIterations) iteration tests.")
+    END IF
+
+    FOREACH s IN nums DO
+        LET hasDash: Number := string.find(s, "-")
+        LET vals: Array<String> := string.split(s, "-")
+
+        IF string.hasPrefix(s, "-") THEN
+            % Print the last prime number BEFORE n.  -number
+            eval := 1
+            sval := num(vals[0])
+            IF sval <= 2 THEN
+                output("There is no prime number before \(sval).")
+                NEXT FOREACH
+            END IF
+            output("Locating last probable prime number before \(sval)...")
+            VAR val: Number := 0
+            FOR x := sval - 1 TO eval STEP -1 DO
+                val := x
+                IF RabinMiller(val, TestIterations) THEN
+                    output("\(val) is the last probable prime before \(vals[0]).")
+                    IF bQuiet THEN
+                        print("\(val)")
+                    END IF
+                    EXIT FOR
+                END IF
+            END FOR
+        ELSIF string.hasSuffix(s, "-") THEN
+            % Print the next prime AFTER n.   number-
+            sval := num(substring(vals[0], 0, hasDash))
+            VAR val: Number := sval
+            output("Locating the next probable prime number after \(val)...")
+            INC val
+            IF val < 2 THEN
+                INC val
+            END IF
+
+            LOOP
+                IF RabinMiller(val, TestIterations) THEN
+                    EXIT LOOP
+                END IF
+                IF NOT odd(val) THEN
+                    INC val
+                ELSE
+                    val := val + 2
+                END IF
+            END LOOP
+            output("\(val) is the next probable prime after \(sval).")
+            IF bQuiet THEN
+                print("\(val)")
+            END IF
+        ELSIF hasDash > 0 THEN
+            % Print pimes within a RANGE...  number-number
+            sval := num(vals[0])
+            eval := num(vals[1])
+            output("Locating all prime numbers between \(sval) and \(eval)...")
+            VAR val: Number := sval
+
+            WHILE val < eval DO
+                IF RabinMiller(val, TestIterations) THEN
+                    print("\(val)")
+                END IF
+                % Skip all the EVEN numbers, as they cannot possibly be prime, with the exception of
+                % of the number 2.
+                IF odd(val) AND val # 1 THEN
+                    val := val + 2
+                ELSE
+                    INC val
+                END IF
+            END WHILE
+        ELSE
+            sval := num(s)
+            output("Testing \(sval) for primality.")
+            IF RabinMiller(sval, TestIterations) THEN
+                print("\(sval) is probably prime.")
+            ELSE
+                print("\(sval) is not prime.")
+            END IF
+        END IF
+    END FOREACH
+END MAIN
+
+% Tests:
+%    bin\neon .\samples\isprime\isprime.neon 1-10
+%    bin\neon .\samples\isprime\isprime.neon -10
+%    
