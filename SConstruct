@@ -26,9 +26,12 @@ os.putenv("PYTHONIOENCODING", "UTF-8")
 
 coverage = ARGUMENTS.get("COVERAGE", 0)
 coverage_lib = None
-if sys.platform.startswith("darwin"):
-    # This is needed on OS X because clang has a bug where this isn't included automatically.
-    coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darwin/libclang_rt.profile_osx.a"] if coverage else [])
+if coverage:
+    if sys.platform.startswith("darwin"):
+        # This is needed on OS X because clang has a bug where this isn't included automatically.
+        coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darwin/libclang_rt.profile_osx.a"] if coverage else [])
+    elif os.name == "posix":
+        coverage_lib = ["gcov"]
 
 # Check for any files that accidentally contain \r\n. Only do this
 # on non-windows platforms, because windows users may set Git to
