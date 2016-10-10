@@ -16,6 +16,6 @@ before_install:
   - which scons || brew install scons
 script: scons MINIMAL=$MINIMAL RELEASE=$RELEASE COVERAGE=1
 after_success:
-  - for fn in src/*.cpp lib/*.cpp tests/*.cpp; do echo $fn; echo $$fn; echo \$fn; gcov -o $fn; done
+  - for fn in src/*.cpp lib/*.cpp tests/*.cpp; do echo gcov -o $fn; gcov -o $fn; done
   - bash <(curl -s https://codecov.io/bash)
 sudo: false
