@@ -51,7 +51,7 @@ END FUNCTION
 FUNCTION main(args: Array<String>)
 
     VAR month, year: Number := 0
-    VAR options: Dictionary<Boolean>
+    VAR options: Dictionary<Boolean> := {}
 
     FOREACH a IN args[1 TO LAST] DO
         IF a[0] = "-" THEN

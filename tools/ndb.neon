@@ -40,10 +40,10 @@ TYPE Global IS RECORD
     repr: String
 END RECORD
 
-VAR Source: Array<String>
+VAR Source: Array<String> := []
 VAR LineFromAddress: Array<Number> := []
-VAR AddressFromLine: Array<Number>
-VAR Globals: Dictionary<Global>
+VAR AddressFromLine: Array<Number> := []
+VAR Globals: Dictionary<Global> := {}
 
 print("Neon debugger. Type 'help' for help.")
 
@@ -68,7 +68,7 @@ FOREACH g IN r.getDictionary()["globals"].getArray() DO
     )
 END FOREACH
 
-VAR last: String
+VAR last: String := ""
 LOOP
     REPEAT
         time.sleep(0.1)

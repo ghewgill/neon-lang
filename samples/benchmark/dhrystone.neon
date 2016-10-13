@@ -443,7 +443,7 @@ FUNCTION Proc_2 (INOUT Int_Par_Ref: Number)
     % *Int_Par_Ref == 1, becomes 4
 
   VAR Int_Loc: One_Fifty
-  VAR Enum_Loc: Enumeration
+  VAR Enum_Loc: Enumeration := Enumeration.Ident_1
 
   Int_Loc := Int_Par_Ref + 10
   REPEAT % executed once

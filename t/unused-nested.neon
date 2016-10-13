@@ -1,8 +1,10 @@
+% TODO
 FUNCTION foo()
-    VAR s: String := ""
+    VAR s: String := "hello"
     FUNCTION bar()
         print(s)
     END FUNCTION
+    bar()
 END FUNCTION
 
-%! Unused variable
+%= hello

@@ -128,7 +128,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
         WHEN "(" DO
             INC i
             VAR r: POINTER TO Value := NIL
-            VAR p: POINTER TO Value
+            VAR p: POINTER TO Value := NIL
             TRY
                 LOOP
                     LET value: POINTER TO Value := parse2(s, INOUT i)
@@ -260,7 +260,7 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                     RETURN r
                 ELSIF VALID e->val_pair.car AS car THEN
                     LET proc: POINTER TO Value := eval2(car, env)
-                    VAR args: Array<POINTER TO Value>
+                    VAR args: Array<POINTER TO Value> := []
                     VAR a: POINTER TO Value := e->val_pair.cdr
                     LOOP
                         VAR next: POINTER TO Value := NIL % FIXME: shouldn't need init here

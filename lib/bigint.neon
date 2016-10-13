@@ -308,7 +308,7 @@ END FUNCTION
  |
  |%
 FUNCTION BigInt.toString(self: BigInt): String
-    VAR s: String
+    VAR s: String := ""
     FOR i := 0 TO self.digits.size()-1 DO
         IF i < self.digits.size()-1 THEN
             s := format(str(self.digits[i]), "0\(Digits)d") & s

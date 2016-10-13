@@ -48,7 +48,7 @@ LET Base64DecodeTable: Array<Number> := [
  |%
 FUNCTION base64Encode(data: Bytes): String
     VAR encoded: String := ""
-    VAR char1, char2: Number
+    VAR char1, char2: Number := 0
     VAR status: State := State.byte1
 
     LET source: Array<Number> := data.toArray()

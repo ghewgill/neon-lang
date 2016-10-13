@@ -1,4 +1,3 @@
-% TODO
 VAR s: String
 REPEAT
     IF TRUE THEN
@@ -8,4 +7,5 @@ REPEAT
     END IF
 UNTIL TRUE
 print(s)
-%= hello
+
+%! Uninitialised

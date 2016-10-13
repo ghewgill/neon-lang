@@ -343,7 +343,7 @@ Example:
         size: Number
     END RECORD
 
-    VAR r: Item
+    VAR r: Item := Item()
 
     r.name := "Widget"
     r.size := 5
@@ -385,7 +385,7 @@ Arrays are dynamically sized as needed.
 
 Example:
 
-    VAR a: Array<String>
+    VAR a: Array<String> := []
 
     a[0] := "Hello"
     a[1] := "World"
@@ -398,7 +398,7 @@ Dictionaries are an associative map which pairs a unique `String` with a value o
 
 Example:
 
-    VAR d: Dictionary<Number>
+    VAR d: Dictionary<Number> := {}
 
     d["gold"] := 1
     d["silver"] := 2

@@ -1693,7 +1693,7 @@ END FUNCTION
 FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
     LET left: POINTER TO ParseTreeNode := self.parseAddition()
     VAR comps: Array<ChainedComparisonPart> := []
-    VAR tokComp: lexer.Token
+    VAR tokComp: lexer.Token := lexer.Token()
     WHILE self.token.type IN [TokenType.equal, TokenType.notequal, TokenType.less, TokenType.greater, TokenType.lesseq, TokenType.greatereq] DO
         tokComp := self.token
         IF tokComp.type = TokenType.equal AND self.tokens[self.index+1].type = TokenType.equal THEN

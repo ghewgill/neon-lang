@@ -370,7 +370,7 @@ VAR words: Dictionary<Word> := {
 }
 VAR code: Array<Number> := [0]
 VAR stack: Stack
-VAR storage: Array<Number>
+VAR storage: Array<Number> := []
 VAR defining: String
 VAR define_start: Number
 VAR compilation: Stack
@@ -1284,7 +1284,7 @@ FUNCTION execute(word: String)
     IF word IN words THEN
         run(words[word].xt, interpreting OR words[word].immediate)
     ELSE
-        VAR n: Number
+        VAR n: Number := 0
         LET base: Number := storage[cell_base]
         IF regex.search("^-?[\(Digits[0 TO base-1])]+$", word, OUT _) THEN
             n := convert(word, base)
