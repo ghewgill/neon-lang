@@ -4172,6 +4172,9 @@ public:
     virtual void visit(const pt::VariableDeclaration *node) {
         if (node->value != nullptr) {
             node->value->accept(this);
+            for (auto name: node->names) {
+                add_variable(name, true);
+            }
         } else {
             for (auto name: node->names) {
                 add_variable(name, false);
