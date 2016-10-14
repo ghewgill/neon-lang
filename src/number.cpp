@@ -267,6 +267,11 @@ bool number_is_integer(Number x)
     return bid128_quiet_equal(x.x, i) != 0;
 }
 
+bool number_is_odd(Number x)
+{
+    return not bid128_isZero(bid128_fmod(x.x, bid128_from_uint32(2)));
+}
+
 bool number_is_nan(Number x)
 {
     return bid128_isNaN(x.x) != 0;

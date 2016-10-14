@@ -246,6 +246,13 @@ DECLARE NATIVE FUNCTION min(a: Number, b: Number): Number
 DECLARE NATIVE FUNCTION num(s: String): Number
 
 %|
+ |  Function: odd
+ |
+ |  Return TRUE if the given number is odd.
+ |%
+DECLARE NATIVE FUNCTION odd(x: Number): Boolean
+
+%|
  |  Function: ord
  |
  |  Return the Unicode value of a given character.

@@ -11,6 +11,7 @@ std::string format(const std::string &str, const std::string &fmt);
 Number max(Number a, Number b);
 Number min(Number a, Number b);
 Number num(const std::string &s);
+bool odd(Number x);
 Number ord(const std::string &s);
 std::string str(Number x);
 std::string strb(bool x);

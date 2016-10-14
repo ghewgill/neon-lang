@@ -64,6 +64,14 @@ Number num(const std::string &s)
     return number_from_string(s);
 }
 
+bool odd(Number x)
+{
+    if (not number_is_integer(x)) {
+        throw RtlException(global::Exception_ValueRangeException, "odd() requires integer");
+    }
+    return number_is_odd(x);
+}
+
 Number ord(const std::string &s)
 {
     if (utf8::distance(s.begin(), s.end()) != 1) {

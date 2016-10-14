@@ -688,6 +688,7 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
      || f->name == "max"
      || f->name == "min"
      || f->name == "num"
+     || f->name == "odd"
      || f->name == "ord"
      || f->name == "str"
      || f->name == "strb"
