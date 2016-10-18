@@ -61,7 +61,11 @@ Number min(Number a, Number b)
 
 Number num(const std::string &s)
 {
-    return number_from_string(s);
+    Number n = number_from_string(s);
+    if (number_is_nan(n)) {
+        throw RtlException(global::Exception_ValueRangeException, "num() argument not a number");
+    }
+    return n;
 }
 
 bool odd(Number x)
