@@ -7,10 +7,6 @@ Import("env")
 if GetOption("clean"):
     shutil.rmtree("utf8", ignore_errors=True)
 elif not os.path.exists("utf8/source/utf8.h"):
-    zipfile.ZipFile("utf8_v2_3_4.zip").extractall("utf8")
-    core_h = open("utf8/source/utf8/core.h").read()
-    i = core_h.index("octet_iterator original_it = it;")
-    core_h = core_h[:i] + "if (it == end) return NOT_ENOUGH_ROOM;\n        " + core_h[i:]
-    open("utf8/source/utf8/core.h", "w").write(core_h)
+    zipfile.ZipFile("utfcpp-master.zip").extractall()
 
-env.Append(CPPPATH=["external/utf8/source"])
+env.Append(CPPPATH=["external/utfcpp-master/source"])
