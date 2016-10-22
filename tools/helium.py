@@ -1151,6 +1151,9 @@ class WhileStatement:
             s.declare(env)
         try:
             while self.cond.eval(env):
+                if isinstance(self.cond, ValidPointerExpression):
+                    for expr, name in self.cond.tests:
+                        env.declare(name, None, expr.eval(env))
                 try:
                     for s in self.statements:
                         s.run(env)
@@ -2037,7 +2040,23 @@ class Parser:
 
     def parse_while_statement(self):
         self.expect(WHILE)
-        cond = self.parse_expression()
+        if self.tokens[self.i] is VALID:
+            tests = []
+            while True:
+                self.i += 1
+                ptr = self.parse_expression()
+                if self.tokens[self.i] is AS:
+                    self.i += 1
+                    name = self.identifier()
+                else:
+                    assert isinstance(ptr, IdentifierExpression)
+                    name = ptr.name
+                tests.append((ptr, name))
+                if self.tokens[self.i] is not COMMA:
+                    break
+            cond = ValidPointerExpression(tests)
+        else:
+            cond = self.parse_expression()
         label = "WHILE"
         if self.tokens[self.i] is LABEL:
             self.i += 1

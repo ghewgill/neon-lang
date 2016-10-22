@@ -1350,7 +1350,41 @@ std::unique_ptr<Statement> Parser::parseWhileStatement()
 {
     auto &tok_while = tokens[i];
     ++i;
-    std::unique_ptr<Expression> cond = parseExpression();
+    std::unique_ptr<Expression> cond { nullptr };
+    if (tokens[i].type == VALID) {
+        auto &tok_valid = tokens[i];
+        std::vector<std::unique_ptr<ValidPointerExpression::Clause>> tests;
+        for (;;) {
+            ++i;
+            const Token &tok_expr = tokens[i];
+            std::unique_ptr<Expression> ptr = parseExpression();
+            Token name;
+            bool shorthand = false;
+            if (tokens[i].type == AS) {
+                ++i;
+                if (tokens[i].type != IDENTIFIER) {
+                    error(2121, tokens[i], "identifier expected");
+                }
+                name = tokens[i];
+                ++i;
+            } else {
+                const IdentifierExpression *ident = dynamic_cast<const IdentifierExpression *>(ptr.get());
+                if (ident != nullptr) {
+                    name = ident->token;
+                    shorthand = true;
+                } else {
+                    error(2122, tok_expr, "single identifier expected (otherwise use AS alias)");
+                }
+            }
+            tests.emplace_back(new ValidPointerExpression::Clause(std::move(ptr), name, shorthand));
+            if (tokens[i].type != COMMA) {
+                break;
+            }
+        }
+        cond.reset(new ValidPointerExpression(tok_valid, std::move(tests)));
+    } else {
+        cond = parseExpression();
+    }
     Token label {WHILE, "WHILE"};
     if (tokens[i].type == LABEL) {
         ++i;

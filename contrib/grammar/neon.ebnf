@@ -135,7 +135,9 @@ ReturnStatement = 'RETURN', Expression;
 
 TryStatement = 'TRY', {Statement}, {'EXCEPTION', Identifier, ['.', Identifier], 'DO', {Statement}}, 'END', 'TRY';
 
-WhileStatement = 'WHILE', Expression, ['LABEL', Identifier], 'DO', {Statement}, 'END', 'WHILE';
+WhileStatement = 'WHILE', WhileExpression, ['LABEL', Identifier], 'DO', {Statement}, 'END', 'WHILE';
+
+WhileExpression = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
 
 BracketedExpression = ConditionalExpression | TryExpression | DisjunctionExpression;
 

@@ -3925,9 +3925,40 @@ const Statement *Analyzer::analyze(const pt::TryHandlerStatement *statement)
 
 const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 {
-    const Expression *cond = analyze(statement->cond.get());
-    if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
-        error(3049, statement->cond->token, "boolean value expected");
+    const Expression *cond = nullptr;
+    const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(statement->cond.get());
+    if (valid != nullptr) {
+        for (auto &v: valid->tests) {
+            if (not v->shorthand and scope.top()->lookupName(v->name.text) != nullptr) {
+                error2(3234, v->name, "duplicate identifier", scope.top()->getDeclaration(v->name.text), "first declaration here");
+            }
+            const Expression *ptr = analyze(v->expr.get());
+            const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
+            if (ptrtype == nullptr) {
+                error(3233, v->expr->token, "pointer type expression expected");
+            }
+            const TypeValidPointer *vtype = new TypeValidPointer(Token(), ptrtype->reftype);
+            Variable *var;
+            // TODO: Try to make this a local variable always (give the global scope a local space).
+            if (functiontypes.empty()) {
+                var = new GlobalVariable(v->name, v->name.text, vtype, true);
+            } else {
+                // TODO: probably use frame.top()->get_depth() (add IF VALID to repl tests)
+                var = new LocalVariable(v->name, v->name.text, vtype, frame.size()-1, true);
+            }
+            scope.top()->addName(v->name, v->name.text, var, true, v->shorthand);
+            const Expression *ve = new ValidPointerExpression(var, ptr);
+            if (cond == nullptr) {
+                cond = ve;
+            } else {
+                cond = new ConjunctionExpression(cond, ve);
+            }
+        }
+    } else {
+        cond = analyze(statement->cond.get());
+        if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+            error(3049, statement->cond->token, "boolean value expected");
+        }
     }
     scope.push(new Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));

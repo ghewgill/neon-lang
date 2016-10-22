@@ -1,0 +1,5 @@
+VAR a: Number
+    %<2
+WHILE VALID p AS a DO
+                 %<1
+END WHILE

@@ -1,0 +1,14 @@
+TYPE Rec IS CLASS
+    name: String
+    next: POINTER TO Rec
+END CLASS
+
+VAR p: POINTER TO Rec
+p := NEW Rec(name WITH "foo", next WITH NEW Rec(name WITH "bar"))
+WHILE VALID p AS q DO
+    print(q->name)
+    p := q->next
+END WHILE
+
+%= foo
+%= bar
