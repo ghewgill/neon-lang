@@ -6,7 +6,7 @@ Import("env")
 
 if GetOption("clean"):
     shutil.rmtree("utf8", ignore_errors=True)
-elif not os.path.exists("utf8/source/utf8.h"):
+elif not os.path.exists("utfcpp-master/source/utf8.h"):
     zipfile.ZipFile("utfcpp-master.zip").extractall()
 
 env.Append(CPPPATH=["external/utfcpp-master/source"])
