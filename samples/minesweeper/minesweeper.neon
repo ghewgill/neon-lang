@@ -7,17 +7,6 @@ CONSTANT Width: Number := 30
 CONSTANT CellHeight: Number := 24
 CONSTANT CellWidth: Number := 24
 
-TYPE Rect IS sdl.Rect
-
-FUNCTION rect(x, y, w, h: Number): sdl.Rect
-    VAR r: sdl.Rect := Rect()
-    r.x := x
-    r.y := y
-    r.w := w
-    r.h := h
-    RETURN r
-END FUNCTION
-
 TYPE Cell IS RECORD
     mine: Boolean
     revealed: Boolean
@@ -115,7 +104,7 @@ FUNCTION drawDigit(ren: sdl.Renderer, x, y, w, h: Number, n: Number)
     sdl.SetRenderDrawColor(ren, 0, 255, 0, 255)
     FOR i := 0 TO 3 DO
         IF Pattern[n][i] # " " THEN
-            sdl.RenderFillRect(ren, rect(x+4+(i MOD 2)*8, y+4+int(i/2)*8, 6, 6))
+            sdl.RenderFillRect(ren, sdl.Rect(x WITH x+4+(i MOD 2)*8, y WITH y+4+int(i/2)*8, w WITH 6, h WITH 6))
         END IF
     END FOR
 END FUNCTION
@@ -128,10 +117,10 @@ FUNCTION render(ren: sdl.Renderer)
             IF Board[j,i].revealed THEN
                 IF Board[j,i].mine THEN
                     sdl.SetRenderDrawColor(ren, 255, 0, 0, 255)
-                    sdl.RenderFillRect(ren, rect(i*CellWidth, j*CellHeight, CellWidth, CellHeight))
+                    sdl.RenderFillRect(ren, sdl.Rect(x WITH i*CellWidth, y WITH j*CellHeight, w WITH CellWidth, h WITH CellHeight))
                 ELSE
                     sdl.SetRenderDrawColor(ren, 128, 128, 128, 255)
-                    sdl.RenderFillRect(ren, rect(i*CellWidth, j*CellHeight, CellWidth, CellHeight))
+                    sdl.RenderFillRect(ren, sdl.Rect(x WITH i*CellWidth, y WITH j*CellHeight, w WITH CellWidth, h WITH CellHeight))
                     LET count: Number := minesAround(j, i)
                     IF count > 0 THEN
                         drawDigit(ren, i*CellWidth, j*CellHeight, CellWidth, CellHeight, count)
@@ -142,10 +131,10 @@ FUNCTION render(ren: sdl.Renderer)
                 %IF Board[j,i].mine THEN
                 %    sdl.SetRenderDrawColor(ren, 255, 0, 0, 255)
                 %END IF
-                sdl.RenderFillRect(ren, rect(i*CellWidth, j*CellHeight, CellWidth, CellHeight))
+                sdl.RenderFillRect(ren, sdl.Rect(x WITH i*CellWidth, y WITH j*CellHeight, w WITH CellWidth, h WITH CellHeight))
                 IF Board[j,i].flag THEN
                     sdl.SetRenderDrawColor(ren, 255, 0, 0, 255)
-                    sdl.RenderFillRect(ren, rect(i*CellWidth+CellWidth/4, j*CellHeight+CellHeight/4, CellWidth/2, CellHeight/2))
+                    sdl.RenderFillRect(ren, sdl.Rect(x WITH i*CellWidth+CellWidth/4, y WITH j*CellHeight+CellHeight/4, w WITH CellWidth/2, h WITH CellHeight/2))
                 END IF
             END IF
         END FOR
