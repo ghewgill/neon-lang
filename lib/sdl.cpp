@@ -204,7 +204,7 @@ void SetRenderDrawColor(void *renderer, Number r, Number g, Number b, Number a)
     );
 }
 
-bool sdl$WaitEvent(Cell *event)
+bool WaitEvent(Cell *event)
 {
     SDL_Event e;
     int r = SDL_WaitEvent(&e);
