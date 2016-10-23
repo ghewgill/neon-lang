@@ -93,22 +93,73 @@ FUNCTION handle(e: sdl.Event, INOUT quit: Boolean, INOUT restart: Boolean): Bool
 END FUNCTION
 
 FUNCTION drawDigit(ren: sdl.Renderer, x, y, w, h: Number, n: Number)
-    CONSTANT Pattern: Array<String> := [
-        " ooo", % 0
-        "o   ", % 1
-        "o o ", % 2
-        "oo  ", % 3
-        "oo o", % 4
-        "o  o", % 5
-        "ooo ", % 6
-        "oooo", % 7
-        "o oo", % 8
+    TYPE Digit IS RECORD
+        colour: Array<Number>
+        pattern: Array<String>
+    END RECORD
+    CONSTANT Digits: Array<Digit> := [
+        Digit(colour WITH [0, 0, 0],
+              pattern WITH ["ooo",
+                            "o o",
+                            "o o",
+                            "o o",
+                            "ooo"]),
+        Digit(colour WITH [0, 0, 255],
+              pattern WITH [" o ",
+                            "oo ",
+                            " o ",
+                            " o ",
+                            "ooo"]),
+        Digit(colour WITH [0, 128, 0],
+              pattern WITH ["ooo",
+                            "  o",
+                            "ooo",
+                            "o  ",
+                            "ooo"]),
+        Digit(colour WITH [255, 0, 0],
+              pattern WITH ["ooo",
+                            "  o",
+                            "ooo",
+                            "  o",
+                            "ooo"]),
+        Digit(colour WITH [0, 0, 128],
+              pattern WITH ["o o",
+                            "o o",
+                            "ooo",
+                            "  o",
+                            "  o"]),
+        Digit(colour WITH [128, 0, 0],
+              pattern WITH ["ooo",
+                            "o  ",
+                            "ooo",
+                            "  o",
+                            "ooo"]),
+        Digit(colour WITH [0, 128, 128],
+              pattern WITH ["ooo",
+                            "o  ",
+                            "ooo",
+                            "o o",
+                            "ooo"]),
+        Digit(colour WITH [0, 0, 0],
+              pattern WITH ["ooo",
+                            "  o",
+                            "  o",
+                            "  o",
+                            "  o"]),
+        Digit(colour WITH [128, 128, 128],
+              pattern WITH ["ooo",
+                            "o o",
+                            "ooo",
+                            "o o",
+                            "ooo"]),
     ]
-    sdl.SetRenderDrawColor(ren, 0, 255, 0, 255)
-    FOR i := 0 TO 3 DO
-        IF Pattern[n][i] # " " THEN
-            sdl.RenderFillRect(ren, sdl.Rect(x WITH x+4+(i MOD 2)*8, y WITH y+4+int(i/2)*8, w WITH 6, h WITH 6))
-        END IF
+    FOR j := 0 TO 4 DO
+        FOR i := 0 TO 2 DO
+            IF Digits[n].pattern[j,i] # " " THEN
+                sdl.SetRenderDrawColor(ren, Digits[n].colour[0], Digits[n].colour[1], Digits[n].colour[2], 255)
+                sdl.RenderFillRect(ren, sdl.Rect(x WITH x+6+i*4, y WITH y+2+j*4, w WITH 3, h WITH 3))
+            END IF
+        END FOR
     END FOR
 END FUNCTION
 
