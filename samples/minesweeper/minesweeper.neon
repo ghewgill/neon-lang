@@ -46,7 +46,10 @@ FUNCTION reveal(j, i: Number)
         FOR y := -1 TO 1 DO
             FOR x := -1 TO 1 DO
                 IF (x # 0 OR y # 0) AND 0 <= j+y < Height AND 0 <= i+x < Width AND NOT Board[j+y, i+x].revealed AND NOT Board[j+y, i+x].flag THEN
-                    reveal(j+y, i+x)
+                    Board[j+y, i+x].revealed := TRUE
+                    IF minesAround(j+y, i+x) = 0 THEN
+                        reveal(j+y, i+x)
+                    END IF
                 END IF
             END FOR
         END FOR
