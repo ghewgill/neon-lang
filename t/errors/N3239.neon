@@ -1,0 +1,4 @@
+DECLARE EXCEPTION FooException
+
+RAISE FooException.Bar
+                   %<

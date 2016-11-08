@@ -915,6 +915,9 @@ void ExternalFunction::generate_call(Emitter &emitter) const
 void Exception::generate_export(Emitter &emitter, const std::string &name) const
 {
     emitter.add_export_exception(name);
+    for (auto s: subexceptions) {
+        s.second->generate_export(emitter, name + "." + s.first);
+    }
 }
 
 void Constant::generate_export(Emitter &emitter, const std::string &name) const

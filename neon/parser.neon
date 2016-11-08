@@ -432,7 +432,7 @@ TYPE ExternalFunctionDeclaration IS RECORD
 END RECORD
 
 TYPE ExceptionDeclaration IS RECORD
-    name: lexer.Token
+    name: Array<lexer.Token>
 END RECORD
 
 TYPE ExportDeclaration IS RECORD
@@ -2197,15 +2197,23 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
         WHEN TokenType.exception DO
             self.nextToken()
             LET tokName: lexer.Token := self.token
-            IF self.token.type # TokenType.identifier THEN
-                error(2059, self.token, "identifier expected")
-            END IF
-            self.nextToken()
+            VAR name: Array<lexer.Token> := []
+            LOOP
+                IF self.token.type # TokenType.identifier THEN
+                    error(2059, self.token, "identifier expected")
+                END IF
+                name.append(self.token)
+                self.nextToken()
+                IF self.token.type # TokenType.dot THEN
+                    EXIT LOOP
+                END IF
+                self.nextToken()
+            END LOOP
             RETURN NEW ParseTreeNode(
                 type WITH Type.ExceptionDeclaration,
                 token WITH tokName,
                 exceptiondeclaration WITH ExceptionDeclaration(
-                    name WITH tokName
+                    name WITH name
                 )
             )
         WHEN TokenType.native DO
@@ -2931,21 +2939,18 @@ FUNCTION Parser.parseRaiseStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     ASSERT self.token.type = TokenType.raise
     LET tokRaise: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.identifier THEN
-        error(2061, self.token, "identifier expected")
-    END IF
     VAR name: Array<lexer.Token> := []
-    name[1] := self.token
-    self.nextToken()
-    IF self.token.type = TokenType.dot THEN
-        self.nextToken()
+    LOOP
         IF self.token.type # TokenType.identifier THEN
-            error(2076, self.token, "identifier expected")
+            error(2061, self.token, "identifier expected")
         END IF
-        name[0] := name[1]
-        name[1] := self.token
+        name.append(self.token)
         self.nextToken()
-    END IF
+        IF self.token.type # TokenType.dot THEN
+            EXIT LOOP
+        END IF
+        self.nextToken()
+    END LOOP
     VAR info: POINTER TO ParseTreeNode := NIL
     IF self.token.type = TokenType.lparen THEN
         LET expr: POINTER TO ParseTreeNode := NEW ParseTreeNode(
@@ -3639,7 +3644,14 @@ FUNCTION dumpNativeFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, dep
 END FUNCTION
 
 FUNCTION dumpExceptionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
-    dumpNode(depth, "ExceptionDeclaration(\(node->exceptiondeclaration.name.text))")
+    VAR names: String := ""
+    FOREACH n IN node->exceptiondeclaration.name DO
+        IF names # "" THEN
+            names.append(",")
+        END IF
+        names.append(n.text)
+    END FOREACH
+    dumpNode(depth, "ExceptionDeclaration(\(names))")
 END FUNCTION
 
 FUNCTION dumpExportDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
@@ -3751,7 +3763,14 @@ FUNCTION dumpNextStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
 FUNCTION dumpRaiseStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
-    dumpNode(depth, "RaiseStatement(\(node->raisestatement.name[0].text).\(node->raisestatement.name[1].text))")
+    VAR names: String := ""
+    FOREACH n IN node->raisestatement.name DO
+        IF names # "" THEN
+            names.append(",")
+        END IF
+        names.append(n.text)
+    END FOREACH
+    dumpNode(depth, "RaiseStatement(\(names))")
     dumpParseTree(node->raisestatement.info, depth+1)
 END FUNCTION
 

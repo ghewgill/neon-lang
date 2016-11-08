@@ -1354,11 +1354,15 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
     size_t sp = callstack.size();
     for (;;) {
         for (auto e = tmodule->object.exceptions.begin(); e != tmodule->object.exceptions.end(); ++e) {
-            if (tip >= e->start && tip < e->end && exception == tmodule->object.strtable[e->excid]) {
-                module = tmodule;
-                ip = e->handler;
-                callstack.resize(sp);
-                return;
+            if (tip >= e->start && tip < e->end) {
+                const std::string handler = tmodule->object.strtable[e->excid];
+                if (exception == handler
+                 || (exception.length() > handler.length() && exception.substr(0, handler.length()) == handler && exception.at(handler.length()) == '.')) {
+                    module = tmodule;
+                    ip = e->handler;
+                    callstack.resize(sp);
+                    return;
+                }
             }
         }
         if (sp == 0) {

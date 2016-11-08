@@ -131,7 +131,7 @@ private:
     Module *import_module(const Token &token, const std::string &name);
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
-    std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches);
+    std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> analyze_catches(const std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const Variable *function, std::vector<const Expression *> args, std::vector<const Statement *> &statements);
     std::vector<TypeRecord::Field> analyze_fields(const pt::TypeRecord *type);
 private:
@@ -797,7 +797,32 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
         }
     }
     for (auto e: object.export_exceptions) {
-        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
+        std::string name = object.strtable[e.name];
+        std::string::size_type p = name.find('.');
+        if (p != std::string::npos) {
+            Name *n = module->scope->lookupName(name.substr(0, p));
+            if (n == nullptr) {
+                internal_error("name not found in exception import");
+            }
+            Exception *e = dynamic_cast<Exception *>(n);
+            if (e == nullptr) {
+                internal_error("name not exception in exception import");
+            }
+            for (;;) {
+                std::string::size_type q = name.find('.', p+1);
+                if (q == std::string::npos) {
+                    e->subexceptions[name.substr(p+1, q)] = new Exception(Token(), name.substr(0, q));
+                    break;
+                }
+                auto s = e->subexceptions.find(name.substr(p+1, q));
+                if (s == e->subexceptions.end()) {
+                    internal_error("subexception not found in exception import");
+                }
+                p = q;
+            }
+        } else {
+            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
+        }
     }
     s_importing.pop_back();
     modules[name] = module;
@@ -2577,14 +2602,43 @@ const Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *declarat
 
 const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
 {
-    std::string name = declaration->name.text;
-    if (not scope.top()->allocateName(declaration->name, name)) {
-        error2(3115, declaration->token, "duplicate definition of name", scope.top()->getDeclaration(name), "first declaration here");
+    std::string name = declaration->name[0].text;
+    if (declaration->name.size() == 1) {
+        if (not scope.top()->allocateName(declaration->token, name)) {
+            error2(3115, declaration->token, "duplicate definition of name", scope.top()->getDeclaration(name), "first declaration here");
+        }
+        if (name.length() < 9 || name.substr(name.length()-9) != "Exception") {
+            error(3198, declaration->token, "Exception name must end in 'Exception'");
+        }
+        scope.top()->addName(declaration->token, name, new Exception(declaration->token, name));
+    } else {
+        Name *n = scope.top()->lookupName(name);
+        if (n == nullptr) {
+            error(3235, declaration->token, "name not found");
+        }
+        Exception *e = dynamic_cast<Exception *>(n);
+        if (e == nullptr) {
+            error(3236, declaration->token, "name is not an exception");
+        }
+        std::string fullname = name;
+        Exception *s = e;
+        for (size_t i = 1; i < declaration->name.size()-1; i++) {
+            auto t = s->subexceptions.find(declaration->name[i].text);
+            if (t == s->subexceptions.end()) {
+                error(3237, declaration->name[i], "subexception not found");
+            }
+            fullname += "." + declaration->name[i].text;
+            s = t->second;
+        }
+        std::string lastname = declaration->name[declaration->name.size()-1].text;
+        auto t = s->subexceptions.find(lastname);
+        if (t != s->subexceptions.end()) {
+            error(3238, declaration->name[declaration->name.size()-1], "subexception already declared");
+        }
+        fullname += "." + declaration->name[declaration->name.size()-1].text;
+        Exception *se = new Exception(declaration->token, fullname);
+        s->subexceptions[lastname] = se;
     }
-    if (name.length() < 9 || name.substr(name.length()-9) != "Exception") {
-        error(3198, declaration->name, "Exception name must end in 'Exception'");
-    }
-    scope.top()->addName(declaration->name, name, new Exception(declaration->name, name));
     return new NullStatement(declaration->token.line);
 }
 
@@ -3787,24 +3841,30 @@ const Statement *Analyzer::analyze(const pt::NextStatement *statement)
 const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
 {
     Scope *s = scope.top();
-    if (statement->name.first.type != NONE) {
-        const Name *modname = scope.top()->lookupName(statement->name.first.text);
-        if (modname == nullptr) {
-            error(3157, statement->name.first, "module name not found: " + statement->name.first.text);
-        }
-        const Module *mod = dynamic_cast<const Module *>(modname);
-        if (mod == nullptr) {
-            error(3158, statement->name.first, "module name expected");
-        }
+    size_t i = 0;
+    const Name *modname = scope.top()->lookupName(statement->name[i].text);
+    const Module *mod = dynamic_cast<const Module *>(modname);
+    if (mod != nullptr) {
         s = mod->scope;
+        i++;
     }
-    const Name *name = s->lookupName(statement->name.second.text);
+    const Name *name = s->lookupName(statement->name[i].text);
     if (name == nullptr) {
-        error(3089, statement->name.second, "exception not found: " + statement->name.second.text);
+        error(3089, statement->name[i], "exception not found: " + statement->name[i].text);
     }
     const Exception *exception = dynamic_cast<const Exception *>(name);
     if (exception == nullptr) {
-        error2(3090, statement->name.second, "name not an exception", name->declaration, "declaration here");
+        error2(3090, statement->name[i], "name not an exception", name->declaration, "declaration here");
+    }
+    i++;
+    const Exception *sn = exception;
+    while (i < statement->name.size()) {
+        auto t = sn->subexceptions.find(statement->name[i].text);
+        if (t == sn->subexceptions.end()) {
+            error(3239, statement->name[i], "exception subexception not found");
+        }
+        sn = t->second;
+        i++;
     }
     const Expression *info;
     if (statement->info != nullptr) {
@@ -3813,7 +3873,7 @@ const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
         std::vector<const Expression *> values;
         info = new RecordLiteralExpression(dynamic_cast<const TypeRecord *>(s->lookupName("ExceptionInfo")->type), values);
     }
-    return new RaiseStatement(statement->token.line, exception, info);
+    return new RaiseStatement(statement->token.line, sn, info);
 }
 
 const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
@@ -3863,32 +3923,38 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     return new ReturnStatement(statement->token.line, expr);
 }
 
-std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> Analyzer::analyze_catches(const std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches)
+std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> Analyzer::analyze_catches(const std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches)
 {
     std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> r;
     for (auto &x: catches) {
         Scope *s = scope.top();
-        if (x.first.at(0).first.type != NONE) {
-            const Name *modname = scope.top()->lookupName(x.first.at(0).first.text);
-            if (modname == nullptr) {
-                error(3159, x.first.at(0).first, "module name not found: " + x.first.at(0).first.text);
-            }
-            const Module *mod = dynamic_cast<const Module *>(modname);
-            if (mod == nullptr) {
-                error(3160, x.first.at(0).first, "module name expected");
-            }
+        size_t i = 0;
+        const Name *modname = scope.top()->lookupName(x.first.at(0)[i].text);
+        const Module *mod = dynamic_cast<const Module *>(modname);
+        if (mod != nullptr) {
             s = mod->scope;
+            i++;
         }
-        const Name *name = s->lookupName(x.first.at(0).second.text);
+        const Name *name = s->lookupName(x.first.at(0)[i].text);
         if (name == nullptr) {
-            error(3087, x.first.at(0).second, "exception not found: " + x.first.at(0).second.text);
+            error(3087, x.first.at(0)[i], "exception not found: " + x.first.at(0)[i].text);
         }
         const Exception *exception = dynamic_cast<const Exception *>(name);
         if (exception == nullptr) {
-            error2(3088, x.first.at(0).second, "name not an exception", name->declaration, "declaration here");
+            error2(3088, x.first.at(0)[i], "name not an exception", name->declaration, "declaration here");
+        }
+        i++;
+        const Exception *sn = exception;
+        while (i < x.first.at(0).size()) {
+            auto t = sn->subexceptions.find(x.first.at(0)[i].text);
+            if (t == sn->subexceptions.end()) {
+                error(3240, x.first.at(0)[i], "exception subexception not found");
+            }
+            sn = t->second;
+            i++;
         }
         std::vector<const Exception *> exceptions;
-        exceptions.push_back(exception);
+        exceptions.push_back(sn);
         scope.push(new Scope(scope.top(), frame.top()));
         const pt::TryHandlerStatement *ths = dynamic_cast<const pt::TryHandlerStatement *>(x.second.get());
         const pt::Expression *e = dynamic_cast<const pt::Expression *>(x.second.get());

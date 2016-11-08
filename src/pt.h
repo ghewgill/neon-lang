@@ -553,10 +553,10 @@ public:
 
 class TryExpression: public Expression {
 public:
-    TryExpression(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> &&catches): Expression(token, token.column, token.column), expr(std::move(expr)), catches(std::move(catches)) {}
+    TryExpression(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> &&catches): Expression(token, token.column, token.column), expr(std::move(expr)), catches(std::move(catches)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
-    std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+    std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
 };
 
 class NewClassExpression: public Expression {
@@ -715,9 +715,9 @@ public:
 
 class ExceptionDeclaration: public Declaration {
 public:
-    ExceptionDeclaration(const Token &token, const Token &name): Declaration(token, {name}), name(name) {}
+    ExceptionDeclaration(const Token &token, const std::vector<Token> &name): Declaration(token, {}), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const Token name;
+    const std::vector<Token> name;
 };
 
 class ExportDeclaration: public Declaration {
@@ -863,9 +863,9 @@ public:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(const Token &token, const std::pair<Token, Token> &name, std::unique_ptr<Expression> &&info): Statement(token), name(name), info(std::move(info)) {}
+    RaiseStatement(const Token &token, const std::vector<Token> &name, std::unique_ptr<Expression> &&info): Statement(token), name(name), info(std::move(info)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::pair<Token, Token> name;
+    const std::vector<Token> name;
     std::unique_ptr<Expression> info;
 };
 
@@ -885,9 +885,9 @@ public:
 
 class TryStatement: public BlockStatement {
 public:
-    TryStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> &&catches): BlockStatement(token, std::move(body)), catches(std::move(catches)) {}
+    TryStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> &&catches): BlockStatement(token, std::move(body)), catches(std::move(catches)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+    std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
 };
 
 class TryHandlerStatement: public BlockStatement {

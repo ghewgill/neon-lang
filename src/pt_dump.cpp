@@ -304,7 +304,7 @@ public:
         depth--;
     }
     virtual void visit(const ExceptionDeclaration *node) override {
-        write("ExceptionDeclaration(" + node->name.text + ")");
+        write("ExceptionDeclaration(" + join(node->name) + ")");
     }
     virtual void visit(const ExportDeclaration *node) override {
         for (auto &name: node->names) {
@@ -411,7 +411,7 @@ public:
         write("NextStatement(" + node->type.text + ")");
     }
     virtual void visit(const RaiseStatement *node) override {
-        write("RaiseStatement(" + node->name.first.text + "." + node->name.second.text + ")");
+        write("RaiseStatement(" + join(node->name) + ")");
         child(node->info.get());
     }
     virtual void visit(const RepeatStatement *node) override {

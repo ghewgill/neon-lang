@@ -790,9 +790,11 @@ private:
 
 class Exception: public Name {
 public:
-    Exception(const Token &declaration, const std::string &name): Name(declaration, name, TYPE_EXCEPTION) {}
+    Exception(const Token &declaration, const std::string &name): Name(declaration, name, TYPE_EXCEPTION), subexceptions() {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
+
+    std::map<std::string, Exception *> subexceptions;
 
     virtual std::string text() const override { return "Exception(" + name + ")"; }
 private:

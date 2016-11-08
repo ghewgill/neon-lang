@@ -718,6 +718,10 @@ void Disassembler::disassemble()
     for (auto f: obj.export_functions) {
         out << "    " << obj.strtable[f.name] << " " << obj.strtable[f.descriptor] << " " << f.entry << "\n";
     }
+    out << "  Exceptions:\n";
+    for (auto e: obj.export_exceptions) {
+        out << "    " << obj.strtable[e.name] << "\n";
+    }
 
     out << "Imports " << obj.imports.size() << ":\n";
     for (auto i: obj.imports) {

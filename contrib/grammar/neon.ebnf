@@ -91,7 +91,7 @@ FunctionParameterList = '(', [FunctionParameter, {',', FunctionParameter}], ')',
 
 FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':', Type, ['DEFAULT', Expression];
 
-ExceptionDeclaration = 'DECLARE', 'EXCEPTION', Identifier;
+ExceptionDeclaration = 'DECLARE', 'EXCEPTION', Identifier, {'.', Identifier};
 
 ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ExternalFunctionDeclaration | NativeFunctionDeclaration | ExceptionDeclaration | Identifier);
 
@@ -127,13 +127,13 @@ LoopStatement = 'LOOP', ['LABEL', Identifier], {Statement}, 'END', 'LOOP';
 
 NextStatement = 'NEXT', ('WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT' | Identifier);
 
-RaiseStatement = 'RAISE', Identifier, ['.', Identifier], ['(', Identifier, 'WITH', Expression, {',', Identifier, 'WITH', Expression}, ')'];
+RaiseStatement = 'RAISE', Identifier, {'.', Identifier}, ['(', Identifier, 'WITH', Expression, {',', Identifier, 'WITH', Expression}, ')'];
 
 RepeatStatement = 'REPEAT', ['LABEL', Identifier], {Statement}, 'UNTIL', Expression;
 
 ReturnStatement = 'RETURN', Expression;
 
-TryStatement = 'TRY', {Statement}, {'EXCEPTION', Identifier, ['.', Identifier], 'DO', {Statement}}, 'END', 'TRY';
+TryStatement = 'TRY', {Statement}, {'EXCEPTION', Identifier, {'.', Identifier}, 'DO', {Statement}}, 'END', 'TRY';
 
 WhileStatement = 'WHILE', WhileExpression, ['LABEL', Identifier], 'DO', {Statement}, 'END', 'WHILE';
 

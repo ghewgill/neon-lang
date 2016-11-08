@@ -430,7 +430,7 @@ with open("src/exceptions.inc", "w") as inc:
     print >>inc, "};"
     print >>inc, "namespace rtl {"
     for prefix, name in exceptions:
-        print >>inc, "namespace {} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name, name)
+        print >>inc, "namespace {} {{ static const ExceptionName Exception_{} = {{\"{}\"}}; }}".format(prefix[:-1], name.replace(".", "_"), name)
     print >>inc
     print >>inc, "static const ExceptionName ExceptionNames[] = {"
     for prefix, name in exceptions:

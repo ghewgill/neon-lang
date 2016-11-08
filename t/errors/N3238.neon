@@ -1,0 +1,4 @@
+DECLARE EXCEPTION FooException
+DECLARE EXCEPTION FooException.Bar
+DECLARE EXCEPTION FooException.Bar
+                               %<

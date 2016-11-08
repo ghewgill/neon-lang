@@ -893,22 +893,22 @@ std::unique_ptr<Expression> Parser::parseConditional()
         auto &tok_try = tokens[i];
         ++i;
         std::unique_ptr<Expression> expr = parseExpression();
-        std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+        std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
         while (tokens[i].type == EXCEPTION) {
             ++i;
-            std::pair<Token, Token> name;
-            name.second = tokens[i];
-            ++i;
-            if (tokens[i].type == DOT) {
-                ++i;
+            std::vector<Token> name;
+            for (;;) {
                 if (tokens[i].type != IDENTIFIER) {
                     error(2107, tokens[i], "identifier expected");
                 }
-                name.first = name.second;
-                name.second = tokens[i];
+                name.push_back(tokens[i]);
+                ++i;
+                if (tokens[i].type != DOT) {
+                    break;
+                }
                 ++i;
             }
-            std::vector<std::pair<Token, Token>> exceptions;
+            std::vector<std::vector<Token>> exceptions;
             exceptions.push_back(name);
             if (tokens[i].type == DO) {
                 auto &tok_do = tokens[i];
@@ -1093,11 +1093,19 @@ std::unique_ptr<Declaration> Parser::parseDeclaration()
         case EXCEPTION: {
             ++i;
             auto &tok_name = tokens[i];
-            if (tokens[i].type != IDENTIFIER) {
-                error(2059, tokens[i], "identifier expected");
+            std::vector<Token> names;
+            for (;;) {
+                if (tokens[i].type != IDENTIFIER) {
+                    error(2059, tokens[i], "identifier expected");
+                }
+                names.push_back(tokens[i]);
+                ++i;
+                if (tokens[i].type != DOT) {
+                    break;
+                }
+                ++i;
             }
-            ++i;
-            return std::unique_ptr<Declaration> { new ExceptionDeclaration(tok_name, tok_name) };
+            return std::unique_ptr<Declaration> { new ExceptionDeclaration(tok_name, names) };
         }
         case NATIVE: {
             ++i;
@@ -1712,25 +1720,22 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
             statements.push_back(std::move(stmt));
         }
     }
-    std::vector<std::pair<std::vector<std::pair<Token, Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+    std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
     while (tokens[i].type == EXCEPTION) {
         ++i;
-        if (tokens[i].type != IDENTIFIER) {
-            error(2060, tokens[i], "identifier expected");
-        }
-        std::pair<Token, Token> name;
-        name.second = tokens[i];
-        ++i;
-        if (tokens[i].type == DOT) {
-            ++i;
+        std::vector<Token> name;
+        for (;;) {
             if (tokens[i].type != IDENTIFIER) {
-                error(2077, tokens[i], "identifier expected");
+                error(2060, tokens[i], "identifier expected");
             }
-            name.first = name.second;
-            name.second = tokens[i];
+            name.push_back(tokens[i]);
+            ++i;
+            if (tokens[i].type != DOT) {
+                break;
+            }
             ++i;
         }
-        std::vector<std::pair<Token, Token>> exceptions;
+        std::vector<std::vector<Token>> exceptions;
         exceptions.push_back(name);
         if (tokens[i].type != DO) {
             error(2098, tokens[i], "DO expected");
@@ -1761,19 +1766,16 @@ std::unique_ptr<Statement> Parser::parseRaiseStatement()
 {
     auto &tok_raise = tokens[i];
     ++i;
-    if (tokens[i].type != IDENTIFIER) {
-        error(2061, tokens[i], "identifier expected");
-    }
-    std::pair<Token, Token> name;
-    name.second = tokens[i];
-    ++i;
-    if (tokens[i].type == DOT) {
-        ++i;
+    std::vector<Token> name;
+    for (;;) {
         if (tokens[i].type != IDENTIFIER) {
-            error(2076, tokens[i], "identifier expected");
+            error(2061, tokens[i], "identifier expected");
         }
-        name.first = name.second;
-        name.second = tokens[i];
+        name.push_back(tokens[i]);
+        ++i;
+        if (tokens[i].type != DOT) {
+            break;
+        }
         ++i;
     }
     std::unique_ptr<Expression> info { nullptr };

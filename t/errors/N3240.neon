@@ -1,0 +1,6 @@
+DECLARE EXCEPTION FooException
+
+TRY
+EXCEPTION FooException.Bar DO
+                       %<
+END TRY

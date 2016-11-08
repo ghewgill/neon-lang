@@ -418,15 +418,15 @@ Program
   NextStatement(LOOP)
   NextStatement(REPEAT)
   NextStatement(label)
-  RaiseStatement(.name)
+  RaiseStatement(name)
     nullptr
-  RaiseStatement(name.name)
+  RaiseStatement(name,name)
     nullptr
-  RaiseStatement(.name)
+  RaiseStatement(name)
     FunctionCallExpression
       IdentifierExpression(ExceptionInfo)
       IdentifierExpression(expr)
-  RaiseStatement(.name)
+  RaiseStatement(name)
     FunctionCallExpression
       IdentifierExpression(ExceptionInfo)
       IdentifierExpression(expr)

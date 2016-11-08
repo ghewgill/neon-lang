@@ -406,7 +406,10 @@ class ExceptionDeclaration:
     def __init__(self, name):
         self.name = name
     def declare(self, env):
-        env.declare(self.name, ClassException(), None)
+        if len(self.name) == 1:
+            env.declare(self.name[0], ClassException(), None)
+        else:
+            pass
     def run(self, env):
         pass
 
@@ -738,7 +741,8 @@ class TryExpression:
             return self.expr.eval(env)
         except NeonException as x:
             for exceptions, statements in self.catches:
-                if x.name in [x[1] for x in exceptions]:
+                # Match either unqualified or module qualified name.
+                if any(x.name[:len(h)] == h or x.name[:len(h)-1] == h[1:] for h in exceptions):
                     if isinstance(statements, list):
                         for s in statements:
                             s.declare(env)
@@ -1128,7 +1132,8 @@ class TryStatement:
                 s.run(env)
         except NeonException as x:
             for exceptions, statements in self.catches:
-                if x.name in [x[1] for x in exceptions]:
+                # Match either unqualified or module qualified name.
+                if any(x.name[:len(h)] == h or x.name[:len(h)-1] == h[1:] for h in exceptions):
                     for s in statements:
                         s.declare(env)
                     for s in statements:
@@ -1694,11 +1699,12 @@ class Parser:
             catches = []
             while self.tokens[self.i] is EXCEPTION:
                 self.i += 1
-                name = (None, self.identifier())
-                if self.tokens[self.i] is DOT:
+                name = []
+                while True:
+                    name.append(self.identifier())
+                    if self.tokens[self.i] is not DOT:
+                        break
                     self.i += 1
-                    n = self.identifier()
-                    name = (name[1], n)
                 exceptions = [name]
                 if self.tokens[self.i] is DO:
                     self.i += 1
@@ -1790,7 +1796,12 @@ class Parser:
         self.expect(DECLARE)
         if self.tokens[self.i] == EXCEPTION:
             self.i += 1
-            name = self.identifier()
+            name = []
+            while True:
+                name.append(self.identifier())
+                if self.tokens[self.i] is not DOT:
+                    break
+                self.i += 1
             return ExceptionDeclaration(name)
         elif self.tokens[self.i] == NATIVE:
             self.i += 1
@@ -1972,10 +1983,12 @@ class Parser:
 
     def parse_raise_statement(self):
         self.expect(RAISE)
-        name = self.identifier()
-        if self.tokens[self.i] is DOT:
+        name = []
+        while True:
+            name.append(self.identifier())
+            if self.tokens[self.i] is not DOT:
+                break
             self.i += 1
-            assert False
         if self.tokens[self.i] is LPAREN:
             info = self.parse_function_call(None)
         else:
@@ -2012,11 +2025,12 @@ class Parser:
         catches = []
         while self.tokens[self.i] is EXCEPTION:
             self.i += 1
-            name = (None, self.identifier())
-            if self.tokens[self.i] is DOT:
+            name = []
+            while True:
+                name.append(self.identifier())
+                if self.tokens[self.i] is not DOT:
+                    break
                 self.i += 1
-                n = self.identifier()
-                name = (name[1], n)
             exceptions = [name]
             self.expect(DO)
             handler = []
@@ -2275,7 +2289,10 @@ class ExitException:
 
 class NeonException:
     def __init__(self, name):
-        self.name = name
+        if isinstance(name, str):
+            self.name = [name]
+        else:
+            self.name = name
 
 class NextException:
     def __init__(self, label):

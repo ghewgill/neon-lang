@@ -1,4 +1,0 @@
-TRY
-EXCEPTION module.exception DO
-          %<
-END TRY
