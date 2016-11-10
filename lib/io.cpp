@@ -21,7 +21,7 @@ static FILE *check_file(void *pf)
 {
     FILE *f = static_cast<FILE *>(pf);
     if (f == NULL) {
-        throw RtlException(rtl::io::Exception_InvalidFileException, "");
+        throw RtlException(rtl::io::Exception_IoException_InvalidFile, "");
     }
     return f;
 }
@@ -113,11 +113,11 @@ void truncate(void *pf)
     long ofs = ftell(f);
     #ifdef _WIN32
         if (_chsize(_fileno(f), ofs) != 0) {
-            throw RtlException(file::Exception_FileWriteException, "");
+            throw RtlException(Exception_IoException_Write, "");
         }
     #else
         if (ftruncate(fileno(f), ofs) != 0) {
-            throw RtlException(file::Exception_FileWriteException, "");
+            throw RtlException(Exception_IoException_Write, "");
         }
     #endif
 }

@@ -32,7 +32,7 @@ void chdir(const std::string &path)
 {
     int r = ::chdir(path.c_str());
     if (r != 0) {
-        throw RtlException(file::Exception_PathNotFoundException, path);
+        throw RtlException(Exception_OsException_PathNotFound, path);
     }
 }
 

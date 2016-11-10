@@ -1,3 +1,6 @@
 EXPORT call
+EXPORT ProcessException
+
+DECLARE EXCEPTION ProcessException
 
 DECLARE NATIVE FUNCTION call(command: String, OUT stdout: Bytes, OUT stderr: Bytes): Number

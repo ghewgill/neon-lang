@@ -6,7 +6,7 @@
 
 EXPORT Platform
 EXPORT Process
-EXPORT SystemException
+EXPORT OsException
 
 EXPORT chdir
 EXPORT getcwd
@@ -18,11 +18,25 @@ EXPORT spawn
 EXPORT wait
 
 %|
- |  Exception: SystemException
+ |  Exception: OsException
  |
- |  Error from system.
+ |  Error from os module.
  |%
-DECLARE EXCEPTION SystemException
+DECLARE EXCEPTION OsException
+
+%|
+ |  Exception: OsException.PathNotFound
+ |
+ |  Path not found during chdir.
+ |%
+DECLARE EXCEPTION OsException.PathNotFound
+
+%|
+ |  Exception: OsException.Spawn
+ |
+ |  Error occurred spawning new process.
+ |%
+DECLARE EXCEPTION OsException.Spawn
 
 %|
  |  Enumeration: Platform

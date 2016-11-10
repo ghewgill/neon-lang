@@ -15,9 +15,9 @@
 static void handle_error(int error, const std::string &path)
 {
     switch (error) {
-        case EACCES: throw RtlException(rtl::file::Exception_PermissionDeniedException, path);
-        case EEXIST: throw RtlException(rtl::file::Exception_DirectoryExistsException, path);
-        case ENOENT: throw RtlException(rtl::file::Exception_PathNotFoundException, path);
+        case EACCES: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
+        case EEXIST: throw RtlException(rtl::file::Exception_FileException_DirectoryExists, path);
+        case ENOENT: throw RtlException(rtl::file::Exception_FileException_PathNotFound, path);
         default:
             throw RtlException(rtl::file::Exception_FileException, path + ": " + strerror(error));
     }
@@ -33,7 +33,7 @@ void copy(const std::string &filename, const std::string &destination)
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL|COPYFILE_EXCL);
     if (r != 0) {
         if (errno == EEXIST) {
-            throw RtlException(Exception_FileExistsException, destination);
+            throw RtlException(Exception_FileException_Exists, destination);
         }
         handle_error(errno, filename);
     }
@@ -54,7 +54,7 @@ void copy(const std::string &filename, const std::string &destination)
         int error = errno;
         close(sourcefd);
         if (error == EEXIST) {
-            throw RtlException(Exception_FileExistsException, destination.c_str());
+            throw RtlException(Exception_FileException_Exists, destination.c_str());
         }
         handle_error(error, destination);
     }

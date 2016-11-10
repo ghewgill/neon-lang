@@ -18,7 +18,7 @@ void chdir(const std::string &path)
 {
     BOOL r = SetCurrentDirectory(path.c_str());
     if (not r) {
-        throw RtlException(file::Exception_PathNotFoundException, path);
+        throw RtlException(Exception_OsException_PathNotFound, path);
     }
 }
 
@@ -71,7 +71,7 @@ void *spawn(const std::string &command)
         &si,
         &pi);
     if (not r) {
-        throw RtlException(file::Exception_PathNotFoundException, command.c_str());
+        throw RtlException(file::Exception_FileException_PathNotFound, command.c_str());
     }
     AssignProcessToJobObject(job, pi.hProcess);
     p->process = pi.hProcess;

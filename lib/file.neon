@@ -4,13 +4,7 @@
  |  Functions for working with files and directories.
  |%
 
-EXPORT DirectoryExistsException
 EXPORT FileException
-EXPORT FileExistsException
-EXPORT FileOpenException
-EXPORT FileWriteException
-EXPORT PathNotFoundException
-EXPORT PermissionDeniedException
 
 EXPORT Separator
 
@@ -35,13 +29,6 @@ EXPORT writeLines
 DECLARE NATIVE CONSTANT Separator: String
 
 %|
- |  Exception: DirectoryExistsException
- |
- |  Indicates that a directory already exists when calling <mkdir>.
- |%
-DECLARE EXCEPTION DirectoryExistsException
-
-%|
  |  Exception: FileException
  |
  |  Generic file error.
@@ -49,48 +36,55 @@ DECLARE EXCEPTION DirectoryExistsException
 DECLARE EXCEPTION FileException
 
 %|
- |  Exception: FileExistsException
+ |  Exception: FileException.DirectoryExists
+ |
+ |  Indicates that a directory already exists when calling <mkdir>.
+ |%
+DECLARE EXCEPTION FileException.DirectoryExists
+
+%|
+ |  Exception: FileException.Exists
  |
  |  Indicates that a an attempt was made to create, or overwrite an existing file.
  |%
-DECLARE EXCEPTION FileExistsException
+DECLARE EXCEPTION FileException.Exists
 
 %|
- |  Exception: FileOpenException
+ |  Exception: FileException.Open
  |
  |  Indicates that an error occurred when opening a file.
  |%
-DECLARE EXCEPTION FileOpenException
+DECLARE EXCEPTION FileException.Open
 
 %|
- |  Exception: FileWriteException
- |
- |  Indicates that an error occurred while writing to a file.
- |%
-DECLARE EXCEPTION FileWriteException
-
-%|
- |  Exception: PathNotFoundException
+ |  Exception: FileException.PathNotFound
  |
  |  Indicates that a path was not found.
  |%
-DECLARE EXCEPTION PathNotFoundException
+DECLARE EXCEPTION FileException.PathNotFound
 
 %|
- |  Exception: PermissionDeniedException
+ |  Exception: FileException.PermissionDenied
  |
  |  Indicates that an operation was denied due to filesystem permisssions.
  |%
-DECLARE EXCEPTION PermissionDeniedException
+DECLARE EXCEPTION FileException.PermissionDenied
+
+%|
+ |  Exception: FileException.Write
+ |
+ |  Indicates that an error occurred while writing to a file.
+ |%
+DECLARE EXCEPTION FileException.Write
 
 %|
  |  Function: copy
  |
- |  Copies a file to a new destination.  If the destination file already exists, a FileExistsException
+ |  Copies a file to a new destination.  If the destination file already exists, a FileException.Exists
  |  is raised, and the file is not copied.
  |
  |  Exceptions:
- |      - <FileExistsException> - If the file provided by the destination parameter already exists.
+ |      - <FileException.Exists> - If the file provided by the destination parameter already exists.
  |
  |  See Also:
  |      <copyOverwriteIfExists>
@@ -100,7 +94,7 @@ DECLARE EXCEPTION PermissionDeniedException
  |  Example:
  |      > TRY
  |      >     file.copy("LICENSE.txt", "tmp/Copy_of_LICENSE.txt")
- |      > EXCEPTION file.FileExistsException DO
+ |      > EXCEPTION file.FileException.Exists DO
  |      >     print("File copy failed.  Destination file already exists.")
  |      > END TRY
  |
@@ -129,7 +123,7 @@ DECLARE NATIVE FUNCTION copyOverwriteIfExists(filename: String, destination: Str
  |  if the file does not exist.
  |
  |  Exceptions:
- |      - <PermissionDenied> - if the file permissions prevent the operation
+ |      - <FileException.PermissionDenied> - if the file permissions prevent the operation
  |%
 DECLARE NATIVE FUNCTION delete(filename: String)
 
@@ -161,9 +155,9 @@ DECLARE NATIVE FUNCTION isDirectory(path: String): Boolean
  |  Create a new directory with the given name.
  |
  |  Exceptions:
- |      - <PermissionDenied> - if the file permissions prevent the operation
- |      - <DirectoryExists> - if the directory already exists
- |      - <PathNotFound> - if the path (not including the last component) does not exist
+ |      - <FileException.PermissionDenied> - if the file permissions prevent the operation
+ |      - <FileException.DirectoryExists> - if the directory already exists
+ |      - <FileException.PathNotFound> - if the path (not including the last component) does not exist
  |%
 DECLARE NATIVE FUNCTION mkdir(path: String)
 

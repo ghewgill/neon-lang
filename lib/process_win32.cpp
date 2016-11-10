@@ -16,16 +16,16 @@ Number call(const std::string &command, std::string *out, std::string *err)
     sa.bInheritHandle = TRUE;
     sa.lpSecurityDescriptor = NULL;
     if (not CreatePipe(&out_read, &out_write, &sa, 0)) {
-        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
+        throw RtlException(Exception_ProcessException, std::to_string(GetLastError()));
     }
     if (not SetHandleInformation(out_read, HANDLE_FLAG_INHERIT, 0)) {
-        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
+        throw RtlException(Exception_ProcessException, std::to_string(GetLastError()));
     }
     if (not CreatePipe(&err_read, &err_write, &sa, 0)) {
-        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
+        throw RtlException(Exception_ProcessException, std::to_string(GetLastError()));
     }
     if (not SetHandleInformation(err_read, HANDLE_FLAG_INHERIT, 0)) {
-        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
+        throw RtlException(Exception_ProcessException, std::to_string(GetLastError()));
     }
     STARTUPINFO si;
     ZeroMemory(&si, sizeof(si));
@@ -37,7 +37,7 @@ Number call(const std::string &command, std::string *out, std::string *err)
     std::string cmd = command;
     PROCESS_INFORMATION pi;
     if (not CreateProcess(NULL, const_cast<char *>(cmd.c_str()), NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi)) {
-        throw RtlException(os::Exception_SystemException, std::to_string(GetLastError()));
+        throw RtlException(Exception_ProcessException, std::to_string(GetLastError()));
     }
     CloseHandle(pi.hThread);
     CloseHandle(out_write);

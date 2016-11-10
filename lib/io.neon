@@ -8,6 +8,8 @@ EXPORT File
 EXPORT Mode
 EXPORT SeekBase
 
+EXPORT IoException
+
 EXPORT close
 EXPORT fprint
 EXPORT open
@@ -57,11 +59,25 @@ END ENUM
 TYPE File IS POINTER
 
 %|
- |  Exception: InvalidFileException
+ |  Exception: IoException
+ |
+ |  General exception for errors raised by this module.
+ |%
+DECLARE EXCEPTION IoException
+
+%|
+ |  Exception: IoException.InvalidFile
  |
  |  An invalid (NIL) file was used.
  |%
-DECLARE EXCEPTION InvalidFileException
+DECLARE EXCEPTION IoException.InvalidFile
+
+%|
+ |  Exception: IoException.Write
+ |
+ |  An error occurred while writing to a file.
+ |%
+DECLARE EXCEPTION IoException.Write
 
 %|
  |  Variable: stdin

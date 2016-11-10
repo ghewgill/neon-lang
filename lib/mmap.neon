@@ -35,11 +35,18 @@ END ENUM
 TYPE MemoryFile IS POINTER
 
 %|
- |  Exception: InvalidFileException
+ |  Exception: MmapException
+ |
+ |  General exceptions for mmap module.
+ |%
+DECLARE EXCEPTION MmapException
+
+%|
+ |  Exception: MmapException.InvalidFile
  |
  |  An invalid (NIL) file was used.
  |%
-DECLARE EXCEPTION InvalidFileException
+DECLARE EXCEPTION MmapException.InvalidFile
 
 %|
  |  Exception: OpenFileException

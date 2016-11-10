@@ -4,8 +4,7 @@
  |  Interface file for https://libsodium.org.
  |%
 
-EXPORT DecryptionFailedException
-EXPORT InvalidParameterLengthException
+EXPORT SodiumException
 
 EXPORT box_NONCEBYTES
 EXPORT generichash_BYTES_MAX
@@ -62,8 +61,9 @@ EXPORT stream_xsalsa20_xor_ic
 EXPORT stream_salsa20
 EXPORT stream_salsa20_xor_ic
 
-DECLARE EXCEPTION DecryptionFailedException
-DECLARE EXCEPTION InvalidParameterLengthException
+DECLARE EXCEPTION SodiumException
+DECLARE EXCEPTION SodiumException.DecryptionFailed
+DECLARE EXCEPTION SodiumException.InvalidParameterLength
 
 DECLARE NATIVE CONSTANT box_NONCEBYTES: Number
 DECLARE NATIVE CONSTANT generichash_BYTES_MAX: Number

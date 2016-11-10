@@ -41,7 +41,7 @@ Cell exec(void *db, const std::string &sql, const std::map<utf8string, utf8strin
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
         if (c == 0) {
-            throw RtlException(Exception_ParameterNameException, p.first.c_str());
+            throw RtlException(Exception_SqliteException_ParameterName, p.first.c_str());
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
@@ -78,7 +78,7 @@ bool execOne(void *db, const std::string &sql, const std::map<utf8string, utf8st
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
         if (c == 0) {
-            throw RtlException(Exception_ParameterNameException, p.first.c_str());
+            throw RtlException(Exception_SqliteException_ParameterName, p.first.c_str());
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {

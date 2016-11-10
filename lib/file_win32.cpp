@@ -7,11 +7,11 @@
 static void handle_error(DWORD error, const std::string &path)
 {
     switch (error) {
-        case ERROR_ALREADY_EXISTS: throw RtlException(rtl::file::Exception_DirectoryExistsException, path);
-        case ERROR_ACCESS_DENIED: throw RtlException(rtl::file::Exception_PermissionDeniedException, path);
-        case ERROR_PATH_NOT_FOUND: throw RtlException(rtl::file::Exception_PathNotFoundException, path);
-        case ERROR_FILE_EXISTS: throw RtlException(rtl::file::Exception_FileExistsException, path);
-        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(rtl::file::Exception_PermissionDeniedException, path);
+        case ERROR_ALREADY_EXISTS: throw RtlException(rtl::file::Exception_FileException_DirectoryExists, path);
+        case ERROR_ACCESS_DENIED: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
+        case ERROR_PATH_NOT_FOUND: throw RtlException(rtl::file::Exception_FileException_PathNotFound, path);
+        case ERROR_FILE_EXISTS: throw RtlException(rtl::file::Exception_FileException_Exists, path);
+        case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
         default:
             throw RtlException(rtl::file::Exception_FileException, path + ": " + std::to_string(error));
     }

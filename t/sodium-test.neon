@@ -3210,7 +3210,7 @@ FUNCTION test_box8()
             c := a.toBytes()
             TRY
                 ASSERT sodium.box_open(c, n, alicepk, bobsk) = m
-            EXCEPTION sodium.DecryptionFailedException DO
+            EXCEPTION sodium.SodiumException.DecryptionFailed DO
                 INC caught
             END TRY
         END WHILE
@@ -3227,18 +3227,18 @@ FUNCTION test_box_seal()
     TRY
         _ := sodium.box_seal_open(HEXBYTES "", pk, sk)
         ASSERT FALSE
-    EXCEPTION sodium.InvalidParameterLengthException DO
+    EXCEPTION sodium.SodiumException.InvalidParameterLength DO
     END TRY
     TRY
         LET c2: Bytes := c.toArray()[FIRST TO LAST-1].toBytes()
         _ := sodium.box_seal_open(c2, pk, sk)
         ASSERT FALSE
-    EXCEPTION sodium.DecryptionFailedException DO
+    EXCEPTION sodium.SodiumException.DecryptionFailed DO
     END TRY
     TRY
         _ := sodium.box_seal_open(c, sk, pk)
         ASSERT FALSE
-    EXCEPTION sodium.DecryptionFailedException DO
+    EXCEPTION sodium.SodiumException.DecryptionFailed DO
     END TRY
 END FUNCTION
 
@@ -5097,7 +5097,7 @@ FUNCTION test_secretbox8()
             c := a.toBytes()
             TRY
                 ASSERT sodium.secretbox_open(c, n, k) = m
-            EXCEPTION sodium.DecryptionFailedException DO
+            EXCEPTION sodium.SodiumException.DecryptionFailed DO
                 INC caught
             END TRY
         END WHILE
@@ -5244,7 +5244,7 @@ FUNCTION test_sign()
         tweak(INOUT sm, i + sodium.sign_BYTES - 1, 1)
         TRY
             m := sodium.sign_open(sm, td.pk)
-        EXCEPTION sodium.DecryptionFailedException DO
+        EXCEPTION sodium.SodiumException.DecryptionFailed DO
         END TRY
         % do short signed message
         LET sig: Bytes := sodium.sign_detached(td.m, td.sk & td.pk)

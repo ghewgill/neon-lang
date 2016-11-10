@@ -17,7 +17,7 @@ static MemoryFile *check_file(void *pf)
 {
     MemoryFile *f = static_cast<MemoryFile *>(pf);
     if (f == NULL) {
-        throw RtlException(rtl::mmap::Exception_InvalidFileException, "");
+        throw RtlException(rtl::mmap::Exception_MmapException_InvalidFile, "");
     }
     return f;
 }
