@@ -1,2 +1,2 @@
-DECLARE EXCEPTION FooException.Bar
-                  %<
+EXCEPTION FooException.Bar
+          %<

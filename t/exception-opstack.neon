@@ -1,6 +1,6 @@
 % TODO SKIP (assertion failure)
 
-DECLARE EXCEPTION PrinterOnFire
+EXCEPTION PrinterOnFire
 
 FUNCTION quux(): Number
     RAISE PrinterOnFire

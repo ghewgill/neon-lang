@@ -22,21 +22,21 @@ EXPORT wait
  |
  |  Error from os module.
  |%
-DECLARE EXCEPTION OsException
+EXCEPTION OsException
 
 %|
  |  Exception: OsException.PathNotFound
  |
  |  Path not found during chdir.
  |%
-DECLARE EXCEPTION OsException.PathNotFound
+EXCEPTION OsException.PathNotFound
 
 %|
  |  Exception: OsException.Spawn
  |
  |  Error occurred spawning new process.
  |%
-DECLARE EXCEPTION OsException.Spawn
+EXCEPTION OsException.Spawn
 
 %|
  |  Enumeration: Platform

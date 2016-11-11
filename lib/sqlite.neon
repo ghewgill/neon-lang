@@ -20,8 +20,8 @@ EXPORT cursorOpen
 EXPORT cursorFetch
 EXPORT cursorClose
 
-DECLARE EXCEPTION SqliteException
-DECLARE EXCEPTION SqliteException.ParameterName
+EXCEPTION SqliteException
+EXCEPTION SqliteException.ParameterName
 
 VAR db: Database
 

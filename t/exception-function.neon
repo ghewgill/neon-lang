@@ -1,4 +1,4 @@
-DECLARE EXCEPTION PrinterOnFireException
+EXCEPTION PrinterOnFireException
 
 FUNCTION doit()
     RAISE PrinterOnFireException

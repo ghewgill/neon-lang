@@ -1,5 +1,5 @@
 % TODO
-DECLARE EXCEPTION PrinterOnFireException
+EXCEPTION PrinterOnFireException
 
 FUNCTION foo()
     TRY

@@ -1,4 +1,4 @@
-DECLARE EXCEPTION FileNotFoundException
+EXCEPTION FileNotFoundException
 
 FUNCTION foo(): Number
     TRY

@@ -54,6 +54,7 @@ public:
     std::unique_ptr<Declaration> parseFunctionDefinition(size_t start_column);
     std::unique_ptr<Declaration> parseExternalDefinition();
     std::unique_ptr<Declaration> parseDeclaration();
+    std::unique_ptr<Declaration> parseException();
     std::unique_ptr<Statement> parseExport();
     std::unique_ptr<Statement> parseIncrementStatement();
     std::unique_ptr<Statement> parseIfStatement();
@@ -1090,23 +1091,6 @@ std::unique_ptr<Declaration> Parser::parseDeclaration()
 {
     ++i;
     switch (tokens[i].type) {
-        case EXCEPTION: {
-            ++i;
-            auto &tok_name = tokens[i];
-            std::vector<Token> names;
-            for (;;) {
-                if (tokens[i].type != IDENTIFIER) {
-                    error(2059, tokens[i], "identifier expected");
-                }
-                names.push_back(tokens[i]);
-                ++i;
-                if (tokens[i].type != DOT) {
-                    break;
-                }
-                ++i;
-            }
-            return std::unique_ptr<Declaration> { new ExceptionDeclaration(tok_name, names) };
-        }
         case NATIVE: {
             ++i;
             if (tokens[i].type == CONSTANT) {
@@ -1150,8 +1134,27 @@ std::unique_ptr<Declaration> Parser::parseDeclaration()
             error(2120, tokens[i], "CONSTANT, FUNCTION or VAR expected");
         }
         default:
-            error(2058, tokens[i], "EXCEPTION expected");
+            error(2058, tokens[i], "NATIVE expected");
     }
+}
+
+std::unique_ptr<Declaration> Parser::parseException()
+{
+    ++i;
+    auto &tok_name = tokens[i];
+    std::vector<Token> names;
+    for (;;) {
+        if (tokens[i].type != IDENTIFIER) {
+            error(2059, tokens[i], "identifier expected");
+        }
+        names.push_back(tokens[i]);
+        ++i;
+        if (tokens[i].type != DOT) {
+            break;
+        }
+        ++i;
+    }
+    return std::unique_ptr<Declaration> { new ExceptionDeclaration(tok_name, names) };
 }
 
 std::unique_ptr<Statement> Parser::parseExport()
@@ -1186,6 +1189,10 @@ std::unique_ptr<Statement> Parser::parseExport()
         case DECLARE: {
             std::unique_ptr<Declaration> declare = parseDeclaration();
             return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, declare->names, std::move(declare)) };
+        }
+        case EXCEPTION: {
+            std::unique_ptr<Declaration> exception = parseException();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, exception->names, std::move(exception)) };
         }
         default:
             break;
@@ -1894,6 +1901,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseExternalDefinition();
     } else if (tokens[i].type == DECLARE) {
         return parseDeclaration();
+    } else if (tokens[i].type == EXCEPTION) {
+        return parseException();
     } else if (tokens[i].type == EXPORT) {
         return parseExport();
     } else if (tokens[i].type == INC || tokens[i].type == DEC) {

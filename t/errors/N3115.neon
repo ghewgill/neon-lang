@@ -1,4 +1,4 @@
-DECLARE EXCEPTION Exception
-                  %<2
-DECLARE EXCEPTION Exception
-                  %<1
+EXCEPTION Exception
+          %<2
+EXCEPTION Exception
+          %<1

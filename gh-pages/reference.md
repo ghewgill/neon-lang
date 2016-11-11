@@ -850,7 +850,7 @@ The `RAISE` statement raises an exception.
 
 Example:
 
-    DECLARE EXCEPTION InvalidWidgetSizeException
+    EXCEPTION InvalidWidgetSizeException
     
     VAR size: Number := 3
     IF size > 4 THEN
@@ -901,7 +901,7 @@ If an exception matching a clause is raised, the corresponding exception handler
 
 Example:
 
-    DECLARE EXCEPTION InvalidWidgetSizeException
+    EXCEPTION InvalidWidgetSizeException
     
     VAR size: Number := 5
     TRY

@@ -61,9 +61,9 @@ EXPORT stream_xsalsa20_xor_ic
 EXPORT stream_salsa20
 EXPORT stream_salsa20_xor_ic
 
-DECLARE EXCEPTION SodiumException
-DECLARE EXCEPTION SodiumException.DecryptionFailed
-DECLARE EXCEPTION SodiumException.InvalidParameterLength
+EXCEPTION SodiumException
+EXCEPTION SodiumException.DecryptionFailed
+EXCEPTION SodiumException.InvalidParameterLength
 
 DECLARE NATIVE CONSTANT box_NONCEBYTES: Number
 DECLARE NATIVE CONSTANT generichash_BYTES_MAX: Number

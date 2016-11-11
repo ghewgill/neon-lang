@@ -91,7 +91,7 @@ FunctionParameterList = '(', [FunctionParameter, {',', FunctionParameter}], ')',
 
 FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':', Type, ['DEFAULT', Expression];
 
-ExceptionDeclaration = 'DECLARE', 'EXCEPTION', Identifier, {'.', Identifier};
+ExceptionDeclaration = 'EXCEPTION', Identifier, {'.', Identifier};
 
 ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ExternalFunctionDeclaration | NativeFunctionDeclaration | ExceptionDeclaration | Identifier);
 

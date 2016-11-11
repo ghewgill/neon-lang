@@ -1,4 +1,4 @@
-DECLARE EXCEPTION Exception
+EXCEPTION Exception
 
 FUNCTION foo()
     bar()

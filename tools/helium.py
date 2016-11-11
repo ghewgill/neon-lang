@@ -1795,16 +1795,7 @@ class Parser:
 
     def parse_declaration(self):
         self.expect(DECLARE)
-        if self.tokens[self.i] == EXCEPTION:
-            self.i += 1
-            name = []
-            while True:
-                name.append(self.identifier())
-                if self.tokens[self.i] is not DOT:
-                    break
-                self.i += 1
-            return ExceptionDeclaration(name)
-        elif self.tokens[self.i] == NATIVE:
+        if self.tokens[self.i] == NATIVE:
             self.i += 1
             if self.tokens[self.i] == CONSTANT:
                 self.i += 1
@@ -1822,6 +1813,18 @@ class Parser:
                 self.expect(COLON)
                 type = self.parse_type()
                 return NativeVariable(name, type)
+        else:
+            assert False
+
+    def parse_exception(self):
+        self.expect(EXCEPTION)
+        name = []
+        while True:
+            name.append(self.identifier())
+            if self.tokens[self.i] is not DOT:
+                break
+            self.i += 1
+        return ExceptionDeclaration(name)
 
     def parse_exit_statement(self):
         self.expect(EXIT)
@@ -2093,6 +2096,7 @@ class Parser:
         if self.tokens[self.i] is FUNCTION: return self.parse_function_definition()
         if self.tokens[self.i] is EXTERNAL: return self.parse_external_definition()
         if self.tokens[self.i] is DECLARE:  return self.parse_declaration()
+        if self.tokens[self.i] is EXCEPTION:return self.parse_exception()
         if self.tokens[self.i] is EXPORT:   return self.parse_export()
         if self.tokens[self.i] is IF:       return self.parse_if_statement()
         if self.tokens[self.i] in [INC,DEC]:return self.parse_increment_statement()

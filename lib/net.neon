@@ -15,7 +15,7 @@ EXPORT tcpSocket
  |
  |  Indicates some kind of socket error.
  |%
-DECLARE EXCEPTION SocketException
+EXCEPTION SocketException
 
 TYPE Handle IS Number
 

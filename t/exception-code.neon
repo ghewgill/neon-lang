@@ -1,4 +1,4 @@
-DECLARE EXCEPTION PrinterOnFireException
+EXCEPTION PrinterOnFireException
 
 TRY
     RAISE PrinterOnFireException(info WITH "error", code WITH 404)

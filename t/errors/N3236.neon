@@ -1,2 +1,2 @@
-DECLARE EXCEPTION int.foo
-                  %<
+EXCEPTION int.foo
+          %<

@@ -147,7 +147,7 @@ The `EXIT` and `NEXT` statements branch out of the loop or to the next iteration
 
 The exception handling statements are `TRY` (introduces a new handling scope), and `RAISE` to raise an exception.
 
-    DECLARE EXCEPTION PrinterOutOfPaperException
+    EXCEPTION PrinterOutOfPaperException
 
     FUNCTION printFile(name: String)
         % Save the trees, don't print anything.

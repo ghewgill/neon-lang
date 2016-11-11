@@ -63,21 +63,21 @@ TYPE File IS POINTER
  |
  |  General exception for errors raised by this module.
  |%
-DECLARE EXCEPTION IoException
+EXCEPTION IoException
 
 %|
  |  Exception: IoException.InvalidFile
  |
  |  An invalid (NIL) file was used.
  |%
-DECLARE EXCEPTION IoException.InvalidFile
+EXCEPTION IoException.InvalidFile
 
 %|
  |  Exception: IoException.Write
  |
  |  An error occurred while writing to a file.
  |%
-DECLARE EXCEPTION IoException.Write
+EXCEPTION IoException.Write
 
 %|
  |  Variable: stdin

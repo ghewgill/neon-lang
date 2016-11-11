@@ -56,7 +56,7 @@ FUNCTION raise()
     RAISE Exception
 END FUNCTION
 
-DECLARE EXCEPTION Exception
+EXCEPTION Exception
 
 VAR functionpointer: FUNCTION(x: Number): Number
 functionpointer := function

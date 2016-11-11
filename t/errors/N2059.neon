@@ -1,2 +1,2 @@
-DECLARE EXCEPTION 5
-                  %<
+EXCEPTION 5
+          %<

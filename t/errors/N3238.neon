@@ -1,4 +1,4 @@
-DECLARE EXCEPTION FooException
-DECLARE EXCEPTION FooException.Bar
-DECLARE EXCEPTION FooException.Bar
-                               %<
+EXCEPTION FooException
+EXCEPTION FooException.Bar
+EXCEPTION FooException.Bar
+                       %<

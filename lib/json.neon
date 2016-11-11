@@ -20,7 +20,7 @@ IMPORT variant.Variant
  |
  |  Indicates that a formatting error was encountered when reading JSON.
  |%
-DECLARE EXCEPTION JsonFormatException
+EXCEPTION JsonFormatException
 
 FUNCTION skipWhitespace(json: String, INOUT index: Number)
     WHILE index < json.length() AND (json[index] = " " OR json[index] = "\t" OR json[index] = "\r" OR json[index] = "\n") DO

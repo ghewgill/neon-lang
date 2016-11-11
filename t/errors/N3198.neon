@@ -1,2 +1,2 @@
-DECLARE EXCEPTION Test
-                  %<
+EXCEPTION Test
+          %<

@@ -37,7 +37,7 @@ EXPORT Sunday
 IMPORT math
 IMPORT time
 
-DECLARE EXCEPTION TodoException
+EXCEPTION TodoException
 
 CONSTANT January  : Number := 1
 CONSTANT February : Number := 2

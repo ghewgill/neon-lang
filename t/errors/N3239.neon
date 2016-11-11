@@ -1,4 +1,4 @@
-DECLARE EXCEPTION FooException
+EXCEPTION FooException
 
 RAISE FooException.Bar
                    %<

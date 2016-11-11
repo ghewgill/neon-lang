@@ -20,7 +20,7 @@ EXPORT makeDictionary
  |
  |  Indicates an attempt to read a value of the wrong type from a <Variant>.
  |%
-DECLARE EXCEPTION TypeMismatchException
+EXCEPTION TypeMismatchException
 
 %|
  |  Enumeration: Type

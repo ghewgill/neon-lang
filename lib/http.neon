@@ -14,7 +14,7 @@ EXPORT post
  |
  |  Raised when an HTTP request returns anything other than 200 OK.
  |%
-DECLARE EXCEPTION HttpException
+EXCEPTION HttpException
 
 %|
  |  Function: get

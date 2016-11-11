@@ -33,49 +33,49 @@ DECLARE NATIVE CONSTANT Separator: String
  |
  |  Generic file error.
  |%
-DECLARE EXCEPTION FileException
+EXCEPTION FileException
 
 %|
  |  Exception: FileException.DirectoryExists
  |
  |  Indicates that a directory already exists when calling <mkdir>.
  |%
-DECLARE EXCEPTION FileException.DirectoryExists
+EXCEPTION FileException.DirectoryExists
 
 %|
  |  Exception: FileException.Exists
  |
  |  Indicates that a an attempt was made to create, or overwrite an existing file.
  |%
-DECLARE EXCEPTION FileException.Exists
+EXCEPTION FileException.Exists
 
 %|
  |  Exception: FileException.Open
  |
  |  Indicates that an error occurred when opening a file.
  |%
-DECLARE EXCEPTION FileException.Open
+EXCEPTION FileException.Open
 
 %|
  |  Exception: FileException.PathNotFound
  |
  |  Indicates that a path was not found.
  |%
-DECLARE EXCEPTION FileException.PathNotFound
+EXCEPTION FileException.PathNotFound
 
 %|
  |  Exception: FileException.PermissionDenied
  |
  |  Indicates that an operation was denied due to filesystem permisssions.
  |%
-DECLARE EXCEPTION FileException.PermissionDenied
+EXCEPTION FileException.PermissionDenied
 
 %|
  |  Exception: FileException.Write
  |
  |  Indicates that an error occurred while writing to a file.
  |%
-DECLARE EXCEPTION FileException.Write
+EXCEPTION FileException.Write
 
 %|
  |  Function: copy

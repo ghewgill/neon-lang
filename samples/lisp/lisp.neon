@@ -16,9 +16,9 @@ IMPORT math
 IMPORT regex
 IMPORT sys
 
-DECLARE EXCEPTION ParseEndOfInputException
-DECLARE EXCEPTION SyntaxErrorException
-DECLARE EXCEPTION TypeMismatchException
+EXCEPTION ParseEndOfInputException
+EXCEPTION SyntaxErrorException
+EXCEPTION TypeMismatchException
 
 TYPE Environment IS CLASS
     parent: POINTER TO Environment

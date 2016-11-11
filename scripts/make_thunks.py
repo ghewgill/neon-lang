@@ -237,8 +237,8 @@ for fn in sys.argv[1:]:
                         "Number": "TYPE_NUMBER",
                     }[ntype]
                     variables[name] = [name, atype]
-                elif a[:2] == ["DECLARE", "EXCEPTION"]:
-                    exceptions.append((prefix, a[2]))
+                elif a[:1] == ["EXCEPTION"]:
+                    exceptions.append((prefix, a[1]))
                 elif a[:1] == ["EXPORT"]:
                     exported.add(prefix + a[1])
                 elif in_enum:

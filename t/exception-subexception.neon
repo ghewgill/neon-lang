@@ -1,7 +1,7 @@
-DECLARE EXCEPTION TestException
-DECLARE EXCEPTION TestException.Foo
-DECLARE EXCEPTION TestException.Bar
-DECLARE EXCEPTION TestException.Bar.Baz
+EXCEPTION TestException
+EXCEPTION TestException.Foo
+EXCEPTION TestException.Bar
+EXCEPTION TestException.Bar.Baz
 
 TRY
     RAISE TestException

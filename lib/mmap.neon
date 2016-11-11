@@ -39,21 +39,21 @@ TYPE MemoryFile IS POINTER
  |
  |  General exceptions for mmap module.
  |%
-DECLARE EXCEPTION MmapException
+EXCEPTION MmapException
 
 %|
  |  Exception: MmapException.InvalidFile
  |
  |  An invalid (NIL) file was used.
  |%
-DECLARE EXCEPTION MmapException.InvalidFile
+EXCEPTION MmapException.InvalidFile
 
 %|
  |  Exception: OpenFileException
  |
  |  An error occured while trying to open the file.
  |%
-DECLARE EXCEPTION OpenFileException
+EXCEPTION OpenFileException
 
 %|
  |  Function: close

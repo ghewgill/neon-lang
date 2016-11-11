@@ -2194,28 +2194,6 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.declare
     self.nextToken()
     CASE self.token.type
-        WHEN TokenType.exception DO
-            self.nextToken()
-            LET tokName: lexer.Token := self.token
-            VAR name: Array<lexer.Token> := []
-            LOOP
-                IF self.token.type # TokenType.identifier THEN
-                    error(2059, self.token, "identifier expected")
-                END IF
-                name.append(self.token)
-                self.nextToken()
-                IF self.token.type # TokenType.dot THEN
-                    EXIT LOOP
-                END IF
-                self.nextToken()
-            END LOOP
-            RETURN NEW ParseTreeNode(
-                type WITH Type.ExceptionDeclaration,
-                token WITH tokName,
-                exceptiondeclaration WITH ExceptionDeclaration(
-                    name WITH name
-                )
-            )
         WHEN TokenType.native DO
             self.nextToken()
             CASE self.token.type
@@ -2286,6 +2264,31 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
             error(2058, self.token, "EXCEPTION or NATIVE expected")
     END CASE
     RETURN NIL
+END FUNCTION
+
+FUNCTION Parser.parseException(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.exception
+    self.nextToken()
+    LET tokName: lexer.Token := self.token
+    VAR name: Array<lexer.Token> := []
+    LOOP
+        IF self.token.type # TokenType.identifier THEN
+            error(2059, self.token, "identifier expected")
+        END IF
+        name.append(self.token)
+        self.nextToken()
+        IF self.token.type # TokenType.dot THEN
+            EXIT LOOP
+        END IF
+        self.nextToken()
+    END LOOP
+    RETURN NEW ParseTreeNode(
+        type WITH Type.ExceptionDeclaration,
+        token WITH tokName,
+        exceptiondeclaration WITH ExceptionDeclaration(
+            name WITH name
+        )
+    )
 END FUNCTION
 
 FUNCTION Parser.parseExport(INOUT self: Parser): POINTER TO ParseTreeNode
@@ -3161,6 +3164,8 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseExternalDefinition()
         WHEN TokenType.declare DO
             RETURN self.parseDeclaration()
+        WHEN TokenType.exception DO
+            RETURN self.parseException()
         WHEN TokenType.export DO
             RETURN self.parseExport()
         WHEN TokenType.begin DO
