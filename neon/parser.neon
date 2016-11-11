@@ -1381,7 +1381,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
         WHEN TokenType.if DO
             error(2095, self.token, "Use parentheses around (IF ... THEN ... ELSE ...)")
         WHEN TokenType.try DO
-            error(2106, self.token, "Use parentheses around (TRY ... EXCEPTION ...)")
+            error(2106, self.token, "Use parentheses around (TRY ... TRAP ...)")
         WHEN TokenType.identifier DO
             VAR expr: POINTER TO ParseTreeNode := NEW ParseTreeNode(
                 type WITH Type.IdentifierExpression,
@@ -1851,7 +1851,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
         self.nextToken()
         LET expr: POINTER TO ParseTreeNode := self.parseExpression()
         VAR catches: Array<TryStatementClause> := []
-        WHILE self.token.type = TokenType.exception DO
+        WHILE self.token.type = TokenType.trap DO
             self.nextToken()
             VAR name: Array<lexer.Token> := []
             name[1] := self.token
@@ -1870,7 +1870,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 LET tokDo: lexer.Token := self.token
                 VAR statements: Array<POINTER TO ParseTreeNode> := []
                 self.nextToken()
-                WHILE self.token.type NOT IN [TokenType.exception, TokenType.rparen, TokenType.end_of_file] DO
+                WHILE self.token.type NOT IN [TokenType.trap, TokenType.rparen, TokenType.end_of_file] DO
                     LET s: POINTER TO ParseTreeNode := self.parseStatement()
                     IF VALID s THEN
                         statements.append(s)
@@ -3031,14 +3031,14 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     self.nextToken()
     self.pushMinimumIndent(tokTry.column + 1)
     VAR statements: Array<POINTER TO ParseTreeNode> := []
-    WHILE self.token.type NOT IN [TokenType.exception, TokenType.end, TokenType.end_of_file] DO
+    WHILE self.token.type NOT IN [TokenType.trap, TokenType.end, TokenType.end_of_file] DO
         LET s: POINTER TO ParseTreeNode := self.parseStatement()
         IF VALID s THEN
             statements.append(s)
         END IF
     END WHILE
     VAR catches: Array<TryStatementClause> := []
-    WHILE self.token.type = TokenType.exception DO
+    WHILE self.token.type = TokenType.trap DO
         self.nextToken()
         IF self.token.type # TokenType.identifier THEN
             error(2060, self.token, "identifier expected")
@@ -3062,7 +3062,7 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         LET tokDo: lexer.Token := self.token
         self.nextToken()
         VAR handler: Array<POINTER TO ParseTreeNode> := []
-        WHILE self.token.type NOT IN [TokenType.exception, TokenType.end, TokenType.end_of_file] DO
+        WHILE self.token.type NOT IN [TokenType.trap, TokenType.end, TokenType.end_of_file] DO
             LET s: POINTER TO ParseTreeNode := self.parseStatement()
             IF VALID s THEN
                 handler.append(s)

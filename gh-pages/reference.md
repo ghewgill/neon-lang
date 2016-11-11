@@ -155,7 +155,7 @@ The following keywords are defined by the language.
 | <a href="#keyword-EMBED">`EMBED`</a> | include an external file directly into the compiled code |
 | <a href="#keyword-ENUM">`ENUM`</a> | enumeration type declaration |
 | <a href="#keyword-END">`END`</a> | end of most kinds of blocks of code |
-| <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration and handling |
+| <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration |
 | <a href="#keyword-EXIT">`EXIT`</a> | early exit from loops |
 | <a href="#keyword-EXPORT">`EXPORT`</a> | export identifier from module |
 | <a href="#keyword-EXTERNAL">`EXTERNAL`</a> | external function declaration |
@@ -896,7 +896,7 @@ Example:
 ### `TRY`
 
 The `TRY` statement introduces a block that handles exceptions.
-After entering a `TRY` block, any exception that happens within the block is checked against the `EXCEPTION` clauses.
+After entering a `TRY` block, any exception that happens within the block is checked against the `TRAP` clauses.
 If an exception matching a clause is raised, the corresponding exception handler starts running.
 
 Example:
@@ -908,7 +908,7 @@ Example:
         IF size > 4 THEN
             RAISE InvalidWidgetSizeException(info WITH size.toString())
         END IF
-    EXCEPTION InvalidWidgetSizeException DO
+    TRAP InvalidWidgetSizeException DO
         print("Invalid size \(CURRENT_EXCEPTION.info)")
     END TRY
 

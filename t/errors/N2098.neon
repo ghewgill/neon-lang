@@ -1,5 +1,5 @@
 TRY
     print("hello")
-EXCEPTION InvalidValue THEN
-                       %<
+TRAP InvalidValue THEN
+                  %<
 END TRY

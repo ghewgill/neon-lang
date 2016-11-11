@@ -12,10 +12,10 @@ TRY
             file.copy("LICENSE.txt", "tmp/license-copy.txt")
             print("File copied")
             EXIT FOR
-        EXCEPTION file.FileException.PathNotFound DO
+        TRAP file.FileException.PathNotFound DO
         END TRY
     END FOR
-EXCEPTION file.FileException.Exists DO
+TRAP file.FileException.Exists DO
     print("Failed")
 END TRY
 

@@ -111,6 +111,7 @@ enum TokenType {
     EXEC,
     LABEL,
     CLASS,
+    TRAP,
     UNKNOWN,
     MAX_TOKEN
 };

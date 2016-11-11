@@ -2,7 +2,7 @@ DECLARE EXCEPTION PrinterOnFireException
 
 TRY
     RAISE PrinterOnFireException(info WITH "A4")
-EXCEPTION PrinterOnFireException DO
+TRAP PrinterOnFireException DO
     print(CURRENT_EXCEPTION.name)
     print(CURRENT_EXCEPTION.info)
     print(str(CURRENT_EXCEPTION.offset))

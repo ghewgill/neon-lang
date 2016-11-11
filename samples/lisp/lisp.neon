@@ -146,7 +146,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
                     END IF
                     p := new
                 END LOOP
-            EXCEPTION ParseEndOfInputException DO
+            TRAP ParseEndOfInputException DO
                 % nothing
             END TRY
             IF s[i] = ")" THEN

@@ -6,10 +6,10 @@ TRY
     file.symlink("../LICENSE.txt", "tmp/LICENSE.txt", FALSE)
     LET text: Bytes := file.readBytes("tmp/LICENSE.txt")
     ASSERT text = file.readBytes("LICENSE.txt")
-EXCEPTION file.FileException.PermissionDenied DO
+TRAP file.FileException.PermissionDenied DO
     % Creating a symlink not always possible on win32
     ASSERT os.platform() = os.Platform.win32
-EXCEPTION file.FileException.Open DO
+TRAP file.FileException.Open DO
     % Creating a symlink not always possible on win32
     ASSERT os.platform() = os.Platform.win32
 END TRY

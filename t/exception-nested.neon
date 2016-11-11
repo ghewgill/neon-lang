@@ -4,10 +4,10 @@ TRY
     print("one")
     TRY
         RAISE PrinterOnFireException
-    EXCEPTION PrinterOnFireException DO
+    TRAP PrinterOnFireException DO
         print("two")
     END TRY
-EXCEPTION PrinterOnFireException DO
+TRAP PrinterOnFireException DO
     print("three")
 END TRY
 

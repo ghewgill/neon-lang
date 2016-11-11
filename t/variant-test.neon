@@ -23,7 +23,7 @@ print("\(v.getString())")
 
 TRY
     _ := v.getBoolean()
-EXCEPTION variant.TypeMismatchException DO
+TRAP variant.TypeMismatchException DO
     print("TypeMismatch")
 END TRY
 %= TypeMismatch

@@ -196,10 +196,10 @@ RETURN expr
 TRY END TRY
 TRY statement() END TRY
 TRY statement() statement() END TRY
-TRY EXCEPTION name DO END TRY
-TRY EXCEPTION name.name DO END TRY
-TRY EXCEPTION name DO statement() END TRY
-TRY EXCEPTION name DO statement() statement() END TRY
+TRY TRAP name DO END TRY
+TRY TRAP name.name DO END TRY
+TRY TRAP name DO statement() END TRY
+TRY TRAP name DO statement() statement() END TRY
 
 % WhileStatement
 WHILE expr DO END WHILE
@@ -212,11 +212,11 @@ name := (IF expr THEN expr ELSE expr)
 
 % TryExpression
 name := (TRY expr)
-name := (TRY expr EXCEPTION name DO)
-name := (TRY expr EXCEPTION name DO statement())
-name := (TRY expr EXCEPTION name DO statement() statement())
-name := (TRY expr EXCEPTION name GIVES expr)
-name := (TRY expr EXCEPTION name GIVES expr EXCEPTION name GIVES expr)
+name := (TRY expr TRAP name DO)
+name := (TRY expr TRAP name DO statement())
+name := (TRY expr TRAP name DO statement() statement())
+name := (TRY expr TRAP name GIVES expr)
+name := (TRY expr TRAP name GIVES expr TRAP name GIVES expr)
 
 % DisjunctionExpression
 name := expr OR expr

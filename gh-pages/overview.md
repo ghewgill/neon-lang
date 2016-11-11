@@ -156,7 +156,7 @@ The exception handling statements are `TRY` (introduces a new handling scope), a
 
     TRY
         printFile("hello.txt")
-    EXCEPTION PrinterOutOfPaperException DO
+    TRAP PrinterOutOfPaperException DO
         print("Sorry, out of paper.")
     END TRY
 

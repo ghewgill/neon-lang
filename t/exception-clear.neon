@@ -4,7 +4,7 @@ DECLARE EXCEPTION PrinterOnFireException
 FUNCTION foo()
     TRY
         RAISE PrinterOnFireException(info WITH "A4")
-    EXCEPTION PrinterOnFireException DO
+    TRAP PrinterOnFireException DO
         print(CURRENT_EXCEPTION.name)
         print(CURRENT_EXCEPTION.info)
         EXIT FUNCTION

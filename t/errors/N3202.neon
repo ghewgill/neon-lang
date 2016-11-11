@@ -1,2 +1,2 @@
-LET n: Number := (TRY 1 EXCEPTION InvalidValueException DO)
+LET n: Number := (TRY 1 TRAP InvalidValueException DO)
                       %<

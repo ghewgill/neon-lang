@@ -5,7 +5,7 @@ DECLARE EXCEPTION TestException.Bar.Baz
 
 TRY
     RAISE TestException
-EXCEPTION TestException DO
+TRAP TestException DO
     print("TestException")
 END TRY
 
@@ -13,9 +13,9 @@ END TRY
 
 TRY
     RAISE TestException.Foo
-EXCEPTION TestException DO
+TRAP TestException DO
     print("TestException")
-EXCEPTION TestException.Foo DO
+TRAP TestException.Foo DO
     print("TestException.Foo")
 END TRY
 
@@ -23,9 +23,9 @@ END TRY
 
 TRY
     RAISE TestException.Foo
-EXCEPTION TestException.Foo DO
+TRAP TestException.Foo DO
     print("TestException.Foo")
-EXCEPTION TestException DO
+TRAP TestException DO
     print("TestException")
 END TRY
 
@@ -33,7 +33,7 @@ END TRY
 
 TRY
     RAISE TestException.Bar.Baz
-EXCEPTION TestException.Bar DO
+TRAP TestException.Bar DO
     print("TestException.Bar")
 END TRY
 
@@ -41,7 +41,7 @@ END TRY
 
 TRY
     RAISE TestException.Bar.Baz
-EXCEPTION TestException.Bar.Baz DO
+TRAP TestException.Bar.Baz DO
     print("TestException.Bar.Baz")
 END TRY
 

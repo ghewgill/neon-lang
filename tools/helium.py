@@ -141,6 +141,7 @@ NOWHERE = Keyword("NOWHERE")
 INTDIV = Keyword("INTDIV")
 LABEL = Keyword("LABEL")
 CLASS = Keyword("CLASS")
+TRAP = Keyword("TRAP")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -1697,7 +1698,7 @@ class Parser:
             self.i += 1
             expr = self.parse_expression()
             catches = []
-            while self.tokens[self.i] is EXCEPTION:
+            while self.tokens[self.i] is TRAP:
                 self.i += 1
                 name = []
                 while True:
@@ -1709,7 +1710,7 @@ class Parser:
                 if self.tokens[self.i] is DO:
                     self.i += 1
                     handler = []
-                    while self.tokens[self.i] is not EXCEPTION and self.tokens[self.i] is not RPAREN and self.tokens[self.i] is not END_OF_FILE:
+                    while self.tokens[self.i] is not TRAP and self.tokens[self.i] is not RPAREN and self.tokens[self.i] is not END_OF_FILE:
                         s = self.parse_statement()
                         if s is not None:
                             handler.append(s)
@@ -2018,12 +2019,12 @@ class Parser:
     def parse_try_statement(self):
         self.expect(TRY)
         statements = []
-        while self.tokens[self.i] is not EXCEPTION and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
+        while self.tokens[self.i] is not TRAP and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
             s = self.parse_statement()
             if s is not None:
                 statements.append(s)
         catches = []
-        while self.tokens[self.i] is EXCEPTION:
+        while self.tokens[self.i] is TRAP:
             self.i += 1
             name = []
             while True:
@@ -2034,7 +2035,7 @@ class Parser:
             exceptions = [name]
             self.expect(DO)
             handler = []
-            while self.tokens[self.i] is not EXCEPTION and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
+            while self.tokens[self.i] is not TRAP and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
                 s = self.parse_statement()
                 if s is not None:
                     handler.append(s)

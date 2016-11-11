@@ -110,6 +110,8 @@ TYPE Type IS ENUM
     nowhere
     intdiv
     label
+    class
+    trap
     unknown
     max_token
 END ENUM
@@ -352,6 +354,8 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "NOWHERE" THEN t.type := Type.nowhere
             ELSIF t.text = "INTDIV" THEN t.type := Type.intdiv
             ELSIF t.text = "LABEL" THEN t.type := Type.label
+            ELSIF t.text = "CLASS" THEN t.type := Type.class
+            ELSIF t.text = "TRAP" THEN t.type := Type.trap
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN
@@ -753,7 +757,7 @@ BEGIN MAIN
             FOREACH t IN tokens DO
                 print("\(t)")
             END FOREACH
-        EXCEPTION Utf8DecodingException DO
+        TRAP Utf8DecodingException DO
             LET offset: Number := num(CURRENT_EXCEPTION.info)
             LET source: String := bytes[FIRST TO offset-1].decodeToString()
             LET line: Number := 1 + count(source, "\n")

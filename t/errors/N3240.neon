@@ -1,6 +1,6 @@
 DECLARE EXCEPTION FooException
 
 TRY
-EXCEPTION FooException.Bar DO
-                       %<
+TRAP FooException.Bar DO
+                  %<
 END TRY

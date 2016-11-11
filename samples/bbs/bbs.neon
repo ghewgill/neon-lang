@@ -70,7 +70,7 @@ FUNCTION handleLoginName(INOUT self: Client, s: String)
         self.user.name := name
         self.user.pwhash := pwhash
         self.prompt("What is your password? ", handleLoginPassword)
-    EXCEPTION SqlException DO
+    TRAP SqlException DO
         self.send("You must be new here.")
         self.prompt("Choose a password: ", handleLoginNewPassword1)
     END TRY

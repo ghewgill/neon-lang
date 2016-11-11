@@ -94,7 +94,7 @@ DECLARE EXCEPTION FileException.Write
  |  Example:
  |      > TRY
  |      >     file.copy("LICENSE.txt", "tmp/Copy_of_LICENSE.txt")
- |      > EXCEPTION file.FileException.Exists DO
+ |      > TRAP file.FileException.Exists DO
  |      >     print("File copy failed.  Destination file already exists.")
  |      > END TRY
  |

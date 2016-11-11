@@ -8,7 +8,7 @@ FUNCTION bar()
     VAR x: Number := 0
     TRY
         foo()
-    EXCEPTION InvalidValueException DO
+    TRAP InvalidValueException DO
         x := 5
     END TRY
 END FUNCTION

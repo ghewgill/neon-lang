@@ -2,7 +2,7 @@ DECLARE EXCEPTION PrinterOnFireException
 
 TRY
     RAISE PrinterOnFireException(info WITH "error", code WITH 404)
-EXCEPTION PrinterOnFireException DO
+TRAP PrinterOnFireException DO
     print("conflagration \(CURRENT_EXCEPTION.info) \(CURRENT_EXCEPTION.code)")
 END TRY
 

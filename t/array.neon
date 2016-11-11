@@ -6,7 +6,7 @@ print(str(a[1]))
 
 TRY
     print(str(a[2]))
-EXCEPTION ArrayIndexException DO
+TRAP ArrayIndexException DO
     print("array index")
 END TRY
 

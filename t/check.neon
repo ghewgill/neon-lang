@@ -43,7 +43,7 @@ testNext(0)
 %= check next
 TRY
     testRaise(0)
-EXCEPTION InvalidValueException DO
+TRAP InvalidValueException DO
 END TRY
 %= check raise
 _ := testReturn(0)

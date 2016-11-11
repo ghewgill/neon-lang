@@ -142,7 +142,7 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
             r.code := 200
             r.content_type := "text/plain"
             r.content := file.readBytes(local_path)
-        EXCEPTION file.FileException.Open DO
+        TRAP file.FileException.Open DO
             r.code := 404
             r.content_type := "text/plain"
             r.content := toBytes("file not found")

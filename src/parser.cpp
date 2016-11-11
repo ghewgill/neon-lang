@@ -619,7 +619,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
             error(2095, tokens[i], "Use parentheses around (IF ... THEN ... ELSE ...)");
         }
         case TRY: {
-            error(2106, tokens[i], "Use parentheses around (TRY ... EXCEPTION ...)");
+            error(2106, tokens[i], "Use parentheses around (TRY ... TRAP ...)");
         }
         case IDENTIFIER: {
             std::unique_ptr<Expression> expr { new IdentifierExpression(tokens[i], tokens[i].text) };
@@ -894,7 +894,7 @@ std::unique_ptr<Expression> Parser::parseConditional()
         ++i;
         std::unique_ptr<Expression> expr = parseExpression();
         std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
-        while (tokens[i].type == EXCEPTION) {
+        while (tokens[i].type == TRAP) {
             ++i;
             std::vector<Token> name;
             for (;;) {
@@ -914,7 +914,7 @@ std::unique_ptr<Expression> Parser::parseConditional()
                 auto &tok_do = tokens[i];
                 std::vector<std::unique_ptr<Statement>> statements;
                 ++i;
-                while (tokens[i].type != EXCEPTION && tokens[i].type != RPAREN && tokens[i].type != END_OF_FILE) {
+                while (tokens[i].type != TRAP && tokens[i].type != RPAREN && tokens[i].type != END_OF_FILE) {
                     std::unique_ptr<Statement> stmt = parseStatement();
                     if (stmt != nullptr) {
                         statements.push_back(std::move(stmt));
@@ -1714,14 +1714,14 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
     ++i;
     TemporaryMinimumIndent indent(this, tok_try.column + 1);
     std::vector<std::unique_ptr<Statement>> statements;
-    while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+    while (tokens[i].type != TRAP && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
         std::unique_ptr<Statement> stmt = parseStatement();
         if (stmt != nullptr) {
             statements.push_back(std::move(stmt));
         }
     }
     std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
-    while (tokens[i].type == EXCEPTION) {
+    while (tokens[i].type == TRAP) {
         ++i;
         std::vector<Token> name;
         for (;;) {
@@ -1743,7 +1743,7 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
         auto &tok_do = tokens[i];
         ++i;
         std::vector<std::unique_ptr<Statement>> statements;
-        while (tokens[i].type != EXCEPTION && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
+        while (tokens[i].type != TRAP && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             std::unique_ptr<Statement> stmt = parseStatement();
             if (stmt != nullptr) {
                 statements.push_back(std::move(stmt));

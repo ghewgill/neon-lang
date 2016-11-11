@@ -4,7 +4,7 @@ print(d["hello"])
 
 TRY
     print(d["foo"])
-EXCEPTION DictionaryIndexException DO
+TRAP DictionaryIndexException DO
     print("dictionary index")
 END TRY
 

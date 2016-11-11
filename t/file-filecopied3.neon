@@ -11,7 +11,7 @@ TRY
     ELSE
         print("File not copied")
     END IF
-EXCEPTION file.FileException.Exists DO
+TRAP file.FileException.Exists DO
     print("Failed")
 END TRY
 

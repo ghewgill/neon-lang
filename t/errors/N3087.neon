@@ -1,4 +1,4 @@
 TRY
-EXCEPTION Foo DO
-          %<
+TRAP Foo DO
+     %<
 END TRY
