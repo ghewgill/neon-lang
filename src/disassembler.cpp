@@ -668,10 +668,8 @@ std::string Disassembler::decode_value(const std::string &type, const Bytecode::
             return value.at(0) != 0 ? "TRUE" : "FALSE";
         }
         case 'N': {
-            // TODO: endian
-            Number x;
-            memcpy(&x, &value.at(0), sizeof(Number));
-            return number_to_string(x);
+            uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(2) << 8) | value.at(3);
+            return std::string(&value.at(4), &value.at(4)+len);
         }
         case 'S': {
             uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(2) << 8) | value.at(3);

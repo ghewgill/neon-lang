@@ -52,16 +52,12 @@ const Expression *TypeNumber::make_default_value() const
 std::string TypeNumber::serialize(const Expression *value) const
 {
     Number x = value->eval_number();
-    return std::string(reinterpret_cast<const char *>(&x), sizeof(x));
+    return TypeString::serialize(number_to_string(x));
 }
 
 const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
-    // TODO: endian
-    Number x;
-    memcpy(&x, &value.at(i), sizeof(Number));
-    i += sizeof(Number);
-    return new ConstantNumberExpression(x);
+    return new ConstantNumberExpression(number_from_string(TypeString::deserialize_string(value, i)));
 }
 
 const Expression *TypeString::make_default_value() const
