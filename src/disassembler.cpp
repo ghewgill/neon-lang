@@ -674,7 +674,7 @@ std::string Disassembler::decode_value(const std::string &type, const Bytecode::
             return number_to_string(x);
         }
         case 'S': {
-            uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(1) << 8) | value.at(0);
+            uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(2) << 8) | value.at(3);
             return std::string(&value.at(4), &value.at(4)+len);
         }
         default:
