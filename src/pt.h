@@ -724,7 +724,7 @@ public:
 
 class ExceptionDeclaration: public Declaration {
 public:
-    ExceptionDeclaration(const Token &token, const std::vector<Token> &name): Declaration(token, {}), name(name) {}
+    ExceptionDeclaration(const Token &token, const std::vector<Token> &name): Declaration(token, {name}), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<Token> name;
 };
