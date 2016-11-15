@@ -908,8 +908,8 @@ Example:
         IF size > 4 THEN
             RAISE InvalidWidgetSizeException(info WITH size.toString())
         END IF
-    TRAP InvalidWidgetSizeException DO
-        print("Invalid size \(CURRENT_EXCEPTION.info)")
+    TRAP InvalidWidgetSizeException AS x DO
+        print("Invalid size \(x.info)")
     END TRY
 
 <a name="statements-while"></a>

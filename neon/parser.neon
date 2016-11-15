@@ -96,6 +96,7 @@ END RECORD
 
 TYPE TryStatementClause IS RECORD
     exceptions: Array<Array<lexer.Token>>
+    name: lexer.Token
     body: POINTER TO ParseTreeNode
 END RECORD
 
@@ -1866,6 +1867,15 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 self.nextToken()
             END IF
             LET exceptions: Array<Array<lexer.Token>> := [name]
+            VAR nameinfo: lexer.Token := lexer.Token()
+            IF self.token.type = TokenType.as THEN
+                self.nextToken()
+                IF self.token.type # TokenType.identifier THEN
+                    error(2123, self.token, "identifier expected")
+                END IF
+                nameinfo := self.token
+                self.nextToken()
+            END IF
             IF self.token.type = TokenType.do THEN
                 LET tokDo: lexer.Token := self.token
                 VAR statements: Array<POINTER TO ParseTreeNode> := []
@@ -1878,6 +1888,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 END WHILE
                 catches.append(TryStatementClause(
                     exceptions WITH exceptions,
+                    name WITH nameinfo,
                     body WITH NEW ParseTreeNode(
                         type WITH Type.TryHandlerStatement,
                         token WITH tokDo,
@@ -1890,6 +1901,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
                 self.nextToken()
                 catches.append(TryStatementClause(
                     exceptions WITH exceptions,
+                    name WITH nameinfo,
                     body WITH self.parseExpression()
                 ))
             ELSE
@@ -3059,6 +3071,15 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             self.nextToken()
         END IF
         LET exceptions: Array<Array<lexer.Token>> := [name]
+        VAR nameinfo: lexer.Token := lexer.Token()
+        IF self.token.type = TokenType.as THEN
+            self.nextToken()
+            IF self.token.type # TokenType.identifier THEN
+                error(2124, self.token, "identifier expected")
+            END IF
+            nameinfo := self.token
+            self.nextToken()
+        END IF
         IF self.token.type # TokenType.do THEN
             error(2098, self.token, "DO expected")
         END IF
@@ -3073,6 +3094,7 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         END WHILE
         catches.append(TryStatementClause(
             exceptions WITH exceptions,
+            name WITH nameinfo,
             body WITH NEW ParseTreeNode(
                 type WITH Type.TryHandlerStatement,
                 token WITH tokDo,

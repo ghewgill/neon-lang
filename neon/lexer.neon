@@ -757,8 +757,8 @@ BEGIN MAIN
             FOREACH t IN tokens DO
                 print("\(t)")
             END FOREACH
-        TRAP Utf8DecodingException DO
-            LET offset: Number := num(CURRENT_EXCEPTION.info)
+        TRAP Utf8DecodingException AS x DO
+            LET offset: Number := num(x.info)
             LET source: String := bytes[FIRST TO offset-1].decodeToString()
             LET line: Number := 1 + count(source, "\n")
             LET bol: Number := findLast(source, "\n") + 1

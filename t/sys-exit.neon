@@ -2,14 +2,14 @@ IMPORT sys
 
 TRY
     sys.exit(1.5)
-TRAP InvalidValueException DO
-    print(CURRENT_EXCEPTION.info)
+TRAP InvalidValueException AS x DO
+    print(x.info)
 END TRY
 %= sys.exit invalid parameter: 1.5
 
 TRY
     sys.exit(-1)
-TRAP InvalidValueException DO
-    print(CURRENT_EXCEPTION.info)
+TRAP InvalidValueException AS x DO
+    print(x.info)
 END TRY
 %= sys.exit invalid parameter: -1

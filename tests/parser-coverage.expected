@@ -473,6 +473,7 @@ Program
   TryStatement
   TryStatement
   TryStatement
+  TryStatement
   WhileStatement
     IdentifierExpression(expr)
     WHILE
@@ -503,6 +504,16 @@ Program
       ConditionalExpression
         IdentifierExpression(expr)
         IdentifierExpression(expr)
+        IdentifierExpression(expr)
+  AssignmentStatement
+    IdentifierExpression(name)
+    IdentityExpression
+      TryExpression
+        IdentifierExpression(expr)
+  AssignmentStatement
+    IdentifierExpression(name)
+    IdentityExpression
+      TryExpression
         IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)

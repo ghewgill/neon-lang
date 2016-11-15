@@ -311,7 +311,6 @@ private:
     void exec_CONSA();
     void exec_CONSD();
     void exec_EXCEPT();
-    void exec_CLREXC();
     void exec_ALLOC();
     void exec_PUSHNIL();
     void exec_JNASSERT();
@@ -1261,17 +1260,6 @@ void Executor::exec_EXCEPT()
     raise_literal(module->object.strtable[val], ei);
 }
 
-void Executor::exec_CLREXC()
-{
-    ip++;
-    // The fields here must match the declaration of
-    // ExceptionType in ast.cpp.
-    module->globals[0].array_index_for_write(0) = Cell("");
-    module->globals[0].array_index_for_write(1) = Cell("");
-    module->globals[0].array_index_for_write(2) = Cell(number_from_uint32(0));
-    module->globals[0].array_index_for_write(3) = Cell(number_from_uint32(0));
-}
-
 void Executor::exec_ALLOC()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
@@ -1344,10 +1332,11 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
 {
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
-    module->globals[0].array_index_for_write(0) = Cell(exception);
-    module->globals[0].array_index_for_write(1) = Cell(info.info);
-    module->globals[0].array_index_for_write(2) = Cell(info.code);
-    module->globals[0].array_index_for_write(3) = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
+    Cell exceptionvar;
+    exceptionvar.array_index_for_write(0) = Cell(exception);
+    exceptionvar.array_index_for_write(1) = Cell(info.info);
+    exceptionvar.array_index_for_write(2) = Cell(info.code);
+    exceptionvar.array_index_for_write(3) = Cell(number_from_uint32(static_cast<uint32_t>(ip)));
 
     auto tmodule = module;
     auto tip = ip;
@@ -1361,6 +1350,7 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
                     module = tmodule;
                     ip = e->handler;
                     callstack.resize(sp);
+                    stack.push(exceptionvar);
                     return;
                 }
             }
@@ -1522,13 +1512,6 @@ void Executor::set_recursion_limit(size_t depth)
 
 void Executor::exec()
 {
-    // The number of fields here must match the declaration of
-    // ExceptionType in ast.cpp.
-    // TODO: Should be only one instance of the current exception object.
-    for (auto m: modules) {
-        m.second->globals[0].array_index_for_write(3);
-    }
-
     callstack.push_back(std::make_pair(module, module->object.code.size()));
 
     // This sets up the call stack in such a way as to initialize
@@ -1652,7 +1635,6 @@ void Executor::exec()
             case CONSA:   exec_CONSA(); break;
             case CONSD:   exec_CONSD(); break;
             case EXCEPT:  exec_EXCEPT(); break;
-            case CLREXC:  exec_CLREXC(); break;
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(); break;
             case JNASSERT:exec_JNASSERT(); break;

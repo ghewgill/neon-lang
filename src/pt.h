@@ -551,12 +551,21 @@ public:
     std::unique_ptr<Expression> right;
 };
 
+class TryTrap {
+public:
+    TryTrap(const std::vector<std::vector<Token>> &exceptions, const Token &name, std::unique_ptr<ParseTreeNode> &&handler): exceptions(exceptions), name(name), handler(std::move(handler)) {}
+    TryTrap(TryTrap &&rhs): exceptions(rhs.exceptions), name(rhs.name), handler(std::move(rhs.handler)) {}
+    std::vector<std::vector<Token>> exceptions;
+    Token name;
+    std::unique_ptr<ParseTreeNode> handler;
+};
+
 class TryExpression: public Expression {
 public:
-    TryExpression(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> &&catches): Expression(token, token.column, token.column), expr(std::move(expr)), catches(std::move(catches)) {}
+    TryExpression(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::unique_ptr<TryTrap>> &&catches): Expression(token, token.column, token.column), expr(std::move(expr)), catches(std::move(catches)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
-    std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+    std::vector<std::unique_ptr<TryTrap>> catches;
 };
 
 class NewClassExpression: public Expression {
@@ -885,9 +894,9 @@ public:
 
 class TryStatement: public BlockStatement {
 public:
-    TryStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> &&catches): BlockStatement(token, std::move(body)), catches(std::move(catches)) {}
+    TryStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, std::vector<std::unique_ptr<TryTrap>> &&catches): BlockStatement(token, std::move(body)), catches(std::move(catches)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+    std::vector<std::unique_ptr<TryTrap>> catches;
 };
 
 class TryHandlerStatement: public BlockStatement {

@@ -616,7 +616,7 @@ bool TryStatement::always_returns() const
         return false;
     }
     for (auto c: catches) {
-        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.handler);
         if (ehs == nullptr) {
             return false;
         }
@@ -978,8 +978,6 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
         Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
         scope->addName(Token(IDENTIFIER, "ExceptionType"), "ExceptionType", exception_type, true);
-        GlobalVariable *current_exception = new GlobalVariable(Token(), "CURRENT_EXCEPTION", exception_type, true);
-        scope->addName(Token(IDENTIFIER, "CURRENT_EXCEPTION"), "CURRENT_EXCEPTION", current_exception, true);
     }
 
     rtl_compile_init(scope);

@@ -894,7 +894,7 @@ std::unique_ptr<Expression> Parser::parseConditional()
         auto &tok_try = tokens[i];
         ++i;
         std::unique_ptr<Expression> expr = parseExpression();
-        std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+        std::vector<std::unique_ptr<TryTrap>> catches;
         while (tokens[i].type == TRAP) {
             ++i;
             std::vector<Token> name;
@@ -911,6 +911,15 @@ std::unique_ptr<Expression> Parser::parseConditional()
             }
             std::vector<std::vector<Token>> exceptions;
             exceptions.push_back(name);
+            Token infoname;
+            if (tokens[i].type == AS) {
+                ++i;
+                if (tokens[i].type != IDENTIFIER) {
+                    error(2123, tokens[i], "identifier expected");
+                }
+                infoname = tokens[i];
+                ++i;
+            }
             if (tokens[i].type == DO) {
                 auto &tok_do = tokens[i];
                 std::vector<std::unique_ptr<Statement>> statements;
@@ -921,10 +930,10 @@ std::unique_ptr<Expression> Parser::parseConditional()
                         statements.push_back(std::move(stmt));
                     }
                 }
-                catches.push_back(std::make_pair(exceptions, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(statements)) }));
+                catches.emplace_back(new TryTrap(exceptions, infoname, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(statements)) }));
             } else if (tokens[i].type == GIVES) {
                 ++i;
-                catches.push_back(std::make_pair(exceptions, parseExpression()));
+                catches.emplace_back(new TryTrap(exceptions, infoname, parseExpression()));
             } else {
                 error(2108, tokens[i], "DO or GIVES expected");
             }
@@ -1727,7 +1736,7 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
             statements.push_back(std::move(stmt));
         }
     }
-    std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<ParseTreeNode>>> catches;
+    std::vector<std::unique_ptr<TryTrap>> catches;
     while (tokens[i].type == TRAP) {
         ++i;
         std::vector<Token> name;
@@ -1744,6 +1753,15 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
         }
         std::vector<std::vector<Token>> exceptions;
         exceptions.push_back(name);
+        Token infoname;
+        if (tokens[i].type == AS) {
+            ++i;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2124, tokens[i], "identifier expected");
+            }
+            infoname = tokens[i];
+            ++i;
+        }
         if (tokens[i].type != DO) {
             error(2098, tokens[i], "DO expected");
         }
@@ -1756,7 +1774,7 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
                 statements.push_back(std::move(stmt));
             }
         }
-        catches.push_back(std::make_pair(exceptions, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(statements)) }));
+        catches.emplace_back(new TryTrap(exceptions, infoname, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(statements)) }));
     }
     if (tokens[i].type != END) {
         error(2062, tokens[i], "'END' expected");

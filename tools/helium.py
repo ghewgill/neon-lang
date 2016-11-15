@@ -741,7 +741,7 @@ class TryExpression:
         try:
             return self.expr.eval(env)
         except NeonException as x:
-            for exceptions, statements in self.catches:
+            for exceptions, name, statements in self.catches:
                 # Match either unqualified or module qualified name.
                 if any(x.name[:len(h)] == h or x.name[:len(h)-1] == h[1:] for h in exceptions):
                     if isinstance(statements, list):
@@ -1081,7 +1081,11 @@ class RaiseStatement:
     def declare(self, env):
         pass
     def run(self, env):
-        raise NeonException(self.name)
+        if self.info is not None:
+            info = self.info.eval(env)
+            raise NeonException(self.name, info.info, info.code)
+        else:
+            raise NeonException(self.name)
 
 class RepeatStatement:
     def __init__(self, label, cond, statements):
@@ -1132,9 +1136,10 @@ class TryStatement:
             for s in self.statements:
                 s.run(env)
         except NeonException as x:
-            for exceptions, statements in self.catches:
+            for exceptions, name, statements in self.catches:
                 # Match either unqualified or module qualified name.
                 if any(x.name[:len(h)] == h or x.name[:len(h)-1] == h[1:] for h in exceptions):
+                    env.declare(name, None, x)
                     for s in statements:
                         s.declare(env)
                     for s in statements:
@@ -1707,6 +1712,10 @@ class Parser:
                         break
                     self.i += 1
                 exceptions = [name]
+                infoname = None
+                if self.tokens[self.i] is AS:
+                    self.i += 1
+                    infoname = self.identifier()
                 if self.tokens[self.i] is DO:
                     self.i += 1
                     handler = []
@@ -1714,11 +1723,11 @@ class Parser:
                         s = self.parse_statement()
                         if s is not None:
                             handler.append(s)
-                    catches.append((exceptions, handler))
+                    catches.append((exceptions, infoname, handler))
                 elif self.tokens[self.i] is GIVES:
                     self.i += 1
                     g = self.parse_expression()
-                    catches.append((exceptions, g))
+                    catches.append((exceptions, infoname, g))
             return TryExpression(expr, catches)
         else:
             return self.parse_disjunction()
@@ -1994,7 +2003,23 @@ class Parser:
                 break
             self.i += 1
         if self.tokens[self.i] is LPAREN:
-            info = self.parse_function_call(None)
+            class ExceptionType:
+                def __init__(self):
+                    self.type = ClassRecord(
+                        [
+                            Field("info", TypeSimple("String")),
+                            Field("code", TypeSimple("Number")),
+                            Field("offset", TypeSimple("Number")),
+                        ],
+                        {}
+                    )
+                def resolve(self, env):
+                    return self.type
+            et = ExceptionType()
+            info = NewRecordExpression(
+                et,
+                self.parse_function_call(et.type)
+            )
         else:
             info = None
         return RaiseStatement(name, info)
@@ -2036,13 +2061,17 @@ class Parser:
                     break
                 self.i += 1
             exceptions = [name]
+            infoname = None
+            if self.tokens[self.i] is AS:
+                self.i += 1
+                infoname = self.identifier()
             self.expect(DO)
             handler = []
             while self.tokens[self.i] is not TRAP and self.tokens[self.i] is not END and self.tokens[self.i] is not END_OF_FILE:
                 s = self.parse_statement()
                 if s is not None:
                     handler.append(s)
-            catches.append((exceptions, handler))
+            catches.append((exceptions, infoname, handler))
         self.expect(END)
         self.expect(TRY)
         return TryStatement(statements, catches)
@@ -2293,11 +2322,14 @@ class ExitException:
         self.label = label
 
 class NeonException:
-    def __init__(self, name):
+    def __init__(self, name, info=None, code=None):
         if isinstance(name, str):
             self.name = [name]
         else:
             self.name = name
+        self.info = info
+        self.code = code
+        self.offset = 0
 
 class NextException:
     def __init__(self, label):
@@ -2380,7 +2412,7 @@ def neon_num(env, x):
 
 def neon_ord(env, x):
     if len(x) != 1:
-        raise NeonException("ArrayIndexException")
+        raise NeonException("ArrayIndexException", "ord() requires string of length 1")
     return ord(x)
 
 def neon_print(env, x):
@@ -2491,6 +2523,8 @@ def neon_string_upper(env, s):
     return s.upper()
 
 def neon_sys_exit(env, n):
+    if n != int(n) or n < 0 or n > 255:
+        raise NeonException("InvalidValueException", "sys.exit invalid parameter: {}".format(n))
     sys.exit(n)
 
 ExcludeTests = [
@@ -2511,9 +2545,7 @@ ExcludeTests = [
     "t/debug-server.neon",      # Feature not required
     "t/decimal.neon",           # Module not required
     "t/encoding-base64.neon",   # HEXBYTES not implemented yet
-    "t/exception-clear.neon",   # CURRENT_EXCEPTION not required
-    "t/exception-code.neon",    # CURRENT_EXCEPTION not required
-    "t/exception-current.neon", # CURRENT_EXCEPTION not required
+    "t/exception-as.neon",      # Exception offset not supported
     "t/export-inline.neon",     # Native mul not required
     "t/ffi.neon",               # FFI not required
     "t/file-symlink.neon",      # Feature not required
@@ -2557,7 +2589,6 @@ ExcludeTests = [
     "t/regex-test.neon",        # Module not required
     "t/repl_import.neon",       # Module not required
     "t/return-case.neon",       # Feature not required
-    "t/rtl.neon",               # CURRENT_EXCEPTION not required
     "t/sdl-test.neon",          # Module not required
     "t/shebang.neon",           # Feature not required
     "t/sodium-test.neon",       # Module not required
@@ -2570,7 +2601,6 @@ ExcludeTests = [
     "t/sqlite-test.neon",       # Module not required
     "t/string-multiline.neon",  # Feature not required
     "t/sudoku-test.neon",       # Sample not required
-    "t/sys-exit.neon",          # CURRENT_EXCEPTION not required
     "t/tail-call.neon",         # Feature not required
     "t/time-stopwatch.neon",    # Module not required
     "t/time-test.neon",         # Module not required

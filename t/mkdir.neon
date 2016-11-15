@@ -3,8 +3,8 @@ IMPORT file
 TRY
     file.mkdir("tmp/dummy")
     file.mkdir("tmp/dummy")
-TRAP file.FileException.DirectoryExists DO
-    print(CURRENT_EXCEPTION.info)
+TRAP file.FileException.DirectoryExists AS x DO
+    print(x.info)
 END TRY
 
 %= tmp/dummy

@@ -200,6 +200,7 @@ TRY TRAP name DO END TRY
 TRY TRAP name.name DO END TRY
 TRY TRAP name DO statement() END TRY
 TRY TRAP name DO statement() statement() END TRY
+TRY TRAP name AS x DO END TRY
 
 % WhileStatement
 WHILE expr DO END WHILE
@@ -217,6 +218,8 @@ name := (TRY expr TRAP name DO statement())
 name := (TRY expr TRAP name DO statement() statement())
 name := (TRY expr TRAP name GIVES expr)
 name := (TRY expr TRAP name GIVES expr TRAP name GIVES expr)
+name := (TRY expr TRAP name AS x DO statement())
+name := (TRY expr TRAP name AS x GIVES expr)
 
 % DisjunctionExpression
 name := expr OR expr

@@ -1,0 +1,13 @@
+EXCEPTION PrinterOnFireException
+
+TRY
+    RAISE PrinterOnFireException(info WITH "A4")
+TRAP PrinterOnFireException AS x DO
+    print(x.name)
+    print(x.info)
+    print(str(x.offset))
+END TRY
+
+%= PrinterOnFireException
+%= A4
+%= 15

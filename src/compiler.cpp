@@ -1041,14 +1041,20 @@ void TryExpression::generate_expr(Emitter &emitter) const
     auto skip = emitter.create_label();
     emitter.emit_jump(JUMP, skip);
     ei.end = emitter.current_ip();
-    for (auto c: catches) {
-        for (auto e: c.first) {
+    for (auto &c: catches) {
+        for (auto e: c.exceptions) {
             ei.excid = emitter.str(e->name);
             ei.handler = emitter.current_ip();
             emitter.add_exception(ei);
         }
-        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
-        const Expression *e = dynamic_cast<const Expression *>(c.second);
+        if (c.name != nullptr) {
+            c.name->generate_address(emitter);
+            c.name->generate_store(emitter);
+        } else {
+            emitter.emit(DROP);
+        }
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.handler);
+        const Expression *e = dynamic_cast<const Expression *>(c.handler);
         if (ehs != nullptr) {
             for (auto stmt: ehs->statements) {
                 stmt->generate(emitter);
@@ -1058,12 +1064,6 @@ void TryExpression::generate_expr(Emitter &emitter) const
         } else {
             internal_error("unexpected catch type");
         }
-        // TODO: Currently CLREXC only happens when exiting the
-        // exception handler block normally. How would the exception
-        // get cleared if the handler block is exited some other way,
-        // such as a RETURN or EXIT?
-        // See: t/exception-clear.neon
-        emitter.emit(CLREXC);
         emitter.emit_jump(JUMP, skip);
     }
     emitter.jump_target(skip);
@@ -1735,13 +1735,19 @@ void TryStatement::generate_code(Emitter &emitter) const
     auto skip = emitter.create_label();
     emitter.emit_jump(JUMP, skip);
     ei.end = emitter.current_ip();
-    for (auto c: catches) {
-        for (auto e: c.first) {
+    for (auto &c: catches) {
+        for (auto e: c.exceptions) {
             ei.excid = emitter.str(e->name);
             ei.handler = emitter.current_ip();
             emitter.add_exception(ei);
         }
-        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
+        if (c.name != nullptr) {
+            c.name->generate_address(emitter);
+            c.name->generate_store(emitter);
+        } else {
+            emitter.emit(DROP);
+        }
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.handler);
         if (ehs != nullptr) {
             for (auto stmt: ehs->statements) {
                 stmt->generate(emitter);
@@ -1749,12 +1755,6 @@ void TryStatement::generate_code(Emitter &emitter) const
         } else {
             internal_error("unexpected catch type");
         }
-        // TODO: Currently CLREXC only happens when exiting the
-        // exception handler block normally. How would the exception
-        // get cleared if the handler block is exited some other way,
-        // such as a RETURN or EXIT?
-        // See: t/exception-clear.neon
-        emitter.emit(CLREXC);
         emitter.emit_jump(JUMP, skip);
     }
     emitter.jump_target(skip);

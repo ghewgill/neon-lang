@@ -1116,13 +1116,31 @@ private:
     ConditionalExpression &operator=(const ConditionalExpression &);
 };
 
+class TryTrap {
+public:
+    TryTrap(const std::vector<const Exception *> &exceptions, const Variable *name, const AstNode *handler): exceptions(exceptions), name(name), handler(handler) {}
+    TryTrap(const TryTrap &rhs): exceptions(rhs.exceptions), name(rhs.name), handler(rhs.handler) {}
+    TryTrap &operator=(const TryTrap &rhs) {
+        if (this == &rhs) {
+            return *this;
+        }
+        exceptions = rhs.exceptions;
+        name = rhs.name;
+        handler = rhs.handler;
+        return *this;
+    }
+    std::vector<const Exception *> exceptions;
+    const Variable *name;
+    const AstNode *handler;
+};
+
 class TryExpression: public Expression {
 public:
-    TryExpression(const Expression *expr, const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> &catches): Expression(expr->type, false), expr(expr), catches(catches) {}
+    TryExpression(const Expression *expr, const std::vector<TryTrap> &catches): Expression(expr->type, false), expr(expr), catches(catches) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *expr;
-    const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> catches;
+    const std::vector<TryTrap> catches;
 
     virtual bool eval_boolean() const override { internal_error("TryExpression"); }
     virtual Number eval_number() const override { internal_error("TryExpression"); }
@@ -2185,11 +2203,11 @@ private:
 
 class TryStatement: public Statement {
 public:
-    TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> &catches): Statement(line), statements(statements), catches(catches) {}
+    TryStatement(int line, const std::vector<const Statement *> &statements, const std::vector<TryTrap> &catches): Statement(line), statements(statements), catches(catches) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> statements;
-    const std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> catches;
+    const std::vector<TryTrap> catches;
 
     virtual bool always_returns() const override;
 

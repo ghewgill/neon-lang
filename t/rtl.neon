@@ -18,8 +18,8 @@ print(str(ord("B")))
 
 TRY
     print(str(ord("AB")))
-TRAP ArrayIndexException DO
-    print(CURRENT_EXCEPTION.info)
+TRAP ArrayIndexException AS x DO
+    print(x.info)
 END TRY
 %= ord() requires string of length 1
 

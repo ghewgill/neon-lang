@@ -133,7 +133,7 @@ RepeatStatement = 'REPEAT', ['LABEL', Identifier], {Statement}, 'UNTIL', Express
 
 ReturnStatement = 'RETURN', Expression;
 
-TryStatement = 'TRY', {Statement}, {'TRAP', Identifier, {'.', Identifier}, 'DO', {Statement}}, 'END', 'TRY';
+TryStatement = 'TRY', {Statement}, {'TRAP', Identifier, {'.', Identifier}, ['AS', Identifier], 'DO', {Statement}}, 'END', 'TRY';
 
 WhileStatement = 'WHILE', WhileExpression, ['LABEL', Identifier], 'DO', {Statement}, 'END', 'WHILE';
 
@@ -143,7 +143,7 @@ BracketedExpression = ConditionalExpression | TryExpression | DisjunctionExpress
 
 ConditionalExpression = ('IF', Expression, 'THEN', Expression, 'ELSE', Expression);
 
-TryExpression = ('TRY', Expression, {'TRAP', Identifier, ['.', Identifier], (('DO', {Statement}) | 'GIVES', Expression)});
+TryExpression = ('TRY', Expression, {'TRAP', Identifier, ['.', Identifier], ['AS', Identifier], (('DO', {Statement}) | 'GIVES', Expression)});
 
 Expression = DisjunctionExpression;
 

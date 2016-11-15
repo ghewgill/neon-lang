@@ -52,7 +52,7 @@ r := post("/step/source/0", "")
 r := get("/status")
 ASSERT r.getDictionary()["ip"].getNumber() = 11 % Dependent on actual bytecode
 
-r := get("/module/-/global/1")
+r := get("/module/-/global/0")
 ASSERT r.getDictionary()["type"].getString() = "string"
 ASSERT r.getDictionary()["value"].getString() = "hello world"
 

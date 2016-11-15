@@ -131,7 +131,7 @@ private:
     Module *import_module(const Token &token, const std::string &name);
     Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
     Type *deserialize_type(Scope *scope, const std::string &descriptor);
-    std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> analyze_catches(const std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches);
+    std::vector<TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const Variable *function, std::vector<const Expression *> args, std::vector<const Statement *> &statements);
     std::vector<TypeRecord::Field> analyze_fields(const pt::TypeRecord *type);
 private:
@@ -1842,15 +1842,15 @@ const Expression *Analyzer::analyze(const pt::TryExpression *expr)
     const Expression *e = analyze(expr->expr.get());
     auto catches = analyze_catches(expr->catches);
     auto eci = expr->catches.begin();
-    for (auto c: catches) {
-        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.second);
-        const Expression *e = dynamic_cast<const Expression *>(c.second);
+    for (auto &c: catches) {
+        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.handler);
+        const Expression *e = dynamic_cast<const Expression *>(c.handler);
         if (ehs != nullptr) {
             if (ehs->statements.empty()) {
                 error(3202, expr->expr->token, "body cannot be empty");
             }
             if (not ehs->statements.back()->is_scope_exit_statement()) {
-                error(3203, dynamic_cast<const pt::TryHandlerStatement *>(eci->second.get())->body.back()->token, "handler must end in EXIT, NEXT, RAISE, or RETURN");
+                error(3203, dynamic_cast<const pt::TryHandlerStatement *>((*eci)->handler.get())->body.back()->token, "handler must end in EXIT, NEXT, RAISE, or RETURN");
             }
         } else if (e != nullptr) {
             // pass
@@ -3923,32 +3923,32 @@ const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     return new ReturnStatement(statement->token.line, expr);
 }
 
-std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> Analyzer::analyze_catches(const std::vector<std::pair<std::vector<std::vector<Token>>, std::unique_ptr<pt::ParseTreeNode>>> &catches)
+std::vector<TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches)
 {
-    std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> r;
+    std::vector<TryTrap> r;
     for (auto &x: catches) {
         Scope *s = scope.top();
         size_t i = 0;
-        const Name *modname = scope.top()->lookupName(x.first.at(0)[i].text);
+        const Name *modname = scope.top()->lookupName(x->exceptions.at(0)[i].text);
         const Module *mod = dynamic_cast<const Module *>(modname);
         if (mod != nullptr) {
             s = mod->scope;
             i++;
         }
-        const Name *name = s->lookupName(x.first.at(0)[i].text);
+        const Name *name = s->lookupName(x->exceptions.at(0)[i].text);
         if (name == nullptr) {
-            error(3087, x.first.at(0)[i], "exception not found: " + x.first.at(0)[i].text);
+            error(3087, x->exceptions.at(0)[i], "exception not found: " + x->exceptions.at(0)[i].text);
         }
         const Exception *exception = dynamic_cast<const Exception *>(name);
         if (exception == nullptr) {
-            error2(3088, x.first.at(0)[i], "name not an exception", name->declaration, "declaration here");
+            error2(3088, x->exceptions.at(0)[i], "name not an exception", name->declaration, "declaration here");
         }
         i++;
         const Exception *sn = exception;
-        while (i < x.first.at(0).size()) {
-            auto t = sn->subexceptions.find(x.first.at(0)[i].text);
+        while (i < x->exceptions.at(0).size()) {
+            auto t = sn->subexceptions.find(x->exceptions.at(0)[i].text);
             if (t == sn->subexceptions.end()) {
-                error(3240, x.first.at(0)[i], "exception subexception not found");
+                error(3240, x->exceptions.at(0)[i], "exception subexception not found");
             }
             sn = t->second;
             i++;
@@ -3956,14 +3956,28 @@ std::vector<std::pair<std::vector<const Exception *>, const AstNode *>> Analyzer
         std::vector<const Exception *> exceptions;
         exceptions.push_back(sn);
         scope.push(new Scope(scope.top(), frame.top()));
-        const pt::TryHandlerStatement *ths = dynamic_cast<const pt::TryHandlerStatement *>(x.second.get());
-        const pt::Expression *e = dynamic_cast<const pt::Expression *>(x.second.get());
+        Variable *var = nullptr;
+        if (x->name.type != NONE) {
+            const TypeRecord *vtype = dynamic_cast<const TypeRecord *>(s->lookupName("ExceptionType"));
+            if (vtype == nullptr) {
+                internal_error("could not find ExceptionType");
+            }
+            // TODO: Try to make this a local variable always (give the global scope a local space).
+            if (functiontypes.empty()) {
+                var = new GlobalVariable(x->name, x->name.text, vtype, true);
+            } else {
+                var = new LocalVariable(x->name, x->name.text, vtype, frame.size()-1, true);
+            }
+            scope.top()->addName(x->name, x->name.text, var, true);
+        }
+        const pt::TryHandlerStatement *ths = dynamic_cast<const pt::TryHandlerStatement *>(x->handler.get());
+        const pt::Expression *e = dynamic_cast<const pt::Expression *>(x->handler.get());
         if (ths != nullptr) {
             std::vector<const Statement *> statements = analyze(ths->body);
-            r.push_back(std::make_pair(exceptions, new ExceptionHandlerStatement(0 /*TODO*/, statements)));
+            r.push_back(TryTrap(exceptions, var, new ExceptionHandlerStatement(0 /*TODO*/, statements)));
         } else if (e != nullptr) {
             const Expression *g = analyze(e);
-            r.push_back(std::make_pair(exceptions, g));
+            r.push_back(TryTrap(exceptions, var, g));
         } else {
             internal_error("unexpected catch type");
         }
