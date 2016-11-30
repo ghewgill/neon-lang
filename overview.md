@@ -49,6 +49,11 @@ Dynamic heap allocation is supported by a `POINTER` type.
         eyes: Colour
     END RECORD
 
+    TYPE Node IS CLASS
+        value: String
+        next: POINTER TO Node
+    END CLASS
+
     LET b: Boolean := TRUE
     LET n: Number := 123.456
     LET s: String := "Hello world"
@@ -57,7 +62,7 @@ Dynamic heap allocation is supported by a `POINTER` type.
     LET r: Person := Person(name WITH "Alice", eyes WITH Colour.green)
     LET a: Array<String> := ["fork", "knife", "spoon"]
     LET d: Dictionary<Number> := {"fork": 5, "knife": 6, "spoon": 1}
-    LET p: POINTER TO Person := NEW Person
+    LET p: POINTER TO Node := NEW Node(value WITH "green")
 
 ## Expressions
 
@@ -142,7 +147,7 @@ The `EXIT` and `NEXT` statements branch out of the loop or to the next iteration
 
 The exception handling statements are `TRY` (introduces a new handling scope), and `RAISE` to raise an exception.
 
-    DECLARE EXCEPTION PrinterOutOfPaperException
+    EXCEPTION PrinterOutOfPaperException
 
     FUNCTION printFile(name: String)
         % Save the trees, don't print anything.
@@ -151,7 +156,7 @@ The exception handling statements are `TRY` (introduces a new handling scope), a
 
     TRY
         printFile("hello.txt")
-    EXCEPTION PrinterOutOfPaperException DO
+    TRAP PrinterOutOfPaperException DO
         print("Sorry, out of paper.")
     END TRY
 
@@ -215,13 +220,13 @@ Records may have methods attached to them, to be called with the usual method sy
 
 ## Pointers
 
-Pointers can only point to records.
+Pointers can only point to classes.
 Pointers are declared with `POINTER TO` and allocated with `NEW`.
 
-    TYPE Person IS RECORD
+    TYPE Person IS CLASS
         name: String
         age: Number
-    END RECORD
+    END CLASS
 
     LET p: POINTER TO Person := NEW Person
     p->name := "Alice"
@@ -229,10 +234,10 @@ Pointers are declared with `POINTER TO` and allocated with `NEW`.
 
 Pointers must be checked for validity (non-NIL) before they can be used using the `IF VALID` block.
 
-    TYPE Person IS RECORD
+    TYPE Person IS CLASS
         name: String
         age: Number
-    END RECORD
+    END CLASS
 
     FUNCTION incrementAge(p: POINTER TO Person)
         IF VALID p THEN

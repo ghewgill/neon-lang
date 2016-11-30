@@ -75,10 +75,10 @@ In many common systems languages (eg. C, C++, Java, C#), a pointer may hold a "n
 
 To resolve this problem, Neon introduces the idea of a "valid" pointer. A valid pointer is one that has been checked against `NIL` (the null reference) using a special form of the `IF` statement. The resulting valid pointer can be dereferenced without causing a null pointer exception.
 
-    TYPE Node IS RECORD
+    TYPE Node IS CLASS
         next: POINTER TO Node
         value: String
-    END RECORD
+    END CLASS
 
     VAR node: POINTER TO Node := NIL
     

@@ -155,7 +155,7 @@ The following keywords are defined by the language.
 | <a href="#keyword-EMBED">`EMBED`</a> | include an external file directly into the compiled code |
 | <a href="#keyword-ENUM">`ENUM`</a> | enumeration type declaration |
 | <a href="#keyword-END">`END`</a> | end of most kinds of blocks of code |
-| <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration and handling |
+| <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration |
 | <a href="#keyword-EXIT">`EXIT`</a> | early exit from loops |
 | <a href="#keyword-EXPORT">`EXPORT`</a> | export identifier from module |
 | <a href="#keyword-EXTERNAL">`EXTERNAL`</a> | external function declaration |
@@ -343,7 +343,7 @@ Example:
         size: Number
     END RECORD
 
-    VAR r: Item
+    VAR r: Item := Item()
 
     r.name := "Widget"
     r.size := 5
@@ -385,7 +385,7 @@ Arrays are dynamically sized as needed.
 
 Example:
 
-    VAR a: Array<String>
+    VAR a: Array<String> := []
 
     a[0] := "Hello"
     a[1] := "World"
@@ -398,7 +398,7 @@ Dictionaries are an associative map which pairs a unique `String` with a value o
 
 Example:
 
-    VAR d: Dictionary<Number>
+    VAR d: Dictionary<Number> := {}
 
     d["gold"] := 1
     d["silver"] := 2
@@ -415,10 +415,10 @@ To use (dereference) a pointer, it must first be checked for validity (not `NIL`
 
 Example:
 
-    TYPE Item IS RECORD
+    TYPE Item IS CLASS
         name: String
         size: Number
-    END RECORD
+    END CLASS
 
     VAR item: POINTER TO Item
 
@@ -781,9 +781,9 @@ Additional alternatives may be introduced with the `ELSIF` clause:
 
 The `IF VALID` form is used to test a pointer value to check whether it is `NIL`, and capture the pointer value in a new variable for use within the `IF VALID` block.
 
-    TYPE Record IS RECORD
+    TYPE Record IS CLASS
         name: String
-    END RECORD
+    END CLASS
 
     VAR p: POINTER TO Record := NIL
 
@@ -850,7 +850,7 @@ The `RAISE` statement raises an exception.
 
 Example:
 
-    DECLARE EXCEPTION InvalidWidgetSizeException
+    EXCEPTION InvalidWidgetSizeException
     
     VAR size: Number := 3
     IF size > 4 THEN
@@ -896,20 +896,20 @@ Example:
 ### `TRY`
 
 The `TRY` statement introduces a block that handles exceptions.
-After entering a `TRY` block, any exception that happens within the block is checked against the `EXCEPTION` clauses.
+After entering a `TRY` block, any exception that happens within the block is checked against the `TRAP` clauses.
 If an exception matching a clause is raised, the corresponding exception handler starts running.
 
 Example:
 
-    DECLARE EXCEPTION InvalidWidgetSizeException
+    EXCEPTION InvalidWidgetSizeException
     
     VAR size: Number := 5
     TRY
         IF size > 4 THEN
             RAISE InvalidWidgetSizeException(info WITH size.toString())
         END IF
-    EXCEPTION InvalidWidgetSizeException DO
-        print("Invalid size \(CURRENT_EXCEPTION.info)")
+    TRAP InvalidWidgetSizeException AS x DO
+        print("Invalid size \(x.info)")
     END TRY
 
 <a name="statements-while"></a>
