@@ -37,7 +37,7 @@ static const pt::Program *dump(const pt::Program *parsetree)
     return parsetree;
 }
 
-static const Program *dump(const Program *program)
+static const ast::Program *dump(const ast::Program *program)
 {
     program->dump(std::cerr);
     return program;
@@ -51,7 +51,7 @@ static void repl(int argc, char *argv[])
         std::cout << "Neon 0.1\n";
         std::cout << "Type \"help\" for more information, or \"exit\" to leave.\n";
     }
-    std::map<std::string, ExternalGlobalInfo> globals_ast;
+    std::map<std::string, ast::ExternalGlobalInfo> globals_ast;
     std::map<std::string, Cell *> globals_cells;
     std::vector<std::unique_ptr<TokenizedSource>> input;
     for (;;) {
@@ -75,7 +75,7 @@ static void repl(int argc, char *argv[])
         } else {
             try {
                 auto tokens = tokenize("", s);
-                const Program *ast;
+                const ast::Program *program;
                 try {
                     auto parsetree = parse(*tokens);
                     // Grab a copy of the globals and let analyze() modify the copy.
@@ -84,7 +84,7 @@ static void repl(int argc, char *argv[])
                     // things if there was an error. (Errors are handled by exception
                     // so the assignment back to globals_ast won't happen.)
                     auto globals = globals_ast;
-                    ast = analyze(&compiler_support, parsetree.get(), &globals);
+                    program = analyze(&compiler_support, parsetree.get(), &globals);
                     globals_ast = globals;
                     for (auto g: globals_ast) {
                         if (globals_cells.find(g.first) == globals_cells.end()) {
@@ -131,10 +131,10 @@ static void repl(int argc, char *argv[])
                         "",
                         "00000000000000000000000000000000"
                     )};
-                    ast = analyze(&compiler_support, parsetree.get(), &globals_ast);
+                    program = analyze(&compiler_support, parsetree.get(), &globals_ast);
                 }
                 DebugInfo debug("-", s);
-                auto bytecode = compile(ast, &debug);
+                auto bytecode = compile(program, &debug);
                 if (dump_listing) {
                     disassemble(bytecode, std::cerr, &debug);
                 }
@@ -236,12 +236,12 @@ int main(int argc, char *argv[])
                 dump(parsetree.get());
             }
 
-            auto ast = analyze(&compiler_support, parsetree.get());
+            auto program = analyze(&compiler_support, parsetree.get());
             if (dump_ast) {
-                dump(ast);
+                dump(program);
             }
 
-            bytecode = compile(ast, &debug);
+            bytecode = compile(program, &debug);
             if (dump_listing) {
                 disassemble(bytecode, std::cerr, &debug);
             }

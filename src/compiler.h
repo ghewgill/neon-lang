@@ -4,9 +4,9 @@
 #include <map>
 #include <vector>
 
-class Program;
+namespace ast { class Program; }
 class DebugInfo;
 
-std::vector<unsigned char> compile(const Program *p, DebugInfo *debug);
+std::vector<unsigned char> compile(const ast::Program *p, DebugInfo *debug);
 
 #endif

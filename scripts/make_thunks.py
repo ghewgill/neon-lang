@@ -224,7 +224,7 @@ for fn in sys.argv[1:]:
                         name,
                         ctype,
                         name in exported,
-                        "new Constant{}Expression(rtl::{}::CONSTANT_{})".format(ntype, a[0], a[1])
+                        "new ast::Constant{}Expression(rtl::{}::CONSTANT_{})".format(ntype, a[0], a[1])
                     ]
                 elif a[:3] == ["DECLARE", "NATIVE", "VAR"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
@@ -232,9 +232,9 @@ for fn in sys.argv[1:]:
                     name = prefix + m.group(1)
                     ntype = m.group(2)
                     atype = {
-                        "Array<String>": "TYPE_ARRAY_STRING",
-                        "File": "dynamic_cast<const Type *>(scope->lookupName(\"File\"))",
-                        "Number": "TYPE_NUMBER",
+                        "Array<String>": "ast::TYPE_ARRAY_STRING",
+                        "File": "dynamic_cast<const ast::Type *>(scope->lookupName(\"File\"))",
+                        "Number": "ast::TYPE_NUMBER",
                     }[ntype]
                     variables[name] = [name, atype]
                 elif a[:1] == ["EXCEPTION"]:
@@ -334,13 +334,13 @@ with open("src/constants_compile.inc", "w") as inc:
             print >>inc, "namespace {} {{ extern const {} CONSTANT_{}; }}".format(a[0], ctype, a[1])
     print >>inc, "}"
     # There aren't currently any global predefined constants.
-    #print >>inc, "static void init_builtin_constants(Scope *{})".format("scope" if any("$" not in x[0] for x in constants.values()) else "")
+    #print >>inc, "static void init_builtin_constants(ast::Scope *{})".format("scope" if any("$" not in x[0] for x in constants.values()) else "")
     #print >>inc, "{"
     #for name, ctype, exported, init in constants.values():
     #    if "$" not in name:
     #        print >>inc, "    scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(name, name, init)
     #print >>inc, "}";
-    print >>inc, "static const Expression *get_native_constant_value(const std::string &{})".format("name" if any("$" in x[0] for x in constants.values()) else "")
+    print >>inc, "static const ast::Expression *get_native_constant_value(const std::string &{})".format("name" if any("$" in x[0] for x in constants.values()) else "")
     print >>inc, "{"
     for name, ctype, exported, init in constants.values():
         if exported:
@@ -349,13 +349,13 @@ with open("src/constants_compile.inc", "w") as inc:
     print >>inc, "}";
 
 with open("src/variables_compile.inc", "w") as inc:
-    print >>inc, "static void init_builtin_variables(const std::string &module, Scope *scope)"
+    print >>inc, "static void init_builtin_variables(const std::string &module, ast::Scope *scope)"
     print >>inc, "{"
     for name, atype in variables.values():
         i = name.index("$")
         module = name[:i]
         modname = name[i+1:]
-        print >>inc, "    if (module == \"{}\") scope->addName(Token(IDENTIFIER, \"{}\"), \"{}\", new PredefinedVariable(\"{}\", {}));".format(module, modname, modname, name, atype)
+        print >>inc, "    if (module == \"{}\") scope->addName(Token(IDENTIFIER, \"{}\"), \"{}\", new ast::PredefinedVariable(\"{}\", {}));".format(module, modname, modname, name, atype)
     print >>inc, "}"
 
 with open("src/variables_exec.inc", "w") as inc:
@@ -375,7 +375,7 @@ with open("src/variables_exec.inc", "w") as inc:
 
 with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "struct PredefinedType {"
-    print >>inc, "    const Type *type;"
+    print >>inc, "    const ast::Type *type;"
     print >>inc, "    const char *modtypename;"
     print >>inc, "};"
     print >>inc, "static struct {"
@@ -383,16 +383,16 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "    PredefinedType returntype;"
     print >>inc, "    bool exported;"
     print >>inc, "    int count;"
-    print >>inc, "    struct {ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
+    print >>inc, "    struct {ast::ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
     print >>inc, "} BuiltinFunctions[] = {"
     for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
         print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}}},".format(
             name.replace("global$", ""),
-            rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr",
+            "ast::"+rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr",
             "\"{}\"".format(rtypename) or "nullptr",
             "true" if exported else "false",
             len(params),
-            ",".join("{{ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
+            ",".join("{{ast::ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
         )
     print >>inc, "};";
 

@@ -9,6 +9,8 @@
 #include "rtl_compile.h"
 #include "rtl_exec.h"
 
+namespace ast {
+
 TypeNothing *TYPE_NOTHING = new TypeNothing();
 TypeDummy *TYPE_DUMMY = new TypeDummy();
 TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
@@ -985,3 +987,5 @@ void Program::dumpsubnodes(std::ostream &out, int depth) const
         (*i)->dump(out, depth+1);
     }
 }
+
+} // namespace ast
