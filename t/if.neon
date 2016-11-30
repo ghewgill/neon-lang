@@ -1,13 +1,13 @@
 VAR a: Number
 
 a := 1
-IF a # 0 THEN
+IF a /= 0 THEN
     print("one")
 END IF
 %= one
 
 a := 0
-IF a # 0 THEN
+IF a /= 0 THEN
     print("nonzero")
 ELSE
     print("zero")

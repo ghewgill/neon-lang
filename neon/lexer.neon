@@ -211,7 +211,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         VAR startindex: Number := i
         VAR t: Token := Token(
             file WITH source_path,
-            source WITH (IF actual_source_line # "" THEN actual_source_line ELSE source[linestart TO lineend-1]),
+            source WITH (IF actual_source_line /= "" THEN actual_source_line ELSE source[linestart TO lineend-1]),
             line WITH line,
             column WITH column,
             type WITH Type.none
@@ -224,11 +224,9 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF c = "}" THEN t.type := Type.rbrace INC i
         ELSIF c = "+" THEN t.type := Type.plus INC i
         ELSIF c = "*" THEN t.type := Type.times INC i
-        ELSIF c = "/" THEN t.type := Type.divide INC i
         ELSIF c = "^" THEN t.type := Type.exp INC i
         ELSIF c = "&" THEN t.type := Type.concat INC i
         ELSIF c = "=" THEN t.type := Type.equal INC i
-        ELSIF c = "#" THEN t.type := Type.notequal INC i
         ELSIF c = "," THEN t.type := Type.comma INC i
         ELSIF c = "." THEN t.type := Type.dot INC i
         ELSIF c = "\u2212" %|'−'|% THEN t.type := Type.minus INC i
@@ -249,6 +247,14 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                 i := i + 2
             ELSE
                 t.type := Type.minus
+                INC i
+            END IF
+        ELSIF c = "/" THEN
+            IF i+1 < source.length() AND source[i+1] = "=" THEN
+                t.type := Type.notequal
+                i := i + 2
+            ELSE
+                t.type := Type.divide
                 INC i
             END IF
         ELSIF c = "<" THEN
@@ -366,7 +372,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF number_start(c) THEN
             t.type := Type.number
             LET start: Number := i
-            IF c = "0" AND i+1 < source.length() AND source[i+1] # "." AND string.lower(source[i+1]) # "e" AND NOT number_decimal_body(source[i+1]) THEN
+            IF c = "0" AND i+1 < source.length() AND source[i+1] /= "." AND string.lower(source[i+1]) /= "e" AND NOT number_decimal_body(source[i+1]) THEN
                 INC i
                 LET b: String := string.lower(source[i])
                 IF number_base(b) THEN
@@ -391,7 +397,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                             error(1001, t, "invalid base")
                         END IF
                         i := j
-                        IF source[i] # "#" THEN
+                        IF source[i] /= "#" THEN
                             error(1002, t, "'#' expected")
                         END IF
                         INC i
@@ -408,7 +414,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         IF NOT number_body(d) THEN
                             EXIT LOOP
                         END IF
-                        IF d # "_" THEN
+                        IF d /= "_" THEN
                             LET x: Number := (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
                             IF x < 0 OR x >= base THEN
                                 error(1005, t, "invalid digit for given base")
@@ -428,7 +434,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSE
                 VAR n: String := ""
                 WHILE i < source.length() AND number_decimal_body(source[i]) DO
-                    IF source[i] # "_" THEN
+                    IF source[i] /= "_" THEN
                         n.append(source[i])
                     END IF
                     INC i
@@ -437,7 +443,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     n.append(source[i])
                     INC i
                     WHILE i < source.length() AND number_decimal_body(source[i]) DO
-                        IF source[i] # "_" THEN
+                        IF source[i] /= "_" THEN
                             n.append(source[i])
                         END IF
                         INC i
@@ -451,7 +457,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         INC i
                     END IF
                     WHILE i < source.length() AND number_decimal_body(source[i]) DO
-                        IF source[i] # "_" THEN
+                        IF source[i] /= "_" THEN
                             n.append(source[i])
                         END IF
                         INC i
@@ -601,7 +607,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     END IF
                     delimiter.append(c)
                 END WHILE
-                IF i >= source.length() OR source[i] # "\"" THEN
+                IF i >= source.length() OR source[i] /= "\"" THEN
                     error(1019, t, "'\"' expected")
                 END IF
                 INC i
@@ -663,7 +669,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     END IF
                 UNTIL level = 0
             ELSE
-                WHILE i < source.length() AND source[i] # "\n" DO
+                WHILE i < source.length() AND source[i] /= "\n" DO
                     INC i
                 END WHILE
             END IF
@@ -681,7 +687,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSE
             error(1007, t, "Unexpected character")
         END IF
-        IF t.type # Type.none THEN
+        IF t.type /= Type.none THEN
             tokens.append(t)
         END IF
         column := column + (i - startindex)

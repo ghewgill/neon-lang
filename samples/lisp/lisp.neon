@@ -196,7 +196,7 @@ FUNCTION parse2(s: String, INOUT i: Number): POINTER TO Value
         WHEN "\"" DO
             INC i
             LET start: Number := i
-            WHILE i < s.length() AND s[i] # "\"" DO
+            WHILE i < s.length() AND s[i] /= "\"" DO
                 INC i
             END WHILE
             IF i < s.length() THEN
@@ -224,7 +224,7 @@ END FUNCTION
 
 FUNCTION eval_special(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Value
     IF VALID e, e->val_pair.car AS car THEN
-        IF car->type # Type.symbol THEN
+        IF car->type /= Type.symbol THEN
             RETURN NIL
         END IF
         IF VALID car->val_symbol AS sym THEN
@@ -256,7 +256,7 @@ FUNCTION eval2(e: POINTER TO Value, env: POINTER TO Environment): POINTER TO Val
                 END IF
             WHEN Type.pair DO
                 LET r: POINTER TO Value := eval_special(e, env)
-                IF r # NIL THEN
+                IF r /= NIL THEN
                     RETURN r
                 ELSIF VALID e->val_pair.car AS car THEN
                     LET proc: POINTER TO Value := eval2(car, env)

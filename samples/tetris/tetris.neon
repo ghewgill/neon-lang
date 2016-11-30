@@ -122,7 +122,7 @@ FUNCTION plot(on: Boolean, w: curses.Window, p, y, x, r: Number)
     LET q: multiarray.ArrayNumber2D := rotated(p, r)
     FOR j := 0 TO 3 DO
         FOR i := 0 TO 3 DO
-            IF q[j, i] # 0 THEN
+            IF q[j, i] /= 0 THEN
                 curses.mvwaddstr(w, y+j, 1+(x+i)*2, "  ")
             END IF
         END FOR
@@ -133,7 +133,7 @@ FUNCTION piece_fits(p, x, y, r: Number): Boolean
     LET q: multiarray.ArrayNumber2D := rotated(p, r)
     FOR j := 0 TO 3 DO
         FOR i := 0 TO 3 DO
-            IF q[j, i] # 0 THEN
+            IF q[j, i] /= 0 THEN
                 CASE x + i
                     WHEN < 0, >= BOARD_WIDTH DO
                         RETURN FALSE
@@ -141,7 +141,7 @@ FUNCTION piece_fits(p, x, y, r: Number): Boolean
                 IF y + j >= BOARD_HEIGHT THEN
                     RETURN FALSE
                 END IF
-                IF Board[y+j, x+i] # 0 THEN
+                IF Board[y+j, x+i] /= 0 THEN
                     RETURN FALSE
                 END IF
             END IF
@@ -154,7 +154,7 @@ FUNCTION drop_piece(p, x, y, r: Number)
     LET q: multiarray.ArrayNumber2D := rotated(p, r)
     FOR j := 0 TO 3 DO
         FOR i := 0 TO 3 DO
-            IF q[j, i] # 0 THEN
+            IF q[j, i] /= 0 THEN
                 Board[y+j, x+i] := p
             END IF
         END FOR

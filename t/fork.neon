@@ -4,7 +4,7 @@ IMPORT posix
 IMPORT sys
 
 LET p: Number := posix.fork()
-IF p # 0 THEN
+IF p /= 0 THEN
     VAR stat: Number := 0
     _ := posix.wait(INOUT stat) % Why does this need to be INOUT? Should be OUT.
     print(str(stat INTDIV 256))

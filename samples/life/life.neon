@@ -47,7 +47,7 @@ FUNCTION update()
             VAR count: Number := 0
             FOR y := -1 TO 1 DO
                 FOR x := -1 TO 1 DO
-                    IF x # 0 OR y # 0 THEN
+                    IF x /= 0 OR y /= 0 THEN
                         IF grid[(i+y) MOD grid.size(), (j+x) MOD grid[0].size()] THEN
                             INC count
                         END IF

@@ -15,7 +15,7 @@ print(strb(a <= b))
 print(strb(a = b))
 %= FALSE
 
-print(strb(a # b))
+print(strb(a /= b))
 %= TRUE
 
 print(strb(a >= b))

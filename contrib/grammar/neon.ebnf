@@ -107,7 +107,7 @@ CheckStatement = 'CHECK', Expression, 'ELSE', {Statement}, 'END', 'CHECK';
 
 ExecStatement = 'EXEC', ExecBody;
 
-WhenCondition = (('=' | '#' | '<' | '>' | '<=' | '>='), Expression) | (Expression, ['TO', Expression]);
+WhenCondition = (('=' | '/=' | '<' | '>' | '<=' | '>='), Expression) | (Expression, ['TO', Expression]);
 
 ExitStatement = 'EXIT', ('FUNCTION' | 'WHILE' | 'FOR' | 'FOREACH' | 'LOOP' | 'REPEAT' | Identifier);
 
@@ -153,7 +153,7 @@ ConjunctionExpression = MembershipExpression, {'AND', MembershipExpression};
 
 MembershipExpression = ComparisonExpression, [('IN' | 'NOT', 'IN'), ComparisonExpression];
 
-ComparisonExpression = AdditionExpression, {('=' | '#' | '<' | '>' | '<=' | '>='), AdditionExpression};
+ComparisonExpression = AdditionExpression, {('=' | '/=' | '<' | '>' | '<=' | '>='), AdditionExpression};
 
 AdditionExpression = MultiplicationExpression, {('+' | '-' | '&'), MultiplicationExpression};
 

@@ -110,7 +110,7 @@ CHECK expr ELSE statement() statement() END CHECK
 
 % WhenCondition
 CASE expr WHEN = expr DO END CASE
-CASE expr WHEN # expr DO END CASE
+CASE expr WHEN /= expr DO END CASE
 CASE expr WHEN < expr DO END CASE
 CASE expr WHEN > expr DO END CASE
 CASE expr WHEN <= expr DO END CASE
@@ -233,7 +233,7 @@ name := expr NOT IN expr
 
 % ComparisonExpression
 name := expr = expr
-name := expr # expr
+name := expr /= expr
 name := expr < expr
 name := expr > expr
 name := expr <= expr
