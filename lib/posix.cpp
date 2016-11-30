@@ -170,11 +170,11 @@ Number gethostname(utf8string *name)
     return r;
 }
 
-utf8string getlogin()
+std::string getlogin()
 {
     char *r = ::getlogin();
     if (r == NULL) {
-        return utf8string();
+        return std::string();
     }
     return r;
 }
@@ -389,11 +389,11 @@ Number sleep(Number seconds)
     return wrap(::sleep(number_to_sint32(seconds)));
 }
 
-utf8string strerror(Number errnum)
+std::string strerror(Number errnum)
 {
     char *r = ::strerror(number_to_sint32(errnum));
     if (r == NULL) {
-        return utf8string();
+        return std::string();
     }
     return r;
 }
@@ -455,11 +455,11 @@ Number truncate(const std::string &path, Number length)
     return wrap(::truncate(path.c_str(), number_to_uint64(length)));
 }
 
-utf8string ttyname(Number fildes)
+std::string ttyname(Number fildes)
 {
     char *r = ::ttyname(number_to_sint32(fildes));
     if (r == NULL) {
-        return utf8string();
+        return std::string();
     }
     return r;
 }

@@ -21,6 +21,8 @@ class Analyzer;
 // Compiler
 class Emitter;
 
+namespace ast {
+
 class IAstVisitor {
 public:
     virtual ~IAstVisitor();
@@ -2381,5 +2383,7 @@ private:
     Program(const Program &);
     Program &operator=(const Program &);
 };
+
+} // namespace ast
 
 #endif

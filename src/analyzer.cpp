@@ -19,121 +19,121 @@
 
 class Analyzer {
 public:
-    Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ExternalGlobalInfo> *external_globals);
+    Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ast::ExternalGlobalInfo> *external_globals);
 
     ICompilerSupport *support;
     const pt::Program *program;
-    std::map<std::string, ExternalGlobalInfo> *const external_globals;
+    std::map<std::string, ast::ExternalGlobalInfo> *const external_globals;
     const std::string module_name;
-    std::map<std::string, Module *> modules;
-    Scope *global_scope;
-    std::stack<Frame *> frame;
-    std::stack<Scope *> scope;
+    std::map<std::string, ast::Module *> modules;
+    ast::Scope *global_scope;
+    std::stack<ast::Frame *> frame;
+    std::stack<ast::Scope *> scope;
     std::map<std::string, Token> exports;
 
-    std::stack<std::pair<const Type *, const TypeFunction *>> functiontypes;
+    std::stack<std::pair<const ast::Type *, const ast::TypeFunction *>> functiontypes;
     std::stack<std::list<std::pair<std::string, unsigned int>>> loops;
 
-    const Type *analyze(const pt::Type *type, const std::string &name = std::string());
-    const Type *analyze(const pt::TypeSimple *type, const std::string &name);
-    const Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
-    const Type *analyze_record(const pt::TypeRecord *type, const std::string &name);
-    const Type *analyze_class(const pt::TypeClass *type, const std::string &name);
-    const Type *analyze(const pt::TypePointer *type, const std::string &name);
-    const Type *analyze(const pt::TypeValidPointer *type, const std::string &name);
-    const Type *analyze(const pt::TypeFunctionPointer *type, const std::string &name);
-    const Type *analyze(const pt::TypeParameterised *type, const std::string &name);
-    const Type *analyze(const pt::TypeImport *type, const std::string &name);
-    const Expression *analyze(const pt::Expression *expr);
-    const Expression *analyze(const pt::DummyExpression *expr);
-    const Expression *analyze(const pt::IdentityExpression *expr);
-    const Expression *analyze(const pt::BooleanLiteralExpression *expr);
-    const Expression *analyze(const pt::NumberLiteralExpression *expr);
-    const Expression *analyze(const pt::StringLiteralExpression *expr);
-    const Expression *analyze(const pt::FileLiteralExpression *expr);
-    const Expression *analyze(const pt::BytesLiteralExpression *expr);
-    const Expression *analyze(const pt::ArrayLiteralExpression *expr);
-    const Expression *analyze(const pt::ArrayLiteralRangeExpression *expr);
-    const Expression *analyze(const pt::DictionaryLiteralExpression *expr);
-    const Expression *analyze(const pt::NilLiteralExpression *expr);
-    const Expression *analyze(const pt::NowhereLiteralExpression *expr);
-    const Expression *analyze(const pt::IdentifierExpression *expr);
-    const Name *analyze_qualified_name(const pt::Expression *expr);
-    const Expression *analyze(const pt::DotExpression *expr);
-    const Expression *analyze(const pt::ArrowExpression *expr);
-    const Expression *analyze(const pt::SubscriptExpression *expr);
-    const Expression *analyze(const pt::InterpolatedStringExpression *expr);
-    const Expression *analyze(const pt::FunctionCallExpression *expr);
-    const Expression *analyze(const pt::UnaryPlusExpression *expr);
-    const Expression *analyze(const pt::UnaryMinusExpression *expr);
-    const Expression *analyze(const pt::LogicalNotExpression *expr);
-    const Expression *analyze(const pt::ExponentiationExpression *expr);
-    const Expression *analyze(const pt::MultiplicationExpression *expr);
-    const Expression *analyze(const pt::DivisionExpression *expr);
-    const Expression *analyze(const pt::IntegerDivisionExpression *expr);
-    const Expression *analyze(const pt::ModuloExpression *expr);
-    const Expression *analyze(const pt::AdditionExpression *expr);
-    const Expression *analyze(const pt::SubtractionExpression *expr);
-    const Expression *analyze(const pt::ConcatenationExpression *expr);
-    const Expression *analyze(const pt::ComparisonExpression *expr);
-    const Expression *analyze(const pt::ChainedComparisonExpression *expr);
-    const Expression *analyze(const pt::MembershipExpression *expr);
-    const Expression *analyze(const pt::ConjunctionExpression *expr);
-    const Expression *analyze(const pt::DisjunctionExpression *expr);
-    const Expression *analyze(const pt::ConditionalExpression *expr);
-    const Expression *analyze(const pt::TryExpression *expr);
-    const Expression *analyze(const pt::NewClassExpression *expr);
-    const Expression *analyze(const pt::ValidPointerExpression *expr);
-    const Expression *analyze(const pt::RangeSubscriptExpression *expr);
-    const Statement *analyze(const pt::ImportDeclaration *declaration);
-    const Statement *analyze(const pt::TypeDeclaration *declaration);
-    const Statement *analyze_decl(const pt::ConstantDeclaration *declaration);
-    const Statement *analyze_body(const pt::ConstantDeclaration *declaration);
-    const Statement *analyze_decl(const pt::NativeConstantDeclaration *declaration);
-    const Statement *analyze_body(const pt::NativeConstantDeclaration *declaration);
-    const Statement *analyze_decl(const pt::VariableDeclaration *declaration);
-    const Statement *analyze_body(const pt::VariableDeclaration *declaration);
-    const Statement *analyze_decl(const pt::NativeVariableDeclaration *declaration);
-    const Statement *analyze_body(const pt::NativeVariableDeclaration *declaration);
-    const Statement *analyze_decl(const pt::LetDeclaration *declaration);
-    const Statement *analyze_body(const pt::LetDeclaration *declaration);
-    const Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
-    const Statement *analyze_body(const pt::FunctionDeclaration *declaration);
-    const Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
-    const Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
-    const Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
-    const Statement *analyze(const pt::ExceptionDeclaration *declaration);
-    const Statement *analyze_decl(const pt::ExportDeclaration *declaration);
-    const Statement *analyze_body(const pt::ExportDeclaration *declaration);
-    std::vector<const Statement *> analyze(const std::vector<std::unique_ptr<pt::Statement>> &statement);
-    const Statement *analyze(const pt::AssertStatement *statement);
-    const Statement *analyze(const pt::AssignmentStatement *statement);
-    const Statement *analyze(const pt::CaseStatement *statement);
-    const Statement *analyze(const pt::CheckStatement *statement);
-    const Statement *analyze(const pt::ExecStatement *statement);
-    const Statement *analyze(const pt::ExitStatement *statement);
-    const Statement *analyze(const pt::ExpressionStatement *statement);
-    const Statement *analyze(const pt::ForStatement *statement);
-    const Statement *analyze(const pt::ForeachStatement *statement);
-    const Statement *analyze(const pt::IfStatement *statement);
-    const Statement *analyze(const pt::IncrementStatement *statement);
-    const Statement *analyze(const pt::LoopStatement *statement);
-    const Statement *analyze(const pt::NextStatement *statement);
-    const Statement *analyze(const pt::RaiseStatement *statement);
-    const Statement *analyze(const pt::RepeatStatement *statement);
-    const Statement *analyze(const pt::ReturnStatement *statement);
-    const Statement *analyze(const pt::TryStatement *statement);
-    const Statement *analyze(const pt::TryHandlerStatement *statement);
-    const Statement *analyze(const pt::WhileStatement *statement);
-    const Program *analyze();
+    const ast::Type *analyze(const pt::Type *type, const std::string &name = std::string());
+    const ast::Type *analyze(const pt::TypeSimple *type, const std::string &name);
+    const ast::Type *analyze_enum(const pt::TypeEnum *type, const std::string &name);
+    const ast::Type *analyze_record(const pt::TypeRecord *type, const std::string &name);
+    const ast::Type *analyze_class(const pt::TypeClass *type, const std::string &name);
+    const ast::Type *analyze(const pt::TypePointer *type, const std::string &name);
+    const ast::Type *analyze(const pt::TypeValidPointer *type, const std::string &name);
+    const ast::Type *analyze(const pt::TypeFunctionPointer *type, const std::string &name);
+    const ast::Type *analyze(const pt::TypeParameterised *type, const std::string &name);
+    const ast::Type *analyze(const pt::TypeImport *type, const std::string &name);
+    const ast::Expression *analyze(const pt::Expression *expr);
+    const ast::Expression *analyze(const pt::DummyExpression *expr);
+    const ast::Expression *analyze(const pt::IdentityExpression *expr);
+    const ast::Expression *analyze(const pt::BooleanLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::NumberLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::StringLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::FileLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::BytesLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::ArrayLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::ArrayLiteralRangeExpression *expr);
+    const ast::Expression *analyze(const pt::DictionaryLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::NilLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::NowhereLiteralExpression *expr);
+    const ast::Expression *analyze(const pt::IdentifierExpression *expr);
+    const ast::Name *analyze_qualified_name(const pt::Expression *expr);
+    const ast::Expression *analyze(const pt::DotExpression *expr);
+    const ast::Expression *analyze(const pt::ArrowExpression *expr);
+    const ast::Expression *analyze(const pt::SubscriptExpression *expr);
+    const ast::Expression *analyze(const pt::InterpolatedStringExpression *expr);
+    const ast::Expression *analyze(const pt::FunctionCallExpression *expr);
+    const ast::Expression *analyze(const pt::UnaryPlusExpression *expr);
+    const ast::Expression *analyze(const pt::UnaryMinusExpression *expr);
+    const ast::Expression *analyze(const pt::LogicalNotExpression *expr);
+    const ast::Expression *analyze(const pt::ExponentiationExpression *expr);
+    const ast::Expression *analyze(const pt::MultiplicationExpression *expr);
+    const ast::Expression *analyze(const pt::DivisionExpression *expr);
+    const ast::Expression *analyze(const pt::IntegerDivisionExpression *expr);
+    const ast::Expression *analyze(const pt::ModuloExpression *expr);
+    const ast::Expression *analyze(const pt::AdditionExpression *expr);
+    const ast::Expression *analyze(const pt::SubtractionExpression *expr);
+    const ast::Expression *analyze(const pt::ConcatenationExpression *expr);
+    const ast::Expression *analyze(const pt::ComparisonExpression *expr);
+    const ast::Expression *analyze(const pt::ChainedComparisonExpression *expr);
+    const ast::Expression *analyze(const pt::MembershipExpression *expr);
+    const ast::Expression *analyze(const pt::ConjunctionExpression *expr);
+    const ast::Expression *analyze(const pt::DisjunctionExpression *expr);
+    const ast::Expression *analyze(const pt::ConditionalExpression *expr);
+    const ast::Expression *analyze(const pt::TryExpression *expr);
+    const ast::Expression *analyze(const pt::NewClassExpression *expr);
+    const ast::Expression *analyze(const pt::ValidPointerExpression *expr);
+    const ast::Expression *analyze(const pt::RangeSubscriptExpression *expr);
+    const ast::Statement *analyze(const pt::ImportDeclaration *declaration);
+    const ast::Statement *analyze(const pt::TypeDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::ConstantDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::ConstantDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::NativeConstantDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::NativeConstantDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::VariableDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::VariableDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::NativeVariableDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::NativeVariableDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::LetDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::LetDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::FunctionDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
+    const ast::Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
+    const ast::Statement *analyze(const pt::ExceptionDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::ExportDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::ExportDeclaration *declaration);
+    std::vector<const ast::Statement *> analyze(const std::vector<std::unique_ptr<pt::Statement>> &statement);
+    const ast::Statement *analyze(const pt::AssertStatement *statement);
+    const ast::Statement *analyze(const pt::AssignmentStatement *statement);
+    const ast::Statement *analyze(const pt::CaseStatement *statement);
+    const ast::Statement *analyze(const pt::CheckStatement *statement);
+    const ast::Statement *analyze(const pt::ExecStatement *statement);
+    const ast::Statement *analyze(const pt::ExitStatement *statement);
+    const ast::Statement *analyze(const pt::ExpressionStatement *statement);
+    const ast::Statement *analyze(const pt::ForStatement *statement);
+    const ast::Statement *analyze(const pt::ForeachStatement *statement);
+    const ast::Statement *analyze(const pt::IfStatement *statement);
+    const ast::Statement *analyze(const pt::IncrementStatement *statement);
+    const ast::Statement *analyze(const pt::LoopStatement *statement);
+    const ast::Statement *analyze(const pt::NextStatement *statement);
+    const ast::Statement *analyze(const pt::RaiseStatement *statement);
+    const ast::Statement *analyze(const pt::RepeatStatement *statement);
+    const ast::Statement *analyze(const pt::ReturnStatement *statement);
+    const ast::Statement *analyze(const pt::TryStatement *statement);
+    const ast::Statement *analyze(const pt::TryHandlerStatement *statement);
+    const ast::Statement *analyze(const pt::WhileStatement *statement);
+    const ast::Program *analyze();
 private:
     static std::string extract_module_name(const pt::Program *program);
-    Module *import_module(const Token &token, const std::string &name);
-    Type *deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i);
-    Type *deserialize_type(Scope *scope, const std::string &descriptor);
-    std::vector<TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
-    void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const Variable *function, std::vector<const Expression *> args, std::vector<const Statement *> &statements);
-    std::vector<TypeRecord::Field> analyze_fields(const pt::TypeRecord *type);
+    ast::Module *import_module(const Token &token, const std::string &name);
+    ast::Type *deserialize_type(ast::Scope *scope, const std::string &descriptor, std::string::size_type &i);
+    ast::Type *deserialize_type(ast::Scope *scope, const std::string &descriptor);
+    std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
+    void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
+    std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -222,7 +222,7 @@ public:
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
-    const Type *type;
+    const ast::Type *type;
 private:
     Analyzer *a;
     const std::string name;
@@ -314,7 +314,7 @@ public:
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
-    const Expression *expr;
+    const ast::Expression *expr;
 private:
     Analyzer *a;
 private:
@@ -324,7 +324,7 @@ private:
 
 class DeclarationAnalyzer: public pt::IParseTreeVisitor {
 public:
-    DeclarationAnalyzer(Analyzer *a, std::vector<const Statement *> &v): a(a), v(v) {}
+    DeclarationAnalyzer(Analyzer *a, std::vector<const ast::Statement *> &v): a(a), v(v) {}
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
@@ -407,7 +407,7 @@ public:
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
     Analyzer *a;
-    std::vector<const Statement *> &v;
+    std::vector<const ast::Statement *> &v;
 private:
     DeclarationAnalyzer(const DeclarationAnalyzer &);
     DeclarationAnalyzer &operator=(const DeclarationAnalyzer &);
@@ -415,7 +415,7 @@ private:
 
 class StatementAnalyzer: public pt::IParseTreeVisitor {
 public:
-    StatementAnalyzer(Analyzer *a, std::vector<const Statement *> &v): a(a), v(v) {}
+    StatementAnalyzer(Analyzer *a, std::vector<const ast::Statement *> &v): a(a), v(v) {}
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
@@ -498,7 +498,7 @@ public:
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
     Analyzer *a;
-    std::vector<const Statement *> &v;
+    std::vector<const ast::Statement *> &v;
 private:
     StatementAnalyzer(const StatementAnalyzer &);
     StatementAnalyzer &operator=(const StatementAnalyzer &);
@@ -527,12 +527,12 @@ static std::string path_stripext(const std::string &name)
     return name.substr(0, i);
 }
 
-class GlobalScope: public Scope {
+class GlobalScope: public ast::Scope {
 public:
     GlobalScope(): Scope(nullptr, nullptr) {}
 };
 
-Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ExternalGlobalInfo> *external_globals)
+Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ast::ExternalGlobalInfo> *external_globals)
   : support(support),
     program(program),
     external_globals(external_globals),
@@ -547,7 +547,7 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::m
 {
 }
 
-TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer)
+ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer)
   : TypeNumber(declaration, name),
     names(names)
 {
@@ -574,7 +574,7 @@ TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std:
     }
 }
 
-StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
     first(first),
@@ -604,7 +604,7 @@ StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceEx
     }
 }
 
-StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : Expression(str->type, str->is_readonly),
     str(str),
     first(first),
@@ -624,7 +624,7 @@ StringValueIndexExpression::StringValueIndexExpression(const Expression *str, co
     }
 }
 
-BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
     first(first),
@@ -654,7 +654,7 @@ BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpr
     }
 }
 
-BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : Expression(str->type, str->is_readonly),
     str(str),
     first(first),
@@ -674,7 +674,7 @@ BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, cons
     }
 }
 
-ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(ref->type, ref->is_readonly),
     ref(ref),
     first(first),
@@ -704,7 +704,7 @@ ArrayReferenceRangeExpression::ArrayReferenceRangeExpression(const ReferenceExpr
     }
 }
 
-ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
+ast::ArrayValueRangeExpression::ArrayValueRangeExpression(const Expression *array, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : Expression(array->type, false),
     array(array),
     first(first),
@@ -737,7 +737,7 @@ std::string Analyzer::extract_module_name(const pt::Program *program)
     return module_name;
 }
 
-Module *Analyzer::import_module(const Token &token, const std::string &name)
+ast::Module *Analyzer::import_module(const Token &token, const std::string &name)
 {
     static std::vector<std::string> s_importing;
 
@@ -753,35 +753,35 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
     if (not support->loadBytecode(name, object)) {
         internal_error("TODO module not found: " + name);
     }
-    Module *module = new Module(Token(), global_scope, name);
+    ast::Module *module = new ast::Module(Token(), global_scope, name);
     for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
-            TypeRecord *actual_record = new TypeRecord(Token(), name + "." + object.strtable[t.name], std::vector<TypeRecord::Field>());
+            ast::TypeRecord *actual_record = new ast::TypeRecord(Token(), name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_record);
-            Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
-            const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
-            const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
+            ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
+            const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(type);
+            const_cast<std::vector<ast::TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         } else if (object.strtable[t.descriptor][0] == 'C') {
             // Support recursive class type declarations.
-            TypeClass *actual_class = new TypeClass(Token(), name + "." + object.strtable[t.name], std::vector<TypeRecord::Field>());
+            ast::TypeClass *actual_class = new ast::TypeClass(Token(), name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_class);
-            Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
-            const TypeRecord *classtype = dynamic_cast<const TypeClass *>(type);
-            const_cast<std::vector<TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
+            ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
+            const ast::TypeRecord *classtype = dynamic_cast<const ast::TypeClass *>(type);
+            const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
         } else {
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
     }
     for (auto c: object.export_constants) {
-        const Type *type = deserialize_type(module->scope, object.strtable[c.type]);
+        const ast::Type *type = deserialize_type(module->scope, object.strtable[c.type]);
         int i = 0;
-        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[c.name], new Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[c.name], new ast::Constant(Token(), object.strtable[c.name], type->deserialize_value(c.value, i)));
     }
     for (auto v: object.export_variables) {
-        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
+        module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
     }
     for (auto f: object.export_functions) {
         const std::string function_name = object.strtable[f.name];
@@ -789,29 +789,29 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
         if (i != std::string::npos) {
             const std::string typestr = function_name.substr(0, i);
             const std::string method = function_name.substr(i+1);
-            Name *n = module->scope->lookupName(typestr);
-            Type *type = dynamic_cast<Type *>(n);
-            type->methods[method] = new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
+            ast::Name *n = module->scope->lookupName(typestr);
+            ast::Type *type = dynamic_cast<ast::Type *>(n);
+            type->methods[method] = new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
         } else {
-            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
+            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
         }
     }
     for (auto e: object.export_exceptions) {
         std::string name = object.strtable[e.name];
         std::string::size_type p = name.find('.');
         if (p != std::string::npos) {
-            Name *n = module->scope->lookupName(name.substr(0, p));
+            ast::Name *n = module->scope->lookupName(name.substr(0, p));
             if (n == nullptr) {
                 internal_error("name not found in exception import");
             }
-            Exception *e = dynamic_cast<Exception *>(n);
+            ast::Exception *e = dynamic_cast<ast::Exception *>(n);
             if (e == nullptr) {
                 internal_error("name not exception in exception import");
             }
             for (;;) {
                 std::string::size_type q = name.find('.', p+1);
                 if (q == std::string::npos) {
-                    e->subexceptions[name.substr(p+1, q)] = new Exception(Token(), name.substr(0, q));
+                    e->subexceptions[name.substr(p+1, q)] = new ast::Exception(Token(), name.substr(0, q));
                     break;
                 }
                 auto s = e->subexceptions.find(name.substr(p+1, q));
@@ -821,7 +821,7 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
                 p = q;
             }
         } else {
-            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[e.name], new Exception(Token(), object.strtable[e.name]));
+            module->scope->addName(Token(IDENTIFIER, ""), object.strtable[e.name], new ast::Exception(Token(), object.strtable[e.name]));
         }
     }
     s_importing.pop_back();
@@ -829,27 +829,27 @@ Module *Analyzer::import_module(const Token &token, const std::string &name)
     return module;
 }
 
-const Type *Analyzer::analyze(const pt::Type *type, const std::string &name)
+const ast::Type *Analyzer::analyze(const pt::Type *type, const std::string &name)
 {
     TypeAnalyzer ta(this, name);
     type->accept(&ta);
     return ta.type;
 }
 
-const Type *Analyzer::analyze(const pt::TypeSimple *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypeSimple *type, const std::string &)
 {
-    const Name *name = scope.top()->lookupName(type->name);
+    const ast::Name *name = scope.top()->lookupName(type->name);
     if (name == nullptr) {
         error(3011, type->token, "unknown type name");
     }
-    const Type *r = dynamic_cast<const Type *>(name);
+    const ast::Type *r = dynamic_cast<const ast::Type *>(name);
     if (r == nullptr) {
         error2(3012, type->token, "name is not a type", name->declaration, "name declared here");
     }
     return r;
 }
 
-const Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &name)
+const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &name)
 {
     std::map<std::string, int> names;
     int index = 0;
@@ -862,12 +862,12 @@ const Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::string &
         names[name] = index;
         index++;
     }
-    return new TypeEnum(type->token, name, names, this);
+    return new ast::TypeEnum(type->token, name, names, this);
 }
 
-std::vector<TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type)
+std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type)
 {
-    std::vector<TypeRecord::Field> fields;
+    std::vector<ast::TypeRecord::Field> fields;
     std::map<std::string, Token> field_names;
     for (auto &x: type->fields) {
         std::string name = x->name.text;
@@ -875,85 +875,85 @@ std::vector<TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *ty
         if (prev != field_names.end()) {
             error2(3009, x->name, "duplicate field: " + x->name.text, prev->second, "first declaration here");
         }
-        const Type *t = analyze(x->type.get());
-        if (dynamic_cast<const TypeClass *>(t) != nullptr) {
+        const ast::Type *t = analyze(x->type.get());
+        if (dynamic_cast<const ast::TypeClass *>(t) != nullptr) {
             error(3226, x->type->token, "class type not permitted as record member");
         }
-        if (dynamic_cast<const TypeValidPointer *>(t) != nullptr) {
+        if (dynamic_cast<const ast::TypeValidPointer *>(t) != nullptr) {
             error(3223, x->type->token, "valid pointer type not permitted as record member");
         }
-        fields.push_back(TypeRecord::Field(x->name, t, x->is_private));
+        fields.push_back(ast::TypeRecord::Field(x->name, t, x->is_private));
         field_names[name] = x->name;
     }
     return fields;
 }
 
-const Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
+const ast::Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
-    std::vector<TypeRecord::Field> fields = analyze_fields(type);
-    return new TypeRecord(type->token, name, fields);
+    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type);
+    return new ast::TypeRecord(type->token, name, fields);
 }
 
-const Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)
+const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)
 {
-    std::vector<TypeRecord::Field> fields = analyze_fields(type);
-    return new TypeClass(type->token, name, fields);
+    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type);
+    return new ast::TypeClass(type->token, name, fields);
 }
 
-const Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
 {
     if (type->reftype != nullptr) {
         const pt::TypeSimple *simple = dynamic_cast<const pt::TypeSimple *>(type->reftype.get());
         if (simple != nullptr && scope.top()->lookupName(simple->name) == nullptr) {
             const std::string name = simple->name;
-            TypePointer *ptrtype = new TypePointer(type->token, new TypeForwardClass(type->reftype->token));
+            ast::TypePointer *ptrtype = new ast::TypePointer(type->token, new ast::TypeForwardClass(type->reftype->token));
             scope.top()->addForward(name, ptrtype);
             return ptrtype;
         } else {
-            const Type *reftype = analyze(type->reftype.get());
-            const TypeClass *classtype = dynamic_cast<const TypeClass *>(reftype);
+            const ast::Type *reftype = analyze(type->reftype.get());
+            const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(reftype);
             if (classtype == nullptr) {
                 error(3098, type->reftype->token, "class type expected");
             }
-            return new TypePointer(type->token, classtype);
+            return new ast::TypePointer(type->token, classtype);
         }
     } else {
-        return new TypePointer(type->token, nullptr);
+        return new ast::TypePointer(type->token, nullptr);
     }
 }
 
-const Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::string &)
 {
     const pt::TypeSimple *simple = dynamic_cast<const pt::TypeSimple *>(type->reftype.get());
     if (simple != nullptr && scope.top()->lookupName(simple->name) == nullptr) {
         const std::string name = simple->name;
-        TypeValidPointer *ptrtype = new TypeValidPointer(type->token, new TypeForwardClass(type->reftype->token));
+        ast::TypeValidPointer *ptrtype = new ast::TypeValidPointer(type->token, new ast::TypeForwardClass(type->reftype->token));
         scope.top()->addForward(name, ptrtype);
         return ptrtype;
     } else {
-        const Type *reftype = analyze(type->reftype.get());
-        const TypeClass *classtype = dynamic_cast<const TypeClass *>(reftype);
+        const ast::Type *reftype = analyze(type->reftype.get());
+        const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(reftype);
         if (classtype == nullptr) {
             error(3221, type->reftype->token, "class type expected");
         }
-        return new TypeValidPointer(type->token, classtype);
+        return new ast::TypeValidPointer(type->token, classtype);
     }
 }
 
-const Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::string &)
 {
-    const Type *returntype = type->returntype != nullptr ? analyze(type->returntype.get()) : TYPE_NOTHING;
-    std::vector<const ParameterType *> params;
+    const ast::Type *returntype = type->returntype != nullptr ? analyze(type->returntype.get()) : ast::TYPE_NOTHING;
+    std::vector<const ast::ParameterType *> params;
     bool in_default = false;
     for (auto &x: type->args) {
-        ParameterType::Mode mode = ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
+            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
+            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
         }
-        const Type *ptype = analyze(x->type.get());
-        const Expression *def = nullptr;
+        const ast::Type *ptype = analyze(x->type.get());
+        const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
             in_default = true;
             def = analyze(x->default_value.get());
@@ -964,89 +964,89 @@ const Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::st
             error(3178, x->token, "default value must be specified for this parameter");
         }
         for (auto name: x->names) {
-            ParameterType *pt = new ParameterType(name, mode, ptype, def);
+            ast::ParameterType *pt = new ast::ParameterType(name, mode, ptype, def);
             params.push_back(pt);
         }
     }
-    return new TypeFunctionPointer(type->token, new TypeFunction(returntype, params));
+    return new ast::TypeFunctionPointer(type->token, new ast::TypeFunction(returntype, params));
 }
 
-const Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
 {
     if (type->name.text == "Array") {
-        const Type *elementtype = analyze(type->elementtype.get());
-        if (dynamic_cast<const TypeClass *>(elementtype) != nullptr) {
+        const ast::Type *elementtype = analyze(type->elementtype.get());
+        if (dynamic_cast<const ast::TypeClass *>(elementtype) != nullptr) {
             error(3227, type->elementtype->token, "class type not permitted as array element type");
         }
-        if (dynamic_cast<const TypeValidPointer *>(elementtype) != nullptr) {
+        if (dynamic_cast<const ast::TypeValidPointer *>(elementtype) != nullptr) {
             error(3222, type->elementtype->token, "valid pointer type not permitted as array element type");
         }
-        return new TypeArray(type->name, elementtype);
+        return new ast::TypeArray(type->name, elementtype);
     }
     if (type->name.text == "Dictionary") {
-        const Type *elementtype = analyze(type->elementtype.get());
-        if (dynamic_cast<const TypeClass *>(elementtype) != nullptr) {
+        const ast::Type *elementtype = analyze(type->elementtype.get());
+        if (dynamic_cast<const ast::TypeClass *>(elementtype) != nullptr) {
             error(3228, type->elementtype->token, "class type not permitted as dictionary element type");
         }
-        return new TypeDictionary(type->name, elementtype);
+        return new ast::TypeDictionary(type->name, elementtype);
     }
     internal_error("Invalid parameterized type");
 }
 
-const Type *Analyzer::analyze(const pt::TypeImport *type, const std::string &)
+const ast::Type *Analyzer::analyze(const pt::TypeImport *type, const std::string &)
 {
-    Name *modname = scope.top()->lookupName(type->modname.text);
+    ast::Name *modname = scope.top()->lookupName(type->modname.text);
     if (modname == nullptr) {
         error(3153, type->modname, "name not found");
     }
-    Module *module = dynamic_cast<Module *>(modname);
+    ast::Module *module = dynamic_cast<ast::Module *>(modname);
     if (module == nullptr) {
         error(3154, type->modname, "module name expected");
     }
-    Name *name = module->scope->lookupName(type->subname.text);
+    ast::Name *name = module->scope->lookupName(type->subname.text);
     if (name == nullptr) {
         error(3155, type->subname, "name not found in module");
     }
-    Type *rtype = dynamic_cast<Type *>(name);
+    ast::Type *rtype = dynamic_cast<ast::Type *>(name);
     if (rtype == nullptr) {
         error(3156, type->subname, "name not a type");
     }
     return rtype;
 }
 
-const Expression *Analyzer::analyze(const pt::Expression *expr)
+const ast::Expression *Analyzer::analyze(const pt::Expression *expr)
 {
     ExpressionAnalyzer ea(this);
     expr->accept(&ea);
     return ea.expr;
 }
 
-const Expression *Analyzer::analyze(const pt::DummyExpression *)
+const ast::Expression *Analyzer::analyze(const pt::DummyExpression *)
 {
-    return new DummyExpression();
+    return new ast::DummyExpression();
 }
 
-const Expression *Analyzer::analyze(const pt::IdentityExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::IdentityExpression *expr)
 {
     return analyze(expr->expr.get());
 }
 
-const Expression *Analyzer::analyze(const pt::BooleanLiteralExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::BooleanLiteralExpression *expr)
 {
-    return new ConstantBooleanExpression(expr->value);
+    return new ast::ConstantBooleanExpression(expr->value);
 }
 
-const Expression *Analyzer::analyze(const pt::NumberLiteralExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::NumberLiteralExpression *expr)
 {
-    return new ConstantNumberExpression(expr->value);
+    return new ast::ConstantNumberExpression(expr->value);
 }
 
-const Expression *Analyzer::analyze(const pt::StringLiteralExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::StringLiteralExpression *expr)
 {
-    return new ConstantStringExpression(expr->value);
+    return new ast::ConstantStringExpression(expr->value);
 }
 
-const Expression *Analyzer::analyze(const pt::FileLiteralExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::FileLiteralExpression *expr)
 {
     std::ifstream f(expr->name, std::ios::binary);
     if (not f) {
@@ -1054,10 +1054,10 @@ const Expression *Analyzer::analyze(const pt::FileLiteralExpression *expr)
     }
     std::stringstream buffer;
     buffer << f.rdbuf();
-    return new ConstantBytesExpression(expr->name, buffer.str());
+    return new ast::ConstantBytesExpression(expr->name, buffer.str());
 }
 
-const Expression *Analyzer::analyze(const pt::BytesLiteralExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::BytesLiteralExpression *expr)
 {
     std::string bytes;
     std::string::size_type i = 0;
@@ -1077,15 +1077,15 @@ const Expression *Analyzer::analyze(const pt::BytesLiteralExpression *expr)
         bytes.push_back(static_cast<unsigned char>(std::stoul(expr->data.substr(i, j-i), nullptr, 16)));
         i = j;
     }
-    return new ConstantBytesExpression("HEXBYTES literal", bytes);
+    return new ast::ConstantBytesExpression("HEXBYTES literal", bytes);
 }
 
-const Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
 {
-    std::vector<const Expression *> elements;
-    const Type *elementtype = nullptr;
+    std::vector<const ast::Expression *> elements;
+    const ast::Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
-        const Expression *element = analyze(x.get());
+        const ast::Expression *element = analyze(x.get());
         if (elementtype == nullptr) {
             elementtype = element->type;
         } else if (not element->type->is_assignment_compatible(elementtype)) {
@@ -1093,38 +1093,38 @@ const Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
         }
         elements.push_back(element);
     }
-    return new ArrayLiteralExpression(elementtype, elements);
+    return new ast::ArrayLiteralExpression(elementtype, elements);
 }
 
-const Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *expr)
 {
-    const Expression *first = analyze(expr->first.get());
-    if (not first->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *first = analyze(expr->first.get());
+    if (not first->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(2100, expr->first->token, "numeric expression expected");
     }
-    const Expression *last = analyze(expr->last.get());
-    if (not last->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *last = analyze(expr->last.get());
+    if (not last->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(2101, expr->last->token, "numeric expression expected");
     }
-    const Expression *step = analyze(expr->step.get());
-    if (not step->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *step = analyze(expr->step.get());
+    if (not step->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(2102, expr->step->token, "numeric expression expected");
     }
-    const VariableExpression *range = new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("array__range")));
-    std::vector<const Expression *> args;
+    const ast::VariableExpression *range = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("array__range")));
+    std::vector<const ast::Expression *> args;
     args.push_back(first);
     args.push_back(last);
     args.push_back(step);
-    return new FunctionCall(range, args);
+    return new ast::FunctionCall(range, args);
 }
 
-const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
 {
-    std::vector<std::pair<std::string, const Expression *>> elements;
+    std::vector<std::pair<std::string, const ast::Expression *>> elements;
     std::map<std::string, Token> keys;
-    const Type *elementtype = nullptr;
+    const ast::Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
-        const Expression *k = analyze(x.first.get());
+        const ast::Expression *k = analyze(x.first.get());
         if (not k->is_constant) {
             error(3212, x.first->token, "key value must be constant");
         }
@@ -1134,7 +1134,7 @@ const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
             error2(3080, x.first->token, "duplicate key", i->second, "first key here");
         }
         keys[key] = x.first->token;
-        const Expression *element = analyze(x.second.get());
+        const ast::Expression *element = analyze(x.second.get());
         if (elementtype == nullptr) {
             elementtype = element->type;
         } else if (not element->type->is_assignment_compatible(elementtype)) {
@@ -1142,37 +1142,37 @@ const Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
         }
         elements.push_back(std::make_pair(key, element));
     }
-    return new DictionaryLiteralExpression(elementtype, elements);
+    return new ast::DictionaryLiteralExpression(elementtype, elements);
 }
 
-const Expression *Analyzer::analyze(const pt::NilLiteralExpression *)
+const ast::Expression *Analyzer::analyze(const pt::NilLiteralExpression *)
 {
-    return new ConstantNilExpression();
+    return new ast::ConstantNilExpression();
 }
 
-const Expression *Analyzer::analyze(const pt::NowhereLiteralExpression *)
+const ast::Expression *Analyzer::analyze(const pt::NowhereLiteralExpression *)
 {
-    return new ConstantNowhereExpression();
+    return new ast::ConstantNowhereExpression();
 }
 
-const Expression *Analyzer::analyze(const pt::IdentifierExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::IdentifierExpression *expr)
 {
-    const Name *name = scope.top()->lookupName(expr->name);
+    const ast::Name *name = scope.top()->lookupName(expr->name);
     if (name == nullptr) {
         error(3039, expr->token, "name not found: " + expr->name);
     }
-    const Constant *constant = dynamic_cast<const Constant *>(name);
+    const ast::Constant *constant = dynamic_cast<const ast::Constant *>(name);
     if (constant != nullptr) {
-        return new ConstantExpression(constant);
+        return new ast::ConstantExpression(constant);
     }
-    const Variable *var = dynamic_cast<const Variable *>(name);
+    const ast::Variable *var = dynamic_cast<const ast::Variable *>(name);
     if (var != nullptr) {
-        return new VariableExpression(var);
+        return new ast::VariableExpression(var);
     }
     error(3040, expr->token, "name is not a constant or variable: " + expr->name);
 }
 
-const Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
+const ast::Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
 {
     const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(expr);
     if (ident != nullptr) {
@@ -1182,10 +1182,10 @@ const Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
     if (dotted == nullptr) {
         return nullptr;
     }
-    const Name *base = analyze_qualified_name(dotted->base.get());
-    const Module *module = dynamic_cast<const Module *>(base);
+    const ast::Name *base = analyze_qualified_name(dotted->base.get());
+    const ast::Module *module = dynamic_cast<const ast::Module *>(base);
     if (module != nullptr) {
-        const Name *name = module->scope->lookupName(dotted->name.text);
+        const ast::Name *name = module->scope->lookupName(dotted->name.text);
         if (name == nullptr) {
             error(3134, dotted->name, "name not found: " + dotted->name.text);
         }
@@ -1194,37 +1194,37 @@ const Name *Analyzer::analyze_qualified_name(const pt::Expression *expr)
     return nullptr;
 }
 
-const Expression *Analyzer::analyze(const pt::DotExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
 {
-    const Name *name = analyze_qualified_name(expr);
+    const ast::Name *name = analyze_qualified_name(expr);
     if (name != nullptr) {
-        const Constant *constant = dynamic_cast<const Constant *>(name);
+        const ast::Constant *constant = dynamic_cast<const ast::Constant *>(name);
         if (constant != nullptr) {
-            return new ConstantExpression(constant);
+            return new ast::ConstantExpression(constant);
         }
-        const Variable *var = dynamic_cast<const Variable *>(name);
+        const ast::Variable *var = dynamic_cast<const ast::Variable *>(name);
         if (var != nullptr) {
-            return new VariableExpression(var);
+            return new ast::VariableExpression(var);
         }
         internal_error("qualified name resolved but not matched: " + name->name);
     }
     name = analyze_qualified_name(expr->base.get());
     if (name != nullptr) {
-        const TypeEnum *enumtype = dynamic_cast<const TypeEnum *>(name);
+        const ast::TypeEnum *enumtype = dynamic_cast<const ast::TypeEnum *>(name);
         if (enumtype != nullptr) {
             auto name = enumtype->names.find(expr->name.text);
             if (name == enumtype->names.end()) {
                 error2(3023, expr->name, "identifier not member of enum: " + expr->name.text, enumtype->declaration, "enum declared here");
             }
-            return new ConstantEnumExpression(enumtype, name->second);
+            return new ast::ConstantEnumExpression(enumtype, name->second);
         }
     }
-    const Expression *base = analyze(expr->base.get());
-    const TypeRecord *recordtype = dynamic_cast<const TypeRecord *>(base->type);
+    const ast::Expression *base = analyze(expr->base.get());
+    const ast::TypeRecord *recordtype = dynamic_cast<const ast::TypeRecord *>(base->type);
     if (recordtype == nullptr) {
         error(3046, expr->base->token, "not a record");
     }
-    if (dynamic_cast<const TypeForwardClass *>(recordtype) != nullptr) {
+    if (dynamic_cast<const ast::TypeForwardClass *>(recordtype) != nullptr) {
         internal_error("class not defined yet");
     }
     auto f = recordtype->field_names.find(expr->name.text);
@@ -1234,30 +1234,30 @@ const Expression *Analyzer::analyze(const pt::DotExpression *expr)
     if (recordtype->fields[f->second].is_private && (functiontypes.empty() || functiontypes.top().first != recordtype)) {
         error(3162, expr->name, "field is private");
     }
-    const Type *type = recordtype->fields[f->second].type;
-    const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+    const ast::Type *type = recordtype->fields[f->second].type;
+    const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
     if (ref != nullptr) {
-        return new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
+        return new ast::ArrayReferenceIndexExpression(type, ref, new ast::ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
     } else {
-        return new ArrayValueIndexExpression(type, base, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
+        return new ast::ArrayValueIndexExpression(type, base, new ast::ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
     }
 }
 
-const Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
 {
-    const Expression *base = analyze(expr->base.get());
-    const TypePointer *pointertype = dynamic_cast<const TypePointer *>(base->type);
+    const ast::Expression *base = analyze(expr->base.get());
+    const ast::TypePointer *pointertype = dynamic_cast<const ast::TypePointer *>(base->type);
     if (pointertype == nullptr) {
         error(3112, expr->base->token, "not a pointer");
     }
-    if (dynamic_cast<const TypeValidPointer *>(pointertype) == nullptr) {
+    if (dynamic_cast<const ast::TypeValidPointer *>(pointertype) == nullptr) {
         error(3103, expr->base->token, "pointer must be a valid pointer");
     }
-    const TypeRecord *recordtype = pointertype->reftype;
+    const ast::TypeRecord *recordtype = pointertype->reftype;
     if (recordtype == nullptr) {
         error(3117, expr->base->token, "pointer must not be a generic pointer");
     }
-    if (dynamic_cast<const TypeForwardClass *>(recordtype) != nullptr) {
+    if (dynamic_cast<const ast::TypeForwardClass *>(recordtype) != nullptr) {
         error2(3104, expr->base->token, "class not defined yet", recordtype->declaration, "forward declaration here");
     }
     auto f = recordtype->field_names.find(expr->name.text);
@@ -1267,67 +1267,67 @@ const Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
     if (recordtype->fields[f->second].is_private && (functiontypes.empty() || functiontypes.top().first != recordtype)) {
         error(3163, expr->name, "field is private");
     }
-    const Type *type = recordtype->fields[f->second].type;
-    const PointerDereferenceExpression *ref = new PointerDereferenceExpression(type, base);
-    return new ArrayReferenceIndexExpression(type, ref, new ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), false);
+    const ast::Type *type = recordtype->fields[f->second].type;
+    const ast::PointerDereferenceExpression *ref = new ast::PointerDereferenceExpression(type, base);
+    return new ast::ArrayReferenceIndexExpression(type, ref, new ast::ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), false);
 }
 
-const Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
 {
-    const Expression *base = analyze(expr->base.get());
-    const Expression *index = analyze(expr->index.get());
-    const Type *type = base->type;
-    const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
-    const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(type);
+    const ast::Expression *base = analyze(expr->base.get());
+    const ast::Expression *index = analyze(expr->index.get());
+    const ast::Type *type = base->type;
+    const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(type);
+    const ast::TypeDictionary *dicttype = dynamic_cast<const ast::TypeDictionary *>(type);
     if (arraytype != nullptr) {
-        if (not index->type->is_assignment_compatible(TYPE_NUMBER)) {
+        if (not index->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
             error2(3041, expr->index->token, "index must be a number", arraytype->declaration, "array declared here");
         }
         type = arraytype->elementtype;
-        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         // This check for ArrayReferenceRangeExpression is a stupendous hack that
         // allows expressions like a[LAST] (which is compiled as a[LAST TO LAST][0])
         // to work. Without this, the subscript [0] on the range expression tries
         // to generate the address of the base so it can apply an INDEXAR opcode.
         // Since the range expression is really a function call, it has no address.
-        if (ref != nullptr && dynamic_cast<const ArrayReferenceRangeExpression *>(ref) == nullptr) {
-            return new ArrayReferenceIndexExpression(type, ref, index, false);
+        if (ref != nullptr && dynamic_cast<const ast::ArrayReferenceRangeExpression *>(ref) == nullptr) {
+            return new ast::ArrayReferenceIndexExpression(type, ref, index, false);
         } else {
-            return new ArrayValueIndexExpression(type, base, index, false);
+            return new ast::ArrayValueIndexExpression(type, base, index, false);
         }
     } else if (dicttype != nullptr) {
-        if (not index->type->is_assignment_compatible(TYPE_STRING)) {
+        if (not index->type->is_assignment_compatible(ast::TYPE_STRING)) {
             error2(3042, expr->index->token, "index must be a string", dicttype->declaration, "dictionary declared here");
         }
         type = dicttype->elementtype;
-        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new DictionaryReferenceIndexExpression(type, ref, index);
+            return new ast::DictionaryReferenceIndexExpression(type, ref, index);
         } else {
-            return new DictionaryValueIndexExpression(type, base, index);
+            return new ast::DictionaryValueIndexExpression(type, base, index);
         }
-    } else if (type == TYPE_STRING) {
-        if (not index->type->is_assignment_compatible(TYPE_NUMBER)) {
+    } else if (type == ast::TYPE_STRING) {
+        if (not index->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
             error(3043, expr->index->token, "index must be a number");
         }
-        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new StringReferenceIndexExpression(ref, index, false, index, false, this);
+            return new ast::StringReferenceIndexExpression(ref, index, false, index, false, this);
         } else {
-            return new StringValueIndexExpression(base, index, false, index, false, this);
+            return new ast::StringValueIndexExpression(base, index, false, index, false, this);
         }
     } else {
         error2(3044, expr->token, "not an array or dictionary", type->declaration, "declaration here");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr)
 {
-    const VariableExpression *concat = new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("concat")));
-    const VariableExpression *format = new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("format")));
-    const Expression *r = nullptr;
+    const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat")));
+    const ast::VariableExpression *format = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("format")));
+    const ast::Expression *r = nullptr;
     for (auto &x: expr->parts) {
-        const Expression *e = analyze(x.first.get());
+        const ast::Expression *e = analyze(x.first.get());
         std::string fmt = x.second.text;
         if (not fmt.empty()) {
             format::Spec spec;
@@ -1335,8 +1335,8 @@ const Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr
                 error(3133, x.second, "invalid format specification");
             }
         }
-        const Expression *str;
-        if (e->type->is_assignment_compatible(TYPE_STRING)) {
+        const ast::Expression *str;
+        if (e->type->is_assignment_compatible(ast::TYPE_STRING)) {
             str = e;
         } else {
             auto toString = e->type->methods.find("toString");
@@ -1344,77 +1344,77 @@ const Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr
                 error(3132, x.first->token, "no toString() method found for type");
             }
             {
-                std::vector<const Expression *> args;
+                std::vector<const ast::Expression *> args;
                 args.push_back(e);
-                str = new FunctionCall(new VariableExpression(toString->second), args);
+                str = new ast::FunctionCall(new ast::VariableExpression(toString->second), args);
             }
         }
         if (not fmt.empty()) {
-            std::vector<const Expression *> args;
+            std::vector<const ast::Expression *> args;
             args.push_back(str);
-            args.push_back(new ConstantStringExpression(fmt));
-            str = new FunctionCall(format, args);
+            args.push_back(new ast::ConstantStringExpression(fmt));
+            str = new ast::FunctionCall(format, args);
         }
         if (r == nullptr) {
             r = str;
         } else {
-            std::vector<const Expression *> args;
+            std::vector<const ast::Expression *> args;
             args.push_back(r);
             args.push_back(str);
-            r = new FunctionCall(concat, args);
+            r = new ast::FunctionCall(concat, args);
         }
     }
     return r;
 }
 
-const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
 {
     // TODO: This stuff works, but it's increasingly becoming a mess. There seem
     // to be quite a few cases of x.y(), and this function tries to handle them all
     // in a haphazard fashion.
-    const TypeRecord *recordtype = nullptr;
+    const ast::TypeRecord *recordtype = nullptr;
     const pt::IdentifierExpression *fname = dynamic_cast<const pt::IdentifierExpression *>(expr->base.get());
     if (fname != nullptr) {
-        recordtype = dynamic_cast<const TypeRecord *>(scope.top()->lookupName(fname->name));
+        recordtype = dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName(fname->name));
     }
     const pt::DotExpression *dotmethod = dynamic_cast<const pt::DotExpression *>(expr->base.get());
     const pt::ArrowExpression *arrowmethod = dynamic_cast<const pt::ArrowExpression *>(expr->base.get());
-    const Expression *self = nullptr;
-    const Expression *func = nullptr;
+    const ast::Expression *self = nullptr;
+    const ast::Expression *func = nullptr;
     if (dotmethod != nullptr) {
         // This check avoids trying to evaluate foo.bar as an
         // expression in foo.bar() where foo is actually a module.
         bool is_module_call = false;
         const pt::IdentifierExpression *ident = dynamic_cast<const pt::IdentifierExpression *>(dotmethod->base.get());
         if (ident != nullptr) {
-            const Name *name = scope.top()->lookupName(ident->name);
-            is_module_call = dynamic_cast<const Module *>(name) != nullptr;
+            const ast::Name *name = scope.top()->lookupName(ident->name);
+            is_module_call = dynamic_cast<const ast::Module *>(name) != nullptr;
         }
         if (not is_module_call) {
-            const Expression *base = analyze(dotmethod->base.get());
+            const ast::Expression *base = analyze(dotmethod->base.get());
             auto m = base->type->methods.find(dotmethod->name.text);
             if (m == base->type->methods.end()) {
                 error(3137, dotmethod->name, "method not found");
             } else {
-                if (dynamic_cast<const TypeClass *>(base->type) != nullptr) {
+                if (dynamic_cast<const ast::TypeClass *>(base->type) != nullptr) {
                     internal_error("class not expected here");
                 }
                 self = base;
             }
-            func = new VariableExpression(m->second);
+            func = new ast::VariableExpression(m->second);
         } else {
-            recordtype = dynamic_cast<const TypeRecord *>(analyze_qualified_name(expr->base.get()));
+            recordtype = dynamic_cast<const ast::TypeRecord *>(analyze_qualified_name(expr->base.get()));
             if (recordtype == nullptr) {
                 func = analyze(expr->base.get());
             }
         }
     } else if (arrowmethod != nullptr) {
-        const Expression *base = analyze(arrowmethod->base.get());
-        const TypePointer *ptype = dynamic_cast<const TypePointer *>(base->type);
+        const ast::Expression *base = analyze(arrowmethod->base.get());
+        const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(base->type);
         if (ptype == nullptr) {
             error(3218, arrowmethod->base->token, "pointer type expected");
         }
-        if (dynamic_cast<const TypeValidPointer *>(ptype) == nullptr) {
+        if (dynamic_cast<const ast::TypeValidPointer *>(ptype) == nullptr) {
             error(3219, arrowmethod->base->token, "valid pointer required");
         }
         auto m = ptype->reftype->methods.find(arrowmethod->name.text);
@@ -1422,12 +1422,12 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             error(3220, arrowmethod->name, "method not found");
         }
         self = base;
-        func = new VariableExpression(m->second);
+        func = new ast::VariableExpression(m->second);
     } else if (recordtype == nullptr) {
         func = analyze(expr->base.get());
     }
     if (recordtype != nullptr) {
-        std::vector<const Expression *> elements(recordtype->fields.size());
+        std::vector<const ast::Expression *> elements(recordtype->fields.size());
         for (auto &x: expr->args) {
             if (x->name.text.empty()) {
                 error(3208, x->expr->token, "field name must be specified using WITH");
@@ -1443,7 +1443,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 ++f;
             }
             auto p = std::distance(recordtype->fields.begin(), f);
-            const Expression *element = analyze(x->expr.get());
+            const ast::Expression *element = analyze(x->expr.get());
             if (not f->type->is_assignment_compatible(element->type)) {
                 error2(3131, x->expr->token, "type mismatch", f->name, "field declared here");
             }
@@ -1457,24 +1457,24 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 elements[p] = recordtype->fields[p].type->make_default_value();
             }
         }
-        return new RecordLiteralExpression(recordtype, elements);
+        return new ast::RecordLiteralExpression(recordtype, elements);
     }
-    const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
+    const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(func->type);
     if (ftype == nullptr) {
-        const TypeFunctionPointer *pf = dynamic_cast<const TypeFunctionPointer *>(func->type);
+        const ast::TypeFunctionPointer *pf = dynamic_cast<const ast::TypeFunctionPointer *>(func->type);
         if (pf == nullptr) {
             error(3017, expr->base->token, "not a function");
         }
         ftype = pf->functype;
     }
     int param_index = 0;
-    std::vector<const Expression *> args(ftype->params.size());
+    std::vector<const ast::Expression *> args(ftype->params.size());
     if (self != nullptr) {
         args[0] = self;
         ++param_index;
     }
     for (auto &a: expr->args) {
-        const Expression *e = analyze(a->expr.get());
+        const ast::Expression *e = analyze(a->expr.get());
         if (param_index >= static_cast<int>(ftype->params.size())) {
             error(3096, a->expr->token, "too many parameters");
         }
@@ -1503,10 +1503,10 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 error(3147, a->name, "parameter already specified");
             }
         }
-        if (dynamic_cast<const DummyExpression *>(e) != nullptr && a->mode.type != OUT) {
+        if (dynamic_cast<const ast::DummyExpression *>(e) != nullptr && a->mode.type != OUT) {
             error2(3193, a->expr->token, "Underscore can only be used with OUT parameter", ftype->params[p]->declaration, "function argument here");
         }
-        if (ftype->params[p]->mode == ParameterType::IN) {
+        if (ftype->params[p]->mode == ast::ParameterType::IN) {
             if (ftype->params[p]->type != nullptr) {
                 // TODO: Above check works around problem in sdl.RenderDrawLines.
                 // Something about a compound type in a predefined function parameter list.
@@ -1515,7 +1515,7 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 }
             }
         } else {
-            const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
+            const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(e);
             if (ref == nullptr) {
                 error2(3018, a->expr->token, "function call argument must be reference", ftype->params[p]->declaration, "function argument here");
             }
@@ -1526,12 +1526,12 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 error2(3194, a->expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
             }
         }
-        if (ftype->params[p]->mode == ParameterType::OUT && a->mode.type != OUT) {
+        if (ftype->params[p]->mode == ast::ParameterType::OUT && a->mode.type != OUT) {
             error(3184, a->expr->token, "OUT keyword required");
-        } else if (ftype->params[p]->mode == ParameterType::INOUT && a->mode.type != INOUT) {
+        } else if (ftype->params[p]->mode == ast::ParameterType::INOUT && a->mode.type != INOUT) {
             error(3185, a->expr->token, "INOUT keyword required");
-        } else if ((a->mode.type == IN && ftype->params[p]->mode != ParameterType::IN)
-                || (a->mode.type == INOUT && ftype->params[p]->mode != ParameterType::INOUT)) {
+        } else if ((a->mode.type == IN && ftype->params[p]->mode != ast::ParameterType::IN)
+                || (a->mode.type == INOUT && ftype->params[p]->mode != ast::ParameterType::INOUT)) {
             error(3186, a->mode, "parameter mode must match if specified");
         }
         args[p] = e;
@@ -1547,247 +1547,247 @@ const Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         p++;
     }
-    return new FunctionCall(func, args);
+    return new ast::FunctionCall(func, args);
 }
 
-const Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
 {
-    const Expression *atom = analyze(expr->expr.get());
-    if (not atom->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *atom = analyze(expr->expr.get());
+    if (not atom->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3144, expr->expr->token, "number required");
     }
     return atom;
 }
 
-const Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
 {
-    const Expression *atom = analyze(expr->expr.get());
-    if (not atom->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *atom = analyze(expr->expr.get());
+    if (not atom->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3021, expr->expr->token, "number required for negation");
     }
-    return new UnaryMinusExpression(atom);
+    return new ast::UnaryMinusExpression(atom);
 }
 
-const Expression *Analyzer::analyze(const pt::LogicalNotExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::LogicalNotExpression *expr)
 {
-    const Expression *atom = analyze(expr->expr.get());
-    if (not atom->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+    const ast::Expression *atom = analyze(expr->expr.get());
+    if (not atom->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
         error(3022, expr->expr->token, "boolean required for logical not");
     }
-    return new LogicalNotExpression(atom);
+    return new ast::LogicalNotExpression(atom);
 }
 
-const Expression *Analyzer::analyze(const pt::ExponentiationExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ExponentiationExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new ExponentiationExpression(left, right);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::ExponentiationExpression(left, right);
     } else {
         error(3024, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::MultiplicationExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::MultiplicationExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new MultiplicationExpression(left, right);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::MultiplicationExpression(left, right);
     } else {
         error(3025, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::DivisionExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::DivisionExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new DivisionExpression(left, right);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::DivisionExpression(left, right);
     } else {
         error(3026, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new FunctionCall(new VariableExpression(new PredefinedFunction("math$trunc", new TypeFunction(TYPE_NUMBER, {new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER, nullptr)}))), {new DivisionExpression(left, right)});
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::FunctionCall(new ast::VariableExpression(new ast::PredefinedFunction("math$trunc", new ast::TypeFunction(ast::TYPE_NUMBER, {new ast::ParameterType(Token(), ast::ParameterType::IN, ast::TYPE_NUMBER, nullptr)}))), {new ast::DivisionExpression(left, right)});
     } else {
         error(3207, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::ModuloExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ModuloExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new ModuloExpression(left, right);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::ModuloExpression(left, right);
     } else {
         error(3027, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::AdditionExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::AdditionExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new AdditionExpression(left, right);
-    } else if (left->type->is_assignment_compatible(TYPE_STRING) && right->type->is_assignment_compatible(TYPE_STRING)) {
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::AdditionExpression(left, right);
+    } else if (left->type->is_assignment_compatible(ast::TYPE_STRING) && right->type->is_assignment_compatible(ast::TYPE_STRING)) {
         error(3124, expr->token, "type mismatch (use & to concatenate strings)");
     } else {
         error(3028, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::SubtractionExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::SubtractionExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_NUMBER) && right->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new SubtractionExpression(left, right);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::SubtractionExpression(left, right);
     } else {
         error(3029, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_STRING) && right->type->is_assignment_compatible(TYPE_STRING)) {
-        std::vector<const Expression *> args;
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_STRING) && right->type->is_assignment_compatible(ast::TYPE_STRING)) {
+        std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        return new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("concat"))), args);
-    } else if (left->type->is_assignment_compatible(TYPE_BYTES) && right->type->is_assignment_compatible(TYPE_BYTES)) {
-        std::vector<const Expression *> args;
+        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat"))), args);
+    } else if (left->type->is_assignment_compatible(ast::TYPE_BYTES) && right->type->is_assignment_compatible(ast::TYPE_BYTES)) {
+        std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        return new FunctionCall(new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("concatBytes"))), args);
-    } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr
-            && dynamic_cast<const TypeArray *>(right->type) != nullptr
-            && dynamic_cast<const TypeArray *>(left->type)->elementtype == dynamic_cast<const TypeArray *>(right->type)->elementtype) {
-        std::vector<const Expression *> args;
+        return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concatBytes"))), args);
+    } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr
+            && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr
+            && dynamic_cast<const ast::TypeArray *>(left->type)->elementtype == dynamic_cast<const ast::TypeArray *>(right->type)->elementtype) {
+        std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
-        VariableExpression *ve = new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName("array__concat")));
+        ast::VariableExpression *ve = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("array__concat")));
         // Since the array__concat function cannot be declared with its proper result type,
         // we have to create a new appropriate function type based on the desired result type
         // and the existing argument types.
-        ve->type = new TypeFunction(left->type, dynamic_cast<const TypeFunction *>(ve->type)->params);
-        return new FunctionCall(ve, args);
+        ve->type = new ast::TypeFunction(left->type, dynamic_cast<const ast::TypeFunction *>(ve->type)->params);
+        return new ast::FunctionCall(ve, args);
     } else {
         error(3116, expr->token, "type mismatch");
     }
 }
 
-static ComparisonExpression *analyze_comparison(const Token &token, const Expression *left, ComparisonExpression::Comparison comp, const Expression *right)
+static ast::ComparisonExpression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right)
 {
     if (not left->type->is_assignment_compatible(right->type)) {
         error(3030, token, "type mismatch");
     }
-    if (left->type->is_assignment_compatible(TYPE_BOOLEAN)) {
-        if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+    if (left->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
+        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3031, token, "comparison not available for Boolean");
         }
-        return new BooleanComparisonExpression(left, right, comp);
-    } else if (left->type->is_assignment_compatible(TYPE_NUMBER)) {
-        return new NumericComparisonExpression(left, right, comp);
-    } else if (left->type->is_assignment_compatible(TYPE_STRING) || left->type->is_assignment_compatible(TYPE_BYTES)) {
-        return new StringComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const TypeArray *>(left->type) != nullptr) {
-        if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+        return new ast::BooleanComparisonExpression(left, right, comp);
+    } else if (left->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+        return new ast::NumericComparisonExpression(left, right, comp);
+    } else if (left->type->is_assignment_compatible(ast::TYPE_STRING) || left->type->is_assignment_compatible(ast::TYPE_BYTES)) {
+        return new ast::StringComparisonExpression(left, right, comp);
+    } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr) {
+        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3032, token, "comparison not available for Array");
         }
-        return new ArrayComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const TypeDictionary *>(left->type) != nullptr) {
-        if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+        return new ast::ArrayComparisonExpression(left, right, comp);
+    } else if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr) {
+        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3033, token, "comparison not available for Dictionary");
         }
-        return new DictionaryComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const TypeRecord *>(left->type) != nullptr) {
-        if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+        return new ast::DictionaryComparisonExpression(left, right, comp);
+    } else if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr) {
+        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3034, token, "comparison not available for RECORD");
         }
-        return new ArrayComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const TypeEnum *>(left->type) != nullptr) {
-        return new NumericComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const TypePointer *>(left->type) != nullptr) {
-        if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+        return new ast::ArrayComparisonExpression(left, right, comp);
+    } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr) {
+        return new ast::NumericComparisonExpression(left, right, comp);
+    } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr) {
+        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3100, token, "comparison not available for POINTER");
         }
-        return new PointerComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const TypeFunctionPointer *>(left->type) != nullptr) {
-        if (comp != ComparisonExpression::EQ && comp != ComparisonExpression::NE) {
+        return new ast::PointerComparisonExpression(left, right, comp);
+    } else if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr) {
+        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3180, token, "comparison not available for FUNCTION");
         }
-        return new FunctionPointerComparisonExpression(left, right, comp);
+        return new ast::FunctionPointerComparisonExpression(left, right, comp);
     } else {
         internal_error("unknown type in parseComparison");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::ComparisonExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ComparisonExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    ComparisonExpression::Comparison comp = static_cast<ComparisonExpression::Comparison>(expr->comp); // TODO: remove cast
-    const Expression *right = analyze(expr->right.get());
+    const ast::Expression *left = analyze(expr->left.get());
+    ast::ComparisonExpression::Comparison comp = static_cast<ast::ComparisonExpression::Comparison>(expr->comp); // TODO: remove cast
+    const ast::Expression *right = analyze(expr->right.get());
     return analyze_comparison(expr->token, left, comp, right);
 }
 
-const Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *expr)
 {
-    std::vector<const ComparisonExpression *> comps;
-    const Expression *left = analyze(expr->left.get());
+    std::vector<const ast::ComparisonExpression *> comps;
+    const ast::Expression *left = analyze(expr->left.get());
     Token token = expr->left->token;
     for (auto &x: expr->comps) {
-        ComparisonExpression::Comparison comp = static_cast<ComparisonExpression::Comparison>(x->comp); // TODO: remove cast
-        const Expression *right = analyze(x->right.get());
+        ast::ComparisonExpression::Comparison comp = static_cast<ast::ComparisonExpression::Comparison>(x->comp); // TODO: remove cast
+        const ast::Expression *right = analyze(x->right.get());
         comps.push_back(analyze_comparison(token, left, comp, right));
         token = x->right->token;
     }
-    return new ChainedComparisonExpression(comps);
+    return new ast::ChainedComparisonExpression(comps);
 }
 
-const Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    const TypeArray *arraytype = dynamic_cast<const TypeArray *>(right->type);
-    const TypeDictionary *dicttype = dynamic_cast<const TypeDictionary *>(right->type);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(right->type);
+    const ast::TypeDictionary *dicttype = dynamic_cast<const ast::TypeDictionary *>(right->type);
     if (arraytype != nullptr) {
         if (not left->type->is_assignment_compatible(arraytype->elementtype)) {
             error(3082, expr->left->token, "type mismatch");
         }
-        return new ArrayInExpression(left, right);
+        return new ast::ArrayInExpression(left, right);
     } else if (dicttype != nullptr) {
-        if (not left->type->is_assignment_compatible(TYPE_STRING)) {
+        if (not left->type->is_assignment_compatible(ast::TYPE_STRING)) {
             error(3083, expr->left->token, "type mismatch");
         }
-        return new DictionaryInExpression(left, right);
+        return new ast::DictionaryInExpression(left, right);
     } else {
         error(3081, expr->right->token, "IN must be used with Array or Dictionary");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::ConjunctionExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ConjunctionExpression *expr)
 {
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_BOOLEAN) && right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
-        return new ConjunctionExpression(left, right);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_BOOLEAN) && right->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
+        return new ast::ConjunctionExpression(left, right);
     } else {
         error(3035, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
 {
     // This is a pretty long-winded way of identifying common tautological
     // expressions of the form:
@@ -1817,34 +1817,34 @@ const Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
         }
     }
 
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
-    if (left->type->is_assignment_compatible(TYPE_BOOLEAN) && right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
-        return new DisjunctionExpression(left, right);
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    if (left->type->is_assignment_compatible(ast::TYPE_BOOLEAN) && right->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
+        return new ast::DisjunctionExpression(left, right);
     } else {
         error(3036, expr->token, "type mismatch");
     }
 }
 
-const Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
 {
-    const Expression *cond = analyze(expr->cond.get());
-    const Expression *left = analyze(expr->left.get());
-    const Expression *right = analyze(expr->right.get());
+    const ast::Expression *cond = analyze(expr->cond.get());
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
     if (not left->type->is_assignment_compatible(right->type)) {
         error(3037, expr->left->token, "type of THEN and ELSE must match");
     }
-    return new ConditionalExpression(cond, left, right);
+    return new ast::ConditionalExpression(cond, left, right);
 }
 
-const Expression *Analyzer::analyze(const pt::TryExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::TryExpression *expr)
 {
-    const Expression *e = analyze(expr->expr.get());
+    const ast::Expression *e = analyze(expr->expr.get());
     auto catches = analyze_catches(expr->catches);
     auto eci = expr->catches.begin();
     for (auto &c: catches) {
-        const ExceptionHandlerStatement *ehs = dynamic_cast<const ExceptionHandlerStatement *>(c.handler);
-        const Expression *e = dynamic_cast<const Expression *>(c.handler);
+        const ast::ExceptionHandlerStatement *ehs = dynamic_cast<const ast::ExceptionHandlerStatement *>(c.handler);
+        const ast::Expression *e = dynamic_cast<const ast::Expression *>(c.handler);
         if (ehs != nullptr) {
             if (ehs->statements.empty()) {
                 error(3202, expr->expr->token, "body cannot be empty");
@@ -1859,92 +1859,92 @@ const Expression *Analyzer::analyze(const pt::TryExpression *expr)
         }
         ++eci;
     }
-    return new TryExpression(e, catches);
+    return new ast::TryExpression(e, catches);
 }
 
-const Expression *Analyzer::analyze(const pt::NewClassExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::NewClassExpression *expr)
 {
     const pt::Expression *e = expr->expr.get();
     const pt::Expression *type_expr = e;
-    const Expression *value = nullptr;
+    const ast::Expression *value = nullptr;
     const pt::FunctionCallExpression *fc = dynamic_cast<const pt::FunctionCallExpression *>(e);
     if (fc != nullptr) {
         type_expr = fc->base.get();
         value = analyze(fc);
     }
-    const Name *name = analyze_qualified_name(type_expr);
-    const TypeClass *type = dynamic_cast<const TypeClass *>(name);
+    const ast::Name *name = analyze_qualified_name(type_expr);
+    const ast::TypeClass *type = dynamic_cast<const ast::TypeClass *>(name);
     if (type == nullptr) {
         error(3099, type_expr->token, "class type expected");
     }
-    return new NewClassExpression(type, value);
+    return new ast::NewClassExpression(type, value);
 }
 
-const Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
+const ast::Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*expr*/)
 {
     // This should never happen because ValidPointerExpression is handled elsewhere.
     internal_error("TODO pt::Expression");
 }
 
-const Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
+const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
 {
-    const Expression *base = analyze(expr->base.get());
-    const Expression *first = analyze(expr->range->get_first());
-    const Expression *last = analyze(expr->range->get_last());
-    if (not first->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *base = analyze(expr->base.get());
+    const ast::Expression *first = analyze(expr->range->get_first());
+    const ast::Expression *last = analyze(expr->range->get_last());
+    if (not first->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3141, expr->range->get_first()->token, "range index must be a number");
     }
-    if (not last->type->is_assignment_compatible(TYPE_NUMBER)) {
+    if (not last->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3142, expr->range->get_last()->token, "range index must be a number");
     }
-    const Type *type = base->type;
-    const TypeArray *arraytype = dynamic_cast<const TypeArray *>(type);
+    const ast::Type *type = base->type;
+    const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(type);
     if (arraytype != nullptr) {
-        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new ArrayReferenceRangeExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::ArrayReferenceRangeExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
-            return new ArrayValueRangeExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::ArrayValueRangeExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
-    } else if (type == TYPE_STRING) {
-        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+    } else if (type == ast::TYPE_STRING) {
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new StringReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::StringReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
-            return new StringValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::StringValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
-    } else if (type == TYPE_BYTES) {
-        const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(base);
+    } else if (type == ast::TYPE_BYTES) {
+        const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new BytesReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::BytesReferenceIndexExpression(ref, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         } else {
-            return new BytesValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
+            return new ast::BytesValueIndexExpression(base, first, expr->range->first_from_end, last, expr->range->last_from_end, this);
         }
     } else {
         error2(3143, expr->base->token, "not an array or string", type->declaration, "declaration here");
     }
 }
 
-Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, std::string::size_type &i)
+ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &descriptor, std::string::size_type &i)
 {
     switch (descriptor.at(i)) {
-        case 'Z': i++; return TYPE_NOTHING;
-        case 'B': i++; return TYPE_BOOLEAN;
-        case 'N': i++; return TYPE_NUMBER;
-        case 'S': i++; return TYPE_STRING;
-        case 'Y': i++; return TYPE_BYTES;
+        case 'Z': i++; return ast::TYPE_NOTHING;
+        case 'B': i++; return ast::TYPE_BOOLEAN;
+        case 'N': i++; return ast::TYPE_NUMBER;
+        case 'S': i++; return ast::TYPE_STRING;
+        case 'Y': i++; return ast::TYPE_BYTES;
         case 'A': {
             i++;
             if (descriptor.at(i) != '<') {
                 internal_error("deserialize_type");
             }
             i++;
-            const Type *type = deserialize_type(scope, descriptor, i);
+            const ast::Type *type = deserialize_type(scope, descriptor, i);
             if (descriptor.at(i) != '>') {
                 internal_error("deserialize_type");
             }
             i++;
-            return new TypeArray(Token(), type);
+            return new ast::TypeArray(Token(), type);
         }
         case 'D': {
             i++;
@@ -1952,17 +1952,17 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 internal_error("deserialize_type");
             }
             i++;
-            const Type *type = deserialize_type(scope, descriptor, i);
+            const ast::Type *type = deserialize_type(scope, descriptor, i);
             if (descriptor.at(i) != '>') {
                 internal_error("deserialize_type");
             }
             i++;
-            return new TypeDictionary(Token(), type);
+            return new ast::TypeDictionary(Token(), type);
         }
         case 'R': case 'C': {
             char kind = descriptor.at(i);
             i++;
-            std::vector<TypeRecord::Field> fields;
+            std::vector<ast::TypeRecord::Field> fields;
             if (descriptor.at(i) != '[') {
                 internal_error("deserialize_type");
             }
@@ -1979,19 +1979,19 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                     i++;
                 }
                 i++;
-                const Type *type = deserialize_type(scope, descriptor, i);
+                const ast::Type *type = deserialize_type(scope, descriptor, i);
                 Token token;
                 token.text = name;
-                fields.push_back(TypeRecord::Field(token, type, is_private));
+                fields.push_back(ast::TypeRecord::Field(token, type, is_private));
                 if (descriptor.at(i) == ',') {
                     i++;
                 }
             }
             i++;
             if (kind == 'R') {
-                return new TypeRecord(Token(), "record", fields);
+                return new ast::TypeRecord(Token(), "record", fields);
             } else if (kind == 'C') {
-                return new TypeClass(Token(), "class", fields);
+                return new ast::TypeClass(Token(), "class", fields);
             } else {
                 internal_error("what kind?");
             }
@@ -2018,21 +2018,21 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 i++;
             }
             i++;
-            return new TypeEnum(Token(), "enum", names, this);
+            return new ast::TypeEnum(Token(), "enum", names, this);
         }
         case 'F': {
             i++;
-            std::vector<const ParameterType *> params;
+            std::vector<const ast::ParameterType *> params;
             if (descriptor.at(i) != '[') {
                 internal_error("deserialize_type");
             }
             i++;
             while (descriptor.at(i) != ']') {
-                ParameterType::Mode mode = ParameterType::IN;
+                ast::ParameterType::Mode mode = ast::ParameterType::IN;
                 switch (descriptor.at(i)) {
-                    case '>': mode = ParameterType::IN;    break;
-                    case '*': mode = ParameterType::INOUT; break;
-                    case '<': mode = ParameterType::OUT;   break;
+                    case '>': mode = ast::ParameterType::IN;    break;
+                    case '*': mode = ast::ParameterType::INOUT; break;
+                    case '<': mode = ast::ParameterType::OUT;   break;
                     default:
                         internal_error("unexpected mode indicator");
                 }
@@ -2043,11 +2043,11 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                     i++;
                 }
                 i++;
-                const Type *type = deserialize_type(scope, descriptor, i);
+                const ast::Type *type = deserialize_type(scope, descriptor, i);
                 Token token;
                 token.text = name;
                 // TODO: default value
-                params.push_back(new ParameterType(token, mode, type, nullptr));
+                params.push_back(new ast::ParameterType(token, mode, type, nullptr));
                 if (descriptor.at(i) == ',') {
                     i++;
                 }
@@ -2057,8 +2057,8 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 internal_error("deserialize_type");
             }
             i++;
-            const Type *returntype = deserialize_type(scope, descriptor, i);
-            return new TypeFunction(returntype, params);
+            const ast::Type *returntype = deserialize_type(scope, descriptor, i);
+            return new ast::TypeFunction(returntype, params);
         }
         case 'P': {
             i++;
@@ -2066,10 +2066,10 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 internal_error("deserialize_type");
             }
             i++;
-            const TypeClass *classtype = nullptr;
+            const ast::TypeClass *classtype = nullptr;
             if (descriptor.at(i) != '>') {
-                const Type *type = deserialize_type(scope, descriptor, i);
-                classtype = dynamic_cast<const TypeClass *>(type);
+                const ast::Type *type = deserialize_type(scope, descriptor, i);
+                classtype = dynamic_cast<const ast::TypeClass *>(type);
                 if (classtype == nullptr) {
                     internal_error("deserialize_type");
                 }
@@ -2078,12 +2078,12 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 internal_error("deserialize_type");
             }
             i++;
-            return new TypePointer(Token(), classtype);
+            return new ast::TypePointer(Token(), classtype);
         }
         case 'Q': {
             i++;
-            TypeFunction *f = dynamic_cast<TypeFunction *>(deserialize_type(scope, descriptor, i));
-            return new TypeFunctionPointer(Token(), f);
+            ast::TypeFunction *f = dynamic_cast<ast::TypeFunction *>(deserialize_type(scope, descriptor, i));
+            return new ast::TypeFunctionPointer(Token(), f);
         }
         case '~': {
             i++;
@@ -2093,15 +2093,15 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
                 i++;
             }
             i++;
-            Scope *s = scope;
+            ast::Scope *s = scope;
             std::string localname = name;
             auto dot = name.find('.');
             if (dot != std::string::npos) {
-                const Module *module = import_module(Token(), name.substr(0, dot));
+                const ast::Module *module = import_module(Token(), name.substr(0, dot));
                 s = module->scope;
                 localname = name.substr(dot+1);
             }
-            Type *type = dynamic_cast<Type *>(s->lookupName(localname));
+            ast::Type *type = dynamic_cast<ast::Type *>(s->lookupName(localname));
             if (type == nullptr) {
                 internal_error("reference to unknown type in exports: " + name);
             }
@@ -2112,163 +2112,163 @@ Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor, st
     }
 }
 
-Type *Analyzer::deserialize_type(Scope *scope, const std::string &descriptor)
+ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &descriptor)
 {
     std::string::size_type i = 0;
-    Type *r = deserialize_type(scope, descriptor, i);
+    ast::Type *r = deserialize_type(scope, descriptor, i);
     if (i != descriptor.length()) {
         internal_error("deserialize_type: " + descriptor + " " + std::to_string(i));
     }
     return r;
 }
 
-const Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
+const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
     if (declaration->alias.type == NONE && declaration->name.type == NONE) {
         if (scope.top()->lookupName(declaration->module.text) != nullptr && modules.find(declaration->module.text) != modules.end()) {
-            return new NullStatement(declaration->token.line);
+            return new ast::NullStatement(declaration->token.line);
         }
     }
     const Token &localname = declaration->alias.type != NONE ? declaration->alias : declaration->name.type != NONE ? declaration->name : declaration->module;
     if (not scope.top()->allocateName(localname, localname.text)) {
         error2(3114, localname, "duplicate definition of name", scope.top()->getDeclaration(localname.text), "first declaration here");
     }
-    Module *module = import_module(declaration->module, declaration->module.text);
+    ast::Module *module = import_module(declaration->module, declaration->module.text);
     rtl_import(declaration->module.text, module);
     if (declaration->name.type == NONE) {
         scope.top()->addName(declaration->token, localname.text, module);
     } else {
-        const Name *name = module->scope->lookupName(declaration->name.text);
+        const ast::Name *name = module->scope->lookupName(declaration->name.text);
         if (name != nullptr) {
             scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
         } else {
             error(3176, declaration->name, "name not found in module");
         }
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
+const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
 {
     std::string name = declaration->token.text;
     if (not scope.top()->allocateName(declaration->token, name)) {
         error2(3013, declaration->token, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
-    TypeClass *actual_class = nullptr;
-    TypeRecord *actual_record = nullptr;
+    ast::TypeClass *actual_class = nullptr;
+    ast::TypeRecord *actual_record = nullptr;
     const pt::TypeRecord *classdecl = dynamic_cast<const pt::TypeClass *>(declaration->type.get());
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
     if (classdecl != nullptr) {
         // Support recursive class type declarations.
-        actual_class = new TypeClass(classdecl->token, name, std::vector<TypeRecord::Field>());
+        actual_class = new ast::TypeClass(classdecl->token, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_class);
     } else if (recdecl != nullptr) {
         // Support recursive record type declarations.
-        actual_record = new TypeRecord(recdecl->token, name, std::vector<TypeRecord::Field>());
+        actual_record = new ast::TypeRecord(recdecl->token, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
     }
-    const Type *type = analyze(declaration->type.get(), name);
+    const ast::Type *type = analyze(declaration->type.get(), name);
     if (actual_class != nullptr) {
-        const TypeClass *classtype = dynamic_cast<const TypeClass *>(type);
-        const_cast<std::vector<TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
+        const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(type);
+        const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
         type = actual_class;
     } else if (actual_record != nullptr) {
-        const TypeRecord *rectype = dynamic_cast<const TypeRecord *>(type);
-        const_cast<std::vector<TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
+        const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(type);
+        const_cast<std::vector<ast::TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         type = actual_record;
     } else {
-        Type *t = const_cast<Type *>(type);
-        if (type != TYPE_BOOLEAN && type != TYPE_NUMBER && type != TYPE_STRING && type != TYPE_BYTES) {
+        ast::Type *t = const_cast<ast::Type *>(type);
+        if (type != ast::TYPE_BOOLEAN && type != ast::TYPE_NUMBER && type != ast::TYPE_STRING && type != ast::TYPE_BYTES) {
             const_cast<std::string &>(t->name) = name;
         }
         scope.top()->addName(declaration->token, name, t); // Still ugly.
     }
-    const TypeClass *classtype = dynamic_cast<const TypeClass *>(type);
+    const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(type);
     if (classtype != nullptr) {
         scope.top()->resolveForward(name, classtype);
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3014, declaration->token, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    const Type *type = analyze(declaration->type.get());
-    if (dynamic_cast<const TypeClass *>(type) != nullptr) {
+    const ast::Type *type = analyze(declaration->type.get());
+    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
         error(3229, declaration->type->token, "class type not permitted as constant type");
     }
-    const Expression *value = analyze(declaration->value.get());
+    const ast::Expression *value = analyze(declaration->value.get());
     if (not type->is_assignment_compatible(value->type)) {
         error(3015, declaration->value->token, "type mismatch");
     }
     if (not value->is_constant) {
         error(3016, declaration->value->token, "value must be constant");
     }
-    if (type == TYPE_BOOLEAN) {
-        value = new ConstantBooleanExpression(value->eval_boolean(declaration->value->token));
-    } else if (type == TYPE_NUMBER) {
-        value = new ConstantNumberExpression(value->eval_number(declaration->value->token));
-    } else if (type == TYPE_STRING) {
-        value = new ConstantStringExpression(value->eval_string(declaration->value->token));
+    if (type == ast::TYPE_BOOLEAN) {
+        value = new ast::ConstantBooleanExpression(value->eval_boolean(declaration->value->token));
+    } else if (type == ast::TYPE_NUMBER) {
+        value = new ast::ConstantNumberExpression(value->eval_number(declaration->value->token));
+    } else if (type == ast::TYPE_STRING) {
+        value = new ast::ConstantStringExpression(value->eval_string(declaration->value->token));
     } else {
-        Variable *v = new GlobalVariable(declaration->name, declaration->name.text, type, true);
+        ast::Variable *v = new ast::GlobalVariable(declaration->name, declaration->name.text, type, true);
         scope.top()->addName(v->declaration, v->name, v, true);
-        return new AssignmentStatement(declaration->token.line, {new VariableExpression(v)}, value);
+        return new ast::AssignmentStatement(declaration->token.line, {new ast::VariableExpression(v)}, value);
     }
-    scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, value));
-    return new NullStatement(declaration->token.line);
+    scope.top()->addName(declaration->name, name, new ast::Constant(declaration->name, name, value));
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_decl(const pt::NativeConstantDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::NativeConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3206, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, get_native_constant_value(module_name + "$" + name)));
-    return new NullStatement(declaration->token.line);
+    scope.top()->addName(declaration->name, name, new ast::Constant(declaration->name, name, get_native_constant_value(module_name + "$" + name)));
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declaration)
 {
     for (auto name: declaration->names) {
         if (not scope.top()->allocateName(name, name.text)) {
             error2(3038, name, "duplicate identifier", scope.top()->getDeclaration(name.text), "first declaration here");
         }
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declaration)
 {
-    const Type *type = analyze(declaration->type.get());
-    if (dynamic_cast<const TypeClass *>(type) != nullptr) {
+    const ast::Type *type = analyze(declaration->type.get());
+    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
         error(3230, declaration->type->token, "class type not perrmitted as variable type (use POINTER TO)");
     }
-    std::vector<Variable *> variables;
+    std::vector<ast::Variable *> variables;
     for (auto name: declaration->names) {
-        Variable *v = frame.top()->createVariable(name, name.text, type, false);
+        ast::Variable *v = frame.top()->createVariable(name, name.text, type, false);
         variables.push_back(v);
     }
-    std::vector<const ReferenceExpression *> refs;
-    const Expression *expr = nullptr;
+    std::vector<const ast::ReferenceExpression *> refs;
+    const ast::Expression *expr = nullptr;
     if (declaration->value != nullptr) {
         expr = analyze(declaration->value.get());
         if (not type->is_assignment_compatible(expr->type)) {
@@ -2277,66 +2277,66 @@ const Statement *Analyzer::analyze_body(const pt::VariableDeclaration *declarati
     }
     for (auto v: variables) {
         scope.top()->addName(v->declaration, v->name, v, true);
-        refs.push_back(new VariableExpression(v));
+        refs.push_back(new ast::VariableExpression(v));
     }
     if (declaration->value != nullptr) {
-        return new AssignmentStatement(declaration->token.line, refs, expr);
+        return new ast::AssignmentStatement(declaration->token.line, refs, expr);
     } else {
-        return new ResetStatement(declaration->token.line, refs);
+        return new ast::ResetStatement(declaration->token.line, refs);
     }
 }
 
-const Statement *Analyzer::analyze_decl(const pt::NativeVariableDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::NativeVariableDeclaration *declaration)
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3225, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::NativeVariableDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::NativeVariableDeclaration *declaration)
 {
     //std::string name = declaration->name.text;
     //scope.top()->addName(declaration->name, name, new Constant(declaration->name, name, get_native_constant_value(module_name + "$" + name)));
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::LetDeclaration *declaration)
 {
     if (not scope.top()->allocateName(declaration->name, declaration->name.text)) {
         error2(3139, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declaration)
 {
-    const Type *type = analyze(declaration->type.get());
-    if (dynamic_cast<const TypeClass *>(type) != nullptr) {
+    const ast::Type *type = analyze(declaration->type.get());
+    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
         error(3231, declaration->type->token, "class type not perrmitted as variable type (use POINTER TO)");
     }
-    const Expression *expr = analyze(declaration->value.get());
+    const ast::Expression *expr = analyze(declaration->value.get());
     if (not type->is_assignment_compatible(expr->type)) {
         error(3140, declaration->value->token, "type mismatch");
     }
-    const TypePointer *ptype = dynamic_cast<const TypePointer *>(type);
-    if (ptype != nullptr && dynamic_cast<const NewClassExpression *>(expr) != nullptr) {
-        type = new TypeValidPointer(Token(), ptype->reftype);
+    const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(type);
+    if (ptype != nullptr && dynamic_cast<const ast::NewClassExpression *>(expr) != nullptr) {
+        type = new ast::TypeValidPointer(Token(), ptype->reftype);
     }
-    Variable *v = frame.top()->createVariable(declaration->name, declaration->name.text, type, true);
+    ast::Variable *v = frame.top()->createVariable(declaration->name, declaration->name.text, type, true);
     scope.top()->addName(v->declaration, v->name, v, true);
-    std::vector<const ReferenceExpression *> refs;
-    refs.push_back(new VariableExpression(v));
-    return new AssignmentStatement(declaration->token.line, refs, expr);
+    std::vector<const ast::ReferenceExpression *> refs;
+    refs.push_back(new ast::VariableExpression(v));
+    return new ast::AssignmentStatement(declaration->token.line, refs, expr);
 }
 
-const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declaration)
 {
     const std::string classtype = declaration->type.text;
-    Type *type = nullptr;
+    ast::Type *type = nullptr;
     if (not classtype.empty()) {
-        Name *tname = scope.top()->lookupName(classtype);
+        ast::Name *tname = scope.top()->lookupName(classtype);
         if (tname == nullptr) {
             auto decl = scope.top()->getDeclaration(classtype);
             if (decl.type == NONE) {
@@ -2345,7 +2345,7 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
                 error2(3127, declaration->type, "type name is not a type", decl, "declaration here");
             }
         }
-        type = dynamic_cast<Type *>(tname);
+        type = dynamic_cast<ast::Type *>(tname);
         if (type == nullptr) {
             error2(3138, declaration->type, "type name is not a type", tname->declaration, "declaration here");
         }
@@ -2354,24 +2354,24 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
     if (type == nullptr && not scope.top()->allocateName(declaration->name, name)) {
         error2(3047, declaration->name, "duplicate definition of name", scope.top()->getDeclaration(name), "first declaration here");
     }
-    const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : TYPE_NOTHING;
-    std::vector<FunctionParameter *> args;
+    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
+    std::vector<ast::FunctionParameter *> args;
     bool in_default = false;
     for (auto &x: declaration->args) {
-        ParameterType::Mode mode = ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
+            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
+            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
         }
-        const Type *ptype = analyze(x->type.get());
-        if (dynamic_cast<const TypeClass *>(ptype) != nullptr) {
+        const ast::Type *ptype = analyze(x->type.get());
+        if (dynamic_cast<const ast::TypeClass *>(ptype) != nullptr) {
             error(3232, x->type->token, "class type not permitted as function parameter (use pointers)");
         }
         if (type != nullptr && args.empty()) {
-            const TypeClass *ctype = dynamic_cast<const TypeClass *>(type);
+            const ast::TypeClass *ctype = dynamic_cast<const ast::TypeClass *>(type);
             if (ctype != nullptr) {
-                const TypeValidPointer *vptype = dynamic_cast<const TypeValidPointer *>(ptype);
+                const ast::TypeValidPointer *vptype = dynamic_cast<const ast::TypeValidPointer *>(ptype);
                 if (vptype == nullptr || not vptype->reftype->is_assignment_compatible(type)) {
                     error(3224, x->type->token, "valid pointer type expected");
                 }
@@ -2381,9 +2381,9 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
                 }
             }
         }
-        const Expression *def = nullptr;
+        const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
-            if (mode != ParameterType::IN) {
+            if (mode != ast::ParameterType::IN) {
                 error(3175, x->default_value->token, "default value only available for IN parameters");
             }
             in_default = true;
@@ -2398,53 +2398,53 @@ const Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *declarati
             if (scope.top()->lookupName(name.text)) {
                 error(3174, name, "duplicate identifier");
             }
-            FunctionParameter *fp = new FunctionParameter(name, name.text, ptype, frame.top()->get_depth()+1, mode, def);
+            ast::FunctionParameter *fp = new ast::FunctionParameter(name, name.text, ptype, frame.top()->get_depth()+1, mode, def);
             args.push_back(fp);
         }
     }
     if (type != nullptr && args.empty()) {
         error(3129, declaration->rparen, "expected self parameter");
     }
-    Function *function;
+    ast::Function *function;
     if (type != nullptr) {
         auto f = type->methods.find(name);
         if (f != type->methods.end()) {
-            function = dynamic_cast<Function *>(f->second);
+            function = dynamic_cast<ast::Function *>(f->second);
         } else {
-            function = new Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
+            function = new ast::Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
             type->methods[name] = function;
         }
     } else {
-        Name *ident = scope.top()->lookupName(name);
-        function = dynamic_cast<Function *>(ident);
+        ast::Name *ident = scope.top()->lookupName(name);
+        function = dynamic_cast<ast::Function *>(ident);
         if (function == nullptr) {
-            function = new Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
+            function = new ast::Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
             scope.top()->addName(declaration->name, name, function);
         }
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declaration)
 {
     const std::string classtype = declaration->type.text;
-    Type *type = nullptr;
+    ast::Type *type = nullptr;
     if (not classtype.empty()) {
-        Name *tname = scope.top()->lookupName(classtype);
+        ast::Name *tname = scope.top()->lookupName(classtype);
         if (tname == nullptr) {
             internal_error("type name not found");
         }
-        type = dynamic_cast<Type *>(tname);
+        type = dynamic_cast<ast::Type *>(tname);
         if (type == nullptr) {
             internal_error("type name is not a type");
         }
     }
-    Function *function;
+    ast::Function *function;
     if (type != nullptr) {
         auto f = type->methods.find(declaration->name.text);
-        function = dynamic_cast<Function *>(f->second);
+        function = dynamic_cast<ast::Function *>(f->second);
     } else {
-        function = dynamic_cast<Function *>(scope.top()->lookupName(declaration->name.text));
+        function = dynamic_cast<ast::Function *>(scope.top()->lookupName(declaration->name.text));
     }
     for (auto &x: declaration->args) {
         for (auto name: x->names) {
@@ -2456,11 +2456,11 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     }
     frame.push(function->frame);
     scope.push(function->scope);
-    functiontypes.push(std::make_pair(type, dynamic_cast<const TypeFunction *>(function->type)));
+    functiontypes.push(std::make_pair(type, dynamic_cast<const ast::TypeFunction *>(function->type)));
     loops.push(std::list<std::pair<std::string, unsigned int>>());
     function->statements = analyze(declaration->body);
-    const Type *returntype = dynamic_cast<const TypeFunction *>(function->type)->returntype;
-    if (returntype != TYPE_NOTHING) {
+    const ast::Type *returntype = dynamic_cast<const ast::TypeFunction *>(function->type)->returntype;
+    if (returntype != ast::TYPE_NOTHING) {
         if (function->statements.empty() || not function->statements.back()->always_returns()) {
             error(3085, declaration->end_function, "missing RETURN statement");
         }
@@ -2470,27 +2470,27 @@ const Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declarati
     scope.top()->checkForward();
     scope.pop();
     frame.pop();
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3092, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
-    const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : TYPE_NOTHING;
-    std::vector<FunctionParameter *> args;
+    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
+    std::vector<ast::FunctionParameter *> args;
     bool in_default = false;
     for (auto &x: declaration->args) {
-        ParameterType::Mode mode = ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
+            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
+            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
         }
-        const Type *ptype = analyze(x->type.get());
-        const Expression *def = nullptr;
+        const ast::Type *ptype = analyze(x->type.get());
+        const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
             in_default = true;
             def = analyze(x->default_value.get());
@@ -2501,30 +2501,30 @@ const Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *d
             error(3151, x->token, "default value must be specified for this parameter");
         }
         for (auto name: x->names) {
-            FunctionParameter *fp = new FunctionParameter(name, name.text, ptype, frame.size()-1, mode, def);
+            ast::FunctionParameter *fp = new ast::FunctionParameter(name, name.text, ptype, frame.size()-1, mode, def);
             args.push_back(fp);
         }
     }
-    ExternalFunction *function = new ExternalFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
+    ast::ExternalFunction *function = new ast::ExternalFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
     scope.top()->addName(declaration->name, name, function);
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    ExternalFunction *function = dynamic_cast<ExternalFunction *>(scope.top()->lookupName(name));
+    ast::ExternalFunction *function = dynamic_cast<ast::ExternalFunction *>(scope.top()->lookupName(name));
 
-    const DictionaryLiteralExpression *dict = dynamic_cast<const DictionaryLiteralExpression *>(analyze(declaration->dict.get()));
+    const ast::DictionaryLiteralExpression *dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(analyze(declaration->dict.get()));
     if (not dict->is_constant) {
         error(3071, declaration->dict->token, "constant dictionary expected");
     }
-    if (dynamic_cast<const TypeDictionary *>(dict->elementtype) == nullptr) {
+    if (dynamic_cast<const ast::TypeDictionary *>(dict->elementtype) == nullptr) {
         error(3073, declaration->dict->token, "top level dictionary element not dictionary");
     }
     for (auto elem: dict->dict) {
-        auto *d = dynamic_cast<const DictionaryLiteralExpression *>(elem.second);
-        if (not d->dict.empty() && not d->elementtype->is_assignment_compatible(TYPE_STRING)) {
+        auto *d = dynamic_cast<const ast::DictionaryLiteralExpression *>(elem.second);
+        if (not d->dict.empty() && not d->elementtype->is_assignment_compatible(ast::TYPE_STRING)) {
             error(3074, declaration->dict->token, "sub level dictionary must have string elements");
         }
     }
@@ -2533,7 +2533,7 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
     if (klibrary == dict->dict.end()) {
         error(3075, declaration->dict->token, "\"library\" key not found");
     }
-    auto &library_dict = dynamic_cast<const DictionaryLiteralExpression *>(klibrary->second)->dict;
+    auto &library_dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(klibrary->second)->dict;
     auto kname = library_dict.find("name");
     if (kname == library_dict.end()) {
         error(3076, declaration->dict->token, "\"name\" key not found in library");
@@ -2544,13 +2544,13 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
     if (ktypes == dict->dict.end()) {
         error(3077, declaration->dict->token, "\"types\" key not found");
     }
-    auto &types_dict = dynamic_cast<const DictionaryLiteralExpression *>(ktypes->second)->dict;
+    auto &types_dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(ktypes->second)->dict;
     std::map<std::string, std::string> param_types;
     for (auto paramtype: types_dict) {
         param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
     }
     for (auto p: function->params) {
-        if (p->mode == ParameterType::OUT) {
+        if (p->mode == ast::ParameterType::OUT) {
             error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + p->name);
         }
         if (param_types.find(p->name) == param_types.end()) {
@@ -2560,27 +2560,27 @@ const Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *d
 
     function->library_name = library_name;
     function->param_types = param_types;
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3166, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
-    const Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : TYPE_NOTHING;
-    std::vector<const ParameterType *> params;
+    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
+    std::vector<const ast::ParameterType *> params;
     bool in_default = false;
     for (auto &x: declaration->args) {
-        ParameterType::Mode mode = ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
+            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
+            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
         }
-        const Type *ptype = analyze(x->type.get());
-        const Expression *def = nullptr;
+        const ast::Type *ptype = analyze(x->type.get());
+        const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
             in_default = true;
             def = analyze(x->default_value.get());
@@ -2591,16 +2591,16 @@ const Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *declarat
             error(3168, x->token, "default value must be specified for this parameter");
         }
         for (auto name: x->names) {
-            ParameterType *pt = new ParameterType(name, mode, ptype, def);
+            ast::ParameterType *pt = new ast::ParameterType(name, mode, ptype, def);
             params.push_back(pt);
         }
     }
-    PredefinedFunction *function = new PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new TypeFunction(returntype, params));
+    ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new ast::TypeFunction(returntype, params));
     scope.top()->addName(declaration->name, name, function);
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
 {
     std::string name = declaration->name[0].text;
     if (declaration->name.size() == 1) {
@@ -2610,18 +2610,18 @@ const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
         if (name.length() < 9 || name.substr(name.length()-9) != "Exception") {
             error(3198, declaration->token, "Exception name must end in 'Exception'");
         }
-        scope.top()->addName(declaration->token, name, new Exception(declaration->token, name));
+        scope.top()->addName(declaration->token, name, new ast::Exception(declaration->token, name));
     } else {
-        Name *n = scope.top()->lookupName(name);
+        ast::Name *n = scope.top()->lookupName(name);
         if (n == nullptr) {
             error(3235, declaration->token, "name not found");
         }
-        Exception *e = dynamic_cast<Exception *>(n);
+        ast::Exception *e = dynamic_cast<ast::Exception *>(n);
         if (e == nullptr) {
             error(3236, declaration->token, "name is not an exception");
         }
         std::string fullname = name;
-        Exception *s = e;
+        ast::Exception *s = e;
         for (size_t i = 1; i < declaration->name.size()-1; i++) {
             auto t = s->subexceptions.find(declaration->name[i].text);
             if (t == s->subexceptions.end()) {
@@ -2636,26 +2636,26 @@ const Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declaration)
             error(3238, declaration->name[declaration->name.size()-1], "subexception already declared");
         }
         fullname += "." + declaration->name[declaration->name.size()-1].text;
-        Exception *se = new Exception(declaration->token, fullname);
+        ast::Exception *se = new ast::Exception(declaration->token, fullname);
         s->subexceptions[lastname] = se;
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_decl(const pt::ExportDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::ExportDeclaration *declaration)
 {
     if (declaration->declaration != nullptr) {
-        std::vector<const Statement *> statements;
+        std::vector<const ast::Statement *> statements;
         DeclarationAnalyzer da(this, statements);
         declaration->declaration->accept(&da);
         if (not statements.empty()) {
             return statements[0];
         }
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-const Statement *Analyzer::analyze_body(const pt::ExportDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::ExportDeclaration *declaration)
 {
     for (auto &name: declaration->names) {
         if (scope.top()->getDeclaration(name.text).type == NONE) {
@@ -2664,19 +2664,19 @@ const Statement *Analyzer::analyze_body(const pt::ExportDeclaration *declaration
         exports[name.text] = name;
     }
     if (declaration->declaration != nullptr) {
-        std::vector<const Statement *> statements;
+        std::vector<const ast::Statement *> statements;
         StatementAnalyzer sa(this, statements);
         declaration->declaration->accept(&sa);
         if (not statements.empty()) {
             return statements[0];
         }
     }
-    return new NullStatement(declaration->token.line);
+    return new ast::NullStatement(declaration->token.line);
 }
 
-std::vector<const Statement *> Analyzer::analyze(const std::vector<std::unique_ptr<pt::Statement>> &statement)
+std::vector<const ast::Statement *> Analyzer::analyze(const std::vector<std::unique_ptr<pt::Statement>> &statement)
 {
-    std::vector<const Statement *> statements;
+    std::vector<const ast::Statement *> statements;
     DeclarationAnalyzer da(this, statements);
     for (auto &d: statement) {
         d->accept(&da);
@@ -2740,11 +2740,11 @@ static void deconstruct(const pt::Expression *expr, std::vector<const pt::Expres
     parts.push_back(expr);
 }
 
-const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
 {
     const pt::Expression *e = statement->exprs[0].get();
-    const Expression *expr = analyze(e);
-    if (not expr->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+    const ast::Expression *expr = analyze(e);
+    if (not expr->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
         error(3173, statement->exprs[0]->token, "boolean value expected");
     }
     std::vector<const pt::Expression *> parts;
@@ -2752,54 +2752,54 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     for (auto x = statement->exprs.begin()+1; x != statement->exprs.end(); ++x) {
         parts.push_back(x->get());
     }
-    const Module *io = dynamic_cast<const Module *>(scope.top()->lookupName("io"));
+    const ast::Module *io = dynamic_cast<const ast::Module *>(scope.top()->lookupName("io"));
     if (io == nullptr) {
-        Module *module = import_module(Token(), "io");
+        ast::Module *module = import_module(Token(), "io");
         rtl_import("io", module);
         global_scope->addName(Token(IDENTIFIER, "io"), "io", module, true);
         io = module;
     }
-    std::vector<const Statement *> statements;
-    const Variable *io_stderr = dynamic_cast<const Variable *>(io->scope->lookupName("stderr"));
+    std::vector<const ast::Statement *> statements;
+    const ast::Variable *io_stderr = dynamic_cast<const ast::Variable *>(io->scope->lookupName("stderr"));
     if (io_stderr == nullptr) {
         internal_error("need io.stderr");
     }
-    const PredefinedFunction *fprint = dynamic_cast<const PredefinedFunction *>(io->scope->lookupName("fprint"));
+    const ast::PredefinedFunction *fprint = dynamic_cast<const ast::PredefinedFunction *>(io->scope->lookupName("fprint"));
     if (fprint == nullptr) {
         internal_error("need io.fprint");
     }
     statements.push_back(
-        new ExpressionStatement(
+        new ast::ExpressionStatement(
             statement->token.line,
-            new FunctionCall(
-                new VariableExpression(fprint),
+            new ast::FunctionCall(
+                new ast::VariableExpression(fprint),
                 {
-                    new VariableExpression(io_stderr),
-                    new ConstantStringExpression("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):")
+                    new ast::VariableExpression(io_stderr),
+                    new ast::ConstantStringExpression("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):")
                 }
             )
         )
     );
     statements.push_back(
-        new ExpressionStatement(
+        new ast::ExpressionStatement(
             statement->token.line,
-            new FunctionCall(
-                new VariableExpression(fprint),
+            new ast::FunctionCall(
+                new ast::VariableExpression(fprint),
                 {
-                    new VariableExpression(io_stderr),
-                    new ConstantStringExpression(statement->token.source_line())
+                    new ast::VariableExpression(io_stderr),
+                    new ast::ConstantStringExpression(statement->token.source_line())
                 }
             )
         )
     );
     statements.push_back(
-        new ExpressionStatement(
+        new ast::ExpressionStatement(
             statement->token.line,
-            new FunctionCall(
-                new VariableExpression(fprint),
+            new ast::FunctionCall(
+                new ast::VariableExpression(fprint),
                 {
-                    new VariableExpression(io_stderr),
-                    new ConstantStringExpression("Assert expression dump:")
+                    new ast::VariableExpression(io_stderr),
+                    new ast::ConstantStringExpression("Assert expression dump:")
                 }
             )
         )
@@ -2821,12 +2821,12 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
         try {
             statements.push_back(
-                new ExpressionStatement(
+                new ast::ExpressionStatement(
                     statement->token.line,
-                    new FunctionCall(
-                        new VariableExpression(fprint),
+                    new ast::FunctionCall(
+                        new ast::VariableExpression(fprint),
                         {
-                            new VariableExpression(io_stderr),
+                            new ast::VariableExpression(io_stderr),
                             analyze(ie.get())
                         }
                     )
@@ -2843,53 +2843,53 @@ const Statement *Analyzer::analyze(const pt::AssertStatement *statement)
             throw;
         }
     }
-    return new AssertStatement(statement->token.line, statements, expr, statement->source);
+    return new ast::AssertStatement(statement->token.line, statements, expr, statement->source);
 }
 
-const Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement)
 {
     if (statement->variables.size() != 1) {
         internal_error("unexpected multiple assign statement");
     }
-    const Expression *expr = analyze(statement->variables[0].get());
-    const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(expr);
+    const ast::Expression *expr = analyze(statement->variables[0].get());
+    const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(expr);
     if (ref == nullptr) {
         error(3058, statement->variables[0]->token, "expression is not assignable");
     }
     if (expr->is_readonly) {
         error(3105, statement->variables[0]->token, "assignment to readonly expression");
     }
-    const Expression *rhs = analyze(statement->expr.get());
+    const ast::Expression *rhs = analyze(statement->expr.get());
     if (not expr->type->is_assignment_compatible(rhs->type)) {
         error(3057, statement->expr->token, "type mismatch");
     }
-    std::vector<const ReferenceExpression *> vars;
+    std::vector<const ast::ReferenceExpression *> vars;
     vars.push_back(ref);
-    return new AssignmentStatement(statement->token.line, vars, rhs);
+    return new ast::AssignmentStatement(statement->token.line, vars, rhs);
 }
 
-const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
 {
-    const Expression *expr = analyze(statement->expr.get());
-    if (not expr->type->is_assignment_compatible(TYPE_NUMBER) && not expr->type->is_assignment_compatible(TYPE_STRING) && dynamic_cast<const TypeEnum *>(expr->type) == nullptr) {
+    const ast::Expression *expr = analyze(statement->expr.get());
+    if (not expr->type->is_assignment_compatible(ast::TYPE_NUMBER) && not expr->type->is_assignment_compatible(ast::TYPE_STRING) && dynamic_cast<const ast::TypeEnum *>(expr->type) == nullptr) {
         error(3050, statement->expr->token, "CASE expression must be Number, String, or ENUM");
     }
-    std::vector<std::pair<std::vector<const CaseStatement::WhenCondition *>, std::vector<const Statement *>>> clauses;
+    std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> clauses;
     for (auto &x: statement->clauses) {
-        std::vector<const CaseStatement::WhenCondition *> conditions;
+        std::vector<const ast::CaseStatement::WhenCondition *> conditions;
         for (auto &c: x.first) {
             const pt::CaseStatement::ComparisonWhenCondition *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(c.get());
             const pt::CaseStatement::RangeWhenCondition *rwc = dynamic_cast<const pt::CaseStatement::RangeWhenCondition *>(c.get());
             if (cwc != nullptr) {
-                const Expression *when = analyze(cwc->expr.get());
+                const ast::Expression *when = analyze(cwc->expr.get());
                 if (not when->type->is_assignment_compatible(expr->type)) {
                     error(3051, cwc->expr->token, "type mismatch");
                 }
                 if (not when->is_constant) {
                     error(3052, cwc->expr->token, "WHEN condition must be constant");
                 }
-                ComparisonExpression::Comparison comp = static_cast<ComparisonExpression::Comparison>(cwc->comp); // TODO: remove cast
-                const CaseStatement::WhenCondition *cond = new CaseStatement::ComparisonWhenCondition(cwc->expr->token, comp, when);
+                ast::ComparisonExpression::Comparison comp = static_cast<ast::ComparisonExpression::Comparison>(cwc->comp); // TODO: remove cast
+                const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::ComparisonWhenCondition(cwc->expr->token, comp, when);
                 for (auto clause: clauses) {
                     for (auto c: clause.first) {
                         if (cond->overlaps(c)) {
@@ -2905,32 +2905,32 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 conditions.push_back(cond);
             }
             if (rwc != nullptr) {
-                const Expression *when = analyze(rwc->low_expr.get());
+                const ast::Expression *when = analyze(rwc->low_expr.get());
                 if (not when->type->is_assignment_compatible(expr->type)) {
                     error(3053, rwc->low_expr->token, "type mismatch");
                 }
                 if (not when->is_constant) {
                     error(3054, rwc->low_expr->token, "WHEN condition must be constant");
                 }
-                const Expression *when2 = analyze(rwc->high_expr.get());
+                const ast::Expression *when2 = analyze(rwc->high_expr.get());
                 if (not when2->type->is_assignment_compatible(expr->type)) {
                     error(3055, rwc->high_expr->token, "type mismatch");
                 }
                 if (not when2->is_constant) {
                     error(3056, rwc->high_expr->token, "WHEN condition must be constant");
                 }
-                if (when->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(when->type) != nullptr) {
+                if (when->type->is_assignment_compatible(ast::TYPE_NUMBER) || dynamic_cast<const ast::TypeEnum *>(when->type) != nullptr) {
                     if (number_is_greater(when->eval_number(rwc->low_expr->token), when2->eval_number(rwc->high_expr->token))) {
                         error(3109, rwc->high_expr->token, "WHEN numeric range condition must be low..high");
                     }
-                } else if (when->type->is_assignment_compatible(TYPE_STRING)) {
+                } else if (when->type->is_assignment_compatible(ast::TYPE_STRING)) {
                     if (when->eval_string(rwc->low_expr->token) > when2->eval_string(rwc->high_expr->token)) {
                         error(3110, rwc->high_expr->token, "WHEN string range condition must be low..high");
                     }
                 } else {
                     internal_error("range condition type");
                 }
-                const CaseStatement::WhenCondition *cond = new CaseStatement::RangeWhenCondition(rwc->low_expr->token, when, when2);
+                const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::RangeWhenCondition(rwc->low_expr->token, when, when2);
                 for (auto clause: clauses) {
                     for (auto c: clause.first) {
                         if (cond->overlaps(c)) {
@@ -2946,12 +2946,12 @@ const Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 conditions.push_back(cond);
             }
         }
-        scope.push(new Scope(scope.top(), frame.top()));
-        std::vector<const Statement *> statements = analyze(x.second);
+        scope.push(new ast::Scope(scope.top(), frame.top()));
+        std::vector<const ast::Statement *> statements = analyze(x.second);
         scope.pop();
         clauses.emplace_back(std::make_pair(conditions, statements));
     }
-    return new CaseStatement(statement->token.line, expr, clauses);
+    return new ast::CaseStatement(statement->token.line, expr, clauses);
 }
 
 namespace overlap {
@@ -2963,78 +2963,78 @@ static bool operator>(const Number &x, const Number &y) { return number_is_great
 static bool operator<=(const Number &x, const Number &y) { return number_is_less_equal(x, y); }
 static bool operator>=(const Number &x, const Number &y) { return number_is_greater_equal(x, y); }
 
-template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, ComparisonExpression::Comparison comp2, const T &value2)
+template <typename T> bool check(ast::ComparisonExpression::Comparison comp1, const T &value1, ast::ComparisonExpression::Comparison comp2, const T &value2)
 {
     switch (comp1) {
-        case ComparisonExpression::EQ:
+        case ast::ComparisonExpression::EQ:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 == value2;
-                case ComparisonExpression::NE: return value1 != value2;
-                case ComparisonExpression::LT: return value1 < value2;
-                case ComparisonExpression::GT: return value1 > value2;
-                case ComparisonExpression::LE: return value1 <= value2;
-                case ComparisonExpression::GE: return value1 >= value2;
+                case ast::ComparisonExpression::EQ: return value1 == value2;
+                case ast::ComparisonExpression::NE: return value1 != value2;
+                case ast::ComparisonExpression::LT: return value1 < value2;
+                case ast::ComparisonExpression::GT: return value1 > value2;
+                case ast::ComparisonExpression::LE: return value1 <= value2;
+                case ast::ComparisonExpression::GE: return value1 >= value2;
             }
             break;
-        case ComparisonExpression::NE:
+        case ast::ComparisonExpression::NE:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 != value2;
+                case ast::ComparisonExpression::EQ: return value1 != value2;
                 default: return true;
             }
             break;
-        case ComparisonExpression::LT:
+        case ast::ComparisonExpression::LT:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 < value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return true;
-                case ComparisonExpression::GT: return value1 > value2;
-                case ComparisonExpression::LE: return true;
-                case ComparisonExpression::GE: return value1 > value2;
+                case ast::ComparisonExpression::EQ: return value1 < value2;
+                case ast::ComparisonExpression::NE: return true;
+                case ast::ComparisonExpression::LT: return true;
+                case ast::ComparisonExpression::GT: return value1 > value2;
+                case ast::ComparisonExpression::LE: return true;
+                case ast::ComparisonExpression::GE: return value1 > value2;
             }
             break;
-        case ComparisonExpression::GT:
+        case ast::ComparisonExpression::GT:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 > value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return value1 < value2;
-                case ComparisonExpression::GT: return true;
-                case ComparisonExpression::LE: return value1 < value2;
-                case ComparisonExpression::GE: return true;
+                case ast::ComparisonExpression::EQ: return value1 > value2;
+                case ast::ComparisonExpression::NE: return true;
+                case ast::ComparisonExpression::LT: return value1 < value2;
+                case ast::ComparisonExpression::GT: return true;
+                case ast::ComparisonExpression::LE: return value1 < value2;
+                case ast::ComparisonExpression::GE: return true;
             }
             break;
-        case ComparisonExpression::LE:
+        case ast::ComparisonExpression::LE:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 >= value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return true;
-                case ComparisonExpression::GT: return value1 > value2;
-                case ComparisonExpression::LE: return true;
-                case ComparisonExpression::GE: return value1 >= value2;
+                case ast::ComparisonExpression::EQ: return value1 >= value2;
+                case ast::ComparisonExpression::NE: return true;
+                case ast::ComparisonExpression::LT: return true;
+                case ast::ComparisonExpression::GT: return value1 > value2;
+                case ast::ComparisonExpression::LE: return true;
+                case ast::ComparisonExpression::GE: return value1 >= value2;
             }
             break;
-        case ComparisonExpression::GE:
+        case ast::ComparisonExpression::GE:
             switch (comp2) {
-                case ComparisonExpression::EQ: return value1 <= value2;
-                case ComparisonExpression::NE: return true;
-                case ComparisonExpression::LT: return value1 < value2;
-                case ComparisonExpression::GT: return true;
-                case ComparisonExpression::LE: return value1 <= value2;
-                case ComparisonExpression::GE: return true;
+                case ast::ComparisonExpression::EQ: return value1 <= value2;
+                case ast::ComparisonExpression::NE: return true;
+                case ast::ComparisonExpression::LT: return value1 < value2;
+                case ast::ComparisonExpression::GT: return true;
+                case ast::ComparisonExpression::LE: return value1 <= value2;
+                case ast::ComparisonExpression::GE: return true;
             }
             break;
     }
     return false;
 }
 
-template <typename T> bool check(ComparisonExpression::Comparison comp1, const T &value1, const T &value2low, const T &value2high)
+template <typename T> bool check(ast::ComparisonExpression::Comparison comp1, const T &value1, const T &value2low, const T &value2high)
 {
     switch (comp1) {
-        case ComparisonExpression::EQ: return value1 >= value2low && value1 <= value2high;
-        case ComparisonExpression::NE: return value1 != value2low || value1 != value2high;
-        case ComparisonExpression::LT: return value1 > value2low;
-        case ComparisonExpression::GT: return value1 > value2high;
-        case ComparisonExpression::LE: return value1 >= value2low;
-        case ComparisonExpression::GE: return value1 <= value2high;
+        case ast::ComparisonExpression::EQ: return value1 >= value2low && value1 <= value2high;
+        case ast::ComparisonExpression::NE: return value1 != value2low || value1 != value2high;
+        case ast::ComparisonExpression::LT: return value1 > value2low;
+        case ast::ComparisonExpression::GT: return value1 > value2high;
+        case ast::ComparisonExpression::LE: return value1 >= value2low;
+        case ast::ComparisonExpression::GE: return value1 <= value2high;
     }
     return false;
 }
@@ -3046,22 +3046,22 @@ template <typename T> bool check(const T &value1low, const T &value1high, const 
 
 } // namespace overlap
 
-bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond) const
+bool ast::CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond) const
 {
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
+        if (expr->type->is_assignment_compatible(ast::TYPE_NUMBER) || dynamic_cast<const ast::TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(cond->token), cwhen->comp, cwhen->expr->eval_number(cond->token));
-        } else if (expr->type->is_assignment_compatible(TYPE_STRING)) {
+        } else if (expr->type->is_assignment_compatible(ast::TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(cond->token), cwhen->comp, cwhen->expr->eval_string(cond->token));
         } else {
             internal_error("ComparisonWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
+        if (expr->type->is_assignment_compatible(ast::TYPE_NUMBER) || dynamic_cast<const ast::TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(cond->token), rwhen->low_expr->eval_number(cond->token), rwhen->high_expr->eval_number(cond->token));
-        } else if (expr->type->is_assignment_compatible(TYPE_STRING)) {
+        } else if (expr->type->is_assignment_compatible(ast::TYPE_STRING)) {
             return overlap::check(comp, expr->eval_string(cond->token), rwhen->low_expr->eval_string(cond->token), rwhen->high_expr->eval_string(cond->token));
         } else {
             internal_error("ComparisonWhenCondition");
@@ -3071,22 +3071,22 @@ bool CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *cond)
     }
 }
 
-bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) const
+bool ast::CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) const
 {
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (low_expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
+        if (low_expr->type->is_assignment_compatible(ast::TYPE_NUMBER) || dynamic_cast<const ast::TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_number(cwhen->token), low_expr->eval_number(cwhen->token), high_expr->eval_number(cwhen->token));
-        } else if (low_expr->type->is_assignment_compatible(TYPE_STRING)) {
+        } else if (low_expr->type->is_assignment_compatible(ast::TYPE_STRING)) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_string(cwhen->token), low_expr->eval_string(cwhen->token), high_expr->eval_string(cwhen->token));
         } else {
             internal_error("RangeWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (low_expr->type->is_assignment_compatible(TYPE_NUMBER) || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
+        if (low_expr->type->is_assignment_compatible(ast::TYPE_NUMBER) || dynamic_cast<const ast::TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(low_expr->eval_number(cwhen->token), high_expr->eval_number(cwhen->token), rwhen->low_expr->eval_number(cwhen->token), rwhen->high_expr->eval_number(cwhen->token));
-        } else if (low_expr->type->is_assignment_compatible(TYPE_STRING)) {
+        } else if (low_expr->type->is_assignment_compatible(ast::TYPE_STRING)) {
             return overlap::check(low_expr->eval_string(cwhen->token), high_expr->eval_string(cwhen->token), rwhen->low_expr->eval_string(cwhen->token), rwhen->high_expr->eval_string(cwhen->token));
         } else {
             internal_error("RangeWhenCondition");
@@ -3096,16 +3096,16 @@ bool CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond) cons
     }
 }
 
-const Statement *Analyzer::analyze(const pt::CheckStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
-    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
-    const Expression *cond = analyze(statement->cond.get());
-    if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+    scope.push(new ast::Scope(scope.top(), frame.top()));
+    std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
+    const ast::Expression *cond = analyze(statement->cond.get());
+    if (not cond->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
         error(3199, statement->cond->token, "boolean value expected");
     }
-    condition_statements.push_back(std::make_pair(cond, std::vector<const Statement *>()));
-    std::vector<const Statement *> else_statements = analyze(statement->body);
+    condition_statements.push_back(std::make_pair(cond, std::vector<const ast::Statement *>()));
+    std::vector<const ast::Statement *> else_statements = analyze(statement->body);
     if (else_statements.empty()) {
         error(3200, statement->token, "body cannot be empty");
     }
@@ -3113,7 +3113,7 @@ const Statement *Analyzer::analyze(const pt::CheckStatement *statement)
         error(3201, statement->body.back()->token, "CHECK body must end in EXIT, NEXT, RAISE, or RETURN");
     }
     scope.pop();
-    return new IfStatement(statement->token.line, condition_statements, else_statements);
+    return new ast::IfStatement(statement->token.line, condition_statements, else_statements);
 }
 
 static unsigned int get_loop_id(const Token &token, const std::stack<std::list<std::pair<std::string, unsigned int>>> &loops, const std::string &type)
@@ -3126,66 +3126,66 @@ static unsigned int get_loop_id(const Token &token, const std::stack<std::list<s
     error(4301, token, "statement not within loop type while WHENEVER condition in effect");
 }
 
-void Analyzer::process_into_results(const pt::ExecStatement *statement, const std::string &sql, const Variable *function, std::vector<const Expression *> args, std::vector<const Statement *> &statements)
+void Analyzer::process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements)
 {
-    const Exception *sql_exception = dynamic_cast<const Exception *>(scope.top()->lookupName("SqlException"));
+    const ast::Exception *sql_exception = dynamic_cast<const ast::Exception *>(scope.top()->lookupName("SqlException"));
     if (sql_exception == nullptr) {
         internal_error("need exception SqlException");
     }
-    const PredefinedFunction *print = dynamic_cast<const PredefinedFunction *>(scope.top()->lookupName("print"));
+    const ast::PredefinedFunction *print = dynamic_cast<const ast::PredefinedFunction *>(scope.top()->lookupName("print"));
     if (print == nullptr) {
         internal_error("where's the print function");
     }
-    const Module *sys = dynamic_cast<const Module *>(scope.top()->lookupName("sys"));
+    const ast::Module *sys = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sys"));
     if (sys == nullptr) {
-        Module *module = import_module(Token(), "sys");
+        ast::Module *module = import_module(Token(), "sys");
         rtl_import("sys", module);
         global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module, true);
         sys = module;
     }
-    const PredefinedFunction *fexit = dynamic_cast<const PredefinedFunction *>(sys->scope->lookupName("exit"));
+    const ast::PredefinedFunction *fexit = dynamic_cast<const ast::PredefinedFunction *>(sys->scope->lookupName("exit"));
     if (fexit == nullptr) {
         internal_error("where's the exit function");
     }
-    const Module *sqlite = dynamic_cast<const Module *>(scope.top()->lookupName("sqlite"));
+    const ast::Module *sqlite = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sqlite"));
     if (sqlite == nullptr) {
         internal_error("need module sqlite");
     }
-    const Type *type_row = dynamic_cast<const Type *>(sqlite->scope->lookupName("Row"));
+    const ast::Type *type_row = dynamic_cast<const ast::Type *>(sqlite->scope->lookupName("Row"));
     if (type_row == nullptr) {
         internal_error("need a Row type");
     }
-    std::vector<const VariableExpression *> out_bindings;
+    std::vector<const ast::VariableExpression *> out_bindings;
     for (auto name: statement->info->assignments) {
-        out_bindings.push_back(new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName(name))));
+        out_bindings.push_back(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName(name))));
     }
-    Variable *result = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), type_row, false);
-    Variable *found = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)+1), TYPE_BOOLEAN, false);
+    ast::Variable *result = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), type_row, false);
+    ast::Variable *found = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)+1), ast::TYPE_BOOLEAN, false);
     scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)), result, true);
     scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)+1), found, true);
-    args.push_back(new VariableExpression(result));
+    args.push_back(new ast::VariableExpression(result));
     statements.push_back(
-        new AssignmentStatement(
+        new ast::AssignmentStatement(
             statement->token.line,
-            {new VariableExpression(found)},
-            new FunctionCall(
-                new VariableExpression(function),
+            {new ast::VariableExpression(found)},
+            new ast::FunctionCall(
+                new ast::VariableExpression(function),
                 args
             )
         )
     );
-    std::vector<const Statement *> then_statements;
-    std::vector<const Statement *> else_statements;
+    std::vector<const ast::Statement *> then_statements;
+    std::vector<const ast::Statement *> else_statements;
     uint32_t column = 0;
     for (auto b: out_bindings) {
         then_statements.push_back(
-            new AssignmentStatement(
+            new ast::AssignmentStatement(
                 statement->token.line,
                 {b},
-                new ArrayReferenceIndexExpression(
-                    TYPE_STRING,
-                    new VariableExpression(result),
-                    new ConstantNumberExpression(number_from_uint32(column)),
+                new ast::ArrayReferenceIndexExpression(
+                    ast::TYPE_STRING,
+                    new ast::VariableExpression(result),
+                    new ast::ConstantNumberExpression(number_from_uint32(column)),
                     false
                 )
             )
@@ -3197,29 +3197,29 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case SqlPrint:
             else_statements.push_back(
-                new ExpressionStatement(
+                new ast::ExpressionStatement(
                     statement->token.line,
-                    new FunctionCall(
-                        new VariableExpression(print),
-                        {new ConstantStringExpression(sql)}
+                    new ast::FunctionCall(
+                        new ast::VariableExpression(print),
+                        {new ast::ConstantStringExpression(sql)}
                     )
                 )
             );
             break;
         case Stop:
             else_statements.push_back(
-                new ExpressionStatement(
+                new ast::ExpressionStatement(
                     statement->token.line,
-                    new FunctionCall(
-                        new VariableExpression(fexit),
-                        {new ConstantNumberExpression(number_from_uint32(1))}
+                    new ast::FunctionCall(
+                        new ast::VariableExpression(fexit),
+                        {new ast::ConstantNumberExpression(number_from_uint32(1))}
                     )
                 )
             );
             break;
         case DoExitLoop:
             else_statements.push_back(
-                new ExitStatement(
+                new ast::ExitStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "LOOP")
                 )
@@ -3227,7 +3227,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoExitFor:
             else_statements.push_back(
-                new ExitStatement(
+                new ast::ExitStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "FOR")
                 )
@@ -3235,7 +3235,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoExitForeach:
             else_statements.push_back(
-                new ExitStatement(
+                new ast::ExitStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "FOREACH")
                 )
@@ -3243,7 +3243,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoExitRepeat:
             else_statements.push_back(
-                new ExitStatement(
+                new ast::ExitStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "REPEAT")
                 )
@@ -3251,7 +3251,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoExitWhile:
             else_statements.push_back(
-                new ExitStatement(
+                new ast::ExitStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "WHILE")
                 )
@@ -3259,7 +3259,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoNextLoop:
             else_statements.push_back(
-                new NextStatement(
+                new ast::NextStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "LOOP")
                 )
@@ -3267,7 +3267,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoNextFor:
             else_statements.push_back(
-                new NextStatement(
+                new ast::NextStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "FOR")
                 )
@@ -3275,7 +3275,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoNextForeach:
             else_statements.push_back(
-                new NextStatement(
+                new ast::NextStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "FOREACH")
                 )
@@ -3283,7 +3283,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoNextRepeat:
             else_statements.push_back(
-                new NextStatement(
+                new ast::NextStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "REPEAT")
                 )
@@ -3291,7 +3291,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoNextWhile:
             else_statements.push_back(
-                new NextStatement(
+                new ast::NextStatement(
                     statement->token.line,
                     get_loop_id(statement->token, loops, "WHILE")
                 )
@@ -3299,11 +3299,11 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             break;
         case DoRaiseException:
             else_statements.push_back(
-                new RaiseStatement(
+                new ast::RaiseStatement(
                     statement->token.line,
                     sql_exception,
-                    new RecordLiteralExpression(dynamic_cast<const TypeRecord *>(scope.top()->lookupName("ExceptionInfo")->type), {
-                        new ConstantStringExpression("No records found")
+                    new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionInfo")->type), {
+                        new ast::ConstantStringExpression("No records found")
                     })
                 )
             );
@@ -3312,36 +3312,36 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
             internal_error("unexpected whenever condition");
     }
     statements.push_back(
-        new IfStatement(
+        new ast::IfStatement(
             statement->token.line,
-            {std::make_pair(new VariableExpression(found), then_statements)},
+            {std::make_pair(new ast::VariableExpression(found), then_statements)},
             else_statements
         )
     );
 }
 
-const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
 {
-    const Module *sqlite = dynamic_cast<const Module *>(scope.top()->lookupName("sqlite"));
+    const ast::Module *sqlite = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sqlite"));
     if (sqlite == nullptr) {
-        Module *module = import_module(Token(), "sqlite");
+        ast::Module *module = import_module(Token(), "sqlite");
         rtl_import("sqlite", module);
         global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module, true);
         sqlite = module;
     }
-    const PredefinedFunction *exec = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("exec"));
+    const ast::PredefinedFunction *exec = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("exec"));
     if (exec == nullptr) {
         internal_error("where's the exec function");
     }
-    const PredefinedFunction *execOne = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("execOne"));
+    const ast::PredefinedFunction *execOne = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("execOne"));
     if (execOne == nullptr) {
         internal_error("where's the execOne function");
     }
-    const Type *type_rows = dynamic_cast<const Type *>(sqlite->scope->lookupName("Rows"));
+    const ast::Type *type_rows = dynamic_cast<const ast::Type *>(sqlite->scope->lookupName("Rows"));
     if (type_rows == nullptr) {
         internal_error("need a Rows type");
     }
-    std::vector<const Statement *> statements;
+    std::vector<const ast::Statement *> statements;
     SqlCloseStatement *close = dynamic_cast<SqlCloseStatement *>(statement->info->sql.get());
     SqlConnectStatement *connect = dynamic_cast<SqlConnectStatement *>(statement->info->sql.get());
     SqlDeclareStatement *declare = dynamic_cast<SqlDeclareStatement *>(statement->info->sql.get());
@@ -3352,29 +3352,29 @@ const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     SqlQueryStatement *query = dynamic_cast<SqlQueryStatement *>(statement->info->sql.get());
     SqlWheneverStatement *whenever = dynamic_cast<SqlWheneverStatement *>(statement->info->sql.get());
     if (close != nullptr) {
-        const PredefinedFunction *cursorClose = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorClose"));
-        statements.push_back(new ExpressionStatement(
+        const ast::PredefinedFunction *cursorClose = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("cursorClose"));
+        statements.push_back(new ast::ExpressionStatement(
             statement->token.line,
-            new FunctionCall(
-                new VariableExpression(cursorClose),
+            new ast::FunctionCall(
+                new ast::VariableExpression(cursorClose),
                 {
-                    new ConstantStringExpression(close->name->text())
+                    new ast::ConstantStringExpression(close->name->text())
                 }
             )
         ));
     } else if (connect != nullptr) {
-        const PredefinedFunction *open = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("open"));
+        const ast::PredefinedFunction *open = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("open"));
         const SqlValueLiteral *target_literal = dynamic_cast<const SqlValueLiteral *>(connect->target.get());
         const SqlValueVariable *target_variable = dynamic_cast<const SqlValueVariable *>(connect->target.get());
-        const Expression *target;
+        const ast::Expression *target;
         if (target_literal != nullptr) {
-            target = new ConstantStringExpression(target_literal->value);
+            target = new ast::ConstantStringExpression(target_literal->value);
         } else if (target_variable != nullptr) {
-            const Variable *var = dynamic_cast<Variable *>(scope.top()->lookupName(target_variable->variable.text));
+            const ast::Variable *var = dynamic_cast<ast::Variable *>(scope.top()->lookupName(target_variable->variable.text));
             if (var == nullptr) {
                 error(4302, target_variable->variable, "variable not found");
             }
-            target = new VariableExpression(var);
+            target = new ast::VariableExpression(var);
         } else {
             internal_error("unexpected target type");
         }
@@ -3383,26 +3383,26 @@ const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
         if (name_symbol != nullptr) {
             internal_error("todo");
         } else if (name_variable != nullptr) {
-            const Variable *name = dynamic_cast<const Variable *>(scope.top()->lookupName(name_variable->variable.text));
+            const ast::Variable *name = dynamic_cast<const ast::Variable *>(scope.top()->lookupName(name_variable->variable.text));
             if (name == nullptr) {
                 error(4304, name_variable->variable, "variable not found");
             }
-            statements.push_back(new AssignmentStatement(
+            statements.push_back(new ast::AssignmentStatement(
                 statement->token.line,
-                {new VariableExpression(name)},
-                new FunctionCall(
-                    new VariableExpression(open),
+                {new ast::VariableExpression(name)},
+                new ast::FunctionCall(
+                    new ast::VariableExpression(open),
                     {target}
                 )
             ));
         } else {
             // TODO: handle default connection
-            const Variable *name = dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"));
-            statements.push_back(new AssignmentStatement(
+            const ast::Variable *name = dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"));
+            statements.push_back(new ast::AssignmentStatement(
                 statement->token.line,
-                {new VariableExpression(name)},
-                new FunctionCall(
-                    new VariableExpression(open),
+                {new ast::VariableExpression(name)},
+                new ast::FunctionCall(
+                    new ast::VariableExpression(open),
                     {target}
                 )
             ));
@@ -3410,16 +3410,16 @@ const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     } else if (declare != nullptr) {
         const SqlDeclareQueryStatement *declare_query = dynamic_cast<const SqlDeclareQueryStatement *>(declare);
         if (declare_query != nullptr) {
-            const PredefinedFunction *cursorDeclare = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorDeclare"));
-            statements.push_back(new AssignmentStatement(
+            const ast::PredefinedFunction *cursorDeclare = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("cursorDeclare"));
+            statements.push_back(new ast::AssignmentStatement(
                 statement->token.line,
-                {new DummyExpression()},
-                new FunctionCall(
-                    new VariableExpression(cursorDeclare),
+                {new ast::DummyExpression()},
+                new ast::FunctionCall(
+                    new ast::VariableExpression(cursorDeclare),
                     {
-                        new VariableExpression(dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"))),
-                        new ConstantStringExpression(declare_query->cursor->text()),
-                        new ConstantStringExpression(declare_query->query)
+                        new ast::VariableExpression(dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"))),
+                        new ast::ConstantStringExpression(declare_query->cursor->text()),
+                        new ast::ConstantStringExpression(declare_query->query)
                     }
                 )
             ));
@@ -3427,18 +3427,18 @@ const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             internal_error("unexpected declare type");
         }
     } else if (disconnect != nullptr) {
-        const PredefinedFunction *close = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("close"));
+        const ast::PredefinedFunction *close = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("close"));
         const SqlIdentifierSymbol *name_symbol = dynamic_cast<const SqlIdentifierSymbol *>(disconnect->name.get());
         const SqlIdentifierVariable *name_variable = dynamic_cast<const SqlIdentifierVariable *>(disconnect->name.get());
         if (name_symbol != nullptr) {
             internal_error("todo");
         } else if (name_variable != nullptr) {
-            const Variable *name = dynamic_cast<const Variable *>(scope.top()->lookupName(name_variable->variable.text));
-            statements.push_back(new ExpressionStatement(
+            const ast::Variable *name = dynamic_cast<const ast::Variable *>(scope.top()->lookupName(name_variable->variable.text));
+            statements.push_back(new ast::ExpressionStatement(
                 statement->token.line,
-                new FunctionCall(
-                    new VariableExpression(close),
-                    {new VariableExpression(name)}
+                new ast::FunctionCall(
+                    new ast::VariableExpression(close),
+                    {new ast::VariableExpression(name)}
                 )
             ));
         } else if (disconnect->default_) {
@@ -3447,77 +3447,77 @@ const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             internal_error("todo");
         } else {
             // TODO: handle default connection
-            const Variable *db = dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"));
-            statements.push_back(new ExpressionStatement(
+            const ast::Variable *db = dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"));
+            statements.push_back(new ast::ExpressionStatement(
                 statement->token.line,
-                new FunctionCall(
-                    new VariableExpression(close),
-                    {new VariableExpression(db)}
+                new ast::FunctionCall(
+                    new ast::VariableExpression(close),
+                    {new ast::VariableExpression(db)}
                 )
             ));
         }
     } else if (execute != nullptr) {
-        const PredefinedFunction *execRaw = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("execRaw"));
+        const ast::PredefinedFunction *execRaw = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("execRaw"));
         const SqlValueLiteral *statement_literal = dynamic_cast<const SqlValueLiteral *>(execute->statement.get());
         const SqlValueVariable *statement_variable = dynamic_cast<const SqlValueVariable *>(execute->statement.get());
-        const Expression *sqlstatement;
+        const ast::Expression *sqlstatement;
         if (statement_literal != nullptr) {
-            sqlstatement = new ConstantStringExpression(statement_literal->value);
+            sqlstatement = new ast::ConstantStringExpression(statement_literal->value);
         } else if (statement_variable != nullptr) {
-            const Variable *var = dynamic_cast<Variable *>(scope.top()->lookupName(statement_variable->variable.text));
+            const ast::Variable *var = dynamic_cast<ast::Variable *>(scope.top()->lookupName(statement_variable->variable.text));
             if (var == nullptr) {
                 error(4303, statement_variable->variable, "variable not found");
             }
-            sqlstatement = new VariableExpression(var);
+            sqlstatement = new ast::VariableExpression(var);
         } else {
             internal_error("unexpected execute type");
         }
-        statements.push_back(new AssignmentStatement(
+        statements.push_back(new ast::AssignmentStatement(
             statement->token.line,
-            {new DummyExpression()},
-            new FunctionCall(
-                new VariableExpression(execRaw),
+            {new ast::DummyExpression()},
+            new ast::FunctionCall(
+                new ast::VariableExpression(execRaw),
                 {
-                    new VariableExpression(dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"))),
+                    new ast::VariableExpression(dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"))),
                     sqlstatement
                 }
             )
         ));
     } else if (fetch != nullptr) {
-        const PredefinedFunction *cursorFetch = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorFetch"));
+        const ast::PredefinedFunction *cursorFetch = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("cursorFetch"));
         process_into_results(
             statement,
             "FETCH",
             cursorFetch,
             {
-                new ConstantStringExpression(fetch->name->text()),
+                new ast::ConstantStringExpression(fetch->name->text()),
             },
             statements
         );
     } else if (open != nullptr) {
-        const PredefinedFunction *cursorOpen = dynamic_cast<const PredefinedFunction *>(sqlite->scope->lookupName("cursorOpen"));
-        statements.push_back(new ExpressionStatement(
+        const ast::PredefinedFunction *cursorOpen = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("cursorOpen"));
+        statements.push_back(new ast::ExpressionStatement(
             statement->token.line,
-            new FunctionCall(
-                new VariableExpression(cursorOpen),
+            new ast::FunctionCall(
+                new ast::VariableExpression(cursorOpen),
                 {
-                    new ConstantStringExpression(open->name->text())
+                    new ast::ConstantStringExpression(open->name->text())
                 }
             )
         ));
     } else if (query != nullptr) {
-        std::vector<std::pair<std::string, const Expression *>> binding_vars;
+        std::vector<std::pair<std::string, const ast::Expression *>> binding_vars;
         for (auto p: statement->info->parameters) {
-            binding_vars.push_back(std::make_pair(p, new VariableExpression(dynamic_cast<const Variable *>(scope.top()->lookupName(p.substr(1))))));
+            binding_vars.push_back(std::make_pair(p, new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName(p.substr(1))))));
         }
         process_into_results(
             statement,
             query->query,
             execOne,
             {
-                new VariableExpression(dynamic_cast<const Variable *>(sqlite->scope->lookupName("db"))),
-                new ConstantStringExpression(query->query),
-                new DictionaryLiteralExpression(TYPE_STRING, binding_vars)
+                new ast::VariableExpression(dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"))),
+                new ast::ConstantStringExpression(query->query),
+                new ast::DictionaryLiteralExpression(ast::TYPE_STRING, binding_vars)
             },
             statements
         );
@@ -3526,70 +3526,70 @@ const Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     } else {
         internal_error("unexpected statement type");
     }
-    return new CompoundStatement(statement->token.line, statements);
+    return new ast::CompoundStatement(statement->token.line, statements);
 }
 
-const Statement *Analyzer::analyze(const pt::ExitStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::ExitStatement *statement)
 {
     if (statement->type.type == FUNCTION) {
         if (functiontypes.empty()) {
             error(3107, statement->token, "EXIT FUNCTION not allowed outside function");
-        } else if (functiontypes.top().second->returntype != TYPE_NOTHING) {
+        } else if (functiontypes.top().second->returntype != ast::TYPE_NOTHING) {
             error(3108, statement->token, "function must return a value");
         }
-        return new ReturnStatement(statement->token.line, nullptr);
+        return new ast::ReturnStatement(statement->token.line, nullptr);
     }
     std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
-                return new ExitStatement(statement->token.line, j->second);
+                return new ast::ExitStatement(statement->token.line, j->second);
             }
         }
     }
     error(3078, statement->token, "no matching loop found in current scope");
 }
 
-const Statement *Analyzer::analyze(const pt::ExpressionStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::ExpressionStatement *statement)
 {
-    const Expression *expr = analyze(statement->expr.get());
-    if (expr->type == TYPE_NOTHING) {
-        return new ExpressionStatement(statement->token.line, analyze(statement->expr.get()));
+    const ast::Expression *expr = analyze(statement->expr.get());
+    if (expr->type == ast::TYPE_NOTHING) {
+        return new ast::ExpressionStatement(statement->token.line, analyze(statement->expr.get()));
     }
-    if (dynamic_cast<const ComparisonExpression *>(expr) != nullptr) {
+    if (dynamic_cast<const ast::ComparisonExpression *>(expr) != nullptr) {
         error(3060, statement->expr->token, "':=' expected");
     }
-    if (dynamic_cast<const FunctionCall *>(expr) != nullptr) {
+    if (dynamic_cast<const ast::FunctionCall *>(expr) != nullptr) {
         error(3059, statement->token, "return value unused");
     }
     error(3061, statement->token, "Unexpected");
 }
 
-const Statement *Analyzer::analyze(const pt::ForStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
+    scope.push(new ast::Scope(scope.top(), frame.top()));
     Token name = statement->var;
     if (scope.top()->lookupName(name.text) != nullptr) {
         error2(3118, name, "duplicate identifier", scope.top()->getDeclaration(name.text), "first declaration here");
     }
-    Variable *var = frame.top()->createVariable(name, name.text, TYPE_NUMBER, false);
+    ast::Variable *var = frame.top()->createVariable(name, name.text, ast::TYPE_NUMBER, false);
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
-    Variable *bound = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), TYPE_NUMBER, false);
+    ast::Variable *bound = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), ast::TYPE_NUMBER, false);
     // TODO: Need better way of declaring unnamed local variable.
     scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
-    const Expression *start = analyze(statement->start.get());
-    if (not start->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *start = analyze(statement->start.get());
+    if (not start->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3067, statement->start->token, "numeric expression expected");
     }
-    const Expression *end = analyze(statement->end.get());
-    if (not end->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *end = analyze(statement->end.get());
+    if (not end->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3068, statement->end->token, "numeric expression expected");
     }
-    const Expression *step = nullptr;
+    const ast::Expression *step = nullptr;
     if (statement->step != nullptr) {
         step = analyze(statement->step.get());
-        if (step->type != TYPE_NUMBER) {
+        if (step->type != ast::TYPE_NUMBER) {
             error(3069, statement->step->token, "numeric expression expected");
         }
         if (not step->is_constant) {
@@ -3599,7 +3599,7 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
             error(3091, statement->step->token, "STEP value cannot be zero");
         }
     } else {
-        step = new ConstantNumberExpression(number_from_uint32(1));
+        step = new ast::ConstantNumberExpression(number_from_uint32(1));
     }
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
@@ -3608,53 +3608,53 @@ const Statement *Analyzer::analyze(const pt::ForStatement *statement)
         if (label.type != NONE) {
             error2(3213, statement->label, "loop label already defined", label, "declaration here");
         }
-        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+        scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
-    std::vector<const ReferenceExpression *> vars { new VariableExpression(var) };
-    std::vector<const Statement *> init_statements {
-        new AssignmentStatement(statement->token.line, vars, start),
-        new AssignmentStatement(statement->token.line, { new VariableExpression(bound) }, end),
+    std::vector<const ast::ReferenceExpression *> vars { new ast::VariableExpression(var) };
+    std::vector<const ast::Statement *> init_statements {
+        new ast::AssignmentStatement(statement->token.line, vars, start),
+        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(bound) }, end),
     };
-    std::vector<const Statement *> statements {
-        new IfStatement(
+    std::vector<const ast::Statement *> statements {
+        new ast::IfStatement(
             statement->token.line,
-            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+            std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
-                    new NumericComparisonExpression(
-                        new VariableExpression(var),
-                        new VariableExpression(bound),
-                        number_is_negative(step->eval_number(statement->step->token)) ? ComparisonExpression::LT : ComparisonExpression::GT
+                    new ast::NumericComparisonExpression(
+                        new ast::VariableExpression(var),
+                        new ast::VariableExpression(bound),
+                        number_is_negative(step->eval_number(statement->step->token)) ? ast::ComparisonExpression::LT : ast::ComparisonExpression::GT
                     ),
-                    std::vector<const Statement *> { new ExitStatement(statement->token.line, loop_id) }
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
                 )
             },
-            std::vector<const Statement *>()
+            std::vector<const ast::Statement *>()
         ),
     };
-    std::vector<const Statement *> body = analyze(statement->body);
+    std::vector<const ast::Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
-    std::vector<const Statement *> tail_statements {
-        new AssignmentStatement(statement->token.line, vars, new AdditionExpression(new VariableExpression(var), step)),
+    std::vector<const ast::Statement *> tail_statements {
+        new ast::AssignmentStatement(statement->token.line, vars, new ast::AdditionExpression(new ast::VariableExpression(var), step)),
     };
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
+    return new ast::BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
 }
 
-const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
+    scope.push(new ast::Scope(scope.top(), frame.top()));
     Token var_name = statement->var;
     if (scope.top()->lookupName(var_name.text) != nullptr) {
         error2(3169, var_name, "duplicate identifier", scope.top()->getDeclaration(var_name.text), "first declaration here");
     }
-    const Expression *array = analyze(statement->array.get());
-    const TypeArray *arrtype = dynamic_cast<const TypeArray *>(array->type);
-    const Type *strtype = dynamic_cast<const TypeString *>(array->type);
-    const Type *atype;
-    const Type *elementtype;
+    const ast::Expression *array = analyze(statement->array.get());
+    const ast::TypeArray *arrtype = dynamic_cast<const ast::TypeArray *>(array->type);
+    const ast::Type *strtype = dynamic_cast<const ast::TypeString *>(array->type);
+    const ast::Type *atype;
+    const ast::Type *elementtype;
     std::string len_method;
     if (arrtype != nullptr) {
         atype = arrtype;
@@ -3662,38 +3662,38 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         len_method = "size";
     } else if (strtype != nullptr) {
         atype = strtype;
-        elementtype = TYPE_STRING;
+        elementtype = ast::TYPE_STRING;
         len_method = "length";
     } else {
         error(3170, statement->array->token, "array or string expected");
     }
     std::string array_copy_name = std::to_string(reinterpret_cast<intptr_t>(statement)+2);
-    Variable *array_copy = frame.top()->createVariable(Token(), array_copy_name, atype, false);
+    ast::Variable *array_copy = frame.top()->createVariable(Token(), array_copy_name, atype, false);
     scope.top()->addName(Token(IDENTIFIER, ""), array_copy_name, array_copy, true);
 
-    Variable *var = frame.top()->createVariable(var_name, var_name.text, elementtype, false);
+    ast::Variable *var = frame.top()->createVariable(var_name, var_name.text, elementtype, false);
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
 
     Token index_name = statement->index;
-    Variable *index;
+    ast::Variable *index;
     if (index_name.type == IDENTIFIER) {
         if (scope.top()->lookupName(index_name.text) != nullptr) {
             error2(3171, index_name, "duplicate identifier", scope.top()->getDeclaration(index_name.text), "first declaration here");
         }
-        index = frame.top()->createVariable(index_name, index_name.text, TYPE_NUMBER, false);
+        index = frame.top()->createVariable(index_name, index_name.text, ast::TYPE_NUMBER, false);
         scope.top()->addName(index->declaration, index->name, index, true);
     } else {
         // TODO: Need better way of declaring unnamed local variable.
         index_name.text = std::to_string(reinterpret_cast<intptr_t>(statement)+1);
-        index = frame.top()->createVariable(Token(), index_name.text, TYPE_NUMBER, false);
+        index = frame.top()->createVariable(Token(), index_name.text, ast::TYPE_NUMBER, false);
         scope.top()->addName(Token(IDENTIFIER, ""), index_name.text, index, true);
     }
     index->is_readonly = true;
 
     // TODO: Need better way of declaring unnamed local variable.
     std::string bound_name = std::to_string(reinterpret_cast<intptr_t>(statement));
-    Variable *bound = frame.top()->createVariable(Token(), bound_name, TYPE_NUMBER, false);
+    ast::Variable *bound = frame.top()->createVariable(Token(), bound_name, ast::TYPE_NUMBER, false);
     scope.top()->addName(Token(IDENTIFIER, ""), bound_name, bound, true);
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
@@ -3702,162 +3702,162 @@ const Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         if (label.type != NONE) {
             error2(3214, statement->label, "loop label already defined", label, "declaration here");
         }
-        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+        scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
-    std::vector<const Statement *> init_statements {
-        new AssignmentStatement(statement->token.line, { new VariableExpression(index) }, new ConstantNumberExpression(number_from_uint32(0))),
-        new AssignmentStatement(statement->token.line, { new VariableExpression(array_copy) }, array),
-        new AssignmentStatement(statement->token.line, { new VariableExpression(bound) }, new FunctionCall(new VariableExpression(atype->methods.at(len_method)), { new VariableExpression(array_copy) })),
+    std::vector<const ast::Statement *> init_statements {
+        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
+        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(array_copy) }, array),
+        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(atype->methods.at(len_method)), { new ast::VariableExpression(array_copy) })),
     };
-    std::vector<const Statement *> statements {
-        new IfStatement(
+    std::vector<const ast::Statement *> statements {
+        new ast::IfStatement(
             statement->token.line,
-            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+            std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
-                    new NumericComparisonExpression(
-                        new VariableExpression(index),
-                        new VariableExpression(bound),
-                        ComparisonExpression::GE
+                    new ast::NumericComparisonExpression(
+                        new ast::VariableExpression(index),
+                        new ast::VariableExpression(bound),
+                        ast::ComparisonExpression::GE
                     ),
-                    std::vector<const Statement *> { new ExitStatement(statement->token.line, loop_id) }
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
                 ),
             },
-            std::vector<const Statement *>()
+            std::vector<const ast::Statement *>()
         ),
-        new AssignmentStatement(statement->token.line, { new VariableExpression(var) },
-            arrtype ? static_cast<Expression *>(new ArrayValueIndexExpression(var->type, new VariableExpression(array_copy), new VariableExpression(index), false)) :
-            strtype ? static_cast<Expression *>(new StringValueIndexExpression(new VariableExpression(array_copy), new VariableExpression(index), false, new VariableExpression(index), false, this)) :
+        new ast::AssignmentStatement(statement->token.line, { new ast::VariableExpression(var) },
+            arrtype ? static_cast<ast::Expression *>(new ast::ArrayValueIndexExpression(var->type, new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false)) :
+            strtype ? static_cast<ast::Expression *>(new ast::StringValueIndexExpression(new ast::VariableExpression(array_copy), new ast::VariableExpression(index), false, new ast::VariableExpression(index), false, this)) :
             nullptr
         ),
     };
-    std::vector<const Statement *> body = analyze(statement->body);
+    std::vector<const ast::Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
-    std::vector<const Statement *> tail_statements {
-        new IncrementStatement(statement->token.line, new VariableExpression(index), 1),
+    std::vector<const ast::Statement *> tail_statements {
+        new ast::IncrementStatement(statement->token.line, new ast::VariableExpression(index), 1),
     };
     scope.pop();
     loops.top().pop_back();
     var->is_readonly = false;
-    return new BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
+    return new ast::BaseLoopStatement(statement->token.line, loop_id, init_statements, statements, tail_statements, false);
 }
 
-const Statement *Analyzer::analyze(const pt::IfStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
-    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    scope.push(new ast::Scope(scope.top(), frame.top()));
+    std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
     for (auto &c: statement->condition_statements) {
-        const Expression *cond = nullptr;
+        const ast::Expression *cond = nullptr;
         const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(c.first.get());
         if (valid != nullptr) {
             for (auto &v: valid->tests) {
                 if (not v->shorthand and scope.top()->lookupName(v->name.text) != nullptr) {
                     error2(3102, v->name, "duplicate identifier", scope.top()->getDeclaration(v->name.text), "first declaration here");
                 }
-                const Expression *ptr = analyze(v->expr.get());
-                const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
+                const ast::Expression *ptr = analyze(v->expr.get());
+                const ast::TypePointer *ptrtype = dynamic_cast<const ast::TypePointer *>(ptr->type);
                 if (ptrtype == nullptr) {
                     error(3101, v->expr->token, "pointer type expression expected");
                 }
-                const TypeValidPointer *vtype = new TypeValidPointer(Token(), ptrtype->reftype);
-                Variable *var;
+                const ast::TypeValidPointer *vtype = new ast::TypeValidPointer(Token(), ptrtype->reftype);
+                ast::Variable *var;
                 // TODO: Try to make this a local variable always (give the global scope a local space).
                 if (functiontypes.empty()) {
-                    var = new GlobalVariable(v->name, v->name.text, vtype, true);
+                    var = new ast::GlobalVariable(v->name, v->name.text, vtype, true);
                 } else {
                     // TODO: probably use frame.top()->get_depth() (add IF VALID to repl tests)
-                    var = new LocalVariable(v->name, v->name.text, vtype, frame.size()-1, true);
+                    var = new ast::LocalVariable(v->name, v->name.text, vtype, frame.size()-1, true);
                 }
                 scope.top()->addName(v->name, v->name.text, var, true, v->shorthand);
-                const Expression *ve = new ValidPointerExpression(var, ptr);
+                const ast::Expression *ve = new ast::ValidPointerExpression(var, ptr);
                 if (cond == nullptr) {
                     cond = ve;
                 } else {
-                    cond = new ConjunctionExpression(cond, ve);
+                    cond = new ast::ConjunctionExpression(cond, ve);
                 }
             }
         } else {
             cond = analyze(c.first.get());
-            if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+            if (not cond->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
                 error(3048, c.first->token, "boolean value expected");
             }
         }
-        scope.push(new Scope(scope.top(), frame.top()));
+        scope.push(new ast::Scope(scope.top(), frame.top()));
         condition_statements.push_back(std::make_pair(cond, analyze(c.second)));
         scope.pop();
     }
-    std::vector<const Statement *> else_statements = analyze(statement->else_statements);
+    std::vector<const ast::Statement *> else_statements = analyze(statement->else_statements);
     scope.pop();
-    return new IfStatement(statement->token.line, condition_statements, else_statements);
+    return new ast::IfStatement(statement->token.line, condition_statements, else_statements);
 }
 
-const Statement *Analyzer::analyze(const pt::IncrementStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::IncrementStatement *statement)
 {
-    const Expression *e = analyze(statement->expr.get());
-    if (not e->type->is_assignment_compatible(TYPE_NUMBER)) {
+    const ast::Expression *e = analyze(statement->expr.get());
+    if (not e->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3187, statement->expr->token, "INC and DEC parameter must be Number");
     }
-    const ReferenceExpression *ref = dynamic_cast<const ReferenceExpression *>(e);
+    const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(e);
     if (ref == nullptr) {
         error(3188, statement->expr->token, "INC and DEC call argument must be reference");
     }
     if (ref->is_readonly) {
         error(3189, statement->expr->token, "readonly parameter to INC or DEC");
     }
-    return new IncrementStatement(statement->token.line, ref, statement->delta);
+    return new ast::IncrementStatement(statement->token.line, ref, statement->delta);
 }
 
-const Statement *Analyzer::analyze(const pt::LoopStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::LoopStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
+    scope.push(new ast::Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
         Token label = scope.top()->getDeclaration(statement->label.text);
         if (label.type != NONE) {
             error2(3215, statement->label, "loop label already defined", label, "declaration here");
         }
-        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+        scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
-    std::vector<const Statement *> statements = analyze(statement->body);
+    std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, true);
+    return new ast::BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, true);
 }
 
-const Statement *Analyzer::analyze(const pt::NextStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::NextStatement *statement)
 {
     std::string type = statement->type.text;
     if (not loops.empty()) {
         for (auto j = loops.top().rbegin(); j != loops.top().rend(); ++j) {
             if (j->first == type) {
-                return new NextStatement(statement->token.line, j->second);
+                return new ast::NextStatement(statement->token.line, j->second);
             }
         }
     }
     error(3084, statement->token, "no matching loop found in current scope");
 }
 
-const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
 {
-    Scope *s = scope.top();
+    ast::Scope *s = scope.top();
     size_t i = 0;
-    const Name *modname = scope.top()->lookupName(statement->name[i].text);
-    const Module *mod = dynamic_cast<const Module *>(modname);
+    const ast::Name *modname = scope.top()->lookupName(statement->name[i].text);
+    const ast::Module *mod = dynamic_cast<const ast::Module *>(modname);
     if (mod != nullptr) {
         s = mod->scope;
         i++;
     }
-    const Name *name = s->lookupName(statement->name[i].text);
+    const ast::Name *name = s->lookupName(statement->name[i].text);
     if (name == nullptr) {
         error(3089, statement->name[i], "exception not found: " + statement->name[i].text);
     }
-    const Exception *exception = dynamic_cast<const Exception *>(name);
+    const ast::Exception *exception = dynamic_cast<const ast::Exception *>(name);
     if (exception == nullptr) {
         error2(3090, statement->name[i], "name not an exception", name->declaration, "declaration here");
     }
     i++;
-    const Exception *sn = exception;
+    const ast::Exception *sn = exception;
     while (i < statement->name.size()) {
         auto t = sn->subexceptions.find(statement->name[i].text);
         if (t == sn->subexceptions.end()) {
@@ -3866,85 +3866,85 @@ const Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
         sn = t->second;
         i++;
     }
-    const Expression *info;
+    const ast::Expression *info;
     if (statement->info != nullptr) {
         info = analyze(statement->info.get());
     } else {
-        std::vector<const Expression *> values;
-        info = new RecordLiteralExpression(dynamic_cast<const TypeRecord *>(s->lookupName("ExceptionInfo")->type), values);
+        std::vector<const ast::Expression *> values;
+        info = new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(s->lookupName("ExceptionInfo")->type), values);
     }
-    return new RaiseStatement(statement->token.line, sn, info);
+    return new ast::RaiseStatement(statement->token.line, sn, info);
 }
 
-const Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
+    scope.push(new ast::Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
         Token label = scope.top()->getDeclaration(statement->label.text);
         if (label.type != NONE) {
             error2(3216, statement->label, "loop label already defined", label, "declaration here");
         }
-        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+        scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
-    std::vector<const Statement *> statements = analyze(statement->body);
-    const Expression *cond = analyze(statement->cond.get());
-    if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+    std::vector<const ast::Statement *> statements = analyze(statement->body);
+    const ast::Expression *cond = analyze(statement->cond.get());
+    if (not cond->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
         error(3086, statement->cond->token, "boolean value expected");
     }
     statements.push_back(
-        new IfStatement(
+        new ast::IfStatement(
             statement->cond->token.line,
-            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+            std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
                     cond,
-                    std::vector<const Statement *> { new ExitStatement(statement->cond->token.line, loop_id) }
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->cond->token.line, loop_id) }
                 )
             },
-            std::vector<const Statement *>()
+            std::vector<const ast::Statement *>()
         )
     );
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == false);
+    return new ast::BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == false);
 }
 
-const Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
 {
-    const Expression *expr = analyze(statement->expr.get());
+    const ast::Expression *expr = analyze(statement->expr.get());
     if (functiontypes.empty()) {
         error(3093, statement->token, "RETURN not allowed outside function");
-    } else if (functiontypes.top().second->returntype == TYPE_NOTHING) {
+    } else if (functiontypes.top().second->returntype == ast::TYPE_NOTHING) {
         error(3094, statement->token, "function does not return a value");
     } else if (not functiontypes.top().second->returntype->is_assignment_compatible(expr->type)) {
         error(3095, statement->expr->token, "type mismatch in RETURN");
     }
-    return new ReturnStatement(statement->token.line, expr);
+    return new ast::ReturnStatement(statement->token.line, expr);
 }
 
-std::vector<TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches)
+std::vector<ast::TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches)
 {
-    std::vector<TryTrap> r;
+    std::vector<ast::TryTrap> r;
     for (auto &x: catches) {
-        Scope *s = scope.top();
+        ast::Scope *s = scope.top();
         size_t i = 0;
-        const Name *modname = scope.top()->lookupName(x->exceptions.at(0)[i].text);
-        const Module *mod = dynamic_cast<const Module *>(modname);
+        const ast::Name *modname = scope.top()->lookupName(x->exceptions.at(0)[i].text);
+        const ast::Module *mod = dynamic_cast<const ast::Module *>(modname);
         if (mod != nullptr) {
             s = mod->scope;
             i++;
         }
-        const Name *name = s->lookupName(x->exceptions.at(0)[i].text);
+        const ast::Name *name = s->lookupName(x->exceptions.at(0)[i].text);
         if (name == nullptr) {
             error(3087, x->exceptions.at(0)[i], "exception not found: " + x->exceptions.at(0)[i].text);
         }
-        const Exception *exception = dynamic_cast<const Exception *>(name);
+        const ast::Exception *exception = dynamic_cast<const ast::Exception *>(name);
         if (exception == nullptr) {
             error2(3088, x->exceptions.at(0)[i], "name not an exception", name->declaration, "declaration here");
         }
         i++;
-        const Exception *sn = exception;
+        const ast::Exception *sn = exception;
         while (i < x->exceptions.at(0).size()) {
             auto t = sn->subexceptions.find(x->exceptions.at(0)[i].text);
             if (t == sn->subexceptions.end()) {
@@ -3953,31 +3953,31 @@ std::vector<TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr
             sn = t->second;
             i++;
         }
-        std::vector<const Exception *> exceptions;
+        std::vector<const ast::Exception *> exceptions;
         exceptions.push_back(sn);
-        scope.push(new Scope(scope.top(), frame.top()));
-        Variable *var = nullptr;
+        scope.push(new ast::Scope(scope.top(), frame.top()));
+        ast::Variable *var = nullptr;
         if (x->name.type != NONE) {
-            const TypeRecord *vtype = dynamic_cast<const TypeRecord *>(s->lookupName("ExceptionType"));
+            const ast::TypeRecord *vtype = dynamic_cast<const ast::TypeRecord *>(s->lookupName("ExceptionType"));
             if (vtype == nullptr) {
                 internal_error("could not find ExceptionType");
             }
             // TODO: Try to make this a local variable always (give the global scope a local space).
             if (functiontypes.empty()) {
-                var = new GlobalVariable(x->name, x->name.text, vtype, true);
+                var = new ast::GlobalVariable(x->name, x->name.text, vtype, true);
             } else {
-                var = new LocalVariable(x->name, x->name.text, vtype, frame.size()-1, true);
+                var = new ast::LocalVariable(x->name, x->name.text, vtype, frame.size()-1, true);
             }
             scope.top()->addName(x->name, x->name.text, var, true);
         }
         const pt::TryHandlerStatement *ths = dynamic_cast<const pt::TryHandlerStatement *>(x->handler.get());
         const pt::Expression *e = dynamic_cast<const pt::Expression *>(x->handler.get());
         if (ths != nullptr) {
-            std::vector<const Statement *> statements = analyze(ths->body);
-            r.push_back(TryTrap(exceptions, var, new ExceptionHandlerStatement(0 /*TODO*/, statements)));
+            std::vector<const ast::Statement *> statements = analyze(ths->body);
+            r.push_back(ast::TryTrap(exceptions, var, new ast::ExceptionHandlerStatement(0 /*TODO*/, statements)));
         } else if (e != nullptr) {
-            const Expression *g = analyze(e);
-            r.push_back(TryTrap(exceptions, var, g));
+            const ast::Expression *g = analyze(e);
+            r.push_back(ast::TryTrap(exceptions, var, g));
         } else {
             internal_error("unexpected catch type");
         }
@@ -3986,87 +3986,87 @@ std::vector<TryTrap> Analyzer::analyze_catches(const std::vector<std::unique_ptr
     return r;
 }
 
-const Statement *Analyzer::analyze(const pt::TryStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::TryStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
-    std::vector<const Statement *> statements = analyze(statement->body);
+    scope.push(new ast::Scope(scope.top(), frame.top()));
+    std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
     auto catches = analyze_catches(statement->catches);
-    return new TryStatement(statement->token.line, statements, catches);
+    return new ast::TryStatement(statement->token.line, statements, catches);
 }
 
-const Statement *Analyzer::analyze(const pt::TryHandlerStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::TryHandlerStatement *statement)
 {
-    scope.push(new Scope(scope.top(), frame.top()));
-    std::vector<const Statement *> statements = analyze(statement->body);
+    scope.push(new ast::Scope(scope.top(), frame.top()));
+    std::vector<const ast::Statement *> statements = analyze(statement->body);
     scope.pop();
-    return new ExceptionHandlerStatement(statement->token.line, statements);
+    return new ast::ExceptionHandlerStatement(statement->token.line, statements);
 }
 
-const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
+const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 {
-    const Expression *cond = nullptr;
+    const ast::Expression *cond = nullptr;
     const pt::ValidPointerExpression *valid = dynamic_cast<const pt::ValidPointerExpression *>(statement->cond.get());
     if (valid != nullptr) {
         for (auto &v: valid->tests) {
             if (not v->shorthand and scope.top()->lookupName(v->name.text) != nullptr) {
                 error2(3234, v->name, "duplicate identifier", scope.top()->getDeclaration(v->name.text), "first declaration here");
             }
-            const Expression *ptr = analyze(v->expr.get());
-            const TypePointer *ptrtype = dynamic_cast<const TypePointer *>(ptr->type);
+            const ast::Expression *ptr = analyze(v->expr.get());
+            const ast::TypePointer *ptrtype = dynamic_cast<const ast::TypePointer *>(ptr->type);
             if (ptrtype == nullptr) {
                 error(3233, v->expr->token, "pointer type expression expected");
             }
-            const TypeValidPointer *vtype = new TypeValidPointer(Token(), ptrtype->reftype);
-            Variable *var;
+            const ast::TypeValidPointer *vtype = new ast::TypeValidPointer(Token(), ptrtype->reftype);
+            ast::Variable *var;
             // TODO: Try to make this a local variable always (give the global scope a local space).
             if (functiontypes.empty()) {
-                var = new GlobalVariable(v->name, v->name.text, vtype, true);
+                var = new ast::GlobalVariable(v->name, v->name.text, vtype, true);
             } else {
                 // TODO: probably use frame.top()->get_depth() (add IF VALID to repl tests)
-                var = new LocalVariable(v->name, v->name.text, vtype, frame.size()-1, true);
+                var = new ast::LocalVariable(v->name, v->name.text, vtype, frame.size()-1, true);
             }
             scope.top()->addName(v->name, v->name.text, var, true, v->shorthand);
-            const Expression *ve = new ValidPointerExpression(var, ptr);
+            const ast::Expression *ve = new ast::ValidPointerExpression(var, ptr);
             if (cond == nullptr) {
                 cond = ve;
             } else {
-                cond = new ConjunctionExpression(cond, ve);
+                cond = new ast::ConjunctionExpression(cond, ve);
             }
         }
     } else {
         cond = analyze(statement->cond.get());
-        if (not cond->type->is_assignment_compatible(TYPE_BOOLEAN)) {
+        if (not cond->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
             error(3049, statement->cond->token, "boolean value expected");
         }
     }
-    scope.push(new Scope(scope.top(), frame.top()));
+    scope.push(new ast::Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {
         Token label = scope.top()->getDeclaration(statement->label.text);
         if (label.type != NONE) {
             error2(3217, statement->label, "loop label already defined", label, "declaration here");
         }
-        scope.top()->addName(statement->label, statement->label.text, new LoopLabel(statement->label));
+        scope.top()->addName(statement->label, statement->label.text, new ast::LoopLabel(statement->label));
     }
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
-    std::vector<const Statement *> statements {
-        new IfStatement(
+    std::vector<const ast::Statement *> statements {
+        new ast::IfStatement(
             statement->token.line,
-            std::vector<std::pair<const Expression *, std::vector<const Statement *>>> {
+            std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> {
                 std::make_pair(
-                    new LogicalNotExpression(cond),
-                    std::vector<const Statement *> { new ExitStatement(statement->token.line, loop_id) }
+                    new ast::LogicalNotExpression(cond),
+                    std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
                 )
             },
-            std::vector<const Statement *>()
+            std::vector<const ast::Statement *>()
         )
     };
-    std::vector<const Statement *> body = analyze(statement->body);
+    std::vector<const ast::Statement *> body = analyze(statement->body);
     std::copy(body.begin(), body.end(), std::back_inserter(statements));
     scope.pop();
     loops.top().pop_back();
-    return new BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == true);
+    return new ast::BaseLoopStatement(statement->token.line, loop_id, {}, statements, {}, cond->is_constant && cond->eval_boolean(statement->cond->token) == true);
 }
 
 // This code attempts to check for every type that is used in an exported
@@ -4081,22 +4081,22 @@ const Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 
 class ExportedTypeChecker {
 public:
-    ExportedTypeChecker(const std::set<const Name *> &exported): exported(exported), seen() {}
-    void check(const Type *type) {
+    ExportedTypeChecker(const std::set<const ast::Name *> &exported): exported(exported), seen() {}
+    void check(const ast::Type *type) {
         if (seen.find(type) != seen.end()) {
             return;
         }
         seen.insert(type);
-        if (type == TYPE_NOTHING
-         || type == TYPE_BOOLEAN
-         || type == TYPE_NUMBER
-         || type == TYPE_STRING
-         || type == TYPE_BYTES) {
+        if (type == ast::TYPE_NOTHING
+         || type == ast::TYPE_BOOLEAN
+         || type == ast::TYPE_NUMBER
+         || type == ast::TYPE_STRING
+         || type == ast::TYPE_BYTES) {
             return;
         }
-        const TypeArray *ta = dynamic_cast<const TypeArray *>(type);
-        const TypeDictionary *td = dynamic_cast<const TypeDictionary *>(type);
-        const TypePointer *tp = dynamic_cast<const TypePointer *>(type);
+        const ast::TypeArray *ta = dynamic_cast<const ast::TypeArray *>(type);
+        const ast::TypeDictionary *td = dynamic_cast<const ast::TypeDictionary *>(type);
+        const ast::TypePointer *tp = dynamic_cast<const ast::TypePointer *>(type);
         if (ta != nullptr) {
             check(ta->elementtype);
             return;
@@ -4112,7 +4112,7 @@ public:
         if (exported.find(type) == exported.end() && not type->name.empty() && type->declaration.line > 0) {
             error(3211, type->declaration, "dependent type must be exported: " + type->name + ", " + type->text());
         }
-        const TypeRecord *tr = dynamic_cast<const TypeRecord *>(type);
+        const ast::TypeRecord *tr = dynamic_cast<const ast::TypeRecord *>(type);
         if (tr != nullptr) {
             for (auto &f: tr->fields) {
                 check(f.type);
@@ -4120,14 +4120,14 @@ public:
         }
     }
 private:
-    const std::set<const Name *> &exported;
-    std::set<const Name *> seen;
+    const std::set<const ast::Name *> &exported;
+    std::set<const ast::Name *> seen;
     ExportedTypeChecker &operator=(const ExportedTypeChecker &) = delete;
 };
 
-const Program *Analyzer::analyze()
+const ast::Program *Analyzer::analyze()
 {
-    Program *r = new Program(program->source_path, program->source_hash);
+    ast::Program *r = new ast::Program(program->source_path, program->source_hash);
     global_scope = r->scope;
     frame.push(r->frame);
     scope.push(global_scope);
@@ -4135,12 +4135,12 @@ const Program *Analyzer::analyze()
     // so that modules can use the real global scope as their parent
     // scope to avoid accidentally linking them up together (issue #30).
     if (external_globals != nullptr) {
-        frame.push(new ExternalGlobalFrame(frame.top(), *external_globals));
-        scope.push(new ExternalGlobalScope(scope.top(), frame.top(), *external_globals));
+        frame.push(new ast::ExternalGlobalFrame(frame.top(), *external_globals));
+        scope.push(new ast::ExternalGlobalScope(scope.top(), frame.top(), *external_globals));
         r->frame = frame.top();
         r->scope = scope.top();
     } else {
-        scope.push(new Scope(scope.top(), frame.top()));
+        scope.push(new ast::Scope(scope.top(), frame.top()));
         r->scope = scope.top();
     }
 
@@ -4150,21 +4150,21 @@ const Program *Analyzer::analyze()
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();
-    std::set<const Name *> exported;
+    std::set<const ast::Name *> exported;
     for (auto nt: exports) {
-        const Name *name = scope.top()->lookupName(nt.first);
+        const ast::Name *name = scope.top()->lookupName(nt.first);
         if (name == nullptr) {
             internal_error("export name not found: " + nt.first);
         }
         if (r->exports.find(nt.first) != r->exports.end()) {
             internal_error("export name already exported");
         }
-        if (dynamic_cast<const Type *>(name) == nullptr
-         && dynamic_cast<const Exception *>(name) == nullptr
-         && dynamic_cast<const GlobalVariable *>(name) == nullptr
-         && dynamic_cast<const Constant *>(name) == nullptr
-         && dynamic_cast<const Function *>(name) == nullptr
-         && dynamic_cast<const PredefinedFunction *>(name) == nullptr) {
+        if (dynamic_cast<const ast::Type *>(name) == nullptr
+         && dynamic_cast<const ast::Exception *>(name) == nullptr
+         && dynamic_cast<const ast::GlobalVariable *>(name) == nullptr
+         && dynamic_cast<const ast::Constant *>(name) == nullptr
+         && dynamic_cast<const ast::Function *>(name) == nullptr
+         && dynamic_cast<const ast::PredefinedFunction *>(name) == nullptr) {
             internal_error("Attempt to export something that can't be exported: " + nt.first);
         }
         r->exports[nt.first] = name;
@@ -4172,22 +4172,22 @@ const Program *Analyzer::analyze()
     }
     ExportedTypeChecker etc(exported);
     for (auto nt: exports) {
-        const Name *name = scope.top()->lookupName(nt.first);
-        if (dynamic_cast<const Type *>(name) != nullptr) {
+        const ast::Name *name = scope.top()->lookupName(nt.first);
+        if (dynamic_cast<const ast::Type *>(name) != nullptr) {
             // pass
-        } else if (dynamic_cast<const Exception *>(name) != nullptr) {
+        } else if (dynamic_cast<const ast::Exception *>(name) != nullptr) {
             // pass
-        } else if (dynamic_cast<const GlobalVariable *>(name) != nullptr) {
-            etc.check(dynamic_cast<const GlobalVariable *>(name)->type);
-        } else if (dynamic_cast<const Constant *>(name) != nullptr) {
-            etc.check(dynamic_cast<const Constant *>(name)->type);
-        } else if (dynamic_cast<const Function *>(name) != nullptr) {
-            const Function *f = dynamic_cast<const Function *>(name);
+        } else if (dynamic_cast<const ast::GlobalVariable *>(name) != nullptr) {
+            etc.check(dynamic_cast<const ast::GlobalVariable *>(name)->type);
+        } else if (dynamic_cast<const ast::Constant *>(name) != nullptr) {
+            etc.check(dynamic_cast<const ast::Constant *>(name)->type);
+        } else if (dynamic_cast<const ast::Function *>(name) != nullptr) {
+            const ast::Function *f = dynamic_cast<const ast::Function *>(name);
             for (auto p: f->params) {
                 etc.check(p->type);
             }
-            etc.check(dynamic_cast<const TypeFunction *>(f->type)->returntype);
-        } else if (dynamic_cast<const PredefinedFunction *>(name) != nullptr) {
+            etc.check(dynamic_cast<const ast::TypeFunction *>(f->type)->returntype);
+        } else if (dynamic_cast<const ast::PredefinedFunction *>(name) != nullptr) {
             // pass
         }
     }
@@ -4587,9 +4587,9 @@ private:
     VariableChecker &operator=(const VariableChecker &);
 };
 
-const Program *analyze(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ExternalGlobalInfo> *external_globals)
+const ast::Program *analyze(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ast::ExternalGlobalInfo> *external_globals)
 {
-    const Program *r = Analyzer(support, program, external_globals).analyze();
+    const ast::Program *r = Analyzer(support, program, external_globals).analyze();
 
     // Check variable use (uninitialised, unused).
     VariableChecker vc;
@@ -4599,8 +4599,8 @@ const Program *analyze(ICompilerSupport *support, const pt::Program *program, st
     if (external_globals == nullptr) {
         // Find unused imports.
         for (size_t i = 0; i < r->frame->getCount(); i++) {
-            Frame::Slot s = r->frame->getSlot(i);
-            if (dynamic_cast<Module *>(s.ref) != nullptr && not s.referenced) {
+            ast::Frame::Slot s = r->frame->getSlot(i);
+            if (dynamic_cast<ast::Module *>(s.ref) != nullptr && not s.referenced) {
                 error(3192, s.token, "Unused import");
             }
         }
