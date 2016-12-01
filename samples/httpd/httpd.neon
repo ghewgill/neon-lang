@@ -118,7 +118,7 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
     VAR r: Response := Response()
     LET local_path: String := params[0].getString() & path
     IF file.isDirectory(local_path) THEN
-        IF path[LAST] /= "/" THEN
+        IF path[LAST] <> "/" THEN
             r.code := 302
             r.content_type := "text/plain"
             r.headers["Location"] := path & "/"

@@ -1,4 +1,4 @@
 VAR a: String
-LET b: Boolean := a /= "x" OR a /= "x"
-LET c: Boolean := a /= "x" OR a /= "y"
+LET b: Boolean := a <> "x" OR a <> "x"
+LET c: Boolean := a <> "x" OR a <> "y"
                            %<

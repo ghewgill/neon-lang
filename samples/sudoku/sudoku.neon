@@ -36,10 +36,10 @@ FUNCTION dlx_cover(c: POINTER TO Node)
         r->left := c->left
         l->right := c->right
         VAR i: POINTER TO Node := c->down
-        WHILE i /= c DO
+        WHILE i <> c DO
             IF VALID i AS ii THEN
                 VAR j: POINTER TO Node := ii->right
-                WHILE j /= i DO
+                WHILE j <> i DO
                     IF VALID j AS jj, jj->up AS u, jj->down AS d THEN
                         d->up := jj->up
                         u->down := jj->down
@@ -66,10 +66,10 @@ END FUNCTION
 FUNCTION dlx_uncover(c: POINTER TO Node)
     IF VALID c, c->left AS l, c->right AS r THEN
         VAR i: POINTER TO Node := c->up
-        WHILE i /= c DO
+        WHILE i <> c DO
             IF VALID i AS ii THEN
                 VAR j: POINTER TO Node := ii->left
-                WHILE j /= i DO
+                WHILE j <> i DO
                     IF VALID j AS jj, jj->up AS u, jj->down AS d THEN
                         IF VALID jj->column AS col THEN
                             INC col->size
@@ -101,7 +101,7 @@ FUNCTION dlx_search(head: VALID POINTER TO Node, INOUT solution: Array<Number>, 
     VAR c: POINTER TO Node := NIL
     VAR s: Number := 99999
     VAR d: POINTER TO Node := head->right
-    WHILE d /= head DO
+    WHILE d <> head DO
         IF VALID d AS dd THEN
             IF dd->size = 0 THEN
                 RETURN FALSE
@@ -118,11 +118,11 @@ FUNCTION dlx_search(head: VALID POINTER TO Node, INOUT solution: Array<Number>, 
     IF VALID c THEN
         dlx_cover(c)
         VAR r: POINTER TO Node := c->down
-        WHILE r /= c DO
+        WHILE r <> c DO
             IF VALID r AS rr THEN
                 solution[k] := rr->row
                 VAR j: POINTER TO Node := rr->right
-                WHILE j /= r DO
+                WHILE j <> r DO
                     IF VALID j AS jj THEN
                         dlx_cover(jj->column)
                         j := jj->right
@@ -134,7 +134,7 @@ FUNCTION dlx_search(head: VALID POINTER TO Node, INOUT solution: Array<Number>, 
                     RETURN TRUE
                 END IF
                 j := rr->left
-                WHILE j /= r DO
+                WHILE j <> r DO
                     IF VALID j AS jj THEN
                         dlx_uncover(jj->column)
                         j := jj->left

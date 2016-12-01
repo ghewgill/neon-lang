@@ -4973,7 +4973,7 @@ FUNCTION test_pwhash()
     %LET salt: Bytes := bytes("[<~A 32-bytes salt for scrypt~>]")
     VAR out: String := sodium.pwhash_scryptsalsa208sha256_str(passwd, OPS_LIMIT, MEM_LIMIT)
     VAR out2: String := sodium.pwhash_scryptsalsa208sha256_str(passwd, OPS_LIMIT, MEM_LIMIT)
-    ASSERT out /= out2
+    ASSERT out <> out2
     ASSERT sodium.pwhash_scryptsalsa208sha256_str_verify(out, passwd)
     ASSERT sodium.pwhash_scryptsalsa208sha256_str_verify(out, passwd)
     out[14] := chr(ord(out[14]) + 1)

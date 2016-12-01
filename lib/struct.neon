@@ -348,7 +348,7 @@ FUNCTION unpackBool(b: Bytes): Boolean
         RAISE InvalidValueException
     END CHECK
     LET a: Array<Number> := b.toArray()
-    RETURN a[0] /= 0
+    RETURN a[0] <> 0
 END FUNCTION
 
 %|

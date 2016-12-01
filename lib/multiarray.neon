@@ -117,7 +117,7 @@ FUNCTION makeNumber2DValue(rows, columns: Number, value: Number): ArrayNumber2D
     r.resize(rows)
     FOR i := 0 TO rows-1 DO
         r[i].resize(columns)
-        IF value /= 0 THEN
+        IF value <> 0 THEN
             FOR j := 0 TO columns-1 DO
                 r[i][j] := value
             END FOR

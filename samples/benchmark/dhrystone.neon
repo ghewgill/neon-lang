@@ -582,7 +582,7 @@ FUNCTION Func_1 (IN Ch_1_Par_Val: String, IN Ch_2_Par_Val: String): Enumeration
 
   Ch_1_Loc := Ch_1_Par_Val
   Ch_2_Loc := Ch_1_Loc
-  IF Ch_2_Loc /= Ch_2_Par_Val THEN
+  IF Ch_2_Loc <> Ch_2_Par_Val THEN
     % then, executed
     RETURN Enumeration.Ident_1
   ELSE  % not executed
