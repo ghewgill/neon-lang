@@ -766,14 +766,14 @@ END FUNCTION
 
 % TODO maybe use these later, but not yet
 %FUNCTION Parser.expect(INOUT self: Parser, expected: TokenType, errorNumber: Number, message: String)
-%    IF self.token.type # expected THEN
+%    IF self.token.type <> expected THEN
 %        error(errorNumber, self.token, message)
 %    END IF
 %    self.nextToken()
 %END FUNCTION
 %
 %FUNCTION Parser.nextIdentifier(INOUT self: Parser, errorNumber: Number): lexer.Token
-%    IF self.token.type # TokenType.identifier THEN
+%    IF self.token.type <> TokenType.identifier THEN
 %        error(errorNumber, self.token, "identifier expected")
 %    END IF
 %    LET r: lexer.Token := self.token
@@ -784,18 +784,18 @@ END FUNCTION
 FUNCTION Parser.parseVariableDeclaration(INOUT self: Parser): VariableInfo
     VAR names: Array<lexer.Token> := []
     LOOP
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2018, self.token, "identifier expected")
         END IF
         LET name: lexer.Token := self.token
         self.nextToken()
         names.append(name)
-        IF self.token.type # TokenType.comma THEN
+        IF self.token.type <> TokenType.comma THEN
             EXIT LOOP
         END IF
         self.nextToken()
     END LOOP
-    IF self.token.type # TokenType.colon THEN
+    IF self.token.type <> TokenType.colon THEN
         error(2019, self.token, "colon expected")
     END IF
     self.nextToken()
@@ -804,12 +804,12 @@ FUNCTION Parser.parseVariableDeclaration(INOUT self: Parser): VariableInfo
 END FUNCTION
 
 FUNCTION Parser.parseFunctionParameters(INOUT self: Parser, OUT returntype: POINTER TO ParseTreeNode, OUT args: Array<FunctionParameterGroup>, OUT rparen: lexer.Token)
-    IF self.token.type # TokenType.lparen THEN
+    IF self.token.type <> TokenType.lparen THEN
         error(2024, self.token, "'(' expected")
     END IF
     self.nextToken()
     args := []
-    IF self.token.type # TokenType.rparen THEN
+    IF self.token.type <> TokenType.rparen THEN
         LOOP
             VAR mode: ParameterMode := ParameterMode.in
             CASE self.token.type
@@ -831,12 +831,12 @@ FUNCTION Parser.parseFunctionParameters(INOUT self: Parser, OUT returntype: POIN
                 mode WITH mode,
                 defaultValue WITH defaultValue
             ))
-            IF self.token.type # TokenType.comma THEN
+            IF self.token.type <> TokenType.comma THEN
                 EXIT LOOP
             END IF
             self.nextToken()
         END LOOP
-        IF self.token.type # TokenType.rparen THEN
+        IF self.token.type <> TokenType.rparen THEN
             error(2025, self.token, "')' or ',' expected")
         END IF
     END IF
@@ -853,14 +853,14 @@ END FUNCTION
 FUNCTION Parser.parseFunctionHeader(INOUT self: Parser, OUT type: lexer.Token, OUT name: lexer.Token, OUT returntype: POINTER TO ParseTreeNode, OUT args: Array<FunctionParameterGroup>, OUT rparen: lexer.Token)
     ASSERT self.token.type = TokenType.function
     self.nextToken()
-    IF self.token.type # TokenType.identifier THEN
+    IF self.token.type <> TokenType.identifier THEN
         error(2023, self.token, "identifier expected")
     END IF
     name := self.token
     self.nextToken()
     IF self.token.type = TokenType.dot THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2068, self.token, "identifier expected")
         END IF
         type := name
@@ -882,7 +882,7 @@ FUNCTION Parser.parseFunctionDefinition(INOUT self: Parser, startColumn: Number 
     self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
     self.pushMinimumIndent((IF startColumn > 0 THEN startColumn ELSE tokFunction.column) + 1)
     VAR body: Array<POINTER TO ParseTreeNode> := []
-    WHILE self.token.type # TokenType.end DO
+    WHILE self.token.type <> TokenType.end DO
         LET s: POINTER TO ParseTreeNode := self.parseStatement()
         IF VALID s THEN
             body.append(s)
@@ -891,7 +891,7 @@ FUNCTION Parser.parseFunctionDefinition(INOUT self: Parser, startColumn: Number 
     self.popMinimumIndent()
     LET tokEndFunction: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.function THEN
+    IF self.token.type <> TokenType.function THEN
         error_a(2036, self.tokens[self.index-1], self.token, "'FUNCTION' expected")
     END IF
     self.nextToken()
@@ -914,7 +914,7 @@ FUNCTION Parser.parseExternalDefinition(INOUT self: Parser): POINTER TO ParseTre
     ASSERT self.token.type = TokenType.external
     LET tokExternal: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.function THEN
+    IF self.token.type <> TokenType.function THEN
         error(2045, self.token, "FUNCTION expected")
     END IF
     VAR type: lexer.Token
@@ -923,15 +923,15 @@ FUNCTION Parser.parseExternalDefinition(INOUT self: Parser): POINTER TO ParseTre
     VAR args: Array<FunctionParameterGroup>
     VAR rparen: lexer.Token
     self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
-    IF self.token.type # TokenType.lbrace THEN
+    IF self.token.type <> TokenType.lbrace THEN
         error(2046, self.token, "{ expected")
     END IF
     LET dict: POINTER TO ParseTreeNode := self.parseDictionaryLiteral()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2050, self.token, "'END' expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.function THEN
+    IF self.token.type <> TokenType.function THEN
         error_a(2051, self.tokens[self.index-1], self.token, "'END FUNCTION' expected")
     END IF
     self.nextToken()
@@ -953,7 +953,7 @@ FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTree
     ASSERT self.token.type = TokenType.lparen
     self.nextToken()
     VAR args: Array<FunctionCallArgument> := []
-    IF self.token.type # TokenType.rparen THEN
+    IF self.token.type <> TokenType.rparen THEN
         LOOP
             VAR mode: lexer.Token := lexer.Token()
             IF self.token.type IN [TokenType.in, TokenType.out, TokenType.inout] THEN
@@ -981,12 +981,12 @@ FUNCTION Parser.parseFunctionCall(INOUT self: Parser, func: POINTER TO ParseTree
                 e := self.parseExpression()
             END IF
             args.append(FunctionCallArgument(mode WITH mode, name WITH name, expr WITH e))
-            IF self.token.type # TokenType.comma THEN
+            IF self.token.type <> TokenType.comma THEN
                 EXIT LOOP
             END IF
             self.nextToken()
         END LOOP
-        IF self.token.type # TokenType.rparen THEN
+        IF self.token.type <> TokenType.rparen THEN
             error(2013, self.token, "')' or ',' expected")
         END IF
     END IF
@@ -1013,7 +1013,7 @@ FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokLbracket: lexer.Token := self.token
     self.nextToken()
     VAR elements: Array<POINTER TO ParseTreeNode> := []
-    WHILE self.token.type # TokenType.rbracket DO
+    WHILE self.token.type <> TokenType.rbracket DO
         LET element: POINTER TO ParseTreeNode := self.parseExpression()
         IF self.token.type = TokenType.comma THEN
             self.nextToken()
@@ -1036,7 +1036,7 @@ FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
                     )
                 )
             END IF
-            IF self.token.type # TokenType.rbracket THEN
+            IF self.token.type <> TokenType.rbracket THEN
                 error2(2099, self.token, "']' expected", tokLbracket, "opening '[' here")
             END IF
             self.nextToken()
@@ -1051,7 +1051,7 @@ FUNCTION Parser.parseArrayLiteral(INOUT self: Parser): POINTER TO ParseTreeNode
                     step WITH step
                 )
             )
-        ELSIF self.token.type # TokenType.rbracket THEN
+        ELSIF self.token.type <> TokenType.rbracket THEN
             error2(2053, self.token, "',' or ']' expected", tokLbracket, "opening '[' here")
         END IF
         elements.append(element)
@@ -1073,9 +1073,9 @@ FUNCTION Parser.parseDictionaryLiteral(INOUT self: Parser): POINTER TO ParseTree
     LET tokLbrace: lexer.Token := self.token
     self.nextToken()
     VAR elements: Array<DictionaryLiteralKeyValue> := []
-    WHILE self.token.type # TokenType.rbrace DO
+    WHILE self.token.type <> TokenType.rbrace DO
         LET key: POINTER TO ParseTreeNode := self.parseExpression()
-        IF self.token.type # TokenType.colon THEN
+        IF self.token.type <> TokenType.colon THEN
             error(2048, self.token, "':' expected")
         END IF
         self.nextToken()
@@ -1112,7 +1112,7 @@ FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER T
     )]
     LOOP
         self.nextToken()
-        IF self.token.type # TokenType.subbegin THEN
+        IF self.token.type <> TokenType.subbegin THEN
             EXIT LOOP
         END IF
         self.nextToken()
@@ -1120,18 +1120,18 @@ FUNCTION Parser.parseInterpolatedStringExpression(INOUT self: Parser): POINTER T
         VAR fmt: lexer.Token := lexer.Token()
         IF self.token.type = TokenType.subfmt THEN
             self.nextToken()
-            IF self.token.type # TokenType.string THEN
+            IF self.token.type <> TokenType.string THEN
                 internalError("parseInterpolatedStringExpression")
             END IF
             fmt := self.token
             self.nextToken()
         END IF
         parts.append(InterpolatedStringPart(expr WITH e, format WITH fmt))
-        IF self.token.type # TokenType.subend THEN
+        IF self.token.type <> TokenType.subend THEN
             internalError("parseInterpolatedStringExpression")
         END IF
         self.nextToken()
-        IF self.token.type # TokenType.string THEN
+        IF self.token.type <> TokenType.string THEN
             internalError("parseInterpolatedStringExpression")
         END IF
         LET s: POINTER TO ParseTreeNode := NEW ParseTreeNode(
@@ -1175,7 +1175,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
             LET tokLparen: lexer.Token := self.token
             self.nextToken()
             LET expr: POINTER TO ParseTreeNode := self.parseConditional()
-            IF self.token.type # TokenType.rparen THEN
+            IF self.token.type <> TokenType.rparen THEN
                 error2(2014, self.token, ") expected", tokLparen, "opening '(' here")
             END IF
             self.nextToken()
@@ -1246,7 +1246,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
             END IF
         WHEN TokenType.embed DO
             self.nextToken()
-            IF self.token.type # TokenType.string THEN
+            IF self.token.type <> TokenType.string THEN
                 error(2090, self.token, "string literal expected")
             END IF
             LET tokFile: lexer.Token := self.token
@@ -1262,7 +1262,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
             )
         WHEN TokenType.hexbytes DO
             self.nextToken()
-            IF self.token.type # TokenType.string THEN
+            IF self.token.type <> TokenType.string THEN
                 error(2094, self.token, "string literal expected")
             END IF
             LET tokLiteral: lexer.Token := self.token
@@ -1318,7 +1318,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
         WHEN TokenType.new DO
             LET tokNew: lexer.Token := self.token
             self.nextToken()
-            IF self.token.type # TokenType.identifier THEN
+            IF self.token.type <> TokenType.identifier THEN
                 error(2110, self.token, "identifier expected")
             END IF
             VAR expr: POINTER TO ParseTreeNode := NEW ParseTreeNode(
@@ -1332,7 +1332,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
             IF self.token.type = TokenType.dot THEN
                 LET tokDot: lexer.Token := self.token
                 self.nextToken()
-                IF self.token.type # TokenType.identifier THEN
+                IF self.token.type <> TokenType.identifier THEN
                     error(2111, self.token, "identifier expected")
                 END IF
                 expr := NEW ParseTreeNode(
@@ -1465,7 +1465,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                             error(2020, self.token, "']' expected")
                         END IF
                         self.nextToken()
-                        IF range # NIL THEN
+                        IF range <> NIL THEN
                             expr := NEW ParseTreeNode(
                                 type WITH Type.RangeSubscriptExpression,
                                 token WITH tokLbracket,
@@ -1506,13 +1506,13 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                                 )
                             )
                         END IF
-                    UNTIL self.tokens[self.index-1].type # TokenType.comma
+                    UNTIL self.tokens[self.index-1].type <> TokenType.comma
                 ELSIF self.token.type = TokenType.lparen THEN
                     expr := self.parseFunctionCall(expr)
                 ELSIF self.token.type = TokenType.dot THEN
                     LET tokDot: lexer.Token := self.token
                     self.nextToken()
-                    IF self.token.type # TokenType.identifier THEN
+                    IF self.token.type <> TokenType.identifier THEN
                         error(2021, self.token, "identifier expected")
                     END IF
                     LET field: lexer.Token := self.token
@@ -1528,7 +1528,7 @@ FUNCTION Parser.parseAtom(INOUT self: Parser): POINTER TO ParseTreeNode
                 ELSIF self.token.type = TokenType.arrow THEN
                     LET tokArrow: lexer.Token := self.token
                     self.nextToken()
-                    IF self.token.type # TokenType.identifier THEN
+                    IF self.token.type <> TokenType.identifier THEN
                         error(2066, self.token, "identifier expected")
                     END IF
                     LET field: lexer.Token := self.token
@@ -1826,12 +1826,12 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
         LET tokIf: lexer.Token := self.token
         self.nextToken()
         LET cond: POINTER TO ParseTreeNode := self.parseExpression()
-        IF self.token.type # TokenType.then THEN
+        IF self.token.type <> TokenType.then THEN
             error(2016, self.token, "'THEN' expected")
         END IF
         self.nextToken()
         LET left: POINTER TO ParseTreeNode := self.parseExpression()
-        IF self.token.type # TokenType.else THEN
+        IF self.token.type <> TokenType.else THEN
             error(2017, self.token, "'ELSE' expected")
         END IF
         self.nextToken()
@@ -1859,7 +1859,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
             self.nextToken()
             IF self.token.type = TokenType.dot THEN
                 self.nextToken()
-                IF self.token.type # TokenType.identifier THEN
+                IF self.token.type <> TokenType.identifier THEN
                     error(2107, self.token, "identifier expected")
                 END IF
                 name[0] := name[1]
@@ -1870,7 +1870,7 @@ FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
             VAR nameinfo: lexer.Token := lexer.Token()
             IF self.token.type = TokenType.as THEN
                 self.nextToken()
-                IF self.token.type # TokenType.identifier THEN
+                IF self.token.type <> TokenType.identifier THEN
                     error(2123, self.token, "identifier expected")
                 END IF
                 nameinfo := self.token
@@ -1944,7 +1944,7 @@ FUNCTION Parser.parseImport(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR name: lexer.Token := lexer.Token()
     IF self.token.type = TokenType.dot THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2079, self.token, "identifier expected")
         END IF
         name := self.token
@@ -1953,7 +1953,7 @@ FUNCTION Parser.parseImport(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR alias: lexer.Token := lexer.Token()
     IF self.token.type = TokenType.alias THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2080, self.token, "identifier expected")
         END IF
         alias := self.token
@@ -1977,8 +1977,8 @@ FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokEnum: lexer.Token := self.token
     self.nextToken()
     VAR names: Array<lexer.Token> := []
-    WHILE self.token.type # TokenType.end DO
-        IF self.token.type # TokenType.identifier THEN
+    WHILE self.token.type <> TokenType.end DO
+        IF self.token.type <> TokenType.identifier THEN
             error(2006, self.token, "identifier expected")
         END IF
         LET name: lexer.Token := self.token
@@ -1986,7 +1986,7 @@ FUNCTION Parser.parseEnumType(INOUT self: Parser): POINTER TO ParseTreeNode
         names.append(name)
     END WHILE
     self.nextToken()
-    IF self.token.type # TokenType.enum THEN
+    IF self.token.type <> TokenType.enum THEN
         error_a(2035, self.tokens[self.index-1], self.token, "'ENUM' expected")
     END IF
     self.nextToken()
@@ -2004,17 +2004,17 @@ FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokRecord: lexer.Token := self.token
     self.nextToken()
     VAR fields: Array<Field> := []
-    WHILE self.token.type # TokenType.end DO
+    WHILE self.token.type <> TokenType.end DO
         LET isPrivate: Boolean := self.token.type = TokenType.private
         IF isPrivate THEN
             self.nextToken()
         END IF
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2004, self.token, "identifier expected")
         END IF
         LET name: lexer.Token := self.token
         self.nextToken()
-        IF self.token.type # TokenType.colon THEN
+        IF self.token.type <> TokenType.colon THEN
             error(2005, self.token, "colon expected")
         END IF
         self.nextToken()
@@ -2026,7 +2026,7 @@ FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
         ))
     END WHILE
     self.nextToken()
-    IF self.token.type # TokenType.record THEN
+    IF self.token.type <> TokenType.record THEN
         error_a(2034, self.tokens[self.index-1], self.token, "'RECORD' expected")
     END IF
     self.nextToken()
@@ -2087,13 +2087,13 @@ FUNCTION Parser.parseParameterisedType(INOUT self: Parser): POINTER TO ParseTree
         internalError("unexpected parameterised type")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.less THEN
+    IF self.token.type <> TokenType.less THEN
         error(2002, self.token, "'<' expected")
     END IF
     LET tokLess: lexer.Token := self.token
     self.nextToken()
     LET elementtype: POINTER TO ParseTreeNode := self.parseType()
-    IF self.token.type # TokenType.greater THEN
+    IF self.token.type <> TokenType.greater THEN
         error2(2003, self.token, "'>' expected", tokLess, "opening '<' here")
     END IF
     self.nextToken()
@@ -2120,7 +2120,7 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
         WHEN TokenType.function DO
             RETURN self.parseFunctionType()
         WHEN OTHERS DO
-            IF self.token.type # TokenType.identifier THEN
+            IF self.token.type <> TokenType.identifier THEN
                 error(2007, self.token, "identifier expected")
             END IF
     END CASE
@@ -2128,7 +2128,7 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
     self.nextToken()
     IF self.token.type = TokenType.dot THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2075, self.token, "identifier expected")
         END IF
         LET subname: lexer.Token := self.token
@@ -2154,12 +2154,12 @@ END FUNCTION
 
 FUNCTION Parser.parseTypeDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
     self.nextToken()
-    IF self.token.type # TokenType.identifier THEN
+    IF self.token.type <> TokenType.identifier THEN
         error(2008, self.token, "identifier expected")
     END IF
     LET tokName: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.is THEN
+    IF self.token.type <> TokenType.is THEN
         error(2009, self.token, "'IS' expected")
     END IF
     self.nextToken()
@@ -2176,17 +2176,17 @@ END FUNCTION
 FUNCTION Parser.parseConstantDefinition(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.constant
     self.nextToken()
-    IF self.token.type # TokenType.identifier THEN
+    IF self.token.type <> TokenType.identifier THEN
         error(2010, self.token, "identifier expected")
     END IF
     LET tokName: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.colon THEN
+    IF self.token.type <> TokenType.colon THEN
         error(2011, self.token, "':' expected")
     END IF
     self.nextToken()
     LET type: POINTER TO ParseTreeNode := self.parseType()
-    IF self.token.type # TokenType.assign THEN
+    IF self.token.type <> TokenType.assign THEN
         error(2012, self.token, "':=' expected")
     END IF
     self.nextToken()
@@ -2212,12 +2212,12 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                 WHEN TokenType.constant DO
                     LET tokConstant: lexer.Token := self.token
                     self.nextToken()
-                    IF self.token.type # TokenType.identifier THEN
+                    IF self.token.type <> TokenType.identifier THEN
                         error(3212, self.token, "identifier expected")
                     END IF
                     LET name: lexer.Token := self.token
                     self.nextToken()
-                    IF self.token.type # TokenType.colon THEN
+                    IF self.token.type <> TokenType.colon THEN
                         error(3213, self.token, "':' expected")
                     END IF
                     self.nextToken()
@@ -2252,12 +2252,12 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                 WHEN TokenType.var DO
                     LET tokVar: lexer.Token := self.token
                     self.nextToken()
-                    IF self.token.type # TokenType.identifier THEN
+                    IF self.token.type <> TokenType.identifier THEN
                         error(3212, self.token, "identifier expected")
                     END IF
                     LET name: lexer.Token := self.token
                     self.nextToken()
-                    IF self.token.type # TokenType.colon THEN
+                    IF self.token.type <> TokenType.colon THEN
                         error(3213, self.token, "':' expected")
                     END IF
                     self.nextToken()
@@ -2284,12 +2284,12 @@ FUNCTION Parser.parseException(INOUT self: Parser): POINTER TO ParseTreeNode
     LET tokName: lexer.Token := self.token
     VAR name: Array<lexer.Token> := []
     LOOP
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2059, self.token, "identifier expected")
         END IF
         name.append(self.token)
         self.nextToken()
-        IF self.token.type # TokenType.dot THEN
+        IF self.token.type <> TokenType.dot THEN
             EXIT LOOP
         END IF
         self.nextToken()
@@ -2379,7 +2379,7 @@ FUNCTION Parser.parseExport(INOUT self: Parser): POINTER TO ParseTreeNode
                 )
             ) END IF |%
     END CASE
-    IF self.token.type # TokenType.identifier THEN
+    IF self.token.type <> TokenType.identifier THEN
         error(2074, self.token, "identifier expected")
     END IF
     LET tokName: lexer.Token := self.token
@@ -2397,7 +2397,7 @@ FUNCTION Parser.parseBegin(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.begin
     LET tokBegin: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.main THEN
+    IF self.token.type <> TokenType.main THEN
         error(2091, self.token, "'MAIN' expected")
     END IF
     LET tokMain: lexer.Token := self.token
@@ -2411,11 +2411,11 @@ FUNCTION Parser.parseBegin(INOUT self: Parser): POINTER TO ParseTreeNode
         END IF
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2092, self.token, "END expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.main THEN
+    IF self.token.type <> TokenType.main THEN
         error_a(2093, self.tokens[self.index-1], self.token, "'MAIN' expected")
     END IF
     self.nextToken()
@@ -2458,17 +2458,17 @@ FUNCTION Parser.parseLetStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.let
     LET tokVar: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.identifier THEN
+    IF self.token.type <> TokenType.identifier THEN
         error(2069, self.token, "identifier expected")
     END IF
     LET tokName: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.colon THEN
+    IF self.token.type <> TokenType.colon THEN
         error(2070, self.token, "':' expected")
     END IF
     self.nextToken()
     LET type: POINTER TO ParseTreeNode := self.parseType()
-    IF self.token.type # TokenType.assign THEN
+    IF self.token.type <> TokenType.assign THEN
         error(2071, self.token, "':=' expected")
     END IF
     self.nextToken()
@@ -2508,7 +2508,7 @@ FUNCTION Parser.parseCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     LET expr: POINTER TO ParseTreeNode := self.parseExpression()
     self.pushMinimumIndent(tokCase.column + 1)
     VAR clauses: Array<CaseWhenClause> := []
-    WHILE self.token.type = TokenType.when AND self.tokens[self.index+1].type # TokenType.others DO
+    WHILE self.token.type = TokenType.when AND self.tokens[self.index+1].type <> TokenType.others DO
         LET tokWhen: lexer.Token := self.token
         VAR conditions: Array<CaseWhenCondition> := []
         REPEAT
@@ -2541,8 +2541,8 @@ FUNCTION Parser.parseCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
                         ))
                     END IF
             END CASE
-        UNTIL self.token.type # TokenType.comma
-        IF self.token.type # TokenType.do THEN
+        UNTIL self.token.type <> TokenType.comma
+        IF self.token.type <> TokenType.do THEN
             error_a(2030, self.tokens[self.index-1], self.token, "'DO' expected")
         END IF
         self.nextToken()
@@ -2563,7 +2563,7 @@ FUNCTION Parser.parseCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         self.nextToken()
         self.nextToken()
         self.nextToken()
-        WHILE self.token.type # TokenType.end DO
+        WHILE self.token.type <> TokenType.end DO
             LET s: POINTER TO ParseTreeNode := self.parseStatement()
             IF VALID s THEN
                 othersStatements.append(s)
@@ -2571,11 +2571,11 @@ FUNCTION Parser.parseCaseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         END WHILE
     END IF
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2031, self.token, "'END' expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.case THEN
+    IF self.token.type <> TokenType.case THEN
         error_a(2039, self.tokens[self.index-1], self.token, "CASE expected")
     END IF
     self.nextToken()
@@ -2598,7 +2598,7 @@ FUNCTION Parser.parseCheckStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     LET tokCheck: lexer.Token := self.token
     self.nextToken()
     LET cond: POINTER TO ParseTreeNode := self.parseExpression()
-    IF self.token.type # TokenType.else THEN
+    IF self.token.type <> TokenType.else THEN
         error_a(2103, self.tokens[self.index-1], self.token, "ELSE expected")
     END IF
     self.nextToken()
@@ -2611,11 +2611,11 @@ FUNCTION Parser.parseCheckStatement(INOUT self: Parser): POINTER TO ParseTreeNod
         END IF
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2104, self.token, "END expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.check THEN
+    IF self.token.type <> TokenType.check THEN
         error_a(2105, self.tokens[self.index-1], self.token, "CHECK expected")
     END IF
     self.nextToken()
@@ -2651,17 +2651,17 @@ FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.for
     LET tokFor: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.identifier THEN
+    IF self.token.type <> TokenType.identifier THEN
         error(2022, self.token, "identifier expected")
     END IF
     LET var: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.assign THEN
+    IF self.token.type <> TokenType.assign THEN
         error(2044, self.token, "':=' expected")
     END IF
     self.nextToken()
     LET start: POINTER TO ParseTreeNode := self.parseExpression()
-    IF self.token.type # TokenType.to THEN
+    IF self.token.type <> TokenType.to THEN
         error(2040, self.token, "TO expected")
     END IF
     self.nextToken()
@@ -2674,13 +2674,13 @@ FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR label: lexer.Token := lexer.Token(type WITH TokenType.for, text WITH "FOR")
     IF self.token.type = TokenType.label THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2112, self.token, "identifier expected")
         END IF
         label := self.token
         self.nextToken()
     END IF
-    IF self.token.type # TokenType.do THEN
+    IF self.token.type <> TokenType.do THEN
         error_a(2041, self.tokens[self.index-1], self.token, "'DO' expected")
     END IF
     self.nextToken()
@@ -2693,11 +2693,11 @@ FUNCTION Parser.parseForStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         END IF
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2042, self.token, "'END' expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.for THEN
+    IF self.token.type <> TokenType.for THEN
         error_a(2043, self.tokens[self.index-1], self.token, "'END FOR' expected")
     END IF
     self.nextToken()
@@ -2719,12 +2719,12 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
     ASSERT self.token.type = TokenType.foreach
     LET tokForeach: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.identifier THEN
+    IF self.token.type <> TokenType.identifier THEN
         error(2081, self.token, "identifier expected")
     END IF
     LET var: lexer.Token := self.token
     self.nextToken()
-    IF self.token.type # TokenType.in THEN
+    IF self.token.type <> TokenType.in THEN
         error(2082, self.token, "IN expected")
     END IF
     self.nextToken()
@@ -2732,7 +2732,7 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
     VAR index: lexer.Token := lexer.Token()
     IF self.token.type = TokenType.index THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2083, self.token, "identifier expected")
         END IF
         index := self.token
@@ -2741,13 +2741,13 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
     VAR label: lexer.Token := lexer.Token(type WITH TokenType.foreach, text WITH "FOREACH")
     IF self.token.type = TokenType.label THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2113, self.token, "identifier expected")
         END IF
         label := self.token
         self.nextToken()
     END IF
-    IF self.token.type # TokenType.do THEN
+    IF self.token.type <> TokenType.do THEN
         error_a(2084, self.tokens[self.index-1], self.token, "'DO' expected")
     END IF
     self.nextToken()
@@ -2760,11 +2760,11 @@ FUNCTION Parser.parseForeachStatement(INOUT self: Parser): POINTER TO ParseTreeN
         END IF
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2085, self.token, "'END' expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.foreach THEN
+    IF self.token.type <> TokenType.foreach THEN
         error_a(2086, self.tokens[self.index-1], self.token, "'END FOREACH' expected")
     END IF
     self.nextToken()
@@ -2801,7 +2801,7 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
                 VAR shorthand: Boolean := FALSE
                 IF self.token.type = TokenType.as THEN
                     self.nextToken()
-                    IF self.token.type # TokenType.identifier THEN
+                    IF self.token.type <> TokenType.identifier THEN
                         error(2064, self.token, "identifier expected")
                     END IF
                     name := self.token
@@ -2817,7 +2817,7 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
                     internalError("pointer not valid")
                 END IF
                 tests.append(ValidPointerExpressionClause(expr WITH ptr, name WITH name, shorthand WITH shorthand))
-                IF self.token.type # TokenType.comma THEN
+                IF self.token.type <> TokenType.comma THEN
                     EXIT LOOP
                 END IF
             END LOOP
@@ -2831,7 +2831,7 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         ELSE
             cond := self.parseExpression()
         END IF
-        IF self.token.type # TokenType.then THEN
+        IF self.token.type <> TokenType.then THEN
             error(2026, self.token, "THEN expected")
         END IF
         self.nextToken()
@@ -2845,7 +2845,7 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         END WHILE
         self.popMinimumIndent()
         conditionStatements.append(IfConditionClause(condition WITH cond, statements WITH statements))
-    UNTIL self.token.type # TokenType.elsif
+    UNTIL self.token.type <> TokenType.elsif
     IF self.token.type = TokenType.else THEN
         self.nextToken()
         WHILE self.token.type NOT IN [TokenType.end, TokenType.end_of_file] DO
@@ -2856,11 +2856,11 @@ FUNCTION Parser.parseIfStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         END WHILE
     END IF
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2027, self.token, "END expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.if THEN
+    IF self.token.type <> TokenType.if THEN
         error_a(2037, self.tokens[self.index-1], self.token, "IF expected")
     END IF
     self.nextToken()
@@ -2899,7 +2899,7 @@ FUNCTION Parser.parseLoopStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR label: lexer.Token := lexer.Token(type WITH TokenType.loop, text WITH "LOOP")
     IF self.token.type = TokenType.label THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2114, self.token, "identifier expected")
         END IF
         label := self.token
@@ -2914,11 +2914,11 @@ FUNCTION Parser.parseLoopStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         END IF
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2055, self.token, "END expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.loop THEN
+    IF self.token.type <> TokenType.loop THEN
         error_a(2056, self.tokens[self.index-1], self.token, "LOOP expected")
     END IF
     self.nextToken()
@@ -2956,12 +2956,12 @@ FUNCTION Parser.parseRaiseStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     self.nextToken()
     VAR name: Array<lexer.Token> := []
     LOOP
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2061, self.token, "identifier expected")
         END IF
         name.append(self.token)
         self.nextToken()
-        IF self.token.type # TokenType.dot THEN
+        IF self.token.type <> TokenType.dot THEN
             EXIT LOOP
         END IF
         self.nextToken()
@@ -2995,7 +2995,7 @@ FUNCTION Parser.parseRepeatStatement(INOUT self: Parser): POINTER TO ParseTreeNo
     VAR label: lexer.Token := lexer.Token(type WITH TokenType.repeat, text WITH "REPEAT")
     IF self.token.type = TokenType.label THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2115, self.token, "identifier expected")
         END IF
         label := self.token
@@ -3010,7 +3010,7 @@ FUNCTION Parser.parseRepeatStatement(INOUT self: Parser): POINTER TO ParseTreeNo
         END IF
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.until THEN
+    IF self.token.type <> TokenType.until THEN
         error(2057, self.token, "UNTIL expected")
     END IF
     self.nextToken()
@@ -3055,7 +3055,7 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR catches: Array<TryStatementClause> := []
     WHILE self.token.type = TokenType.trap DO
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2060, self.token, "identifier expected")
         END IF
         VAR name: Array<lexer.Token> := []
@@ -3063,7 +3063,7 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         self.nextToken()
         IF self.token.type = TokenType.dot THEN
             self.nextToken()
-            IF self.token.type # TokenType.identifier THEN
+            IF self.token.type <> TokenType.identifier THEN
                 error(2077, self.token, "identifier expected")
             END IF
             name[0] := name[1]
@@ -3074,13 +3074,13 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         VAR nameinfo: lexer.Token := lexer.Token()
         IF self.token.type = TokenType.as THEN
             self.nextToken()
-            IF self.token.type # TokenType.identifier THEN
+            IF self.token.type <> TokenType.identifier THEN
                 error(2124, self.token, "identifier expected")
             END IF
             nameinfo := self.token
             self.nextToken()
         END IF
-        IF self.token.type # TokenType.do THEN
+        IF self.token.type <> TokenType.do THEN
             error(2098, self.token, "DO expected")
         END IF
         LET tokDo: lexer.Token := self.token
@@ -3105,11 +3105,11 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         ))
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2062, self.token, "'END' expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.try THEN
+    IF self.token.type <> TokenType.try THEN
         error_a(2063, self.tokens[self.index-1], self.token, "TRY expected")
     END IF
     self.nextToken()
@@ -3131,13 +3131,13 @@ FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNod
     VAR label: lexer.Token := lexer.Token(type WITH TokenType.while, text WITH "WHILE")
     IF self.token.type = TokenType.label THEN
         self.nextToken()
-        IF self.token.type # TokenType.identifier THEN
+        IF self.token.type <> TokenType.identifier THEN
             error(2116, self.token, "identifier expected")
         END IF
         label := self.token
         self.nextToken()
     END IF
-    IF self.token.type # TokenType.do THEN
+    IF self.token.type <> TokenType.do THEN
         error_a(2028, self.tokens[self.index-1], self.token, "DO expected")
     END IF
     self.nextToken()
@@ -3150,11 +3150,11 @@ FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNod
         END IF
     END WHILE
     self.popMinimumIndent()
-    IF self.token.type # TokenType.end THEN
+    IF self.token.type <> TokenType.end THEN
         error(2029, self.token, "END expected")
     END IF
     self.nextToken()
-    IF self.token.type # TokenType.while THEN
+    IF self.token.type <> TokenType.while THEN
         error_a(2038, self.tokens[self.index-1], self.token, "WHILE expected")
     END IF
     self.nextToken()
@@ -3264,7 +3264,7 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
         WHEN TokenType.underscore DO
             LET tokUnderscore: lexer.Token := self.token
             self.nextToken()
-            IF self.token.type # TokenType.assign THEN
+            IF self.token.type <> TokenType.assign THEN
                 error(2097, self.token, ":= expected")
             END IF
             LET tokAssign: lexer.Token := self.token
@@ -3294,7 +3294,7 @@ END FUNCTION
 
 FUNCTION Parser.parse(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR statements: Array<POINTER TO ParseTreeNode> := []
-    WHILE self.token.type # lexer.Type.end_of_file DO
+    WHILE self.token.type <> lexer.Type.end_of_file DO
         %print("line \(self.token.line)")
         LET s: POINTER TO ParseTreeNode := self.parseStatement()
         IF VALID s THEN
@@ -3329,7 +3329,7 @@ END FUNCTION
 FUNCTION dumpTypeEnum(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH n IN node->typeenum.names DO
-        IF names # "" THEN
+        IF names <> "" THEN
             names.append(",")
         END IF
         names.append(n.text)
@@ -3340,7 +3340,7 @@ END FUNCTION
 FUNCTION dumpTypeRecord(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH f IN node->typerecord.fields DO
-        IF names # "" THEN
+        IF names <> "" THEN
             names.append(",")
         END IF
         names.append(f.name.text)
@@ -3612,7 +3612,7 @@ END FUNCTION
 FUNCTION dumpVariableDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH n IN node->variabledeclaration.names DO
-        IF names # "" THEN
+        IF names <> "" THEN
             names.append(",")
         END IF
         names.append(n.text)
@@ -3673,7 +3673,7 @@ END FUNCTION
 FUNCTION dumpExceptionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH n IN node->exceptiondeclaration.name DO
-        IF names # "" THEN
+        IF names <> "" THEN
             names.append(",")
         END IF
         names.append(n.text)
@@ -3792,7 +3792,7 @@ END FUNCTION
 FUNCTION dumpRaiseStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH n IN node->raisestatement.name DO
-        IF names # "" THEN
+        IF names <> "" THEN
             names.append(",")
         END IF
         names.append(n.text)

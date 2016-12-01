@@ -566,7 +566,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_NOT_EQUAL DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
-            stack.push((IF n1 # n2 THEN -1 ELSE 0))
+            stack.push((IF n1 <> n2 THEN -1 ELSE 0))
         WHEN CORE_EQUAL DO
             LET n2: Number := signed32(stack.pop())
             LET n1: Number := signed32(stack.pop())
@@ -616,7 +616,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
         WHEN CORE_Q_DUP DO
             LET x: Number := stack.pop()
             stack.push(x)
-            IF x # 0 THEN
+            IF x <> 0 THEN
                 stack.push(x)
             END IF
         WHEN CORE_FETCH DO
@@ -825,7 +825,7 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             stack.push(-n1)
         WHEN CORE_NOT DO
             LET n: Number := stack.pop()
-            stack.push((IF n # 0 THEN 0 ELSE -1))
+            stack.push((IF n <> 0 THEN 0 ELSE -1))
         WHEN CORE_OR DO
             LET x2: Number := stack.pop()
             LET x1: Number := stack.pop()
@@ -1016,9 +1016,9 @@ FUNCTION run_instruction(instr: Number, INOUT ip: Number)
             LET limit: Number := return[last].limit
             return[last].index := (return[last].index + n) MOD 0x100000000
             % print("prev=\(prev) new=\(return[last].index) limit=\(limit) n=\(n)")
-            IF (n > 0 AND (IF limit # 0 THEN prev < limit AND (return[last].index >= limit OR return[last].index < prev)
+            IF (n > 0 AND (IF limit <> 0 THEN prev < limit AND (return[last].index >= limit OR return[last].index < prev)
                                         ELSE return[last].index < prev))
-            OR (n < 0 AND (IF limit # 0 THEN prev >= limit AND (return[last].index < limit OR return[last].index > prev)
+            OR (n < 0 AND (IF limit <> 0 THEN prev >= limit AND (return[last].index < limit OR return[last].index > prev)
                                         ELSE return[last].index > prev)) THEN
                 return.resize(return.size()-1)
             ELSE
@@ -1312,7 +1312,7 @@ END FUNCTION
 VAR current_file: io.File
 
 FUNCTION refill(): Boolean
-    IF cell_input # cell_normal_input THEN
+    IF cell_input <> cell_normal_input THEN
         cell_input := cell_normal_input
         cell_input_length := cell_normal_input_length
         cell_in := cell_normal_in

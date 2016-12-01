@@ -214,7 +214,6 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         else if (c == '^') { t.type = EXP; utf8::advance(i, 1, source.end()); }
         else if (c == '&') { t.type = CONCAT; utf8::advance(i, 1, source.end()); }
         else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
-        else if (c == '#') { t.type = NOTEQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }
         else if (c == '.') { t.type = DOT; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2212 /*'−'*/) { t.type = MINUS; utf8::advance(i, 1, source.end()); }
@@ -240,6 +239,9 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         } else if (c == '<') {
             if (i+1 != source.end() && *(i+1) == '=') {
                 t.type = LESSEQ;
+                utf8::advance(i, 2, source.end());
+            } else if (i+1 != source.end() && *(i+1) == '>') {
+                t.type = NOTEQUAL;
                 utf8::advance(i, 2, source.end());
             } else {
                 t.type = LESS;

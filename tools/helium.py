@@ -179,7 +179,6 @@ def tokenize_fragment(source):
         elif source[i] == "^": r.append(EXP); i += 1
         elif source[i] == "&": r.append(CONCAT); i += 1
         elif source[i] == "=": r.append(EQUAL); i += 1
-        elif source[i] == "#": r.append(NOTEQUAL); i += 1
         elif source[i] == ",": r.append(COMMA); i += 1
         elif source[i] == ".": r.append(DOT); i += 1
         elif source[i] == "-":
@@ -192,6 +191,9 @@ def tokenize_fragment(source):
         elif source[i] == "<":
             if source[i+1] == "=":
                 r.append(LESSEQ)
+                i += 2
+            elif source[i+1] == ">":
+                r.append(NOTEQUAL)
                 i += 2
             else:
                 r.append(LESS)

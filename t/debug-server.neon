@@ -67,7 +67,7 @@ FOREACH f IN debuginfo.getDictionary()["functions"].getArray() DO
         EXIT FOREACH
     END IF
 END FOREACH
-ASSERT entry_g # 0
+ASSERT entry_g <> 0
 
 r := post("/break/\(entry_g)", "true")
 

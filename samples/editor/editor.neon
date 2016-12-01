@@ -259,7 +259,7 @@ END FUNCTION
 FUNCTION Editor.run(INOUT self: Editor)
     curses.werase(self.frame)
     curses.box(self.frame, 0, 0)
-    LET name: String := (IF self.filename # "" THEN self.filename ELSE "untitled")
+    LET name: String := (IF self.filename <> "" THEN self.filename ELSE "untitled")
     curses.mvwaddstr(self.frame, 0, 2, " \(name) ")
     curses.wrefresh(self.frame)
     LOOP

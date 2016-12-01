@@ -147,7 +147,7 @@ FUNCTION add(x, y: BigInt): BigInt
         r.sign := x.sign
         VAR i: Number := 0
         VAR carry: Number := 0
-        WHILE i < x.digits.size() OR i < y.digits.size() OR carry # 0 DO
+        WHILE i < x.digits.size() OR i < y.digits.size() OR carry <> 0 DO
             r.digits[i] := (IF i < x.digits.size() THEN x.digits[i] ELSE 0) + (IF i < y.digits.size() THEN y.digits[i] ELSE 0) + carry
             IF r.digits[i] >= Base THEN
                 r.digits[i] := r.digits[i] - Base
@@ -210,7 +210,7 @@ FUNCTION mul(x, y: BigInt): BigInt
             p.digits[i+j] := z MOD Base
             carry := math.floor(z / Base)
         END FOR
-        IF carry # 0 THEN
+        IF carry <> 0 THEN
             p.digits[i+x.digits.size()] := carry
         END IF
         r := r.add(p)
@@ -248,14 +248,14 @@ END FUNCTION
  |  Determine whether one BigInt value is less than another. Returns TRUE if x < y.
  |%
 FUNCTION less(x, y: BigInt): Boolean
-    IF x.sign # y.sign THEN
+    IF x.sign <> y.sign THEN
         RETURN x.sign < y.sign
     END IF
-    IF x.digits.size() # y.digits.size() THEN
+    IF x.digits.size() <> y.digits.size() THEN
         RETURN x.sign*x.digits.size() < y.sign*y.digits.size()
     END IF
     FOR i := x.digits.size()-1 TO 0 STEP -1 DO
-        IF x.digits[i] # y.digits[i] THEN
+        IF x.digits[i] <> y.digits[i] THEN
             RETURN x.sign*x.digits[i] < y.sign*y.digits[i]
         END IF
     END FOR

@@ -56,7 +56,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
         WHEN "\"" DO
             INC index
             VAR t: String := ""
-            WHILE index < json.length() AND json[index] # "\"" DO
+            WHILE index < json.length() AND json[index] <> "\"" DO
                 IF json[index] = "\\" THEN
                     % TODO: This just skips over the backslash.
                     % Need to add specific processing for control characters.
@@ -79,7 +79,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 skipWhitespace(json, INOUT index)
                 IF json[index] = "," THEN
                     INC index
-                ELSIF json[index] # "]" THEN
+                ELSIF json[index] <> "]" THEN
                     RAISE JsonFormatException(info WITH ", or ] expected")
                 END IF
             END LOOP
@@ -94,12 +94,12 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                     EXIT LOOP
                 END IF
                 LET vkey: Variant := decodePart(json, INOUT index)
-                IF vkey.getType() # Type.string THEN
+                IF vkey.getType() <> Type.string THEN
                     RAISE JsonFormatException(info WITH "string key expected")
                 END IF
                 LET key: String := vkey.getString()
                 skipWhitespace(json, INOUT index)
-                IF json[index] # ":" THEN
+                IF json[index] <> ":" THEN
                     RAISE JsonFormatException(info WITH ": expected")
                 END IF
                 INC index
@@ -107,7 +107,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 skipWhitespace(json, INOUT index)
                 IF json[index] = "," THEN
                     INC index
-                ELSIF json[index] # "}" THEN
+                ELSIF json[index] <> "}" THEN
                     RAISE JsonFormatException(info WITH ", or } expected")
                 END IF
             END LOOP

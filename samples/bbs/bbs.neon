@@ -138,7 +138,7 @@ END FUNCTION
 FUNCTION Client.doChat(INOUT self: Client)
     self.chatting := TRUE
     FOREACH c IN clients DO
-        IF c.chatting AND self.user.name # c.user.name THEN
+        IF c.chatting AND self.user.name <> c.user.name THEN
             c.send("\r\u001b[J\(self.user.name) joined chat")
         END IF
     END FOREACH
@@ -148,7 +148,7 @@ END FUNCTION
 FUNCTION handleChat(INOUT self: Client, s: String)
     IF string.upper(s) IN ["/Q", "/QUIT"] THEN
         FOREACH c IN clients DO
-            IF c.chatting AND self.user.name # c.user.name THEN
+            IF c.chatting AND self.user.name <> c.user.name THEN
                 c.send("\r\u001b[J\(self.user.name) left chat")
             END IF
         END FOREACH
@@ -156,7 +156,7 @@ FUNCTION handleChat(INOUT self: Client, s: String)
         EXIT FUNCTION
     END IF
     FOREACH c IN clients DO
-        IF c.chatting AND self.user.name # c.user.name THEN
+        IF c.chatting AND self.user.name <> c.user.name THEN
             c.send("\r\u001b[J<\(self.user.name)> \(s)")
         END IF
     END FOREACH

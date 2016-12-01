@@ -46,7 +46,7 @@ FUNCTION updateBoard()
     Board[54] := 2
     VAR color: Number := 2
     FOREACH m IN Moves DO
-        IF m # 0 THEN
+        IF m <> 0 THEN
             _ := validMove(0, m, color, 0)
         END IF
         color := 3 - color
@@ -63,7 +63,7 @@ END FUNCTION
 
 FUNCTION validMove(base, move, color, delta: Number): Boolean
     LET p: Number := base + move
-    IF Board[p] # 0 THEN
+    IF Board[p] <> 0 THEN
         RETURN FALSE
     END IF
     LET other: Number := 3 - color
@@ -74,12 +74,12 @@ FUNCTION validMove(base, move, color, delta: Number): Boolean
         WHILE Board[n] = other DO
             n := n + dd
         END WHILE
-        IF Board[n] = color AND n-dd # p THEN
+        IF Board[n] = color AND n-dd <> p THEN
             IF NOT ok THEN
                 ok := TRUE
                 dupeBoard(base)
             END IF
-            WHILE n # p DO
+            WHILE n <> p DO
                 n := n - dd
                 Board[n+delta] := color
             END WHILE
@@ -294,7 +294,7 @@ FUNCTION main()
                             END IF
                     END CASE
                 END IF
-                IF x # 0 AND y # 0 THEN
+                IF x <> 0 AND y <> 0 THEN
                     LET move: Number := 10*y + x
                     IF validMove(0, move, 2, 100) THEN
                         makeMove(move)

@@ -469,7 +469,7 @@ The following operators take two boolean values.
 | Operator | Description |
 | -------- | ----------- |
 | `=`      | equality |
-| `#`      | inequality |
+| `<>`     | inequality |
 | `AND`    | logical conjunction |
 | `OR`     | logical disjunction |
 
@@ -488,7 +488,7 @@ The following operators take two number values.
 | `MOD`    | modulo (remainder) |
 | `^`      | exponentiation |
 | `=`      | equality |
-| `#`      | inequality |
+| `<>`     | inequality |
 | `<`      | less than |
 | `>`      | greater than |
 | `<=`     | less than or equal |
@@ -504,7 +504,7 @@ The following operators take two string values.
 | -------- | ----------- |
 | `&`      | concatenation |
 | `=`      | equality |
-| `#`      | inequality |
+| `<>`     | inequality |
 | `<`      | lexicographical less than |
 | `>`      | lexicographical greater than |
 | `<=`     | lexicographical less than or equal |
@@ -698,7 +698,7 @@ The possible kinds of `WHEN` clauses are:
 | Form | Meaning |
 | ---- | ------- |
 | `WHEN <value>` | equality match |
-| `WHEN <op> <value>` | relational operator comparison (one of `=`, `#`, `<`, `>`, `<=`, `>=`) |
+| `WHEN <op> <value>` | relational operator comparison (one of `=`, `<>`, `<`, `>`, `<=`, `>=`) |
 | `WHEN <value> TO <value>` | range check (both endpoints inclusive) |
 
 More than one of the above forms may be included in a `WHEN` clause, separated by commas.
