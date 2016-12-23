@@ -2,6 +2,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include <stdio.h>
+
 #include "crc32.h"
 #include "md5.h"
 #include "sha1.h"
