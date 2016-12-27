@@ -25,6 +25,19 @@ struct {
     {"jvm", compile_jvm},
 };
 
+std::string stringError(errno_t err)
+{
+    std::string e;
+#ifdef _MSC_VER
+    char buff[80];
+    strerror_s(buff, 80, err);
+    e = buff;
+#else
+    e = strerror(err);
+#endif
+    return e;
+}
+
 int main(int argc, char *argv[])
 {
     bool ignore_errors = false;
@@ -33,7 +46,7 @@ int main(int argc, char *argv[])
     std::string target;
     CompileProc target_proc = nullptr;
 
-    if (argc < 2) {
+    if (argc < 2 || (argc > 1 && argv[1][1] == '-')) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
         exit(1);
     }
@@ -75,6 +88,9 @@ int main(int argc, char *argv[])
         }
 
         std::string name = argv[a];
+        if (not name.length()) {
+            std::cout << "Missing filename.\n";
+        }
         std::string source_path;
 
         std::stringstream buf;
@@ -92,6 +108,14 @@ int main(int argc, char *argv[])
                 std::cout << "Compiling " << name;
             }
             std::ifstream inf(name);
+            // TODO: Check for .neon file extension?  Maybe. 
+            if (not inf.good()) {
+                if (not quiet) {
+                    std::cout << " failed...\n";
+                }
+                std::cout << stringError(errno) << ".\n";
+                exit(2);
+            }
             buf << inf.rdbuf();
         }
         if (not quiet) {
