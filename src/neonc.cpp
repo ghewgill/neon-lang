@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
             auto ast = analyze(&compiler_support, parsetree.get());
             DebugInfo debug(name, buf.str());
             auto bytecode = compile(ast, &debug);
+            extern void compile_jvm(const ast::Program *); compile_jvm(ast);
             if (listing) {
                 disassemble(bytecode, std::cerr, &debug);
             }

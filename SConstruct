@@ -313,6 +313,7 @@ neonc = env.Program("bin/neonc", [
     "src/ast.cpp",
     "src/bytecode.cpp",
     "src/compiler.cpp",
+    "src/compiler_jvm.cpp",
     "src/debuginfo.cpp",
     "src/disassembler.cpp",
     "src/format.cpp",

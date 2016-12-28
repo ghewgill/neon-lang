@@ -25,7 +25,7 @@ namespace ast {
 
 class IAstVisitor {
 public:
-    virtual ~IAstVisitor();
+    virtual ~IAstVisitor() {}
     virtual void visit(const class TypeNothing *node) = 0;
     virtual void visit(const class TypeDummy *node) = 0;
     virtual void visit(const class TypeBoolean *node) = 0;
