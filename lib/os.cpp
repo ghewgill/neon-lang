@@ -14,7 +14,11 @@ namespace os {
 
 std::string getenv(const std::string &name)
 {
-    return ::getenv(name.c_str());
+    const char *r = ::getenv(name.c_str());
+    if (r == NULL) {
+        return std::string();
+    }
+    return r;
 }
 
 Number system(const std::string &command)
