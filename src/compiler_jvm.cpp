@@ -1,5 +1,6 @@
 #include "ast.h"
 
+#include <assert.h>
 #include <fstream>
 
 namespace jvm {
@@ -24,6 +25,9 @@ const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t CONSTANT_InvokeDynamic      = 18;
 
 const uint8_t OP_ldc           =  18;
+const uint8_t OP_isub          = 100;
+const uint8_t OP_ifeq          = 153;
+const uint8_t OP_goto          = 167;
 const uint8_t OP_return        = 177;
 //const uint8_t OP_getstatic     = 178;
 //const uint8_t OP_invokevirtual = 182;
@@ -271,9 +275,72 @@ struct ClassFile {
 
 class Context {
 public:
+    class Label {
+        friend class Context;
+    public:
+        Label(): fixups(), target(UINT_MAX) {}
+    private:
+        std::vector<unsigned int> fixups;
+        unsigned int target;
+    public:
+        unsigned int get_target() {
+            if (target == UINT_MAX) {
+                internal_error("Label::get_target");
+            }
+            return target;
+        }
+    };
+    class LoopLabels {
+    public:
+        LoopLabels(): exit(nullptr), next(nullptr) {}
+        LoopLabels(Label *exit, Label *next): exit(exit), next(next) {}
+        Label *exit;
+        Label *next;
+    };
+public:
     Context(ClassFile &cf, Code_attribute &ca): cf(cf), ca(ca) {}
     ClassFile &cf;
     Code_attribute &ca;
+    std::map<size_t, LoopLabels> loop_labels;
+
+    Label create_label() {
+        return Label();
+    }
+    void emit_jump(uint8_t b, Label &label) {
+        ca.code << b;
+        if (label.target != UINT_MAX) {
+            ca.code << static_cast<uint16_t>(label.target);
+        } else {
+            label.fixups.push_back(static_cast<uint32_t>(ca.code.size()));
+            ca.code << static_cast<uint16_t>(UINT16_MAX);
+        }
+    }
+    void jump_target(Label &label) {
+        assert(label.target == UINT_MAX);
+        label.target = static_cast<uint32_t>(ca.code.size());
+        for (auto offset: label.fixups) {
+            ca.code[offset] = static_cast<uint8_t>((label.target >> 8) & 0xff);
+            ca.code[offset+1] = static_cast<uint8_t>(label.target & 0xff);
+        }
+    }
+    void add_loop_labels(unsigned int loop_id, Label &exit, Label &next) {
+        loop_labels[loop_id] = LoopLabels(&exit, &next);
+    }
+    void remove_loop_labels(unsigned int loop_id) {
+        loop_labels.erase(loop_id);
+    }
+    Label &get_exit_label(unsigned int loop_id) {
+        if (loop_labels.find(loop_id) == loop_labels.end()) {
+            internal_error("loop_id not found");
+        }
+        return *loop_labels[loop_id].exit;
+    }
+    Label &get_next_label(unsigned int loop_id) {
+        if (loop_labels.find(loop_id) == loop_labels.end()) {
+            internal_error("loop_id not found");
+        }
+        return *loop_labels[loop_id].next;
+    }
 };
 
 class Variable {
@@ -317,6 +384,36 @@ public:
     }
 
     virtual void generate_call(Context &) const override { internal_error("ConstantStringExpression"); }
+};
+
+class ComparisonExpression: public Expression {
+public:
+    ComparisonExpression(const ast::ComparisonExpression *ce): ce(ce) {
+        left = transform(ce->left);
+        right = transform(ce->right);
+    }
+    const ast::ComparisonExpression *ce;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        right->generate(context);
+        generate_comparison_opcode(context);
+    }
+    virtual void generate_comparison_opcode(Context &context) const = 0;
+
+    virtual void generate_call(Context &) const override { internal_error("ComparisonExpression"); }
+};
+
+class NumericComparisonExpression: public ComparisonExpression {
+public:
+    NumericComparisonExpression(const ast::NumericComparisonExpression *nce): ComparisonExpression(nce), nce(nce) {}
+    const ast::NumericComparisonExpression *nce;
+
+    virtual void generate_comparison_opcode(Context &context) const override {
+        context.ca.code << OP_isub;
+    }
 };
 
 class VariableExpression: public Expression {
@@ -374,6 +471,107 @@ public:
 
     virtual void generate(Context &context) const override {
         expr->generate(context);
+    }
+};
+
+class CompoundStatement: public Statement {
+public:
+    CompoundStatement(const ast::CompoundStatement *cs): cs(cs) {
+        for (auto s: cs->statements) {
+            statements.push_back(transform(s));
+        }
+    }
+    const ast::CompoundStatement *cs;
+    std::vector<const Statement *> statements;
+
+    virtual void generate(Context &context) const override {
+        for (auto s: statements) {
+            s->generate(context);
+        }
+    }
+};
+
+class BaseLoopStatement: public CompoundStatement {
+public:
+    BaseLoopStatement(const ast::BaseLoopStatement *bls): CompoundStatement(bls), bls(bls) {
+        for (auto s: bls->prologue) {
+            prologue.push_back(transform(s));
+        }
+        for (auto s: bls->tail) {
+            tail.push_back(transform(s));
+        }
+    }
+    const ast::BaseLoopStatement *bls;
+    std::vector<const Statement *> prologue;
+    std::vector<const Statement *> tail;
+
+    virtual void generate(Context &context) const override {
+        for (auto s: prologue) {
+            s->generate(context);
+        }
+        auto top = context.create_label();
+        context.jump_target(top);
+        auto skip = context.create_label();
+        auto next = context.create_label();
+        context.add_loop_labels(bls->loop_id, skip, next);
+        CompoundStatement::generate(context);
+        context.jump_target(next);
+        for (auto s: tail) {
+            s->generate(context);
+        }
+        context.emit_jump(OP_goto, top);
+        context.jump_target(skip);
+        context.remove_loop_labels(bls->loop_id);
+    }
+};
+
+class ExitStatement: public Statement {
+public:
+    ExitStatement(const ast::ExitStatement *es): es(es) {}
+    const ast::ExitStatement *es;
+
+    void generate(Context &context) const override {
+        context.emit_jump(OP_goto, context.get_exit_label(es->loop_id));
+    }
+};
+
+class IfStatement: public Statement {
+public:
+    IfStatement(const ast::IfStatement *is): is(is) {
+        for (auto cs: is->condition_statements) {
+            std::vector<const Statement *> statements;
+            for (auto s: cs.second) {
+                statements.push_back(transform(s));
+            }
+            condition_statements.push_back(std::make_pair(transform(cs.first), statements));
+        }
+        for (auto s: is->else_statements) {
+            else_statements.push_back(transform(s));
+        }
+    }
+    const ast::IfStatement *is;
+    std::vector<std::pair<const Expression *, std::vector<const Statement *>>> condition_statements;
+    std::vector<const Statement *> else_statements;
+
+    void generate(Context &context) const override
+    {
+        auto end_label = context.create_label();
+        for (auto cs: condition_statements) {
+            const Expression *condition = cs.first;
+            const std::vector<const Statement *> &statements = cs.second;
+            condition->generate(context);
+            auto else_label = context.create_label();
+            context.emit_jump(OP_ifeq, else_label);
+            for (auto s: statements) {
+                s->generate(context);
+            }
+            context.emit_jump(OP_goto, end_label);
+            context.jump_target(else_label);
+        }
+        for (auto s: else_statements) {
+            s->generate(context);
+        }
+        context.jump_target(end_label);
     }
 };
 
@@ -510,7 +708,7 @@ public:
     virtual void visit(const ast::ReturnStatement *) {}
     virtual void visit(const ast::IncrementStatement *) {}
     virtual void visit(const ast::IfStatement *) {}
-    virtual void visit(const ast::LoopStatement *) {}
+    virtual void visit(const ast::BaseLoopStatement *) {}
     virtual void visit(const ast::CaseStatement *) {}
     virtual void visit(const ast::ExitStatement *) {}
     virtual void visit(const ast::NextStatement *) {}
@@ -613,7 +811,7 @@ public:
     virtual void visit(const ast::ReturnStatement *) {}
     virtual void visit(const ast::IncrementStatement *) {}
     virtual void visit(const ast::IfStatement *) {}
-    virtual void visit(const ast::LoopStatement *) {}
+    virtual void visit(const ast::BaseLoopStatement *) {}
     virtual void visit(const ast::CaseStatement *) {}
     virtual void visit(const ast::ExitStatement *) {}
     virtual void visit(const ast::NextStatement *) {}
@@ -679,7 +877,7 @@ public:
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
-    virtual void visit(const ast::NumericComparisonExpression *) {}
+    virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
@@ -715,7 +913,7 @@ public:
     virtual void visit(const ast::ReturnStatement *) {}
     virtual void visit(const ast::IncrementStatement *) {}
     virtual void visit(const ast::IfStatement *) {}
-    virtual void visit(const ast::LoopStatement *) {}
+    virtual void visit(const ast::BaseLoopStatement *) {}
     virtual void visit(const ast::CaseStatement *) {}
     virtual void visit(const ast::ExitStatement *) {}
     virtual void visit(const ast::NextStatement *) {}
@@ -816,10 +1014,10 @@ public:
     virtual void visit(const ast::ExpressionStatement *node) { r = new ExpressionStatement(node); }
     virtual void visit(const ast::ReturnStatement *) {}
     virtual void visit(const ast::IncrementStatement *) {}
-    virtual void visit(const ast::IfStatement *) {}
-    virtual void visit(const ast::LoopStatement *) {}
+    virtual void visit(const ast::IfStatement *node) { r = new IfStatement(node); }
+    virtual void visit(const ast::BaseLoopStatement *node) { r = new BaseLoopStatement(node); }
     virtual void visit(const ast::CaseStatement *) {}
-    virtual void visit(const ast::ExitStatement *) {}
+    virtual void visit(const ast::ExitStatement *node) { r = new ExitStatement(node); }
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}

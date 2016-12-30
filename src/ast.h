@@ -108,7 +108,7 @@ public:
     virtual void visit(const class ReturnStatement *node) = 0;
     virtual void visit(const class IncrementStatement *node) = 0;
     virtual void visit(const class IfStatement *node) = 0;
-    virtual void visit(const class LoopStatement *node) = 0;
+    virtual void visit(const class BaseLoopStatement *node) = 0;
     virtual void visit(const class CaseStatement *node) = 0;
     virtual void visit(const class ExitStatement *node) = 0;
     virtual void visit(const class NextStatement *node) = 0;
@@ -2099,7 +2099,7 @@ private:
 class BaseLoopStatement: public CompoundStatement {
 public:
     BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop): CompoundStatement(line, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), loop_id(loop_id) {}
-    virtual void accept(IAstVisitor *) const override { /* TODO */ }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> prologue;
     const std::vector<const Statement *> tail;
