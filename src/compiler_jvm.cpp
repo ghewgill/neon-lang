@@ -17,25 +17,40 @@ const uint8_t CONSTANT_String             =  8;
 //const uint8_t CONSTANT_Integer            =  3;
 //const uint8_t CONSTANT_Float              =  4;
 //const uint8_t CONSTANT_Long               =  5;
-//const uint8_t CONSTANT_Double             =  6;
+const uint8_t CONSTANT_Double             =  6;
 const uint8_t CONSTANT_NameAndType        = 12;
 const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t CONSTANT_MethodHandle       = 15;
 //const uint8_t CONSTANT_MethodType         = 16;
 //const uint8_t CONSTANT_InvokeDynamic      = 18;
 
-const uint8_t OP_ldc           =  18;
-const uint8_t OP_isub          = 100;
-const uint8_t OP_ifeq          = 153;
+//const uint8_t OP_ldc           =  18;
+const uint8_t OP_ldc_w         =  19;
+const uint8_t OP_dup           =  89;
+//const uint8_t OP_dadd          =  99;
+//const uint8_t OP_isub          = 100;
+//const uint8_t OP_drem          = 115;
+//const uint8_t OP_ifeq          = 153;
+const uint8_t OP_ifne          = 154;
 const uint8_t OP_goto          = 167;
 const uint8_t OP_return        = 177;
-//const uint8_t OP_getstatic     = 178;
-//const uint8_t OP_invokevirtual = 182;
+const uint8_t OP_getstatic     = 178;
+const uint8_t OP_putstatic     = 179;
+const uint8_t OP_invokevirtual = 182;
+const uint8_t OP_invokespecial = 183;
 const uint8_t OP_invokestatic  = 184;
+const uint8_t OP_new           = 187;
 
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
     a.push_back(u8);
+    return a;
+}
+
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, int16_t s16)
+{
+    a.push_back((s16 >>  8) & 0xff);
+    a.push_back((s16      ) & 0xff);
     return a;
 }
 
@@ -62,6 +77,7 @@ std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, const std::vector<uint
 }
 
 struct cp_info {
+    cp_info(): tag(0) {}
     uint8_t tag;
     std::vector<uint8_t> info;
 
@@ -173,7 +189,7 @@ struct ClassFile {
     uint32_t magic;
     uint16_t minor_version;
     uint16_t major_version;
-    //uint16_t constant_pool_count;
+    uint16_t constant_pool_count;
     std::vector<cp_info> constant_pool;
     uint16_t access_flags;
     uint16_t this_class;
@@ -187,7 +203,12 @@ struct ClassFile {
     //uint16_t attributes_count;
     std::vector<attribute_info> attributes;
 
+    std::map<std::string, uint16_t> utf8_constants;
     uint16_t utf8(const std::string &s) {
+        auto i = utf8_constants.find(s);
+        if (i != utf8_constants.end()) {
+            return i->second;
+        }
         cp_info cp;
         cp.tag = CONSTANT_Utf8;
         cp.info << static_cast<uint16_t>(s.length());
@@ -195,50 +216,100 @@ struct ClassFile {
             cp.info << static_cast<uint8_t>(c);
         }
         constant_pool.push_back(cp);
-        return constant_pool.size();
+        constant_pool_count++;
+        utf8_constants[s] = constant_pool_count;
+        return constant_pool_count;
     }
 
+    std::map<std::string, uint16_t> Class_constants;
     uint16_t Class(const std::string &s) {
+        auto i = Class_constants.find(s);
+        if (i != Class_constants.end()) {
+            return i->second;
+        }
         cp_info cp;
         cp.tag = CONSTANT_Class;
         cp.info << utf8(s);
         constant_pool.push_back(cp);
-        return constant_pool.size();
+        constant_pool_count++;
+        Class_constants[s] = constant_pool_count;
+        return constant_pool_count;
     }
 
+    uint16_t Double(double d) {
+        cp_info cp;
+        cp.tag = CONSTANT_Double;
+        uint8_t *p = reinterpret_cast<uint8_t *>(&d);
+        cp.info << p[7] << p[6] << p[5] << p[4] << p[3] << p[2] << p[1] << p[0];
+        constant_pool.push_back(cp);
+        constant_pool_count += 2;
+        return constant_pool_count - 1;
+    }
+
+    std::map<std::string, uint16_t> String_constants;
     uint16_t String(const std::string &s) {
+        auto i = String_constants.find(s);
+        if (i != String_constants.end()) {
+            return i->second;
+        }
         cp_info cp;
         cp.tag = CONSTANT_String;
         cp.info << utf8(s);
         constant_pool.push_back(cp);
-        return constant_pool.size();
+        constant_pool_count++;
+        String_constants[s] = constant_pool_count;
+        return constant_pool_count;
     }
 
+    std::map<std::pair<std::string, std::string>, uint16_t> NameAndType_constants;
     uint16_t NameAndType(const std::string &name, const std::string &descriptor) {
+        auto key = std::make_pair(name, descriptor);
+        auto i = NameAndType_constants.find(key);
+        if (i != NameAndType_constants.end()) {
+            return i->second;
+        }
         cp_info cp;
         cp.tag = CONSTANT_NameAndType;
         cp.info << utf8(name);
         cp.info << utf8(descriptor);
         constant_pool.push_back(cp);
-        return constant_pool.size();
+        constant_pool_count++;
+        NameAndType_constants[key] = constant_pool_count;
+        return constant_pool_count;
     }
 
+    std::map<std::tuple<std::string, std::string, std::string>, uint16_t> Field_constants;
     uint16_t Field(const std::string &cls, const std::string &name, const std::string &descriptor) {
+        auto key = std::make_tuple(cls, name, descriptor);
+        auto i = Field_constants.find(key);
+        if (i != Field_constants.end()) {
+            return i->second;
+        }
         cp_info cp;
         cp.tag = CONSTANT_Fieldref;
         cp.info << Class(cls);
         cp.info << NameAndType(name, descriptor);
         constant_pool.push_back(cp);
-        return constant_pool.size();
+        constant_pool_count++;
+        Field_constants[key] = constant_pool_count;
+        return constant_pool_count;
     }
 
+    std::map<std::tuple<std::string, std::string, std::string>, uint16_t> Method_constants;
     uint16_t Method(const std::string &cls, const std::string &name, const std::string &descriptor) {
+        auto key = std::make_tuple(cls, name, descriptor);
+        auto i = Method_constants.find(key);
+        if (i != Method_constants.end()) {
+            return i->second;
+        }
         cp_info cp;
         cp.tag = CONSTANT_Methodref;
         cp.info << Class(cls);
         cp.info << NameAndType(name, descriptor);
         constant_pool.push_back(cp);
-        return constant_pool.size();
+        constant_pool_count++;
+        Method_constants[key] = constant_pool_count;
+        return constant_pool_count;
     }
 
     std::vector<uint8_t> serialize() {
@@ -246,7 +317,7 @@ struct ClassFile {
         r << magic;
         r << minor_version;
         r << major_version;
-        r << static_cast<uint16_t>(constant_pool.size() + 1);
+        r << static_cast<uint16_t>(constant_pool_count + 1);
         for (auto c: constant_pool) {
             r << c.serialize();
         }
@@ -278,13 +349,13 @@ public:
     class Label {
         friend class Context;
     public:
-        Label(): fixups(), target(UINT_MAX) {}
+        Label(): fixups(), target(UINT16_MAX) {}
     private:
-        std::vector<unsigned int> fixups;
-        unsigned int target;
+        std::vector<uint16_t> fixups;
+        uint16_t target;
     public:
-        unsigned int get_target() {
-            if (target == UINT_MAX) {
+        uint16_t get_target() {
+            if (target == UINT16_MAX) {
                 internal_error("Label::get_target");
             }
             return target;
@@ -307,20 +378,22 @@ public:
         return Label();
     }
     void emit_jump(uint8_t b, Label &label) {
+        uint16_t this_opcode = ca.code.size();
         ca.code << b;
-        if (label.target != UINT_MAX) {
-            ca.code << static_cast<uint16_t>(label.target);
+        if (label.target != UINT16_MAX) {
+            ca.code << static_cast<int16_t>(label.target - this_opcode);
         } else {
-            label.fixups.push_back(static_cast<uint32_t>(ca.code.size()));
+            label.fixups.push_back(this_opcode);
             ca.code << static_cast<uint16_t>(UINT16_MAX);
         }
     }
     void jump_target(Label &label) {
-        assert(label.target == UINT_MAX);
-        label.target = static_cast<uint32_t>(ca.code.size());
-        for (auto offset: label.fixups) {
-            ca.code[offset] = static_cast<uint8_t>((label.target >> 8) & 0xff);
-            ca.code[offset+1] = static_cast<uint8_t>(label.target & 0xff);
+        assert(label.target == UINT16_MAX);
+        label.target = static_cast<uint16_t>(ca.code.size());
+        for (auto f: label.fixups) {
+            int16_t offset = label.target - f;
+            ca.code[f+1] = static_cast<uint8_t>((offset >> 8) & 0xff);
+            ca.code[f+2] = static_cast<uint8_t>(offset & 0xff);
         }
     }
     void add_loop_labels(unsigned int loop_id, Label &exit, Label &next) {
@@ -345,22 +418,43 @@ public:
 
 class Variable {
 public:
+    virtual void generate_load(Context &context) const = 0;
+    virtual void generate_store(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
 };
 
 Variable *transform(const ast::Variable *v);
+
+class GlobalVariable: public Variable {
+public:
+    GlobalVariable(const ast::GlobalVariable *gv): gv(gv) {}
+    const ast::GlobalVariable *gv;
+
+    virtual void generate_load(Context &context) const override {
+        context.ca.code << OP_getstatic << context.cf.Field("hello", gv->name, "Ljava/math/BigDecimal;");
+    }
+    virtual void generate_store(Context &context) const override {
+        context.ca.code << OP_putstatic << context.cf.Field("hello", gv->name, "Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("GlobalVariable"); }
+};
 
 class PredefinedFunction: public Variable {
 public:
     PredefinedFunction(const ast::PredefinedFunction *pf): pf(pf) {}
     const ast::PredefinedFunction *pf;
 
+    virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Context &context) const override {
         if (pf->name == "print") {
             context.ca.code << OP_invokestatic;
             context.ca.code << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
+        } else if (pf->name == "number__toString") {
+            context.ca.code << OP_invokevirtual;
+            context.ca.code << context.cf.Method("java/math/BigDecimal", "toString", "()Ljava/lang/String;");
         } else {
-            internal_error("PredefinedFunction");
+            internal_error("PredefinedFunction: " + pf->name);
         }
     }
 };
@@ -369,9 +463,28 @@ class Expression {
 public:
     virtual void generate(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
+    virtual void generate_store(Context &context) const = 0;
 };
 
 Expression *transform(const ast::Expression *e);
+
+class ConstantNumberExpression: public Expression {
+public:
+    ConstantNumberExpression(const ast::ConstantNumberExpression *cne): cne(cne) {}
+    const ast::ConstantNumberExpression *cne;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_new;
+        context.ca.code << context.cf.Class("java/math/BigDecimal");
+        context.ca.code << OP_dup;
+        context.ca.code << OP_ldc_w;
+        context.ca.code << context.cf.String(number_to_string(cne->value));
+        context.ca.code << OP_invokespecial;
+        context.ca.code << context.cf.Method("java/math/BigDecimal", "<init>", "(Ljava/lang/String;)V");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ConstantNumberExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantNumberExpression"); }
+};
 
 class ConstantStringExpression: public Expression {
 public:
@@ -379,11 +492,12 @@ public:
     const ast::ConstantStringExpression *cse;
 
     virtual void generate(Context &context) const override {
-        context.ca.code << OP_ldc;
-        context.ca.code << static_cast<uint8_t>(context.cf.String(cse->value));
+        context.ca.code << OP_ldc_w;
+        context.ca.code << context.cf.String(cse->value);
     }
 
     virtual void generate_call(Context &) const override { internal_error("ConstantStringExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantStringExpression"); }
 };
 
 class ComparisonExpression: public Expression {
@@ -404,6 +518,7 @@ public:
     virtual void generate_comparison_opcode(Context &context) const = 0;
 
     virtual void generate_call(Context &) const override { internal_error("ComparisonExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ComparisonExpression"); }
 };
 
 class NumericComparisonExpression: public ComparisonExpression {
@@ -412,8 +527,43 @@ public:
     const ast::NumericComparisonExpression *nce;
 
     virtual void generate_comparison_opcode(Context &context) const override {
-        context.ca.code << OP_isub;
+        context.ca.code << OP_invokevirtual;
+        context.ca.code << context.cf.Method("java/math/BigDecimal", "compareTo", "(Ljava/math/BigDecimal;)I");
     }
+};
+
+class AdditionExpression: public Expression {
+public:
+    AdditionExpression(const ast::AdditionExpression *ae): ae(ae), left(transform(ae->left)), right(transform(ae->right)) {}
+    const ast::AdditionExpression *ae;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        right->generate(context);
+        context.ca.code << OP_invokevirtual;
+        context.ca.code << context.cf.Method("java/math/BigDecimal", "add", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("AdditionExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("AdditionExpression"); }
+};
+
+class ModuloExpression: public Expression {
+public:
+    ModuloExpression(const ast::ModuloExpression *me): me(me), left(transform(me->left)), right(transform(me->right)) {}
+    const ast::ModuloExpression *me;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        right->generate(context);
+        context.ca.code << OP_invokevirtual;
+        context.ca.code << context.cf.Method("java/math/BigDecimal", "remainder", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ModuloExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ModuloExpression"); }
 };
 
 class VariableExpression: public Expression {
@@ -424,11 +574,15 @@ public:
     const ast::VariableExpression *ve;
     const Variable *var;
 
-    virtual void generate(Context &) const override {
+    virtual void generate(Context &context) const override {
+        var->generate_load(context);
     }
 
     virtual void generate_call(Context &context) const override {
         var->generate_call(context);
+    }
+    virtual void generate_store(Context &context) const override {
+        var->generate_store(context);
     }
 };
 
@@ -452,6 +606,7 @@ public:
     }
 
     virtual void generate_call(Context &) const override { internal_error("FunctionCall"); }
+    virtual void generate_store(Context &) const override { internal_error("FunctionCall"); }
 };
 
 class Statement {
@@ -460,6 +615,36 @@ public:
 };
 
 Statement *transform(const ast::Statement *s);
+
+class NullStatement: public Statement {
+public:
+    NullStatement(const ast::NullStatement *ns): ns(ns) {}
+    const ast::NullStatement *ns;
+
+    virtual void generate(Context &) const override {}
+};
+
+class AssignmentStatement: public Statement {
+public:
+    AssignmentStatement(const ast::AssignmentStatement *as): as(as), expr(transform(as->expr)) {
+        for (auto v: as->variables) {
+            variables.push_back(transform(v));
+        }
+    }
+    const ast::AssignmentStatement *as;
+    std::vector<const Expression *> variables;
+    const Expression *expr;
+
+    virtual void generate(Context &context) const override {
+        expr->generate(context);
+        for (size_t i = 0; i < variables.size() - 1; i++) {
+            context.ca.code << OP_dup;
+        }
+        for (auto v: variables) {
+             v->generate_store(context);
+        }
+    }
+};
 
 class ExpressionStatement: public Statement {
 public:
@@ -561,7 +746,7 @@ public:
             const std::vector<const Statement *> &statements = cs.second;
             condition->generate(context);
             auto else_label = context.create_label();
-            context.emit_jump(OP_ifeq, else_label);
+            context.emit_jump(OP_ifne, else_label);
             for (auto s: statements) {
                 s->generate(context);
             }
@@ -572,6 +757,15 @@ public:
             s->generate(context);
         }
         context.jump_target(end_label);
+    }
+};
+
+class ResetStatement: public Statement {
+public:
+    ResetStatement(const ast::ResetStatement *rs): rs(rs) {}
+    const ast::ResetStatement *rs;
+
+    virtual void generate(Context &) const override {
     }
 };
 
@@ -590,9 +784,23 @@ public:
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
+        cf.constant_pool_count = 0;
         cf.access_flags = ACC_PUBLIC | ACC_SUPER;
         cf.this_class = cf.Class("hello");
         cf.super_class = cf.Class("Ljava/lang/Object;");
+
+        for (size_t i = 0; i < program->frame->getCount(); i++) {
+            auto slot = program->frame->getSlot(i);
+            const ast::GlobalVariable *global = dynamic_cast<const ast::GlobalVariable *>(slot.ref);
+            if (global != nullptr) {
+                field_info f;
+                f.access_flags = ACC_STATIC;
+                f.name_index = cf.utf8(slot.name);
+                f.descriptor_index = cf.utf8("Ljava/math/BigDecimal;");
+                cf.fields.push_back(f);
+            }
+        }
+
         {
             method_info m;
             m.access_flags = ACC_PUBLIC | ACC_STATIC;
@@ -616,6 +824,7 @@ public:
             }
             cf.methods.push_back(m);
         }
+
         std::ofstream f("hello.class");
         auto data = cf.serialize();
         f.write(reinterpret_cast<const char *>(data.data()), data.size());
@@ -748,7 +957,7 @@ public:
     virtual void visit(const ast::LoopLabel *) {}
     virtual void visit(const ast::PredefinedVariable *) {}
     virtual void visit(const ast::ModuleVariable *) {}
-    virtual void visit(const ast::GlobalVariable *) {}
+    virtual void visit(const ast::GlobalVariable *node) { r = new GlobalVariable(node); }
     virtual void visit(const ast::ExternalGlobalVariable *) {}
     virtual void visit(const ast::LocalVariable *) {}
     virtual void visit(const ast::FunctionParameter *) {}
@@ -857,7 +1066,7 @@ public:
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Constant *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
-    virtual void visit(const ast::ConstantNumberExpression *) {}
+    virtual void visit(const ast::ConstantNumberExpression *node) { r = new ConstantNumberExpression(node); }
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
     virtual void visit(const ast::ConstantBytesExpression *) {}
     virtual void visit(const ast::ConstantEnumExpression *) {}
@@ -883,11 +1092,11 @@ public:
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
-    virtual void visit(const ast::AdditionExpression *) {}
+    virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
     virtual void visit(const ast::SubtractionExpression *) {}
     virtual void visit(const ast::MultiplicationExpression *) {}
     virtual void visit(const ast::DivisionExpression *) {}
-    virtual void visit(const ast::ModuloExpression *) {}
+    virtual void visit(const ast::ModuloExpression *node) { r = new ModuloExpression(node); }
     virtual void visit(const ast::ExponentiationExpression *) {}
     virtual void visit(const ast::DummyExpression *) {}
     virtual void visit(const ast::ArrayReferenceIndexExpression *) {}
@@ -1007,10 +1216,10 @@ public:
     virtual void visit(const ast::VariableExpression *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
-    virtual void visit(const ast::NullStatement *) {}
+    virtual void visit(const ast::NullStatement *node) { r = new NullStatement(node); }
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *) {}
-    virtual void visit(const ast::AssignmentStatement *) {}
+    virtual void visit(const ast::AssignmentStatement *node) { r = new AssignmentStatement(node); }
     virtual void visit(const ast::ExpressionStatement *node) { r = new ExpressionStatement(node); }
     virtual void visit(const ast::ReturnStatement *) {}
     virtual void visit(const ast::IncrementStatement *) {}
@@ -1021,7 +1230,7 @@ public:
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
-    virtual void visit(const ast::ResetStatement *) {}
+    virtual void visit(const ast::ResetStatement *node) { r = new ResetStatement(node); }
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ModuleFunction *) {}
