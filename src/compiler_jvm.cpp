@@ -24,14 +24,20 @@ const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t CONSTANT_MethodType         = 16;
 //const uint8_t CONSTANT_InvokeDynamic      = 18;
 
+const uint8_t OP_iconst_0        =   3;
+const uint8_t OP_iconst_1        =   4;
 //const uint8_t OP_ldc           =  18;
 const uint8_t OP_ldc_w         =  19;
 const uint8_t OP_dup           =  89;
 //const uint8_t OP_dadd          =  99;
 //const uint8_t OP_isub          = 100;
 //const uint8_t OP_drem          = 115;
-//const uint8_t OP_ifeq          = 153;
+const uint8_t OP_ifeq          = 153;
 const uint8_t OP_ifne          = 154;
+const uint8_t OP_iflt          = 155;
+const uint8_t OP_ifge          = 156;
+const uint8_t OP_ifgt          = 157;
+const uint8_t OP_ifle          = 158;
 const uint8_t OP_goto          = 167;
 const uint8_t OP_return        = 177;
 const uint8_t OP_getstatic     = 178;
@@ -427,14 +433,23 @@ Variable *transform(const ast::Variable *v);
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const ast::GlobalVariable *gv): gv(gv) {}
+    GlobalVariable(const ast::GlobalVariable *gv): gv(gv) {
+        if (gv->type == ast::TYPE_NUMBER) {
+            jtype = "Ljava/math/BigDecimal;";
+        } else if (gv->type == ast::TYPE_STRING) {
+            jtype = "Ljava/lang/String;";
+        } else {
+            internal_error("type of global unhandled");
+        }
+    }
     const ast::GlobalVariable *gv;
+    std::string jtype;
 
     virtual void generate_load(Context &context) const override {
-        context.ca.code << OP_getstatic << context.cf.Field("hello", gv->name, "Ljava/math/BigDecimal;");
+        context.ca.code << OP_getstatic << context.cf.Field("hello", gv->name, jtype);
     }
     virtual void generate_store(Context &context) const override {
-        context.ca.code << OP_putstatic << context.cf.Field("hello", gv->name, "Ljava/math/BigDecimal;");
+        context.ca.code << OP_putstatic << context.cf.Field("hello", gv->name, jtype);
     }
     virtual void generate_call(Context &) const override { internal_error("GlobalVariable"); }
 };
@@ -450,9 +465,12 @@ public:
         if (pf->name == "print") {
             context.ca.code << OP_invokestatic;
             context.ca.code << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
-        } else if (pf->name == "number__toString") {
+        } else if (pf->name == "number__toString" || pf->name == "str") {
             context.ca.code << OP_invokevirtual;
             context.ca.code << context.cf.Method("java/math/BigDecimal", "toString", "()Ljava/lang/String;");
+        } else if (pf->name == "concat") {
+            context.ca.code << OP_invokevirtual;
+            context.ca.code << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -474,13 +492,17 @@ public:
     const ast::ConstantNumberExpression *cne;
 
     virtual void generate(Context &context) const override {
-        context.ca.code << OP_new;
-        context.ca.code << context.cf.Class("java/math/BigDecimal");
-        context.ca.code << OP_dup;
-        context.ca.code << OP_ldc_w;
-        context.ca.code << context.cf.String(number_to_string(cne->value));
-        context.ca.code << OP_invokespecial;
-        context.ca.code << context.cf.Method("java/math/BigDecimal", "<init>", "(Ljava/lang/String;)V");
+        if (number_is_equal(cne->value, number_from_uint32(1))) {
+            context.ca.code << OP_getstatic << context.cf.Field("java/math/BigDecimal", "ONE", "Ljava/math/BigDecimal;");
+        } else {
+            context.ca.code << OP_new;
+            context.ca.code << context.cf.Class("java/math/BigDecimal");
+            context.ca.code << OP_dup;
+            context.ca.code << OP_ldc_w;
+            context.ca.code << context.cf.String(number_to_string(cne->value));
+            context.ca.code << OP_invokespecial;
+            context.ca.code << context.cf.Method("java/math/BigDecimal", "<init>", "(Ljava/lang/String;)V");
+        }
     }
     virtual void generate_call(Context &) const override { internal_error("ConstantNumberExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantNumberExpression"); }
@@ -500,6 +522,21 @@ public:
     virtual void generate_store(Context &) const override { internal_error("ConstantStringExpression"); }
 };
 
+class UnaryMinusExpression: public Expression {
+public:
+    UnaryMinusExpression(const ast::UnaryMinusExpression *ume): ume(ume), value(transform(ume->value)) {}
+    const ast::UnaryMinusExpression *ume;
+    const Expression *value;
+
+    virtual void generate(Context &context) const override {
+        value->generate(context);
+        context.ca.code << OP_invokevirtual;
+        context.ca.code << context.cf.Method("java/math/BigDecimal", "negate", "()Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("UnaryMinusExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("UnaryMinusExpression"); }
+};
+
 class ComparisonExpression: public Expression {
 public:
     ComparisonExpression(const ast::ComparisonExpression *ce): ce(ce) {
@@ -513,9 +550,9 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        generate_comparison_opcode(context);
+        generate_comparison(context);
     }
-    virtual void generate_comparison_opcode(Context &context) const = 0;
+    virtual void generate_comparison(Context &context) const = 0;
 
     virtual void generate_call(Context &) const override { internal_error("ComparisonExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ComparisonExpression"); }
@@ -526,9 +563,18 @@ public:
     NumericComparisonExpression(const ast::NumericComparisonExpression *nce): ComparisonExpression(nce), nce(nce) {}
     const ast::NumericComparisonExpression *nce;
 
-    virtual void generate_comparison_opcode(Context &context) const override {
+    virtual void generate_comparison(Context &context) const override {
         context.ca.code << OP_invokevirtual;
         context.ca.code << context.cf.Method("java/math/BigDecimal", "compareTo", "(Ljava/math/BigDecimal;)I");
+        static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
+        auto label_true = context.create_label();
+        context.emit_jump(op[nce->comp], label_true);
+        context.ca.code << OP_iconst_0;
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_iconst_1;
+        context.jump_target(label_false);
     }
 };
 
@@ -547,6 +593,23 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("AdditionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("AdditionExpression"); }
+};
+
+class SubtractionExpression: public Expression {
+public:
+    SubtractionExpression(const ast::SubtractionExpression *se): se(se), left(transform(se->left)), right(transform(se->right)) {}
+    const ast::SubtractionExpression *se;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        right->generate(context);
+        context.ca.code << OP_invokevirtual;
+        context.ca.code << context.cf.Method("java/math/BigDecimal", "subtract", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("SubtractionExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("SubtractionExpression"); }
 };
 
 class ModuloExpression: public Expression {
@@ -746,7 +809,7 @@ public:
             const std::vector<const Statement *> &statements = cs.second;
             condition->generate(context);
             auto else_label = context.create_label();
-            context.emit_jump(OP_ifne, else_label);
+            context.emit_jump(OP_ifeq, else_label);
             for (auto s: statements) {
                 s->generate(context);
             }
@@ -796,7 +859,13 @@ public:
                 field_info f;
                 f.access_flags = ACC_STATIC;
                 f.name_index = cf.utf8(slot.name);
-                f.descriptor_index = cf.utf8("Ljava/math/BigDecimal;");
+                if (global->type == ast::TYPE_NUMBER) {
+                    f.descriptor_index = cf.utf8("Ljava/math/BigDecimal;");
+                } else if (global->type == ast::TYPE_STRING) {
+                    f.descriptor_index = cf.utf8("Ljava/lang/String;");
+                } else {
+                    internal_error("type of global unhandled");
+                }
                 cf.fields.push_back(f);
             }
         }
@@ -1076,7 +1145,7 @@ public:
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
     virtual void visit(const ast::NewClassExpression *) {}
-    virtual void visit(const ast::UnaryMinusExpression *) {}
+    virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
     virtual void visit(const ast::LogicalNotExpression *) {}
     virtual void visit(const ast::ConditionalExpression *) {}
     virtual void visit(const ast::TryExpression *) {}
@@ -1093,7 +1162,7 @@ public:
     virtual void visit(const ast::PointerComparisonExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
     virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
-    virtual void visit(const ast::SubtractionExpression *) {}
+    virtual void visit(const ast::SubtractionExpression *node) { r = new SubtractionExpression(node); }
     virtual void visit(const ast::MultiplicationExpression *) {}
     virtual void visit(const ast::DivisionExpression *) {}
     virtual void visit(const ast::ModuloExpression *node) { r = new ModuloExpression(node); }
