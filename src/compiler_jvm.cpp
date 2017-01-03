@@ -852,7 +852,7 @@ private:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(const ast::AssignmentStatement *as): as(as), expr(transform(as->expr)), variables() {
+    AssignmentStatement(const ast::AssignmentStatement *as): as(as), variables(), expr(transform(as->expr)) {
         for (auto v: as->variables) {
             variables.push_back(transform(v));
         }
