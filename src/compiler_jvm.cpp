@@ -9,52 +9,48 @@ const uint16_t ACC_PUBLIC = 0x0001;
 const uint16_t ACC_STATIC = 0x0008;
 const uint16_t ACC_SUPER  = 0x0020;
 
-enum ConstantPoolTag: uint8_t {
-    CONSTANT_Utf8               =  1,
-    CONSTANT_Integer            =  3,
-    CONSTANT_Float              =  4,
-    CONSTANT_Long               =  5,
-    CONSTANT_Double             =  6,
-    CONSTANT_Class              =  7,
-    CONSTANT_Fieldref           =  9,
-    CONSTANT_String             =  8,
-    CONSTANT_Methodref          = 10,
-    CONSTANT_InterfaceMethodref = 11,
-    CONSTANT_NameAndType        = 12,
-    CONSTANT_MethodHandle       = 15,
-    CONSTANT_MethodType         = 16,
-    CONSTANT_InvokeDynamic      = 18
-};
+const uint8_t CONSTANT_Class              =  7;
+const uint8_t CONSTANT_Fieldref           =  9;
+const uint8_t CONSTANT_Methodref          = 10;
+//const uint8_t CONSTANT_InterfaceMethodref = 11;
+const uint8_t CONSTANT_String             =  8;
+//const uint8_t CONSTANT_Integer            =  3;
+//const uint8_t CONSTANT_Float              =  4;
+//const uint8_t CONSTANT_Long               =  5;
+const uint8_t CONSTANT_Double             =  6;
+const uint8_t CONSTANT_NameAndType        = 12;
+const uint8_t CONSTANT_Utf8               =  1;
+//const uint8_t CONSTANT_MethodHandle       = 15;
+//const uint8_t CONSTANT_MethodType         = 16;
+//const uint8_t CONSTANT_InvokeDynamic      = 18;
 
-enum Opcode: uint8_t {
-    OP_aconst_null    =   1,
-    OP_iconst_0       =   3,
-    OP_iconst_1       =   4,
-    OP_ldc            =  18,
-    OP_ldc_w          =  19,
-    OP_pop            =  87,
-    OP_dup            =  89,
-    OP_swap           =  95,
-    OP_dadd           =  99,
-    OP_isub           = 100,
-    OP_drem           = 115,
-    OP_ixor           = 130,
-    OP_ifeq           = 153,
-    OP_ifne           = 154,
-    OP_iflt           = 155,
-    OP_ifge           = 156,
-    OP_ifgt           = 157,
-    OP_ifle           = 158,
-    OP_if_icmplt      = 161,
-    OP_goto           = 167,
-    OP_return         = 177,
-    OP_getstatic      = 178,
-    OP_putstatic      = 179,
-    OP_invokevirtual  = 182,
-    OP_invokespecial  = 183,
-    OP_invokestatic   = 184,
-    OP_new            = 187
-};
+const uint8_t OP_aconst_null      =   1;
+const uint8_t OP_iconst_0         =   3;
+const uint8_t OP_iconst_1         =   4;
+//const uint8_t OP_ldc            =  18;
+const uint8_t OP_ldc_w          =  19;
+const uint8_t OP_pop            =  87;
+const uint8_t OP_dup            =  89;
+const uint8_t OP_swap           =  95;
+//const uint8_t OP_dadd           =  99;
+//const uint8_t OP_isub           = 100;
+//const uint8_t OP_drem           = 115;
+const uint8_t OP_ixor           = 130;
+const uint8_t OP_ifeq           = 153;
+const uint8_t OP_ifne           = 154;
+const uint8_t OP_iflt           = 155;
+const uint8_t OP_ifge           = 156;
+const uint8_t OP_ifgt           = 157;
+const uint8_t OP_ifle           = 158;
+const uint8_t OP_if_icmplt      = 161;
+const uint8_t OP_goto           = 167;
+const uint8_t OP_return         = 177;
+const uint8_t OP_getstatic      = 178;
+const uint8_t OP_putstatic      = 179;
+const uint8_t OP_invokevirtual  = 182;
+const uint8_t OP_invokespecial  = 183;
+const uint8_t OP_invokestatic   = 184;
+const uint8_t OP_new            = 187;
 
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
