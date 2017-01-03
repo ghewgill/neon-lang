@@ -856,7 +856,7 @@ private:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(const ast::AssignmentStatement *as): as(as), expr(transform(as->expr)) {
+    AssignmentStatement(const ast::AssignmentStatement *as): as(as), expr(transform(as->expr)), variables() {
         for (auto v: as->variables) {
             variables.push_back(transform(v));
         }
@@ -1025,6 +1025,7 @@ public:
             statements.push_back(transform(s));
         }
     }
+    virtual ~Program() {}
     const ast::Program *program;
     std::vector<const Statement *> statements;
 
@@ -1294,6 +1295,9 @@ public:
     virtual void visit(const ast::Program *) {}
 private:
     Variable *r;
+private:
+    VariableTransformer(const VariableTransformer &);
+    VariableTransformer &operator=(const VariableTransformer &);
 };
 
 class ExpressionTransformer: public ast::IAstVisitor {
@@ -1396,6 +1400,9 @@ public:
     virtual void visit(const ast::Program *) {}
 private:
     Expression *r;
+private:
+    ExpressionTransformer(const ExpressionTransformer &);
+    ExpressionTransformer &operator=(const ExpressionTransformer &);
 };
 
 class StatementTransformer: public ast::IAstVisitor {
@@ -1498,6 +1505,9 @@ public:
     virtual void visit(const ast::Program *) {}
 private:
     Statement *r;
+private:
+    StatementTransformer(const StatementTransformer &);
+    StatementTransformer &operator=(const StatementTransformer &);
 };
 
 Variable *transform(const ast::Variable *v)
