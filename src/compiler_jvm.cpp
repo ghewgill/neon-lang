@@ -92,7 +92,7 @@ std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, const std::vector<uint
 }
 
 struct cp_info {
-    cp_info(): tag(0) {}
+    cp_info(): tag(0), info() {}
     uint8_t tag;
     std::vector<uint8_t> info;
 
@@ -105,6 +105,7 @@ struct cp_info {
 };
 
 struct attribute_info {
+    attribute_info(): attribute_name_index(0), info() {}
     uint16_t attribute_name_index;
     //uint32_t attribute_length;
     std::vector<uint8_t> info;
@@ -119,6 +120,7 @@ struct attribute_info {
 };
 
 struct Code_attribute {
+    Code_attribute(): max_stack(0), max_locals(0), code(), exception_table(), attributes() {}
     uint16_t max_stack;
     uint16_t max_locals;
     //uint32_t code_length;
@@ -161,6 +163,7 @@ struct Code_attribute {
 };
 
 struct field_info {
+    field_info(): access_flags(0), name_index(0), descriptor_index(0), attributes() {}
     uint16_t access_flags;
     uint16_t name_index;
     uint16_t descriptor_index;
@@ -181,6 +184,7 @@ struct field_info {
 };
 
 struct method_info {
+    method_info(): access_flags(0), name_index(0), descriptor_index(0), attributes() {}
     uint16_t access_flags;
     uint16_t name_index;
     uint16_t descriptor_index;
@@ -201,6 +205,7 @@ struct method_info {
 };
 
 struct ClassFile {
+    ClassFile(): magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes() {}
     uint32_t magic;
     uint16_t minor_version;
     uint16_t major_version;
@@ -384,7 +389,7 @@ public:
         Label *next;
     };
 public:
-    Context(ClassFile &cf, Code_attribute &ca): cf(cf), ca(ca) {}
+    Context(ClassFile &cf, Code_attribute &ca): cf(cf), ca(ca), loop_labels() {}
     ClassFile &cf;
     Code_attribute &ca;
     std::map<size_t, LoopLabels> loop_labels;
@@ -436,6 +441,7 @@ private:
 
 class Variable {
 public:
+    virtual ~Variable() {}
     virtual void generate_load(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
@@ -492,6 +498,7 @@ public:
 
 class Expression {
 public:
+    virtual ~Expression() {}
     virtual void generate(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
@@ -785,6 +792,7 @@ public:
 
 class Statement {
 public:
+    virtual ~Statement() {}
     virtual void generate(Context &context) const = 0;
 };
 
