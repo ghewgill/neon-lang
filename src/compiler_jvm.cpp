@@ -389,7 +389,7 @@ public:
         return Label();
     }
     void emit_jump(uint8_t b, Label &label) {
-        uint16_t this_opcode = ca.code.size();
+        uint16_t this_opcode = static_cast<uint16_t>(ca.code.size());
         ca.code << b;
         if (label.target != UINT16_MAX) {
             ca.code << static_cast<int16_t>(label.target - this_opcode);
@@ -425,6 +425,9 @@ public:
         }
         return *loop_labels[loop_id].next;
     }
+private:
+    Context(const Context &);
+    Context operator=(const Context &);
 };
 
 class Variable {
