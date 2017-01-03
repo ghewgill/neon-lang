@@ -1003,7 +1003,7 @@ public:
             cf.methods.push_back(m);
         }
 
-        std::ofstream f("hello.class");
+        std::ofstream f("hello.class", std::ios::binary);
         auto data = cf.serialize();
         f.write(reinterpret_cast<const char *>(data.data()), data.size());
     }
