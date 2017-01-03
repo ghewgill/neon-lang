@@ -205,7 +205,7 @@ struct method_info {
 };
 
 struct ClassFile {
-    ClassFile(): magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes() {}
+    ClassFile(): magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes(), utf8_constants(), Class_constants(), String_constants(), NameAndType_constants(), Field_constants(), Method_constants() {}
     uint32_t magic;
     uint16_t minor_version;
     uint16_t major_version;
@@ -436,7 +436,7 @@ public:
     }
 private:
     Context(const Context &);
-    Context operator=(const Context &);
+    Context &operator=(const Context &);
 };
 
 class Variable {
@@ -451,7 +451,7 @@ Variable *transform(const ast::Variable *v);
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const ast::GlobalVariable *gv): gv(gv) {
+    GlobalVariable(const ast::GlobalVariable *gv): gv(gv), jtype(jtype) {
         if (gv->type == ast::TYPE_NUMBER) {
             jtype = "Ljava/math/BigDecimal;";
         } else if (gv->type == ast::TYPE_STRING) {
@@ -472,6 +472,9 @@ public:
         context.ca.code << OP_putstatic << context.cf.Field("hello", gv->name, jtype);
     }
     virtual void generate_call(Context &) const override { internal_error("GlobalVariable"); }
+private:
+    GlobalVariable(const GlobalVariable &);
+    GlobalVariable &operator=(const GlobalVariable &);
 };
 
 class PredefinedFunction: public Variable {
@@ -494,6 +497,9 @@ public:
             internal_error("PredefinedFunction: " + pf->name);
         }
     }
+private:
+    PredefinedFunction(const PredefinedFunction &);
+    PredefinedFunction &operator=(const PredefinedFunction &);
 };
 
 class Expression {
@@ -516,6 +522,9 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("ConstantBooleanExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantBooleanExpression"); }
+private:
+    ConstantBooleanExpression(const ConstantBooleanExpression &);
+    ConstantBooleanExpression &operator=(const ConstantBooleanExpression &);
 };
 
 class ConstantNumberExpression: public Expression {
@@ -537,6 +546,9 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("ConstantNumberExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantNumberExpression"); }
+private:
+    ConstantNumberExpression(const ConstantNumberExpression &);
+    ConstantNumberExpression &operator=(const ConstantNumberExpression &);
 };
 
 class ConstantStringExpression: public Expression {
@@ -550,11 +562,14 @@ public:
 
     virtual void generate_call(Context &) const override { internal_error("ConstantStringExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantStringExpression"); }
+private:
+    ConstantStringExpression(const ConstantStringExpression &);
+    ConstantStringExpression &operator=(const ConstantStringExpression &);
 };
 
 class ArrayLiteralExpression: public Expression {
 public:
-    ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): ale(ale) {
+    ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): ale(ale), elements() {
         for (auto e: ale->elements) {
             elements.push_back(transform(e));
         }
@@ -571,6 +586,9 @@ public:
 
     virtual void generate_call(Context &) const override { internal_error("ArrayLiteralExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ArrayLiteralExpression"); }
+private:
+    ArrayLiteralExpression(const ArrayLiteralExpression &);
+    ArrayLiteralExpression &operator=(const ArrayLiteralExpression &);
 };
 
 class UnaryMinusExpression: public Expression {
@@ -585,6 +603,9 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("UnaryMinusExpression"); }
     virtual void generate_store(Context &) const override { internal_error("UnaryMinusExpression"); }
+private:
+    UnaryMinusExpression(const UnaryMinusExpression &);
+    UnaryMinusExpression &operator=(const UnaryMinusExpression &);
 };
 
 class LogicalNotExpression: public Expression {
@@ -600,14 +621,14 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("LogicalNotExpression"); }
     virtual void generate_store(Context &) const override { internal_error("LogicalNotExpression"); }
+private:
+    LogicalNotExpression(const LogicalNotExpression &);
+    LogicalNotExpression &operator=(const LogicalNotExpression &);
 };
 
 class ComparisonExpression: public Expression {
 public:
-    ComparisonExpression(const ast::ComparisonExpression *ce): ce(ce) {
-        left = transform(ce->left);
-        right = transform(ce->right);
-    }
+    ComparisonExpression(const ast::ComparisonExpression *ce): ce(ce), left(transform(ce->left)), right(transform(ce->right)) {}
     const ast::ComparisonExpression *ce;
     const Expression *left;
     const Expression *right;
@@ -621,6 +642,9 @@ public:
 
     virtual void generate_call(Context &) const override { internal_error("ComparisonExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ComparisonExpression"); }
+private:
+    ComparisonExpression(const ComparisonExpression &);
+    ComparisonExpression &operator=(const ComparisonExpression &);
 };
 
 class NumericComparisonExpression: public ComparisonExpression {
@@ -640,6 +664,9 @@ public:
         context.ca.code << OP_iconst_1;
         context.jump_target(label_false);
     }
+private:
+    NumericComparisonExpression(const NumericComparisonExpression &);
+    NumericComparisonExpression &operator=(const NumericComparisonExpression &);
 };
 
 class AdditionExpression: public Expression {
@@ -656,6 +683,9 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("AdditionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("AdditionExpression"); }
+private:
+    AdditionExpression(const AdditionExpression &);
+    AdditionExpression &operator=(const AdditionExpression &);
 };
 
 class SubtractionExpression: public Expression {
@@ -672,6 +702,9 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("SubtractionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("SubtractionExpression"); }
+private:
+    SubtractionExpression(const SubtractionExpression &);
+    SubtractionExpression &operator=(const SubtractionExpression &);
 };
 
 class MultiplicationExpression: public Expression {
@@ -688,6 +721,9 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("MultiplicationExpression"); }
     virtual void generate_store(Context &) const override { internal_error("MultiplicationExpression"); }
+private:
+    MultiplicationExpression(const MultiplicationExpression &);
+    MultiplicationExpression &operator=(const MultiplicationExpression &);
 };
 
 class ModuloExpression: public Expression {
@@ -704,6 +740,9 @@ public:
     }
     virtual void generate_call(Context &) const override { internal_error("ModuloExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ModuloExpression"); }
+private:
+    ModuloExpression(const ModuloExpression &);
+    ModuloExpression &operator=(const ModuloExpression &);
 };
 
 class ArrayReferenceIndexExpression: public Expression {
@@ -745,13 +784,14 @@ public:
         context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
         context.ca.code << OP_pop;
     }
+private:
+    ArrayReferenceIndexExpression(const ArrayReferenceIndexExpression &);
+    ArrayReferenceIndexExpression &operator=(const ArrayReferenceIndexExpression &);
 };
 
 class VariableExpression: public Expression {
 public:
-    VariableExpression(const ast::VariableExpression *ve): ve(ve) {
-        var = transform(ve->var);
-    }
+    VariableExpression(const ast::VariableExpression *ve): ve(ve), var(transform(ve->var)) {}
     const ast::VariableExpression *ve;
     const Variable *var;
 
@@ -765,12 +805,14 @@ public:
     virtual void generate_store(Context &context) const override {
         var->generate_store(context);
     }
+private:
+    VariableExpression(const VariableExpression &);
+    VariableExpression &operator=(const VariableExpression &);
 };
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const ast::FunctionCall *fc): fc(fc) {
-        func = transform(fc->func);
+    FunctionCall(const ast::FunctionCall *fc): fc(fc), func(transform(fc->func)), args() {
         for (auto a: fc->args) {
             args.push_back(transform(a));
         }
@@ -788,6 +830,9 @@ public:
 
     virtual void generate_call(Context &) const override { internal_error("FunctionCall"); }
     virtual void generate_store(Context &) const override { internal_error("FunctionCall"); }
+private:
+    FunctionCall(const FunctionCall &);
+    FunctionCall &operator=(const FunctionCall &);
 };
 
 class Statement {
@@ -804,6 +849,9 @@ public:
     const ast::NullStatement *ns;
 
     virtual void generate(Context &) const override {}
+private:
+    NullStatement(const NullStatement &);
+    NullStatement &operator=(const NullStatement &);
 };
 
 class AssignmentStatement: public Statement {
@@ -826,24 +874,28 @@ public:
              v->generate_store(context);
         }
     }
+private:
+    AssignmentStatement(const AssignmentStatement &);
+    AssignmentStatement &operator=(const AssignmentStatement &);
 };
 
 class ExpressionStatement: public Statement {
 public:
-    ExpressionStatement(const ast::ExpressionStatement *es): es(es) {
-        expr = transform(es->expr);
-    }
+    ExpressionStatement(const ast::ExpressionStatement *es): es(es), expr(transform(es->expr)) {}
     const ast::ExpressionStatement *es;
     const Expression *expr;
 
     virtual void generate(Context &context) const override {
         expr->generate(context);
     }
+private:
+    ExpressionStatement(const ExpressionStatement &);
+    ExpressionStatement &operator=(const ExpressionStatement &);
 };
 
 class CompoundStatement: public Statement {
 public:
-    CompoundStatement(const ast::CompoundStatement *cs): cs(cs) {
+    CompoundStatement(const ast::CompoundStatement *cs): cs(cs), statements() {
         for (auto s: cs->statements) {
             statements.push_back(transform(s));
         }
@@ -856,11 +908,14 @@ public:
             s->generate(context);
         }
     }
+private:
+    CompoundStatement(const CompoundStatement &);
+    CompoundStatement &operator=(const CompoundStatement &);
 };
 
 class BaseLoopStatement: public CompoundStatement {
 public:
-    BaseLoopStatement(const ast::BaseLoopStatement *bls): CompoundStatement(bls), bls(bls) {
+    BaseLoopStatement(const ast::BaseLoopStatement *bls): CompoundStatement(bls), bls(bls), prologue(), tail() {
         for (auto s: bls->prologue) {
             prologue.push_back(transform(s));
         }
@@ -890,6 +945,9 @@ public:
         context.jump_target(skip);
         context.remove_loop_labels(bls->loop_id);
     }
+private:
+    BaseLoopStatement(const BaseLoopStatement &);
+    BaseLoopStatement &operator=(const BaseLoopStatement &);
 };
 
 class ExitStatement: public Statement {
@@ -900,11 +958,14 @@ public:
     void generate(Context &context) const override {
         context.emit_jump(OP_goto, context.get_exit_label(es->loop_id));
     }
+private:
+    ExitStatement(const ExitStatement &);
+    ExitStatement &operator=(const ExitStatement &);
 };
 
 class IfStatement: public Statement {
 public:
-    IfStatement(const ast::IfStatement *is): is(is) {
+    IfStatement(const ast::IfStatement *is): is(is), condition_statements(), else_statements() {
         for (auto cs: is->condition_statements) {
             std::vector<const Statement *> statements;
             for (auto s: cs.second) {
@@ -940,6 +1001,9 @@ public:
         }
         context.jump_target(end_label);
     }
+private:
+    IfStatement(const IfStatement &);
+    IfStatement &operator=(const IfStatement &);
 };
 
 class ResetStatement: public Statement {
@@ -949,11 +1013,14 @@ public:
 
     virtual void generate(Context &) const override {
     }
+private:
+    ResetStatement(const ResetStatement &);
+    ResetStatement &operator=(const ResetStatement &);
 };
 
 class Program {
 public:
-    Program(const ast::Program *program): program(program) {
+    Program(const ast::Program *program): program(program), statements() {
         for (auto s: program->statements) {
             statements.push_back(transform(s));
         }
@@ -1019,6 +1086,9 @@ public:
         auto data = cf.serialize();
         f.write(reinterpret_cast<const char *>(data.data()), data.size());
     }
+private:
+    Program(const Program &);
+    Program &operator=(const Program &);
 };
 
 #if 0
