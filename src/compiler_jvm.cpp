@@ -24,28 +24,33 @@ const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t CONSTANT_MethodType         = 16;
 //const uint8_t CONSTANT_InvokeDynamic      = 18;
 
-const uint8_t OP_iconst_0        =   3;
-const uint8_t OP_iconst_1        =   4;
-//const uint8_t OP_ldc           =  18;
-const uint8_t OP_ldc_w         =  19;
-const uint8_t OP_dup           =  89;
-//const uint8_t OP_dadd          =  99;
-//const uint8_t OP_isub          = 100;
-//const uint8_t OP_drem          = 115;
-const uint8_t OP_ifeq          = 153;
-const uint8_t OP_ifne          = 154;
-const uint8_t OP_iflt          = 155;
-const uint8_t OP_ifge          = 156;
-const uint8_t OP_ifgt          = 157;
-const uint8_t OP_ifle          = 158;
-const uint8_t OP_goto          = 167;
-const uint8_t OP_return        = 177;
-const uint8_t OP_getstatic     = 178;
-const uint8_t OP_putstatic     = 179;
-const uint8_t OP_invokevirtual = 182;
-const uint8_t OP_invokespecial = 183;
-const uint8_t OP_invokestatic  = 184;
-const uint8_t OP_new           = 187;
+const uint8_t OP_aconst_null      =   1;
+const uint8_t OP_iconst_0         =   3;
+const uint8_t OP_iconst_1         =   4;
+//const uint8_t OP_ldc            =  18;
+const uint8_t OP_ldc_w          =  19;
+const uint8_t OP_pop            =  87;
+const uint8_t OP_dup            =  89;
+const uint8_t OP_swap           =  95;
+//const uint8_t OP_dadd           =  99;
+//const uint8_t OP_isub           = 100;
+//const uint8_t OP_drem           = 115;
+const uint8_t OP_ixor           = 130;
+const uint8_t OP_ifeq           = 153;
+const uint8_t OP_ifne           = 154;
+const uint8_t OP_iflt           = 155;
+const uint8_t OP_ifge           = 156;
+const uint8_t OP_ifgt           = 157;
+const uint8_t OP_ifle           = 158;
+const uint8_t OP_if_icmplt      = 161;
+const uint8_t OP_goto           = 167;
+const uint8_t OP_return         = 177;
+const uint8_t OP_getstatic      = 178;
+const uint8_t OP_putstatic      = 179;
+const uint8_t OP_invokevirtual  = 182;
+const uint8_t OP_invokespecial  = 183;
+const uint8_t OP_invokestatic   = 184;
+const uint8_t OP_new            = 187;
 
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
@@ -438,6 +443,8 @@ public:
             jtype = "Ljava/math/BigDecimal;";
         } else if (gv->type == ast::TYPE_STRING) {
             jtype = "Ljava/lang/String;";
+        } else if (dynamic_cast<const ast::TypeArray *>(gv->type) != nullptr) {
+            jtype = "Ljava/util/ArrayList;";
         } else {
             internal_error("type of global unhandled");
         }
@@ -463,14 +470,13 @@ public:
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Context &context) const override {
         if (pf->name == "print") {
-            context.ca.code << OP_invokestatic;
-            context.ca.code << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
         } else if (pf->name == "number__toString" || pf->name == "str") {
-            context.ca.code << OP_invokevirtual;
-            context.ca.code << context.cf.Method("java/math/BigDecimal", "toString", "()Ljava/lang/String;");
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "toString", "()Ljava/lang/String;");
         } else if (pf->name == "concat") {
-            context.ca.code << OP_invokevirtual;
-            context.ca.code << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
+        } else if (pf->name == "array__size") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "size", "()I");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -486,22 +492,33 @@ public:
 
 Expression *transform(const ast::Expression *e);
 
+class ConstantBooleanExpression: public Expression {
+public:
+    ConstantBooleanExpression(const ast::ConstantBooleanExpression *cbe): cbe(cbe) {}
+    const ast::ConstantBooleanExpression *cbe;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", cbe->value ? "TRUE" : "FALSE", "Ljava/lang/Boolean;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ConstantBooleanExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantBooleanExpression"); }
+};
+
 class ConstantNumberExpression: public Expression {
 public:
     ConstantNumberExpression(const ast::ConstantNumberExpression *cne): cne(cne) {}
     const ast::ConstantNumberExpression *cne;
 
     virtual void generate(Context &context) const override {
-        if (number_is_equal(cne->value, number_from_uint32(1))) {
+        if (number_is_zero(cne->value)) {
+            context.ca.code << OP_getstatic << context.cf.Field("java/math/BigDecimal", "ZERO", "Ljava/math/BigDecimal;");
+        } else if (number_is_equal(cne->value, number_from_uint32(1))) {
             context.ca.code << OP_getstatic << context.cf.Field("java/math/BigDecimal", "ONE", "Ljava/math/BigDecimal;");
         } else {
-            context.ca.code << OP_new;
-            context.ca.code << context.cf.Class("java/math/BigDecimal");
+            context.ca.code << OP_new << context.cf.Class("java/math/BigDecimal");
             context.ca.code << OP_dup;
-            context.ca.code << OP_ldc_w;
-            context.ca.code << context.cf.String(number_to_string(cne->value));
-            context.ca.code << OP_invokespecial;
-            context.ca.code << context.cf.Method("java/math/BigDecimal", "<init>", "(Ljava/lang/String;)V");
+            context.ca.code << OP_ldc_w << context.cf.String(number_to_string(cne->value));
+            context.ca.code << OP_invokespecial << context.cf.Method("java/math/BigDecimal", "<init>", "(Ljava/lang/String;)V");
         }
     }
     virtual void generate_call(Context &) const override { internal_error("ConstantNumberExpression"); }
@@ -514,12 +531,32 @@ public:
     const ast::ConstantStringExpression *cse;
 
     virtual void generate(Context &context) const override {
-        context.ca.code << OP_ldc_w;
-        context.ca.code << context.cf.String(cse->value);
+        context.ca.code << OP_ldc_w << context.cf.String(cse->value);
     }
 
     virtual void generate_call(Context &) const override { internal_error("ConstantStringExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantStringExpression"); }
+};
+
+class ArrayLiteralExpression: public Expression {
+public:
+    ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): ale(ale) {
+        for (auto e: ale->elements) {
+            elements.push_back(transform(e));
+        }
+    }
+    const ast::ArrayLiteralExpression *ale;
+    std::vector<const Expression *> elements;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_new << context.cf.Class("java/util/ArrayList");
+        context.ca.code << OP_dup;
+        // TODO: initial capacity context.ca.code <<
+        context.ca.code << OP_invokespecial << context.cf.Method("java/util/ArrayList", "<init>", "()V");
+    }
+
+    virtual void generate_call(Context &) const override { internal_error("ArrayLiteralExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ArrayLiteralExpression"); }
 };
 
 class UnaryMinusExpression: public Expression {
@@ -530,11 +567,25 @@ public:
 
     virtual void generate(Context &context) const override {
         value->generate(context);
-        context.ca.code << OP_invokevirtual;
-        context.ca.code << context.cf.Method("java/math/BigDecimal", "negate", "()Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "negate", "()Ljava/math/BigDecimal;");
     }
     virtual void generate_call(Context &) const override { internal_error("UnaryMinusExpression"); }
     virtual void generate_store(Context &) const override { internal_error("UnaryMinusExpression"); }
+};
+
+class LogicalNotExpression: public Expression {
+public:
+    LogicalNotExpression(const ast::LogicalNotExpression *lne): lne(lne), value(transform(lne->value)) {}
+    const ast::LogicalNotExpression *lne;
+    const Expression *value;
+
+    virtual void generate(Context &context) const override {
+        value->generate(context);
+        context.ca.code << OP_iconst_1;
+        context.ca.code << OP_ixor;
+    }
+    virtual void generate_call(Context &) const override { internal_error("LogicalNotExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("LogicalNotExpression"); }
 };
 
 class ComparisonExpression: public Expression {
@@ -564,8 +615,7 @@ public:
     const ast::NumericComparisonExpression *nce;
 
     virtual void generate_comparison(Context &context) const override {
-        context.ca.code << OP_invokevirtual;
-        context.ca.code << context.cf.Method("java/math/BigDecimal", "compareTo", "(Ljava/math/BigDecimal;)I");
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "compareTo", "(Ljava/math/BigDecimal;)I");
         static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
         auto label_true = context.create_label();
         context.emit_jump(op[nce->comp], label_true);
@@ -588,8 +638,7 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual;
-        context.ca.code << context.cf.Method("java/math/BigDecimal", "add", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "add", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
     }
     virtual void generate_call(Context &) const override { internal_error("AdditionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("AdditionExpression"); }
@@ -605,11 +654,26 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual;
-        context.ca.code << context.cf.Method("java/math/BigDecimal", "subtract", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "subtract", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
     }
     virtual void generate_call(Context &) const override { internal_error("SubtractionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("SubtractionExpression"); }
+};
+
+class MultiplicationExpression: public Expression {
+public:
+    MultiplicationExpression(const ast::MultiplicationExpression *me): me(me), left(transform(me->left)), right(transform(me->right)) {}
+    const ast::MultiplicationExpression *me;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        right->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "multiply", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("MultiplicationExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("MultiplicationExpression"); }
 };
 
 class ModuloExpression: public Expression {
@@ -622,11 +686,51 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual;
-        context.ca.code << context.cf.Method("java/math/BigDecimal", "remainder", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "remainder", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
     }
     virtual void generate_call(Context &) const override { internal_error("ModuloExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ModuloExpression"); }
+};
+
+class ArrayReferenceIndexExpression: public Expression {
+public:
+    ArrayReferenceIndexExpression(const ast::ArrayReferenceIndexExpression *arie): arie(arie), array(transform(arie->array)), index(transform(arie->index)) {}
+    const ast::ArrayReferenceIndexExpression *arie;
+    const Expression *array;
+    const Expression *index;
+
+    virtual void generate(Context &context) const override {
+        array->generate(context);
+        index->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I");
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "get", "(I)Ljava/lang/Object;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ArrayReferenceIndexExpression"); }
+    virtual void generate_store(Context &context) const override {
+        // TODO: wrap this size adjustment up in a method on neon.Array or something
+        auto label_check_size = context.create_label();
+        context.jump_target(label_check_size);
+        index->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I");
+        array->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "size", "()I");
+        auto label_size_ok = context.create_label();
+        context.emit_jump(OP_if_icmplt, label_size_ok);
+        array->generate(context);
+        context.ca.code << OP_aconst_null;
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "add", "(Ljava/lang/Object;)Z");
+        context.ca.code << OP_pop;
+        context.emit_jump(OP_goto, label_check_size);
+        context.jump_target(label_size_ok);
+        // ---
+        array->generate(context);
+        context.ca.code << OP_swap;
+        index->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I");
+        context.ca.code << OP_swap;
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
+        context.ca.code << OP_pop;
+    }
 };
 
 class VariableExpression: public Expression {
@@ -863,6 +967,8 @@ public:
                     f.descriptor_index = cf.utf8("Ljava/math/BigDecimal;");
                 } else if (global->type == ast::TYPE_STRING) {
                     f.descriptor_index = cf.utf8("Ljava/lang/String;");
+                } else if (dynamic_cast<const ast::TypeArray *>(global->type) != nullptr) {
+                    f.descriptor_index = cf.utf8("Ljava/util/ArrayList;");
                 } else {
                     internal_error("type of global unhandled");
                 }
@@ -1134,19 +1240,19 @@ public:
     virtual void visit(const ast::FunctionParameter *) {}
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Constant *) {}
-    virtual void visit(const ast::ConstantBooleanExpression *) {}
+    virtual void visit(const ast::ConstantBooleanExpression *node) { r = new ConstantBooleanExpression(node); }
     virtual void visit(const ast::ConstantNumberExpression *node) { r = new ConstantNumberExpression(node); }
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
     virtual void visit(const ast::ConstantBytesExpression *) {}
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
-    virtual void visit(const ast::ArrayLiteralExpression *) {}
+    virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
     virtual void visit(const ast::NewClassExpression *) {}
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
-    virtual void visit(const ast::LogicalNotExpression *) {}
+    virtual void visit(const ast::LogicalNotExpression *node) { r = new LogicalNotExpression(node); }
     virtual void visit(const ast::ConditionalExpression *) {}
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
@@ -1163,12 +1269,12 @@ public:
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
     virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
     virtual void visit(const ast::SubtractionExpression *node) { r = new SubtractionExpression(node); }
-    virtual void visit(const ast::MultiplicationExpression *) {}
+    virtual void visit(const ast::MultiplicationExpression *node) { r = new MultiplicationExpression(node); }
     virtual void visit(const ast::DivisionExpression *) {}
     virtual void visit(const ast::ModuloExpression *node) { r = new ModuloExpression(node); }
     virtual void visit(const ast::ExponentiationExpression *) {}
     virtual void visit(const ast::DummyExpression *) {}
-    virtual void visit(const ast::ArrayReferenceIndexExpression *) {}
+    virtual void visit(const ast::ArrayReferenceIndexExpression *node) { r = new ArrayReferenceIndexExpression(node); }
     virtual void visit(const ast::ArrayValueIndexExpression *) {}
     virtual void visit(const ast::DictionaryReferenceIndexExpression *) {}
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
