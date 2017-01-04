@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stdlib.h>
 
 #include "bundle.h"
 #include "exec.h"
