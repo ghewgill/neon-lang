@@ -454,7 +454,7 @@ class GlobalVariable: public Variable {
 public:
     GlobalVariable(const ast::GlobalVariable *gv): gv(gv), jtype() {
         if (gv->type == ast::TYPE_NUMBER) {
-            jtype = "Ljava/math/BigDecimal;";
+            jtype = "Lneon/type/Number;";
         } else if (gv->type == ast::TYPE_STRING) {
             jtype = "Ljava/lang/String;";
         } else if (dynamic_cast<const ast::TypeArray *>(gv->type) != nullptr) {
@@ -489,7 +489,7 @@ public:
         if (pf->name == "print") {
             context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
         } else if (pf->name == "number__toString" || pf->name == "str") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "toString", "()Ljava/lang/String;");
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "toString", "()Ljava/lang/String;");
         } else if (pf->name == "concat") {
             context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
         } else if (pf->name == "array__size") {
@@ -535,14 +535,14 @@ public:
 
     virtual void generate(Context &context) const override {
         if (number_is_zero(cne->value)) {
-            context.ca.code << OP_getstatic << context.cf.Field("java/math/BigDecimal", "ZERO", "Ljava/math/BigDecimal;");
+            context.ca.code << OP_getstatic << context.cf.Field("neon/type/Number", "ZERO", "Lneon/type/Number;");
         } else if (number_is_equal(cne->value, number_from_uint32(1))) {
-            context.ca.code << OP_getstatic << context.cf.Field("java/math/BigDecimal", "ONE", "Ljava/math/BigDecimal;");
+            context.ca.code << OP_getstatic << context.cf.Field("neon/type/Number", "ONE", "Lneon/type/Number;");
         } else {
-            context.ca.code << OP_new << context.cf.Class("java/math/BigDecimal");
+            context.ca.code << OP_new << context.cf.Class("neon/type/Number");
             context.ca.code << OP_dup;
             context.ca.code << OP_ldc_w << context.cf.String(number_to_string(cne->value));
-            context.ca.code << OP_invokespecial << context.cf.Method("java/math/BigDecimal", "<init>", "(Ljava/lang/String;)V");
+            context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Number", "<init>", "(Ljava/lang/String;)V");
         }
     }
     virtual void generate_call(Context &) const override { internal_error("ConstantNumberExpression"); }
@@ -600,7 +600,7 @@ public:
 
     virtual void generate(Context &context) const override {
         value->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "negate", "()Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "negate", "()Lneon/type/Number;");
     }
     virtual void generate_call(Context &) const override { internal_error("UnaryMinusExpression"); }
     virtual void generate_store(Context &) const override { internal_error("UnaryMinusExpression"); }
@@ -654,7 +654,7 @@ public:
     const ast::NumericComparisonExpression *nce;
 
     virtual void generate_comparison(Context &context) const override {
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "compareTo", "(Ljava/math/BigDecimal;)I");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "compareTo", "(Lneon/type/Number;)I");
         static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
         auto label_true = context.create_label();
         context.emit_jump(op[nce->comp], label_true);
@@ -680,7 +680,7 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "add", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "add", "(Lneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &) const override { internal_error("AdditionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("AdditionExpression"); }
@@ -699,7 +699,7 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "subtract", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "subtract", "(Lneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &) const override { internal_error("SubtractionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("SubtractionExpression"); }
@@ -718,7 +718,7 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "multiply", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "multiply", "(Lneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &) const override { internal_error("MultiplicationExpression"); }
     virtual void generate_store(Context &) const override { internal_error("MultiplicationExpression"); }
@@ -737,7 +737,7 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "divide", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "divide", "(Lneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &) const override { internal_error("DivisionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("DivisionExpression"); }
@@ -756,7 +756,7 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "remainder", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "remainder", "(Lneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &) const override { internal_error("ModuloExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ModuloExpression"); }
@@ -775,8 +775,7 @@ public:
     virtual void generate(Context &context) const override {
         left->generate(context);
         right->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I"); // TODO
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "pow", "(I)Ljava/math/BigDecimal;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "pow", "(Lneon/type/Number;)Lneon/type/Number;");
     }
     virtual void generate_call(Context &) const override { internal_error("ExponentiationExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ExponentiationExpression"); }
@@ -795,7 +794,7 @@ public:
     virtual void generate(Context &context) const override {
         array->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
         context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "get", "(I)Ljava/lang/Object;");
     }
     virtual void generate_call(Context &) const override { internal_error("ArrayReferenceIndexExpression"); }
@@ -804,7 +803,7 @@ public:
         auto label_check_size = context.create_label();
         context.jump_target(label_check_size);
         index->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
         array->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "size", "()I");
         auto label_size_ok = context.create_label();
@@ -819,7 +818,7 @@ public:
         array->generate(context);
         context.ca.code << OP_swap;
         index->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
         context.ca.code << OP_swap;
         context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
         context.ca.code << OP_pop;
@@ -1097,7 +1096,7 @@ public:
                 f.access_flags = ACC_STATIC;
                 f.name_index = cf.utf8(slot.name);
                 if (global->type == ast::TYPE_NUMBER) {
-                    f.descriptor_index = cf.utf8("Ljava/math/BigDecimal;");
+                    f.descriptor_index = cf.utf8("Lneon/type/Number;");
                 } else if (global->type == ast::TYPE_STRING) {
                     f.descriptor_index = cf.utf8("Ljava/lang/String;");
                 } else if (dynamic_cast<const ast::TypeArray *>(global->type) != nullptr) {
