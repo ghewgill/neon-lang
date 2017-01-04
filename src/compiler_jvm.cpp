@@ -201,7 +201,8 @@ struct method_info {
 };
 
 struct ClassFile {
-    ClassFile(): magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes(), utf8_constants(), Class_constants(), String_constants(), NameAndType_constants(), Field_constants(), Method_constants() {}
+    ClassFile(const std::string &name): name(name), magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes(), utf8_constants(), Class_constants(), String_constants(), NameAndType_constants(), Field_constants(), Method_constants() {}
+    const std::string name;
     uint32_t magic;
     uint16_t minor_version;
     uint16_t major_version;
@@ -447,7 +448,7 @@ Variable *transform(const ast::Variable *v);
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const ast::GlobalVariable *gv): gv(gv), jtype(jtype) {
+    GlobalVariable(const ast::GlobalVariable *gv): gv(gv), jtype() {
         if (gv->type == ast::TYPE_NUMBER) {
             jtype = "Ljava/math/BigDecimal;";
         } else if (gv->type == ast::TYPE_STRING) {
@@ -462,10 +463,10 @@ public:
     std::string jtype;
 
     virtual void generate_load(Context &context) const override {
-        context.ca.code << OP_getstatic << context.cf.Field("hello", gv->name, jtype);
+        context.ca.code << OP_getstatic << context.cf.Field(context.cf.name, gv->name, jtype);
     }
     virtual void generate_store(Context &context) const override {
-        context.ca.code << OP_putstatic << context.cf.Field("hello", gv->name, jtype);
+        context.ca.code << OP_putstatic << context.cf.Field(context.cf.name, gv->name, jtype);
     }
     virtual void generate_call(Context &) const override { internal_error("GlobalVariable"); }
 private:
@@ -722,6 +723,25 @@ private:
     MultiplicationExpression &operator=(const MultiplicationExpression &);
 };
 
+class DivisionExpression: public Expression {
+public:
+    DivisionExpression(const ast::DivisionExpression *de): de(de), left(transform(de->left)), right(transform(de->right)) {}
+    const ast::DivisionExpression *de;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        right->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "divide", "(Ljava/math/BigDecimal;)Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("DivisionExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("DivisionExpression"); }
+private:
+    DivisionExpression(const DivisionExpression &);
+    DivisionExpression &operator=(const DivisionExpression &);
+};
+
 class ModuloExpression: public Expression {
 public:
     ModuloExpression(const ast::ModuloExpression *me): me(me), left(transform(me->left)), right(transform(me->right)) {}
@@ -739,6 +759,26 @@ public:
 private:
     ModuloExpression(const ModuloExpression &);
     ModuloExpression &operator=(const ModuloExpression &);
+};
+
+class ExponentiationExpression: public Expression {
+public:
+    ExponentiationExpression(const ast::ExponentiationExpression *ee): ee(ee), left(transform(ee->left)), right(transform(ee->right)) {}
+    const ast::ExponentiationExpression *ee;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        right->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "intValue", "()I"); // TODO
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/math/BigDecimal", "pow", "(I)Ljava/math/BigDecimal;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ExponentiationExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ExponentiationExpression"); }
+private:
+    ExponentiationExpression(const ExponentiationExpression &);
+    ExponentiationExpression &operator=(const ExponentiationExpression &);
 };
 
 class ArrayReferenceIndexExpression: public Expression {
@@ -1026,13 +1066,23 @@ public:
     std::vector<const Statement *> statements;
 
     virtual void generate() const {
-        ClassFile cf;
+        std::string name = program->source_path;
+        std::string path;
+        std::string::size_type i = name.find_last_of("/\\:");
+        if (i != std::string::npos) {
+            path = name.substr(0, i + 1);
+            name = name.substr(i + 1);
+        }
+        if (name.length() > 5 && name.substr(name.length() - 5) == ".neon") {
+            name = name.substr(0, name.length() - 5);
+        }
+        ClassFile cf(name);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
         cf.constant_pool_count = 0;
         cf.access_flags = ACC_PUBLIC | ACC_SUPER;
-        cf.this_class = cf.Class("hello");
+        cf.this_class = cf.Class(cf.name);
         cf.super_class = cf.Class("Ljava/lang/Object;");
 
         for (size_t i = 0; i < program->frame->getCount(); i++) {
@@ -1079,7 +1129,7 @@ public:
             cf.methods.push_back(m);
         }
 
-        std::ofstream f("hello.class", std::ios::binary);
+        std::ofstream f(path + cf.name + ".class", std::ios::binary);
         auto data = cf.serialize();
         f.write(reinterpret_cast<const char *>(data.data()), data.size());
     }
@@ -1355,9 +1405,9 @@ public:
     virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
     virtual void visit(const ast::SubtractionExpression *node) { r = new SubtractionExpression(node); }
     virtual void visit(const ast::MultiplicationExpression *node) { r = new MultiplicationExpression(node); }
-    virtual void visit(const ast::DivisionExpression *) {}
+    virtual void visit(const ast::DivisionExpression *node) { r = new DivisionExpression(node); }
     virtual void visit(const ast::ModuloExpression *node) { r = new ModuloExpression(node); }
-    virtual void visit(const ast::ExponentiationExpression *) {}
+    virtual void visit(const ast::ExponentiationExpression *node) { r = new ExponentiationExpression(node); }
     virtual void visit(const ast::DummyExpression *) {}
     virtual void visit(const ast::ArrayReferenceIndexExpression *node) { r = new ArrayReferenceIndexExpression(node); }
     virtual void visit(const ast::ArrayValueIndexExpression *) {}
@@ -1508,7 +1558,7 @@ private:
 
 Variable *transform(const ast::Variable *v)
 {
-    printf("transform %s\n", typeid(*v).name());
+    fprintf(stderr, "transform %s\n", typeid(*v).name());
     VariableTransformer vt;
     v->accept(&vt);
     return vt.retval();
@@ -1516,7 +1566,7 @@ Variable *transform(const ast::Variable *v)
 
 Expression *transform(const ast::Expression *e)
 {
-    printf("transform %s\n", typeid(*e).name());
+    fprintf(stderr, "transform %s\n", typeid(*e).name());
     ExpressionTransformer et;
     e->accept(&et);
     return et.retval();
@@ -1524,7 +1574,7 @@ Expression *transform(const ast::Expression *e)
 
 Statement *transform(const ast::Statement *s)
 {
-    printf("transform %s\n", typeid(*s).name());
+    fprintf(stderr, "transform %s\n", typeid(*s).name());
     StatementTransformer st;
     s->accept(&st);
     return st.retval();
