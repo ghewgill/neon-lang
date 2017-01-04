@@ -62,6 +62,7 @@ env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 # Add path of Python itself to shell PATH.
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.path.dirname(sys.executable)
 
+# Find where javac.exe is and add it to our PATH.
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "javac.exe")))
 
 def add_external(target):
@@ -282,6 +283,8 @@ else:
 
 env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc", "src/enums.inc", "src/exceptions.inc", "src/constants_compile.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
 
+jvm_classes = env.Java("jvm", "jvm")
+
 neon = env.Program("bin/neon", [
     "src/analyzer.cpp",
     "src/ast.cpp",
@@ -333,6 +336,7 @@ neonc = env.Program("bin/neonc", [
     "src/util.cpp",
 ] + coverage_lib,
 )
+env.Depends(neonc, jvm_classes)
 
 neonx = env.Program("bin/neonx", [
     "src/bundle.cpp",
@@ -466,8 +470,6 @@ env.Program("bin/perf_lexer", [
     "src/util.cpp",
 ] + coverage_lib,
 )
-
-jvm_classes = env.Java("jvm", "jvm")
 
 if sys.platform == "win32":
     test_ffi = env.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")

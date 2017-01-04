@@ -51,6 +51,7 @@ const uint8_t OP_invokevirtual  = 182;
 const uint8_t OP_invokespecial  = 183;
 const uint8_t OP_invokestatic   = 184;
 const uint8_t OP_new            = 187;
+const uint8_t OP_checkcast      = 192;
 
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
@@ -492,8 +493,10 @@ public:
             context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "toString", "()Ljava/lang/String;");
         } else if (pf->name == "concat") {
             context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
+        } else if (pf->name == "array__append") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "add", "(Ljava/lang/Object;)Z");
         } else if (pf->name == "array__size") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "size", "()I");
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "size_n", "()Lneon/type/Number;");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -794,17 +797,16 @@ public:
     virtual void generate(Context &context) const override {
         array->generate(context);
         index->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
-        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "get", "(I)Ljava/lang/Object;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "get", "(Lneon/type/Number;)Ljava/lang/Object;");
+        context.ca.code << OP_checkcast << context.cf.Class("neon/type/Number"); // TODO: cast to proper type
     }
     virtual void generate_call(Context &) const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         array->generate(context);
         context.ca.code << OP_swap;
         index->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
         context.ca.code << OP_swap;
-        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "set", "(Lneon/type/Number;Ljava/lang/Object;)Ljava/lang/Object;");
         context.ca.code << OP_pop;
     }
 private:

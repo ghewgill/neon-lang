@@ -9,6 +9,10 @@ public class Number {
     public static final Number ZERO = new Number(BigDecimal.ZERO);
     public static final Number ONE = new Number(BigDecimal.ONE);
 
+    public Number(int val) {
+        repr = new BigDecimal(val);
+    }
+
     public Number(BigDecimal val) {
         repr = val;
     }
