@@ -200,7 +200,8 @@ struct method_info {
     }
 };
 
-struct ClassFile {
+class ClassFile {
+public:
     ClassFile(const std::string &name): name(name), magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes(), utf8_constants(), Class_constants(), String_constants(), NameAndType_constants(), Field_constants(), Method_constants() {}
     const std::string name;
     uint32_t magic;
@@ -359,6 +360,9 @@ struct ClassFile {
         }
         return r;
     }
+private:
+    ClassFile(const ClassFile &);
+    ClassFile &operator=(const ClassFile &);
 };
 
 class Context {
