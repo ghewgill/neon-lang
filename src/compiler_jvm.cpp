@@ -458,7 +458,7 @@ public:
         } else if (gv->type == ast::TYPE_STRING) {
             jtype = "Ljava/lang/String;";
         } else if (dynamic_cast<const ast::TypeArray *>(gv->type) != nullptr) {
-            jtype = "Ljava/util/ArrayList;";
+            jtype = "Lneon/type/Array;";
         } else {
             internal_error("type of global unhandled");
         }
@@ -493,7 +493,7 @@ public:
         } else if (pf->name == "concat") {
             context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
         } else if (pf->name == "array__size") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "size", "()I");
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "size", "()I");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -579,10 +579,10 @@ public:
     std::vector<const Expression *> elements;
 
     virtual void generate(Context &context) const override {
-        context.ca.code << OP_new << context.cf.Class("java/util/ArrayList");
+        context.ca.code << OP_new << context.cf.Class("neon/type/Array");
         context.ca.code << OP_dup;
         // TODO: initial capacity context.ca.code <<
-        context.ca.code << OP_invokespecial << context.cf.Method("java/util/ArrayList", "<init>", "()V");
+        context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Array", "<init>", "()V");
     }
 
     virtual void generate_call(Context &) const override { internal_error("ArrayLiteralExpression"); }
@@ -795,32 +795,16 @@ public:
         array->generate(context);
         index->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "get", "(I)Ljava/lang/Object;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "get", "(I)Ljava/lang/Object;");
     }
     virtual void generate_call(Context &) const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
-        // TODO: wrap this size adjustment up in a method on neon.Array or something
-        auto label_check_size = context.create_label();
-        context.jump_target(label_check_size);
-        index->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
-        array->generate(context);
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "size", "()I");
-        auto label_size_ok = context.create_label();
-        context.emit_jump(OP_if_icmplt, label_size_ok);
-        array->generate(context);
-        context.ca.code << OP_aconst_null;
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "add", "(Ljava/lang/Object;)Z");
-        context.ca.code << OP_pop;
-        context.emit_jump(OP_goto, label_check_size);
-        context.jump_target(label_size_ok);
-        // ---
         array->generate(context);
         context.ca.code << OP_swap;
         index->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "intValue", "()I");
         context.ca.code << OP_swap;
-        context.ca.code << OP_invokevirtual << context.cf.Method("java/util/ArrayList", "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "set", "(ILjava/lang/Object;)Ljava/lang/Object;");
         context.ca.code << OP_pop;
     }
 private:
@@ -1100,7 +1084,7 @@ public:
                 } else if (global->type == ast::TYPE_STRING) {
                     f.descriptor_index = cf.utf8("Ljava/lang/String;");
                 } else if (dynamic_cast<const ast::TypeArray *>(global->type) != nullptr) {
-                    f.descriptor_index = cf.utf8("Ljava/util/ArrayList;");
+                    f.descriptor_index = cf.utf8("Lneon/type/Array;");
                 } else {
                     internal_error("type of global unhandled");
                 }
