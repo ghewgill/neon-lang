@@ -4,6 +4,7 @@
 
 #include "support.h"
 
+#include <cstdlib>
 #include <fstream>
 #include <iso646.h>
 #include <sstream>
