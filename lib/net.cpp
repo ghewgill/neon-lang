@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <iso646.h>
+#include <stdio.h>
 
 #include "cell.h"
 #include "rtl_exec.h"
