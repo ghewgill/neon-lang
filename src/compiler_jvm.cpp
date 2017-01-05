@@ -24,7 +24,7 @@ const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t CONSTANT_MethodType         = 16;
 //const uint8_t CONSTANT_InvokeDynamic      = 18;
 
-const uint8_t OP_aconst_null      =   1;
+//const uint8_t OP_aconst_null      =   1;
 const uint8_t OP_iconst_0         =   3;
 const uint8_t OP_iconst_1         =   4;
 //const uint8_t OP_ldc            =  18;
@@ -42,7 +42,7 @@ const uint8_t OP_iflt           = 155;
 const uint8_t OP_ifge           = 156;
 const uint8_t OP_ifgt           = 157;
 const uint8_t OP_ifle           = 158;
-const uint8_t OP_if_icmplt      = 161;
+//const uint8_t OP_if_icmplt      = 161;
 const uint8_t OP_goto           = 167;
 const uint8_t OP_return         = 177;
 const uint8_t OP_getstatic      = 178;
@@ -461,7 +461,7 @@ public:
         } else if (dynamic_cast<const ast::TypeArray *>(gv->type) != nullptr) {
             jtype = "Lneon/type/Array;";
         } else {
-            internal_error("type of global unhandled");
+            internal_error("type of global unhandled: " + gv->type->text());
         }
     }
     const ast::GlobalVariable *gv;
@@ -497,6 +497,12 @@ public:
             context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "add", "(Ljava/lang/Object;)Z");
         } else if (pf->name == "array__size") {
             context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "size_n", "()Lneon/type/Number;");
+        } else if (pf->name == "array__concat") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__concat", "(Lneon/type/Array;Lneon/type/Array;)Lneon/type/Array;");
+        } else if (pf->name == "array__toString__number") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
+        } else if (pf->name == "array__extend") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__extend", "(Lneon/type/Array;Lneon/type/Array;)V");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -586,6 +592,12 @@ public:
         context.ca.code << OP_dup;
         // TODO: initial capacity context.ca.code <<
         context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Array", "<init>", "()V");
+        for (auto e: elements) {
+            context.ca.code << OP_dup;
+            e->generate(context);
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "add", "(Ljava/lang/Object;)Z");
+            context.ca.code << OP_pop;
+        }
     }
 
     virtual void generate_call(Context &) const override { internal_error("ArrayLiteralExpression"); }
@@ -785,6 +797,21 @@ public:
 private:
     ExponentiationExpression(const ExponentiationExpression &);
     ExponentiationExpression &operator=(const ExponentiationExpression &);
+};
+
+class DummyExpression: public Expression {
+public:
+    DummyExpression(const ast::DummyExpression *de): de(de) {}
+    const ast::DummyExpression *de;
+
+    virtual void generate(Context &) const override { internal_error("DummyExpression"); }
+    virtual void generate_call(Context &) const override { internal_error("DummyExpression"); }
+    virtual void generate_store(Context &context) const override {
+        context.ca.code << OP_pop;
+    }
+private:
+    DummyExpression(const DummyExpression &);
+    DummyExpression &operator=(const DummyExpression &);
 };
 
 class ArrayReferenceIndexExpression: public Expression {
@@ -1088,7 +1115,7 @@ public:
                 } else if (dynamic_cast<const ast::TypeArray *>(global->type) != nullptr) {
                     f.descriptor_index = cf.utf8("Lneon/type/Array;");
                 } else {
-                    internal_error("type of global unhandled");
+                    internal_error("type of global unhandled: " + global->type->text());
                 }
                 cf.fields.push_back(f);
             }
@@ -1104,7 +1131,7 @@ public:
                 a.attribute_name_index = cf.utf8("Code");
                 {
                     Code_attribute ca;
-                    ca.max_stack = 5;
+                    ca.max_stack = 8;
                     ca.max_locals = 1;
                     Context context(cf, ca);
                     for (auto s: statements) {
@@ -1397,7 +1424,7 @@ public:
     virtual void visit(const ast::DivisionExpression *node) { r = new DivisionExpression(node); }
     virtual void visit(const ast::ModuloExpression *node) { r = new ModuloExpression(node); }
     virtual void visit(const ast::ExponentiationExpression *node) { r = new ExponentiationExpression(node); }
-    virtual void visit(const ast::DummyExpression *) {}
+    virtual void visit(const ast::DummyExpression *node) { r = new DummyExpression(node); }
     virtual void visit(const ast::ArrayReferenceIndexExpression *node) { r = new ArrayReferenceIndexExpression(node); }
     virtual void visit(const ast::ArrayValueIndexExpression *) {}
     virtual void visit(const ast::DictionaryReferenceIndexExpression *) {}
