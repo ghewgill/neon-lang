@@ -80,6 +80,7 @@ ExcludeTests = [
     "t/foreach-string.neon",        # expression
     "t/foreach-value.neon",         # expression
     "t/foreach.neon",               # expression
+    "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
     "t/forward.neon",               # variable
     "t/function-args.neon",         # variable
