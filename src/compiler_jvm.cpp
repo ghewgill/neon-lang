@@ -1057,7 +1057,7 @@ public:
     public:
         WhenCondition() {}
         virtual ~WhenCondition() {}
-        virtual void generate(Context &context) const = 0;
+        virtual void generate(Context &context, Context::Label &label_true, Context::Label &label_false) const = 0;
     private:
         WhenCondition(const WhenCondition &);
         WhenCondition &operator=(const WhenCondition &);
@@ -1067,41 +1067,13 @@ public:
         ComparisonWhenCondition(ast::ComparisonExpression::Comparison comp, const Expression *expr): comp(comp), expr(expr) {}
         ast::ComparisonExpression::Comparison comp;
         const Expression *expr;
-        virtual void generate(Context &context) const override {
+        virtual void generate(Context &context, Context::Label &label_true, Context::Label &label_false) const override {
             context.ca.code << OP_dup;
             expr->generate(context);
             context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/lang/Comparable", "compareTo", "(Ljava/lang/Object;)I") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
-            switch (comp) {
-                case ast::ComparisonExpression::EQ:
-                    context.ca.code << OP_iconst_1;
-                    context.ca.code << OP_iand;
-                    context.ca.code << OP_iconst_1;
-                    context.ca.code << OP_ixor;
-                    break;
-                case ast::ComparisonExpression::NE:
-                    break;
-                case ast::ComparisonExpression::LT:
-                    context.ca.code << OP_iconst_1;
-                    context.ca.code << OP_swap;
-                    context.ca.code << OP_isub;
-                    context.ca.code << OP_iconst_2;
-                    context.ca.code << OP_iand;
-                    break;
-                case ast::ComparisonExpression::GT:
-                    context.ca.code << OP_iconst_1;
-                    context.ca.code << OP_iadd;
-                    context.ca.code << OP_iconst_2;
-                    context.ca.code << OP_iand;
-                    break;
-                case ast::ComparisonExpression::LE:
-                    context.ca.code << OP_iconst_1;
-                    context.ca.code << OP_isub;
-                    break;
-                case ast::ComparisonExpression::GE:
-                    context.ca.code << OP_iconst_1;
-                    context.ca.code << OP_iadd;
-                    break;
-            }
+            static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
+            context.emit_jump(op[comp], label_true);
+            context.emit_jump(OP_goto, label_false);
         }
     private:
         ComparisonWhenCondition(const ComparisonWhenCondition &);
@@ -1112,20 +1084,16 @@ public:
         RangeWhenCondition(const Expression *low_expr, const Expression *high_expr): low_expr(low_expr), high_expr(high_expr) {}
         const Expression *low_expr;
         const Expression *high_expr;
-        virtual void generate(Context &context) const override {
+        virtual void generate(Context &context, Context::Label &label_true, Context::Label &label_false) const override {
             context.ca.code << OP_dup;
-            auto result_label = context.create_label();
             low_expr->generate(context);
             context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/lang/Comparable", "compareTo", "(Ljava/lang/Object;)I") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
-            context.ca.code << OP_dup;
-            context.emit_jump(OP_iflt, result_label);
-            context.ca.code << OP_pop;
+            context.emit_jump(OP_iflt, label_false);
             context.ca.code << OP_dup;
             high_expr->generate(context);
             context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/lang/Comparable", "compareTo", "(Ljava/lang/Object;)I") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
-            context.ca.code << OP_iconst_1;
-            context.ca.code << OP_isub;
-            context.jump_target(result_label);
+            context.emit_jump(OP_ifle, label_true);
+            context.emit_jump(OP_goto, label_false);
         }
     private:
         RangeWhenCondition(const RangeWhenCondition &);
@@ -1158,28 +1126,29 @@ public:
 
     virtual void generate(Context &context) const override {
         expr->generate(context);
-        auto end_label = context.create_label();
+        std::vector<std::pair<Context::Label, Context::Label>> clause_labels;
         for (auto clause: clauses) {
+            clause_labels.push_back(std::make_pair(context.create_label(), context.create_label()));
+        }
+        clause_labels.push_back(std::make_pair(context.create_label(), context.create_label()));
+        for (size_t i = 0; i < clauses.size(); i++) {
+            auto &clause = clauses[i];
             auto &conditions = clause.first;
             auto &statements = clause.second;
-            auto next_label = context.create_label();
-            if (not conditions.empty()) {
-                auto match_label = context.create_label();
-                for (auto *condition: conditions) {
-                    condition->generate(context);
-                    context.emit_jump(OP_ifne, match_label);
-                }
-                context.emit_jump(OP_goto, next_label);
-                context.jump_target(match_label);
+            context.jump_target(clause_labels[i].first);
+            for (size_t j = 0; j < conditions.size(); j++) {
+                auto label_next = context.create_label();
+                conditions[j]->generate(context, clause_labels[i].second, j+1 < conditions.size() ? label_next : clause_labels[i+1].first);
+                context.jump_target(label_next);
             }
+            context.jump_target(clause_labels[i].second);
             context.ca.code << OP_pop;
             for (auto stmt: statements) {
                 stmt->generate(context);
             }
-            context.emit_jump(OP_goto, end_label);
-            context.jump_target(next_label);
+            context.emit_jump(OP_goto, clause_labels.back().second);
         }
-        context.jump_target(end_label);
+        context.jump_target(clause_labels.back().second);
     }
 private:
     CaseStatement(const CaseStatement &);

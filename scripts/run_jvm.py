@@ -24,7 +24,6 @@ ExcludeTests = [
     "t/bytes-tostring.neon",        # expression
     "t/bytes.neon",                 # bytes
     "t/cal-test.neon",              # module os
-    #"t/case3.neon",                 # statement
     "t/cformat-test.neon",          # variable
     "t/check-if.neon",              # variable
     "t/check.neon",                 # variable
