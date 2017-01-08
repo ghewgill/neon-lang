@@ -2,7 +2,7 @@ package neon.type;
 
 import java.math.BigDecimal;
 
-public class Number {
+public class Number implements Comparable<Number> {
 
     private BigDecimal repr;
 

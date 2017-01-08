@@ -12,7 +12,7 @@ const uint16_t ACC_SUPER  = 0x0020;
 const uint8_t CONSTANT_Class              =  7;
 const uint8_t CONSTANT_Fieldref           =  9;
 const uint8_t CONSTANT_Methodref          = 10;
-//const uint8_t CONSTANT_InterfaceMethodref = 11;
+const uint8_t CONSTANT_InterfaceMethodref = 11;
 const uint8_t CONSTANT_String             =  8;
 //const uint8_t CONSTANT_Integer            =  3;
 //const uint8_t CONSTANT_Float              =  4;
@@ -27,14 +27,17 @@ const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t OP_aconst_null      =   1;
 const uint8_t OP_iconst_0         =   3;
 const uint8_t OP_iconst_1         =   4;
+const uint8_t OP_iconst_2         =   5;
 //const uint8_t OP_ldc            =  18;
 const uint8_t OP_ldc_w          =  19;
 const uint8_t OP_pop            =  87;
 const uint8_t OP_dup            =  89;
 const uint8_t OP_swap           =  95;
+const uint8_t OP_iadd           =  96;
 //const uint8_t OP_dadd           =  99;
-//const uint8_t OP_isub           = 100;
+const uint8_t OP_isub           = 100;
 //const uint8_t OP_drem           = 115;
+const uint8_t OP_iand           = 126;
 const uint8_t OP_ixor           = 130;
 const uint8_t OP_ifeq           = 153;
 const uint8_t OP_ifne           = 154;
@@ -50,6 +53,7 @@ const uint8_t OP_putstatic      = 179;
 const uint8_t OP_invokevirtual  = 182;
 const uint8_t OP_invokespecial  = 183;
 const uint8_t OP_invokestatic   = 184;
+const uint8_t OP_invokeinterface= 185;
 const uint8_t OP_new            = 187;
 const uint8_t OP_checkcast      = 192;
 
@@ -328,6 +332,23 @@ public:
         constant_pool.push_back(cp);
         constant_pool_count++;
         Method_constants[key] = constant_pool_count;
+        return constant_pool_count;
+    }
+
+    std::map<std::tuple<std::string, std::string, std::string>, uint16_t> InterfaceMethod_constants;
+    uint16_t InterfaceMethod(const std::string &cls, const std::string &name, const std::string &descriptor) {
+        auto key = std::make_tuple(cls, name, descriptor);
+        auto i = InterfaceMethod_constants.find(key);
+        if (i != InterfaceMethod_constants.end()) {
+            return i->second;
+        }
+        cp_info cp;
+        cp.tag = CONSTANT_InterfaceMethodref;
+        cp.info << Class(cls);
+        cp.info << NameAndType(name, descriptor);
+        constant_pool.push_back(cp);
+        constant_pool_count++;
+        InterfaceMethod_constants[key] = constant_pool_count;
         return constant_pool_count;
     }
 
@@ -906,6 +927,34 @@ private:
     NullStatement &operator=(const NullStatement &);
 };
 
+class AssertStatement: public Statement {
+public:
+    AssertStatement(const ast::AssertStatement *as): as(as), statements(), expr(transform(as->expr)) {
+        for (auto s: as->statements) {
+            statements.push_back(transform(s));
+        }
+    }
+    const ast::AssertStatement *as;
+    std::vector<const Statement *> statements;
+    const Expression *expr;
+
+    virtual void generate(Context &context) const override {
+        // TODO: check Class.desiredAssertionStatus
+        expr->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
+        auto label_skip = context.create_label();
+        context.emit_jump(OP_ifne, label_skip);
+        for (auto s: statements) {
+            s->generate(context);
+        }
+        // TODO: create code to throw assertion exception
+        context.jump_target(label_skip);
+    }
+private:
+    AssertStatement(const AssertStatement &);
+    AssertStatement &operator=(const AssertStatement &);
+};
+
 class AssignmentStatement: public Statement {
 public:
     AssignmentStatement(const ast::AssignmentStatement *as): as(as), variables(), expr(transform(as->expr)) {
@@ -1000,6 +1049,141 @@ public:
 private:
     BaseLoopStatement(const BaseLoopStatement &);
     BaseLoopStatement &operator=(const BaseLoopStatement &);
+};
+
+class CaseStatement: public Statement {
+public:
+    class WhenCondition {
+    public:
+        WhenCondition() {}
+        virtual ~WhenCondition() {}
+        virtual void generate(Context &context) const = 0;
+    private:
+        WhenCondition(const WhenCondition &);
+        WhenCondition &operator=(const WhenCondition &);
+    };
+    class ComparisonWhenCondition: public WhenCondition {
+    public:
+        ComparisonWhenCondition(ast::ComparisonExpression::Comparison comp, const Expression *expr): comp(comp), expr(expr) {}
+        ast::ComparisonExpression::Comparison comp;
+        const Expression *expr;
+        virtual void generate(Context &context) const override {
+            context.ca.code << OP_dup;
+            expr->generate(context);
+            context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/lang/Comparable", "compareTo", "(Ljava/lang/Object;)I") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
+            switch (comp) {
+                case ast::ComparisonExpression::EQ:
+                    context.ca.code << OP_iconst_1;
+                    context.ca.code << OP_iand;
+                    context.ca.code << OP_iconst_1;
+                    context.ca.code << OP_ixor;
+                    break;
+                case ast::ComparisonExpression::NE:
+                    break;
+                case ast::ComparisonExpression::LT:
+                    context.ca.code << OP_iconst_1;
+                    context.ca.code << OP_swap;
+                    context.ca.code << OP_isub;
+                    context.ca.code << OP_iconst_2;
+                    context.ca.code << OP_iand;
+                    break;
+                case ast::ComparisonExpression::GT:
+                    context.ca.code << OP_iconst_1;
+                    context.ca.code << OP_iadd;
+                    context.ca.code << OP_iconst_2;
+                    context.ca.code << OP_iand;
+                    break;
+                case ast::ComparisonExpression::LE:
+                    context.ca.code << OP_iconst_1;
+                    context.ca.code << OP_isub;
+                    break;
+                case ast::ComparisonExpression::GE:
+                    context.ca.code << OP_iconst_1;
+                    context.ca.code << OP_iadd;
+                    break;
+            }
+        }
+    private:
+        ComparisonWhenCondition(const ComparisonWhenCondition &);
+        ComparisonWhenCondition &operator=(const ComparisonWhenCondition &);
+    };
+    class RangeWhenCondition: public WhenCondition {
+    public:
+        RangeWhenCondition(const Expression *low_expr, const Expression *high_expr): low_expr(low_expr), high_expr(high_expr) {}
+        const Expression *low_expr;
+        const Expression *high_expr;
+        virtual void generate(Context &context) const override {
+            context.ca.code << OP_dup;
+            auto result_label = context.create_label();
+            low_expr->generate(context);
+            context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/lang/Comparable", "compareTo", "(Ljava/lang/Object;)I") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
+            context.ca.code << OP_dup;
+            context.emit_jump(OP_iflt, result_label);
+            context.ca.code << OP_pop;
+            context.ca.code << OP_dup;
+            high_expr->generate(context);
+            context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/lang/Comparable", "compareTo", "(Ljava/lang/Object;)I") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
+            context.ca.code << OP_iconst_1;
+            context.ca.code << OP_isub;
+            context.jump_target(result_label);
+        }
+    private:
+        RangeWhenCondition(const RangeWhenCondition &);
+        RangeWhenCondition &operator=(const RangeWhenCondition &);
+    };
+    CaseStatement(const ast::CaseStatement *cs): cs(cs), expr(transform(cs->expr)), clauses() {
+        for (auto &c: cs->clauses) {
+            std::vector<const WhenCondition *> whens;
+            for (auto w: c.first) {
+                auto *cwc = dynamic_cast<const ast::CaseStatement::ComparisonWhenCondition *>(w);
+                auto *rwc = dynamic_cast<const ast::CaseStatement::RangeWhenCondition *>(w);
+                if (cwc != nullptr) {
+                    whens.push_back(new ComparisonWhenCondition(cwc->comp, transform(cwc->expr)));
+                } else if (rwc != nullptr) {
+                    whens.push_back(new RangeWhenCondition(transform(rwc->low_expr), transform(rwc->high_expr)));
+                } else {
+                    internal_error("CaseStatement");
+                }
+            }
+            std::vector<const Statement *> statements;
+            for (auto s: c.second) {
+                statements.push_back(transform(s));
+            }
+            clauses.push_back(std::make_pair(whens, statements));
+        }
+    }
+    const ast::CaseStatement *cs;
+    const Expression *expr;
+    std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> clauses;
+
+    virtual void generate(Context &context) const override {
+        expr->generate(context);
+        auto end_label = context.create_label();
+        for (auto clause: clauses) {
+            auto &conditions = clause.first;
+            auto &statements = clause.second;
+            auto next_label = context.create_label();
+            if (not conditions.empty()) {
+                auto match_label = context.create_label();
+                for (auto *condition: conditions) {
+                    condition->generate(context);
+                    context.emit_jump(OP_ifne, match_label);
+                }
+                context.emit_jump(OP_goto, next_label);
+                context.jump_target(match_label);
+            }
+            context.ca.code << OP_pop;
+            for (auto stmt: statements) {
+                stmt->generate(context);
+            }
+            context.emit_jump(OP_goto, end_label);
+            context.jump_target(next_label);
+        }
+        context.jump_target(end_label);
+    }
+private:
+    CaseStatement(const CaseStatement &);
+    CaseStatement &operator=(const CaseStatement &);
 };
 
 class ExitStatement: public Statement {
@@ -1547,14 +1731,14 @@ public:
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *node) { r = new NullStatement(node); }
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
-    virtual void visit(const ast::AssertStatement *) {}
+    virtual void visit(const ast::AssertStatement *node) { r = new AssertStatement(node); }
     virtual void visit(const ast::AssignmentStatement *node) { r = new AssignmentStatement(node); }
     virtual void visit(const ast::ExpressionStatement *node) { r = new ExpressionStatement(node); }
     virtual void visit(const ast::ReturnStatement *) {}
     virtual void visit(const ast::IncrementStatement *) {}
     virtual void visit(const ast::IfStatement *node) { r = new IfStatement(node); }
     virtual void visit(const ast::BaseLoopStatement *node) { r = new BaseLoopStatement(node); }
-    virtual void visit(const ast::CaseStatement *) {}
+    virtual void visit(const ast::CaseStatement *node) { r = new CaseStatement(node); }
     virtual void visit(const ast::ExitStatement *node) { r = new ExitStatement(node); }
     virtual void visit(const ast::NextStatement *) {}
     virtual void visit(const ast::TryStatement *) {}
@@ -1590,7 +1774,7 @@ Expression *transform(const ast::Expression *e)
 
 Statement *transform(const ast::Statement *s)
 {
-    //fprintf(stderr, "transform %s\n", typeid(*s).name());
+    fprintf(stderr, "transform %s\n", typeid(*s).name());
     StatementTransformer st;
     s->accept(&st);
     return st.retval();

@@ -6,14 +6,14 @@ ExcludeTests = [
     "t/array-negative.neon",        # exception
     "t/array-resize.neon",          # expression
     "t/array-slice.neon",           # expression
-    "t/array-subscript.neon",       # statement
-    "t/array-tostring.neon",        # statement
-    "t/array.neon",                 # statement
-    "t/array2d.neon",               # verifier
+    "t/array-subscript.neon",       # variable
+    "t/array-tostring.neon",        # expression
+    "t/array.neon",                 # TryStatement
+    "t/array2d.neon",               # verifier: array element cast
     "t/assert-enum.neon",           # expression
-    "t/assert-fail.neon",           # statement
-    "t/assert-fail2.neon",          # statement
-    "t/assert.neon",                # statement
+    "t/assert-fail.neon",           # variable
+    "t/assert-fail2.neon",          # variable
+    "t/assert.neon",                # variable
     "t/assignment.neon",            # boolean
     "t/bigint-test.neon",           # variable
     "t/binary-test.neon",           # module binary
@@ -24,9 +24,7 @@ ExcludeTests = [
     "t/bytes-tostring.neon",        # expression
     "t/bytes.neon",                 # bytes
     "t/cal-test.neon",              # module os
-    "t/case-overlap.neon",          # statement
-    "t/case.neon",                  # statement
-    "t/case3.neon",                 # statement
+    #"t/case3.neon",                 # statement
     "t/cformat-test.neon",          # variable
     "t/check-if.neon",              # variable
     "t/check.neon",                 # variable
