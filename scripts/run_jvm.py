@@ -38,7 +38,7 @@ ExcludeTests = [
     "t/const-boolean.neon",         # expression
     "t/const-chain.neon",           # expression
     "t/const-expression.neon",      # expression
-    "t/const-string.neon",          # statement
+    "t/const-string.neon",          # expression
     "t/const.neon",                 # expression
     "t/datetime-test.neon",         # variable
     "t/debug-example.neon",         # variable
@@ -46,30 +46,29 @@ ExcludeTests = [
     "t/decimal.neon",               # exception
     "t/dictionary-keys.neon",       # expression
     "t/dictionary.neon",            # expression
-    "t/divide-by-zero.neon",        # statement
-    "t/encoding-base64.neon",       # statement
+    "t/divide-by-zero.neon",        # TryStatement
+    "t/encoding-base64.neon",       # expression
     "t/enum.neon",                  # expression
     "t/equality.neon",              # boolean
-    "t/exception-as.neon",          # statement
-    "t/exception-code.neon",        # statement
-    "t/exception-function.neon",    # statement
-    "t/exception-nested.neon",      # statement
-    "t/exception-subexception.neon",# statement
+    "t/exception-as.neon",          # TryStatement
+    "t/exception-code.neon",        # TryStatement
+    "t/exception-function.neon",    # TryStatement
+    "t/exception-nested.neon",      # TryStatement
+    "t/exception-subexception.neon",# TryStatement
     "t/exception-trace.neon",       # variable
-    "t/exception.neon",             # statement
+    "t/exception.neon",             # TryStatement
     "t/export.neon",                # expression
     "t/ffi.neon",                   # variable
     "t/file.neon",                  # module file
     "t/file-exists.neon",           # module file
-    "t/file-filecopied.neon",       # statement
-    "t/file-filecopied1.neon",      # statement
-    "t/file-filecopied2.neon",      # statement
-    "t/file-filecopied3.neon",      # statement
-    "t/file-symlink.neon",          # statement
-    "t/file-test.neon",             # statement
+    "t/file-filecopied.neon",       # TryStatement
+    "t/file-filecopied1.neon",      # TryStatement
+    "t/file-filecopied2.neon",      # TryStatement
+    "t/file-filecopied3.neon",      # TryStatement
+    "t/file-symlink.neon",          # TryStatement
+    "t/file-test.neon",             # TryStatement
     "t/file-writebytes.neon",       # bytes
     "t/file-writelines.neon",       # expression
-    "t/for-bounds.neon",            # statement
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
     "t/foreach-eval.neon",          # expression
@@ -89,40 +88,38 @@ ExcludeTests = [
     "t/function.neon",              # variable
     "t/gc-array.neon",              # expression
     "t/gc-long-chain.neon",         # expression
-    "t/gc1.neon",                   # statement
-    "t/gc2.neon",                   # statement
-    "t/gc3.neon",                   # statement
+    "t/gc1.neon",                   # variable
+    "t/gc2.neon",                   # variable
+    "t/gc3.neon",                   # variable
     "t/hash-test.neon",             # expression
     "t/http-test.neon",             # pointer
     "t/import-dup.neon",            # module sys
     "t/import-string.neon",         # expression
-    "t/import.neon",                # statement
+    "t/import.neon",                # expression
     "t/in.neon",                    # expression
-    "t/inc-reference.neon",         # statement
-    "t/inc.neon",                   # statement
     "t/indent.neon",                # verifier
     "t/index.neon",                 # expression
     "t/inline-construct-record.neon",   # expression
     "t/inline-init-record.neon",    # expression
-    "t/intdiv.neon",                # statement
-    "t/intrinsic.neon",             # statement
+    "t/intdiv.neon",                # variable
+    "t/intrinsic.neon",             # chr
     "t/io-test.neon",               # variable
     "t/json-test.neon",             # variable
     "t/lexer-raw.neon",             # string__length
     "t/lexer-unicode.neon",         # expression
-    "t/lexical-scope.neon",         # statement
+    "t/lexical-scope.neon",         # TryStatement
     "t/lisp-test.neon",             # variable
-    "t/literal-array.neon",         # statement
+    "t/literal-array.neon",         # expression
     "t/literal-empty.neon",         # expression
     "t/literal.neon",               # expression
     "t/local-clear.neon",           # variable
     "t/logical.neon",               # expression
     "t/logical2.neon",              # expression
-    "t/loop-label.neon",            # statement
+    "t/loop-label.neon",            # expression
     "t/math-test.neon",             # expression
     "t/methods-declare.neon",       # expression
     "t/methods.neon",               # expression
-    "t/mkdir.neon",                 # statement
+    "t/mkdir.neon",                 # TryStatement
     "t/mmap-test.neon",             # expression
     "t/module-alias.neon",          # module math
     "t/module-alias2.neon",         # expression
@@ -138,10 +135,8 @@ ExcludeTests = [
     "t/net-test.neon",              # record
     "t/new-init-module.neon",       # variable
     "t/new-init.neon",              # variable
-    "t/next-for.neon",              # statement
-    "t/next-while.neon",            # statement
     "t/number-ceil.neon",           # module math
-    "t/number-underscore.neon",     # statement
+    "t/number-underscore.neon",     # variable
     "t/os-test.neon",               # pointer
     "t/outer-parameter.neon",       # variable
     "t/outer-tail.neon",            # variable
@@ -174,8 +169,7 @@ ExcludeTests = [
     "t/record-private.neon",        # expression
     "t/recursion-limit.neon",       # variable
     "t/recursion.neon",             # variable
-    "t/regex-test.neon",            # statement
-    "t/repeat-next.neon",           # statement
+    "t/regex-test.neon",            # expression
     "t/repl_enum_tostring.neon",    # expression
     "t/repl_function.neon",         # variable
     "t/repl_import.neon",           # module random
@@ -186,7 +180,7 @@ ExcludeTests = [
     "t/return-nothing.neon",        # variable
     "t/return-try.neon",            # variable
     "t/retval-index.neon",          # expression
-    "t/rtl.neon",                   # statement
+    "t/rtl.neon",                   # TryStatement
     "t/shortcut.neon",              # expression
     "t/sodium-test.neon",           # boolean
     "t/sql-connect.neon",           # variable
@@ -201,12 +195,12 @@ ExcludeTests = [
     "t/string-escape.neon",         # expression
     "t/string-format.neon",         # format
     "t/string-multiline.neon",      # expression
-    "t/string-test.neon",           # statement
+    "t/string-test.neon",           # variable
     "t/strings.neon",               # expression
     "t/struct-test.neon",           # variable
     "t/structure.neon",             # expression
     "t/sudoku-test.neon",           # variable
-    "t/sys-exit.neon",              # statement
+    "t/sys-exit.neon",              # TryStatement
     "t/tail-call.neon",             # variable
     "t/time-stopwatch.neon",        # expression
     "t/time-test.neon",             # module time
@@ -215,14 +209,12 @@ ExcludeTests = [
     "t/type-compat.neon",           # variable
     "t/type-nested.neon",           # expression
     "t/unicode-char.neon",          # expression
-    "t/unicode-length.neon",        # statement
-    "t/uninitialised-case.neon",    # statement
     "t/uninitialised-function.neon",# variable
     "t/uninitialised-if-nested.neon",   # verifier
     "t/uninitialised-if.neon",      # verifier
     "t/uninitialised-out.neon",     # variable
     "t/uninitialised-repeat.neon",  # verifier
-    "t/uninitialised-try.neon",     # statement
+    "t/uninitialised-try.neon",     # TryStatement
     "t/unused-parameter.neon",      # variable
     "t/valid-pointer.neon",         # expression
     "t/value-index.neon",           # expression

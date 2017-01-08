@@ -1168,6 +1168,36 @@ private:
     ExitStatement &operator=(const ExitStatement &);
 };
 
+class NextStatement: public Statement {
+public:
+    NextStatement(const ast::NextStatement *ns): ns(ns) {}
+    const ast::NextStatement *ns;
+
+    virtual void generate(Context &context) const override {
+        context.emit_jump(OP_goto, context.get_next_label(ns->loop_id));
+    }
+private:
+    NextStatement(const NextStatement &);
+    NextStatement &operator=(const NextStatement &);
+};
+
+class IncrementStatement: public Statement {
+public:
+    IncrementStatement(const ast::IncrementStatement *is): is(is), ref(transform(is->ref)) {}
+    const ast::IncrementStatement *is;
+    const Expression *ref;
+
+    virtual void generate(Context &context) const override {
+        ref->generate(context);
+        (new ConstantNumberExpression(new ast::ConstantNumberExpression(number_from_sint32(is->delta))))->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "add", "(Lneon/type/Number;)Lneon/type/Number;");
+        ref->generate_store(context);
+    }
+private:
+    IncrementStatement(const IncrementStatement &);
+    IncrementStatement &operator=(const IncrementStatement &);
+};
+
 class IfStatement: public Statement {
 public:
     IfStatement(const ast::IfStatement *is): is(is), condition_statements(), else_statements() {
@@ -1704,12 +1734,12 @@ public:
     virtual void visit(const ast::AssignmentStatement *node) { r = new AssignmentStatement(node); }
     virtual void visit(const ast::ExpressionStatement *node) { r = new ExpressionStatement(node); }
     virtual void visit(const ast::ReturnStatement *) {}
-    virtual void visit(const ast::IncrementStatement *) {}
+    virtual void visit(const ast::IncrementStatement *node) { r =  new IncrementStatement(node); }
     virtual void visit(const ast::IfStatement *node) { r = new IfStatement(node); }
     virtual void visit(const ast::BaseLoopStatement *node) { r = new BaseLoopStatement(node); }
     virtual void visit(const ast::CaseStatement *node) { r = new CaseStatement(node); }
     virtual void visit(const ast::ExitStatement *node) { r = new ExitStatement(node); }
-    virtual void visit(const ast::NextStatement *) {}
+    virtual void visit(const ast::NextStatement *node) { r = new NextStatement(node); }
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
     virtual void visit(const ast::ResetStatement *node) { r = new ResetStatement(node); }
