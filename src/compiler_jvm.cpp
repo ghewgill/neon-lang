@@ -30,6 +30,8 @@ const uint8_t OP_iconst_1         =   4;
 //const uint8_t OP_iconst_2         =   5;
 //const uint8_t OP_ldc            =  18;
 const uint8_t OP_ldc_w          =  19;
+const uint8_t OP_aload          =  25;
+const uint8_t OP_aload_0        =  42;
 const uint8_t OP_pop            =  87;
 const uint8_t OP_dup            =  89;
 const uint8_t OP_dup_x1         =  90;
@@ -48,6 +50,7 @@ const uint8_t OP_ifgt           = 157;
 const uint8_t OP_ifle           = 158;
 //const uint8_t OP_if_icmplt      = 161;
 const uint8_t OP_goto           = 167;
+const uint8_t OP_areturn        = 176;
 const uint8_t OP_return         = 177;
 const uint8_t OP_getstatic      = 178;
 const uint8_t OP_putstatic      = 179;
@@ -58,6 +61,7 @@ const uint8_t OP_invokeinterface= 185;
 const uint8_t OP_new            = 187;
 const uint8_t OP_arraylength    = 190;
 const uint8_t OP_checkcast      = 192;
+const uint8_t OP_wide           = 193;
 
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
@@ -464,9 +468,18 @@ private:
     Context &operator=(const Context &);
 };
 
+class Variable;
+class Expression;
+class Statement;
+
+static std::map<const ast::Variable *, Variable *> g_variable_cache;
+static std::map<const ast::Expression *, Expression *> g_expression_cache;
+static std::map<const ast::Statement *, Statement *> g_statement_cache;
+
 class Variable {
 public:
     virtual ~Variable() {}
+    virtual void generate_decl(Context &context) const = 0;
     virtual void generate_load(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
@@ -496,6 +509,13 @@ public:
     const ast::GlobalVariable *gv;
     std::string jtype;
 
+    virtual void generate_decl(Context &context) const override {
+        field_info f;
+        f.access_flags = ACC_STATIC;
+        f.name_index = context.cf.utf8(gv->name);
+        f.descriptor_index = context.cf.utf8(jtype);
+        context.cf.fields.push_back(f);
+    }
     virtual void generate_load(Context &context) const override {
         context.ca.code << OP_getstatic << context.cf.Field(context.cf.name, gv->name, jtype);
     }
@@ -506,6 +526,29 @@ public:
 private:
     GlobalVariable(const GlobalVariable &);
     GlobalVariable &operator=(const GlobalVariable &);
+};
+
+class FunctionParameter: public Variable {
+public:
+    FunctionParameter(const ast::FunctionParameter *fp, int index): fp(fp), index(index) {}
+    const ast::FunctionParameter *fp;
+    const int index;
+
+    virtual void generate_decl(Context &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_load(Context &context) const override {
+        if (index < 4) {
+            context.ca.code << static_cast<uint8_t>(OP_aload_0 + index);
+        } else if (index < 256) {
+            context.ca.code << OP_aload << static_cast<uint8_t>(index);
+        } else {
+            context.ca.code << OP_wide << OP_aload << static_cast<uint16_t>(index);
+        }
+    }
+    virtual void generate_store(Context &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_call(Context &) const override { internal_error("FunctionParameter"); }
+private:
+    FunctionParameter(const FunctionParameter &);
+    FunctionParameter &operator=(const FunctionParameter &);
 };
 
 class Expression {
@@ -971,6 +1014,20 @@ private:
     NullStatement &operator=(const NullStatement &);
 };
 
+class DeclarationStatement: public Statement {
+public:
+    DeclarationStatement(const ast::DeclarationStatement *ds): ds(ds), decl(transform(ds->decl)) {}
+    const ast::DeclarationStatement *ds;
+    const Variable *decl;
+
+    virtual void generate(Context &context) const override {
+        decl->generate_decl(context);
+    }
+private:
+    DeclarationStatement(const DeclarationStatement &);
+    DeclarationStatement &operator=(const DeclarationStatement &);
+};
+
 class AssertStatement: public Statement {
 public:
     AssertStatement(const ast::AssertStatement *as): as(as), statements(), expr(transform(as->expr)) {
@@ -1235,7 +1292,7 @@ public:
         if (expr != nullptr) {
             expr->generate(context);
         }
-        context.emit_jump(OP_goto, context.get_function_exit());
+        // TODO context.emit_jump(OP_goto, context.get_function_exit());
     }
 private:
     ReturnStatement(const ReturnStatement &);
@@ -1317,18 +1374,56 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const ast::Function *f): f(f), statements() {
+    Function(const ast::Function *f): f(f), statements(), params(), signature() {
+        // Need to transform the function parameters before transforming
+        // the code that might use them (statements).
+        signature = "(";
+        int i = 0;
+        for (auto p: f->params) {
+            FunctionParameter *q = new FunctionParameter(p, i);
+            params.push_back(q);
+            g_variable_cache[p] = q;
+            signature.append("Lneon/type/Number;"); // TODO: append type to signature
+            i++;
+        }
+        signature.append(")");
+        signature.append("Lneon/type/Number;"); // TODO: actual return type
         for (auto s: f->statements) {
             statements.push_back(transform(s));
         }
     }
     const ast::Function *f;
     std::vector<const Statement *> statements;
+    std::vector<FunctionParameter *> params;
+    std::string signature;
 
+    virtual void generate_decl(Context &context) const override {
+        method_info m;
+        m.access_flags = ACC_PUBLIC | ACC_STATIC;
+        m.name_index = context.cf.utf8(f->name);
+        m.descriptor_index = context.cf.utf8(signature);
+        {
+            attribute_info a;
+            a.attribute_name_index = context.cf.utf8("Code");
+            {
+                Code_attribute ca;
+                ca.max_stack = 8;
+                ca.max_locals = 2;
+                Context function_context(context.cf, ca);
+                for (auto s: statements) {
+                    s->generate(function_context);
+                }
+                ca.code << OP_areturn;
+                a.info = ca.serialize();
+            }
+            m.attributes.push_back(a);
+        }
+        context.cf.methods.push_back(m);
+    }
     virtual void generate_load(Context &) const override { internal_error("Function"); }
     virtual void generate_store(Context &) const override { internal_error("Function"); }
-    virtual void generate_call(Context &) const override {
-        internal_error("Funciton");
+    virtual void generate_call(Context &context) const override {
+        context.ca.code << OP_invokestatic << context.cf.Method(context.cf.name, f->name, signature);
     }
 private:
     Function(const Function &);
@@ -1340,6 +1435,7 @@ public:
     PredefinedFunction(const ast::PredefinedFunction *pf): pf(pf) {}
     const ast::PredefinedFunction *pf;
 
+    virtual void generate_decl(Context &) const override {}
     virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Context &context) const override {
@@ -1550,6 +1646,7 @@ public:
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
+    virtual void visit(const ast::DeclarationStatement *) {}
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *) {}
     virtual void visit(const ast::AssignmentStatement *) {}
@@ -1600,7 +1697,7 @@ public:
     virtual void visit(const ast::GlobalVariable *node) { r = new GlobalVariable(node); }
     virtual void visit(const ast::ExternalGlobalVariable *) {}
     virtual void visit(const ast::LocalVariable *) {}
-    virtual void visit(const ast::FunctionParameter *) {}
+    virtual void visit(const ast::FunctionParameter *) { /*r = new FunctionParameter(node);*/ }
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Constant *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
@@ -1653,6 +1750,7 @@ public:
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
+    virtual void visit(const ast::DeclarationStatement *) {}
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *) {}
     virtual void visit(const ast::AssignmentStatement *) {}
@@ -1758,6 +1856,7 @@ public:
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
+    virtual void visit(const ast::DeclarationStatement *) {}
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *) {}
     virtual void visit(const ast::AssignmentStatement *) {}
@@ -1863,6 +1962,7 @@ public:
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *node) { r = new NullStatement(node); }
+    virtual void visit(const ast::DeclarationStatement *node) { r = new DeclarationStatement(node); }
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *node) { r = new AssertStatement(node); }
     virtual void visit(const ast::AssignmentStatement *node) { r = new AssignmentStatement(node); }
@@ -1892,25 +1992,43 @@ private:
 Variable *transform(const ast::Variable *v)
 {
     fprintf(stderr, "transform variable %s\n", typeid(*v).name());
+    auto i = g_variable_cache.find(v);
+    if (i != g_variable_cache.end()) {
+        return i->second;
+    }
     VariableTransformer vt;
     v->accept(&vt);
-    return vt.retval();
+    auto r = vt.retval();
+    g_variable_cache[v] = r;
+    return r;
 }
 
 Expression *transform(const ast::Expression *e)
 {
     fprintf(stderr, "transform expression %s\n", typeid(*e).name());
+    auto i = g_expression_cache.find(e);
+    if (i != g_expression_cache.end()) {
+        return i->second;
+    }
     ExpressionTransformer et;
     e->accept(&et);
-    return et.retval();
+    auto r = et.retval();
+    g_expression_cache[e] = r;
+    return r;
 }
 
 Statement *transform(const ast::Statement *s)
 {
     fprintf(stderr, "transform statement %s\n", typeid(*s).name());
+    auto i = g_statement_cache.find(s);
+    if (i != g_statement_cache.end()) {
+        return i->second;
+    }
     StatementTransformer st;
     s->accept(&st);
-    return st.retval();
+    auto r = st.retval();
+    g_statement_cache[s] = r;
+    return r;
 }
 
 } // namespace jvm
