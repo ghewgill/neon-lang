@@ -2279,11 +2279,16 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
         scope.top()->addName(v->declaration, v->name, v, true);
         refs.push_back(new ast::VariableExpression(v));
     }
-    if (declaration->value != nullptr) {
-        return new ast::AssignmentStatement(declaration->token.line, refs, expr);
-    } else {
-        return new ast::ResetStatement(declaration->token.line, refs);
+    std::vector<const ast::Statement *> r;
+    for (auto v: variables) {
+        r.push_back(new ast::DeclarationStatement(declaration->token.line, v));
     }
+    if (declaration->value != nullptr) {
+        r.push_back(new ast::AssignmentStatement(declaration->token.line, refs, expr));
+    } else {
+        r.push_back(new ast::ResetStatement(declaration->token.line, refs));
+    }
+    return new ast::CompoundStatement(declaration->token.line, r);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::NativeVariableDeclaration *declaration)
@@ -2422,7 +2427,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
             scope.top()->addName(declaration->name, name, function);
         }
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::DeclarationStatement(declaration->token.line, function);
 }
 
 const ast::Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *declaration)
