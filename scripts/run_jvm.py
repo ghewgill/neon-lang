@@ -76,7 +76,7 @@ ExcludeTests = [
     "t/function-namedargs.neon",    # Function
     "t/function-pointer-nowhere.neon",  # ConstantNowhereExpression
     "t/function-pointer.neon",      # Function
-    "t/function.neon",              # Function
+    #"t/function.neon",              # Function
     "t/gc-array.neon",              # NewClassExpression
     "t/gc-long-chain.neon",         # NewClassExpression
     "t/gc1.neon",                   # PredefinedVariable

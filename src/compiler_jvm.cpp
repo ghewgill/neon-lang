@@ -508,52 +508,6 @@ private:
     GlobalVariable &operator=(const GlobalVariable &);
 };
 
-class PredefinedFunction: public Variable {
-public:
-    PredefinedFunction(const ast::PredefinedFunction *pf): pf(pf) {}
-    const ast::PredefinedFunction *pf;
-
-    virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
-    virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
-    virtual void generate_call(Context &context) const override {
-        if (pf->name == "print") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
-        } else if (pf->name == "number__toString" || pf->name == "str") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "toString", "()Ljava/lang/String;");
-        } else if (pf->name == "concat") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
-        } else if (pf->name == "array__append") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "add", "(Ljava/lang/Object;)Z");
-        } else if (pf->name == "array__size") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "size_n", "()Lneon/type/Number;");
-        } else if (pf->name == "array__concat") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__concat", "(Lneon/type/Array;Lneon/type/Array;)Lneon/type/Array;");
-        } else if (pf->name == "array__toString__number") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
-        } else if (pf->name == "array__extend") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__extend", "(Lneon/type/Array;Lneon/type/Array;)V");
-        } else if (pf->name == "array__toBytes__number") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__toBytes__number", "(Lneon/type/Array;)[B");
-        } else if (pf->name == "bytes__size") {
-            context.ca.code << OP_arraylength;
-            context.ca.code << OP_new << context.cf.Class("neon/type/Number");
-            context.ca.code << OP_dup_x1;
-            context.ca.code << OP_swap;
-            context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Number", "<init>", "(I)V");
-        } else if (pf->name == "bytes__toArray") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__toArray", "([B)Lneon/type/Array;");
-        } else if (pf->name == "strb" || pf->name == "boolean__toString") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "toString", "()Ljava/lang/String;");
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "toUpperCase", "()Ljava/lang/String;");
-        } else {
-            internal_error("PredefinedFunction: " + pf->name);
-        }
-    }
-private:
-    PredefinedFunction(const PredefinedFunction &);
-    PredefinedFunction &operator=(const PredefinedFunction &);
-};
-
 class Expression {
 public:
     virtual ~Expression() {}
@@ -1271,6 +1225,23 @@ private:
     NextStatement &operator=(const NextStatement &);
 };
 
+class ReturnStatement: public Statement {
+public:
+    ReturnStatement(const ast::ReturnStatement *rs): rs(rs), expr(transform(rs->expr)) {}
+    const ast::ReturnStatement *rs;
+    const Expression *expr;
+
+    virtual void generate(Context &context) const override {
+        if (expr != nullptr) {
+            expr->generate(context);
+        }
+        context.emit_jump(OP_goto, context.get_function_exit());
+    }
+private:
+    ReturnStatement(const ReturnStatement &);
+    ReturnStatement &operator=(const ReturnStatement &);
+};
+
 class IncrementStatement: public Statement {
 public:
     IncrementStatement(const ast::IncrementStatement *is): is(is), ref(transform(is->ref)) {}
@@ -1342,6 +1313,72 @@ public:
 private:
     ResetStatement(const ResetStatement &);
     ResetStatement &operator=(const ResetStatement &);
+};
+
+class Function: public Variable {
+public:
+    Function(const ast::Function *f): f(f), statements() {
+        for (auto s: f->statements) {
+            statements.push_back(transform(s));
+        }
+    }
+    const ast::Function *f;
+    std::vector<const Statement *> statements;
+
+    virtual void generate_load(Context &) const override { internal_error("Function"); }
+    virtual void generate_store(Context &) const override { internal_error("Function"); }
+    virtual void generate_call(Context &) const override {
+        internal_error("Funciton");
+    }
+private:
+    Function(const Function &);
+    Function &operator=(const Function &);
+};
+
+class PredefinedFunction: public Variable {
+public:
+    PredefinedFunction(const ast::PredefinedFunction *pf): pf(pf) {}
+    const ast::PredefinedFunction *pf;
+
+    virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
+    virtual void generate_call(Context &context) const override {
+        if (pf->name == "print") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
+        } else if (pf->name == "number__toString" || pf->name == "str") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "toString", "()Ljava/lang/String;");
+        } else if (pf->name == "concat") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
+        } else if (pf->name == "array__append") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "add", "(Ljava/lang/Object;)Z");
+        } else if (pf->name == "array__size") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "size_n", "()Lneon/type/Number;");
+        } else if (pf->name == "array__concat") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__concat", "(Lneon/type/Array;Lneon/type/Array;)Lneon/type/Array;");
+        } else if (pf->name == "array__toString__number") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
+        } else if (pf->name == "array__extend") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__extend", "(Lneon/type/Array;Lneon/type/Array;)V");
+        } else if (pf->name == "array__toBytes__number") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__toBytes__number", "(Lneon/type/Array;)[B");
+        } else if (pf->name == "bytes__size") {
+            context.ca.code << OP_arraylength;
+            context.ca.code << OP_new << context.cf.Class("neon/type/Number");
+            context.ca.code << OP_dup_x1;
+            context.ca.code << OP_swap;
+            context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Number", "<init>", "(I)V");
+        } else if (pf->name == "bytes__toArray") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__toArray", "([B)Lneon/type/Array;");
+        } else if (pf->name == "strb" || pf->name == "boolean__toString") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "toString", "()Ljava/lang/String;");
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "toUpperCase", "()Ljava/lang/String;");
+        } else {
+            internal_error("PredefinedFunction: " + pf->name);
+        }
+    }
+private:
+    PredefinedFunction(const PredefinedFunction &);
+    PredefinedFunction &operator=(const PredefinedFunction &);
 };
 
 class Program {
@@ -1630,7 +1667,7 @@ public:
     virtual void visit(const ast::TryStatement *) {}
     virtual void visit(const ast::RaiseStatement *) {}
     virtual void visit(const ast::ResetStatement *) {}
-    virtual void visit(const ast::Function *) {}
+    virtual void visit(const ast::Function *node) { r = new Function(node); }
     virtual void visit(const ast::PredefinedFunction *node) { r = new PredefinedFunction(node); }
     virtual void visit(const ast::ModuleFunction *) {}
     virtual void visit(const ast::Module *) {}
@@ -1830,7 +1867,7 @@ public:
     virtual void visit(const ast::AssertStatement *node) { r = new AssertStatement(node); }
     virtual void visit(const ast::AssignmentStatement *node) { r = new AssignmentStatement(node); }
     virtual void visit(const ast::ExpressionStatement *node) { r = new ExpressionStatement(node); }
-    virtual void visit(const ast::ReturnStatement *) {}
+    virtual void visit(const ast::ReturnStatement *node) { r = new ReturnStatement(node); }
     virtual void visit(const ast::IncrementStatement *node) { r =  new IncrementStatement(node); }
     virtual void visit(const ast::IfStatement *node) { r = new IfStatement(node); }
     virtual void visit(const ast::BaseLoopStatement *node) { r = new BaseLoopStatement(node); }
