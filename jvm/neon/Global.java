@@ -19,6 +19,22 @@ public class Global {
         }
     }
 
+    public static byte[] array__toBytes__number(neon.type.Array self) {
+        byte[] r = new byte[self.size()];
+        for (int i = 0; i < self.size(); i++) {
+            r[i] = (byte)((neon.type.Number)self.get(i)).intValue();
+        }
+        return r;
+    }
+
+    public static neon.type.Array bytes__toArray(byte[] self) {
+        neon.type.Array r = new neon.type.Array();
+        for (byte b: self) {
+            r.add(new neon.type.Number(b));
+        }
+        return r;
+    }
+
     public static void print(String s) {
         System.out.println(s);
     }

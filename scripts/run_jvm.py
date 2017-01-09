@@ -21,31 +21,24 @@ ExcludeTests = [
     "t/bytes-literal.neon",         # ConstantBytesExpression
     "t/bytes-slice.neon",           # ConstantBytesExpression
     "t/bytes-tostring.neon",        # ConstantBytesExpression
-    "t/bytes.neon",                 # bytes
     "t/cal-test.neon",              # module os
     "t/cformat-test.neon",          # ModuleFunction
     "t/check-if.neon",              # Function
     "t/check.neon",                 # Function
     "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable
-    "t/comparison.neon",            # strb
     "t/comparison2.neon",           # ChainedComparisonExpression
     "t/complex-test.neon",          # ModuleFunction
-    "t/compress-test.neon",         # bytes
+    "t/compress-test.neon",         # compress.gzip
     "t/concat-bytes.neon",          # ConstantBytesExpression
     "t/conditional.neon",           # ConditionalExpression
-    "t/const-boolean.neon",         # ConstantExpression
-    "t/const-chain.neon",           # ConstantExpression
-    "t/const-expression.neon",      # ConstantExpression
-    "t/const-string.neon",          # ConstantExpression
-    "t/const.neon",                 # ConstantExpression
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # Function
-    "t/debug-server.neon",          # ConstantExpression
+    "t/debug-server.neon",          # pointer
     "t/decimal.neon",               # exception
     "t/dictionary.neon",            # DictionaryReferenceIndexExpression
     "t/divide-by-zero.neon",        # TryStatement
-    "t/encoding-base64.neon",       # StringComparisonExpression
+    "t/encoding-base64.neon",       # ModuleFunction
     "t/enum.neon",                  # ConstantEnumExpression
     "t/equality.neon",              # ConstantBytesExpression
     "t/exception-as.neon",          # TryStatement
@@ -65,7 +58,7 @@ ExcludeTests = [
     "t/file-filecopied3.neon",      # TryStatement
     "t/file-symlink.neon",          # TryStatement
     "t/file-test.neon",             # TryStatement
-    "t/file-writebytes.neon",       # bytes
+    "t/file-writebytes.neon",       # file.writeBytes
     "t/file-writelines.neon",       # ArrayValueIndexExpression
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
@@ -92,7 +85,6 @@ ExcludeTests = [
     "t/hash-test.neon",             # ConstantBytesExpression
     "t/http-test.neon",             # pointer
     "t/import-dup.neon",            # module sys
-    "t/import-string.neon",         # ConstantExpression
     "t/import.neon",                # BooleanComparisonExpression
     "t/in.neon",                    # ArrayInExpression
     "t/indent.neon",                # verifier
@@ -104,7 +96,7 @@ ExcludeTests = [
     "t/io-test.neon",               # PredefinedVariable
     "t/json-test.neon",             # ModuleFunction
     "t/lexer-raw.neon",             # string__length
-    "t/lexer-unicode.neon",         # ConstantExpression
+    "t/lexer-unicode.neon",         # ConjunctionExpression
     "t/lexical-scope.neon",         # TryStatement
     "t/lisp-test.neon",             # Function
     "t/literal-array.neon",         # ArrayComparisonExpression
@@ -113,13 +105,13 @@ ExcludeTests = [
     "t/logical.neon",               # ConjunctionExpression
     "t/logical2.neon",              # ConjunctionExpression
     "t/loop-label.neon",            # ArrayValueIndexExpression
-    "t/math-test.neon",             # ConstantExpression
+    "t/math-test.neon",             # math.abs
     "t/methods-declare.neon",       # RecordLiteralExpression
     "t/methods.neon",               # RecordLiteralExpression
     "t/mkdir.neon",                 # TryStatement
     "t/mmap-test.neon",             # ConstantEnumExpression
     "t/module-alias.neon",          # module math
-    "t/module-alias2.neon",         # ConstantExpression
+    "t/module-alias2.neon",         # ModuleVariable
     "t/module-import-name-alias.neon",  # module math
     "t/module-import-name-alias2.neon", # ModuleVariable
     "t/module-import-name.neon",    # module math
@@ -146,20 +138,20 @@ ExcludeTests = [
     "t/parameters-ignore.neon",     # Function
     "t/parameters.neon",            # Function
     "t/pointer-method.neon",        # NewClassExpression
-    "t/pointer-nil.neon",           # ConstantNilExpression
+    "t/pointer-nil.neon",           # pointer
     "t/pointer-valid.neon",         # NewClassExpression
     "t/pointer.neon",               # NewClassExpression
     "t/pointer2.neon",              # NewClassExpression
-    "t/pointer3.neon",              # ConstantNilExpression
+    "t/pointer3.neon",              # pointer
     "t/pointer4.neon",              # NewClassExpression
-    "t/pointer5.neon",              # ConstantNilExpression
-    "t/pointer6.neon",              # ConstantNilExpression
-    "t/pointer7.neon",              # ConstantNilExpression
+    "t/pointer5.neon",              # pointer
+    "t/pointer6.neon",              # pointer
+    "t/pointer7.neon",              # pointer
     "t/pointer8.neon",              # NewClassExpression
     "t/predeclare1.neon",           # verifier
     "t/predeclare2.neon",           # Function
     "t/predeclare3.neon",           # dictionary__keys
-    "t/process-test.neon",          # bytes
+    "t/process-test.neon",          # PredefinedVariable
     "t/record-empty.neon",          # RecordLiteralExpression
     "t/record-init.neon",           # RecordLiteralExpression
     "t/record-init2.neon",          # RecordLiteralExpression
@@ -170,7 +162,6 @@ ExcludeTests = [
     "t/repl_enum_tostring.neon",    # ConstantEnumExpression
     "t/repl_function.neon",         # Function
     "t/repl_import.neon",           # module random
-    #"t/return-case.neon",           # variable
     "t/return-case2.neon",          # Function
     "t/return-if.neon",             # Function
     "t/return-loop.neon",           # Function
@@ -188,7 +179,7 @@ ExcludeTests = [
     "t/sql-whenever.neon",          # ModuleVariable
     "t/sqlite-test.neon",           # pointer
     "t/stack-overflow.neon",        # Function
-    "t/string-bytes.neon",          # bytes
+    "t/string-bytes.neon",          # StringReferenceIndexExpression
     "t/string-escape.neon",         # StringReferenceIndexExpression
     "t/string-format.neon",         # format
     "t/string-multiline.neon",      # StringReferenceIndexExpression

@@ -24,14 +24,15 @@ const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t CONSTANT_MethodType         = 16;
 //const uint8_t CONSTANT_InvokeDynamic      = 18;
 
-//const uint8_t OP_aconst_null      =   1;
-const uint8_t OP_iconst_0         =   3;
+const uint8_t OP_aconst_null      =   1;
+//const uint8_t OP_iconst_0         =   3;
 const uint8_t OP_iconst_1         =   4;
 //const uint8_t OP_iconst_2         =   5;
 //const uint8_t OP_ldc            =  18;
 const uint8_t OP_ldc_w          =  19;
 const uint8_t OP_pop            =  87;
 const uint8_t OP_dup            =  89;
+const uint8_t OP_dup_x1         =  90;
 const uint8_t OP_swap           =  95;
 //const uint8_t OP_iadd           =  96;
 //const uint8_t OP_dadd           =  99;
@@ -55,6 +56,7 @@ const uint8_t OP_invokespecial  = 183;
 const uint8_t OP_invokestatic   = 184;
 const uint8_t OP_invokeinterface= 185;
 const uint8_t OP_new            = 187;
+const uint8_t OP_arraylength    = 190;
 const uint8_t OP_checkcast      = 192;
 
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
@@ -481,6 +483,8 @@ public:
             jtype = "Lneon/type/Number;";
         } else if (gv->type == ast::TYPE_STRING) {
             jtype = "Ljava/lang/String;";
+        } else if (gv->type == ast::TYPE_BYTES) {
+            jtype = "[B";
         } else if (dynamic_cast<const ast::TypeArray *>(gv->type) != nullptr) {
             jtype = "Lneon/type/Array;";
         } else if (dynamic_cast<const ast::TypeDictionary *>(gv->type) != nullptr) {
@@ -528,6 +532,19 @@ public:
             context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
         } else if (pf->name == "array__extend") {
             context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__extend", "(Lneon/type/Array;Lneon/type/Array;)V");
+        } else if (pf->name == "array__toBytes__number") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__toBytes__number", "(Lneon/type/Array;)[B");
+        } else if (pf->name == "bytes__size") {
+            context.ca.code << OP_arraylength;
+            context.ca.code << OP_new << context.cf.Class("neon/type/Number");
+            context.ca.code << OP_dup_x1;
+            context.ca.code << OP_swap;
+            context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Number", "<init>", "(I)V");
+        } else if (pf->name == "bytes__toArray") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__toArray", "([B)Lneon/type/Array;");
+        } else if (pf->name == "strb" || pf->name == "boolean__toString") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "toString", "()Ljava/lang/String;");
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "toUpperCase", "()Ljava/lang/String;");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -600,6 +617,22 @@ public:
 private:
     ConstantStringExpression(const ConstantStringExpression &);
     ConstantStringExpression &operator=(const ConstantStringExpression &);
+};
+
+class ConstantNilExpression: public Expression {
+public:
+    ConstantNilExpression(const ast::ConstantNilExpression *cne): cne(cne) {}
+    const ast::ConstantNilExpression *cne;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_aconst_null;
+    }
+
+    virtual void generate_call(Context &) const override { internal_error("ConstantNilExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantNilExpression"); }
+private:
+    ConstantNilExpression(const ConstantNilExpression &);
+    ConstantNilExpression &operator=(const ConstantNilExpression &);
 };
 
 class ArrayLiteralExpression: public Expression {
@@ -739,6 +772,28 @@ public:
 private:
     NumericComparisonExpression(const NumericComparisonExpression &);
     NumericComparisonExpression &operator=(const NumericComparisonExpression &);
+};
+
+class StringComparisonExpression: public ComparisonExpression {
+public:
+    StringComparisonExpression(const ast::StringComparisonExpression *sce): ComparisonExpression(sce), sce(sce) {}
+    const ast::StringComparisonExpression *sce;
+
+    virtual void generate_comparison(Context &context) const override {
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "compareTo", "(Ljava/lang/String;)I");
+        static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
+        auto label_true = context.create_label();
+        context.emit_jump(op[sce->comp], label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
+        context.jump_target(label_false);
+    }
+private:
+    StringComparisonExpression(const StringComparisonExpression &);
+    StringComparisonExpression &operator=(const StringComparisonExpression &);
 };
 
 class AdditionExpression: public Expression {
@@ -1333,6 +1388,8 @@ public:
                     f.descriptor_index = cf.utf8("Lneon/type/Number;");
                 } else if (global->type == ast::TYPE_STRING) {
                     f.descriptor_index = cf.utf8("Ljava/lang/String;");
+                } else if (global->type == ast::TYPE_BYTES) {
+                    f.descriptor_index = cf.utf8("[B");
                 } else if (dynamic_cast<const ast::TypeArray *>(global->type) != nullptr) {
                     f.descriptor_index = cf.utf8("Lneon/type/Array;");
                 } else if (dynamic_cast<const ast::TypeDictionary *>(global->type) != nullptr) {
@@ -1619,7 +1676,7 @@ public:
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
     virtual void visit(const ast::ConstantBytesExpression *) {}
     virtual void visit(const ast::ConstantEnumExpression *) {}
-    virtual void visit(const ast::ConstantNilExpression *) {}
+    virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
@@ -1636,7 +1693,7 @@ public:
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
-    virtual void visit(const ast::StringComparisonExpression *) {}
+    virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
@@ -1659,7 +1716,7 @@ public:
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
-    virtual void visit(const ast::ConstantExpression *) {}
+    virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
     virtual void visit(const ast::StatementExpression *) {}
