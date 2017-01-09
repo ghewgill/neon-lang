@@ -101,6 +101,7 @@ public:
     virtual void visit(const class FunctionCall *node) = 0;
     virtual void visit(const class StatementExpression *node) = 0;
     virtual void visit(const class NullStatement *node) = 0;
+    virtual void visit(const class DeclarationStatement *node) = 0;
     virtual void visit(const class ExceptionHandlerStatement *node) = 0;
     virtual void visit(const class AssertStatement *node) = 0;
     virtual void visit(const class AssignmentStatement *node) = 0;
@@ -1964,6 +1965,20 @@ public:
     virtual void generate_code(Emitter &) const override {}
 
     virtual std::string text() const override { return "NullStatement"; }
+};
+
+class DeclarationStatement: public Statement {
+public:
+    DeclarationStatement(int line, Variable *decl): Statement(line), decl(decl) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    Variable *decl;
+
+    virtual void generate_code(Emitter &) const override {}
+
+    virtual std::string text() const override { return "DeclarationStatement(" + decl->text() + ")"; }
+private:
+    DeclarationStatement(const DeclarationStatement &);
+    DeclarationStatement &operator=(const DeclarationStatement &);
 };
 
 class ExceptionHandlerStatement: public CompoundStatement {
