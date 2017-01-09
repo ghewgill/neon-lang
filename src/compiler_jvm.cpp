@@ -475,12 +475,16 @@ Variable *transform(const ast::Variable *v);
 class GlobalVariable: public Variable {
 public:
     GlobalVariable(const ast::GlobalVariable *gv): gv(gv), jtype() {
-        if (gv->type == ast::TYPE_NUMBER) {
+        if (gv->type == ast::TYPE_BOOLEAN) {
+            jtype = "Ljava/lang/Boolean;";
+        } else if (gv->type == ast::TYPE_NUMBER) {
             jtype = "Lneon/type/Number;";
         } else if (gv->type == ast::TYPE_STRING) {
             jtype = "Ljava/lang/String;";
         } else if (dynamic_cast<const ast::TypeArray *>(gv->type) != nullptr) {
             jtype = "Lneon/type/Array;";
+        } else if (dynamic_cast<const ast::TypeDictionary *>(gv->type) != nullptr) {
+            jtype = "Ljava/util/HashMap;";
         } else {
             internal_error("type of global unhandled: " + gv->type->text());
         }
@@ -628,6 +632,35 @@ private:
     ArrayLiteralExpression &operator=(const ArrayLiteralExpression &);
 };
 
+class DictionaryLiteralExpression: public Expression {
+public:
+    DictionaryLiteralExpression(const ast::DictionaryLiteralExpression *dle): dle(dle), dict() {
+        for (auto d: dle->dict) {
+            dict[d.first] = transform(d.second);
+        }
+    }
+    const ast::DictionaryLiteralExpression *dle;
+    std::map<std::string, const Expression *> dict;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_new << context.cf.Class("java/util/HashMap");
+        context.ca.code << OP_dup;
+        context.ca.code << OP_invokespecial << context.cf.Method("java/util/HashMap", "<init>", "()V");
+        for (auto d: dict) {
+            context.ca.code << OP_dup;
+            context.ca.code << OP_ldc_w << context.cf.String(d.first);
+            d.second->generate(context);
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/util/HashMap", "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+            context.ca.code << OP_pop;
+        }
+    }
+    virtual void generate_call(Context &) const override { internal_error("DictionaryLiteralExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("DictionaryLiteralExpression"); }
+private:
+    DictionaryLiteralExpression(const DictionaryLiteralExpression &);
+    DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &);
+};
+
 class UnaryMinusExpression: public Expression {
 public:
     UnaryMinusExpression(const ast::UnaryMinusExpression *ume): ume(ume), value(transform(ume->value)) {}
@@ -653,8 +686,10 @@ public:
 
     virtual void generate(Context &context) const override {
         value->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
         context.ca.code << OP_iconst_1;
         context.ca.code << OP_ixor;
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
     }
     virtual void generate_call(Context &) const override { internal_error("LogicalNotExpression"); }
     virtual void generate_store(Context &) const override { internal_error("LogicalNotExpression"); }
@@ -694,11 +729,11 @@ public:
         static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
         auto label_true = context.create_label();
         context.emit_jump(op[nce->comp], label_true);
-        context.ca.code << OP_iconst_0;
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
         context.jump_target(label_true);
-        context.ca.code << OP_iconst_1;
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
         context.jump_target(label_false);
     }
 private:
@@ -1224,6 +1259,7 @@ public:
             const std::vector<const Statement *> &statements = cs.second;
             condition->generate(context);
             auto else_label = context.create_label();
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
             context.emit_jump(OP_ifeq, else_label);
             for (auto s: statements) {
                 s->generate(context);
@@ -1291,12 +1327,16 @@ public:
                 field_info f;
                 f.access_flags = ACC_STATIC;
                 f.name_index = cf.utf8(slot.name);
-                if (global->type == ast::TYPE_NUMBER) {
+                if (global->type == ast::TYPE_BOOLEAN) {
+                    f.descriptor_index = cf.utf8("Ljava/lang/Boolean;");
+                } else if (global->type == ast::TYPE_NUMBER) {
                     f.descriptor_index = cf.utf8("Lneon/type/Number;");
                 } else if (global->type == ast::TYPE_STRING) {
                     f.descriptor_index = cf.utf8("Ljava/lang/String;");
                 } else if (dynamic_cast<const ast::TypeArray *>(global->type) != nullptr) {
                     f.descriptor_index = cf.utf8("Lneon/type/Array;");
+                } else if (dynamic_cast<const ast::TypeDictionary *>(global->type) != nullptr) {
+                    f.descriptor_index = cf.utf8("Ljava/util/HashMap;");
                 } else {
                     internal_error("type of global unhandled: " + global->type->text());
                 }
@@ -1582,7 +1622,7 @@ public:
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
-    virtual void visit(const ast::DictionaryLiteralExpression *) {}
+    virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
     virtual void visit(const ast::RecordLiteralExpression *) {}
     virtual void visit(const ast::NewClassExpression *) {}
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
@@ -1765,7 +1805,7 @@ Variable *transform(const ast::Variable *v)
 
 Expression *transform(const ast::Expression *e)
 {
-    //fprintf(stderr, "transform %s\n", typeid(*e).name());
+    fprintf(stderr, "transform %s\n", typeid(*e).name());
     ExpressionTransformer et;
     e->accept(&et);
     return et.retval();
