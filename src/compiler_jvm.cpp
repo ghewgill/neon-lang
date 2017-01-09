@@ -1797,7 +1797,7 @@ private:
 
 Variable *transform(const ast::Variable *v)
 {
-    //fprintf(stderr, "transform %s\n", typeid(*v).name());
+    fprintf(stderr, "transform variable %s\n", typeid(*v).name());
     VariableTransformer vt;
     v->accept(&vt);
     return vt.retval();
@@ -1805,7 +1805,7 @@ Variable *transform(const ast::Variable *v)
 
 Expression *transform(const ast::Expression *e)
 {
-    fprintf(stderr, "transform %s\n", typeid(*e).name());
+    fprintf(stderr, "transform expression %s\n", typeid(*e).name());
     ExpressionTransformer et;
     e->accept(&et);
     return et.retval();
@@ -1813,7 +1813,7 @@ Expression *transform(const ast::Expression *e)
 
 Statement *transform(const ast::Statement *s)
 {
-    fprintf(stderr, "transform %s\n", typeid(*s).name());
+    fprintf(stderr, "transform statement %s\n", typeid(*s).name());
     StatementTransformer st;
     s->accept(&st);
     return st.retval();
