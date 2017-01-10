@@ -585,6 +585,9 @@ public:
     virtual void generate_load(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
+private:
+    Variable(const Variable &);
+    Variable &operator=(const Variable &);
 };
 
 Variable *transform(const ast::Variable *v);
@@ -644,6 +647,9 @@ public:
     virtual void generate(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
+private:
+    Expression(const Expression &);
+    Expression &operator=(const Expression &);
 };
 
 Expression *transform(const ast::Expression *e);
@@ -1765,6 +1771,9 @@ public:
     virtual void visit(const ast::Program *) {}
 private:
     Type *r;
+private:
+    TypeTransformer(const TypeTransformer &);
+    TypeTransformer &operator=(const TypeTransformer &);
 };
 
 class VariableTransformer: public ast::IAstVisitor {
