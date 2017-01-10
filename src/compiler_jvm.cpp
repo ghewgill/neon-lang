@@ -485,6 +485,9 @@ public:
     virtual ~Type() {}
     const std::string classname;
     const std::string jtype;
+private:
+    Type(const Type &);
+    Type &operator=(const Type &);
 };
 
 Type *transform(const ast::Type *t);
