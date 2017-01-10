@@ -23,7 +23,6 @@ ExcludeTests = [
     "t/bytes-tostring.neon",        # ConstantBytesExpression
     "t/cal-test.neon",              # module os
     "t/cformat-test.neon",          # ModuleFunction
-    "t/check-if.neon",              # Function
     "t/check.neon",                 # Function
     "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable
@@ -162,6 +161,7 @@ ExcludeTests = [
     "t/repl_enum_tostring.neon",    # ConstantEnumExpression
     "t/repl_function.neon",         # Function
     "t/repl_import.neon",           # module random
+    "t/repl_nested.neon",           # nested function
     "t/return-case2.neon",          # Function
     "t/return-if.neon",             # Function
     "t/return-loop.neon",           # Function
