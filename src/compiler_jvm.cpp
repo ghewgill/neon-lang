@@ -32,6 +32,8 @@ const uint8_t OP_iconst_1         =   4;
 const uint8_t OP_ldc_w          =  19;
 const uint8_t OP_aload          =  25;
 const uint8_t OP_aload_0        =  42;
+const uint8_t OP_astore         =  58;
+const uint8_t OP_astore_0       =  75;
 const uint8_t OP_pop            =  87;
 const uint8_t OP_dup            =  89;
 const uint8_t OP_dup_x1         =  90;
@@ -60,6 +62,7 @@ const uint8_t OP_invokestatic   = 184;
 const uint8_t OP_invokeinterface= 185;
 const uint8_t OP_new            = 187;
 const uint8_t OP_arraylength    = 190;
+const uint8_t OP_athrow         = 191;
 const uint8_t OP_checkcast      = 192;
 const uint8_t OP_wide           = 193;
 
@@ -614,6 +617,45 @@ public:
 private:
     GlobalVariable(const GlobalVariable &);
     GlobalVariable &operator=(const GlobalVariable &);
+};
+
+class LocalVariable: public Variable {
+public:
+    LocalVariable(const ast::LocalVariable *lv): Variable(lv), lv(lv), index(-1) {}
+    const ast::LocalVariable *lv;
+    mutable int index; // TODO
+
+    virtual void generate_decl(Context &) const override {}
+    virtual void generate_load(Context &context) const override {
+        if (index < 0) {
+            index = context.ca.max_locals;
+            context.ca.max_locals++;
+        }
+        if (index < 4) {
+            context.ca.code << static_cast<uint8_t>(OP_aload_0 + index);
+        } else if (index < 256) {
+            context.ca.code << OP_aload << static_cast<uint8_t>(index);
+        } else {
+            context.ca.code << OP_wide << OP_aload << static_cast<uint16_t>(index);
+        }
+    }
+    virtual void generate_store(Context &context) const override {
+        if (index < 0) {
+            index = context.ca.max_locals;
+            context.ca.max_locals++;
+        }
+        if (index < 4) {
+            context.ca.code << static_cast<uint8_t>(OP_astore_0 + index);
+        } else if (index < 256) {
+            context.ca.code << OP_astore << static_cast<uint8_t>(index);
+        } else {
+            context.ca.code << OP_wide << OP_astore << static_cast<uint16_t>(index);
+        }
+    }
+    virtual void generate_call(Context &) const override { internal_error("LocalVariable"); }
+private:
+    LocalVariable(const LocalVariable &);
+    LocalVariable &operator=(const LocalVariable &);
 };
 
 class FunctionParameter: public Variable {
@@ -1453,6 +1495,20 @@ private:
     IfStatement &operator=(const IfStatement &);
 };
 
+class RaiseStatement: public Statement {
+public:
+    RaiseStatement(const ast::RaiseStatement *rs): rs(rs) {}
+    const ast::RaiseStatement *rs;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_aconst_null; // TODO
+        context.ca.code << OP_athrow;
+    }
+private:
+    RaiseStatement(const RaiseStatement &);
+    RaiseStatement &operator=(const RaiseStatement &);
+};
+
 class ResetStatement: public Statement {
 public:
     ResetStatement(const ast::ResetStatement *rs): rs(rs) {}
@@ -1476,7 +1532,7 @@ public:
             FunctionParameter *q = new FunctionParameter(p, i);
             params.push_back(q);
             g_variable_cache[p] = q;
-            signature.append("Lneon/type/Number;"); // TODO: append type to signature
+            signature.append(q->type->jtype);
             i++;
         }
         signature.append(")");
@@ -1501,7 +1557,7 @@ public:
             {
                 Code_attribute ca;
                 ca.max_stack = 8;
-                ca.max_locals = 2;
+                ca.max_locals = static_cast<uint16_t>(params.size());
                 Context function_context(context.cf, ca);
                 for (auto s: statements) {
                     s->generate(function_context);
@@ -1801,7 +1857,7 @@ public:
     virtual void visit(const ast::ModuleVariable *) {}
     virtual void visit(const ast::GlobalVariable *node) { r = new GlobalVariable(node); }
     virtual void visit(const ast::ExternalGlobalVariable *) {}
-    virtual void visit(const ast::LocalVariable *) {}
+    virtual void visit(const ast::LocalVariable *node) { r = new LocalVariable(node); }
     virtual void visit(const ast::FunctionParameter *) { /*r = new FunctionParameter(node);*/ }
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Constant *) {}
@@ -2080,7 +2136,7 @@ public:
     virtual void visit(const ast::ExitStatement *node) { r = new ExitStatement(node); }
     virtual void visit(const ast::NextStatement *node) { r = new NextStatement(node); }
     virtual void visit(const ast::TryStatement *) {}
-    virtual void visit(const ast::RaiseStatement *) {}
+    virtual void visit(const ast::RaiseStatement *node) { r = new RaiseStatement(node); }
     virtual void visit(const ast::ResetStatement *node) { r = new ResetStatement(node); }
     virtual void visit(const ast::Function *) {}
     virtual void visit(const ast::PredefinedFunction *) {}

@@ -23,7 +23,7 @@ ExcludeTests = [
     "t/bytes-tostring.neon",        # ConstantBytesExpression
     "t/cal-test.neon",              # module os
     "t/cformat-test.neon",          # ModuleFunction
-    "t/check.neon",                 # Function
+    "t/check.neon",                 # TryStatement
     "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable
     "t/comparison2.neon",           # ChainedComparisonExpression
@@ -32,7 +32,7 @@ ExcludeTests = [
     "t/concat-bytes.neon",          # ConstantBytesExpression
     "t/conditional.neon",           # ConditionalExpression
     "t/datetime-test.neon",         # ModuleFunction
-    "t/debug-example.neon",         # Function
+    "t/debug-example.neon",         # debugger.log
     "t/debug-server.neon",          # pointer
     "t/decimal.neon",               # exception
     "t/dictionary.neon",            # DictionaryReferenceIndexExpression
@@ -45,7 +45,7 @@ ExcludeTests = [
     "t/exception-function.neon",    # TryStatement
     "t/exception-nested.neon",      # TryStatement
     "t/exception-subexception.neon",# TryStatement
-    "t/exception-trace.neon",       # Function
+    "t/exception-trace.neon",       # RaiseStatement
     "t/exception.neon",             # TryStatement
     "t/export.neon",                # RecordLiteralExpression
     "t/ffi.neon",                   # ExternalFunction
@@ -68,14 +68,9 @@ ExcludeTests = [
     "t/foreach.neon",               # ArrayValueIndexExpression
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
-    "t/forward.neon",               # Function
-    "t/function-args.neon",         # Function
-    "t/function-defaultargs.neon",  # Function
-    "t/function-local.neon",        # Function
-    "t/function-namedargs.neon",    # Function
+    "t/forward.neon",               # segfault
     "t/function-pointer-nowhere.neon",  # ConstantNowhereExpression
-    "t/function-pointer.neon",      # Function
-    #"t/function.neon",              # Function
+    "t/function-pointer.neon",      # TypeFunctionPointer
     "t/gc-array.neon",              # NewClassExpression
     "t/gc-long-chain.neon",         # NewClassExpression
     "t/gc1.neon",                   # PredefinedVariable
@@ -97,10 +92,9 @@ ExcludeTests = [
     "t/lexer-raw.neon",             # string__length
     "t/lexer-unicode.neon",         # ConjunctionExpression
     "t/lexical-scope.neon",         # TryStatement
-    "t/lisp-test.neon",             # Function
+    "t/lisp-test.neon",             # ModuleFunction
     "t/literal-array.neon",         # ArrayComparisonExpression
     "t/literal.neon",               # DictionaryReferenceIndexExpression
-    "t/local-clear.neon",           # Function
     "t/logical.neon",               # ConjunctionExpression
     "t/logical2.neon",              # ConjunctionExpression
     "t/loop-label.neon",            # ArrayValueIndexExpression
@@ -121,21 +115,19 @@ ExcludeTests = [
     "t/multiarray-test.neon",       # ModuleFunction
     "t/nested-substitution.neon",   # DictionaryReferenceIndexExpression
     "t/net-test.neon",              # record
-    "t/new-init-module.neon",       # Function
-    "t/new-init.neon",              # Function
+    "t/new-init-module.neon",       # NewClassExpression
+    "t/new-init.neon",              # NewClassExpression
     "t/number-ceil.neon",           # module math
     "t/number-underscore.neon",     # PredefinedVariable
     "t/os-test.neon",               # pointer
-    "t/outer-parameter.neon",       # Function
-    "t/outer-tail.neon",            # Function
-    "t/outer.neon",                 # Function
-    "t/outer2.neon",                # Function
-    "t/parameter-inout-array.neon", # Function
-    "t/parameter-inout-string.neon",# Function
-    "t/parameter-out-array.neon",   # Function
-    "t/parameter-out-string.neon",  # Function
-    "t/parameters-ignore.neon",     # Function
-    "t/parameters.neon",            # Function
+    "t/outer-parameter.neon",       # verifier
+    "t/outer-tail.neon",            # verifier
+    "t/outer.neon",                 # verifier
+    "t/outer2.neon",                # verifier
+    "t/parameter-out-array.neon",   # ArrayReferenceRangeExpression
+    "t/parameter-out-string.neon",  # StringReferenceIndexExpression
+    "t/parameters-ignore.neon",     # out parameters
+    "t/parameters.neon",            # out parameters
     "t/pointer-method.neon",        # NewClassExpression
     "t/pointer-nil.neon",           # pointer
     "t/pointer-valid.neon",         # NewClassExpression
@@ -148,25 +140,19 @@ ExcludeTests = [
     "t/pointer7.neon",              # pointer
     "t/pointer8.neon",              # NewClassExpression
     "t/predeclare1.neon",           # verifier
-    "t/predeclare2.neon",           # Function
     "t/predeclare3.neon",           # dictionary__keys
     "t/process-test.neon",          # PredefinedVariable
     "t/record-empty.neon",          # RecordLiteralExpression
     "t/record-init.neon",           # RecordLiteralExpression
     "t/record-init2.neon",          # RecordLiteralExpression
     "t/record-private.neon",        # RecordLiteralExpression
-    "t/recursion-limit.neon",       # Function
-    "t/recursion.neon",             # Function
+    "t/recursion-limit.neon",       # segfault
+    "t/recursion.neon",             # segfault
     "t/regex-test.neon",            # BooleanComparisonExpression
     "t/repl_enum_tostring.neon",    # ConstantEnumExpression
-    "t/repl_function.neon",         # Function
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
-    "t/return-case2.neon",          # Function
-    "t/return-if.neon",             # Function
-    "t/return-loop.neon",           # Function
-    "t/return-nothing.neon",        # Function
-    "t/return-try.neon",            # Function
+    "t/return-try.neon",            # TryStatement
     "t/retval-index.neon",          # StringValueIndexExpression
     "t/rtl.neon",                   # TryStatement
     "t/shortcut.neon",              # ConjunctionExpression
@@ -178,7 +164,7 @@ ExcludeTests = [
     "t/sql-query.neon",             # ModuleVariable
     "t/sql-whenever.neon",          # ModuleVariable
     "t/sqlite-test.neon",           # pointer
-    "t/stack-overflow.neon",        # Function
+    "t/stack-overflow.neon",        # segfault
     "t/string-bytes.neon",          # StringReferenceIndexExpression
     "t/string-escape.neon",         # StringReferenceIndexExpression
     "t/string-format.neon",         # format
@@ -189,25 +175,20 @@ ExcludeTests = [
     "t/structure.neon",             # RecordLiteralExpression
     "t/sudoku-test.neon",           # ModuleFunction
     "t/sys-exit.neon",              # TryStatement
-    "t/tail-call.neon",             # Function
+    "t/tail-call.neon",             # segfault
     "t/time-stopwatch.neon",        # RecordLiteralExpression
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # ConstantEnumExpression
     "t/try-expression.neon",        # VariableExpression
-    "t/type-compat.neon",           # Function
     "t/type-nested.neon",           # RecordLiteralExpression
     "t/unicode-char.neon",          # StringReferenceIndexExpression
-    "t/uninitialised-function.neon",# Function
     "t/uninitialised-if-nested.neon",   # verifier
     "t/uninitialised-if.neon",      # verifier
-    "t/uninitialised-out.neon",     # Function
+    "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-repeat.neon",  # verifier
     "t/uninitialised-try.neon",     # TryStatement
-    "t/unused-parameter.neon",      # Function
     "t/valid-pointer.neon",         # NewClassExpression
     "t/value-index.neon",           # ArrayValueIndexExpression
-    "t/value-method.neon",          # Function
-    "t/value-method2.neon",         # Function
     "t/variant-test.neon",          # RecordLiteralExpression
     "t/while-valid.neon",           # NewClassExpression
     "t/win32-test.neon",            # ModuleFunction
