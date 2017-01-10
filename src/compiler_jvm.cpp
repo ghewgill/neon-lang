@@ -418,9 +418,10 @@ public:
         Label *next;
     };
 public:
-    Context(ClassFile &cf, Code_attribute &ca): cf(cf), ca(ca), loop_labels() {}
+    Context(ClassFile &cf, Code_attribute &ca): cf(cf), ca(ca), label_exit(), loop_labels() {}
     ClassFile &cf;
     Code_attribute &ca;
+    Label label_exit;
     std::map<size_t, LoopLabels> loop_labels;
 
     Label create_label() {
@@ -1292,7 +1293,7 @@ public:
         if (expr != nullptr) {
             expr->generate(context);
         }
-        // TODO context.emit_jump(OP_goto, context.get_function_exit());
+        context.emit_jump(OP_goto, context.label_exit);
     }
 private:
     ReturnStatement(const ReturnStatement &);
@@ -1413,6 +1414,13 @@ public:
                 for (auto s: statements) {
                     s->generate(function_context);
                 }
+                if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != nullptr) {
+                    // This OP_aconst_null is only to support cases where the
+                    // compiler "allows" compiling a function that doesn't have
+                    // any RETURN statement (like an infinite loop).
+                    ca.code << OP_aconst_null;
+                }
+                function_context.jump_target(function_context.label_exit);
                 ca.code << OP_areturn;
                 a.info = ca.serialize();
             }
