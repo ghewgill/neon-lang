@@ -2,8 +2,6 @@ import os
 import sys
 
 ExcludeTests = [
-    "t/array-fraction.neon",        # exception
-    "t/array-negative.neon",        # exception
     "t/array-resize.neon",          # PredefinedVariable
     "t/array-slice.neon",           # ArrayReferenceRangeExpression
     "t/array-subscript.neon",       # PredefinedVariable

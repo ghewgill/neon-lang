@@ -1699,8 +1699,8 @@ public:
             m.name_index = cf.utf8("main");
             m.descriptor_index = cf.utf8("([Ljava/lang/String;)V");
             {
-                attribute_info a;
-                a.attribute_name_index = cf.utf8("Code");
+                attribute_info code;
+                code.attribute_name_index = cf.utf8("Code");
                 {
                     Code_attribute ca;
                     ca.max_stack = 8;
@@ -1710,9 +1710,20 @@ public:
                         s->generate(context);
                     }
                     ca.code << OP_return;
-                    a.info = ca.serialize();
+                    Code_attribute::exception e;
+                    e.start_pc = 0;
+                    e.end_pc = ca.code.size();
+                    e.handler_pc = ca.code.size();
+                    e.catch_type = cf.Class("neon/type/NeonException");
+                    ca.exception_table.push_back(e);
+                    ca.code << OP_invokevirtual << cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
+                    ca.code << OP_getstatic << cf.Field("java/lang/System", "err", "Ljava/io/PrintStream;");
+                    ca.code << OP_swap;
+                    ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+                    ca.code << OP_return;
+                    code.info = ca.serialize();
                 }
-                m.attributes.push_back(a);
+                m.attributes.push_back(code);
             }
             cf.methods.push_back(m);
         }

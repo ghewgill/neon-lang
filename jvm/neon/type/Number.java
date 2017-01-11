@@ -37,6 +37,14 @@ public class Number implements Comparable<Number> {
         return repr.intValue();
     }
 
+    public boolean isInteger() {
+        return repr.scale() <= 0;
+    }
+
+    public boolean isNegative() {
+        return repr.signum() < 0;
+    }
+
     public Number multiply(Number multiplicand) {
         return new Number(repr.multiply(multiplicand.repr));
     }
