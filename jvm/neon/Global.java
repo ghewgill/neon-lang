@@ -30,9 +30,23 @@ public class Global {
     public static neon.type.Array bytes__toArray(byte[] self) {
         neon.type.Array r = new neon.type.Array();
         for (byte b: self) {
-            r.add(new neon.type.Number(b));
+            r.add(new neon.type.Number(b & 0xff));
         }
         return r;
+    }
+
+    public static String bytes__toString(byte[] self) {
+        StringBuilder r = new StringBuilder("HEXBYTES \"");
+        boolean first = true;
+        for (byte b: self) {
+            if (!first) {
+                r.append(' ');
+            }
+            first = false;
+            r.append(String.format("%02x", b & 0xff));
+        }
+        r.append('"');
+        return r.toString();
     }
 
     public static void print(String s) {

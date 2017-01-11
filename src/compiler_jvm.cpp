@@ -794,6 +794,7 @@ public:
             context.push_integer(i);
             context.push_integer(static_cast<int8_t>(c & 0xff));
             context.ca.code << OP_bastore;
+            i++;
         }
     }
 
@@ -1480,11 +1481,14 @@ public:
     const ast::TryTrap *tt;
     const Variable *name;
     std::vector<const Statement *> handler;
+private:
+    TryStatementTrap(const TryStatementTrap &);
+    TryStatementTrap &operator=(const TryStatementTrap &);
 };
 
 class TryStatement: public Statement {
 public:
-    TryStatement(const ast::TryStatement *ts): ts(ts), statements() {
+    TryStatement(const ast::TryStatement *ts): ts(ts), statements(), catches() {
         for (auto s: ts->statements) {
             statements.push_back(transform(s));
         }
@@ -1606,7 +1610,10 @@ public:
     const ast::RaiseStatement *rs;
 
     virtual void generate(Context &context) const override {
-        context.ca.code << OP_aconst_null; // TODO
+        context.ca.code << OP_new << context.cf.Class("neon/type/NeonException");
+        context.ca.code << OP_dup;
+        context.ca.code << OP_ldc_w << context.cf.String(rs->exception->name);
+        context.ca.code << OP_invokespecial << context.cf.Method("neon/type/NeonException", "<init>", "(Ljava/lang/String;)V");
         context.ca.code << OP_athrow;
     }
 private:
@@ -1732,6 +1739,8 @@ public:
         } else if (pf->name == "strb" || pf->name == "boolean__toString") {
             context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "toString", "()Ljava/lang/String;");
             context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "toUpperCase", "()Ljava/lang/String;");
+        } else if (pf->name == "bytes__toString") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__toString", "([B)Ljava/lang/String;");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -1823,6 +1832,9 @@ public:
                     ca.exception_table.push_back(e);
                     ca.code << OP_invokevirtual << cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
                     ca.code << OP_getstatic << cf.Field("java/lang/System", "err", "Ljava/io/PrintStream;");
+                    ca.code << OP_dup;
+                    ca.code << OP_ldc_w << cf.String("Unhandled exception ");
+                    ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "print", "(Ljava/lang/String;)V");
                     ca.code << OP_swap;
                     ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
                     ca.code << OP_return;

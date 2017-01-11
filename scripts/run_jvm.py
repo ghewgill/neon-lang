@@ -15,45 +15,36 @@ ExcludeTests = [
     "t/bigint-test.neon",           # ModuleFunction
     "t/binary-test.neon",           # module binary
     "t/bytes-embed.neon",           # StringValueIndexExpression
-    "t/bytes-literal.neon",         # ConstantBytesExpression
-    "t/bytes-slice.neon",           # ConstantBytesExpression
-    "t/bytes-tostring.neon",        # ConstantBytesExpression
+    "t/bytes-slice.neon",           # BytesReferenceIndexExpression
     "t/cal-test.neon",              # module os
     "t/cformat-test.neon",          # ModuleFunction
-    "t/check.neon",                 # TryStatement
     "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable
     "t/comparison2.neon",           # ChainedComparisonExpression
     "t/complex-test.neon",          # ModuleFunction
     "t/compress-test.neon",         # compress.gzip
-    "t/concat-bytes.neon",          # ConstantBytesExpression
+    "t/concat-bytes.neon",          # TypePointer
     "t/conditional.neon",           # ConditionalExpression
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # debugger.log
     "t/debug-server.neon",          # pointer
     "t/decimal.neon",               # exception
     "t/dictionary.neon",            # DictionaryReferenceIndexExpression
-    "t/divide-by-zero.neon",        # TryStatement
     "t/encoding-base64.neon",       # ModuleFunction
     "t/enum.neon",                  # ConstantEnumExpression
-    "t/equality.neon",              # ConstantBytesExpression
-    "t/exception-as.neon",          # TryStatement
-    "t/exception-code.neon",        # TryStatement
-    "t/exception-function.neon",    # TryStatement
-    "t/exception-nested.neon",      # TryStatement
-    "t/exception-subexception.neon",# TryStatement
-    "t/exception-trace.neon",       # RaiseStatement
-    "t/exception.neon",             # TryStatement
+    "t/equality.neon",              # TypeRecord
+    "t/exception-as.neon",          # TypeRecord
+    "t/exception-code.neon",        # TypeRecord
     "t/export.neon",                # RecordLiteralExpression
     "t/ffi.neon",                   # ExternalFunction
     "t/file.neon",                  # module file
     "t/file-exists.neon",           # module file
-    "t/file-filecopied.neon",       # TryStatement
-    "t/file-filecopied1.neon",      # TryStatement
-    "t/file-filecopied2.neon",      # TryStatement
-    "t/file-filecopied3.neon",      # TryStatement
-    "t/file-symlink.neon",          # TryStatement
-    "t/file-test.neon",             # TryStatement
+    "t/file-filecopied.neon",       # file.delete
+    "t/file-filecopied1.neon",      # file.delete
+    "t/file-filecopied2.neon",      # file.delete
+    "t/file-filecopied3.neon",      # file.delete
+    "t/file-symlink.neon",          # file.delete
+    "t/file-test.neon",             # ArrayInExpression
     "t/file-writebytes.neon",       # file.writeBytes
     "t/file-writelines.neon",       # ArrayValueIndexExpression
     "t/for-scope.neon",             # duplicate field
@@ -88,7 +79,7 @@ ExcludeTests = [
     "t/json-test.neon",             # ModuleFunction
     "t/lexer-raw.neon",             # string__length
     "t/lexer-unicode.neon",         # ConjunctionExpression
-    "t/lexical-scope.neon",         # TryStatement
+    "t/lexical-scope.neon",         # duplicate field
     "t/lisp-test.neon",             # ModuleFunction
     "t/literal-array.neon",         # ArrayComparisonExpression
     "t/literal.neon",               # DictionaryReferenceIndexExpression
@@ -98,7 +89,7 @@ ExcludeTests = [
     "t/math-test.neon",             # math.abs
     "t/methods-declare.neon",       # RecordLiteralExpression
     "t/methods.neon",               # RecordLiteralExpression
-    "t/mkdir.neon",                 # TryStatement
+    "t/mkdir.neon",                 # TypeRecord
     "t/mmap-test.neon",             # ConstantEnumExpression
     "t/module-alias.neon",          # module math
     "t/module-alias2.neon",         # ModuleVariable
@@ -149,9 +140,8 @@ ExcludeTests = [
     "t/repl_enum_tostring.neon",    # ConstantEnumExpression
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
-    "t/return-try.neon",            # TryStatement
     "t/retval-index.neon",          # StringValueIndexExpression
-    "t/rtl.neon",                   # TryStatement
+    "t/rtl.neon",                   # TypeRecord
     "t/shortcut.neon",              # ConjunctionExpression
     "t/sodium-test.neon",           # ConditionalExpression
     "t/sql-connect.neon",           # ModuleVariable
@@ -171,7 +161,7 @@ ExcludeTests = [
     "t/struct-test.neon",           # ModuleFunction
     "t/structure.neon",             # RecordLiteralExpression
     "t/sudoku-test.neon",           # ModuleFunction
-    "t/sys-exit.neon",              # TryStatement
+    "t/sys-exit.neon",              # sys.exit
     "t/tail-call.neon",             # segfault
     "t/time-stopwatch.neon",        # RecordLiteralExpression
     "t/time-test.neon",             # module time
@@ -183,7 +173,6 @@ ExcludeTests = [
     "t/uninitialised-if.neon",      # verifier
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-repeat.neon",  # verifier
-    "t/uninitialised-try.neon",     # TryStatement
     "t/valid-pointer.neon",         # NewClassExpression
     "t/value-index.neon",           # ArrayValueIndexExpression
     "t/variant-test.neon",          # RecordLiteralExpression
