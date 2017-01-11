@@ -2,20 +2,19 @@ import os
 import sys
 
 ExcludeTests = [
-    "t/array-resize.neon",          # PredefinedVariable
+    "t/array-resize.neon",          # TypePointer
     "t/array-slice.neon",           # ArrayReferenceRangeExpression
-    "t/array-subscript.neon",       # PredefinedVariable
+    "t/array-subscript.neon",       # TypePointer
     "t/array-tostring.neon",        # ArrayComparisonExpression
-    "t/array.neon",                 # TryStatement
-    "t/array2d.neon",               # verifier: array element cast
+    "t/array2d.neon",               # array copying semantics
     "t/assert-enum.neon",           # ConstantEnumExpression
-    "t/assert-fail.neon",           # PredefinedVariable
-    "t/assert-fail2.neon",          # PredefinedVariable
-    "t/assert.neon",                # PredefinedVariable
+    "t/assert-fail.neon",           # TypePointer
+    "t/assert-fail2.neon",          # TypePointer
+    "t/assert.neon",                # TypePointer
     "t/assignment.neon",            # RecordLiteralExpression
     "t/bigint-test.neon",           # ModuleFunction
     "t/binary-test.neon",           # module binary
-    "t/bytes-embed.neon",           # ConstantBytesExpression
+    "t/bytes-embed.neon",           # StringValueIndexExpression
     "t/bytes-literal.neon",         # ConstantBytesExpression
     "t/bytes-slice.neon",           # ConstantBytesExpression
     "t/bytes-tostring.neon",        # ConstantBytesExpression

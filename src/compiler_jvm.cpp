@@ -24,16 +24,23 @@ const uint8_t CONSTANT_Utf8               =  1;
 //const uint8_t CONSTANT_MethodType         = 16;
 //const uint8_t CONSTANT_InvokeDynamic      = 18;
 
-const uint8_t OP_aconst_null      =   1;
-//const uint8_t OP_iconst_0         =   3;
-const uint8_t OP_iconst_1         =   4;
-//const uint8_t OP_iconst_2         =   5;
+const uint8_t OP_aconst_null    =   1;
+const uint8_t OP_iconst_m1      =   2;
+const uint8_t OP_iconst_0       =   3;
+const uint8_t OP_iconst_1       =   4;
+const uint8_t OP_iconst_2       =   5;
+const uint8_t OP_iconst_3       =   6;
+const uint8_t OP_iconst_4       =   7;
+const uint8_t OP_iconst_5       =   8;
+const uint8_t OP_bipush         =  16;
+const uint8_t OP_sipush         =  17;
 //const uint8_t OP_ldc            =  18;
 const uint8_t OP_ldc_w          =  19;
 const uint8_t OP_aload          =  25;
 const uint8_t OP_aload_0        =  42;
 const uint8_t OP_astore         =  58;
 const uint8_t OP_astore_0       =  75;
+const uint8_t OP_bastore        =  84;
 const uint8_t OP_pop            =  87;
 const uint8_t OP_dup            =  89;
 const uint8_t OP_dup_x1         =  90;
@@ -61,10 +68,13 @@ const uint8_t OP_invokespecial  = 183;
 const uint8_t OP_invokestatic   = 184;
 const uint8_t OP_invokeinterface= 185;
 const uint8_t OP_new            = 187;
+const uint8_t OP_newarray       = 188;
 const uint8_t OP_arraylength    = 190;
 const uint8_t OP_athrow         = 191;
 const uint8_t OP_checkcast      = 192;
 const uint8_t OP_wide           = 193;
+
+const uint8_t T_BYTE            = 8;
 
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
@@ -467,6 +477,25 @@ public:
         }
         return *loop_labels[loop_id].next;
     }
+    void push_integer(int value) {
+        switch (value) {
+            case -1: ca.code << OP_iconst_m1; break;
+            case  0: ca.code << OP_iconst_0;  break;
+            case  1: ca.code << OP_iconst_1;  break;
+            case  2: ca.code << OP_iconst_2;  break;
+            case  3: ca.code << OP_iconst_3;  break;
+            case  4: ca.code << OP_iconst_4;  break;
+            case  5: ca.code << OP_iconst_5;  break;
+            default:
+                if (value >= -128 && value < 128) {
+                    ca.code << OP_bipush << static_cast<uint8_t>(value);
+                } else if (value >= -32768 && value < 32768) {
+                    ca.code << OP_sipush << static_cast<uint16_t>(value);
+                } else {
+                    assert(false); // TODO: integer constant pool
+                }
+        }
+    }
 private:
     Context(const Context &);
     Context &operator=(const Context &);
@@ -749,6 +778,30 @@ public:
 private:
     ConstantStringExpression(const ConstantStringExpression &);
     ConstantStringExpression &operator=(const ConstantStringExpression &);
+};
+
+class ConstantBytesExpression: public Expression {
+public:
+    ConstantBytesExpression(const ast::ConstantBytesExpression *cbe): Expression(cbe), cbe(cbe) {}
+    const ast::ConstantBytesExpression *cbe;
+
+    virtual void generate(Context &context) const override {
+        context.push_integer(cbe->contents.size());
+        context.ca.code << OP_newarray << T_BYTE;
+        int i = 0;
+        for (auto c: cbe->contents) {
+            context.ca.code << OP_dup;
+            context.push_integer(i);
+            context.push_integer(static_cast<int8_t>(c & 0xff));
+            context.ca.code << OP_bastore;
+        }
+    }
+
+    virtual void generate_call(Context &) const override { internal_error("ConstantBytesExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantBytesExpression"); }
+private:
+    ConstantBytesExpression(const ConstantBytesExpression &);
+    ConstantBytesExpression &operator=(const ConstantBytesExpression &);
 };
 
 class ConstantNilExpression: public Expression {
@@ -1417,6 +1470,58 @@ private:
     NextStatement &operator=(const NextStatement &);
 };
 
+class TryStatementTrap {
+public:
+    TryStatementTrap(const ast::TryTrap *tt): tt(tt), name(transform(tt->name)), handler() {
+        for (auto s: dynamic_cast<const ast::ExceptionHandlerStatement *>(tt->handler)->statements) {
+            handler.push_back(transform(s));
+        }
+    }
+    const ast::TryTrap *tt;
+    const Variable *name;
+    std::vector<const Statement *> handler;
+};
+
+class TryStatement: public Statement {
+public:
+    TryStatement(const ast::TryStatement *ts): ts(ts), statements() {
+        for (auto s: ts->statements) {
+            statements.push_back(transform(s));
+        }
+        for (auto &t: ts->catches) {
+            catches.push_back(new TryStatementTrap(&t));
+        }
+    }
+    const ast::TryStatement *ts;
+    std::vector<const Statement *> statements;
+    std::vector<const TryStatementTrap *> catches;
+
+    virtual void generate(Context &context) const override {
+        Code_attribute::exception e;
+        e.start_pc = context.ca.code.size();
+        for (auto s: statements) {
+            s->generate(context);
+        }
+        e.end_pc = context.ca.code.size();
+        auto label_end = context.create_label();
+        context.emit_jump(OP_goto, label_end);
+        for (auto trap: catches) {
+            e.handler_pc = context.ca.code.size();
+            context.ca.code << OP_pop; // TODO: store in local if indicated
+            for (auto s: trap->handler) {
+                s->generate(context);
+            }
+            context.emit_jump(OP_goto, label_end);
+            e.catch_type = context.cf.Class("neon/type/NeonException");
+            context.ca.exception_table.push_back(e);
+        }
+        context.jump_target(label_end);
+    }
+private:
+    TryStatement(const TryStatement &);
+    TryStatement &operator=(const TryStatement &);
+};
+
 class ReturnStatement: public Statement {
 public:
     ReturnStatement(const ast::ReturnStatement *rs): rs(rs), expr(transform(rs->expr)) {}
@@ -1981,7 +2086,7 @@ public:
     virtual void visit(const ast::ConstantBooleanExpression *node) { r = new ConstantBooleanExpression(node); }
     virtual void visit(const ast::ConstantNumberExpression *node) { r = new ConstantNumberExpression(node); }
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
-    virtual void visit(const ast::ConstantBytesExpression *) {}
+    virtual void visit(const ast::ConstantBytesExpression *node) { r = new ConstantBytesExpression(node); }
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *) {}
@@ -2146,7 +2251,7 @@ public:
     virtual void visit(const ast::CaseStatement *node) { r = new CaseStatement(node); }
     virtual void visit(const ast::ExitStatement *node) { r = new ExitStatement(node); }
     virtual void visit(const ast::NextStatement *node) { r = new NextStatement(node); }
-    virtual void visit(const ast::TryStatement *) {}
+    virtual void visit(const ast::TryStatement *node) { r = new TryStatement(node); }
     virtual void visit(const ast::RaiseStatement *node) { r = new RaiseStatement(node); }
     virtual void visit(const ast::ResetStatement *node) { r = new ResetStatement(node); }
     virtual void visit(const ast::Function *) {}

@@ -4,7 +4,11 @@ public class Array extends java.util.ArrayList {
 
     public Object get(Number index) {
         checkIndex(index);
-        return super.get(index.intValue());
+        int i = index.intValue();
+        if (i >= size()) {
+            throw new NeonException("ArrayIndexException", index.toString());
+        }
+        return super.get(i);
     }
 
     public Object set(Number index, Object element) {
@@ -16,7 +20,7 @@ public class Array extends java.util.ArrayList {
     }
 
     public Number size_n() {
-        return new Number(super.size());
+        return new Number(size());
     }
 
     private void checkIndex(Number index) {
