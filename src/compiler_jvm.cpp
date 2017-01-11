@@ -786,7 +786,7 @@ public:
     const ast::ConstantBytesExpression *cbe;
 
     virtual void generate(Context &context) const override {
-        context.push_integer(cbe->contents.size());
+        context.push_integer(static_cast<int>(cbe->contents.size()));
         context.ca.code << OP_newarray << T_BYTE;
         int i = 0;
         for (auto c: cbe->contents) {
@@ -1498,15 +1498,15 @@ public:
 
     virtual void generate(Context &context) const override {
         Code_attribute::exception e;
-        e.start_pc = context.ca.code.size();
+        e.start_pc = static_cast<uint16_t>(context.ca.code.size());
         for (auto s: statements) {
             s->generate(context);
         }
-        e.end_pc = context.ca.code.size();
+        e.end_pc = static_cast<uint16_t>(context.ca.code.size());
         auto label_end = context.create_label();
         context.emit_jump(OP_goto, label_end);
         for (auto trap: catches) {
-            e.handler_pc = context.ca.code.size();
+            e.handler_pc = static_cast<uint16_t>(context.ca.code.size());
             context.ca.code << OP_pop; // TODO: store in local if indicated
             for (auto s: trap->handler) {
                 s->generate(context);
@@ -1817,8 +1817,8 @@ public:
                     ca.code << OP_return;
                     Code_attribute::exception e;
                     e.start_pc = 0;
-                    e.end_pc = ca.code.size();
-                    e.handler_pc = ca.code.size();
+                    e.end_pc = static_cast<uint16_t>(ca.code.size());
+                    e.handler_pc = static_cast<uint16_t>(ca.code.size());
                     e.catch_type = cf.Class("neon/type/NeonException");
                     ca.exception_table.push_back(e);
                     ca.code << OP_invokevirtual << cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
