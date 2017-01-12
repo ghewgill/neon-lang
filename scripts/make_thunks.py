@@ -105,6 +105,30 @@ CppFromAstArg = {
     ("TYPE_DICTIONARY_STRING", VALUE): "const std::map<utf8string, utf8string> &",
 }
 
+JvmFromAst = {
+    ("TYPE_NOTHING", VALUE): "V",
+    ("TYPE_POINTER", VALUE): "Ljava/lang/Object;",
+    ("TYPE_POINTER", REF): "Ljava/lang/Object;",
+    ("TYPE_GENERIC", VALUE): "Ljava/lang/Object;",
+    ("TYPE_GENERIC", REF): "Ljava/lang/Object;",
+    ("TYPE_GENERIC", OUT): "Ljava/lang/Object;", # TODO
+    ("TYPE_BOOLEAN", VALUE): "Ljava/lang/Boolean;",
+    ("TYPE_NUMBER", VALUE): "Lneon/type/Number;",
+    ("TYPE_NUMBER", REF): "Lneon/type/Number;",
+    ("TYPE_STRING", VALUE): "Ljava/lang/String;",
+    ("TYPE_STRING", REF): "Ljava/lang/String;",
+    ("TYPE_STRING", OUT): "Ljava/lang/String;", # TODO
+    ("TYPE_BYTES", VALUE): "[B",
+    ("TYPE_BYTES", OUT): "Ljava/lang/Object;", # TODO
+    ("TYPE_ARRAY", VALUE): "Lneon/type/Array;",
+    ("TYPE_ARRAY", REF): "Lneon/type/Array;",
+    ("TYPE_ARRAY_NUMBER", VALUE): "Lneon/type/Array;",
+    ("TYPE_ARRAY_STRING", VALUE): "Lneon/type/Array;",
+    ("TYPE_ARRAY_STRING", OUT): "Lneon/type/Array;", # TODO
+    ("TYPE_DICTIONARY", VALUE): "Ljava/util/Map;",
+    ("TYPE_DICTIONARY_STRING", VALUE): "Ljava/util/Map;",
+}
+
 CellField = {
     ("TYPE_POINTER", VALUE): "address()",
     ("TYPE_POINTER", REF): "address()->address()",
@@ -402,6 +426,23 @@ with open("src/functions_compile.inc", "w") as inc:
             ",".join("{{ast::ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
         )
     print >>inc, "};";
+
+with open("src/functions_compile_jvm.inc", "w") as inc:
+    print >>inc, "static struct {"
+    print >>inc, "    const char *name;"
+    print >>inc, "    const char *module;"
+    print >>inc, "    const char *function;"
+    print >>inc, "    const char *signature;"
+    print >>inc, "} FunctionSignatures[] = {"
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
+        module, function = name.split("$")
+        print >>inc, "    {{\"{}\", \"{}\", \"{}\", \"{}\"}},".format(
+            name.replace("global$", ""),
+            "neon/{}".format(module.title()),
+            function,
+            "(" + "".join(JvmFromAst[(p, m)] for (p, m), t, n in zip(params, paramtypes, paramnames)) + ")" + JvmFromAst[rtype]
+        )
+    print >>inc, "};"
 
 with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "namespace rtl {"

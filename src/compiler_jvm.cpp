@@ -5,6 +5,8 @@
 
 namespace jvm {
 
+#include "functions_compile_jvm.inc"
+
 const uint16_t ACC_PUBLIC = 0x0001;
 const uint16_t ACC_STATIC = 0x0008;
 const uint16_t ACC_SUPER  = 0x0020;
@@ -1739,46 +1741,13 @@ public:
     virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Context &context) const override {
-        if (pf->name == "print") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "print", "(Ljava/lang/String;)V");
-        } else if (pf->name == "number__toString" || pf->name == "str") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "toString", "()Ljava/lang/String;");
-        } else if (pf->name == "concat") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "concat", "(Ljava/lang/String;)Ljava/lang/String;");
-        } else if (pf->name == "array__append") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "add", "(Ljava/lang/Object;)Z");
-        } else if (pf->name == "array__size") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "size_n", "()Lneon/type/Number;");
-        } else if (pf->name == "array__concat") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__concat", "(Lneon/type/Array;Lneon/type/Array;)Lneon/type/Array;");
-        } else if (pf->name == "array__toString__number") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "toString", "()Ljava/lang/String;");
-        } else if (pf->name == "array__extend") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__extend", "(Lneon/type/Array;Lneon/type/Array;)V");
-        } else if (pf->name == "array__toBytes__number") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__toBytes__number", "(Lneon/type/Array;)[B");
-        } else if (pf->name == "bytes__size") {
-            context.ca.code << OP_arraylength;
-            context.ca.code << OP_new << context.cf.Class("neon/type/Number");
-            context.ca.code << OP_dup_x1;
-            context.ca.code << OP_swap;
-            context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Number", "<init>", "(I)V");
-        } else if (pf->name == "bytes__toArray") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__toArray", "([B)Lneon/type/Array;");
-        } else if (pf->name == "strb" || pf->name == "boolean__toString") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "toString", "()Ljava/lang/String;");
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "toUpperCase", "()Ljava/lang/String;");
-        } else if (pf->name == "bytes__toString") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__toString", "([B)Ljava/lang/String;");
-        } else if (pf->name == "io$fprint") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
-        } else if (pf->name == "array__resize") {
-            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "resize", "(Lneon/type/Number;)V");
-        } else if (pf->name == "concatBytes") {
-            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "concatBytes", "([B[B)[B");
-        } else {
-            internal_error("PredefinedFunction: " + pf->name);
+        for (size_t i = 0; i < sizeof(FunctionSignatures)/sizeof(FunctionSignatures[0]); i++) {
+            if (pf->name == FunctionSignatures[i].name) {
+                context.ca.code << OP_invokestatic << context.cf.Method(FunctionSignatures[i].module, FunctionSignatures[i].function, FunctionSignatures[i].signature);
+                return;
+            }
         }
+        internal_error("PredefinedFunction: " + pf->name);
     }
 private:
     PredefinedFunction(const PredefinedFunction &);
