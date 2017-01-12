@@ -608,6 +608,15 @@ private:
     TypeDictionary &operator=(const TypeDictionary &);
 };
 
+class TypePointer: public Type {
+public:
+    TypePointer(const ast::TypePointer *tp): Type("java/lang/Object"), tp(tp) {}
+    const ast::TypePointer *tp;
+private:
+    TypePointer(const TypePointer &);
+    TypePointer &operator=(const TypePointer &);
+};
+
 class Variable {
 public:
     Variable(const ast::Variable *v): type(transform(v->type)) {}
@@ -623,6 +632,26 @@ private:
 };
 
 Variable *transform(const ast::Variable *v);
+
+class PredefinedVariable: public Variable {
+public:
+    PredefinedVariable(const ast::PredefinedVariable *pv): Variable(pv), pv(pv) {}
+    const ast::PredefinedVariable *pv;
+
+    virtual void generate_decl(Context &) const override {}
+    virtual void generate_load(Context &context) const override {
+        if (pv->name == "io$stderr") {
+            context.ca.code << OP_getstatic << context.cf.Field("java/lang/System", "err", "Ljava/io/PrintStream;");
+        } else {
+            internal_error("PredefinedVariable: " + pv->name);
+        }
+    }
+    virtual void generate_store(Context &) const override { internal_error("PredefinedVariable"); }
+    virtual void generate_call(Context &) const override { internal_error("PredefinedVariable"); }
+private:
+    PredefinedVariable(const PredefinedVariable &);
+    PredefinedVariable &operator=(const PredefinedVariable &);
+};
 
 class GlobalVariable: public Variable {
 public:
@@ -1741,6 +1770,12 @@ public:
             context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "toUpperCase", "()Ljava/lang/String;");
         } else if (pf->name == "bytes__toString") {
             context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__toString", "([B)Ljava/lang/String;");
+        } else if (pf->name == "io$fprint") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+        } else if (pf->name == "array__resize") {
+            context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "resize", "(Lneon/type/Number;)V");
+        } else if (pf->name == "concatBytes") {
+            context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "concatBytes", "([B[B)[B");
         } else {
             internal_error("PredefinedFunction: " + pf->name);
         }
@@ -1869,7 +1904,7 @@ public:
     virtual void visit(const ast::TypeDictionary *node) { r = new TypeDictionary(node); }
     virtual void visit(const ast::TypeRecord *) {}
     virtual void visit(const ast::TypeClass *) {}
-    virtual void visit(const ast::TypePointer *) {}
+    virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
     virtual void visit(const ast::TypeModule *) {}
@@ -1981,7 +2016,7 @@ public:
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::LoopLabel *) {}
-    virtual void visit(const ast::PredefinedVariable *) {}
+    virtual void visit(const ast::PredefinedVariable *node) { r = new PredefinedVariable(node); }
     virtual void visit(const ast::ModuleVariable *) {}
     virtual void visit(const ast::GlobalVariable *node) { r = new GlobalVariable(node); }
     virtual void visit(const ast::ExternalGlobalVariable *) {}

@@ -2,15 +2,13 @@ import os
 import sys
 
 ExcludeTests = [
-    "t/array-resize.neon",          # TypePointer
+    "t/array-resize.neon",          # array default item
     "t/array-slice.neon",           # ArrayReferenceRangeExpression
-    "t/array-subscript.neon",       # TypePointer
     "t/array-tostring.neon",        # ArrayComparisonExpression
     "t/array2d.neon",               # array copying semantics
     "t/assert-enum.neon",           # ConstantEnumExpression
-    "t/assert-fail.neon",           # TypePointer
-    "t/assert-fail2.neon",          # TypePointer
-    "t/assert.neon",                # TypePointer
+    "t/assert-fail.neon",           # stderr
+    "t/assert-fail2.neon",          # stderr
     "t/assignment.neon",            # RecordLiteralExpression
     "t/bigint-test.neon",           # ModuleFunction
     "t/binary-test.neon",           # module binary
@@ -23,7 +21,7 @@ ExcludeTests = [
     "t/comparison2.neon",           # ChainedComparisonExpression
     "t/complex-test.neon",          # ModuleFunction
     "t/compress-test.neon",         # compress.gzip
-    "t/concat-bytes.neon",          # TypePointer
+    "t/concat-bytes.neon",          # confusion between Bytes and String
     "t/conditional.neon",           # ConditionalExpression
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # debugger.log

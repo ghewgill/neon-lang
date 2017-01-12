@@ -11,10 +11,22 @@ public class Array extends java.util.ArrayList {
         return super.get(i);
     }
 
+    public void resize(Number new_size) {
+        checkIndex(new_size);
+        int ns = new_size.intValue();
+        if (ns < size()) {
+            removeRange(ns, size());
+        } else if (ns > size()) {
+            while (ns > size()) {
+                add(null); // TODO
+            }
+        }
+    }
+
     public Object set(Number index, Object element) {
         checkIndex(index);
         while (index.intValue() >= size()) {
-            add(null);
+            add(null); // TODO
         }
         return super.set(index.intValue(), element);
     }

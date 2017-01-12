@@ -49,6 +49,13 @@ public class Global {
         return r.toString();
     }
 
+    public static byte[] concatBytes(byte[] a, byte[] b) {
+        byte[] r = new byte[a.length + b.length];
+        System.arraycopy(a, 0, r, 0, a.length);
+        System.arraycopy(b, 0, r, a.length, b.length);
+        return r;
+    }
+
     public static void print(String s) {
         System.out.println(s);
     }
