@@ -20,13 +20,13 @@ AstFromNeon = {
     "Bytes": ("TYPE_BYTES", VALUE),
     "INOUT Bytes": ("TYPE_BYTES", REF),
     "OUT Bytes": ("TYPE_BYTES", OUT),
-    "Array": ("TYPE_GENERIC", VALUE),
-    "INOUT Array": ("TYPE_GENERIC", REF),
+    "Array": ("TYPE_ARRAY", VALUE),
+    "INOUT Array": ("TYPE_ARRAY", REF),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
     "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
     "INOUT Array<String>": ("TYPE_ARRAY_STRING", REF),
     "OUT Array<String>": ("TYPE_ARRAY_STRING", OUT),
-    "Dictionary": ("TYPE_GENERIC", VALUE),
+    "Dictionary": ("TYPE_DICTIONARY", VALUE),
     "Dictionary<String>": ("TYPE_DICTIONARY_STRING", VALUE),
 }
 
@@ -48,10 +48,13 @@ CppFromAstParam = {
     ("TYPE_BYTES", VALUE): "const std::string &",
     ("TYPE_BYTES", REF): "utf8string *", # TODO: should be std::string
     ("TYPE_BYTES", OUT): "std::string",
+    ("TYPE_ARRAY", VALUE): "Cell",
+    ("TYPE_ARRAY", REF): "Cell *",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", OUT): "std::vector<utf8string>",
+    ("TYPE_DICTIONARY", VALUE): "Cell",
     ("TYPE_DICTIONARY_STRING", VALUE): "std::map<utf8string, utf8string>",
 }
 
@@ -69,6 +72,7 @@ CppFromAstReturn = {
     ("TYPE_STRING", REF): "std::string *",
     ("TYPE_BYTES", VALUE): "std::string",
     ("TYPE_BYTES", REF): "std::string *",
+    ("TYPE_ARRAY", VALUE): "Cell",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string> *",
@@ -91,10 +95,13 @@ CppFromAstArg = {
     ("TYPE_BYTES", VALUE): "const std::string &",
     ("TYPE_BYTES", REF): "utf8string *", # TODO: should be std::string
     ("TYPE_BYTES", OUT): "std::string *",
+    ("TYPE_ARRAY", VALUE): "Cell &",
+    ("TYPE_ARRAY", REF): "Cell *",
     ("TYPE_ARRAY_NUMBER", VALUE): "const std::vector<Number> &",
     ("TYPE_ARRAY_STRING", VALUE): "const std::vector<utf8string> &",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string> *",
     ("TYPE_ARRAY_STRING", OUT): "std::vector<utf8string> *",
+    ("TYPE_DICTIONARY", VALUE): "Cell &",
     ("TYPE_DICTIONARY_STRING", VALUE): "const std::map<utf8string, utf8string> &",
 }
 
@@ -276,9 +283,9 @@ with open("src/thunks.inc", "w") as inc:
             elif a[0].startswith("TYPE_DICTIONARY_") and a[1] == VALUE:
                 print >>inc, "    {} a{};".format(CppFromAstParam[a], i)
                 print >>inc, "    for (auto x: stack.peek({}).dictionary()) a{}[x.first] = x.second.{};".format(d, i, ArrayElementField[a])
-            elif a == ("TYPE_GENERIC", VALUE):
+            elif a in [("TYPE_GENERIC", VALUE), ("TYPE_ARRAY", VALUE), ("TYPE_DICTIONARY", VALUE)]:
                 print >>inc, "    {} a{} = stack.peek({});".format(CppFromAstParam[a], i, d)
-            elif a == ("TYPE_GENERIC", REF):
+            elif a in [("TYPE_GENERIC", REF), ("TYPE_ARRAY", REF), ("TYPE_DICTIONARY", REF)]:
                 print >>inc, "    {} a{} = stack.peek({}).address();".format(CppFromAstParam[a], i, d)
             elif a[1] == REF:
                 print >>inc, "    {} a{} = &stack.peek({}).{};".format(CppFromAstParam[a], i, d, CellField[a])
@@ -388,11 +395,11 @@ with open("src/functions_compile.inc", "w") as inc:
     for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
         print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}}},".format(
             name.replace("global$", ""),
-            "ast::"+rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr",
+            "ast::"+rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr",
             "\"{}\"".format(rtypename) or "nullptr",
             "true" if exported else "false",
             len(params),
-            ",".join("{{ast::ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
+            ",".join("{{ast::ParameterType::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
         )
     print >>inc, "};";
 
