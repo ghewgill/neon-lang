@@ -14,7 +14,6 @@ ExcludeTests = [
     "t/binary-test.neon",           # module binary
     "t/bytes-embed.neon",           # StringValueIndexExpression
     "t/bytes-slice.neon",           # BytesReferenceIndexExpression
-    "t/cal-test.neon",              # module os
     "t/cformat-test.neon",          # ModuleFunction
     "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable
@@ -36,14 +35,9 @@ ExcludeTests = [
     "t/export.neon",                # RecordLiteralExpression
     "t/ffi.neon",                   # ExternalFunction
     "t/file.neon",                  # module file
-    "t/file-exists.neon",           # module file
-    "t/file-filecopied.neon",       # file.delete
-    "t/file-filecopied1.neon",      # file.delete
-    "t/file-filecopied2.neon",      # file.delete
-    "t/file-filecopied3.neon",      # file.delete
-    "t/file-symlink.neon",          # file.delete
+    "t/file-filecopied1.neon",      # exception identification
+    "t/file-symlink.neon",          # TypeEnum
     "t/file-test.neon",             # ArrayInExpression
-    "t/file-writebytes.neon",       # file.writeBytes
     "t/file-writelines.neon",       # ArrayValueIndexExpression
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
@@ -75,7 +69,6 @@ ExcludeTests = [
     "t/intrinsic.neon",             # chr
     "t/io-test.neon",               # PredefinedVariable
     "t/json-test.neon",             # ModuleFunction
-    "t/lexer-raw.neon",             # string__length
     "t/lexer-unicode.neon",         # ConjunctionExpression
     "t/lexical-scope.neon",         # duplicate field
     "t/lisp-test.neon",             # ModuleFunction
@@ -159,7 +152,7 @@ ExcludeTests = [
     "t/struct-test.neon",           # ModuleFunction
     "t/structure.neon",             # RecordLiteralExpression
     "t/sudoku-test.neon",           # ModuleFunction
-    "t/sys-exit.neon",              # sys.exit
+    "t/sys-exit.neon",              # TypeRecord
     "t/tail-call.neon",             # segfault
     "t/time-stopwatch.neon",        # RecordLiteralExpression
     "t/time-test.neon",             # module time

@@ -92,6 +92,10 @@ public class Global {
         return x.toString();
     }
 
+    public static neon.type.Number string__length(String s) {
+        return new neon.type.Number(s.length());
+    }
+
     public static String strb(Boolean x) {
         return x.toString().toUpperCase();
     }
