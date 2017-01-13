@@ -1223,6 +1223,29 @@ private:
     DictionaryReferenceIndexExpression &operator=(const DictionaryReferenceIndexExpression &);
 };
 
+class StringValueIndexExpression: public Expression {
+public:
+    StringValueIndexExpression(const ast::StringValueIndexExpression *svie): Expression(svie), svie(svie), str(transform(svie->str)), first(transform(svie->first)), last(transform(svie->last)) {}
+    const ast::StringValueIndexExpression *svie;
+    const Expression *str;
+    const Expression *first;
+    const Expression *last;
+
+    virtual void generate(Context &context) const override {
+        str->generate(context);
+        first->generate(context);
+        context.push_integer(svie->first_from_end);
+        last->generate(context);
+        context.push_integer(svie->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("StringValueIndexExpression"); }
+    virtual void generate_store(Context&) const override { internal_error("StringValueIndexExpression"); }
+private:
+    StringValueIndexExpression(const StringValueIndexExpression &);
+    StringValueIndexExpression &operator=(const StringValueIndexExpression &);
+};
+
 class VariableExpression: public Expression {
 public:
     VariableExpression(const ast::VariableExpression *ve): Expression(ve), ve(ve), var(transform(ve->var)) {}
@@ -2192,7 +2215,7 @@ public:
     virtual void visit(const ast::DictionaryReferenceIndexExpression *node) { r = new DictionaryReferenceIndexExpression(node); }
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
     virtual void visit(const ast::StringReferenceIndexExpression *) {}
-    virtual void visit(const ast::StringValueIndexExpression *) {}
+    virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}

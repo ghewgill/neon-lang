@@ -48,6 +48,10 @@ public class Number implements Comparable<Number> {
         return repr.signum() < 0;
     }
 
+    public long longValue() {
+        return repr.longValue();
+    }
+
     public Number multiply(Number multiplicand) {
         return new Number(repr.multiply(multiplicand.repr));
     }

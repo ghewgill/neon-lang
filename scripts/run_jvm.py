@@ -39,7 +39,6 @@ ExcludeTests = [
     "t/file-test.neon",             # ArrayInExpression
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
-    "t/foreach-string.neon",        # StringValueIndexExpression
     "t/foreach.neon",               # duplicate field
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
@@ -112,7 +111,6 @@ ExcludeTests = [
     "t/pointer7.neon",              # pointer
     "t/pointer8.neon",              # NewClassExpression
     "t/predeclare1.neon",           # verifier
-    "t/predeclare3.neon",           # dictionary__keys
     "t/process-test.neon",          # PredefinedVariable
     "t/record-empty.neon",          # RecordLiteralExpression
     "t/record-init.neon",           # RecordLiteralExpression
@@ -124,7 +122,6 @@ ExcludeTests = [
     "t/repl_enum_tostring.neon",    # ConstantEnumExpression
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
-    "t/retval-index.neon",          # StringValueIndexExpression
     "t/rtl.neon",                   # TypeRecord
     "t/shortcut.neon",              # ConjunctionExpression
     "t/sodium-test.neon",           # ConditionalExpression

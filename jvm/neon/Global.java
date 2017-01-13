@@ -108,6 +108,20 @@ public class Global {
         return x.toString();
     }
 
+    public static String string__substring(String str, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+        assert(first.isInteger());
+        assert(last.isInteger());
+        int f = first.intValue();
+        int l = last.intValue();
+        if (first_from_end) {
+            f += str.length() - 1;
+        }
+        if (last_from_end) {
+            l += str.length() - 1;
+        }
+        return str.substring(f, l + 1);
+    }
+
     public static neon.type.Number string__length(String s) {
         return new neon.type.Number(s.length());
     }
