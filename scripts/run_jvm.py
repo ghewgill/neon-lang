@@ -26,7 +26,6 @@ ExcludeTests = [
     "t/debug-example.neon",         # debugger.log
     "t/debug-server.neon",          # pointer
     "t/decimal.neon",               # exception
-    "t/dictionary.neon",            # DictionaryReferenceIndexExpression
     "t/encoding-base64.neon",       # ModuleFunction
     "t/enum.neon",                  # ConstantEnumExpression
     "t/equality.neon",              # TypeRecord
@@ -69,7 +68,6 @@ ExcludeTests = [
     "t/lexical-scope.neon",         # duplicate field
     "t/lisp-test.neon",             # ModuleFunction
     "t/literal-array.neon",         # ArrayComparisonExpression
-    "t/literal.neon",               # DictionaryReferenceIndexExpression
     "t/logical.neon",               # ConjunctionExpression
     "t/logical2.neon",              # ConjunctionExpression
     "t/loop-label.neon",            # duplicate field
@@ -88,7 +86,6 @@ ExcludeTests = [
     "t/module2.neon",               # RecordLiteralExpression
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # ModuleFunction
-    "t/nested-substitution.neon",   # DictionaryReferenceIndexExpression
     "t/net-test.neon",              # record
     "t/new-init-module.neon",       # NewClassExpression
     "t/new-init.neon",              # NewClassExpression

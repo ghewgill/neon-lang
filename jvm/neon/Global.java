@@ -80,6 +80,14 @@ public class Global {
         return r;
     }
 
+    public static Object dictionary__get(java.util.Map<String, Object> self, String index) {
+        Object r = self.get(index);
+        if (r == null) {
+            throw new neon.type.NeonException("DictionaryIndexException");
+        }
+        return r;
+    }
+
     public static neon.type.Array dictionary__keys(java.util.Map<String, Object> self) {
         neon.type.Array r = new neon.type.Array();
         for (String k: self.keySet()) {
