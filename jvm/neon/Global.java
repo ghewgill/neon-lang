@@ -80,6 +80,14 @@ public class Global {
         return r;
     }
 
+    public static neon.type.Array dictionary__keys(java.util.Map<String, Object> self) {
+        neon.type.Array r = new neon.type.Array();
+        for (String k: self.keySet()) {
+            r.add(k);
+        }
+        return r;
+    }
+
     public static String number__toString(neon.type.Number x) {
         return x.toString();
     }

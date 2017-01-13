@@ -1169,6 +1169,33 @@ private:
     ArrayReferenceIndexExpression &operator=(const ArrayReferenceIndexExpression &);
 };
 
+class ArrayValueIndexExpression: public Expression {
+public:
+    ArrayValueIndexExpression(const ast::ArrayValueIndexExpression *avie): Expression(avie), avie(avie), array(transform(avie->array)), index(transform(avie->index)) {}
+    const ast::ArrayValueIndexExpression *avie;
+    const Expression *array;
+    const Expression *index;
+
+    virtual void generate(Context &context) const override {
+        array->generate(context);
+        index->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "get", "(Lneon/type/Number;)Ljava/lang/Object;");
+        context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeArray *>(array->type)->elementtype->classname);
+    }
+    virtual void generate_call(Context &) const override { internal_error("ArrayValueIndexExpression"); }
+    virtual void generate_store(Context &context) const override {
+        array->generate(context);
+        context.ca.code << OP_swap;
+        index->generate(context);
+        context.ca.code << OP_swap;
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "set", "(Lneon/type/Number;Ljava/lang/Object;)Ljava/lang/Object;");
+        context.ca.code << OP_pop;
+    }
+private:
+    ArrayValueIndexExpression(const ArrayValueIndexExpression &);
+    ArrayValueIndexExpression &operator=(const ArrayValueIndexExpression &);
+};
+
 class VariableExpression: public Expression {
 public:
     VariableExpression(const ast::VariableExpression *ve): Expression(ve), ve(ve), var(transform(ve->var)) {}
@@ -2134,7 +2161,7 @@ public:
     virtual void visit(const ast::ExponentiationExpression *node) { r = new ExponentiationExpression(node); }
     virtual void visit(const ast::DummyExpression *node) { r = new DummyExpression(node); }
     virtual void visit(const ast::ArrayReferenceIndexExpression *node) { r = new ArrayReferenceIndexExpression(node); }
-    virtual void visit(const ast::ArrayValueIndexExpression *) {}
+    virtual void visit(const ast::ArrayValueIndexExpression *node) { r = new ArrayValueIndexExpression(node); }
     virtual void visit(const ast::DictionaryReferenceIndexExpression *) {}
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
     virtual void visit(const ast::StringReferenceIndexExpression *) {}

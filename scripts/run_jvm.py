@@ -38,14 +38,10 @@ ExcludeTests = [
     "t/file-filecopied1.neon",      # exception identification
     "t/file-symlink.neon",          # TypeEnum
     "t/file-test.neon",             # ArrayInExpression
-    "t/file-writelines.neon",       # ArrayValueIndexExpression
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
-    "t/foreach-eval.neon",          # ArrayValueIndexExpression
-    "t/foreach-function.neon",      # ArrayValueIndexExpression
     "t/foreach-string.neon",        # StringValueIndexExpression
-    "t/foreach-value.neon",         # ArrayValueIndexExpression
-    "t/foreach.neon",               # ArrayValueIndexExpression
+    "t/foreach.neon",               # duplicate field
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
     "t/forward.neon",               # segfault
@@ -76,7 +72,7 @@ ExcludeTests = [
     "t/literal.neon",               # DictionaryReferenceIndexExpression
     "t/logical.neon",               # ConjunctionExpression
     "t/logical2.neon",              # ConjunctionExpression
-    "t/loop-label.neon",            # ArrayValueIndexExpression
+    "t/loop-label.neon",            # duplicate field
     "t/math-test.neon",             # math.abs
     "t/methods-declare.neon",       # RecordLiteralExpression
     "t/methods.neon",               # RecordLiteralExpression
@@ -165,7 +161,7 @@ ExcludeTests = [
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-repeat.neon",  # verifier
     "t/valid-pointer.neon",         # NewClassExpression
-    "t/value-index.neon",           # ArrayValueIndexExpression
+    "t/value-index.neon",           # TypeRecord
     "t/variant-test.neon",          # RecordLiteralExpression
     "t/while-valid.neon",           # NewClassExpression
     "t/win32-test.neon",            # ModuleFunction
