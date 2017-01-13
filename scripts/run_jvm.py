@@ -59,7 +59,6 @@ ExcludeTests = [
     "t/index.neon",                 # RecordLiteralExpression
     "t/inline-construct-record.neon",   # RecordLiteralExpression
     "t/inline-init-record.neon",    # RecordLiteralExpression
-    "t/intdiv.neon",                # PredefinedVariable
     "t/intrinsic.neon",             # chr
     "t/io-test.neon",               # PredefinedVariable
     "t/json-test.neon",             # ModuleFunction
@@ -137,7 +136,7 @@ ExcludeTests = [
     "t/string-escape.neon",         # StringReferenceIndexExpression
     "t/string-format.neon",         # format
     "t/string-multiline.neon",      # StringReferenceIndexExpression
-    "t/string-test.neon",           # PredefinedVariable
+    "t/string-test.neon",           # ArrayComparisonExpression
     "t/strings.neon",               # StringReferenceIndexExpression
     "t/struct-test.neon",           # ModuleFunction
     "t/structure.neon",             # RecordLiteralExpression

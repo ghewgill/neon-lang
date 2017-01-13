@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 
 public class Number implements Comparable<Number> {
 
-    private BigDecimal repr;
+    public BigDecimal repr;
 
     public static final Number ZERO = new Number(BigDecimal.ZERO);
     public static final Number ONE = new Number(BigDecimal.ONE);

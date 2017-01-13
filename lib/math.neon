@@ -249,6 +249,13 @@ DECLARE NATIVE FUNCTION frexp(x: Number, OUT exp: Number): Number
 DECLARE NATIVE FUNCTION hypot(x: Number, y: Number): Number
 
 %|
+ |  Function: intdiv
+ |
+ |  Integer division with rounding toward zero.
+ |%
+DECLARE NATIVE FUNCTION intdiv(x: Number, y: Number): Number
+
+%|
  |  Function: ldexp
  |
  |  Multiplies a floating point value x by the number 10 raised to the exp power.
