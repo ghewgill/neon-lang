@@ -436,6 +436,10 @@ with open("src/functions_compile_jvm.inc", "w") as inc:
     print >>inc, "} FunctionSignatures[] = {"
     for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
         module, function = name.split("$")
+        if function in [
+            "int",
+        ]:
+            function += "_"
         print >>inc, "    {{\"{}\", \"{}\", \"{}\", \"{}\"}},".format(
             name.replace("global$", ""),
             "neon/{}".format(module.title()),

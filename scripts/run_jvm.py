@@ -59,7 +59,6 @@ ExcludeTests = [
     "t/index.neon",                 # RecordLiteralExpression
     "t/inline-construct-record.neon",   # RecordLiteralExpression
     "t/inline-init-record.neon",    # RecordLiteralExpression
-    "t/intrinsic.neon",             # chr
     "t/io-test.neon",               # PredefinedVariable
     "t/json-test.neon",             # ModuleFunction
     "t/lexer-unicode.neon",         # ConjunctionExpression

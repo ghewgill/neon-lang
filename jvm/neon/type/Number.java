@@ -76,4 +76,8 @@ public class Number implements Comparable<Number> {
         return repr.toString();
     }
 
+    public Number trunc() {
+        return new neon.type.Number(repr.divideToIntegralValue(BigDecimal.ONE));
+    }
+
 }

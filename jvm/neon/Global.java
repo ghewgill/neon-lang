@@ -69,6 +69,10 @@ public class Global {
         return r.toString();
     }
 
+    public static String chr(neon.type.Number x) {
+        return new String(new char[] {(char)x.intValue()});
+    }
+
     public static String concat(String a, String b) {
         return a.concat(b);
     }
@@ -96,8 +100,45 @@ public class Global {
         return r;
     }
 
+    public static String format(String str, String fmt) {
+        return " foo";
+    }
+
+    public static neon.type.Number int_(neon.type.Number x) {
+        return x.trunc();
+    }
+
+    public static neon.type.Number max(neon.type.Number a, neon.type.Number b)
+    {
+        if (a.compareTo(b) > 0) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    public static neon.type.Number min(neon.type.Number a, neon.type.Number b)
+    {
+        if (a.compareTo(b) < 0) {
+            return a;
+        } else {
+            return b;
+        }
+    }
+
+    public static neon.type.Number num(String s) {
+        return new neon.type.Number(s);
+    }
+
     public static String number__toString(neon.type.Number x) {
         return x.toString();
+    }
+
+    public static neon.type.Number ord(String s) {
+        if (s.length() != 1) {
+            throw new neon.type.NeonException("ArrayInExpression", "ord() requires string of length 1");
+        }
+        return new neon.type.Number(s.charAt(0));
     }
 
     public static void print(String s) {
@@ -120,6 +161,12 @@ public class Global {
             l += str.length() - 1;
         }
         return str.substring(f, l + 1);
+    }
+
+    public static String substring(String s, neon.type.Number offset, neon.type.Number length) {
+        int off = offset.intValue();
+        int len = length.intValue();
+        return s.substring(off, off+len);
     }
 
     public static neon.type.Number string__length(String s) {
