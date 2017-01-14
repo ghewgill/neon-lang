@@ -131,12 +131,10 @@ ExcludeTests = [
     "t/sql-whenever.neon",          # ModuleVariable
     "t/sqlite-test.neon",           # pointer
     "t/stack-overflow.neon",        # segfault
-    "t/string-bytes.neon",          # StringReferenceIndexExpression
-    "t/string-escape.neon",         # StringReferenceIndexExpression
+    "t/string-bytes.neon",          # format
     "t/string-format.neon",         # format
-    "t/string-multiline.neon",      # StringReferenceIndexExpression
     "t/string-test.neon",           # ArrayComparisonExpression
-    "t/strings.neon",               # StringReferenceIndexExpression
+    "t/strings.neon",               # StringReferenceIndexExpression lvalue
     "t/struct-test.neon",           # ModuleFunction
     "t/structure.neon",             # RecordLiteralExpression
     "t/sudoku-test.neon",           # ModuleFunction
@@ -147,7 +145,7 @@ ExcludeTests = [
     "t/tostring.neon",              # ConstantEnumExpression
     "t/try-expression.neon",        # VariableExpression
     "t/type-nested.neon",           # RecordLiteralExpression
-    "t/unicode-char.neon",          # StringReferenceIndexExpression
+    "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/uninitialised-if-nested.neon",   # verifier
     "t/uninitialised-if.neon",      # verifier
     "t/uninitialised-out.neon",     # out parameter

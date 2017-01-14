@@ -43,6 +43,10 @@ public class Global {
         return x.toString().toUpperCase();
     }
 
+    public static String bytes__decodeToString(byte[] self) {
+        return new String(self, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     public static neon.type.Number bytes__size(byte[] self) {
         return new neon.type.Number(self.length);
     }
@@ -163,18 +167,22 @@ public class Global {
         return str.substring(f, l + 1);
     }
 
-    public static String substring(String s, neon.type.Number offset, neon.type.Number length) {
-        int off = offset.intValue();
-        int len = length.intValue();
-        return s.substring(off, off+len);
-    }
-
     public static neon.type.Number string__length(String s) {
         return new neon.type.Number(s.length());
     }
 
+    public static byte[] string__toBytes(String self) {
+        return self.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    }
+
     public static String strb(Boolean x) {
         return x.toString().toUpperCase();
+    }
+
+    public static String substring(String s, neon.type.Number offset, neon.type.Number length) {
+        int off = offset.intValue();
+        int len = length.intValue();
+        return s.substring(off, off+len);
     }
 
 }

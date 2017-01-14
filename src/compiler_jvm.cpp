@@ -1223,6 +1223,29 @@ private:
     DictionaryReferenceIndexExpression &operator=(const DictionaryReferenceIndexExpression &);
 };
 
+class StringReferenceIndexExpression: public Expression {
+public:
+    StringReferenceIndexExpression(const ast::StringReferenceIndexExpression *srie): Expression(srie), srie(srie), ref(transform(srie->ref)), first(transform(srie->first)), last(transform(srie->last)) {}
+    const ast::StringReferenceIndexExpression *srie;
+    const Expression *ref;
+    const Expression *first;
+    const Expression *last;
+
+    virtual void generate(Context &context) const override {
+        ref->generate(context);
+        first->generate(context);
+        context.push_integer(srie->first_from_end);
+        last->generate(context);
+        context.push_integer(srie->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_store(Context&) const override { internal_error("StringReferenceIndexExpression"); }
+private:
+    StringReferenceIndexExpression(const StringReferenceIndexExpression &);
+    StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &);
+};
+
 class StringValueIndexExpression: public Expression {
 public:
     StringValueIndexExpression(const ast::StringValueIndexExpression *svie): Expression(svie), svie(svie), str(transform(svie->str)), first(transform(svie->first)), last(transform(svie->last)) {}
@@ -2214,7 +2237,7 @@ public:
     virtual void visit(const ast::ArrayValueIndexExpression *node) { r = new ArrayValueIndexExpression(node); }
     virtual void visit(const ast::DictionaryReferenceIndexExpression *node) { r = new DictionaryReferenceIndexExpression(node); }
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
-    virtual void visit(const ast::StringReferenceIndexExpression *) {}
+    virtual void visit(const ast::StringReferenceIndexExpression *node) { r = new StringReferenceIndexExpression(node); }
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
