@@ -13,6 +13,10 @@ public class Number implements Comparable<Number> {
         repr = new BigDecimal(val);
     }
 
+    public Number(long val) {
+        repr = new BigDecimal(val);
+    }
+
     public Number(BigDecimal val) {
         repr = val;
     }

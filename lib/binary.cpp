@@ -178,6 +178,7 @@ template <typename T> Number binary_shift_right_signed(Number x, Number n)
     if (b >= traits<T>::BITS) {
         return traits<T>::to_number(0);
     }
+    // TODO: use traits functions so shiftRightSigned64 will work properly.
     return number_from_sint32(number_to_sint32(x) >> b);
 }
 
