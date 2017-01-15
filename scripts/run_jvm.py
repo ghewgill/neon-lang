@@ -50,7 +50,7 @@ ExcludeTests = [
     "t/gc1.neon",                   # PredefinedVariable
     "t/gc2.neon",                   # PredefinedVariable
     "t/gc3.neon",                   # PredefinedVariable
-    "t/hash-test.neon",             # ConstantBytesExpression
+    "t/hash-test.neon",             # sha-3
     "t/http-test.neon",             # pointer
     "t/import-dup.neon",            # module sys
     "t/import.neon",                # BooleanComparisonExpression
