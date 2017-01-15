@@ -3,7 +3,7 @@ import sys
 
 ExcludeTests = [
     "t/array-resize.neon",          # array default item
-    "t/array-slice.neon",           # ArrayReferenceRangeExpression
+    "t/array-slice.neon",           # string append
     "t/array-tostring.neon",        # ArrayComparisonExpression
     "t/array2d.neon",               # array copying semantics
     "t/assert-enum.neon",           # ConstantEnumExpression

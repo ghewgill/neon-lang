@@ -27,6 +27,56 @@ public class Global {
         return self.size_n();
     }
 
+    public static neon.type.Array array__slice(neon.type.Array a, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+        assert(first.isInteger());
+        assert(last.isInteger());
+        int f = first.intValue();
+        int l = last.intValue();
+        if (first_from_end) {
+            f += a.size() - 1;
+        }
+        if (f < 0) f = 0;
+        if (f > a.size()) f = a.size();
+        if (last_from_end) {
+            l += a.size() - 1;
+        }
+        if (l < -1) l = -1;
+        if (l >= a.size()) l = a.size() - 1;
+        neon.type.Array r = new neon.type.Array();
+        for (int i = f; i <= l; i++) {
+            r.add(a.get(i));
+        }
+        return r;
+    }
+
+    public static neon.type.Array array__splice(neon.type.Array b, neon.type.Array a, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+        assert(first.isInteger());
+        assert(last.isInteger());
+        int f = first.intValue();
+        int l = last.intValue();
+        if (first_from_end) {
+            f += a.size() - 1;
+        }
+        if (f < 0) f = 0;
+        if (f > a.size()) f = a.size();
+        if (last_from_end) {
+            l += a.size() - 1;
+        }
+        if (l < -1) l = -1;
+        if (l >= a.size()) l = a.size() - 1;
+        neon.type.Array r = new neon.type.Array();
+        for (int i = 0; i < f; i++) {
+            r.add(a.get(i));
+        }
+        for (int i = 0; i < b.size(); i++) {
+            r.add(b.get(i));
+        }
+        for (int i = l + 1; i < a.size(); i++) {
+            r.add(a.get(i));
+        }
+        return r;
+    }
+
     public static byte[] array__toBytes__number(neon.type.Array self) {
         byte[] r = new byte[self.size()];
         for (int i = 0; i < self.size(); i++) {

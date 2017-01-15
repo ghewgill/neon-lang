@@ -1269,6 +1269,59 @@ private:
     StringValueIndexExpression &operator=(const StringValueIndexExpression &);
 };
 
+class ArrayReferenceRangeExpression: public Expression {
+public:
+    ArrayReferenceRangeExpression(const ast::ArrayReferenceRangeExpression *arre): Expression(arre), arre(arre), ref(transform(arre->ref)), first(transform(arre->first)), last(transform(arre->last)) {}
+    const ast::ArrayReferenceRangeExpression *arre;
+    const Expression *ref;
+    const Expression *first;
+    const Expression *last;
+
+    virtual void generate(Context &context) const override {
+        ref->generate(context);
+        first->generate(context);
+        context.push_integer(arre->first_from_end);
+        last->generate(context);
+        context.push_integer(arre->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ArrayReferenceRangeExpression"); }
+    virtual void generate_store(Context &context) const override {
+        ref->generate(context);
+        first->generate(context);
+        context.push_integer(arre->first_from_end);
+        last->generate(context);
+        context.push_integer(arre->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__splice", "(Lneon/type/Array;Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
+    }
+private:
+    ArrayReferenceRangeExpression(const ArrayReferenceRangeExpression &);
+    ArrayReferenceRangeExpression &operator=(const ArrayReferenceRangeExpression &);
+};
+
+class ArrayValueRangeExpression: public Expression {
+public:
+    ArrayValueRangeExpression(const ast::ArrayValueRangeExpression *avre): Expression(avre), avre(avre), array(transform(avre->array)), first(transform(avre->first)), last(transform(avre->last)) {}
+    const ast::ArrayValueRangeExpression *avre;
+    const Expression *array;
+    const Expression *first;
+    const Expression *last;
+
+    virtual void generate(Context &context) const override {
+        array->generate(context);
+        first->generate(context);
+        context.push_integer(avre->first_from_end);
+        last->generate(context);
+        context.push_integer(avre->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ArrayValueRangeExpression"); }
+    virtual void generate_store(Context&) const override { internal_error("ArrayValueRangeExpression"); }
+private:
+    ArrayValueRangeExpression(const ArrayValueRangeExpression &);
+    ArrayValueRangeExpression &operator=(const ArrayValueRangeExpression &);
+};
+
 class VariableExpression: public Expression {
 public:
     VariableExpression(const ast::VariableExpression *ve): Expression(ve), ve(ve), var(transform(ve->var)) {}
@@ -2241,8 +2294,8 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
-    virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
-    virtual void visit(const ast::ArrayValueRangeExpression *) {}
+    virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
+    virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
