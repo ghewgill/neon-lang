@@ -27,6 +27,15 @@ public class Array extends java.util.ArrayList {
         return super.get(i);
     }
 
+    public boolean in(Object x) {
+        for (Object i: this) {
+            if (i.equals(x)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void resize(Number new_size) {
         checkIndex(new_size);
         int ns = new_size.intValue();

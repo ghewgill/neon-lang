@@ -32,7 +32,7 @@ ExcludeTests = [
     "t/file.neon",                  # module file
     "t/file-filecopied1.neon",      # exception identification
     "t/file-symlink.neon",          # TypeEnum
-    "t/file-test.neon",             # ArrayInExpression
+    "t/file-test.neon",             # DisjunctionExpression
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
     "t/foreach.neon",               # duplicate field
@@ -49,8 +49,7 @@ ExcludeTests = [
     "t/hash-test.neon",             # sha-3
     "t/http-test.neon",             # pointer
     "t/import-dup.neon",            # module sys
-    "t/import.neon",                # BooleanComparisonExpression
-    "t/in.neon",                    # ArrayInExpression
+    "t/import.neon",                # ModuleVariable
     "t/indent.neon",                # verifier
     "t/index.neon",                 # RecordLiteralExpression
     "t/inline-construct-record.neon",   # RecordLiteralExpression
@@ -88,8 +87,8 @@ ExcludeTests = [
     "t/outer-tail.neon",            # verifier
     "t/outer.neon",                 # verifier
     "t/outer2.neon",                # verifier
-    "t/parameter-out-array.neon",   # ArrayReferenceRangeExpression
-    "t/parameter-out-string.neon",  # StringReferenceIndexExpression
+    "t/parameter-out-array.neon",   # out parameter
+    "t/parameter-out-string.neon",  # out parameter
     "t/parameters-ignore.neon",     # out parameters
     "t/parameters.neon",            # out parameters
     "t/pointer-method.neon",        # NewClassExpression
@@ -111,7 +110,7 @@ ExcludeTests = [
     "t/record-private.neon",        # RecordLiteralExpression
     "t/recursion-limit.neon",       # segfault
     "t/recursion.neon",             # segfault
-    "t/regex-test.neon",            # BooleanComparisonExpression
+    "t/regex-test.neon",            # TypeRecord
     "t/repl_enum_tostring.neon",    # ConstantEnumExpression
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
@@ -129,7 +128,7 @@ ExcludeTests = [
     "t/string-bytes.neon",          # format
     "t/string-format.neon",         # format
     "t/string-test.neon",           # ModuleFunction
-    "t/strings.neon",               # StringReferenceIndexExpression lvalue
+    "t/strings.neon",               # stack size too large
     "t/struct-test.neon",           # ModuleFunction
     "t/structure.neon",             # RecordLiteralExpression
     "t/sudoku-test.neon",           # ModuleFunction
@@ -138,7 +137,7 @@ ExcludeTests = [
     "t/time-stopwatch.neon",        # RecordLiteralExpression
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # ConstantEnumExpression
-    "t/try-expression.neon",        # VariableExpression
+    "t/try-expression.neon",        # TryExpression
     "t/type-nested.neon",           # RecordLiteralExpression
     "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/uninitialised-if-nested.neon",   # verifier

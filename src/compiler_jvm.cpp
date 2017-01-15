@@ -948,6 +948,46 @@ private:
     LogicalNotExpression &operator=(const LogicalNotExpression &);
 };
 
+class ArrayInExpression: public Expression {
+public:
+    ArrayInExpression(const ast::ArrayInExpression *aie): Expression(aie), aie(aie), left(transform(aie->left)), right(transform(aie->right)) {}
+    const ast::ArrayInExpression *aie;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        right->generate(context);
+        left->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "in", "(Ljava/lang/Object;)Z");
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ArrayInExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ArrayInExpression"); }
+private:
+    ArrayInExpression(const ArrayInExpression &);
+    ArrayInExpression &operator=(const ArrayInExpression &);
+};
+
+class DictionaryInExpression: public Expression {
+public:
+    DictionaryInExpression(const ast::DictionaryInExpression *die): Expression(die), die(die), left(transform(die->left)), right(transform(die->right)) {}
+    const ast::DictionaryInExpression *die;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        right->generate(context);
+        left->generate(context);
+        context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/util/Map", "containsKey", "(Ljava/lang/Object;)Z") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
+    }
+    virtual void generate_call(Context &) const override { internal_error("DictionaryInExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("DictionaryInExpression"); }
+private:
+    DictionaryInExpression(const DictionaryInExpression &);
+    DictionaryInExpression &operator=(const DictionaryInExpression &);
+};
+
 class ComparisonExpression: public Expression {
 public:
     ComparisonExpression(const ast::ComparisonExpression *ce): Expression(ce), ce(ce), left(transform(ce->left)), right(transform(ce->right)) {}
@@ -967,6 +1007,30 @@ public:
 private:
     ComparisonExpression(const ComparisonExpression &);
     ComparisonExpression &operator=(const ComparisonExpression &);
+};
+
+class BooleanComparisonExpression: public ComparisonExpression {
+public:
+    BooleanComparisonExpression(const ast::BooleanComparisonExpression *bce): ComparisonExpression(bce), bce(bce) {}
+    const ast::BooleanComparisonExpression *bce;
+
+    virtual void generate_comparison(Context &context) const override {
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
+        context.ca.code << OP_swap;
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
+        static const uint8_t op[] = {OP_ifeq, OP_ifne};
+        auto label_true = context.create_label();
+        context.emit_jump(op[bce->comp], label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
+        context.jump_target(label_false);
+    }
+private:
+    BooleanComparisonExpression(const BooleanComparisonExpression &);
+    BooleanComparisonExpression &operator=(const BooleanComparisonExpression &);
 };
 
 class NumericComparisonExpression: public ComparisonExpression {
@@ -1262,7 +1326,15 @@ public:
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
     }
     virtual void generate_call(Context &) const override { internal_error("StringReferenceIndexExpression"); }
-    virtual void generate_store(Context&) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_store(Context &context) const override {
+        ref->generate(context);
+        first->generate(context);
+        context.push_integer(srie->first_from_end);
+        last->generate(context);
+        context.push_integer(srie->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+        ref->generate_store(context);
+    }
 private:
     StringReferenceIndexExpression(const StringReferenceIndexExpression &);
     StringReferenceIndexExpression &operator=(const StringReferenceIndexExpression &);
@@ -1905,7 +1977,7 @@ public:
             a.attribute_name_index = context.cf.utf8("Code");
             {
                 Code_attribute ca;
-                ca.max_stack = 8;
+                ca.max_stack = 8; // TODO
                 ca.max_locals = static_cast<uint16_t>(params.size());
                 Context function_context(context.cf, ca);
                 for (auto s: statements) {
@@ -2322,10 +2394,10 @@ public:
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
-    virtual void visit(const ast::ArrayInExpression *) {}
-    virtual void visit(const ast::DictionaryInExpression *) {}
+    virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
+    virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
     virtual void visit(const ast::ChainedComparisonExpression *) {}
-    virtual void visit(const ast::BooleanComparisonExpression *) {}
+    virtual void visit(const ast::BooleanComparisonExpression *node) { r = new BooleanComparisonExpression(node); }
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
