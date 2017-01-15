@@ -141,6 +141,40 @@ public class Global {
         return r;
     }
 
+    public static byte[] bytes__range(byte[] data, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+        assert(first.isInteger());
+        assert(last.isInteger());
+        int f = first.intValue();
+        int l = last.intValue();
+        if (first_from_end) {
+            f += data.length - 1;
+        }
+        if (last_from_end) {
+            l += data.length - 1;
+        }
+        byte[] r = new byte[l - f + 1];
+        System.arraycopy(data, f, r, 0, l - f + 1);
+        return r;
+    }
+
+    public static byte[] bytes__splice(byte[] b, byte[] a, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+        assert(first.isInteger());
+        assert(last.isInteger());
+        int f = first.intValue();
+        int l = last.intValue();
+        if (first_from_end) {
+            f += a.length - 1;
+        }
+        if (last_from_end) {
+            l += a.length - 1;
+        }
+        byte[] r = new byte[f + b.length + a.length - (l + 1)];
+        System.arraycopy(a, 0, r, 0, f);
+        System.arraycopy(b, 0, r, f, b.length);
+        System.arraycopy(a, l + 1, r, f + b.length, a.length - (l + 1));
+        return r;
+    }
+
     public static String bytes__toString(byte[] self) {
         StringBuilder r = new StringBuilder("HEXBYTES \"");
         boolean first = true;

@@ -10,8 +10,6 @@ ExcludeTests = [
     "t/assert-fail2.neon",          # stderr
     "t/assignment.neon",            # RecordLiteralExpression
     "t/bigint-test.neon",           # ModuleFunction
-    "t/bytes-embed.neon",           # StringValueIndexExpression
-    "t/bytes-slice.neon",           # BytesReferenceIndexExpression
     "t/cformat-test.neon",          # ModuleFunction
     "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable

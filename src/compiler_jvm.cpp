@@ -1184,7 +1184,7 @@ public:
         index->generate(context);
         context.ca.code << OP_swap;
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "set", "(Lneon/type/Number;Ljava/lang/Object;)Ljava/lang/Object;");
-        context.ca.code << OP_pop;
+        context.ca.code << OP_pop; // TODO: is this right? seems wrong. should be array->generate_store(context)? See BytesReferenceIndexExpression.
     }
 private:
     ArrayReferenceIndexExpression(const ArrayReferenceIndexExpression &);
@@ -1289,6 +1289,37 @@ public:
 private:
     StringValueIndexExpression(const StringValueIndexExpression &);
     StringValueIndexExpression &operator=(const StringValueIndexExpression &);
+};
+
+class BytesReferenceIndexExpression: public Expression {
+public:
+    BytesReferenceIndexExpression(const ast::BytesReferenceIndexExpression *brie): Expression(brie), brie(brie), ref(transform(brie->ref)), first(transform(brie->first)), last(transform(brie->last)) {}
+    const ast::BytesReferenceIndexExpression *brie;
+    const Expression *ref;
+    const Expression *first;
+    const Expression *last;
+
+    virtual void generate(Context &context) const override {
+        ref->generate(context);
+        first->generate(context);
+        context.push_integer(brie->first_from_end);
+        last->generate(context);
+        context.push_integer(brie->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
+    }
+    virtual void generate_call(Context &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_store(Context &context) const override {
+        ref->generate(context);
+        first->generate(context);
+        context.push_integer(brie->first_from_end);
+        last->generate(context);
+        context.push_integer(brie->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__splice", "([B[BLneon/type/Number;ZLneon/type/Number;Z)[B");
+        ref->generate_store(context);
+    }
+private:
+    BytesReferenceIndexExpression(const BytesReferenceIndexExpression &);
+    BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &);
 };
 
 class ArrayReferenceRangeExpression: public Expression {
@@ -2314,7 +2345,7 @@ public:
     virtual void visit(const ast::DictionaryValueIndexExpression *) {}
     virtual void visit(const ast::StringReferenceIndexExpression *node) { r = new StringReferenceIndexExpression(node); }
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
-    virtual void visit(const ast::BytesReferenceIndexExpression *) {}
+    virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
