@@ -36,6 +36,13 @@ public class Number implements Comparable<Number> {
         return new Number(repr.divide(divisor.repr));
     }
 
+    public boolean equals(Object o) {
+        if (!(o instanceof Number)) {
+            return false;
+        }
+        return repr.equals(((Number)o).repr);
+    }
+
     public int intValue() {
         return repr.intValue();
     }
@@ -46,6 +53,10 @@ public class Number implements Comparable<Number> {
 
     public boolean isNegative() {
         return repr.signum() < 0;
+    }
+
+    public boolean isZero() {
+        return repr.signum() == 0;
     }
 
     public long longValue() {

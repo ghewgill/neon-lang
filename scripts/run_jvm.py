@@ -4,7 +4,6 @@ import sys
 ExcludeTests = [
     "t/array-resize.neon",          # array default item
     "t/array-slice.neon",           # string append
-    "t/array-tostring.neon",        # ArrayComparisonExpression
     "t/array2d.neon",               # array copying semantics
     "t/assert-enum.neon",           # ConstantEnumExpression
     "t/assert-fail.neon",           # stderr
@@ -64,7 +63,6 @@ ExcludeTests = [
     "t/lexer-unicode.neon",         # ConjunctionExpression
     "t/lexical-scope.neon",         # duplicate field
     "t/lisp-test.neon",             # ModuleFunction
-    "t/literal-array.neon",         # ArrayComparisonExpression
     "t/logical.neon",               # ConjunctionExpression
     "t/logical2.neon",              # ConjunctionExpression
     "t/loop-label.neon",            # duplicate field
@@ -133,7 +131,7 @@ ExcludeTests = [
     "t/stack-overflow.neon",        # segfault
     "t/string-bytes.neon",          # format
     "t/string-format.neon",         # format
-    "t/string-test.neon",           # ArrayComparisonExpression
+    "t/string-test.neon",           # ModuleFunction
     "t/strings.neon",               # StringReferenceIndexExpression lvalue
     "t/struct-test.neon",           # ModuleFunction
     "t/structure.neon",             # RecordLiteralExpression

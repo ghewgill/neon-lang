@@ -2,6 +2,22 @@ package neon.type;
 
 public class Array extends java.util.ArrayList {
 
+    public boolean equals(Object o) {
+        if (!(o instanceof Array)) {
+            return false;
+        }
+        Array a = (Array)o;
+        if (size() != a.size()) {
+            return false;
+        }
+        for (int i = 0; i < size(); i++) {
+            if (!get(i).equals(a.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public Object get(Number index) {
         checkIndex(index);
         int i = index.intValue();

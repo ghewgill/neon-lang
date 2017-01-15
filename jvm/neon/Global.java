@@ -23,6 +23,23 @@ public class Global {
         }
     }
 
+    public static neon.type.Array array__range(neon.type.Number first, neon.type.Number last, neon.type.Number step) {
+        if (step.isZero()) {
+            throw new neon.type.NeonException("ValueRangeException", step.toString());
+        }
+        neon.type.Array r = new neon.type.Array();
+        if (step.isNegative()) {
+            for (neon.type.Number i = first; i.compareTo(last) >= 0; i = i.add(step)) {
+                r.add(i);
+            }
+        } else {
+            for (neon.type.Number i = first; i.compareTo(last) <= 0; i = i.add(step)) {
+                r.add(i);
+            }
+        }
+        return r;
+    }
+
     public static neon.type.Number array__size(neon.type.Array self) {
         return self.size_n();
     }
@@ -87,6 +104,21 @@ public class Global {
 
     public static String array__toString__number(neon.type.Array self) {
         return self.toString();
+    }
+
+    public static String array__toString__string(neon.type.Array self) {
+        StringBuilder r = new StringBuilder("[");
+        for (int i = 0; i < self.size(); i++) {
+            if (i > 0) {
+                r.append(", ");
+            }
+            // TODO: escape embedded quotes.
+            r.append("\"");
+            r.append(self.get(i));
+            r.append("\"");
+        }
+        r.append("]");
+        return r.toString();
     }
 
     public static String boolean__toString(Boolean x) {

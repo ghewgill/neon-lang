@@ -1013,6 +1013,28 @@ private:
     StringComparisonExpression &operator=(const StringComparisonExpression &);
 };
 
+class ArrayComparisonExpression: public ComparisonExpression {
+public:
+    ArrayComparisonExpression(const ast::ArrayComparisonExpression *ace): ComparisonExpression(ace), ace(ace) {}
+    const ast::ArrayComparisonExpression *ace;
+
+    virtual void generate_comparison(Context &context) const override {
+        context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "equals", "(Ljava/lang/Object;)Z");
+        if (ace->comp == ast::ComparisonExpression::EQ) {
+            // nothing
+        } else if (ace->comp == ast::ComparisonExpression::NE) {
+            context.ca.code << OP_iconst_1;
+            context.ca.code << OP_ixor;
+        } else {
+            internal_error("ArrayComparisonExpression");
+        }
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
+    }
+private:
+    ArrayComparisonExpression(const ArrayComparisonExpression &);
+    ArrayComparisonExpression &operator=(const ArrayComparisonExpression &);
+};
+
 class AdditionExpression: public Expression {
 public:
     AdditionExpression(const ast::AdditionExpression *ae): Expression(ae), ae(ae), left(transform(ae->left)), right(transform(ae->right)) {}
@@ -2275,7 +2297,7 @@ public:
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
-    virtual void visit(const ast::ArrayComparisonExpression *) {}
+    virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
