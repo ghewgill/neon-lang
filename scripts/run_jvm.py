@@ -17,7 +17,6 @@ ExcludeTests = [
     "t/complex-test.neon",          # ModuleFunction
     "t/compress-test.neon",         # compress.gzip
     "t/concat-bytes.neon",          # confusion between Bytes and String
-    "t/conditional.neon",           # ConditionalExpression
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # debugger.log
     "t/debug-server.neon",          # pointer
@@ -32,7 +31,7 @@ ExcludeTests = [
     "t/file.neon",                  # module file
     "t/file-filecopied1.neon",      # exception identification
     "t/file-symlink.neon",          # TypeEnum
-    "t/file-test.neon",             # DisjunctionExpression
+    "t/file-test.neon",             # ModuleFunction
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
     "t/foreach.neon",               # duplicate field
@@ -56,11 +55,8 @@ ExcludeTests = [
     "t/inline-init-record.neon",    # RecordLiteralExpression
     "t/io-test.neon",               # PredefinedVariable
     "t/json-test.neon",             # ModuleFunction
-    "t/lexer-unicode.neon",         # ConjunctionExpression
     "t/lexical-scope.neon",         # duplicate field
     "t/lisp-test.neon",             # ModuleFunction
-    "t/logical.neon",               # ConjunctionExpression
-    "t/logical2.neon",              # ConjunctionExpression
     "t/loop-label.neon",            # duplicate field
     "t/math-test.neon",             # math.abs
     "t/methods-declare.neon",       # RecordLiteralExpression
@@ -115,8 +111,7 @@ ExcludeTests = [
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
     "t/rtl.neon",                   # TypeRecord
-    "t/shortcut.neon",              # ConjunctionExpression
-    "t/sodium-test.neon",           # ConditionalExpression
+    "t/sodium-test.neon",           # TypeRecord
     "t/sql-connect.neon",           # ModuleVariable
     "t/sql-cursor.neon",            # ModuleVariable
     "t/sql-embed.neon",             # ModuleVariable

@@ -948,6 +948,82 @@ private:
     LogicalNotExpression &operator=(const LogicalNotExpression &);
 };
 
+class ConditionalExpression: public Expression {
+public:
+    ConditionalExpression(const ast::ConditionalExpression *ce): Expression(ce), ce(ce), condition(transform(ce->condition)), left(transform(ce->left)), right(transform(ce->right)) {}
+    const ast::ConditionalExpression *ce;
+    const Expression *condition;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        condition->generate(context);
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
+        auto label_done = context.create_label();
+        auto label_false = context.create_label();
+        context.emit_jump(OP_ifeq, label_false);
+        left->generate(context);
+        context.emit_jump(OP_goto, label_done);
+        context.jump_target(label_false);
+        right->generate(context);
+        context.jump_target(label_done);
+    }
+    virtual void generate_call(Context &) const override { internal_error("ConditionalExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConditionalExpression"); }
+private:
+    ConditionalExpression(const ConditionalExpression &);
+    ConditionalExpression &operator=(const ConditionalExpression &);
+};
+
+class DisjunctionExpression: public Expression {
+public:
+    DisjunctionExpression(const ast::DisjunctionExpression *de): Expression(de), de(de), left(transform(de->left)), right(transform(de->right)) {}
+    const ast::DisjunctionExpression *de;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        context.ca.code << OP_dup;
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
+        auto label_true = context.create_label();
+        context.emit_jump(OP_ifne, label_true);
+        context.ca.code << OP_pop;
+        right->generate(context);
+        context.jump_target(label_true);
+    }
+    virtual void generate_call(Context &) const override { internal_error("DisjunctionExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("DisjunctionExpression"); }
+private:
+    DisjunctionExpression(const DisjunctionExpression &);
+    DisjunctionExpression &operator=(const DisjunctionExpression &);
+};
+
+class ConjunctionExpression: public Expression {
+public:
+    ConjunctionExpression(const ast::ConjunctionExpression *ce): Expression(ce), ce(ce), left(transform(ce->left)), right(transform(ce->right)) {}
+    const ast::ConjunctionExpression *ce;
+    const Expression *left;
+    const Expression *right;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        context.ca.code << OP_dup;
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_ifeq, label_false);
+        context.ca.code << OP_pop;
+        right->generate(context);
+        context.jump_target(label_false);
+    }
+    virtual void generate_call(Context &) const override { internal_error("ConjunctionExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConjunctionExpression"); }
+private:
+    ConjunctionExpression(const ConjunctionExpression &);
+    ConjunctionExpression &operator=(const ConjunctionExpression &);
+};
+
+
 class ArrayInExpression: public Expression {
 public:
     ArrayInExpression(const ast::ArrayInExpression *aie): Expression(aie), aie(aie), left(transform(aie->left)), right(transform(aie->right)) {}
@@ -2390,10 +2466,10 @@ public:
     virtual void visit(const ast::NewClassExpression *) {}
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
     virtual void visit(const ast::LogicalNotExpression *node) { r = new LogicalNotExpression(node); }
-    virtual void visit(const ast::ConditionalExpression *) {}
+    virtual void visit(const ast::ConditionalExpression *node) { r = new ConditionalExpression(node); }
     virtual void visit(const ast::TryExpression *) {}
-    virtual void visit(const ast::DisjunctionExpression *) {}
-    virtual void visit(const ast::ConjunctionExpression *) {}
+    virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
+    virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
     virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
     virtual void visit(const ast::ChainedComparisonExpression *) {}
