@@ -2167,32 +2167,6 @@ public:
         cf.this_class = cf.Class(cf.name);
         cf.super_class = cf.Class("Ljava/lang/Object;");
 
-        for (size_t i = 0; i < program->frame->getCount(); i++) {
-            auto slot = program->frame->getSlot(i);
-            const ast::GlobalVariable *global = dynamic_cast<const ast::GlobalVariable *>(slot.ref);
-            if (global != nullptr) {
-                field_info f;
-                f.access_flags = ACC_STATIC;
-                f.name_index = cf.utf8(slot.name);
-                if (global->type == ast::TYPE_BOOLEAN) {
-                    f.descriptor_index = cf.utf8("Ljava/lang/Boolean;");
-                } else if (global->type == ast::TYPE_NUMBER) {
-                    f.descriptor_index = cf.utf8("Lneon/type/Number;");
-                } else if (global->type == ast::TYPE_STRING) {
-                    f.descriptor_index = cf.utf8("Ljava/lang/String;");
-                } else if (global->type == ast::TYPE_BYTES) {
-                    f.descriptor_index = cf.utf8("[B");
-                } else if (dynamic_cast<const ast::TypeArray *>(global->type) != nullptr) {
-                    f.descriptor_index = cf.utf8("Lneon/type/Array;");
-                } else if (dynamic_cast<const ast::TypeDictionary *>(global->type) != nullptr) {
-                    f.descriptor_index = cf.utf8("Ljava/util/HashMap;");
-                } else {
-                    internal_error("type of global unhandled: " + global->type->text());
-                }
-                cf.fields.push_back(f);
-            }
-        }
-
         {
             method_info m;
             m.access_flags = ACC_PUBLIC | ACC_STATIC;
@@ -2206,6 +2180,13 @@ public:
                     ca.max_stack = 8;
                     ca.max_locals = 1;
                     Context context(cf, ca);
+                    for (size_t i = 0; i < program->frame->getCount(); i++) {
+                        auto slot = program->frame->getSlot(i);
+                        const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
+                        if (global != nullptr) {
+                            global->generate_decl(context);
+                        }
+                    }
                     for (auto s: statements) {
                         s->generate(context);
                     }
