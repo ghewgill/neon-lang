@@ -517,7 +517,9 @@ static std::map<const ast::Statement *, Statement *> g_statement_cache;
 
 class Type {
 public:
-    Type(const std::string &classname, const std::string &jtype = ""): classname(classname), jtype(jtype.empty() ? "L" + classname + ";" : jtype) {}
+    Type(const ast::Type *t, const std::string &classname, const std::string &jtype = ""): classname(classname), jtype(jtype.empty() ? "L" + classname + ";" : jtype) {
+        g_type_cache[t] = this;
+    }
     virtual ~Type() {}
     const std::string classname;
     const std::string jtype;
@@ -530,7 +532,7 @@ Type *transform(const ast::Type *t);
 
 class TypeNothing: public Type {
 public:
-    TypeNothing(const ast::TypeNothing *tn): Type("V", "V"), tn(tn) {}
+    TypeNothing(const ast::TypeNothing *tn): Type(tn, "V", "V"), tn(tn) {}
     const ast::TypeNothing *tn;
 private:
     TypeNothing(const TypeNothing &);
@@ -539,7 +541,7 @@ private:
 
 class TypeDummy: public Type {
 public:
-    TypeDummy(const ast::TypeDummy *td): Type(""), td(td) {}
+    TypeDummy(const ast::TypeDummy *td): Type(td, ""), td(td) {}
     const ast::TypeDummy *td;
 private:
     TypeDummy(const TypeDummy &);
@@ -548,7 +550,7 @@ private:
 
 class TypeBoolean: public Type {
 public:
-    TypeBoolean(const ast::TypeBoolean *tb): Type("java/lang/Boolean"), tb(tb) {}
+    TypeBoolean(const ast::TypeBoolean *tb): Type(tb, "java/lang/Boolean"), tb(tb) {}
     const ast::TypeBoolean *tb;
 private:
     TypeBoolean(const TypeBoolean &);
@@ -557,7 +559,7 @@ private:
 
 class TypeNumber: public Type {
 public:
-    TypeNumber(const ast::TypeNumber *tn): Type("neon/type/Number"), tn(tn) {}
+    TypeNumber(const ast::TypeNumber *tn): Type(tn, "neon/type/Number"), tn(tn) {}
     const ast::TypeNumber *tn;
 private:
     TypeNumber(const TypeNumber &);
@@ -566,7 +568,7 @@ private:
 
 class TypeString: public Type {
 public:
-    TypeString(const ast::TypeString *ts): Type("java/lang/String"), ts(ts) {}
+    TypeString(const ast::TypeString *ts): Type(ts, "java/lang/String"), ts(ts) {}
     const ast::TypeString *ts;
 private:
     TypeString(const TypeString &);
@@ -575,7 +577,7 @@ private:
 
 class TypeBytes: public Type {
 public:
-    TypeBytes(const ast::TypeBytes *tb): Type("[B", "[B"), tb(tb) {}
+    TypeBytes(const ast::TypeBytes *tb): Type(tb, "[B", "[B"), tb(tb) {}
     const ast::TypeBytes *tb;
 private:
     TypeBytes(const TypeBytes &);
@@ -584,7 +586,7 @@ private:
 
 class TypeFunction: public Type {
 public:
-    TypeFunction(const ast::TypeFunction *tf): Type(""), tf(tf), returntype(transform(tf->returntype)) {}
+    TypeFunction(const ast::TypeFunction *tf): Type(tf, ""), tf(tf), returntype(transform(tf->returntype)) {}
     const ast::TypeFunction *tf;
     const Type *returntype;
 private:
@@ -594,7 +596,7 @@ private:
 
 class TypeArray: public Type {
 public:
-    TypeArray(const ast::TypeArray *ta): Type("neon/type/Array"), ta(ta), elementtype(transform(ta->elementtype)) {}
+    TypeArray(const ast::TypeArray *ta): Type(ta, "neon/type/Array"), ta(ta), elementtype(transform(ta->elementtype)) {}
     const ast::TypeArray *ta;
     const Type *elementtype;
 private:
@@ -604,7 +606,7 @@ private:
 
 class TypeDictionary: public Type {
 public:
-    TypeDictionary(const ast::TypeDictionary *td): Type("java/util/HashMap"), td(td), elementtype(transform(td->elementtype)) {}
+    TypeDictionary(const ast::TypeDictionary *td): Type(td, "java/util/HashMap"), td(td), elementtype(transform(td->elementtype)) {}
     const ast::TypeDictionary *td;
     const Type *elementtype;
 private:
@@ -614,7 +616,7 @@ private:
 
 class TypePointer: public Type {
 public:
-    TypePointer(const ast::TypePointer *tp): Type("java/lang/Object"), tp(tp) {}
+    TypePointer(const ast::TypePointer *tp): Type(tp, "java/lang/Object"), tp(tp) {}
     const ast::TypePointer *tp;
 private:
     TypePointer(const TypePointer &);
@@ -623,7 +625,9 @@ private:
 
 class Variable {
 public:
-    Variable(const ast::Variable *v): type(transform(v->type)) {}
+    Variable(const ast::Variable *v): type(transform(v->type)) {
+        g_variable_cache[v] = this;
+    }
     virtual ~Variable() {}
     const Type *type;
     virtual void generate_decl(Context &context) const = 0;
@@ -745,7 +749,9 @@ private:
 
 class Expression {
 public:
-    Expression(const ast::Expression *node): type(transform(node->type)) {}
+    Expression(const ast::Expression *node): type(transform(node->type)) {
+        g_expression_cache[node] = this;
+    }
     virtual ~Expression() {}
     const Type *type;
     virtual void generate(Context &context) const = 0;
@@ -1573,6 +1579,9 @@ private:
 
 class Statement {
 public:
+    Statement(const ast::Statement *s) {
+        g_statement_cache[s] = this;
+    }
     virtual ~Statement() {}
     virtual void generate(Context &context) const = 0;
 };
@@ -1581,7 +1590,7 @@ Statement *transform(const ast::Statement *s);
 
 class NullStatement: public Statement {
 public:
-    NullStatement(const ast::NullStatement *ns): ns(ns) {}
+    NullStatement(const ast::NullStatement *ns): Statement(ns), ns(ns) {}
     const ast::NullStatement *ns;
 
     virtual void generate(Context &) const override {}
@@ -1592,7 +1601,7 @@ private:
 
 class DeclarationStatement: public Statement {
 public:
-    DeclarationStatement(const ast::DeclarationStatement *ds): ds(ds), decl(transform(ds->decl)) {}
+    DeclarationStatement(const ast::DeclarationStatement *ds): Statement(ds), ds(ds), decl(transform(ds->decl)) {}
     const ast::DeclarationStatement *ds;
     const Variable *decl;
 
@@ -1606,7 +1615,7 @@ private:
 
 class AssertStatement: public Statement {
 public:
-    AssertStatement(const ast::AssertStatement *as): as(as), statements(), expr(transform(as->expr)) {
+    AssertStatement(const ast::AssertStatement *as): Statement(as), as(as), statements(), expr(transform(as->expr)) {
         for (auto s: as->statements) {
             statements.push_back(transform(s));
         }
@@ -1634,7 +1643,7 @@ private:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(const ast::AssignmentStatement *as): as(as), variables(), expr(transform(as->expr)) {
+    AssignmentStatement(const ast::AssignmentStatement *as): Statement(as), as(as), variables(), expr(transform(as->expr)) {
         for (auto v: as->variables) {
             variables.push_back(transform(v));
         }
@@ -1659,7 +1668,7 @@ private:
 
 class ExpressionStatement: public Statement {
 public:
-    ExpressionStatement(const ast::ExpressionStatement *es): es(es), expr(transform(es->expr)) {}
+    ExpressionStatement(const ast::ExpressionStatement *es): Statement(es), es(es), expr(transform(es->expr)) {}
     const ast::ExpressionStatement *es;
     const Expression *expr;
 
@@ -1673,7 +1682,7 @@ private:
 
 class CompoundStatement: public Statement {
 public:
-    CompoundStatement(const ast::CompoundStatement *cs): cs(cs), statements() {
+    CompoundStatement(const ast::CompoundStatement *cs): Statement(cs), cs(cs), statements() {
         for (auto s: cs->statements) {
             statements.push_back(transform(s));
         }
@@ -1776,7 +1785,7 @@ public:
         RangeWhenCondition(const RangeWhenCondition &);
         RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
-    CaseStatement(const ast::CaseStatement *cs): cs(cs), expr(transform(cs->expr)), clauses() {
+    CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
         for (auto &c: cs->clauses) {
             std::vector<const WhenCondition *> whens;
             for (auto w: c.first) {
@@ -1834,7 +1843,7 @@ private:
 
 class ExitStatement: public Statement {
 public:
-    ExitStatement(const ast::ExitStatement *es): es(es) {}
+    ExitStatement(const ast::ExitStatement *es): Statement(es), es(es) {}
     const ast::ExitStatement *es;
 
     void generate(Context &context) const override {
@@ -1847,7 +1856,7 @@ private:
 
 class NextStatement: public Statement {
 public:
-    NextStatement(const ast::NextStatement *ns): ns(ns) {}
+    NextStatement(const ast::NextStatement *ns): Statement(ns), ns(ns) {}
     const ast::NextStatement *ns;
 
     virtual void generate(Context &context) const override {
@@ -1875,7 +1884,7 @@ private:
 
 class TryStatement: public Statement {
 public:
-    TryStatement(const ast::TryStatement *ts): ts(ts), statements(), catches() {
+    TryStatement(const ast::TryStatement *ts): Statement(ts), ts(ts), statements(), catches() {
         for (auto s: ts->statements) {
             statements.push_back(transform(s));
         }
@@ -1915,7 +1924,7 @@ private:
 
 class ReturnStatement: public Statement {
 public:
-    ReturnStatement(const ast::ReturnStatement *rs): rs(rs), expr(transform(rs->expr)) {}
+    ReturnStatement(const ast::ReturnStatement *rs): Statement(rs), rs(rs), expr(transform(rs->expr)) {}
     const ast::ReturnStatement *rs;
     const Expression *expr;
 
@@ -1932,7 +1941,7 @@ private:
 
 class IncrementStatement: public Statement {
 public:
-    IncrementStatement(const ast::IncrementStatement *is): is(is), ref(transform(is->ref)) {}
+    IncrementStatement(const ast::IncrementStatement *is): Statement(is), is(is), ref(transform(is->ref)) {}
     const ast::IncrementStatement *is;
     const Expression *ref;
 
@@ -1949,7 +1958,7 @@ private:
 
 class IfStatement: public Statement {
 public:
-    IfStatement(const ast::IfStatement *is): is(is), condition_statements(), else_statements() {
+    IfStatement(const ast::IfStatement *is): Statement(is), is(is), condition_statements(), else_statements() {
         for (auto cs: is->condition_statements) {
             std::vector<const Statement *> statements;
             for (auto s: cs.second) {
@@ -1993,7 +2002,7 @@ private:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(const ast::RaiseStatement *rs): rs(rs) {}
+    RaiseStatement(const ast::RaiseStatement *rs): Statement(rs), rs(rs) {}
     const ast::RaiseStatement *rs;
 
     virtual void generate(Context &context) const override {
@@ -2010,7 +2019,7 @@ private:
 
 class ResetStatement: public Statement {
 public:
-    ResetStatement(const ast::ResetStatement *rs): rs(rs) {}
+    ResetStatement(const ast::ResetStatement *rs): Statement(rs), rs(rs) {}
     const ast::ResetStatement *rs;
 
     virtual void generate(Context &) const override {
@@ -2108,6 +2117,22 @@ public:
 private:
     PredefinedFunction(const PredefinedFunction &);
     PredefinedFunction &operator=(const PredefinedFunction &);
+};
+
+class ModuleFunction: public Variable {
+public:
+    ModuleFunction(const ast::ModuleFunction *mf): Variable(mf), mf(mf) {}
+    const ast::ModuleFunction *mf;
+
+    virtual void generate_decl(Context &) const override {}
+    virtual void generate_load(Context &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_store(Context &) const override { internal_error("ModuleFunction"); }
+    virtual void generate_call(Context &context) const override {
+        context.ca.code << OP_invokestatic << context.cf.Method(mf->module, mf->name, "()V");
+    }
+private:
+    ModuleFunction(const ModuleFunction &);
+    ModuleFunction &operator=(const ModuleFunction &);
 };
 
 class Program {
@@ -2416,7 +2441,7 @@ public:
     virtual void visit(const ast::ResetStatement *) {}
     virtual void visit(const ast::Function *node) { r = new Function(node); }
     virtual void visit(const ast::PredefinedFunction *node) { r = new PredefinedFunction(node); }
-    virtual void visit(const ast::ModuleFunction *) {}
+    virtual void visit(const ast::ModuleFunction *node) { r = new ModuleFunction(node); }
     virtual void visit(const ast::Module *) {}
     virtual void visit(const ast::Program *) {}
 private:
@@ -2643,16 +2668,14 @@ Type *transform(const ast::Type *t)
     if (t == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform type %s\n", typeid(*t).name());
+    fprintf(stderr, "transform type %s %s\n", typeid(*t).name(), t->text().c_str());
     auto i = g_type_cache.find(t);
     if (i != g_type_cache.end()) {
         return i->second;
     }
     TypeTransformer tt;
     t->accept(&tt);
-    auto r = tt.retval();
-    g_type_cache[t] = r;
-    return r;
+    return tt.retval();
 }
 
 Variable *transform(const ast::Variable *v)
@@ -2660,16 +2683,14 @@ Variable *transform(const ast::Variable *v)
     if (v == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform variable %s\n", typeid(*v).name());
+    fprintf(stderr, "transform variable %s %s\n", typeid(*v).name(), v->text().c_str());
     auto i = g_variable_cache.find(v);
     if (i != g_variable_cache.end()) {
         return i->second;
     }
     VariableTransformer vt;
     v->accept(&vt);
-    auto r = vt.retval();
-    g_variable_cache[v] = r;
-    return r;
+    return vt.retval();
 }
 
 Expression *transform(const ast::Expression *e)
@@ -2677,16 +2698,14 @@ Expression *transform(const ast::Expression *e)
     if (e == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform expression %s\n", typeid(*e).name());
+    fprintf(stderr, "transform expression %s %s\n", typeid(*e).name(), e->text().c_str());
     auto i = g_expression_cache.find(e);
     if (i != g_expression_cache.end()) {
         return i->second;
     }
     ExpressionTransformer et;
     e->accept(&et);
-    auto r = et.retval();
-    g_expression_cache[e] = r;
-    return r;
+    return et.retval();
 }
 
 Statement *transform(const ast::Statement *s)
@@ -2694,16 +2713,14 @@ Statement *transform(const ast::Statement *s)
     if (s == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform statement %s\n", typeid(*s).name());
+    fprintf(stderr, "transform statement %s %s\n", typeid(*s).name(), s->text().c_str());
     auto i = g_statement_cache.find(s);
     if (i != g_statement_cache.end()) {
         return i->second;
     }
     StatementTransformer st;
     s->accept(&st);
-    auto r = st.retval();
-    g_statement_cache[s] = r;
-    return r;
+    return st.retval();
 }
 
 } // namespace jvm

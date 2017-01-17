@@ -38,7 +38,7 @@ class RuntimeSupport: public PathSupport {
 public:
     RuntimeSupport(const std::string &source_path): PathSupport(source_path) {}
     virtual bool loadBytecode(const std::string &name, Bytecode &object) override;
-    virtual void writeOutput(const std::string &, const std::vector<unsigned char> &) {}
+    virtual void writeOutput(const std::string &, const std::vector<unsigned char> &) override {}
 };
 
 #endif

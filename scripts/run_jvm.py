@@ -29,9 +29,15 @@ ExcludeTests = [
     "t/export.neon",                # RecordLiteralExpression
     "t/ffi.neon",                   # ExternalFunction
     "t/file.neon",                  # module file
+    "t/file-exists.neon",           # FunctionParameter
+    "t/file-filecopied.neon",       # FunctionParameter
     "t/file-filecopied1.neon",      # exception identification
+    "t/file-filecopied2.neon",      # FunctionParameter
+    "t/file-filecopied3.neon",      # FunctionParameter
     "t/file-symlink.neon",          # TypeEnum
-    "t/file-test.neon",             # ModuleFunction
+    "t/file-test.neon",             # FunctionParameter
+    "t/file-writebytes.neon",       # FunctionParameter
+    "t/file-writelines.neon",       # FunctionParameter
     "t/for-scope.neon",             # duplicate field
     "t/for.neon",                   # duplicate field
     "t/foreach.neon",               # duplicate field
@@ -51,6 +57,7 @@ ExcludeTests = [
     "t/import.neon",                # ModuleVariable
     "t/indent.neon",                # verifier
     "t/index.neon",                 # RecordLiteralExpression
+    "t/import-string.neon",         # RecordLiteralExpression
     "t/inline-construct-record.neon",   # RecordLiteralExpression
     "t/inline-init-record.neon",    # RecordLiteralExpression
     "t/io-test.neon",               # PredefinedVariable
@@ -65,10 +72,13 @@ ExcludeTests = [
     "t/mmap-test.neon",             # ConstantEnumExpression
     "t/module-alias.neon",          # module math
     "t/module-alias2.neon",         # ModuleVariable
+    "t/module-assign-let.neon",     # TypeRecord
+    "t/module-assign-var.neon",     # TypeRecord
     "t/module-import-name-alias.neon",  # module math
     "t/module-import-name-alias2.neon", # ModuleVariable
     "t/module-import-name.neon",    # module math
     "t/module-import-name2.neon",   # ModuleVariable
+    "t/module-scope.neon",          # TypeRecord
     "t/module.neon",                # ConstantEnumExpression
     "t/module2.neon",               # RecordLiteralExpression
     "t/modulo.neon",                # modulo

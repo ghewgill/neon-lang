@@ -2066,7 +2066,7 @@ public:
 
     virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const override { return "ReturnStatement(" + expr->text() + ")"; }
+    virtual std::string text() const override { return "ReturnStatement(" + (expr != nullptr ? expr->text() : "") + ")"; }
 private:
     ReturnStatement(const ReturnStatement &);
     ReturnStatement &operator=(const ReturnStatement &);
