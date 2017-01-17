@@ -45,7 +45,7 @@ static const ast::Program *dump(const ast::Program *program)
 
 static void repl(int argc, char *argv[])
 {
-    CompilerSupport compiler_support("");
+    CompilerSupport compiler_support("", nullptr);
     RuntimeSupport runtime_support("");
     if (not repl_no_prompt) {
         std::cout << "Neon 0.1\n";
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
         buf << inf.rdbuf();
     }
 
-    CompilerSupport compiler_support(source_path);
+    CompilerSupport compiler_support(source_path, nullptr);
     RuntimeSupport runtime_support(source_path);
 
     std::vector<unsigned char> bytecode;

@@ -17,7 +17,8 @@ std::map<std::string, std::vector<unsigned char>> g_Contents;
 
 class ZipSupport: public ICompilerSupport {
 public:
-    virtual bool loadBytecode(const std::string &module, Bytecode &bytecode);
+    virtual bool loadBytecode(const std::string &module, Bytecode &bytecode) override;
+    virtual void writeOutput(const std::string &, const std::vector<unsigned char> &) override {}
 };
 
 bool ZipSupport::loadBytecode(const std::string &module, Bytecode &bytecode)
