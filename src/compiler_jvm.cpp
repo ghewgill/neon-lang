@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <fstream>
 
+#include "support.h"
+
 namespace jvm {
 
 #include "functions_compile_jvm.inc"
@@ -2110,12 +2112,13 @@ private:
 
 class Program {
 public:
-    Program(const ast::Program *program): program(program), statements() {
+    Program(CompilerSupport *support, const ast::Program *program): support(support), program(program), statements() {
         for (auto s: program->statements) {
             statements.push_back(transform(s));
         }
     }
     virtual ~Program() {}
+    CompilerSupport *support;
     const ast::Program *program;
     std::vector<const Statement *> statements;
 
@@ -2203,9 +2206,8 @@ public:
             cf.methods.push_back(m);
         }
 
-        std::ofstream f(path + cf.name + ".class", std::ios::binary);
         auto data = cf.serialize();
-        f.write(reinterpret_cast<const char *>(data.data()), data.size());
+        support->writeOutput(path + cf.name + ".class", data);
     }
 private:
     Program(const Program &);
@@ -2706,8 +2708,13 @@ Statement *transform(const ast::Statement *s)
 
 } // namespace jvm
 
-void compile_jvm(const ast::Program *p)
+void compile_jvm(CompilerSupport *support, const ast::Program *p)
 {
-    jvm::Program *ct = new jvm::Program(p);
+    jvm::g_type_cache.clear();
+    jvm::g_variable_cache.clear();
+    jvm::g_expression_cache.clear();
+    jvm::g_statement_cache.clear();
+
+    jvm::Program *ct = new jvm::Program(support, p);
     ct->generate();
 }

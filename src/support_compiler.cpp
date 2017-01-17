@@ -58,8 +58,10 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
             auto parsetree = parse(*tokens);
             auto ast = analyze(this, parsetree.get());
             auto bytecode = compile(ast, nullptr);
-            std::ofstream outf(objname, std::ios::binary);
-            outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
+            writeOutput(objname, bytecode);
+            if (cproc != nullptr) {
+                cproc(this, ast);
+            }
         }
         obj.open(objname, std::ios::binary);
         if (not obj.good()) {
@@ -76,4 +78,10 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
         return false;
     }
     return true;
+}
+
+void CompilerSupport::writeOutput(const std::string &name, const std::vector<unsigned char> &content)
+{
+    std::ofstream f(name, std::ios::binary);
+    f.write(reinterpret_cast<const char *>(content.data()), content.size());
 }

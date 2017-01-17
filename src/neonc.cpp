@@ -12,13 +12,11 @@
 #include "pt_dump.h"
 #include "support.h"
 
-typedef void (*TargetProc)(const ast::Program *);
-
-extern void compile_jvm(const ast::Program *);
+extern void compile_jvm(CompilerSupport *support, const ast::Program *);
 
 struct {
     std::string name;
-    TargetProc proc;
+    CompileProc proc;
 } Targets[] = {
     {"jvm", compile_jvm},
 };
@@ -29,7 +27,7 @@ int main(int argc, char *argv[])
     bool listing = false;
     bool quiet = false;
     std::string target;
-    TargetProc target_proc = nullptr;
+    CompileProc target_proc = nullptr;
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s filename.neon\n", argv[0]);
@@ -99,7 +97,7 @@ int main(int argc, char *argv[])
             std::cout << "...\n";
         }
 
-        CompilerSupport compiler_support(source_path);
+        CompilerSupport compiler_support(source_path, target_proc);
 
         try {
             auto tokens = tokenize(name, buf.str());
@@ -116,7 +114,7 @@ int main(int argc, char *argv[])
                     outf.write(reinterpret_cast<const std::ofstream::char_type *>(bytecode.data()), bytecode.size());
                 }
             } else {
-                target_proc(ast);
+                target_proc(&compiler_support, ast);
             }
 
         } catch (CompilerError *error) {
