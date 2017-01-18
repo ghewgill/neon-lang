@@ -879,9 +879,10 @@ const Type *Function::makeFunctionType(const Type *returntype, const std::vector
     return new TypeFunction(returntype, paramtypes);
 }
 
-Program::Program(const std::string &source_path, const std::string &source_hash)
+Program::Program(const std::string &source_path, const std::string &source_hash, const std::string &module_name)
   : source_path(source_path),
     source_hash(source_hash),
+    module_name(module_name),
     frame(new GlobalFrame(nullptr)),
     scope(new Scope(nullptr, frame)),
     statements(),
@@ -963,7 +964,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         std::vector<TypeRecord::Field> fields;
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
-        Type *exception_info = new TypeRecord(Token(), "ExceptionInfo", fields);
+        Type *exception_info = new TypeRecord(Token(), "global", "ExceptionInfo", fields);
         scope->addName(Token(IDENTIFIER, "ExceptionInfo"), "ExceptionInfo", exception_info, true);
     }
     {
@@ -974,7 +975,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash)
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
-        Type *exception_type = new TypeRecord(Token(), "ExceptionType", fields);
+        Type *exception_type = new TypeRecord(Token(), "global", "ExceptionType", fields);
         scope->addName(Token(IDENTIFIER, "ExceptionType"), "ExceptionType", exception_type, true);
     }
 

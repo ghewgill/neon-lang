@@ -529,8 +529,9 @@ public:
         const Type *type;
         bool is_private;
     };
-    TypeRecord(const Token &declaration, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), fields(fields), field_names(make_field_names(fields)), predeclared(false), postdeclared(false) {}
+    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), module(module), fields(fields), field_names(make_field_names(fields)), predeclared(false), postdeclared(false) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    const std::string module;
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
@@ -565,14 +566,14 @@ private:
 
 class TypeClass: public TypeRecord {
 public:
-    TypeClass(const Token &declaration, const std::string &name, const std::vector<Field> &fields): TypeRecord(declaration, name, fields) {}
+    TypeClass(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields): TypeRecord(declaration, module, name, fields) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
 };
 
 class TypeForwardClass: public TypeClass {
 public:
-    TypeForwardClass(const Token &declaration): TypeClass(declaration, "forward", std::vector<Field>()) {}
+    TypeForwardClass(const Token &declaration): TypeClass(declaration, "module", "forward", std::vector<Field>()) {}
 };
 
 class TypePointer: public Type {
@@ -2421,11 +2422,12 @@ private:
 
 class Program: public AstNode {
 public:
-    Program(const std::string &source_path, const std::string &source_hash);
+    Program(const std::string &source_path, const std::string &source_hash, const std::string &module_name);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string source_path;
     const std::string source_hash;
+    const std::string module_name;
     Frame *frame;
     Scope *scope;
     std::vector<const Statement *> statements;
