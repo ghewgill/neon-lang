@@ -8,7 +8,7 @@ ExcludeTests = [
     "t/assert-enum.neon",           # ConstantEnumExpression
     "t/assert-fail.neon",           # stderr
     "t/assert-fail2.neon",          # stderr
-    "t/assignment.neon",            # RecordLiteralExpression
+    "t/assignment.neon",            # TypeEnum
     "t/bigint-test.neon",           # ModuleFunction
     "t/cformat-test.neon",          # ModuleFunction
     "t/class-empty.neon",           # NewClassExpression
@@ -23,10 +23,10 @@ ExcludeTests = [
     "t/decimal.neon",               # exception
     "t/encoding-base64.neon",       # ModuleFunction
     "t/enum.neon",                  # ConstantEnumExpression
-    "t/equality.neon",              # TypeRecord
-    "t/exception-as.neon",          # TypeRecord
-    "t/exception-code.neon",        # TypeRecord
-    "t/export.neon",                # RecordLiteralExpression
+    "t/equality.neon",              # TypeEnum
+    "t/exception-as.neon",          # record
+    "t/exception-code.neon",        # record
+    "t/export.neon",                # ConstantEnumExpression
     "t/ffi.neon",                   # ExternalFunction
     "t/file.neon",                  # module file
     "t/file-exists.neon",           # FunctionParameter
@@ -56,8 +56,8 @@ ExcludeTests = [
     "t/import-dup.neon",            # module sys
     "t/import.neon",                # ModuleVariable
     "t/indent.neon",                # verifier
-    "t/index.neon",                 # RecordLiteralExpression
-    "t/import-string.neon",         # RecordLiteralExpression
+    "t/index.neon",                 # record
+    "t/import-string.neon",         # ConstantEnumExpression
     "t/inline-construct-record.neon",   # RecordLiteralExpression
     "t/inline-init-record.neon",    # RecordLiteralExpression
     "t/io-test.neon",               # PredefinedVariable

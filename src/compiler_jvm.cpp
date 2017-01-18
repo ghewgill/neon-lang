@@ -650,7 +650,7 @@ public:
             method_info m;
             m.access_flags = ACC_PUBLIC;
             m.name_index = cf.utf8("<init>");
-            m.descriptor_index = cf.utf8("(Ljava/lang/String;Lneon/type/Number;)V"); // XXX
+            m.descriptor_index = cf.utf8(get_init_descriptor());
             {
                 attribute_info code;
                 code.attribute_name_index = cf.utf8("Code");
@@ -670,6 +670,14 @@ public:
 
         auto data = cf.serialize();
         context.support->writeOutput(context.cf.path + cf.name + ".class", data);
+    }
+    std::string get_init_descriptor() const {
+        std::string descriptor = "(";
+        for (auto t: field_types) {
+            descriptor.append(t->jtype);
+        }
+        descriptor += ")V";
+        return descriptor;
     }
 private:
     TypeRecord(const TypeRecord &);
@@ -983,13 +991,13 @@ private:
 
 class RecordLiteralExpression: public Expression {
 public:
-    RecordLiteralExpression(const ast::RecordLiteralExpression *rle): Expression(rle), rle(rle), type(transform(rle->type)), values() {
+    RecordLiteralExpression(const ast::RecordLiteralExpression *rle): Expression(rle), rle(rle), type(dynamic_cast<TypeRecord *>(transform(rle->type))), values() {
         for (auto v: rle->values) {
             values.push_back(transform(v));
         }
     }
     const ast::RecordLiteralExpression *rle;
-    const Type *type;
+    const TypeRecord *type;
     std::vector<const Expression *> values;
 
     virtual void generate(Context &context) const override {
@@ -999,7 +1007,7 @@ public:
         for (auto v: values) {
             v->generate(context);
         }
-        context.ca.code << OP_invokespecial << context.cf.Method(type->classname, "<init>", "(Ljava/lang/String;Lneon/type/Number;)V"); // XXX
+        context.ca.code << OP_invokespecial << context.cf.Method(type->classname, "<init>", type->get_init_descriptor());
     }
     virtual void generate_call(Context &) const override { internal_error("RecordLiteralExpression"); }
     virtual void generate_store(Context &) const override { internal_error("RecordLiteralExpression"); }
