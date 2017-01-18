@@ -2291,6 +2291,8 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::RecordReferenceFieldExpression *) {}
+    virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
@@ -2397,6 +2399,8 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::RecordReferenceFieldExpression *) {}
+    virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}
@@ -2503,6 +2507,8 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::RecordReferenceFieldExpression *) {}
+    virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
     virtual void visit(const ast::PointerDereferenceExpression *) {}
@@ -2609,6 +2615,8 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::RecordReferenceFieldExpression *) {}
+    virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
     virtual void visit(const ast::ArrayValueRangeExpression *) {}
     virtual void visit(const ast::PointerDereferenceExpression *) {}

@@ -1325,6 +1325,59 @@ void ast::BytesValueIndexExpression::generate_expr(Emitter &emitter) const
     load->generate(emitter);
 }
 
+void ast::RecordReferenceFieldExpression::generate_address_read(Emitter &emitter) const
+{
+    ref->generate_address_read(emitter);
+    const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(ref->type);
+    if (rectype == nullptr) {
+        internal_error("RecordReferenceFieldExpression");
+    }
+    auto f = rectype->field_names.find(field);
+    if (f == rectype->field_names.end()) {
+        internal_error("RecordReferenceFieldExpression");
+    }
+    emitter.emit(PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
+    if (always_create) {
+        emitter.emit(INDEXAW);
+    } else {
+        emitter.emit(INDEXAR);
+    }
+}
+
+void ast::RecordReferenceFieldExpression::generate_address_write(Emitter &emitter) const
+{
+    ref->generate_address_write(emitter);
+    const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(ref->type);
+    if (rectype == nullptr) {
+        internal_error("RecordReferenceFieldExpression");
+    }
+    auto f = rectype->field_names.find(field);
+    if (f == rectype->field_names.end()) {
+        internal_error("RecordReferenceFieldExpression");
+    }
+    emitter.emit(PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
+    emitter.emit(INDEXAW);
+}
+
+void ast::RecordValueFieldExpression::generate_expr(Emitter &emitter) const
+{
+    rec->generate(emitter);
+    const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(rec->type);
+    if (rectype == nullptr) {
+        internal_error("RecordValueFieldExpression");
+    }
+    auto f = rectype->field_names.find(field);
+    if (f == rectype->field_names.end()) {
+        internal_error("RecordValueFieldExpression");
+    }
+    emitter.emit(PUSHN, number_from_uint32(static_cast<uint32_t>(f->second)));
+    if (always_create) {
+        emitter.emit(INDEXAN);
+    } else {
+        emitter.emit(INDEXAV);
+    }
+}
+
 void ast::ArrayReferenceRangeExpression::generate_load(Emitter &emitter) const
 {
     load->generate(emitter);

@@ -93,6 +93,8 @@ public:
     virtual void visit(const class StringValueIndexExpression *node) = 0;
     virtual void visit(const class BytesReferenceIndexExpression *node) = 0;
     virtual void visit(const class BytesValueIndexExpression *node) = 0;
+    virtual void visit(const class RecordReferenceFieldExpression *node) = 0;
+    virtual void visit(const class RecordValueFieldExpression *node) = 0;
     virtual void visit(const class ArrayReferenceRangeExpression *node) = 0;
     virtual void visit(const class ArrayValueRangeExpression *node) = 0;
     virtual void visit(const class PointerDereferenceExpression *node) = 0;
@@ -1765,6 +1767,47 @@ public:
 private:
     BytesValueIndexExpression(const BytesValueIndexExpression &);
     BytesValueIndexExpression &operator=(const BytesValueIndexExpression &);
+};
+
+class RecordReferenceFieldExpression: public ReferenceExpression {
+public:
+    RecordReferenceFieldExpression(const Type *type, const ReferenceExpression *ref, const std::string &field, bool always_create): ReferenceExpression(type, ref->is_readonly), ref(ref), field(field), always_create(always_create) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const ReferenceExpression *ref;
+    const std::string field;
+    const bool always_create;
+
+    virtual bool eval_boolean() const override { internal_error("RecordReferenceFieldExpression"); }
+    virtual Number eval_number() const override { internal_error("RecordReferenceFieldExpression"); }
+    virtual std::string eval_string() const override { internal_error("RecordReferenceFieldExpression"); }
+    virtual void generate_address_read(Emitter &) const override;
+    virtual void generate_address_write(Emitter &) const override;
+
+    virtual std::string text() const override { return "RecordReferenceFieldExpression(" + ref->text() + ", " + field + ")"; }
+private:
+    RecordReferenceFieldExpression(const RecordReferenceFieldExpression &);
+    RecordReferenceFieldExpression &operator=(const RecordReferenceFieldExpression &);
+};
+
+class RecordValueFieldExpression: public Expression {
+public:
+    RecordValueFieldExpression(const Type *type, const Expression *rec, const std::string &field, bool always_create): Expression(type, rec->is_constant, rec->is_readonly), rec(rec), field(field), always_create(always_create) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *rec;
+    const std::string field;
+    const bool always_create;
+
+    virtual bool eval_boolean() const override { internal_error("RecordValueFieldExpression"); }
+    virtual Number eval_number() const override { internal_error("RecordValueFieldExpression"); }
+    virtual std::string eval_string() const override { internal_error("RecordValueFieldExpression"); }
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "RecordValueFieldExpression(" + rec->text() + ", " + field + ")"; }
+private:
+    RecordValueFieldExpression(const RecordValueFieldExpression &);
+    RecordValueFieldExpression &operator=(const RecordValueFieldExpression &);
 };
 
 class ArrayReferenceRangeExpression: public ReferenceExpression {
