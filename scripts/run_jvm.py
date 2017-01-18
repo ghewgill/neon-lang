@@ -82,7 +82,6 @@ ExcludeTests = [
     "t/multiarray-test.neon",       # ModuleFunction
     "t/net-test.neon",              # record
     "t/new-init-module.neon",       # NewClassExpression
-    "t/new-init.neon",              # NewClassExpression
     "t/number-ceil.neon",           # module math
     "t/number-underscore.neon",     # PredefinedVariable
     "t/os-test.neon",               # pointer

@@ -62,6 +62,8 @@ const uint8_t OP_ifge           = 156;
 const uint8_t OP_ifgt           = 157;
 const uint8_t OP_ifle           = 158;
 //const uint8_t OP_if_icmplt      = 161;
+const uint8_t OP_if_acmpeq      = 165;
+const uint8_t OP_if_acmpne      = 165;
 const uint8_t OP_goto           = 167;
 const uint8_t OP_areturn        = 176;
 const uint8_t OP_return         = 177;
@@ -413,6 +415,17 @@ private:
     ClassFile &operator=(const ClassFile &);
 };
 
+class ClassContext {
+public:
+    ClassContext(CompilerSupport *support, ClassFile &cf): support(support), cf(cf), record_types() {}
+    CompilerSupport *support;
+    ClassFile &cf;
+    std::set<const class TypeRecord *> record_types;
+private:
+    ClassContext(const ClassContext &);
+    ClassContext &operator=(const ClassContext &);
+};
+
 class Context {
 public:
     class Label {
@@ -438,13 +451,12 @@ public:
         Label *next;
     };
 public:
-    Context(CompilerSupport *support, ClassFile &cf, Code_attribute &ca): support(support), cf(cf), ca(ca), label_exit(), loop_labels(), record_types() {}
-    CompilerSupport *support;
+    Context(ClassContext &cc, Code_attribute &ca): cc(cc), cf(cc.cf), ca(ca), label_exit(), loop_labels() {}
+    ClassContext &cc;
     ClassFile &cf;
     Code_attribute &ca;
     Label label_exit;
     std::map<size_t, LoopLabels> loop_labels;
-    std::set<const class TypeRecord *> record_types;
 
     Label create_label() {
         return Label();
@@ -528,6 +540,7 @@ public:
     virtual ~Type() {}
     const std::string classname;
     const std::string jtype;
+    virtual void generate_default(Context &context) const = 0;
 private:
     Type(const Type &);
     Type &operator=(const Type &);
@@ -539,6 +552,7 @@ class TypeNothing: public Type {
 public:
     TypeNothing(const ast::TypeNothing *tn): Type(tn, "V", "V"), tn(tn) {}
     const ast::TypeNothing *tn;
+    virtual void generate_default(Context &) const override { internal_error("TypeNothing"); }
 private:
     TypeNothing(const TypeNothing &);
     TypeNothing &operator=(const TypeNothing &);
@@ -548,6 +562,7 @@ class TypeDummy: public Type {
 public:
     TypeDummy(const ast::TypeDummy *td): Type(td, ""), td(td) {}
     const ast::TypeDummy *td;
+    virtual void generate_default(Context &) const override { internal_error("TypeDummy"); }
 private:
     TypeDummy(const TypeDummy &);
     TypeDummy &operator=(const TypeDummy &);
@@ -557,6 +572,9 @@ class TypeBoolean: public Type {
 public:
     TypeBoolean(const ast::TypeBoolean *tb): Type(tb, "java/lang/Boolean"), tb(tb) {}
     const ast::TypeBoolean *tb;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+    }
 private:
     TypeBoolean(const TypeBoolean &);
     TypeBoolean &operator=(const TypeBoolean &);
@@ -566,6 +584,9 @@ class TypeNumber: public Type {
 public:
     TypeNumber(const ast::TypeNumber *tn): Type(tn, "neon/type/Number"), tn(tn) {}
     const ast::TypeNumber *tn;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_getstatic << context.cf.Field("neon/type/Number", "ZERO", "Lneon/type/Number;");
+    }
 private:
     TypeNumber(const TypeNumber &);
     TypeNumber &operator=(const TypeNumber &);
@@ -575,6 +596,9 @@ class TypeString: public Type {
 public:
     TypeString(const ast::TypeString *ts): Type(ts, "java/lang/String"), ts(ts) {}
     const ast::TypeString *ts;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_ldc_w << context.cf.String("");
+    }
 private:
     TypeString(const TypeString &);
     TypeString &operator=(const TypeString &);
@@ -584,6 +608,10 @@ class TypeBytes: public Type {
 public:
     TypeBytes(const ast::TypeBytes *tb): Type(tb, "[B", "[B"), tb(tb) {}
     const ast::TypeBytes *tb;
+    virtual void generate_default(Context &context) const override {
+        context.push_integer(0);
+        context.ca.code << OP_newarray << T_BYTE;
+    }
 private:
     TypeBytes(const TypeBytes &);
     TypeBytes &operator=(const TypeBytes &);
@@ -594,6 +622,7 @@ public:
     TypeFunction(const ast::TypeFunction *tf): Type(tf, ""), tf(tf), returntype(transform(tf->returntype)) {}
     const ast::TypeFunction *tf;
     const Type *returntype;
+    virtual void generate_default(Context &) const override { internal_error("TypeFunction"); }
 private:
     TypeFunction(const TypeFunction &);
     TypeFunction &operator=(const TypeFunction &);
@@ -604,6 +633,11 @@ public:
     TypeArray(const ast::TypeArray *ta): Type(ta, "neon/type/Array"), ta(ta), elementtype(transform(ta->elementtype)) {}
     const ast::TypeArray *ta;
     const Type *elementtype;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_new << context.cf.Class("neon/type/Array");
+        context.ca.code << OP_dup;
+        context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Array", "<init>", "()V");
+    }
 private:
     TypeArray(const TypeArray &);
     TypeArray &operator=(const TypeArray &);
@@ -614,6 +648,11 @@ public:
     TypeDictionary(const ast::TypeDictionary *td): Type(td, "java/util/HashMap"), td(td), elementtype(transform(td->elementtype)) {}
     const ast::TypeDictionary *td;
     const Type *elementtype;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_new << context.cf.Class("java/lang/HashMap");
+        context.ca.code << OP_dup;
+        context.ca.code << OP_invokespecial << context.cf.Method("java/lang/HashMap", "<init>", "()V");
+    }
 private:
     TypeDictionary(const TypeDictionary &);
     TypeDictionary &operator=(const TypeDictionary &);
@@ -629,6 +668,14 @@ public:
     const ast::TypeRecord *tr;
     std::vector<const Type *> field_types;
 
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_new << context.cf.Class(classname);
+        context.ca.code << OP_dup;
+        for (size_t i = 0; i < tr->fields.size(); i++) {
+            field_types[i]->generate_default(context);
+        }
+        context.ca.code << OP_invokespecial << context.cf.Method(classname, "<init>", get_init_descriptor());
+    }
     void generate_class(Context &context) const {
         ClassFile cf(context.cf.path, classname);
         cf.magic = 0xCAFEBABE;
@@ -681,7 +728,7 @@ public:
         }
 
         auto data = cf.serialize();
-        context.support->writeOutput(context.cf.path + cf.name + ".class", data);
+        context.cc.support->writeOutput(context.cf.path + cf.name + ".class", data);
     }
     std::string get_init_descriptor() const {
         std::string descriptor = "(";
@@ -698,8 +745,11 @@ private:
 
 class TypePointer: public Type {
 public:
-    TypePointer(const ast::TypePointer *tp): Type(tp, "java/lang/Object"), tp(tp) {}
+    TypePointer(const ast::TypePointer *tp): Type(tp, tp->reftype != nullptr ? transform(tp->reftype)->classname : "java/lang/Object"), tp(tp) {}
     const ast::TypePointer *tp;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_aconst_null;
+    }
 private:
     TypePointer(const TypePointer &);
     TypePointer &operator=(const TypePointer &);
@@ -1013,7 +1063,7 @@ public:
     std::vector<const Expression *> values;
 
     virtual void generate(Context &context) const override {
-        context.record_types.insert(dynamic_cast<const TypeRecord *>(type)); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
+        context.cc.record_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
         context.ca.code << OP_new << context.cf.Class(type->classname);
         context.ca.code << OP_dup;
         for (auto v: values) {
@@ -1026,6 +1076,28 @@ public:
 private:
     RecordLiteralExpression(const RecordLiteralExpression &);
     RecordLiteralExpression &operator=(const RecordLiteralExpression &);
+};
+
+class NewClassExpression: public Expression {
+public:
+    NewClassExpression(const ast::NewClassExpression *nce): Expression(nce), nce(nce), value(transform(nce->value)), type(dynamic_cast<const TypeRecord *>(transform(dynamic_cast<const ast::TypeValidPointer *>(nce->type)->reftype))) {}
+    const ast::NewClassExpression *nce;
+    const Expression *value;
+    const TypeRecord *type;
+
+    virtual void generate(Context &context) const override {
+        context.cc.record_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
+        if (value != nullptr) {
+            value->generate(context);
+        } else {
+            type->generate_default(context);
+        }
+    }
+    virtual void generate_call(Context &) const override { internal_error("NewClassExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("NewClassExpression"); }
+private:
+    NewClassExpression(const NewClassExpression &);
+    NewClassExpression &operator=(const NewClassExpression &);
 };
 
 class UnaryMinusExpression: public Expression {
@@ -1331,6 +1403,27 @@ public:
 private:
     ArrayComparisonExpression(const ArrayComparisonExpression &);
     ArrayComparisonExpression &operator=(const ArrayComparisonExpression &);
+};
+
+class PointerComparisonExpression: public ComparisonExpression {
+public:
+    PointerComparisonExpression(const ast::PointerComparisonExpression *pce): ComparisonExpression(pce), pce(pce) {}
+    const ast::PointerComparisonExpression *pce;
+
+    virtual void generate_comparison(Context &context) const override {
+        static const uint8_t op[] = {OP_if_acmpeq, OP_if_acmpne};
+        auto label_true = context.create_label();
+        context.emit_jump(op[pce->comp], label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
+        context.jump_target(label_false);
+    }
+private:
+    PointerComparisonExpression(const PointerComparisonExpression &);
+    PointerComparisonExpression &operator=(const PointerComparisonExpression &);
 };
 
 class AdditionExpression: public Expression {
@@ -1721,6 +1814,22 @@ public:
 private:
     ArrayValueRangeExpression(const ArrayValueRangeExpression &);
     ArrayValueRangeExpression &operator=(const ArrayValueRangeExpression &);
+};
+
+class PointerDereferenceExpression: public Expression {
+public:
+    PointerDereferenceExpression(const ast::PointerDereferenceExpression *pde): Expression(pde), pde(pde), ptr(transform(pde->ptr)) {}
+    const ast::PointerDereferenceExpression *pde;
+    const Expression *ptr;
+
+    virtual void generate(Context &context) const override {
+        ptr->generate(context);
+    }
+    virtual void generate_call(Context &) const override { internal_error("PointerDereferenceExpression"); }
+    virtual void generate_store(Context&) const override { internal_error("PointerDereferenceExpression"); }
+private:
+    PointerDereferenceExpression(const PointerDereferenceExpression &);
+    PointerDereferenceExpression &operator=(const PointerDereferenceExpression &);
 };
 
 class VariableExpression: public Expression {
@@ -2258,7 +2367,7 @@ public:
                 Code_attribute ca;
                 ca.max_stack = 8; // TODO
                 ca.max_locals = static_cast<uint16_t>(params.size());
-                Context function_context(context.support, context.cf, ca);
+                Context function_context(context.cc, ca);
                 for (auto s: statements) {
                     s->generate(function_context);
                 }
@@ -2354,6 +2463,7 @@ public:
         cf.this_class = cf.Class(cf.name);
         cf.super_class = cf.Class("Ljava/lang/Object;");
 
+        ClassContext classcontext(support, cf);
         {
             method_info m;
             m.access_flags = ACC_PUBLIC | ACC_STATIC;
@@ -2366,7 +2476,7 @@ public:
                     Code_attribute ca;
                     ca.max_stack = 8;
                     ca.max_locals = 1;
-                    Context context(support, cf, ca);
+                    Context context(classcontext, ca);
                     for (size_t i = 0; i < program->frame->getCount(); i++) {
                         auto slot = program->frame->getSlot(i);
                         const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
@@ -2393,7 +2503,7 @@ public:
                     ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
                     ca.code << OP_return;
                     code.info = ca.serialize();
-                    for (auto t: context.record_types) {
+                    for (auto t: classcontext.record_types) {
                         t->generate_class(context);
                     }
                 }
@@ -2424,7 +2534,7 @@ public:
     virtual void visit(const ast::TypeArray *node) { r = new TypeArray(node); }
     virtual void visit(const ast::TypeDictionary *node) { r = new TypeDictionary(node); }
     virtual void visit(const ast::TypeRecord *node) { r = new TypeRecord(node); }
-    virtual void visit(const ast::TypeClass *) {}
+    virtual void visit(const ast::TypeClass *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
@@ -2665,7 +2775,7 @@ public:
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
     virtual void visit(const ast::RecordLiteralExpression *node) { r = new RecordLiteralExpression(node); }
-    virtual void visit(const ast::NewClassExpression *) {}
+    virtual void visit(const ast::NewClassExpression *node) { r =  new NewClassExpression(node); }
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
     virtual void visit(const ast::LogicalNotExpression *node) { r = new LogicalNotExpression(node); }
     virtual void visit(const ast::ConditionalExpression *node) { r = new ConditionalExpression(node); }
@@ -2680,7 +2790,7 @@ public:
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
-    virtual void visit(const ast::PointerComparisonExpression *) {}
+    virtual void visit(const ast::PointerComparisonExpression *node) { r = new PointerComparisonExpression(node); }
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
     virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
     virtual void visit(const ast::SubtractionExpression *node) { r = new SubtractionExpression(node); }
@@ -2701,7 +2811,7 @@ public:
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
-    virtual void visit(const ast::PointerDereferenceExpression *) {}
+    virtual void visit(const ast::PointerDereferenceExpression *node) { r =  new PointerDereferenceExpression(node); }
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
