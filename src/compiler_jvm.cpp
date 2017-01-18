@@ -67,6 +67,8 @@ const uint8_t OP_areturn        = 176;
 const uint8_t OP_return         = 177;
 const uint8_t OP_getstatic      = 178;
 const uint8_t OP_putstatic      = 179;
+const uint8_t OP_getfield       = 180;
+const uint8_t OP_putfield       = 181;
 const uint8_t OP_invokevirtual  = 182;
 const uint8_t OP_invokespecial  = 183;
 const uint8_t OP_invokestatic   = 184;
@@ -230,7 +232,8 @@ struct method_info {
 
 class ClassFile {
 public:
-    ClassFile(const std::string &name): name(name), magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes(), utf8_constants(), Class_constants(), String_constants(), NameAndType_constants(), Field_constants(), Method_constants(), InterfaceMethod_constants() {}
+    ClassFile(const std::string &path, const std::string &name): path(path), name(name), magic(0), minor_version(0), major_version(0), constant_pool_count(0), constant_pool(), access_flags(0), this_class(0), super_class(0), interfaces(), fields(), methods(), attributes(), utf8_constants(), Class_constants(), String_constants(), NameAndType_constants(), Field_constants(), Method_constants(), InterfaceMethod_constants() {}
+    const std::string path;
     const std::string name;
     uint32_t magic;
     uint16_t minor_version;
@@ -435,11 +438,13 @@ public:
         Label *next;
     };
 public:
-    Context(ClassFile &cf, Code_attribute &ca): cf(cf), ca(ca), label_exit(), loop_labels() {}
+    Context(CompilerSupport *support, ClassFile &cf, Code_attribute &ca): support(support), cf(cf), ca(ca), label_exit(), loop_labels(), record_types() {}
+    CompilerSupport *support;
     ClassFile &cf;
     Code_attribute &ca;
     Label label_exit;
     std::map<size_t, LoopLabels> loop_labels;
+    std::set<const class TypeRecord *> record_types;
 
     Label create_label() {
         return Label();
@@ -612,6 +617,63 @@ public:
 private:
     TypeDictionary(const TypeDictionary &);
     TypeDictionary &operator=(const TypeDictionary &);
+};
+
+class TypeRecord: public Type {
+public:
+    TypeRecord(const ast::TypeRecord *tr): Type(tr, "test$Rec"), tr(tr), field_types() { // XXX
+        for (auto f: tr->fields) {
+            field_types.push_back(transform(f.type));
+        }
+    }
+    const ast::TypeRecord *tr;
+    std::vector<const Type *> field_types;
+
+    void generate_class(Context &context) const {
+        ClassFile cf(context.cf.path, context.cf.name + "$" + "Rec"); // XXX
+        cf.magic = 0xCAFEBABE;
+        cf.minor_version = 0;
+        cf.major_version = 49;
+        cf.constant_pool_count = 0;
+        cf.access_flags = ACC_PUBLIC | ACC_SUPER;
+        cf.this_class = cf.Class(cf.name);
+        cf.super_class = cf.Class("java/lang/Object");
+
+        for (size_t i = 0; i < tr->fields.size(); i++) {
+            field_info f;
+            f.access_flags = 0;
+            f.name_index = cf.utf8(tr->fields[i].name.text);
+            f.descriptor_index = cf.utf8(field_types[i]->jtype);
+            cf.fields.push_back(f);
+        }
+        {
+            method_info m;
+            m.access_flags = ACC_PUBLIC;
+            m.name_index = cf.utf8("<init>");
+            m.descriptor_index = cf.utf8("(Ljava/lang/String;Lneon/type/Number;)V"); // XXX
+            {
+                attribute_info code;
+                code.attribute_name_index = cf.utf8("Code");
+                {
+                    Code_attribute ca;
+                    ca.max_stack = 8;
+                    ca.max_locals = static_cast<uint16_t>(1 + tr->fields.size());
+                    ca.code << OP_aload_0;
+                    ca.code << OP_invokespecial << cf.Method("java/lang/Object", "<init>", "()V");
+                    ca.code << OP_return;
+                    code.info = ca.serialize();
+                }
+                m.attributes.push_back(code);
+            }
+            cf.methods.push_back(m);
+        }
+
+        auto data = cf.serialize();
+        context.support->writeOutput(context.cf.path + cf.name + ".class", data);
+    }
+private:
+    TypeRecord(const TypeRecord *);
+    TypeRecord &operator=(const TypeRecord *);
 };
 
 class TypePointer: public Type {
@@ -917,6 +979,33 @@ public:
 private:
     DictionaryLiteralExpression(const DictionaryLiteralExpression &);
     DictionaryLiteralExpression &operator=(const DictionaryLiteralExpression &);
+};
+
+class RecordLiteralExpression: public Expression {
+public:
+    RecordLiteralExpression(const ast::RecordLiteralExpression *rle): Expression(rle), rle(rle), type(transform(rle->type)), values() {
+        for (auto v: rle->values) {
+            values.push_back(transform(v));
+        }
+    }
+    const ast::RecordLiteralExpression *rle;
+    const Type *type;
+    std::vector<const Expression *> values;
+
+    virtual void generate(Context &context) const override {
+        context.record_types.insert(dynamic_cast<const TypeRecord *>(type)); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
+        context.ca.code << OP_new << context.cf.Class(type->classname);
+        context.ca.code << OP_dup;
+        for (auto v: values) {
+            v->generate(context);
+        }
+        context.ca.code << OP_invokespecial << context.cf.Method(type->classname, "<init>", "(Ljava/lang/String;Lneon/type/Number;)V"); // XXX
+    }
+    virtual void generate_call(Context &) const override { internal_error("RecordLiteralExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("RecordLiteralExpression"); }
+private:
+    RecordLiteralExpression(const RecordLiteralExpression &);
+    RecordLiteralExpression &operator=(const RecordLiteralExpression &);
 };
 
 class UnaryMinusExpression: public Expression {
@@ -1476,6 +1565,29 @@ public:
 private:
     BytesReferenceIndexExpression(const BytesReferenceIndexExpression &);
     BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &);
+};
+
+class RecordReferenceFieldExpression: public Expression {
+public:
+    RecordReferenceFieldExpression(const ast::RecordReferenceFieldExpression *rrfe): Expression(rrfe), rrfe(rrfe), ref(transform(rrfe->ref)), rectype(dynamic_cast<const TypeRecord *>(transform(rrfe->ref->type))), fieldtype(transform(rrfe->type)) {}
+    const ast::RecordReferenceFieldExpression *rrfe;
+    const Expression *ref;
+    const TypeRecord *rectype;
+    const Type *fieldtype;
+
+    virtual void generate(Context &context) const override {
+        ref->generate(context);
+        context.ca.code << OP_getfield << context.cf.Field(rectype->classname, rrfe->field, fieldtype->jtype);
+    }
+    virtual void generate_call(Context &) const override { internal_error("RecordReferenceFieldExpression"); }
+    virtual void generate_store(Context &context) const override {
+        ref->generate(context);
+        context.ca.code << OP_swap;
+        context.ca.code << OP_putfield << context.cf.Field(rectype->classname, rrfe->field, fieldtype->jtype);
+    }
+private:
+    RecordReferenceFieldExpression(const RecordReferenceFieldExpression &);
+    RecordReferenceFieldExpression &operator=(const RecordReferenceFieldExpression &);
 };
 
 class ArrayReferenceRangeExpression: public Expression {
@@ -2066,7 +2178,7 @@ public:
                 Code_attribute ca;
                 ca.max_stack = 8; // TODO
                 ca.max_locals = static_cast<uint16_t>(params.size());
-                Context function_context(context.cf, ca);
+                Context function_context(context.support, context.cf, ca);
                 for (auto s: statements) {
                     s->generate(function_context);
                 }
@@ -2158,7 +2270,7 @@ public:
         if (name.length() > 5 && name.substr(name.length() - 5) == ".neon") {
             name = name.substr(0, name.length() - 5);
         }
-        ClassFile cf(name);
+        ClassFile cf(path, name);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -2179,7 +2291,7 @@ public:
                     Code_attribute ca;
                     ca.max_stack = 8;
                     ca.max_locals = 1;
-                    Context context(cf, ca);
+                    Context context(support, cf, ca);
                     for (size_t i = 0; i < program->frame->getCount(); i++) {
                         auto slot = program->frame->getSlot(i);
                         const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
@@ -2206,6 +2318,9 @@ public:
                     ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
                     ca.code << OP_return;
                     code.info = ca.serialize();
+                    for (auto t: context.record_types) {
+                        t->generate_class(context);
+                    }
                 }
                 m.attributes.push_back(code);
             }
@@ -2233,7 +2348,7 @@ public:
     virtual void visit(const ast::TypeFunction *node) { r = new TypeFunction(node); }
     virtual void visit(const ast::TypeArray *node) { r = new TypeArray(node); }
     virtual void visit(const ast::TypeDictionary *node) { r = new TypeDictionary(node); }
-    virtual void visit(const ast::TypeRecord *) {}
+    virtual void visit(const ast::TypeRecord *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypeClass *) {}
     virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
     virtual void visit(const ast::TypeFunctionPointer *) {}
@@ -2474,7 +2589,7 @@ public:
     virtual void visit(const ast::ConstantNowhereExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
-    virtual void visit(const ast::RecordLiteralExpression *) {}
+    virtual void visit(const ast::RecordLiteralExpression *node) { r = new RecordLiteralExpression(node); }
     virtual void visit(const ast::NewClassExpression *) {}
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
     virtual void visit(const ast::LogicalNotExpression *node) { r = new LogicalNotExpression(node); }
@@ -2507,7 +2622,7 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *) {}
-    virtual void visit(const ast::RecordReferenceFieldExpression *) {}
+    virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
