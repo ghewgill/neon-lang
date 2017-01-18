@@ -1237,9 +1237,9 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
     const ast::Type *type = recordtype->fields[f->second].type;
     const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
     if (ref != nullptr) {
-        return new ast::ArrayReferenceIndexExpression(type, ref, new ast::ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
+        return new ast::RecordReferenceFieldExpression(type, ref, expr->name.text, true);
     } else {
-        return new ast::ArrayValueIndexExpression(type, base, new ast::ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), true);
+        return new ast::RecordValueFieldExpression(type, base, expr->name.text, true);
     }
 }
 
@@ -1268,8 +1268,8 @@ const ast::Expression *Analyzer::analyze(const pt::ArrowExpression *expr)
         error(3163, expr->name, "field is private");
     }
     const ast::Type *type = recordtype->fields[f->second].type;
-    const ast::PointerDereferenceExpression *ref = new ast::PointerDereferenceExpression(type, base);
-    return new ast::ArrayReferenceIndexExpression(type, ref, new ast::ConstantNumberExpression(number_from_uint32(static_cast<uint32_t>(f->second))), false);
+    const ast::PointerDereferenceExpression *ref = new ast::PointerDereferenceExpression(recordtype, base);
+    return new ast::RecordReferenceFieldExpression(type, ref, expr->name.text, false);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
