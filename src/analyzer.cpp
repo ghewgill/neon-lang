@@ -757,7 +757,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
-            ast::TypeRecord *actual_record = new ast::TypeRecord(Token(), name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
+            ast::TypeRecord *actual_record = new ast::TypeRecord(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_record);
             ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
             const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(type);
@@ -765,7 +765,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         } else if (object.strtable[t.descriptor][0] == 'C') {
             // Support recursive class type declarations.
-            ast::TypeClass *actual_class = new ast::TypeClass(Token(), name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
+            ast::TypeClass *actual_class = new ast::TypeClass(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_class);
             ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
             const ast::TypeRecord *classtype = dynamic_cast<const ast::TypeClass *>(type);
@@ -891,13 +891,13 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
 const ast::Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
     std::vector<ast::TypeRecord::Field> fields = analyze_fields(type);
-    return new ast::TypeRecord(type->token, name, fields);
+    return new ast::TypeRecord(type->token, module_name, name, fields);
 }
 
 const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)
 {
     std::vector<ast::TypeRecord::Field> fields = analyze_fields(type);
-    return new ast::TypeClass(type->token, name, fields);
+    return new ast::TypeClass(type->token, module_name, name, fields);
 }
 
 const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
@@ -2000,9 +2000,9 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
             }
             i++;
             if (kind == 'R') {
-                return new ast::TypeRecord(Token(), "record", fields);
+                return new ast::TypeRecord(Token(), "module", "record", fields);
             } else if (kind == 'C') {
-                return new ast::TypeClass(Token(), "class", fields);
+                return new ast::TypeClass(Token(), "module", "class", fields);
             } else {
                 internal_error("what kind?");
             }
@@ -2171,11 +2171,11 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
     if (classdecl != nullptr) {
         // Support recursive class type declarations.
-        actual_class = new ast::TypeClass(classdecl->token, name, std::vector<ast::TypeRecord::Field>());
+        actual_class = new ast::TypeClass(classdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_class);
     } else if (recdecl != nullptr) {
         // Support recursive record type declarations.
-        actual_record = new ast::TypeRecord(recdecl->token, name, std::vector<ast::TypeRecord::Field>());
+        actual_record = new ast::TypeRecord(recdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
         scope.top()->addName(declaration->token, name, actual_record);
     }
     const ast::Type *type = analyze(declaration->type.get(), name);
@@ -4143,7 +4143,7 @@ private:
 
 const ast::Program *Analyzer::analyze()
 {
-    ast::Program *r = new ast::Program(program->source_path, program->source_hash);
+    ast::Program *r = new ast::Program(program->source_path, program->source_hash, module_name);
     global_scope = r->scope;
     frame.push(r->frame);
     scope.push(global_scope);
