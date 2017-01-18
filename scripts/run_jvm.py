@@ -58,16 +58,14 @@ ExcludeTests = [
     "t/indent.neon",                # verifier
     "t/index.neon",                 # record
     "t/import-string.neon",         # ConstantEnumExpression
-    "t/inline-construct-record.neon",   # RecordLiteralExpression
-    "t/inline-init-record.neon",    # RecordLiteralExpression
+    "t/inline-construct-record.neon",   # stack size too large
+    "t/inline-init-record.neon",    # stack size too large
     "t/io-test.neon",               # PredefinedVariable
     "t/json-test.neon",             # ModuleFunction
     "t/lexical-scope.neon",         # duplicate field
     "t/lisp-test.neon",             # ModuleFunction
     "t/loop-label.neon",            # duplicate field
     "t/math-test.neon",             # math.abs
-    "t/methods-declare.neon",       # RecordLiteralExpression
-    "t/methods.neon",               # RecordLiteralExpression
     "t/mkdir.neon",                 # TypeRecord
     "t/mmap-test.neon",             # ConstantEnumExpression
     "t/module-alias.neon",          # module math
@@ -80,7 +78,7 @@ ExcludeTests = [
     "t/module-import-name2.neon",   # ModuleVariable
     "t/module-scope.neon",          # TypeRecord
     "t/module.neon",                # ConstantEnumExpression
-    "t/module2.neon",               # RecordLiteralExpression
+    "t/module2.neon",               # TypeEnum
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # ModuleFunction
     "t/net-test.neon",              # record
@@ -110,10 +108,6 @@ ExcludeTests = [
     "t/pointer8.neon",              # NewClassExpression
     "t/predeclare1.neon",           # verifier
     "t/process-test.neon",          # PredefinedVariable
-    "t/record-empty.neon",          # RecordLiteralExpression
-    "t/record-init.neon",           # RecordLiteralExpression
-    "t/record-init2.neon",          # RecordLiteralExpression
-    "t/record-private.neon",        # RecordLiteralExpression
     "t/recursion-limit.neon",       # segfault
     "t/recursion.neon",             # segfault
     "t/regex-test.neon",            # TypeRecord
@@ -135,15 +129,13 @@ ExcludeTests = [
     "t/string-test.neon",           # ModuleFunction
     "t/strings.neon",               # stack size too large
     "t/struct-test.neon",           # ModuleFunction
-    "t/structure.neon",             # RecordLiteralExpression
     "t/sudoku-test.neon",           # ModuleFunction
     "t/sys-exit.neon",              # TypeRecord
     "t/tail-call.neon",             # segfault
-    "t/time-stopwatch.neon",        # RecordLiteralExpression
+    "t/time-stopwatch.neon",        # ChainedComparisonExpression
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # ConstantEnumExpression
     "t/try-expression.neon",        # TryExpression
-    "t/type-nested.neon",           # RecordLiteralExpression
     "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/uninitialised-if-nested.neon",   # verifier
     "t/uninitialised-if.neon",      # verifier
@@ -151,7 +143,7 @@ ExcludeTests = [
     "t/uninitialised-repeat.neon",  # verifier
     "t/valid-pointer.neon",         # NewClassExpression
     "t/value-index.neon",           # TypeRecord
-    "t/variant-test.neon",          # RecordLiteralExpression
+    "t/variant-test.neon",          # TypeEnum
     "t/while-valid.neon",           # NewClassExpression
     "t/win32-test.neon",            # ModuleFunction
 ]

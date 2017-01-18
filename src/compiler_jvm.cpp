@@ -621,7 +621,7 @@ private:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const ast::TypeRecord *tr): Type(tr, "test$Rec"), tr(tr), field_types() { // XXX
+    TypeRecord(const ast::TypeRecord *tr): Type(tr, tr->module + "$" + tr->name), tr(tr), field_types() {
         for (auto f: tr->fields) {
             field_types.push_back(transform(f.type));
         }
@@ -630,7 +630,7 @@ public:
     std::vector<const Type *> field_types;
 
     void generate_class(Context &context) const {
-        ClassFile cf(context.cf.path, context.cf.name + "$" + "Rec"); // XXX
+        ClassFile cf(context.cf.path, classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -660,6 +660,18 @@ public:
                     ca.max_locals = static_cast<uint16_t>(1 + tr->fields.size());
                     ca.code << OP_aload_0;
                     ca.code << OP_invokespecial << cf.Method("java/lang/Object", "<init>", "()V");
+                    for (size_t i = 0; i < tr->fields.size(); i++) {
+                        ca.code << OP_aload_0;
+                        size_t p = i + 1;
+                        if (p < 4) {
+                            ca.code << static_cast<uint8_t>(OP_aload_0 + p);
+                        } else if (p < 256) {
+                            ca.code << OP_aload << static_cast<uint8_t>(p);
+                        } else {
+                            ca.code << OP_wide << OP_aload << static_cast<uint16_t>(p);
+                        }
+                        ca.code << OP_putfield << cf.Field(classname, tr->fields[i].name.text, field_types[i]->jtype);
+                    }
                     ca.code << OP_return;
                     code.info = ca.serialize();
                 }
@@ -1598,6 +1610,25 @@ private:
     RecordReferenceFieldExpression &operator=(const RecordReferenceFieldExpression &);
 };
 
+class RecordValueFieldExpression: public Expression {
+public:
+    RecordValueFieldExpression(const ast::RecordValueFieldExpression *rvfe): Expression(rvfe), rvfe(rvfe), rec(transform(rvfe->rec)), rectype(dynamic_cast<const TypeRecord *>(transform(rvfe->rec->type))), fieldtype(transform(rvfe->type)) {}
+    const ast::RecordValueFieldExpression *rvfe;
+    const Expression *rec;
+    const TypeRecord *rectype;
+    const Type *fieldtype;
+
+    virtual void generate(Context &context) const override {
+        rec->generate(context);
+        context.ca.code << OP_getfield << context.cf.Field(rectype->classname, rvfe->field, fieldtype->jtype);
+    }
+    virtual void generate_call(Context &) const override { internal_error("RecordValueFieldExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("RecordValueFieldExpression"); }
+private:
+    RecordValueFieldExpression(const RecordValueFieldExpression &);
+    RecordValueFieldExpression &operator=(const RecordValueFieldExpression &);
+};
+
 class ArrayReferenceRangeExpression: public Expression {
 public:
     ArrayReferenceRangeExpression(const ast::ArrayReferenceRangeExpression *arre): Expression(arre), arre(arre), ref(transform(arre->ref)), first(transform(arre->first)), last(transform(arre->last)) {}
@@ -2268,17 +2299,12 @@ public:
     std::vector<const Statement *> statements;
 
     virtual void generate() const {
-        std::string name = program->source_path;
         std::string path;
-        std::string::size_type i = name.find_last_of("/\\:");
+        std::string::size_type i = program->source_path.find_last_of("/\\:");
         if (i != std::string::npos) {
-            path = name.substr(0, i + 1);
-            name = name.substr(i + 1);
+            path = program->source_path.substr(0, i + 1);
         }
-        if (name.length() > 5 && name.substr(name.length() - 5) == ".neon") {
-            name = name.substr(0, name.length() - 5);
-        }
-        ClassFile cf(path, name);
+        ClassFile cf(path, program->module_name);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
         cf.major_version = 49;
@@ -2631,7 +2657,7 @@ public:
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *) {}
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
-    virtual void visit(const ast::RecordValueFieldExpression *) {}
+    virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
     virtual void visit(const ast::ArrayValueRangeExpression *node) { r = new ArrayValueRangeExpression(node); }
     virtual void visit(const ast::PointerDereferenceExpression *) {}
