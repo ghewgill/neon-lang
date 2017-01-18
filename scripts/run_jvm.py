@@ -13,7 +13,6 @@ ExcludeTests = [
     "t/cformat-test.neon",          # ModuleFunction
     "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable
-    "t/comparison2.neon",           # ChainedComparisonExpression
     "t/complex-test.neon",          # ModuleFunction
     "t/compress-test.neon",         # compress.gzip
     "t/concat-bytes.neon",          # confusion between Bytes and String
@@ -132,7 +131,7 @@ ExcludeTests = [
     "t/sudoku-test.neon",           # ModuleFunction
     "t/sys-exit.neon",              # TypeRecord
     "t/tail-call.neon",             # segfault
-    "t/time-stopwatch.neon",        # ChainedComparisonExpression
+    "t/time-stopwatch.neon",        # imported record
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # ConstantEnumExpression
     "t/try-expression.neon",        # TryExpression

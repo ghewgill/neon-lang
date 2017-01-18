@@ -47,7 +47,7 @@ const uint8_t OP_astore_0       =  75;
 const uint8_t OP_bastore        =  84;
 const uint8_t OP_pop            =  87;
 const uint8_t OP_dup            =  89;
-//const uint8_t OP_dup_x1         =  90;
+const uint8_t OP_dup_x1         =  90;
 const uint8_t OP_swap           =  95;
 //const uint8_t OP_iadd           =  96;
 //const uint8_t OP_dadd           =  99;
@@ -1200,6 +1200,47 @@ public:
 private:
     ComparisonExpression(const ComparisonExpression &);
     ComparisonExpression &operator=(const ComparisonExpression &);
+};
+
+class ChainedComparisonExpression: public Expression {
+public:
+    ChainedComparisonExpression(const ast::ChainedComparisonExpression *cce): Expression(cce), cce(cce), comps() {
+        for (auto c: cce->comps) {
+            const ComparisonExpression *ce = dynamic_cast<const ComparisonExpression *>(transform(c));
+            if (ce == nullptr) {
+                internal_error("ChainedComparisonExpression");
+            }
+            comps.push_back(ce);
+        }
+    }
+    const ast::ChainedComparisonExpression *cce;
+    std::vector<const ComparisonExpression *> comps;
+
+    virtual void generate(Context &context) const override {
+        comps[0]->left->generate(context);
+        auto label_false = context.create_label();
+        size_t i = 0;
+        for (auto c: comps) {
+            c->right->generate(context);
+            context.ca.code << OP_dup_x1;
+            c->generate_comparison(context);
+            if (i+1 < comps.size()) {
+                context.ca.code << OP_dup;
+                context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
+                context.emit_jump(OP_ifeq, label_false);
+                context.ca.code << OP_pop;
+            }
+            i++;
+        }
+        context.jump_target(label_false);
+        context.ca.code << OP_swap;
+        context.ca.code << OP_pop;
+    }
+    virtual void generate_call(Context &) const override { internal_error("ChainedComparisonExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ChainedComparisonExpression"); }
+private:
+    ChainedComparisonExpression(const ChainedComparisonExpression &);
+    ChainedComparisonExpression &operator=(const ChainedComparisonExpression &);
 };
 
 class BooleanComparisonExpression: public ComparisonExpression {
@@ -2633,7 +2674,7 @@ public:
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
     virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
-    virtual void visit(const ast::ChainedComparisonExpression *) {}
+    virtual void visit(const ast::ChainedComparisonExpression *node) { r = new ChainedComparisonExpression(node); }
     virtual void visit(const ast::BooleanComparisonExpression *node) { r = new BooleanComparisonExpression(node); }
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
