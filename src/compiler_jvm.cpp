@@ -672,8 +672,8 @@ public:
         context.support->writeOutput(context.cf.path + cf.name + ".class", data);
     }
 private:
-    TypeRecord(const TypeRecord *);
-    TypeRecord &operator=(const TypeRecord *);
+    TypeRecord(const TypeRecord &);
+    TypeRecord &operator=(const TypeRecord &);
 };
 
 class TypePointer: public Type {
