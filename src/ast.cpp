@@ -542,6 +542,20 @@ bool NumericComparisonExpression::eval_boolean() const
     internal_error("NumericComparisonExpression");
 }
 
+bool EnumComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case EQ: return number_is_equal        (left->eval_number(), right->eval_number());
+        case NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
+        case LT:
+        case GT:
+        case LE:
+        case GE:
+            break;
+    }
+    internal_error("EnumComparisonExpression");
+}
+
 bool StringComparisonExpression::eval_boolean() const
 {
     switch (comp) {

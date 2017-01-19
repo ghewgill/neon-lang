@@ -1144,6 +1144,12 @@ void ast::NumericComparisonExpression::generate_comparison_opcode(Emitter &emitt
     emitter.emit(op[comp]);
 }
 
+void ast::EnumComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    emitter.emit(op[comp]);
+}
+
 void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQS, NES, LTS, GTS, LES, GES};

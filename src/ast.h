@@ -73,6 +73,7 @@ public:
     virtual void visit(const class ChainedComparisonExpression *node) = 0;
     virtual void visit(const class BooleanComparisonExpression *node) = 0;
     virtual void visit(const class NumericComparisonExpression *node) = 0;
+    virtual void visit(const class EnumComparisonExpression *node) = 0;
     virtual void visit(const class StringComparisonExpression *node) = 0;
     virtual void visit(const class ArrayComparisonExpression *node) = 0;
     virtual void visit(const class DictionaryComparisonExpression *node) = 0;
@@ -642,8 +643,9 @@ public:
 
 class TypeEnum: public TypeNumber {
 public:
-    TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer);
+    TypeEnum(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    const std::string module;
     const std::map<std::string, int> names;
 
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
@@ -841,6 +843,7 @@ protected:
     friend class ExponentiationExpression;
     friend class BooleanComparisonExpression;
     friend class NumericComparisonExpression;
+    friend class EnumComparisonExpression;
     friend class StringComparisonExpression;
     friend class ConstantExpression;
     friend class FunctionCall;
@@ -1312,6 +1315,21 @@ public:
 
     virtual std::string text() const override {
         return "NumericComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
+class EnumComparisonExpression: public ComparisonExpression {
+public:
+    EnumComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual bool eval_boolean() const override;
+    virtual Number eval_number() const override { internal_error("EnumComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("EnumComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        return "EnumComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
 
