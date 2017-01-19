@@ -886,7 +886,7 @@ public:
     }
     virtual ~Variable() {}
     const Type *type;
-    virtual void generate_decl(Context &context) const = 0;
+    virtual void generate_decl(ClassContext &context) const = 0;
     virtual void generate_load(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
     virtual void generate_call(Context &context) const = 0;
@@ -902,7 +902,7 @@ public:
     PredefinedVariable(const ast::PredefinedVariable *pv): Variable(pv), pv(pv) {}
     const ast::PredefinedVariable *pv;
 
-    virtual void generate_decl(Context &) const override {}
+    virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &context) const override {
         if (pv->name == "io$stderr") {
             context.ca.code << OP_getstatic << context.cf.Field("java/lang/System", "err", "Ljava/io/PrintStream;");
@@ -922,7 +922,7 @@ public:
     GlobalVariable(const ast::GlobalVariable *gv): Variable(gv), gv(gv) {}
     const ast::GlobalVariable *gv;
 
-    virtual void generate_decl(Context &context) const override {
+    virtual void generate_decl(ClassContext &context) const override {
         field_info f;
         f.access_flags = ACC_STATIC;
         f.name_index = context.cf.utf8(gv->name);
@@ -947,7 +947,7 @@ public:
     const ast::LocalVariable *lv;
     mutable int index; // TODO
 
-    virtual void generate_decl(Context &) const override {}
+    virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &context) const override {
         if (index < 0) {
             index = context.ca.max_locals;
@@ -986,7 +986,7 @@ public:
     const ast::FunctionParameter *fp;
     const int index;
 
-    virtual void generate_decl(Context &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_decl(ClassContext &) const override { internal_error("FunctionParameter"); }
     virtual void generate_load(Context &context) const override {
         if (index < 4) {
             context.ca.code << static_cast<uint8_t>(OP_aload_0 + index);
@@ -2100,7 +2100,7 @@ public:
     const Variable *decl;
 
     virtual void generate(Context &context) const override {
-        decl->generate_decl(context);
+        decl->generate_decl(context.cc);
     }
 private:
     DeclarationStatement(const DeclarationStatement &);
@@ -2548,7 +2548,7 @@ public:
     std::vector<FunctionParameter *> params;
     std::string signature;
 
-    virtual void generate_decl(Context &context) const override {
+    virtual void generate_decl(ClassContext &context) const override {
         method_info m;
         m.access_flags = ACC_PUBLIC | ACC_STATIC;
         m.name_index = context.cf.utf8(f->name);
@@ -2560,7 +2560,7 @@ public:
                 Code_attribute ca;
                 ca.max_stack = 8; // TODO
                 ca.max_locals = static_cast<uint16_t>(params.size());
-                Context function_context(context.cc, ca);
+                Context function_context(context, ca);
                 for (auto s: statements) {
                     s->generate(function_context);
                 }
@@ -2596,7 +2596,7 @@ public:
     PredefinedFunction(const ast::PredefinedFunction *pf): Variable(pf), pf(pf) {}
     const ast::PredefinedFunction *pf;
 
-    virtual void generate_decl(Context &) const override {}
+    virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Context &context) const override {
@@ -2618,7 +2618,7 @@ public:
     ModuleFunction(const ast::ModuleFunction *mf): Variable(mf), mf(mf) {}
     const ast::ModuleFunction *mf;
 
-    virtual void generate_decl(Context &) const override {}
+    virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_store(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_call(Context &context) const override {
@@ -2657,6 +2657,13 @@ public:
         cf.super_class = cf.Class("Ljava/lang/Object;");
 
         ClassContext classcontext(support, cf);
+        for (size_t i = 0; i < program->frame->getCount(); i++) {
+            auto slot = program->frame->getSlot(i);
+            const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
+            if (global != nullptr) {
+                global->generate_decl(classcontext);
+            }
+        }
         {
             method_info m;
             m.access_flags = ACC_PUBLIC | ACC_STATIC;
@@ -2670,13 +2677,6 @@ public:
                     ca.max_stack = 8;
                     ca.max_locals = 1;
                     Context context(classcontext, ca);
-                    for (size_t i = 0; i < program->frame->getCount(); i++) {
-                        auto slot = program->frame->getSlot(i);
-                        const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
-                        if (global != nullptr) {
-                            global->generate_decl(context);
-                        }
-                    }
                     for (auto s: statements) {
                         s->generate(context);
                     }
