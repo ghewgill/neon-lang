@@ -63,7 +63,7 @@ const uint8_t OP_ifgt           = 157;
 const uint8_t OP_ifle           = 158;
 //const uint8_t OP_if_icmplt      = 161;
 const uint8_t OP_if_acmpeq      = 165;
-const uint8_t OP_if_acmpne      = 165;
+const uint8_t OP_if_acmpne      = 166;
 const uint8_t OP_goto           = 167;
 const uint8_t OP_areturn        = 176;
 const uint8_t OP_return         = 177;
@@ -1426,6 +1426,31 @@ private:
     PointerComparisonExpression &operator=(const PointerComparisonExpression &);
 };
 
+class ValidPointerExpression: public PointerComparisonExpression {
+public:
+    ValidPointerExpression(const ast::ValidPointerExpression *vpe): PointerComparisonExpression(vpe), vpe(vpe), var(transform(vpe->var)) {}
+    const ast::ValidPointerExpression *vpe;
+    const Variable *var;
+
+    virtual void generate(Context &context) const override {
+        left->generate(context);
+        context.ca.code << OP_dup;
+        var->generate_store(context);
+        right->generate(context);
+        auto label_true = context.create_label();
+        context.emit_jump(OP_if_acmpne, label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
+        context.jump_target(label_false);
+    }
+private:
+    ValidPointerExpression(const ValidPointerExpression &);
+    ValidPointerExpression &operator=(const ValidPointerExpression &);
+};
+
 class AdditionExpression: public Expression {
 public:
     AdditionExpression(const ast::AdditionExpression *ae): Expression(ae), ae(ae), left(transform(ae->left)), right(transform(ae->right)) {}
@@ -2575,6 +2600,7 @@ public:
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
+    virtual void visit(const ast::ValidPointerExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
     virtual void visit(const ast::AdditionExpression *) {}
     virtual void visit(const ast::SubtractionExpression *) {}
@@ -2683,6 +2709,7 @@ public:
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
+    virtual void visit(const ast::ValidPointerExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
     virtual void visit(const ast::AdditionExpression *) {}
     virtual void visit(const ast::SubtractionExpression *) {}
@@ -2791,6 +2818,7 @@ public:
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *node) { r = new PointerComparisonExpression(node); }
+    virtual void visit(const ast::ValidPointerExpression *node) { r = new ValidPointerExpression(node); }
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
     virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
     virtual void visit(const ast::SubtractionExpression *node) { r = new SubtractionExpression(node); }
@@ -2899,6 +2927,7 @@ public:
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
+    virtual void visit(const ast::ValidPointerExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
     virtual void visit(const ast::AdditionExpression *) {}
     virtual void visit(const ast::SubtractionExpression *) {}

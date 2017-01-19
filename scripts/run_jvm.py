@@ -11,14 +11,13 @@ ExcludeTests = [
     "t/assignment.neon",            # TypeEnum
     "t/bigint-test.neon",           # ModuleFunction
     "t/cformat-test.neon",          # ModuleFunction
-    "t/class-empty.neon",           # NewClassExpression
     "t/cmdline.neon",               # PredefinedVariable
     "t/complex-test.neon",          # ModuleFunction
     "t/compress-test.neon",         # compress.gzip
     "t/concat-bytes.neon",          # confusion between Bytes and String
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # debugger.log
-    "t/debug-server.neon",          # pointer
+    "t/debug-server.neon",          # TypeEnum
     "t/decimal.neon",               # exception
     "t/encoding-base64.neon",       # ModuleFunction
     "t/enum.neon",                  # ConstantEnumExpression
@@ -45,13 +44,13 @@ ExcludeTests = [
     "t/forward.neon",               # segfault
     "t/function-pointer-nowhere.neon",  # ConstantNowhereExpression
     "t/function-pointer.neon",      # TypeFunctionPointer
-    "t/gc-array.neon",              # NewClassExpression
-    "t/gc-long-chain.neon",         # NewClassExpression
+    "t/gc-array.neon",              # module runtime
+    "t/gc-long-chain.neon",         # module runtime
     "t/gc1.neon",                   # PredefinedVariable
     "t/gc2.neon",                   # PredefinedVariable
     "t/gc3.neon",                   # PredefinedVariable
     "t/hash-test.neon",             # sha-3
-    "t/http-test.neon",             # pointer
+    "t/http-test.neon",             # module os
     "t/import-dup.neon",            # module sys
     "t/import.neon",                # ModuleVariable
     "t/indent.neon",                # verifier
@@ -81,10 +80,10 @@ ExcludeTests = [
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # ModuleFunction
     "t/net-test.neon",              # record
-    "t/new-init-module.neon",       # NewClassExpression
+    "t/new-init-module.neon",       # TypeEnum
     "t/number-ceil.neon",           # module math
     "t/number-underscore.neon",     # PredefinedVariable
-    "t/os-test.neon",               # pointer
+    "t/os-test.neon",               # module os
     "t/outer-parameter.neon",       # verifier
     "t/outer-tail.neon",            # verifier
     "t/outer.neon",                 # verifier
@@ -93,17 +92,8 @@ ExcludeTests = [
     "t/parameter-out-string.neon",  # out parameter
     "t/parameters-ignore.neon",     # out parameters
     "t/parameters.neon",            # out parameters
-    "t/pointer-method.neon",        # NewClassExpression
-    "t/pointer-nil.neon",           # pointer
-    "t/pointer-valid.neon",         # NewClassExpression
-    "t/pointer.neon",               # NewClassExpression
-    "t/pointer2.neon",              # NewClassExpression
-    "t/pointer3.neon",              # pointer
-    "t/pointer4.neon",              # NewClassExpression
-    "t/pointer5.neon",              # pointer
-    "t/pointer6.neon",              # pointer
-    "t/pointer7.neon",              # pointer
-    "t/pointer8.neon",              # NewClassExpression
+    "t/pointer5.neon",              # duplicate field
+    "t/pointer8.neon",              # duplicate field
     "t/predeclare1.neon",           # verifier
     "t/process-test.neon",          # PredefinedVariable
     "t/recursion-limit.neon",       # segfault
@@ -120,7 +110,7 @@ ExcludeTests = [
     "t/sql-execute.neon",           # ModuleVariable
     "t/sql-query.neon",             # ModuleVariable
     "t/sql-whenever.neon",          # ModuleVariable
-    "t/sqlite-test.neon",           # pointer
+    "t/sqlite-test.neon",           # bad type
     "t/stack-overflow.neon",        # segfault
     "t/string-bytes.neon",          # format
     "t/string-format.neon",         # format
@@ -139,10 +129,8 @@ ExcludeTests = [
     "t/uninitialised-if.neon",      # verifier
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-repeat.neon",  # verifier
-    "t/valid-pointer.neon",         # NewClassExpression
     "t/value-index.neon",           # TypeRecord
     "t/variant-test.neon",          # TypeEnum
-    "t/while-valid.neon",           # NewClassExpression
     "t/win32-test.neon",            # ModuleFunction
 ]
 

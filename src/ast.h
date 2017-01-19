@@ -77,6 +77,7 @@ public:
     virtual void visit(const class ArrayComparisonExpression *node) = 0;
     virtual void visit(const class DictionaryComparisonExpression *node) = 0;
     virtual void visit(const class PointerComparisonExpression *node) = 0;
+    virtual void visit(const class ValidPointerExpression *node) = 0;
     virtual void visit(const class FunctionPointerComparisonExpression *node) = 0;
     virtual void visit(const class AdditionExpression *node) = 0;
     virtual void visit(const class SubtractionExpression *node) = 0;
@@ -1378,6 +1379,7 @@ public:
 class ValidPointerExpression: public PointerComparisonExpression {
 public:
     ValidPointerExpression(const Variable *var, const Expression *ptr): PointerComparisonExpression(ptr, new ConstantNilExpression(), ComparisonExpression::NE), var(var) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Variable *var;
 
