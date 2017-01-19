@@ -11,7 +11,9 @@ namespace jvm {
 
 const uint16_t ACC_PUBLIC = 0x0001;
 const uint16_t ACC_STATIC = 0x0008;
+const uint16_t ACC_FINAL  = 0x0010;
 const uint16_t ACC_SUPER  = 0x0020;
+const uint16_t ACC_ENUM   = 0x4000;
 
 const uint8_t CONSTANT_Class              =  7;
 const uint8_t CONSTANT_Fieldref           =  9;
@@ -41,7 +43,9 @@ const uint8_t OP_sipush         =  17;
 //const uint8_t OP_ldc            =  18;
 const uint8_t OP_ldc_w          =  19;
 const uint8_t OP_aload          =  25;
+const uint8_t OP_iload_2        =  28;
 const uint8_t OP_aload_0        =  42;
+const uint8_t OP_aload_1        =  43;
 const uint8_t OP_astore         =  58;
 const uint8_t OP_astore_0       =  75;
 const uint8_t OP_bastore        =  84;
@@ -771,20 +775,74 @@ public:
         cf.minor_version = 0;
         cf.major_version = 49;
         cf.constant_pool_count = 0;
-        cf.access_flags = ACC_PUBLIC | ACC_SUPER;
+        cf.access_flags = ACC_PUBLIC | ACC_FINAL | ACC_SUPER;
         cf.this_class = cf.Class(cf.name);
         cf.super_class = cf.Class("java/lang/Object");
 
         for (auto e: te->names) {
             field_info f;
-            f.access_flags = ACC_PUBLIC | ACC_STATIC;
+            f.access_flags = ACC_PUBLIC | ACC_STATIC | ACC_FINAL;
             f.name_index = cf.utf8(e.first);
             f.descriptor_index = cf.utf8(jtype);
             cf.fields.push_back(f);
         }
+#if 0
         {
             method_info m;
-            m.access_flags = ACC_PUBLIC;
+            m.access_flags = 0;
+            m.name_index = cf.utf8("<init>");
+            m.descriptor_index = cf.utf8("(Ljava/lang/String;I)V");
+            {
+                attribute_info code;
+                code.attribute_name_index = cf.utf8("Code");
+                {
+                    Code_attribute ca;
+                    ca.max_stack = 8;
+                    ca.max_locals = 4;
+                    Context function_context(context.cc, ca);
+                    ca.code << OP_aload_0;
+                    ca.code << OP_invokespecial << cf.Method("java/lang/Object", "<init>", "()V");
+                    //ca.code << OP_aload_1;
+                    //ca.code << OP_putfield << cf.Field(classname, "$NAME", "Ljava/lang/String;");
+                    //ca.code << OP_aload_0;
+                    //ca.code << OP_new << cf.Class("neon/type/Number");
+                    //ca.code << OP_dup;
+                    //ca.code << OP_iload_2;
+                    //ca.code << OP_invokespecial << cf.Method("neon/type/Number", "<init>", "(I)V");
+                    //ca.code << OP_putfield << cf.Field(classname, "$ORDINAL", "Lneon/type/Number;");
+                    ca.code << OP_return;
+                    code.info = ca.serialize();
+                }
+                m.attributes.push_back(code);
+            }
+            cf.methods.push_back(m);
+        }
+        {
+            method_info m;
+            m.access_flags = ACC_PUBLIC | ACC_STATIC;
+            m.name_index = cf.utf8("enum.toString");
+            m.descriptor_index = cf.utf8("(" + jtype + ")Ljava/lang/String;");
+            {
+                attribute_info code;
+                code.attribute_name_index = cf.utf8("Code");
+                {
+                    Code_attribute ca;
+                    ca.max_stack = 8;
+                    ca.max_locals = 4;
+                    Context function_context(context.cc, ca);
+                    ca.code << OP_aload_0;
+                    ca.code << OP_getfield << cf.Field(classname, "$NAME", "Ljava/lang/String;");
+                    ca.code << OP_areturn;
+                    code.info = ca.serialize();
+                }
+                m.attributes.push_back(code);
+            }
+            cf.methods.push_back(m);
+        }
+#endif
+        {
+            method_info m;
+            m.access_flags = ACC_STATIC;
             m.name_index = cf.utf8("<clinit>");
             m.descriptor_index = cf.utf8("()V");
             {
@@ -794,6 +852,17 @@ public:
                     Code_attribute ca;
                     ca.max_stack = 8;
                     ca.max_locals = 4;
+                    Context function_context(context.cc, ca);
+#if 0
+                    for (auto e: te->names) {
+                        ca.code << OP_new << cf.Class(classname);
+                        ca.code << OP_dup;
+                        ca.code << OP_ldc_w << cf.String(e.first);
+                        function_context.push_integer(e.second);
+                        ca.code << OP_invokespecial << cf.Method(classname, "<init>", "(Ljava/lang/String;I)V");
+                        ca.code << OP_putstatic << cf.Field(classname, e.first, jtype);
+                    }
+#endif
                     ca.code << OP_return;
                     code.info = ca.serialize();
                 }
