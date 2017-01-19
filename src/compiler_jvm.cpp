@@ -417,10 +417,10 @@ private:
 
 class ClassContext {
 public:
-    ClassContext(CompilerSupport *support, ClassFile &cf): support(support), cf(cf), record_types() {}
+    ClassContext(CompilerSupport *support, ClassFile &cf): support(support), cf(cf), generated_types() {}
     CompilerSupport *support;
     ClassFile &cf;
-    std::set<const class TypeRecord *> record_types;
+    std::set<const class Type *> generated_types;
 private:
     ClassContext(const ClassContext &);
     ClassContext &operator=(const ClassContext &);
@@ -540,6 +540,7 @@ public:
     virtual ~Type() {}
     const std::string classname;
     const std::string jtype;
+    virtual void generate_class(Context &) const {}
     virtual void generate_default(Context &context) const = 0;
 private:
     Type(const Type &);
@@ -676,7 +677,7 @@ public:
         }
         context.ca.code << OP_invokespecial << context.cf.Method(classname, "<init>", get_init_descriptor());
     }
-    void generate_class(Context &context) const {
+    virtual void generate_class(Context &context) const override {
         ClassFile cf(context.cf.path, classname);
         cf.magic = 0xCAFEBABE;
         cf.minor_version = 0;
@@ -753,6 +754,60 @@ public:
 private:
     TypePointer(const TypePointer &);
     TypePointer &operator=(const TypePointer &);
+};
+
+class TypeEnum: public Type {
+public:
+    TypeEnum(const ast::TypeEnum *te): Type(te, te->module + "$" + te->name), te(te) {}
+    const ast::TypeEnum *te;
+
+    virtual void generate_default(Context &context) const override {
+        // TODO: not begin(). Whatever value 0 is.
+        context.ca.code << OP_getstatic << context.cf.Field(classname, te->names.begin()->first, jtype);
+    }
+    virtual void generate_class(Context &context) const override {
+        ClassFile cf(context.cf.path, classname);
+        cf.magic = 0xCAFEBABE;
+        cf.minor_version = 0;
+        cf.major_version = 49;
+        cf.constant_pool_count = 0;
+        cf.access_flags = ACC_PUBLIC | ACC_SUPER;
+        cf.this_class = cf.Class(cf.name);
+        cf.super_class = cf.Class("java/lang/Object");
+
+        for (auto e: te->names) {
+            field_info f;
+            f.access_flags = ACC_PUBLIC | ACC_STATIC;
+            f.name_index = cf.utf8(e.first);
+            f.descriptor_index = cf.utf8(jtype);
+            cf.fields.push_back(f);
+        }
+        {
+            method_info m;
+            m.access_flags = ACC_PUBLIC;
+            m.name_index = cf.utf8("<clinit>");
+            m.descriptor_index = cf.utf8("()V");
+            {
+                attribute_info code;
+                code.attribute_name_index = cf.utf8("Code");
+                {
+                    Code_attribute ca;
+                    ca.max_stack = 8;
+                    ca.max_locals = 4;
+                    ca.code << OP_return;
+                    code.info = ca.serialize();
+                }
+                m.attributes.push_back(code);
+            }
+            cf.methods.push_back(m);
+        }
+
+        auto data = cf.serialize();
+        context.cc.support->writeOutput(context.cf.path + cf.name + ".class", data);
+    }
+private:
+    TypeEnum(const TypeEnum &);
+    TypeEnum &operator=(const TypeEnum &);
 };
 
 class Variable {
@@ -976,6 +1031,29 @@ private:
     ConstantBytesExpression &operator=(const ConstantBytesExpression &);
 };
 
+class ConstantEnumExpression: public Expression {
+public:
+    ConstantEnumExpression(const ast::ConstantEnumExpression *cee): Expression(cee), cee(cee), type(dynamic_cast<const TypeEnum *>(transform(cee->type))) {}
+    const ast::ConstantEnumExpression *cee;
+    const TypeEnum *type;
+
+    virtual void generate(Context &context) const override {
+        context.cc.generated_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
+        for (auto e: type->te->names) {
+            if (e.second == cee->value) {
+                context.ca.code << OP_getstatic << context.cf.Field(type->classname, e.first, type->jtype);
+                return;
+            }
+        }
+        internal_error("ConstantEnumExpression");
+    }
+    virtual void generate_call(Context &) const override { internal_error("ConstantEnumExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantEnumExpression"); }
+private:
+    ConstantEnumExpression(const ConstantEnumExpression &);
+    ConstantEnumExpression &operator=(const ConstantEnumExpression &);
+};
+
 class ConstantNilExpression: public Expression {
 public:
     ConstantNilExpression(const ast::ConstantNilExpression *cne): Expression(cne), cne(cne) {}
@@ -1063,7 +1141,7 @@ public:
     std::vector<const Expression *> values;
 
     virtual void generate(Context &context) const override {
-        context.cc.record_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
+        context.cc.generated_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
         context.ca.code << OP_new << context.cf.Class(type->classname);
         context.ca.code << OP_dup;
         for (auto v: values) {
@@ -1086,7 +1164,7 @@ public:
     const TypeRecord *type;
 
     virtual void generate(Context &context) const override {
-        context.cc.record_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
+        context.cc.generated_types.insert(type); // TODO: do this somewhere better, like at the type declaration itself (which the ast doesn't seem to have right now).
         if (value != nullptr) {
             value->generate(context);
         } else {
@@ -1359,6 +1437,27 @@ public:
 private:
     NumericComparisonExpression(const NumericComparisonExpression &);
     NumericComparisonExpression &operator=(const NumericComparisonExpression &);
+};
+
+class EnumComparisonExpression: public ComparisonExpression {
+public:
+    EnumComparisonExpression(const ast::EnumComparisonExpression *ece): ComparisonExpression(ece), ece(ece) {}
+    const ast::EnumComparisonExpression *ece;
+
+    virtual void generate_comparison(Context &context) const override {
+        static const uint8_t op[] = {OP_if_acmpeq, OP_if_acmpne};
+        auto label_true = context.create_label();
+        context.emit_jump(op[ece->comp], label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
+        context.jump_target(label_false);
+    }
+private:
+    EnumComparisonExpression(const EnumComparisonExpression &);
+    EnumComparisonExpression &operator=(const EnumComparisonExpression &);
 };
 
 class StringComparisonExpression: public ComparisonExpression {
@@ -2528,7 +2627,7 @@ public:
                     ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
                     ca.code << OP_return;
                     code.info = ca.serialize();
-                    for (auto t: classcontext.record_types) {
+                    for (auto t: classcontext.generated_types) {
                         t->generate_class(context);
                     }
                 }
@@ -2562,7 +2661,7 @@ public:
     virtual void visit(const ast::TypeClass *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
     virtual void visit(const ast::TypeFunctionPointer *) {}
-    virtual void visit(const ast::TypeEnum *) {}
+    virtual void visit(const ast::TypeEnum *node) { r = new TypeEnum(node); }
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::LoopLabel *) {}
@@ -2596,6 +2695,7 @@ public:
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
+    virtual void visit(const ast::EnumComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
@@ -2705,6 +2805,7 @@ public:
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
+    virtual void visit(const ast::EnumComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
@@ -2796,7 +2897,7 @@ public:
     virtual void visit(const ast::ConstantNumberExpression *node) { r = new ConstantNumberExpression(node); }
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
     virtual void visit(const ast::ConstantBytesExpression *node) { r = new ConstantBytesExpression(node); }
-    virtual void visit(const ast::ConstantEnumExpression *) {}
+    virtual void visit(const ast::ConstantEnumExpression *node) { r = new ConstantEnumExpression(node); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
@@ -2814,6 +2915,7 @@ public:
     virtual void visit(const ast::ChainedComparisonExpression *node) { r = new ChainedComparisonExpression(node); }
     virtual void visit(const ast::BooleanComparisonExpression *node) { r = new BooleanComparisonExpression(node); }
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
+    virtual void visit(const ast::EnumComparisonExpression *node) { r = new EnumComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
@@ -2923,6 +3025,7 @@ public:
     virtual void visit(const ast::ChainedComparisonExpression *) {}
     virtual void visit(const ast::BooleanComparisonExpression *) {}
     virtual void visit(const ast::NumericComparisonExpression *) {}
+    virtual void visit(const ast::EnumComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}

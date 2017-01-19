@@ -5,10 +5,8 @@ ExcludeTests = [
     "t/array-resize.neon",          # array default item
     "t/array-slice.neon",           # string append
     "t/array2d.neon",               # array copying semantics
-    "t/assert-enum.neon",           # ConstantEnumExpression
     "t/assert-fail.neon",           # stderr
     "t/assert-fail2.neon",          # stderr
-    "t/assignment.neon",            # TypeEnum
     "t/bigint-test.neon",           # ModuleFunction
     "t/cformat-test.neon",          # ModuleFunction
     "t/cmdline.neon",               # PredefinedVariable
@@ -17,14 +15,14 @@ ExcludeTests = [
     "t/concat-bytes.neon",          # confusion between Bytes and String
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # debugger.log
-    "t/debug-server.neon",          # TypeEnum
+    "t/debug-server.neon",          # FunctionParameter
     "t/decimal.neon",               # exception
     "t/encoding-base64.neon",       # ModuleFunction
-    "t/enum.neon",                  # ConstantEnumExpression
-    "t/equality.neon",              # TypeEnum
+    "t/enum.neon",                  # enum toString
+    "t/equality.neon",              # TypeFunctionPointer
     "t/exception-as.neon",          # record
     "t/exception-code.neon",        # record
-    "t/export.neon",                # ConstantEnumExpression
+    "t/export.neon",                # enum with no name
     "t/ffi.neon",                   # ExternalFunction
     "t/file.neon",                  # module file
     "t/file-exists.neon",           # FunctionParameter
@@ -32,7 +30,7 @@ ExcludeTests = [
     "t/file-filecopied1.neon",      # exception identification
     "t/file-filecopied2.neon",      # FunctionParameter
     "t/file-filecopied3.neon",      # FunctionParameter
-    "t/file-symlink.neon",          # TypeEnum
+    "t/file-symlink.neon",          # FunctionParameter
     "t/file-test.neon",             # FunctionParameter
     "t/file-writebytes.neon",       # FunctionParameter
     "t/file-writelines.neon",       # FunctionParameter
@@ -55,7 +53,6 @@ ExcludeTests = [
     "t/import.neon",                # ModuleVariable
     "t/indent.neon",                # verifier
     "t/index.neon",                 # record
-    "t/import-string.neon",         # ConstantEnumExpression
     "t/inline-construct-record.neon",   # stack size too large
     "t/inline-init-record.neon",    # stack size too large
     "t/io-test.neon",               # PredefinedVariable
@@ -65,7 +62,7 @@ ExcludeTests = [
     "t/loop-label.neon",            # duplicate field
     "t/math-test.neon",             # math.abs
     "t/mkdir.neon",                 # TypeRecord
-    "t/mmap-test.neon",             # ConstantEnumExpression
+    "t/mmap-test.neon",             # module mmap
     "t/module-alias.neon",          # module math
     "t/module-alias2.neon",         # ModuleVariable
     "t/module-assign-let.neon",     # TypeRecord
@@ -75,12 +72,12 @@ ExcludeTests = [
     "t/module-import-name.neon",    # module math
     "t/module-import-name2.neon",   # ModuleVariable
     "t/module-scope.neon",          # TypeRecord
-    "t/module.neon",                # ConstantEnumExpression
-    "t/module2.neon",               # TypeEnum
+    "t/module.neon",                # TypeFunctionPointer
+    "t/module2.neon",               # TypeFunctionPointer
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # ModuleFunction
     "t/net-test.neon",              # record
-    "t/new-init-module.neon",       # TypeEnum
+    "t/new-init-module.neon",       # TypeFunctionPointer
     "t/number-ceil.neon",           # module math
     "t/number-underscore.neon",     # PredefinedVariable
     "t/os-test.neon",               # module os
@@ -99,7 +96,6 @@ ExcludeTests = [
     "t/recursion-limit.neon",       # segfault
     "t/recursion.neon",             # segfault
     "t/regex-test.neon",            # TypeRecord
-    "t/repl_enum_tostring.neon",    # ConstantEnumExpression
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
     "t/rtl.neon",                   # TypeRecord
@@ -122,7 +118,7 @@ ExcludeTests = [
     "t/tail-call.neon",             # segfault
     "t/time-stopwatch.neon",        # imported record
     "t/time-test.neon",             # module time
-    "t/tostring.neon",              # ConstantEnumExpression
+    "t/tostring.neon",              # enum tostring
     "t/try-expression.neon",        # TryExpression
     "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/uninitialised-if-nested.neon",   # verifier
@@ -130,7 +126,7 @@ ExcludeTests = [
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-repeat.neon",  # verifier
     "t/value-index.neon",           # TypeRecord
-    "t/variant-test.neon",          # TypeEnum
+    "t/variant-test.neon",          # imported class name
     "t/win32-test.neon",            # ModuleFunction
 ]
 
