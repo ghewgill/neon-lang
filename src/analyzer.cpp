@@ -547,8 +547,9 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::m
 {
 }
 
-ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer)
+ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer)
   : TypeNumber(declaration, name),
+    module(module),
     names(names)
 {
     {
@@ -862,7 +863,7 @@ const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::str
         names[name] = index;
         index++;
     }
-    return new ast::TypeEnum(type->token, name, names, this);
+    return new ast::TypeEnum(type->token, module_name, name, names, this);
 }
 
 std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type)
@@ -1728,7 +1729,7 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
         }
         return new ast::ArrayComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr) {
-        return new ast::NumericComparisonExpression(left, right, comp);
+        return new ast::EnumComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr) {
         if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3100, token, "comparison not available for POINTER");
@@ -2029,7 +2030,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                 i++;
             }
             i++;
-            return new ast::TypeEnum(Token(), "enum", names, this);
+            return new ast::TypeEnum(Token(), "module", "enum", names, this);
         }
         case 'F': {
             i++;
