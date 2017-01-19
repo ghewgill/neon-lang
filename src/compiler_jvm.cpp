@@ -925,15 +925,15 @@ public:
     virtual void generate_decl(ClassContext &context) const override {
         field_info f;
         f.access_flags = ACC_STATIC;
-        f.name_index = context.cf.utf8(gv->name);
+        f.name_index = context.cf.utf8(gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)));
         f.descriptor_index = context.cf.utf8(type->jtype);
         context.cf.fields.push_back(f);
     }
     virtual void generate_load(Context &context) const override {
-        context.ca.code << OP_getstatic << context.cf.Field(context.cf.name, gv->name, type->jtype);
+        context.ca.code << OP_getstatic << context.cf.Field(context.cf.name, gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)), type->jtype);
     }
     virtual void generate_store(Context &context) const override {
-        context.ca.code << OP_putstatic << context.cf.Field(context.cf.name, gv->name, type->jtype);
+        context.ca.code << OP_putstatic << context.cf.Field(context.cf.name, gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)), type->jtype);
     }
     virtual void generate_call(Context &) const override { internal_error("GlobalVariable"); }
 private:

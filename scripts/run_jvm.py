@@ -34,9 +34,7 @@ ExcludeTests = [
     "t/file-test.neon",             # FunctionParameter
     "t/file-writebytes.neon",       # FunctionParameter
     "t/file-writelines.neon",       # FunctionParameter
-    "t/for-scope.neon",             # duplicate field
-    "t/for.neon",                   # duplicate field
-    "t/foreach.neon",               # duplicate field
+    "t/for.neon",                   # number format (2 vs 2.0)
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
     "t/forward.neon",               # segfault
@@ -57,9 +55,7 @@ ExcludeTests = [
     "t/inline-init-record.neon",    # stack size too large
     "t/io-test.neon",               # PredefinedVariable
     "t/json-test.neon",             # ModuleFunction
-    "t/lexical-scope.neon",         # duplicate field
     "t/lisp-test.neon",             # ModuleFunction
-    "t/loop-label.neon",            # duplicate field
     "t/math-test.neon",             # math.abs
     "t/mkdir.neon",                 # TypeRecord
     "t/mmap-test.neon",             # module mmap
@@ -89,8 +85,6 @@ ExcludeTests = [
     "t/parameter-out-string.neon",  # out parameter
     "t/parameters-ignore.neon",     # out parameters
     "t/parameters.neon",            # out parameters
-    "t/pointer5.neon",              # duplicate field
-    "t/pointer8.neon",              # duplicate field
     "t/predeclare1.neon",           # verifier
     "t/process-test.neon",          # PredefinedVariable
     "t/recursion-limit.neon",       # segfault
