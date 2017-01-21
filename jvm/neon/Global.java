@@ -287,6 +287,18 @@ public class Global {
         return new neon.type.Number(s.length());
     }
 
+    public static String string__splice(String t, String s, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
+        int f = first.intValue();
+        int l = last.intValue();
+        if (first_from_end) {
+            f += s.length() - 1;
+        }
+        if (last_from_end) {
+            l += s.length() - 1;
+        }
+        return s.substring(0, f) + t + s.substring(l + 1);
+    }
+
     public static byte[] string__toBytes(String self) {
         return self.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }

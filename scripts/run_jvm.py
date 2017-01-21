@@ -81,10 +81,8 @@ ExcludeTests = [
     "t/outer-tail.neon",            # verifier
     "t/outer.neon",                 # verifier
     "t/outer2.neon",                # verifier
-    "t/parameter-out-array.neon",   # out parameter
-    "t/parameter-out-string.neon",  # out parameter
-    "t/parameters-ignore.neon",     # out parameters
-    "t/parameters.neon",            # out parameters
+    "t/parameter-inout-array.neon", # actually works here so avoid the TODO
+    "t/parameter-inout-string.neon",# actually works here so avoid the TODO
     "t/predeclare1.neon",           # verifier
     "t/process-test.neon",          # PredefinedVariable
     "t/recursion-limit.neon",       # segfault
@@ -117,7 +115,6 @@ ExcludeTests = [
     "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/uninitialised-if-nested.neon",   # verifier
     "t/uninitialised-if.neon",      # verifier
-    "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-repeat.neon",  # verifier
     "t/value-index.neon",           # TypeRecord
     "t/variant-test.neon",          # imported class name

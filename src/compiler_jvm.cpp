@@ -13,7 +13,7 @@ const uint16_t ACC_PUBLIC = 0x0001;
 const uint16_t ACC_STATIC = 0x0008;
 const uint16_t ACC_FINAL  = 0x0010;
 const uint16_t ACC_SUPER  = 0x0020;
-const uint16_t ACC_ENUM   = 0x4000;
+//const uint17_t ACC_ENUM   = 0x4000;
 
 const uint8_t CONSTANT_Class              =  7;
 const uint8_t CONSTANT_Fieldref           =  9;
@@ -43,11 +43,13 @@ const uint8_t OP_sipush         =  17;
 //const uint8_t OP_ldc            =  18;
 const uint8_t OP_ldc_w          =  19;
 const uint8_t OP_aload          =  25;
-const uint8_t OP_iload_2        =  28;
+//const uint8_t OP_iload_2        =  28;
 const uint8_t OP_aload_0        =  42;
-const uint8_t OP_aload_1        =  43;
+//const uint8_t OP_aload_1        =  43;
+const uint8_t OP_aaload         =  50;
 const uint8_t OP_astore         =  58;
 const uint8_t OP_astore_0       =  75;
+const uint8_t OP_aastore        =  83;
 const uint8_t OP_bastore        =  84;
 const uint8_t OP_pop            =  87;
 const uint8_t OP_dup            =  89;
@@ -81,6 +83,7 @@ const uint8_t OP_invokestatic   = 184;
 const uint8_t OP_invokeinterface= 185;
 const uint8_t OP_new            = 187;
 const uint8_t OP_newarray       = 188;
+const uint8_t OP_anewarray      = 189;
 //const uint8_t OP_arraylength    = 190;
 const uint8_t OP_athrow         = 191;
 const uint8_t OP_checkcast      = 192;
@@ -889,7 +892,7 @@ public:
     virtual void generate_decl(ClassContext &context) const = 0;
     virtual void generate_load(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
-    virtual void generate_call(Context &context) const = 0;
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const = 0;
 private:
     Variable(const Variable &);
     Variable &operator=(const Variable &);
@@ -911,7 +914,7 @@ public:
         }
     }
     virtual void generate_store(Context &) const override { internal_error("PredefinedVariable"); }
-    virtual void generate_call(Context &) const override { internal_error("PredefinedVariable"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("PredefinedVariable"); }
 private:
     PredefinedVariable(const PredefinedVariable &);
     PredefinedVariable &operator=(const PredefinedVariable &);
@@ -935,7 +938,7 @@ public:
     virtual void generate_store(Context &context) const override {
         context.ca.code << OP_putstatic << context.cf.Field(context.cf.name, gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)), type->jtype);
     }
-    virtual void generate_call(Context &) const override { internal_error("GlobalVariable"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("GlobalVariable"); }
 private:
     GlobalVariable(const GlobalVariable &);
     GlobalVariable &operator=(const GlobalVariable &);
@@ -974,7 +977,7 @@ public:
             context.ca.code << OP_wide << OP_astore << static_cast<uint16_t>(index);
         }
     }
-    virtual void generate_call(Context &) const override { internal_error("LocalVariable"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("LocalVariable"); }
 private:
     LocalVariable(const LocalVariable &);
     LocalVariable &operator=(const LocalVariable &);
@@ -996,8 +999,16 @@ public:
             context.ca.code << OP_wide << OP_aload << static_cast<uint16_t>(index);
         }
     }
-    virtual void generate_store(Context &) const override { internal_error("FunctionParameter"); }
-    virtual void generate_call(Context &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_store(Context &context) const override {
+        if (index < 4) {
+            context.ca.code << static_cast<uint8_t>(OP_astore_0 + index);
+        } else if (index < 256) {
+            context.ca.code << OP_astore << static_cast<uint8_t>(index);
+        } else {
+            context.ca.code << OP_wide << OP_astore << static_cast<uint16_t>(index);
+        }
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("FunctionParameter"); }
 private:
     FunctionParameter(const FunctionParameter &);
     FunctionParameter &operator=(const FunctionParameter &);
@@ -1011,7 +1022,7 @@ public:
     virtual ~Expression() {}
     const Type *type;
     virtual void generate(Context &context) const = 0;
-    virtual void generate_call(Context &context) const = 0;
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &) const = 0;
     virtual void generate_store(Context &context) const = 0;
 private:
     Expression(const Expression &);
@@ -1028,7 +1039,7 @@ public:
     virtual void generate(Context &context) const override {
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", cbe->value ? "TRUE" : "FALSE", "Ljava/lang/Boolean;");
     }
-    virtual void generate_call(Context &) const override { internal_error("ConstantBooleanExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantBooleanExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantBooleanExpression"); }
 private:
     ConstantBooleanExpression(const ConstantBooleanExpression &);
@@ -1052,7 +1063,7 @@ public:
             context.ca.code << OP_invokespecial << context.cf.Method("neon/type/Number", "<init>", "(Ljava/lang/String;)V");
         }
     }
-    virtual void generate_call(Context &) const override { internal_error("ConstantNumberExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantNumberExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantNumberExpression"); }
 private:
     ConstantNumberExpression(const ConstantNumberExpression &);
@@ -1068,7 +1079,7 @@ public:
         context.ca.code << OP_ldc_w << context.cf.String(cse->value);
     }
 
-    virtual void generate_call(Context &) const override { internal_error("ConstantStringExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantStringExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantStringExpression"); }
 private:
     ConstantStringExpression(const ConstantStringExpression &);
@@ -1093,7 +1104,7 @@ public:
         }
     }
 
-    virtual void generate_call(Context &) const override { internal_error("ConstantBytesExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantBytesExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantBytesExpression"); }
 private:
     ConstantBytesExpression(const ConstantBytesExpression &);
@@ -1116,7 +1127,7 @@ public:
         }
         internal_error("ConstantEnumExpression");
     }
-    virtual void generate_call(Context &) const override { internal_error("ConstantEnumExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantEnumExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantEnumExpression"); }
 private:
     ConstantEnumExpression(const ConstantEnumExpression &);
@@ -1132,7 +1143,7 @@ public:
         context.ca.code << OP_aconst_null;
     }
 
-    virtual void generate_call(Context &) const override { internal_error("ConstantNilExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantNilExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConstantNilExpression"); }
 private:
     ConstantNilExpression(const ConstantNilExpression &);
@@ -1162,7 +1173,7 @@ public:
         }
     }
 
-    virtual void generate_call(Context &) const override { internal_error("ArrayLiteralExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayLiteralExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ArrayLiteralExpression"); }
 private:
     ArrayLiteralExpression(const ArrayLiteralExpression &);
@@ -1191,7 +1202,7 @@ public:
             context.ca.code << OP_pop;
         }
     }
-    virtual void generate_call(Context &) const override { internal_error("DictionaryLiteralExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DictionaryLiteralExpression"); }
     virtual void generate_store(Context &) const override { internal_error("DictionaryLiteralExpression"); }
 private:
     DictionaryLiteralExpression(const DictionaryLiteralExpression &);
@@ -1218,7 +1229,7 @@ public:
         }
         context.ca.code << OP_invokespecial << context.cf.Method(type->classname, "<init>", type->get_init_descriptor());
     }
-    virtual void generate_call(Context &) const override { internal_error("RecordLiteralExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("RecordLiteralExpression"); }
     virtual void generate_store(Context &) const override { internal_error("RecordLiteralExpression"); }
 private:
     RecordLiteralExpression(const RecordLiteralExpression &);
@@ -1240,7 +1251,7 @@ public:
             type->generate_default(context);
         }
     }
-    virtual void generate_call(Context &) const override { internal_error("NewClassExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("NewClassExpression"); }
     virtual void generate_store(Context &) const override { internal_error("NewClassExpression"); }
 private:
     NewClassExpression(const NewClassExpression &);
@@ -1257,7 +1268,7 @@ public:
         value->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "negate", "()Lneon/type/Number;");
     }
-    virtual void generate_call(Context &) const override { internal_error("UnaryMinusExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("UnaryMinusExpression"); }
     virtual void generate_store(Context &) const override { internal_error("UnaryMinusExpression"); }
 private:
     UnaryMinusExpression(const UnaryMinusExpression &);
@@ -1277,7 +1288,7 @@ public:
         context.ca.code << OP_ixor;
         context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
     }
-    virtual void generate_call(Context &) const override { internal_error("LogicalNotExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("LogicalNotExpression"); }
     virtual void generate_store(Context &) const override { internal_error("LogicalNotExpression"); }
 private:
     LogicalNotExpression(const LogicalNotExpression &);
@@ -1304,7 +1315,7 @@ public:
         right->generate(context);
         context.jump_target(label_done);
     }
-    virtual void generate_call(Context &) const override { internal_error("ConditionalExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConditionalExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConditionalExpression"); }
 private:
     ConditionalExpression(const ConditionalExpression &);
@@ -1328,7 +1339,7 @@ public:
         right->generate(context);
         context.jump_target(label_true);
     }
-    virtual void generate_call(Context &) const override { internal_error("DisjunctionExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DisjunctionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("DisjunctionExpression"); }
 private:
     DisjunctionExpression(const DisjunctionExpression &);
@@ -1352,13 +1363,12 @@ public:
         right->generate(context);
         context.jump_target(label_false);
     }
-    virtual void generate_call(Context &) const override { internal_error("ConjunctionExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConjunctionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ConjunctionExpression"); }
 private:
     ConjunctionExpression(const ConjunctionExpression &);
     ConjunctionExpression &operator=(const ConjunctionExpression &);
 };
-
 
 class ArrayInExpression: public Expression {
 public:
@@ -1373,7 +1383,7 @@ public:
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "in", "(Ljava/lang/Object;)Z");
         context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
     }
-    virtual void generate_call(Context &) const override { internal_error("ArrayInExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayInExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ArrayInExpression"); }
 private:
     ArrayInExpression(const ArrayInExpression &);
@@ -1393,7 +1403,7 @@ public:
         context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/util/Map", "containsKey", "(Ljava/lang/Object;)Z") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
         context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
     }
-    virtual void generate_call(Context &) const override { internal_error("DictionaryInExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DictionaryInExpression"); }
     virtual void generate_store(Context &) const override { internal_error("DictionaryInExpression"); }
 private:
     DictionaryInExpression(const DictionaryInExpression &);
@@ -1414,7 +1424,7 @@ public:
     }
     virtual void generate_comparison(Context &context) const = 0;
 
-    virtual void generate_call(Context &) const override { internal_error("ComparisonExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ComparisonExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ComparisonExpression"); }
 private:
     ComparisonExpression(const ComparisonExpression &);
@@ -1455,7 +1465,7 @@ public:
         context.ca.code << OP_swap;
         context.ca.code << OP_pop;
     }
-    virtual void generate_call(Context &) const override { internal_error("ChainedComparisonExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ChainedComparisonExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ChainedComparisonExpression"); }
 private:
     ChainedComparisonExpression(const ChainedComparisonExpression &);
@@ -1631,7 +1641,7 @@ public:
         right->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "add", "(Lneon/type/Number;)Lneon/type/Number;");
     }
-    virtual void generate_call(Context &) const override { internal_error("AdditionExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("AdditionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("AdditionExpression"); }
 private:
     AdditionExpression(const AdditionExpression &);
@@ -1650,7 +1660,7 @@ public:
         right->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "subtract", "(Lneon/type/Number;)Lneon/type/Number;");
     }
-    virtual void generate_call(Context &) const override { internal_error("SubtractionExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("SubtractionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("SubtractionExpression"); }
 private:
     SubtractionExpression(const SubtractionExpression &);
@@ -1669,7 +1679,7 @@ public:
         right->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "multiply", "(Lneon/type/Number;)Lneon/type/Number;");
     }
-    virtual void generate_call(Context &) const override { internal_error("MultiplicationExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("MultiplicationExpression"); }
     virtual void generate_store(Context &) const override { internal_error("MultiplicationExpression"); }
 private:
     MultiplicationExpression(const MultiplicationExpression &);
@@ -1688,7 +1698,7 @@ public:
         right->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "divide", "(Lneon/type/Number;)Lneon/type/Number;");
     }
-    virtual void generate_call(Context &) const override { internal_error("DivisionExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DivisionExpression"); }
     virtual void generate_store(Context &) const override { internal_error("DivisionExpression"); }
 private:
     DivisionExpression(const DivisionExpression &);
@@ -1707,7 +1717,7 @@ public:
         right->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "remainder", "(Lneon/type/Number;)Lneon/type/Number;");
     }
-    virtual void generate_call(Context &) const override { internal_error("ModuloExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ModuloExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ModuloExpression"); }
 private:
     ModuloExpression(const ModuloExpression &);
@@ -1726,7 +1736,7 @@ public:
         right->generate(context);
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "pow", "(Lneon/type/Number;)Lneon/type/Number;");
     }
-    virtual void generate_call(Context &) const override { internal_error("ExponentiationExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ExponentiationExpression"); }
     virtual void generate_store(Context &) const override { internal_error("ExponentiationExpression"); }
 private:
     ExponentiationExpression(const ExponentiationExpression &);
@@ -1738,8 +1748,8 @@ public:
     DummyExpression(const ast::DummyExpression *de): Expression(de), de(de) {}
     const ast::DummyExpression *de;
 
-    virtual void generate(Context &) const override { internal_error("DummyExpression"); }
-    virtual void generate_call(Context &) const override { internal_error("DummyExpression"); }
+    virtual void generate(Context &context) const override { context.ca.code << OP_aconst_null; /* TODO: need this to do nothing for OUT _ parameters; internal_error("DummyExpression"); */ }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DummyExpression"); }
     virtual void generate_store(Context &context) const override {
         context.ca.code << OP_pop;
     }
@@ -1761,7 +1771,7 @@ public:
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "get", "(Lneon/type/Number;)Ljava/lang/Object;");
         context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeArray *>(array->type)->elementtype->classname);
     }
-    virtual void generate_call(Context &) const override { internal_error("ArrayReferenceIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         array->generate(context);
         context.ca.code << OP_swap;
@@ -1788,7 +1798,7 @@ public:
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "get", "(Lneon/type/Number;)Ljava/lang/Object;");
         context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeArray *>(array->type)->elementtype->classname);
     }
-    virtual void generate_call(Context &) const override { internal_error("ArrayValueIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayValueIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         array->generate(context);
         context.ca.code << OP_swap;
@@ -1815,7 +1825,7 @@ public:
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "dictionary__get", "(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Object;");
         context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeDictionary *>(dictionary->type)->elementtype->classname);
     }
-    virtual void generate_call(Context &) const override { internal_error("DictionaryReferenceIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DictionaryReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         dictionary->generate(context);
         context.ca.code << OP_swap;
@@ -1845,14 +1855,14 @@ public:
         context.push_integer(srie->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
     }
-    virtual void generate_call(Context &) const override { internal_error("StringReferenceIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StringReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         ref->generate(context);
         first->generate(context);
         context.push_integer(srie->first_from_end);
         last->generate(context);
         context.push_integer(srie->last_from_end);
-        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__splice", "(Ljava/lang/String;Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
         ref->generate_store(context);
     }
 private:
@@ -1876,7 +1886,7 @@ public:
         context.push_integer(svie->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "string__substring", "(Ljava/lang/String;Lneon/type/Number;ZLneon/type/Number;Z)Ljava/lang/String;");
     }
-    virtual void generate_call(Context &) const override { internal_error("StringValueIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("StringValueIndexExpression"); }
     virtual void generate_store(Context&) const override { internal_error("StringValueIndexExpression"); }
 private:
     StringValueIndexExpression(const StringValueIndexExpression &);
@@ -1899,7 +1909,7 @@ public:
         context.push_integer(brie->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
     }
-    virtual void generate_call(Context &) const override { internal_error("BytesReferenceIndexExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesReferenceIndexExpression"); }
     virtual void generate_store(Context &context) const override {
         ref->generate(context);
         first->generate(context);
@@ -1926,7 +1936,7 @@ public:
         ref->generate(context);
         context.ca.code << OP_getfield << context.cf.Field(rectype->classname, rrfe->field, fieldtype->jtype);
     }
-    virtual void generate_call(Context &) const override { internal_error("RecordReferenceFieldExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("RecordReferenceFieldExpression"); }
     virtual void generate_store(Context &context) const override {
         ref->generate(context);
         context.ca.code << OP_swap;
@@ -1949,7 +1959,7 @@ public:
         rec->generate(context);
         context.ca.code << OP_getfield << context.cf.Field(rectype->classname, rvfe->field, fieldtype->jtype);
     }
-    virtual void generate_call(Context &) const override { internal_error("RecordValueFieldExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("RecordValueFieldExpression"); }
     virtual void generate_store(Context &) const override { internal_error("RecordValueFieldExpression"); }
 private:
     RecordValueFieldExpression(const RecordValueFieldExpression &);
@@ -1972,7 +1982,7 @@ public:
         context.push_integer(arre->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
     }
-    virtual void generate_call(Context &) const override { internal_error("ArrayReferenceRangeExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual void generate_store(Context &context) const override {
         ref->generate(context);
         first->generate(context);
@@ -1980,6 +1990,7 @@ public:
         last->generate(context);
         context.push_integer(arre->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__splice", "(Lneon/type/Array;Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
+        ref->generate_store(context);
     }
 private:
     ArrayReferenceRangeExpression(const ArrayReferenceRangeExpression &);
@@ -2002,7 +2013,7 @@ public:
         context.push_integer(avre->last_from_end);
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "array__slice", "(Lneon/type/Array;Lneon/type/Number;ZLneon/type/Number;Z)Lneon/type/Array;");
     }
-    virtual void generate_call(Context &) const override { internal_error("ArrayValueRangeExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ArrayValueRangeExpression"); }
     virtual void generate_store(Context&) const override { internal_error("ArrayValueRangeExpression"); }
 private:
     ArrayValueRangeExpression(const ArrayValueRangeExpression &);
@@ -2018,7 +2029,7 @@ public:
     virtual void generate(Context &context) const override {
         ptr->generate(context);
     }
-    virtual void generate_call(Context &) const override { internal_error("PointerDereferenceExpression"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("PointerDereferenceExpression"); }
     virtual void generate_store(Context&) const override { internal_error("PointerDereferenceExpression"); }
 private:
     PointerDereferenceExpression(const PointerDereferenceExpression &);
@@ -2035,8 +2046,8 @@ public:
         var->generate_load(context);
     }
 
-    virtual void generate_call(Context &context) const override {
-        var->generate_call(context);
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
+        var->generate_call(context, args);
     }
     virtual void generate_store(Context &context) const override {
         var->generate_store(context);
@@ -2061,10 +2072,10 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        func->generate_call(context);
+        func->generate_call(context, args);
     }
 
-    virtual void generate_call(Context &) const override { internal_error("FunctionCall"); }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("FunctionCall"); }
     virtual void generate_store(Context &) const override { internal_error("FunctionCall"); }
 private:
     FunctionCall(const FunctionCall &);
@@ -2525,7 +2536,7 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const ast::Function *f): Variable(f), f(f), statements(), params(), signature() {
+    Function(const ast::Function *f): Variable(f), f(f), statements(), params(), signature(), out_count(0) {
         // Need to transform the function parameters before transforming
         // the code that might use them (statements).
         signature = "(";
@@ -2535,10 +2546,17 @@ public:
             params.push_back(q);
             g_variable_cache[p] = q;
             signature.append(q->type->jtype);
+            if (q->fp->mode == ast::ParameterType::INOUT || q->fp->mode == ast::ParameterType::OUT) {
+                out_count++;
+            }
             i++;
         }
         signature.append(")");
-        signature.append(dynamic_cast<const TypeFunction *>(type)->returntype->jtype);
+        if (out_count > 0) {
+            signature.append("[Ljava/lang/Object;");
+        } else {
+            signature.append(dynamic_cast<const TypeFunction *>(type)->returntype->jtype);
+        }
         for (auto s: f->statements) {
             statements.push_back(transform(s));
         }
@@ -2547,6 +2565,7 @@ public:
     std::vector<const Statement *> statements;
     std::vector<FunctionParameter *> params;
     std::string signature;
+    int out_count;
 
     virtual void generate_decl(ClassContext &context) const override {
         method_info m;
@@ -2564,16 +2583,41 @@ public:
                 for (auto s: statements) {
                     s->generate(function_context);
                 }
-                if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != ast::TYPE_NOTHING) {
-                    // This OP_aconst_null is only to support cases where the
-                    // compiler "allows" compiling a function that doesn't have
-                    // any RETURN statement (like an infinite loop).
-                    ca.code << OP_aconst_null;
+                if (out_count > 0) {
                     function_context.jump_target(function_context.label_exit);
+                    function_context.push_integer(1 + out_count);
+                    ca.code << OP_anewarray << function_context.cf.Class("java/lang/Object");
+                    if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != ast::TYPE_NOTHING) {
+                        ca.code << OP_dup_x1;
+                        ca.code << OP_swap;
+                        function_context.push_integer(0);
+                        ca.code << OP_swap;
+                        ca.code << OP_aastore;
+                    } else {
+                        int i = 1;
+                        for (auto p: params) {
+                            if (p->fp->mode == ast::ParameterType::INOUT || p->fp->mode == ast::ParameterType::OUT) {
+                                ca.code << OP_dup;
+                                function_context.push_integer(i);
+                                p->generate_load(function_context);
+                                ca.code << OP_aastore;
+                                i++;
+                            }
+                        }
+                    }
                     ca.code << OP_areturn;
                 } else {
-                    function_context.jump_target(function_context.label_exit);
-                    ca.code << OP_return;
+                    if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != ast::TYPE_NOTHING) {
+                        // This OP_aconst_null is only to support cases where the
+                        // compiler "allows" compiling a function that doesn't have
+                        // any RETURN statement (like an infinite loop).
+                        ca.code << OP_aconst_null;
+                        function_context.jump_target(function_context.label_exit);
+                        ca.code << OP_areturn;
+                    } else {
+                        function_context.jump_target(function_context.label_exit);
+                        ca.code << OP_return;
+                    }
                 }
                 a.info = ca.serialize();
             }
@@ -2583,8 +2627,29 @@ public:
     }
     virtual void generate_load(Context &) const override { internal_error("Function"); }
     virtual void generate_store(Context &) const override { internal_error("Function"); }
-    virtual void generate_call(Context &context) const override {
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
         context.ca.code << OP_invokestatic << context.cf.Method(context.cf.name, f->name, signature);
+        if (out_count > 0) {
+            int i = 1;
+            for (auto p: params) {
+                if (p->fp->mode == ast::ParameterType::INOUT || p->fp->mode == ast::ParameterType::OUT) {
+                    if (dynamic_cast<const DummyExpression *>(args[i-1]) == nullptr) {
+                        context.ca.code << OP_dup;
+                        context.push_integer(i);
+                        context.ca.code << OP_aaload;
+                        context.ca.code << OP_checkcast << context.cf.Class(args[i-1]->type->classname);
+                        args[i-1]->generate_store(context);
+                    }
+                    i++;
+                }
+            }
+            if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != ast::TYPE_NOTHING) {
+                context.push_integer(0);
+                context.ca.code << OP_aaload;
+                fprintf(stderr, "%s\n", typeid(*type).name());
+                context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeFunction *>(type)->returntype->classname);
+            }
+        }
     }
 private:
     Function(const Function &);
@@ -2599,10 +2664,11 @@ public:
     virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
-    virtual void generate_call(Context &context) const override {
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &) const override {
         for (size_t i = 0; i < sizeof(FunctionSignatures)/sizeof(FunctionSignatures[0]); i++) {
             if (pf->name == FunctionSignatures[i].name) {
                 context.ca.code << OP_invokestatic << context.cf.Method(FunctionSignatures[i].module, FunctionSignatures[i].function, FunctionSignatures[i].signature);
+                // TODO: out parameters
                 return;
             }
         }
@@ -2621,8 +2687,9 @@ public:
     virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_store(Context &) const override { internal_error("ModuleFunction"); }
-    virtual void generate_call(Context &context) const override {
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &) const override {
         context.ca.code << OP_invokestatic << context.cf.Method(mf->module, mf->name, "()V");
+        // TODO: out parameters
     }
 private:
     ModuleFunction(const ModuleFunction &);
