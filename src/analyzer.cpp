@@ -548,7 +548,7 @@ Analyzer::Analyzer(ICompilerSupport *support, const pt::Program *program, std::m
 }
 
 ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, const std::string &name, const std::map<std::string, int> &names, Analyzer *analyzer)
-  : TypeNumber(declaration, name),
+  : Type(declaration, name),
     module(module),
     names(names)
 {
