@@ -444,7 +444,7 @@ with open("src/functions_compile_jvm.inc", "w") as inc:
             name.replace("global$", ""),
             "neon/{}".format(module.title()),
             function,
-            "(" + "".join(JvmFromAst[(p, m)] for (p, m), t, n in zip(params, paramtypes, paramnames)) + ")" + JvmFromAst[rtype]
+            "(" + "".join(JvmFromAst[(p, m)] for (p, m), t, n in zip(params, paramtypes, paramnames)) + ")" + ("[Ljava/lang/Object;" if any(x[1] == REF for x in params) else JvmFromAst[rtype])
         )
     print >>inc, "};"
 

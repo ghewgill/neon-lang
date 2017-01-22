@@ -3,7 +3,6 @@ import sys
 
 ExcludeTests = [
     "t/array-resize.neon",          # array default item
-    "t/array-slice.neon",           # string append
     "t/array2d.neon",               # array copying semantics
     "t/bigint-test.neon",           # illegal character dot
     "t/cformat-test.neon",          # module variant
@@ -22,7 +21,6 @@ ExcludeTests = [
     "t/exception-code.neon",        # ExceptionType
     "t/export.neon",                # enum with no name
     "t/ffi.neon",                   # ExternalFunction
-    "t/file.neon",                  # module file (where is this?)
     "t/file-filecopied1.neon",      # exception identification
     "t/file-symlink.neon",          # file.symlink
     "t/file-test.neon",             # stack size

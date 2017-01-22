@@ -2667,6 +2667,8 @@ public:
                 context.push_integer(0);
                 context.ca.code << OP_aaload;
                 context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeFunction *>(type)->returntype->classname);
+            } else {
+                context.ca.code << OP_pop;
             }
         }
     }
@@ -2677,17 +2679,47 @@ private:
 
 class PredefinedFunction: public Variable {
 public:
-    PredefinedFunction(const ast::PredefinedFunction *pf): Variable(pf), pf(pf) {}
+    PredefinedFunction(const ast::PredefinedFunction *pf): Variable(pf), pf(pf), out_count(0) {
+        const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(pf->type);
+        for (auto p: tf->params) {
+            if (p->mode == ast::ParameterType::INOUT || p->mode == ast::ParameterType::OUT) {
+                out_count++;
+            }
+        }
+    }
     const ast::PredefinedFunction *pf;
+    int out_count;
 
     virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
-    virtual void generate_call(Context &context, const std::vector<const Expression *> &) const override {
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
         for (size_t i = 0; i < sizeof(FunctionSignatures)/sizeof(FunctionSignatures[0]); i++) {
             if (pf->name == FunctionSignatures[i].name) {
                 context.ca.code << OP_invokestatic << context.cf.Method(FunctionSignatures[i].module, FunctionSignatures[i].function, FunctionSignatures[i].signature);
-                // TODO: out parameters
+                if (out_count > 0) {
+                    const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(pf->type);
+                    int i = 1;
+                    for (auto p: tf->params) {
+                        if (p->mode == ast::ParameterType::INOUT || p->mode == ast::ParameterType::OUT) {
+                            if (dynamic_cast<const DummyExpression *>(args[i-1]) == nullptr) {
+                                context.ca.code << OP_dup;
+                                context.push_integer(i);
+                                context.ca.code << OP_aaload;
+                                context.ca.code << OP_checkcast << context.cf.Class(args[i-1]->type->classname);
+                                args[i-1]->generate_store(context);
+                            }
+                            i++;
+                        }
+                    }
+                    if (tf->returntype != ast::TYPE_NOTHING) {
+                        context.push_integer(0);
+                        context.ca.code << OP_aaload;
+                        context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeFunction *>(type)->returntype->classname);
+                    } else {
+                        context.ca.code << OP_pop;
+                    }
+                }
                 return;
             }
         }

@@ -2,8 +2,12 @@ package neon;
 
 public class Global {
 
-    public static void array__append(neon.type.Array self, Object element) {
+    public static Object[] array__append(neon.type.Array self, Object element) {
         self.add(element);
+        return new Object[] {
+            null,
+            self
+        };
     }
 
     public static neon.type.Array array__concat(neon.type.Array left, neon.type.Array right) {
@@ -17,10 +21,14 @@ public class Global {
         return r;
     }
 
-    public static void array__extend(neon.type.Array self, neon.type.Array elements) {
+    public static Object[] array__extend(neon.type.Array self, neon.type.Array elements) {
         for (Object x: elements) {
             self.add(x);
         }
+        return new Object[] {
+            null,
+            self
+        };
     }
 
     public static neon.type.Array array__range(neon.type.Number first, neon.type.Number last, neon.type.Number step) {
@@ -267,6 +275,13 @@ public class Global {
 
     public static String str(neon.type.Number x) {
         return x.toString();
+    }
+
+    public static Object[] string__append(String self, String t) {
+        return new Object[] {
+            null,
+            self + t
+        };
     }
 
     public static String string__substring(String str, neon.type.Number first, boolean first_from_end, neon.type.Number last, boolean last_from_end) {
