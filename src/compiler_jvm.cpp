@@ -2796,7 +2796,7 @@ public:
     virtual void visit(const ast::TypeRecord *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypeClass *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
-    virtual void visit(const ast::TypeFunctionPointer *) {}
+    virtual void visit(const ast::TypeFunctionPointer *) { internal_error("TypeFunctionPointer"); }
     virtual void visit(const ast::TypeEnum *node) { r = new TypeEnum(node); }
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
@@ -2912,9 +2912,9 @@ public:
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::LoopLabel *) {}
     virtual void visit(const ast::PredefinedVariable *node) { r = new PredefinedVariable(node); }
-    virtual void visit(const ast::ModuleVariable *) {}
+    virtual void visit(const ast::ModuleVariable *) { internal_error("ModuleVariable"); }
     virtual void visit(const ast::GlobalVariable *node) { r = new GlobalVariable(node); }
-    virtual void visit(const ast::ExternalGlobalVariable *) {}
+    virtual void visit(const ast::ExternalGlobalVariable *) { internal_error("ExternalGlobalVariable"); }
     virtual void visit(const ast::LocalVariable *node) { r = new LocalVariable(node); }
     virtual void visit(const ast::FunctionParameter *) { /*r = new FunctionParameter(node);*/ }
     virtual void visit(const ast::Exception *) {}
@@ -3035,7 +3035,7 @@ public:
     virtual void visit(const ast::ConstantBytesExpression *node) { r = new ConstantBytesExpression(node); }
     virtual void visit(const ast::ConstantEnumExpression *node) { r = new ConstantEnumExpression(node); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
-    virtual void visit(const ast::ConstantNowhereExpression *) {}
+    virtual void visit(const ast::ConstantNowhereExpression *) { internal_error("ConstantNowhereExpression"); }
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
     virtual void visit(const ast::RecordLiteralExpression *node) { r = new RecordLiteralExpression(node); }
@@ -3043,7 +3043,7 @@ public:
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
     virtual void visit(const ast::LogicalNotExpression *node) { r = new LogicalNotExpression(node); }
     virtual void visit(const ast::ConditionalExpression *node) { r = new ConditionalExpression(node); }
-    virtual void visit(const ast::TryExpression *) {}
+    virtual void visit(const ast::TryExpression *) { internal_error("TryExpression"); }
     virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
@@ -3054,10 +3054,10 @@ public:
     virtual void visit(const ast::EnumComparisonExpression *node) { r = new EnumComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
-    virtual void visit(const ast::DictionaryComparisonExpression *) {}
+    virtual void visit(const ast::DictionaryComparisonExpression *) { internal_error("DictionaryComparisonExpression"); }
     virtual void visit(const ast::PointerComparisonExpression *node) { r = new PointerComparisonExpression(node); }
     virtual void visit(const ast::ValidPointerExpression *node) { r = new ValidPointerExpression(node); }
-    virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
+    virtual void visit(const ast::FunctionPointerComparisonExpression *) { internal_error("FunctionPointerComparisonExpression"); }
     virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
     virtual void visit(const ast::SubtractionExpression *node) { r = new SubtractionExpression(node); }
     virtual void visit(const ast::MultiplicationExpression *node) { r = new MultiplicationExpression(node); }
@@ -3068,11 +3068,11 @@ public:
     virtual void visit(const ast::ArrayReferenceIndexExpression *node) { r = new ArrayReferenceIndexExpression(node); }
     virtual void visit(const ast::ArrayValueIndexExpression *node) { r = new ArrayValueIndexExpression(node); }
     virtual void visit(const ast::DictionaryReferenceIndexExpression *node) { r = new DictionaryReferenceIndexExpression(node); }
-    virtual void visit(const ast::DictionaryValueIndexExpression *) {}
+    virtual void visit(const ast::DictionaryValueIndexExpression *) { internal_error("DictionaryValueIndexExpression"); }
     virtual void visit(const ast::StringReferenceIndexExpression *node) { r = new StringReferenceIndexExpression(node); }
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
-    virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::BytesValueIndexExpression *) { internal_error("BytesValueIndexExpression"); }
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
@@ -3194,7 +3194,7 @@ public:
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *node) { r = new NullStatement(node); }
     virtual void visit(const ast::DeclarationStatement *node) { r = new DeclarationStatement(node); }
-    virtual void visit(const ast::ExceptionHandlerStatement *) {}
+    virtual void visit(const ast::ExceptionHandlerStatement *) { internal_error("ExceptionHandlerStatement" ); }
     virtual void visit(const ast::AssertStatement *node) { r = new AssertStatement(node); }
     virtual void visit(const ast::AssignmentStatement *node) { r = new AssignmentStatement(node); }
     virtual void visit(const ast::ExpressionStatement *node) { r = new ExpressionStatement(node); }
@@ -3225,7 +3225,7 @@ Type *transform(const ast::Type *t)
     if (t == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform type %s %s\n", typeid(*t).name(), t->text().c_str());
+    //fprintf(stderr, "transform type %s %s\n", typeid(*t).name(), t->text().c_str());
     auto i = g_type_cache.find(t);
     if (i != g_type_cache.end()) {
         return i->second;
@@ -3240,7 +3240,7 @@ Variable *transform(const ast::Variable *v)
     if (v == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform variable %s %s\n", typeid(*v).name(), v->text().c_str());
+    //fprintf(stderr, "transform variable %s %s\n", typeid(*v).name(), v->text().c_str());
     auto i = g_variable_cache.find(v);
     if (i != g_variable_cache.end()) {
         return i->second;
@@ -3255,7 +3255,7 @@ Expression *transform(const ast::Expression *e)
     if (e == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform expression %s %s\n", typeid(*e).name(), e->text().c_str());
+    //fprintf(stderr, "transform expression %s %s\n", typeid(*e).name(), e->text().c_str());
     auto i = g_expression_cache.find(e);
     if (i != g_expression_cache.end()) {
         return i->second;
@@ -3270,7 +3270,7 @@ Statement *transform(const ast::Statement *s)
     if (s == nullptr) {
         return nullptr;
     }
-    fprintf(stderr, "transform statement %s %s\n", typeid(*s).name(), s->text().c_str());
+    //fprintf(stderr, "transform statement %s %s\n", typeid(*s).name(), s->text().c_str());
     auto i = g_statement_cache.find(s);
     if (i != g_statement_cache.end()) {
         return i->second;

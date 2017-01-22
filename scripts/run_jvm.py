@@ -5,8 +5,6 @@ ExcludeTests = [
     "t/array-resize.neon",          # array default item
     "t/array-slice.neon",           # string append
     "t/array2d.neon",               # array copying semantics
-    "t/assert-fail.neon",           # stderr
-    "t/assert-fail2.neon",          # stderr
     "t/bigint-test.neon",           # ModuleFunction
     "t/cformat-test.neon",          # ModuleFunction
     "t/cmdline.neon",               # PredefinedVariable
