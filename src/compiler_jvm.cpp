@@ -1839,6 +1839,26 @@ private:
     DictionaryReferenceIndexExpression &operator=(const DictionaryReferenceIndexExpression &);
 };
 
+class DictionaryValueIndexExpression: public Expression {
+public:
+    DictionaryValueIndexExpression(const ast::DictionaryValueIndexExpression *dvie): Expression(dvie), dvie(dvie), dictionary(transform(dvie->dictionary)), index(transform(dvie->index)) {}
+    const ast::DictionaryValueIndexExpression *dvie;
+    const Expression *dictionary;
+    const Expression *index;
+
+    virtual void generate(Context &context) const override {
+        dictionary->generate(context);
+        index->generate(context);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "dictionary__get", "(Ljava/util/Map;Ljava/lang/String;)Ljava/lang/Object;");
+        context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeDictionary *>(dictionary->type)->elementtype->classname);
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("DictionaryValueIndexExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("DictionaryValueIndexExpression"); }
+private:
+    DictionaryValueIndexExpression(const DictionaryValueIndexExpression &);
+    DictionaryValueIndexExpression &operator=(const DictionaryValueIndexExpression &);
+};
+
 class StringReferenceIndexExpression: public Expression {
 public:
     StringReferenceIndexExpression(const ast::StringReferenceIndexExpression *srie): Expression(srie), srie(srie), ref(transform(srie->ref)), first(transform(srie->first)), last(transform(srie->last)) {}
@@ -2646,7 +2666,6 @@ public:
             if (dynamic_cast<const ast::TypeFunction *>(f->type)->returntype != ast::TYPE_NOTHING) {
                 context.push_integer(0);
                 context.ca.code << OP_aaload;
-                fprintf(stderr, "%s\n", typeid(*type).name());
                 context.ca.code << OP_checkcast << context.cf.Class(dynamic_cast<const TypeFunction *>(type)->returntype->classname);
             }
         }
@@ -3068,7 +3087,7 @@ public:
     virtual void visit(const ast::ArrayReferenceIndexExpression *node) { r = new ArrayReferenceIndexExpression(node); }
     virtual void visit(const ast::ArrayValueIndexExpression *node) { r = new ArrayValueIndexExpression(node); }
     virtual void visit(const ast::DictionaryReferenceIndexExpression *node) { r = new DictionaryReferenceIndexExpression(node); }
-    virtual void visit(const ast::DictionaryValueIndexExpression *) { internal_error("DictionaryValueIndexExpression"); }
+    virtual void visit(const ast::DictionaryValueIndexExpression *node) { r = new DictionaryValueIndexExpression(node); }
     virtual void visit(const ast::StringReferenceIndexExpression *node) { r = new StringReferenceIndexExpression(node); }
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }

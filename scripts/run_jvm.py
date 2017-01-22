@@ -13,7 +13,7 @@ ExcludeTests = [
     "t/concat-bytes.neon",          # confusion between Bytes and String
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # debugger.log
-    "t/debug-server.neon",          # DictionaryValueIndexExpression
+    "t/debug-server.neon",          # illegal character dot
     "t/decimal.neon",               # exception
     "t/encoding-base64.neon",       # ModuleFunction
     "t/enum.neon",                  # enum toString
@@ -44,7 +44,7 @@ ExcludeTests = [
     "t/inline-construct-record.neon",   # stack size too large
     "t/inline-init-record.neon",    # stack size too large
     "t/io-test.neon",               # PredefinedVariable
-    "t/json-test.neon",             # DictionaryValueIndexExpression
+    "t/json-test.neon",             # illegal character dot
     "t/lisp-test.neon",             # TypeFunctionPointer
     "t/math-test.neon",             # math.abs
     "t/mkdir.neon",                 # file.mkdir
@@ -99,7 +99,6 @@ ExcludeTests = [
     "t/tostring.neon",              # enum tostring
     "t/try-expression.neon",        # TryExpression
     "t/unicode-length.neon",        # actually works here so avoid the TODO
-    "t/value-index.neon",           # DictionaryValueIndexExpression
     "t/variant-test.neon",          # illegal character dot
     "t/win32-test.neon",            # illegal character dot
 ]
