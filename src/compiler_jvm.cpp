@@ -711,7 +711,7 @@ public:
                 code.attribute_name_index = cf.utf8("Code");
                 {
                     Code_attribute ca;
-                    ca.max_stack = 8;
+                    ca.max_stack = 16;
                     ca.max_locals = static_cast<uint16_t>(1 + tr->fields.size());
                     ca.code << OP_aload_0;
                     ca.code << OP_invokespecial << cf.Method("java/lang/Object", "<init>", "()V");
@@ -800,7 +800,7 @@ public:
                 code.attribute_name_index = cf.utf8("Code");
                 {
                     Code_attribute ca;
-                    ca.max_stack = 8;
+                    ca.max_stack = 16;
                     ca.max_locals = 4;
                     Context function_context(context.cc, ca);
                     ca.code << OP_aload_0;
@@ -830,7 +830,7 @@ public:
                 code.attribute_name_index = cf.utf8("Code");
                 {
                     Code_attribute ca;
-                    ca.max_stack = 8;
+                    ca.max_stack = 16;
                     ca.max_locals = 4;
                     Context function_context(context.cc, ca);
                     ca.code << OP_aload_0;
@@ -853,7 +853,7 @@ public:
                 code.attribute_name_index = cf.utf8("Code");
                 {
                     Code_attribute ca;
-                    ca.max_stack = 8;
+                    ca.max_stack = 16;
                     ca.max_locals = 4;
                     Context function_context(context.cc, ca);
 #if 0
@@ -2597,7 +2597,7 @@ public:
             a.attribute_name_index = context.cf.utf8("Code");
             {
                 Code_attribute ca;
-                ca.max_stack = 8; // TODO
+                ca.max_stack = 16; // TODO
                 ca.max_locals = static_cast<uint16_t>(params.size());
                 Context function_context(context, ca);
                 for (auto s: statements) {
@@ -2792,7 +2792,7 @@ public:
                 code.attribute_name_index = cf.utf8("Code");
                 {
                     Code_attribute ca;
-                    ca.max_stack = 8;
+                    ca.max_stack = 16;
                     ca.max_locals = 1;
                     Context context(classcontext, ca);
                     for (auto s: statements) {

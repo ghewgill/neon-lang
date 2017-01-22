@@ -410,6 +410,7 @@ public:
     TypeBytes(): TypeString() {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual const Expression *make_default_value() const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "Y"; }
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
