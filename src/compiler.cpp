@@ -649,6 +649,21 @@ void ast::TypeFunctionPointer::get_type_references(std::set<const Type *> &refer
     }
 }
 
+void ast::TypeEnum::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADN);
+}
+
+void ast::TypeEnum::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREN);
+}
+
+void ast::TypeEnum::generate_call(Emitter &) const
+{
+    internal_error("TypeEnum");
+}
+
 std::string ast::TypeEnum::get_type_descriptor(Emitter &) const
 {
     std::string r = "E[";
