@@ -33,6 +33,10 @@ public class File {
         return Boolean.valueOf(new java.io.File(filename).exists());
     }
 
+    public static void mkdir(String path) {
+        new java.io.File(path).mkdir();
+    }
+
     public static byte[] readBytes(String filename) {
         java.io.InputStream in;
         try {

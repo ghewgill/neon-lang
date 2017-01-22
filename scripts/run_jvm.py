@@ -15,25 +15,19 @@ ExcludeTests = [
     "t/concat-bytes.neon",          # confusion between Bytes and String
     "t/datetime-test.neon",         # ModuleFunction
     "t/debug-example.neon",         # debugger.log
-    "t/debug-server.neon",          # FunctionParameter
+    "t/debug-server.neon",          # DictionaryValueIndexExpression
     "t/decimal.neon",               # exception
     "t/encoding-base64.neon",       # ModuleFunction
     "t/enum.neon",                  # enum toString
     "t/equality.neon",              # TypeFunctionPointer
-    "t/exception-as.neon",          # record
-    "t/exception-code.neon",        # record
+    "t/exception-as.neon",          # ExceptionType
+    "t/exception-code.neon",        # ExceptionType
     "t/export.neon",                # enum with no name
     "t/ffi.neon",                   # ExternalFunction
-    "t/file.neon",                  # module file
-    "t/file-exists.neon",           # FunctionParameter
-    "t/file-filecopied.neon",       # FunctionParameter
+    "t/file.neon",                  # module file (where is this?)
     "t/file-filecopied1.neon",      # exception identification
-    "t/file-filecopied2.neon",      # FunctionParameter
-    "t/file-filecopied3.neon",      # FunctionParameter
-    "t/file-symlink.neon",          # FunctionParameter
-    "t/file-test.neon",             # FunctionParameter
-    "t/file-writebytes.neon",       # FunctionParameter
-    "t/file-writelines.neon",       # FunctionParameter
+    "t/file-symlink.neon",          # file.symlink
+    "t/file-test.neon",             # stack size
     "t/for.neon",                   # number format (2 vs 2.0)
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
@@ -47,35 +41,31 @@ ExcludeTests = [
     "t/gc3.neon",                   # PredefinedVariable
     "t/hash-test.neon",             # sha-3
     "t/http-test.neon",             # module os
-    "t/import-dup.neon",            # module sys
     "t/import.neon",                # ModuleVariable
-    "t/indent.neon",                # verifier
-    "t/index.neon",                 # record
+    "t/index.neon",                 # copy semantics
     "t/inline-construct-record.neon",   # stack size too large
     "t/inline-init-record.neon",    # stack size too large
     "t/io-test.neon",               # PredefinedVariable
-    "t/json-test.neon",             # ModuleFunction
-    "t/lisp-test.neon",             # ModuleFunction
+    "t/json-test.neon",             # DictionaryValueIndexExpression
+    "t/lisp-test.neon",             # TypeFunctionPointer
     "t/math-test.neon",             # math.abs
-    "t/mkdir.neon",                 # TypeRecord
+    "t/mkdir.neon",                 # file.mkdir
     "t/mmap-test.neon",             # module mmap
     "t/module-alias.neon",          # module math
     "t/module-alias2.neon",         # ModuleVariable
-    "t/module-assign-let.neon",     # TypeRecord
-    "t/module-assign-var.neon",     # TypeRecord
+    "t/module-assign-let.neon",     # TypeFunctionPointer
+    "t/module-assign-var.neon",     # TypeFunctionPointer
     "t/module-import-name-alias.neon",  # module math
-    "t/module-import-name-alias2.neon", # ModuleVariable
+    "t/module-import-name-alias2.neon", # TypeFunctionPointer
     "t/module-import-name.neon",    # module math
-    "t/module-import-name2.neon",   # ModuleVariable
-    "t/module-scope.neon",          # TypeRecord
+    "t/module-import-name2.neon",   # TypeFunctionPointer
     "t/module.neon",                # TypeFunctionPointer
     "t/module2.neon",               # TypeFunctionPointer
     "t/modulo.neon",                # modulo
-    "t/multiarray-test.neon",       # ModuleFunction
-    "t/net-test.neon",              # record
+    "t/multiarray-test.neon",       # verifier - bad type in putfield
+    "t/net-test.neon",              # dot in descriptor
     "t/new-init-module.neon",       # TypeFunctionPointer
     "t/number-ceil.neon",           # module math
-    "t/number-underscore.neon",     # PredefinedVariable
     "t/os-test.neon",               # module os
     "t/outer-parameter.neon",       # verifier
     "t/outer-tail.neon",            # verifier
@@ -83,15 +73,13 @@ ExcludeTests = [
     "t/outer2.neon",                # verifier
     "t/parameter-inout-array.neon", # actually works here so avoid the TODO
     "t/parameter-inout-string.neon",# actually works here so avoid the TODO
-    "t/predeclare1.neon",           # verifier
-    "t/process-test.neon",          # PredefinedVariable
-    "t/recursion-limit.neon",       # segfault
-    "t/recursion.neon",             # segfault
-    "t/regex-test.neon",            # TypeRecord
+    "t/process-test.neon",          # module process
+    "t/recursion-limit.neon",       # module runtime
+    "t/regex-test.neon",            # module regex
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
-    "t/rtl.neon",                   # TypeRecord
-    "t/sodium-test.neon",           # TypeRecord
+    "t/rtl.neon",                   # ExceptionType
+    "t/sodium-test.neon",           # module sodium
     "t/sql-connect.neon",           # ModuleVariable
     "t/sql-cursor.neon",            # ModuleVariable
     "t/sql-embed.neon",             # ModuleVariable
@@ -99,26 +87,23 @@ ExcludeTests = [
     "t/sql-query.neon",             # ModuleVariable
     "t/sql-whenever.neon",          # ModuleVariable
     "t/sqlite-test.neon",           # bad type
-    "t/stack-overflow.neon",        # segfault
+    "t/stack-overflow.neon",        # catch stack overflow
     "t/string-bytes.neon",          # format
     "t/string-format.neon",         # format
-    "t/string-test.neon",           # ModuleFunction
+    "t/string-test.neon",           # module string
     "t/strings.neon",               # stack size too large
-    "t/struct-test.neon",           # ModuleFunction
+    "t/struct-test.neon",           # illegal character dot
     "t/sudoku-test.neon",           # ModuleFunction
-    "t/sys-exit.neon",              # TypeRecord
-    "t/tail-call.neon",             # segfault
-    "t/time-stopwatch.neon",        # imported record
+    "t/sys-exit.neon",              # TypeFunctionPointer
+    "t/tail-call.neon",             # stack overflow
+    "t/time-stopwatch.neon",        # illegal character dot
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # enum tostring
     "t/try-expression.neon",        # TryExpression
     "t/unicode-length.neon",        # actually works here so avoid the TODO
-    "t/uninitialised-if-nested.neon",   # verifier
-    "t/uninitialised-if.neon",      # verifier
-    "t/uninitialised-repeat.neon",  # verifier
-    "t/value-index.neon",           # TypeRecord
-    "t/variant-test.neon",          # imported class name
-    "t/win32-test.neon",            # ModuleFunction
+    "t/value-index.neon",           # DictionaryValueIndexExpression
+    "t/variant-test.neon",          # illegal character dot
+    "t/win32-test.neon",            # illegal character dot
 ]
 
 fullname = sys.argv[1]
