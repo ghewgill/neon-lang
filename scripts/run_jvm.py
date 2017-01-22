@@ -5,17 +5,17 @@ ExcludeTests = [
     "t/array-resize.neon",          # array default item
     "t/array-slice.neon",           # string append
     "t/array2d.neon",               # array copying semantics
-    "t/bigint-test.neon",           # ModuleFunction
-    "t/cformat-test.neon",          # ModuleFunction
-    "t/cmdline.neon",               # PredefinedVariable
-    "t/complex-test.neon",          # ModuleFunction
+    "t/bigint-test.neon",           # illegal character dot
+    "t/cformat-test.neon",          # module variant
+    "t/cmdline.neon",               # PredefinedVariable sys$args
+    "t/complex-test.neon",          # illegal character dot
     "t/compress-test.neon",         # compress.gzip
     "t/concat-bytes.neon",          # confusion between Bytes and String
-    "t/datetime-test.neon",         # ModuleFunction
+    "t/datetime-test.neon",         # illegal character dot
     "t/debug-example.neon",         # debugger.log
     "t/debug-server.neon",          # illegal character dot
     "t/decimal.neon",               # exception
-    "t/encoding-base64.neon",       # ModuleFunction
+    "t/encoding-base64.neon",       # verifier - incompatible object for function call
     "t/enum.neon",                  # enum toString
     "t/equality.neon",              # TypeFunctionPointer
     "t/exception-as.neon",          # ExceptionType
@@ -29,7 +29,6 @@ ExcludeTests = [
     "t/for.neon",                   # number format (2 vs 2.0)
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
-    "t/forward.neon",               # segfault
     "t/function-pointer-nowhere.neon",  # ConstantNowhereExpression
     "t/function-pointer.neon",      # TypeFunctionPointer
     "t/gc-array.neon",              # module runtime
@@ -43,14 +42,14 @@ ExcludeTests = [
     "t/index.neon",                 # copy semantics
     "t/inline-construct-record.neon",   # stack size too large
     "t/inline-init-record.neon",    # stack size too large
-    "t/io-test.neon",               # PredefinedVariable
+    "t/io-test.neon",               # PredefinedVariable io$stdout
     "t/json-test.neon",             # illegal character dot
     "t/lisp-test.neon",             # TypeFunctionPointer
     "t/math-test.neon",             # math.abs
     "t/mkdir.neon",                 # file.mkdir
     "t/mmap-test.neon",             # module mmap
     "t/module-alias.neon",          # module math
-    "t/module-alias2.neon",         # ModuleVariable
+    "t/module-alias2.neon",         # TypeFunctionPointer
     "t/module-assign-let.neon",     # TypeFunctionPointer
     "t/module-assign-var.neon",     # TypeFunctionPointer
     "t/module-import-name-alias.neon",  # module math
@@ -61,7 +60,7 @@ ExcludeTests = [
     "t/module2.neon",               # TypeFunctionPointer
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # verifier - bad type in putfield
-    "t/net-test.neon",              # dot in descriptor
+    "t/net-test.neon",              # illegal character dot
     "t/new-init-module.neon",       # TypeFunctionPointer
     "t/number-ceil.neon",           # module math
     "t/os-test.neon",               # module os
@@ -91,7 +90,7 @@ ExcludeTests = [
     "t/string-test.neon",           # module string
     "t/strings.neon",               # stack size too large
     "t/struct-test.neon",           # illegal character dot
-    "t/sudoku-test.neon",           # ModuleFunction
+    "t/sudoku-test.neon",           # TypeFunctionPointer
     "t/sys-exit.neon",              # TypeFunctionPointer
     "t/tail-call.neon",             # stack overflow
     "t/time-stopwatch.neon",        # illegal character dot
