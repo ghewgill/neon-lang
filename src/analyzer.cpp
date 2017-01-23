@@ -1700,8 +1700,10 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
         return new ast::BooleanComparisonExpression(left, right, comp);
     } else if (left->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         return new ast::NumericComparisonExpression(left, right, comp);
-    } else if (left->type->is_assignment_compatible(ast::TYPE_STRING) || left->type->is_assignment_compatible(ast::TYPE_BYTES)) {
+    } else if (left->type->is_assignment_compatible(ast::TYPE_STRING)) {
         return new ast::StringComparisonExpression(left, right, comp);
+    } else if (left->type->is_assignment_compatible(ast::TYPE_BYTES)) {
+        return new ast::BytesComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr) {
         if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3032, token, "comparison not available for Array");

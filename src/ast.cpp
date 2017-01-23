@@ -585,6 +585,19 @@ bool StringComparisonExpression::eval_boolean() const
     internal_error("StringComparisonExpression");
 }
 
+bool BytesComparisonExpression::eval_boolean() const
+{
+    switch (comp) {
+        case EQ: return left->eval_string() == right->eval_string();
+        case NE: return left->eval_string() != right->eval_string();
+        case LT: return left->eval_string() <  right->eval_string();
+        case GT: return left->eval_string() >  right->eval_string();
+        case LE: return left->eval_string() <= right->eval_string();
+        case GE: return left->eval_string() >= right->eval_string();
+    }
+    internal_error("BytesComparisonExpression");
+}
+
 bool IfStatement::always_returns() const
 {
     for (auto cond: condition_statements) {

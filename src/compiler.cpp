@@ -1171,6 +1171,12 @@ void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitte
     emitter.emit(op[comp]);
 }
 
+void ast::BytesComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQS, NES, LTS, GTS, LES, GES};
+    emitter.emit(op[comp]);
+}
+
 void ast::ArrayComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQA, NEA};
