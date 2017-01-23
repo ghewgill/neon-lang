@@ -16,7 +16,7 @@ ExcludeTests = [
     "t/decimal.neon",               # exception
     "t/encoding-base64.neon",       # verifier - incompatible object for function call
     "t/enum.neon",                  # enum toString
-    "t/equality.neon",              # TypeFunctionPointer
+    "t/equality.neon",              # DictionaryComparisonExpression
     "t/exception-as.neon",          # ExceptionType
     "t/exception-code.neon",        # ExceptionType
     "t/export.neon",                # enum with no name
@@ -28,7 +28,7 @@ ExcludeTests = [
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
     "t/function-pointer-nowhere.neon",  # ConstantNowhereExpression
-    "t/function-pointer.neon",      # TypeFunctionPointer
+    #"t/function-pointer.neon",      # TypeFunctionPointer
     "t/gc-array.neon",              # module runtime
     "t/gc-long-chain.neon",         # module runtime
     "t/gc1.neon",                   # PredefinedVariable
@@ -42,24 +42,24 @@ ExcludeTests = [
     "t/inline-init-record.neon",    # stack size too large
     "t/io-test.neon",               # PredefinedVariable io$stdout
     "t/json-test.neon",             # illegal character dot
-    "t/lisp-test.neon",             # TypeFunctionPointer
+    "t/lisp-test.neon",             # ConstantNowhereExpression
     "t/math-test.neon",             # math.abs
     "t/mkdir.neon",                 # file.mkdir
     "t/mmap-test.neon",             # module mmap
     "t/module-alias.neon",          # module math
-    "t/module-alias2.neon",         # TypeFunctionPointer
-    "t/module-assign-let.neon",     # TypeFunctionPointer
-    "t/module-assign-var.neon",     # TypeFunctionPointer
+    "t/module-alias2.neon",         # ModuleVariable
+    #"t/module-assign-let.neon",     # TypeFunctionPointer
+    #"t/module-assign-var.neon",     # TypeFunctionPointer
     "t/module-import-name-alias.neon",  # module math
-    "t/module-import-name-alias2.neon", # TypeFunctionPointer
+    "t/module-import-name-alias2.neon", # ModuleVariable
     "t/module-import-name.neon",    # module math
-    "t/module-import-name2.neon",   # TypeFunctionPointer
-    "t/module.neon",                # TypeFunctionPointer
-    "t/module2.neon",               # TypeFunctionPointer
+    "t/module-import-name2.neon",   # ModuleVariable
+    "t/module.neon",                # NoClassDefFoundError
+    "t/module2.neon",               # ModuleVariable
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # verifier - bad type in putfield
     "t/net-test.neon",              # illegal character dot
-    "t/new-init-module.neon",       # TypeFunctionPointer
+    "t/new-init-module.neon",       # NoClassDefFoundError
     "t/number-ceil.neon",           # module math
     "t/os-test.neon",               # module os
     "t/outer-parameter.neon",       # verifier
@@ -88,8 +88,8 @@ ExcludeTests = [
     "t/string-test.neon",           # module string
     "t/strings.neon",               # stack size too large
     "t/struct-test.neon",           # illegal character dot
-    "t/sudoku-test.neon",           # TypeFunctionPointer
-    "t/sys-exit.neon",              # TypeFunctionPointer
+    "t/sudoku-test.neon",           # FunctionParameter
+    "t/sys-exit.neon",              # ExceptionType
     "t/tail-call.neon",             # stack overflow
     "t/time-stopwatch.neon",        # illegal character dot
     "t/time-test.neon",             # module time
