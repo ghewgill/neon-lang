@@ -1193,6 +1193,22 @@ private:
     ConstantNilExpression &operator=(const ConstantNilExpression &);
 };
 
+class ConstantNowhereExpression: public Expression {
+public:
+    ConstantNowhereExpression(const ast::ConstantNowhereExpression *cne): Expression(cne), cne(cne) {}
+    const ast::ConstantNowhereExpression *cne;
+
+    virtual void generate(Context &context) const override {
+        context.ca.code << OP_aconst_null;
+    }
+
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantNowhereExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConstantNowhereExpression"); }
+private:
+    ConstantNowhereExpression(const ConstantNowhereExpression &);
+    ConstantNowhereExpression &operator=(const ConstantNowhereExpression &);
+};
+
 class ArrayLiteralExpression: public Expression {
 public:
     ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): Expression(ale), ale(ale), elements() {
@@ -1670,6 +1686,27 @@ public:
 private:
     ValidPointerExpression(const ValidPointerExpression &);
     ValidPointerExpression &operator=(const ValidPointerExpression &);
+};
+
+class FunctionPointerComparisonExpression: public ComparisonExpression {
+public:
+    FunctionPointerComparisonExpression(const ast::FunctionPointerComparisonExpression *fpce): ComparisonExpression(fpce), fpce(fpce) {}
+    const ast::FunctionPointerComparisonExpression *fpce;
+
+    virtual void generate_comparison(Context &context) const override {
+        static const uint8_t op[] = {OP_if_acmpeq, OP_if_acmpne};
+        auto label_true = context.create_label();
+        context.emit_jump(op[fpce->comp], label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
+        context.jump_target(label_false);
+    }
+private:
+    FunctionPointerComparisonExpression(const FunctionPointerComparisonExpression &);
+    FunctionPointerComparisonExpression &operator=(const FunctionPointerComparisonExpression &);
 };
 
 class AdditionExpression: public Expression {
@@ -2676,24 +2713,20 @@ public:
     }
     virtual void generate_load(Context &context) const override {
         // Get a handle to a function for function pointer support.
-        context.ca.code << OP_ldc_w << context.cf.String(context.cf.name); // TODO: change slashes to dots
+        context.ca.code << OP_ldc_w << context.cf.String(replace_slashes_with_dots(context.cf.name));
         context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
         context.ca.code << OP_ldc_w << context.cf.String(f->name);
-        context.push_integer(2);
+        context.push_integer(params.size());
         context.ca.code << OP_anewarray << context.cf.Class("java/lang/Class");
-
-        context.ca.code << OP_dup;
-        context.push_integer(0);
-        context.ca.code << OP_ldc_w << context.cf.String("neon.type.Number");
-        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
-        context.ca.code << OP_aastore;
-
-        context.ca.code << OP_dup;
-        context.push_integer(1);
-        context.ca.code << OP_ldc_w << context.cf.String("java.lang.String");
-        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
-        context.ca.code << OP_aastore;
-
+        int i = 0;
+        for (auto p: params) {
+            context.ca.code << OP_dup;
+            context.push_integer(i);
+            context.ca.code << OP_ldc_w << context.cf.String(replace_slashes_with_dots(p->type->classname));
+            context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+            context.ca.code << OP_aastore;
+            i++;
+        }
         context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Class", "getMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;");
     }
     virtual void generate_store(Context &) const override { internal_error("Function"); }
@@ -2724,6 +2757,16 @@ public:
                 context.ca.code << OP_pop;
             }
         }
+    }
+    static std::string replace_slashes_with_dots(std::string s) {
+        for (;;) {
+            auto i = s.find('/');
+            if (i == std::string::npos) {
+                break;
+            }
+            s[i] = '.';
+        }
+        return s;
     }
 private:
     Function(const Function &);
@@ -3145,7 +3188,7 @@ public:
     virtual void visit(const ast::ConstantBytesExpression *node) { r = new ConstantBytesExpression(node); }
     virtual void visit(const ast::ConstantEnumExpression *node) { r = new ConstantEnumExpression(node); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
-    virtual void visit(const ast::ConstantNowhereExpression *) { internal_error("ConstantNowhereExpression"); }
+    virtual void visit(const ast::ConstantNowhereExpression *node) { r = new ConstantNowhereExpression(node); }
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
     virtual void visit(const ast::RecordLiteralExpression *node) { r = new RecordLiteralExpression(node); }
@@ -3167,7 +3210,7 @@ public:
     virtual void visit(const ast::DictionaryComparisonExpression *) { internal_error("DictionaryComparisonExpression"); }
     virtual void visit(const ast::PointerComparisonExpression *node) { r = new PointerComparisonExpression(node); }
     virtual void visit(const ast::ValidPointerExpression *node) { r = new ValidPointerExpression(node); }
-    virtual void visit(const ast::FunctionPointerComparisonExpression *) { internal_error("FunctionPointerComparisonExpression"); }
+    virtual void visit(const ast::FunctionPointerComparisonExpression *node) { r = new FunctionPointerComparisonExpression(node); }
     virtual void visit(const ast::AdditionExpression *node) { r = new AdditionExpression(node); }
     virtual void visit(const ast::SubtractionExpression *node) { r = new SubtractionExpression(node); }
     virtual void visit(const ast::MultiplicationExpression *node) { r = new MultiplicationExpression(node); }

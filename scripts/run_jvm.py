@@ -27,8 +27,6 @@ ExcludeTests = [
     "t/for.neon",                   # number format (2 vs 2.0)
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
-    "t/function-pointer-nowhere.neon",  # ConstantNowhereExpression
-    #"t/function-pointer.neon",      # TypeFunctionPointer
     "t/gc-array.neon",              # module runtime
     "t/gc-long-chain.neon",         # module runtime
     "t/gc1.neon",                   # PredefinedVariable
@@ -42,14 +40,12 @@ ExcludeTests = [
     "t/inline-init-record.neon",    # stack size too large
     "t/io-test.neon",               # PredefinedVariable io$stdout
     "t/json-test.neon",             # illegal character dot
-    "t/lisp-test.neon",             # ConstantNowhereExpression
+    "t/lisp-test.neon",             # store constant string expression?
     "t/math-test.neon",             # math.abs
     "t/mkdir.neon",                 # file.mkdir
     "t/mmap-test.neon",             # module mmap
     "t/module-alias.neon",          # module math
     "t/module-alias2.neon",         # ModuleVariable
-    #"t/module-assign-let.neon",     # TypeFunctionPointer
-    #"t/module-assign-var.neon",     # TypeFunctionPointer
     "t/module-import-name-alias.neon",  # module math
     "t/module-import-name-alias2.neon", # ModuleVariable
     "t/module-import-name.neon",    # module math
