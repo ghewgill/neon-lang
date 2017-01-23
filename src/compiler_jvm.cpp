@@ -2091,6 +2091,29 @@ private:
     BytesReferenceIndexExpression &operator=(const BytesReferenceIndexExpression &);
 };
 
+class BytesValueIndexExpression: public Expression {
+public:
+    BytesValueIndexExpression(const ast::BytesValueIndexExpression *bvie): Expression(bvie), bvie(bvie), data(transform(bvie->str)), first(transform(bvie->first)), last(transform(bvie->last)) {}
+    const ast::BytesValueIndexExpression *bvie;
+    const Expression *data;
+    const Expression *first;
+    const Expression *last;
+
+    virtual void generate(Context &context) const override {
+        data->generate(context);
+        first->generate(context);
+        context.push_integer(bvie->first_from_end);
+        last->generate(context);
+        context.push_integer(bvie->last_from_end);
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__range", "([BLneon/type/Number;ZLneon/type/Number;Z)[B");
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("BytesValueIndexExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("BytesValueIndexExpression"); }
+private:
+    BytesValueIndexExpression(const BytesValueIndexExpression &);
+    BytesValueIndexExpression &operator=(const BytesValueIndexExpression &);
+};
+
 class RecordReferenceFieldExpression: public Expression {
 public:
     RecordReferenceFieldExpression(const ast::RecordReferenceFieldExpression *rrfe): Expression(rrfe), rrfe(rrfe), ref(transform(rrfe->ref)), rectype(dynamic_cast<const TypeRecord *>(transform(rrfe->ref->type))), fieldtype(transform(rrfe->type)) {}
@@ -3298,7 +3321,7 @@ public:
     virtual void visit(const ast::StringReferenceIndexExpression *node) { r = new StringReferenceIndexExpression(node); }
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
-    virtual void visit(const ast::BytesValueIndexExpression *) { internal_error("BytesValueIndexExpression"); }
+    virtual void visit(const ast::BytesValueIndexExpression *node) { r = new BytesValueIndexExpression(node); }
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
