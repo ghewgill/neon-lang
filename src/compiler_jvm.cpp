@@ -812,7 +812,7 @@ private:
 
 class TypeFunctionPointer: public Type {
 public:
-    TypeFunctionPointer(const ast::TypeFunctionPointer *fp): Type(fp, "java/lang/reflect/Method"), functype(dynamic_cast<const TypeFunction *>(transform(fp->functype))) {}
+    TypeFunctionPointer(const ast::TypeFunctionPointer *fp): Type(fp, "java/lang/reflect/Method"), fp(fp), functype(dynamic_cast<const TypeFunction *>(transform(fp->functype))) {}
     const ast::TypeFunctionPointer *fp;
     const TypeFunction *functype;
     virtual void generate_default(Context &context) const override {
