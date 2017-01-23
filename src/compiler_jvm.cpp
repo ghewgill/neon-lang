@@ -549,12 +549,59 @@ public:
     const std::string jtype;
     virtual void generate_class(Context &) const {}
     virtual void generate_default(Context &context) const = 0;
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const { internal_error("Type::generate_call"); }
 private:
     Type(const Type &);
     Type &operator=(const Type &);
 };
 
 Type *transform(const ast::Type *t);
+
+class Variable {
+public:
+    Variable(const ast::Variable *v): type(transform(v->type)) {
+        g_variable_cache[v] = this;
+    }
+    virtual ~Variable() {}
+    const Type *type;
+    virtual void generate_decl(ClassContext &context) const = 0;
+    virtual void generate_load(Context &context) const = 0;
+    virtual void generate_store(Context &context) const = 0;
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const = 0;
+private:
+    Variable(const Variable &);
+    Variable &operator=(const Variable &);
+};
+
+Variable *transform(const ast::Variable *v);
+
+class Expression {
+public:
+    Expression(const ast::Expression *node): type(transform(node->type)) {
+        g_expression_cache[node] = this;
+    }
+    virtual ~Expression() {}
+    const Type *type;
+    virtual void generate(Context &context) const = 0;
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &) const = 0;
+    virtual void generate_store(Context &context) const = 0;
+private:
+    Expression(const Expression &);
+    Expression &operator=(const Expression &);
+};
+
+Expression *transform(const ast::Expression *e);
+
+class Statement {
+public:
+    Statement(const ast::Statement *s) {
+        g_statement_cache[s] = this;
+    }
+    virtual ~Statement() {}
+    virtual void generate(Context &context) const = 0;
+};
+
+Statement *transform(const ast::Statement *s);
 
 class TypeNothing: public Type {
 public:
@@ -763,6 +810,34 @@ private:
     TypePointer &operator=(const TypePointer &);
 };
 
+class TypeFunctionPointer: public Type {
+public:
+    TypeFunctionPointer(const ast::TypeFunctionPointer *fp): Type(fp, "java/lang/reflect/Method"), functype(dynamic_cast<const TypeFunction *>(transform(fp->functype))) {}
+    const ast::TypeFunctionPointer *fp;
+    const TypeFunction *functype;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_aconst_null;
+    }
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
+        context.ca.code << OP_aconst_null;
+        context.push_integer(static_cast<int>(args.size()));
+        context.ca.code << OP_anewarray << context.cf.Class("java/lang/Object");
+        int i = 0;
+        for (auto a: args) {
+            context.ca.code << OP_dup;
+            context.push_integer(i);
+            a->generate(context);
+            context.ca.code << OP_aastore;
+            i++;
+        }
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/reflect/Method", "invoke", "(Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;");
+        context.ca.code << OP_checkcast << context.cf.Class(functype->returntype->classname);
+    }
+private:
+    TypeFunctionPointer(const TypeFunctionPointer &);
+    TypeFunctionPointer &operator=(const TypeFunctionPointer &);
+};
+
 class TypeEnum: public Type {
 public:
     TypeEnum(const ast::TypeEnum *te): Type(te, te->module + "$" + te->name), te(te) {}
@@ -882,24 +957,6 @@ private:
     TypeEnum &operator=(const TypeEnum &);
 };
 
-class Variable {
-public:
-    Variable(const ast::Variable *v): type(transform(v->type)) {
-        g_variable_cache[v] = this;
-    }
-    virtual ~Variable() {}
-    const Type *type;
-    virtual void generate_decl(ClassContext &context) const = 0;
-    virtual void generate_load(Context &context) const = 0;
-    virtual void generate_store(Context &context) const = 0;
-    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const = 0;
-private:
-    Variable(const Variable &);
-    Variable &operator=(const Variable &);
-};
-
-Variable *transform(const ast::Variable *v);
-
 class PredefinedVariable: public Variable {
 public:
     PredefinedVariable(const ast::PredefinedVariable *pv): Variable(pv), pv(pv) {}
@@ -938,7 +995,10 @@ public:
     virtual void generate_store(Context &context) const override {
         context.ca.code << OP_putstatic << context.cf.Field(context.cf.name, gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)), type->jtype);
     }
-    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("GlobalVariable"); }
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
+        generate_load(context);
+        type->generate_call(context, args);
+    }
 private:
     GlobalVariable(const GlobalVariable &);
     GlobalVariable &operator=(const GlobalVariable &);
@@ -1013,23 +1073,6 @@ private:
     FunctionParameter(const FunctionParameter &);
     FunctionParameter &operator=(const FunctionParameter &);
 };
-
-class Expression {
-public:
-    Expression(const ast::Expression *node): type(transform(node->type)) {
-        g_expression_cache[node] = this;
-    }
-    virtual ~Expression() {}
-    const Type *type;
-    virtual void generate(Context &context) const = 0;
-    virtual void generate_call(Context &context, const std::vector<const Expression *> &) const = 0;
-    virtual void generate_store(Context &context) const = 0;
-private:
-    Expression(const Expression &);
-    Expression &operator=(const Expression &);
-};
-
-Expression *transform(const ast::Expression *e);
 
 class ConstantBooleanExpression: public Expression {
 public:
@@ -2089,9 +2132,6 @@ public:
     std::vector<const Expression *> args;
 
     virtual void generate(Context &context) const override {
-        for (auto a: args) {
-            a->generate(context);
-        }
         func->generate_call(context, args);
     }
 
@@ -2101,17 +2141,6 @@ private:
     FunctionCall(const FunctionCall &);
     FunctionCall &operator=(const FunctionCall &);
 };
-
-class Statement {
-public:
-    Statement(const ast::Statement *s) {
-        g_statement_cache[s] = this;
-    }
-    virtual ~Statement() {}
-    virtual void generate(Context &context) const = 0;
-};
-
-Statement *transform(const ast::Statement *s);
 
 class NullStatement: public Statement {
 public:
@@ -2645,9 +2674,33 @@ public:
         }
         context.cf.methods.push_back(m);
     }
-    virtual void generate_load(Context &) const override { internal_error("Function"); }
+    virtual void generate_load(Context &context) const override {
+        // Get a handle to a function for function pointer support.
+        context.ca.code << OP_ldc_w << context.cf.String(context.cf.name); // TODO: change slashes to dots
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+        context.ca.code << OP_ldc_w << context.cf.String(f->name);
+        context.push_integer(2);
+        context.ca.code << OP_anewarray << context.cf.Class("java/lang/Class");
+
+        context.ca.code << OP_dup;
+        context.push_integer(0);
+        context.ca.code << OP_ldc_w << context.cf.String("neon.type.Number");
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+        context.ca.code << OP_aastore;
+
+        context.ca.code << OP_dup;
+        context.push_integer(1);
+        context.ca.code << OP_ldc_w << context.cf.String("java.lang.String");
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
+        context.ca.code << OP_aastore;
+
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Class", "getMethod", "(Ljava/lang/String;[Ljava/lang/Class;)Ljava/lang/reflect/Method;");
+    }
     virtual void generate_store(Context &) const override { internal_error("Function"); }
     virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
+        for (auto a: args) {
+            a->generate(context);
+        }
         context.ca.code << OP_invokestatic << context.cf.Method(context.cf.name, f->name, signature);
         if (out_count > 0) {
             int i = 1;
@@ -2694,6 +2747,9 @@ public:
     virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
+        for (auto a: args) {
+            a->generate(context);
+        }
         for (size_t i = 0; i < sizeof(FunctionSignatures)/sizeof(FunctionSignatures[0]); i++) {
             if (pf->name == FunctionSignatures[i].name) {
                 context.ca.code << OP_invokestatic << context.cf.Method(FunctionSignatures[i].module, FunctionSignatures[i].function, FunctionSignatures[i].signature);
@@ -2738,7 +2794,10 @@ public:
     virtual void generate_decl(ClassContext &) const override {}
     virtual void generate_load(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_store(Context &) const override { internal_error("ModuleFunction"); }
-    virtual void generate_call(Context &context, const std::vector<const Expression *> &) const override {
+    virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
+        for (auto a: args) {
+            a->generate(context);
+        }
         context.ca.code << OP_invokestatic << context.cf.Method(mf->module, mf->name, "()V");
         // TODO: out parameters
     }
@@ -2847,7 +2906,7 @@ public:
     virtual void visit(const ast::TypeRecord *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypeClass *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
-    virtual void visit(const ast::TypeFunctionPointer *) { internal_error("TypeFunctionPointer"); }
+    virtual void visit(const ast::TypeFunctionPointer *node) { r = new TypeFunctionPointer(node); }
     virtual void visit(const ast::TypeEnum *node) { r = new TypeEnum(node); }
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
