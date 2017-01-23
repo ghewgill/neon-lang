@@ -2536,6 +2536,7 @@ ExcludeTests = [
     "t/bytes-embed.neon",       # Feature not required
     "t/bytes-literal.neon",     # Feature not required
     "t/bytes-tostring.neon",    # HEXBYTES not implemented yet
+    "t/bytes-value-index.neon", # HEXBYTES not implemented yet
     "t/cal-test.neon",          # Sample not required
     "t/cformat-test.neon",      # Module not required
     "t/comments.neon",          # Nested comments not required
