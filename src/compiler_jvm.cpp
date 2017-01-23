@@ -2716,7 +2716,7 @@ public:
         context.ca.code << OP_ldc_w << context.cf.String(replace_slashes_with_dots(context.cf.name));
         context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Class", "forName", "(Ljava/lang/String;)Ljava/lang/Class;");
         context.ca.code << OP_ldc_w << context.cf.String(f->name);
-        context.push_integer(params.size());
+        context.push_integer(static_cast<int>(params.size()));
         context.ca.code << OP_anewarray << context.cf.Class("java/lang/Class");
         int i = 0;
         for (auto p: params) {
