@@ -1002,7 +1002,7 @@ private:
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const ast::GlobalVariable *gv): Variable(gv), gv(gv) {}
+    GlobalVariable(const ast::GlobalVariable *gv): Variable(gv), gv(gv), name() {}
     const ast::GlobalVariable *gv;
     mutable std::string name;
 
