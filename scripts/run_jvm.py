@@ -16,7 +16,6 @@ ExcludeTests = [
     "t/decimal.neon",               # exception
     "t/encoding-base64.neon",       # verifier - incompatible object for function call
     "t/enum.neon",                  # enum toString
-    "t/equality.neon",              # DictionaryComparisonExpression
     "t/exception-as.neon",          # ExceptionType
     "t/exception-code.neon",        # ExceptionType
     "t/export.neon",                # enum with no name

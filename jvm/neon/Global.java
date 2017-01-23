@@ -133,6 +133,22 @@ public class Global {
         return x.toString().toUpperCase();
     }
 
+    public static int bytes__compare(byte[] b1, byte[] b2) {
+        int i = 0;
+        while (i < b1.length && i < b2.length) {
+            if (b1[i] != b2[i]) {
+                return b2[i] - b1[i];
+            }
+            i++;
+        }
+        if (i < b1.length) {
+            return 1;
+        } else if (i < b2.length) {
+            return -1;
+        }
+        return 0;
+    }
+
     public static String bytes__decodeToString(byte[] self) {
         return new String(self, java.nio.charset.StandardCharsets.UTF_8);
     }

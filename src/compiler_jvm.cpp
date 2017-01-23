@@ -1620,6 +1620,28 @@ private:
     StringComparisonExpression &operator=(const StringComparisonExpression &);
 };
 
+class BytesComparisonExpression: public ComparisonExpression {
+public:
+    BytesComparisonExpression(const ast::BytesComparisonExpression *bce): ComparisonExpression(bce), bce(bce) {}
+    const ast::BytesComparisonExpression *bce;
+
+    virtual void generate_comparison(Context &context) const override {
+        context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__compare", "([B[B)I");
+        static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
+        auto label_true = context.create_label();
+        context.emit_jump(op[bce->comp], label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
+        auto label_false = context.create_label();
+        context.emit_jump(OP_goto, label_false);
+        context.jump_target(label_true);
+        context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "TRUE", "Ljava/lang/Boolean;");
+        context.jump_target(label_false);
+    }
+private:
+    BytesComparisonExpression(const BytesComparisonExpression &);
+    BytesComparisonExpression &operator=(const BytesComparisonExpression &);
+};
+
 class ArrayComparisonExpression: public ComparisonExpression {
 public:
     ArrayComparisonExpression(const ast::ArrayComparisonExpression *ace): ComparisonExpression(ace), ace(ace) {}
@@ -1640,6 +1662,51 @@ public:
 private:
     ArrayComparisonExpression(const ArrayComparisonExpression &);
     ArrayComparisonExpression &operator=(const ArrayComparisonExpression &);
+};
+
+class DictionaryComparisonExpression: public ComparisonExpression {
+public:
+    DictionaryComparisonExpression(const ast::DictionaryComparisonExpression *dce): ComparisonExpression(dce), dce(dce) {}
+    const ast::DictionaryComparisonExpression *dce;
+
+    virtual void generate_comparison(Context &context) const override {
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "equals", "(Ljava/lang/Object;)Z");
+        if (dce->comp == ast::ComparisonExpression::EQ) {
+            // nothing
+        } else if (dce->comp == ast::ComparisonExpression::NE) {
+            context.ca.code << OP_iconst_1;
+            context.ca.code << OP_ixor;
+        } else {
+            internal_error("DictionaryComparisonExpression");
+        }
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
+    }
+private:
+    DictionaryComparisonExpression(const DictionaryComparisonExpression &);
+    DictionaryComparisonExpression &operator=(const DictionaryComparisonExpression &);
+};
+
+class RecordComparisonExpression: public ComparisonExpression {
+public:
+    RecordComparisonExpression(const ast::RecordComparisonExpression *rce): ComparisonExpression(rce), rce(rce) {}
+    const ast::RecordComparisonExpression *rce;
+
+    virtual void generate_comparison(Context &context) const override {
+        // TODO: Need to recursively evaluate equality.
+        context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "equals", "(Ljava/lang/Object;)Z");
+        if (rce->comp == ast::ComparisonExpression::EQ) {
+            // nothing
+        } else if (rce->comp == ast::ComparisonExpression::NE) {
+            context.ca.code << OP_iconst_1;
+            context.ca.code << OP_ixor;
+        } else {
+            internal_error("RecordComparisonExpression");
+        }
+        context.ca.code << OP_invokestatic << context.cf.Method("java/lang/Boolean", "valueOf", "(Z)Ljava/lang/Boolean;");
+    }
+private:
+    RecordComparisonExpression(const RecordComparisonExpression &);
+    RecordComparisonExpression &operator=(const RecordComparisonExpression &);
 };
 
 class PointerComparisonExpression: public ComparisonExpression {
@@ -2986,8 +3053,10 @@ public:
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
+    virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
+    virtual void visit(const ast::RecordComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
     virtual void visit(const ast::ValidPointerExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
@@ -3096,8 +3165,10 @@ public:
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
+    virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
+    virtual void visit(const ast::RecordComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
     virtual void visit(const ast::ValidPointerExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
@@ -3206,8 +3277,10 @@ public:
     virtual void visit(const ast::NumericComparisonExpression *node) { r = new NumericComparisonExpression(node); }
     virtual void visit(const ast::EnumComparisonExpression *node) { r = new EnumComparisonExpression(node); }
     virtual void visit(const ast::StringComparisonExpression *node) { r = new StringComparisonExpression(node); }
+    virtual void visit(const ast::BytesComparisonExpression *node) { r = new BytesComparisonExpression(node); }
     virtual void visit(const ast::ArrayComparisonExpression *node) { r = new ArrayComparisonExpression(node); }
-    virtual void visit(const ast::DictionaryComparisonExpression *) { internal_error("DictionaryComparisonExpression"); }
+    virtual void visit(const ast::DictionaryComparisonExpression *node) { r = new DictionaryComparisonExpression(node); }
+    virtual void visit(const ast::RecordComparisonExpression *node) { r = new RecordComparisonExpression(node); }
     virtual void visit(const ast::PointerComparisonExpression *node) { r = new PointerComparisonExpression(node); }
     virtual void visit(const ast::ValidPointerExpression *node) { r = new ValidPointerExpression(node); }
     virtual void visit(const ast::FunctionPointerComparisonExpression *node) { r = new FunctionPointerComparisonExpression(node); }
@@ -3316,8 +3389,10 @@ public:
     virtual void visit(const ast::NumericComparisonExpression *) {}
     virtual void visit(const ast::EnumComparisonExpression *) {}
     virtual void visit(const ast::StringComparisonExpression *) {}
+    virtual void visit(const ast::BytesComparisonExpression *) {}
     virtual void visit(const ast::ArrayComparisonExpression *) {}
     virtual void visit(const ast::DictionaryComparisonExpression *) {}
+    virtual void visit(const ast::RecordComparisonExpression *) {}
     virtual void visit(const ast::PointerComparisonExpression *) {}
     virtual void visit(const ast::ValidPointerExpression *) {}
     virtual void visit(const ast::FunctionPointerComparisonExpression *) {}
