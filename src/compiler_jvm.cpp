@@ -564,7 +564,7 @@ public:
     }
     virtual ~Variable() {}
     const Type *type;
-    virtual void generate_decl(ClassContext &context) const = 0;
+    virtual void generate_decl(ClassContext &context, bool exported) const = 0;
     virtual void generate_load(Context &context) const = 0;
     virtual void generate_store(Context &context) const = 0;
     virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const = 0;
@@ -674,9 +674,14 @@ private:
 
 class TypeFunction: public Type {
 public:
-    TypeFunction(const ast::TypeFunction *tf): Type(tf, ""), tf(tf), returntype(transform(tf->returntype)) {}
+    TypeFunction(const ast::TypeFunction *tf): Type(tf, ""), tf(tf), returntype(transform(tf->returntype)), paramtypes() {
+        for (auto p: tf->params) {
+            paramtypes.push_back(std::make_pair(p->mode, transform(p->type)));
+        }
+    }
     const ast::TypeFunction *tf;
     const Type *returntype;
+    std::vector<std::pair<ast::ParameterType::Mode, const Type *>> paramtypes;
     virtual void generate_default(Context &) const override { internal_error("TypeFunction"); }
 private:
     TypeFunction(const TypeFunction &);
@@ -962,7 +967,7 @@ public:
     PredefinedVariable(const ast::PredefinedVariable *pv): Variable(pv), pv(pv) {}
     const ast::PredefinedVariable *pv;
 
-    virtual void generate_decl(ClassContext &) const override {}
+    virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &context) const override {
         if (pv->name == "io$stderr") {
             context.ca.code << OP_getstatic << context.cf.Field("java/lang/System", "err", "Ljava/io/PrintStream;");
@@ -977,23 +982,45 @@ private:
     PredefinedVariable &operator=(const PredefinedVariable &);
 };
 
+class ModuleVariable: public Variable {
+public:
+    ModuleVariable(const ast::ModuleVariable *mv): Variable(mv), mv(mv) {}
+    const ast::ModuleVariable *mv;
+
+    virtual void generate_decl(ClassContext &, bool) const override {}
+    virtual void generate_load(Context &context) const override {
+        context.ca.code << OP_getstatic << context.cf.Field(mv->module, mv->name, type->jtype);
+    }
+    virtual void generate_store(Context &context) const override {
+        context.ca.code << OP_putstatic << context.cf.Field(mv->module, mv->name, type->jtype);
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ModuleVariable"); }
+private:
+    ModuleVariable(const ModuleVariable &);
+    ModuleVariable &operator=(const ModuleVariable &);
+};
+
 class GlobalVariable: public Variable {
 public:
     GlobalVariable(const ast::GlobalVariable *gv): Variable(gv), gv(gv) {}
     const ast::GlobalVariable *gv;
+    mutable std::string name;
 
-    virtual void generate_decl(ClassContext &context) const override {
+    virtual void generate_decl(ClassContext &context, bool exported) const override {
+        // Hopefully this gets called first, before generate_load or generate_store because
+        // the actual name used for the field gets created in here.
         field_info f;
         f.access_flags = ACC_STATIC;
-        f.name_index = context.cf.utf8(gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)));
+        name = exported ? gv->name : gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this));
+        f.name_index = context.cf.utf8(name);
         f.descriptor_index = context.cf.utf8(type->jtype);
         context.cf.fields.push_back(f);
     }
     virtual void generate_load(Context &context) const override {
-        context.ca.code << OP_getstatic << context.cf.Field(context.cf.name, gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)), type->jtype);
+        context.ca.code << OP_getstatic << context.cf.Field(context.cf.name, name, type->jtype);
     }
     virtual void generate_store(Context &context) const override {
-        context.ca.code << OP_putstatic << context.cf.Field(context.cf.name, gv->name + "__" + std::to_string(reinterpret_cast<intptr_t>(this)), type->jtype);
+        context.ca.code << OP_putstatic << context.cf.Field(context.cf.name, name, type->jtype);
     }
     virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
         generate_load(context);
@@ -1010,7 +1037,7 @@ public:
     const ast::LocalVariable *lv;
     mutable int index; // TODO
 
-    virtual void generate_decl(ClassContext &) const override {}
+    virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &context) const override {
         if (index < 0) {
             index = context.ca.max_locals;
@@ -1049,7 +1076,7 @@ public:
     const ast::FunctionParameter *fp;
     const int index;
 
-    virtual void generate_decl(ClassContext &) const override { internal_error("FunctionParameter"); }
+    virtual void generate_decl(ClassContext &, bool) const override { internal_error("FunctionParameter"); }
     virtual void generate_load(Context &context) const override {
         if (index < 4) {
             context.ca.code << static_cast<uint8_t>(OP_aload_0 + index);
@@ -2287,7 +2314,7 @@ public:
     const Variable *decl;
 
     virtual void generate(Context &context) const override {
-        decl->generate_decl(context.cc);
+        decl->generate_decl(context.cc, false);
     }
 private:
     DeclarationStatement(const DeclarationStatement &);
@@ -2743,7 +2770,7 @@ public:
     std::string signature;
     int out_count;
 
-    virtual void generate_decl(ClassContext &context) const override {
+    virtual void generate_decl(ClassContext &context, bool) const override {
         method_info m;
         m.access_flags = ACC_PUBLIC | ACC_STATIC;
         m.name_index = context.cf.utf8(f->name);
@@ -2876,7 +2903,7 @@ public:
     const ast::PredefinedFunction *pf;
     int out_count;
 
-    virtual void generate_decl(ClassContext &) const override {}
+    virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_store(Context &) const override { internal_error("PredefinedFunction"); }
     virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
@@ -2921,17 +2948,36 @@ private:
 
 class ModuleFunction: public Variable {
 public:
-    ModuleFunction(const ast::ModuleFunction *mf): Variable(mf), mf(mf) {}
+    ModuleFunction(const ast::ModuleFunction *mf): Variable(mf), mf(mf), signature(), out_count(0) {
+        const TypeFunction *functype = dynamic_cast<const TypeFunction *>(transform(mf->type));
+        signature = "(";
+        int i = 0;
+        for (auto p: functype->paramtypes) {
+            signature.append(p.second->jtype);
+            if (p.first == ast::ParameterType::INOUT || p.first == ast::ParameterType::OUT) {
+                out_count++;
+            }
+            i++;
+        }
+        signature.append(")");
+        if (out_count > 0) {
+            signature.append("[Ljava/lang/Object;");
+        } else {
+            signature.append(functype->returntype->jtype);
+        }
+    }
     const ast::ModuleFunction *mf;
+    std::string signature;
+    int out_count;
 
-    virtual void generate_decl(ClassContext &) const override {}
+    virtual void generate_decl(ClassContext &, bool) const override {}
     virtual void generate_load(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_store(Context &) const override { internal_error("ModuleFunction"); }
     virtual void generate_call(Context &context, const std::vector<const Expression *> &args) const override {
         for (auto a: args) {
             a->generate(context);
         }
-        context.ca.code << OP_invokestatic << context.cf.Method(mf->module, mf->name, "()V");
+        context.ca.code << OP_invokestatic << context.cf.Method(mf->module, mf->name, signature);
         // TODO: out parameters
     }
 private:
@@ -2971,7 +3017,14 @@ public:
             auto slot = program->frame->getSlot(i);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
             if (global != nullptr) {
-                global->generate_decl(classcontext);
+                bool exported = false;
+                for (auto e: program->exports) {
+                    if (e.second == global->gv) {
+                        exported = true;
+                        break;
+                    }
+                }
+                global->generate_decl(classcontext, exported);
             }
         }
         {
@@ -3157,7 +3210,7 @@ public:
     virtual void visit(const ast::TypeException *) {}
     virtual void visit(const ast::LoopLabel *) {}
     virtual void visit(const ast::PredefinedVariable *node) { r = new PredefinedVariable(node); }
-    virtual void visit(const ast::ModuleVariable *) { internal_error("ModuleVariable"); }
+    virtual void visit(const ast::ModuleVariable *node) { r = new ModuleVariable(node); }
     virtual void visit(const ast::GlobalVariable *node) { r = new GlobalVariable(node); }
     virtual void visit(const ast::ExternalGlobalVariable *) { internal_error("ExternalGlobalVariable"); }
     virtual void visit(const ast::LocalVariable *node) { r = new LocalVariable(node); }

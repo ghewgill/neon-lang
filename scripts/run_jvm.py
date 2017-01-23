@@ -33,7 +33,7 @@ ExcludeTests = [
     "t/gc3.neon",                   # PredefinedVariable
     "t/hash-test.neon",             # sha-3
     "t/http-test.neon",             # module os
-    "t/import.neon",                # ModuleVariable
+    "t/import.neon",                # illegal character dot
     "t/index.neon",                 # copy semantics
     "t/inline-construct-record.neon",   # stack size too large
     "t/inline-init-record.neon",    # stack size too large
@@ -44,13 +44,13 @@ ExcludeTests = [
     "t/mkdir.neon",                 # file.mkdir
     "t/mmap-test.neon",             # module mmap
     "t/module-alias.neon",          # module math
-    "t/module-alias2.neon",         # ModuleVariable
+    "t/module-alias2.neon",         # module initialisation
     "t/module-import-name-alias.neon",  # module math
-    "t/module-import-name-alias2.neon", # ModuleVariable
+    "t/module-import-name-alias2.neon", # module initialisation
     "t/module-import-name.neon",    # module math
-    "t/module-import-name2.neon",   # ModuleVariable
+    "t/module-import-name2.neon",   # module initialisation
     "t/module.neon",                # NoClassDefFoundError
-    "t/module2.neon",               # ModuleVariable
+    "t/module2.neon",               # illegal character dot
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # verifier - bad type in putfield
     "t/net-test.neon",              # illegal character dot
@@ -70,12 +70,12 @@ ExcludeTests = [
     "t/repl_nested.neon",           # nested function
     "t/rtl.neon",                   # ExceptionType
     "t/sodium-test.neon",           # module sodium
-    "t/sql-connect.neon",           # ModuleVariable
-    "t/sql-cursor.neon",            # ModuleVariable
-    "t/sql-embed.neon",             # ModuleVariable
-    "t/sql-execute.neon",           # ModuleVariable
-    "t/sql-query.neon",             # ModuleVariable
-    "t/sql-whenever.neon",          # ModuleVariable
+    "t/sql-connect.neon",           # module sqlite
+    "t/sql-cursor.neon",            # module sqlite
+    "t/sql-embed.neon",             # module sqlite
+    "t/sql-execute.neon",           # module sqlite
+    "t/sql-query.neon",             # module sqlite
+    "t/sql-whenever.neon",          # module sqlite
     "t/sqlite-test.neon",           # bad type
     "t/stack-overflow.neon",        # catch stack overflow
     "t/string-bytes.neon",          # format
