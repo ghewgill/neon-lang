@@ -1729,7 +1729,7 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
         if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
             error(3034, token, "comparison not available for RECORD");
         }
-        return new ast::ArrayComparisonExpression(left, right, comp);
+        return new ast::RecordComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr) {
         return new ast::EnumComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr) {

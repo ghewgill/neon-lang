@@ -78,6 +78,7 @@ public:
     virtual void visit(const class BytesComparisonExpression *node) = 0;
     virtual void visit(const class ArrayComparisonExpression *node) = 0;
     virtual void visit(const class DictionaryComparisonExpression *node) = 0;
+    virtual void visit(const class RecordComparisonExpression *node) = 0;
     virtual void visit(const class PointerComparisonExpression *node) = 0;
     virtual void visit(const class ValidPointerExpression *node) = 0;
     virtual void visit(const class FunctionPointerComparisonExpression *node) = 0;
@@ -1401,6 +1402,21 @@ public:
 
     virtual std::string text() const override {
         return "DictionaryComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+    }
+};
+
+class RecordComparisonExpression: public ComparisonExpression {
+public:
+    RecordComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual bool eval_boolean() const override { internal_error("RecordComparisonExpression"); }
+    virtual Number eval_number() const override { internal_error("RecordComparisonExpression"); }
+    virtual std::string eval_string() const override { internal_error("RecordComparisonExpression"); }
+    virtual void generate_comparison_opcode(Emitter &emitter) const override;
+
+    virtual std::string text() const override {
+        return "RecordComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
     }
 };
 

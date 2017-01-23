@@ -1183,6 +1183,12 @@ void ast::ArrayComparisonExpression::generate_comparison_opcode(Emitter &emitter
     emitter.emit(op[comp]);
 }
 
+void ast::RecordComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
+{
+    static const unsigned char op[] = {EQA, NEA};
+    emitter.emit(op[comp]);
+}
+
 void ast::DictionaryComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     static const unsigned char op[] = {EQD, NED};
