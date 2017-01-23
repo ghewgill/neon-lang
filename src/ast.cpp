@@ -414,6 +414,22 @@ const Expression *TypeFunctionPointer::deserialize_value(const Bytecode::Bytes &
     return new ConstantNumberExpression(number_from_sint32(0));
 }
 
+const Expression *TypeEnum::make_default_value() const
+{
+    return new ConstantEnumExpression(this, 0);
+}
+
+std::string TypeEnum::serialize(const Expression *value) const
+{
+    Number x = value->eval_number();
+    return TypeString::serialize(number_to_string(x));
+}
+
+const Expression *TypeEnum::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    return new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i)));
+}
+
 bool Expression::eval_boolean(const Token &token) const
 {
     try {
