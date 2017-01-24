@@ -89,7 +89,6 @@ ExcludeTests = [
     "t/time-stopwatch.neon",        # illegal character dot
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # enum tostring
-    "t/try-expression.neon",        # TryExpression
     "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/variant-test.neon",          # illegal character dot
     "t/win32-test.neon",            # illegal character dot

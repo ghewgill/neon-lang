@@ -1408,6 +1408,66 @@ private:
     ConditionalExpression &operator=(const ConditionalExpression &);
 };
 
+class TryExpressionTrap {
+public:
+    TryExpressionTrap(const ast::TryTrap *tt): tt(tt), name(transform(tt->name)), handler(), gives(transform(dynamic_cast<const ast::Expression *>(tt->handler))) {
+        const ast::ExceptionHandlerStatement *h = dynamic_cast<const ast::ExceptionHandlerStatement *>(tt->handler);
+        if (h != nullptr) {
+            for (auto s: h->statements) {
+                handler.push_back(transform(s));
+            }
+        }
+    }
+    const ast::TryTrap *tt;
+    const Variable *name;
+    std::vector<const Statement *> handler;
+    const Expression *gives;
+private:
+    TryExpressionTrap(const TryExpressionTrap &);
+    TryExpressionTrap &operator=(const TryExpressionTrap &);
+};
+
+class TryExpression: public Expression {
+public:
+    TryExpression(const ast::TryExpression *te): Expression(te), te(te), expr(transform(te->expr)), catches() {
+        for (auto &t: te->catches) {
+            catches.push_back(new TryExpressionTrap(&t));
+        }
+    }
+    const ast::TryExpression *te;
+    const Expression *expr;
+    std::vector<const TryExpressionTrap *> catches;
+
+    virtual void generate(Context &context) const override {
+        Code_attribute::exception e;
+        e.start_pc = static_cast<uint16_t>(context.ca.code.size());
+        expr->generate(context);
+        e.end_pc = static_cast<uint16_t>(context.ca.code.size());
+        auto label_end = context.create_label();
+        context.emit_jump(OP_goto, label_end);
+        for (auto trap: catches) {
+            e.handler_pc = static_cast<uint16_t>(context.ca.code.size());
+            context.ca.code << OP_pop; // TODO: store in local if indicated
+            if (trap->gives != nullptr) {
+                trap->gives->generate(context);
+                context.emit_jump(OP_goto, label_end);
+            } else {
+                for (auto s: trap->handler) {
+                    s->generate(context);
+                }
+            }
+            e.catch_type = context.cf.Class("neon/type/NeonException");
+            context.ca.exception_table.push_back(e);
+        }
+        context.jump_target(label_end);
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("TryExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("TryExpression"); }
+private:
+    TryExpression(const TryExpression &);
+    TryExpression &operator=(const TryExpression &);
+};
+
 class DisjunctionExpression: public Expression {
 public:
     DisjunctionExpression(const ast::DisjunctionExpression *de): Expression(de), de(de), left(transform(de->left)), right(transform(de->right)) {}
@@ -3343,7 +3403,7 @@ public:
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
     virtual void visit(const ast::LogicalNotExpression *node) { r = new LogicalNotExpression(node); }
     virtual void visit(const ast::ConditionalExpression *node) { r = new ConditionalExpression(node); }
-    virtual void visit(const ast::TryExpression *) { internal_error("TryExpression"); }
+    virtual void visit(const ast::TryExpression *node) { r = new TryExpression(node); }
     virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
