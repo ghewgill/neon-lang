@@ -1616,7 +1616,18 @@ const ast::Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *ex
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
-        return new ast::FunctionCall(new ast::VariableExpression(new ast::PredefinedFunction("math$trunc", new ast::TypeFunction(ast::TYPE_NUMBER, {new ast::ParameterType(Token(), ast::ParameterType::IN, ast::TYPE_NUMBER, nullptr)}))), {new ast::DivisionExpression(left, right)});
+        return new ast::FunctionCall(new ast::VariableExpression(new ast::PredefinedFunction(
+            "math$intdiv",
+            new ast::TypeFunction(
+                ast::TYPE_NUMBER, {
+                    new ast::ParameterType(Token(), ast::ParameterType::IN, ast::TYPE_NUMBER, nullptr),
+                    new ast::ParameterType(Token(), ast::ParameterType::IN, ast::TYPE_NUMBER, nullptr)
+                }
+            )
+        )), {
+            left,
+            right
+        });
     } else {
         error(3207, expr->token, "type mismatch");
     }

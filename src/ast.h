@@ -25,7 +25,7 @@ namespace ast {
 
 class IAstVisitor {
 public:
-    virtual ~IAstVisitor();
+    virtual ~IAstVisitor() {}
     virtual void visit(const class TypeNothing *node) = 0;
     virtual void visit(const class TypeDummy *node) = 0;
     virtual void visit(const class TypeBoolean *node) = 0;
@@ -80,6 +80,7 @@ public:
     virtual void visit(const class DictionaryComparisonExpression *node) = 0;
     virtual void visit(const class RecordComparisonExpression *node) = 0;
     virtual void visit(const class PointerComparisonExpression *node) = 0;
+    virtual void visit(const class ValidPointerExpression *node) = 0;
     virtual void visit(const class FunctionPointerComparisonExpression *node) = 0;
     virtual void visit(const class AdditionExpression *node) = 0;
     virtual void visit(const class SubtractionExpression *node) = 0;
@@ -114,7 +115,7 @@ public:
     virtual void visit(const class ReturnStatement *node) = 0;
     virtual void visit(const class IncrementStatement *node) = 0;
     virtual void visit(const class IfStatement *node) = 0;
-    virtual void visit(const class LoopStatement *node) = 0;
+    virtual void visit(const class BaseLoopStatement *node) = 0;
     virtual void visit(const class CaseStatement *node) = 0;
     virtual void visit(const class ExitStatement *node) = 0;
     virtual void visit(const class NextStatement *node) = 0;
@@ -411,6 +412,7 @@ public:
     TypeBytes(): TypeString() {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
+    virtual const Expression *make_default_value() const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "Y"; }
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
@@ -1436,6 +1438,7 @@ public:
 class ValidPointerExpression: public PointerComparisonExpression {
 public:
     ValidPointerExpression(const Variable *var, const Expression *ptr): PointerComparisonExpression(ptr, new ConstantNilExpression(), ComparisonExpression::NE), var(var) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Variable *var;
 
@@ -2168,7 +2171,7 @@ public:
 
     virtual void generate_code(Emitter &emitter) const override;
 
-    virtual std::string text() const override { return "ReturnStatement(" + expr->text() + ")"; }
+    virtual std::string text() const override { return "ReturnStatement(" + (expr != nullptr ? expr->text() : "") + ")"; }
 private:
     ReturnStatement(const ReturnStatement &);
     ReturnStatement &operator=(const ReturnStatement &);
@@ -2216,7 +2219,7 @@ private:
 class BaseLoopStatement: public CompoundStatement {
 public:
     BaseLoopStatement(int line, unsigned int loop_id, const std::vector<const Statement *> &prologue, const std::vector<const Statement *> &statements, const std::vector<const Statement *> &tail, bool infinite_loop): CompoundStatement(line, statements), prologue(prologue), tail(tail), infinite_loop(infinite_loop), loop_id(loop_id) {}
-    virtual void accept(IAstVisitor *) const override { /* TODO */ }
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Statement *> prologue;
     const std::vector<const Statement *> tail;

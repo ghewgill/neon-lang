@@ -1,3 +1,7 @@
+% These are all written as WHEN clauses so that the compiler
+% checks that the expression (the intrinsic) is a constant
+% expression.
+
 CASE "a"
     WHEN chr(97) DO
         print("a")

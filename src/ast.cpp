@@ -96,6 +96,11 @@ const Expression *TypeString::deserialize_value(const Bytecode::Bytes &value, in
     return new ConstantStringExpression(deserialize_string(value, i));
 }
 
+const Expression *TypeBytes::make_default_value() const
+{
+    return new ConstantBytesExpression("", "");
+}
+
 TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
   : Type(declaration, ""),
     elementtype(elementtype)

@@ -111,6 +111,11 @@ Number hypot(Number x, Number y)
     return number_hypot(x, y);
 }
 
+Number intdiv(Number x, Number y)
+{
+    return number_trunc(number_divide(x, y));
+}
+
 Number ldexp(Number x, Number exp)
 {
     if (not number_is_integer(exp)) {

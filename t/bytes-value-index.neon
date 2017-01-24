@@ -1,0 +1,6 @@
+FUNCTION foo(): Bytes
+    RETURN HEXBYTES "01 02 03"
+END FUNCTION
+
+print("\(foo()[1 TO 2])")
+%= HEXBYTES "02 03"
