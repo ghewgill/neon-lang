@@ -895,6 +895,14 @@ void Scope::checkForward()
     }
 }
 
+Variable *Scope::makeTemporary(const Type *type)
+{
+    std::string name = "temp__" + std::to_string(names.size()) + "__" + std::to_string(reinterpret_cast<intptr_t>(this));
+    Variable *r = frame->createVariable(Token(), name, type, false);
+    addName(Token(IDENTIFIER, ""), name, r, true);
+    return r;
+}
+
 ExternalGlobalScope::ExternalGlobalScope(Scope *parent, Frame *frame, std::map<std::string, ExternalGlobalInfo> &external_globals)
   : Scope(parent, frame)
 {

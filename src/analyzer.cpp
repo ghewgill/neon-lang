@@ -3178,10 +3178,8 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     for (auto name: statement->info->assignments) {
         out_bindings.push_back(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName(name))));
     }
-    ast::Variable *result = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), type_row, false);
-    ast::Variable *found = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)+1), ast::TYPE_BOOLEAN, false);
-    scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)), result, true);
-    scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)+1), found, true);
+    ast::Variable *result = scope.top()->makeTemporary(type_row);
+    ast::Variable *found = scope.top()->makeTemporary(ast::TYPE_BOOLEAN);
     args.push_back(new ast::VariableExpression(result));
     statements.push_back(
         new ast::AssignmentStatement(
@@ -3594,9 +3592,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
     ast::Variable *var = frame.top()->createVariable(name, name.text, ast::TYPE_NUMBER, false);
     scope.top()->addName(var->declaration, var->name, var, true);
     var->is_readonly = true;
-    ast::Variable *bound = frame.top()->createVariable(Token(), std::to_string(reinterpret_cast<intptr_t>(statement)), ast::TYPE_NUMBER, false);
-    // TODO: Need better way of declaring unnamed local variable.
-    scope.top()->addName(Token(IDENTIFIER, ""), std::to_string(reinterpret_cast<intptr_t>(statement)), bound, true);
+    ast::Variable *bound = scope.top()->makeTemporary(ast::TYPE_NUMBER);
     const ast::Expression *start = analyze(statement->start.get());
     if (not start->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         error(3067, statement->start->token, "numeric expression expected");
@@ -3686,9 +3682,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
     } else {
         error(3170, statement->array->token, "array or string expected");
     }
-    std::string array_copy_name = std::to_string(reinterpret_cast<intptr_t>(statement)+2);
-    ast::Variable *array_copy = frame.top()->createVariable(Token(), array_copy_name, atype, false);
-    scope.top()->addName(Token(IDENTIFIER, ""), array_copy_name, array_copy, true);
+    ast::Variable *array_copy = scope.top()->makeTemporary(atype);
 
     ast::Variable *var = frame.top()->createVariable(var_name, var_name.text, elementtype, false);
     scope.top()->addName(var->declaration, var->name, var, true);
@@ -3703,17 +3697,11 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
         index = frame.top()->createVariable(index_name, index_name.text, ast::TYPE_NUMBER, false);
         scope.top()->addName(index->declaration, index->name, index, true);
     } else {
-        // TODO: Need better way of declaring unnamed local variable.
-        index_name.text = std::to_string(reinterpret_cast<intptr_t>(statement)+1);
-        index = frame.top()->createVariable(Token(), index_name.text, ast::TYPE_NUMBER, false);
-        scope.top()->addName(Token(IDENTIFIER, ""), index_name.text, index, true);
+        index = scope.top()->makeTemporary(ast::TYPE_NUMBER);
     }
     index->is_readonly = true;
 
-    // TODO: Need better way of declaring unnamed local variable.
-    std::string bound_name = std::to_string(reinterpret_cast<intptr_t>(statement));
-    ast::Variable *bound = frame.top()->createVariable(Token(), bound_name, ast::TYPE_NUMBER, false);
-    scope.top()->addName(Token(IDENTIFIER, ""), bound_name, bound, true);
+    ast::Variable *bound = scope.top()->makeTemporary(ast::TYPE_NUMBER);
     // TODO: make loop_id a void*
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));
     if (statement->label.type == IDENTIFIER) {

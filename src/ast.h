@@ -257,6 +257,7 @@ public:
     void addForward(const std::string &name, TypePointer *ptrtype);
     void resolveForward(const std::string &name, const TypeClass *classtype);
     void checkForward();
+    Variable *makeTemporary(const Type *type);
 
     Scope *const parent;
     Frame *const frame;
