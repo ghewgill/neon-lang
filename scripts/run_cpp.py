@@ -18,5 +18,5 @@ subprocess.check_call([os.path.join("bin", "neonc"), "-q", "-t", "cpp", fullname
 if sys.platform == "win32":
     subprocess.check_call(["cl", "/Fe{}".format(fullname.replace(".neon", "")), "/EHsc", "/Icpp", fullname.replace(".neon", ".cpp"), "cpp/neon.cpp"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 else:
-    subprocess.check_call(["cc", "-o", fullname.replace(".neon", ""), "-Icpp", fullname.replace(".neon", ".cpp"), "cpp/neon.cpp"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    subprocess.check_call(["gcc", "-o", fullname.replace(".neon", ""), "-Icpp", fullname.replace(".neon", ".cpp"), "cpp/neon.cpp"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 subprocess.check_call(fullname.replace(".neon", ""))
