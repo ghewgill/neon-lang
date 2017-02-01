@@ -12,12 +12,14 @@
 #include "pt_dump.h"
 #include "support.h"
 
+extern void compile_js(CompilerSupport *support, const ast::Program *);
 extern void compile_jvm(CompilerSupport *support, const ast::Program *);
 
 struct {
     std::string name;
     CompileProc proc;
 } Targets[] = {
+    {"js", compile_js},
     {"jvm", compile_jvm},
 };
 
