@@ -321,6 +321,7 @@ neonc = env.Program("bin/neonc", [
     "src/ast.cpp",
     "src/bytecode.cpp",
     "src/compiler.cpp",
+    "src/compiler_cli.cpp",
     "src/compiler_js.cpp",
     "src/compiler_jvm.cpp",
     "src/debuginfo.cpp",
@@ -502,6 +503,7 @@ env.Depends(tests, test_ffi)
 env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" t")
 if use_node:
     tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" t")
+tests_cli = env.Command("tests_cli", [neonc, "scripts/run_test.py", "scripts/run_cli.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cli.py\" t")
 tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" t")
 env.Depends(tests_jvm, jvm_classes)
 testenv = env.Clone()
