@@ -28,14 +28,14 @@ const uint8_t MS_DOS_header[] = {
     0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-const uint16_t IMAGE_FILE_EXECUTABLE_IMAGE = 0x0002;
+//const uint16_t IMAGE_FILE_EXECUTABLE_IMAGE = 0x0002;
 
-const uint32_t IMG_SCN_CNT_CODE                 = 0x00000020;
-const uint32_t IMG_SCN_CNT_INITIALIZED_DATA     = 0x00000040;
-const uint32_t IMG_SCN_CNT_UNINITIALIZED_DATA   = 0x00000080;
-const uint32_t IMG_SCN_MEM_EXECUTE              = 0x20000000;
-const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
-const uint32_t IMG_SCN_MEM_WRITE                = 0x80000000;
+//const uint32_t IMG_SCN_CNT_CODE                 = 0x00000020;
+//const uint32_t IMG_SCN_CNT_INITIALIZED_DATA     = 0x00000040;
+//const uint32_t IMG_SCN_CNT_UNINITIALIZED_DATA   = 0x00000080;
+//const uint32_t IMG_SCN_MEM_EXECUTE              = 0x20000000;
+//const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
+//const uint32_t IMG_SCN_MEM_WRITE                = 0x80000000;
 
 struct PE_file_header {
     uint16_t machine;
