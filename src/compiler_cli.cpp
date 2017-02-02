@@ -9,6 +9,167 @@ namespace cli {
 
 //#include "functions_compile_cli.inc"
 
+const uint8_t MS_DOS_header[] = {
+    0x4d,0x5a,0x90,0x00,0x03,0x00,0x00,0x00,
+    0x04,0x00,0x00,0x00,0xFF,0xFF,0x00,0x00,
+    0xb8,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x40,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x80,0x00,0x00,0x00,
+    0x0e,0x1f,0xba,0x0e,0x00,0xb4,0x09,0xcd,
+    0x21,0xb8,0x01,0x4c,0xcd,0x21,0x54,0x68,
+    0x69,0x73,0x20,0x70,0x72,0x6f,0x67,0x72,
+    0x61,0x6d,0x20,0x63,0x61,0x6e,0x6e,0x6f,
+    0x74,0x20,0x62,0x65,0x20,0x72,0x75,0x6e,
+    0x20,0x69,0x6e,0x20,0x44,0x4f,0x53,0x20,
+    0x6d,0x6f,0x64,0x65,0x2e,0x0d,0x0d,0x0a,
+    0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
+
+const uint16_t IMAGE_FILE_EXECUTABLE_IMAGE = 0x0002;
+
+const uint32_t IMG_SCN_CNT_CODE                 = 0x00000020;
+const uint32_t IMG_SCN_CNT_INITIALIZED_DATA     = 0x00000040;
+const uint32_t IMG_SCN_CNT_UNINITIALIZED_DATA   = 0x00000080;
+const uint32_t IMG_SCN_MEM_EXECUTE              = 0x20000000;
+const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
+const uint32_t IMG_SCN_MEM_WRITE                = 0x80000000;
+
+struct PE_file_header {
+    uint16_t machine;
+    uint16_t number_of_sections;
+    uint32_t time_date_stamp;
+    uint32_t pointer_to_symbol_table;
+    uint32_t number_of_symbols;
+    uint16_t optional_header_size;
+    uint16_t characteristics;
+};
+
+struct PE_header_standard_fields {
+    uint16_t magic;
+    uint8_t lmajor;
+    uint8_t lminor;
+    uint32_t code_size;
+    uint32_t initialized_data_size;
+    uint32_t uninitialized_data_size;
+    uint32_t entry_point_rva;
+    uint32_t base_of_code;
+    uint32_t base_of_data;
+};
+
+struct PE_header_Windows_NT_specific_fields {
+    uint32_t image_base;
+    uint32_t section_alignment;
+    uint32_t file_alignment;
+    uint16_t os_major;
+    uint16_t os_minor;
+    uint16_t user_major;
+    uint16_t user_minor;
+    uint16_t subsys_major;
+    uint16_t subsys_minor;
+    uint32_t reserved;
+    uint32_t image_size;
+    uint32_t header_size;
+    uint32_t file_checksum;
+    uint16_t dll_flags;
+    uint32_t stack_reserve_size;
+    uint32_t stack_commit_size;
+    uint32_t heap_reserve_size;
+    uint32_t heap_commit_size;
+    uint32_t loader_flags;
+    uint32_t number_of_data_directories;
+};
+
+struct PE_header_data_directories {
+    uint32_t export_table_rva;
+    uint32_t export_table_size;
+    uint32_t import_table_rva;
+    uint32_t import_table_size;
+    uint32_t resource_table_rva;
+    uint32_t resource_table_size;
+    uint32_t exception_table_rva;
+    uint32_t exception_table_size;
+    uint32_t certificate_table_rva;
+    uint32_t certificate_table_size;
+    uint32_t base_relocation_table_rva;
+    uint32_t base_relocation_table_size;
+    uint32_t debug_rva;
+    uint32_t debug_size;
+    uint32_t copyright_rva;
+    uint32_t copyright_size;
+    uint32_t global_ptr_rva;
+    uint32_t global_ptr_size;
+    uint32_t tls_table_rva;
+    uint32_t tls_table_size;
+    uint32_t load_config_table_rva;
+    uint32_t load_config_table_size;
+    uint32_t bound_import_rva;
+    uint32_t bound_import_size;
+    uint32_t iat_rva;
+    uint32_t iat_size;
+    uint32_t delay_import_descriptor_rva;
+    uint32_t delay_import_descriptor_size;
+    uint32_t cli_header_rva;
+    uint32_t cli_header_size;
+    uint32_t reserved_rva;
+    uint32_t reserved_size;
+};
+
+struct PE_optional_header {
+    PE_header_standard_fields standard_fields;
+    PE_header_Windows_NT_specific_fields NT_specific_fields;
+    PE_header_data_directories data_directories;
+};
+
+struct Section_header {
+    std::string Name;
+    uint32_t VirtualSize;
+    uint32_t VirtualAddress;
+    uint32_t SizeOfRawData;
+    uint32_t PointerToRawData;
+    uint32_t PointerToRelocations;
+    uint32_t PointerToLinenumbers;
+    uint16_t NumberOfRelocations;
+    uint16_t NumberOfLinenumbers;
+    uint32_t Characteristics;
+};
+
+struct Import_address_table {
+    uint32_t ImportLookupTable;
+    uint32_t DateTimeStamp;
+    uint32_t ForwarderChain;
+    uint32_t Name;
+    uint32_t ImportAddressTable;
+};
+
+struct Import_lookup_table {
+    uint32_t HintNameTableRVA;
+};
+
+struct CLI_header {
+    uint32_t cb;
+    uint16_t MajorRuntimeVersion;
+    uint16_t MinorRuntimeVersion;
+    uint32_t MetaDataRVA;
+    uint32_t MetaDataSize;
+    uint32_t Flags;
+    uint32_t EntryPointToken;
+    uint32_t ResourcesRVA;
+    uint32_t ResourcesSize;
+    uint32_t StrongNameSignatureRVA;
+    uint32_t StrongNameSignatureSize;
+    uint32_t CodeManagerTableRVA;
+    uint32_t CodeManagerTableSize;
+    uint32_t VTableFixupsRVA;
+    uint32_t VTableFixupsSize;
+    uint32_t ExportAddressTableJumpsRVA;
+    uint32_t ExportAddressTableJumpsSize;
+    uint32_t ManagedNativeHeaderRVA;
+    uint32_t ManagedNativeHeaderSize;
+};
+
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
 {
     a.push_back(u8);
@@ -1854,6 +2015,15 @@ public:
     std::vector<const Statement *> statements;
 
     virtual void generate() const {
+        std::string path;
+        std::string::size_type i = program->source_path.find_last_of("/\\:");
+        if (i != std::string::npos) {
+            path = program->source_path.substr(0, i + 1);
+        }
+
+        std::vector<uint8_t> data;
+        std::copy(MS_DOS_header, MS_DOS_header+sizeof(MS_DOS_header), std::back_inserter(data));
+        support->writeOutput(path + "hello.exe", data);
     }
 private:
     Program(const Program &);
