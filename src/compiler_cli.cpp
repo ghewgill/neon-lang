@@ -9,7 +9,49 @@ namespace cli {
 
 //#include "functions_compile_cli.inc"
 
-const uint8_t MS_DOS_header[] = {
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
+{
+    a.push_back(u8);
+    return a;
+}
+
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, int16_t s16)
+{
+    a.push_back((s16      ) & 0xff);
+    a.push_back((s16 >>  8) & 0xff);
+    return a;
+}
+
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint16_t u16)
+{
+    a.push_back((u16      ) & 0xff);
+    a.push_back((u16 >>  8) & 0xff);
+    return a;
+}
+
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint32_t u32)
+{
+    a.push_back((u32      ) & 0xff);
+    a.push_back((u32 >>  8) & 0xff);
+    a.push_back((u32 >> 16) & 0xff);
+    a.push_back((u32 >> 24) & 0xff);
+    return a;
+}
+
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, const std::vector<uint8_t> &b)
+{
+    std::copy(b.begin(), b.end(), std::back_inserter(a));
+    return a;
+}
+
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, const std::string &s)
+{
+    std::copy(s.begin(), s.end(), std::back_inserter(a));
+    a << static_cast<uint8_t>(0);
+    return a;
+}
+
+const uint8_t MS_DOS_header[128] = {
     0x4d,0x5a,0x90,0x00,0x03,0x00,0x00,0x00,
     0x04,0x00,0x00,0x00,0xFF,0xFF,0x00,0x00,
     0xb8,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -28,16 +70,28 @@ const uint8_t MS_DOS_header[] = {
     0x24,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-//const uint16_t IMAGE_FILE_EXECUTABLE_IMAGE = 0x0002;
+const uint16_t IMAGE_FILE_EXECUTABLE_IMAGE  = 0x0002;
+const uint16_t IMAGE_FILE_32BIT_MACHINE     = 0x0100;
 
-//const uint32_t IMG_SCN_CNT_CODE                 = 0x00000020;
+const uint16_t IMAGE_SUBSYSTEM_WINDOWS_CUI  = 0x3;
+
+const uint32_t IMG_SCN_CNT_CODE                 = 0x00000020;
 //const uint32_t IMG_SCN_CNT_INITIALIZED_DATA     = 0x00000040;
 //const uint32_t IMG_SCN_CNT_UNINITIALIZED_DATA   = 0x00000080;
-//const uint32_t IMG_SCN_MEM_EXECUTE              = 0x20000000;
-//const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
+const uint32_t IMG_SCN_MEM_EXECUTE              = 0x20000000;
+const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
 //const uint32_t IMG_SCN_MEM_WRITE                = 0x80000000;
 
 struct PE_file_header {
+    PE_file_header()
+      : machine(0x14c),
+        number_of_sections(1),
+        time_date_stamp(0),
+        pointer_to_symbol_table(0),
+        number_of_symbols(0),
+        optional_header_size(28+68+128),
+        characteristics(IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_32BIT_MACHINE)
+    {}
     uint16_t machine;
     uint16_t number_of_sections;
     uint32_t time_date_stamp;
@@ -45,9 +99,32 @@ struct PE_file_header {
     uint32_t number_of_symbols;
     uint16_t optional_header_size;
     uint16_t characteristics;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << machine;
+        r << number_of_sections;
+        r << time_date_stamp;
+        r << pointer_to_symbol_table;
+        r << number_of_symbols;
+        r << optional_header_size;
+        r << characteristics;
+        return r;
+    }
 };
 
 struct PE_header_standard_fields {
+    PE_header_standard_fields()
+      : magic(0x10b),
+        lmajor(6),
+        lminor(0),
+        code_size(0),
+        initialized_data_size(0),
+        uninitialized_data_size(0),
+        entry_point_rva(0),
+        base_of_code(0),
+        base_of_data(0)
+    {}
     uint16_t magic;
     uint8_t lmajor;
     uint8_t lminor;
@@ -57,9 +134,47 @@ struct PE_header_standard_fields {
     uint32_t entry_point_rva;
     uint32_t base_of_code;
     uint32_t base_of_data;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << magic;
+        r << lmajor;
+        r << lminor;
+        r << code_size;
+        r << initialized_data_size;
+        r << uninitialized_data_size;
+        r << entry_point_rva;
+        r << base_of_code;
+        r << base_of_data;
+        return r;
+    }
 };
 
 struct PE_header_Windows_NT_specific_fields {
+    PE_header_Windows_NT_specific_fields()
+      : image_base(0x400000),
+        section_alignment(0x1000),
+        file_alignment(0x200),
+        os_major(5),
+        os_minor(0),
+        user_major(0),
+        user_minor(0),
+        subsys_major(5),
+        subsys_minor(0),
+        reserved(0),
+        image_size(0),
+        header_size(0),
+        file_checksum(0),
+        subsystem(IMAGE_SUBSYSTEM_WINDOWS_CUI),
+        dll_flags(0),
+        stack_reserve_size(0x100000),
+        stack_commit_size(0x1000),
+        heap_reserve_size(0x100000),
+        heap_commit_size(0x1000),
+        loader_flags(0),
+        number_of_data_directories(0x10)
+    {}
+
     uint32_t image_base;
     uint32_t section_alignment;
     uint32_t file_alignment;
@@ -73,6 +188,7 @@ struct PE_header_Windows_NT_specific_fields {
     uint32_t image_size;
     uint32_t header_size;
     uint32_t file_checksum;
+    uint16_t subsystem;
     uint16_t dll_flags;
     uint32_t stack_reserve_size;
     uint32_t stack_commit_size;
@@ -80,9 +196,70 @@ struct PE_header_Windows_NT_specific_fields {
     uint32_t heap_commit_size;
     uint32_t loader_flags;
     uint32_t number_of_data_directories;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << image_base;
+        r << section_alignment;
+        r << file_alignment;
+        r << os_major;
+        r << os_minor;
+        r << user_major;
+        r << user_minor;
+        r << subsys_major;
+        r << subsys_minor;
+        r << reserved;
+        r << image_size;
+        r << header_size;
+        r << file_checksum;
+        r << subsystem;
+        r << dll_flags;
+        r << stack_reserve_size;
+        r << stack_commit_size;
+        r << heap_reserve_size;
+        r << heap_commit_size;
+        r << loader_flags;
+        r << number_of_data_directories;
+        return r;
+    }
 };
 
 struct PE_header_data_directories {
+    PE_header_data_directories()
+      : export_table_rva(0),
+        export_table_size(0),
+        import_table_rva(0),
+        import_table_size(0),
+        resource_table_rva(0),
+        resource_table_size(0),
+        exception_table_rva(0),
+        exception_table_size(0),
+        certificate_table_rva(0),
+        certificate_table_size(0),
+        base_relocation_table_rva(0),
+        base_relocation_table_size(0),
+        debug_rva(0),
+        debug_size(0),
+        copyright_rva(0),
+        copyright_size(0),
+        global_ptr_rva(0),
+        global_ptr_size(0),
+        tls_table_rva(0),
+        tls_table_size(0),
+        load_config_table_rva(0),
+        load_config_table_size(0),
+        bound_import_rva(0),
+        bound_import_size(0),
+        iat_rva(0),
+        iat_size(0),
+        delay_import_descriptor_rva(0),
+        delay_import_descriptor_size(0),
+        cli_header_rva(0),
+        cli_header_size(0),
+        reserved_rva(0),
+        reserved_size(0)
+    {}
+
     uint32_t export_table_rva;
     uint32_t export_table_size;
     uint32_t import_table_rva;
@@ -115,15 +292,78 @@ struct PE_header_data_directories {
     uint32_t cli_header_size;
     uint32_t reserved_rva;
     uint32_t reserved_size;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << export_table_rva;
+        r << export_table_size;
+        r << import_table_rva;
+        r << import_table_size;
+        r << resource_table_rva;
+        r << resource_table_size;
+        r << exception_table_rva;
+        r << exception_table_size;
+        r << certificate_table_rva;
+        r << certificate_table_size;
+        r << base_relocation_table_rva;
+        r << base_relocation_table_size;
+        r << debug_rva;
+        r << debug_size;
+        r << copyright_rva;
+        r << copyright_size;
+        r << global_ptr_rva;
+        r << global_ptr_size;
+        r << tls_table_rva;
+        r << tls_table_size;
+        r << load_config_table_rva;
+        r << load_config_table_size;
+        r << bound_import_rva;
+        r << bound_import_size;
+        r << iat_rva;
+        r << iat_size;
+        r << delay_import_descriptor_rva;
+        r << delay_import_descriptor_size;
+        r << cli_header_rva;
+        r << cli_header_size;
+        r << reserved_rva;
+        r << reserved_size;
+        return r;
+    }
 };
 
 struct PE_optional_header {
+    PE_optional_header()
+      : standard_fields(),
+        NT_specific_fields(),
+        data_directories()
+    {}
     PE_header_standard_fields standard_fields;
     PE_header_Windows_NT_specific_fields NT_specific_fields;
     PE_header_data_directories data_directories;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << standard_fields.serialize();
+        r << NT_specific_fields.serialize();
+        r << data_directories.serialize();
+        return r;
+    }
 };
 
 struct Section_header {
+    Section_header()
+      : Name(),
+        VirtualSize(0),
+        VirtualAddress(0),
+        SizeOfRawData(0),
+        PointerToRawData(0),
+        PointerToRelocations(0),
+        PointerToLinenumbers(0),
+        NumberOfRelocations(0),
+        NumberOfLinenumbers(0),
+        Characteristics(0)
+    {}
+
     std::string Name;
     uint32_t VirtualSize;
     uint32_t VirtualAddress;
@@ -134,18 +374,63 @@ struct Section_header {
     uint16_t NumberOfRelocations;
     uint16_t NumberOfLinenumbers;
     uint32_t Characteristics;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        assert(Name.length() <= 8);
+        for (size_t i = 0; i < 8; i++) {
+            if (i < Name.length()) {
+                r << static_cast<uint8_t>(Name.at(i));
+            } else {
+                r << static_cast<uint8_t>(0);
+            }
+        }
+        r << VirtualSize;
+        r << VirtualAddress;
+        r << SizeOfRawData;
+        r << PointerToRawData;
+        r << PointerToRelocations;
+        r << PointerToLinenumbers;
+        r << NumberOfRelocations;
+        r << NumberOfLinenumbers;
+        r << Characteristics;
+        return r;
+    }
 };
 
 struct Import_address_table {
+    Import_address_table()
+      : ImportLookupTable(0),
+        DateTimeStamp(0),
+        ForwarderChain(0),
+        Name(0),
+        ImportAddressTable(0)
+    {}
     uint32_t ImportLookupTable;
     uint32_t DateTimeStamp;
     uint32_t ForwarderChain;
     uint32_t Name;
     uint32_t ImportAddressTable;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << ImportLookupTable;
+        r << DateTimeStamp;
+        r << ForwarderChain;
+        r << Name;
+        r << ImportAddressTable;
+        return r;
+    }
 };
 
 struct Import_lookup_table {
+    Import_lookup_table(): HintNameTableRVA(0) {}
     uint32_t HintNameTableRVA;
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << HintNameTableRVA;
+        return r;
+    }
 };
 
 struct CLI_header {
@@ -170,50 +455,64 @@ struct CLI_header {
     uint32_t ManagedNativeHeaderSize;
 };
 
-std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint8_t u8)
-{
-    a.push_back(u8);
-    return a;
-}
-
-std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, int16_t s16)
-{
-    a.push_back((s16 >>  8) & 0xff);
-    a.push_back((s16      ) & 0xff);
-    return a;
-}
-
-std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint16_t u16)
-{
-    a.push_back((u16 >>  8) & 0xff);
-    a.push_back((u16      ) & 0xff);
-    return a;
-}
-
-std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint32_t u32)
-{
-    a.push_back((u32 >> 24) & 0xff);
-    a.push_back((u32 >> 16) & 0xff);
-    a.push_back((u32 >>  8) & 0xff);
-    a.push_back((u32      ) & 0xff);
-    return a;
-}
-
-std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, const std::vector<uint8_t> &b)
-{
-    std::copy(b.begin(), b.end(), std::back_inserter(a));
-    return a;
-}
-
-class ClassFile {
+class ExecutableFile {
 public:
-    ClassFile(const std::string &path, const std::string &name): path(path), name(name) {}
+    ExecutableFile(const std::string &path, const std::string &name): path(path), name(name), bytecode() {}
     const std::string path;
     const std::string name;
+    std::vector<uint8_t> bytecode;
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        std::copy(MS_DOS_header, MS_DOS_header+sizeof(MS_DOS_header), std::back_inserter(r));
+        r << static_cast<uint32_t>(0x4550);
+        PE_file_header pfh;
+        r << pfh.serialize();
 
+        PE_optional_header poh;
+        poh.standard_fields.base_of_code = 0x2000;
+        poh.NT_specific_fields.image_size = 0x8000; // TODO
+        poh.NT_specific_fields.header_size = 0x200;
+
+        std::vector<uint8_t> code_section = bytecode;
+        Import_lookup_table ilt;
+        ilt.HintNameTableRVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        code_section << static_cast<uint16_t>(0);
+        code_section << "_CorExeMain";
+        Import_address_table iat;
+        iat.ImportLookupTable = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        code_section << ilt.serialize();
+        code_section << Import_lookup_table().serialize();
+        iat.Name = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        code_section << "mscoree.dll";
+        poh.data_directories.import_table_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        code_section << iat.serialize();
+        code_section << Import_address_table().serialize();
+        poh.data_directories.import_table_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.import_table_rva);
+
+        poh.standard_fields.entry_point_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        code_section << static_cast<uint8_t>(0xff);
+        code_section << static_cast<uint8_t>(0x25);
+        code_section << static_cast<uint32_t>(0x402006);
+        poh.standard_fields.code_size = static_cast<uint32_t>(code_section.size());
+
+        r << poh.serialize();
+        Section_header sh;
+        sh.Name = ".text";
+        sh.VirtualSize = static_cast<uint32_t>(code_section.size());
+        sh.VirtualAddress = poh.standard_fields.base_of_code;
+        sh.SizeOfRawData = static_cast<uint32_t>(code_section.size());
+        sh.PointerToRawData = 0x200;
+        sh.Characteristics = IMG_SCN_CNT_CODE | IMG_SCN_MEM_EXECUTE | IMG_SCN_MEM_READ;
+        r << sh.serialize();
+        while (r.size() < 0x200) {
+            r << static_cast<uint8_t>(0);
+        }
+        r << code_section;
+        return r;
+    }
 private:
-    ClassFile(const ClassFile &);
-    ClassFile &operator=(const ClassFile &);
+    ExecutableFile(const ExecutableFile &);
+    ExecutableFile &operator=(const ExecutableFile &);
 };
 
 class ClassContext {
@@ -250,7 +549,7 @@ public:
 public:
     Context(ClassContext &cc): cc(cc), label_exit(), loop_labels() {}
     ClassContext &cc;
-    //ClassFile &cf;
+    //ExecutableFile &ef;
     //Code_attribute &ca;
     Label label_exit;
     std::map<size_t, LoopLabels> loop_labels;
@@ -2020,10 +2319,9 @@ public:
         if (i != std::string::npos) {
             path = program->source_path.substr(0, i + 1);
         }
-
-        std::vector<uint8_t> data;
-        std::copy(MS_DOS_header, MS_DOS_header+sizeof(MS_DOS_header), std::back_inserter(data));
-        support->writeOutput(path + "hello.exe", data);
+        ExecutableFile exe(path, program->module_name);
+        std::vector<uint8_t> data = exe.serialize();
+        support->writeOutput(path + program->module_name + ".exe", data);
     }
 private:
     Program(const Program &);
