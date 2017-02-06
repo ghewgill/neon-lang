@@ -82,6 +82,8 @@ const uint32_t IMG_SCN_MEM_EXECUTE              = 0x20000000;
 const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
 //const uint32_t IMG_SCN_MEM_WRITE                = 0x80000000;
 
+const uint32_t COMIMAGE_FLAGS_ILONLY = 0x00000001;
+
 struct PE_file_header {
     PE_file_header()
       : machine(0x14c),
@@ -153,7 +155,7 @@ struct PE_header_standard_fields {
 struct PE_header_Windows_NT_specific_fields {
     PE_header_Windows_NT_specific_fields()
       : image_base(0x400000),
-        section_alignment(0x1000),
+        section_alignment(0x2000),
         file_alignment(0x200),
         os_major(5),
         os_minor(0),
@@ -434,6 +436,28 @@ struct Import_lookup_table {
 };
 
 struct CLI_header {
+    CLI_header()
+      : cb(72),
+        MajorRuntimeVersion(2),
+        MinorRuntimeVersion(0),
+        MetaDataRVA(0),
+        MetaDataSize(0),
+        Flags(COMIMAGE_FLAGS_ILONLY),
+        EntryPointToken(0),
+        ResourcesRVA(0),
+        ResourcesSize(0),
+        StrongNameSignatureRVA(0),
+        StrongNameSignatureSize(0),
+        CodeManagerTableRVA(0),
+        CodeManagerTableSize(0),
+        VTableFixupsRVA(0),
+        VTableFixupsSize(0),
+        ExportAddressTableJumpsRVA(0),
+        ExportAddressTableJumpsSize(0),
+        ManagedNativeHeaderRVA(0),
+        ManagedNativeHeaderSize(0)
+    {}
+
     uint32_t cb;
     uint16_t MajorRuntimeVersion;
     uint16_t MinorRuntimeVersion;
@@ -453,6 +477,95 @@ struct CLI_header {
     uint32_t ExportAddressTableJumpsSize;
     uint32_t ManagedNativeHeaderRVA;
     uint32_t ManagedNativeHeaderSize;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << cb;
+        r << MajorRuntimeVersion;
+        r << MinorRuntimeVersion;
+        r << MetaDataRVA;
+        r << MetaDataSize;
+        r << Flags;
+        r << EntryPointToken;
+        r << ResourcesRVA;
+        r << ResourcesSize;
+        r << StrongNameSignatureRVA;
+        r << StrongNameSignatureSize;
+        r << CodeManagerTableRVA;
+        r << CodeManagerTableSize;
+        r << VTableFixupsRVA;
+        r << VTableFixupsSize;
+        r << ExportAddressTableJumpsRVA;
+        r << ExportAddressTableJumpsSize;
+        r << ManagedNativeHeaderRVA;
+        r << ManagedNativeHeaderSize;
+        return r;
+    }
+};
+
+struct Stream_header {
+    Stream_header()
+      : Offset(0),
+        Size(0),
+        Name()
+    {}
+
+    uint32_t Offset;
+    uint32_t Size;
+    std::string Name;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << Offset;
+        r << Size;
+        uint32_t x = static_cast<uint32_t>((Name.length() + 1 + 3) & ~3);
+        r << x;
+        r << Name;
+        for (size_t i = Name.length() + 1; i < x; i++) {
+            r << static_cast<uint8_t>(0);
+        }
+        return r;
+    }
+};
+
+struct Metadata_root {
+    Metadata_root()
+      : Signature(0x424a5342),
+        MajorVersion(1),
+        MinorVersion(1),
+        Reserved(0),
+        Version("Standard CLI 2005"),
+        Flags(0),
+        StreamHeaders()
+    {}
+
+    uint32_t Signature;
+    uint16_t MajorVersion;
+    uint16_t MinorVersion;
+    uint32_t Reserved;
+    std::string Version;
+    uint16_t Flags;
+    std::vector<Stream_header> StreamHeaders;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << Signature;
+        r << MajorVersion;
+        r << MinorVersion;
+        r << Reserved;
+        uint32_t x = static_cast<uint32_t>((Version.length() + 1 + 3) & ~3);
+        r << x;
+        r << Version;
+        for (size_t i = Version.length() + 1; i < x; i++) {
+            r << static_cast<uint8_t>(0);
+        }
+        r << Flags;
+        r << static_cast<uint16_t>(StreamHeaders.size());
+        for (auto sh: StreamHeaders) {
+            r << sh.serialize();
+        }
+        return r;
+    }
 };
 
 class ExecutableFile {
@@ -478,6 +591,7 @@ public:
         ilt.HintNameTableRVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << static_cast<uint16_t>(0);
         code_section << "_CorExeMain";
+
         Import_address_table iat;
         iat.ImportLookupTable = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << ilt.serialize();
@@ -488,6 +602,16 @@ public:
         code_section << iat.serialize();
         code_section << Import_address_table().serialize();
         poh.data_directories.import_table_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.import_table_rva);
+
+        Metadata_root mr;
+        CLI_header ch;
+        ch.cb = 72;
+        ch.MetaDataRVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        code_section << mr.serialize();
+        ch.MetaDataSize = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - ch.MetaDataRVA);
+        poh.data_directories.cli_header_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        code_section << ch.serialize();
+        poh.data_directories.cli_header_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.cli_header_rva);
 
         poh.standard_fields.entry_point_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << static_cast<uint8_t>(0xff);
