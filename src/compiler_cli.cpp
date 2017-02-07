@@ -536,7 +536,11 @@ struct Metadata_root {
         Reserved(0),
         Version("Standard CLI 2005"),
         Flags(0),
-        StreamHeaders()
+        Strings_Stream("#Strings"),
+        Userstring_Stream("#US"),
+        Blob_Stream("#Blob"),
+        Guid_Stream("#GUID"),
+        Tables_Stream("#~")
     {}
 
     uint32_t Signature;
@@ -545,7 +549,11 @@ struct Metadata_root {
     uint32_t Reserved;
     std::string Version;
     uint16_t Flags;
-    std::vector<Stream_header> StreamHeaders;
+    Stream_header Strings_Stream;
+    Stream_header Userstring_Stream;
+    Stream_header Blob_Stream;
+    Stream_header Guid_Stream;
+    Stream_header Tables_Stream;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
@@ -560,15 +568,14 @@ struct Metadata_root {
             r << static_cast<uint8_t>(0);
         }
         r << Flags;
-        r << static_cast<uint16_t>(StreamHeaders.size());
-        for (auto sh: StreamHeaders) {
-            r << sh.serialize();
-        }
+        r << Strings_Stream.serialize();
+        r << Userstring_Stream.serialize();
+        r << Blob_Stream.serialize();
+        r << Guid_Stream.serialize();
+        r << Tables_Stream.serialize();
         return r;
     }
 };
-
-const int AssemblyTableNumber = 0x20;
 
 struct Assembly {
     Assembly()
@@ -604,32 +611,33 @@ struct Assembly {
         r << PublicKey;
         r << Name;
         r << Culture;
+        return r;
     }
 };
 
-//struct AssemblyOS
-//struct AssemblyProcessor
-//struct AssemblyRef
-//struct AssemblyRefOS
-//struct AssemblyRefProcessor
-//struct ClassLayout
-//struct Constant
-//struct CustomAttribute
-//struct DeclSecurity
-//struct EventMap
-//struct Event
-//struct ExportedType
-//struct Field
-//struct FieldLayout
-//struct FieldMarshal
-//struct FieldRVA
-//struct File
-//struct GenericParam
-//struct GenericParamConstraint
-//struct ImplMap
-//struct InterfaceImpl
-//struct ManifestResource
-//struct MemberRef
+struct AssemblyOS {};
+struct AssemblyProcessor {};
+struct AssemblyRef {};
+struct AssemblyRefOS {};
+struct AssemblyRefProcessor {};
+struct ClassLayout {};
+struct Constant {};
+struct CustomAttribute {};
+struct DeclSecurity {};
+struct EventMap {};
+struct Event {};
+struct ExportedType {};
+struct Field {};
+struct FieldLayout {};
+struct FieldMarshal {};
+struct FieldRVA {};
+struct File {};
+struct GenericParam {};
+struct GenericParamConstraint {};
+struct ImplMap {};
+struct InterfaceImpl {};
+struct ManifestResource {};
+struct MemberRef {};
 
 struct MethodDef {
     MethodDef()
@@ -660,19 +668,82 @@ struct MethodDef {
     }
 };
 
-//struct MethodImpl
-//struct MethodSemantics
-//struct MethodSpec
-//struct Module
-//struct ModuleRef
-//struct NestedClass
-//struct Param
-//struct Property
-//struct PropertyMap
-//struct StandAloneSig
-//struct TypeDef
-//struct TypeRef
-//struct TypeSpec
+struct MethodImpl {};
+struct MethodSemantics {};
+struct MethodSpec {};
+struct Module {};
+struct ModuleRef {};
+struct NestedClass {};
+struct Param {};
+struct Property {};
+struct PropertyMap {};
+struct StandAloneSig {};
+struct TypeDef {};
+struct TypeRef {};
+struct TypeSpec {};
+
+struct Metadata_tables {
+    uint32_t Reserved1;
+    uint8_t MajorVersion;
+    uint8_t MinorVersion;
+    uint8_t HeapSizes;
+    uint8_t Reserved2;
+    uint64_t Valid;
+    uint64_t Sorted;
+    std::vector<Module> Module_Table;                                   // 0x00
+    std::vector<TypeRef> TypeRef_Table;                                 // 0x01
+    std::vector<TypeDef> TypeDef_Table;                                 // 0x02
+    std::vector<Field> Field_Table;                                     // 0x04
+    std::vector<MethodDef> MethodDef_Table;                             // 0x06
+    std::vector<Param> Param_Table;                                     // 0x08
+    std::vector<InterfaceImpl> InterfaceImpl_Table;                     // 0x09
+    std::vector<MemberRef> MemberRef_Table;                             // 0x0A
+    std::vector<Constant> Constant_Table;                               // 0x0B
+    std::vector<CustomAttribute> CustomAttribute_Table;                 // 0x0C
+    std::vector<FieldMarshal> FieldMarshal_Table;                       // 0x0D
+    std::vector<DeclSecurity> DeclSecurity_Table;                       // 0x0E
+    std::vector<ClassLayout> ClassLayout_Table;                         // 0x0F
+    std::vector<FieldLayout> FieldLayout_Table;                         // 0x10
+    std::vector<StandAloneSig> StandAloneSig_Table;                     // 0x11
+    std::vector<EventMap> EventMap_Table;                               // 0x12
+    std::vector<Event> Event_Table;                                     // 0x14
+    std::vector<PropertyMap> PropertyMap_Table;                         // 0x15
+    std::vector<Property> Property_Table;                               // 0x17
+    std::vector<MethodSemantics> MethodSemantics_Table;                 // 0x18
+    std::vector<MethodImpl> MethodImpl_Table;                           // 0x19
+    std::vector<ModuleRef> ModuleRef_Table;                             // 0x1A
+    std::vector<TypeSpec> TypeSpec_Table;                               // 0x1B
+    std::vector<ImplMap> ImplMap_Table;                                 // 0x1C
+    std::vector<FieldRVA> FieldRVA_Table;                               // 0x1D
+    std::vector<Assembly> Assembly_Table;                               // 0x20
+    std::vector<AssemblyProcessor> AssemblyProcessor_Table;             // 0x21
+    std::vector<AssemblyOS> AssemblyOS_Table;                           // 0x22
+    std::vector<AssemblyRef> AssemblyRef_Table;                         // 0x23
+    std::vector<AssemblyRefProcessor> AssemblyRefProcessor_Table;       // 0x24
+    std::vector<AssemblyRefOS> AssemblyRefOS_Table;                     // 0x25
+    std::vector<File> File_Table;                                       // 0x26
+    std::vector<ExportedType> ExportedType_Table;                       // 0x27
+    std::vector<ManifestResource> ManifestResource_Table;               // 0x28
+    std::vector<NestedClass> NestedClass_Table;                         // 0x29
+    std::vector<GenericParam> GenericParam_Table;                       // 0x2A
+    std::vector<MethodSpec> MethodSpec_Table;                           // 0x2B
+    std::vector<GenericParamConstraint> GenericParamConstraint_Table;   // 0x2C
+};
+
+struct Metadata {
+    Metadata_root root;
+    std::vector<uint8_t> Strings;
+    std::vector<uint8_t> Userstring;
+    std::vector<uint8_t> Blob;
+    std::vector<uint8_t> Guid;
+    Metadata_tables Tables;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << root.serialize();
+        return r;
+    }
+};
 
 class ExecutableFile {
 public:
@@ -709,14 +780,13 @@ public:
         code_section << Import_address_table().serialize();
         poh.data_directories.import_table_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.import_table_rva);
 
-        Metadata_root mr;
-        Stream_header stream_tables("#~");
+        Metadata md;
         MethodDef main;
-        mr.StreamHeaders.push_back(stream_tables);
+        md.Tables.MethodDef_Table.push_back(main);
         CLI_header ch;
         ch.cb = 72;
         ch.MetaDataRVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
-        code_section << mr.serialize();
+        code_section << md.serialize();
         ch.MetaDataSize = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - ch.MetaDataRVA);
         poh.data_directories.cli_header_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << ch.serialize();
