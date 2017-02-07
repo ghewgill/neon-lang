@@ -504,10 +504,10 @@ struct CLI_header {
 };
 
 struct Stream_header {
-    Stream_header()
+    Stream_header(const std::string &name)
       : Offset(0),
         Size(0),
-        Name()
+        Name(name)
     {}
 
     uint32_t Offset;
@@ -568,6 +568,112 @@ struct Metadata_root {
     }
 };
 
+const int AssemblyTableNumber = 0x20;
+
+struct Assembly {
+    Assembly()
+      : HashAlgId(0),
+        MajorVersion(0),
+        MinorVersion(0),
+        BuildNumber(0),
+        RevisionNumber(0),
+        Flags(0),
+        PublicKey(0),
+        Name(0),
+        Culture(0)
+    {}
+
+    uint32_t HashAlgId;
+    uint16_t MajorVersion;
+    uint16_t MinorVersion;
+    uint16_t BuildNumber;
+    uint16_t RevisionNumber;
+    uint32_t Flags;
+    uint32_t PublicKey;
+    uint32_t Name;
+    uint32_t Culture;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << HashAlgId;
+        r << MajorVersion;
+        r << MinorVersion;
+        r << BuildNumber;
+        r << RevisionNumber;
+        r << Flags;
+        r << PublicKey;
+        r << Name;
+        r << Culture;
+    }
+};
+
+//struct AssemblyOS
+//struct AssemblyProcessor
+//struct AssemblyRef
+//struct AssemblyRefOS
+//struct AssemblyRefProcessor
+//struct ClassLayout
+//struct Constant
+//struct CustomAttribute
+//struct DeclSecurity
+//struct EventMap
+//struct Event
+//struct ExportedType
+//struct Field
+//struct FieldLayout
+//struct FieldMarshal
+//struct FieldRVA
+//struct File
+//struct GenericParam
+//struct GenericParamConstraint
+//struct ImplMap
+//struct InterfaceImpl
+//struct ManifestResource
+//struct MemberRef
+
+struct MethodDef {
+    MethodDef()
+      : RVA(0),
+        ImplFlags(0),
+        MethodAttributes(0),
+        Name(0),
+        Signature(0),
+        ParamList(0)
+    {}
+
+    uint32_t RVA;
+    uint16_t ImplFlags;
+    uint16_t MethodAttributes;
+    uint32_t Name;
+    uint32_t Signature;
+    uint32_t ParamList;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << RVA;
+        r << ImplFlags;
+        r << MethodAttributes;
+        r << Name;
+        r << Signature;
+        r << ParamList;
+        return r;
+    }
+};
+
+//struct MethodImpl
+//struct MethodSemantics
+//struct MethodSpec
+//struct Module
+//struct ModuleRef
+//struct NestedClass
+//struct Param
+//struct Property
+//struct PropertyMap
+//struct StandAloneSig
+//struct TypeDef
+//struct TypeRef
+//struct TypeSpec
+
 class ExecutableFile {
 public:
     ExecutableFile(const std::string &path, const std::string &name): path(path), name(name), bytecode() {}
@@ -604,6 +710,9 @@ public:
         poh.data_directories.import_table_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.import_table_rva);
 
         Metadata_root mr;
+        Stream_header stream_tables("#~");
+        MethodDef main;
+        mr.StreamHeaders.push_back(stream_tables);
         CLI_header ch;
         ch.cb = 72;
         ch.MetaDataRVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
