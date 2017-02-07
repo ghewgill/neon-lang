@@ -519,7 +519,6 @@ struct Stream_header {
         r << Offset;
         r << Size;
         uint32_t x = static_cast<uint32_t>((Name.length() + 1 + 3) & ~3);
-        r << x;
         r << Name;
         for (size_t i = Name.length() + 1; i < x; i++) {
             r << static_cast<uint8_t>(0);
@@ -568,6 +567,7 @@ struct Metadata_root {
             r << static_cast<uint8_t>(0);
         }
         r << Flags;
+        r << static_cast<uint16_t>(5);
         r << Strings_Stream.serialize();
         r << Userstring_Stream.serialize();
         r << Blob_Stream.serialize();
@@ -782,6 +782,8 @@ public:
 
         Metadata md;
         MethodDef main;
+        //main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
+        //main.Name = md.String("Main");
         md.Tables.MethodDef_Table.push_back(main);
         CLI_header ch;
         ch.cb = 72;
