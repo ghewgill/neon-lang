@@ -38,6 +38,19 @@ std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint32_t u32)
     return a;
 }
 
+std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, uint64_t u64)
+{
+    a.push_back((u64      ) & 0xff);
+    a.push_back((u64 >>  8) & 0xff);
+    a.push_back((u64 >> 16) & 0xff);
+    a.push_back((u64 >> 24) & 0xff);
+    a.push_back((u64 >> 32) & 0xff);
+    a.push_back((u64 >> 40) & 0xff);
+    a.push_back((u64 >> 48) & 0xff);
+    a.push_back((u64 >> 56) & 0xff);
+    return a;
+}
+
 std::vector<uint8_t> &operator<<(std::vector<uint8_t> &a, const std::vector<uint8_t> &b)
 {
     std::copy(b.begin(), b.end(), std::back_inserter(a));
@@ -534,12 +547,7 @@ struct Metadata_root {
         MinorVersion(1),
         Reserved(0),
         Version("Standard CLI 2005"),
-        Flags(0),
-        Strings_Stream("#Strings"),
-        Userstring_Stream("#US"),
-        Blob_Stream("#Blob"),
-        Guid_Stream("#GUID"),
-        Tables_Stream("#~")
+        Flags(0)
     {}
 
     uint32_t Signature;
@@ -548,11 +556,6 @@ struct Metadata_root {
     uint32_t Reserved;
     std::string Version;
     uint16_t Flags;
-    Stream_header Strings_Stream;
-    Stream_header Userstring_Stream;
-    Stream_header Blob_Stream;
-    Stream_header Guid_Stream;
-    Stream_header Tables_Stream;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
@@ -567,17 +570,12 @@ struct Metadata_root {
             r << static_cast<uint8_t>(0);
         }
         r << Flags;
-        r << static_cast<uint16_t>(5);
-        r << Strings_Stream.serialize();
-        r << Userstring_Stream.serialize();
-        r << Blob_Stream.serialize();
-        r << Guid_Stream.serialize();
-        r << Tables_Stream.serialize();
         return r;
     }
 };
 
 struct Assembly {
+    const uint8_t Number = 0x20;
     Assembly()
       : HashAlgId(0),
         MajorVersion(0),
@@ -615,31 +613,100 @@ struct Assembly {
     }
 };
 
-struct AssemblyOS {};
-struct AssemblyProcessor {};
-struct AssemblyRef {};
-struct AssemblyRefOS {};
-struct AssemblyRefProcessor {};
-struct ClassLayout {};
-struct Constant {};
-struct CustomAttribute {};
-struct DeclSecurity {};
-struct EventMap {};
-struct Event {};
-struct ExportedType {};
-struct Field {};
-struct FieldLayout {};
-struct FieldMarshal {};
-struct FieldRVA {};
-struct File {};
-struct GenericParam {};
-struct GenericParamConstraint {};
-struct ImplMap {};
-struct InterfaceImpl {};
-struct ManifestResource {};
-struct MemberRef {};
+struct AssemblyOS {
+    const uint8_t Number = 0x22;
+};
+
+struct AssemblyProcessor {
+    const uint8_t Number = 0x21;
+};
+
+struct AssemblyRef {
+    const uint8_t Number = 0x23;
+};
+
+struct AssemblyRefOS {
+    const uint8_t Number = 0x25;
+};
+
+struct AssemblyRefProcessor {
+    const uint8_t Number = 0x24;
+};
+
+struct ClassLayout {
+    const uint8_t Number = 0x0F;
+};
+
+struct Constant {
+    const uint8_t Number = 0x0B;
+};
+
+struct CustomAttribute {
+    const uint8_t Number = 0x0C;
+};
+
+struct DeclSecurity {
+    const uint8_t Number = 0x0E;
+};
+
+struct EventMap {
+    const uint8_t Number = 0x12;
+};
+
+struct Event {
+    const uint8_t Number = 0x14;
+};
+
+struct ExportedType {
+    const uint8_t Number = 0x27;
+};
+
+struct Field {
+    const uint8_t Number = 0x04;
+};
+
+struct FieldLayout {
+    const uint8_t Number = 0x10;
+};
+
+struct FieldMarshal {
+    const uint8_t Number = 0x0D;
+};
+
+struct FieldRVA {
+    const uint8_t Number = 0x1D;
+};
+
+struct File {
+    const uint8_t Number = 0x26;
+};
+
+struct GenericParam {
+    const uint8_t Number = 0x2A;
+};
+
+struct GenericParamConstraint {
+    const uint8_t Number = 0x2C;
+};
+
+struct ImplMap {
+    const uint8_t Number = 0x1C;
+};
+
+struct InterfaceImpl {
+    const uint8_t Number = 9;
+};
+
+struct ManifestResource {
+    const uint8_t Number = 0x28;
+};
+
+struct MemberRef {
+    const uint8_t Number = 0x0A;
+};
 
 struct MethodDef {
+    const uint8_t Number = 0x06;
     MethodDef()
       : RVA(0),
         ImplFlags(0),
@@ -668,27 +735,75 @@ struct MethodDef {
     }
 };
 
-struct MethodImpl {};
-struct MethodSemantics {};
-struct MethodSpec {};
-struct Module {};
-struct ModuleRef {};
-struct NestedClass {};
-struct Param {};
-struct Property {};
-struct PropertyMap {};
-struct StandAloneSig {};
-struct TypeDef {};
-struct TypeRef {};
-struct TypeSpec {};
+struct MethodImpl {
+    const uint8_t Number = 0x19;
+};
+
+struct MethodSemantics {
+    const uint8_t Number = 0x18;
+};
+
+struct MethodSpec {
+    const uint8_t Number = 0x2B;
+};
+
+struct Module {
+    const uint8_t Number = 0x00;
+};
+
+struct ModuleRef {
+    const uint8_t Number = 0x1A;
+};
+
+struct NestedClass {
+    const uint8_t Number = 0x29;
+};
+
+struct Param {
+    const uint8_t Number = 0x08;
+};
+
+struct Property {
+    const uint8_t Number = 0x17;
+};
+
+struct PropertyMap {
+    const uint8_t Number = 0x15;
+};
+
+struct StandAloneSig {
+    const uint8_t Number = 0x11;
+};
+
+struct TypeDef {
+    const uint8_t Number = 0x02;
+};
+
+struct TypeRef {
+    const uint8_t Number = 0x01;
+};
+
+struct TypeSpec {
+    const uint8_t Number = 0x1B;
+};
 
 struct Metadata_tables {
+    Metadata_tables()
+      : Reserved1(0),
+        MajorVersion(2),
+        MinorVersion(0),
+        HeapSizes(0),
+        Reserved2(1),
+        //Valid(0),
+        Sorted(0)
+    {}
+
     uint32_t Reserved1;
     uint8_t MajorVersion;
     uint8_t MinorVersion;
     uint8_t HeapSizes;
     uint8_t Reserved2;
-    uint64_t Valid;
+    //uint64_t Valid;
     uint64_t Sorted;
     std::vector<Module> Module_Table;                                   // 0x00
     std::vector<TypeRef> TypeRef_Table;                                 // 0x01
@@ -728,19 +843,125 @@ struct Metadata_tables {
     std::vector<GenericParam> GenericParam_Table;                       // 0x2A
     std::vector<MethodSpec> MethodSpec_Table;                           // 0x2B
     std::vector<GenericParamConstraint> GenericParamConstraint_Table;   // 0x2C
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << Reserved1;
+        r << MajorVersion;
+        r << MinorVersion;
+        r << HeapSizes;
+        r << Reserved2;
+        uint64_t valid = 0;
+        update_valid(valid, Module_Table);
+        update_valid(valid, TypeRef_Table);
+        update_valid(valid, TypeDef_Table);
+        update_valid(valid, Field_Table);
+        update_valid(valid, MethodDef_Table);
+        update_valid(valid, Param_Table);
+        update_valid(valid, InterfaceImpl_Table);
+        update_valid(valid, MemberRef_Table);
+        update_valid(valid, Constant_Table);
+        update_valid(valid, CustomAttribute_Table);
+        update_valid(valid, FieldMarshal_Table);
+        update_valid(valid, DeclSecurity_Table);
+        update_valid(valid, ClassLayout_Table);
+        update_valid(valid, FieldLayout_Table);
+        update_valid(valid, StandAloneSig_Table);
+        update_valid(valid, EventMap_Table);
+        update_valid(valid, Event_Table);
+        update_valid(valid, PropertyMap_Table);
+        update_valid(valid, Property_Table);
+        update_valid(valid, MethodSemantics_Table);
+        update_valid(valid, MethodImpl_Table);
+        update_valid(valid, ModuleRef_Table);
+        update_valid(valid, TypeSpec_Table);
+        update_valid(valid, ImplMap_Table);
+        update_valid(valid, FieldRVA_Table);
+        update_valid(valid, Assembly_Table);
+        update_valid(valid, AssemblyProcessor_Table);
+        update_valid(valid, AssemblyOS_Table);
+        update_valid(valid, AssemblyRef_Table);
+        update_valid(valid, AssemblyRefProcessor_Table);
+        update_valid(valid, AssemblyRefOS_Table);
+        update_valid(valid, File_Table);
+        update_valid(valid, ExportedType_Table);
+        update_valid(valid, ManifestResource_Table);
+        update_valid(valid, NestedClass_Table);
+        update_valid(valid, GenericParam_Table);
+        update_valid(valid, MethodSpec_Table);
+        update_valid(valid, GenericParamConstraint_Table);
+        r << valid;
+        r << Sorted;
+        return r;
+    }
+
+    template<typename T> static void update_valid(uint64_t &valid, const std::vector<T> &table) {
+        if (not table.empty()) {
+            valid |= (1 << T::Number);
+        }
+    }
 };
 
 struct Metadata {
+    Metadata()
+      : root(),
+        Strings_Stream("#Strings"),
+        Userstring_Stream("#US"),
+        Blob_Stream("#Blob"),
+        Guid_Stream("#GUID"),
+        Tables_Stream("#~"),
+        Strings(),
+        Userstring(),
+        Blob(),
+        Guid(),
+        Tables()
+    {}
+
     Metadata_root root;
+    Stream_header Strings_Stream;
+    Stream_header Userstring_Stream;
+    Stream_header Blob_Stream;
+    Stream_header Guid_Stream;
+    Stream_header Tables_Stream;
     std::vector<uint8_t> Strings;
     std::vector<uint8_t> Userstring;
     std::vector<uint8_t> Blob;
     std::vector<uint8_t> Guid;
     Metadata_tables Tables;
 
+    void calculate_offsets() {
+        uint32_t offset = root.serialize().size() + sizeof(uint16_t);
+        offset += Strings_Stream.serialize().size();
+        offset += Userstring_Stream.serialize().size();
+        offset += Blob_Stream.serialize().size();
+        offset += Guid_Stream.serialize().size();
+        offset += Tables_Stream.serialize().size();
+        Strings_Stream.Offset = offset;
+        Strings_Stream.Size = Strings.size();
+        offset += Strings_Stream.Size;
+        Userstring_Stream.Offset = offset;
+        Userstring_Stream.Size = Userstring.size();
+        offset += Userstring_Stream.Size;
+        Blob_Stream.Offset = offset;
+        Blob_Stream.Size = Blob.size();
+        offset += Blob_Stream.Size;
+        Guid_Stream.Offset = offset;
+        Guid_Stream.Size = Guid.size();
+        offset += Guid_Stream.Size;
+        Tables_Stream.Offset = offset;
+        Tables_Stream.Size = Tables.serialize().size();
+        offset += Tables_Stream.Size;
+    }
+
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
         r << root.serialize();
+        r << static_cast<uint16_t>(5);
+        r << Strings_Stream.serialize();
+        r << Userstring_Stream.serialize();
+        r << Blob_Stream.serialize();
+        r << Guid_Stream.serialize();
+        r << Tables_Stream.serialize();
         return r;
     }
 };
@@ -788,6 +1009,7 @@ public:
         CLI_header ch;
         ch.cb = 72;
         ch.MetaDataRVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        md.calculate_offsets();
         code_section << md.serialize();
         ch.MetaDataSize = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - ch.MetaDataRVA);
         poh.data_directories.cli_header_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
