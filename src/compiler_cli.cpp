@@ -97,6 +97,9 @@ const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
 
 const uint32_t COMIMAGE_FLAGS_ILONLY = 0x00000001;
 
+const uint16_t MethodAttributes_MemberAccess_Public = 0x0006;
+const uint16_t MethodAttributes_Static              = 0x0010;
+
 struct PE_file_header {
     PE_file_header()
       : machine(0x14c),
@@ -575,7 +578,7 @@ struct Metadata_root {
 };
 
 struct Assembly {
-    const uint8_t Number = 0x20;
+    static const uint8_t Number = 0x20;
     Assembly()
       : HashAlgId(0),
         MajorVersion(0),
@@ -614,99 +617,214 @@ struct Assembly {
 };
 
 struct AssemblyOS {
-    const uint8_t Number = 0x22;
+    static const uint8_t Number = 0x22;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct AssemblyProcessor {
-    const uint8_t Number = 0x21;
+    static const uint8_t Number = 0x21;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct AssemblyRef {
-    const uint8_t Number = 0x23;
+    static const uint8_t Number = 0x23;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct AssemblyRefOS {
-    const uint8_t Number = 0x25;
+    static const uint8_t Number = 0x25;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct AssemblyRefProcessor {
-    const uint8_t Number = 0x24;
+    static const uint8_t Number = 0x24;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct ClassLayout {
-    const uint8_t Number = 0x0F;
+    static const uint8_t Number = 0x0F;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct Constant {
-    const uint8_t Number = 0x0B;
+    static const uint8_t Number = 0x0B;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct CustomAttribute {
-    const uint8_t Number = 0x0C;
+    static const uint8_t Number = 0x0C;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct DeclSecurity {
-    const uint8_t Number = 0x0E;
+    static const uint8_t Number = 0x0E;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct EventMap {
-    const uint8_t Number = 0x12;
+    static const uint8_t Number = 0x12;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct Event {
-    const uint8_t Number = 0x14;
+    static const uint8_t Number = 0x14;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct ExportedType {
-    const uint8_t Number = 0x27;
+    static const uint8_t Number = 0x27;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct Field {
-    const uint8_t Number = 0x04;
+    static const uint8_t Number = 0x04;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct FieldLayout {
-    const uint8_t Number = 0x10;
+    static const uint8_t Number = 0x10;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct FieldMarshal {
-    const uint8_t Number = 0x0D;
+    static const uint8_t Number = 0x0D;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct FieldRVA {
-    const uint8_t Number = 0x1D;
+    static const uint8_t Number = 0x1D;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct File {
-    const uint8_t Number = 0x26;
+    static const uint8_t Number = 0x26;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct GenericParam {
-    const uint8_t Number = 0x2A;
+    static const uint8_t Number = 0x2A;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct GenericParamConstraint {
-    const uint8_t Number = 0x2C;
+    static const uint8_t Number = 0x2C;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct ImplMap {
-    const uint8_t Number = 0x1C;
+    static const uint8_t Number = 0x1C;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct InterfaceImpl {
-    const uint8_t Number = 9;
+    static const uint8_t Number = 0x09;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct ManifestResource {
-    const uint8_t Number = 0x28;
+    static const uint8_t Number = 0x28;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct MemberRef {
-    const uint8_t Number = 0x0A;
+    static const uint8_t Number = 0x0A;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct MethodDef {
-    const uint8_t Number = 0x06;
+    static const uint8_t Number = 0x06;
     MethodDef()
       : RVA(0),
         ImplFlags(0),
@@ -736,55 +854,120 @@ struct MethodDef {
 };
 
 struct MethodImpl {
-    const uint8_t Number = 0x19;
+    static const uint8_t Number = 0x19;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct MethodSemantics {
-    const uint8_t Number = 0x18;
+    static const uint8_t Number = 0x18;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct MethodSpec {
-    const uint8_t Number = 0x2B;
+    static const uint8_t Number = 0x2B;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct Module {
-    const uint8_t Number = 0x00;
+    static const uint8_t Number = 0x00;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct ModuleRef {
-    const uint8_t Number = 0x1A;
+    static const uint8_t Number = 0x1A;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct NestedClass {
-    const uint8_t Number = 0x29;
+    static const uint8_t Number = 0x29;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct Param {
-    const uint8_t Number = 0x08;
+    static const uint8_t Number = 0x08;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct Property {
-    const uint8_t Number = 0x17;
+    static const uint8_t Number = 0x17;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct PropertyMap {
-    const uint8_t Number = 0x15;
+    static const uint8_t Number = 0x15;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct StandAloneSig {
-    const uint8_t Number = 0x11;
+    static const uint8_t Number = 0x11;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct TypeDef {
-    const uint8_t Number = 0x02;
+    static const uint8_t Number = 0x02;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct TypeRef {
-    const uint8_t Number = 0x01;
+    static const uint8_t Number = 0x01;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct TypeSpec {
-    const uint8_t Number = 0x1B;
+    static const uint8_t Number = 0x1B;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        return r;
+    }
 };
 
 struct Metadata_tables {
@@ -892,12 +1075,50 @@ struct Metadata_tables {
         update_valid(valid, GenericParamConstraint_Table);
         r << valid;
         r << Sorted;
+        for (auto x: Module_Table) { r << x.serialize(); }
+        for (auto x: TypeRef_Table) { r << x.serialize(); }
+        for (auto x: TypeDef_Table) { r << x.serialize(); }
+        for (auto x: Field_Table) { r << x.serialize(); }
+        for (auto x: MethodDef_Table) { r << x.serialize(); }
+        for (auto x: Param_Table) { r << x.serialize(); }
+        for (auto x: InterfaceImpl_Table) { r << x.serialize(); }
+        for (auto x: MemberRef_Table) { r << x.serialize(); }
+        for (auto x: Constant_Table) { r << x.serialize(); }
+        for (auto x: CustomAttribute_Table) { r << x.serialize(); }
+        for (auto x: FieldMarshal_Table) { r << x.serialize(); }
+        for (auto x: DeclSecurity_Table) { r << x.serialize(); }
+        for (auto x: ClassLayout_Table) { r << x.serialize(); }
+        for (auto x: FieldLayout_Table) { r << x.serialize(); }
+        for (auto x: StandAloneSig_Table) { r << x.serialize(); }
+        for (auto x: EventMap_Table) { r << x.serialize(); }
+        for (auto x: Event_Table) { r << x.serialize(); }
+        for (auto x: PropertyMap_Table) { r << x.serialize(); }
+        for (auto x: Property_Table) { r << x.serialize(); }
+        for (auto x: MethodSemantics_Table) { r << x.serialize(); }
+        for (auto x: MethodImpl_Table) { r << x.serialize(); }
+        for (auto x: ModuleRef_Table) { r << x.serialize(); }
+        for (auto x: TypeSpec_Table) { r << x.serialize(); }
+        for (auto x: ImplMap_Table) { r << x.serialize(); }
+        for (auto x: FieldRVA_Table) { r << x.serialize(); }
+        for (auto x: Assembly_Table) { r << x.serialize(); }
+        for (auto x: AssemblyProcessor_Table) { r << x.serialize(); }
+        for (auto x: AssemblyOS_Table) { r << x.serialize(); }
+        for (auto x: AssemblyRef_Table) { r << x.serialize(); }
+        for (auto x: AssemblyRefProcessor_Table) { r << x.serialize(); }
+        for (auto x: AssemblyRefOS_Table) { r << x.serialize(); }
+        for (auto x: File_Table) { r << x.serialize(); }
+        for (auto x: ExportedType_Table) { r << x.serialize(); }
+        for (auto x: ManifestResource_Table) { r << x.serialize(); }
+        for (auto x: NestedClass_Table) { r << x.serialize(); }
+        for (auto x: GenericParam_Table) { r << x.serialize(); }
+        for (auto x: MethodSpec_Table) { r << x.serialize(); }
+        for (auto x: GenericParamConstraint_Table) { r << x.serialize(); };
         return r;
     }
 
     template<typename T> static void update_valid(uint64_t &valid, const std::vector<T> &table) {
         if (not table.empty()) {
-            valid |= (1 << T::Number);
+            valid |= (1LL << T::Number);
         }
     }
 };
@@ -915,7 +1136,11 @@ struct Metadata {
         Blob(),
         Guid(),
         Tables()
-    {}
+    {
+        Strings.push_back(0);
+        Userstring.push_back(0);
+        Blob.push_back(0);
+    }
 
     Metadata_root root;
     Stream_header Strings_Stream;
@@ -929,27 +1154,33 @@ struct Metadata {
     std::vector<uint8_t> Guid;
     Metadata_tables Tables;
 
+    uint32_t String(const std::string &s) {
+        uint32_t r = static_cast<uint32_t>(Strings.size());
+        Strings << s;
+        return r;
+    }
+
     void calculate_offsets() {
-        uint32_t offset = root.serialize().size() + sizeof(uint16_t);
+        size_t offset = root.serialize().size() + sizeof(uint16_t);
         offset += Strings_Stream.serialize().size();
         offset += Userstring_Stream.serialize().size();
         offset += Blob_Stream.serialize().size();
         offset += Guid_Stream.serialize().size();
         offset += Tables_Stream.serialize().size();
-        Strings_Stream.Offset = offset;
-        Strings_Stream.Size = Strings.size();
+        Strings_Stream.Offset = static_cast<uint32_t>(offset);
+        Strings_Stream.Size = static_cast<uint32_t>(Strings.size());
         offset += Strings_Stream.Size;
-        Userstring_Stream.Offset = offset;
-        Userstring_Stream.Size = Userstring.size();
+        Userstring_Stream.Offset = static_cast<uint32_t>(offset);
+        Userstring_Stream.Size = static_cast<uint32_t>(Userstring.size());
         offset += Userstring_Stream.Size;
-        Blob_Stream.Offset = offset;
-        Blob_Stream.Size = Blob.size();
+        Blob_Stream.Offset = static_cast<uint32_t>(offset);
+        Blob_Stream.Size = static_cast<uint32_t>(Blob.size());
         offset += Blob_Stream.Size;
-        Guid_Stream.Offset = offset;
-        Guid_Stream.Size = Guid.size();
+        Guid_Stream.Offset = static_cast<uint32_t>(offset);
+        Guid_Stream.Size = static_cast<uint32_t>(Guid.size());
         offset += Guid_Stream.Size;
-        Tables_Stream.Offset = offset;
-        Tables_Stream.Size = Tables.serialize().size();
+        Tables_Stream.Offset = static_cast<uint32_t>(offset);
+        Tables_Stream.Size = static_cast<uint32_t>(Tables.serialize().size());
         offset += Tables_Stream.Size;
     }
 
@@ -962,6 +1193,11 @@ struct Metadata {
         r << Blob_Stream.serialize();
         r << Guid_Stream.serialize();
         r << Tables_Stream.serialize();
+        r << Strings;
+        r << Userstring;
+        r << Blob;
+        r << Guid;
+        r << Tables.serialize();
         return r;
     }
 };
@@ -1003,8 +1239,8 @@ public:
 
         Metadata md;
         MethodDef main;
-        //main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
-        //main.Name = md.String("Main");
+        main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
+        main.Name = md.String("Main");
         md.Tables.MethodDef_Table.push_back(main);
         CLI_header ch;
         ch.cb = 72;
