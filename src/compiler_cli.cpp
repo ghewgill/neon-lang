@@ -100,6 +100,11 @@ const uint32_t COMIMAGE_FLAGS_ILONLY = 0x00000001;
 const uint16_t MethodAttributes_MemberAccess_Public = 0x0006;
 const uint16_t MethodAttributes_Static              = 0x0010;
 
+//const uint8_t ELEMENT_TYPE_END      = 0x00;
+const uint8_t ELEMENT_TYPE_VOID     = 0x01;
+const uint8_t ELEMENT_TYPE_STRING   = 0x0e;
+const uint8_t ELEMENT_TYPE_SZARRAY  = 0x1d;
+
 struct PE_file_header {
     PE_file_header()
       : machine(0x14c),
@@ -1131,15 +1136,15 @@ struct Metadata {
         Blob_Stream("#Blob"),
         Guid_Stream("#GUID"),
         Tables_Stream("#~"),
-        Strings(),
-        Userstring(),
-        Blob(),
-        Guid(),
+        StringsData(),
+        UserstringData(),
+        BlobData(),
+        GuidData(),
         Tables()
     {
-        Strings.push_back(0);
-        Userstring.push_back(0);
-        Blob.push_back(0);
+        StringsData.push_back(0);
+        UserstringData.push_back(0);
+        BlobData.push_back(0);
     }
 
     Metadata_root root;
@@ -1148,15 +1153,21 @@ struct Metadata {
     Stream_header Blob_Stream;
     Stream_header Guid_Stream;
     Stream_header Tables_Stream;
-    std::vector<uint8_t> Strings;
-    std::vector<uint8_t> Userstring;
-    std::vector<uint8_t> Blob;
-    std::vector<uint8_t> Guid;
+    std::vector<uint8_t> StringsData;
+    std::vector<uint8_t> UserstringData;
+    std::vector<uint8_t> BlobData;
+    std::vector<uint8_t> GuidData;
     Metadata_tables Tables;
 
     uint32_t String(const std::string &s) {
-        uint32_t r = static_cast<uint32_t>(Strings.size());
-        Strings << s;
+        uint32_t r = static_cast<uint32_t>(StringsData.size());
+        StringsData << s;
+        return r;
+    }
+
+    uint32_t Blob(const std::vector<uint8_t> &a) {
+        uint32_t r = static_cast<uint32_t>(BlobData.size());
+        BlobData << a;
         return r;
     }
 
@@ -1168,16 +1179,16 @@ struct Metadata {
         offset += Guid_Stream.serialize().size();
         offset += Tables_Stream.serialize().size();
         Strings_Stream.Offset = static_cast<uint32_t>(offset);
-        Strings_Stream.Size = static_cast<uint32_t>(Strings.size());
+        Strings_Stream.Size = static_cast<uint32_t>(StringsData.size());
         offset += Strings_Stream.Size;
         Userstring_Stream.Offset = static_cast<uint32_t>(offset);
-        Userstring_Stream.Size = static_cast<uint32_t>(Userstring.size());
+        Userstring_Stream.Size = static_cast<uint32_t>(UserstringData.size());
         offset += Userstring_Stream.Size;
         Blob_Stream.Offset = static_cast<uint32_t>(offset);
-        Blob_Stream.Size = static_cast<uint32_t>(Blob.size());
+        Blob_Stream.Size = static_cast<uint32_t>(BlobData.size());
         offset += Blob_Stream.Size;
         Guid_Stream.Offset = static_cast<uint32_t>(offset);
-        Guid_Stream.Size = static_cast<uint32_t>(Guid.size());
+        Guid_Stream.Size = static_cast<uint32_t>(GuidData.size());
         offset += Guid_Stream.Size;
         Tables_Stream.Offset = static_cast<uint32_t>(offset);
         Tables_Stream.Size = static_cast<uint32_t>(Tables.serialize().size());
@@ -1193,11 +1204,34 @@ struct Metadata {
         r << Blob_Stream.serialize();
         r << Guid_Stream.serialize();
         r << Tables_Stream.serialize();
-        r << Strings;
-        r << Userstring;
-        r << Blob;
-        r << Guid;
+        r << StringsData;
+        r << UserstringData;
+        r << BlobData;
+        r << GuidData;
         r << Tables.serialize();
+        return r;
+    }
+};
+
+std::vector<uint8_t> compressUnsigned(uint32_t x)
+{
+    assert(x <= 0x7f);
+    std::vector<uint8_t> r;
+    r.push_back(x & 0xff);
+    return r;
+}
+
+class MethodDefSig {
+public:
+    MethodDefSig() {}
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        // TODO: this is only appropriate for void Main(string[])
+        r << static_cast<uint8_t>(0);
+        r << compressUnsigned(1);
+        r << ELEMENT_TYPE_VOID;
+        r << ELEMENT_TYPE_SZARRAY << ELEMENT_TYPE_STRING;
         return r;
     }
 };
@@ -1244,6 +1278,7 @@ public:
         MethodDef main;
         main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
         main.Name = md.String("Main");
+        main.Signature = md.Blob(MethodDefSig().serialize());
         md.Tables.MethodDef_Table.push_back(main);
         CLI_header ch;
         ch.cb = 72;
