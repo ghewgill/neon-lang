@@ -1237,6 +1237,9 @@ public:
         code_section << Import_address_table().serialize();
         poh.data_directories.import_table_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.import_table_rva);
 
+        while (code_section.size() % 4 != 0) {
+            code_section << static_cast<uint8_t>(0);
+        }
         Metadata md;
         MethodDef main;
         main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
