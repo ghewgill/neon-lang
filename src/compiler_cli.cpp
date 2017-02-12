@@ -100,6 +100,8 @@ const uint32_t COMIMAGE_FLAGS_ILONLY = 0x00000001;
 const uint16_t MethodAttributes_MemberAccess_Public = 0x0006;
 const uint16_t MethodAttributes_Static              = 0x0010;
 
+const uint32_t TypeAttributes_Visibility_Public = 0x00000001;
+
 //const uint8_t ELEMENT_TYPE_END      = 0x00;
 const uint8_t ELEMENT_TYPE_VOID     = 0x01;
 const uint8_t ELEMENT_TYPE_STRING   = 0x0e;
@@ -107,7 +109,8 @@ const uint8_t ELEMENT_TYPE_SZARRAY  = 0x1d;
 
 struct PE_file_header {
     PE_file_header()
-      : machine(0x14c),
+      : magic(0x4550),
+        machine(0x14c),
         number_of_sections(1),
         time_date_stamp(0),
         pointer_to_symbol_table(0),
@@ -115,6 +118,7 @@ struct PE_file_header {
         optional_header_size(28+68+128),
         characteristics(IMAGE_FILE_EXECUTABLE_IMAGE | IMAGE_FILE_32BIT_MACHINE)
     {}
+    uint32_t magic;
     uint16_t machine;
     uint16_t number_of_sections;
     uint32_t time_date_stamp;
@@ -125,6 +129,7 @@ struct PE_file_header {
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
+        r << magic;
         r << machine;
         r << number_of_sections;
         r << time_date_stamp;
@@ -731,9 +736,21 @@ struct ExportedType {
 
 struct Field {
     static const uint8_t Number = 0x04;
+    Field()
+      : Flags(0),
+        Name(0),
+        Signature(0)
+    {}
+
+    uint16_t Flags;
+    uint32_t Name;
+    uint32_t Signature;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
+        r << Flags;
+        r << Name;
+        r << Signature;
         return r;
     }
 };
@@ -968,9 +985,30 @@ struct StandAloneSig {
 
 struct TypeDef {
     static const uint8_t Number = 0x02;
+    TypeDef()
+      : Flags(0),
+        TypeName(0),
+        TypeNamespace(0),
+        Extends(0),
+        FieldList(0),
+        MethodList(0)
+    {}
+
+    uint32_t Flags;
+    uint32_t TypeName;
+    uint32_t TypeNamespace;
+    uint16_t Extends;
+    uint16_t FieldList;
+    uint16_t MethodList;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
+        r << Flags;
+        r << TypeName;
+        r << TypeNamespace;
+        r << Extends;
+        r << FieldList;
+        r << MethodList;
         return r;
     }
 };
@@ -998,7 +1036,7 @@ struct Metadata_tables {
       : Reserved1(0),
         MajorVersion(2),
         MinorVersion(0),
-        HeapSizes(0),
+        HeapSizes(0x7),
         Reserved2(1),
         //Valid(0),
         Sorted(0)
@@ -1223,6 +1261,8 @@ struct Metadata {
 
     uint32_t Blob(const std::vector<uint8_t> &a) {
         uint32_t r = static_cast<uint32_t>(BlobData.size());
+        assert(a.size() <= 0x7f);
+        BlobData.push_back(a.size() & 0xff); // TODO: encode length
         BlobData << a;
         return r;
     }
@@ -1334,7 +1374,6 @@ public:
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
         std::copy(MS_DOS_header, MS_DOS_header+sizeof(MS_DOS_header), std::back_inserter(r));
-        r << static_cast<uint32_t>(0x4550);
         PE_file_header pfh;
         r << pfh.serialize();
 
@@ -1365,7 +1404,13 @@ public:
         mod.Name = md.String("hello");
         mod.Mvid = md.Guid("1234567890123456");
         md.Tables.Module_Table.push_back(mod);
-        ... TypeDef must have at least one row
+        TypeDef td;
+        td.Flags = TypeAttributes_Visibility_Public;
+        td.TypeName = md.String("hello");
+        //td.Extends = 
+        td.FieldList = static_cast<uint16_t>(1 + md.Tables.Field_Table.size());
+        td.MethodList = static_cast<uint16_t>(1 + md.Tables.MethodDef_Table.size());
+        md.Tables.TypeDef_Table.push_back(td);
         MethodDef main;
         main.RVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         MethodHeader mh;
@@ -1375,6 +1420,7 @@ public:
         main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
         main.Name = md.String("Main");
         main.Signature = md.Blob(MethodDefSig().serialize());
+        main.ParamList = static_cast<uint16_t>(1 + md.Tables.Param_Table.size());
         md.Tables.MethodDef_Table.push_back(main);
         CLI_header ch;
         ch.cb = 72;
