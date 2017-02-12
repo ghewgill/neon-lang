@@ -887,9 +887,27 @@ struct MethodSpec {
 
 struct Module {
     static const uint8_t Number = 0x00;
+    Module()
+      : Generation(0),
+        Name(0),
+        Mvid(0),
+        EncId(0),
+        EncBaseId(0)
+    {}
+
+    uint16_t Generation;
+    uint32_t Name;
+    uint32_t Mvid;
+    uint32_t EncId;
+    uint32_t EncBaseId;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
+        r << Generation;
+        r << Name;
+        r << Mvid;
+        r << EncId;
+        r << EncBaseId;
         return r;
     }
 };
@@ -1080,6 +1098,44 @@ struct Metadata_tables {
         update_valid(valid, GenericParamConstraint_Table);
         r << valid;
         r << Sorted;
+        if (not Module_Table.empty())                r << static_cast<uint32_t>(Module_Table.size());
+        if (not TypeRef_Table.empty())               r << static_cast<uint32_t>(TypeRef_Table.size());
+        if (not TypeDef_Table.empty())               r << static_cast<uint32_t>(TypeDef_Table.size());
+        if (not Field_Table.empty())                 r << static_cast<uint32_t>(Field_Table.size());
+        if (not MethodDef_Table.empty())             r << static_cast<uint32_t>(MethodDef_Table.size());
+        if (not Param_Table.empty())                 r << static_cast<uint32_t>(Param_Table.size());
+        if (not InterfaceImpl_Table.empty())         r << static_cast<uint32_t>(InterfaceImpl_Table.size());
+        if (not MemberRef_Table.empty())             r << static_cast<uint32_t>(MemberRef_Table.size());
+        if (not Constant_Table.empty())              r << static_cast<uint32_t>(Constant_Table.size());
+        if (not CustomAttribute_Table.empty())       r << static_cast<uint32_t>(CustomAttribute_Table.size());
+        if (not FieldMarshal_Table.empty())          r << static_cast<uint32_t>(FieldMarshal_Table.size());
+        if (not DeclSecurity_Table.empty())          r << static_cast<uint32_t>(DeclSecurity_Table.size());
+        if (not ClassLayout_Table.empty())           r << static_cast<uint32_t>(ClassLayout_Table.size());
+        if (not FieldLayout_Table.empty())           r << static_cast<uint32_t>(FieldLayout_Table.size());
+        if (not StandAloneSig_Table.empty())         r << static_cast<uint32_t>(StandAloneSig_Table.size());
+        if (not EventMap_Table.empty())              r << static_cast<uint32_t>(EventMap_Table.size());
+        if (not Event_Table.empty())                 r << static_cast<uint32_t>(Event_Table.size());
+        if (not PropertyMap_Table.empty())           r << static_cast<uint32_t>(PropertyMap_Table.size());
+        if (not Property_Table.empty())              r << static_cast<uint32_t>(Property_Table.size());
+        if (not MethodSemantics_Table.empty())       r << static_cast<uint32_t>(MethodSemantics_Table.size());
+        if (not MethodImpl_Table.empty())            r << static_cast<uint32_t>(MethodImpl_Table.size());
+        if (not ModuleRef_Table.empty())             r << static_cast<uint32_t>(ModuleRef_Table.size());
+        if (not TypeSpec_Table.empty())              r << static_cast<uint32_t>(TypeSpec_Table.size());
+        if (not ImplMap_Table.empty())               r << static_cast<uint32_t>(ImplMap_Table.size());
+        if (not FieldRVA_Table.empty())              r << static_cast<uint32_t>(FieldRVA_Table.size());
+        if (not Assembly_Table.empty())              r << static_cast<uint32_t>(Assembly_Table.size());
+        if (not AssemblyProcessor_Table.empty())     r << static_cast<uint32_t>(AssemblyProcessor_Table.size());
+        if (not AssemblyOS_Table.empty())            r << static_cast<uint32_t>(AssemblyOS_Table.size());
+        if (not AssemblyRef_Table.empty())           r << static_cast<uint32_t>(AssemblyRef_Table.size());
+        if (not AssemblyRefProcessor_Table.empty())  r << static_cast<uint32_t>(AssemblyRefProcessor_Table.size());
+        if (not AssemblyRefOS_Table.empty())         r << static_cast<uint32_t>(AssemblyRefOS_Table.size());
+        if (not File_Table.empty())                  r << static_cast<uint32_t>(File_Table.size());
+        if (not ExportedType_Table.empty())          r << static_cast<uint32_t>(ExportedType_Table.size());
+        if (not ManifestResource_Table.empty())      r << static_cast<uint32_t>(ManifestResource_Table.size());
+        if (not NestedClass_Table.empty())           r << static_cast<uint32_t>(NestedClass_Table.size());
+        if (not GenericParam_Table.empty())          r << static_cast<uint32_t>(GenericParam_Table.size());
+        if (not MethodSpec_Table.empty())            r << static_cast<uint32_t>(MethodSpec_Table.size());
+        if (not GenericParamConstraint_Table.empty())r << static_cast<uint32_t>(GenericParamConstraint_Table.size());
         for (auto x: Module_Table) { r << x.serialize(); }
         for (auto x: TypeRef_Table) { r << x.serialize(); }
         for (auto x: TypeDef_Table) { r << x.serialize(); }
@@ -1171,6 +1227,14 @@ struct Metadata {
         return r;
     }
 
+    uint32_t Guid(const char *g) {
+        uint32_t r = static_cast<uint32_t>(GuidData.size());
+        for (int i = 0; i < 16; i++) {
+            GuidData.push_back(*g++);
+        }
+        return r;
+    }
+
     void calculate_offsets() {
         size_t offset = root.serialize().size() + sizeof(uint16_t);
         offset += Strings_Stream.serialize().size();
@@ -1236,6 +1300,31 @@ public:
     }
 };
 
+struct MethodHeader {
+    MethodHeader()
+      : Flags(0x3),
+        Size(3),
+        MaxStack(0),
+        CodeSize(0),
+        LocalVarSigTok(0)
+    {}
+
+    uint16_t Flags;
+    uint8_t Size;
+    uint16_t MaxStack;
+    uint32_t CodeSize;
+    uint32_t LocalVarSigTok;
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        r << static_cast<uint16_t>(Flags | (Size << 12));
+        r << MaxStack;
+        r << CodeSize;
+        r << LocalVarSigTok;
+        return r;
+    }
+};
+
 class ExecutableFile {
 public:
     ExecutableFile(const std::string &path, const std::string &name): path(path), name(name), bytecode() {}
@@ -1271,17 +1360,27 @@ public:
         code_section << Import_address_table().serialize();
         poh.data_directories.import_table_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.import_table_rva);
 
-        while (code_section.size() % 4 != 0) {
-            code_section << static_cast<uint8_t>(0);
-        }
         Metadata md;
+        Module mod;
+        mod.Name = md.String("hello");
+        mod.Mvid = md.Guid("1234567890123456");
+        md.Tables.Module_Table.push_back(mod);
+        ... TypeDef must have at least one row
         MethodDef main;
+        main.RVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        MethodHeader mh;
+        mh.CodeSize = 1;
+        code_section << mh.serialize();
+        code_section << static_cast<uint8_t>(0x2A); // ret
         main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
         main.Name = md.String("Main");
         main.Signature = md.Blob(MethodDefSig().serialize());
         md.Tables.MethodDef_Table.push_back(main);
         CLI_header ch;
         ch.cb = 72;
+        while (code_section.size() % 4 != 0) {
+            code_section << static_cast<uint8_t>(0);
+        }
         ch.MetaDataRVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         md.calculate_offsets();
         code_section << md.serialize();
@@ -1289,6 +1388,7 @@ public:
         poh.data_directories.cli_header_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << ch.serialize();
         poh.data_directories.cli_header_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.cli_header_rva);
+        code_section << std::vector<uint8_t>(64); // Add padding that mono seems to expect.
 
         poh.standard_fields.entry_point_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << static_cast<uint8_t>(0xff);
