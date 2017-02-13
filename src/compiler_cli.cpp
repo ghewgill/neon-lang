@@ -1406,7 +1406,7 @@ public:
         md.Tables.Module_Table.push_back(mod);
         TypeDef td;
         td.Flags = TypeAttributes_Visibility_Public;
-        td.TypeName = md.String("hello");
+        td.TypeName = md.String("<Module>");
         //td.Extends = 
         td.FieldList = static_cast<uint16_t>(1 + md.Tables.Field_Table.size());
         td.MethodList = static_cast<uint16_t>(1 + md.Tables.MethodDef_Table.size());
