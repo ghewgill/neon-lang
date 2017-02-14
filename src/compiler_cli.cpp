@@ -1457,9 +1457,9 @@ public:
     }
 };
 
-class MethodDefSig_WriteLine {
+class MethodRefSig_WriteLine {
 public:
-    MethodDefSig_WriteLine() {}
+    MethodRefSig_WriteLine() {}
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
@@ -1559,7 +1559,7 @@ public:
                 md.String("System.Console"),
                 0))),
             md.String("WriteLine"),
-            md.Blob(MethodDefSig_WriteLine().serialize())
+            md.Blob(MethodRefSig_WriteLine().serialize())
         ));
         code_section << op_ret;
         main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
