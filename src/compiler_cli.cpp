@@ -107,6 +107,18 @@ const uint8_t ELEMENT_TYPE_VOID     = 0x01;
 const uint8_t ELEMENT_TYPE_STRING   = 0x0e;
 const uint8_t ELEMENT_TYPE_SZARRAY  = 0x1d;
 
+const uint8_t op_call  = 0x28;
+const uint8_t op_ret   = 0x2A;
+const uint8_t op_ldstr = 0x72;
+
+inline uint32_t MemberRefParent_TypeRef(uint32_t i) {
+    return static_cast<uint32_t>((i << 3) | 0);
+}
+
+inline uint32_t ResolutionScope_AssemblyRef(uint32_t i) {
+    return static_cast<uint32_t>((i << 2) | 2);
+}
+
 struct PE_file_header {
     PE_file_header()
       : magic(0x4550),
@@ -646,9 +658,39 @@ struct AssemblyProcessor {
 
 struct AssemblyRef {
     static const uint8_t Number = 0x23;
+    AssemblyRef(uint32_t name)
+      : MajorVersion(0),
+        MinorVersion(0),
+        BuildNumber(0),
+        RevisionNumber(0),
+        Flags(0),
+        PublicKeyOrToken(0),
+        Name(name),
+        Culture(0),
+        HashValue(0)
+    {}
+
+    uint16_t MajorVersion;
+    uint16_t MinorVersion;
+    uint16_t BuildNumber;
+    uint16_t RevisionNumber;
+    uint32_t Flags;
+    uint32_t PublicKeyOrToken;
+    uint32_t Name;
+    uint32_t Culture;
+    uint32_t HashValue;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
+        r << MajorVersion;
+        r << MinorVersion;
+        r << BuildNumber;
+        r << RevisionNumber;
+        r << Flags;
+        r << PublicKeyOrToken;
+        r << Name;
+        r << Culture;
+        r << HashValue;
         return r;
     }
 };
@@ -838,9 +880,21 @@ struct ManifestResource {
 
 struct MemberRef {
     static const uint8_t Number = 0x0A;
+    MemberRef(uint32_t parent, uint32_t name, uint32_t signature)
+      : Parent(parent),
+        Name(name),
+        Signature(signature)
+    {}
+
+    uint32_t Parent;
+    uint32_t Name;
+    uint32_t Signature;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
+        r << Parent;
+        r << Name;
+        r << Signature;
         return r;
     }
 };
@@ -1015,9 +1069,21 @@ struct TypeDef {
 
 struct TypeRef {
     static const uint8_t Number = 0x01;
+    TypeRef(uint32_t resolutionscope, uint32_t type_name, uint32_t typenamespace)
+      : ResolutionScope(resolutionscope),
+        TypeName(type_name),
+        TypeNamespace(typenamespace)
+    {}
+
+    uint32_t ResolutionScope;
+    uint32_t TypeName;
+    uint32_t TypeNamespace;
 
     std::vector<uint8_t> serialize() const {
         std::vector<uint8_t> r;
+        r << ResolutionScope;
+        r << TypeName;
+        r << TypeNamespace;
         return r;
     }
 };
@@ -1259,6 +1325,18 @@ struct Metadata {
         return r;
     }
 
+    uint32_t Userstring(const std::string &s) {
+        uint32_t r = static_cast<uint32_t>(UserstringData.size());
+        // TODO: proper convert to UTF-16
+        assert(s.length() <= 0x3f);
+        UserstringData.push_back((2*s.length() + 1) & 0xff); // TODO: encode length
+        for (auto c: s) {
+            UserstringData << static_cast<uint16_t>(c);
+        }
+        UserstringData.push_back(0);
+        return 0x70000000 | r;
+    }
+
     uint32_t Blob(const std::vector<uint8_t> &a) {
         uint32_t r = static_cast<uint32_t>(BlobData.size());
         assert(a.size() <= 0x7f);
@@ -1273,6 +1351,30 @@ struct Metadata {
             GuidData.push_back(*g++);
         }
         return r;
+    }
+
+    uint32_t AssemblyRefIndex(const AssemblyRef &ar) {
+        Tables.AssemblyRef_Table.push_back(ar);
+        return static_cast<uint32_t>(Tables.AssemblyRef_Table.size());
+    }
+    uint32_t AssemblyRefToken(const AssemblyRef &ar) {
+        return static_cast<uint32_t>((AssemblyRef::Number << 24) | AssemblyRefIndex(ar));
+    }
+
+    uint32_t MemberRefIndex(const MemberRef &mr) {
+        Tables.MemberRef_Table.push_back(mr);
+        return static_cast<uint32_t>(Tables.MemberRef_Table.size());
+    }
+    uint32_t MemberRefToken(const MemberRef &mr) {
+        return static_cast<uint32_t>((MemberRef::Number << 24) | MemberRefIndex(mr));
+    }
+
+    uint32_t TypeRefIndex(const TypeRef &tr) {
+        Tables.TypeRef_Table.push_back(tr);
+        return static_cast<uint32_t>(Tables.TypeRef_Table.size());
+    }
+    uint32_t TypeRefToken(const TypeRef &tr) {
+        return static_cast<uint32_t>((TypeRef::Number << 24) | TypeRefIndex(tr));
     }
 
     void calculate_offsets() {
@@ -1336,6 +1438,21 @@ public:
         r << compressUnsigned(1);
         r << ELEMENT_TYPE_VOID;
         r << ELEMENT_TYPE_SZARRAY << ELEMENT_TYPE_STRING;
+        return r;
+    }
+};
+
+class MethodDefSig_WriteLine {
+public:
+    MethodDefSig_WriteLine() {}
+
+    std::vector<uint8_t> serialize() const {
+        std::vector<uint8_t> r;
+        // TODO: this is only appropriate for void WriteLine(string)
+        r << static_cast<uint8_t>(0);
+        r << compressUnsigned(1);
+        r << ELEMENT_TYPE_VOID;
+        r << ELEMENT_TYPE_STRING;
         return r;
     }
 };
@@ -1414,9 +1531,19 @@ public:
         MethodDef main;
         main.RVA = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         MethodHeader mh;
-        mh.CodeSize = 1;
+        mh.MaxStack = 8;
+        mh.CodeSize = 11;
         code_section << mh.serialize();
-        code_section << static_cast<uint8_t>(0x2A); // ret
+        code_section << op_ldstr << md.Userstring("hello world");
+        code_section << op_call << md.MemberRefToken(MemberRef(
+            MemberRefParent_TypeRef(md.TypeRefIndex(TypeRef(
+                ResolutionScope_AssemblyRef(md.AssemblyRefIndex(AssemblyRef(md.String("mscorlib")))),
+                md.String("System.Console"),
+                0))),
+            md.String("WriteLine"),
+            md.Blob(MethodDefSig_WriteLine().serialize())
+        ));
+        code_section << op_ret;
         main.MethodAttributes = MethodAttributes_MemberAccess_Public | MethodAttributes_Static;
         main.Name = md.String("Main");
         main.Signature = md.Blob(MethodDefSig().serialize());
