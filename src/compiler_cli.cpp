@@ -113,7 +113,7 @@ const uint8_t op_ret   = 0x2A;
 const uint8_t op_ldstr = 0x72;
 
 inline uint32_t MemberRefParent_TypeRef(uint32_t i) {
-    return static_cast<uint32_t>((i << 3) | 0);
+    return static_cast<uint32_t>((i << 3) | 1);
 }
 
 inline uint32_t ResolutionScope_AssemblyRef(uint32_t i) {
@@ -659,13 +659,13 @@ struct AssemblyProcessor {
 
 struct AssemblyRef {
     static const uint8_t Number = 0x23;
-    AssemblyRef(uint32_t name)
+    AssemblyRef(uint32_t name, uint32_t publickeyortoken)
       : MajorVersion(0),
         MinorVersion(0),
         BuildNumber(0),
         RevisionNumber(0),
         Flags(0),
-        PublicKeyOrToken(0),
+        PublicKeyOrToken(publickeyortoken),
         Name(name),
         Culture(0),
         HashValue(0)
@@ -1361,7 +1361,7 @@ struct Metadata {
     }
 
     uint32_t Guid(const char *g) {
-        uint32_t r = static_cast<uint32_t>(GuidData.size());
+        uint32_t r = static_cast<uint32_t>(1 + GuidData.size() / 16);
         for (int i = 0; i < 16; i++) {
             GuidData.push_back(*g++);
         }
@@ -1552,7 +1552,10 @@ public:
         code_section << op_ldstr << md.Userstring("hello world");
         code_section << op_call << md.MemberRefToken(MemberRef(
             MemberRefParent_TypeRef(md.TypeRefIndex(TypeRef(
-                ResolutionScope_AssemblyRef(md.AssemblyRefIndex(AssemblyRef(md.String("mscorlib")))),
+                ResolutionScope_AssemblyRef(md.AssemblyRefIndex(AssemblyRef(
+                    md.String("mscorlib"),
+                    md.Blob(std::vector<uint8_t> {0xB7,0x7A,0x5C,0x56,0x19,0x34,0xE0,0x89}) // TODO: not sure where to get this or whether it's necessary
+                ))),
                 md.String("System.Console"),
                 0))),
             md.String("WriteLine"),
