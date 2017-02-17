@@ -90,7 +90,7 @@ const uint16_t IMAGE_FILE_32BIT_MACHINE     = 0x0100;
 const uint16_t IMAGE_SUBSYSTEM_WINDOWS_CUI  = 0x3;
 
 const uint32_t IMG_SCN_CNT_CODE                 = 0x00000020;
-//const uint32_t IMG_SCN_CNT_INITIALIZED_DATA     = 0x00000040;
+const uint32_t IMG_SCN_CNT_INITIALIZED_DATA     = 0x00000040;
 //const uint32_t IMG_SCN_CNT_UNINITIALIZED_DATA   = 0x00000080;
 const uint32_t IMG_SCN_MEM_EXECUTE              = 0x20000000;
 const uint32_t IMG_SCN_MEM_READ                 = 0x40000000;
@@ -124,7 +124,7 @@ struct PE_file_header {
     PE_file_header()
       : magic(0x4550),
         machine(0x14c),
-        number_of_sections(1),
+        number_of_sections(2),
         time_date_stamp(0),
         pointer_to_symbol_table(0),
         number_of_symbols(0),
@@ -1596,10 +1596,28 @@ public:
         sh.PointerToRawData = 0x200;
         sh.Characteristics = IMG_SCN_CNT_CODE | IMG_SCN_MEM_EXECUTE | IMG_SCN_MEM_READ;
         r << sh.serialize();
-        while (r.size() < 0x200) {
+        uint32_t code_size_rounded = (code_section.size() + 0x200-1) & ~0x1ff;
+        Section_header reloc;
+        reloc.Name = ".reloc";
+        reloc.VirtualSize = static_cast<uint32_t>(12);
+        reloc.VirtualAddress = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_size_rounded);
+        reloc.SizeOfRawData = 0x200;
+        reloc.PointerToRawData = 0x200 + code_size_rounded;
+        reloc.Characteristics = IMG_SCN_CNT_INITIALIZED_DATA | IMG_SCN_MEM_READ;
+        r << reloc.serialize();
+        while (r.size() % 0x200 != 0) {
             r << static_cast<uint8_t>(0);
         }
         r << code_section;
+        while (r.size() % 0x200 != 0) {
+            r << static_cast<uint8_t>(0);
+        }
+        r << static_cast<uint32_t>(0x200);
+        r << static_cast<uint32_t>(12);
+        r << static_cast<uint16_t>(0x3000 | (poh.standard_fields.entry_point_rva - poh.standard_fields.base_of_code));
+        while (r.size() % 0x200 != 0) {
+            r << static_cast<uint8_t>(0);
+        }
         return r;
     }
 private:
