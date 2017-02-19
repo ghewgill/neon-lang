@@ -439,8 +439,8 @@ struct Section_header {
     }
 };
 
-struct Import_address_table {
-    Import_address_table()
+struct Import_table {
+    Import_table()
       : ImportLookupTable(0),
         DateTimeStamp(0),
         ForwarderChain(0),
@@ -1520,15 +1520,20 @@ public:
         code_section << static_cast<uint16_t>(0);
         code_section << "_CorExeMain";
 
-        Import_address_table iat;
-        iat.ImportLookupTable = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        Import_table it;
+        it.ImportLookupTable = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << ilt.serialize();
         code_section << Import_lookup_table().serialize();
-        iat.Name = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        it.Name = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << "mscoree.dll";
+        it.ImportAddressTable = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
+        poh.data_directories.iat_rva = it.ImportAddressTable;
+        poh.data_directories.iat_size = static_cast<uint32_t>(8);
+        code_section << ilt.serialize();
+        code_section << Import_lookup_table().serialize();
         poh.data_directories.import_table_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
-        code_section << iat.serialize();
-        code_section << Import_address_table().serialize();
+        code_section << it.serialize();
+        code_section << Import_table().serialize();
         poh.data_directories.import_table_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.import_table_rva);
 
         Metadata md;
@@ -1567,6 +1572,7 @@ public:
         main.Signature = md.Blob(MethodDefSig().serialize());
         main.ParamList = static_cast<uint16_t>(1 + md.Tables.Param_Table.size());
         md.Tables.MethodDef_Table.push_back(main);
+        uint32_t entry_point_index = static_cast<uint32_t>(md.Tables.MethodDef_Table.size());
         CLI_header ch;
         ch.cb = 72;
         while (code_section.size() % 4 != 0) {
@@ -1576,6 +1582,7 @@ public:
         md.calculate_offsets();
         code_section << md.serialize();
         ch.MetaDataSize = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - ch.MetaDataRVA);
+        ch.EntryPointToken = static_cast<uint32_t>((MethodDef::Number << 24) | entry_point_index);
         poh.data_directories.cli_header_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << ch.serialize();
         poh.data_directories.cli_header_size = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size() - poh.data_directories.cli_header_rva);
@@ -1584,23 +1591,26 @@ public:
         poh.standard_fields.entry_point_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section.size());
         code_section << static_cast<uint8_t>(0xff);
         code_section << static_cast<uint8_t>(0x25);
-        code_section << static_cast<uint32_t>(0x402006);
-        poh.standard_fields.code_size = static_cast<uint32_t>(code_section.size());
+        code_section << poh.NT_specific_fields.image_base + it.ImportAddressTable;
+        uint32_t code_size_rounded = (code_section.size() + 0x200-1) & ~0x1ff;
+        poh.standard_fields.code_size = code_size_rounded;
+        uint32_t code_section_rounded = (code_size_rounded + 0x2000-1) & ~0x1fff;
 
+        poh.data_directories.base_relocation_table_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section_rounded);
+        poh.data_directories.base_relocation_table_size = static_cast<uint32_t>(12);
         r << poh.serialize();
         Section_header sh;
         sh.Name = ".text";
         sh.VirtualSize = static_cast<uint32_t>(code_section.size());
         sh.VirtualAddress = poh.standard_fields.base_of_code;
-        sh.SizeOfRawData = static_cast<uint32_t>(code_section.size());
+        sh.SizeOfRawData = code_size_rounded;
         sh.PointerToRawData = 0x200;
         sh.Characteristics = IMG_SCN_CNT_CODE | IMG_SCN_MEM_EXECUTE | IMG_SCN_MEM_READ;
         r << sh.serialize();
-        uint32_t code_size_rounded = (code_section.size() + 0x200-1) & ~0x1ff;
         Section_header reloc;
         reloc.Name = ".reloc";
         reloc.VirtualSize = static_cast<uint32_t>(12);
-        reloc.VirtualAddress = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_size_rounded);
+        reloc.VirtualAddress = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section_rounded);
         reloc.SizeOfRawData = 0x200;
         reloc.PointerToRawData = 0x200 + code_size_rounded;
         reloc.Characteristics = IMG_SCN_CNT_INITIALIZED_DATA | IMG_SCN_MEM_READ;
@@ -1612,9 +1622,9 @@ public:
         while (r.size() % 0x200 != 0) {
             r << static_cast<uint8_t>(0);
         }
-        r << static_cast<uint32_t>(0x200);
+        r << static_cast<uint32_t>(0x2000);
         r << static_cast<uint32_t>(12);
-        r << static_cast<uint16_t>(0x3000 | (poh.standard_fields.entry_point_rva - poh.standard_fields.base_of_code));
+        r << static_cast<uint16_t>(0x3000 | (poh.standard_fields.entry_point_rva + 2 - poh.standard_fields.base_of_code));
         while (r.size() % 0x200 != 0) {
             r << static_cast<uint8_t>(0);
         }
