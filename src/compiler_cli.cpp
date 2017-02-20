@@ -1595,6 +1595,7 @@ public:
         uint32_t code_size_rounded = (code_section.size() + 0x200-1) & ~0x1ff;
         poh.standard_fields.code_size = code_size_rounded;
         uint32_t code_section_rounded = (code_size_rounded + 0x2000-1) & ~0x1fff;
+        poh.standard_fields.base_of_data = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section_rounded);
 
         poh.data_directories.base_relocation_table_rva = static_cast<uint32_t>(poh.standard_fields.base_of_code + code_section_rounded);
         poh.data_directories.base_relocation_table_size = static_cast<uint32_t>(12);
