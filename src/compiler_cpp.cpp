@@ -1851,7 +1851,7 @@ public:
         std::stringstream out;
         out << "#include \"neon.h\"\n";
         Context context(out);
-        context.out << "int main(int, const char *) { try {";
+        context.out << "int main(int, const char *[]) { try {";
         for (auto s: statements) {
             s->generate(context);
         }
