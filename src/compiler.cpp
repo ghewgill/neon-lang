@@ -2171,23 +2171,21 @@ std::vector<unsigned char> compile(const ast::Program *p, DebugInfo *debug)
 {
     Emitter emitter(p->source_hash, debug);
     p->generate(emitter);
-    if (p->source_path != "-") {
+    if (p->source_path != "-" && debug != nullptr) {
         std::ofstream out(p->source_path + "d");
         minijson::object_writer writer(out, minijson::writer_configuration().pretty_printing(true));
         writer.write("source_path", p->source_path);
         writer.write("source_hash", hex_from_binary(p->source_hash));
-        if (debug != nullptr) {
-            writer.write_array("source", debug->source_lines.begin(), debug->source_lines.end());
-            std::vector<std::pair<size_t, int>> lines;
-            auto lw = writer.nested_array("line_numbers");
-            for (auto &n: debug->line_numbers) {
-                auto a = lw.nested_array();
-                a.write(n.first);
-                a.write(n.second);
-                a.close();
-            }
-            lw.close();
+        writer.write_array("source", debug->source_lines.begin(), debug->source_lines.end());
+        std::vector<std::pair<size_t, int>> lines;
+        auto lw = writer.nested_array("line_numbers");
+        for (auto &n: debug->line_numbers) {
+            auto a = lw.nested_array();
+            a.write(n.first);
+            a.write(n.second);
+            a.close();
         }
+        lw.close();
         p->debuginfo(emitter, writer);
         writer.close();
     }

@@ -251,6 +251,28 @@ rtl_neon = squeeze([
     "lib/time.neon",
 ])
 
+lib_neon = Glob("lib/*.neon")
+# Remove modules where compiling depends on compile-time constants.
+lib_neon = [x for x in lib_neon
+    if x.name != "curses.neon" or use_curses
+    if x.name != "sdl.neon" or use_sdl
+    if x.name != "sodium.neon" or use_sodium
+]
+
+def build_rtl_inc(target, source, env):
+    with open("src/rtl.inc", "w") as f:
+        print >>f, "static struct {"
+        print >>f, "    const char *name;"
+        print >>f, "    const char *source;"
+        print >>f, "} rtl_sources[] = {"
+        for fn in source:
+            print >>f, "    {{\"{}\",".format(fn.name.replace(".neon", ""))
+            f.write("        \"" + "\\n\"\n        \"".join(x.replace("\\", "\\\\").replace('"', '\\"') for x in open(fn.abspath).read().split("\n")))
+            print >>f, "\"},"
+        print >>f, "};"
+
+env.Command("src/rtl.inc", lib_neon, build_rtl_inc)
+
 if os.name == "posix":
     rtl_cpp.extend([
         "lib/file_posix.cpp",
@@ -288,34 +310,6 @@ env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.
 
 jvm_classes = env.Java("jvm", "jvm")
 
-neon = env.Program("bin/neon", [
-    "src/analyzer.cpp",
-    "src/ast.cpp",
-    "src/bytecode.cpp",
-    "src/cell.cpp",
-    "src/compiler.cpp",
-    "src/debuginfo.cpp",
-    "src/disassembler.cpp",
-    "src/exec.cpp",
-    "src/format.cpp",
-    "src/httpserver.cpp",
-    "src/intrinsic.cpp",
-    "src/lexer.cpp",
-    "src/main.cpp",
-    "src/number.cpp",
-    "src/parser.cpp",
-    "src/pt_dump.cpp",
-    "src/rtl_compile.cpp",
-    "src/rtl_exec.cpp",
-    rtl_cpp,
-    rtl_platform,
-    "src/sql.cpp",
-    "src/support.cpp",
-    "src/support_compiler.cpp",
-    "src/util.cpp",
-] + coverage_lib,
-)
-
 neonc = env.Program("bin/neonc", [
     "src/analyzer.cpp",
     "src/ast.cpp",
@@ -343,6 +337,59 @@ neonc = env.Program("bin/neonc", [
 )
 env.Depends(neonc, jvm_classes)
 
+def build_rtlx_inc(target, source, env):
+    with open("src/rtlx.inc", "w") as f:
+        for fn in source:
+            bytecode = open(fn.abspath, "rb").read()
+            print >>f, "static const unsigned char bytecode_{}[] = {{{}}};".format(
+                fn.name.replace(".neonx", ""),
+                ",".join("0x{:02x}".format(ord(x)) for x in bytecode)
+            )
+        print >>f, "static struct {"
+        print >>f, "    const char *name;"
+        print >>f, "    size_t length;"
+        print >>f, "    const unsigned char *bytecode;"
+        print >>f, "} rtl_bytecode[] = {"
+        for fn in source:
+            modname = fn.name.replace(".neonx", "")
+            bytecode = open(fn.abspath, "rb").read()
+            print >>f, "    {{\"{}\", {}, bytecode_{}}},".format(modname, len(bytecode), modname)
+        print >>f, "};"
+
+lib_neon_without_global = [x for x in lib_neon if x.name != "global.neon"]
+for fn in lib_neon_without_global:
+    env.Command(fn.abspath+"x", [fn, neonc], neonc[0].abspath + " $SOURCE")
+env.Command("src/rtlx.inc", [x.abspath+"x" for x in lib_neon_without_global], build_rtlx_inc)
+
+neon = env.Program("bin/neon", [
+    "src/analyzer.cpp",
+    "src/ast.cpp",
+    "src/bytecode.cpp",
+    "src/cell.cpp",
+    "src/compiler.cpp",
+    "src/debuginfo.cpp",
+    "src/disassembler.cpp",
+    "src/exec.cpp",
+    "src/format.cpp",
+    "src/httpserver.cpp",
+    "src/intrinsic.cpp",
+    "src/lexer.cpp",
+    "src/main.cpp",
+    "src/number.cpp",
+    "src/parser.cpp",
+    "src/pt_dump.cpp",
+    "src/rtl_compile.cpp",
+    "src/rtl_exec.cpp",
+    rtl_cpp,
+    rtl_platform,
+    "src/sql.cpp",
+    "src/support.cpp",
+    "src/support_compiler.cpp",
+    "src/support_exec.cpp",
+    "src/util.cpp",
+] + coverage_lib,
+)
+
 neonx = env.Program("bin/neonx", [
     "src/bundle.cpp",
     "src/bytecode.cpp",
@@ -357,6 +404,7 @@ neonx = env.Program("bin/neonx", [
     rtl_cpp,
     rtl_platform,
     "src/support.cpp",
+    "src/support_exec.cpp",
 ] + coverage_lib,
 )
 
@@ -374,6 +422,7 @@ neonstub = env.Program("bin/neonstub", [
     rtl_cpp,
     rtl_platform,
     "src/support.cpp",
+    "src/support_exec.cpp",
 ] + coverage_lib,
 )
 
@@ -393,6 +442,7 @@ neonbind = env.Program("bin/neonbind", [
     "src/bytecode.cpp",
     "src/neonbind.cpp",
     "src/support.cpp",
+    "src/support_exec.cpp",
 ])
 
 env.Depends("src/number.h", libbid)

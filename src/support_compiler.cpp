@@ -12,8 +12,21 @@
 #include "parser.h"
 #include "compiler.h"
 
+#include "rtl.inc"
+
 bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
 {
+    for (size_t i = 0; i < sizeof(rtl_sources)/sizeof(rtl_sources[0]); i++) {
+        if (name == rtl_sources[i].name) {
+            auto tokens = tokenize(name, rtl_sources[i].source);
+            auto parsetree = parse(*tokens);
+            auto ast = analyze(this, parsetree.get());
+            auto bytecode = compile(ast, nullptr);
+            object.load(bytecode);
+            return true;
+        }
+    }
+
     std::pair<std::string, std::string> names = findModule(name);
     if (names.first.empty() && names.second.empty()) {
         return false;

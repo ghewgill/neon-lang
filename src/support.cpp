@@ -115,21 +115,3 @@ std::pair<std::string, std::string> PathSupport::findModule(const std::string &n
     }
     return r;
 }
-
-bool RuntimeSupport::loadBytecode(const std::string &name, Bytecode &object)
-{
-    std::pair<std::string, std::string> names = findModule(name);
-    std::ifstream inf(names.second, std::ios::binary);
-    if (not inf.good()) {
-        return false;
-    }
-    std::stringstream buf;
-    buf << inf.rdbuf();
-    std::vector<unsigned char> bytecode;
-    std::string s = buf.str();
-    std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
-    if (not object.load(bytecode)) {
-        return false;
-    }
-    return true;
-}
