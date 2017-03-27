@@ -1554,8 +1554,6 @@ void Executor::exec()
                 return;
             }
         }
-        auto last_module = module;
-        auto last_ip = ip;
         switch (static_cast<Opcode>(module->object.code[ip])) {
             case ENTER:   exec_ENTER(); break;
             case LEAVE:   exec_LEAVE(); break;
@@ -1641,10 +1639,9 @@ void Executor::exec()
             case RESETC:  exec_RESETC(); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(); break;
-        }
-        if (module == last_module && ip == last_ip) {
-            fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
-            abort();
+            default:
+                fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
+                abort();
         }
     }
     assert(stack.empty());
