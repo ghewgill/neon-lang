@@ -1286,15 +1286,50 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         }
         type = arraytype->elementtype;
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
-        // This check for ArrayReferenceRangeExpression is a stupendous hack that
-        // allows expressions like a[LAST] (which is compiled as a[LAST TO LAST][0])
-        // to work. Without this, the subscript [0] on the range expression tries
-        // to generate the address of the base so it can apply an INDEXAR opcode.
-        // Since the range expression is really a function call, it has no address.
-        if (ref != nullptr && dynamic_cast<const ast::ArrayReferenceRangeExpression *>(ref) == nullptr) {
-            return new ast::ArrayReferenceIndexExpression(type, ref, index, false);
+        if (ref != nullptr) {
+            if (expr->from_last) {
+                return new ast::ArrayReferenceIndexExpression(
+                    type,
+                    ref,
+                    new ast::AdditionExpression(
+                        new ast::SubtractionExpression(
+                            new ast::FunctionCall(
+                                new ast::VariableExpression(
+                                    ref->type->methods.at("size")
+                                ),
+                                { ref }
+                            ),
+                            new ast::ConstantNumberExpression(number_from_sint32(1))
+                        ),
+                        index
+                    ),
+                    false
+                );
+            } else {
+                return new ast::ArrayReferenceIndexExpression(type, ref, index, false);
+            }
         } else {
-            return new ast::ArrayValueIndexExpression(type, base, index, false);
+            if (expr->from_last) {
+                return new ast::ArrayValueIndexExpression(
+                    type,
+                    base,
+                    new ast::AdditionExpression(
+                        new ast::SubtractionExpression(
+                            new ast::FunctionCall(
+                                new ast::VariableExpression(
+                                    base->type->methods.at("size")
+                                ),
+                                { base }
+                            ),
+                            new ast::ConstantNumberExpression(number_from_sint32(1))
+                        ),
+                        index
+                    ),
+                    false
+                );
+            } else {
+                return new ast::ArrayValueIndexExpression(type, base, index, false);
+            }
         }
     } else if (dicttype != nullptr) {
         if (not index->type->is_assignment_compatible(ast::TYPE_STRING)) {

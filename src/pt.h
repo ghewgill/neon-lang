@@ -392,10 +392,11 @@ public:
 
 class SubscriptExpression: public Expression {
 public:
-    SubscriptExpression(const Token &token, size_t end_column, std::unique_ptr<Expression> &&base, std::unique_ptr<Expression> &&index): Expression(token, base->get_start_column(), end_column), base(std::move(base)), index(std::move(index)) {}
+    SubscriptExpression(const Token &token, size_t end_column, std::unique_ptr<Expression> &&base, std::unique_ptr<Expression> &&index, bool from_last): Expression(token, base->get_start_column(), end_column), base(std::move(base)), index(std::move(index)), from_last(from_last) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> base;
     std::unique_ptr<Expression> index;
+    bool from_last;
 };
 
 class InterpolatedStringExpression: public Expression {

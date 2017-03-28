@@ -664,10 +664,6 @@ std::unique_ptr<Expression> Parser::parseAtom()
                                 last = parseExpression();
                             }
                             range.reset(new ArrayRange(tok_lbracket, std::move(index), first_from_end, std::move(last), last_from_end));
-                        } else {
-                            if (first_from_end) {
-                                range.reset(new ArrayRange(tok_lbracket, std::move(index), first_from_end, nullptr /*std::move(index)*/, first_from_end));
-                            }
                         }
                         if (tokens[i].type != COMMA && tokens[i].type != RBRACKET) {
                             error(2020, tokens[i], "']' expected");
@@ -675,12 +671,8 @@ std::unique_ptr<Expression> Parser::parseAtom()
                         ++i;
                         if (range != nullptr) {
                             expr.reset(new RangeSubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(range)));
-                            if (first_from_end && not has_range) {
-                                std::unique_ptr<Expression> index { new NumberLiteralExpression(Token(), number_from_uint32(0)) };
-                                expr.reset(new SubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(index)));
-                            }
                         } else {
-                            expr.reset(new SubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(index)));
+                            expr.reset(new SubscriptExpression(tok_lbracket, tokens[i].column, std::move(expr), std::move(index), first_from_end));
                         }
                     } while (tokens[i-1].type == COMMA);
                 } else if (tokens[i].type == LPAREN) {
