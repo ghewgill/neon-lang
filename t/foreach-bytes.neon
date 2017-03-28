@@ -1,0 +1,5 @@
+VAR x: Bytes
+FOREACH b IN x DO
+END FOREACH
+
+%! array or string expected

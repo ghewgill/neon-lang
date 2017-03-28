@@ -101,6 +101,16 @@ const Expression *TypeBytes::make_default_value() const
     return new ConstantBytesExpression("", "");
 }
 
+std::string TypeBytes::serialize(const Expression *value) const
+{
+    return TypeString::serialize(value->eval_string());
+}
+
+const Expression *TypeBytes::deserialize_value(const Bytecode::Bytes &value, int &i) const
+{
+    return new ConstantBytesExpression("Imported value", TypeString::deserialize_string(value, i));
+}
+
 TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
   : Type(declaration, ""),
     elementtype(elementtype)

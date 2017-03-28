@@ -408,13 +408,18 @@ public:
 
 extern TypeString *TYPE_STRING;
 
-class TypeBytes: public TypeString {
+class TypeBytes: public Type {
 public:
-    TypeBytes(): TypeString() {}
+    TypeBytes(): Type(Token(), "Bytes") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual const Expression *make_default_value() const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "Y"; }
+    virtual std::string serialize(const Expression *value) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
     virtual std::string text() const override { return "TypeBytes"; }
@@ -842,6 +847,7 @@ protected:
     friend class TypeBoolean;
     friend class TypeNumber;
     friend class TypeString;
+    friend class TypeBytes;
     friend class TypeEnum;
     friend class UnaryMinusExpression;
     friend class LogicalNotExpression;

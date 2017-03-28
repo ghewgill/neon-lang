@@ -412,6 +412,21 @@ void ast::TypeString::generate_call(Emitter &) const
     internal_error("TypeString");
 }
 
+void ast::TypeBytes::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADS);
+}
+
+void ast::TypeBytes::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STORES);
+}
+
+void ast::TypeBytes::generate_call(Emitter &) const
+{
+    internal_error("TypeBytes");
+}
+
 void ast::TypeFunction::predeclare(Emitter &emitter) const
 {
     Type::predeclare(emitter);
