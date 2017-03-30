@@ -1938,13 +1938,13 @@ const ast::Expression *Analyzer::analyze(const pt::ValidPointerExpression * /*ex
 const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *expr)
 {
     const ast::Expression *base = analyze(expr->base.get());
-    const ast::Expression *first = analyze(expr->range->get_first());
-    const ast::Expression *last = analyze(expr->range->get_last());
+    const ast::Expression *first = analyze(expr->range->first.get());
+    const ast::Expression *last = analyze(expr->range->last.get());
     if (not first->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
-        error(3141, expr->range->get_first()->token, "range index must be a number");
+        error(3141, expr->range->first.get()->token, "range index must be a number");
     }
     if (not last->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
-        error(3142, expr->range->get_last()->token, "range index must be a number");
+        error(3142, expr->range->last.get()->token, "range index must be a number");
     }
     const ast::Type *type = base->type;
     const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(type);
@@ -2784,8 +2784,8 @@ static void deconstruct(const pt::Expression *expr, std::vector<const pt::Expres
         deconstruct(ce->right.get(), parts);
     } else if (re != nullptr) {
         deconstruct(re->base.get(), parts);
-        deconstruct(re->range->get_first(), parts);
-        deconstruct(re->range->get_last(), parts);
+        deconstruct(re->range->first.get(), parts);
+        deconstruct(re->range->last.get(), parts);
     } else if (dynamic_cast<const pt::BooleanLiteralExpression *>(expr) != nullptr
             || dynamic_cast<const pt::NumberLiteralExpression *>(expr) != nullptr
             || dynamic_cast<const pt::StringLiteralExpression *>(expr) != nullptr) {
@@ -4316,7 +4316,7 @@ public:
     }
     virtual void visit(const pt::NewClassExpression *node) { node->expr->accept(this); }
     virtual void visit(const pt::ValidPointerExpression *node) { for (auto &x: node->tests) x->expr->accept(this); }
-    virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->get_first()->accept(this); node->range->get_last()->accept(this); }
+    virtual void visit(const pt::RangeSubscriptExpression *node) { node->base->accept(this); node->range->first.get()->accept(this); node->range->last.get()->accept(this); }
 
     virtual void visit(const pt::ImportDeclaration *) {}
     virtual void visit(const pt::TypeDeclaration *) {}

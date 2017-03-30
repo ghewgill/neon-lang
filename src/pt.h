@@ -593,10 +593,9 @@ class ArrayRange {
 public:
     ArrayRange(const Token &token, std::unique_ptr<Expression> &&first, bool first_from_end, std::unique_ptr<Expression> &&last, bool last_from_end): token(token), first(std::move(first)), first_from_end(first_from_end), last(std::move(last)), last_from_end(last_from_end) {}
     const Token token;
-    private: std::unique_ptr<Expression> first; public: Expression *get_first() { return first.get(); }
+    std::unique_ptr<Expression> first;
     const bool first_from_end;
-    // TODO: This private member is a bit of a hack to support 'first' and 'last' being the same thing.
-    private: std::unique_ptr<Expression> last; public: Expression *get_last() { return last ? last.get() : first.get(); }
+    std::unique_ptr<Expression> last;
     const bool last_from_end;
 };
 

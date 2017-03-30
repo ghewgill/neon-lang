@@ -229,8 +229,8 @@ public:
     virtual void visit(const RangeSubscriptExpression *node) override {
         write("RangeSubscriptExpression");
         child(node->base.get());
-        child(node->range->get_first());
-        child(node->range->get_last());
+        child(node->range->first.get());
+        child(node->range->last.get());
     }
 
     virtual void visit(const ImportDeclaration *node) override {
