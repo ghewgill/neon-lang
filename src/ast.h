@@ -1647,7 +1647,7 @@ public:
     virtual bool eval_boolean() const override { internal_error("DummyExpression"); }
     virtual Number eval_number() const override { internal_error("DummyExpression"); }
     virtual std::string eval_string() const override { internal_error("DummyExpression"); }
-    virtual bool can_generate_address() const { return false; }
+    virtual bool can_generate_address() const override { return false; }
     virtual void generate_address_read(Emitter &) const override { internal_error("DummyExpression"); }
     virtual void generate_address_write(Emitter &) const override { internal_error("DummyExpression"); }
     virtual void generate_load(Emitter &) const override { internal_error("DummyExpression"); }
@@ -1753,7 +1753,7 @@ public:
     virtual bool eval_boolean() const override { internal_error("StringReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("StringReferenceIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("StringReferenceIndexExpression"); }
-    virtual bool can_generate_address() const { return false; }
+    virtual bool can_generate_address() const override { return false; }
     virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
     virtual void generate_address_write(Emitter &) const override { internal_error("StringReferenceIndexExpression"); }
     virtual void generate_load(Emitter &) const override;
@@ -1806,7 +1806,7 @@ public:
     virtual bool eval_boolean() const override { internal_error("BytesReferenceIndexExpression"); }
     virtual Number eval_number() const override { internal_error("BytesReferenceIndexExpression"); }
     virtual std::string eval_string() const override { internal_error("BytesReferenceIndexExpression"); }
-    virtual bool can_generate_address() const { return false; }
+    virtual bool can_generate_address() const override { return false; }
     virtual void generate_address_read(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
     virtual void generate_address_write(Emitter &) const override { internal_error("BytesReferenceIndexExpression"); }
     virtual void generate_load(Emitter &) const override;
@@ -1900,7 +1900,7 @@ public:
     virtual bool eval_boolean() const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual Number eval_number() const override { internal_error("ArrayReferenceRangeExpression"); }
     virtual std::string eval_string() const override { internal_error("ArrayReferenceRangeExpression"); }
-    virtual bool can_generate_address() const { return false; }
+    virtual bool can_generate_address() const override { return false; }
     virtual void generate_address_read(Emitter &) const override { internal_error("StringReferenceRangeExpression"); }
     virtual void generate_address_write(Emitter &) const override { internal_error("StringReferenceRangeExpression"); }
     virtual void generate_load(Emitter &) const override;
