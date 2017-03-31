@@ -1561,6 +1561,9 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (not e->type->is_assignment_compatible(ftype->params[p]->type)) {
                 error2(3194, a->expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
             }
+            if (ftype->params[p]->mode == ast::ParameterType::INOUT && not ref->can_generate_address()) {
+                error(3241, a->expr->token, "using this kind of expression with an INOUT parameter is currently not supported");
+            }
         }
         if (ftype->params[p]->mode == ast::ParameterType::OUT && a->mode.type != OUT) {
             error(3184, a->expr->token, "OUT keyword required");

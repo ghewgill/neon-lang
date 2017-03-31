@@ -1,0 +1,6 @@
+FUNCTION a_inout(INOUT p: Array<Number>)
+END FUNCTION
+
+VAR a: Array<Number> := []
+a_inout(INOUT a[0 TO 4])
+               %<

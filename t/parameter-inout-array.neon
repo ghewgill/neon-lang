@@ -1,4 +1,4 @@
-% TODO
+% TODO https://github.com/ghewgill/neon-lang/issues/146
 FUNCTION a_inout(INOUT p: Array<Number>)
     p := [1, 2]
 END FUNCTION
