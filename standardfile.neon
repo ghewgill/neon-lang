@@ -41,7 +41,7 @@ FUNCTION pbkdf2(uip: String, pw_salt: String, pw_alg: String, pw_key_size: Numbe
     LET pwbytes: Bytes := uip.toBytes()
     LET saltbytes: Bytes := pw_salt.toBytes()
     VAR r: Bytes := HEXBYTES ""
-    FOR i := 0 TO pw_key_size-1 STEP 32 DO
+    FOR i := 0 TO (pw_key_size-1) INTDIV 64 DO
         print("\(i)")
         VAR u: Bytes := hmac_sha512(pwbytes, saltbytes & struct.packUInt32BE(i + 1))
         FOR j := 2 TO pw_cost DO
@@ -71,5 +71,7 @@ BEGIN MAIN
     print("mk = \(mk)")
     data := http.post("https://n3.standardnotes.org/auth/sign_in?email=greg@hewgill.com&password=\(toHex(pw))", "", OUT headers)
     print("\(headers)")
+    print("\(data)")
+    file.writeBytes("data", data)
     print("\(data.decodeToString())")
 END MAIN
