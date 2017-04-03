@@ -26,6 +26,7 @@ EXPORT shiftRightSigned32
 EXPORT shiftRightSigned64
 EXPORT xor32
 EXPORT xor64
+EXPORT xorBytes
 
 %|
  |  Function: and32
@@ -428,3 +429,5 @@ DECLARE NATIVE FUNCTION xor32(x, y: Number): Number
  |  >  y
  |%
 DECLARE NATIVE FUNCTION xor64(x, y: Number): Number
+
+DECLARE NATIVE FUNCTION xorBytes(x, y: Bytes): Bytes

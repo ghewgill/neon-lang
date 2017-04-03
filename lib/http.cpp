@@ -31,6 +31,8 @@ std::string get(const std::string &url, std::vector<utf8string> *headers)
     std::string data;
     headers->clear();
     CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
@@ -58,6 +60,8 @@ std::string post(const std::string &url, const std::string &post_data, std::vect
     std::string data;
     headers->clear();
     CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);

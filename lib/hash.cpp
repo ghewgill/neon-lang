@@ -6,9 +6,8 @@
 
 #include "crc32.h"
 #include "md5.h"
-#include "sha1.h"
-#include "sha256.h"
 #include "sha3.h"
+#include "openssl/sha.h"
 
 #include "rtl_exec.h"
 
@@ -69,10 +68,8 @@ std::string md5(const std::string &bytes)
 
 std::string sha1Raw(const std::string &bytes)
 {
-    SHA1 sha1;
-    sha1(bytes.data(), bytes.length());
-    unsigned char buf[SHA1::HashBytes];
-    sha1.getHash(buf);
+    unsigned char buf[SHA_DIGEST_LENGTH];
+    SHA1(reinterpret_cast<const unsigned char *>(bytes.data()), bytes.length(), buf);
     return std::string(reinterpret_cast<char *>(buf), sizeof(buf));
 }
 
@@ -83,16 +80,26 @@ std::string sha1(const std::string &bytes)
 
 std::string sha256Raw(const std::string &bytes)
 {
-    SHA256 sha256;
-    sha256(bytes.data(), bytes.length());
-    unsigned char buf[SHA256::HashBytes];
-    sha256.getHash(buf);
+    unsigned char buf[SHA256_DIGEST_LENGTH];
+    SHA256(reinterpret_cast<const unsigned char *>(bytes.data()), bytes.length(), buf);
     return std::string(reinterpret_cast<char *>(buf), sizeof(buf));
 }
 
 std::string sha256(const std::string &bytes)
 {
     return to_hex(sha256Raw(bytes));
+}
+
+std::string sha512Raw(const std::string &bytes)
+{
+    unsigned char buf[SHA512_DIGEST_LENGTH];
+    SHA512(reinterpret_cast<const unsigned char *>(bytes.data()), bytes.length(), buf);
+    return std::string(reinterpret_cast<char *>(buf), sizeof(buf));
+}
+
+std::string sha512(const std::string &bytes)
+{
+    return to_hex(sha512Raw(bytes));
 }
 
 std::string sha3(const std::string &bytes)

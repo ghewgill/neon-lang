@@ -11,6 +11,7 @@ EXPORT sha1
 EXPORT sha1Raw
 EXPORT sha256
 EXPORT sha256Raw
+EXPORT sha512Raw
 EXPORT sha3
 EXPORT sha3Raw
 
@@ -62,6 +63,8 @@ DECLARE NATIVE FUNCTION sha256(data: Bytes): String
  |  Return the SHA256 hash of given <Bytes> as a raw <Bytes>.
  |%
 DECLARE NATIVE FUNCTION sha256Raw(data: Bytes): Bytes
+
+DECLARE NATIVE FUNCTION sha512Raw(data: Bytes): Bytes
 
 %|
  |  Function: sha3

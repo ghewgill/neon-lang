@@ -1,0 +1,75 @@
+IMPORT binary
+IMPORT file
+IMPORT hash
+IMPORT http
+IMPORT json
+IMPORT struct
+IMPORT variant
+
+CONSTANT Password: String := "test"
+
+FUNCTION toHex(b: Bytes): String
+    LET a: Array<Number> := b.toArray()
+    VAR r: String := ""
+    FOREACH c IN a DO
+        r.append("\(c:02x)")
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+FUNCTION hmac_sha512(key: Bytes, msg: Bytes): Bytes
+    CONSTANT ipad: Bytes := HEXBYTES "36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36"
+    CONSTANT opad: Bytes := HEXBYTES "5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c"
+    VAR a: Array<Number> := key.toArray()
+    WHILE a.size() < 128 DO
+        a.append(0)
+    END WHILE
+    VAR k1: Bytes := a.toBytes()
+    RETURN hash.sha512Raw(binary.xorBytes(k1, opad) & hash.sha512Raw(binary.xorBytes(k1, ipad) & msg))
+END FUNCTION
+
+% Test cases from https://tools.ietf.org/html/rfc4231
+ASSERT hmac_sha512(HEXBYTES "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b", HEXBYTES "4869205468657265") = HEXBYTES "87aa7cdea5ef619d4ff0b4241a1d6cb02379f4e2ce4ec2787ad0b30545e17cdedaa833b7d6b8a702038b274eaea3f4e4be9d914eeb61f1702e696c203a126854"
+ASSERT hmac_sha512(HEXBYTES "4a656665", HEXBYTES "7768617420646f2079612077616e7420666f72206e6f7468696e673f") = HEXBYTES "164b7a7bfcf819e2e395fbe73b56e0a387bd64222e831fd610270cd7ea2505549758bf75c05a994a6d034f65f8f0e6fdcaeab1a34d4a6b4b636e070a38bce737"
+
+FUNCTION pbkdf2(uip: String, pw_salt: String, pw_alg: String, pw_key_size: Number, pw_cost: Number): Bytes
+    print("pw_salt = \(pw_salt)")
+    print("pw_alg = \(pw_alg)")
+    print("pw_key_size = \(pw_key_size)")
+    print("pw_cost = \(pw_cost)")
+    ASSERT pw_alg = "sha512"
+    LET pwbytes: Bytes := uip.toBytes()
+    LET saltbytes: Bytes := pw_salt.toBytes()
+    VAR r: Bytes := HEXBYTES ""
+    FOR i := 0 TO pw_key_size-1 STEP 32 DO
+        print("\(i)")
+        VAR u: Bytes := hmac_sha512(pwbytes, saltbytes & struct.packUInt32BE(i + 1))
+        FOR j := 2 TO pw_cost DO
+            LET t: Bytes := hmac_sha512(pwbytes, u)
+            u := binary.xorBytes(u, t)
+        END FOR
+        r := r & u
+    END FOR
+    RETURN r
+END FUNCTION
+
+ASSERT pbkdf2("password", "salt", "sha512", 64, 1) = HEXBYTES "86 7f 70 cf 1a de 02 cf f3 75 25 99 a3 a5 3d c4 af 34 c7 a6 69 81 5a e5 d5 13 55 4e 1c 8c f2 52 c0 2d 47 0a 28 5a 05 01 ba d9 99 bf e9 43 c0 8f 05 02 35 d7 d6 8b 1d a5 5e 63 f7 3b 60 a5 7f ce"
+
+BEGIN MAIN
+    VAR headers: Array<String>
+    VAR data: Bytes := http.get("https://n3.standardnotes.org/auth/params?email=greg@hewgill.com", OUT headers)
+    print("\(headers)")
+    print("\(data)")
+    file.writeBytes("data", data)
+    LET auth_params: Dictionary<variant.Variant> := json.decode(data.decodeToString()).getDictionary()
+    ASSERT auth_params["pw_func"].getString() = "pbkdf2"
+    LET key: Bytes := pbkdf2(Password, auth_params["pw_salt"].getString(), auth_params["pw_alg"].getString(), auth_params["pw_key_size"].getNumber(), auth_params["pw_cost"].getNumber())
+    LET pw: Bytes := key.toArray()[FIRST TO key.size()/2-1].toBytes()
+    LET mk: Bytes := key.toArray()[key.size()/2 TO LAST].toBytes()
+    print("key = \(key)")
+    print("pw = \(pw)")
+    print("mk = \(mk)")
+    data := http.post("https://n3.standardnotes.org/auth/sign_in?email=greg@hewgill.com&password=\(toHex(pw))", "", OUT headers)
+    print("\(headers)")
+    print("\(data.decodeToString())")
+END MAIN

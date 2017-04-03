@@ -38,3 +38,6 @@ print(str(binary.xor32(10, 12)))
 
 print(str(binary.not64(5)))
 %= 18446744073709551610
+
+print(binary.xorBytes(HEXBYTES "aa 55 aa 55", HEXBYTES "01 02 03 04").toString())
+%= HEXBYTES "ab 57 a9 51"
