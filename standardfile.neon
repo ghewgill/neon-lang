@@ -44,11 +44,12 @@ FUNCTION pbkdf2(uip: String, pw_salt: String, pw_alg: String, pw_key_size: Numbe
     FOR i := 0 TO (pw_key_size-1) INTDIV 64 DO
         print("\(i)")
         VAR u: Bytes := hmac_sha512(pwbytes, saltbytes & struct.packUInt32BE(i + 1))
+        VAR t: Bytes := u
         FOR j := 2 TO pw_cost DO
-            LET t: Bytes := hmac_sha512(pwbytes, u)
-            u := binary.xorBytes(u, t)
+            u := hmac_sha512(pwbytes, u)
+            t := binary.xorBytes(t, u)
         END FOR
-        r := r & u
+        r := r & t
     END FOR
     RETURN r
 END FUNCTION
