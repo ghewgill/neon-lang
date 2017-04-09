@@ -6,14 +6,17 @@
 
 EXPORT and32
 EXPORT and64
+EXPORT andBytes
 EXPORT extract32
 EXPORT extract64
 EXPORT get32
 EXPORT get64
 EXPORT not32
 EXPORT not64
+EXPORT notBytes
 EXPORT or32
 EXPORT or64
+EXPORT orBytes
 EXPORT replace32
 EXPORT replace64
 EXPORT set32
@@ -26,6 +29,7 @@ EXPORT shiftRightSigned32
 EXPORT shiftRightSigned64
 EXPORT xor32
 EXPORT xor64
+EXPORT xorBytes
 
 %|
  |  Function: and32
@@ -64,6 +68,26 @@ DECLARE NATIVE FUNCTION and32(x, y: Number): Number
  |  >  y
  |%
 DECLARE NATIVE FUNCTION and64(x, y: Number): Number
+
+%|
+ |  Function: andBytes
+ |
+ |  Bitwise logical "and" of two Bytes buffers. The size of
+ |  both input parameters must be the same.
+ |
+ |  For each bit in the inputs, the following truth table
+ |  determines the output bit:
+ |
+ |  >    | 0 | 1 | <- x
+ |  > ---+---+---+
+ |  >  0 | 0 | 0 |
+ |  > ---+---+---+
+ |  >  1 | 0 | 1 |
+ |  > ---+---+---+
+ |  >  ^
+ |  >  y
+ |%
+DECLARE NATIVE FUNCTION andBytes(x, y: Bytes): Bytes
 
 %|
  |  Function: extract32
@@ -170,6 +194,13 @@ DECLARE NATIVE FUNCTION not32(x: Number): Number
 DECLARE NATIVE FUNCTION not64(x: Number): Number
 
 %|
+ |  Function: notBytes
+ |
+ |  Invert all bits in a Bytes buffer.
+ |%
+DECLARE NATIVE FUNCTION notBytes(x: Bytes): Bytes
+
+%|
  |  Function: or32
  |
  |  Bitwise logical "or" of two 32-bit words.
@@ -206,6 +237,26 @@ DECLARE NATIVE FUNCTION or32(x, y: Number): Number
  |  >  y
  |%
 DECLARE NATIVE FUNCTION or64(x, y: Number): Number
+
+%|
+ |  Function: orBytes
+ |
+ |  Bitwise logical "or" of two Bytes buffers. The size of
+ |  both input parameters must be the same.
+ |
+ |  For each bit in the inputs, the following truth table
+ |  determines the output bit:
+ |
+ |  >    | 0 | 1 | <- x
+ |  > ---+---+---+
+ |  >  0 | 0 | 1 |
+ |  > ---+---+---+
+ |  >  1 | 1 | 1 |
+ |  > ---+---+---+
+ |  >  ^
+ |  >  y
+ |%
+DECLARE NATIVE FUNCTION orBytes(x, y: Bytes): Bytes
 
 %|
  |  Function: replace32
@@ -428,3 +479,23 @@ DECLARE NATIVE FUNCTION xor32(x, y: Number): Number
  |  >  y
  |%
 DECLARE NATIVE FUNCTION xor64(x, y: Number): Number
+
+%|
+ |  Function: xorBytes
+ |
+ |  Bitwise logical "exclusive-or" of two Bytes buffers. The size of
+ |  both input parameters must be the same.
+ |
+ |  For each bit in the inputs, the following truth table
+ |  determines the output bit:
+ |
+ |  >    | 0 | 1 | <- x
+ |  > ---+---+---+
+ |  >  0 | 0 | 1 |
+ |  > ---+---+---+
+ |  >  1 | 1 | 0 |
+ |  > ---+---+---+
+ |  >  ^
+ |  >  y
+ |%
+DECLARE NATIVE FUNCTION xorBytes(x, y: Bytes): Bytes

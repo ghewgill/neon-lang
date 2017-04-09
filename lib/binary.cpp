@@ -216,6 +216,55 @@ Number shiftRightSigned64(Number x, Number n)               { return binary_shif
 Number xor32(Number x, Number y)                            { return binary_xor<uint32_t>(x, y); }
 Number xor64(Number x, Number y)                            { return binary_xor<uint64_t>(x, y); }
 
+std::string andBytes(const std::string &x, const std::string &y)
+{
+    if (x.size() != y.size()) {
+        throw RtlException(global::Exception_ValueRangeException, "");
+    }
+    std::string r;
+    r.resize(x.size());
+    for (size_t i = 0; i < x.length(); i++) {
+        r[i] = x[i] & y[i];
+    }
+    return r;
+}
+
+std::string notBytes(const std::string &x)
+{
+    std::string r;
+    r.resize(x.size());
+    for (size_t i = 0; i < x.length(); i++) {
+        r[i] = ~x[i];
+    }
+    return r;
+}
+
+std::string orBytes(const std::string &x, const std::string &y)
+{
+    if (x.size() != y.size()) {
+        throw RtlException(global::Exception_ValueRangeException, "");
+    }
+    std::string r;
+    r.resize(x.size());
+    for (size_t i = 0; i < x.length(); i++) {
+        r[i] = x[i] | y[i];
+    }
+    return r;
+}
+
+std::string xorBytes(const std::string &x, const std::string &y)
+{
+    if (x.size() != y.size()) {
+        throw RtlException(global::Exception_ValueRangeException, "");
+    }
+    std::string r;
+    r.resize(x.size());
+    for (size_t i = 0; i < x.length(); i++) {
+        r[i] = x[i] ^ y[i];
+    }
+    return r;
+}
+
 } // namespace binary
 
 } // namespace rtl
