@@ -6,6 +6,14 @@ public class Binary {
         return new neon.type.Number(x.intValue() & y.intValue());
     }
 
+    public static byte[] andBytes(byte[] x, byte[] y) {
+        byte[] r = new byte[x.length];
+        for (int i = 0; i < x.length; i++) {
+            r[i] = (byte)(x[i] & y[i]);
+        }
+        return r;
+    }
+
     public static neon.type.Number extract32(neon.type.Number x, neon.type.Number n, neon.type.Number w) {
         int b = n.intValue();
         if (b >= 32) {
@@ -33,6 +41,14 @@ public class Binary {
         return new neon.type.Number((~x.intValue()) & 0xffffffffL);
     }
 
+    public static byte[] notBytes(byte[] x) {
+        byte[] r = new byte[x.length];
+        for (int i = 0; i < x.length; i++) {
+            r[i] = (byte)~x[i];
+        }
+        return r;
+    }
+
     public static neon.type.Number not64(neon.type.Number x) {
         long r = (~x.longValue()) & 0xffffffffffffffffL;
         if ((r & 0x8000000000000000L) != 0) {
@@ -44,6 +60,14 @@ public class Binary {
 
     public static neon.type.Number or32(neon.type.Number x, neon.type.Number y) {
         return new neon.type.Number(x.intValue() | y.intValue());
+    }
+
+    public static byte[] orBytes(byte[] x, byte[] y) {
+        byte[] r = new byte[x.length];
+        for (int i = 0; i < x.length; i++) {
+            r[i] = (byte)(x[i] | y[i]);
+        }
+        return r;
     }
 
     public static neon.type.Number replace32(neon.type.Number x, neon.type.Number n, neon.type.Number w, neon.type.Number y) {
@@ -98,6 +122,14 @@ public class Binary {
 
     public static neon.type.Number xor32(neon.type.Number x, neon.type.Number y) {
         return new neon.type.Number(x.intValue() ^ y.intValue());
+    }
+
+    public static byte[] xorBytes(byte[] x, byte[] y) {
+        byte[] r = new byte[x.length];
+        for (int i = 0; i < x.length; i++) {
+            r[i] = (byte)(x[i] ^ y[i]);
+        }
+        return r;
     }
 
 }

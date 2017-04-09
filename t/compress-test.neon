@@ -1,19 +1,22 @@
 IMPORT compress
 
-VAR b: Bytes
+VAR b, t: Bytes
 VAR s: String
 
-b := compress.gzip("hello gzip world")
-s := compress.gunzip(b)
-print(s)
+s := "hello gzip world"
+b := compress.gzip(s.toBytes())
+t := compress.gunzip(b)
+print(t.decodeToString())
 %= hello gzip world
 
-b := compress.bzip2("hello bzip2 world")
-s := compress.bunzip2(b)
-print(s)
+s := "hello bzip2 world"
+b := compress.bzip2(s.toBytes())
+t := compress.bunzip2(b)
+print(t.decodeToString())
 %= hello bzip2 world
 
-b := compress.lzma("hello lzma world")
-s := compress.unlzma(b)
-print(s)
+s := "hello lzma world"
+b := compress.lzma(s.toBytes())
+t := compress.unlzma(b)
+print(t.decodeToString())
 %= hello lzma world

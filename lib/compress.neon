@@ -14,47 +14,47 @@ EXPORT unlzma
 %|
  |  Function: gzip
  |
- |  Compress an input string using the gzip algorithm,
+ |  Compress an input buffer using the gzip algorithm,
  |  returning the compressed data as <Bytes>.
  |%
-DECLARE NATIVE FUNCTION gzip(input: String): Bytes
+DECLARE NATIVE FUNCTION gzip(input: Bytes): Bytes
 
 %|
  |  Function: gunzip
  |
  |  Decompress input bytes using the gunzip algorithm,
- |  returning the uncompressed data as a <String>.
+ |  returning the uncompressed data as a <Bytes>.
  |%
-DECLARE NATIVE FUNCTION gunzip(input: Bytes): String
+DECLARE NATIVE FUNCTION gunzip(input: Bytes): Bytes
 
 %|
  |  Function: bzip2
  |
- |  Compress an input string using the bzip2 algorithm,
+ |  Compress an input buffer using the bzip2 algorithm,
  |  returning the compressed data as <Bytes>.
  |%
-DECLARE NATIVE FUNCTION bzip2(input: String): Bytes
+DECLARE NATIVE FUNCTION bzip2(input: Bytes): Bytes
 
 %|
  |  Function: bunzip2
  |
  |  Decompress input bytes using the bunzip2 algorithm,
- |  returning the uncompressed data as a <String>.
+ |  returning the uncompressed data as a <Bytes>.
  |%
-DECLARE NATIVE FUNCTION bunzip2(input: Bytes): String
+DECLARE NATIVE FUNCTION bunzip2(input: Bytes): Bytes
 
 %|
  |  Function: lzma
  |
- |  Compress an input string using the lzma algorithm,
+ |  Compress an input buffer using the lzma algorithm,
  |  returning the compressed data as <Bytes>.
  |%
-DECLARE NATIVE FUNCTION lzma(input: String): Bytes
+DECLARE NATIVE FUNCTION lzma(input: Bytes): Bytes
 
 %|
  |  Function: unlzma
  |
  |  Decompress input bytes usingi the unlzma algorithm,
- |  returning the uncompressed data as a <String>.
+ |  returning the uncompressed data as a <Bytes>.
  |%
-DECLARE NATIVE FUNCTION unlzma(input: Bytes): String
+DECLARE NATIVE FUNCTION unlzma(input: Bytes): Bytes
