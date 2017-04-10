@@ -7,7 +7,6 @@
 #include "crc32.h"
 #include "md5.h"
 #include "sha1.h"
-#include "sha256.h"
 #include "sha3.h"
 
 #include "rtl_exec.h"
@@ -50,7 +49,7 @@ Number crc32(const std::string &bytes)
     crc32(bytes.data(), bytes.length());
     unsigned char buf[CRC32::HashBytes];
     crc32.getHash(buf);
-    return number_from_uint32(0);
+    return number_from_uint32((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]);
 }
 
 std::string md5Raw(const std::string &bytes)
@@ -79,20 +78,6 @@ std::string sha1Raw(const std::string &bytes)
 std::string sha1(const std::string &bytes)
 {
     return to_hex(sha1Raw(bytes));
-}
-
-std::string sha256Raw(const std::string &bytes)
-{
-    SHA256 sha256;
-    sha256(bytes.data(), bytes.length());
-    unsigned char buf[SHA256::HashBytes];
-    sha256.getHash(buf);
-    return std::string(reinterpret_cast<char *>(buf), sizeof(buf));
-}
-
-std::string sha256(const std::string &bytes)
-{
-    return to_hex(sha256Raw(bytes));
 }
 
 std::string sha3(const std::string &bytes)

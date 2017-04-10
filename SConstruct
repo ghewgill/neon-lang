@@ -203,7 +203,8 @@ rtl_cpp = rtl_const + squeeze([
     "lib/debugger.cpp",
     "lib/global.cpp",
     "lib/file.cpp",
-    "lib/hash.cpp",
+    "lib/hash.cpp" if use_ssl else None,
+    "lib/hash_ressl.cpp" if use_ssl else None,
     "lib/http.cpp" if use_curl else None,
     "lib/io.cpp",
     "lib/math.cpp",
@@ -231,7 +232,7 @@ rtl_neon = squeeze([
     "lib/debugger.neon",
     "lib/file.neon",
     "lib/global.neon",
-    "lib/hash.neon",
+    "lib/hash.neon" if use_ssl else None,
     "lib/http.neon" if use_curl else None,
     "lib/io.neon",
     "lib/math.neon",
@@ -546,6 +547,8 @@ for f in Glob("t/*.neon"):
     if not use_sodium and f.name in ["sodium-test.neon"]:
         continue
     if not use_sqlite and f.name.startswith("sql-"):
+        continue
+    if not use_ssl and f.name in ["hash-test.neon"]:
         continue
     test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
