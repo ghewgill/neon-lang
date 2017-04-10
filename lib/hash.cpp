@@ -49,7 +49,7 @@ Number crc32(const std::string &bytes)
     crc32(bytes.data(), bytes.length());
     unsigned char buf[CRC32::HashBytes];
     crc32.getHash(buf);
-    return number_from_uint32(0);
+    return number_from_uint32((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]);
 }
 
 std::string md5Raw(const std::string &bytes)

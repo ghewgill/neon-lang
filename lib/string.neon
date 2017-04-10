@@ -60,9 +60,15 @@ FUNCTION repeat(s: String, n: Number): String
         RAISE InvalidValueException
     END CHECK
     VAR r: String := ""
-    FOR i := 1 TO n DO
-        r.append(s)
-    END FOR
+    VAR t: String := s
+    VAR b: Number := n
+    WHILE b > 0 DO
+        IF odd(b) THEN
+            r.append(t)
+        END IF
+        t.append(t)
+        b := b INTDIV 2
+    END WHILE
     RETURN r
 END FUNCTION
 
