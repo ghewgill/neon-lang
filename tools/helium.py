@@ -2364,6 +2364,7 @@ def run(program):
     program.env.declare("max", None, neon_max)
     program.env.declare("min", None, neon_min)
     program.env.declare("num", None, neon_num)
+    program.env.declare("odd", None, neon_odd)
     program.env.declare("ord", None, neon_ord)
     program.env.declare("print", None, neon_print)
     program.env.declare("str", None, neon_str)
@@ -2411,6 +2412,9 @@ def neon_min(env, x, y):
 
 def neon_num(env, x):
     return float(x)
+
+def neon_odd(env, x):
+    return x & 1
 
 def neon_ord(env, x):
     if len(x) != 1:
