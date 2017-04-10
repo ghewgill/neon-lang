@@ -547,6 +547,8 @@ for f in Glob("t/*.neon"):
         continue
     if not use_sqlite and f.name.startswith("sql-"):
         continue
+    if not use_ssl and f.name in ["hash-test.neon"]:
+        continue
     test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
 env.Depends(tests, test_ffi)
