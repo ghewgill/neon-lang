@@ -10,28 +10,28 @@ libcurl = None
 curlenv = Environment()
 
 if GetOption("clean"):
-    shutil.rmtree("curl-7.41.0", ignore_errors=True)
-elif not os.path.exists("curl-7.41.0/configure"):
-    tarfile.open("curl-7.41.0.tar.gz").extractall(".")
+    shutil.rmtree("curl-7.53.1", ignore_errors=True)
+elif not os.path.exists("curl-7.53.1/configure"):
+    tarfile.open("curl-7.53.1.tar.gz").extractall(".")
     if sys.platform == "win32":
-        config_win32 = open("curl-7.41.0/lib/config-win32.h").read()
+        config_win32 = open("curl-7.53.1/lib/config-win32.h").read()
         config_win32 = "#define HTTP_ONLY\n" + config_win32
         config_win32 = "#define USE_WINDOWS_SSPI\n" + config_win32
         config_win32 = "#define USE_SCHANNEL\n" + config_win32
-        open("curl-7.41.0/lib/config-win32.h", "w").write(config_win32)
+        open("curl-7.53.1/lib/config-win32.h", "w").write(config_win32)
 
 if sys.platform == "win32":
     env.Append(CPPFLAGS=["-DCURL_STATICLIB"])
     curlenv.Append(CPPFLAGS=["-DCURL_STATICLIB"])
     libname = "libcurl" if env["RELEASE"] else "libcurld"
     cfgname = "release" if env["RELEASE"] else "debug"
-    libcurl = curlenv.Command("curl-7.41.0/lib/{}.lib".format(libname), "curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG={} MACHINE=x64 RTLIBCFG=static".format(cfgname))
-    env.Append(CPPPATH=["external/curl-7.41.0/include"])
+    libcurl = curlenv.Command("curl-7.53.1/lib/{}.lib".format(libname), "curl-7.53.1/winbuild/Makefile.vc", "cd external/curl-7.53.1/lib && nmake /f Makefile.vc10 CFG={} MACHINE=x64 RTLIBCFG=static".format(cfgname))
+    env.Append(CPPPATH=["external/curl-7.53.1/include"])
     env.Append(LIBS=["ws2_32"])
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("curl", "curl/curl.h", "C++"):
-        libcurl = curlenv.Command("curl-7.41.0/lib/.libs/libcurl.a", "curl-7.41.0/configure", " ".join(["cd external/curl-7.41.0 &&",
+        libcurl = curlenv.Command("curl-7.53.1/lib/.libs/libcurl.a", "curl-7.53.1/configure", " ".join(["cd external/curl-7.53.1 &&",
             "./configure",
             "--disable-ares",
             "--disable-ftp",
@@ -73,7 +73,7 @@ else:
             "--without-nghttp2",
             "--with-ssl=" + os.path.abspath("."),
             "&& make"]))
-        env.Append(CPPPATH=["external/curl-7.41.0/include"])
+        env.Append(CPPPATH=["external/curl-7.53.1/include"])
     conf.Finish()
 
 Return(["libcurl"])
