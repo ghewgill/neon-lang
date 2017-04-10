@@ -6,6 +6,11 @@ import tarfile
 
 Import("env")
 
+def replace(fn, t, r):
+    data = open(fn).read()
+    data = data.replace(t, r)
+    open(fn, "w").write(data)
+
 libssl = None
 
 sslenv = Environment()
@@ -24,9 +29,24 @@ if GetOption("clean"):
     shutil.rmtree("libressl-2.2.4", ignore_errors=True, onerror=remove_readonly)
 elif not os.path.exists("libressl-2.2.4/configure"):
     tarfile.open("libressl-2.2.4.tar.gz").extractall(".")
+    if sys.platform == "win32":
+        replace("libressl-2.2.4/include/compat/string.h", "static inline", "static")
+        replace("libressl-2.2.4/crypto/md32_common.h", "static inline", "static")
 
 if sys.platform == "win32":
-    pass
+    # This is just enough of libressl to build the SHA hash functions.
+    sslenv.Append(CPPPATH=["libressl-2.2.4/include"])
+    sslenv.Append(CPPPATH=["libressl-2.2.4/include/compat"])
+    sslenv.Append(CPPPATH=["libressl-2.2.4/crypto"])
+    libssl = sslenv.Library("libressl-2.2.4/libssl.lib", [
+        "libressl-2.2.4/crypto/compat/explicit_bzero_win.c",
+        "libressl-2.2.4/crypto/mem_clr.c",
+        "libressl-2.2.4/crypto/sha/sha1_one.c",
+        "libressl-2.2.4/crypto/sha/sha1dgst.c",
+        "libressl-2.2.4/crypto/sha/sha256.c",
+        "libressl-2.2.4/crypto/sha/sha512.c",
+    ])
+    env.Append(CPPPATH=["external/libressl-2.2.4/include"])
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("ressl", "crypto.h", "C++"):
