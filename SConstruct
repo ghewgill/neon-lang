@@ -104,6 +104,7 @@ add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
 env.Depends(libcurl, libssl)
+env.Depends(libcurl, libz)
 
 SConscript("external/SConscript-naturaldocs")
 

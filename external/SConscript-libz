@@ -22,7 +22,7 @@ elif not os.path.exists("zlib-1.2.8/configure"):
     tarfile.open("zlib-1.2.8.tar.gz").extractall(".")
 
 if sys.platform == "win32":
-    libz = libzenv.Library("zlib-1.2.8/libz.lib", [
+    libz = libzenv.Library("zlib-1.2.8/zlib.lib", [
         "zlib-1.2.8/adler32.c",
         "zlib-1.2.8/compress.c",
         "zlib-1.2.8/crc32.c",

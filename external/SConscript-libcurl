@@ -25,6 +25,7 @@ if sys.platform == "win32":
     curlenv.Append(CPPFLAGS=["-DCURL_STATICLIB"])
     libname = "libcurl" if env["RELEASE"] else "libcurld"
     cfgname = "release" if env["RELEASE"] else "debug"
+    cfgname += "-zlib"
     libcurl = curlenv.Command("curl-7.41.0/lib/{}.lib".format(libname), "curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG={} MACHINE=x64 RTLIBCFG=static".format(cfgname))
     env.Append(CPPPATH=["external/curl-7.41.0/include"])
     env.Append(LIBS=["ws2_32"])
