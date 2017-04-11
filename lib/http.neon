@@ -8,6 +8,7 @@ EXPORT HttpException
 
 EXPORT get
 EXPORT post
+EXPORT postWithHeaders
 
 %|
  |  Exception: HttpException
@@ -38,3 +39,4 @@ DECLARE NATIVE FUNCTION get(url: String, OUT headers: Array<String>): Bytes
  |      headers - the response headers from the server
  |%
 DECLARE NATIVE FUNCTION post(url: String, post_data: String, OUT headers: Array<String>): Bytes
+DECLARE NATIVE FUNCTION postWithHeaders(url: String, post_data: String, inheaders: Dictionary<String>, OUT headers: Array<String>): Bytes

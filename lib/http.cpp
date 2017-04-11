@@ -86,6 +86,47 @@ std::string post(const std::string &url, const std::string &post_data, std::vect
     return data;
 }
 
+std::string postWithHeaders(const std::string &url, const std::string &post_data, const std::map<utf8string, utf8string> &inheaders, std::vector<utf8string> *headers)
+{
+    std::string data;
+    headers->clear();
+    CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
+    curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.length());
+    //curl_easy_setopt(curl, CURLOPT_VERBOSE, true);
+    struct curl_slist *headerlist = NULL;
+    std::vector<std::string> headervector;
+    for (auto h: inheaders) {
+        headervector.push_back(h.first.str() + ": " + h.second.str());
+        printf("%s\n", headervector.back().c_str());
+        headerlist = curl_slist_append(headerlist, headervector.back().c_str());
+    }
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+    char error[CURL_ERROR_SIZE];
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error);
+    CURLcode r = curl_easy_perform(curl);
+    curl_slist_free_all(headerlist);
+    if (r == CURLE_OK) {
+        long rc;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
+        //printf("rc %ld\n", rc);
+    } else {
+        curl_easy_cleanup(curl);
+        //fprintf(stderr, "curl %d error %s\n", r, error);
+        throw RtlException(Exception_HttpException, error, r);
+    }
+    curl_easy_cleanup(curl);
+    return data;
+}
+
 } // namespace http
 
 } // namespace rtl

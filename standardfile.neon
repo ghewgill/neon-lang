@@ -77,4 +77,8 @@ BEGIN MAIN
     %print("\(data)")
     file.writeBytes("data", data)
     print(data.decodeToString())
+    LET auth_result: Dictionary<variant.Variant> := json.decode(data.decodeToString()).getDictionary()
+    LET token: String := auth_result["token"].getString()
+    data := http.postWithHeaders("https://n3.standardnotes.org/items/sync", "", {"Authorization": "Bearer \(token)"}, OUT headers)
+    print(data.decodeToString())
 END MAIN
