@@ -199,6 +199,7 @@ else:
 rtl_cpp = rtl_const + squeeze([
     "lib/binary.cpp",
     "lib/compress.cpp" if use_bz2 and use_lzma else None,
+    "lib/crypto.cpp" if use_ssl else None,
     "lib/curses.cpp" if use_curses else None,
     "lib/datetime.cpp",
     "lib/debugger.cpp",
@@ -228,6 +229,7 @@ env.Depends("lib/http.cpp", libcurl)
 rtl_neon = squeeze([
     "lib/binary.neon",
     "lib/compress.neon" if use_bz2 and use_lzma else None,
+    "lib/crypto.neon" if use_ssl else None,
     "lib/curses.neon" if use_curses else None,
     "lib/datetime.neon",
     "lib/debugger.neon",

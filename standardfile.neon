@@ -1,4 +1,6 @@
 IMPORT binary
+IMPORT crypto
+IMPORT encoding
 IMPORT file
 IMPORT hash
 IMPORT http
@@ -15,6 +17,19 @@ FUNCTION toHex(b: Bytes): String
         r.append("\(c:02x)")
     END FOREACH
     RETURN r
+END FUNCTION
+
+VAR HexBytes: Dictionary<Number> := {}
+FOR b := 0 TO 0xff DO
+    HexBytes["\(b:02x)"] := b
+END FOR
+
+FUNCTION fromHex(s: String): Bytes
+    VAR r: Array<Number> := []
+    FOR i := 0 TO s.length()-2 STEP 2 DO
+        r.append(HexBytes[s[i TO i+1]])
+    END FOR
+    RETURN r.toBytes()
 END FUNCTION
 
 FUNCTION hmac_sha512(key: Bytes, msg: Bytes): Bytes
@@ -81,4 +96,15 @@ BEGIN MAIN
     LET token: String := auth_result["token"].getString()
     data := http.postWithHeaders("https://n3.standardnotes.org/items/sync", "", {"Authorization": "Bearer \(token)"}, OUT headers)
     print(data.decodeToString())
+    LET sync_result: Dictionary<variant.Variant> := json.decode(data.decodeToString()).getDictionary()
+    LET items: Array<variant.Variant> := sync_result["retrieved_items"].getArray()
+    LET item: Dictionary<variant.Variant> := items[0].getDictionary()
+    LET iv: Bytes := HEXBYTES "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
+    LET item_key: Bytes := crypto.AES_CBC_256_Decrypt(encoding.base64Decode(item["enc_item_key"].getString()), mk, iv)
+    LET item_key_hex: String := item_key.decodeToString()
+    LET ek: Bytes := fromHex(item_key_hex[FIRST TO item_key_hex.length()/2-1])
+    %LET ak: Bytes := fromHex(item_key_hex[item_key_hex.length()/2 TO LAST])
+    LET content: Bytes := crypto.AES_CBC_256_Decrypt(encoding.base64Decode(item["content"].getString()[3 TO LAST]), ek, iv)
+    print("\(content)")
+    print(content.decodeToString())
 END MAIN
