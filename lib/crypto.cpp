@@ -20,7 +20,7 @@ std::string AES_CBC_256_Decrypt(const std::string &ciphertext, const std::string
     plaintext.resize(ciphertext.length());
     int plaintext_len = 0;
     int len;
-    EVP_DecryptUpdate(ctx, const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(plaintext.data())), &len, reinterpret_cast<const unsigned char *>(ciphertext.data()), ciphertext.length());
+    EVP_DecryptUpdate(ctx, const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(plaintext.data())), &len, reinterpret_cast<const unsigned char *>(ciphertext.data()), static_cast<int>(ciphertext.length()));
     plaintext_len = len;
     EVP_DecryptFinal_ex(ctx, const_cast<unsigned char *>(reinterpret_cast<const unsigned char *>(plaintext.data())) + plaintext_len, &len);
     plaintext_len += len;
