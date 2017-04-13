@@ -32,6 +32,21 @@ FUNCTION fromHex(s: String): Bytes
     RETURN r.toBytes()
 END FUNCTION
 
+FUNCTION hmac_sha256(key: Bytes, msg: Bytes): Bytes
+    CONSTANT ipad: Bytes := HEXBYTES "36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36"
+    CONSTANT opad: Bytes := HEXBYTES "5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c"
+    VAR a: Array<Number> := key.toArray()
+    WHILE a.size() < 64 DO
+        a.append(0)
+    END WHILE
+    VAR k1: Bytes := a.toBytes()
+    RETURN hash.sha256Raw(binary.xorBytes(k1, opad) & hash.sha256Raw(binary.xorBytes(k1, ipad) & msg))
+END FUNCTION
+
+% Test cases from https://tools.ietf.org/html/rfc4231
+ASSERT hmac_sha256(HEXBYTES "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b", HEXBYTES "4869205468657265") = HEXBYTES "b0344c61d8db38535ca8afceaf0bf12b881dc200c9833da726e9376c2e32cff7"
+ASSERT hmac_sha256(HEXBYTES "4a656665", HEXBYTES "7768617420646f2079612077616e7420666f72206e6f7468696e673f") = HEXBYTES "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"
+
 FUNCTION hmac_sha512(key: Bytes, msg: Bytes): Bytes
     CONSTANT ipad: Bytes := HEXBYTES "36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36"
     CONSTANT opad: Bytes := HEXBYTES "5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c"
@@ -103,8 +118,11 @@ BEGIN MAIN
     LET item_key: Bytes := crypto.AES_CBC_256_Decrypt(encoding.base64Decode(item["enc_item_key"].getString()), mk, iv)
     LET item_key_hex: String := item_key.decodeToString()
     LET ek: Bytes := fromHex(item_key_hex[FIRST TO item_key_hex.length()/2-1])
-    %LET ak: Bytes := fromHex(item_key_hex[item_key_hex.length()/2 TO LAST])
-    LET content: Bytes := crypto.AES_CBC_256_Decrypt(encoding.base64Decode(item["content"].getString()[3 TO LAST]), ek, iv)
+    LET ak: Bytes := fromHex(item_key_hex[item_key_hex.length()/2 TO LAST])
+    LET enc_content: String := item["content"].getString()
+    LET auth_hash: Bytes := hmac_sha256(ak, enc_content.toBytes())
+    ASSERT toHex(auth_hash) = item["auth_hash"].getString()
+    LET content: Bytes := crypto.AES_CBC_256_Decrypt(encoding.base64Decode(enc_content[3 TO LAST]), ek, iv)
     print("\(content)")
     print(content.decodeToString())
 END MAIN
