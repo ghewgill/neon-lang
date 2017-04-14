@@ -61,3 +61,33 @@ print(v.getDictionary()["string"].getString())
 v := json.decode(@@"{"foo": "bar\"baz"}"@@)
 print(v.getDictionary()["foo"].getString())
 %= bar"baz
+
+LET a: json.Node := json.makeNode(json.decode(@@"
+    {
+        "z": null,
+        "b": true,
+        "s": "one",
+        "n": 5,
+        "a": [
+            "zero",
+            "one",
+            "two"
+        ],
+        "o": {
+            "foo": "bar"
+        }
+    }
+"@@))
+ASSERT a.isNullAt(["z"]) = TRUE
+ASSERT a.getBooleanAt(["b"]) = TRUE
+ASSERT a.getStringAt(["s"]) = "one"
+ASSERT a.getNumberAt(["n"]) = 5
+ASSERT a.getStringAt(["a", "1"]) = "one"
+ASSERT a.getStringAt(["o", "foo"]) = "bar"
+
+ASSERT a.isNullAtPath("z") = TRUE
+ASSERT a.getBooleanAtPath("b") = TRUE
+ASSERT a.getStringAtPath("s") = "one"
+ASSERT a.getNumberAtPath("n") = 5
+ASSERT a.getStringAtPath("a/1") = "one"
+ASSERT a.getStringAtPath("o/foo") = "bar"
