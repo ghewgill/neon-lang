@@ -94,9 +94,9 @@ BEGIN MAIN
     %print("\(data)")
     file.writeBytes("data", data)
     print(data.decodeToString())
-    LET auth_params: Dictionary<variant.Variant> := json.decode(data.decodeToString()).getDictionary()
-    ASSERT auth_params["pw_func"].getString() = "pbkdf2"
-    LET key: Bytes := pbkdf2(Password, auth_params["pw_salt"].getString(), auth_params["pw_alg"].getString(), auth_params["pw_key_size"].getNumber(), auth_params["pw_cost"].getNumber())
+    LET auth_params: json.Node := json.makeNode(json.decode(data.decodeToString()))
+    ASSERT auth_params.getStringAt(["pw_func"]) = "pbkdf2"
+    LET key: Bytes := pbkdf2(Password, auth_params.getStringAt(["pw_salt"]), auth_params.getStringAt(["pw_alg"]), auth_params.getNumberAt(["pw_key_size"]), auth_params.getNumberAt(["pw_cost"]))
     LET pw: Bytes := key.toArray()[FIRST TO key.size()/2-1].toBytes()
     LET mk: Bytes := key.toArray()[key.size()/2 TO LAST].toBytes()
     print("key = \(key)")
@@ -107,8 +107,8 @@ BEGIN MAIN
     %print("\(data)")
     file.writeBytes("data", data)
     print(data.decodeToString())
-    LET auth_result: Dictionary<variant.Variant> := json.decode(data.decodeToString()).getDictionary()
-    LET token: String := auth_result["token"].getString()
+    LET auth_result: json.Node := json.makeNode(json.decode(data.decodeToString()))
+    LET token: String := auth_result.getStringAt(["token"])
     data := http.postWithHeaders("https://n3.standardnotes.org/items/sync", "", {"Authorization": "Bearer \(token)"}, OUT headers)
     print(data.decodeToString())
     LET sync_result: Dictionary<variant.Variant> := json.decode(data.decodeToString()).getDictionary()
