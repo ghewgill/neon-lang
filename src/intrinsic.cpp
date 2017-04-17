@@ -99,6 +99,9 @@ std::string substring(const std::string &s, Number offset, Number length)
 {
     assert(number_is_integer(offset));
     assert(number_is_integer(length));
+    if (number_to_uint32(offset) + number_to_uint32(length) > s.length()) {
+        throw RtlException(Exception_global$StringIndex, "length is past the end of string");
+    }
     auto start = s.begin();
     try {
         utf8::advance(start, number_to_uint32(offset), s.end());
