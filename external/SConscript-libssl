@@ -32,6 +32,7 @@ elif not os.path.exists("libressl-2.2.4/configure"):
     if sys.platform == "win32":
         replace("libressl-2.2.4/include/compat/string.h", "static inline", "static")
         replace("libressl-2.2.4/crypto/md32_common.h", "static inline", "static")
+        replace("libressl-2.2.4/crypto/compat/posix_win.c", "#include <windows.h>", "")
 
 if sys.platform == "win32":
     # This is just enough of libressl to build what we currently need.
@@ -142,7 +143,7 @@ if sys.platform == "win32":
         "libressl-2.2.4/crypto/compat/bsd-asprintf.c",
         "libressl-2.2.4/crypto/compat/explicit_bzero_win.c",
         "libressl-2.2.4/crypto/compat/getentropy_win.c",
-        #"libressl-2.2.4/crypto/compat/posix_win.c",
+        "libressl-2.2.4/crypto/compat/posix_win.c",
         "libressl-2.2.4/crypto/compat/reallocarray.c",
         "libressl-2.2.4/crypto/compat/strcasecmp.c",
         "libressl-2.2.4/crypto/compat/strlcat.c",
@@ -256,6 +257,12 @@ if sys.platform == "win32":
         "libressl-2.2.4/crypto/mem_clr.c",
         "libressl-2.2.4/crypto/mem_dbg.c",
         "libressl-2.2.4/crypto/modes/cbc128.c",
+        "libressl-2.2.4/crypto/modes/ccm128.c",
+        "libressl-2.2.4/crypto/modes/cfb128.c",
+        "libressl-2.2.4/crypto/modes/ctr128.c",
+        "libressl-2.2.4/crypto/modes/gcm128.c",
+        "libressl-2.2.4/crypto/modes/ofb128.c",
+        "libressl-2.2.4/crypto/modes/xts128.c",
         "libressl-2.2.4/crypto/o_init.c",
         "libressl-2.2.4/crypto/o_time.c",
         "libressl-2.2.4/crypto/objects/o_names.c",
