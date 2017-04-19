@@ -2632,6 +2632,7 @@ ExcludeTests = [
     "t/record-private.neon",    # Feature not required yet
     "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
     "t/strings.neon",           # Feature not required yet
+    "t/string-slice.neon",      # String slice assignment not supported here yet
     "t/struct-test.neon",       # Module not required yet
     "t/unicode-length.neon",    # Currently works here, but still TODO in cpp
     "t/uninitialised-if-exit.neon", # FIXME

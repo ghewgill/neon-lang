@@ -1,0 +1,34 @@
+FUNCTION abc(): String
+    RETURN "abc"
+END FUNCTION
+
+VAR s: String := "Hello"
+
+ASSERT s = "Hello"
+
+s[1 TO LAST-1] := "eww"
+ASSERT s = "Hewwo"
+
+ASSERT s[FIRST TO LAST-1] = "Heww"
+ASSERT s[FIRST TO -1] = ""
+ASSERT s[FIRST] = "H"
+ASSERT s[FIRST+1] = "e"
+ASSERT s[LAST] = "o"
+ASSERT s[LAST-1] = "w"
+ASSERT s[FIRST TO FIRST] = "H"
+ASSERT s[FIRST TO FIRST+1] = "He"
+ASSERT s[LAST TO LAST] = "o"
+ASSERT s[LAST-1 TO LAST] = "wo"
+
+ASSERT abc()[FIRST+1] = "b"
+ASSERT abc()[LAST] = "c"
+ASSERT abc()[LAST-1 TO LAST] = "bc"
+
+s[0 TO -1] := "Q"
+ASSERT s = "QHewwo"
+
+s[FIRST] := "."
+ASSERT s = ".Hewwo"
+
+s[LAST] := "."
+ASSERT s = ".Heww."

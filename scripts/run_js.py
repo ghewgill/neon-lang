@@ -103,6 +103,7 @@ ExcludeTests = [
     "t/string-escape.neon",         # StringReferenceIndexExpression
     "t/string-format.neon",         # format
     "t/string-multiline.neon",      # StringReferenceIndexExpression
+    "t/string-slice.neon",          # StringReferenceIndexExpression
     "t/string-test.neon",           # module string
     "t/strings.neon",               # StringReferenceIndexExpression
     "t/struct-test.neon",           # DictionaryInExpression

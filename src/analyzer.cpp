@@ -1348,9 +1348,9 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         }
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
-            return new ast::StringReferenceIndexExpression(ref, index, false, index, false, this);
+            return new ast::StringReferenceIndexExpression(ref, index, expr->from_last, index, expr->from_last, this);
         } else {
-            return new ast::StringValueIndexExpression(base, index, false, index, false, this);
+            return new ast::StringValueIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
         }
     } else {
         error2(3044, expr->token, "not an array or dictionary", type->declaration, "declaration here");
