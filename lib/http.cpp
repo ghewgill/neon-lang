@@ -26,20 +26,28 @@ namespace rtl {
 
 namespace http {
 
-std::string get(const std::string &url, std::vector<utf8string> *headers)
+std::string get(const std::string &url, const std::map<utf8string, utf8string> &requestHeaders, std::vector<utf8string> *responseHeaders)
 {
     std::string data;
-    headers->clear();
+    responseHeaders->clear();
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, responseHeaders);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+    struct curl_slist *headerlist = NULL;
+    std::vector<std::string> headervector;
+    for (auto h: requestHeaders) {
+        headervector.push_back(h.first.str() + ": " + h.second.str());
+        headerlist = curl_slist_append(headerlist, headervector.back().c_str());
+    }
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
     char error[CURL_ERROR_SIZE];
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error);
     CURLcode r = curl_easy_perform(curl);
+    curl_slist_free_all(headerlist);
     if (r == CURLE_OK) {
         long rc;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
@@ -53,22 +61,32 @@ std::string get(const std::string &url, std::vector<utf8string> *headers)
     return data;
 }
 
-std::string post(const std::string &url, const std::string &post_data, std::vector<utf8string> *headers)
+std::string post(const std::string &url, const std::string &post_data, const std::map<utf8string, utf8string> &requestHeaders, std::vector<utf8string> *responseHeaders)
 {
     std::string data;
-    headers->clear();
+    responseHeaders->clear();
     CURL *curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
-    curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers);
+    curl_easy_setopt(curl, CURLOPT_HEADERDATA, responseHeaders);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_callback);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.length());
+    struct curl_slist *headerlist = NULL;
+    std::vector<std::string> headervector;
+    for (auto h: requestHeaders) {
+        headervector.push_back(h.first.str() + ": " + h.second.str());
+        headerlist = curl_slist_append(headerlist, headervector.back().c_str());
+    }
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
     char error[CURL_ERROR_SIZE];
     curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, error);
     CURLcode r = curl_easy_perform(curl);
+    curl_slist_free_all(headerlist);
     if (r == CURLE_OK) {
         long rc;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &rc);
