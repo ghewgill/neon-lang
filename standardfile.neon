@@ -89,7 +89,7 @@ ASSERT pbkdf2("password", "salt", "sha512", 64, 2) = HEXBYTES "e1 d9 c1 6a a6 81
 
 BEGIN MAIN
     VAR headers: Array<String>
-    VAR data: Bytes := http.get("https://n3.standardnotes.org/auth/params?email=greg@hewgill.com", OUT headers)
+    VAR data: Bytes := http.get("https://n3.standardnotes.org/auth/params?email=greg@hewgill.com", {}, OUT headers)
     %print("\(headers)")
     %print("\(data)")
     file.writeBytes("data", data)
@@ -102,14 +102,14 @@ BEGIN MAIN
     print("key = \(key)")
     print("pw = \(pw)")
     print("mk = \(mk)")
-    data := http.post("https://n3.standardnotes.org/auth/sign_in", "email=greg@hewgill.com&password=\(toHex(pw))", OUT headers)
+    data := http.post("https://n3.standardnotes.org/auth/sign_in", "email=greg@hewgill.com&password=\(toHex(pw))", {}, OUT headers)
     %print("\(headers)")
     %print("\(data)")
     file.writeBytes("data", data)
     print(data.decodeToString())
     LET auth_result: json.Node := json.makeNode(json.decode(data.decodeToString()))
     LET token: String := auth_result.getStringAt(["token"])
-    data := http.postWithHeaders("https://n3.standardnotes.org/items/sync", "", {"Authorization": "Bearer \(token)"}, OUT headers)
+    data := http.post("https://n3.standardnotes.org/items/sync", "", {"Authorization": "Bearer \(token)"}, OUT headers)
     print(data.decodeToString())
     LET sync_result: Dictionary<variant.Variant> := json.decode(data.decodeToString()).getDictionary()
     LET items: Array<variant.Variant> := sync_result["retrieved_items"].getArray()
