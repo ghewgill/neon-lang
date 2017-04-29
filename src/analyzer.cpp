@@ -2440,12 +2440,20 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
         }
         const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
-            if (mode != ast::ParameterType::IN) {
-                error(3175, x->default_value->token, "default value only available for IN parameters");
+            const bool is_dummy = dynamic_cast<pt::DummyExpression *>(x->default_value.get()) != nullptr;
+            switch (mode) {
+                case ast::ParameterType::IN:
+                    break;
+                case ast::ParameterType::INOUT:
+                case ast::ParameterType::OUT:
+                    if (not is_dummy) {
+                        error(3175, x->default_value->token, "default value only available for IN parameters");
+                    }
+                    break;
             }
             in_default = true;
             def = analyze(x->default_value.get());
-            if (not def->is_constant) {
+            if (not is_dummy && not def->is_constant) {
                 error(3148, x->default_value->token, "default value not constant");
             }
         } else if (in_default) {
@@ -2639,9 +2647,10 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
         const ast::Type *ptype = analyze(x->type.get());
         const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
+            const bool is_dummy = dynamic_cast<pt::DummyExpression *>(x->default_value.get()) != nullptr;
             in_default = true;
             def = analyze(x->default_value.get());
-            if (not def->is_constant) {
+            if (not is_dummy && not def->is_constant) {
                 error(3167, x->default_value->token, "default value not constant");
             }
         } else if (in_default) {

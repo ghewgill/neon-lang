@@ -26,6 +26,7 @@ ExcludeTests = [
     "t/for.neon",                   # number format (2 vs 2.0)
     "t/fork.neon",                  # module posix
     "t/forth-test.neon",            # module os
+    "t/function-default-out.neon",  # DummyExpression
     "t/gc-array.neon",              # module runtime
     "t/gc-long-chain.neon",         # module runtime
     "t/gc1.neon",                   # PredefinedVariable

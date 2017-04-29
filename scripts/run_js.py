@@ -45,6 +45,7 @@ ExcludeTests = [
     "t/for.neon",                   # decimal floating point
     "t/foreach-string.neon",        # StringValueIndexExpression
     "t/forth-test.neon",            # os.system
+    "t/function-default-out.neon",  # DummyExpression
     "t/function-pointer.neon",      # string.append
     "t/gc-array.neon",              # gc
     "t/gc-long-chain.neon",         # gc
