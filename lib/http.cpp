@@ -35,6 +35,7 @@ std::string get(const std::string &url, const std::map<utf8string, utf8string> &
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, responseHeaders);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_callback);
@@ -68,10 +69,9 @@ std::string post(const std::string &url, const std::string &post_data, const std
     std::string data;
     responseHeaders->clear();
     CURL *curl = curl_easy_init();
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
-    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
+    curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, responseHeaders);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, data_callback);

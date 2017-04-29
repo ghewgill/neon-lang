@@ -16,6 +16,7 @@ config.log
 *.neond
 *.class
 lib/*.js
+t/*.cpp
 t/*.js
 bin/
 errors.txt
