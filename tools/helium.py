@@ -868,7 +868,8 @@ class FunctionCallExpression:
                 j = 1
                 for i, out in enumerate(f._outs):
                     if out:
-                        self.args[i][1].set(env, r[j])
+                        if i < len(self.args):
+                            self.args[i][1].set(env, r[j])
                         j += 1
                 r = r[0]
             return r

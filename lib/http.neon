@@ -25,7 +25,7 @@ EXCEPTION HttpException
  |      url - the url
  |      headers - the response headers from the server
  |%
-DECLARE NATIVE FUNCTION get(url: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String>): Bytes
+DECLARE NATIVE FUNCTION get(url: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
 
 %|
  |  Function: post
@@ -37,4 +37,4 @@ DECLARE NATIVE FUNCTION get(url: String, requestHeaders: Dictionary<String>, OUT
  |      post_data - the body of the POST request
  |      headers - the response headers from the server
  |%
-DECLARE NATIVE FUNCTION post(url: String, post_data: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String>): Bytes
+DECLARE NATIVE FUNCTION post(url: String, post_data: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes

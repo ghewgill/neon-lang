@@ -991,7 +991,12 @@ void Parser::parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vec
             std::unique_ptr<Expression> default_value { nullptr };
             if (tokens[i].type == DEFAULT) {
                 ++i;
-                default_value = parseExpression();
+                if (tokens[i].type == UNDERSCORE) {
+                    default_value.reset(new DummyExpression(tokens[i], tokens[i].column, tokens[i].column));
+                    ++i;
+                } else {
+                    default_value = parseExpression();
+                }
             }
             std::unique_ptr<FunctionParameterGroup> fp { new FunctionParameterGroup(tok_param, vars.first, std::move(vars.second), mode, std::move(default_value)) };
             args.push_back(std::move(fp));
