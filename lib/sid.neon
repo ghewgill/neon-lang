@@ -1,0 +1,746 @@
+%|
+ |  File: sid
+ |
+ |  Functions for interfacing with the MOS6581 or MOS8501 sound chip emulation.
+ |%
+
+EXPORT setRegister
+EXPORT setFrequency
+EXPORT setPulseWidth
+EXPORT setWaveform
+EXPORT setTestBit
+EXPORT setRingModulation
+EXPORT setOscillatorSync
+EXPORT setGate
+EXPORT setEnvelope
+EXPORT setFilterFrequency
+EXPORT setFilterResonance
+EXPORT setFilterEnable
+EXPORT setFilterLowpass
+EXPORT setFilterBandpass
+EXPORT setFilterHighpass
+EXPORT setVoice3Mute
+EXPORT setVolume
+EXPORT run
+
+EXPORT InvalidRegister
+EXPORT InvalidSIDValue
+EXPORT InvalidVoice
+EXPORT InvalidWaveform
+
+%|
+ |  Exception: InvalidRegister
+ |
+ |  Indicates that an invalid value was provided when calling <setRegister>.
+ |%
+DECLARE EXCEPTION InvalidRegister
+
+%|
+ |  Exception: InvalidSIDValue
+ |
+ |  Indicates that an invalid value was provided when calling any of the set functions.
+ |%
+DECLARE EXCEPTION InvalidSIDValue
+
+%|
+ |  Exception: InvalidVoice
+ |
+ |  Indicates that an invalid voice value was provided when calling any of the set functions.
+ |%
+DECLARE EXCEPTION InvalidVoice
+
+%|
+ |  Exception: InvalidWaveform
+ |
+ |  Indicates that an invalid waveform value was provided when calling <setWaveform>.
+ |%
+DECLARE EXCEPTION InvalidWaveform
+
+CONSTANT MAX_FREQUENCY: Number := 0xFFFF + 0x01
+CONSTANT MAX_SID_VALUE: Number := 0x00FF
+CONSTANT MAX_SID_VOICE: Number := 0x0003
+CONSTANT MAX_SID_WAVES: Number := 0x0080
+CONSTANT MAX_FLT_VALUE: Number := 0x07FF
+CONSTANT MAX_RES_VALUE: Number := 0x000F
+CONSTANT MAX_VOL_VALUE: Number := 0x000F
+CONSTANT VOICE_BITMASK: Number := 0xF0
+
+TYPE Waveform IS RECORD
+    id:     Number  % Unique ID for the Waveform
+    name:   String  % String value/name of the waveform
+    value:  Number  % Unique SID value of the waveform
+END RECORD
+
+LET Waveforms: Array<Waveform> := [
+    Waveform(1, "Triangle",  16),
+    Waveform(2, "Sawtooth",  32),
+    Waveform(3, "Square",    64),
+    Waveform(4, "Noise",    128),
+]
+
+EXTERNAL FUNCTION set_reg(reg: Number, value: Number)
+{
+    "library": {
+        "name": "external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "reg": "uint8"
+        "value": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setRegister
+ |
+ |  Sets the register to the provided value.
+ |
+ |  Parameters:
+ |      reg - The register to be set.
+ |      value - The value to set the register to.
+ |
+ |  Exceptions:
+ |      - <InvalidRegister> - if the register value is outside of the accepted value
+ |      - <InvalidSIDValue> - if the value parameter is outside of the accepted value
+ |%
+FUNCTION setRegister(reg: Number, value: Number)
+    IF reg < 0 OR reg > MAX_SID_VALUE THEN
+        RAISE InvalidRegister
+    END IF
+
+    IF value < 0 OR value > MAX_SID_VALUE THEN
+        RAISE InvalidSIDValue
+    END IF
+    
+    set_reg(reg, value)
+END FUNCTION
+
+EXTERNAL FUNCTION set_freq(voice: Number, freq: Number)
+{
+    "library": {
+        "name": "./external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "freq": "uint16"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setFrequency
+ |
+ |  Sets the oscillator for the provided voice to the specified frequency.
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      freq - The frequency value to set the oscillator to.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |      - <InvalidSIDValue> - if the value parameter is outside of the accepted range
+ |%
+FUNCTION setFrequency(voice: Number, freq: Number)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+    
+    IF freq < 0 OR freq > MAX_FREQUENCY THEN
+        RAISE InvalidSIDValue
+    END IF
+    
+    set_freq(voice, freq)
+END FUNCTION
+
+EXTERNAL FUNCTION set_pw(voice: Number, pw: Number)
+{
+    "library": {
+        "name": "external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "pw": "uint16"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setPulseWidth
+ |
+ |  Sets the pulse width of the squarewave oscillator for the provided voice to the specified width.
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      pw - The width (frequency) value of the pulse.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |      - <InvalidSIDValue> - if the value parameter is outside of the accepted range
+ |%
+FUNCTION setPulseWidth(voice: Number, pw: Number)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+    
+    IF pw < 0 OR pw > MAX_SID_VALUE THEN
+        RAISE InvalidSIDValue
+    END IF
+    
+    set_pw(voice, pw)
+END FUNCTION
+
+EXTERNAL FUNCTION set_wave(voice: Number, wave: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "wave": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setWaveform
+ |
+ |  Sets the oscillator waveform to use on the selected voice.
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      wave - The waveform value to use.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |      - <InvalidWaveform> - if the wave parameter is not one of the 4 SID waveform values
+ |%
+FUNCTION setWaveform(voice: Number, wave: Number)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+    
+    IF wave <= 0 OR wave > MAX_SID_WAVES THEN
+        RAISE InvalidWaveform
+    END IF
+
+    set_wave(voice, wave)
+END FUNCTION
+
+EXTERNAL FUNCTION set_test(voice: Number, test: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "test": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setTestBit
+ |
+ |  Sets the TEST bit on the provided voice. 
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      wave - The waveform value to use.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |      - <InvalidWaveform> - if the wave parameter is not one of the 4 SID waveform values
+ |
+ |   Note:
+ |      The TEST bit, when set to a one, resets and locks Oscillator 1 at zero until the TEST bit is cleared. 
+ |      The Noise waveform output of Oscillator 1 is also reset and the Pulse waveform output is held at a DC level. 
+ |      Normally this bit is used for testing purposes, however, it can be used to synchronize Oscillator 1 to 
+ |      events, allowing the generation of highly complex waveforms.
+ |
+ |%
+FUNCTION setTestBit(voice: Number, test: Boolean)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+
+    set_test(voice, IF test THEN 1 ELSE 0)
+END FUNCTION
+
+EXTERNAL FUNCTION set_ring(voice: Number, ring: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "ring": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setRingModulation
+ |
+ |  Sets the Ring Modulation bit on the provided voice. 
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      ring - The value of the Ring Modulation bit.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |
+ |   Note:
+ |      The RING MOD bit, when set to a one, replaces the Triangle waveform output of Oscillator 1 
+ |      with a “Ring Modulated” combination of Oscillators 1 and 3. Varying the frequency of Oscillator 1 
+ |      with respect to Oscillator 3 produces a wide range of non-harmonic overtone structures for creating 
+ |      bell or gong sounds and for special effects. In order for ring modulation to be audible, the Triangle 
+ |      waveform of Oscillator 1 must be selected and Oscillator 3 must be set to some frequency other than zero. 
+ |      No other parameters of Voice 3 have any effect on ring modulation. 
+ |
+ |%
+FUNCTION setRingModulation(voice: Number, ring: Boolean)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+
+    set_ring(voice, IF ring THEN 1 ELSE 0)
+END FUNCTION
+
+EXTERNAL FUNCTION set_sync(voice: Number, sync: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "sync": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setOscillatorSync
+ |
+ |  Sets the Sync bit on the provided voice, synchronizing the oscillators on voices 1 and 3. 
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      sync - The value of the sync bit.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |
+ |   Note:
+ |      The SYNC bit, when set to TRUE, Synchronizes the fundamental frequency of Oscillator 1 with 
+ |      the fundamental frequency of Oscillator 3, producing "Hard Sync" effects. Varying the frequency 
+ |      of Oscillator 1 with respect to Oscillator 3 produces a wide range of complex harmonic structures
+ |      from Voice 1 at the frequency of Oscillator 3. In order for sync to occur Oscillator 3 must be 
+ |      set to some frequency other than zero but preferably lower than the frequency of Oscillator 1. 
+ |      No other parameters of Voice 3 have any effect on sync. 
+ |
+ |%
+FUNCTION setOscillatorSync(voice: Number, sync: Boolean)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+
+    set_sync(voice, IF sync THEN 1 ELSE 0)
+END FUNCTION
+
+EXTERNAL FUNCTION set_gate(voice: Number, gate: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "gate": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setGate
+ |
+ |  Sets the Gate bit, which controls the envelope generator.  When set to TRUE, the 
+ |  Attack/Decay/Sustain cycle begins.  When set to FALSE, the Release cycle begins.
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      gate - The value of the gate bit.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |
+ |   Note:
+ |      The GATE bit controls the Envelope Generator for the provided voice. When this bit is set to 
+ |      TRUE, the Envelope Generator is Gated (triggered) and the ATTACK/DECAY/SUSTAIN cycle is 
+ |      initiated.  When the bit is reset to FALSE, the RELEASE cycle begins.  The Envelope Generator 
+ |      controls the amplitude of Oscillator 1 appearing at the audio output, therefore, the GATE bit 
+ |      must be set (along with suitable envelope parameters) for the selected output of Oscillator 1 
+ |      to be audible.
+ |
+ |%
+FUNCTION setGate(voice: Number, gate: Boolean)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+
+    set_gate(voice, IF gate THEN 1 ELSE 0)
+END FUNCTION
+
+EXTERNAL FUNCTION set_adsr(voice: Number, attack, decay, sustain, release: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+        "attack": "uint8"
+        "decay": "uint8"
+        "sustain": "uint8"
+        "release": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setEnvelope
+ |
+ |  Sets the the ADSR Envelope on the selected voice to the provided values.
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |      attack - The SID value between 0 and 15 indicating the ATTACK rate for the Envelope Generator.
+ |               The ATTACK rate determines how rapidly the output of the voice rises from zero to peak 
+ |               amplitude when the Envelope Generator is Gated.
+ |      decay - The SID value between 0 and 15 indicating the DECAY rate for the Envelope Generator.
+ |              The DECAY cycle follows the ATTACK cycle and the DECAY rate determines how rapidly the 
+ |              output falls from the peak amplitude to the selected SUSTAIN level.
+ |      sustain - The SID value between 0 and 15 indicating the SUSTAIN rate for the Envelope Generator.
+ |                The SUSTAIN cycle follows the DECAY cycle and the output of the voice will remain at 
+ |                the selected SUSTAIN amplitude as long as the Gate bit remains set.  The SUSTAIN levels 
+ |                range from zero to peak amplitude in 16 linear steps, with a SUSTAIN value of 0 selecting 
+ |                zero amplitude and a SUSTAIN value of 15 (0xF) selecting the peak amplitude.  A SUSTAIN 
+ |                value of 8 would cause the voice to SUSTAIN at an amplitude one-half the peak amplitude 
+ |                reached by the ATTACK cycle.
+ |      release - The SID value between 0 and 15 indicating the RELEASE rate for the Envelope Generator.
+ |                The RELEASE cycle follows the SUSTAIN cycle when the Gate bit is reset to zero.  At this 
+ |                time, the output of the voice will fall from the SUSTAIN amplitude to zero amplitude at 
+ |                the selected RELEASE rate.  The 16 RELEASE rates are identical to the DECAY rates.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices
+ |      - <InvalidSIDValue> - if one of the envelope values is outside of the accepted range
+ |
+ |  Note:  The cycling of the Envelope Generator can be altered at any point via the <setGate> function. The 
+ |         Envelope Generator can be Gated and Released without restriction.  For example, if the Gate is reset 
+ |         before the envelope has finished the ATTACK cycle, the RELEASE cycle will immediately begin, starting 
+ |         from whatever amplitude had been reached.  If the envelope is then Gated again (before the RELEASE 
+ |         cycle has reached zero amplitude), another ATTACK cycle will begin, starting from whatever amplitude 
+ |         had been reached.  This technique can be used to generate complex amplitude envelopes.
+ |%
+FUNCTION setEnvelope(voice: Number, attack, decay, sustain, release: Number)
+    IF voice <= 0 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+
+    IF ((attack   < 0 OR attack  > 0xF)
+      OR (decay   < 0 OR decay   > 0xF)
+      OR (sustain < 0 OR sustain > 0xF)
+      OR (release < 0 OR release > 0xF)) THEN
+        RAISE InvalidSIDValue
+    END IF
+    
+    set_adsr(voice, attack, decay, sustain, release)
+END FUNCTION
+
+EXTERNAL FUNCTION set_filter_freq(freq: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "freq": "uint16"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setFilterFrequency
+ |
+ |  Sets the frequency of the filter, when enabled.
+ |
+ |  Parameters:
+ |      freq - The frequency cutoff value to use.
+ |
+ |  Exceptions:
+ |      - <InvalidSIDValue> - If the freq value is outside of the 11 bit value range.
+ |
+ |   Note:
+ |      The filter frequency is an 11-bit number (bits 3-7 of FC LO are not used) which linearly controls 
+ |      the Cutoff (or Center) Frequency of the programmable Filter.  The approximate Cutoff Frequency ranges 
+ |      between 30Hz and 10KHz with the recommended capacitor values of 2200pF for CAP1 and CAP2. The frequency 
+ |      range of the Filter can be altered to suit specific applications.  Refer to the Pin Description section 
+ |      for more information.
+ |%
+FUNCTION setFilterFrequency(freq: Number)
+    IF freq <= 0 OR freq > MAX_FLT_VALUE THEN
+        RAISE InvalidSIDValue
+    END IF
+
+    set_filter_freq(freq)
+END FUNCTION
+
+EXTERNAL FUNCTION set_filter_res(res: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "res": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setFilterResonance
+ |
+ |  Sets the resonance of the filter, when enabled.
+ |
+ |  Parameters:
+ |      res - One of 16 values that control the cutoff frequency of the filter.
+ |
+ |  Exceptions:
+ |      - <InvalidSIDValue> - If the res value is outside of the 4 bit value range.
+ |
+ |   Note:
+ |      4 bits that control the Resonance of the Filler, resonance of a peaking effect which emphasizes 
+ |      frequency components at the Cutoff Frequency of the Filter, causing a sharper sound. There are 16 
+ |      Resonance settings ranging linearly from no resonance (0) to maximum resonance (15 or 0x0F).
+ |%
+FUNCTION setFilterResonance(res: Number)
+    IF res < 0 OR res > MAX_RES_VALUE THEN
+        RAISE InvalidSIDValue
+    END IF
+
+    set_filter_res(res)
+END FUNCTION
+
+EXTERNAL FUNCTION set_filter_enable(voice: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "voice": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setFilterEnable
+ |
+ |  Enables the Filter on the selected voice.
+ |
+ |  Parameters:
+ |      voice - The selected voice to use.
+ |
+ |  Exceptions:
+ |      - <InvalidVoice> - if the voice value is not one of the 3 SID voices.
+ |
+ |  Note:
+ |      When set to a zero, the provided voice appears directly at the audio output and the Filter has no 
+ |      effect on it.  When set to a one, the voice will be processed through the Filter and the harmonic 
+ |      content of the voice will be altered according to the selected Filter parameters.
+ |      The Filter output modes ARE additive and multiple Filter modes may be selected simultaneously.
+ |      For example, both LP and HP modes can be selected to produce a Notch (or Band Reject) Filter response. 
+ |      In order for the Filter to have any audible effect, at least one Filter output must be selected and at 
+ |      least one Voice must be routed through the Filter.  The Filter is, perhaps, the most important element 
+ |      in SID as it allows the generation of complex tone colors via subtractive synthesis.  The Filter is used 
+ |      to eliminate specific frequency components from a harmonically-rich input signal.  The best results are 
+ |      achieved by varying the Cutoff Frequency in real-time.
+ |%
+FUNCTION setFilterEnable(voice: Number)
+    IF voice < -3 OR voice > MAX_SID_VOICE THEN
+        RAISE InvalidVoice
+    END IF
+
+    set_filter_enable(voice)
+END FUNCTION
+
+EXTERNAL FUNCTION set_filter_lp(enable: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "enable": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setFilterLowpass
+ |
+ |  Enables the Lowpass Filter on the audio output.
+ |
+ |  Parameters:
+ |      enable - 0 to DISABLE, 1 to ENABLE the filter.
+ |
+ |  Note:
+ |      When set to a one, the low Pass output of the Filter is selected and sent to the audio output. 
+ |      For a given Filter input Signal, all frequency components below the Filter Cutoff Frequency are 
+ |      passed unaltered, while all frequency components above the Cutoff are attenuated at a rate of 
+ |      12 dB/Octave. The low Pass mode produces full-bodied sounds.
+ |%
+FUNCTION setFilterLowpass(enable: Number)
+    set_filter_lp(enable)
+END FUNCTION
+
+EXTERNAL FUNCTION set_filter_bp(enable: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "enable": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setFilterBandpass
+ |
+ |  Enables the Bandpass Filter on the audio output.
+ |
+ |  Parameters:
+ |      enable - 0 to DISABLE, 1 to ENABLE the filter.
+ |
+ |  Note:
+ |      Same as <setFilterLowpass> but for the Band Pass output.  All frequency components above 
+ |      and below the Cutoff are attenuated at a rate of 6 dB/Octave. The Band Pass mode produces 
+ |      thin, open sounds.
+ |%
+FUNCTION setFilterBandpass(enable: Number)
+    set_filter_bp(enable)
+END FUNCTION
+
+EXTERNAL FUNCTION set_filter_hp(enable: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "enable": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setFilterHighpass
+ |
+ |  Enables the Highpass Filter on the audio output.
+ |
+ |  Parameters:
+ |      enable - 0 to DISABLE, 1 to ENABLE the filter.
+ |
+ |  Note:
+ |      Same as <setFilterLowpass> but for the High Pass output.  All frequency components above the 
+ |      Cutoff are passed unaltered, while all frequency components below the Cutoff are attenuated 
+ |      at a rate of 12 dB/Octave.  The High Pass mode produces tinny, buzzy sounds.
+ |%
+FUNCTION setFilterHighpass(enable: Number)
+    set_filter_hp(enable)
+END FUNCTION
+
+EXTERNAL FUNCTION set_voice3_mute(mute: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "mute": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setVoice3Mute
+ |
+ |  Mutes the audio output on voice 3.
+ |
+ |  Parameters:
+ |      enable - 0 to UNMUTE, 1 to MUTE voice 3.
+ |
+ |  Note:
+ |      When set to a one, the output of Voice 3 is disconnected from the direct audio path. 
+ |      Setting Voice 3 to bypass the Filter (FILT 3 = 0) and setting Voice3Mute to a one prevents 
+ |      Voice 3 from reaching the audio output.  This allows Voice 3 to be used for modulation purposes 
+ |      without any undesirable output.
+ |%
+FUNCTION setVoice3Mute(mute: Number)
+    set_voice3_mute(mute)
+END FUNCTION
+
+EXTERNAL FUNCTION set_volume(volume: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "volume": "uint8"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: setVolume
+ |
+ |  Sets the master volume for the audio output.
+ |
+ |  Parameters:
+ |      volume - 0 to 16.
+ |
+ |  Exceptions:
+ |      - <InvalidSIDValue> - if the volume value is outside of the allowable range.
+ |
+ |  Note:
+ |      Select 1 of 16 overall Volume levels for the final composite audio output. The 
+ |      output volume levels range from no output (0) to maximum volume (15 or 0x0F) in 
+ |      16 linear steps. This control can be used as a static volume control for balancing 
+ |      levels in multi-chip systems or for creating dynamic volume effects, such as Tremolo. 
+ |      Some Volume level other than zero must be selected in order to produce any sound.
+ |%
+FUNCTION setVolume(volume: Number)
+    IF volume < 0 OR volume > MAX_VOL_VALUE THEN
+        RAISE InvalidSIDValue
+    END IF
+
+    set_volume(volume)
+END FUNCTION
+
+EXTERNAL FUNCTION run_ms(ms: Number)
+{
+    "library": {
+        "name": "../external/easysid-version-1.0/libeasysid"
+    }
+    "types": {
+        "ms": "uint32"
+    }
+}
+END FUNCTION
+
+%|
+ |  Function: run
+ |
+ |  Runs the SID Audio Output generator for the provided number of milliseconds.
+ |
+ |  Parameters:
+ |      ms - The number of milliseconds of sound to generate.
+ |
+ |%
+FUNCTION run(ms: Number)
+    run_ms(ms)
+END FUNCTION

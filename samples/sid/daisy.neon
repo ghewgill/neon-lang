@@ -1,0 +1,88 @@
+%|
+ |  File: daisy.neon
+ |
+ |  This file plays "Daisy Bell" (Bicycle Built For Two) to demonstrate the use of the 
+ |  core sid library.
+ |%
+IMPORT sid
+
+FUNCTION init()
+    sid.setWaveform(1, 1)
+    sid.setEnvelope(1, 8, 0, 15, 6)
+    sid.setVolume(15)
+    sid.run(500)
+END FUNCTION
+
+FUNCTION play(voice: Number, freq: Number, dur: Number)
+    sid.setFrequency(voice, freq)
+    sid.setGate(voice, TRUE)
+    sid.run(dur)
+    sid.setGate(voice, FALSE)
+END FUNCTION
+
+FUNCTION sleep(dur: Number)
+    sid.setGate(1, FALSE)
+    sid.setGate(2, FALSE)
+    sid.setGate(3, FALSE)
+    sid.run(dur)
+END FUNCTION
+
+FUNCTION PlayTune()
+    init()
+    play(1, 2093,769)
+    play(1, 1760,769)
+    play(1, 1396,769)
+    play(1, 1046,769)
+    play(1, 1174,192)
+    play(1, 1318,192)
+    play(1, 1396,192)
+    play(1, 1174,385)
+    play(1, 1396,192)
+    play(1, 1046,962)
+    sleep(385)
+    play(1, 1568,769)
+    play(1, 2093,769)
+    play(1, 1760,769)
+    play(1, 1396,769)
+    play(1, 1174,192)
+    play(1, 1318,192)
+    play(1, 1396,192)
+    play(1, 1568,385)
+    play(1, 1760,192)
+    play(1, 1568,962)
+    sleep(3)
+    play(1, 1760,192)
+    play(1, 1864,192)
+    play(1, 1760,192)
+    play(1, 1568,192)
+    play(1, 2093,385)
+    play(1, 1760,192)
+    play(1, 1568,192)
+    play(1, 1396,962)
+    play(1, 1568,192)
+    play(1, 1760,385)
+    play(1, 1396,192)
+    play(1, 1174,385)
+    play(1, 1396,192)
+    play(1, 1174,192)
+    play(1, 1046,962)
+    play(1, 1046,192)
+    play(1, 1396,385)
+    play(1, 1760,192)
+    play(1, 1568,385)
+    play(1, 1046,192)
+    play(1, 1396,385)
+    play(1, 1760,192)
+    play(1, 1568,192)
+    play(1, 1760,192)
+    play(1, 1864,192)
+    play(1, 2093,192)
+    play(1, 1760,192)
+    play(1, 1396,192)
+    play(1, 1568,385)
+    play(1, 1046,192)
+    play(1, 1396,962)
+    sid.run(1000)
+END FUNCTION
+
+PlayTune()
