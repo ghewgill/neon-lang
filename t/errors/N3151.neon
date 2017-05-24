@@ -1,5 +1,5 @@
-EXTERNAL FUNCTION foo(x: Number DEFAULT 1, y: Number)
-                                           %<
+FOREIGN FUNCTION foo(x: Number DEFAULT 1, y: Number)
+                                          %<
 {
 }
 END FUNCTION

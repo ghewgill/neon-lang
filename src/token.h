@@ -64,7 +64,7 @@ enum TokenType {
     ELSIF,
     CASE,
     WHEN,
-    EXTERNAL,
+    FOREIGN,
     EXIT,
     NEXT,
     LOOP,

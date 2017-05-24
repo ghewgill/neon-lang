@@ -48,11 +48,11 @@ std::vector<std::string> split(const std::string &s, char d)
 
 } // namespace
 
-class ExternalCallInfo {
+class ForeignCallInfo {
 public:
     typedef void (*marshal_f)(Cell &cell, void *&p, size_t &space);
     typedef Cell (*unmarshal_f)(void *p);
-    ExternalCallInfo(): types(), marshal(), unmarshal(nullptr), cif(), fp(nullptr) {}
+    ForeignCallInfo(): types(), marshal(), unmarshal(nullptr), cif(), fp(nullptr) {}
     std::vector<ffi_type *> types;
     std::vector<marshal_f> marshal;
     unmarshal_f unmarshal;
@@ -176,7 +176,7 @@ public:
     std::vector<Cell> globals;
     std::vector<size_t> rtl_call_tokens;
     std::vector<std::pair<bool, Number>> number_table;
-    std::vector<ExternalCallInfo *> external_functions;
+    std::vector<ForeignCallInfo *> foreign_functions;
 private:
     Module(const Module &);
     Module &operator=(const Module &);
@@ -387,7 +387,7 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
     globals(object.global_size),
     rtl_call_tokens(object.strtable.size(), SIZE_MAX),
     number_table(object.strtable.size()),
-    external_functions()
+    foreign_functions()
 {
     for (auto i: object.imports) {
         std::string name = object.strtable[i.first];
@@ -1133,9 +1133,9 @@ void Executor::exec_CALLE()
 {
     uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
     ip += 5;
-    ExternalCallInfo *eci = val < module->external_functions.size() ? module->external_functions.at(val) : nullptr;
-    if (eci == nullptr) {
-        eci = new ExternalCallInfo;
+    ForeignCallInfo *fci = val < module->foreign_functions.size() ? module->foreign_functions.at(val) : nullptr;
+    if (fci == nullptr) {
+        fci = new ForeignCallInfo;
         std::string func = module->object.strtable.at(val);
         auto info = split(func, ':');
         std::string library = info[0];
@@ -1143,78 +1143,78 @@ void Executor::exec_CALLE()
         std::string rettype = info[2];
         auto params = split(info[3], ',');
         try {
-            eci->fp = rtl_external_function(library, name);
+            fci->fp = rtl_foreign_function(library, name);
         } catch (RtlException &x) {
             raise(x);
             return;
         }
         for (auto p: params) {
-                 if (p == "uint8" )   { eci->types.push_back(&ffi_type_uint8 );  eci->marshal.push_back(marshal_number<uint8_t >); }
-            else if (p == "sint8" )   { eci->types.push_back(&ffi_type_sint8 );  eci->marshal.push_back(marshal_number< int8_t >); }
-            else if (p == "uint16")   { eci->types.push_back(&ffi_type_uint16);  eci->marshal.push_back(marshal_number<uint16_t>); }
-            else if (p == "sint16")   { eci->types.push_back(&ffi_type_sint16);  eci->marshal.push_back(marshal_number< int16_t>); }
-            else if (p == "uint32")   { eci->types.push_back(&ffi_type_uint32);  eci->marshal.push_back(marshal_number<uint32_t>); }
-            else if (p == "sint32")   { eci->types.push_back(&ffi_type_sint32);  eci->marshal.push_back(marshal_number< int32_t>); }
-            else if (p == "uint64")   { eci->types.push_back(&ffi_type_uint64);  eci->marshal.push_back(marshal_number<uint64_t>); }
-            else if (p == "sint64")   { eci->types.push_back(&ffi_type_sint64);  eci->marshal.push_back(marshal_number< int64_t>); }
-            else if (p == "float" )   { eci->types.push_back(&ffi_type_float );  eci->marshal.push_back(marshal_number<float   >); }
-            else if (p == "double")   { eci->types.push_back(&ffi_type_double);  eci->marshal.push_back(marshal_number<double  >); }
-            else if (p == "string")   { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string          ); }
-            else if (p == "*string")  { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string_a        ); }
-            else if (p == "bytes")    { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string          ); }
-            else if (p == "*bytes")   { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_string_a        ); }
-            else if (p == "pointer")  { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer         ); }
-            else if (p == "*pointer") { eci->types.push_back(&ffi_type_pointer); eci->marshal.push_back(marshal_pointer_a       ); }
+                 if (p == "uint8" )   { fci->types.push_back(&ffi_type_uint8 );  fci->marshal.push_back(marshal_number<uint8_t >); }
+            else if (p == "sint8" )   { fci->types.push_back(&ffi_type_sint8 );  fci->marshal.push_back(marshal_number< int8_t >); }
+            else if (p == "uint16")   { fci->types.push_back(&ffi_type_uint16);  fci->marshal.push_back(marshal_number<uint16_t>); }
+            else if (p == "sint16")   { fci->types.push_back(&ffi_type_sint16);  fci->marshal.push_back(marshal_number< int16_t>); }
+            else if (p == "uint32")   { fci->types.push_back(&ffi_type_uint32);  fci->marshal.push_back(marshal_number<uint32_t>); }
+            else if (p == "sint32")   { fci->types.push_back(&ffi_type_sint32);  fci->marshal.push_back(marshal_number< int32_t>); }
+            else if (p == "uint64")   { fci->types.push_back(&ffi_type_uint64);  fci->marshal.push_back(marshal_number<uint64_t>); }
+            else if (p == "sint64")   { fci->types.push_back(&ffi_type_sint64);  fci->marshal.push_back(marshal_number< int64_t>); }
+            else if (p == "float" )   { fci->types.push_back(&ffi_type_float );  fci->marshal.push_back(marshal_number<float   >); }
+            else if (p == "double")   { fci->types.push_back(&ffi_type_double);  fci->marshal.push_back(marshal_number<double  >); }
+            else if (p == "string")   { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string          ); }
+            else if (p == "*string")  { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string_a        ); }
+            else if (p == "bytes")    { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string          ); }
+            else if (p == "*bytes")   { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string_a        ); }
+            else if (p == "pointer")  { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_pointer         ); }
+            else if (p == "*pointer") { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_pointer_a       ); }
             else {
                 fprintf(stderr, "ffi type not supported: %s\n", p.c_str());
                 exit(1);
             }
         }
         ffi_type *rtype;
-             if (rettype == "boolean"){ rtype = &ffi_type_uint32; eci->unmarshal = unmarshal_boolean<uint32_t>; }
-        else if (rettype == "uint8" ) { rtype = &ffi_type_uint8;  eci->unmarshal = unmarshal_number<uint8_t  >; }
-        else if (rettype == "sint8" ) { rtype = &ffi_type_sint8;  eci->unmarshal = unmarshal_number< int8_t  >; }
-        else if (rettype == "uint16") { rtype = &ffi_type_uint16; eci->unmarshal = unmarshal_number<uint16_t >; }
-        else if (rettype == "sint16") { rtype = &ffi_type_sint16; eci->unmarshal = unmarshal_number< int16_t >; }
-        else if (rettype == "uint32") { rtype = &ffi_type_uint32; eci->unmarshal = unmarshal_number<uint32_t >; }
-        else if (rettype == "sint32") { rtype = &ffi_type_sint32; eci->unmarshal = unmarshal_number< int32_t >; }
-        else if (rettype == "uint64") { rtype = &ffi_type_uint64; eci->unmarshal = unmarshal_number<uint64_t >; }
-        else if (rettype == "sint64") { rtype = &ffi_type_sint64; eci->unmarshal = unmarshal_number< int64_t >; }
-        else if (rettype == "float" ) { rtype = &ffi_type_float;  eci->unmarshal = unmarshal_number<float    >; }
-        else if (rettype == "double") { rtype = &ffi_type_double; eci->unmarshal = unmarshal_number<double   >; }
-        else if (rettype == "pointer"){ rtype = &ffi_type_pointer;eci->unmarshal = unmarshal_pointer; }
-        else if (rettype == ""      ) { rtype = &ffi_type_void;   eci->unmarshal = nullptr;                     }
+             if (rettype == "boolean"){ rtype = &ffi_type_uint32; fci->unmarshal = unmarshal_boolean<uint32_t>; }
+        else if (rettype == "uint8" ) { rtype = &ffi_type_uint8;  fci->unmarshal = unmarshal_number<uint8_t  >; }
+        else if (rettype == "sint8" ) { rtype = &ffi_type_sint8;  fci->unmarshal = unmarshal_number< int8_t  >; }
+        else if (rettype == "uint16") { rtype = &ffi_type_uint16; fci->unmarshal = unmarshal_number<uint16_t >; }
+        else if (rettype == "sint16") { rtype = &ffi_type_sint16; fci->unmarshal = unmarshal_number< int16_t >; }
+        else if (rettype == "uint32") { rtype = &ffi_type_uint32; fci->unmarshal = unmarshal_number<uint32_t >; }
+        else if (rettype == "sint32") { rtype = &ffi_type_sint32; fci->unmarshal = unmarshal_number< int32_t >; }
+        else if (rettype == "uint64") { rtype = &ffi_type_uint64; fci->unmarshal = unmarshal_number<uint64_t >; }
+        else if (rettype == "sint64") { rtype = &ffi_type_sint64; fci->unmarshal = unmarshal_number< int64_t >; }
+        else if (rettype == "float" ) { rtype = &ffi_type_float;  fci->unmarshal = unmarshal_number<float    >; }
+        else if (rettype == "double") { rtype = &ffi_type_double; fci->unmarshal = unmarshal_number<double   >; }
+        else if (rettype == "pointer"){ rtype = &ffi_type_pointer;fci->unmarshal = unmarshal_pointer; }
+        else if (rettype == ""      ) { rtype = &ffi_type_void;   fci->unmarshal = nullptr;                     }
         else {
             fprintf(stderr, "ffi return type not supported: %s\n", rettype.c_str());
             exit(1);
         }
-        ffi_status status = ffi_prep_cif(&eci->cif, FFI_DEFAULT_ABI, static_cast<unsigned int>(params.size()), rtype, eci->types.data());
+        ffi_status status = ffi_prep_cif(&fci->cif, FFI_DEFAULT_ABI, static_cast<unsigned int>(params.size()), rtype, fci->types.data());
         if (status != FFI_OK) {
             fprintf(stderr, "internal ffi error %d\n", status);
             exit(1);
         }
-        if (val >= module->external_functions.size()) {
-            module->external_functions.resize(val + 1);
+        if (val >= module->foreign_functions.size()) {
+            module->foreign_functions.resize(val + 1);
         }
-        module->external_functions[val] = eci;
+        module->foreign_functions[val] = fci;
     }
     std::vector<Cell> cells;
     char buf[1024];
     void *args[256];
     size_t size = sizeof(buf);
     void *p = buf;
-    void *r = align(eci->cif.rtype->alignment, eci->cif.rtype->size, p, size);
-    size_t i = eci->types.size();
-    for (auto m = eci->marshal.rbegin(); m != eci->marshal.rend(); ++m) {
+    void *r = align(fci->cif.rtype->alignment, fci->cif.rtype->size, p, size);
+    size_t i = fci->types.size();
+    for (auto m = fci->marshal.rbegin(); m != fci->marshal.rend(); ++m) {
         i--;
         args[i] = p;
         cells.push_back(stack.top());
         stack.pop();
         (*m)(cells[cells.size()-1], p, size);
     }
-    ffi_call(&eci->cif, eci->fp, r, args);
-    if (eci->unmarshal != nullptr) {
-        stack.push(eci->unmarshal(r));
+    ffi_call(&fci->cif, fci->fp, r, args);
+    if (fci->unmarshal != nullptr) {
+        stack.push(fci->unmarshal(r));
     }
 }
 

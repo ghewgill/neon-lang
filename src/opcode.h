@@ -76,7 +76,7 @@ enum Opcode {
     DUPX1,      // duplicate under second value
     DROP,       // drop
     RET,        // return
-    CALLE,      // call external
+    CALLE,      // call foreign
     CONSA,      // construct array
     CONSD,      // construct dictionary
     EXCEPT,     // throw exception

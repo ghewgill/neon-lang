@@ -77,7 +77,7 @@ END FUNCTION
 % Title: Win32 API Functions
 
 % Function: Beep
-EXTERNAL FUNCTION Beep(dwFreq: Number, dwDuration: Number): Boolean
+FOREIGN FUNCTION Beep(dwFreq: Number, dwDuration: Number): Boolean
 {
     "library": {"name": "kernel32"}
     "types": {
@@ -89,7 +89,7 @@ EXTERNAL FUNCTION Beep(dwFreq: Number, dwDuration: Number): Boolean
 END FUNCTION
 
 % Function: DebugBreak
-EXTERNAL FUNCTION DebugBreak()
+FOREIGN FUNCTION DebugBreak()
 {
     "library": {"name": "kernel32"}
     "types": {}
@@ -97,7 +97,7 @@ EXTERNAL FUNCTION DebugBreak()
 END FUNCTION
 
 % Function: FindClose
-EXTERNAL FUNCTION FindClose(hFindFile: Handle): Boolean
+FOREIGN FUNCTION FindClose(hFindFile: Handle): Boolean
 {
     "library": {"name": "kernel32"}
     "types": {
@@ -108,7 +108,7 @@ EXTERNAL FUNCTION FindClose(hFindFile: Handle): Boolean
 END FUNCTION
 
 % Function: FindFirstFileA
-EXTERNAL FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes): Handle
+FOREIGN FUNCTION FindFirstFileA(lpFileName: String, INOUT lpFindFileData: Bytes): Handle
 {
     "library": {"name": "kernel32"}
     "types": {
@@ -128,7 +128,7 @@ FUNCTION FindFirstFile(lpFileName: String, OUT lpFindFileData: WIN32_FIND_DATA):
 END FUNCTION
 
 % Function: FindNextFileA
-EXTERNAL FUNCTION FindNextFileA(hFindFile: Handle, INOUT lpFindFileData: Bytes): Boolean
+FOREIGN FUNCTION FindNextFileA(hFindFile: Handle, INOUT lpFindFileData: Bytes): Boolean
 {
     "library": {"name": "kernel32"}
     "types": {

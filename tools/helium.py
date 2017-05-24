@@ -96,7 +96,7 @@ INOUT = Keyword("INOUT")
 ELSIF = Keyword("ELSIF")
 CASE = Keyword("CASE")
 WHEN = Keyword("WHEN")
-EXTERNAL = Keyword("EXTERNAL")
+FOREIGN = Keyword("FOREIGN")
 EXIT = Keyword("EXIT")
 NEXT = Keyword("NEXT")
 LOOP = Keyword("LOOP")
@@ -1363,8 +1363,8 @@ class Parser:
         self.expect(FUNCTION)
         return FunctionDeclaration(type, name, returntype, args, statements)
 
-    def parse_external_definition(self):
-        self.expect(EXTERNAL)
+    def parse_foreign_definition(self):
+        self.expect(FOREIGN)
         type, name, returntype, args = self.parse_function_header()
         self.parse_dictionary_literal()
         self.expect(END)
@@ -2126,7 +2126,7 @@ class Parser:
         if self.tokens[self.i] is TYPE:     return self.parse_type_definition()
         if self.tokens[self.i] is CONSTANT: return self.parse_constant_definition()
         if self.tokens[self.i] is FUNCTION: return self.parse_function_definition()
-        if self.tokens[self.i] is EXTERNAL: return self.parse_external_definition()
+        if self.tokens[self.i] is FOREIGN:  return self.parse_foreign_definition()
         if self.tokens[self.i] is DECLARE:  return self.parse_declaration()
         if self.tokens[self.i] is EXCEPTION:return self.parse_exception()
         if self.tokens[self.i] is EXPORT:   return self.parse_export()

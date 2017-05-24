@@ -20,7 +20,7 @@ static HMODULE get_library_handle(const std::string &library)
     return i->second;
 }
 
-void_function_t rtl_external_function(const std::string &library, const std::string &function)
+void_function_t rtl_foreign_function(const std::string &library, const std::string &function)
 {
     HMODULE lib = get_library_handle(library);
     if (lib == NULL) {

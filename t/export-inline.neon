@@ -4,6 +4,6 @@ EXPORT CONSTANT Five: Number := 5
 EXPORT VAR Count1, Count2: Number
 EXPORT LET Max: Number := 10
 EXPORT FUNCTION add(x, y: Number): Number RETURN x + y END FUNCTION
-EXPORT EXTERNAL FUNCTION sub() {"library": {"name": "nonexistent"}, "types": {}} END FUNCTION
+EXPORT FOREIGN FUNCTION sub() {"library": {"name": "nonexistent"}, "types": {}} END FUNCTION
 EXPORT DECLARE NATIVE FUNCTION mul(x, y: Number): Number
 EXPORT EXCEPTION TestException

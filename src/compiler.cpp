@@ -905,7 +905,7 @@ void ast::ModuleFunction::generate_call(Emitter &emitter) const
     emitter.emit(CALLMF, emitter.str(module), entry);
 }
 
-void ast::ExternalFunction::predeclare(Emitter &emitter) const
+void ast::ForeignFunction::predeclare(Emitter &emitter) const
 {
     Function::predeclare(emitter);
     std::stringstream ss;
@@ -926,10 +926,10 @@ void ast::ExternalFunction::predeclare(Emitter &emitter) const
         }
         ss << param_types.at(param->name);
     }
-    external_index = emitter.str(ss.str());
+    foreign_index = emitter.str(ss.str());
 }
 
-void ast::ExternalFunction::postdeclare(Emitter &emitter) const
+void ast::ForeignFunction::postdeclare(Emitter &emitter) const
 {
     emitter.jump_target(emitter.function_label(entry_label));
     generate_call(emitter);
@@ -937,9 +937,9 @@ void ast::ExternalFunction::postdeclare(Emitter &emitter) const
     frame->postdeclare(emitter);
 }
 
-void ast::ExternalFunction::generate_call(Emitter &emitter) const
+void ast::ForeignFunction::generate_call(Emitter &emitter) const
 {
-    emitter.emit(CALLE, external_index);
+    emitter.emit(CALLE, foreign_index);
 }
 
 void ast::Exception::generate_export(Emitter &emitter, const std::string &name) const
@@ -1625,7 +1625,7 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
     //  - The function takes only IN parameters (it might also be possible
     //    to do this with some kinds of INOUT parameters, but not in general)
     //  - The function is an ordinary function that we can jump to (not a
-    //    predefined function or external function)
+    //    predefined function or foreign function)
     //  - The nesting level of the next function is at the same level or
     //    further out than this function.
     // If possible, then generate the parameters for the next function,

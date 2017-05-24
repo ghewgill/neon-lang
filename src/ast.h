@@ -2458,22 +2458,22 @@ public:
     virtual std::string text() const override { return "ModuleFunction(" + module + "." + name + ", " + type->text() + ")"; }
 };
 
-class ExternalFunction: public Function {
+class ForeignFunction: public Function {
 public:
-    ExternalFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, 1), library_name(), param_types(), external_index(-1) {}
+    ForeignFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, 1), library_name(), param_types(), foreign_index(-1) {}
 
     std::string library_name;
     std::map<std::string, std::string> param_types;
-    mutable int external_index;
+    mutable int foreign_index;
 
-    virtual void reset() override { external_index = -1; }
+    virtual void reset() override { foreign_index = -1; }
     virtual void predeclare(Emitter &) const override;
     virtual void postdeclare(Emitter &) const override;
     virtual void generate_call(Emitter &emitter) const override;
 
 private:
-    ExternalFunction(const ExternalFunction &);
-    ExternalFunction &operator=(const ExternalFunction &);
+    ForeignFunction(const ForeignFunction &);
+    ForeignFunction &operator=(const ForeignFunction &);
 };
 
 class Module: public Name {

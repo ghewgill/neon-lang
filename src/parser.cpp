@@ -52,7 +52,7 @@ public:
     void parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
     void parseFunctionHeader(Token &type, Token &name, std::unique_ptr<Type> &returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &args, Token &rparen);
     std::unique_ptr<Declaration> parseFunctionDefinition(size_t start_column);
-    std::unique_ptr<Declaration> parseExternalDefinition();
+    std::unique_ptr<Declaration> parseForeignDefinition();
     std::unique_ptr<Declaration> parseDeclaration();
     std::unique_ptr<Declaration> parseException();
     std::unique_ptr<Statement> parseExport();
@@ -1065,9 +1065,9 @@ std::unique_ptr<Declaration> Parser::parseFunctionDefinition(size_t start_column
     return std::unique_ptr<Declaration> { new FunctionDeclaration(tok_function, type, name, std::move(returntype), std::move(args), rparen, std::move(body), tok_end_function) };
 }
 
-std::unique_ptr<Declaration> Parser::parseExternalDefinition()
+std::unique_ptr<Declaration> Parser::parseForeignDefinition()
 {
-    auto &tok_external = tokens[i];
+    auto &tok_foreign = tokens[i];
     ++i;
     if (tokens[i].type != FUNCTION) {
         error(2045, tokens[i], "FUNCTION expected");
@@ -1090,7 +1090,7 @@ std::unique_ptr<Declaration> Parser::parseExternalDefinition()
         error_a(2051, tokens[i-1], tokens[i], "'END FUNCTION' expected");
     }
     ++i;
-    return std::unique_ptr<Declaration> { new ExternalFunctionDeclaration(tok_external, type, name, std::move(returntype), std::move(args), rparen, std::move(dict)) };
+    return std::unique_ptr<Declaration> { new ForeignFunctionDeclaration(tok_foreign, type, name, std::move(returntype), std::move(args), rparen, std::move(dict)) };
 }
 
 std::unique_ptr<Declaration> Parser::parseDeclaration()
@@ -1188,9 +1188,9 @@ std::unique_ptr<Statement> Parser::parseExport()
             std::unique_ptr<Declaration> function = parseFunctionDefinition(tok_export.column);
             return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, function->names, std::move(function)) };
         }
-        case EXTERNAL: {
-            std::unique_ptr<Declaration> external = parseExternalDefinition();
-            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, external->names, std::move(external)) };
+        case FOREIGN: {
+            std::unique_ptr<Declaration> foreign = parseForeignDefinition();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, foreign->names, std::move(foreign)) };
         }
         case DECLARE: {
             std::unique_ptr<Declaration> declare = parseDeclaration();
@@ -1912,8 +1912,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseConstantDefinition();
     } else if (tokens[i].type == FUNCTION) {
         return parseFunctionDefinition(0);
-    } else if (tokens[i].type == EXTERNAL) {
-        return parseExternalDefinition();
+    } else if (tokens[i].type == FOREIGN) {
+        return parseForeignDefinition();
     } else if (tokens[i].type == DECLARE) {
         return parseDeclaration();
     } else if (tokens[i].type == EXCEPTION) {

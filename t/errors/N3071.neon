@@ -9,7 +9,7 @@ VAR params: Dictionary<String>
 params := { "dwMilliseconds": "uint32" }
 
 
-EXTERNAL FUNCTION Sleep(ms: Number)
+FOREIGN FUNCTION Sleep(ms: Number)
 {
 %<
      "library": {     

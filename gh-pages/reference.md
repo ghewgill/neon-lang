@@ -64,7 +64,7 @@ It is not intended as an introduction to the language.
       <li><a href="#functions-parameter-mode">Parameter Modes</a></li>
       <li><a href="#functions-default">Default Parameter Value</a></li>
       <li><a href="#functions-named">Named Parameters</a></li>
-      <li>External Functions</li>
+      <li>Foreign Functions</li>
     </ol></li>
   <li><a href="#modules">Modules</a>
     <ol>
@@ -158,7 +158,7 @@ The following keywords are defined by the language.
 | <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration |
 | <a href="#keyword-EXIT">`EXIT`</a> | early exit from loops |
 | <a href="#keyword-EXPORT">`EXPORT`</a> | export identifier from module |
-| <a href="#keyword-EXTERNAL">`EXTERNAL`</a> | external function declaration |
+| <a href="#keyword-FOREIGN">`FOREIGN`</a> | foreign function declaration |
 | <a href="#keyword-FALSE">`FALSE`</a> | boolean constant |
 | <a href="#keyword-FIRST">`FIRST`</a> | indicates first value in array subscript |
 | <a href="#keyword-FOR">`FOR`</a> | loop with a sequential control variable |

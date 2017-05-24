@@ -1,4 +1,4 @@
-EXTERNAL FUNCTION Sleep(ms: Number)
+FOREIGN FUNCTION Sleep(ms: Number)
 {
      "library": {     
           "name": "TestLib"
@@ -7,5 +7,5 @@ EXTERNAL FUNCTION Sleep(ms: Number)
           "ms": "uint32"
      }
 }
-END EXTERNAL
+END FOREIGN
     %<

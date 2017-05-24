@@ -1,4 +1,4 @@
-EXTERNAL FUNCTION set_reg(reg: Number, value: Number)
+FOREIGN FUNCTION set_reg(reg: Number, value: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -10,7 +10,7 @@ EXTERNAL FUNCTION set_reg(reg: Number, value: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_freq(voice: Number, freq: Number)
+FOREIGN FUNCTION set_freq(voice: Number, freq: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -22,7 +22,7 @@ EXTERNAL FUNCTION set_freq(voice: Number, freq: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_pw(voice: Number, pw: Number)
+FOREIGN FUNCTION set_pw(voice: Number, pw: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -34,7 +34,7 @@ EXTERNAL FUNCTION set_pw(voice: Number, pw: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_wave(voice: Number, wave: Number)
+FOREIGN FUNCTION set_wave(voice: Number, wave: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -46,7 +46,7 @@ EXTERNAL FUNCTION set_wave(voice: Number, wave: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_test(voice: Number, test: Number)
+FOREIGN FUNCTION set_test(voice: Number, test: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -58,7 +58,7 @@ EXTERNAL FUNCTION set_test(voice: Number, test: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_ring(voice: Number, ring: Number)
+FOREIGN FUNCTION set_ring(voice: Number, ring: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -70,7 +70,7 @@ EXTERNAL FUNCTION set_ring(voice: Number, ring: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_sync(voice: Number, sync: Number)
+FOREIGN FUNCTION set_sync(voice: Number, sync: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -82,7 +82,7 @@ EXTERNAL FUNCTION set_sync(voice: Number, sync: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_gate(voice: Number, gate: Number)
+FOREIGN FUNCTION set_gate(voice: Number, gate: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -94,7 +94,7 @@ EXTERNAL FUNCTION set_gate(voice: Number, gate: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_adsr(voice: Number, attack, decay, sustain, release: Number)
+FOREIGN FUNCTION set_adsr(voice: Number, attack, decay, sustain, release: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -109,7 +109,7 @@ EXTERNAL FUNCTION set_adsr(voice: Number, attack, decay, sustain, release: Numbe
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_filter_freq(freq: Number)
+FOREIGN FUNCTION set_filter_freq(freq: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -120,7 +120,7 @@ EXTERNAL FUNCTION set_filter_freq(freq: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_filter_res(res: Number)
+FOREIGN FUNCTION set_filter_res(res: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -131,7 +131,7 @@ EXTERNAL FUNCTION set_filter_res(res: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_filter_enable(voice: Number)
+FOREIGN FUNCTION set_filter_enable(voice: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -142,7 +142,7 @@ EXTERNAL FUNCTION set_filter_enable(voice: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_filter_lp(enable: Number)
+FOREIGN FUNCTION set_filter_lp(enable: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -153,7 +153,7 @@ EXTERNAL FUNCTION set_filter_lp(enable: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_filter_bp(enable: Number)
+FOREIGN FUNCTION set_filter_bp(enable: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -164,7 +164,7 @@ EXTERNAL FUNCTION set_filter_bp(enable: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_filter_hp(enable: Number)
+FOREIGN FUNCTION set_filter_hp(enable: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -175,7 +175,7 @@ EXTERNAL FUNCTION set_filter_hp(enable: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_voice3_mute(mute: Number)
+FOREIGN FUNCTION set_voice3_mute(mute: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -186,7 +186,7 @@ EXTERNAL FUNCTION set_voice3_mute(mute: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION set_volume(volume: Number)
+FOREIGN FUNCTION set_volume(volume: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"
@@ -197,7 +197,7 @@ EXTERNAL FUNCTION set_volume(volume: Number)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION run_ms(ms: Number)
+FOREIGN FUNCTION run_ms(ms: Number)
 {
     "library": {
         "name": "external/easysid-version-1.0/libeasysid"

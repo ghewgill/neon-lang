@@ -99,8 +99,8 @@ public:
     const ast::Statement *analyze_body(const pt::LetDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::FunctionDeclaration *declaration);
     const ast::Statement *analyze_body(const pt::FunctionDeclaration *declaration);
-    const ast::Statement *analyze_decl(const pt::ExternalFunctionDeclaration *declaration);
-    const ast::Statement *analyze_body(const pt::ExternalFunctionDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::ForeignFunctionDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::ForeignFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::ExceptionDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::ExportDeclaration *declaration);
@@ -198,7 +198,7 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ForeignFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
@@ -290,7 +290,7 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ForeignFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
@@ -381,7 +381,7 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::ForeignFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
@@ -472,7 +472,7 @@ public:
     virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
-    virtual void visit(const pt::ExternalFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::ForeignFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override {}
     virtual void visit(const pt::ExceptionDeclaration *) override {}
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_body(p)); }
@@ -2538,7 +2538,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::FunctionDeclaration *decl
     return new ast::NullStatement(declaration->token.line);
 }
 
-const ast::Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
     if (not scope.top()->allocateName(declaration->name, name)) {
@@ -2570,15 +2570,15 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ExternalFunctionDeclarati
             args.push_back(fp);
         }
     }
-    ast::ExternalFunction *function = new ast::ExternalFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
+    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
 
-const ast::Statement *Analyzer::analyze_body(const pt::ExternalFunctionDeclaration *declaration)
+const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    ast::ExternalFunction *function = dynamic_cast<ast::ExternalFunction *>(scope.top()->lookupName(name));
+    ast::ForeignFunction *function = dynamic_cast<ast::ForeignFunction *>(scope.top()->lookupName(name));
 
     const ast::DictionaryLiteralExpression *dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(analyze(declaration->dict.get()));
     if (not dict->is_constant) {
@@ -4367,7 +4367,7 @@ public:
         vc.check_out_parameters(node->end_function);
         vc.check_unused();
     }
-    virtual void visit(const pt::ExternalFunctionDeclaration *) {}
+    virtual void visit(const pt::ForeignFunctionDeclaration *) {}
     virtual void visit(const pt::NativeFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}
     virtual void visit(const pt::ExportDeclaration *node) {

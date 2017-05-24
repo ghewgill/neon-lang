@@ -278,8 +278,8 @@ public:
             child(x.get());
         }
     }
-    virtual void visit(const ExternalFunctionDeclaration *node) override {
-        write("ExternalFunctionDeclaration(" + node->name.text + ")");
+    virtual void visit(const ForeignFunctionDeclaration *node) override {
+        write("ForeignFunctionDeclaration(" + node->name.text + ")");
         child(node->returntype.get());
         depth++;
         for (auto &x: node->args) {

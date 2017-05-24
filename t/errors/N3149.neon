@@ -1,8 +1,8 @@
 FUNCTION bar(): Number
 END FUNCTION
 
-EXTERNAL FUNCTION foo(x: Number DEFAULT bar())
-                                        %<
+FOREIGN FUNCTION foo(x: Number DEFAULT bar())
+                                       %<
 {
 }
 END FUNCTION

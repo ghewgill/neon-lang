@@ -1,5 +1,5 @@
-EXTERNAL FUNCTION f(OUT x: String)
-                        %<
+FOREIGN FUNCTION f(OUT x: String)
+                       %<
 {
     "library": {
         "name": "bin/libtest_ffi"

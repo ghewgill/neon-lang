@@ -64,7 +64,7 @@ Program
     ExpressionStatement
       FunctionCallExpression
         IdentifierExpression(statement)
-  ExternalFunctionDeclaration(name)
+  ForeignFunctionDeclaration(name)
     nullptr
     DictionaryLiteralExpression
   NativeFunctionDeclaration(name)

@@ -1,4 +1,4 @@
-EXTERNAL FUNCTION sub_none()
+FOREIGN FUNCTION sub_none()
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -8,7 +8,7 @@ EXTERNAL FUNCTION sub_none()
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_uint8(x, y: Number): Number
+FOREIGN FUNCTION sub_uint8(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -21,7 +21,7 @@ EXTERNAL FUNCTION sub_uint8(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_sint8(x, y: Number): Number
+FOREIGN FUNCTION sub_sint8(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -34,7 +34,7 @@ EXTERNAL FUNCTION sub_sint8(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_uint16(x, y: Number): Number
+FOREIGN FUNCTION sub_uint16(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -47,7 +47,7 @@ EXTERNAL FUNCTION sub_uint16(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_sint16(x, y: Number): Number
+FOREIGN FUNCTION sub_sint16(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -60,7 +60,7 @@ EXTERNAL FUNCTION sub_sint16(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_uint32(x, y: Number): Number
+FOREIGN FUNCTION sub_uint32(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -73,7 +73,7 @@ EXTERNAL FUNCTION sub_uint32(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_sint32(x, y: Number): Number
+FOREIGN FUNCTION sub_sint32(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -86,7 +86,7 @@ EXTERNAL FUNCTION sub_sint32(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_uint64(x, y: Number): Number
+FOREIGN FUNCTION sub_uint64(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -99,7 +99,7 @@ EXTERNAL FUNCTION sub_uint64(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_sint64(x, y: Number): Number
+FOREIGN FUNCTION sub_sint64(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -112,7 +112,7 @@ EXTERNAL FUNCTION sub_sint64(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_float(x, y: Number): Number
+FOREIGN FUNCTION sub_float(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -125,7 +125,7 @@ EXTERNAL FUNCTION sub_float(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION sub_double(x, y: Number): Number
+FOREIGN FUNCTION sub_double(x, y: Number): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -138,7 +138,7 @@ EXTERNAL FUNCTION sub_double(x, y: Number): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION write_stdout(IN s: String)
+FOREIGN FUNCTION write_stdout(IN s: String)
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -149,7 +149,7 @@ EXTERNAL FUNCTION write_stdout(IN s: String)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION string_length(IN s: String): Number
+FOREIGN FUNCTION string_length(IN s: String): Number
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -161,7 +161,7 @@ EXTERNAL FUNCTION string_length(IN s: String): Number
 }
 END FUNCTION
 
-EXTERNAL FUNCTION upper_string(INOUT s: String)
+FOREIGN FUNCTION upper_string(INOUT s: String)
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -172,7 +172,7 @@ EXTERNAL FUNCTION upper_string(INOUT s: String)
 }
 END FUNCTION
 
-EXTERNAL FUNCTION nonexistent_function()
+FOREIGN FUNCTION nonexistent_function()
 {
     "library": {
         "name": "bin/libtest_ffi"
@@ -182,7 +182,7 @@ EXTERNAL FUNCTION nonexistent_function()
 }
 END FUNCTION
 
-EXTERNAL FUNCTION nonexistent_library()
+FOREIGN FUNCTION nonexistent_library()
 {
     "library": {
         "name": "nonexistent"

@@ -65,7 +65,7 @@ TYPE Type IS ENUM
     elsif
     case
     when
-    external
+    foreign
     exit
     next
     loop
@@ -315,7 +315,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "ELSIF" THEN t.type := Type.elsif
             ELSIF t.text = "CASE" THEN t.type := Type.case
             ELSIF t.text = "WHEN" THEN t.type := Type.when
-            ELSIF t.text = "EXTERNAL" THEN t.type := Type.external
+            ELSIF t.text = "FOREIGN" THEN t.type := Type.foreign
             ELSIF t.text = "EXIT" THEN t.type := Type.exit
             ELSIF t.text = "NEXT" THEN t.type := Type.next
             ELSIF t.text = "LOOP" THEN t.type := Type.loop
