@@ -2312,7 +2312,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
 {
     const ast::Type *type = analyze(declaration->type.get());
     if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
-        error(3230, declaration->type->token, "class type not perrmitted as variable type (use POINTER TO)");
+        error(3230, declaration->type->token, "class type not permitted as variable type (use POINTER TO)");
     }
     std::vector<ast::Variable *> variables;
     for (auto name: declaration->names) {
@@ -2371,7 +2371,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declarati
 {
     const ast::Type *type = analyze(declaration->type.get());
     if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
-        error(3231, declaration->type->token, "class type not perrmitted as variable type (use POINTER TO)");
+        error(3231, declaration->type->token, "class type not permitted as variable type (use POINTER TO)");
     }
     const ast::Expression *expr = analyze(declaration->value.get());
     if (not type->is_assignment_compatible(expr->type)) {
