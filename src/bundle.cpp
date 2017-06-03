@@ -23,11 +23,12 @@ public:
 
 bool ZipSupport::loadBytecode(const std::string &module, Bytecode &bytecode)
 {
-    auto i = g_Contents.find(module + ".neonx");
+    const std::string module_name = module + ".neonx";
+    auto i = g_Contents.find(module_name);
     if (i == g_Contents.end()) {
         return false;
     }
-    if (not bytecode.load(i->second)) {
+    if (not bytecode.load(module_name, i->second)) {
         return false;
     }
     return true;

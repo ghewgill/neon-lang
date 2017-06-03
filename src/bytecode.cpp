@@ -53,6 +53,7 @@ static std::vector<std::string> getstrtable(const unsigned char *start, const un
 
 Bytecode::Bytecode()
   : obj(),
+    source_path(),
     source_hash(),
     global_size(0),
     strtable(),
@@ -68,8 +69,9 @@ Bytecode::Bytecode()
 {
 }
 
-bool Bytecode::load(const std::vector<unsigned char> &bytes)
+bool Bytecode::load(const std::string &source_path, const std::vector<unsigned char> &bytes)
 {
+    this->source_path = source_path;
     obj = bytes;
 
     size_t i = 0;

@@ -366,7 +366,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     assert(g_executor == nullptr);
     g_executor = this;
     Bytecode b;
-    if (not b.load(bytes)) {
+    if (not b.load(source_path, bytes)) {
         fprintf(stderr, "error loading bytecode\n");
         exit(1);
     }

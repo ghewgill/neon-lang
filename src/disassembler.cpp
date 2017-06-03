@@ -116,7 +116,7 @@ private:
 Disassembler::Disassembler(std::ostream &out, const Bytecode::Bytes &bytes, const DebugInfo *debug)
   : out(out), obj(), debug(debug), index(0)
 {
-    obj.load(bytes);
+    obj.load("-disassembler-", bytes);
 }
 
 void Disassembler::disasm_ENTER()

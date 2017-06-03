@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
         std::string s = buf.str();
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
         Bytecode b;
-        if (not b.load(bytecode)) {
+        if (not b.load(module, bytecode)) {
             fprintf(stderr, "could not load bytecode\n");
             exit(1);
         }

@@ -22,7 +22,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
             auto parsetree = parse(*tokens);
             auto ast = analyze(this, parsetree.get());
             auto bytecode = compile(ast, nullptr);
-            object.load(bytecode);
+            object.load("-builtin-", bytecode);
             return true;
         }
     }
@@ -87,7 +87,7 @@ bool CompilerSupport::loadBytecode(const std::string &name, Bytecode &object)
     std::vector<unsigned char> bytecode;
     std::string s = buf.str();
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
-    if (not object.load(bytecode)) {
+    if (not object.load(names.first.empty() ? names.second : names.first, bytecode)) {
         return false;
     }
     return true;

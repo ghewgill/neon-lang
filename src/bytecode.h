@@ -7,7 +7,7 @@
 class Bytecode {
 public:
     Bytecode();
-    bool load(const std::vector<unsigned char> &bytes);
+    bool load(const std::string &source_path, const std::vector<unsigned char> &bytes);
 
     typedef std::vector<unsigned char> Bytes;
 
@@ -72,6 +72,7 @@ public:
     };
 
     Bytes obj;
+    std::string source_path;
     std::string source_hash;
     size_t global_size;
     std::vector<std::string> strtable;
