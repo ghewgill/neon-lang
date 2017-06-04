@@ -103,6 +103,8 @@ libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
+SConscript("lib/extsample/SConstruct")
+
 env.Depends(libcurl, libssl)
 env.Depends(libcurl, libz)
 

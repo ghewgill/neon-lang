@@ -32,6 +32,7 @@ ExcludeTests = [
     "t/equality.neon",              # DictionaryComparisonExpression
     "t/exception-as.neon",          # exception offset
     "t/exception-subexception.neon",# exception multiple handlers
+    "t/extsample-test.neon",        # extension functions
     "t/ffi.neon",                   # ffi
     "t/file-exists.neon",           # module file
     "t/file-filecopied.neon",       # module file

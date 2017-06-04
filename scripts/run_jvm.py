@@ -19,6 +19,7 @@ ExcludeTests = [
     "t/exception-as.neon",          # ExceptionType
     "t/exception-code.neon",        # ExceptionType
     "t/export.neon",                # enum with no name
+    "t/extsample-test.neon",        # extension functions
     "t/ffi.neon",                   # ForeignFunction
     "t/file-filecopied1.neon",      # exception identification
     "t/file-symlink.neon",          # file.symlink

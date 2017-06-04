@@ -91,6 +91,8 @@ public:
     const ast::Statement *analyze_body(const pt::ConstantDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::NativeConstantDeclaration *declaration);
     const ast::Statement *analyze_body(const pt::NativeConstantDeclaration *declaration);
+    const ast::Statement *analyze_decl(const pt::ExtensionConstantDeclaration *declaration);
+    const ast::Statement *analyze_body(const pt::ExtensionConstantDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::VariableDeclaration *declaration);
     const ast::Statement *analyze_body(const pt::VariableDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::NativeVariableDeclaration *declaration);
@@ -102,6 +104,7 @@ public:
     const ast::Statement *analyze_decl(const pt::ForeignFunctionDeclaration *declaration);
     const ast::Statement *analyze_body(const pt::ForeignFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
+    const ast::Statement *analyze(const pt::ExtensionFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::ExceptionDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::ExportDeclaration *declaration);
     const ast::Statement *analyze_body(const pt::ExportDeclaration *declaration);
@@ -194,12 +197,14 @@ public:
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeConstantDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExtensionConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ForeignFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExtensionFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
@@ -286,12 +291,14 @@ public:
     virtual void visit(const pt::TypeDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeConstantDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExtensionConstantDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::VariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeVariableDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::LetDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::FunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ForeignFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::ExtensionFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
@@ -377,12 +384,14 @@ public:
     virtual void visit(const pt::TypeDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::NativeConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
+    virtual void visit(const pt::ExtensionConstantDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::ForeignFunctionDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::ExtensionFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::AssertStatement *) override {}
@@ -468,12 +477,14 @@ public:
     virtual void visit(const pt::TypeDeclaration *) override {}
     virtual void visit(const pt::ConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::NativeConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
+    virtual void visit(const pt::ExtensionConstantDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::VariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::NativeVariableDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::LetDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::FunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::ForeignFunctionDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::NativeFunctionDeclaration *) override {}
+    virtual void visit(const pt::ExtensionFunctionDeclaration *) override {}
     virtual void visit(const pt::ExceptionDeclaration *) override {}
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::AssertStatement *p) override { v.push_back(a->analyze(p)); }
@@ -2298,6 +2309,45 @@ const ast::Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration
     return new ast::NullStatement(declaration->token.line);
 }
 
+const ast::Statement *Analyzer::analyze_decl(const pt::ExtensionConstantDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
+    if (not scope.top()->allocateName(declaration->name, name)) {
+        error2(3245, declaration->name, "duplicate identifier", scope.top()->getDeclaration(declaration->name.text), "first declaration here");
+    }
+    return new ast::NullStatement(declaration->token.line);
+}
+
+const ast::Statement *Analyzer::analyze_body(const pt::ExtensionConstantDeclaration *declaration)
+{
+    const ast::Type *type = analyze(declaration->type.get());
+    if (dynamic_cast<const ast::TypeClass *>(type) != nullptr) {
+        error(3246, declaration->type->token, "class type not permitted as constant type");
+    }
+    ast::Variable *v = frame.top()->createVariable(declaration->name, declaration->name.text, type, true);
+    scope.top()->addName(v->declaration, v->name, v, true);
+    return new ast::AssignmentStatement(
+        declaration->token.line,
+        {
+            new ast::VariableExpression(v)
+        },
+        new ast::FunctionCall(
+            new ast::VariableExpression(
+                new ast::ExtensionFunction(
+                    Token(),
+                    path_stripext(path_basename(program->source_path)),
+                    declaration->name.text,
+                    type,
+                    frame.top(),
+                    scope.top(),
+                    {}
+                )
+            ),
+            {}
+        )
+    );
+}
+
 const ast::Statement *Analyzer::analyze_decl(const pt::VariableDeclaration *declaration)
 {
     for (auto name: declaration->names) {
@@ -2662,6 +2712,44 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
         }
     }
     ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new ast::TypeFunction(returntype, params));
+    scope.top()->addName(declaration->name, name, function);
+    return new ast::NullStatement(declaration->token.line);
+}
+
+const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *declaration)
+{
+    std::string name = declaration->name.text;
+    if (not scope.top()->allocateName(declaration->name, name)) {
+        error2(3242, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
+    }
+    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
+    std::vector<ast::FunctionParameter *> params;
+    bool in_default = false;
+    for (auto &x: declaration->args) {
+        ast::ParameterType::Mode mode = ast::ParameterType::IN;
+        switch (x->mode) {
+            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
+            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
+            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
+        }
+        const ast::Type *ptype = analyze(x->type.get());
+        const ast::Expression *def = nullptr;
+        if (x->default_value != nullptr) {
+            const bool is_dummy = dynamic_cast<pt::DummyExpression *>(x->default_value.get()) != nullptr;
+            in_default = true;
+            def = analyze(x->default_value.get());
+            if (not is_dummy && not def->is_constant) {
+                error(3243, x->default_value->token, "default value not constant");
+            }
+        } else if (in_default) {
+            error(3244, x->token, "default value must be specified for this parameter");
+        }
+        for (auto name: x->names) {
+            ast::FunctionParameter *fp = new ast::FunctionParameter(name, name.text, ptype, frame.size()-1, mode, def);
+            params.push_back(fp);
+        }
+    }
+    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, returntype, frame.top(), scope.top(), params);
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -4218,7 +4306,8 @@ const ast::Program *Analyzer::analyze()
          && dynamic_cast<const ast::GlobalVariable *>(name) == nullptr
          && dynamic_cast<const ast::Constant *>(name) == nullptr
          && dynamic_cast<const ast::Function *>(name) == nullptr
-         && dynamic_cast<const ast::PredefinedFunction *>(name) == nullptr) {
+         && dynamic_cast<const ast::PredefinedFunction *>(name) == nullptr
+         && dynamic_cast<const ast::ExtensionFunction *>(name) == nullptr) {
             internal_error("Attempt to export something that can't be exported: " + nt.first);
         }
         r->exports[nt.first] = name;
@@ -4334,6 +4423,7 @@ public:
     virtual void visit(const pt::TypeDeclaration *) {}
     virtual void visit(const pt::ConstantDeclaration *) {}
     virtual void visit(const pt::NativeConstantDeclaration *) {}
+    virtual void visit(const pt::ExtensionConstantDeclaration *) {}
     virtual void visit(const pt::VariableDeclaration *node) {
         if (node->value != nullptr) {
             node->value->accept(this);
@@ -4369,6 +4459,7 @@ public:
     }
     virtual void visit(const pt::ForeignFunctionDeclaration *) {}
     virtual void visit(const pt::NativeFunctionDeclaration *) {}
+    virtual void visit(const pt::ExtensionFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}
     virtual void visit(const pt::ExportDeclaration *node) {
         if (node->declaration != nullptr) {

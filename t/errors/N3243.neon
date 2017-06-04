@@ -1,0 +1,5 @@
+FUNCTION bar(): Number
+    RETURN 5
+END FUNCTION
+DECLARE EXTENSION FUNCTION foo(a: Number DEFAULT bar())
+                                                 %<

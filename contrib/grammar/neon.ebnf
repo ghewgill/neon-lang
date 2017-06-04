@@ -23,12 +23,14 @@ Statement =
     TypeDeclaration |
     ConstantDeclaration |
     NativeConstantDeclaration |
+    ExtensionConstantDeclaration |
     VariableDeclaration |
     NativeVariableDeclaration |
     LetDeclaration |
     FunctionDeclaration |
     ForeignFunctionDeclaration |
     NativeFunctionDeclaration |
+    ExtensionFunctionDeclaration |
     ExceptionDeclaration |
     ExportDeclaration |
     MainBlock |
@@ -73,6 +75,8 @@ ConstantDeclaration = 'CONSTANT', Identifier, ':', Type, ':=', Expression;
 
 NativeConstantDeclaration = 'DECLARE', 'NATIVE', 'CONSTANT', Identifier, ':', Type;
 
+ExtensionConstantDeclaration = 'DECLARE', 'EXTENSION', 'CONSTANT', Identifier, ':', Type;
+
 VariableDeclaration = 'VAR', Identifier, {',', Identifier}, ':', Type, [':=', Expression];
 
 NativeVariableDeclaration = 'DECLARE', 'NATIVE', 'VAR', Identifier, ':', Type;
@@ -85,6 +89,8 @@ ForeignFunctionDeclaration = 'FOREIGN', 'FUNCTION', FunctionHeader, DictionaryLi
 
 NativeFunctionDeclaration = 'DECLARE', 'NATIVE', 'FUNCTION', FunctionHeader;
 
+ExtensionFunctionDeclaration = 'DECLARE', 'EXTENSION', 'FUNCTION', FunctionHeader;
+
 FunctionHeader = Identifier, ['.', Identifier], FunctionParameterList;
 
 FunctionParameterList = '(', [FunctionParameter, {',', FunctionParameter}], ')', [':', Type];
@@ -93,7 +99,7 @@ FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':'
 
 ExceptionDeclaration = 'EXCEPTION', Identifier, {'.', Identifier};
 
-ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ForeignFunctionDeclaration | NativeFunctionDeclaration | ExceptionDeclaration | Identifier);
+ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | ExtensionConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ForeignFunctionDeclaration | NativeFunctionDeclaration | ExtensionFunctionDeclaration | ExceptionDeclaration | Identifier);
 
 MainBlock = 'BEGIN', 'MAIN', {Statement}, 'END', 'MAIN';
 

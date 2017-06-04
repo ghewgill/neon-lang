@@ -1,0 +1,2 @@
+DECLARE EXTENSION FUNCTION foo(a: Number DEFAULT 1, b: Number)
+                                                    %<

@@ -112,6 +112,7 @@ enum TokenType {
     LABEL,
     CLASS,
     TRAP,
+    EXTENSION,
     UNKNOWN,
     MAX_TOKEN
 };

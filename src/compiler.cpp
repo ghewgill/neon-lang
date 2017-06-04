@@ -42,6 +42,7 @@ public:
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
     void emit(unsigned char b, uint32_t value, uint32_t value2);
+    void emit(unsigned char b, uint32_t value, uint32_t value2, uint32_t value3);
     void emit(unsigned char b, const Number &value);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
@@ -113,6 +114,14 @@ void Emitter::emit(unsigned char b, uint32_t value, uint32_t value2)
     emit(b);
     emit_uint32(value);
     emit_uint32(value2);
+}
+
+void Emitter::emit(unsigned char b, uint32_t value, uint32_t value2, uint32_t value3)
+{
+    emit(b);
+    emit_uint32(value);
+    emit_uint32(value2);
+    emit_uint32(value3);
 }
 
 void Emitter::emit(unsigned char b, const Number &value)
@@ -893,6 +902,39 @@ void ast::PredefinedFunction::generate_call(Emitter &emitter) const
         i = emitter.predefined_name_index.find(this);
     }
     emitter.emit(CALLP, i->second);
+}
+
+void ast::ExtensionFunction::postdeclare(Emitter &emitter) const
+{
+    emitter.jump_target(emitter.function_label(entry_label));
+    generate_call(emitter);
+    emitter.emit(RET);
+    frame->postdeclare(emitter);
+}
+
+void ast::ExtensionFunction::generate_call(Emitter &emitter) const
+{
+    uint32_t in_param_count = 0;
+    uint32_t out_param_count = 0;
+    for (auto p: params) {
+        switch (p->mode) {
+            case ParameterType::IN:
+                in_param_count++;
+                break;
+            case ParameterType::INOUT:
+                in_param_count++;
+                out_param_count++;
+                break;
+            case ParameterType::OUT:
+                out_param_count++;
+                break;
+        }
+    }
+    emitter.emit(CONSA, static_cast<uint32_t>(in_param_count));
+    emitter.emit(CALLX, emitter.str(module), emitter.str(name), out_param_count);
+    if (dynamic_cast<const TypeFunction *>(type)->returntype == TYPE_NOTHING) {
+        emitter.emit(DROPN, out_param_count);
+    }
 }
 
 void ast::ModuleFunction::predeclare(Emitter &emitter) const

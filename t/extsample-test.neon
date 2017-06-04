@@ -1,0 +1,28 @@
+IMPORT extsample
+
+ASSERT extsample.constNumber = 5
+%ASSERT extsample.varNumber = 5
+
+extsample.funcNothing()
+ASSERT extsample.funcBoolean() = TRUE
+ASSERT extsample.funcNumber() = 5
+ASSERT extsample.funcString() = "five"
+ASSERT extsample.funcBytes() = HEXBYTES "05 05 05 05 05"
+ASSERT extsample.funcArray() = [5]
+LET x: Dictionary<Number> := extsample.funcDictionary()
+ASSERT x["five"] = 5
+
+ASSERT extsample.funcNumberAdd(2, 3) = 5
+
+VAR n: Number
+extsample.funcNumberOut(OUT n)
+ASSERT n = 5
+
+%extsample.setVarNumber(10)
+%ASSERT extsample.varNumber = 10
+
+TRY
+    extsample.raiseException()
+TRAP extsample.SampleException DO
+    % pass
+END TRY

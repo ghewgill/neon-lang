@@ -19,12 +19,23 @@
 #include "cell.h"
 #include "debuginfo.h"
 #include "httpserver.h"
+#include "neonext.h"
 #include "number.h"
 #include "opcode.h"
 #include "opstack.h"
 #include "rtl_exec.h"
 #include "rtl_platform.h"
 #include "support.h"
+
+#ifdef _WIN32
+#define PATHSEP '\\'
+#define LIBRARY_NAME_PREFIX ""
+#else
+#define PATHSEP '/'
+#define LIBRARY_NAME_PREFIX "lib"
+#endif
+
+std::set<std::string> g_ExternalModules;
 
 namespace {
 
@@ -44,6 +55,18 @@ std::vector<std::string> split(const std::string &s, char d)
         r.push_back(s.substr(start, i-start));
     }
     return r;
+}
+
+std::string just_path(const std::string &name)
+{
+    auto i = name.rfind(PATHSEP);
+    if (i == std::string::npos) {
+        i = name.rfind('/');
+    }
+    if (i == std::string::npos) {
+        return std::string();
+    }
+    return name.substr(0, i+1);
 }
 
 } // namespace
@@ -147,6 +170,149 @@ static Cell unmarshal_pointer(void *p)
     return Cell(*(reinterpret_cast<Cell **>(p)));
 }
 
+extern "C" {
+
+int parameterlist_get_size(const struct Ne_ParameterList *list)
+{
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(list))->array().size());
+}
+
+int parameterlist_check_types(const struct Ne_ParameterList * /*list*/, const char * /*types*/)
+{
+    //fprintf(stderr, "parameterlist_check_types(%p, %s)\n", list, types);
+    return 1;
+}
+
+const struct Ne_Cell *parameterlist_get_cell(const struct Ne_ParameterList *list, int i)
+{
+    // rbegin() is used here because the array ends up having
+    // the elements in backwards order.
+    return reinterpret_cast<const struct Ne_Cell *>(&*(reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(list))->array().rbegin() + i));
+}
+
+struct Ne_Cell *parameterlist_set_cell(struct Ne_ParameterList *list, int i)
+{
+    // rbegin() is used here because the array ends up having
+    // the elements in backwards order.
+    return reinterpret_cast<struct Ne_Cell *>(&*(reinterpret_cast<Cell *>(list)->array_for_write().rbegin() + i));
+}
+
+int cell_get_boolean(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->boolean();
+}
+
+void cell_set_boolean(struct Ne_Cell *cell, int value)
+{
+    reinterpret_cast<Cell *>(cell)->boolean() = (value != 0);
+}
+
+int cell_get_number_int(const struct Ne_Cell *cell)
+{
+    return static_cast<int>(number_to_sint64(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->number()));
+}
+
+void cell_set_number_int(struct Ne_Cell *cell, int value)
+{
+    reinterpret_cast<Cell *>(cell)->number() = number_from_sint64(value);
+}
+
+const char *cell_get_string(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().c_str();
+}
+
+void cell_set_string(struct Ne_Cell *cell, const char *value)
+{
+    reinterpret_cast<Cell *>(cell)->string_for_write() = value;
+}
+
+const unsigned char *cell_get_bytes(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<const unsigned char *>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().data());
+}
+
+int cell_get_bytes_size(const struct Ne_Cell *cell)
+{
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().length());
+}
+
+void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
+{
+    reinterpret_cast<Cell *>(cell)->string_for_write() = std::string(reinterpret_cast<const char *>(value), size);
+}
+
+void *cell_get_pointer(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->address();
+}
+
+void cell_set_pointer(struct Ne_Cell *cell, void *p)
+{
+    reinterpret_cast<Cell *>(cell)->address() = reinterpret_cast<Cell *>(p);
+}
+
+int cell_get_array_size(const struct Ne_Cell *cell)
+{
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array().size());
+}
+
+const struct Ne_Cell *cell_get_array_cell(const struct Ne_Cell *cell, int index)
+{
+    return reinterpret_cast<const struct Ne_Cell *>(&reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array_index_for_read(index));
+}
+
+struct Ne_Cell *cell_set_array_cell(struct Ne_Cell *cell, int index)
+{
+    return reinterpret_cast<struct Ne_Cell *>(&reinterpret_cast<Cell *>(cell)->array_index_for_write(index));
+}
+
+const struct Ne_Cell *cell_get_dictionary_cell(const struct Ne_Cell *cell, const char *key)
+{
+    return reinterpret_cast<const struct Ne_Cell *>(&reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->dictionary_index_for_read(key));
+}
+
+struct Ne_Cell *cell_set_dictionary_cell(struct Ne_Cell *cell, const char *key)
+{
+    return reinterpret_cast<struct Ne_Cell *>(&reinterpret_cast<Cell *>(cell)->dictionary_index_for_write(key));
+}
+
+int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int code)
+{
+    Cell *r = reinterpret_cast<Cell *>(retval);
+    r->array_for_write().resize(3);
+    r->array_for_write()[0].string_for_write() = name;
+    r->array_for_write()[1].string_for_write() = info;
+    r->array_for_write()[2].number() = number_from_sint64(code);
+    return Ne_EXCEPTION;
+}
+
+} // extern "C"
+
+const Ne_MethodTable ExtensionMethodTable = {
+    parameterlist_get_size,
+    parameterlist_check_types,
+    parameterlist_get_cell,
+    parameterlist_set_cell,
+    cell_get_boolean,
+    cell_set_boolean,
+    cell_get_number_int,
+    cell_set_number_int,
+    cell_get_string,
+    cell_set_string,
+    cell_get_bytes,
+    cell_get_bytes_size,
+    cell_set_bytes,
+    cell_get_pointer,
+    cell_set_pointer,
+    cell_get_array_size,
+    cell_get_array_cell,
+    cell_set_array_cell,
+    cell_get_dictionary_cell,
+    cell_set_dictionary_cell,
+    raise_exception
+};
+
 class ActivationFrame {
 public:
     ActivationFrame(size_t count): locals(count) {}
@@ -160,6 +326,7 @@ class ExceptionInfo {
 public:
     ExceptionInfo(): info(""), code(number_from_uint32(0)) {}
     explicit ExceptionInfo(const utf8string &info): info(info), code(number_from_uint32(0)) {}
+    ExceptionInfo(const utf8string &info, Number code): info(info), code(code) {}
     ExceptionInfo(const utf8string &info, uint32_t code): info(info), code(number_from_uint32(code)) {}
     utf8string info;
     Number code;
@@ -317,6 +484,9 @@ private:
     void exec_RESETC();
     void exec_PUSHPEG();
     void exec_JUMPTBL();
+    void exec_CALLX();
+    void exec_SWAP();
+    void exec_DROPN();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -1328,6 +1498,83 @@ void Executor::exec_JUMPTBL()
     }
 }
 
+void Executor::exec_CALLX()
+{
+    ip++;
+    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    uint32_t name = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    uint32_t out_param_count = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    ip += 4;
+    std::string modname = module->object.strtable[mod];
+    std::string modlib = just_path(module->object.source_path) + LIBRARY_NAME_PREFIX + "neon_" + modname;
+    if (g_ExternalModules.find(modname) == g_ExternalModules.end()) {
+        void_function_t init = rtl_foreign_function(modlib, "Ne_Init");
+        if (init == NULL) {
+            fprintf(stderr, "neon_exec: function Ne_Init not found in %s\n", modlib.c_str());
+            exit(1);
+        }
+        reinterpret_cast<int (*)(const Ne_MethodTable *)>(init)(&ExtensionMethodTable);
+        g_ExternalModules.insert(modname);
+    }
+    std::string funcname = module->object.strtable[name];
+    void_function_t p = rtl_foreign_function(modlib, funcname);
+    if (p == NULL) {
+        fprintf(stderr, "neon_exec: function %s not found in %s\n", funcname.c_str(), modlib.c_str());
+        exit(1);
+    }
+    Ne_ExternalFunction f = reinterpret_cast<Ne_ExternalFunction>(p);
+    Cell out_params;
+    out_params.array_for_write().resize(out_param_count);
+    Cell retval;
+    int r = f(reinterpret_cast<Ne_Cell *>(&retval), reinterpret_cast<Ne_ParameterList *>(&stack.top()), reinterpret_cast<Ne_ParameterList *>(&out_params));
+    stack.pop();
+    switch (r) {
+        case Ne_SUCCESS: {
+            stack.push(retval);
+            for (auto &c: out_params.array()) {
+                stack.push(c);
+            }
+            break;
+        }
+        case Ne_EXCEPTION: {
+            utf8string name = Cell(retval.array()[0]).string();
+            utf8string info = Cell(retval.array()[1]).string();
+            Number code = Cell(retval.array()[2]).number();
+            raise_literal(name, ExceptionInfo(info, code));
+            break;
+        }
+        default:
+            fprintf(stderr, "neon: invalid return value %d from external function %s.%s\n", r, modname.c_str(), funcname.c_str());
+            exit(1);
+    }
+}
+
+void Executor::exec_SWAP()
+{
+    ip++;
+    Cell a = stack.top(); stack.pop();
+    Cell b = stack.top(); stack.pop();
+    stack.push(a);
+    stack.push(b);
+}
+
+void Executor::exec_DROPN()
+{
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    std::vector<Cell> hold;
+    for (uint32_t i = 0; i < val; i++) {
+        hold.push_back(stack.top());
+        stack.pop();
+    }
+    stack.pop();
+    for (auto i = hold.rbegin(); i != hold.rend(); ++i) {
+        stack.push(*i);
+    }
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -1639,6 +1886,9 @@ void Executor::exec()
             case RESETC:  exec_RESETC(); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(); break;
+            case CALLX:   exec_CALLX(); break;
+            case SWAP:    exec_SWAP(); break;
+            case DROPN:   exec_DROPN(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

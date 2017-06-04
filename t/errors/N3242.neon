@@ -1,0 +1,4 @@
+DECLARE EXTENSION FUNCTION foo()
+                           %<2
+DECLARE EXTENSION FUNCTION foo()
+                           %<1

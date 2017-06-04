@@ -249,6 +249,10 @@ public:
         write("NativeConstantDeclaration(" + node->name.text + ")");
         child(node->type.get());
     }
+    virtual void visit(const ExtensionConstantDeclaration *node) override {
+        write("ExtensionConstantDeclaration(" + node->name.text + ")");
+        child(node->type.get());
+    }
     virtual void visit(const VariableDeclaration *node) override {
         write("VariableDeclaration(" + join(node->names) + ")");
         child(node->type.get());
@@ -293,6 +297,18 @@ public:
     }
     virtual void visit(const NativeFunctionDeclaration *node) override {
         write("NativeFunctionDeclaration(" + node->name.text + ")");
+        child(node->returntype.get());
+        depth++;
+        for (auto &x: node->args) {
+            for (auto name: x->names) {
+                write(ArgumentModeName[x->mode] + " " + name.text);
+                child(x->type.get());
+            }
+        }
+        depth--;
+    }
+    virtual void visit(const ExtensionFunctionDeclaration *node) override {
+        write("ExtensionFunctionDeclaration(" + node->name.text + ")");
         child(node->returntype.get());
         depth++;
         for (auto &x: node->args) {

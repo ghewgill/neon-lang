@@ -65,12 +65,14 @@ class ImportDeclaration;
 class TypeDeclaration;
 class ConstantDeclaration;
 class NativeConstantDeclaration;
+class ExtensionConstantDeclaration;
 class VariableDeclaration;
 class NativeVariableDeclaration;
 class LetDeclaration;
 class FunctionDeclaration;
 class ForeignFunctionDeclaration;
 class NativeFunctionDeclaration;
+class ExtensionFunctionDeclaration;
 class ExceptionDeclaration;
 class ExportDeclaration;
 
@@ -155,12 +157,14 @@ public:
     virtual void visit(const TypeDeclaration *) = 0;
     virtual void visit(const ConstantDeclaration *) = 0;
     virtual void visit(const NativeConstantDeclaration *) = 0;
+    virtual void visit(const ExtensionConstantDeclaration *) = 0;
     virtual void visit(const VariableDeclaration *) = 0;
     virtual void visit(const NativeVariableDeclaration *) = 0;
     virtual void visit(const LetDeclaration *) = 0;
     virtual void visit(const FunctionDeclaration *) = 0;
     virtual void visit(const ForeignFunctionDeclaration *) = 0;
     virtual void visit(const NativeFunctionDeclaration *) = 0;
+    virtual void visit(const ExtensionFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
     virtual void visit(const ExportDeclaration *) = 0;
 
@@ -666,6 +670,14 @@ public:
     std::unique_ptr<Type> type;
 };
 
+class ExtensionConstantDeclaration: public Declaration {
+public:
+    ExtensionConstantDeclaration(const Token &token, const Token &name, std::unique_ptr<Type> &&type): Declaration(token, {name}), name(name), type(std::move(type)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const Token name;
+    std::unique_ptr<Type> type;
+};
+
 class VariableDeclaration: public Declaration {
 public:
     VariableDeclaration(const Token &token, const std::vector<Token> &names, std::unique_ptr<Type> &&type, std::unique_ptr<Expression> &&value): Declaration(token, names), type(std::move(type)), value(std::move(value)) {}
@@ -719,6 +731,12 @@ public:
 class NativeFunctionDeclaration: public BaseFunctionDeclaration {
 public:
     NativeFunctionDeclaration(const Token &token, const Token &type, const Token &name, std::unique_ptr<Type> &&returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &&args, const Token &rparen): BaseFunctionDeclaration(token, type, name, std::move(returntype), std::move(args), rparen) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+};
+
+class ExtensionFunctionDeclaration: public BaseFunctionDeclaration {
+public:
+    ExtensionFunctionDeclaration(const Token &token, const Token &type, const Token &name, std::unique_ptr<Type> &&returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &&args, const Token &rparen): BaseFunctionDeclaration(token, type, name, std::move(returntype), std::move(args), rparen) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 

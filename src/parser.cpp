@@ -1139,6 +1139,48 @@ std::unique_ptr<Declaration> Parser::parseDeclaration()
             }
             error(2120, tokens[i], "CONSTANT, FUNCTION or VAR expected");
         }
+        case EXTENSION: {
+            ++i;
+            if (tokens[i].type == CONSTANT) {
+                auto &tok_constant = tokens[i];
+                ++i;
+                Token name = tokens[i];
+                if (name.type != IDENTIFIER) {
+                    error(2126, tokens[i], "identifier expected");
+                }
+                ++i;
+                if (tokens[i].type != COLON) {
+                    error(2127, tokens[i], "colon expected");
+                }
+                ++i;
+                std::unique_ptr<Type> type = parseType();
+                return std::unique_ptr<Declaration> { new ExtensionConstantDeclaration(tok_constant, name, std::move(type)) };
+            } else if (tokens[i].type == FUNCTION) {
+                auto &tok_function = tokens[i];
+                Token type;
+                Token name;
+                std::unique_ptr<Type> returntype;
+                std::vector<std::unique_ptr<FunctionParameterGroup>> args;
+                Token rparen;
+                parseFunctionHeader(type, name, returntype, args, rparen);
+                return std::unique_ptr<Declaration> { new ExtensionFunctionDeclaration(tok_function, std::move(type), name, std::move(returntype), std::move(args), rparen) };
+            /*} else if (tokens[i].type == VAR) {
+                auto &tok_var = tokens[i];
+                ++i;
+                Token name = tokens[i];
+                if (name.type != IDENTIFIER) {
+                    xrror(2128, "identifier expected");
+                }
+                ++i;
+                if (tokens[i].type != COLON) {
+                    xrror(2129, "colon expected");
+                }
+                ++i;
+                std::unique_ptr<Type> type = parseType();
+                return std::unique_ptr<Declaration> { new ExtensionVariableDeclaration(tok_var, name, std::move(type)) };*/
+            }
+            error(2125, tokens[i], "FUNCTION expected");
+        }
         default:
             error(2058, tokens[i], "NATIVE expected");
     }

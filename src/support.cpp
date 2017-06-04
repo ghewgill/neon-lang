@@ -83,6 +83,14 @@ std::pair<std::string, std::string> PathSupport::findModule(const std::string &n
         if (access((p + object_name).c_str(), R_OK) == 0) {
             r.second = p + object_name;
         }
+        if (r.first.empty() && r.second.empty()) {
+            if (access((p + module_name + "/" + source_name).c_str(), R_OK) == 0) {
+                r.first = p + module_name + "/" + source_name;
+            }
+            if (access((p + module_name + "/" + object_name).c_str(), R_OK) == 0) {
+                r.second = p + module_name + "/" + object_name;
+            }
+        }
         if (not r.first.empty() || not r.second.empty()) {
             break;
         }

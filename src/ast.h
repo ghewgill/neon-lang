@@ -124,6 +124,7 @@ public:
     virtual void visit(const class ResetStatement *node) = 0;
     virtual void visit(const class Function *node) = 0;
     virtual void visit(const class PredefinedFunction *node) = 0;
+    virtual void visit(const class ExtensionFunction *node) = 0;
     virtual void visit(const class ModuleFunction *node) = 0;
     virtual void visit(const class Module *node) = 0;
     virtual void visit(const class Program *node) = 0;
@@ -2440,6 +2441,20 @@ public:
     virtual void generate_export(Emitter &, const std::string &) const override {}
 
     virtual std::string text() const override { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
+};
+
+class ExtensionFunction: public Function {
+public:
+    ExtensionFunction(const Token &declaration, const std::string &module, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, 1), module(module) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const std::string module;
+
+    virtual void reset() override {}
+    virtual void postdeclare(Emitter &) const override;
+    virtual void generate_call(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "ExtensionFunction(" + module + ", " + name + ", " + type->text() + ")"; }
 };
 
 class ModuleFunction: public Variable {

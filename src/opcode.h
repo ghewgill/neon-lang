@@ -86,6 +86,9 @@ enum Opcode {
     RESETC,     // reset cell
     PUSHPEG,    // push pointer to external global
     JUMPTBL,    // jump table
+    CALLX,      // call extension
+    SWAP,       // swap two top stack elements
+    DROPN,      // drop element n
 };
 
 #endif

@@ -2555,6 +2555,7 @@ ExcludeTests = [
     "t/encoding-base64.neon",   # HEXBYTES not implemented yet
     "t/exception-as.neon",      # Exception offset not supported
     "t/export-inline.neon",     # Native mul not required
+    "t/extsample-test.neon",    # Extension functions not required
     "t/ffi.neon",               # FFI not required
     "t/file-symlink.neon",      # Feature not required
     "t/fork.neon",              # fork not required

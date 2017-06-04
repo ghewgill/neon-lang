@@ -106,6 +106,9 @@ private:
     void disasm_RESETC();
     void disasm_PUSHPEG();
     void disasm_JUMPTBL();
+    void disasm_CALLX();
+    void disasm_SWAP();
+    void disasm_DROPN();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -661,6 +664,31 @@ void Disassembler::disasm_JUMPTBL()
     out << "JUMPTBL " << val << "\n";
 }
 
+void Disassembler::disasm_CALLX()
+{
+    index++;
+    uint32_t module = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t name = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    uint32_t out_param_count = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    index += 4;
+    out << "CALLX " << obj.strtable[module] << "." << obj.strtable[name] << "," << out_param_count << "\n";
+}
+
+void Disassembler::disasm_SWAP()
+{
+    out << "SWAP\n";
+    index++;
+}
+
+void Disassembler::disasm_DROPN()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "DROPN " << val << "\n";
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -818,6 +846,9 @@ void Disassembler::disassemble()
             case RESETC:  disasm_RESETC(); break;
             case PUSHPEG: disasm_PUSHPEG(); break;
             case JUMPTBL: disasm_JUMPTBL(); break;
+            case CALLX:   disasm_CALLX(); break;
+            case SWAP:    disasm_SWAP(); break;
+            case DROPN:   disasm_DROPN(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";
