@@ -18,6 +18,11 @@ VAR n: Number
 extsample.funcNumberOut(OUT n)
 ASSERT n = 5
 
+VAR n2: Number
+extsample.funcNumberOut2(OUT n, OUT n2)
+ASSERT n = 10
+ASSERT n2 = 20
+
 %extsample.setVarNumber(10)
 %ASSERT extsample.varNumber = 10
 

@@ -77,6 +77,13 @@ Ne_EXPORT int funcNumberOut(struct Ne_Cell *retval, struct Ne_ParameterList *in_
     return Ne_SUCCESS;
 }
 
+Ne_EXPORT int funcNumberOut2(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
+{
+    Ne->cell_set_number_int(Ne->parameterlist_set_cell(out_params, 0), 10);
+    Ne->cell_set_number_int(Ne->parameterlist_set_cell(out_params, 1), 20);
+    return Ne_SUCCESS;
+}
+
 Ne_EXPORT int setVarNumber(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
 {
     int n = Ne->cell_get_number_int(Ne->parameterlist_get_cell(in_params, 0));
