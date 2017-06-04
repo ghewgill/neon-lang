@@ -10,11 +10,11 @@
 #include <sstream>
 
 #ifdef _WIN32
-#include <windows.h>
+#include <io.h>
+#define access _access
 #define PATHSEP ';'
 #else
-#include <sys/types.h>
-#include <dirent.h>
+#include <unistd.h>
 #define PATHSEP ':'
 #endif
 
@@ -77,38 +77,12 @@ std::pair<std::string, std::string> PathSupport::findModule(const std::string &n
     const std::string object_name = module_name + ".neonx";
     std::pair<std::string, std::string> r;
     for (auto p: use_paths) {
-#ifdef _WIN32
-        WIN32_FIND_DATA fd;
-        HANDLE ff = FindFirstFile((p + module_name + ".neon*").c_str(), &fd);
-        if (ff != INVALID_HANDLE_VALUE) {
-            do {
-                std::string fn = fd.cFileName;
-                if (fn == source_name) {
-                    r.first = p + source_name;
-                } else if (fn == object_name) {
-                    r.second = p + object_name;
-                }
-            } while (FindNextFile(ff, &fd));
-            FindClose(ff);
+        if (access((p + source_name).c_str(), R_OK) == 0) {
+            r.first = p + source_name;
         }
-#else
-        DIR *d = opendir(p.c_str());
-        if (d != NULL) {
-            for (;;) {
-                struct dirent *de = readdir(d);
-                if (de == NULL) {
-                    break;
-                }
-                std::string fn = de->d_name;
-                if (fn == source_name) {
-                    r.first = p + source_name;
-                } else if (fn == object_name) {
-                    r.second = p + object_name;
-                }
-            }
-            closedir(d);
+        if (access((p + object_name).c_str(), R_OK) == 0) {
+            r.second = p + object_name;
         }
-#endif
         if (not r.first.empty() || not r.second.empty()) {
             break;
         }
