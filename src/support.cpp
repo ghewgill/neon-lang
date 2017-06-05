@@ -12,6 +12,7 @@
 #ifdef _WIN32
 #include <io.h>
 #define access _access
+#define R_OK 04
 #define PATHSEP ';'
 #else
 #include <unistd.h>
