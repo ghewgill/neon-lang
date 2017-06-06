@@ -71,6 +71,12 @@ Ne_EXPORT int Ne_funcNumberAdd(struct Ne_Cell *retval, struct Ne_ParameterList *
     return Ne_SUCCESS;
 }
 
+Ne_EXPORT int Ne_funcArraySize(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
+{
+    Ne->cell_set_number_int(retval, Ne->cell_get_array_size(Ne->parameterlist_get_cell(in_params, 0)));
+    return Ne_SUCCESS;
+}
+
 Ne_EXPORT int Ne_funcNumberOut(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
 {
     Ne->cell_set_number_int(Ne->parameterlist_set_cell(out_params, 0), 5);

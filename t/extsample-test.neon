@@ -14,6 +14,8 @@ ASSERT x["five"] = 5
 
 ASSERT extsample.funcNumberAdd(2, 3) = 5
 
+ASSERT extsample.funcArraySize([1, 2, 3]) = 3
+
 VAR n: Number
 extsample.funcNumberOut(OUT n)
 ASSERT n = 5

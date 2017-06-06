@@ -25,6 +25,8 @@ EXPORT DECLARE EXTENSION FUNCTION funcInBytes(n: Bytes): Bytes
 
 EXPORT DECLARE EXTENSION FUNCTION funcNumberAdd(x, y: Number): Number
 
+EXPORT DECLARE EXTENSION FUNCTION funcArraySize(a: Array<Number>): Number
+
 EXPORT DECLARE EXTENSION FUNCTION funcNumberOut(OUT x: Number)
 EXPORT DECLARE EXTENSION FUNCTION funcNumberOut2(OUT x: Number, OUT y: Number)
 
