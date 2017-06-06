@@ -48,8 +48,8 @@ struct Ne_MethodTable {
     int (*raise_exception)(struct Ne_Cell *retval, const char *name, const char *info, int code);
 };
 
-Ne_EXPORT int Ne_Init(const struct Ne_MethodTable *methodtable);
-typedef int (*Ne_ExternalFunction)(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params);
+Ne_EXPORT int Ne_INIT(const struct Ne_MethodTable *methodtable);
+typedef int (*Ne_ExtensionFunction)(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params);
 
 #ifdef __cplusplus
 } // extern "C"

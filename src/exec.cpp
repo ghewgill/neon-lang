@@ -35,7 +35,7 @@
 #define LIBRARY_NAME_PREFIX "lib"
 #endif
 
-std::set<std::string> g_ExternalModules;
+std::set<std::string> g_ExtensionModules;
 
 namespace {
 
@@ -1509,22 +1509,22 @@ void Executor::exec_CALLX()
     ip += 4;
     std::string modname = module->object.strtable[mod];
     std::string modlib = just_path(module->object.source_path) + LIBRARY_NAME_PREFIX + "neon_" + modname;
-    if (g_ExternalModules.find(modname) == g_ExternalModules.end()) {
-        void_function_t init = rtl_foreign_function(modlib, "Ne_Init");
+    if (g_ExtensionModules.find(modname) == g_ExtensionModules.end()) {
+        void_function_t init = rtl_foreign_function(modlib, "Ne_INIT");
         if (init == NULL) {
-            fprintf(stderr, "neon_exec: function Ne_Init not found in %s\n", modlib.c_str());
+            fprintf(stderr, "neon_exec: function Ne_INIT not found in %s\n", modlib.c_str());
             exit(1);
         }
         reinterpret_cast<int (*)(const Ne_MethodTable *)>(init)(&ExtensionMethodTable);
-        g_ExternalModules.insert(modname);
+        g_ExtensionModules.insert(modname);
     }
     std::string funcname = module->object.strtable[name];
-    void_function_t p = rtl_foreign_function(modlib, funcname);
+    void_function_t p = rtl_foreign_function(modlib, "Ne_" + funcname);
     if (p == NULL) {
         fprintf(stderr, "neon_exec: function %s not found in %s\n", funcname.c_str(), modlib.c_str());
         exit(1);
     }
-    Ne_ExternalFunction f = reinterpret_cast<Ne_ExternalFunction>(p);
+    Ne_ExtensionFunction f = reinterpret_cast<Ne_ExtensionFunction>(p);
     Cell out_params;
     out_params.array_for_write().resize(out_param_count);
     Cell retval;
@@ -1546,7 +1546,7 @@ void Executor::exec_CALLX()
             break;
         }
         default:
-            fprintf(stderr, "neon: invalid return value %d from external function %s.%s\n", r, modname.c_str(), funcname.c_str());
+            fprintf(stderr, "neon: invalid return value %d from extension function %s.%s\n", r, modname.c_str(), funcname.c_str());
             exit(1);
     }
 }
