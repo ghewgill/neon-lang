@@ -1510,18 +1510,21 @@ void Executor::exec_CALLX()
     std::string modname = module->object.strtable[mod];
     std::string modlib = just_path(module->object.source_path) + LIBRARY_NAME_PREFIX + "neon_" + modname;
     if (g_ExtensionModules.find(modname) == g_ExtensionModules.end()) {
-        void_function_t init = rtl_foreign_function(modlib, "Ne_INIT");
-        if (init == NULL) {
+        try {
+            void_function_t init = rtl_foreign_function(modlib, "Ne_INIT");
+            reinterpret_cast<int (*)(const Ne_MethodTable *)>(init)(&ExtensionMethodTable);
+        } catch (RtlException &) {
             fprintf(stderr, "neon_exec: function Ne_INIT not found in %s\n", modlib.c_str());
             exit(1);
         }
-        reinterpret_cast<int (*)(const Ne_MethodTable *)>(init)(&ExtensionMethodTable);
         g_ExtensionModules.insert(modname);
     }
     std::string funcname = module->object.strtable[name];
-    void_function_t p = rtl_foreign_function(modlib, "Ne_" + funcname);
-    if (p == NULL) {
-        fprintf(stderr, "neon_exec: function %s not found in %s\n", funcname.c_str(), modlib.c_str());
+    void_function_t p;
+    try {
+        p = rtl_foreign_function(modlib, "Ne_" + funcname);
+    } catch (RtlException &) {
+        fprintf(stderr, "neon_exec: function Ne_%s not found in %s\n", funcname.c_str(), modlib.c_str());
         exit(1);
     }
     Ne_ExtensionFunction f = reinterpret_cast<Ne_ExtensionFunction>(p);
