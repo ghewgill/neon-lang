@@ -72,7 +72,6 @@ def add_external(target):
     env.Depends("external", target)
     return target
 
-use_pcre = not env["MINIMAL"]
 use_curl = not env["MINIMAL"]
 use_easysid = not env["MINIMAL"]
 use_sqlite = not env["MINIMAL"] or True # Need this for embedded sql
@@ -86,7 +85,6 @@ use_posix = os.name == "posix"
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"])) if use_pcre else None
 libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"])) if use_curl else None
 libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"])) if use_easysid else None
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
@@ -103,6 +101,7 @@ add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
 SConscript("lib/curses/SConstruct")
 SConscript("lib/extsample/SConstruct")
+SConscript("lib/regex/SConstruct")
 
 env.Depends(libcurl, libssl)
 env.Depends(libcurl, libz)
@@ -151,7 +150,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium, libssl]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium, libssl]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -212,7 +211,6 @@ rtl_cpp = rtl_const + squeeze([
     "lib/posix.cpp" if use_posix else None,
     "lib/random.cpp",
     "lib/runtime.cpp",
-    "lib/regex.cpp" if use_pcre else None,
     "lib/sdl.cpp" if use_sdl else None,
     "lib/sodium.cpp" if use_sodium else None,
     "lib/sqlite.cpp" if use_sqlite else None,
@@ -242,7 +240,6 @@ rtl_neon = squeeze([
     "lib/process.neon",
     "lib/random.neon",
     "lib/runtime.neon",
-    "lib/regex.neon" if use_pcre else None,
     "lib/sdl.neon" if use_sdl else None,
     "lib/sodium.neon" if use_sodium else None,
     "lib/sqlite.neon" if use_sqlite else None,
@@ -532,8 +529,6 @@ else:
 
 test_sources = []
 for f in Glob("t/*.neon"):
-    if not use_pcre and f.name in ["forth-test.neon", "lisp-test.neon", "regex-test.neon"]:
-        continue
     if not use_curl and f.name in ["debug-server.neon", "http-test.neon"]:
         continue
     if not use_sqlite and f.name in ["sqlite-test.neon"]:
@@ -569,8 +564,6 @@ for path, dirs, files in os.walk("."):
     if all(x not in ["t", "tests"] for x in path.split(os.sep)):
         for f in files:
             if f.endswith(".neon") and f != "global.neon":
-                if not use_pcre and f in ["editor.neon", "forth.neon", "httpd.neon", "lisp.neon"]:
-                    continue
                 if not use_curl and f in ["coverage.neon", "ndb.neon"]:
                     continue
                 if not use_sdl and f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
