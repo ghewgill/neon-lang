@@ -11,7 +11,7 @@ libminizipenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         libminizipenv.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

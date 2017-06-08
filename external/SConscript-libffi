@@ -57,7 +57,7 @@ ffienv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         ffienv.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

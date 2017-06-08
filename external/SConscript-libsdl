@@ -12,7 +12,7 @@ libsdlenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         libsdlenv.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

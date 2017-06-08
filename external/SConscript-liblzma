@@ -11,7 +11,7 @@ lzmaenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         lzmaenv.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

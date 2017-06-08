@@ -10,7 +10,7 @@ hashenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         hashenv.Append(CXXFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

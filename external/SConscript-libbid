@@ -14,7 +14,7 @@ elif not os.path.exists("IntelRDFPMathLib20U1/LIBRARY/makefile.mak"):
     if not env["RELEASE"]:
         if sys.platform == "win32":
             makefile = open("IntelRDFPMathLib20U1/LIBRARY/makefile.mak").read()
-            makefile = makefile.replace("DEBUG=/Od /Zi", "DEBUG=/Od /Zi /MTd")
+            makefile = makefile.replace("DEBUG=/Od /Zi", "DEBUG=/Od /Zi /MDd")
             open("IntelRDFPMathLib20U1/LIBRARY/makefile.mak", "w").write(makefile)
 
 if sys.platform == "win32":

@@ -11,7 +11,7 @@ sodiumenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         sodiumenv.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

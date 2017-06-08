@@ -123,14 +123,14 @@ if sys.platform == "win32":
             "/DEBUG",
         ])
         env.Append(CXXFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])
     else:
         env.Append(CXXFLAGS=[
             "/Ox",
-            "/MT",
+            "/MD",
         ])
     env.Append(LIBS=["user32", "wsock32"])
 else:

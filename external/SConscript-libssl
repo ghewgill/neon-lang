@@ -17,7 +17,7 @@ sslenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         sslenv.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

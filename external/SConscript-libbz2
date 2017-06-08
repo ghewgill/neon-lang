@@ -11,7 +11,7 @@ bz2env = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         bz2env.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])

@@ -11,7 +11,7 @@ libzenv = Environment()
 if not env["RELEASE"]:
     if sys.platform == "win32":
         libzenv.Append(CFLAGS=[
-            "/MTd",
+            "/MDd",
             "/Zi",
             "/Od",
         ])
