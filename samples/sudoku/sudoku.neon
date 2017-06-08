@@ -547,65 +547,64 @@ BEGIN MAIN
         draw_grid(grid, cx, cy)
         LET k: Number := curses.getch()
         IF k >= 0 THEN
-            CASE k
-                WHEN curses.KEY_DOWN DO
-                    cy := (cy + 1) MOD 9
-                WHEN curses.KEY_LEFT DO
-                    cx := (cx - 1) MOD 9
-                WHEN curses.KEY_RIGHT DO
-                    cx := (cx + 1) MOD 9
-                WHEN curses.KEY_UP DO
-                    cy := (cy - 1) MOD 9
-                WHEN OTHERS DO
-                    CASE chr(k)
-                        WHEN " ", "0" DO
-                            IF start[cy, cx] = 0 THEN
-                                moves.append(grid)
-                                grid[cy, cx] := 0
-                            END IF
-                        WHEN "1" TO "9" DO
-                            IF start[cy, cx] = 0 THEN
-                                moves.append(grid)
-                                grid[cy, cx] := k - ord("0")
-                            END IF
-                        WHEN "c" DO
-                            moves := []
-                            known_start := FALSE
-                            start := multiarray.makeNumber2D(9, 9)
-                            grid := start
-                        WHEN "h" DO
-                            cx := (cx - 1) MOD 9
-                        WHEN "j" DO
-                            cy := (cy + 1) MOD 9
-                        WHEN "k" DO
-                            cy := (cy - 1) MOD 9
-                        WHEN "l" DO
-                            cx := (cx + 1) MOD 9
-                        WHEN "n" DO
-                            new_puzzle_popup := popup_show("Creating new puzzle...   ")
-                            moves := []
-                            LET solution: multiarray.ArrayNumber2D := makeSolution()
-                            start := makePuzzle(solution, 30, update_new_puzzle_popup)
-                            known_start := TRUE
-                            grid := start
-                            popup_close(new_puzzle_popup)
-                        WHEN "q" DO
-                            quit := TRUE
-                        WHEN "s" DO
-                            LET popup: curses.Window := popup_show("Solving puzzle...")
+            IF k = curses.KEY_DOWN THEN
+                cy := (cy + 1) MOD 9
+            ELSIF k = curses.KEY_LEFT THEN
+                cx := (cx - 1) MOD 9
+            ELSIF k = curses.KEY_RIGHT THEN
+                cx := (cx + 1) MOD 9
+            ELSIF k = curses.KEY_UP THEN
+                cy := (cy - 1) MOD 9
+            ELSE
+                CASE chr(k)
+                    WHEN " ", "0" DO
+                        IF start[cy, cx] = 0 THEN
                             moves.append(grid)
-                            IF known_start THEN
-                                grid := start
-                            END IF
-                            _ := solveSudoku(INOUT grid)
-                            popup_close(popup)
-                        WHEN "u" DO
-                            IF moves.size() > 0 THEN
-                                grid := moves[LAST]
-                                moves.resize(moves.size()-1)
-                            END IF
-                    END CASE
-            END CASE
+                            grid[cy, cx] := 0
+                        END IF
+                    WHEN "1" TO "9" DO
+                        IF start[cy, cx] = 0 THEN
+                            moves.append(grid)
+                            grid[cy, cx] := k - ord("0")
+                        END IF
+                    WHEN "c" DO
+                        moves := []
+                        known_start := FALSE
+                        start := multiarray.makeNumber2D(9, 9)
+                        grid := start
+                    WHEN "h" DO
+                        cx := (cx - 1) MOD 9
+                    WHEN "j" DO
+                        cy := (cy + 1) MOD 9
+                    WHEN "k" DO
+                        cy := (cy - 1) MOD 9
+                    WHEN "l" DO
+                        cx := (cx + 1) MOD 9
+                    WHEN "n" DO
+                        new_puzzle_popup := popup_show("Creating new puzzle...   ")
+                        moves := []
+                        LET solution: multiarray.ArrayNumber2D := makeSolution()
+                        start := makePuzzle(solution, 30, update_new_puzzle_popup)
+                        known_start := TRUE
+                        grid := start
+                        popup_close(new_puzzle_popup)
+                    WHEN "q" DO
+                        quit := TRUE
+                    WHEN "s" DO
+                        LET popup: curses.Window := popup_show("Solving puzzle...")
+                        moves.append(grid)
+                        IF known_start THEN
+                            grid := start
+                        END IF
+                        _ := solveSudoku(INOUT grid)
+                        popup_close(popup)
+                    WHEN "u" DO
+                        IF moves.size() > 0 THEN
+                            grid := moves[LAST]
+                            moves.resize(moves.size()-1)
+                        END IF
+                END CASE
+            END IF
         END IF
     END WHILE
     curses.endwin()

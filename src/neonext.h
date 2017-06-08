@@ -51,6 +51,44 @@ struct Ne_MethodTable {
 Ne_EXPORT int Ne_INIT(const struct Ne_MethodTable *methodtable);
 typedef int (*Ne_ExtensionFunction)(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params);
 
+#ifdef _MSC_VER
+#pragma warning(disable: 4100) // unreferenced formal parameter
+#pragma warning(disable: 4127) // conditional expression is constant
+#endif
+
+#define Ne_FUNC(name) Ne_EXPORT int name(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
+
+#define Ne_PARAM_BOOL(i) Ne->cell_get_boolean(Ne->parameterlist_get_cell(in_params, (i)))
+#define Ne_PARAM_INT(i) Ne->cell_get_number_int(Ne->parameterlist_get_cell(in_params, (i)))
+#define Ne_PARAM_STRING(i) Ne->cell_get_string(Ne->parameterlist_get_cell(in_params, (i)))
+#define Ne_PARAM_POINTER(type, i) (type *)(Ne->cell_get_pointer(Ne->parameterlist_get_cell(in_params, (i))))
+
+#define Ne_RETURN_BOOL(r) do { Ne->cell_set_boolean(retval, (r)); return Ne_SUCCESS; } while (0)
+#define Ne_RETURN_INT(r) do { Ne->cell_set_number_int(retval, (r)); return Ne_SUCCESS; } while (0)
+#define Ne_RETURN_STRING(r) do { Ne->cell_set_string(retval, (r)); return Ne_SUCCESS; } while (0)
+#define Ne_RETURN_POINTER(r) do { Ne->cell_set_pointer(retval, (r)); return Ne_SUCCESS; } while (0)
+
+#define Ne_CONST_INT(name, value) Ne_FUNC(name) { Ne_RETURN_INT(value); }
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
+
+#ifdef __cplusplus
+
+extern const Ne_MethodTable *Ne;
+
+inline std::vector<int> Ne_PARAM_ARRAY_INT(Ne_ParameterList *in_params, int i)
+{
+    const Ne_Cell *a = Ne->parameterlist_get_cell(in_params, (i));
+    std::vector<int> r;
+    int n = Ne->cell_get_array_size(a);
+    for (int j = 0; j < n; j++) {
+        r.push_back(Ne->cell_get_number_int(Ne->cell_get_array_cell(a, j)));
+    }
+    return r;
+}
+
+#define Ne_RETURN_ARRAY_INT(r) do { for (size_t i = 0; i < r.size(); i++) { Ne->cell_set_number_int(Ne->cell_set_array_cell(retval, i), r[i]); } return Ne_SUCCESS; } while (0)
+
+#endif // __cplusplus

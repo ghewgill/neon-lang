@@ -272,59 +272,58 @@ FUNCTION Editor.run(INOUT self: Editor)
             IF k = curses.KEY_F(9) THEN
                 EXIT LOOP
             END IF
-            CASE k
-                WHEN 17 DO
-                    EXIT LOOP
-                WHEN 8, 127, curses.KEY_BACKSPACE DO
-                    IF self.column > 0 THEN
-                        DEC self.column
-                        self.buffer.deleteText(self.line, self.column, 1)
-                    END IF
-                WHEN curses.KEY_DC DO
+            IF k = 17 THEN
+                EXIT LOOP
+            ELSIF k IN [8, 127, curses.KEY_BACKSPACE] THEN
+                IF self.column > 0 THEN
+                    DEC self.column
                     self.buffer.deleteText(self.line, self.column, 1)
-                WHEN curses.KEY_DOWN DO
-                    INC self.line
-                    IF self.line - self.top >= self.height THEN
-                        INC self.top
-                    END IF
-                WHEN curses.KEY_END DO
-                    self.column := self.buffer.getLine(self.line).length()
-                WHEN 10, 13, curses.KEY_ENTER DO
-                    self.buffer.begin()
-                    LET tail: String := self.buffer.getLine(self.line)[self.column TO LAST]
-                    self.buffer.deleteText(self.line, self.column, self.buffer.getLine(self.line).length() - self.column)
-                    INC self.line
-                    IF self.line - self.top >= self.height THEN
-                        INC self.top
-                    END IF
-                    self.buffer.insertLine(self.line, tail)
-                    self.buffer.end()
-                    self.column := 0
-                WHEN curses.KEY_HOME DO
-                    self.column := 0
-                WHEN curses.KEY_LEFT DO
-                    IF self.column > 0 THEN
-                        DEC self.column
-                    END IF
-                WHEN curses.KEY_NPAGE DO
-                    self.top := self.top + self.height
-                    self.line := self.line + self.height
-                WHEN curses.KEY_PPAGE DO
-                    LET newtop: Number := max(0, self.top - self.height)
-                    self.line := self.line - (self.top - newtop)
-                    self.top := newtop
-                WHEN curses.KEY_RIGHT DO
-                    INC self.column
-                WHEN 26, curses.KEY_UNDO DO
-                    self.buffer.undo()
-                WHEN curses.KEY_UP DO
-                    IF self.line > 0 THEN
-                        DEC self.line
-                    END IF
-                    IF self.line < self.top THEN
-                        DEC self.top
-                    END IF
-            END CASE
+                END IF
+            ELSIF k = curses.KEY_DC THEN
+                self.buffer.deleteText(self.line, self.column, 1)
+            ELSIF k = curses.KEY_DOWN THEN
+                INC self.line
+                IF self.line - self.top >= self.height THEN
+                    INC self.top
+                END IF
+            ELSIF k = curses.KEY_END THEN
+                self.column := self.buffer.getLine(self.line).length()
+            ELSIF k IN [10, 13, curses.KEY_ENTER] THEN
+                self.buffer.begin()
+                LET tail: String := self.buffer.getLine(self.line)[self.column TO LAST]
+                self.buffer.deleteText(self.line, self.column, self.buffer.getLine(self.line).length() - self.column)
+                INC self.line
+                IF self.line - self.top >= self.height THEN
+                    INC self.top
+                END IF
+                self.buffer.insertLine(self.line, tail)
+                self.buffer.end()
+                self.column := 0
+            ELSIF k = curses.KEY_HOME THEN
+                self.column := 0
+            ELSIF k = curses.KEY_LEFT THEN
+                IF self.column > 0 THEN
+                    DEC self.column
+                END IF
+            ELSIF k = curses.KEY_NPAGE THEN
+                self.top := self.top + self.height
+                self.line := self.line + self.height
+            ELSIF k = curses.KEY_PPAGE THEN
+                LET newtop: Number := max(0, self.top - self.height)
+                self.line := self.line - (self.top - newtop)
+                self.top := newtop
+            ELSIF k = curses.KEY_RIGHT THEN
+                INC self.column
+            ELSIF k IN [26, curses.KEY_UNDO] THEN
+                self.buffer.undo()
+            ELSIF k = curses.KEY_UP THEN
+                IF self.line > 0 THEN
+                    DEC self.line
+                END IF
+                IF self.line < self.top THEN
+                    DEC self.top
+                END IF
+            END IF
         END IF
     END LOOP
 END FUNCTION

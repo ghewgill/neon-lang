@@ -72,7 +72,6 @@ def add_external(target):
     env.Depends("external", target)
     return target
 
-use_curses = not env["MINIMAL"]
 use_pcre = not env["MINIMAL"]
 use_curl = not env["MINIMAL"]
 use_easysid = not env["MINIMAL"]
@@ -87,7 +86,6 @@ use_posix = os.name == "posix"
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libs_curses = add_external(SConscript("external/SConscript-libcurses", exports=["env"])) if use_curses else None
 libpcre = add_external(SConscript("external/SConscript-libpcre", exports=["env"])) if use_pcre else None
 libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"])) if use_curl else None
 libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"])) if use_easysid else None
@@ -103,6 +101,7 @@ libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
+SConscript("lib/curses/SConstruct")
 SConscript("lib/extsample/SConstruct")
 
 env.Depends(libcurl, libssl)
@@ -134,7 +133,7 @@ if sys.platform == "win32":
             "/Ox",
             "/MT",
         ])
-    env.Append(LIBS=["wsock32"])
+    env.Append(LIBS=["user32", "wsock32"])
 else:
     env.Append(CXXFLAGS=[
         "-std=c++0x",
@@ -153,8 +152,6 @@ else:
             "-O3",
         ])
 env.Prepend(LIBS=squeeze([libbid, libffi, libpcre, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsdl, libsodium, libssl]))
-if libs_curses:
-    env.Append(LIBS=libs_curses)
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -181,7 +178,6 @@ if coverage:
     ])
 
 rtl_const = squeeze([
-    "lib/curses_const.cpp" if use_curses else None,
     "lib/sdl_const.cpp" if use_sdl else None,
     "lib/sodium_const.cpp" if use_sodium else None,
 ])
@@ -202,7 +198,6 @@ rtl_cpp = rtl_const + squeeze([
     "lib/binary.cpp",
     "lib/compress.cpp" if use_bz2 and use_lzma else None,
     "lib/crypto.cpp" if use_ssl else None,
-    "lib/curses.cpp" if use_curses else None,
     "lib/datetime.cpp",
     "lib/debugger.cpp",
     "lib/global.cpp",
@@ -232,7 +227,6 @@ rtl_neon = squeeze([
     "lib/binary.neon",
     "lib/compress.neon" if use_bz2 and use_lzma else None,
     "lib/crypto.neon" if use_ssl else None,
-    "lib/curses.neon" if use_curses else None,
     "lib/datetime.neon",
     "lib/debugger.neon",
     "lib/file.neon",
@@ -260,7 +254,6 @@ rtl_neon = squeeze([
 lib_neon = Glob("lib/*.neon")
 # Remove modules where compiling depends on compile-time constants.
 lib_neon = [x for x in lib_neon
-    if x.name != "curses.neon" or use_curses
     if x.name != "sdl.neon" or use_sdl
     if x.name != "sodium.neon" or use_sodium
 ]
@@ -539,8 +532,6 @@ else:
 
 test_sources = []
 for f in Glob("t/*.neon"):
-    if not use_curses and f.name in ["sudoku-test.neon"]:
-        continue
     if not use_pcre and f.name in ["forth-test.neon", "lisp-test.neon", "regex-test.neon"]:
         continue
     if not use_curl and f.name in ["debug-server.neon", "http-test.neon"]:
@@ -578,9 +569,7 @@ for path, dirs, files in os.walk("."):
     if all(x not in ["t", "tests"] for x in path.split(os.sep)):
         for f in files:
             if f.endswith(".neon") and f != "global.neon":
-                if not use_curses and f in ["curses.neon", "editor.neon", "hello-curses.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
-                    continue
-                if not use_pcre and f in ["forth.neon", "httpd.neon", "lisp.neon"]:
+                if not use_pcre and f in ["editor.neon", "forth.neon", "httpd.neon", "lisp.neon"]:
                     continue
                 if not use_curl and f in ["coverage.neon", "ndb.neon"]:
                     continue
