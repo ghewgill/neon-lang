@@ -487,6 +487,7 @@ private:
     void exec_CALLX();
     void exec_SWAP();
     void exec_DROPN();
+    void exec_PUSHM();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -1221,13 +1222,16 @@ void Executor::exec_CALLI()
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
         return;
     }
-    Number addr = stack.top().number(); stack.pop();
+    std::vector<Cell> a = stack.top().array(); stack.pop();
+    Module *mod = reinterpret_cast<Module *>(a[0].address());
+    Number addr = a[1].number();
     if (number_is_zero(addr) || not number_is_integer(addr)) {
         raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(""));
         return;
     }
     uint32_t addri = number_to_uint32(addr);
     callstack.push_back(std::make_pair(module, ip));
+    module = mod;
     ip = addri;
 }
 
@@ -1578,6 +1582,12 @@ void Executor::exec_DROPN()
     }
 }
 
+void Executor::exec_PUSHM()
+{
+    ip++;
+    stack.push(Cell(reinterpret_cast<Cell *>(module)));
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -1892,6 +1902,7 @@ void Executor::exec()
             case CALLX:   exec_CALLX(); break;
             case SWAP:    exec_SWAP(); break;
             case DROPN:   exec_DROPN(); break;
+            case PUSHM:   exec_PUSHM(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

@@ -109,6 +109,7 @@ private:
     void disasm_CALLX();
     void disasm_SWAP();
     void disasm_DROPN();
+    void disasm_PUSHM();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -689,6 +690,12 @@ void Disassembler::disasm_DROPN()
     out << "DROPN " << val << "\n";
 }
 
+void Disassembler::disasm_PUSHM()
+{
+    out << "PUSHM\n";
+    index++;
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -849,6 +856,7 @@ void Disassembler::disassemble()
             case CALLX:   disasm_CALLX(); break;
             case SWAP:    disasm_SWAP(); break;
             case DROPN:   disasm_DROPN(); break;
+            case PUSHM:   disasm_PUSHM(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

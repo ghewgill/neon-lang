@@ -89,6 +89,7 @@ enum Opcode {
     CALLX,      // call extension
     SWAP,       // swap two top stack elements
     DROPN,      // drop element n
+    PUSHM,      // push current module
 };
 
 #endif

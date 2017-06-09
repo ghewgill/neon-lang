@@ -648,12 +648,12 @@ void ast::TypePointer::get_type_references(std::set<const Type *> &references) c
 
 void ast::TypeFunctionPointer::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADN);
+    emitter.emit(LOADA);
 }
 
 void ast::TypeFunctionPointer::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STOREN);
+    emitter.emit(STOREA);
 }
 
 void ast::TypeFunctionPointer::generate_call(Emitter &emitter) const
@@ -873,6 +873,8 @@ void ast::Function::generate_load(Emitter &emitter) const
 {
     // Get the address of a function for function pointer support.
     emitter.emit_jump(PUSHI, emitter.function_label(entry_label));
+    emitter.emit(PUSHM);
+    emitter.emit(CONSA, 2);
 }
 
 void ast::Function::generate_call(Emitter &emitter) const
@@ -1041,6 +1043,8 @@ void ast::ConstantNilExpression::generate_expr(Emitter &emitter) const
 void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHN, number_from_uint32(0));
+    emitter.emit(PUSHNIL);
+    emitter.emit(CONSA, 2);
 }
 
 void ast::ArrayLiteralExpression::generate_expr(Emitter &emitter) const
@@ -1260,7 +1264,7 @@ void ast::PointerComparisonExpression::generate_comparison_opcode(Emitter &emitt
 
 void ast::FunctionPointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQN, NEN};
+    static const unsigned char op[] = {EQA, NEA};
     emitter.emit(op[comp]);
 }
 
