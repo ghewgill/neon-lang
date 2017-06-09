@@ -4,12 +4,21 @@ import shutil
 import sys
 import tarfile
 
-Import("env")
-
 libsdl = None
 
+env = Environment()
+if sys.platform == "win32":
+    env.Append(CXXFLAGS=["/EHsc"])
+if "RELEASE" not in env or not env["RELEASE"]:
+    if sys.platform == "win32":
+        env.Append(CXXFLAGS=[
+            "/MDd",
+            "/Zi",
+            "/Od",
+        ])
+
 libsdlenv = Environment()
-if not env["RELEASE"]:
+if "RELEASE" not in env or not env["RELEASE"]:
     if sys.platform == "win32":
         libsdlenv.Append(CFLAGS=[
             "/MDd",
@@ -30,7 +39,7 @@ elif not os.path.exists("SDL2-2.0.3/configure"):
         open("SDL2-2.0.3/src/dynapi/SDL_dynapi.h", "w").write(dynapi)
 
 if sys.platform == "win32":
-    env.Append(LIBS=["gdi32", "imm32", "ole32", "oleaut32", "shell32", "version", "winmm"])
+    env.Append(LIBS=["gdi32", "imm32", "kernel32", "ole32", "oleaut32", "shell32", "user32", "version", "winmm"])
     libsdlenv.Append(CPPPATH=["SDL2-2.0.3/include"])
     libsdl = libsdlenv.Library("SDL2-2.0.3/sdl.lib", [
         "SDL2-2.0.3/src/SDL.c",
@@ -146,13 +155,15 @@ if sys.platform == "win32":
         "SDL2-2.0.3/src/video/windows/SDL_windowswindow.c",
     ])
 else:
-    libsdl = libsdlenv.Command("SDL2-2.0.3/build/.libs/libSDL2.a", "SDL2-2.0.3/configure", "cd external/SDL2-2.0.3 && ./configure && make")
+    libsdl = libsdlenv.Command("SDL2-2.0.3/build/.libs/libSDL2.a", "SDL2-2.0.3/configure", "cd lib/sdl/SDL2-2.0.3 && env CFLAGS=-fPIC ./configure && make")
     if sys.platform.startswith("darwin"):
         env.Append(LIBS=["iconv", "objc"])
         env.Append(FRAMEWORKS=["AppKit", "AudioUnit", "Carbon", "CoreAudio", "CoreFoundation", "CoreGraphics", "ForceFeedback", "IOKit"])
     else:
         env.Append(LIBS="pthread")
 
-env.Append(CPPPATH=["external/SDL2-2.0.3/include"])
+env.Append(CPPPATH=["SDL2-2.0.3/include"])
 
-Return(["libsdl"])
+env.Append(CPPPATH=["../../src"])
+env.Append(LIBS=[libsdl])
+env.SharedLibrary("neon_sdl", "sdl.cpp")

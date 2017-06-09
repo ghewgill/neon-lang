@@ -46,12 +46,11 @@ BEGIN MAIN
     WHILE NOT quit DO
         VAR e: sdl.Event
         WHILE sdl.PollEvent(OUT e) DO
-            CASE e.type
-                WHEN sdl.SDL_QUIT DO
-                    quit := TRUE
-                WHEN sdl.SDL_KEYDOWN DO
-                    player.dy := -3
-            END CASE
+            IF e.type = sdl.SDL_QUIT THEN
+                quit := TRUE
+            ELSIF e.type = sdl.SDL_KEYDOWN THEN
+                player.dy := -3
+            END IF
         END WHILE
         sdl.RenderClear(ren)
         sdl.RenderCopy(ren, tex, sdl.NullRect, sdl.NullRect)

@@ -1,0 +1,119 @@
+%|
+ |  File: sdl
+ |
+ |  Provides access to the Simple DirectMedia Layer (https://www.libsdl.org/).
+ |%
+
+EXPORT NullRect
+EXPORT Event
+EXPORT Point
+EXPORT Rect
+EXPORT Renderer
+EXPORT Surface
+EXPORT Texture
+EXPORT Window
+
+EXPORT INIT_VIDEO
+EXPORT RENDERER_ACCELERATED
+EXPORT RENDERER_PRESENTVSYNC
+EXPORT SDL_KEYDOWN
+EXPORT SDL_KEYUP
+EXPORT SDL_QUIT
+EXPORT SDLK_LEFT
+EXPORT SDLK_RIGHT
+EXPORT SDLK_SPACE
+EXPORT SDLK_UP
+EXPORT WINDOW_SHOWN
+
+EXPORT CreateRGBSurface
+EXPORT CreateRenderer
+EXPORT CreateSoftwareRenderer
+EXPORT CreateTextureFromSurface
+EXPORT CreateWindow
+EXPORT Delay
+EXPORT DestroyRenderer
+EXPORT DestroyTexture
+EXPORT DestroyWindow
+EXPORT FreeSurface
+EXPORT Init
+EXPORT LoadBMP
+EXPORT PollEvent
+EXPORT Quit
+EXPORT RenderClear
+EXPORT RenderCopy
+EXPORT RenderDrawLine
+EXPORT RenderDrawLines
+EXPORT RenderDrawPoint
+EXPORT RenderFillRect
+EXPORT RenderPresent
+EXPORT SetRenderDrawColor
+
+TYPE Renderer IS POINTER
+TYPE Surface IS POINTER
+TYPE Texture IS POINTER
+TYPE Window IS POINTER
+
+TYPE Event IS RECORD
+    type: Number
+    key: RECORD
+        timestamp: Number
+        windowID: Number
+        state: Number
+        repeat: Boolean
+        keysym: RECORD
+            scancode: Number
+            sym: Number
+            mod: Number
+        END RECORD
+    END RECORD
+END RECORD
+
+TYPE Point IS RECORD
+    x: Number
+    y: Number
+END RECORD
+
+TYPE Rect IS RECORD
+    x: Number
+    y: Number
+    w: Number
+    h: Number
+    PRIVATE null: Boolean
+END RECORD
+
+CONSTANT NullRect: Rect := Rect(null WITH TRUE)
+
+DECLARE EXTENSION CONSTANT INIT_VIDEO: Number
+DECLARE EXTENSION CONSTANT RENDERER_ACCELERATED: Number
+DECLARE EXTENSION CONSTANT RENDERER_PRESENTVSYNC: Number
+DECLARE EXTENSION CONSTANT SDL_KEYDOWN: Number
+DECLARE EXTENSION CONSTANT SDL_KEYUP: Number
+DECLARE EXTENSION CONSTANT SDL_QUIT: Number
+DECLARE EXTENSION CONSTANT SDLK_LEFT: Number
+DECLARE EXTENSION CONSTANT SDLK_RIGHT: Number
+DECLARE EXTENSION CONSTANT SDLK_SPACE: Number
+DECLARE EXTENSION CONSTANT SDLK_UP: Number
+DECLARE EXTENSION CONSTANT WINDOW_SHOWN: Number
+
+DECLARE EXTENSION FUNCTION CreateRGBSurface(flags, width, height, depth, Rmask, Gmask, Bmask, Amask: Number): Surface
+DECLARE EXTENSION FUNCTION CreateRenderer(window: Window, index: Number, flags: Number): Renderer
+DECLARE EXTENSION FUNCTION CreateSoftwareRenderer(surface: Surface): Renderer
+DECLARE EXTENSION FUNCTION CreateTextureFromSurface(renderer: Renderer, surface: Surface): Texture
+DECLARE EXTENSION FUNCTION CreateWindow(title: String, x, y, w, h: Number, flags: Number): Window
+DECLARE EXTENSION FUNCTION Delay(ms: Number)
+DECLARE EXTENSION FUNCTION DestroyRenderer(renderer: Renderer)
+DECLARE EXTENSION FUNCTION DestroyTexture(texture: Texture)
+DECLARE EXTENSION FUNCTION DestroyWindow(window: Window)
+DECLARE EXTENSION FUNCTION FreeSurface(surface: Surface)
+DECLARE EXTENSION FUNCTION Init(flags: Number)
+DECLARE EXTENSION FUNCTION LoadBMP(file: String): Surface
+DECLARE EXTENSION FUNCTION PollEvent(OUT event: Event): Boolean
+DECLARE EXTENSION FUNCTION Quit()
+DECLARE EXTENSION FUNCTION RenderClear(renderer: Renderer)
+DECLARE EXTENSION FUNCTION RenderCopy(renderer: Renderer, texture: Texture, srcrect, dstrect: Rect)
+DECLARE EXTENSION FUNCTION RenderDrawLine(renderer: Renderer, x1, y1, x2, y2: Number)
+DECLARE EXTENSION FUNCTION RenderDrawLines(renderer: Renderer, points: Array<Array<Number>>)
+DECLARE EXTENSION FUNCTION RenderDrawPoint(renderer: Renderer, x, y: Number)
+DECLARE EXTENSION FUNCTION RenderFillRect(renderer: Renderer, rect: Rect)
+DECLARE EXTENSION FUNCTION RenderPresent(renderer: Renderer)
+DECLARE EXTENSION FUNCTION SetRenderDrawColor(renderer: Renderer, r, g, b, a: Number)

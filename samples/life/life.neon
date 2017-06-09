@@ -20,10 +20,9 @@ END FUNCTION
 VAR grid: multiarray.ArrayBoolean2D
 
 FUNCTION handle(e: sdl.Event, INOUT quit: Boolean)
-    CASE e.type
-        WHEN sdl.SDL_QUIT DO
-            quit := TRUE
-    END CASE
+    IF e.type = sdl.SDL_QUIT THEN
+        quit := TRUE
+    END IF
 END FUNCTION
 
 FUNCTION render(ren: sdl.Renderer)

@@ -48,36 +48,33 @@ VAR rocks: Array<Rock>
 VAR shots: Array<Shot>
 
 FUNCTION handle(e: sdl.Event, INOUT quit: Boolean)
-    CASE e.type
-        WHEN sdl.SDL_QUIT DO
-            quit := TRUE
-        WHEN sdl.SDL_KEYDOWN DO
-            CASE e.key.keysym.sym
-                WHEN sdl.SDLK_LEFT DO
-                    player.turn := -0.1
-                WHEN sdl.SDLK_RIGHT DO
-                    player.turn := 0.1
-                WHEN sdl.SDLK_SPACE DO
-                    VAR shot: Shot := Shot()
-                    shot.x := player.x + 20 * math.cos(player.rot)
-                    shot.y := player.y + 20 * math.sin(player.rot)
-                    shot.dx := player.dx + 2 * math.cos(player.rot)
-                    shot.dy := player.dy + 2 * math.sin(player.rot)
-                    shot.count := 100
-                    shots.append(shot)
-                WHEN sdl.SDLK_UP DO
-                    player.thrust := TRUE
-            END CASE
-        WHEN sdl.SDL_KEYUP DO
-            CASE e.key.keysym.sym
-                WHEN sdl.SDLK_LEFT DO
-                    player.turn := 0
-                WHEN sdl.SDLK_RIGHT DO
-                    player.turn := 0
-                WHEN sdl.SDLK_UP DO
-                    player.thrust := FALSE
-            END CASE
-    END CASE
+    IF e.type = sdl.SDL_QUIT THEN
+        quit := TRUE
+    ELSIF e.type = sdl.SDL_KEYDOWN THEN
+        IF e.key.keysym.sym = sdl.SDLK_LEFT THEN
+            player.turn := -0.1
+        ELSIF e.key.keysym.sym = sdl.SDLK_RIGHT THEN
+            player.turn := 0.1
+        ELSIF e.key.keysym.sym = sdl.SDLK_SPACE THEN
+            VAR shot: Shot := Shot()
+            shot.x := player.x + 20 * math.cos(player.rot)
+            shot.y := player.y + 20 * math.sin(player.rot)
+            shot.dx := player.dx + 2 * math.cos(player.rot)
+            shot.dy := player.dy + 2 * math.sin(player.rot)
+            shot.count := 100
+            shots.append(shot)
+        ELSIF e.key.keysym.sym = sdl.SDLK_UP THEN
+            player.thrust := TRUE
+        END IF
+    ELSIF e.type = sdl.SDL_KEYUP THEN
+        IF e.key.keysym.sym = sdl.SDLK_LEFT THEN
+            player.turn := 0
+        ELSIF e.key.keysym.sym = sdl.SDLK_RIGHT THEN
+            player.turn := 0
+        ELSIF e.key.keysym.sym = sdl.SDLK_UP THEN
+            player.thrust := FALSE
+        END IF
+    END IF
 END FUNCTION
 
 FUNCTION render(ren: sdl.Renderer)
