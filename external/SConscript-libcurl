@@ -28,7 +28,7 @@ if sys.platform == "win32":
     cfgname += "-zlib"
     libcurl = curlenv.Command("curl-7.41.0/lib/{}.lib".format(libname), "curl-7.41.0/winbuild/Makefile.vc", "cd external/curl-7.41.0/lib && nmake /f Makefile.vc10 CFG={} MACHINE=x64".format(cfgname))
     env.Append(CPPPATH=["external/curl-7.41.0/include"])
-    env.Append(LIBS=["ws2_32"])
+    env.Append(LIBS=["advapi32", "ws2_32"])
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("curl", "curl/curl.h", "C++"):
