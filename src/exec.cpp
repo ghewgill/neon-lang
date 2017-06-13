@@ -212,9 +212,19 @@ int cell_get_number_int(const struct Ne_Cell *cell)
     return static_cast<int>(number_to_sint64(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->number()));
 }
 
+unsigned int cell_get_number_uint(const struct Ne_Cell *cell)
+{
+    return static_cast<unsigned int>(number_to_uint64(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->number()));
+}
+
 void cell_set_number_int(struct Ne_Cell *cell, int value)
 {
     reinterpret_cast<Cell *>(cell)->number() = number_from_sint64(value);
+}
+
+void cell_set_number_uint(struct Ne_Cell *cell, unsigned int value)
+{
+    reinterpret_cast<Cell *>(cell)->number() = number_from_uint64(value);
 }
 
 const char *cell_get_string(const struct Ne_Cell *cell)
@@ -297,7 +307,9 @@ const Ne_MethodTable ExtensionMethodTable = {
     cell_get_boolean,
     cell_set_boolean,
     cell_get_number_int,
+    cell_get_number_uint,
     cell_set_number_int,
+    cell_set_number_uint,
     cell_get_string,
     cell_set_string,
     cell_get_bytes,

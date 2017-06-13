@@ -31,7 +31,9 @@ struct Ne_MethodTable {
     int (*cell_get_boolean)(const struct Ne_Cell *cell);
     void (*cell_set_boolean)(struct Ne_Cell *cell, int value);
     int (*cell_get_number_int)(const struct Ne_Cell *cell);
+    unsigned int (*cell_get_number_uint)(const struct Ne_Cell *cell);
     void (*cell_set_number_int)(struct Ne_Cell *cell, int value);
+    void (*cell_set_number_uint)(struct Ne_Cell *cell, unsigned int value);
     const char *(*cell_get_string)(const struct Ne_Cell *cell);
     void (*cell_set_string)(struct Ne_Cell *cell, const char *value);
     const unsigned char *(*cell_get_bytes)(const struct Ne_Cell *cell);
@@ -58,13 +60,18 @@ typedef int (*Ne_ExtensionFunction)(struct Ne_Cell *retval, struct Ne_ParameterL
 
 #define Ne_FUNC(name) Ne_EXPORT int name(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params)
 
-#define Ne_PARAM_BOOL(i) Ne->cell_get_boolean(Ne->parameterlist_get_cell(in_params, (i)))
-#define Ne_PARAM_INT(i) Ne->cell_get_number_int(Ne->parameterlist_get_cell(in_params, (i)))
-#define Ne_PARAM_STRING(i) Ne->cell_get_string(Ne->parameterlist_get_cell(in_params, (i)))
-#define Ne_PARAM_POINTER(type, i) (type *)(Ne->cell_get_pointer(Ne->parameterlist_get_cell(in_params, (i))))
+#define Ne_IN_PARAM(i) Ne->parameterlist_get_cell(in_params, (i))
+#define Ne_OUT_PARAM(i) Ne->parameterlist_set_cell(out_params, (i))
+
+#define Ne_PARAM_BOOL(i) Ne->cell_get_boolean(Ne_IN_PARAM(i))
+#define Ne_PARAM_INT(i) Ne->cell_get_number_int(Ne_IN_PARAM(i))
+#define Ne_PARAM_UINT(i) Ne->cell_get_number_uint(Ne_IN_PARAM(i))
+#define Ne_PARAM_STRING(i) Ne->cell_get_string(Ne_IN_PARAM(i))
+#define Ne_PARAM_POINTER(type, i) (type *)(Ne->cell_get_pointer(Ne_IN_PARAM(i)))
 
 #define Ne_RETURN_BOOL(r) do { Ne->cell_set_boolean(retval, (r)); return Ne_SUCCESS; } while (0)
 #define Ne_RETURN_INT(r) do { Ne->cell_set_number_int(retval, (r)); return Ne_SUCCESS; } while (0)
+#define Ne_RETURN_UINT(r) do { Ne->cell_set_number_uint(retval, (r)); return Ne_SUCCESS; } while (0)
 #define Ne_RETURN_STRING(r) do { Ne->cell_set_string(retval, (r)); return Ne_SUCCESS; } while (0)
 #define Ne_RETURN_POINTER(r) do { Ne->cell_set_pointer(retval, (r)); return Ne_SUCCESS; } while (0)
 
