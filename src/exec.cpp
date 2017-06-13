@@ -170,161 +170,6 @@ static Cell unmarshal_pointer(void *p)
     return Cell(*(reinterpret_cast<Cell **>(p)));
 }
 
-extern "C" {
-
-int parameterlist_get_size(const struct Ne_ParameterList *list)
-{
-    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(list))->array().size());
-}
-
-int parameterlist_check_types(const struct Ne_ParameterList * /*list*/, const char * /*types*/)
-{
-    //fprintf(stderr, "parameterlist_check_types(%p, %s)\n", list, types);
-    return 1;
-}
-
-const struct Ne_Cell *parameterlist_get_cell(const struct Ne_ParameterList *list, int i)
-{
-    // rbegin() is used here because the array ends up having
-    // the elements in backwards order.
-    return reinterpret_cast<const struct Ne_Cell *>(&*(reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(list))->array().rbegin() + i));
-}
-
-struct Ne_Cell *parameterlist_set_cell(struct Ne_ParameterList *list, int i)
-{
-    // rbegin() is used here because the array ends up having
-    // the elements in backwards order.
-    return reinterpret_cast<struct Ne_Cell *>(&*(reinterpret_cast<Cell *>(list)->array_for_write().rbegin() + i));
-}
-
-int cell_get_boolean(const struct Ne_Cell *cell)
-{
-    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->boolean();
-}
-
-void cell_set_boolean(struct Ne_Cell *cell, int value)
-{
-    reinterpret_cast<Cell *>(cell)->boolean() = (value != 0);
-}
-
-int cell_get_number_int(const struct Ne_Cell *cell)
-{
-    return static_cast<int>(number_to_sint64(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->number()));
-}
-
-unsigned int cell_get_number_uint(const struct Ne_Cell *cell)
-{
-    return static_cast<unsigned int>(number_to_uint64(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->number()));
-}
-
-void cell_set_number_int(struct Ne_Cell *cell, int value)
-{
-    reinterpret_cast<Cell *>(cell)->number() = number_from_sint64(value);
-}
-
-void cell_set_number_uint(struct Ne_Cell *cell, unsigned int value)
-{
-    reinterpret_cast<Cell *>(cell)->number() = number_from_uint64(value);
-}
-
-const char *cell_get_string(const struct Ne_Cell *cell)
-{
-    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().c_str();
-}
-
-void cell_set_string(struct Ne_Cell *cell, const char *value)
-{
-    reinterpret_cast<Cell *>(cell)->string_for_write() = value;
-}
-
-const unsigned char *cell_get_bytes(const struct Ne_Cell *cell)
-{
-    return reinterpret_cast<const unsigned char *>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().data());
-}
-
-int cell_get_bytes_size(const struct Ne_Cell *cell)
-{
-    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().length());
-}
-
-void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
-{
-    reinterpret_cast<Cell *>(cell)->string_for_write() = std::string(reinterpret_cast<const char *>(value), size);
-}
-
-void *cell_get_pointer(const struct Ne_Cell *cell)
-{
-    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->address();
-}
-
-void cell_set_pointer(struct Ne_Cell *cell, void *p)
-{
-    reinterpret_cast<Cell *>(cell)->address() = reinterpret_cast<Cell *>(p);
-}
-
-int cell_get_array_size(const struct Ne_Cell *cell)
-{
-    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array().size());
-}
-
-const struct Ne_Cell *cell_get_array_cell(const struct Ne_Cell *cell, int index)
-{
-    return reinterpret_cast<const struct Ne_Cell *>(&reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array_index_for_read(index));
-}
-
-struct Ne_Cell *cell_set_array_cell(struct Ne_Cell *cell, int index)
-{
-    return reinterpret_cast<struct Ne_Cell *>(&reinterpret_cast<Cell *>(cell)->array_index_for_write(index));
-}
-
-const struct Ne_Cell *cell_get_dictionary_cell(const struct Ne_Cell *cell, const char *key)
-{
-    return reinterpret_cast<const struct Ne_Cell *>(&reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->dictionary_index_for_read(key));
-}
-
-struct Ne_Cell *cell_set_dictionary_cell(struct Ne_Cell *cell, const char *key)
-{
-    return reinterpret_cast<struct Ne_Cell *>(&reinterpret_cast<Cell *>(cell)->dictionary_index_for_write(key));
-}
-
-int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int code)
-{
-    Cell *r = reinterpret_cast<Cell *>(retval);
-    r->array_for_write().resize(3);
-    r->array_for_write()[0].string_for_write() = name;
-    r->array_for_write()[1].string_for_write() = info;
-    r->array_for_write()[2].number() = number_from_sint64(code);
-    return Ne_EXCEPTION;
-}
-
-} // extern "C"
-
-const Ne_MethodTable ExtensionMethodTable = {
-    parameterlist_get_size,
-    parameterlist_check_types,
-    parameterlist_get_cell,
-    parameterlist_set_cell,
-    cell_get_boolean,
-    cell_set_boolean,
-    cell_get_number_int,
-    cell_get_number_uint,
-    cell_set_number_int,
-    cell_set_number_uint,
-    cell_get_string,
-    cell_set_string,
-    cell_get_bytes,
-    cell_get_bytes_size,
-    cell_set_bytes,
-    cell_get_pointer,
-    cell_set_pointer,
-    cell_get_array_size,
-    cell_get_array_cell,
-    cell_set_array_cell,
-    cell_get_dictionary_cell,
-    cell_set_dictionary_cell,
-    raise_exception
-};
-
 class ActivationFrame {
 public:
     ActivationFrame(size_t count): locals(count) {}
@@ -378,7 +223,8 @@ public:
     void set_recursion_limit(size_t depth);
 
     void exec();
-private:
+    void exec_loop(size_t min_callstack_depth);
+//private:
     const std::string source_path;
     const bool enable_assert;
 
@@ -523,6 +369,225 @@ const char *Executor::DebuggerStateName[] = {
 };
 
 static Executor *g_executor;
+
+extern "C" {
+
+struct Ne_ParameterList *parameterlist_alloc(int n)
+{
+    Cell *c = new Cell();
+    c->array_for_write().resize(n);
+    return reinterpret_cast<struct Ne_ParameterList *>(c);
+}
+
+void parameterlist_free(struct Ne_ParameterList *params)
+{
+    delete reinterpret_cast<Cell *>(params);
+}
+
+int parameterlist_get_size(const struct Ne_ParameterList *list)
+{
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(list))->array().size());
+}
+
+int parameterlist_check_types(const struct Ne_ParameterList * /*list*/, const char * /*types*/)
+{
+    //fprintf(stderr, "parameterlist_check_types(%p, %s)\n", list, types);
+    return 1;
+}
+
+const struct Ne_Cell *parameterlist_get_cell(const struct Ne_ParameterList *list, int i)
+{
+    // rbegin() is used here because the array ends up having
+    // the elements in backwards order.
+    return reinterpret_cast<const struct Ne_Cell *>(&*(reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(list))->array().rbegin() + i));
+}
+
+struct Ne_Cell *parameterlist_set_cell(struct Ne_ParameterList *list, int i)
+{
+    // rbegin() is used here because the array ends up having
+    // the elements in backwards order.
+    return reinterpret_cast<struct Ne_Cell *>(&*(reinterpret_cast<Cell *>(list)->array_for_write().rbegin() + i));
+}
+
+struct Ne_Cell *cell_alloc()
+{
+    return reinterpret_cast<struct Ne_Cell *>(new Cell());
+}
+
+void cell_free(struct Ne_Cell *cell)
+{
+    delete reinterpret_cast<Cell *>(cell);
+}
+
+void cell_copy(struct Ne_Cell *dest, const struct Ne_Cell *src)
+{
+    *reinterpret_cast<Cell *>(dest) = *reinterpret_cast<const Cell *>(src);
+}
+
+int cell_get_boolean(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->boolean();
+}
+
+void cell_set_boolean(struct Ne_Cell *cell, int value)
+{
+    reinterpret_cast<Cell *>(cell)->boolean() = (value != 0);
+}
+
+int cell_get_number_int(const struct Ne_Cell *cell)
+{
+    return static_cast<int>(number_to_sint64(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->number()));
+}
+
+unsigned int cell_get_number_uint(const struct Ne_Cell *cell)
+{
+    return static_cast<unsigned int>(number_to_uint64(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->number()));
+}
+
+void cell_set_number_int(struct Ne_Cell *cell, int value)
+{
+    reinterpret_cast<Cell *>(cell)->number() = number_from_sint64(value);
+}
+
+void cell_set_number_uint(struct Ne_Cell *cell, unsigned int value)
+{
+    reinterpret_cast<Cell *>(cell)->number() = number_from_uint64(value);
+}
+
+const char *cell_get_string(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().c_str();
+}
+
+void cell_set_string(struct Ne_Cell *cell, const char *value)
+{
+    reinterpret_cast<Cell *>(cell)->string_for_write() = value;
+}
+
+const unsigned char *cell_get_bytes(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<const unsigned char *>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().data());
+}
+
+int cell_get_bytes_size(const struct Ne_Cell *cell)
+{
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().length());
+}
+
+void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
+{
+    reinterpret_cast<Cell *>(cell)->string_for_write() = std::string(reinterpret_cast<const char *>(value), size);
+}
+
+void *cell_get_pointer(const struct Ne_Cell *cell)
+{
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->address();
+}
+
+void cell_set_pointer(struct Ne_Cell *cell, void *p)
+{
+    reinterpret_cast<Cell *>(cell)->address() = reinterpret_cast<Cell *>(p);
+}
+
+int cell_get_array_size(const struct Ne_Cell *cell)
+{
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array().size());
+}
+
+const struct Ne_Cell *cell_get_array_cell(const struct Ne_Cell *cell, int index)
+{
+    return reinterpret_cast<const struct Ne_Cell *>(&reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array_index_for_read(index));
+}
+
+struct Ne_Cell *cell_set_array_cell(struct Ne_Cell *cell, int index)
+{
+    return reinterpret_cast<struct Ne_Cell *>(&reinterpret_cast<Cell *>(cell)->array_index_for_write(index));
+}
+
+const struct Ne_Cell *cell_get_dictionary_cell(const struct Ne_Cell *cell, const char *key)
+{
+    return reinterpret_cast<const struct Ne_Cell *>(&reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->dictionary_index_for_read(key));
+}
+
+struct Ne_Cell *cell_set_dictionary_cell(struct Ne_Cell *cell, const char *key)
+{
+    return reinterpret_cast<struct Ne_Cell *>(&reinterpret_cast<Cell *>(cell)->dictionary_index_for_write(key));
+}
+
+void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList *params, struct Ne_Cell *retval)
+{
+    // TODO: move this into a method in Executor that's called by exec_CALLI too
+    if (g_executor->callstack.size() >= g_executor->param_recursion_limit) {
+        g_executor->raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
+        return;
+    }
+    std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
+    Module *mod = reinterpret_cast<Module *>(a[0].address());
+    Number addr = a[1].number();
+    if (mod == nullptr || number_is_zero(addr) || not number_is_integer(addr)) {
+        g_executor->raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(""));
+        return;
+    }
+    if (params != NULL) {
+        auto &a = reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(params))->array();
+        for (auto i = a.rbegin(); i != a.rend(); ++i) {
+            g_executor->stack.push(*i);
+        }
+    }
+    uint32_t addri = number_to_uint32(addr);
+    g_executor->callstack.push_back(std::make_pair(g_executor->module, g_executor->ip));
+    g_executor->module = mod;
+    g_executor->ip = addri;
+    g_executor->exec_loop(g_executor->callstack.size() - 1);
+    if (retval != NULL) {
+        *reinterpret_cast<Cell *>(retval) = g_executor->stack.top();
+        g_executor->stack.pop();
+    }
+}
+
+int raise_exception(struct Ne_Cell *retval, const char *name, const char *info, int code)
+{
+    Cell *r = reinterpret_cast<Cell *>(retval);
+    r->array_for_write().resize(3);
+    r->array_for_write()[0].string_for_write() = name;
+    r->array_for_write()[1].string_for_write() = info;
+    r->array_for_write()[2].number() = number_from_sint64(code);
+    return Ne_EXCEPTION;
+}
+
+} // extern "C"
+
+const Ne_MethodTable ExtensionMethodTable = {
+    parameterlist_alloc,
+    parameterlist_free,
+    parameterlist_get_size,
+    parameterlist_check_types,
+    parameterlist_get_cell,
+    parameterlist_set_cell,
+    cell_alloc,
+    cell_free,
+    cell_copy,
+    cell_get_boolean,
+    cell_set_boolean,
+    cell_get_number_int,
+    cell_get_number_uint,
+    cell_set_number_int,
+    cell_set_number_uint,
+    cell_get_string,
+    cell_set_string,
+    cell_get_bytes,
+    cell_get_bytes_size,
+    cell_set_bytes,
+    cell_get_pointer,
+    cell_set_pointer,
+    cell_get_array_size,
+    cell_get_array_cell,
+    cell_set_array_cell,
+    cell_get_dictionary_cell,
+    cell_set_dictionary_cell,
+    exec_callback,
+    raise_exception
+};
 
 Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, std::map<std::string, Cell *> *external_globals)
   : source_path(source_path),
@@ -1796,7 +1861,13 @@ void Executor::exec()
     // Set up ip for first module (or main module if no imports).
     exec_RET();
 
-    while (not callstack.empty() && ip < module->object.code.size()) {
+    exec_loop(0);
+    assert(stack.empty());
+}
+
+void Executor::exec_loop(size_t min_callstack_depth)
+{
+    while (callstack.size() > min_callstack_depth && ip < module->object.code.size()) {
         //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << " st " << stack.depth() << "\n";
         if (debug_server != nullptr) {
             switch (debugger_state) {
@@ -1920,7 +1991,6 @@ void Executor::exec()
                 abort();
         }
     }
-    assert(stack.empty());
 }
 
 namespace minijson {

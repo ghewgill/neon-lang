@@ -28,6 +28,22 @@ ASSERT n2 = 20
 %extsample.setVarNumber(10)
 %ASSERT extsample.varNumber = 10
 
+FUNCTION foo() print("foo") END FUNCTION
+extsample.callback1(foo)
+%= foo
+
+FUNCTION pr(s: String) print(s) END FUNCTION
+extsample.callback2(pr, "bar")
+%= bar
+
+FUNCTION sub(a, b: Number): Number RETURN a - b END FUNCTION
+print(str(extsample.callback3(sub, 5, 3)))
+%= 2
+
+extsample.setCallback(sub)
+print(str(extsample.callback4(8, 5)))
+%= 6
+
 TRY
     extsample.raiseException()
 TRAP extsample.SampleException DO

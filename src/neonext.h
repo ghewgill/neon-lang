@@ -23,11 +23,16 @@ struct Ne_DictionaryNumber;
 struct Ne_DictionaryString;
 
 struct Ne_MethodTable {
+    struct Ne_ParameterList *(*parameterlist_alloc)(int n);
+    void (*parameterlist_free)(struct Ne_ParameterList *params);
     int (*parameterlist_get_size)(const struct Ne_ParameterList *list);
     int (*parameterlist_check_types)(const struct Ne_ParameterList *list, const char *types);
     const struct Ne_Cell *(*parameterlist_get_cell)(const struct Ne_ParameterList *list, int i);
     struct Ne_Cell *(*parameterlist_set_cell)(struct Ne_ParameterList *list, int i);
 
+    struct Ne_Cell *(*cell_alloc)();
+    void (*cell_free)(struct Ne_Cell *cell);
+    void (*cell_copy)(struct Ne_Cell *dest, const struct Ne_Cell *src);
     int (*cell_get_boolean)(const struct Ne_Cell *cell);
     void (*cell_set_boolean)(struct Ne_Cell *cell, int value);
     int (*cell_get_number_int)(const struct Ne_Cell *cell);
@@ -47,6 +52,7 @@ struct Ne_MethodTable {
     const struct Ne_Cell *(*cell_get_dictionary_cell)(const struct Ne_Cell *cell, const char *key);
     struct Ne_Cell *(*cell_set_dictionary_cell)(struct Ne_Cell *cell, const char *key);
 
+    void (*exec_callback)(const struct Ne_Cell *callback, const struct Ne_ParameterList *params, struct Ne_Cell *retval);
     int (*raise_exception)(struct Ne_Cell *retval, const char *name, const char *info, int code);
 };
 
