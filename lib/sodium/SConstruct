@@ -3,12 +3,16 @@ import shutil
 import sys
 import tarfile
 
-Import("env")
+env = Environment()
+if sys.platform == "win32":
+    env.Append(CXXFLAGS=["/EHsc", "/MDd", "/W4", "/WX"])
+else:
+    env.Append(CXXFLAGS=["-std=c++0x"])
 
 libsodium = None
 
 sodiumenv = Environment()
-if not env["RELEASE"]:
+if "RELEASE" not in env or not env["RELEASE"]:
     if sys.platform == "win32":
         sodiumenv.Append(CFLAGS=[
             "/MDd",
@@ -193,13 +197,16 @@ if sys.platform == "win32":
         "libsodium-1.0.5/src/libsodium/sodium/utils.c",
         "libsodium-1.0.5/src/libsodium/sodium/version.c",
     ])
-    env.Append(CPPPATH=["external/libsodium-1.0.5/src/libsodium/include"])
+    env.Append(CPPPATH=["libsodium-1.0.5/src/libsodium/include"])
     env.Append(CPPFLAGS=["-DSODIUM_STATIC"])
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("sodium", "sodium.h", "C++"):
-        libsodium = sodiumenv.Command("libsodium-1.0.5/src/libsodium/.libs/libsodium.a", "libsodium-1.0.5/configure", "cd external/libsodium-1.0.5 && ./configure && make")
-        env.Append(CPPPATH=["external/libsodium-1.0.5/src/libsodium/include"])
+        libsodium = sodiumenv.Command("libsodium-1.0.5/src/libsodium/.libs/libsodium.a", "libsodium-1.0.5/configure", "cd lib/sodium/libsodium-1.0.5 && ./configure --enable-pie=no && make")
+        env.Append(CPPPATH=["libsodium-1.0.5/src/libsodium/include"])
     conf.Finish()
 
-Return(["libsodium"])
+env.Append(CPPPATH="../../src")
+env.Append(LIBS=[libsodium])
+env.Depends("sodium.cpp", libsodium) # Ensure that header files are created.
+env.SharedLibrary("neon_sodium", "sodium.cpp")

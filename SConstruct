@@ -77,7 +77,6 @@ use_easysid = not env["MINIMAL"]
 use_sqlite = not env["MINIMAL"] or True # Need this for embedded sql
 use_bz2 = not env["MINIMAL"]
 use_lzma = not env["MINIMAL"]
-use_sodium = not env["MINIMAL"]
 use_ssl = not env["MINIMAL"]
 use_posix = os.name == "posix"
 
@@ -92,7 +91,6 @@ libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"])) if use_bz2 else None
 liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"])) if use_lzma else None
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
-libsodium = add_external(SConscript("external/SConscript-libsodium", exports=["env"])) if use_sodium else None
 libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"])) if use_ssl else None
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
@@ -101,6 +99,7 @@ SConscript("lib/curses/SConstruct")
 SConscript("lib/extsample/SConstruct")
 SConscript("lib/regex/SConstruct")
 SConscript("lib/sdl/SConstruct")
+SConscript("lib/sodium/SConstruct")
 
 env.Depends(libcurl, libssl)
 env.Depends(libcurl, libz)
@@ -149,7 +148,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libsodium, libssl]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libssl]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -175,9 +174,7 @@ if coverage:
         "--coverage", "-O0",
     ])
 
-rtl_const = squeeze([
-    "lib/sodium_const.cpp" if use_sodium else None,
-])
+rtl_const = []
 
 if os.name == "posix":
     rtl_const.extend([
@@ -209,7 +206,6 @@ rtl_cpp = rtl_const + squeeze([
     "lib/posix.cpp" if use_posix else None,
     "lib/random.cpp",
     "lib/runtime.cpp",
-    "lib/sodium.cpp" if use_sodium else None,
     "lib/sqlite.cpp" if use_sqlite else None,
     "lib/string.cpp",
     "lib/sys.cpp",
@@ -237,7 +233,6 @@ rtl_neon = squeeze([
     "lib/process.neon",
     "lib/random.neon",
     "lib/runtime.neon",
-    "lib/sodium.neon" if use_sodium else None,
     "lib/sqlite.neon" if use_sqlite else None,
     "lib/string.neon",
     "lib/sys.neon",
@@ -245,10 +240,6 @@ rtl_neon = squeeze([
 ])
 
 lib_neon = Glob("lib/*.neon")
-# Remove modules where compiling depends on compile-time constants.
-lib_neon = [x for x in lib_neon
-    if x.name != "sodium.neon" or use_sodium
-]
 
 def build_rtl_inc(target, source, env):
     with open("src/rtl.inc", "w") as f:
@@ -530,8 +521,6 @@ for f in Glob("t/*.neon"):
         continue
     if not (use_bz2 and use_lzma) and f.name in ["compress-test.neon"]:
         continue
-    if not use_sodium and f.name in ["sodium-test.neon"]:
-        continue
     if not use_sqlite and f.name.startswith("sql-"):
         continue
     if not use_ssl and f.name in ["hash-test.neon"]:
@@ -562,8 +551,6 @@ for path, dirs, files in os.walk("."):
                 if not use_curl and f in ["coverage.neon", "ndb.neon"]:
                     continue
                 if f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
-                    continue
-                if not use_sodium and f in ["bbs.neon", "sodium.neon"]:
                     continue
                 samples.append(os.path.join(path, f))
 for sample in samples:

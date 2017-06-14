@@ -1,0 +1,131 @@
+%|
+ |  File: sodium
+ |
+ |  Interface file for https://libsodium.org.
+ |%
+
+EXPORT SodiumException
+
+EXPORT box_NONCEBYTES
+EXPORT generichash_BYTES_MAX
+EXPORT generichash_KEYBYTES_MAX
+EXPORT secretbox_KEYBYTES
+EXPORT secretbox_NONCEBYTES
+EXPORT shorthash_KEYBYTES
+EXPORT sign_BYTES
+
+EXPORT randombytes
+EXPORT randombytes_close
+EXPORT randombytes_random
+EXPORT randombytes_uniform
+EXPORT aead_aes256gcm_is_available
+EXPORT auth
+EXPORT auth_verify
+EXPORT auth_hmacsha256
+EXPORT auth_hmacsha256_verify
+EXPORT auth_hmacsha512
+EXPORT auth_hmacsha512_verify
+EXPORT aead_aes256gcm_encrypt
+EXPORT aead_aes256gcm_decrypt
+EXPORT box
+EXPORT box_keypair
+EXPORT box_open
+EXPORT box_seal
+EXPORT box_seal_open
+EXPORT box_seed_keypair
+EXPORT generichash
+EXPORT hash
+EXPORT hash_sha256
+EXPORT onetimeauth
+EXPORT onetimeauth_verify
+EXPORT pwhash_scryptsalsa208sha256
+EXPORT pwhash_scryptsalsa208sha256_str
+EXPORT pwhash_scryptsalsa208sha256_str_verify
+EXPORT scalarmult
+EXPORT scalarmult_base
+EXPORT secretbox
+EXPORT secretbox_open
+EXPORT shorthash
+EXPORT sign
+EXPORT sign_open
+EXPORT sign_detached
+EXPORT sign_verify_detached
+EXPORT sign_keypair
+EXPORT sign_seed_keypair
+EXPORT sign_ed25519_sk_to_seed
+EXPORT sign_ed25519_sk_to_pk
+EXPORT stream
+EXPORT stream_xor
+EXPORT stream_xsalsa20_xor_ic
+EXPORT stream_salsa20
+EXPORT stream_salsa20_xor_ic
+
+EXCEPTION SodiumException
+EXCEPTION SodiumException.DecryptionFailed
+EXCEPTION SodiumException.InvalidParameterLength
+
+DECLARE EXTENSION CONSTANT box_NONCEBYTES: Number
+DECLARE EXTENSION CONSTANT generichash_BYTES_MAX: Number
+DECLARE EXTENSION CONSTANT generichash_KEYBYTES_MAX: Number
+DECLARE EXTENSION CONSTANT secretbox_KEYBYTES: Number
+DECLARE EXTENSION CONSTANT secretbox_NONCEBYTES: Number
+DECLARE EXTENSION CONSTANT shorthash_KEYBYTES: Number
+DECLARE EXTENSION CONSTANT sign_BYTES: Number
+
+DECLARE EXTENSION FUNCTION randombytes(size: Number): Bytes
+DECLARE EXTENSION FUNCTION randombytes_close()
+DECLARE EXTENSION FUNCTION randombytes_random(): Number
+DECLARE EXTENSION FUNCTION randombytes_uniform(upper_bound: Number): Number
+
+DECLARE EXTENSION FUNCTION aead_aes256gcm_is_available(): Boolean
+
+DECLARE EXTENSION FUNCTION auth(message: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION auth_verify(authenticator: Bytes, message: Bytes, key: Bytes): Boolean
+DECLARE EXTENSION FUNCTION auth_hmacsha256(message: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION auth_hmacsha256_verify(authenticator: Bytes, message: Bytes, key: Bytes): Boolean
+DECLARE EXTENSION FUNCTION auth_hmacsha512(message: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION auth_hmacsha512_verify(authenticator: Bytes, message: Bytes, key: Bytes): Boolean
+
+DECLARE EXTENSION FUNCTION aead_aes256gcm_encrypt(message: Bytes, ad: Bytes, nonce: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION aead_aes256gcm_decrypt(ciphertext: Bytes, ad: Bytes, nonce: Bytes, key: Bytes): Bytes
+
+DECLARE EXTENSION FUNCTION box(message: Bytes, nonce: Bytes, pk: Bytes, sk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION box_keypair(OUT pk: Bytes, OUT sk: Bytes)
+DECLARE EXTENSION FUNCTION box_open(ciphertext: Bytes, nonce: Bytes, pk: Bytes, sk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION box_seal(message: Bytes, pk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION box_seal_open(ciphertext: Bytes, pk: Bytes, sk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION box_seed_keypair(OUT pk: Bytes, OUT sk: Bytes, seed: Bytes)
+
+DECLARE EXTENSION FUNCTION generichash(outlen: Number, in: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION hash(in: Bytes): Bytes
+DECLARE EXTENSION FUNCTION hash_sha256(in: Bytes): Bytes
+
+DECLARE EXTENSION FUNCTION onetimeauth(in: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION onetimeauth_verify(authenticator: Bytes, in: Bytes, key: Bytes): Boolean
+
+DECLARE EXTENSION FUNCTION pwhash_scryptsalsa208sha256(outlen: Number, passwd: Bytes, salt: Bytes, opslimit: Number, memlimit: Number): Bytes
+DECLARE EXTENSION FUNCTION pwhash_scryptsalsa208sha256_str(passwd: String, opslimit: Number, memlimit: Number): String
+DECLARE EXTENSION FUNCTION pwhash_scryptsalsa208sha256_str_verify(string: String, passwd: String): Boolean
+
+DECLARE EXTENSION FUNCTION scalarmult(sk: Bytes, pk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION scalarmult_base(sk: Bytes): Bytes
+
+DECLARE EXTENSION FUNCTION secretbox(message: Bytes, nonce: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION secretbox_open(ciphertext: Bytes, nonce: Bytes, key: Bytes): Bytes
+
+DECLARE EXTENSION FUNCTION shorthash(in: Bytes, key: Bytes): Bytes
+
+DECLARE EXTENSION FUNCTION sign(message: Bytes, sk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sign_open(signedmessage: Bytes, pk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sign_detached(message: Bytes, sk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sign_verify_detached(sig: Bytes, message: Bytes, pk: Bytes): Boolean
+DECLARE EXTENSION FUNCTION sign_keypair(OUT pk: Bytes, OUT sk: Bytes)
+DECLARE EXTENSION FUNCTION sign_seed_keypair(OUT pk: Bytes, OUT sk: Bytes, seed: Bytes)
+DECLARE EXTENSION FUNCTION sign_ed25519_sk_to_seed(sk: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sign_ed25519_sk_to_pk(sk: Bytes): Bytes
+
+DECLARE EXTENSION FUNCTION stream(len: Number, nonce: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION stream_xor(in: Bytes, nonce: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION stream_xsalsa20_xor_ic(in: Bytes, nonce: Bytes, ic: Number, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION stream_salsa20(len: Number, nonce: Bytes, key: Bytes): Bytes
+DECLARE EXTENSION FUNCTION stream_salsa20_xor_ic(in: Bytes, nonce: Bytes, ic: Number, key: Bytes): Bytes
