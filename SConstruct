@@ -75,8 +75,6 @@ def add_external(target):
 use_curl = not env["MINIMAL"]
 use_easysid = not env["MINIMAL"]
 use_sqlite = not env["MINIMAL"] or True # Need this for embedded sql
-use_bz2 = not env["MINIMAL"]
-use_lzma = not env["MINIMAL"]
 use_ssl = not env["MINIMAL"]
 use_posix = os.name == "posix"
 
@@ -88,13 +86,12 @@ libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=[
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
 libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"])) if use_sqlite else None
 libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
-libbz2 = add_external(SConscript("external/SConscript-libbz2", exports=["env"])) if use_bz2 else None
-liblzma = add_external(SConscript("external/SConscript-liblzma", exports=["env"])) if use_lzma else None
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
 libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"])) if use_ssl else None
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
+SConscript("lib/compress/SConstruct")
 SConscript("lib/curses/SConstruct")
 SConscript("lib/extsample/SConstruct")
 SConscript("lib/regex/SConstruct")
@@ -148,7 +145,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libcurl, libhash, libsqlite, libminizip, libz, libbz2, liblzma, libssl]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libcurl, libhash, libsqlite, libminizip, libz, libssl]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -190,7 +187,6 @@ else:
 
 rtl_cpp = rtl_const + squeeze([
     "lib/binary.cpp",
-    "lib/compress.cpp" if use_bz2 and use_lzma else None,
     "lib/crypto.cpp" if use_ssl else None,
     "lib/datetime.cpp",
     "lib/debugger.cpp",
@@ -216,7 +212,6 @@ env.Depends("lib/http.cpp", libcurl)
 
 rtl_neon = squeeze([
     "lib/binary.neon",
-    "lib/compress.neon" if use_bz2 and use_lzma else None,
     "lib/crypto.neon" if use_ssl else None,
     "lib/datetime.neon",
     "lib/debugger.neon",
@@ -519,8 +514,6 @@ for f in Glob("t/*.neon"):
         continue
     if not use_sqlite and f.name in ["sqlite-test.neon"]:
         continue
-    if not (use_bz2 and use_lzma) and f.name in ["compress-test.neon"]:
-        continue
     if not use_sqlite and f.name.startswith("sql-"):
         continue
     if not use_ssl and f.name in ["hash-test.neon"]:
@@ -580,7 +573,7 @@ env.Command("test_cal", cal_exe, cal_exe[0].path)
 # on Windows with the GitHub command prompt).
 perl = distutils.spawn.find_executable("perl")
 if perl:
-    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3")
+    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3")
     env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
 
 def compare(target, source, env):

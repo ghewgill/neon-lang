@@ -11,13 +11,15 @@ EXPORT bunzip2
 EXPORT lzma
 EXPORT unlzma
 
+EXPORT EXCEPTION CompressException
+
 %|
  |  Function: gzip
  |
  |  Compress an input buffer using the gzip algorithm,
  |  returning the compressed data as <Bytes>.
  |%
-DECLARE NATIVE FUNCTION gzip(input: Bytes): Bytes
+DECLARE EXTENSION FUNCTION gzip(data: Bytes): Bytes
 
 %|
  |  Function: gunzip
@@ -25,7 +27,7 @@ DECLARE NATIVE FUNCTION gzip(input: Bytes): Bytes
  |  Decompress input bytes using the gunzip algorithm,
  |  returning the uncompressed data as a <Bytes>.
  |%
-DECLARE NATIVE FUNCTION gunzip(input: Bytes): Bytes
+DECLARE EXTENSION FUNCTION gunzip(data: Bytes): Bytes
 
 %|
  |  Function: bzip2
@@ -33,7 +35,7 @@ DECLARE NATIVE FUNCTION gunzip(input: Bytes): Bytes
  |  Compress an input buffer using the bzip2 algorithm,
  |  returning the compressed data as <Bytes>.
  |%
-DECLARE NATIVE FUNCTION bzip2(input: Bytes): Bytes
+DECLARE EXTENSION FUNCTION bzip2(data: Bytes): Bytes
 
 %|
  |  Function: bunzip2
@@ -41,7 +43,7 @@ DECLARE NATIVE FUNCTION bzip2(input: Bytes): Bytes
  |  Decompress input bytes using the bunzip2 algorithm,
  |  returning the uncompressed data as a <Bytes>.
  |%
-DECLARE NATIVE FUNCTION bunzip2(input: Bytes): Bytes
+DECLARE EXTENSION FUNCTION bunzip2(data: Bytes): Bytes
 
 %|
  |  Function: lzma
@@ -49,7 +51,7 @@ DECLARE NATIVE FUNCTION bunzip2(input: Bytes): Bytes
  |  Compress an input buffer using the lzma algorithm,
  |  returning the compressed data as <Bytes>.
  |%
-DECLARE NATIVE FUNCTION lzma(input: Bytes): Bytes
+DECLARE EXTENSION FUNCTION lzma(data: Bytes): Bytes
 
 %|
  |  Function: unlzma
@@ -57,4 +59,4 @@ DECLARE NATIVE FUNCTION lzma(input: Bytes): Bytes
  |  Decompress input bytes usingi the unlzma algorithm,
  |  returning the uncompressed data as a <Bytes>.
  |%
-DECLARE NATIVE FUNCTION unlzma(input: Bytes): Bytes
+DECLARE EXTENSION FUNCTION unlzma(data: Bytes): Bytes
