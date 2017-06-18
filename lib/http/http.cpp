@@ -3,15 +3,18 @@
 
 #include <curl/curl.h>
 
-#include "rtl_exec.h"
-#include "utf8string.h"
+#include "neonext.h"
+
+const char *Exception_HttpException = "HttpException";
+
+const Ne_MethodTable *Ne;
 
 static size_t header_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
-    std::vector<utf8string> *headers = reinterpret_cast<std::vector<utf8string> *>(userdata);
+    Ne_Cell *headers = reinterpret_cast<Ne_Cell *>(userdata);
     std::string s(ptr, size*nmemb);
     auto i = s.find_last_not_of("\r\n");
-    headers->push_back(s.substr(0, i+1));
+    Ne->cell_set_string(Ne->cell_set_array_cell(headers, Ne->cell_get_array_size(headers)), s.substr(0, i+1).c_str());
     return size*nmemb;
 }
 
@@ -22,14 +25,22 @@ static size_t data_callback(char *ptr, size_t size, size_t nmemb, void *userdata
     return size*nmemb;
 }
 
-namespace rtl {
+extern "C" {
 
-namespace http {
-
-std::string get(const std::string &url, const std::map<utf8string, utf8string> &requestHeaders, std::vector<utf8string> *responseHeaders)
+Ne_EXPORT int Ne_INIT(const Ne_MethodTable *methodtable)
 {
+    Ne = methodtable;
+    return Ne_SUCCESS;
+}
+
+Ne_FUNC(Ne_get)
+{
+    std::string url = Ne_PARAM_STRING(0);
+    const Ne_Cell *requestHeaders = Ne_IN_PARAM(1);
+    Ne_Cell *responseHeaders = Ne_OUT_PARAM(0);
+
     std::string data;
-    responseHeaders->clear();
+    Ne->cell_array_clear(responseHeaders);
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
@@ -40,8 +51,11 @@ std::string get(const std::string &url, const std::map<utf8string, utf8string> &
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
     struct curl_slist *headerlist = NULL;
     std::vector<std::string> headervector;
-    for (auto h: requestHeaders) {
-        headervector.push_back(h.first.str() + ": " + h.second.str());
+    int n = Ne->cell_get_dictionary_size(requestHeaders);
+    for (int i = 0; i < n; i++) {
+        std::string h = Ne->cell_get_dictionary_key(requestHeaders, i);
+        std::string v = Ne->cell_get_string(Ne->cell_get_dictionary_cell(requestHeaders, h.c_str()));
+        headervector.push_back(h + ": " + v);
         headerlist = curl_slist_append(headerlist, headervector.back().c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
@@ -56,16 +70,21 @@ std::string get(const std::string &url, const std::map<utf8string, utf8string> &
     } else {
         curl_easy_cleanup(curl);
         //fprintf(stderr, "curl %d error %s\n", r, error);
-        throw RtlException(Exception_HttpException, error, r);
+        Ne_RAISE_EXCEPTION(Exception_HttpException, error, r);
     }
     curl_easy_cleanup(curl);
-    return data;
+    Ne_RETURN_BYTES(reinterpret_cast<const unsigned char *>(data.data()), static_cast<int>(data.size()));
 }
 
-std::string post(const std::string &url, const std::string &post_data, const std::map<utf8string, utf8string> &requestHeaders, std::vector<utf8string> *responseHeaders)
+Ne_FUNC(Ne_post)
 {
+    std::string url = Ne_PARAM_STRING(0);
+    std::string post_data = Ne_PARAM_STRING(1);
+    const Ne_Cell *requestHeaders = Ne_IN_PARAM(2);
+    Ne_Cell *responseHeaders = Ne_OUT_PARAM(0);
+
     std::string data;
-    responseHeaders->clear();
+    Ne->cell_array_clear(responseHeaders);
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "Neon/0.1");
@@ -78,8 +97,11 @@ std::string post(const std::string &url, const std::string &post_data, const std
     curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post_data.length());
     struct curl_slist *headerlist = NULL;
     std::vector<std::string> headervector;
-    for (auto h: requestHeaders) {
-        headervector.push_back(h.first.str() + ": " + h.second.str());
+    int n = Ne->cell_get_dictionary_size(requestHeaders);
+    for (int i = 0; i < n; i++) {
+        std::string h = Ne->cell_get_dictionary_key(requestHeaders, i);
+        std::string v = Ne->cell_get_string(Ne->cell_get_dictionary_cell(requestHeaders, h.c_str()));
+        headervector.push_back(h + ": " + v);
         headerlist = curl_slist_append(headerlist, headervector.back().c_str());
     }
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
@@ -94,12 +116,10 @@ std::string post(const std::string &url, const std::string &post_data, const std
     } else {
         curl_easy_cleanup(curl);
         //fprintf(stderr, "curl %d error %s\n", r, error);
-        throw RtlException(Exception_HttpException, error, r);
+        Ne_RAISE_EXCEPTION(Exception_HttpException, error, r);
     }
     curl_easy_cleanup(curl);
-    return data;
+    Ne_RETURN_BYTES(reinterpret_cast<const unsigned char *>(data.data()), static_cast<int>(data.size()));
 }
 
-} // namespace http
-
-} // namespace rtl
+} // extern "C"

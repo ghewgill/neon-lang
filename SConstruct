@@ -72,7 +72,6 @@ def add_external(target):
     env.Depends("external", target)
     return target
 
-use_curl = not env["MINIMAL"]
 use_easysid = not env["MINIMAL"]
 use_sqlite = not env["MINIMAL"] or True # Need this for embedded sql
 use_ssl = not env["MINIMAL"]
@@ -81,7 +80,6 @@ use_posix = os.name == "posix"
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libcurl = add_external(SConscript("external/SConscript-libcurl", exports=["env"])) if use_curl else None
 libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"])) if use_easysid else None
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
 libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"])) if use_sqlite else None
@@ -94,12 +92,10 @@ add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 SConscript("lib/compress/SConstruct")
 SConscript("lib/curses/SConstruct")
 SConscript("lib/extsample/SConstruct")
+SConscript("lib/http/SConstruct")
 SConscript("lib/regex/SConstruct")
 SConscript("lib/sdl/SConstruct")
 SConscript("lib/sodium/SConstruct")
-
-env.Depends(libcurl, libssl)
-env.Depends(libcurl, libz)
 
 SConscript("external/SConscript-naturaldocs")
 
@@ -127,7 +123,7 @@ if sys.platform == "win32":
             "/Ox",
             "/MD",
         ])
-    env.Append(LIBS=["user32", "wsock32"])
+    env.Append(LIBS=["advapi32", "user32", "wsock32"])
 else:
     env.Append(CXXFLAGS=[
         "-std=c++0x",
@@ -145,7 +141,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libcurl, libhash, libsqlite, libminizip, libz, libssl]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz, libssl]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -194,7 +190,6 @@ rtl_cpp = rtl_const + squeeze([
     "lib/file.cpp",
     "lib/hash.cpp" if use_ssl else None,
     "lib/hash_ressl.cpp" if use_ssl else None,
-    "lib/http.cpp" if use_curl else None,
     "lib/io.cpp",
     "lib/math.cpp",
     "lib/net.cpp",
@@ -208,8 +203,6 @@ rtl_cpp = rtl_const + squeeze([
     "lib/time.cpp",
 ])
 
-env.Depends("lib/http.cpp", libcurl)
-
 rtl_neon = squeeze([
     "lib/binary.neon",
     "lib/crypto.neon" if use_ssl else None,
@@ -218,7 +211,6 @@ rtl_neon = squeeze([
     "lib/file.neon",
     "lib/global.neon",
     "lib/hash.neon" if use_ssl else None,
-    "lib/http.neon" if use_curl else None,
     "lib/io.neon",
     "lib/math.neon",
     "lib/mmap.neon",
@@ -510,8 +502,6 @@ else:
 
 test_sources = []
 for f in Glob("t/*.neon"):
-    if not use_curl and f.name in ["debug-server.neon", "http-test.neon"]:
-        continue
     if not use_sqlite and f.name in ["sqlite-test.neon"]:
         continue
     if not use_sqlite and f.name.startswith("sql-"):
@@ -541,8 +531,6 @@ for path, dirs, files in os.walk("."):
     if all(x not in ["t", "tests"] for x in path.split(os.sep)):
         for f in files:
             if f.endswith(".neon") and f != "global.neon":
-                if not use_curl and f in ["coverage.neon", "ndb.neon"]:
-                    continue
                 if f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
                     continue
                 samples.append(os.path.join(path, f))
@@ -573,7 +561,7 @@ env.Command("test_cal", cal_exe, cal_exe[0].path)
 # on Windows with the GitHub command prompt).
 perl = distutils.spawn.find_executable("perl")
 if perl:
-    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3")
+    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3")
     env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
 
 def compare(target, source, env):

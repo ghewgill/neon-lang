@@ -47,8 +47,11 @@ struct Ne_MethodTable {
     void *(*cell_get_pointer)(const struct Ne_Cell *cell);
     void (*cell_set_pointer)(struct Ne_Cell *cell, void *p);
     int (*cell_get_array_size)(const struct Ne_Cell *cell);
+    void (*cell_array_clear)(struct Ne_Cell *cell);
     const struct Ne_Cell *(*cell_get_array_cell)(const struct Ne_Cell *cell, int index);
     struct Ne_Cell *(*cell_set_array_cell)(struct Ne_Cell *cell, int index);
+    int (*cell_get_dictionary_size)(const struct Ne_Cell *cell);
+    const char *(*cell_get_dictionary_key)(const struct Ne_Cell *cell, int n);
     const struct Ne_Cell *(*cell_get_dictionary_cell)(const struct Ne_Cell *cell, const char *key);
     struct Ne_Cell *(*cell_set_dictionary_cell)(struct Ne_Cell *cell, const char *key);
 

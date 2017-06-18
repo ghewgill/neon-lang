@@ -494,6 +494,11 @@ int cell_get_array_size(const struct Ne_Cell *cell)
     return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array().size());
 }
 
+void cell_array_clear(struct Ne_Cell *cell)
+{
+    reinterpret_cast<Cell *>(cell)->array_for_write().clear();
+}
+
 const struct Ne_Cell *cell_get_array_cell(const struct Ne_Cell *cell, int index)
 {
     return reinterpret_cast<const struct Ne_Cell *>(&reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->array_index_for_read(index));
@@ -502,6 +507,19 @@ const struct Ne_Cell *cell_get_array_cell(const struct Ne_Cell *cell, int index)
 struct Ne_Cell *cell_set_array_cell(struct Ne_Cell *cell, int index)
 {
     return reinterpret_cast<struct Ne_Cell *>(&reinterpret_cast<Cell *>(cell)->array_index_for_write(index));
+}
+
+int cell_get_dictionary_size(const struct Ne_Cell *cell)
+{
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->dictionary().size());
+}
+
+const char *cell_get_dictionary_key(const struct Ne_Cell *cell, int n)
+{
+    const std::map<utf8string, Cell> &d = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->dictionary();
+    std::map<utf8string, Cell>::const_iterator i = d.begin();
+    std::advance(i, n);
+    return i->first.c_str();
 }
 
 const struct Ne_Cell *cell_get_dictionary_cell(const struct Ne_Cell *cell, const char *key)
@@ -581,8 +599,11 @@ const Ne_MethodTable ExtensionMethodTable = {
     cell_get_pointer,
     cell_set_pointer,
     cell_get_array_size,
+    cell_array_clear,
     cell_get_array_cell,
     cell_set_array_cell,
+    cell_get_dictionary_size,
+    cell_get_dictionary_key,
     cell_get_dictionary_cell,
     cell_set_dictionary_cell,
     exec_callback,
