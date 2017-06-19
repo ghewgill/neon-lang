@@ -44,7 +44,6 @@ env = Environment()
 
 vars = Variables(["config.cache", "config.py"])
 vars.AddVariables(
-    BoolVariable("MINIMAL", "Set to 1 to build without most 3rd party libraries", False),
     BoolVariable("RELEASE", "Set to 1 to build for release", False),
 )
 vars.Update(env)
@@ -72,16 +71,14 @@ def add_external(target):
     env.Depends("external", target)
     return target
 
-use_easysid = not env["MINIMAL"]
-use_sqlite = not env["MINIMAL"] or True # Need this for embedded sql
 use_posix = os.name == "posix"
 
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"])) if use_easysid else None
+libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"]))
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
-libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"])) if use_sqlite else None
+libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
 libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
@@ -194,7 +191,7 @@ rtl_cpp = rtl_const + squeeze([
     "lib/posix.cpp" if use_posix else None,
     "lib/random.cpp",
     "lib/runtime.cpp",
-    "lib/sqlite.cpp" if use_sqlite else None,
+    "lib/sqlite.cpp",
     "lib/string.cpp",
     "lib/sys.cpp",
     "lib/time.cpp",
@@ -215,7 +212,7 @@ rtl_neon = squeeze([
     "lib/process.neon",
     "lib/random.neon",
     "lib/runtime.neon",
-    "lib/sqlite.neon" if use_sqlite else None,
+    "lib/sqlite.neon",
     "lib/string.neon",
     "lib/sys.neon",
     "lib/time.neon",
@@ -497,10 +494,6 @@ else:
 
 test_sources = []
 for f in Glob("t/*.neon"):
-    if not use_sqlite and f.name in ["sqlite-test.neon"]:
-        continue
-    if not use_sqlite and f.name.startswith("sql-"):
-        continue
     test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
 env.Depends(tests, test_ffi)
