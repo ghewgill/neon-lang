@@ -362,6 +362,9 @@ else:
         env.Append(CPPPATH=["include"])
     conf.Finish()
 
+if libssl:
+    env.Depends("crypto.cpp", libssl)
+
 env.Append(CPPPATH=["../../src"])
 env.Append(LIBS=[x for x in [libssl] if x])
 env.SharedLibrary("neon_crypto", "crypto.cpp")
