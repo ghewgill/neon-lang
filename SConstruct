@@ -92,6 +92,7 @@ add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 SConscript("lib/compress/SConstruct")
 SConscript("lib/curses/SConstruct")
 SConscript("lib/extsample/SConstruct")
+SConscript("lib/hash/SConstruct")
 SConscript("lib/http/SConstruct")
 SConscript("lib/regex/SConstruct")
 SConscript("lib/sdl/SConstruct")
@@ -188,8 +189,6 @@ rtl_cpp = rtl_const + squeeze([
     "lib/debugger.cpp",
     "lib/global.cpp",
     "lib/file.cpp",
-    "lib/hash.cpp" if use_ssl else None,
-    "lib/hash_ressl.cpp" if use_ssl else None,
     "lib/io.cpp",
     "lib/math.cpp",
     "lib/net.cpp",
@@ -210,7 +209,6 @@ rtl_neon = squeeze([
     "lib/debugger.neon",
     "lib/file.neon",
     "lib/global.neon",
-    "lib/hash.neon" if use_ssl else None,
     "lib/io.neon",
     "lib/math.neon",
     "lib/mmap.neon",
@@ -505,8 +503,6 @@ for f in Glob("t/*.neon"):
     if not use_sqlite and f.name in ["sqlite-test.neon"]:
         continue
     if not use_sqlite and f.name.startswith("sql-"):
-        continue
-    if not use_ssl and f.name in ["hash-test.neon"]:
         continue
     test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))

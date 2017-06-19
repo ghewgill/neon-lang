@@ -21,74 +21,74 @@ EXPORT sha3Raw
  |
  |  Return the CRC32 of given <Bytes>.
  |%
-DECLARE NATIVE FUNCTION crc32(data: Bytes): Number
+DECLARE EXTENSION FUNCTION crc32(data: Bytes): Number
 
 %|
  |  Function: md5
  |
  |  Return the MD5 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION md5(data: Bytes): String
+DECLARE EXTENSION FUNCTION md5(data: Bytes): String
 
 %|
  |  Function: md5Raw
  |
  |  Return the MD5 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION md5Raw(data: Bytes): Bytes
+DECLARE EXTENSION FUNCTION md5Raw(data: Bytes): Bytes
 
 %|
  |  Function: sha1
  |
  |  Return the SHA1 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION sha1(data: Bytes): String
+DECLARE EXTENSION FUNCTION sha1(data: Bytes): String
 
 %|
  |  Function: sha1Raw
  |
  |  Return the SHA1 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha1Raw(data: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sha1Raw(data: Bytes): Bytes
 
 %|
  |  Function: sha256
  |
  |  Return the SHA256 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION sha256(data: Bytes): String
+DECLARE EXTENSION FUNCTION sha256(data: Bytes): String
 
 %|
  |  Function: sha256Raw
  |
  |  Return the SHA256 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha256Raw(data: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sha256Raw(data: Bytes): Bytes
 
 %|
  |  Function: sha512
  |
  |  Return the SHA512 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION sha512(data: Bytes): String
+DECLARE EXTENSION FUNCTION sha512(data: Bytes): String
 
 %|
  |  Function: sha512Raw
  |
  |  Return the SHA512 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha512Raw(data: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sha512Raw(data: Bytes): Bytes
 
 %|
  |  Function: sha3
  |
  |  Return the SHA3 hash of given <Bytes> as a hex string.
  |%
-DECLARE NATIVE FUNCTION sha3(data: Bytes): String
+DECLARE EXTENSION FUNCTION sha3(data: Bytes): String
 
 %|
  |  Function: sha3Raw
  |
  |  Return the SHA3 hash of given <Bytes> as a raw <Bytes>.
  |%
-DECLARE NATIVE FUNCTION sha3Raw(data: Bytes): Bytes
+DECLARE EXTENSION FUNCTION sha3Raw(data: Bytes): Bytes
