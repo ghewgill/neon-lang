@@ -74,7 +74,6 @@ def add_external(target):
 
 use_easysid = not env["MINIMAL"]
 use_sqlite = not env["MINIMAL"] or True # Need this for embedded sql
-use_ssl = not env["MINIMAL"]
 use_posix = os.name == "posix"
 
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
@@ -85,11 +84,11 @@ libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]
 libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"])) if use_sqlite else None
 libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
-libssl = add_external(SConscript("external/SConscript-libssl", exports=["env"])) if use_ssl else None
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
 SConscript("lib/compress/SConstruct")
+SConscript("lib/crypto/SConstruct")
 SConscript("lib/curses/SConstruct")
 SConscript("lib/extsample/SConstruct")
 SConscript("lib/hash/SConstruct")
@@ -124,7 +123,7 @@ if sys.platform == "win32":
             "/Ox",
             "/MD",
         ])
-    env.Append(LIBS=["advapi32", "user32", "wsock32"])
+    env.Append(LIBS=["user32", "wsock32"])
 else:
     env.Append(CXXFLAGS=[
         "-std=c++0x",
@@ -142,7 +141,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz, libssl]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -184,7 +183,6 @@ else:
 
 rtl_cpp = rtl_const + squeeze([
     "lib/binary.cpp",
-    "lib/crypto.cpp" if use_ssl else None,
     "lib/datetime.cpp",
     "lib/debugger.cpp",
     "lib/global.cpp",
@@ -204,7 +202,6 @@ rtl_cpp = rtl_const + squeeze([
 
 rtl_neon = squeeze([
     "lib/binary.neon",
-    "lib/crypto.neon" if use_ssl else None,
     "lib/datetime.neon",
     "lib/debugger.neon",
     "lib/file.neon",
