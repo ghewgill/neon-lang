@@ -1721,7 +1721,7 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
         tip = callstack[sp].second;
     }
 
-    fprintf(stderr, "Unhandled exception %s (%s)\n", exception.c_str(), info.info.c_str());
+    fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", exception.c_str(), info.info.c_str(), number_to_sint32(info.code));
     while (ip < module->object.code.size()) {
         if (module->debug != nullptr) {
             auto line = module->debug->line_numbers.end();
