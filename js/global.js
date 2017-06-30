@@ -47,7 +47,7 @@ neon = {
         },
 
         dictionary__keys: function(self) {
-            return Object.keys(self);
+            return Object.keys(self).sort();
         },
 
         divide: function(a, b) {

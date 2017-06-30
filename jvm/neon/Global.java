@@ -241,6 +241,7 @@ public class Global {
         for (String k: self.keySet()) {
             r.add(k);
         }
+        java.util.Collections.sort(r);
         return r;
     }
 
