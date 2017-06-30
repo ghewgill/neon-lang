@@ -94,6 +94,7 @@ ExcludeTests = [
     "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/variant-test.neon",          # illegal character dot
     "t/win32-test.neon",            # illegal character dot
+    "t/zeromq-test.neon",           # module zeromq
 ]
 
 fullname = sys.argv[1]

@@ -43,7 +43,8 @@ def check_file_neon(fn, source):
 
 def check_file(fn, source):
     if fn.endswith(".md"):
-        check_file_md(source)
+        if len(fn.split(os.sep)) <= 3:
+            check_file_md(source)
     elif fn.endswith(".neon"):
         check_file_neon(fn, source)
     else:

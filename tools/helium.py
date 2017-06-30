@@ -2615,6 +2615,7 @@ ExcludeTests = [
     "t/time-test.neon",         # Module not required
     "t/variant-test.neon",      # Module not required
     "t/win32-test.neon",        # Module not required
+    "t/zeromq-test.neon",       # Module not required
 
     "t/array2d.neon",           # Not implemented in helium yet
     "t/assert-empty-array.neon", # TODO only for C++ implementation

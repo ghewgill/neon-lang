@@ -93,6 +93,7 @@ SConscript("lib/http/SConstruct")
 SConscript("lib/regex/SConstruct")
 SConscript("lib/sdl/SConstruct")
 SConscript("lib/sodium/SConstruct")
+SConscript("lib/zeromq/SConstruct")
 
 SConscript("external/SConscript-naturaldocs")
 

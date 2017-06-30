@@ -1,0 +1,105 @@
+EXPORT ZeromqException
+EXPORT Context
+EXPORT Message
+EXPORT Socket
+EXPORT PollItem
+
+EXPORT zmq_bind
+EXPORT zmq_close
+EXPORT zmq_connect
+EXPORT zmq_ctx_get
+EXPORT zmq_ctx_new
+EXPORT zmq_ctx_set
+EXPORT zmq_ctx_shutdown
+EXPORT zmq_ctx_term
+EXPORT zmq_curve_keypair
+EXPORT zmq_disconnect
+EXPORT zmq_msg_close
+EXPORT zmq_msg_copy
+EXPORT zmq_msg_data
+EXPORT zmq_msg_get
+EXPORT zmq_msg_init_data
+EXPORT zmq_msg_init_size
+EXPORT zmq_msg_init
+EXPORT zmq_msg_more
+EXPORT zmq_msg_move
+EXPORT zmq_msg_recv
+EXPORT zmq_msg_send
+EXPORT zmq_msg_set
+EXPORT zmq_msg_size
+EXPORT zmq_poll
+EXPORT zmq_proxy_steerable
+EXPORT zmq_proxy
+EXPORT zmq_recv
+EXPORT zmq_send
+EXPORT zmq_socket
+EXPORT zmq_strerror
+EXPORT zmq_unbind
+EXPORT zmq_version
+EXPORT zmq_z85_decode
+EXPORT zmq_z85_encode
+
+EXCEPTION ZeromqException
+
+TYPE Context IS POINTER
+TYPE Message IS POINTER
+TYPE Socket IS POINTER
+
+TYPE PollItem IS RECORD
+    socket: Socket
+    fd: Number
+    events: Number
+    revents: Number
+END RECORD
+
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_REQ: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_REP: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_DEALER: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_ROUTER: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_PUB: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_SUB: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_PUSH: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_PULL: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_PAIR: Number
+
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_POLLIN: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_POLLOUT: Number
+EXPORT DECLARE EXTENSION CONSTANT ZMQ_POLLERR: Number
+
+DECLARE EXTENSION FUNCTION zmq_bind(socket: Socket, endpoint: String)
+DECLARE EXTENSION FUNCTION zmq_close(socket: Socket)
+DECLARE EXTENSION FUNCTION zmq_connect(socket: Socket, endpoint: String)
+DECLARE EXTENSION FUNCTION zmq_ctx_get(context: Context, option_name: Number): Number
+DECLARE EXTENSION FUNCTION zmq_ctx_new(): Context
+DECLARE EXTENSION FUNCTION zmq_ctx_set(context: Context, option_name: Number, option_value: Number)
+DECLARE EXTENSION FUNCTION zmq_ctx_shutdown(context: Context)
+DECLARE EXTENSION FUNCTION zmq_ctx_term(context: Context)
+DECLARE EXTENSION FUNCTION zmq_curve_keypair(OUT z85_public_key: String, OUT z85_secret_key: String)
+DECLARE EXTENSION FUNCTION zmq_disconnect(socket: Socket, endpoint: String)
+% getsockopt
+DECLARE EXTENSION FUNCTION zmq_msg_close(msg: Message)
+DECLARE EXTENSION FUNCTION zmq_msg_copy(dest: Message, src: Message)
+DECLARE EXTENSION FUNCTION zmq_msg_data(msg: Message): Bytes
+DECLARE EXTENSION FUNCTION zmq_msg_get(msg: Message, property: Number): Number
+DECLARE EXTENSION FUNCTION zmq_msg_init_data(data: Bytes): Message
+DECLARE EXTENSION FUNCTION zmq_msg_init_size(size: Number): Message
+DECLARE EXTENSION FUNCTION zmq_msg_init(): Message
+DECLARE EXTENSION FUNCTION zmq_msg_more(msg: Message): Boolean
+DECLARE EXTENSION FUNCTION zmq_msg_move(dest: Message, src: Message)
+DECLARE EXTENSION FUNCTION zmq_msg_recv(msg: Message, socket: Socket, flags: Number): Number
+DECLARE EXTENSION FUNCTION zmq_msg_send(msg: Message, socket: Socket, flags: Number)
+DECLARE EXTENSION FUNCTION zmq_msg_set(msg: Message, property: Number, value: Number)
+DECLARE EXTENSION FUNCTION zmq_msg_size(msg: Message): Number
+DECLARE EXTENSION FUNCTION zmq_poll(INOUT items: Array<PollItem>, timeout_ms: Number): Number
+DECLARE EXTENSION FUNCTION zmq_proxy_steerable(frontend: Socket, backend: Socket, capture: Socket, control: Socket)
+DECLARE EXTENSION FUNCTION zmq_proxy(frontend: Socket, backend: Socket, capture: Socket)
+DECLARE EXTENSION FUNCTION zmq_recv(socket: Socket, len: Number, flags: Number): Bytes
+DECLARE EXTENSION FUNCTION zmq_send(socket: Socket, buf: Bytes, flags: Number)
+% setsockopt
+% socket_monitor
+DECLARE EXTENSION FUNCTION zmq_socket(context: Context, type: Number): Socket
+DECLARE EXTENSION FUNCTION zmq_strerror(errnum: Number): String
+DECLARE EXTENSION FUNCTION zmq_unbind(socket: Socket, endpoint: String)
+DECLARE EXTENSION FUNCTION zmq_version(OUT major, minor, patch: Number)
+DECLARE EXTENSION FUNCTION zmq_z85_decode(string: String): Bytes
+DECLARE EXTENSION FUNCTION zmq_z85_encode(data: Bytes): String

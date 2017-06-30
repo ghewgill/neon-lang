@@ -122,6 +122,7 @@ ExcludeTests = [
     "t/variant-test.neon",          # bytes
     "t/while-valid.neon",           # unknown
     "t/win32-test.neon",            # module win32
+    "t/zeromq-test.neon",           # module zeromq
 ]
 
 fullname = sys.argv[1]
