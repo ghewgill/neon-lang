@@ -1356,6 +1356,7 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
+        context.out << "throw new neon.NeonException(\"AssertFailedException\", " << quoted(as->source) << ");";
         context.out << "}";
     }
 private:
@@ -1870,7 +1871,7 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
-        context.out << "} catch (x) { if (x instanceof neon.NeonException) { console.error(\"Unhandled exception \" + x.name); } else { throw x; } }";
+        context.out << "} catch (x) { if (x instanceof neon.NeonException) { console.error(\"Unhandled exception \" + x.name); process.exit(1); } else { throw x; } }";
         std::vector<unsigned char> src;
         std::string t = out.str();
         std::copy(t.begin(), t.end(), std::back_inserter(src));

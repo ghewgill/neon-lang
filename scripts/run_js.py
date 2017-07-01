@@ -6,6 +6,7 @@ ExcludeTests = [
     "t/array-negative.neon",        # exception
     "t/array-resize.neon",          # array default item
     "t/array-slice.neon",           # ArrayReferenceRangeExpression
+    "t/array-tostring.neon",        # array comparison
     "t/array2d.neon",               # copy semantics
     "t/assert-enum.neon",           # enum
     "t/bigint-test.neon",           # module bigint
@@ -65,6 +66,7 @@ ExcludeTests = [
     "t/json-test.neon",             # StringReferenceIndexExpression
     "t/lexer-unicode.neon",         # ArrayInExpression
     "t/lisp-test.neon",             # DictionaryInExpression
+    "t/literal-array.neon",         # array comparison
     "t/loop-label.neon",            # break outer loop
     "t/math-test.neon",             # module math
     "t/methods-declare.neon",       # methods

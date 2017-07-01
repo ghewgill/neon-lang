@@ -2401,7 +2401,11 @@ public:
         for (auto s: statements) {
             s->generate(context);
         }
-        // TODO: create code to throw assertion exception
+        context.ca.code << OP_new << context.cf.Class("neon/type/NeonException");
+        context.ca.code << OP_dup;
+        context.ca.code << OP_ldc_w << context.cf.String(as->source);
+        context.ca.code << OP_invokespecial << context.cf.Method("neon/type/NeonException", "<init>", "(Ljava/lang/String;)V");
+        context.ca.code << OP_athrow;
         context.jump_target(label_skip);
     }
 private:
@@ -3117,6 +3121,8 @@ public:
                     ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "print", "(Ljava/lang/String;)V");
                     ca.code << OP_swap;
                     ca.code << OP_invokevirtual << cf.Method("java/io/PrintStream", "println", "(Ljava/lang/String;)V");
+                    ca.code << OP_iconst_1;
+                    ca.code << OP_invokestatic << context.cf.Method("java/lang/System", "exit", "(I)V");
                     ca.code << OP_return;
                     code.info = ca.serialize();
                     for (auto t: classcontext.generated_types) {
