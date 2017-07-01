@@ -10,6 +10,7 @@ config.log
 *.exe
 *.dylib
 *.dll
+*.so
 *.gc*
 *.pyc
 *.neonx
