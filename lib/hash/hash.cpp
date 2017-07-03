@@ -51,10 +51,10 @@ Ne_EXPORT int Ne_INIT(const Ne_MethodTable *methodtable)
 
 Ne_FUNC(Ne_crc32)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     CRC32 crc32;
-    crc32(bytes.data(), bytes.size());
+    crc32(bytes.ptr, bytes.len);
     unsigned char buf[CRC32::HashBytes];
     crc32.getHash(buf);
     Ne_RETURN_UINT((buf[0] << 24) | (buf[1] << 16) | (buf[2] << 8) | buf[3]);
@@ -62,10 +62,10 @@ Ne_FUNC(Ne_crc32)
 
 Ne_FUNC(Ne_md5Raw)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     MD5 md5;
-    md5(bytes.data(), bytes.size());
+    md5(bytes.ptr, bytes.len);
     unsigned char buf[MD5::HashBytes];
     md5.getHash(buf);
     Ne_RETURN_BYTES(buf, sizeof(buf));
@@ -73,10 +73,10 @@ Ne_FUNC(Ne_md5Raw)
 
 Ne_FUNC(Ne_md5)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     MD5 md5;
-    md5(bytes.data(), bytes.size());
+    md5(bytes.ptr, bytes.len);
     unsigned char buf[MD5::HashBytes];
     md5.getHash(buf);
     Ne_RETURN_STRING(to_hex(buf, sizeof(buf)).c_str());
@@ -84,10 +84,10 @@ Ne_FUNC(Ne_md5)
 
 Ne_FUNC(Ne_sha1Raw)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     SHA1 sha1;
-    sha1(bytes.data(), bytes.size());
+    sha1(bytes.ptr, bytes.len);
     unsigned char buf[SHA1::HashBytes];
     sha1.getHash(buf);
     Ne_RETURN_BYTES(buf, sizeof(buf));
@@ -95,10 +95,10 @@ Ne_FUNC(Ne_sha1Raw)
 
 Ne_FUNC(Ne_sha1)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     SHA1 sha1;
-    sha1(bytes.data(), bytes.size());
+    sha1(bytes.ptr, bytes.len);
     unsigned char buf[SHA1::HashBytes];
     sha1.getHash(buf);
     Ne_RETURN_STRING(to_hex(buf, sizeof(buf)).c_str());
@@ -106,18 +106,18 @@ Ne_FUNC(Ne_sha1)
 
 Ne_FUNC(Ne_sha3)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     SHA3 sha3;
-    Ne_RETURN_STRING(sha3(bytes.data(), bytes.size()).c_str());
+    Ne_RETURN_STRING(sha3(bytes.ptr, bytes.len).c_str());
 }
 
 Ne_FUNC(Ne_sha3Raw)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     SHA3 sha3;
-    std::string hash = to_binary(sha3(bytes.data(), bytes.size()));
+    std::string hash = to_binary(sha3(bytes.ptr, bytes.len));
     Ne_RETURN_BYTES(reinterpret_cast<const unsigned char *>(hash.data()), static_cast<int>(hash.length()));
 }
 

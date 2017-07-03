@@ -24,38 +24,38 @@ extern "C" {
 
 Ne_FUNC(Ne_sha256Raw)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     unsigned char buf[SHA256_DIGEST_LENGTH];
-    SHA256(reinterpret_cast<const unsigned char *>(bytes.data()), bytes.size(), buf);
+    SHA256(bytes.ptr, bytes.len, buf);
     Ne_RETURN_BYTES(buf, sizeof(buf));
 }
 
 Ne_FUNC(Ne_sha256)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     unsigned char buf[SHA256_DIGEST_LENGTH];
-    SHA256(reinterpret_cast<const unsigned char *>(bytes.data()), bytes.size(), buf);
+    SHA256(bytes.ptr, bytes.len, buf);
     std::string hash = to_hex(buf, sizeof(buf));
     Ne_RETURN_BYTES(reinterpret_cast<const unsigned char *>(hash.data()), static_cast<int>(hash.length()));
 }
 
 Ne_FUNC(Ne_sha512Raw)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     unsigned char buf[SHA512_DIGEST_LENGTH];
-    SHA512(reinterpret_cast<const unsigned char *>(bytes.data()), bytes.size(), buf);
+    SHA512(bytes.ptr, bytes.len, buf);
     Ne_RETURN_BYTES(buf, sizeof(buf));
 }
 
 Ne_FUNC(Ne_sha512)
 {
-    const std::vector<unsigned char> bytes = Ne_PARAM_BYTES(0);
+    Ne_Bytes bytes = Ne_PARAM_BYTES(0);
 
     unsigned char buf[SHA512_DIGEST_LENGTH];
-    SHA512(reinterpret_cast<const unsigned char *>(bytes.data()), bytes.size(), buf);
+    SHA512(bytes.ptr, bytes.len, buf);
     std::string hash = to_hex(buf, sizeof(buf));
     Ne_RETURN_BYTES(reinterpret_cast<const unsigned char *>(hash.data()), static_cast<int>(hash.length()));
 }

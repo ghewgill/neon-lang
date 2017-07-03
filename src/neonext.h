@@ -59,6 +59,11 @@ struct Ne_MethodTable {
     int (*raise_exception)(struct Ne_Cell *retval, const char *name, const char *info, int code);
 };
 
+struct Ne_Bytes {
+    const unsigned char *ptr;
+    int len;
+};
+
 Ne_EXPORT int Ne_INIT(const struct Ne_MethodTable *methodtable);
 typedef int (*Ne_ExtensionFunction)(struct Ne_Cell *retval, struct Ne_ParameterList *in_params, struct Ne_ParameterList *out_params);
 
@@ -76,6 +81,7 @@ typedef int (*Ne_ExtensionFunction)(struct Ne_Cell *retval, struct Ne_ParameterL
 #define Ne_PARAM_INT(i) Ne->cell_get_number_int(Ne_IN_PARAM(i))
 #define Ne_PARAM_UINT(i) Ne->cell_get_number_uint(Ne_IN_PARAM(i))
 #define Ne_PARAM_STRING(i) Ne->cell_get_string(Ne_IN_PARAM(i))
+#define Ne_PARAM_BYTES(i) { Ne->cell_get_bytes(Ne->parameterlist_get_cell(in_params, (i))), Ne->cell_get_bytes_size(Ne->parameterlist_get_cell(in_params, (i))) }
 #define Ne_PARAM_POINTER(type, i) (type *)(Ne->cell_get_pointer(Ne_IN_PARAM(i)))
 
 #define Ne_RETURN_BOOL(r) do { Ne->cell_set_boolean(retval, (r)); return Ne_SUCCESS; } while (0)
@@ -110,8 +116,6 @@ inline std::vector<int> Ne_PARAM_ARRAY_INT(Ne_ParameterList *in_params, int i)
     return r;
 }
 
-#define Ne_PARAM_BYTES(i) std::vector<unsigned char> { Ne->cell_get_bytes(Ne->parameterlist_get_cell(in_params, (i))), Ne->cell_get_bytes(Ne->parameterlist_get_cell(in_params, (i))) + Ne->cell_get_bytes_size(Ne->parameterlist_get_cell(in_params, (i))) }
-
-#define Ne_RETURN_ARRAY_INT(r) do { for (size_t i = 0; i < r.size(); i++) { Ne->cell_set_number_int(Ne->cell_set_array_cell(retval, i), r[i]); } return Ne_SUCCESS; } while (0)
+#define Ne_RETURN_ARRAY_INT(r) do { for (size_t i = 0; i < r.size(); i++) { Ne->cell_set_number_int(Ne->cell_set_array_cell(retval, static_cast<int>(i)), r[i]); } return Ne_SUCCESS; } while (0)
 
 #endif // __cplusplus
