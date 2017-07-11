@@ -73,7 +73,7 @@ std::string just_path(const std::string &name)
 
 class ForeignCallInfo {
 public:
-    typedef void (*marshal_f)(Cell &cell, void *&p, size_t &space);
+    typedef void *(*marshal_f)(Cell &cell, void *&p, size_t &space);
     typedef Cell (*unmarshal_f)(void *p);
     ForeignCallInfo(): types(), marshal(), unmarshal(nullptr), cif(), fp(nullptr) {}
     std::vector<ffi_type *> types;
@@ -115,44 +115,49 @@ template <> struct number_conversion< int64_t> { static  int64_t convert_to_nati
 template <> struct number_conversion<float   > { static float    convert_to_native(Number x) { return number_to_float (x); } static Number convert_from_native(float    x) { return number_from_float (x); } };
 template <> struct number_conversion<double  > { static double   convert_to_native(Number x) { return number_to_double(x); } static Number convert_from_native(double   x) { return number_from_double(x); } };
 
-template <typename T> static void marshal_number(Cell &cell, void *&p, size_t &space)
+template <typename T> static void *marshal_number(Cell &cell, void *&p, size_t &space)
 {
     T *a = reinterpret_cast<T *>(align(alignof(T), sizeof(T), p, space));
     *a = number_conversion<T>::convert_to_native(cell.number());
     p = a + 1;
     space -= sizeof(T);
+    return a;
 }
 
-static void marshal_pointer(Cell &cell, void *&p, size_t &space)
+static void *marshal_pointer(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
     *a = cell.address();
     p = a + 1;
     space -= sizeof(void *);
+    return a;
 }
 
-static void marshal_pointer_a(Cell &cell, void *&p, size_t &space)
+static void *marshal_pointer_a(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
     *a = cell.address()->address();
     p = a + 1;
     space -= sizeof(void *);
+    return a;
 }
 
-static void marshal_string(Cell &cell, void *&p, size_t &space)
+static void *marshal_string(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
     *a = const_cast<char *>(cell.string().data());
     p = a + 1;
     space -= sizeof(void *);
+    return a;
 }
 
-static void marshal_string_a(Cell &cell, void *&p, size_t &space)
+static void *marshal_string_a(Cell &cell, void *&p, size_t &space)
 {
     void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
     *a = const_cast<char *>(cell.address()->string().data());
     p = a + 1;
     space -= sizeof(void *);
+    return a;
 }
 
 template <typename T> static Cell unmarshal_boolean(void *p)
@@ -1479,10 +1484,9 @@ void Executor::exec_CALLE()
     size_t i = fci->types.size();
     for (auto m = fci->marshal.rbegin(); m != fci->marshal.rend(); ++m) {
         i--;
-        args[i] = p;
         cells.push_back(stack.top());
         stack.pop();
-        (*m)(cells[cells.size()-1], p, size);
+        args[i] = (*m)(cells[cells.size()-1], p, size);
     }
     ffi_call(&fci->cif, fci->fp, r, args);
     if (fci->unmarshal != nullptr) {
