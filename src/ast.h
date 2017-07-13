@@ -1999,10 +1999,11 @@ private:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const Expression *func, const std::vector<const Expression *> &args): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), args(args) {}
+    FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const func;
+    const Expression *const dispatch;
     const std::vector<const Expression *> args;
 
     virtual bool eval_boolean() const override { internal_error("FunctionCall"); }

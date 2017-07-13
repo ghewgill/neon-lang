@@ -1428,6 +1428,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     const pt::ArrowExpression *arrowmethod = dynamic_cast<const pt::ArrowExpression *>(expr->base.get());
     const ast::Expression *self = nullptr;
     const ast::Expression *func = nullptr;
+    const ast::Expression *dispatch = nullptr;
     if (dotmethod != nullptr) {
         // This check avoids trying to evaluate foo.bar as an
         // expression in foo.bar() where foo is actually a module.
@@ -1513,6 +1514,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             error(3017, expr->base->token, "not a function");
         }
         ftype = pf->functype;
+        dispatch = func;
     }
     int param_index = 0;
     std::vector<const ast::Expression *> args(ftype->params.size());
@@ -1597,7 +1599,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         p++;
     }
-    return new ast::FunctionCall(func, args);
+    return new ast::FunctionCall(func, args, dispatch);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)

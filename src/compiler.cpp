@@ -720,13 +720,6 @@ void ast::Variable::generate_store(Emitter &emitter) const
 
 void ast::Variable::generate_call(Emitter &emitter) const
 {
-    // These two statements are for function pointer support.
-    // I'm not quite sure why this doesn't cause an internal compiler error
-    // for other things like PredefinedFunction (since its generate_address
-    // is not implemented), but nevertheless this seems to work.
-    generate_address(emitter);
-    type->generate_load(emitter);
-
     type->generate_call(emitter);
 }
 
@@ -1548,6 +1541,9 @@ void ast::FunctionCall::generate_expr(Emitter &emitter) const
             internal_error("FunctionCall::generate_expr");
         }
         ftype = pf->functype;
+    }
+    if (dispatch != nullptr) {
+        dispatch->generate_expr(emitter);
     }
     func->generate_call(emitter);
     for (size_t i = 0; i < args.size(); i++) {
