@@ -28,10 +28,10 @@
 #include "support.h"
 
 #ifdef _WIN32
-#define PATHSEP '\\'
+#define PATHSEP "\\"
 #define LIBRARY_NAME_PREFIX ""
 #else
-#define PATHSEP '/'
+#define PATHSEP "/"
 #define LIBRARY_NAME_PREFIX "lib"
 #endif
 
@@ -59,10 +59,7 @@ std::vector<std::string> split(const std::string &s, char d)
 
 std::string just_path(const std::string &name)
 {
-    auto i = name.rfind(PATHSEP);
-    if (i == std::string::npos) {
-        i = name.rfind('/');
-    }
+    auto i = name.find_last_of((std::string(PATHSEP) + "/").c_str());
     if (i == std::string::npos) {
         return std::string();
     }
