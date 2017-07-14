@@ -63,6 +63,9 @@ std::string just_path(const std::string &name)
     if (i == std::string::npos) {
         i = name.rfind('/');
     }
+    if (name.substr(0, i+1).rfind('/')) {
+        i = name.rfind('/');
+    }
     if (i == std::string::npos) {
         return std::string();
     }
