@@ -1,5 +1,6 @@
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import tarfile
@@ -57,9 +58,10 @@ if "RELEASE" not in env or not env["RELEASE"]:
 
 if GetOption("clean"):
     def remove_readonly(function, path, excinfo):
-        os.chmod(path, stat.S_IWRITE)
-        os.remove(path)
-    shutil.rmtree("libressl-2.2.4", ignore_errors=True, onerror=remove_readonly)
+        if os.path.exists(path):
+            os.chmod(path, stat.S_IWRITE)
+            os.remove(path)
+    shutil.rmtree("libressl-2.2.4", onerror=remove_readonly)
 elif not os.path.exists("libressl-2.2.4/configure"):
     tarfile.open("libressl-2.2.4.tar.gz").extractall(".")
     if sys.platform == "win32":
