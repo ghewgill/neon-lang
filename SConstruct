@@ -44,6 +44,7 @@ env = Environment()
 
 vars = Variables(["config.cache", "config.py"])
 vars.AddVariables(
+    BoolVariable("BID_GENERIC", "Set to 1 to build a generic bid library", False),
     BoolVariable("RELEASE", "Set to 1 to build for release", False),
 )
 vars.Update(env)
