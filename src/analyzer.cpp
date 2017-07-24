@@ -3135,7 +3135,11 @@ template <typename T> bool check(ast::ComparisonExpression::Comparison comp1, co
         case ast::ComparisonExpression::NE:
             switch (comp2) {
                 case ast::ComparisonExpression::EQ: return value1 != value2;
-                default: return true;
+                case ast::ComparisonExpression::NE: return true;
+                case ast::ComparisonExpression::LT: return true;
+                case ast::ComparisonExpression::GT: return true;
+                case ast::ComparisonExpression::LE: return true;
+                case ast::ComparisonExpression::GE: return true;
             }
             break;
         case ast::ComparisonExpression::LT:

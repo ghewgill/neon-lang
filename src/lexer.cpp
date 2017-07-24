@@ -705,7 +705,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
     return tokens;
 }
 
-std::string expand_tabs(const std::string &s)
+static std::string expand_tabs(const std::string &s)
 {
     std::string r;
     int column = 0;

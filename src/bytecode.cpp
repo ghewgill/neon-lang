@@ -24,7 +24,7 @@ static uint16_t get_uint16(const std::vector<unsigned char> &obj, size_t &i)
     if (i+2 > obj.size()) {
         throw BytecodeException();
     }
-    uint16_t r = (obj[i] << 8) | obj[i+1];
+    uint16_t r = static_cast<uint16_t>((obj[i] << 8) | obj[i+1]);
     i += 2;
     return r;
 }

@@ -5,7 +5,7 @@
 #include "parser.h"
 #include "util.h"
 
-std::string reconstitute(const Token &t)
+static std::string reconstitute(const Token &t)
 {
     switch (t.type) {
         case NONE:        exit(1);
