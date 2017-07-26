@@ -1131,7 +1131,7 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
         } else if (e != nullptr) {
             e->generate(emitter);
         } else {
-            internal_error("unexpected catch type");
+            internal_error("unexpected TRAP type");
         }
         emitter.emit_jump(JUMP, skip);
     }
@@ -1896,7 +1896,7 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
                 stmt->generate(emitter);
             }
         } else {
-            internal_error("unexpected catch type");
+            internal_error("unexpected TRAP type");
         }
         emitter.emit_jump(JUMP, skip);
     }
