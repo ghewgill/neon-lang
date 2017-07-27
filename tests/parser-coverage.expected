@@ -19,6 +19,12 @@ Program
   TypeDeclaration
     TypeRecord(name,name)
   TypeDeclaration
+    TypeClass()
+  TypeDeclaration
+    TypeClass(name)
+  TypeDeclaration
+    TypeClass(name,name)
+  TypeDeclaration
     TypeEnum()
   TypeDeclaration
     TypeEnum(one)

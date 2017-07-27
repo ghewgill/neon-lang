@@ -104,6 +104,7 @@ TYPE Type IS ENUM
     TypeSimple
     TypeEnum
     TypeRecord
+    TypeClass
     TypePointer
     TypeFunctionPointer
     TypeParameterised
@@ -196,6 +197,10 @@ TYPE Field IS RECORD
 END RECORD
 
 TYPE TypeRecord IS RECORD
+    fields: Array<Field>
+END RECORD
+
+TYPE TypeClass IS RECORD
     fields: Array<Field>
 END RECORD
 
@@ -550,6 +555,7 @@ TYPE ParseTreeNode IS CLASS
     typesimple: TypeSimple
     typeenum: TypeEnum
     typerecord: TypeRecord
+    typeclass: TypeClass
     typepointer: TypePointer
     typefunctionpointer: TypeFunctionPointer
     typeparameterised: TypeParameterised
@@ -2040,6 +2046,46 @@ FUNCTION Parser.parseRecordType(INOUT self: Parser): POINTER TO ParseTreeNode
     )
 END FUNCTION
 
+FUNCTION Parser.parseClassType(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.class
+    LET tokClass: lexer.Token := self.token
+    self.nextToken()
+    VAR fields: Array<Field> := []
+    WHILE self.token.type <> TokenType.end DO
+        LET isPrivate: Boolean := self.token.type = TokenType.private
+        IF isPrivate THEN
+            self.nextToken()
+        END IF
+        IF self.token.type <> TokenType.identifier THEN
+            error(2004, self.token, "identifier expected")
+        END IF
+        LET name: lexer.Token := self.token
+        self.nextToken()
+        IF self.token.type <> TokenType.colon THEN
+            error(2005, self.token, "colon expected")
+        END IF
+        self.nextToken()
+        LET t: POINTER TO ParseTreeNode := self.parseType()
+        fields.append(Field(
+            name WITH name,
+            type WITH t,
+            isPrivate WITH isPrivate
+        ))
+    END WHILE
+    self.nextToken()
+    IF self.token.type <> TokenType.class THEN
+        error_a(2034, self.tokens[self.index-1], self.token, "'CLASS' expected")
+    END IF
+    self.nextToken()
+    RETURN NEW ParseTreeNode(
+        type WITH Type.TypeClass,
+        token WITH tokClass,
+        typeclass WITH TypeClass(
+            fields WITH fields
+        )
+    )
+END FUNCTION
+
 FUNCTION Parser.parsePointerType(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.pointer
     LET tokPointer: lexer.Token := self.token
@@ -2116,6 +2162,8 @@ FUNCTION Parser.parseType(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseEnumType()
         WHEN TokenType.record DO
             RETURN self.parseRecordType()
+        WHEN TokenType.class DO
+            RETURN self.parseClassType()
         WHEN TokenType.pointer DO
             RETURN self.parsePointerType()
         WHEN TokenType.function DO
@@ -3369,6 +3417,17 @@ FUNCTION dumpTypeRecord(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TypeRecord(\(names))")
 END FUNCTION
 
+FUNCTION dumpTypeClass(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH f IN node->typeclass.fields DO
+        IF names <> "" THEN
+            names.append(",")
+        END IF
+        names.append(f.name.text)
+    END FOREACH
+    dumpNode(depth, "TypeClass(\(names))")
+END FUNCTION
+
 FUNCTION dumpTypePointer(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "TypePointer")
     dumpParseTree(node->typepointer.reftype, depth+1)
@@ -3878,6 +3937,7 @@ LET Dumper: IParseTreeVisitor := {
     "TypeSimple":                           dumpTypeSimple,
     "TypeEnum":                             dumpTypeEnum,
     "TypeRecord":                           dumpTypeRecord,
+    "TypeClass":                            dumpTypeClass,
     "TypePointer":                          dumpTypePointer,
     "TypeFunctionPointer":                  dumpTypeFunctionPointer,
     "TypeParameterised":                    dumpTypeParameterised,

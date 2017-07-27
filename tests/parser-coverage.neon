@@ -17,6 +17,11 @@ TYPE name IS RECORD END RECORD
 TYPE name IS RECORD name: type END RECORD
 TYPE name IS RECORD name: type PRIVATE name: type END RECORD
 
+% Type, ClassType
+TYPE name IS CLASS END CLASS
+TYPE name IS CLASS name: type END CLASS
+TYPE name IS CLASS name: type PRIVATE name: type END CLASS
+
 % Type, EnumType
 TYPE name IS ENUM END ENUM
 TYPE name IS ENUM one END ENUM
