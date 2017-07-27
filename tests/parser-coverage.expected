@@ -69,6 +69,8 @@ Program
     DictionaryLiteralExpression
   NativeFunctionDeclaration(name)
     nullptr
+  ExtensionFunctionDeclaration(name)
+    nullptr
   FunctionDeclaration(name)
     nullptr
   FunctionDeclaration(name)

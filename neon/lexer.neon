@@ -112,6 +112,7 @@ TYPE Type IS ENUM
     label
     class
     trap
+    extension
     unknown
     max_token
 END ENUM
@@ -358,6 +359,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "LABEL" THEN t.type := Type.label
             ELSIF t.text = "CLASS" THEN t.type := Type.class
             ELSIF t.text = "TRAP" THEN t.type := Type.trap
+            ELSIF t.text = "EXTENSION" THEN t.type := Type.extension
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN

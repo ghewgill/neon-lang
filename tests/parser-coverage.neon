@@ -56,6 +56,9 @@ FOREIGN FUNCTION name() {} END FUNCTION
 % NativeFunctionDeclaration
 DECLARE NATIVE FUNCTION name()
 
+% ExtensionFunctionDeclaration
+DECLARE EXTENSION FUNCTION name()
+
 % FunctionHeader
 FUNCTION name() END FUNCTION
 FUNCTION type.name() END FUNCTION

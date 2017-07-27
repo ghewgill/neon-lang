@@ -157,6 +157,7 @@ TYPE Type IS ENUM
     FunctionDeclaration
     ForeignFunctionDeclaration
     NativeFunctionDeclaration
+    ExtensionFunctionDeclaration
     ExceptionDeclaration
     ExportDeclaration
     AssertStatement
@@ -2272,8 +2273,28 @@ FUNCTION Parser.parseDeclaration(INOUT self: Parser): POINTER TO ParseTreeNode
                     )
             END CASE
             RETURN NIL
+        WHEN TokenType.extension DO
+            self.nextToken()
+            LET tokFunction: lexer.Token := self.token
+            VAR type: lexer.Token
+            VAR name: lexer.Token
+            VAR returntype: POINTER TO ParseTreeNode
+            VAR args: Array<FunctionParameterGroup>
+            VAR rparen: lexer.Token
+            self.parseFunctionHeader(OUT type, OUT name, OUT returntype, OUT args, OUT rparen)
+            RETURN NEW ParseTreeNode(
+                type WITH Type.ExtensionFunctionDeclaration,
+                token WITH tokFunction,
+                functiondeclaration WITH FunctionDeclaration(
+                    type WITH type,
+                    name WITH name,
+                    returntype WITH returntype,
+                    args WITH args,
+                    rparen WITH rparen
+                )
+            )
         WHEN OTHERS DO
-            error(2058, self.token, "EXCEPTION or NATIVE expected")
+            error(2058, self.token, "NATIVE or EXTENSION expected")
     END CASE
     RETURN NIL
 END FUNCTION
@@ -3670,6 +3691,17 @@ FUNCTION dumpNativeFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, dep
     END FOREACH
 END FUNCTION
 
+FUNCTION dumpExtensionFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "ExtensionFunctionDeclaration(\(node->functiondeclaration.name.text))")
+    dumpParseTree(node->functiondeclaration.returntype, depth+1)
+    FOREACH a IN node->functiondeclaration.args DO
+        FOREACH n IN a.names DO
+            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpParseTree(a.type, depth+2)
+        END FOREACH
+    END FOREACH
+END FUNCTION
+
 FUNCTION dumpExceptionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     VAR names: String := ""
     FOREACH n IN node->exceptiondeclaration.name DO
@@ -3899,6 +3931,7 @@ LET Dumper: IParseTreeVisitor := {
     "FunctionDeclaration":                  dumpFunctionDeclaration,
     "ForeignFunctionDeclaration":           dumpForeignFunctionDeclaration,
     "NativeFunctionDeclaration":            dumpNativeFunctionDeclaration,
+    "ExtensionFunctionDeclaration":         dumpExtensionFunctionDeclaration,
     "ExceptionDeclaration":                 dumpExceptionDeclaration,
     "ExportDeclaration":                    dumpExportDeclaration,
     "AssertStatement":                      dumpAssertStatement,
