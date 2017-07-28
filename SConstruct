@@ -46,6 +46,7 @@ vars = Variables(["config.cache", "config.py"])
 vars.AddVariables(
     BoolVariable("BID_GENERIC", "Set to 1 to build a generic bid library", False),
     BoolVariable("RELEASE", "Set to 1 to build for release", False),
+    ("CLANG_SANITIZE", "Options to the -fsanitize= flag for clang"),
 )
 vars.Update(env)
 if GetOption("clean"):
@@ -132,6 +133,13 @@ else:
         #"-Wold-style-cast",    # Enable this temporarily to check, but it breaks with gcc and #defines with C casts in standard headers.
         "-Werror",
     ])
+    if "CLANG_SANITIZE" in env:
+        env.Append(CXXFLAGS=[
+            "-fsanitize=" + env["CLANG_SANITIZE"],
+        ])
+        env.Append(LINKFLAGS=[
+            "-fsanitize=" + env["CLANG_SANITIZE"],
+        ])
     if not env["RELEASE"]:
         env.Append(CXXFLAGS=[
             "-g",
