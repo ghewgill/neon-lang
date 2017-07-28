@@ -107,7 +107,8 @@ Ne_FUNC(Ne_randombytes)
     if (size == 0) {
         Ne_RETURN_BYTES(NULL, 0);
     }
-    std::vector<unsigned char> buf(size);
+    std::vector<unsigned char> buf;
+    buf.resize(size);
     ::randombytes(buf.data(), size);
     Ne_RETURN_BYTES(buf.data(), static_cast<int>(buf.size()));
 }
@@ -178,7 +179,8 @@ Ne_FUNC(Ne_aead_aes256gcm_encrypt)
     if (key.len != crypto_aead_aes256gcm_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> ciphertext(message.len + crypto_aead_aes256gcm_ABYTES);
+    std::vector<unsigned char> ciphertext;
+    ciphertext.resize(message.len + crypto_aead_aes256gcm_ABYTES);
     unsigned long long ciphertext_len;
     crypto_aead_aes256gcm_encrypt(
         ciphertext.data(),
@@ -207,7 +209,8 @@ Ne_FUNC(Ne_aead_aes256gcm_decrypt)
     if (key.len != crypto_aead_aes256gcm_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> decrypted(ciphertext.len);
+    std::vector<unsigned char> decrypted;
+    decrypted.resize(ciphertext.len);
     unsigned long long decrypted_len;
     crypto_aead_aes256gcm_decrypt(
         decrypted.data(),
@@ -240,7 +243,8 @@ Ne_FUNC(Ne_box)
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "secret key", 0);
     }
     unsigned long long ciphertext_len = crypto_box_MACBYTES + message.len;
-    std::vector<unsigned char> ciphertext(ciphertext_len);
+    std::vector<unsigned char> ciphertext;
+    ciphertext.resize(ciphertext_len);
     crypto_box_easy(
         ciphertext.data(),
         message.ptr,
@@ -284,7 +288,8 @@ Ne_FUNC(Ne_box_open)
     if (sk.len != crypto_box_SECRETKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "secret key", 0);
     }
-    std::vector<unsigned char> decrypted(ciphertext.len - crypto_box_MACBYTES);
+    std::vector<unsigned char> decrypted;
+    decrypted.resize(ciphertext.len - crypto_box_MACBYTES);
     if (crypto_box_open_easy(
         decrypted.data(),
         ciphertext.ptr,
@@ -306,7 +311,8 @@ Ne_FUNC(Ne_box_seal)
     if (pk.len != crypto_box_PUBLICKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "public key", 0);
     }
-    std::vector<unsigned char> ciphertext(crypto_box_SEALBYTES + message.len);
+    std::vector<unsigned char> ciphertext;
+    ciphertext.resize(crypto_box_SEALBYTES + message.len);
     crypto_box_seal(
         ciphertext.data(),
         message.ptr,
@@ -331,7 +337,8 @@ Ne_FUNC(Ne_box_seal_open)
     if (sk.len != crypto_box_SECRETKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "secret key", 0);
     }
-    std::vector<unsigned char> decrypted(ciphertext.len - crypto_box_SEALBYTES);
+    std::vector<unsigned char> decrypted;
+    decrypted.resize(ciphertext.len - crypto_box_SEALBYTES);
     if (crypto_box_seal_open(
         decrypted.data(),
         ciphertext.ptr,
@@ -373,7 +380,8 @@ Ne_FUNC(Ne_generichash)
     if (key.len > crypto_generichash_KEYBYTES_MAX) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(outlen);
+    std::vector<unsigned char> out;
+    out.resize(outlen);
     crypto_generichash(
         out.data(),
         outlen,
@@ -389,7 +397,8 @@ Ne_FUNC(Ne_hash)
 {
     Ne_Bytes in = Ne_PARAM_BYTES(0);
 
-    std::vector<unsigned char> out(crypto_hash_BYTES);
+    std::vector<unsigned char> out;
+    out.resize(crypto_hash_BYTES);
     crypto_hash(
         out.data(),
         in.ptr,
@@ -402,7 +411,8 @@ Ne_FUNC(Ne_hash_sha256)
 {
     Ne_Bytes in = Ne_PARAM_BYTES(0);
 
-    std::vector<unsigned char> out(crypto_hash_sha256_BYTES);
+    std::vector<unsigned char> out;
+    out.resize(crypto_hash_sha256_BYTES);
     crypto_hash_sha256(
         out.data(),
         in.ptr,
@@ -419,7 +429,8 @@ Ne_FUNC(Ne_onetimeauth)
     if (key.len != crypto_onetimeauth_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(crypto_onetimeauth_BYTES);
+    std::vector<unsigned char> out;
+    out.resize(crypto_onetimeauth_BYTES);
     crypto_onetimeauth(
         out.data(),
         in.ptr,
@@ -460,7 +471,8 @@ Ne_FUNC(Ne_pwhash_scryptsalsa208sha256)
     if (salt.len != crypto_pwhash_scryptsalsa208sha256_SALTBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "salt", 0);
     }
-    std::vector<unsigned char> out(outlen);
+    std::vector<unsigned char> out;
+    out.resize(outlen);
     crypto_pwhash_scryptsalsa208sha256(
         out.data(),
         out.size(),
@@ -479,7 +491,8 @@ Ne_FUNC(Ne_pwhash_scryptsalsa208sha256_str)
     int opslimit = Ne_PARAM_INT(1);
     int memlimit = Ne_PARAM_INT(2);
 
-    std::vector<char> out(crypto_pwhash_scryptsalsa208sha256_STRBYTES + 1);
+    std::vector<char> out;
+    out.resize(crypto_pwhash_scryptsalsa208sha256_STRBYTES + 1);
     crypto_pwhash_scryptsalsa208sha256_str(
         out.data(),
         passwd.data(),
@@ -514,7 +527,8 @@ Ne_FUNC(Ne_scalarmult)
     if (pk.len != crypto_box_PUBLICKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "pk", 0);
     }
-    std::vector<unsigned char> out(crypto_scalarmult_BYTES);
+    std::vector<unsigned char> out;
+    out.resize(crypto_scalarmult_BYTES);
     crypto_scalarmult(
         out.data(),
         sk.ptr,
@@ -530,7 +544,8 @@ Ne_FUNC(Ne_scalarmult_base)
     if (sk.len != crypto_box_SECRETKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "sk", 0);
     }
-    std::vector<unsigned char> out(crypto_box_PUBLICKEYBYTES);
+    std::vector<unsigned char> out;
+    out.resize(crypto_box_PUBLICKEYBYTES);
     crypto_scalarmult_base(
         out.data(),
         sk.ptr
@@ -550,7 +565,8 @@ Ne_FUNC(Ne_secretbox)
     if (key.len != crypto_secretbox_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(crypto_secretbox_MACBYTES + message.len);
+    std::vector<unsigned char> out;
+    out.resize(crypto_secretbox_MACBYTES + message.len);
     crypto_secretbox_easy(
         out.data(),
         message.ptr,
@@ -576,7 +592,8 @@ Ne_FUNC(Ne_secretbox_open)
     if (key.len != crypto_secretbox_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(ciphertext.len - crypto_secretbox_MACBYTES);
+    std::vector<unsigned char> out;
+    out.resize(ciphertext.len - crypto_secretbox_MACBYTES);
     if (crypto_secretbox_open_easy(
         out.data(),
         ciphertext.ptr,
@@ -597,7 +614,8 @@ Ne_FUNC(Ne_shorthash)
     if (key.len != crypto_shorthash_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(crypto_shorthash_BYTES);
+    std::vector<unsigned char> out;
+    out.resize(crypto_shorthash_BYTES);
     crypto_shorthash(
         out.data(),
         in.ptr,
@@ -615,7 +633,8 @@ Ne_FUNC(Ne_sign)
     if (sk.len != crypto_sign_SECRETKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "sk", 0);
     }
-    std::vector<unsigned char> out(crypto_sign_BYTES + message.len);
+    std::vector<unsigned char> out;
+    out.resize(crypto_sign_BYTES + message.len);
     unsigned long long outlen;
     crypto_sign(
         out.data(),
@@ -638,7 +657,8 @@ Ne_FUNC(Ne_sign_open)
     if (pk.len != crypto_sign_PUBLICKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "pk", 0);
     }
-    std::vector<unsigned char> out(signedmessage.len - crypto_sign_BYTES);
+    std::vector<unsigned char> out;
+    out.resize(signedmessage.len - crypto_sign_BYTES);
     unsigned long long outlen;
     if (crypto_sign_open(
         out.data(),
@@ -660,7 +680,8 @@ Ne_FUNC(Ne_sign_detached)
     if (sk.len != crypto_sign_SECRETKEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "sk", 0);
     }
-    std::vector<unsigned char> out(crypto_sign_BYTES);
+    std::vector<unsigned char> out;
+    out.resize(crypto_sign_BYTES);
     unsigned long long outlen;
     crypto_sign_detached(
         out.data(),
@@ -764,7 +785,8 @@ Ne_FUNC(Ne_stream)
     if (key.len != crypto_stream_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(len);
+    std::vector<unsigned char> out;
+    out.resize(len);
     crypto_stream(
         out.data(),
         out.size(),
@@ -786,7 +808,8 @@ Ne_FUNC(Ne_stream_xor)
     if (key.len != crypto_stream_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(in.len);
+    std::vector<unsigned char> out;
+    out.resize(in.len);
     crypto_stream_xor(
         out.data(),
         in.ptr,
@@ -810,7 +833,8 @@ Ne_FUNC(Ne_stream_xsalsa20_xor_ic)
     if (key.len != crypto_stream_xsalsa20_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(in.len);
+    std::vector<unsigned char> out;
+    out.resize(in.len);
     crypto_stream_xsalsa20_xor_ic(
         out.data(),
         in.ptr,
@@ -834,7 +858,8 @@ Ne_FUNC(Ne_stream_salsa20)
     if (key.len != crypto_stream_salsa20_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(len);
+    std::vector<unsigned char> out;
+    out.resize(len);
     crypto_stream_salsa20(
         out.data(),
         out.size(),
@@ -857,7 +882,8 @@ Ne_FUNC(Ne_stream_salsa20_xor_ic)
     if (key.len != crypto_stream_salsa20_KEYBYTES) {
         Ne_RAISE_EXCEPTION(Exception_SodiumException_InvalidParameterLength, "key", 0);
     }
-    std::vector<unsigned char> out(in.len);
+    std::vector<unsigned char> out;
+    out.resize(in.len);
     crypto_stream_salsa20_xor_ic(
         out.data(),
         in.ptr,
