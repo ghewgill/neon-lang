@@ -3241,9 +3241,9 @@ bool ast::CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond)
         }
     } else if (rwhen != nullptr) {
         if (low_expr->type->is_assignment_compatible(ast::TYPE_NUMBER) || dynamic_cast<const ast::TypeEnum *>(low_expr->type) != nullptr) {
-            return overlap::check(low_expr->eval_number(cwhen->token), high_expr->eval_number(cwhen->token), rwhen->low_expr->eval_number(cwhen->token), rwhen->high_expr->eval_number(cwhen->token));
+            return overlap::check(low_expr->eval_number(rwhen->token), high_expr->eval_number(rwhen->token), rwhen->low_expr->eval_number(rwhen->token), rwhen->high_expr->eval_number(rwhen->token));
         } else if (low_expr->type->is_assignment_compatible(ast::TYPE_STRING)) {
-            return overlap::check(low_expr->eval_string(cwhen->token), high_expr->eval_string(cwhen->token), rwhen->low_expr->eval_string(cwhen->token), rwhen->high_expr->eval_string(cwhen->token));
+            return overlap::check(low_expr->eval_string(rwhen->token), high_expr->eval_string(rwhen->token), rwhen->low_expr->eval_string(rwhen->token), rwhen->high_expr->eval_string(rwhen->token));
         } else {
             internal_error("RangeWhenCondition");
         }
@@ -3776,7 +3776,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
                     new ast::NumericComparisonExpression(
                         new ast::VariableExpression(var),
                         new ast::VariableExpression(bound),
-                        number_is_negative(step->eval_number(statement->step->token)) ? ast::ComparisonExpression::LT : ast::ComparisonExpression::GT
+                        number_is_negative(step->eval_number(statement->step ? statement->step->token : Token())) ? ast::ComparisonExpression::LT : ast::ComparisonExpression::GT
                     ),
                     std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
                 )
