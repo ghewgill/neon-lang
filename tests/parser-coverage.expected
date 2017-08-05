@@ -25,6 +25,14 @@ Program
   TypeDeclaration
     TypeClass(name,name)
   TypeDeclaration
+    TypeClass()
+  TypeDeclaration
+    TypeClass()
+  TypeDeclaration
+    TypeClass()
+  TypeDeclaration
+    TypeClass()
+  TypeDeclaration
     TypeEnum()
   TypeDeclaration
     TypeEnum(one)
@@ -122,6 +130,8 @@ Program
     in x
       TypeSimple(type)
   ExceptionDeclaration(name)
+  InterfaceDeclaration()
+  InterfaceDeclaration(func)
   ExportDeclaration(name)
   FunctionDeclaration(MAIN)
     nullptr

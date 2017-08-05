@@ -22,11 +22,17 @@ TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
 TypeDictionary *TYPE_DICTIONARY_STRING = new TypeDictionary(Token(), TYPE_STRING);
 TypeModule *TYPE_MODULE = new TypeModule();
 TypeException *TYPE_EXCEPTION = new TypeException();
+TypeInterface *TYPE_INTERFACE = new TypeInterface();
 
 void AstNode::dump(std::ostream &out, int depth) const
 {
     out << std::string(depth*2, ' ') << text() << "\n";
     dumpsubnodes(out, depth);
+}
+
+void Type::generate_convert(Emitter &, const Type *) const
+{
+    // No conversion code necessary by default.
 }
 
 const Expression *TypeBoolean::make_default_value() const
@@ -339,6 +345,32 @@ std::string TypeRecord::text() const
     return r;
 }
 
+std::string TypeClass::text() const
+{
+    std::string r = "TypeClass(";
+    if (not interfaces.empty()) {
+        bool first = true;
+        for (auto i: interfaces) {
+            if (not first) {
+                r.append(",");
+            }
+            first = false;
+            r.append(i->name);
+        }
+        r.append(";");
+    }
+    bool first = true;
+    for (auto f: fields) {
+        if (not first) {
+            r.append(",");
+        }
+        first = false;
+        r.append(f.name.text);
+    }
+    r.append(")");
+    return r;
+}
+
 TypePointer::TypePointer(const Token &declaration, const TypeClass *reftype)
   : Type(declaration, ""),
     reftype(reftype)
@@ -396,6 +428,79 @@ bool TypeValidPointer::is_assignment_compatible(const Type *rhs) const
         return false;
     }
     return true;
+}
+
+TypeInterfacePointer::TypeInterfacePointer(const Token &declaration, const Interface *interface)
+  : Type(declaration, ""),
+    interface(interface)
+{
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        methods["toString"] = new PredefinedFunction("interfacepointer__toString", new TypeFunction(TYPE_STRING, params));
+    }
+}
+
+const Expression *TypeInterfacePointer::make_default_value() const
+{
+    return new ConstantNilExpression();
+}
+
+bool TypeInterfacePointer::is_assignment_compatible(const Type *rhs) const
+{
+    if (this == rhs) {
+        return true;
+    }
+    if (dynamic_cast<const TypePointerNil *>(rhs) != nullptr) {
+        return true;
+    }
+    const TypeInterfacePointer *p = dynamic_cast<const TypeInterfacePointer *>(rhs);
+    if (p != nullptr && interface == p->interface) {
+        return true;
+    }
+    const TypePointer *pc = dynamic_cast<const TypePointer *>(rhs);
+    if (pc != nullptr) {
+        for (auto i: pc->reftype->interfaces) {
+            if (i == interface) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+std::string TypeInterfacePointer::serialize(const Expression *) const
+{
+    return std::string();
+}
+
+const Expression *TypeInterfacePointer::deserialize_value(const Bytecode::Bytes &, int &) const
+{
+    return new ConstantNilExpression();
+}
+
+std::string TypeInterfacePointer::text() const
+{
+    return "TypeInterfacePointer(" + interface->text() + ")";
+}
+
+bool TypeValidInterfacePointer::is_assignment_compatible(const Type *rhs) const
+{
+    if (this == rhs) {
+        return true;
+    }
+    if (not TypeInterfacePointer::is_assignment_compatible(rhs)) {
+        return false;
+    }
+    if (dynamic_cast<const TypeValidPointer *>(rhs) == nullptr && dynamic_cast<const TypeValidInterfacePointer *>(rhs) == nullptr) {
+        return false;
+    }
+    return true;
+}
+
+std::string TypeValidInterfacePointer::text() const
+{
+    return "TypeValidInterfacePointer(" + interface->text() + ")";
 }
 
 TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFunction *functype)

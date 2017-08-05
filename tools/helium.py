@@ -142,6 +142,8 @@ INTDIV = Keyword("INTDIV")
 LABEL = Keyword("LABEL")
 CLASS = Keyword("CLASS")
 TRAP = Keyword("TRAP")
+INTERFACE = Keyword("INTERFACE")
+IMPLEMENTS = Keyword("IMPLEMENTS")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -1233,6 +1235,9 @@ class Parser:
 
     def parse_class_type(self):
         self.expect(CLASS)
+        while self.tokens[self.i] is IMPLEMENTS:
+            self.i += 1
+            interface = self.identifier()
         fields = []
         while self.tokens[self.i] is not END:
             is_private = self.tokens[self.i] is PRIVATE
@@ -1838,6 +1843,16 @@ class Parser:
             self.i += 1
         return ExceptionDeclaration(name)
 
+    def parse_interface(self):
+        self.expect(INTERFACE)
+        name = self.identifier()
+        while self.tokens[self.i] is FUNCTION:
+            self.i += 1
+            method = self.identifier()
+            args = self.parse_function_parameters()
+        self.expect(END)
+        self.expect(INTERFACE)
+
     def parse_exit_statement(self):
         self.expect(EXIT)
         label = self.tokens[self.i].name
@@ -2129,6 +2144,7 @@ class Parser:
         if self.tokens[self.i] is FOREIGN:  return self.parse_foreign_definition()
         if self.tokens[self.i] is DECLARE:  return self.parse_declaration()
         if self.tokens[self.i] is EXCEPTION:return self.parse_exception()
+        if self.tokens[self.i] is INTERFACE:return self.parse_interface()
         if self.tokens[self.i] is EXPORT:   return self.parse_export()
         if self.tokens[self.i] is IF:       return self.parse_if_statement()
         if self.tokens[self.i] in [INC,DEC]:return self.parse_increment_statement()
@@ -2568,6 +2584,8 @@ ExcludeTests = [
     "t/gc-long-chain.neon",     # Garbage collector not required
     "t/http-test.neon",         # Module not required
     "t/import-string.neon",     # Feature not required
+    "t/interface-parameter-import.neon", # Feature not required (import alias)
+    "t/interface-parameter-import2.neon", # Feature not required (import alias)
     "t/json-test.neon",         # Module not required
     "t/lexer-raw.neon",         # Feature not required
     "t/lexer-unicode.neon",     # Unicode source not required

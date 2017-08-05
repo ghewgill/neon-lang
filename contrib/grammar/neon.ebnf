@@ -32,6 +32,7 @@ Statement =
     NativeFunctionDeclaration |
     ExtensionFunctionDeclaration |
     ExceptionDeclaration |
+    InterfaceDeclaration |
     ExportDeclaration |
     MainBlock |
     AssertStatement |
@@ -63,7 +64,7 @@ ParameterisedType = ('Array' | 'Dictionary'), '<', Type, '>';
 
 RecordType = 'RECORD', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'RECORD';
 
-ClassType = 'CLASS', { ['PRIVATE'], Identifier, ':', Type}, 'END', 'CLASS';
+ClassType = 'CLASS', ['IMPLEMENTS', Identifier, ['.', Identifier], {',', Identifier, ['.', Identifier]}], { ['PRIVATE'], Identifier, ':', Type}, 'END', 'CLASS';
 
 EnumType = 'ENUM', {Identifier}, 'END', 'ENUM';
 
@@ -99,7 +100,9 @@ FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':'
 
 ExceptionDeclaration = 'EXCEPTION', Identifier, {'.', Identifier};
 
-ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | ExtensionConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ForeignFunctionDeclaration | NativeFunctionDeclaration | ExtensionFunctionDeclaration | ExceptionDeclaration | Identifier);
+InterfaceDeclaration = 'INTERFACE', Identifier, {'FUNCTION', Identifier, FunctionParameterList}, 'END', 'INTERFACE';
+
+ExportDeclaration = 'EXPORT', (TypeDeclaration | ConstantDeclaration | NativeConstantDeclaration | ExtensionConstantDeclaration | VariableDeclaration | LetDeclaration | FunctionDeclaration | ForeignFunctionDeclaration | NativeFunctionDeclaration | ExtensionFunctionDeclaration | ExceptionDeclaration | InterfaceDeclaration | Identifier);
 
 MainBlock = 'BEGIN', 'MAIN', {Statement}, 'END', 'MAIN';
 

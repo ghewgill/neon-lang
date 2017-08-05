@@ -62,9 +62,11 @@ Bytecode::Bytecode()
     export_variables(),
     export_functions(),
     export_exceptions(),
+    export_interfaces(),
     imports(),
     functions(),
     exceptions(),
+    classes(),
     code()
 {
 }
@@ -144,6 +146,22 @@ bool Bytecode::load(const std::string &source_path, const std::vector<unsigned c
             exceptionexportsize--;
         }
 
+        unsigned int interfaceexportsize = get_uint16(obj, i);
+        while (interfaceexportsize > 0) {
+            Interface iface;
+            iface.name = get_uint16(obj, i);
+            unsigned int methoddescriptorsize = get_uint16(obj, i);
+            while (methoddescriptorsize > 0) {
+                std::pair<unsigned int, unsigned int> m;
+                m.first = get_uint16(obj, i);
+                m.second = get_uint16(obj, i);
+                iface.method_descriptors.push_back(m);
+                methoddescriptorsize--;
+            }
+            export_interfaces.push_back(iface);
+            interfaceexportsize--;
+        }
+
         unsigned int importsize = get_uint16(obj, i);
         while (importsize > 0) {
             std::pair<unsigned int, std::string> imp;
@@ -175,6 +193,25 @@ bool Bytecode::load(const std::string &source_path, const std::vector<unsigned c
             e.handler = get_uint16(obj, i);
             exceptions.push_back(e);
             exceptionsize--;
+        }
+
+        unsigned int classsize = get_uint16(obj, i);
+        while (classsize > 0) {
+            ClassInfo c;
+            c.name = get_uint16(obj, i);
+            unsigned int interfacecount = get_uint16(obj, i);
+            while (interfacecount > 0) {
+                std::vector<unsigned int> methods;
+                unsigned int methodcount = get_uint16(obj, i);
+                while (methodcount > 0) {
+                    methods.push_back(get_uint16(obj, i));
+                    methodcount--;
+                }
+                c.interfaces.push_back(methods);
+                interfacecount--;
+            }
+            classes.push_back(c);
+            classsize--;
         }
 
         code = Bytes(obj.begin() + i, obj.end());
@@ -238,6 +275,16 @@ Bytecode::Bytes Bytecode::getBytes() const
         put_uint16(obj, static_cast<uint16_t>(e.name));
     }
 
+    put_uint16(obj, static_cast<uint16_t>(export_interfaces.size()));
+    for (auto i: export_interfaces) {
+        put_uint16(obj, static_cast<uint16_t>(i.name));
+        put_uint16(obj, static_cast<uint16_t>(i.method_descriptors.size()));
+        for (auto m: i.method_descriptors) {
+            put_uint16(obj, static_cast<uint16_t>(m.first));
+            put_uint16(obj, static_cast<uint16_t>(m.second));
+        }
+    }
+
     put_uint16(obj, static_cast<uint16_t>(imports.size()));
     for (auto i: imports) {
         put_uint16(obj, static_cast<uint16_t>(i.first));
@@ -259,6 +306,18 @@ Bytecode::Bytes Bytecode::getBytes() const
         put_uint16(obj, static_cast<uint16_t>(e.end));
         put_uint16(obj, static_cast<uint16_t>(e.excid));
         put_uint16(obj, static_cast<uint16_t>(e.handler));
+    }
+
+    put_uint16(obj, static_cast<uint16_t>(classes.size()));
+    for (auto c: classes) {
+        put_uint16(obj, static_cast<uint16_t>(c.name));
+        put_uint16(obj, static_cast<uint16_t>(c.interfaces.size()));
+        for (auto i: c.interfaces) {
+            put_uint16(obj, static_cast<uint16_t>(i.size()));
+            for (auto m: i) {
+                put_uint16(obj, static_cast<uint16_t>(m));
+            }
+        }
     }
 
     std::copy(code.begin(), code.end(), std::back_inserter(obj));

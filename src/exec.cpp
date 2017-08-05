@@ -348,6 +348,8 @@ public:
     void exec_SWAP();
     void exec_DROPN();
     void exec_PUSHM();
+    void exec_CALLV();
+    void exec_PUSHCI();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -1688,6 +1690,57 @@ void Executor::exec_PUSHM()
     stack.push(Cell(reinterpret_cast<Cell *>(module)));
 }
 
+void Executor::exec_CALLV()
+{
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    std::vector<Cell> &pi = stack.top().array_for_write();
+    Cell *instance = pi[0].address();
+    size_t interface_index = number_to_uint32(pi[1].number());
+    Module *m = reinterpret_cast<Module *>(instance->array_for_write()[0].array_for_write()[0].address());
+    Bytecode::ClassInfo *classinfo = reinterpret_cast<Bytecode::ClassInfo *>(instance->array_for_write()[0].array_for_write()[1].address());
+    stack.pop();
+    callstack.push_back(std::make_pair(module, ip));
+    module = m;
+    ip = classinfo->interfaces[interface_index][val];
+}
+
+void Executor::exec_PUSHCI()
+{
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    auto dot = module->object.strtable[val].find('.');
+    if (dot == std::string::npos) {
+        for (auto &c: module->object.classes) {
+            if (c.name == val) {
+                Cell ci;
+                ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(module)));
+                ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(&c)));
+                stack.push(ci);
+                return;
+            }
+        }
+    } else {
+        std::string modname = module->object.strtable[val].substr(0, dot);
+        std::string methodname = module->object.strtable[val].substr(dot+1);
+        auto mod = modules.find(modname);
+        if (mod != modules.end()) {
+            Module *m = mod->second;
+            for (auto &c: m->object.classes) {
+                if (m->object.strtable[c.name] == methodname) {
+                    Cell ci;
+                    ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(m)));
+                    ci.array_for_write().push_back(Cell(reinterpret_cast<Cell *>(&c)));
+                    stack.push(ci);
+                    return;
+                }
+            }
+        }
+    }
+    fprintf(stderr, "neon: unknown class name %s\n", module->object.strtable[val].c_str());
+    exit(1);
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -2009,6 +2062,8 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case SWAP:    exec_SWAP(); break;
             case DROPN:   exec_DROPN(); break;
             case PUSHM:   exec_PUSHM(); break;
+            case CALLV:   exec_CALLV(); break;
+            case PUSHCI:  exec_PUSHCI(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

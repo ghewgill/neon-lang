@@ -309,6 +309,11 @@ std::string functionpointer__toString(Cell &p)
     return "<fp:ip=" + number_to_string(p.number()) + ">";
 }
 
+std::string interfacepointer__toString(Cell &p)
+{
+    return "<ip:" + std::to_string(reinterpret_cast<intptr_t>(p.array_for_write()[0].address())) + "," + number_to_string(p.array_for_write()[1].number()) + ">";
+}
+
 std::string concatBytes(const std::string &a, const std::string &b)
 {
     return a + b;

@@ -110,6 +110,8 @@ private:
     void disasm_SWAP();
     void disasm_DROPN();
     void disasm_PUSHM();
+    void disasm_CALLV();
+    void disasm_PUSHCI();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -696,6 +698,20 @@ void Disassembler::disasm_PUSHM()
     index++;
 }
 
+void Disassembler::disasm_CALLV()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "CALLV " << val << "\n";
+}
+
+void Disassembler::disasm_PUSHCI()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "PUSHCI \"" << obj.strtable[val] << "\"\n";
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -748,6 +764,13 @@ void Disassembler::disassemble()
     for (auto e: obj.export_exceptions) {
         out << "    " << obj.strtable[e.name] << "\n";
     }
+    out << "  Interfaces:\n";
+    for (auto i: obj.export_interfaces) {
+        out << "    " << obj.strtable[i.name] << "\n";
+        for (auto m: i.method_descriptors) {
+            out << "      " << obj.strtable[m.first] << " " << obj.strtable[m.second] << "\n";
+        }
+    }
 
     out << "Imports " << obj.imports.size() << ":\n";
     for (auto i: obj.imports) {
@@ -759,6 +782,19 @@ void Disassembler::disassemble()
         out << "  " << obj.strtable[f.name] << " " << f.entry << "\n";
     }
 
+    out << "Classes:\n";
+    for (auto c: obj.classes) {
+        out << "  " << obj.strtable[c.name] << "\n";
+        for (auto i: c.interfaces) {
+            out << "    ";
+            for (auto m: i) {
+                out << m << " ";
+            }
+            out << "\n";
+        }
+    }
+
+    out << "Code:\n";
     while (index < obj.code.size()) {
         if (debug != nullptr) {
             auto line = debug->line_numbers.find(index);
@@ -857,6 +893,8 @@ void Disassembler::disassemble()
             case SWAP:    disasm_SWAP(); break;
             case DROPN:   disasm_DROPN(); break;
             case PUSHM:   disasm_PUSHM(); break;
+            case CALLV:   disasm_CALLV(); break;
+            case PUSHCI:  disasm_PUSHCI(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

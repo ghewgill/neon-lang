@@ -113,6 +113,8 @@ enum TokenType {
     CLASS,
     TRAP,
     EXTENSION,
+    INTERFACE,
+    IMPLEMENTS,
     UNKNOWN,
     MAX_TOKEN
 };

@@ -74,6 +74,7 @@ class ForeignFunctionDeclaration;
 class NativeFunctionDeclaration;
 class ExtensionFunctionDeclaration;
 class ExceptionDeclaration;
+class InterfaceDeclaration;
 class ExportDeclaration;
 
 class Statement;
@@ -166,6 +167,7 @@ public:
     virtual void visit(const NativeFunctionDeclaration *) = 0;
     virtual void visit(const ExtensionFunctionDeclaration *) = 0;
     virtual void visit(const ExceptionDeclaration *) = 0;
+    virtual void visit(const InterfaceDeclaration *) = 0;
     virtual void visit(const ExportDeclaration *) = 0;
 
     virtual void visit(const AssertStatement *) = 0;
@@ -237,8 +239,9 @@ public:
 
 class TypeClass: public TypeRecord {
 public:
-    TypeClass(const Token &token, std::vector<std::unique_ptr<Field>> &&fields): TypeRecord(token, std::move(fields)) {}
+    TypeClass(const Token &token, std::vector<std::unique_ptr<Field>> &&fields, const std::vector<std::pair<Token, Token>> &interfaces): TypeRecord(token, std::move(fields)), interfaces(interfaces) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    const std::vector<std::pair<Token, Token>> interfaces;
 };
 
 class TypePointer: public Type {
@@ -745,6 +748,13 @@ public:
     ExceptionDeclaration(const Token &token, const std::vector<Token> &name): Declaration(token, {name}), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<Token> name;
+};
+
+class InterfaceDeclaration: public Declaration {
+public:
+    InterfaceDeclaration(const Token &token, const Token &name, std::vector<std::pair<Token, std::unique_ptr<TypeFunctionPointer>>> &&methods): Declaration(token, {name}), methods(std::move(methods)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::vector<std::pair<Token, std::unique_ptr<TypeFunctionPointer>>> methods;
 };
 
 class ExportDeclaration: public Declaration {

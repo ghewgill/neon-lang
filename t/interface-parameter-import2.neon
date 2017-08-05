@@ -1,0 +1,12 @@
+IMPORT "t/interface-parameter-export2" ALIAS export
+
+EXPORT TYPE Cls IS CLASS IMPLEMENTS export.Interface
+END CLASS
+
+FUNCTION Cls.f(self: VALID POINTER TO Cls)
+    print("f")
+END FUNCTION
+
+LET c2: POINTER TO export.Interface := NEW Cls
+export.fi(c2)
+%= f

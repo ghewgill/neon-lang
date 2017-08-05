@@ -1,0 +1,46 @@
+CONSTANT Pi: Number := 3.14159265
+
+INTERFACE Shape
+    FUNCTION area(self: Shape): Number
+    FUNCTION perimeter(self: Shape): Number
+END INTERFACE
+
+TYPE Rectangle IS CLASS IMPLEMENTS Shape
+    width: Number
+    height: Number
+END CLASS
+
+FUNCTION Rectangle.area(self: VALID POINTER TO Rectangle): Number
+    RETURN self->width * self->height
+END FUNCTION
+
+FUNCTION Rectangle.perimeter(self: VALID POINTER TO Rectangle): Number
+    RETURN 2 * (self->width + self->height)
+END FUNCTION
+
+TYPE Circle IS CLASS IMPLEMENTS Shape
+    radius: Number
+END CLASS
+
+FUNCTION Circle.area(self: VALID POINTER TO Circle): Number
+    RETURN Pi * self->radius^2
+END FUNCTION
+
+FUNCTION Circle.perimeter(self: VALID POINTER TO Circle): Number
+    RETURN 2 * Pi * self->radius
+END FUNCTION
+
+FUNCTION printShapeInfo(s: VALID POINTER TO Shape)
+    print("area \(s->area())")
+    print("perimeter \(s->perimeter())")
+END FUNCTION
+
+LET r: POINTER TO Rectangle := NEW Rectangle(width WITH 3, height WITH 4)
+printShapeInfo(r)
+%= area 12
+%= perimeter 14
+
+LET c: POINTER TO Circle := NEW Circle(radius WITH 5)
+printShapeInfo(c)
+%= area 78.53981625
+%= perimeter 31.4159265

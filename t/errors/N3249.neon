@@ -1,0 +1,3 @@
+TYPE Cls IS CLASS IMPLEMENTS Number
+                             %<
+END CLASS

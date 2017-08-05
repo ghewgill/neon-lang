@@ -1,0 +1,4 @@
+INTERFACE Int
+    FUNCTION foo(x: Number)
+                 %<
+END INTERFACE

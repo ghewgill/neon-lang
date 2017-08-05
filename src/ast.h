@@ -38,10 +38,12 @@ public:
     virtual void visit(const class TypeRecord *node) = 0;
     virtual void visit(const class TypeClass *node) = 0;
     virtual void visit(const class TypePointer *node) = 0;
+    virtual void visit(const class TypeInterfacePointer *node) = 0;
     virtual void visit(const class TypeFunctionPointer *node) = 0;
     virtual void visit(const class TypeEnum *node) = 0;
     virtual void visit(const class TypeModule *node) = 0;
     virtual void visit(const class TypeException *node) = 0;
+    virtual void visit(const class TypeInterface *node) = 0;
     virtual void visit(const class LoopLabel *node) = 0;
     virtual void visit(const class PredefinedVariable *node) = 0;
     virtual void visit(const class ModuleVariable *node) = 0;
@@ -50,6 +52,7 @@ public:
     virtual void visit(const class LocalVariable *node) = 0;
     virtual void visit(const class FunctionParameter *node) = 0;
     virtual void visit(const class Exception *node) = 0;
+    virtual void visit(const class Interface *node) = 0;
     virtual void visit(const class Constant *node) = 0;
     virtual void visit(const class ConstantBooleanExpression *node) = 0;
     virtual void visit(const class ConstantNumberExpression *node) = 0;
@@ -61,6 +64,7 @@ public:
     virtual void visit(const class ArrayLiteralExpression *node) = 0;
     virtual void visit(const class DictionaryLiteralExpression *node) = 0;
     virtual void visit(const class RecordLiteralExpression *node) = 0;
+    virtual void visit(const class ClassLiteralExpression *node) = 0;
     virtual void visit(const class NewClassExpression *node) = 0;
     virtual void visit(const class UnaryMinusExpression *node) = 0;
     virtual void visit(const class LogicalNotExpression *node) = 0;
@@ -104,9 +108,11 @@ public:
     virtual void visit(const class PointerDereferenceExpression *node) = 0;
     virtual void visit(const class ConstantExpression *node) = 0;
     virtual void visit(const class VariableExpression *node) = 0;
+    virtual void visit(const class InterfaceMethodExpression *node) = 0;
     virtual void visit(const class FunctionCall *node) = 0;
     virtual void visit(const class StatementExpression *node) = 0;
     virtual void visit(const class NullStatement *node) = 0;
+    virtual void visit(const class TypeDeclarationStatement *node) = 0;
     virtual void visit(const class DeclarationStatement *node) = 0;
     virtual void visit(const class ExceptionHandlerStatement *node) = 0;
     virtual void visit(const class AssertStatement *node) = 0;
@@ -306,6 +312,7 @@ public:
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const;
     virtual void generate_export(Emitter &emitter, const std::string &name) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const = 0;
     virtual void get_type_references(std::set<const Type *> &) const {}
@@ -578,14 +585,18 @@ private:
 
 class TypeClass: public TypeRecord {
 public:
-    TypeClass(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields): TypeRecord(declaration, module, name, fields) {}
+    TypeClass(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields, const std::vector<const Interface *> &interfaces): TypeRecord(declaration, module, name, fields), interfaces(interfaces) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    const std::vector<const Interface *> interfaces;
+
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
+
+    virtual std::string text() const override;
 };
 
 class TypeForwardClass: public TypeClass {
 public:
-    TypeForwardClass(const Token &declaration): TypeClass(declaration, "module", "forward", std::vector<Field>()) {}
+    TypeForwardClass(const Token &declaration): TypeClass(declaration, "module", "forward", std::vector<Field>(), std::vector<const Interface *>()) {}
 };
 
 class TypePointer: public Type {
@@ -600,6 +611,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *) const override;
@@ -621,6 +633,41 @@ class TypeValidPointer: public TypePointer {
 public:
     TypeValidPointer(const Token &declaration, const TypeClass *classtype): TypePointer(declaration, classtype) {}
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+
+    virtual std::string text() const override { return "TypeValidPointer(" + reftype->text() + ")"; }
+};
+
+class TypeInterfacePointer: public Type {
+public:
+    TypeInterfacePointer(const Token &declaration, const Interface *interface);
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Interface *interface;
+
+    virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
+    virtual std::string get_type_descriptor(Emitter &emitter) const override;
+    virtual void get_type_references(std::set<const Type *> &references) const override;
+    virtual std::string serialize(const Expression *) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
+
+    virtual std::string text() const override;
+private:
+    TypeInterfacePointer(const TypeInterfacePointer &);
+    TypeInterfacePointer &operator=(const TypeInterfacePointer &);
+};
+
+class TypeValidInterfacePointer: public TypeInterfacePointer {
+public:
+    TypeValidInterfacePointer(const Token &declaration, const Interface *interface): TypeInterfacePointer(declaration, interface) {}
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
+
+    virtual std::string text() const override;
 };
 
 class TypeFunctionPointer: public Type {
@@ -708,6 +755,26 @@ public:
 };
 
 extern TypeException *TYPE_EXCEPTION;
+
+class TypeInterface: public Type {
+public:
+    TypeInterface(): Type(Token(), "Interface") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual const Expression *make_default_value() const override { internal_error("TypeInterface"); }
+    virtual void generate_load(Emitter &) const override { internal_error("TypeInterface"); }
+    virtual void generate_store(Emitter &) const override { internal_error("TypeInterface"); }
+    virtual void generate_call(Emitter &) const override { internal_error("TypeInterface"); }
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
+    virtual std::string get_type_descriptor(Emitter &) const override { return "J"; }
+    virtual std::string serialize(const Expression *) const override { internal_error("TypeInterface"); }
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeInterface"); }
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
+
+    virtual std::string text() const override { return "TypeInterface"; }
+};
+
+extern TypeInterface *TYPE_INTERFACE;
 
 class LoopLabel: public Name {
 public:
@@ -825,6 +892,20 @@ public:
 private:
     Exception(const Exception &);
     Exception &operator=(const Exception &);
+};
+
+class Interface: public Name {
+public:
+    Interface(const Token &declaration, const std::string &name, const std::vector<std::pair<Token, const TypeFunction *>> &methods): Name(declaration, name, TYPE_INTERFACE), methods(methods) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
+
+    const std::vector<std::pair<Token, const TypeFunction *>> methods;
+
+    virtual std::string text() const override { return "Interface(" + name + ")"; }
+private:
+    Interface(const Interface &);
+    Interface &operator=(const Interface &);
 };
 
 class Expression: public AstNode {
@@ -1052,12 +1133,23 @@ private:
     static bool all_constant(const std::vector<const Expression *> &values);
 };
 
+class ClassLiteralExpression: public RecordLiteralExpression {
+public:
+    ClassLiteralExpression(const TypeClass *type, const std::vector<const Expression *> &values): RecordLiteralExpression(type, values) {}
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "ClassLiteralExpression(...)"; }
+private:
+    ClassLiteralExpression(const ClassLiteralExpression &);
+    ClassLiteralExpression &operator=(const ClassLiteralExpression &);
+};
+
 class NewClassExpression: public Expression {
 public:
-    NewClassExpression(const TypeClass *reftype, const Expression *value): Expression(new TypeValidPointer(Token(), reftype), false), fields(reftype->fields.size()), value(value) {}
+    NewClassExpression(const TypeClass *reftype, const Expression *value): Expression(new TypeValidPointer(Token(), reftype), false), reftype(reftype), value(value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
-    const size_t fields;
+    const TypeClass *reftype;
     const Expression *value;
 
     virtual bool eval_boolean() const override { internal_error("NewClassExpression"); }
@@ -1997,6 +2089,26 @@ private:
     VariableExpression &operator=(const VariableExpression &);
 };
 
+class InterfaceMethodExpression: public Expression {
+public:
+    InterfaceMethodExpression(const TypeFunction *functype, size_t index): Expression(functype->returntype, false), functype(functype), index(index) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const TypeFunction *functype;
+    const size_t index;
+
+    virtual bool eval_boolean() const override { internal_error("InterfaceMethodExpression"); }
+    virtual Number eval_number() const override { internal_error("InterfaceMethodExpression"); }
+    virtual std::string eval_string() const override { internal_error("InterfaceMethodExpression"); }
+    virtual void generate_expr(Emitter &) const override { internal_error("InterfaceMethodExpression"); }
+    virtual void generate_call(Emitter &) const override;
+
+    virtual std::string text() const override { return "InterfaceMethodExpression(" + std::to_string(index) + ")"; }
+private:
+    InterfaceMethodExpression(const InterfaceMethodExpression &);
+    InterfaceMethodExpression &operator=(const InterfaceMethodExpression &);
+};
+
 class FunctionCall: public Expression {
 public:
     FunctionCall(const Expression *func, const std::vector<const Expression *> &args, const Expression *dispatch = nullptr): Expression(get_expr_type(func), is_intrinsic(func, args)), func(func), dispatch(dispatch), args(args) {}
@@ -2027,7 +2139,11 @@ private:
         if (p != nullptr) {
             return p->functype->returntype;
         }
-        internal_error("not function or functionpointer");
+        const InterfaceMethodExpression *ime = dynamic_cast<const InterfaceMethodExpression *>(func);
+        if (ime != nullptr) {
+            return ime->type;
+        }
+        internal_error("not function or functionpointer: " + func->text());
     }
 
     static bool is_intrinsic(const Expression *func, const std::vector<const Expression *> &args);
@@ -2084,6 +2200,21 @@ public:
     virtual void generate_code(Emitter &) const override {}
 
     virtual std::string text() const override { return "NullStatement"; }
+};
+
+class TypeDeclarationStatement: public Statement {
+public:
+    TypeDeclarationStatement(int line, const std::string &name, const ast::Type *type): Statement(line), name(name), type(type) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+    const std::string name;
+    const ast::Type *type;
+
+    virtual void generate_code(Emitter &) const override;
+
+    virtual std::string text() const override { return "TypeDeclarationStatement(" + name + ", " + type->text() + ")"; }
+private:
+    TypeDeclarationStatement(const TypeDeclarationStatement &);
+    TypeDeclarationStatement &operator=(const TypeDeclarationStatement &);
 };
 
 class DeclarationStatement: public Statement {

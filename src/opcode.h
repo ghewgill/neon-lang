@@ -90,6 +90,8 @@ enum Opcode {
     SWAP,       // swap two top stack elements
     DROPN,      // drop element n
     PUSHM,      // push current module
+    CALLV,      // call virtual
+    PUSHCI,     // push class info
 };
 
 #endif

@@ -160,6 +160,7 @@ TYPE Type IS ENUM
     NativeFunctionDeclaration
     ExtensionFunctionDeclaration
     ExceptionDeclaration
+    InterfaceDeclaration
     ExportDeclaration
     AssertStatement
     AssignmentStatement
@@ -201,6 +202,7 @@ TYPE TypeRecord IS RECORD
 END RECORD
 
 TYPE TypeClass IS RECORD
+    interfaces: Array<Array<lexer.Token>>
     fields: Array<Field>
 END RECORD
 
@@ -442,6 +444,15 @@ TYPE ExceptionDeclaration IS RECORD
     name: Array<lexer.Token>
 END RECORD
 
+TYPE InterfaceMethod IS RECORD
+    name: lexer.Token
+    type: POINTER TO ParseTreeNode
+END RECORD
+
+TYPE InterfaceDeclaration IS RECORD
+    methods: Array<InterfaceMethod>
+END RECORD
+
 TYPE ExportDeclaration IS RECORD
     names: Array<lexer.Token>
     declaration: POINTER TO ParseTreeNode
@@ -594,6 +605,7 @@ TYPE ParseTreeNode IS CLASS
     functiondeclaration: FunctionDeclaration
     foreignfunctiondeclaration: ForeignFunctionDeclaration
     exceptiondeclaration: ExceptionDeclaration
+    interfacedeclaration: InterfaceDeclaration
     exportdeclaration: ExportDeclaration
     assertstatement: AssertStatement
     assignmentstatement: AssignmentStatement
@@ -2050,6 +2062,28 @@ FUNCTION Parser.parseClassType(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.class
     LET tokClass: lexer.Token := self.token
     self.nextToken()
+    VAR interfaces: Array<Array<lexer.Token>> := []
+    IF self.token.type = TokenType.implements THEN
+        REPEAT
+            self.nextToken()
+            VAR qname: Array<lexer.Token> := []
+            IF self.token.type <> TokenType.identifier THEN
+                error(2132, self.token, "identifier expected")
+            END IF
+            qname[1] := self.token
+            self.nextToken()
+            IF self.token.type = TokenType.dot THEN
+                self.nextToken()
+                IF self.token.type <> TokenType.identifier THEN
+                    error(2133, self.token, "identifier expected")
+                END IF
+                qname[0] := qname[1]
+                qname[1] := self.token
+                self.nextToken()
+            END IF
+            interfaces.append(qname)
+        UNTIL self.token.type <> TokenType.comma
+    END IF
     VAR fields: Array<Field> := []
     WHILE self.token.type <> TokenType.end DO
         LET isPrivate: Boolean := self.token.type = TokenType.private
@@ -2081,6 +2115,7 @@ FUNCTION Parser.parseClassType(INOUT self: Parser): POINTER TO ParseTreeNode
         type WITH Type.TypeClass,
         token WITH tokClass,
         typeclass WITH TypeClass(
+            interfaces WITH interfaces,
             fields WITH fields
         )
     )
@@ -2368,6 +2403,55 @@ FUNCTION Parser.parseException(INOUT self: Parser): POINTER TO ParseTreeNode
         token WITH tokName,
         exceptiondeclaration WITH ExceptionDeclaration(
             name WITH name
+        )
+    )
+END FUNCTION
+
+FUNCTION Parser.parseInterface(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.interface
+    self.nextToken()
+    IF self.token.type <> TokenType.identifier THEN
+        error(2128, self.token, "identifier expected")
+    END IF
+    LET tokName: lexer.Token := self.token
+    self.nextToken()
+    VAR methods: Array<InterfaceMethod> := []
+    WHILE self.token.type <> TokenType.end DO
+        IF self.token.type <> TokenType.function THEN
+            error(2129, self.token, "FUNCTION expected")
+        END IF
+        LET tokFunction: lexer.Token := self.token
+        self.nextToken()
+        IF self.token.type <> TokenType.identifier THEN
+            error(2130, self.token, "identifier expected")
+        END IF
+        LET name: lexer.Token := self.token
+        self.nextToken()
+        VAR returntype: POINTER TO ParseTreeNode
+        VAR args: Array<FunctionParameterGroup>
+        self.parseFunctionParameters(OUT returntype, OUT args, OUT rparen WITH _)
+        methods.append(InterfaceMethod(
+            name WITH name,
+            type WITH NEW ParseTreeNode(
+                type WITH Type.TypeFunctionPointer,
+                token WITH tokFunction,
+                typefunctionpointer WITH TypeFunctionPointer(
+                    returntype WITH returntype,
+                    args WITH args
+                )
+            )
+        ))
+    END WHILE
+    self.nextToken()
+    IF self.token.type <> TokenType.interface THEN
+        error_a(2131, self.tokens[self.index-1], self.token, "'INTERFACE' expected")
+    END IF
+    self.nextToken()
+    RETURN NEW ParseTreeNode(
+        type WITH Type.InterfaceDeclaration,
+        token WITH tokName,
+        interfacedeclaration WITH InterfaceDeclaration(
+            methods WITH methods
         )
     )
 END FUNCTION
@@ -3257,6 +3341,8 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseDeclaration()
         WHEN TokenType.exception DO
             RETURN self.parseException()
+        WHEN TokenType.interface DO
+            RETURN self.parseInterface()
         WHEN TokenType.export DO
             RETURN self.parseExport()
         WHEN TokenType.begin DO
@@ -3772,6 +3858,17 @@ FUNCTION dumpExceptionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: N
     dumpNode(depth, "ExceptionDeclaration(\(names))")
 END FUNCTION
 
+FUNCTION dumpInterfaceDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    VAR names: String := ""
+    FOREACH m IN node->interfacedeclaration.methods DO
+        IF names <> "" THEN
+            names.append(",")
+        END IF
+        names.append(m.name.text)
+    END FOREACH
+    dumpNode(depth, "InterfaceDeclaration(\(names))")
+END FUNCTION
+
 FUNCTION dumpExportDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Number)
     FOREACH n IN node->exportdeclaration.names DO
         dumpNode(depth, "ExportDeclaration(\(n.text))")
@@ -3993,6 +4090,7 @@ LET Dumper: IParseTreeVisitor := {
     "NativeFunctionDeclaration":            dumpNativeFunctionDeclaration,
     "ExtensionFunctionDeclaration":         dumpExtensionFunctionDeclaration,
     "ExceptionDeclaration":                 dumpExceptionDeclaration,
+    "InterfaceDeclaration":                 dumpInterfaceDeclaration,
     "ExportDeclaration":                    dumpExportDeclaration,
     "AssertStatement":                      dumpAssertStatement,
     "AssignmentStatement":                  dumpAssignmentStatement,

@@ -1,0 +1,14 @@
+EXPORT INTERFACE Interface
+    FUNCTION f(self: Interface)
+END INTERFACE
+
+EXPORT TYPE Cls IS CLASS IMPLEMENTS Interface
+END CLASS
+
+FUNCTION Cls.f(self: VALID POINTER TO Cls)
+    print("f")
+END FUNCTION
+
+EXPORT FUNCTION fi(i: VALID POINTER TO Interface)
+    i->f()
+END FUNCTION

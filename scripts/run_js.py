@@ -33,6 +33,7 @@ ExcludeTests = [
     "t/equality.neon",              # DictionaryComparisonExpression
     "t/exception-as.neon",          # exception offset
     "t/exception-subexception.neon",# exception multiple handlers
+    "t/export.neon",                # method
     "t/extsample-test.neon",        # extension functions
     "t/ffi.neon",                   # ffi
     "t/file-exists.neon",           # module file
@@ -57,9 +58,13 @@ ExcludeTests = [
     "t/hash-test.neon",             # bytes
     "t/http-test.neon",             # StringReferenceIndexExpression
     "t/import.neon",                # import
+    "t/interface-parameter-export.neon", # method
+    "t/interface-parameter-import.neon", # method
+    "t/interface-parameter-import2.neon", # method
     "t/in.neon",                    # ArrayInExpression
     "t/inc-reference.neon",         # actually works here so avoid the TODO
     "t/index.neon",                 # copy semantics
+    "t/interface.neon",             # methods
     "t/intrinsic.neon",             # various
     "t/fork.neon",                  # module posix
     "t/io-test.neon",               # module io

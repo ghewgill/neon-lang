@@ -1,0 +1,6 @@
+INTERFACE Foo
+    FUNCTION foo(self: Foo)
+             %<2
+    FUNCTION foo(self: Foo)
+             %<1
+END INTERFACE

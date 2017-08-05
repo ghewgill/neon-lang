@@ -55,6 +55,7 @@ public:
     std::unique_ptr<Declaration> parseForeignDefinition();
     std::unique_ptr<Declaration> parseDeclaration();
     std::unique_ptr<Declaration> parseException();
+    std::unique_ptr<Declaration> parseInterface();
     std::unique_ptr<Statement> parseExport();
     std::unique_ptr<Statement> parseIncrementStatement();
     std::unique_ptr<Statement> parseIfStatement();
@@ -193,12 +194,34 @@ std::unique_ptr<Type> Parser::parseClassType()
     }
     auto &tok_class = tokens[i];
     i++;
+    std::vector<std::pair<Token, Token>> interfaces;
+    while (tokens[i].type == IMPLEMENTS) {
+        do {
+            i++;
+            std::pair<Token, Token> qname;
+            if (tokens[i].type != IDENTIFIER) {
+                error(2132, tokens[i], "identifier expected");
+            }
+            qname.second = tokens[i];
+            i++;
+            if (tokens[i].type == DOT) {
+                i++;
+                if (tokens[i].type != IDENTIFIER) {
+                    error(2133, tokens[i], "identifier expected");
+                }
+                qname.first = qname.second;
+                qname.second = tokens[i];
+                i++;
+            }
+            interfaces.push_back(qname);
+        } while (tokens[i].type == COMMA);
+    }
     std::vector<std::unique_ptr<TypeRecord::Field>> fields = parseFields();
     if (tokens[i].type != CLASS) {
         error_a(2117, tokens[i-1], tokens[i], "'CLASS' expected");
     }
     i++;
-    return std::unique_ptr<Type> { new TypeClass(tok_class, std::move(fields)) };
+    return std::unique_ptr<Type> { new TypeClass(tok_class, std::move(fields), interfaces) };
 }
 
 std::unique_ptr<Type> Parser::parseEnumType()
@@ -1205,6 +1228,40 @@ std::unique_ptr<Declaration> Parser::parseException()
     return std::unique_ptr<Declaration> { new ExceptionDeclaration(tok_name, names) };
 }
 
+std::unique_ptr<Declaration> Parser::parseInterface()
+{
+    i++;
+    if (tokens[i].type != IDENTIFIER) {
+        error(2128, tokens[i], "identifier expected");
+    }
+    auto &tok_name = tokens[i];
+    i++;
+    std::vector<std::pair<Token, std::unique_ptr<TypeFunctionPointer>>> methods;
+    while (tokens[i].type != END) {
+        if (tokens[i].type != FUNCTION) {
+            error(2129, tokens[i], "FUNCTION expected");
+        }
+        auto &tok_function = tokens[i];
+        ++i;
+        if (tokens[i].type != IDENTIFIER) {
+            error(2130, tokens[i], "identifier expected");
+        }
+        const Token &name = tokens[i];
+        ++i;
+        std::unique_ptr<Type> returntype;
+        std::vector<std::unique_ptr<FunctionParameterGroup>> args;
+        Token rparen;
+        parseFunctionParameters(returntype, args, rparen);
+        methods.push_back(std::make_pair(name, std::unique_ptr<TypeFunctionPointer> { new TypeFunctionPointer(tok_function, std::move(returntype), std::move(args)) }));
+    }
+    i++;
+    if (tokens[i].type != INTERFACE) {
+        error_a(2131, tokens[i-1], tokens[i], "'INTERFACE' expected");
+    }
+    i++;
+    return std::unique_ptr<Declaration> { new InterfaceDeclaration(tok_name, tok_name, std::move(methods)) };
+}
+
 std::unique_ptr<Statement> Parser::parseExport()
 {
     auto &tok_export = tokens[i];
@@ -1241,6 +1298,10 @@ std::unique_ptr<Statement> Parser::parseExport()
         case EXCEPTION: {
             std::unique_ptr<Declaration> exception = parseException();
             return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, exception->names, std::move(exception)) };
+        }
+        case INTERFACE: {
+            std::unique_ptr<Declaration> interface = parseInterface();
+            return std::unique_ptr<Statement> { new ExportDeclaration(tok_export, interface->names, std::move(interface)) };
         }
         default:
             break;
@@ -1960,6 +2021,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseDeclaration();
     } else if (tokens[i].type == EXCEPTION) {
         return parseException();
+    } else if (tokens[i].type == INTERFACE) {
+        return parseInterface();
     } else if (tokens[i].type == EXPORT) {
         return parseExport();
     } else if (tokens[i].type == INC || tokens[i].type == DEC) {

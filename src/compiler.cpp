@@ -37,7 +37,7 @@ public:
         Label *next;
     };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -71,8 +71,10 @@ public:
     void add_export_variable(const std::string &name, const std::string &type, int index);
     void add_export_function(const std::string &name, const std::string &type, int entry);
     void add_export_exception(const std::string &name);
+    void add_export_interface(const std::string &name, const std::vector<std::pair<std::string, std::string>> &method_descriptors);
     void add_import(const std::string &name);
     std::string get_type_reference(const ast::Type *type);
+    std::vector<std::pair<const ast::TypeClass *, std::vector<std::vector<Label *>>>> classes;
 private:
     const std::string source_hash;
     Bytecode object;
@@ -140,6 +142,18 @@ std::vector<unsigned char> Emitter::getObject()
     object.global_size = globals.size();
     for (auto f: functions) {
         object.functions.push_back(Bytecode::FunctionInfo(str(f.first), f.second.get_target()));
+    }
+    for (auto c: classes) {
+        Bytecode::ClassInfo ci;
+        ci.name = str(c.first->name);
+        for (auto i: c.second) {
+            std::vector<unsigned int> a;
+            for (auto m: i) {
+                a.push_back(m->get_target());
+            }
+            ci.interfaces.push_back(a);
+        }
+        object.classes.push_back(ci);
     }
     return object.getBytes();
 }
@@ -323,6 +337,16 @@ void Emitter::add_export_exception(const std::string &name)
     Bytecode::ExceptionExport exception;
     exception.name = str(name);
     object.export_exceptions.push_back(exception);
+}
+
+void Emitter::add_export_interface(const std::string &name, const std::vector<std::pair<std::string, std::string>> &method_descriptors)
+{
+    Bytecode::Interface interface;
+    interface.name = str(name);
+    for (auto m: method_descriptors) {
+        interface.method_descriptors.push_back(std::make_pair(str(m.first), str(m.second)));
+    }
+    object.export_interfaces.push_back(interface);
 }
 
 void Emitter::add_import(const std::string &name)
@@ -616,6 +640,19 @@ std::string ast::TypeClass::get_type_descriptor(Emitter &emitter) const
 {
     std::string r = TypeRecord::get_type_descriptor(emitter);
     r[0] = 'C';
+    if (not interfaces.empty()) {
+        std::string ifaces = "{";
+        bool first = true;
+        for (auto i: interfaces) {
+            if (not first) {
+                ifaces.append(",");
+            }
+            first = false;
+            ifaces.append(i->name);
+        }
+        ifaces.append("}");
+        r = r.substr(0, 1) + ifaces + r.substr(1);
+    }
     return r;
 }
 
@@ -634,6 +671,14 @@ void ast::TypePointer::generate_call(Emitter &) const
     internal_error("TypePointer");
 }
 
+void ast::TypePointer::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (dynamic_cast<const ast::TypeInterfacePointer *>(from) != nullptr) {
+        emitter.emit(PUSHI, 0);
+        emitter.emit(INDEXAV);
+    }
+}
+
 std::string ast::TypePointer::get_type_descriptor(Emitter &emitter) const
 {
     return "P<" + (reftype != nullptr ? emitter.get_type_reference(reftype) : "") + ">";
@@ -644,6 +689,53 @@ void ast::TypePointer::get_type_references(std::set<const Type *> &references) c
     if (reftype != nullptr && references.insert(reftype).second) {
         reftype->get_type_references(references);
     }
+}
+
+void ast::TypeInterfacePointer::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADA);
+}
+
+void ast::TypeInterfacePointer::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREA);
+}
+
+void ast::TypeInterfacePointer::generate_call(Emitter &) const
+{
+    internal_error("TypeInterfacePointer");
+}
+
+void ast::TypeInterfacePointer::generate_convert(Emitter &emitter, const Type *from) const
+{
+    const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(from);
+    if (ptype != nullptr) {
+        const ast::TypeClass *ctype = ptype->reftype;
+        size_t i = 0;
+        while (i < ctype->interfaces.size()) {
+            if (interface == ctype->interfaces[i]) {
+                break;
+            }
+            i++;
+        }
+        assert(i < ctype->interfaces.size());
+        emitter.emit(PUSHI, static_cast<uint32_t>(i));
+        emitter.emit(SWAP);
+        emitter.emit(CONSA, 2);
+    }
+}
+
+std::string ast::TypeInterfacePointer::get_type_descriptor(Emitter &) const
+{
+    return "I<" + interface->name + ">";
+}
+
+void ast::TypeInterfacePointer::get_type_references(std::set<const Type *> &) const
+{
+    // TODO
+    /*if (references.insert(reftype).second) {
+        interface->get_type_references(references);
+    }*/
 }
 
 void ast::TypeFunctionPointer::generate_load(Emitter &emitter) const
@@ -670,6 +762,14 @@ void ast::TypeFunctionPointer::get_type_references(std::set<const Type *> &refer
 {
     if (references.insert(functype).second) {
         functype->get_type_references(references);
+    }
+}
+
+void ast::TypeInterface::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (dynamic_cast<const ast::TypeInterfacePointer *>(from) != nullptr) {
+        emitter.emit(PUSHI, 0);
+        emitter.emit(INDEXAV);
     }
 }
 
@@ -860,6 +960,24 @@ void ast::Function::postdeclare(Emitter &emitter) const
     emitter.emit(LEAVE);
     emitter.emit(RET);
     frame->postdeclare(emitter);
+
+    auto dot = name.find('.');
+    if (dot != std::string::npos) {
+        std::string classname = name.substr(0, dot);
+        std::string methodname = name.substr(dot+1);
+        for (auto &c: emitter.classes) {
+            if (c.first->name == classname) {
+                for (size_t i = 0; i < c.first->interfaces.size(); i++) {
+                    for (size_t m = 0; m < c.first->interfaces[i]->methods.size(); m++) {
+                        if (c.first->interfaces[i]->methods[m].first.text == methodname) {
+                            c.second[i][m] = &emitter.function_label(entry_label);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
 }
 
 void ast::Function::generate_load(Emitter &emitter) const
@@ -987,6 +1105,15 @@ void ast::Exception::generate_export(Emitter &emitter, const std::string &name) 
     }
 }
 
+void ast::Interface::generate_export(Emitter &emitter, const std::string &name) const
+{
+    std::vector<std::pair<std::string, std::string>> method_descriptors;
+    for (auto m: methods) {
+        method_descriptors.push_back(std::make_pair(m.first.text, m.second->get_type_descriptor(emitter)));
+    }
+    emitter.add_export_interface(name, method_descriptors);
+}
+
 void ast::Constant::generate_export(Emitter &emitter, const std::string &name) const
 {
     emitter.add_export_constant(name, emitter.get_type_reference(type), type->serialize(value));
@@ -1065,12 +1192,21 @@ void ast::RecordLiteralExpression::generate_expr(Emitter &emitter) const
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
 }
 
+void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
+{
+    for (size_t i = values.size()-1; i > 0; i--) {
+        values[i]->generate(emitter);
+    }
+    emitter.emit(PUSHCI, emitter.str(type->name));
+    emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
+}
+
 void ast::NewClassExpression::generate_expr(Emitter &emitter) const
 {
     if (value != nullptr) {
         value->generate(emitter);
     }
-    emitter.emit(ALLOC, static_cast<uint32_t>(fields));
+    emitter.emit(ALLOC, static_cast<uint32_t>(reftype->fields.size()));
     if (value != nullptr) {
         emitter.emit(DUPX1);
         emitter.emit(STOREA);
@@ -1497,15 +1633,26 @@ void ast::VariableExpression::generate_expr(Emitter &emitter) const
     var->generate_load(emitter);
 }
 
+void ast::InterfaceMethodExpression::generate_call(Emitter &emitter) const
+{
+    emitter.emit(CALLV, static_cast<uint32_t>(index));
+}
+
 void ast::FunctionCall::generate_parameters(Emitter &emitter) const
 {
     const TypeFunction *ftype = dynamic_cast<const TypeFunction *>(func->type);
     if (ftype == nullptr) {
         const TypeFunctionPointer *pf = dynamic_cast<const TypeFunctionPointer *>(func->type);
         if (pf == nullptr) {
-            internal_error("FunctionCall::generate_expr");
+            const InterfaceMethodExpression *ime = dynamic_cast<const InterfaceMethodExpression *>(func);
+            if (ime == nullptr) {
+                internal_error("FunctionCall::generate_expr " + func->text());
+            } else {
+                ftype = ime->functype;
+            }
+        } else {
+            ftype = pf->functype;
         }
-        ftype = pf->functype;
     }
     // TODO: This is a ridiculous hack because the way we compile
     // StringIndexExpression::store is not really legal. This assertion
@@ -1521,6 +1668,9 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
         switch (param->mode) {
             case ParameterType::IN:
                 arg->generate(emitter);
+                if (param->type != nullptr) {
+                    param->type->generate_convert(emitter, arg->type);
+                }
                 break;
             case ParameterType::INOUT:
                 dynamic_cast<const ReferenceExpression *>(arg)->generate_address_read(emitter);
@@ -1538,9 +1688,15 @@ void ast::FunctionCall::generate_expr(Emitter &emitter) const
     if (ftype == nullptr) {
         const TypeFunctionPointer *pf = dynamic_cast<const TypeFunctionPointer *>(func->type);
         if (pf == nullptr) {
-            internal_error("FunctionCall::generate_expr");
+            const InterfaceMethodExpression *ime = dynamic_cast<const InterfaceMethodExpression *>(func);
+            if (ime == nullptr) {
+                internal_error("FunctionCall::generate_expr");
+            } else {
+                ftype = ime->functype;
+            }
+        } else {
+            ftype = pf->functype;
         }
-        ftype = pf->functype;
     }
     if (dispatch != nullptr) {
         dispatch->generate_expr(emitter);
@@ -1589,6 +1745,19 @@ void ast::Statement::generate(Emitter &emitter) const
     generate_code(emitter);
 }
 
+void ast::TypeDeclarationStatement::generate_code(Emitter &emitter) const
+{
+    // This might better be a virtual function call on Type.
+    const ast::TypeClass *type_class = dynamic_cast<const ast::TypeClass *>(type);
+    if (type_class != nullptr) {
+        std::vector<std::vector<Emitter::Label *>> ifs;
+        for (auto i: type_class->interfaces) {
+            ifs.push_back(std::vector<Emitter::Label *>(i->methods.size()));
+        }
+        emitter.classes.push_back(std::make_pair(type_class, ifs));
+    }
+}
+
 void ast::ExceptionHandlerStatement::generate_code(Emitter &emitter) const
 {
     for (auto stmt: statements) {
@@ -1618,6 +1787,7 @@ void ast::AssignmentStatement::generate_code(Emitter &emitter) const
         emitter.emit(DUP);
     }
     for (auto v: variables) {
+         v->type->generate_convert(emitter, expr->type);
          v->generate_store(emitter);
     }
 }
@@ -2141,6 +2311,14 @@ void ast::TypePointer::debuginfo(Emitter &, minijson::object_writer &out) const
     type.close();
 }
 
+void ast::TypeInterfacePointer::debuginfo(Emitter &, minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "InterfacePointer");
+    type.write("representation", "array");
+    type.close();
+}
+
 void ast::TypeFunctionPointer::debuginfo(Emitter &, minijson::object_writer &out) const
 {
     auto type = out.nested_object("type");
@@ -2169,6 +2347,14 @@ void ast::TypeException::debuginfo(Emitter &, minijson::object_writer &out) cons
 {
     auto type = out.nested_object("type");
     type.write("display", "Exception");
+    type.write("representation", "none");
+    type.close();
+}
+
+void ast::TypeInterface::debuginfo(Emitter &, minijson::object_writer &out) const
+{
+    auto type = out.nested_object("type");
+    type.write("display", "Interface");
     type.write("representation", "none");
     type.close();
 }

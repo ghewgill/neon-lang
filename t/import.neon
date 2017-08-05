@@ -1,5 +1,13 @@
 IMPORT export
 
+TYPE Cls IS CLASS IMPLEMENTS export.Interface
+    name: String
+END CLASS
+
+FUNCTION Cls.f(self: VALID POINTER TO Cls)
+    print("foo")
+END FUNCTION
+
 VAR r: export.Record
 VAR c: POINTER TO export.Class
 VAR e: export.Enum
@@ -15,3 +23,11 @@ ASSERT export.cr.n = 1
 TRY
 TRAP export.TestException DO
 END TRY
+
+LET c1: POINTER TO export.Interface := NEW Cls
+c1->f()
+%= foo
+
+LET c2: POINTER TO export.Interface := NEW export.Class2
+c2->f()
+%= f

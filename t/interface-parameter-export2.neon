@@ -1,0 +1,7 @@
+EXPORT INTERFACE Interface
+    FUNCTION f(self: Interface)
+END INTERFACE
+
+EXPORT FUNCTION fi(i: VALID POINTER TO Interface)
+    i->f()
+END FUNCTION

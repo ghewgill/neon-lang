@@ -1,0 +1,4 @@
+INTERFACE Int
+    FUNCTION foo()
+             %<
+END INTERFACE

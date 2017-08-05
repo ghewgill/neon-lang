@@ -21,6 +21,10 @@ TYPE name IS RECORD name: type PRIVATE name: type END RECORD
 TYPE name IS CLASS END CLASS
 TYPE name IS CLASS name: type END CLASS
 TYPE name IS CLASS name: type PRIVATE name: type END CLASS
+TYPE name IS CLASS IMPLEMENTS name END CLASS
+TYPE name IS CLASS IMPLEMENTS module.name END CLASS
+TYPE name IS CLASS IMPLEMENTS name1, name2 END CLASS
+TYPE name IS CLASS IMPLEMENTS module.name1, module.name2 END CLASS
 
 % Type, EnumType
 TYPE name IS ENUM END ENUM
@@ -84,6 +88,10 @@ FUNCTION name(x: type DEFAULT expr) END FUNCTION
 
 % ExceptionDeclaration
 EXCEPTION name
+
+% InterfaceDeclaration
+INTERFACE name END INTERFACE
+INTERFACE name FUNCTION func() END INTERFACE
 
 % ExportDeclaration
 EXPORT name

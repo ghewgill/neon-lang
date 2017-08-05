@@ -1,0 +1,8 @@
+INTERFACE Int
+    FUNCTION foo(self: Int)
+             %<2
+END INTERFACE
+
+TYPE Cls IS CLASS IMPLEMENTS Int
+            %<1
+END CLASS

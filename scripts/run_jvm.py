@@ -39,6 +39,11 @@ ExcludeTests = [
     "t/index.neon",                 # copy semantics
     "t/inline-construct-record.neon",   # stack size too large
     "t/inline-init-record.neon",    # stack size too large
+    "t/interface.neon",             # interface
+    "t/interface-parameter-export.neon", # interface
+    "t/interface-parameter-export2.neon", # interface
+    "t/interface-parameter-import.neon", # interface
+    "t/interface-parameter-import2.neon", # interface
     "t/io-test.neon",               # PredefinedVariable io$stdout
     "t/json-test.neon",             # illegal character dot
     "t/lisp-test.neon",             # store constant string expression?

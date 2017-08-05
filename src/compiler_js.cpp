@@ -261,6 +261,18 @@ private:
     TypePointer &operator=(const TypePointer &);
 };
 
+class TypeInterfacePointer: public Type {
+public:
+    TypeInterfacePointer(const ast::TypeInterfacePointer *tip): Type(tip), tip(tip) {}
+    const ast::TypeInterfacePointer *tip;
+    virtual void generate_default(Context &context) const override {
+        context.out << "null";
+    }
+private:
+    TypeInterfacePointer(const TypeInterfacePointer &);
+    TypeInterfacePointer &operator=(const TypeInterfacePointer &);
+};
+
 class TypeFunctionPointer: public Type {
 public:
     TypeFunctionPointer(const ast::TypeFunctionPointer *fp): Type(fp), fp(fp), functype(dynamic_cast<const TypeFunction *>(transform(fp->functype))) {}
@@ -544,6 +556,15 @@ public:
 private:
     RecordLiteralExpression(const RecordLiteralExpression &);
     RecordLiteralExpression &operator=(const RecordLiteralExpression &);
+};
+
+class ClassLiteralExpression: public RecordLiteralExpression {
+public:
+    ClassLiteralExpression(const ast::ClassLiteralExpression *cle): RecordLiteralExpression(cle), cle(cle) {}
+    const ast::ClassLiteralExpression *cle;
+private:
+    ClassLiteralExpression(const ClassLiteralExpression &);
+    ClassLiteralExpression &operator=(const ClassLiteralExpression &);
 };
 
 class NewClassExpression: public Expression {
@@ -1283,6 +1304,19 @@ private:
     VariableExpression &operator=(const VariableExpression &);
 };
 
+class InterfaceMethodExpression: public Expression {
+public:
+    InterfaceMethodExpression(const ast::InterfaceMethodExpression *ime): Expression(ime), ime(ime) {}
+    const ast::InterfaceMethodExpression *ime;
+
+    virtual void generate(Context &) const override {
+        // TODO
+    }
+private:
+    InterfaceMethodExpression(const InterfaceMethodExpression &);
+    InterfaceMethodExpression &operator=(const InterfaceMethodExpression &);
+};
+
 class FunctionCall: public Expression {
 public:
     FunctionCall(const ast::FunctionCall *fc): Expression(fc), fc(fc), func(transform(fc->func)), args() {
@@ -1322,6 +1356,17 @@ public:
 private:
     NullStatement(const NullStatement &);
     NullStatement &operator=(const NullStatement &);
+};
+
+class TypeDeclarationStatement: public Statement {
+public:
+    TypeDeclarationStatement(const ast::TypeDeclarationStatement *tds): Statement(tds), tds(tds) {}
+    const ast::TypeDeclarationStatement *tds;
+
+    virtual void generate(Context &) const override {}
+private:
+    TypeDeclarationStatement(const TypeDeclarationStatement &);
+    TypeDeclarationStatement &operator=(const TypeDeclarationStatement &);
 };
 
 class DeclarationStatement: public Statement {
@@ -1898,10 +1943,12 @@ public:
     virtual void visit(const ast::TypeRecord *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypeClass *node) { r = new TypeRecord(node); }
     virtual void visit(const ast::TypePointer *node) { r = new TypePointer(node); }
+    virtual void visit(const ast::TypeInterfacePointer *node) { r = new TypeInterfacePointer(node); }
     virtual void visit(const ast::TypeFunctionPointer *node) { r = new TypeFunctionPointer(node); }
     virtual void visit(const ast::TypeEnum *node) { r = new TypeEnum(node); }
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
+    virtual void visit(const ast::TypeInterface *) {}
     virtual void visit(const ast::LoopLabel *) {}
     virtual void visit(const ast::PredefinedVariable *) {}
     virtual void visit(const ast::ModuleVariable *) {}
@@ -1910,6 +1957,7 @@ public:
     virtual void visit(const ast::LocalVariable *) {}
     virtual void visit(const ast::FunctionParameter *) {}
     virtual void visit(const ast::Exception *) {}
+    virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
     virtual void visit(const ast::ConstantNumberExpression *) {}
@@ -1921,6 +1969,7 @@ public:
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
+    virtual void visit(const ast::ClassLiteralExpression *) {}
     virtual void visit(const ast::NewClassExpression *) {}
     virtual void visit(const ast::UnaryMinusExpression *) {}
     virtual void visit(const ast::LogicalNotExpression *) {}
@@ -1964,9 +2013,11 @@ public:
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
+    virtual void visit(const ast::InterfaceMethodExpression *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
+    virtual void visit(const ast::TypeDeclarationStatement *) {}
     virtual void visit(const ast::DeclarationStatement *) {}
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *) {}
@@ -2011,10 +2062,12 @@ public:
     virtual void visit(const ast::TypeRecord *) {}
     virtual void visit(const ast::TypeClass *) {}
     virtual void visit(const ast::TypePointer *) {}
+    virtual void visit(const ast::TypeInterfacePointer *) {}
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
+    virtual void visit(const ast::TypeInterface *) {}
     virtual void visit(const ast::LoopLabel *) {}
     virtual void visit(const ast::PredefinedVariable *node) { r = new PredefinedVariable(node); }
     virtual void visit(const ast::ModuleVariable *node) { r = new ModuleVariable(node); }
@@ -2023,6 +2076,7 @@ public:
     virtual void visit(const ast::LocalVariable *node) { r = new LocalVariable(node); }
     virtual void visit(const ast::FunctionParameter *) { /*r = new FunctionParameter(node);*/ }
     virtual void visit(const ast::Exception *) {}
+    virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
     virtual void visit(const ast::ConstantNumberExpression *) {}
@@ -2034,6 +2088,7 @@ public:
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
+    virtual void visit(const ast::ClassLiteralExpression *) {}
     virtual void visit(const ast::NewClassExpression *) {}
     virtual void visit(const ast::UnaryMinusExpression *) {}
     virtual void visit(const ast::LogicalNotExpression *) {}
@@ -2077,9 +2132,11 @@ public:
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
+    virtual void visit(const ast::InterfaceMethodExpression *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
+    virtual void visit(const ast::TypeDeclarationStatement *) {}
     virtual void visit(const ast::DeclarationStatement *) {}
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *) {}
@@ -2124,10 +2181,12 @@ public:
     virtual void visit(const ast::TypeRecord *) {}
     virtual void visit(const ast::TypeClass *) {}
     virtual void visit(const ast::TypePointer *) {}
+    virtual void visit(const ast::TypeInterfacePointer *) {}
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
+    virtual void visit(const ast::TypeInterface *) {}
     virtual void visit(const ast::LoopLabel *) {}
     virtual void visit(const ast::PredefinedVariable *) {}
     virtual void visit(const ast::ModuleVariable *) {}
@@ -2136,6 +2195,7 @@ public:
     virtual void visit(const ast::LocalVariable *) {}
     virtual void visit(const ast::FunctionParameter *) {}
     virtual void visit(const ast::Exception *) {}
+    virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
     virtual void visit(const ast::ConstantBooleanExpression *node) { r = new ConstantBooleanExpression(node); }
     virtual void visit(const ast::ConstantNumberExpression *node) { r = new ConstantNumberExpression(node); }
@@ -2147,6 +2207,7 @@ public:
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
     virtual void visit(const ast::RecordLiteralExpression *node) { r = new RecordLiteralExpression(node); }
+    virtual void visit(const ast::ClassLiteralExpression *node) { r = new ClassLiteralExpression(node); }
     virtual void visit(const ast::NewClassExpression *node) { r =  new NewClassExpression(node); }
     virtual void visit(const ast::UnaryMinusExpression *node) { r = new UnaryMinusExpression(node); }
     virtual void visit(const ast::LogicalNotExpression *node) { r = new LogicalNotExpression(node); }
@@ -2190,9 +2251,11 @@ public:
     virtual void visit(const ast::PointerDereferenceExpression *node) { r =  new PointerDereferenceExpression(node); }
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
+    virtual void visit(const ast::InterfaceMethodExpression *node) { r = new InterfaceMethodExpression(node); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
+    virtual void visit(const ast::TypeDeclarationStatement *) {}
     virtual void visit(const ast::DeclarationStatement *) {}
     virtual void visit(const ast::ExceptionHandlerStatement *) {}
     virtual void visit(const ast::AssertStatement *) {}
@@ -2237,10 +2300,12 @@ public:
     virtual void visit(const ast::TypeRecord *) {}
     virtual void visit(const ast::TypeClass *) {}
     virtual void visit(const ast::TypePointer *) {}
+    virtual void visit(const ast::TypeInterfacePointer *) {}
     virtual void visit(const ast::TypeFunctionPointer *) {}
     virtual void visit(const ast::TypeEnum *) {}
     virtual void visit(const ast::TypeModule *) {}
     virtual void visit(const ast::TypeException *) {}
+    virtual void visit(const ast::TypeInterface *) {}
     virtual void visit(const ast::LoopLabel *) {}
     virtual void visit(const ast::PredefinedVariable *) {}
     virtual void visit(const ast::ModuleVariable *) {}
@@ -2249,6 +2314,7 @@ public:
     virtual void visit(const ast::LocalVariable *) {}
     virtual void visit(const ast::FunctionParameter *) {}
     virtual void visit(const ast::Exception *) {}
+    virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
     virtual void visit(const ast::ConstantNumberExpression *) {}
@@ -2260,6 +2326,7 @@ public:
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
+    virtual void visit(const ast::ClassLiteralExpression *) {}
     virtual void visit(const ast::NewClassExpression *) {}
     virtual void visit(const ast::UnaryMinusExpression *) {}
     virtual void visit(const ast::LogicalNotExpression *) {}
@@ -2303,9 +2370,11 @@ public:
     virtual void visit(const ast::PointerDereferenceExpression *) {}
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
+    virtual void visit(const ast::InterfaceMethodExpression *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *node) { r = new NullStatement(node); }
+    virtual void visit(const ast::TypeDeclarationStatement *node) { r = new TypeDeclarationStatement(node); }
     virtual void visit(const ast::DeclarationStatement *node) { r = new DeclarationStatement(node); }
     virtual void visit(const ast::ExceptionHandlerStatement *) { internal_error("ExceptionHandlerStatement" ); }
     virtual void visit(const ast::AssertStatement *node) { r = new AssertStatement(node); }

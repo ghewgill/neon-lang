@@ -322,6 +322,9 @@ public:
     virtual void visit(const ExceptionDeclaration *node) override {
         write("ExceptionDeclaration(" + join(node->name) + ")");
     }
+    virtual void visit(const InterfaceDeclaration *node) override {
+        write("InterfaceDeclaration(" + join(node->methods) + ")");
+    }
     virtual void visit(const ExportDeclaration *node) override {
         for (auto &name: node->names) {
             write("ExportDeclaration(" + name.text + ")");
@@ -532,6 +535,17 @@ private:
                 r += ",";
             }
             r += x->name.text;
+        }
+        return r;
+    }
+
+    static std::string join(const std::vector<std::pair<Token, std::unique_ptr<TypeFunctionPointer>>> &a) {
+        std::string r;
+        for (auto &x: a) {
+            if (not r.empty()) {
+                r += ",";
+            }
+            r += x.first.text;
         }
         return r;
     }

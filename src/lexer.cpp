@@ -134,6 +134,8 @@ std::string Token::tostring() const
         case CLASS:       s << "CLASS"; break;
         case TRAP:        s << "TRAP"; break;
         case EXTENSION:   s << "EXTENSION"; break;
+        case INTERFACE:   s << "INTERFACE"; break;
+        case IMPLEMENTS:  s << "IMPLEMENTS"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -347,6 +349,8 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             else if (t.text == "CLASS") t.type = CLASS;
             else if (t.text == "TRAP") t.type = TRAP;
             else if (t.text == "EXTENSION") t.type = EXTENSION;
+            else if (t.text == "INTERFACE") t.type = INTERFACE;
+            else if (t.text == "IMPLEMENTS") t.type = IMPLEMENTS;
             else if (all_upper(t.text)) {
                 t.type = UNKNOWN;
             } else if (t.text.find("__") != std::string::npos) {

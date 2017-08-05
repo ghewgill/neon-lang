@@ -115,6 +115,8 @@ std::string reconstitute(const Token &t)
         case CLASS:       return "CLASS";
         case TRAP:        return "TRAP";
         case EXTENSION:   return "EXTENSION";
+        case INTERFACE:   return "INTERFACE";
+        case IMPLEMENTS:  return "IMPLEMENTS";
         case UNKNOWN:     return "UNKNOWN";
         case MAX_TOKEN:   return "";
     }

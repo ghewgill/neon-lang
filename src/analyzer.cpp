@@ -106,6 +106,7 @@ public:
     const ast::Statement *analyze(const pt::NativeFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::ExtensionFunctionDeclaration *declaration);
     const ast::Statement *analyze(const pt::ExceptionDeclaration *declaration);
+    const ast::Statement *analyze(const pt::InterfaceDeclaration *declaration);
     const ast::Statement *analyze_decl(const pt::ExportDeclaration *declaration);
     const ast::Statement *analyze_body(const pt::ExportDeclaration *declaration);
     std::vector<const ast::Statement *> analyze(const std::vector<std::unique_ptr<pt::Statement>> &statement);
@@ -136,7 +137,7 @@ private:
     ast::Type *deserialize_type(ast::Scope *scope, const std::string &descriptor);
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
-    std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type);
+    std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -206,6 +207,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExtensionFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::InterfaceDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
@@ -300,6 +302,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExtensionFunctionDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExceptionDeclaration *) override { internal_error("pt::Declaration"); }
+    virtual void visit(const pt::InterfaceDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::ExportDeclaration *) override { internal_error("pt::Declaration"); }
     virtual void visit(const pt::AssertStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::AssignmentStatement *) override { internal_error("pt::Statement"); }
@@ -393,6 +396,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExtensionFunctionDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExceptionDeclaration *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::InterfaceDeclaration *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_decl(p)); }
     virtual void visit(const pt::AssertStatement *) override {}
     virtual void visit(const pt::AssignmentStatement *) override {}
@@ -486,6 +490,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *) override {}
     virtual void visit(const pt::ExtensionFunctionDeclaration *) override {}
     virtual void visit(const pt::ExceptionDeclaration *) override {}
+    virtual void visit(const pt::InterfaceDeclaration *) override {}
     virtual void visit(const pt::ExportDeclaration *p) override { v.push_back(a->analyze_body(p)); }
     virtual void visit(const pt::AssertStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::AssignmentStatement *p) override { v.push_back(a->analyze(p)); }
@@ -766,6 +771,19 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         internal_error("TODO module not found: " + name);
     }
     ast::Module *module = new ast::Module(Token(), global_scope, name);
+    // Must do interfaces before types (so classes can refer to these).
+    for (auto i: object.export_interfaces) {
+        std::string name = object.strtable[i.name];
+        std::vector<std::pair<Token, const ast::TypeFunction *>> methods;
+        for (auto m: i.method_descriptors) {
+            const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[m.second]));
+            if (tf == nullptr) {
+                internal_error("deserialized type not function");
+            }
+            methods.push_back(std::make_pair(Token(IDENTIFIER, object.strtable[m.first]), tf));
+        }
+        module->scope->addName(Token(IDENTIFIER, ""), name, new ast::Interface(Token(), name, methods));
+    }
     for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
@@ -777,12 +795,13 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
         } else if (object.strtable[t.descriptor][0] == 'C') {
             // Support recursive class type declarations.
-            ast::TypeClass *actual_class = new ast::TypeClass(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
+            ast::TypeClass *actual_class = new ast::TypeClass(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>());
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_class);
             ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
-            const ast::TypeRecord *classtype = dynamic_cast<const ast::TypeClass *>(type);
+            const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(type);
             const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
+            const_cast<std::vector<const ast::Interface *> &>(actual_class->interfaces) = classtype->interfaces;
         } else {
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
@@ -877,9 +896,12 @@ const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::str
     return new ast::TypeEnum(type->token, module_name, name, names, this);
 }
 
-std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type)
+std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecord *type, bool for_class)
 {
     std::vector<ast::TypeRecord::Field> fields;
+    if (for_class) {
+        fields.push_back(ast::TypeRecord::Field(Token(), new ast::TypePointer(Token(), nullptr), true));
+    }
     std::map<std::string, Token> field_names;
     for (auto &x: type->fields) {
         std::string name = x->name.text;
@@ -902,14 +924,35 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
 
 const ast::Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
-    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type);
+    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, false);
     return new ast::TypeRecord(type->token, module_name, name, fields);
 }
 
 const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)
 {
-    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type);
-    return new ast::TypeClass(type->token, module_name, name, fields);
+    std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, true);
+    std::vector<const ast::Interface *> interfaces;
+    for (auto i: type->interfaces) {
+        ast::Scope *s = scope.top();
+        if (i.first.type != NONE) {
+            const ast::Name *modname = scope.top()->lookupName(i.first.text);
+            const ast::Module *mod = dynamic_cast<const ast::Module *>(modname);
+            if (mod == nullptr) {
+                error(3257, i.first, "module not found");
+            }
+            s = mod->scope;
+        }
+        const ast::Name *name = s->lookupName(i.second.text);
+        if (name == nullptr) {
+            error(3248, i.second, "interface name not found");
+        }
+        const ast::Interface *iface = dynamic_cast<const ast::Interface *>(name);
+        if (iface == nullptr) {
+            error(3249, i.second, "interface name expected here");
+        }
+        interfaces.push_back(iface);
+    }
+    return new ast::TypeClass(type->token, module_name, name, fields, interfaces);
 }
 
 const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
@@ -922,10 +965,27 @@ const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::strin
             scope.top()->addForward(name, ptrtype);
             return ptrtype;
         } else {
+            if (simple != nullptr) {
+                const ast::Name *name = scope.top()->lookupName(simple->name);
+                const ast::Interface *interface = dynamic_cast<const ast::Interface *>(name);
+                if (interface != nullptr) {
+                    return new ast::TypeInterfacePointer(type->token, interface);
+                }
+            }
+            const pt::TypeImport *import = dynamic_cast<const pt::TypeImport *>(type->reftype.get());
+            if (import != nullptr) {
+                ast::Module *module = dynamic_cast<ast::Module *>(scope.top()->lookupName(import->modname.text));
+                if (module != nullptr) {
+                    ast::Interface *interface = dynamic_cast<ast::Interface *>(module->scope->lookupName(import->subname.text));
+                    if (interface != nullptr) {
+                        return new ast::TypeInterfacePointer(type->token, interface);
+                    }
+                }
+            }
             const ast::Type *reftype = analyze(type->reftype.get());
             const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(reftype);
             if (classtype == nullptr) {
-                error(3098, type->reftype->token, "class type expected");
+                error(3098, type->reftype->token, "class or interface type expected");
             }
             return new ast::TypePointer(type->token, classtype);
         }
@@ -943,6 +1003,13 @@ const ast::Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::
         scope.top()->addForward(name, ptrtype);
         return ptrtype;
     } else {
+        if (simple != nullptr) {
+            const ast::Name *name = scope.top()->lookupName(simple->name);
+            const ast::Interface *interface = dynamic_cast<const ast::Interface *>(name);
+            if (interface != nullptr) {
+                return new ast::TypeValidInterfacePointer(type->token, interface);
+            }
+        }
         const ast::Type *reftype = analyze(type->reftype.get());
         const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(reftype);
         if (classtype == nullptr) {
@@ -1429,6 +1496,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     const ast::Expression *self = nullptr;
     const ast::Expression *func = nullptr;
     const ast::Expression *dispatch = nullptr;
+    const ast::TypeFunction *ftype = nullptr;
     if (dotmethod != nullptr) {
         // This check avoids trying to evaluate foo.bar as an
         // expression in foo.bar() where foo is actually a module.
@@ -1459,18 +1527,35 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
     } else if (arrowmethod != nullptr) {
         const ast::Expression *base = analyze(arrowmethod->base.get());
         const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(base->type);
-        if (ptype == nullptr) {
+        const ast::TypeInterfacePointer *iptype = dynamic_cast<const ast::TypeInterfacePointer *>(base->type);
+        if (ptype != nullptr) {
+            if (dynamic_cast<const ast::TypeValidPointer *>(ptype) == nullptr) {
+                error(3219, arrowmethod->base->token, "valid pointer required");
+            }
+            auto m = ptype->reftype->methods.find(arrowmethod->name.text);
+            if (m == ptype->reftype->methods.end()) {
+                error(3220, arrowmethod->name, "method not found");
+            }
+            self = base;
+            func = new ast::VariableExpression(m->second);
+        } else if (iptype != nullptr) {
+            size_t i = 0;
+            while (i < iptype->interface->methods.size()) {
+                if (arrowmethod->name.text == iptype->interface->methods[i].first.text) {
+                    break;
+                }
+                i++;
+            }
+            if (i >= iptype->interface->methods.size()) {
+                error(3250, arrowmethod->name, "interface method not found");
+            }
+            self = base;
+            func = new ast::InterfaceMethodExpression(iptype->interface->methods[i].second, i);
+            dispatch = base;
+            ftype = iptype->interface->methods[i].second;
+        } else {
             error(3218, arrowmethod->base->token, "pointer type expected");
         }
-        if (dynamic_cast<const ast::TypeValidPointer *>(ptype) == nullptr) {
-            error(3219, arrowmethod->base->token, "valid pointer required");
-        }
-        auto m = ptype->reftype->methods.find(arrowmethod->name.text);
-        if (m == ptype->reftype->methods.end()) {
-            error(3220, arrowmethod->name, "method not found");
-        }
-        self = base;
-        func = new ast::VariableExpression(m->second);
     } else if (recordtype == nullptr) {
         func = analyze(expr->base.get());
     }
@@ -1505,16 +1590,23 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 elements[p] = recordtype->fields[p].type->make_default_value();
             }
         }
-        return new ast::RecordLiteralExpression(recordtype, elements);
-    }
-    const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(func->type);
-    if (ftype == nullptr) {
-        const ast::TypeFunctionPointer *pf = dynamic_cast<const ast::TypeFunctionPointer *>(func->type);
-        if (pf == nullptr) {
-            error(3017, expr->base->token, "not a function");
+        const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(recordtype);
+        if (classtype != nullptr) {
+            return new ast::ClassLiteralExpression(classtype, elements);
+        } else {
+            return new ast::RecordLiteralExpression(recordtype, elements);
         }
-        ftype = pf->functype;
-        dispatch = func;
+    }
+    if (ftype == nullptr) {
+        ftype = dynamic_cast<const ast::TypeFunction *>(func->type);
+        if (ftype == nullptr) {
+            const ast::TypeFunctionPointer *pf = dynamic_cast<const ast::TypeFunctionPointer *>(func->type);
+            if (pf == nullptr) {
+                error(3017, expr->base->token, "not a function");
+            }
+            ftype = pf->functype;
+            dispatch = func;
+        }
     }
     int param_index = 0;
     std::vector<const ast::Expression *> args(ftype->params.size());
@@ -1942,6 +2034,13 @@ const ast::Expression *Analyzer::analyze(const pt::NewClassExpression *expr)
     if (type == nullptr) {
         error(3099, type_expr->token, "class type expected");
     }
+    if (value == nullptr) {
+        std::vector<const ast::Expression *> values;
+        for (size_t i = 0; i < type->fields.size(); i++) {
+            values.push_back(type->fields[i].type->make_default_value());
+        }
+        value = new ast::ClassLiteralExpression(type, values);
+    }
     return new ast::NewClassExpression(type, value);
 }
 
@@ -2027,7 +2126,30 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
         case 'R': case 'C': {
             char kind = descriptor.at(i);
             i++;
+            std::vector<const ast::Interface *> interfaces;
             std::vector<ast::TypeRecord::Field> fields;
+            if (kind == 'C') {
+                fields.push_back(ast::TypeRecord::Field(Token(), new ast::TypePointer(Token(), nullptr), true));
+                if (descriptor.at(i) == '{') {
+                    for (;;) {
+                        i++;
+                        std::string iname;
+                        while (descriptor.at(i) != ',' && descriptor.at(i) != '}') {
+                            iname.push_back(descriptor.at(i));
+                            i++;
+                        }
+                        const ast::Interface *iface = dynamic_cast<const ast::Interface *>(scope->lookupName(iname));
+                        if (iface == nullptr) {
+                            internal_error("interface not found on import");
+                        }
+                        interfaces.push_back(iface);
+                        if (descriptor.at(i) == '}') {
+                            break;
+                        }
+                    }
+                    i++;
+                }
+            }
             if (descriptor.at(i) != '[') {
                 internal_error("deserialize_type");
             }
@@ -2056,10 +2178,35 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
             if (kind == 'R') {
                 return new ast::TypeRecord(Token(), "module", "record", fields);
             } else if (kind == 'C') {
-                return new ast::TypeClass(Token(), "module", "class", fields);
+                return new ast::TypeClass(Token(), "module", "class", fields, interfaces);
             } else {
                 internal_error("what kind?");
             }
+        }
+        case 'I': {
+            i++;
+            if (descriptor.at(i) != '<') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            std::string iname;
+            while (descriptor.at(i) != '>') {
+                iname.push_back(descriptor.at(i));
+                i++;
+            }
+            if (descriptor.at(i) != '>') {
+                internal_error("deserialize_type");
+            }
+            i++;
+            ast::Interface *iface = dynamic_cast<ast::Interface *>(scope->lookupName(iname));
+            if (iface == nullptr) {
+                internal_error("deserialize_type");
+            }
+            return new ast::TypeInterfacePointer(Token(), iface);
+        }
+        case 'J': {
+            i++;
+            return ast::TYPE_INTERFACE;
         }
         case 'E': {
             i++;
@@ -2225,7 +2372,7 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
     if (classdecl != nullptr) {
         // Support recursive class type declarations.
-        actual_class = new ast::TypeClass(classdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
+        actual_class = new ast::TypeClass(classdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>());
         scope.top()->addName(declaration->token, name, actual_class);
     } else if (recdecl != nullptr) {
         // Support recursive record type declarations.
@@ -2237,6 +2384,7 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(type);
         const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
+        const_cast<std::vector<const ast::Interface *> &>(actual_class->interfaces) = classtype->interfaces;
         type = actual_class;
     } else if (actual_record != nullptr) {
         const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(type);
@@ -2254,7 +2402,7 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     if (classtype != nullptr) {
         scope.top()->resolveForward(name, classtype);
     }
-    return new ast::NullStatement(declaration->token.line);
+    return new ast::TypeDeclarationStatement(declaration->token.line, name, type);
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::ConstantDeclaration *declaration)
@@ -2519,8 +2667,32 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
             args.push_back(fp);
         }
     }
-    if (type != nullptr && args.empty()) {
-        error(3129, declaration->rparen, "expected self parameter");
+    if (type != nullptr) {
+        if (args.empty()) {
+            error(3129, declaration->rparen, "expected self parameter");
+        }
+        const ast::TypeClass *ctype = dynamic_cast<const ast::TypeClass *>(type);
+        if (ctype != nullptr) {
+            for (auto i: ctype->interfaces) {
+                for (auto m: i->methods) {
+                    if (name == m.first.text) {
+                        if (declaration->args.size() != m.second->params.size()) {
+                            error(3255, declaration->rparen, "wrong number of arguments");
+                        }
+                        bool first = true;
+                        for (size_t i = 0; i < args.size(); i++) {
+                            if (first) {
+                                first = false;
+                                continue;
+                            }
+                            if (args[i]->type != m.second->params[i]->type) {
+                                error(3256, args[i]->declaration, "parameter types must match interface");
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     ast::Function *function;
     if (type != nullptr) {
@@ -2795,6 +2967,41 @@ const ast::Statement *Analyzer::analyze(const pt::ExceptionDeclaration *declarat
         ast::Exception *se = new ast::Exception(declaration->token, fullname);
         s->subexceptions[lastname] = se;
     }
+    return new ast::NullStatement(declaration->token.line);
+}
+
+const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declaration)
+{
+    std::string name = declaration->names[0].text;
+    if (not scope.top()->allocateName(declaration->token, name)) {
+        error2(3251, declaration->token, "duplicate definition of name", scope.top()->getDeclaration(name), "first declaration here");
+    }
+    scope.push(new ast::Scope(scope.top(), frame.top()));
+    scope.top()->addName(declaration->token, name, ast::TYPE_INTERFACE);
+    std::vector<std::pair<Token, const ast::TypeFunction *>> methods;
+    std::map<std::string, Token> method_names;
+    for (auto &x: declaration->methods) {
+        std::string name = x.first.text;
+        auto prev = method_names.find(name);
+        if (prev != method_names.end()) {
+            error2(3247, x.first, "duplicate method: " + x.first.text, prev->second, "first declaration here");
+        }
+        const ast::Type *t = analyze(x.second.get());
+        const ast::TypeFunctionPointer *fp = dynamic_cast<const ast::TypeFunctionPointer *>(t);
+        if (fp == nullptr) {
+            internal_error("expected function type");
+        }
+        if (fp->functype->params.size() == 0) {
+            error(3253, x.first, "interface function must have at least one parameter");
+        }
+        if (fp->functype->params[0]->type != ast::TYPE_INTERFACE) {
+            error(3254, fp->functype->params[0]->declaration, "first parameter must be interface type");
+        }
+        methods.push_back(std::make_pair(x.first, fp->functype));
+        method_names[name] = x.first;
+    }
+    scope.pop();
+    scope.top()->addName(declaration->token, name, new ast::Interface(declaration->token, name, methods));
     return new ast::NullStatement(declaration->token.line);
 }
 
@@ -4294,6 +4501,22 @@ const ast::Program *Analyzer::analyze()
     r->statements = analyze(program->body);
     loops.pop();
     r->scope->checkForward();
+
+    // Check for unimplemented interface methods.
+    for (size_t i = 0; i < r->frame->getCount(); i++) {
+        ast::Frame::Slot s = r->frame->getSlot(i);
+        ast::TypeClass *c = dynamic_cast<ast::TypeClass *>(s.ref);
+        if (c != nullptr) {
+            for (auto i: c->interfaces) {
+                for (auto m: i->methods) {
+                    if (c->methods.find(m.first.text) == c->methods.end()) {
+                        error2(3252, c->declaration, "method missing", m.first, "declared here");
+                    }
+                }
+            }
+        }
+    }
+
     std::set<const ast::Name *> exported;
     for (auto nt: exports) {
         const ast::Name *name = scope.top()->lookupName(nt.first);
@@ -4305,6 +4528,7 @@ const ast::Program *Analyzer::analyze()
         }
         if (dynamic_cast<const ast::Type *>(name) == nullptr
          && dynamic_cast<const ast::Exception *>(name) == nullptr
+         && dynamic_cast<const ast::Interface *>(name) == nullptr
          && dynamic_cast<const ast::GlobalVariable *>(name) == nullptr
          && dynamic_cast<const ast::Constant *>(name) == nullptr
          && dynamic_cast<const ast::Function *>(name) == nullptr
@@ -4463,6 +4687,7 @@ public:
     virtual void visit(const pt::NativeFunctionDeclaration *) {}
     virtual void visit(const pt::ExtensionFunctionDeclaration *) {}
     virtual void visit(const pt::ExceptionDeclaration *) {}
+    virtual void visit(const pt::InterfaceDeclaration *) {}
     virtual void visit(const pt::ExportDeclaration *node) {
         if (node->declaration != nullptr) {
             node->declaration->accept(this);

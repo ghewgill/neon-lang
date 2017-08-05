@@ -1,0 +1,7 @@
+INTERFACE Foo
+    FUNCTION foo(self: Foo)
+END INTERFACE
+
+VAR f: POINTER TO Foo
+f->bar()
+   %<

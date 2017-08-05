@@ -1,0 +1,6 @@
+TYPE Foo IS Number
+     %<2
+
+INTERFACE Foo
+          %<1
+END INTERFACE
