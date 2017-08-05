@@ -1542,7 +1542,8 @@ void Executor::exec_ALLOC()
     stack.push(Cell(cell));
     allocations++;
     if (param_garbage_collection_interval > 0 && allocations >= param_garbage_collection_interval) {
-        garbage_collect();
+        // https://github.com/ghewgill/neon-lang/issues/180
+        // garbage_collect();
     }
 }
 
