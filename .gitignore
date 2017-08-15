@@ -23,6 +23,8 @@ bin/
 errors.txt
 config.cache
 test_grammar
+CMakeCache.txt
+CMakeFiles/
 
 external/IntelRDFPMathLib20U1/
 external/utfcpp-master/
