@@ -1,0 +1,458 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>5.1. Lexical Structure &#8212; Neon 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5.2. Types" href="types.html" />
+    <link rel="prev" title="5. Language Reference" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="lexical-structure">
+<h1>5.1. Lexical Structure<a class="headerlink" href="#lexical-structure" title="Permalink to this headline">¶</a></h1>
+<p>Neon source code is encoded in UTF-8.
+All keywords and identifiers are case sensitive.</p>
+<div class="section" id="comments">
+<h2>5.1.1. Comments<a class="headerlink" href="#comments" title="Permalink to this headline">¶</a></h2>
+<p>The comment lead-in character is <code class="docutils literal"><span class="pre">%</span></code>.
+A single line comment is a <code class="docutils literal"><span class="pre">%</span></code> followed by arbitrary text to the end of the line.
+A block comment is introduced with <code class="docutils literal"><span class="pre">%|</span></code> and ends with <code class="docutils literal"><span class="pre">|%</span></code>.
+Block comments may span multiple lines.
+Block comments may be nested.</p>
+<p>Example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>% The following line prints some text.
+print(&quot;Hello, World.&quot;)
+
+%| This comment spans multiple
+   lines of text until the comment
+   closing characters. |%
+</pre></div>
+</div>
+</div>
+<div class="section" id="keywords">
+<h2>5.1.2. Keywords<a class="headerlink" href="#keywords" title="Permalink to this headline">¶</a></h2>
+<p>All words that consist of only uppercase letters are reserved for keywords.
+The following keywords are defined by the language.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keyword</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ALIAS</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">IMPORT</span></code> to optionally rename a module</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">AND</span></code></td>
+<td>logical conjunction</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">AS</span></code></td>
+<td>names a tested expression in <code class="docutils literal"><span class="pre">IF</span> <span class="pre">VALID</span></code> statement</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ASSERT</span></code></td>
+<td>assert that an expression is true, used for diagnostics</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">Array</span></code></td>
+<td>generic array type</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">BEGIN</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">BEGIN</span> <span class="pre">MAIN</span></code> to indicate a program entry point</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">CASE</span></code></td>
+<td>multiple value matching from a range</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">CONSTANT</span></code></td>
+<td>constant declaration</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">DECLARE</span></code></td>
+<td>exception and forward function declaration</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">DEFAULT</span></code></td>
+<td>default value for function parameter</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">DEC</span></code></td>
+<td>decrement a <code class="docutils literal"><span class="pre">Number</span></code> variable</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">Dictionary</span></code></td>
+<td>generic dictionary type</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">DO</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">CASE</span></code>, <code class="docutils literal"><span class="pre">FOR</span></code>, and <code class="docutils literal"><span class="pre">WHILE</span></code> statements</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">ELSE</span></code></td>
+<td>alternative condition in <code class="docutils literal"><span class="pre">IF</span></code> statement</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ELSIF</span></code></td>
+<td>alternative and test in <code class="docutils literal"><span class="pre">IF</span></code> statement</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">EMBED</span></code></td>
+<td>include an external file directly into the compiled code</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">ENUM</span></code></td>
+<td>enumeration type declaration</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">END</span></code></td>
+<td>end of most kinds of blocks of code</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">EXCEPTION</span></code></td>
+<td>exception declaration</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">EXIT</span></code></td>
+<td>early exit from loops</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">EXPORT</span></code></td>
+<td>export identifier from module</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">FOREIGN</span></code></td>
+<td>foreign function declaration</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">FALSE</span></code></td>
+<td>boolean constant</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">FIRST</span></code></td>
+<td>indicates first value in array subscript</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">FOR</span></code></td>
+<td>loop with a sequential control variable</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">FOREACH</span></code></td>
+<td>loop over an array of values</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">FUNCTION</span></code></td>
+<td>definition of subprogram</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">HEXBYTES</span></code></td>
+<td>literal <code class="docutils literal"><span class="pre">Bytes</span></code> value</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">IF</span></code></td>
+<td>conditional test and branch</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">IN</span></code></td>
+<td>function parameter passing mode; aggregate membership test</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">INC</span></code></td>
+<td>increment a <code class="docutils literal"><span class="pre">Number</span></code> variable</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">INDEX</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">FOREACH</span></code> statement for counting values</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">INOUT</span></code></td>
+<td>function parameter passing mode</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">IMPORT</span></code></td>
+<td>access code in another module</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">IS</span></code></td>
+<td>used in a <code class="docutils literal"><span class="pre">TYPE</span></code> declaration</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">LAST</span></code></td>
+<td>indicates last value in array subscript</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">LET</span></code></td>
+<td>assignment to read-only value</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">LOOP</span></code></td>
+<td>generic loop</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">MAIN</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">BEGIN</span> <span class="pre">MAIN</span></code> to indicate a program entry point</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">MOD</span></code></td>
+<td>arithmetic modulus</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">NATIVE</span></code></td>
+<td>declares a predefined function in the standard library</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">NEXT</span></code></td>
+<td>early skip to next loop iteration</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">NEW</span></code></td>
+<td>dynamic memory allocation</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">NIL</span></code></td>
+<td>pointer value constant</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">NOT</span></code></td>
+<td>logical negation</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">OF</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">FOREACH</span></code> statement</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">OR</span></code></td>
+<td>logical disjunction</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">OUT</span></code></td>
+<td>function parameter passing mode</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">OTHERS</span></code></td>
+<td>alternative condition in a <code class="docutils literal"><span class="pre">CASE</span></code> statement</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">POINTER</span></code></td>
+<td>pointer type declaration</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">PRIVATE</span></code></td>
+<td>private record field</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">RAISE</span></code></td>
+<td>initiate exception search</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">RECORD</span></code></td>
+<td>named aggregate type declaration</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">REPEAT</span></code></td>
+<td>bottom-tested loop</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">RETURN</span></code></td>
+<td>early exit and value return from function</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">STEP</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">FOR</span></code> loop for increment value</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">THEN</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">IF</span></code> statement</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">TO</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">FOR</span></code> loop; part of pointer declaration</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">TRUE</span></code></td>
+<td>boolean constant</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">TRY</span></code></td>
+<td>start of exception-checked block</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">TYPE</span></code></td>
+<td>define named type</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">UNTIL</span></code></td>
+<td>used at end of <code class="docutils literal"><span class="pre">REPEAT</span></code> loop</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">VAR</span></code></td>
+<td>variable declaration</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">VALID</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">IF</span> <span class="pre">VALID</span></code> pointer test statement</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">WHEN</span></code></td>
+<td>used in <code class="docutils literal"><span class="pre">CASE</span></code> statement</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">WHILE</span></code></td>
+<td>top-tested loop</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">WITH</span></code></td>
+<td>parameter specification for named parameters</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="identifiers">
+<h2>5.1.3. Identifiers<a class="headerlink" href="#identifiers" title="Permalink to this headline">¶</a></h2>
+<p>An identifier is a letter followed by any number of letters, digits, or underscore.
+Identifiers which consist of all uppercase letters are reserved for <a class="reference internal" href="#keywords">keywords</a>.</p>
+</div>
+<div class="section" id="numbers">
+<h2>5.1.4. Numbers<a class="headerlink" href="#numbers" title="Permalink to this headline">¶</a></h2>
+<p>Literal numbers are in base 10 by default.</p>
+<p>Numbers may be specified in a variety of bases:</p>
+<ul class="simple">
+<li>Binary preceded by <code class="docutils literal"><span class="pre">0b</span></code></li>
+<li>Octal preceded by <code class="docutils literal"><span class="pre">0o</span></code></li>
+<li>Hexadecimal preceded by <code class="docutils literal"><span class="pre">0x</span></code></li>
+<li>Any base from 2 to 36 preceded by <code class="docutils literal"><span class="pre">0#n#</span></code> where <code class="docutils literal"><span class="pre">n</span></code> is the base</li>
+</ul>
+<p>For base 10 numbers, they may contain a fractional portion following a decimal point <code class="docutils literal"><span class="pre">.</span></code>.
+Additionally, they may have an exponent following <code class="docutils literal"><span class="pre">e</span></code> or <code class="docutils literal"><span class="pre">E</span></code>.</p>
+</div>
+<div class="section" id="strings">
+<h2>5.1.5. Strings<a class="headerlink" href="#strings" title="Permalink to this headline">¶</a></h2>
+<p>Strings are sequences of Unicode characters surrounded by double quotes.
+The only special character within a string is the backslash, used for character escapes.
+The allowed character escapes are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="14%" />
+<col width="73%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Escape</th>
+<th class="head">Replacement</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\&quot;</span></code></td>
+<td>“</td>
+<td>double quote</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\\</span></code></td>
+<td>\</td>
+<td>backslash</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\b</span></code></td>
+<td>chr(8)</td>
+<td>backspace</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\f</span></code></td>
+<td>chr(11)</td>
+<td>form feed</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\n</span></code></td>
+<td>chr(10)</td>
+<td>newline</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\r</span></code></td>
+<td>chr(13)</td>
+<td>carriage return</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\t</span></code></td>
+<td>chr(9)</td>
+<td>tab</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal"><span class="pre">\uXXXX</span></code></td>
+<td>chr(XXXX)</td>
+<td>Unicode character XXXX (where XXXX is a 4-digit hex number)</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal"><span class="pre">\()</span></code></td>
+<td>expression</td>
+<td>see <a href="#id1"><span class="problematic" id="id2">`expression substitution`_</span></a></td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>VAR s: String
+
+s := &quot;Hello, World&quot;
+</pre></div>
+</div>
+<p>Literal strings may need to contain backslashes (such as when used for regular expressions).
+Instead of using normal double-quoted strings, there are two varieties of “raw strings”.
+The first can contain any character except <cite>“</cite>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>CONSTANT s: String := @&quot;This string contains backslash (\) characters&quot;
+</pre></div>
+</div>
+<p>The second type of string uses arbitrary delimiters so that any literal string can be included in source.
+The simplest form is:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>CONSTANT s: String := @@&quot;This string contains backslashes (\) and &quot;quotes&quot;.&quot;@@
+</pre></div>
+</div>
+<p>If there is a need to include the sequence <code class="docutils literal"><span class="pre">&quot;&#64;&#64;</span></code> within the string, an arbitrary identifier may appear between the <code class="docutils literal"><span class="pre">&#64;</span></code> at the start and end of the stiring.
+For example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>CONSTANT s: String := @raw@&quot;A raw string example is @@&quot;like this&quot;@@.&quot;@raw@
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Neon</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manifesto.html">2. Manifesto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">4. Overview (for experienced programmers)</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">5. Language Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.1. Lexical Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">5.2. Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="declarations.html">5.3. Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html">5.4. Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html">5.5. Statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html">5.6. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">5.7. Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html">5.8. Modules</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">5. Language Reference</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">5. Language Reference</a></li>
+      <li>Next: <a href="types.html" title="next chapter">5.2. Types</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Greg Hewgill.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/reference/lexical.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

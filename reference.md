@@ -64,7 +64,7 @@ It is not intended as an introduction to the language.
       <li><a href="#functions-parameter-mode">Parameter Modes</a></li>
       <li><a href="#functions-default">Default Parameter Value</a></li>
       <li><a href="#functions-named">Named Parameters</a></li>
-      <li>External Functions</li>
+      <li>Foreign Functions</li>
     </ol></li>
   <li><a href="#modules">Modules</a>
     <ol>
@@ -158,7 +158,7 @@ The following keywords are defined by the language.
 | <a href="#keyword-EXCEPTION">`EXCEPTION`</a> | exception declaration |
 | <a href="#keyword-EXIT">`EXIT`</a> | early exit from loops |
 | <a href="#keyword-EXPORT">`EXPORT`</a> | export identifier from module |
-| <a href="#keyword-EXTERNAL">`EXTERNAL`</a> | external function declaration |
+| <a href="#keyword-FOREIGN">`FOREIGN`</a> | foreign function declaration |
 | <a href="#keyword-FALSE">`FALSE`</a> | boolean constant |
 | <a href="#keyword-FIRST">`FIRST`</a> | indicates first value in array subscript |
 | <a href="#keyword-FOR">`FOR`</a> | loop with a sequential control variable |
@@ -469,7 +469,7 @@ The following operators take two boolean values.
 | Operator | Description |
 | -------- | ----------- |
 | `=`      | equality |
-| `#`      | inequality |
+| `<>`     | inequality |
 | `AND`    | logical conjunction |
 | `OR`     | logical disjunction |
 
@@ -488,7 +488,7 @@ The following operators take two number values.
 | `MOD`    | modulo (remainder) |
 | `^`      | exponentiation |
 | `=`      | equality |
-| `#`      | inequality |
+| `<>`     | inequality |
 | `<`      | less than |
 | `>`      | greater than |
 | `<=`     | less than or equal |
@@ -504,7 +504,7 @@ The following operators take two string values.
 | -------- | ----------- |
 | `&`      | concatenation |
 | `=`      | equality |
-| `#`      | inequality |
+| `<>`     | inequality |
 | `<`      | lexicographical less than |
 | `>`      | lexicographical greater than |
 | `<=`     | lexicographical less than or equal |
@@ -698,7 +698,7 @@ The possible kinds of `WHEN` clauses are:
 | Form | Meaning |
 | ---- | ------- |
 | `WHEN <value>` | equality match |
-| `WHEN <op> <value>` | relational operator comparison (one of `=`, `#`, `<`, `>`, `<=`, `>=`) |
+| `WHEN <op> <value>` | relational operator comparison (one of `=`, `<>`, `<`, `>`, `<=`, `>=`) |
 | `WHEN <value> TO <value>` | range check (both endpoints inclusive) |
 
 More than one of the above forms may be included in a `WHEN` clause, separated by commas.

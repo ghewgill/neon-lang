@@ -1,0 +1,191 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>5. Language Reference &#8212; Neon 1.0 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5.1. Lexical Structure" href="lexical.html" />
+    <link rel="prev" title="4. Neon Overview" href="../overview.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="language-reference">
+<h1>5. Language Reference<a class="headerlink" href="#language-reference" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="lexical.html">5.1. Lexical Structure</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#comments">5.1.1. Comments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#keywords">5.1.2. Keywords</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#identifiers">5.1.3. Identifiers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#numbers">5.1.4. Numbers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html#strings">5.1.5. Strings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="types.html">5.2. Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="types.html#boolean">5.2.1. Boolean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#number">5.2.2. Number</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#string">5.2.3. String</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#bytes">5.2.4. Bytes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#enumeration">5.2.5. Enumeration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#record">5.2.6. Record</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#array">5.2.7. Array</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#dictionary">5.2.8. Dictionary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html#pointers">5.2.9. Pointers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="declarations.html">5.3. Declarations</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="declarations.html#types">5.3.1. Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="declarations.html#constants">5.3.2. Constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="declarations.html#variables">5.3.3. Variables</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="expressions.html">5.4. Expressions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#literal-values">5.4.1. Literal Values</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#boolean-operators">5.4.2. Boolean Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#numeric-operators">5.4.3. Numeric Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#string-operators">5.4.4. String Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#array-operators">5.4.5. Array Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#dictionary-operators">5.4.6. Dictionary Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#pointer-operator">5.4.7. Pointer Operator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#operator-precedence">5.4.8. Operator Precedence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#array-subscripts">5.4.9. Array Subscripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html#expression-substitution">5.4.10. Expression Substitution</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="statements.html">5.5. Statements</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#assignment">5.5.1. Assignment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#function-call">5.5.2. Function Call</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#case">5.5.3. <code class="docutils literal"><span class="pre">CASE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#exit">5.5.4. <code class="docutils literal"><span class="pre">EXIT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#for">5.5.5. <code class="docutils literal"><span class="pre">FOR</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#if">5.5.6. <code class="docutils literal"><span class="pre">IF</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#let">5.5.7. <code class="docutils literal"><span class="pre">LET</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#next">5.5.8. <code class="docutils literal"><span class="pre">NEXT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#raise">5.5.9. <code class="docutils literal"><span class="pre">RAISE</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#repeat">5.5.10. <code class="docutils literal"><span class="pre">REPEAT</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#try">5.5.11. <code class="docutils literal"><span class="pre">TRY</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html#while">5.5.12. <code class="docutils literal"><span class="pre">WHILE</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions.html">5.6. Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="functions.html#parameter-modes">5.6.1. Parameter Modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html#default-parameter-value">5.6.2. Default Parameter Value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html#named-parameters">5.6.3. Named Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="classes.html">5.7. Classes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">5.8. Modules</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="modules.html#module-path">5.8.1. Module Path</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Neon</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../manifesto.html">2. Manifesto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">3. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">4. Overview (for experienced programmers)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">5. Language Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="lexical.html">5.1. Lexical Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="types.html">5.2. Types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="declarations.html">5.3. Declarations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="expressions.html">5.4. Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="statements.html">5.5. Statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions.html">5.6. Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">5.7. Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="modules.html">5.8. Modules</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../overview.html" title="previous chapter">4. Neon Overview</a></li>
+      <li>Next: <a href="lexical.html" title="next chapter">5.1. Lexical Structure</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Greg Hewgill.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/reference/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
