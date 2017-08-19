@@ -1,15 +1,13 @@
----
-layout: default
-title: Neon Overview
----
-
-# Neon Overview
+Neon Overview
+=============
 
 The following is a brief description of Neon for experienced programmers.
 There are plenty of examples, because experienced programmers know how to read code, and can pick up concepts more quickly by reading code than by reading a description of code.
 
 Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and [others](motivation.html).
 Program structure and modules are influenced by Python.
+
+::
 
     % This sample program greets the user
     % until an empty line is entered.
@@ -22,7 +20,8 @@ Program structure and modules are influenced by Python.
         print("Hello, \(name).")
     END LOOP
 
-## General
+General
+-------
 
 All identifiers are case sensitive.
 Language defined keywords are all upper case.
@@ -32,11 +31,14 @@ Assignments have value semantics (deep copy).
 Forward declarations are not required.
 All variables must be explicitly initialised before use.
 
-## Types
+Types
+-----
 
-The scalar types are `Boolean` (`TRUE` or `FALSE`), `Number` (decimal floating point), `String` (Unicode text), `Bytes` (arbitrary blocks of bytes), and enumerations.
-Aggregate types are `RECORD` (named fields), `Array` (arbitrary size vector), and `Dictionary` (map indexed by a `String` key).
-Dynamic heap allocation is supported by a `POINTER` type.
+The scalar types are ``Boolean`` (``TRUE`` or ``FALSE``), ``Number`` (decimal floating point), ``String`` (Unicode text), ``Bytes`` (arbitrary blocks of bytes), and enumerations.
+Aggregate types are ``RECORD`` (named fields), ``CLASS`` (dynamically allocated objects), ``Array`` (arbitrary size vector), and ``Dictionary`` (map indexed by a ``String`` key).
+Dynamic heap allocation is supported by a ``POINTER`` type.
+
+::
 
     TYPE Colour IS ENUM
         red
@@ -64,9 +66,12 @@ Dynamic heap allocation is supported by a `POINTER` type.
     LET d: Dictionary<Number> := {"fork": 5, "knife": 6, "spoon": 1}
     LET p: POINTER TO Node := NEW Node(value WITH "green")
 
-## Expressions
+Expressions
+-----------
 
 There is a rich expression syntax including arithmetic, array slicing, conditionals, and string interpolation.
+
+::
 
     LET x: Number := 5
     LET y: Number := (6 + x) / 2
@@ -81,9 +86,12 @@ There is a rich expression syntax including arithmetic, array slicing, condition
     LET t: String := "y is a \(r) value"
     ASSERT t = "y is a big value"
 
-## Statements
+Statements
+----------
 
-There are two variable declarations: `LET` (read-only value), and `VAR` (modifiable value).
+There are two variable declarations: ``LET`` (read-only value), and ``VAR`` (modifiable value).
+
+::
 
     LET a: Number := 5
 
@@ -93,7 +101,9 @@ There are two variable declarations: `LET` (read-only value), and `VAR` (modifia
 
     print("\(a), \(b)")
 
-There are two conditional blocks: `CASE` (multiple branches), and `IF` (single test).
+There are two conditional blocks: ``CASE`` (multiple branches), and ``IF`` (single test).
+
+::
 
     FOR a := 0 TO 9 DO
         VAR s: String
@@ -117,8 +127,10 @@ There are two conditional blocks: `CASE` (multiple branches), and `IF` (single t
         print("small")
     END IF
 
-There are four kinds of loops: `FOR` (bounded iteration), `LOOP` (infinite loop), `REPEAT` (bottom-tested condition), and `WHILE` (top-tested condition).
-The `EXIT` and `NEXT` statements branch out of the loop or to the next iteration, respectively.
+There are four kinds of loops: ``FOR`` (bounded iteration), ``LOOP`` (infinite loop), ``REPEAT`` (bottom-tested condition), and ``WHILE`` (top-tested condition).
+The ``EXIT`` and ``NEXT`` statements branch out of the loop or to the next iteration, respectively.
+
+::
 
     FOR i := 1 TO 10 DO
         print("\(i)")
@@ -145,7 +157,9 @@ The `EXIT` and `NEXT` statements branch out of the loop or to the next iteration
         INC a
     END WHILE
 
-The exception handling statements are `TRY` (introduces a new handling scope), and `RAISE` to raise an exception.
+The exception handling statements are ``TRY`` (introduces a new handling scope), and ``RAISE`` to raise an exception.
+
+::
 
     EXCEPTION PrinterOutOfPaperException
 
@@ -160,19 +174,24 @@ The exception handling statements are `TRY` (introduces a new handling scope), a
         print("Sorry, out of paper.")
     END TRY
 
-The `ASSERT` statement is used to check program invariants.
+The ``ASSERT`` statement is used to check program invariants.
 Execution stops with a diagnostic dump if the condition is not satisfied.
+
+::
 
     FUNCTION setRatio(percent: Number)
         ASSERT 0 <= percent <= 100
         % ... use percent value
     END FUNCTION
 
-## Functions
+Functions
+---------
 
 Functions may or may not return a value.
 If a function returns a value, then the return value cannot be silently ignored by the caller.
-Function parameters can be `IN` (default), `OUT` (passed back to caller), or `INOUT` (references caller value).
+Function parameters can be ``IN`` (default), ``OUT`` (passed back to caller), or ``INOUT`` (references caller value).
+
+::
 
     IMPORT string
 
@@ -195,9 +214,12 @@ Function parameters can be `IN` (default), `OUT` (passed back to caller), or `IN
     ASSERT uname = "CHARLIE"
     ASSERT n = 2
 
-## Methods
+Methods
+-------
 
-Records may have methods attached to them, to be called with the usual method syntax.
+Records and classes may have methods attached to them, to be called with the usual method syntax.
+
+::
 
     TYPE Rectangle IS RECORD
         width: Number
@@ -218,10 +240,13 @@ Records may have methods attached to them, to be called with the usual method sy
     r.expand(1)
     ASSERT r.area() = 42
 
-## Pointers
+Pointers
+--------
 
 Pointers can only point to classes.
-Pointers are declared with `POINTER TO` and allocated with `NEW`.
+Pointers are declared with ``POINTER TO`` and allocated with ``NEW``.
+
+::
 
     TYPE Person IS CLASS
         name: String
@@ -232,7 +257,9 @@ Pointers are declared with `POINTER TO` and allocated with `NEW`.
     p->name := "Alice"
     p->age := 23
 
-Pointers must be checked for validity (non-NIL) before they can be used using the `IF VALID` block.
+Pointers must be checked for validity (non-NIL) before they can be used using the ``IF VALID`` block.
+
+::
 
     TYPE Person IS CLASS
         name: String

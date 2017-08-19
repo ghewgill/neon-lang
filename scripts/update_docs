@@ -1,13 +1,39 @@
 #!/bin/sh -e
 
+# Figure out our current revision for later commit message
 rev=$(git describe --always)
+
+# Build documentation
 scons docs docs_samples
+(cd gh-pages && jekyll build)
+(cd docs && make html)
+
+# Remove temporary gh-pages branch location
+rm -rf tmp-gh-pages
+
+# Check out gh-pages branch into temp dir
 git clone -b gh-pages . tmp-gh-pages
 (cd tmp-gh-pages && git pull --ff-only .. origin/gh-pages)
-rm -rf tmp-gh-pages/*
-cp -r gh-pages/ tmp-gh-pages/
-rm tmp-gh-pages/html/.gitignore tmp-gh-pages/samples/.gitignore
+
+# Clean out the whole temp thing
+rm -rf tmp-gh-pages/* $(ls -d tmp-gh-pages/.* | grep -v -E '/\.(\.|git)?$')
+
+# Copy generated documentation to temporary dir
+cp -r gh-pages/_site/ tmp-gh-pages/
+cp -r docs/_build/html/ tmp-gh-pages/docs/
+
+# Remove .gitignore so we can sensibly commit generated files
+rm -f tmp-gh-pages/html/.gitignore tmp-gh-pages/samples/.gitignore
 cp .git/info/exclude tmp-gh-pages/.git/info/
+
+# Add .nojekyll file because we have already done that and don't need github to do it again
+touch tmp-gh-pages/.nojekyll
+
+# Commit everything in temp dir to branch
 (cd tmp-gh-pages && git add --all . && git commit -m "Update documentation from $rev" && git push)
+
+# Clean out temp dir
 rm -rf tmp-gh-pages
+
+# Prompt command to push
 echo "git push origin gh-pages:gh-pages"
