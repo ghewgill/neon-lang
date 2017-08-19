@@ -13,3 +13,4 @@ Language Reference
    functions
    classes
    modules
+   grammar
