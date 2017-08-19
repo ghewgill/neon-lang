@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Common Errors</title>
+    <meta charset="utf-8"> 
+    <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+  </head>
+  <body>
+    <div id="page">
+      <div class="title">
+        <a href="/">
+          Neon
+        </a>
+      </div>
+      <div class="links">
+        <p>
+          <a href="/">home</a> |
+          <a href="/docs.html">documentation</a> |
+          <a href="/download.html">download</a> |
+          <a href="https://github.com/ghewgill/neon-lang">source</a>
+        </p>
+      </div>
+      <p>The following types of programming errors have been identified as frequently occurring among beginning programmers on Stack Overflow:</p>
+
+<ul>
+  <li><a href="#floating_point">Floating point errors due to binary floating point</a></li>
+  <li><a href="#integer_division">Writing division expressions such as <code class="highlighter-rouge">5 / 2</code> and not expecting integer division</a></li>
+  <li><a href="#assignment_equals">Writing <code class="highlighter-rouge">if (x = 0)</code> when <code class="highlighter-rouge">if (x == 0)</code> is intended</a></li>
+  <li><a href="#null_pointer">Null pointer exceptions</a></li>
+  <li><a href="#empty_loop">Unintended empty loop with <code class="highlighter-rouge">while (condition);</code></a></li>
+  <li><a href="#logical_alternative">Writing <code class="highlighter-rouge">if a == b or c</code> (in Python) to test whether <code class="highlighter-rouge">a</code> is equal to either <code class="highlighter-rouge">b</code> or <code class="highlighter-rouge">c</code></a></li>
+  <li><a href="#catch_all">Catching all exceptions</a></li>
+  <li><a href="#shadow_variables">Accidentally shadowing outer scope variables with inner declaration</a></li>
+  <li><a href="#return_reference">Returning a reference to a local variable (C++)</a></li>
+  <li><a href="#partial_input">Partial reading of typed user input using Java <code class="highlighter-rouge">Scanner</code> or C <code class="highlighter-rouge">scanf('%c')</code></a></li>
+  <li><a href="#exponentiation_xor">Writing <code class="highlighter-rouge">^</code> to mean exponentiation in C or Java</a></li>
+  <li><a href="#return_value">Forgetting to use the return value of a function</a></li>
+</ul>
+
+<p><a name="floating_point"></a></p>
+
+<h2 id="floating-point-errors-due-to-binary-floating-point">Floating point errors due to binary floating point</h2>
+
+<p>Most languages use <a href="https://en.wikipedia.org/wiki/IEEE_floating_point">IEEE 754</a> binary floating point for non-integer calculations.
+Although this is well-defined, it is often counterintuitive for beginners. Consider the following Python session:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span> <span class="n">a</span> <span class="o">+</span> <span class="n">a</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span>
+<span class="mf">0.3</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">==</span> <span class="mf">0.3</span>
+<span class="bp">False</span></code></pre></figure>
+
+<p>This happens because <code class="highlighter-rouge">0.2</code> cannot be repesented exactly in binary floating point. </p>
+
+<p>To resolve this problem, Neon uses the <a href="https://en.wikipedia.org/wiki/Decimal64_floating-point_format">decimal64</a> floating point type, which matches the base 10 that humans use to read and write numbers.</p>
+
+<p><a name="integer_division"></a></p>
+
+<h2 id="writing-division-expressions-such-as-5--2-and-not-expecting-integer-division">Writing division expressions such as <code class="highlighter-rouge">5 / 2</code> and not expecting integer division</h2>
+
+<p>Consider the following C statements:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+<span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="kt">double</span> <span class="n">c</span> <span class="o">=</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">;</span></code></pre></figure>
+
+<p>Beginners rightly assume that <code class="highlighter-rouge">c</code> will be <code class="highlighter-rouge">2.5</code> as the result of the division.
+However, the C language definition states that <code class="highlighter-rouge">/</code> will be <em>integer</em> division if both operands are integers.
+So, the result in <code class="highlighter-rouge">c</code> is <code class="highlighter-rouge">2</code>.</p>
+
+<p>To resolve this problem, the only number type in Neon is decimal64 floating point (called <code class="highlighter-rouge">Number</code>).
+In contexts such as array indexing where integers are expected, values are checked for the presence of a fractional part before trying to use them.</p>
+
+<p><a name="assignment_equals"></a></p>
+
+<h2 id="writing-if-x--0-when-if-x--0-is-intended">Writing <code class="highlighter-rouge">if (x = 0)</code> when <code class="highlighter-rouge">if (x == 0)</code> is intended</h2>
+
+<p>In C and derived languages, <code class="highlighter-rouge">x = 0</code> is an <em>expression</em> with the result 0.
+Some compilers raise a warning if an expression like <code class="highlighter-rouge">(x = 0)</code> is used in a conditional statement, as it is not likely to be what is intended.
+However, this is not prohibited by the language.</p>
+
+<p>To resolve this problem, the assignment operator in Neon is <code class="highlighter-rouge">:=</code> and assignment cannot appear within an expression.</p>
+
+<p><a name="null_pointer"></a></p>
+
+<h2 id="null-pointer-exceptions">Null pointer exceptions</h2>
+
+<p>In many common systems languages (eg. C, C++, Java, C#), a pointer may hold a “null” value which is a runtime error to dereference. Tony Hoare has called the introduction of the null reference in ALGOL his <a href="https://en.wikipedia.org/wiki/Tony_Hoare">“billion-dollar mistake”</a>.</p>
+
+<p>To resolve this problem, Neon introduces the idea of a “valid” pointer. A valid pointer is one that has been checked against <code class="highlighter-rouge">NIL</code> (the null reference) using a special form of the <code class="highlighter-rouge">IF</code> statement. The resulting valid pointer can be dereferenced without causing a null pointer exception.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>TYPE Node IS CLASS
+    next: POINTER TO Node
+    value: String
+END CLASS
+
+VAR node: POINTER TO Node := NIL
+
+IF VALID node AS p THEN
+    print(p-&gt;value)
+END IF
+</code></pre>
+</div>
+
+<p><a name="empty_loop"></a></p>
+
+<h2 id="unintended-empty-loop-with-while-condition">Unintended empty loop with <code class="highlighter-rouge">while (condition);</code></h2>
+
+<p>In C and derived languages, sometimes a loop or conditional is mistakenly written as:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="k">while</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">);</span>
+<span class="p">{</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">"%d</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">x</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The trailing <code class="highlighter-rouge">;</code> on the <code class="highlighter-rouge">while</code> statement is in fact an empty loop body and the loop is an infinite loop.</p>
+
+<p>To resolve this problem, Neon requires an explicitly terminated block in every compound statement:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>VAR x: Number := 0
+
+WHILE x &lt; 5 DO
+    print(x.toString())
+    INC x
+END WHILE
+</code></pre>
+</div>
+
+<p><a name="logical_alternative"></a></p>
+
+<h2 id="writing-if-a--b-or-c-in-python-to-test-whether-a-is-equal-to-either-b-or-c">Writing <code class="highlighter-rouge">if a == b or c</code> (in Python) to test whether <code class="highlighter-rouge">a</code> is equal to either <code class="highlighter-rouge">b</code> or <code class="highlighter-rouge">c</code></h2>
+
+<p>In Python, beginners find it natural to write code like:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s">"Jack"</span> <span class="ow">or</span> <span class="s">"Jill"</span><span class="p">:</span>
+    <span class="o">...</span></code></pre></figure>
+
+<p>This is valid because the <code class="highlighter-rouge">"Jill"</code> is automatically treated as a boolean expression (with value <code class="highlighter-rouge">True</code>) and combined with the <code class="highlighter-rouge">name == "Jack"</code> condition using the <code class="highlighter-rouge">or</code> operator.</p>
+
+<p>To resolve this problem, values in Neon cannot be automatically converted from one type to another (in particular, not to Boolean).</p>
+
+<p><a name="catch_all"></a></p>
+
+<h2 id="catching-all-exceptions">Catching all exceptions</h2>
+
+<p>Languages with complex exception hierarchies (eg. C++, Java, C#, Python) allow the program to catch <em>all</em> types of exceptions using a construct such as <code class="highlighter-rouge">catch (...)</code> (C++) or <code class="highlighter-rouge">except:</code> (Python).
+This generally has the unintended effect of masking exceptions that may not be among those expected by the programmer.</p>
+
+<p>Neon does not have an exception hierarchy, and the exception handling always uses explicitly named exceptions (there is no way to catch <em>all</em> types of exceptions).</p>
+
+<p><a name="shadow_variables"></a></p>
+
+<h2 id="accidentally-shadowing-outer-scope-variables-with-inner-declaration">Accidentally shadowing outer scope variables with inner declaration</h2>
+
+<p>Most programming languages allow names declared in a nested scope to <em>shadow</em> names declared in an enclosing scope (such as the global scope). For example, in C:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="kt">int</span> <span class="n">x</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="nf">f</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">x</span><span class="p">;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>This can lead to confusion due to unexpectedly using the wrong variable.</p>
+
+<p>In Neon, it is an error for a declaration to shadow an outer declaration.</p>
+
+<p><a name="return_reference"></a></p>
+
+<h2 id="returning-a-reference-to-a-local-variable-c">Returning a reference to a local variable (C++)</h2>
+
+<p>In C++, it is possible to return a reference (or pointer) to a local variable:</p>
+
+<figure class="highlight"><pre><code class="language-c--" data-lang="c++"><span class="kt">int</span> <span class="o">&amp;</span><span class="n">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">;</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>This is <em>undefined behaviour</em> because the reference returns to memory that has been deallocated as soon as the function returns.</p>
+
+<p>This is resolved in Neon by not having references.</p>
+
+<p><a name="partial_input"></a></p>
+
+<h2 id="partial-reading-of-typed-user-input-using-java-scanner-or-c-scanfc">Partial reading of typed user input using Java <code class="highlighter-rouge">Scanner</code> or C <code class="highlighter-rouge">scanf('%c')</code></h2>
+
+<p>The Java <code class="highlighter-rouge">Scanner</code> class and C <code class="highlighter-rouge">scanf</code> functions treat their input as a stream.
+However, when used with interactive terminal input, they do not return a value until an <em>entire</em> line has been typed at the console.
+This causes confusion when the user types more than what is expected and the remainder of what the user typed is held in the input buffer until the next time input is requested.
+At that time, the contents of the buffer are used without waiting for user input.</p>
+
+<p>This is resolved in Neon by only providing line oriented input for text in traditional tty mode, or single character input via curses.</p>
+
+<p><a name="exponentiation_xor"></a></p>
+
+<h2 id="writing--to-mean-exponentiation-in-c-or-java">Writing <code class="highlighter-rouge">^</code> to mean exponentiation in C or Java</h2>
+
+<p>Sometimes beginners expect the <code class="highlighter-rouge">^</code> operator to mean exponentiation (eg. <code class="highlighter-rouge">dist = sqrt(a^2 + b^2)</code>).
+However, <code class="highlighter-rouge">^</code> means bitwise XOR in many languages, which is not expected.</p>
+
+<p>In Neon, <code class="highlighter-rouge">^</code> means exponentiation.</p>
+
+<p><a name="#return_value"></a></p>
+
+<h2 id="forgetting-to-use-the-return-value-of-a-function">Forgetting to use the return value of a function</h2>
+
+<p>Many programming languages permit a function that returns a value to be called without actually using the return value.
+This is a frequent source of bugs because the return value may indicate an error condition, which is then ignored.</p>
+
+<p>In Neon, it is an error to call a function that returns a value without using that value in some way.</p>
+
+    </div>
+  </body>
+</html>

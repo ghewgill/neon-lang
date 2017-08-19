@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Motivation</title>
+    <meta charset="utf-8"> 
+    <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen, projection" />
+  </head>
+  <body>
+    <div id="page">
+      <div class="title">
+        <a href="/">
+          Neon
+        </a>
+      </div>
+      <div class="links">
+        <p>
+          <a href="/">home</a> |
+          <a href="/docs.html">documentation</a> |
+          <a href="/download.html">download</a> |
+          <a href="https://github.com/ghewgill/neon-lang">source</a>
+        </p>
+      </div>
+      <p>The primary goal of Neon is to find out whether a useful programming language can avoid some of the common errors that beginners frequently encounter in other languages.</p>
+
+<p>After many years of participation on <a href="http://stackoverflow.com">Stack Overflow</a>, one starts to recognise the same kinds of problems that beginners encounter over and over.
+Some of these errors are:</p>
+
+<ul>
+  <li>Floating point errors due to binary floating point</li>
+  <li>Writing <code class="highlighter-rouge">if (x = 0)</code> when <code class="highlighter-rouge">if (x == 0)</code> is intended</li>
+  <li>Null pointer exceptions</li>
+  <li>Unintended empty loop with <code class="highlighter-rouge">while (condition);</code></li>
+  <li>Forgetting to use the return value of a function</li>
+</ul>
+
+<p>It is my opinion that these kinds of errors can be avoided by language design.
+Neon is an experiment that attempts to show that this is the case.</p>
+
+<h2 id="influences">Influences</h2>
+
+<p>Many languages have influenced the design or specific features of Neon. Some are:</p>
+
+<ul>
+  <li>Pascal (<code class="highlighter-rouge">:=</code> for assignment, <code class="highlighter-rouge">VAR</code> keyword, nested functions)</li>
+  <li>Modula-2 (upper case keywords)</li>
+  <li>Ada (<code class="highlighter-rouge">IN</code>, <code class="highlighter-rouge">OUT</code>, <code class="highlighter-rouge">INOUT</code> parameter passing modes, arbitrary base notation)</li>
+  <li>Python (standard library)</li>
+  <li>C++ (<code class="highlighter-rouge">&lt;...&gt;</code> syntax for parameterised types)</li>
+  <li>Prolog (<code class="highlighter-rouge">%</code> single line comment character)</li>
+  <li>Scheme (<code class="highlighter-rouge">%|...|%</code> block comment, Scheme uses <code class="highlighter-rouge">#|...|#</code>)</li>
+</ul>
+
+<p>There is also a lot of <em>negative</em> influence, where the presence of a feature in a language has the potential to be misused (eg. <code class="highlighter-rouge">if (a = b)</code> in C). </p>
+
+    </div>
+  </body>
+</html>
