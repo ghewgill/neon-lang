@@ -111,7 +111,7 @@ Numbers
 
 Literal numbers are in base 10 by default.
 
-Numbers may be specified in a variety of bases:
+Numbers may be specified in a variety of bases (these support integers only):
 
 * Binary preceded by ``0b``
 * Octal preceded by ``0o``
@@ -150,7 +150,7 @@ Example::
 
 Literal strings may need to contain backslashes (such as when used for regular expressions).
 Instead of using normal double-quoted strings, there are two varieties of "raw strings".
-The first can contain any character except `"`::
+The first can contain any character except ``"``::
 
     CONSTANT s: String := @"This string contains backslash (\) characters"
 

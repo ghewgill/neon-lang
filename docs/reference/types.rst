@@ -97,6 +97,39 @@ Example::
         PRIVATE nuts: Number
     END RECORD
 
+Class
+-----
+
+Classes are aggregate types similar to records, but have different semantics and are always allocated dynamically.
+
+Example::
+
+    TYPE Item IS CLASS
+        name: String
+        size: Number
+    END CLASS
+
+    LET p: POINTER TO Item := NEW Item()
+
+    p->name := "Widget"
+    p->size := 5
+
+Classes may also have methods::
+
+    TYPE Cart IS CLASS
+        apples: Number
+        oranges: Number
+    END CLASS
+
+    FUNCTION Cart.totalFruit(self: VALID POINTER TO Cart): Number
+        RETURN self->apples + self->oranges
+    END FUNCTION
+
+    LET c: POINTER TO Cart := NEW Cart()
+    c->apples := 5
+    c->oranges := 6
+    print(str(c->totalFruit()))
+
 Array
 -----
 
@@ -126,8 +159,8 @@ Example::
 Pointers
 --------
 
-Pointers are addresses of dynamically allocated records.
-The ``NEW`` keyword allocates a new record of a given type and returns a pointer to it.
+Pointers are addresses of dynamically allocated class objects.
+The ``NEW`` keyword allocates a new object of a given type and returns a pointer to it.
 Pointers may have the value ``NIL`` that does not point to any object.
 To use (dereference) a pointer, it must first be checked for validity (not ``NIL``) using the ``IF VALID`` construct.
 

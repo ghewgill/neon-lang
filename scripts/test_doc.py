@@ -45,6 +45,8 @@ def check_file(fn, source):
     if fn.endswith(".md"):
         if len(fn.split(os.sep)) <= 3:
             check_file_md(source)
+    elif fn.endswith(".rst"):
+        check_file_md(source)
     elif fn.endswith(".neon"):
         check_file_neon(fn, source)
     else:
@@ -62,12 +64,12 @@ def get_branch_files(prefix):
 def get_path_files(prefix):
     for path, dirs, files in os.walk(prefix):
         for f in files:
-            if f.endswith((".md", ".neon")):
+            if f.endswith((".md", ".neon", ".rst")):
                 fn = os.path.join(path, f)
                 yield (fn, open(fn).read())
 
 if len(sys.argv) < 2:
-    paths = ["gh-pages", "lib"]
+    paths = ["docs", "gh-pages", "lib"]
 else:
     paths = [sys.argv[1]]
 

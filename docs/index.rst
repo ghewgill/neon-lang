@@ -17,6 +17,7 @@ Neon Documentation
    Overview (for experienced programmers) <overview>
    reference/index
    library
+   extensions
    samples
 
 Indices and tables
