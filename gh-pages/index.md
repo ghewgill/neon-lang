@@ -3,18 +3,20 @@ layout: default
 title: Neon Programming Language
 ---
 
-Neon is a high-level, statically typed, imperative programming language intended for teaching and learning the craft of programming.
-Its design borrows features from many [popular languages](motivation.html), yet carefully avoids [common errors](common-errors.html) encountered by beginning programmers.
+Neon is a high-level, statically typed, garbage collected, imperative programming language intended for teaching and learning the craft of programming.
+Its design borrows features from many [popular languages](motivation.html), yet carefully avoids [common errors](common-errors.html) encountered by beginning programmers in other languages.
 
-Neon is not hip (you probably won't like it).
-It is imperative and not functional; it is statically and not dynamically typed; it is verbose and not terse; it is single-threaded and not multiprocessing; it is not compiled to native code.
-You will not find monads, templates, virtual functions, currying, lambdas, immutability, type inference, or probably even your favourite language feature.
+Neon arithmetic uses decimal floating point, eliminating surprises that sometimes arise with binary floating point.
+Symbolic operators are unambiguous and usually have only one meaning.
+Pointers are supported, but null pointer errors are not possible by design.
+Names cannot be shadowed, eliminating a common source of confusion.
 
-Neon does, however, have features that can make learning programming fun.
-Neon has [standard libraries](html/index.html) for graphics, sound, text mode interfaces (curses), networking, and more.
+Neon also has features that can make learning programming practical and fun.
+There are [standard libraries](html/index.html) for graphics, sound, text mode interfaces (curses), networking, and more.
 The graphics and sound libraries recall the early days of the Apple ][ and Commodore 64.
 The curses interface provides interactive text mode capability.
 The ability to link to external libraries and to call external functions opens up a wide variety of possibilities.
+A well-defined extension interface supports third party library integration.
 
 There are a variety of [samples](samples/index.html) which demonstrate the capabilities of Neon.
 
