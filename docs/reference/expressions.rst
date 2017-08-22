@@ -8,7 +8,7 @@ Operators are logical, arithmetic, or string and the valid operators depend on t
 Literal Values
 --------------
 
-Literal values can be individual lexical elements such as identifiers_, numbers_, and strings_.
+Literal values can be individual lexical elements such as :ref:`identifiers <identifiers>`, :ref:`numbers <numbers>`, and :ref:`strings <strings>`.
 
 Literal arrays are sequences of comma-separated values surrounded by brackets ``[ ]``.
 
@@ -31,6 +31,14 @@ For convenience, both literal arrays and dictionaries accept a trailing comma af
 Boolean Operators
 -----------------
 
+The following operator takes one boolean value.
+
+======== ============
+Operator Description
+======== ============
+``NOT``  logical negation
+======== ============
+
 The following operators take two boolean values.
 
 ======== ============
@@ -45,24 +53,34 @@ Operator Description
 Numeric Operators
 -----------------
 
-The following operators take two number values.
+The following operators take one number value.
 
 ======== ===========
 Operator Description
 ======== ===========
-``+``    addition
-``-``    subtraction
-``*``    multiplication
-``/``    division
-``MOD``  modulo (remainder)
-``^``    exponentiation
-``=``    equality
-``<>``   inequality
-``<``    less than
-``>``    greater than
-``<=``   less than or equal
-``>=``   greater than or equal
+``+``    identity (provided for symmetry with ``-``)
+``-``    arithmetic negation
 ======== ===========
+
+The following operators take two number values.
+
+========== ===========
+Operator   Description
+========== ===========
+``+``      addition
+``-``      subtraction
+``*``      multiplication
+``/``      division
+``INTDIV`` integer division
+``MOD``    modulo (remainder)
+``^``      exponentiation
+``=``      equality
+``<>``     inequality
+``<``      less than
+``>``      greater than
+``<=``     less than or equal
+``>=``     greater than or equal
+========== ===========
 
 String Operators
 ----------------
@@ -84,20 +102,22 @@ Operator Description
 Array Operators
 ---------------
 
-======== ===========
-Operator Description
-======== ===========
-``IN``   membership test (*O(n)* complexity)
-======== ===========
+========== ===========
+Operator   Description
+========== ===========
+``IN``     membership test (*O(n)* complexity)
+``NOT IN`` membership test (*O(n)* complexity)
+========== ===========
 
 Dictionary Operators
 --------------------
 
-======== ===========
-Operator Description
-======== ===========
-``IN``   membership test (*O(log n)* complexity)
-======== ===========
+========== ===========
+Operator   Description
+========== ===========
+``IN``     membership test (*O(log n)* complexity)
+``NOT IN`` membership test (*O(log n)* complexity)
+========== ===========
 
 Pointer Operator
 ----------------
@@ -113,19 +133,19 @@ Operator Precedence
 
 The operator precedence is as follows, highest to lowest:
 
-=================== ===========
-Operator            Description
-=================== ===========
-``(`` ``)``         subexpression
-``^``               exponentiation
-``*`` ``/`` ``MOD`` multiplication, division, modulo
-``+`` ``-`` ``&``   addition, subtraction, concatenation
-``<`` ``=`` ``>``   comparison
-``IN``              membership
-``AND``             conjunction
-``OR``              disjunction
-``IF``              conditional
-=================== ===========
+============================== ===========
+Operator                       Description
+============================== ===========
+``(`` ``)``                    subexpression
+``^``                          exponentiation
+``*`` ``/`` ``MOD`` ``INTDIV`` multiplication, division, modulo
+``+`` ``-`` ``&``              addition, subtraction, concatenation
+``<`` ``=`` ``>``              comparison
+``IN``                         membership
+``AND``                        conjunction
+``OR``                         disjunction
+``IF``                         conditional
+============================== ===========
 
 Array Subscripts
 ----------------
@@ -143,7 +163,7 @@ Two special values may be used, ``FIRST`` and ``LAST``::
     print(a[LAST])
 
 ``FIRST`` always means the same as `0` and is provided for completeness.
-``LAST`` refers to the index of the last element of the array.
+``LAST`` refers to the index of the last element of the array (if the array is not empty).
 
 Array slices are also possible using the ``TO`` keyword.
 Both indexes are inclusive::
@@ -153,6 +173,15 @@ Both indexes are inclusive::
     LET c: Array<String> := a[LAST-1 TO LAST]
 
 In the above example, ``b`` contains ``["foo", "bar"]`` and ``c`` contains ``["bar", "baz"]``.
+
+Dictionary Subscripts
+---------------------
+
+Conditional Expression
+----------------------
+
+Try Expression
+--------------
 
 Expression Substitution
 -----------------------

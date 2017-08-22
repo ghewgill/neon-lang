@@ -100,11 +100,15 @@ Keyword         Description
 ``WITH``        parameter specification for named parameters 
 =============== ===========
 
+.. _identifiers:
+
 Identifiers
 -----------
 
 An identifier is a letter followed by any number of letters, digits, or underscore.
 Identifiers which consist of all uppercase letters are reserved for keywords_.
+
+.. _numbers:
 
 Numbers
 -------
@@ -120,6 +124,8 @@ Numbers may be specified in a variety of bases (these support integers only):
 
 For base 10 numbers, they may contain a fractional portion following a decimal point ``.``.
 Additionally, they may have an exponent following ``e`` or ``E``.
+
+.. _strings:
 
 Strings
 -------
