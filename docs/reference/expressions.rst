@@ -177,11 +177,41 @@ In the above example, ``b`` contains ``["foo", "bar"]`` and ``c`` contains ``["b
 Dictionary Subscripts
 ---------------------
 
+Dictionary subscripts are strings::
+
+    LET d: Dictionary<String> := {
+        "apple": "red",
+        "orange": "orange",
+        "banana": "yellow"
+    }
+    print(d["apple"])
+    print(d["banana"])
+
 Conditional Expression
 ----------------------
 
+A conditional expression is like an inline ``IF`` statement::
+
+    LET n: Number := 5
+    LET s: String := (IF n >= 0 THEN "positive" ELSE "negative")
+
+The condition following ``IF`` is evaluated.
+If it is true, then the ``THEN`` expression is evaluated and is the result of the expression.
+Otherwise, the ``ELSE`` expression is evaluated and is the result of the expression.
+
+The parentheses around the entire conditional expression are required.
+
+.. note::
+
+   The branch not taken is *not* evaluated.
+   This means that if a branch not taken is a function call, the function will not be called.
+
 Try Expression
 --------------
+
+.. admonition:: TODO
+
+   try expression
 
 Expression Substitution
 -----------------------

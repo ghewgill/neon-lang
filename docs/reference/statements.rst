@@ -18,6 +18,13 @@ Function Call
 A function call statement is the same as a function call in an expression, except that the function cannot return a value.
 See Functions_ for complete information about function calls.
 
+``ASSERT``
+----------
+
+.. admonition:: TODO
+
+   ASSERT
+
 ``CASE``
 --------
 
@@ -54,6 +61,20 @@ Form                        Meaning
 More than one of the above forms may be included in a ``WHEN`` clause, separated by commas.
 The values of ``WHEN`` clauses must not overlap.
 The optional ``WHEN OTHERS`` clause is executed when no other ``WHEN`` clauses match.
+
+``CHECK``
+---------
+
+.. admonition:: TODO
+
+   CHECK
+
+``EXEC``
+--------
+
+.. admonition:: TODO
+
+   EXEC
 
 ``EXIT``
 --------
@@ -99,6 +120,13 @@ The ``STEP`` value is optional and defaults to 1.
 It may be any number, including fractional values, except 0.
 It must, however, be a compile time constant.
 
+``FOREACH``
+-----------
+
+.. admonition:: TODO
+
+   FOREACH
+
 ``IF``
 ------
 
@@ -140,6 +168,13 @@ The ``IF VALID`` form is used to test a pointer value to check whether it is ``N
         print(q->name)
     END IF
 
+``INC``
+-------
+
+.. admonition:: TODO
+
+   INC
+
 ``LET``
 -------
 
@@ -154,6 +189,7 @@ Example::
     LET ten: Number := 2 * five()
 
 ``LOOP``
+--------
 
 The ``LOOP`` statement begins a loop with no specific exit condition.
 There is normally an ``EXIT LOOP`` statement within the loop for a termination condition.
@@ -224,6 +260,7 @@ Example::
 The above loop will print the whole numbers 0 through 9.
 
 ``RETURN``
+----------
 
 The ``RETURN`` statement returns a value from a function.
 The type of the expression in the ``RETURN`` statement must match the return type declared in the function header (which means that it is only valid to use ``RETURN`` for a function that actually returns a value).
