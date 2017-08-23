@@ -498,12 +498,13 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         WHEN "n" DO c := "\n"
                         WHEN "r" DO c := "\r"
                         WHEN "t" DO c := "\t"
-                        WHEN "u" DO
-                            IF source.length() - i < 4 THEN
+                        WHEN "u", "U" DO
+                            LET len: Number := (IF c = "U" THEN 8 ELSE 4)
+                            IF source.length() - i < len THEN
                                 error(1012, t, "unterminated string")
                             END IF
                             VAR x: Number := 0
-                            FOR j := 0 TO 3 DO
+                            FOR j := 0 TO len-1 DO
                                 LET d: String := string.lower(source[i+j])
                                 IF NOT hex_char(d) THEN
                                     error(1013, t, "invalid hex character")
@@ -511,7 +512,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                                 x := x * 16 + (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
                             END FOR
                             c := chr(x)
-                            i := i + 4
+                            i := i + len
                         WHEN "(" DO
                             tokens.append(t)
                             t.column := column + (i - startindex) - 1

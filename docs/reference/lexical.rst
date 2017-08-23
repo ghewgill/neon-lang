@@ -134,19 +134,20 @@ Strings are sequences of Unicode characters surrounded by double quotes.
 The only special character within a string is the backslash, used for character escapes.
 The allowed character escapes are:
 
-=========== ===========   ===========
-Escape      Replacement   Description
-=========== ===========   ===========
-``\"``      "             double quote
-``\\``      \\            backslash
-``\b``      chr(8)        backspace
-``\f``      chr(11)       form feed
-``\n``      chr(10)       newline
-``\r``      chr(13)       carriage return
-``\t``      chr(9)        tab
-``\uXXXX``  chr(XXXX)     Unicode character XXXX (where XXXX is a 4-digit hex number)
-``\()``     expression    see `expression substitution`_
-=========== ===========   ===========
+============== ===========   ===========
+Escape         Replacement   Description
+============== ===========   ===========
+``\"``         "             double quote
+``\\``         \\            backslash
+``\b``         chr(8)        backspace
+``\f``         chr(11)       form feed
+``\n``         chr(10)       newline
+``\r``         chr(13)       carriage return
+``\t``         chr(9)        tab
+``\uXXXX``     chr(XXXX)     Unicode character XXXX (where XXXX is a 4-digit hex number)
+``\UXXXXXXXX`` chr(XXXXXXXX) Unicode character XXXXXXXX (where XXXXXXXX is a 8-digit hex number)
+``\()``        expression    see `expression substitution`_
+============== ===========   ===========
 
 Example::
 

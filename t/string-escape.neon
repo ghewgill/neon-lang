@@ -1,5 +1,5 @@
 VAR a: String
-a := "\"\\\b\f\n\r\t\u1234"
+a := "\"\\\b\f\n\r\t\u1234\U00005678"
 print(a[0])
 %= "
 print(a[1])
@@ -16,3 +16,5 @@ print(str(ord(a[6])))
 %= 9
 print(str(ord(a[7])))
 %= 4660
+print(str(ord(a[8])))
+%= 22136

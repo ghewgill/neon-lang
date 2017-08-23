@@ -253,6 +253,9 @@ def tokenize_fragment(source):
                     elif c == "u":
                         c = unichr(int(source[i:i+4], 16))
                         i += 4
+                    elif c == "U":
+                        c = unichr(int(source[i:i+8], 16))
+                        i += 8
                     elif c == "(":
                         r.append(String(string))
                         r.append(SUBBEGIN)

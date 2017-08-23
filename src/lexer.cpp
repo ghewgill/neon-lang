@@ -484,17 +484,20 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         case 'r': c = '\r'; break;
                         case 't': c = '\t'; break;
                         case 'u':
-                            if (source.end() - i < 4) {
+                        case 'U': {
+                            int len = c == 'U' ? 8 : 4;
+                            if (source.end() - i < len) {
                                 error(1012, t, "unterminated string");
                             }
-                            for (int j = 0; j < 4; j++) {
+                            for (int j = 0; j < len; j++) {
                                 if (not isxdigit(i[j])) {
                                     error(1013, t, "invalid hex character");
                                 }
                             }
-                            c = std::stoul(std::string(i, i+4), nullptr, 16);
-                            utf8::advance(i, 4, source.end());
+                            c = std::stoul(std::string(i, i+len), nullptr, 16);
+                            utf8::advance(i, len, source.end());
                             break;
+                        }
                         case '(': {
                             tokens.push_back(t);
                             t.column = column + (i - startindex) - 1;
