@@ -3,11 +3,14 @@
 #include <algorithm>
 #include <iso646.h>
 #include <sstream>
+#include <string.h>
 
 #include <sha256.h>
 #include <utf8.h>
 
 #include "util.h"
+
+#include "unicodedata.inc"
 
 std::string Token::file() const
 {
@@ -186,6 +189,26 @@ inline bool number_decimal_body(uint32_t c)
 inline bool space(uint32_t c)
 {
     return c < 256 && isspace(c);
+}
+
+uint32_t unicode_lookup(const Token &t, const std::string &name)
+{
+    std::string uname;
+    std::transform(name.begin(), name.end(), std::back_inserter(uname), ::toupper);
+    size_t low = 0;
+    size_t high = sizeof(UnicodeData) / sizeof(UnicodeData[0]) - 1;
+    while (low <= high) {
+        size_t mid = (low + high) / 2;
+        int c = strcmp(uname.c_str(), UnicodeData[mid].name);
+        if (c < 0) {
+            high = mid - 1;
+        } else if (c > 0) {
+            low = mid + 1;
+        } else {
+            return UnicodeData[mid].value;
+        }
+    }
+    error(1027, t, "unicode character name not found");
 }
 
 static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std::string &source_path, int &line, size_t column, const std::string &source)
@@ -485,17 +508,31 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                         case 't': c = '\t'; break;
                         case 'u':
                         case 'U': {
-                            int len = c == 'U' ? 8 : 4;
-                            if (source.end() - i < len) {
-                                error(1012, t, "unterminated string");
-                            }
-                            for (int j = 0; j < len; j++) {
-                                if (not isxdigit(i[j])) {
-                                    error(1013, t, "invalid hex character");
+                            if (*i == '{') {
+                                utf8::advance(i, 1, source.end());
+                                std::string name;
+                                while (*i != '}') {
+                                    if (*i == '"') {
+                                        error(1026, t, "unterminated unicode character name");
+                                    }
+                                    name.push_back(*i);
+                                    utf8::advance(i, 1, source.end());
                                 }
+                                utf8::advance(i, 1, source.end());
+                                c = unicode_lookup(t, name);
+                            } else {
+                                int len = c == 'U' ? 8 : 4;
+                                if (source.end() - i < len) {
+                                    error(1012, t, "unterminated string");
+                                }
+                                for (int j = 0; j < len; j++) {
+                                    if (not isxdigit(i[j])) {
+                                        error(1013, t, "invalid hex character");
+                                    }
+                                }
+                                c = std::stoul(std::string(i, i+len), nullptr, 16);
+                                utf8::advance(i, len, source.end());
                             }
-                            c = std::stoul(std::string(i, i+len), nullptr, 16);
-                            utf8::advance(i, len, source.end());
                             break;
                         }
                         case '(': {

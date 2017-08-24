@@ -1,0 +1,28 @@
+% Reads UnicodeData.txt and writes out a C source file
+% which contains all the character names and values.
+%
+% The UnicodeData.txt file comes from:
+% http://www.unicode.org/Public/UCD/latest/ucd/UnicodeData.txt
+
+IMPORT file
+IMPORT string
+IMPORT sys
+
+LET unicodedata: Array<String> := file.readLines(sys.args[1])
+VAR names: Dictionary<String> := {}
+FOREACH s IN unicodedata DO
+    VAR a: Array<String> := string.split(s, ";")
+    IF a[1][0] = "<" THEN
+        NEXT FOREACH
+    END IF
+    names[a[1]] := a[0]
+END FOREACH
+
+print("const struct {")
+print("    const char *name;")
+print("    uint32_t value;")
+print("} UnicodeData[] = {")
+FOREACH s IN names.keys() DO
+    print("    {\"\(s)\", 0x\(names[s])},")
+END FOREACH
+print("};")

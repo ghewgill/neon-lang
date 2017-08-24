@@ -203,6 +203,15 @@ FUNCTION findLineEnd(source: String, start: Number): Number
     END IF
 END FUNCTION
 
+FUNCTION unicodeLookup(t: Token, name: String): String
+    % TODO: actual unicode lookup
+    CASE string.upper(name)
+        WHEN "LATIN SMALL LETTER A" DO RETURN "a"
+    END CASE
+    error(1027, t, "unicode character name not found")
+    RETURN ""
+END FUNCTION
+
 FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start: Number, source: String, actual_source_line: String DEFAULT ""): Array<Token>
     VAR column: Number := column_start
     VAR tokens: Array<Token> := []
@@ -499,20 +508,34 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         WHEN "r" DO c := "\r"
                         WHEN "t" DO c := "\t"
                         WHEN "u", "U" DO
-                            LET len: Number := (IF c = "U" THEN 8 ELSE 4)
-                            IF source.length() - i < len THEN
-                                error(1012, t, "unterminated string")
-                            END IF
-                            VAR x: Number := 0
-                            FOR j := 0 TO len-1 DO
-                                LET d: String := string.lower(source[i+j])
-                                IF NOT hex_char(d) THEN
-                                    error(1013, t, "invalid hex character")
+                            IF source[i] = "{" THEN
+                                INC i
+                                VAR name: String := ""
+                                WHILE i < source.length() AND source[i] <> "}" DO
+                                    IF source[i] = "\"" THEN
+                                        error(1026, t, "unterminated unicode character name")
+                                    END IF
+                                    name.append(source[i])
+                                    INC i
+                                END WHILE
+                                INC i
+                                c := unicodeLookup(t, name)
+                            ELSE
+                                LET len: Number := (IF c = "U" THEN 8 ELSE 4)
+                                IF source.length() - i < len THEN
+                                    error(1012, t, "unterminated string")
                                 END IF
-                                x := x * 16 + (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
-                            END FOR
-                            c := chr(x)
-                            i := i + len
+                                VAR x: Number := 0
+                                FOR j := 0 TO len-1 DO
+                                    LET d: String := string.lower(source[i+j])
+                                    IF NOT hex_char(d) THEN
+                                        error(1013, t, "invalid hex character")
+                                    END IF
+                                    x := x * 16 + (IF "0" <= d <= "9" THEN ord(d) - ord("0") ELSE (IF "a" <= d <= "z" THEN ord(d) - ord("a") + 10 ELSE -1))
+                                END FOR
+                                c := chr(x)
+                                i := i + len
+                            END IF
                         WHEN "(" DO
                             tokens.append(t)
                             t.column := column + (i - startindex) - 1

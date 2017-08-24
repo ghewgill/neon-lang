@@ -174,6 +174,8 @@ if coverage:
         "--coverage", "-O0",
     ])
 
+env.Command("src/unicodedata.inc", ["tools/helium.py", "scripts/make_unicode.neon", "data/UnicodeData.txt"], "python $SOURCES > $TARGET")
+
 rtl_const = []
 
 if os.name == "posix":

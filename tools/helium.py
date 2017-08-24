@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import sys
+import unicodedata
 
 class Symbol:
     def __init__(self, name):
@@ -250,12 +251,15 @@ def tokenize_fragment(source):
                     elif c == "n": c = "\n"
                     elif c == "r": c = "\r"
                     elif c == "t": c = "\t"
-                    elif c == "u":
-                        c = unichr(int(source[i:i+4], 16))
-                        i += 4
-                    elif c == "U":
-                        c = unichr(int(source[i:i+8], 16))
-                        i += 8
+                    elif c in ["u", "U"]:
+                        if source[i] == "{":
+                            close = source.find("}", i)
+                            c = unicodedata.lookup(source[i+1:close])
+                            i = close + 1
+                        else:
+                            width = 8 if c == "U" else 4
+                            c = unichr(int(source[i:i+width], 16))
+                            i += width
                     elif c == "(":
                         r.append(String(string))
                         r.append(SUBBEGIN)

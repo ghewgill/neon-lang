@@ -42,6 +42,7 @@ NOWHERE INTDIV LABEL CLASS TRAP EXTENSION INTERFACE IMPLEMENTS
 "a\tbcd"
 "a\u007ebcd"
 "a\U0000007ebcd"
+"a\u{latin small letter a}"
 "a\(x)bcd"
 "a\(x:x)bcd"
 

@@ -134,9 +134,9 @@ Strings are sequences of Unicode characters surrounded by double quotes.
 The only special character within a string is the backslash, used for character escapes.
 The allowed character escapes are:
 
-============== ===========   ===========
+============== ============= ===========
 Escape         Replacement   Description
-============== ===========   ===========
+============== ============= ===========
 ``\"``         "             double quote
 ``\\``         \\            backslash
 ``\b``         chr(8)        backspace
@@ -146,8 +146,9 @@ Escape         Replacement   Description
 ``\t``         chr(9)        tab
 ``\uXXXX``     chr(XXXX)     Unicode character XXXX (where XXXX is a 4-digit hex number)
 ``\UXXXXXXXX`` chr(XXXXXXXX) Unicode character XXXXXXXX (where XXXXXXXX is a 8-digit hex number)
+``\u{NAME}``   character     Unicode character named NAME from the `Unicode standard <https://unicode.org/versions/latest/>`_
 ``\()``        expression    see `expression substitution`_
-============== ===========   ===========
+============== ============= ===========
 
 Example::
 
