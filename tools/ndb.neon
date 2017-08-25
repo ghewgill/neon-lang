@@ -24,6 +24,7 @@ Debugger Commands:
 
     b  break    Set a breakpoint on a source line number
     c  clear    Clear a breakpoint on a source line number
+    g  globals  Show all global variables
     h  help     Print this help message
     n  next     Next source line
     ni next-in  Next source line, stepping in to functions
@@ -105,6 +106,12 @@ LOOP
         r := post("/break/\(AddressFromLine[num(a[1])])", "true")
     ELSIF a[0] IN ["c", "clear"] THEN
         r := post("/break/\(AddressFromLine[num(a[1])])", "false")
+    ELSIF a[0] IN ["g", "globals"] THEN
+        FOREACH name IN Globals.keys() DO
+            r := get("/module/-/global/\(Globals[name].index)")
+            LET value: variant.Variant := r.getDictionary()["value"]
+            print("\(name)\t\(value)")
+        END FOREACH
     ELSIF a[0] IN ["h", "help"] THEN
         help()
     ELSIF a[0] IN ["n", "next"] THEN
