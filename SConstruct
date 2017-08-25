@@ -40,7 +40,15 @@ if sys.platform != "nt":
                         data = f.read()
                         assert "\r\n" not in data, fn
 
-env = Environment()
+baseenv = Environment()
+
+baseenv["AR"] = "/Users/greg/build/emsdk_portable/emscripten/1.37.20/emar"
+baseenv["CC"] = "/Users/greg/build/emsdk_portable/emscripten/1.37.20/emcc"
+baseenv["CXX"] = "/Users/greg/build/emsdk_portable/emscripten/1.37.20/em++"
+baseenv["RANLIB"] = "/Users/greg/build/emsdk_portable/emscripten/1.37.20/emranlib"
+baseenv["PROGSUFFIX"] = ".js"
+
+env = baseenv.Clone()
 
 vars = Variables(["config.cache", "config.py"])
 vars.AddVariables(
@@ -75,16 +83,16 @@ def add_external(target):
 
 use_posix = os.name == "posix"
 
-add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
-libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
-libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
-libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["env"]))
-libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
-libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
-libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
-libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
-add_external(SConscript("external/SConscript-minijson", exports=["env"]))
-add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
+add_external(SConscript("external/SConscript-libutf8", exports=["baseenv", "env"]))
+libbid = add_external(SConscript("external/SConscript-libbid", exports=["baseenv", "env"]))
+libffi = add_external(SConscript("external/SConscript-libffi", exports=["baseenv", "env"]))
+libeasysid = add_external(SConscript("external/SConscript-libeasysid", exports=["baseenv", "env"]))
+libhash = add_external(SConscript("external/SConscript-libhash", exports=["baseenv", "env"]))
+libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["baseenv", "env"]))
+libz = add_external(SConscript("external/SConscript-libz", exports=["baseenv", "env"]))
+libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["baseenv", "env"]))
+add_external(SConscript("external/SConscript-minijson", exports=["baseenv", "env"]))
+add_external(SConscript("external/SConscript-pyparsing", exports=["baseenv", "env"]))
 
 SConscript("lib/compress/SConstruct")
 SConscript("lib/crypto/SConstruct")

@@ -3,11 +3,12 @@ import shutil
 import sys
 import tarfile
 
-Import("env")
+Import(["baseenv", "env"])
 
 libz = None
 
-libzenv = Environment()
+libzenv = baseenv.Clone()
+
 if not env["RELEASE"]:
     if sys.platform == "win32":
         libzenv.Append(CFLAGS=[
@@ -21,7 +22,7 @@ if GetOption("clean"):
 elif not os.path.exists("zlib-1.2.8/configure"):
     tarfile.open("zlib-1.2.8.tar.gz").extractall(".")
 
-if sys.platform == "win32":
+if sys.platform == "win32" or True:
     libz = libzenv.Library("zlib-1.2.8/zlib.lib", [
         "zlib-1.2.8/adler32.c",
         "zlib-1.2.8/compress.c",

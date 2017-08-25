@@ -3,11 +3,12 @@ import shutil
 import sys
 import zipfile
 
-Import("env")
+Import(["baseenv", "env"])
 
 libminizip = None
 
-libminizipenv = Environment()
+libminizipenv = baseenv.Clone()
+
 if not env["RELEASE"]:
     if sys.platform == "win32":
         libminizipenv.Append(CFLAGS=[

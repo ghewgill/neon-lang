@@ -4,9 +4,10 @@ import subprocess
 import sys
 import zipfile
 
-Import("env")
+Import(["baseenv", "env"])
 
-hashenv = Environment()
+hashenv = baseenv.Clone()
+
 if not env["RELEASE"]:
     if sys.platform == "win32":
         hashenv.Append(CXXFLAGS=[

@@ -3,14 +3,14 @@ import shutil
 import sys
 import tarfile
 
-Import("env")
+Import(["baseenv", "env"])
 
 def envwith(env, **kwargs):
     e = env.Clone()
     e.Append(**kwargs)
     return e
 
-bidenv = Environment()
+bidenv = baseenv.Clone()
 
 if GetOption("clean"):
     shutil.rmtree("IntelRDFPMathLib20U1", ignore_errors=True)

@@ -3,9 +3,10 @@ import shutil
 import sys
 import zipfile
 
-Import("env")
+Import(["baseenv", "env"])
 
-sqliteenv = Environment()
+sqliteenv = baseenv.Clone()
+
 if not env["RELEASE"]:
     if sys.platform == "win32":
         sqliteenv.Append(CFLAGS=[
