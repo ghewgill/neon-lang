@@ -370,6 +370,11 @@ std::string Emitter::get_type_reference(const ast::Type *type)
 
 void ast::Type::predeclare(Emitter &emitter) const
 {
+    // Avoid unbounded recursion.
+    if (predeclared) {
+        return;
+    }
+    predeclared = true;
     for (auto m: methods) {
         m.second->predeclare(emitter);
     }
@@ -377,6 +382,11 @@ void ast::Type::predeclare(Emitter &emitter) const
 
 void ast::Type::postdeclare(Emitter &emitter) const
 {
+    // Avoid unbounded recursion.
+    if (postdeclared) {
+        return;
+    }
+    postdeclared = true;
     for (auto m: methods) {
         m.second->postdeclare(emitter);
     }
@@ -576,11 +586,11 @@ void ast::TypeDictionary::get_type_references(std::set<const Type *> &references
 void ast::TypeRecord::predeclare(Emitter &emitter) const
 {
     // Avoid unbounded recursion.
-    if (predeclared) {
+    const bool was_predeclared = predeclared;
+    Type::predeclare(emitter);
+    if (was_predeclared) {
         return;
     }
-    predeclared = true;
-    Type::predeclare(emitter);
     for (auto f: fields) {
         f.type->predeclare(emitter);
     }
@@ -589,11 +599,11 @@ void ast::TypeRecord::predeclare(Emitter &emitter) const
 void ast::TypeRecord::postdeclare(Emitter &emitter) const
 {
     // Avoid unbounded recursion.
-    if (postdeclared) {
+    const bool was_postdeclared = postdeclared;
+    Type::postdeclare(emitter);
+    if (was_postdeclared) {
         return;
     }
-    postdeclared = true;
-    Type::postdeclare(emitter);
 }
 
 void ast::TypeRecord::generate_load(Emitter &emitter) const

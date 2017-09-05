@@ -301,11 +301,12 @@ private:
 
 class Type: public Name {
 public:
-    Type(const Token &declaration, const std::string &name): Name(declaration, name, nullptr), methods() {}
+    Type(const Token &declaration, const std::string &name): Name(declaration, name, nullptr), methods(), predeclared(false), postdeclared(false) {}
 
     std::map<std::string, Variable *> methods;
 
     virtual const Expression *make_default_value() const = 0;
+    virtual void reset() override { predeclared = false; postdeclared = false; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const { return this == rhs; }
@@ -319,6 +320,9 @@ public:
     virtual std::string serialize(const Expression *value) const = 0;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const = 0;
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const = 0;
+protected:
+    mutable bool predeclared;
+    mutable bool postdeclared;
 };
 
 class TypeNothing: public Type {
@@ -548,13 +552,12 @@ public:
         const Type *type;
         bool is_private;
     };
-    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), module(module), fields(fields), field_names(make_field_names(fields)), predeclared(false), postdeclared(false) {}
+    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), module(module), fields(fields), field_names(make_field_names(fields)) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
 
-    virtual void reset() override { predeclared = false; postdeclared = false; }
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
@@ -570,8 +573,6 @@ public:
 
     virtual std::string text() const override;
 private:
-    mutable bool predeclared;
-    mutable bool postdeclared;
     static std::map<std::string, size_t> make_field_names(const std::vector<Field> &fields) {
         std::map<std::string, size_t> r;
         size_t i = 0;
