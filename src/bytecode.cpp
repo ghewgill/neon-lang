@@ -133,7 +133,7 @@ bool Bytecode::load(const std::string &source_path, const std::vector<unsigned c
             Function f;
             f.name = get_uint16(obj, i);
             f.descriptor = get_uint16(obj, i);
-            f.entry = get_uint16(obj, i);
+            f.entry = get_uint32(obj, i);
             export_functions.push_back(f);
             functionsize--;
         }
@@ -179,7 +179,7 @@ bool Bytecode::load(const std::string &source_path, const std::vector<unsigned c
         while (functionsize > 0) {
             FunctionInfo f;
             f.name = get_uint16(obj, i);
-            f.entry = get_uint16(obj, i);
+            f.entry = get_uint32(obj, i);
             functions.push_back(f);
             functionsize--;
         }
@@ -267,7 +267,7 @@ Bytecode::Bytes Bytecode::getBytes() const
     for (auto f: export_functions) {
         put_uint16(obj, static_cast<uint16_t>(f.name));
         put_uint16(obj, static_cast<uint16_t>(f.descriptor));
-        put_uint16(obj, static_cast<uint16_t>(f.entry));
+        put_uint32(obj, static_cast<uint32_t>(f.entry));
     }
 
     put_uint16(obj, static_cast<uint16_t>(export_exceptions.size()));
@@ -297,7 +297,7 @@ Bytecode::Bytes Bytecode::getBytes() const
     put_uint16(obj, static_cast<uint16_t>(functions.size()));
     for (auto f: functions) {
         put_uint16(obj, static_cast<uint16_t>(f.name));
-        put_uint16(obj, static_cast<uint16_t>(f.entry));
+        put_uint32(obj, static_cast<uint32_t>(f.entry));
     }
 
     put_uint16(obj, static_cast<uint16_t>(exceptions.size()));
