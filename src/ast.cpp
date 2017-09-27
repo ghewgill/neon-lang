@@ -123,30 +123,30 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::INOUT, this, nullptr));
-        params.push_back(new ParameterType(Token(), ParameterType::IN, elementtype, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, elementtype, nullptr));
         methods["append"] = new PredefinedFunction("array__append", new TypeFunction(TYPE_NOTHING, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::INOUT, this, nullptr));
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["extend"] = new PredefinedFunction("array__extend", new TypeFunction(TYPE_NOTHING, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::INOUT, this, nullptr));
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
         methods["resize"] = new PredefinedFunction("array__resize", new TypeFunction(TYPE_NOTHING, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["size"] = new PredefinedFunction("array__size", new TypeFunction(TYPE_NUMBER, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         // TODO: This is just a hack to make this work for now.
         // Need to do this properly in a general purpose way.
         if (elementtype == TYPE_NUMBER) {
@@ -240,12 +240,12 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["size"] = new PredefinedFunction("dictionary__size", new TypeFunction(TYPE_NUMBER, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["keys"] = new PredefinedFunction("dictionary__keys", new TypeFunction(TYPE_ARRAY_STRING, params));
     }
 }
@@ -377,7 +377,7 @@ TypePointer::TypePointer(const Token &declaration, const TypeClass *reftype)
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["toString"] = new PredefinedFunction("pointer__toString", new TypeFunction(TYPE_STRING, params));
     }
 }
@@ -436,7 +436,7 @@ TypeInterfacePointer::TypeInterfacePointer(const Token &declaration, const Inter
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["toString"] = new PredefinedFunction("interfacepointer__toString", new TypeFunction(TYPE_STRING, params));
     }
 }
@@ -509,7 +509,7 @@ TypeFunctionPointer::TypeFunctionPointer(const Token &declaration, const TypeFun
 {
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, this, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, this, nullptr));
         methods["toString"] = new PredefinedFunction("functionpointer__toString", new TypeFunction(TYPE_STRING, params));
     }
 }
@@ -654,12 +654,12 @@ std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dict
 bool BooleanComparisonExpression::eval_boolean() const
 {
     switch (comp) {
-        case EQ: return left->eval_boolean() == right->eval_boolean();
-        case NE: return left->eval_boolean() != right->eval_boolean();
-        case LT:
-        case GT:
-        case LE:
-        case GE:
+        case Comparison::EQ: return left->eval_boolean() == right->eval_boolean();
+        case Comparison::NE: return left->eval_boolean() != right->eval_boolean();
+        case Comparison::LT:
+        case Comparison::GT:
+        case Comparison::LE:
+        case Comparison::GE:
             internal_error("BooleanComparisonExpression");
     }
     internal_error("BooleanComparisonExpression");
@@ -668,12 +668,12 @@ bool BooleanComparisonExpression::eval_boolean() const
 bool NumericComparisonExpression::eval_boolean() const
 {
     switch (comp) {
-        case EQ: return number_is_equal        (left->eval_number(), right->eval_number());
-        case NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
-        case LT: return number_is_less         (left->eval_number(), right->eval_number());
-        case GT: return number_is_greater      (left->eval_number(), right->eval_number());
-        case LE: return number_is_less_equal   (left->eval_number(), right->eval_number());
-        case GE: return number_is_greater_equal(left->eval_number(), right->eval_number());
+        case Comparison::EQ: return number_is_equal        (left->eval_number(), right->eval_number());
+        case Comparison::NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
+        case Comparison::LT: return number_is_less         (left->eval_number(), right->eval_number());
+        case Comparison::GT: return number_is_greater      (left->eval_number(), right->eval_number());
+        case Comparison::LE: return number_is_less_equal   (left->eval_number(), right->eval_number());
+        case Comparison::GE: return number_is_greater_equal(left->eval_number(), right->eval_number());
     }
     internal_error("NumericComparisonExpression");
 }
@@ -681,12 +681,12 @@ bool NumericComparisonExpression::eval_boolean() const
 bool EnumComparisonExpression::eval_boolean() const
 {
     switch (comp) {
-        case EQ: return number_is_equal        (left->eval_number(), right->eval_number());
-        case NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
-        case LT:
-        case GT:
-        case LE:
-        case GE:
+        case Comparison::EQ: return number_is_equal        (left->eval_number(), right->eval_number());
+        case Comparison::NE: return number_is_not_equal    (left->eval_number(), right->eval_number());
+        case Comparison::LT:
+        case Comparison::GT:
+        case Comparison::LE:
+        case Comparison::GE:
             break;
     }
     internal_error("EnumComparisonExpression");
@@ -695,12 +695,12 @@ bool EnumComparisonExpression::eval_boolean() const
 bool StringComparisonExpression::eval_boolean() const
 {
     switch (comp) {
-        case EQ: return left->eval_string() == right->eval_string();
-        case NE: return left->eval_string() != right->eval_string();
-        case LT: return left->eval_string() <  right->eval_string();
-        case GT: return left->eval_string() >  right->eval_string();
-        case LE: return left->eval_string() <= right->eval_string();
-        case GE: return left->eval_string() >= right->eval_string();
+        case Comparison::EQ: return left->eval_string() == right->eval_string();
+        case Comparison::NE: return left->eval_string() != right->eval_string();
+        case Comparison::LT: return left->eval_string() <  right->eval_string();
+        case Comparison::GT: return left->eval_string() >  right->eval_string();
+        case Comparison::LE: return left->eval_string() <= right->eval_string();
+        case Comparison::GE: return left->eval_string() >= right->eval_string();
     }
     internal_error("StringComparisonExpression");
 }
@@ -708,12 +708,12 @@ bool StringComparisonExpression::eval_boolean() const
 bool BytesComparisonExpression::eval_boolean() const
 {
     switch (comp) {
-        case EQ: return left->eval_string() == right->eval_string();
-        case NE: return left->eval_string() != right->eval_string();
-        case LT: return left->eval_string() <  right->eval_string();
-        case GT: return left->eval_string() >  right->eval_string();
-        case LE: return left->eval_string() <= right->eval_string();
-        case GE: return left->eval_string() >= right->eval_string();
+        case Comparison::EQ: return left->eval_string() == right->eval_string();
+        case Comparison::NE: return left->eval_string() != right->eval_string();
+        case Comparison::LT: return left->eval_string() <  right->eval_string();
+        case Comparison::GT: return left->eval_string() >  right->eval_string();
+        case Comparison::LE: return left->eval_string() <= right->eval_string();
+        case Comparison::GE: return left->eval_string() >= right->eval_string();
     }
     internal_error("BytesComparisonExpression");
 }
@@ -1066,62 +1066,62 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BOOLEAN, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BOOLEAN, nullptr));
         TYPE_BOOLEAN->methods["toString"] = new PredefinedFunction("boolean__toString", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_NUMBER, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_NUMBER, nullptr));
         TYPE_NUMBER->methods["toString"] = new PredefinedFunction("number__toString", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
         TYPE_STRING->methods["length"] = new PredefinedFunction("string__length", new TypeFunction(TYPE_NUMBER, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_STRING, nullptr));
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, TYPE_STRING, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
         TYPE_STRING->methods["append"] = new PredefinedFunction("string__append", new TypeFunction(TYPE_NOTHING, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
         TYPE_STRING->methods["toBytes"] = new PredefinedFunction("string__toBytes", new TypeFunction(TYPE_BYTES, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_STRING, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_STRING, nullptr));
         TYPE_STRING->methods["toString"] = new PredefinedFunction("string__toString", new TypeFunction(TYPE_STRING, params));
     }
 
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::INOUT, TYPE_BYTES, nullptr));
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_ARRAY_NUMBER, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::INOUT, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_ARRAY_NUMBER, nullptr));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["size"] = new PredefinedFunction("bytes__size", new TypeFunction(TYPE_NUMBER, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["decodeToString"] = new PredefinedFunction("bytes__decodeToString", new TypeFunction(TYPE_STRING, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["toArray"] = new PredefinedFunction("bytes__toArray", new TypeFunction(TYPE_ARRAY_NUMBER, params));
     }
     {
         std::vector<const ParameterType *> params;
-        params.push_back(new ParameterType(Token(), ParameterType::IN, TYPE_BYTES, nullptr));
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["toString"] = new PredefinedFunction("bytes__toString", new TypeFunction(TYPE_STRING, params));
     }
 

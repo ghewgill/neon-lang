@@ -5,7 +5,7 @@
 
 Cell::Cell()
   : gc(),
-    type(cNone),
+    type(Type::None),
     address_value(nullptr),
     boolean_value(false),
     number_value(),
@@ -29,7 +29,7 @@ Cell::Cell(const Cell &rhs)
 
 Cell::Cell(Cell *value)
   : gc(),
-    type(cAddress),
+    type(Type::Address),
     address_value(value),
     boolean_value(false),
     number_value(),
@@ -41,7 +41,7 @@ Cell::Cell(Cell *value)
 
 Cell::Cell(bool value)
   : gc(),
-    type(cBoolean),
+    type(Type::Boolean),
     address_value(nullptr),
     boolean_value(value),
     number_value(),
@@ -53,7 +53,7 @@ Cell::Cell(bool value)
 
 Cell::Cell(Number value)
   : gc(),
-    type(cNumber),
+    type(Type::Number),
     address_value(nullptr),
     boolean_value(false),
     number_value(value),
@@ -65,7 +65,7 @@ Cell::Cell(Number value)
 
 Cell::Cell(const utf8string &value)
   : gc(),
-    type(cString),
+    type(Type::String),
     address_value(nullptr),
     boolean_value(false),
     number_value(),
@@ -77,7 +77,7 @@ Cell::Cell(const utf8string &value)
 
 Cell::Cell(const char *value)
   : gc(),
-    type(cString),
+    type(Type::String),
     address_value(nullptr),
     boolean_value(false),
     number_value(),
@@ -89,7 +89,7 @@ Cell::Cell(const char *value)
 
 Cell::Cell(const std::vector<Cell> &value, bool alloced)
   : gc(alloced),
-    type(cArray),
+    type(Type::Array),
     address_value(nullptr),
     boolean_value(false),
     number_value(),
@@ -101,7 +101,7 @@ Cell::Cell(const std::vector<Cell> &value, bool alloced)
 
 Cell::Cell(const std::map<utf8string, Cell> &value)
   : gc(),
-    type(cDictionary),
+    type(Type::Dictionary),
     address_value(nullptr),
     boolean_value(false),
     number_value(),
@@ -130,50 +130,50 @@ bool Cell::operator==(const Cell &rhs) const
 {
     assert(type == rhs.type);
     switch (type) {
-        case cNone:         return false;
-        case cAddress:      return address_value == rhs.address_value;
-        case cBoolean:      return boolean_value == rhs.boolean_value;
-        case cNumber:       return number_is_equal(number_value, rhs.number_value);
-        case cString:       return *string_ptr == *rhs.string_ptr;
-        case cArray:        return *array_ptr == *rhs.array_ptr;
-        case cDictionary:   return *dictionary_ptr == *rhs.dictionary_ptr;
+        case Type::None:         return false;
+        case Type::Address:      return address_value == rhs.address_value;
+        case Type::Boolean:      return boolean_value == rhs.boolean_value;
+        case Type::Number:       return number_is_equal(number_value, rhs.number_value);
+        case Type::String:       return *string_ptr == *rhs.string_ptr;
+        case Type::Array:        return *array_ptr == *rhs.array_ptr;
+        case Type::Dictionary:   return *dictionary_ptr == *rhs.dictionary_ptr;
     }
     return false;
 }
 
 Cell *&Cell::address()
 {
-    if (type == cNone) {
-        type = cAddress;
+    if (type == Type::None) {
+        type = Type::Address;
     }
-    assert(type == cAddress);
+    assert(type == Type::Address);
     return address_value;
 }
 
 bool &Cell::boolean()
 {
-    if (type == cNone) {
-        type = cBoolean;
+    if (type == Type::None) {
+        type = Type::Boolean;
     }
-    assert(type == cBoolean);
+    assert(type == Type::Boolean);
     return boolean_value;
 }
 
 Number &Cell::number()
 {
-    if (type == cNone) {
-        type = cNumber;
+    if (type == Type::None) {
+        type = Type::Number;
     }
-    assert(type == cNumber);
+    assert(type == Type::Number);
     return number_value;
 }
 
 const utf8string &Cell::string()
 {
-    if (type == cNone) {
-        type = cString;
+    if (type == Type::None) {
+        type = Type::String;
     }
-    assert(type == cString);
+    assert(type == Type::String);
     if (not string_ptr) {
         string_ptr = std::make_shared<utf8string>();
     }
@@ -182,10 +182,10 @@ const utf8string &Cell::string()
 
 utf8string &Cell::string_for_write()
 {
-    if (type == cNone) {
-        type = cString;
+    if (type == Type::None) {
+        type = Type::String;
     }
-    assert(type == cString);
+    assert(type == Type::String);
     if (not string_ptr) {
         string_ptr = std::make_shared<utf8string>();
     }
@@ -197,10 +197,10 @@ utf8string &Cell::string_for_write()
 
 const std::vector<Cell> &Cell::array()
 {
-    if (type == cNone) {
-        type = cArray;
+    if (type == Type::None) {
+        type = Type::Array;
     }
-    assert(type == cArray);
+    assert(type == Type::Array);
     if (not array_ptr) {
         array_ptr = std::make_shared<std::vector<Cell>>();
     }
@@ -209,10 +209,10 @@ const std::vector<Cell> &Cell::array()
 
 std::vector<Cell> &Cell::array_for_write()
 {
-    if (type == cNone) {
-        type = cArray;
+    if (type == Type::None) {
+        type = Type::Array;
     }
-    assert(type == cArray);
+    assert(type == Type::Array);
     if (not array_ptr) {
         array_ptr = std::make_shared<std::vector<Cell>>();
     }
@@ -224,10 +224,10 @@ std::vector<Cell> &Cell::array_for_write()
 
 Cell &Cell::array_index_for_read(size_t i)
 {
-    if (type == cNone) {
-        type = cArray;
+    if (type == Type::None) {
+        type = Type::Array;
     }
-    assert(type == cArray);
+    assert(type == Type::Array);
     if (not array_ptr) {
         array_ptr = std::make_shared<std::vector<Cell>>();
     }
@@ -236,10 +236,10 @@ Cell &Cell::array_index_for_read(size_t i)
 
 Cell &Cell::array_index_for_write(size_t i)
 {
-    if (type == cNone) {
-        type = cArray;
+    if (type == Type::None) {
+        type = Type::Array;
     }
-    assert(type == cArray);
+    assert(type == Type::Array);
     if (not array_ptr) {
         array_ptr = std::make_shared<std::vector<Cell>>();
     }
@@ -254,10 +254,10 @@ Cell &Cell::array_index_for_write(size_t i)
 
 const std::map<utf8string, Cell> &Cell::dictionary()
 {
-    if (type == cNone) {
-        type = cDictionary;
+    if (type == Type::None) {
+        type = Type::Dictionary;
     }
-    assert(type == cDictionary);
+    assert(type == Type::Dictionary);
     if (not dictionary_ptr) {
         dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
@@ -266,10 +266,10 @@ const std::map<utf8string, Cell> &Cell::dictionary()
 
 std::map<utf8string, Cell> &Cell::dictionary_for_write()
 {
-    if (type == cNone) {
-        type = cDictionary;
+    if (type == Type::None) {
+        type = Type::Dictionary;
     }
-    assert(type == cDictionary);
+    assert(type == Type::Dictionary);
     if (not dictionary_ptr) {
         dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
@@ -281,10 +281,10 @@ std::map<utf8string, Cell> &Cell::dictionary_for_write()
 
 Cell &Cell::dictionary_index_for_read(const utf8string &index)
 {
-    if (type == cNone) {
-        type = cDictionary;
+    if (type == Type::None) {
+        type = Type::Dictionary;
     }
-    assert(type == cDictionary);
+    assert(type == Type::Dictionary);
     if (not dictionary_ptr) {
         dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }
@@ -293,10 +293,10 @@ Cell &Cell::dictionary_index_for_read(const utf8string &index)
 
 Cell &Cell::dictionary_index_for_write(const utf8string &index)
 {
-    if (type == cNone) {
-        type = cDictionary;
+    if (type == Type::None) {
+        type = Type::Dictionary;
     }
-    assert(type == cDictionary);
+    assert(type == Type::Dictionary);
     if (not dictionary_ptr) {
         dictionary_ptr = std::make_shared<std::map<utf8string, Cell>>();
     }

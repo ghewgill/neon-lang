@@ -510,9 +510,20 @@ public:
 
 class ComparisonExpression: public BinaryExpression {
 public:
-    enum Comparison {
+    enum class Comparison {
         EQ, NE, LT, GT, LE, GE
     };
+    static std::string to_string(Comparison comp) {
+        switch (comp) {
+            case Comparison::EQ: return "EQ";
+            case Comparison::NE: return "NE";
+            case Comparison::LT: return "LT";
+            case Comparison::GT: return "GT";
+            case Comparison::LE: return "LE";
+            case Comparison::GE: return "GE";
+        }
+        return "(undefined)";
+    }
     ComparisonExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right, Comparison comp): BinaryExpression(token, std::move(left), std::move(right)), comp(comp) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Comparison comp;
@@ -616,11 +627,19 @@ public:
 
 class FunctionParameterGroup {
 public:
-    enum Mode {
+    enum class Mode {
         IN,
         INOUT,
         OUT
     };
+    static std::string to_string(Mode mode) {
+        switch (mode) {
+            case Mode::IN:    return "IN";
+            case Mode::INOUT: return "INOUT";
+            case Mode::OUT:   return "OUT";
+        }
+        return "(undefined)";
+    }
     FunctionParameterGroup(const Token &token, const std::vector<Token> &names, std::unique_ptr<Type> &&type, Mode mode, std::unique_ptr<Expression> &&default_value): token(token), names(names), type(std::move(type)), mode(mode), default_value(std::move(default_value)) {}
     const Token token;
     const std::vector<Token> names;

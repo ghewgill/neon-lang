@@ -514,29 +514,29 @@ public:
         }
         SqlWheneverAction action;
         switch (lexer.next()) {
-            case CONTINUE: action = Continue; break;
-            case SQLPRINT: action = SqlPrint; break;
-            case STOP:     action = Stop;     break;
+            case CONTINUE: action = SqlWheneverAction::Continue; break;
+            case SQLPRINT: action = SqlWheneverAction::SqlPrint; break;
+            case STOP:     action = SqlWheneverAction::Stop;     break;
             case DO:
                 switch (lexer.next()) {
                     case EXIT:
                         switch (lexer.next()) {
-                            case LOOP:      action = DoExitLoop;    break;
-                            case FOR:       action = DoExitFor;     break;
-                            case FOREACH:   action = DoExitForeach; break;
-                            case REPEAT:    action = DoExitRepeat;  break;
-                            case WHILE:     action = DoExitWhile;   break;
+                            case LOOP:      action = SqlWheneverAction::DoExitLoop;    break;
+                            case FOR:       action = SqlWheneverAction::DoExitFor;     break;
+                            case FOREACH:   action = SqlWheneverAction::DoExitForeach; break;
+                            case REPEAT:    action = SqlWheneverAction::DoExitRepeat;  break;
+                            case WHILE:     action = SqlWheneverAction::DoExitWhile;   break;
                             default:
                                 error(4222, lexer.get_last_token(), "loop type expected");
                         }
                         break;
                     case NEXT:
                         switch (lexer.next()) {
-                            case LOOP:      action = DoNextLoop;    break;
-                            case FOR:       action = DoNextFor;     break;
-                            case FOREACH:   action = DoNextForeach; break;
-                            case REPEAT:    action = DoNextRepeat;  break;
-                            case WHILE:     action = DoNextWhile;   break;
+                            case LOOP:      action = SqlWheneverAction::DoNextLoop;    break;
+                            case FOR:       action = SqlWheneverAction::DoNextFor;     break;
+                            case FOREACH:   action = SqlWheneverAction::DoNextForeach; break;
+                            case REPEAT:    action = SqlWheneverAction::DoNextRepeat;  break;
+                            case WHILE:     action = SqlWheneverAction::DoNextWhile;   break;
                             default:
                                 error(4223, lexer.get_last_token(), "loop type expected");
                         }
@@ -544,7 +544,7 @@ public:
                     case RAISE:
                         if (lexer.peek() == IDENTIFIER && lexer.value() == "SqlException") {
                             lexer.next();
-                            action = DoRaiseException;
+                            action = SqlWheneverAction::DoRaiseException;
                         } else {
                             error(4224, lexer.get_this_token(), "SqlException expected");
                         }

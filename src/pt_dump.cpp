@@ -7,9 +7,6 @@
 
 using namespace pt;
 
-static const std::string ComparisonName[] = {"eq", "ne", "lt", "gt", "le", "ge"};
-static const std::string ArgumentModeName[] = {"in", "inout", "out"};
-
 class Dumper: public IParseTreeVisitor {
 public:
     Dumper(std::ostream &out): out(out), depth(0) {}
@@ -180,7 +177,7 @@ public:
         child(node->right.get());
     }
     virtual void visit(const ComparisonExpression *node) override {
-        write("ComparisonExpression(" + ComparisonName[node->comp] + ")");
+        write("ComparisonExpression(" + ComparisonExpression::to_string(node->comp) + ")");
         child(node->left.get());
         child(node->right.get());
     }
@@ -273,7 +270,7 @@ public:
         depth++;
         for (auto &x: node->args) {
             for (auto name: x->names) {
-                write(ArgumentModeName[x->mode] + " " + name.text);
+                write(FunctionParameterGroup::to_string(x->mode) + " " + name.text);
                 child(x->type.get());
             }
         }
@@ -288,7 +285,7 @@ public:
         depth++;
         for (auto &x: node->args) {
             for (auto name: x->names) {
-                write(ArgumentModeName[x->mode] + " " + name.text);
+                write(FunctionParameterGroup::to_string(x->mode) + " " + name.text);
                 child(x->type.get());
             }
         }
@@ -301,7 +298,7 @@ public:
         depth++;
         for (auto &x: node->args) {
             for (auto name: x->names) {
-                write(ArgumentModeName[x->mode] + " " + name.text);
+                write(FunctionParameterGroup::to_string(x->mode) + " " + name.text);
                 child(x->type.get());
             }
         }
@@ -313,7 +310,7 @@ public:
         depth++;
         for (auto &x: node->args) {
             for (auto name: x->names) {
-                write(ArgumentModeName[x->mode] + " " + name.text);
+                write(FunctionParameterGroup::to_string(x->mode) + " " + name.text);
                 child(x->type.get());
             }
         }
@@ -353,7 +350,7 @@ public:
                 const CaseStatement::ComparisonWhenCondition *cw = dynamic_cast<const CaseStatement::ComparisonWhenCondition *>(when.get());
                 const CaseStatement::RangeWhenCondition *rw = dynamic_cast<const CaseStatement::RangeWhenCondition *>(when.get());
                 if (cw != nullptr) {
-                    write("ComparisonWhenCondition(" + ComparisonName[cw->comp] + ")");
+                    write("ComparisonWhenCondition(" + ComparisonExpression::to_string(cw->comp) + ")");
                     child(cw->expr.get());
                 }
                 if (rw != nullptr) {

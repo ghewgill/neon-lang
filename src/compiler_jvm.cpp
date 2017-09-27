@@ -1648,9 +1648,13 @@ public:
         context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
         context.ca.code << OP_swap;
         context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Boolean", "booleanValue", "()Z");
-        static const uint8_t op[] = {OP_ifeq, OP_ifne};
         auto label_true = context.create_label();
-        context.emit_jump(op[bce->comp], label_true);
+        switch (bce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_ifeq, label_true); break;
+            case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_ifne, label_true); break;
+            default:
+                internal_error("unexpected comparison type");
+        }
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
@@ -1670,9 +1674,15 @@ public:
 
     virtual void generate_comparison(Context &context) const override {
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Number", "compareTo", "(Lneon/type/Number;)I");
-        static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
         auto label_true = context.create_label();
-        context.emit_jump(op[nce->comp], label_true);
+        switch (nce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_ifeq, label_true); break;
+            case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_ifne, label_true); break;
+            case ast::ComparisonExpression::Comparison::LT: context.emit_jump(OP_iflt, label_true); break;
+            case ast::ComparisonExpression::Comparison::GT: context.emit_jump(OP_ifgt, label_true); break;
+            case ast::ComparisonExpression::Comparison::LE: context.emit_jump(OP_ifle, label_true); break;
+            case ast::ComparisonExpression::Comparison::GE: context.emit_jump(OP_ifge, label_true); break;
+        }
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
@@ -1691,9 +1701,13 @@ public:
     const ast::EnumComparisonExpression *ece;
 
     virtual void generate_comparison(Context &context) const override {
-        static const uint8_t op[] = {OP_if_acmpeq, OP_if_acmpne};
         auto label_true = context.create_label();
-        context.emit_jump(op[ece->comp], label_true);
+        switch (ece->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_if_acmpeq, label_true); break;
+            case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_if_acmpne, label_true); break;
+            default:
+                internal_error("unexpected comparison type");
+        }
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
@@ -1713,9 +1727,15 @@ public:
 
     virtual void generate_comparison(Context &context) const override {
         context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/String", "compareTo", "(Ljava/lang/String;)I");
-        static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
         auto label_true = context.create_label();
-        context.emit_jump(op[sce->comp], label_true);
+        switch (sce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_ifeq, label_true); break;
+            case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_ifne, label_true); break;
+            case ast::ComparisonExpression::Comparison::LT: context.emit_jump(OP_iflt, label_true); break;
+            case ast::ComparisonExpression::Comparison::GT: context.emit_jump(OP_ifgt, label_true); break;
+            case ast::ComparisonExpression::Comparison::LE: context.emit_jump(OP_ifle, label_true); break;
+            case ast::ComparisonExpression::Comparison::GE: context.emit_jump(OP_ifge, label_true); break;
+        }
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
@@ -1735,9 +1755,15 @@ public:
 
     virtual void generate_comparison(Context &context) const override {
         context.ca.code << OP_invokestatic << context.cf.Method("neon/Global", "bytes__compare", "([B[B)I");
-        static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
         auto label_true = context.create_label();
-        context.emit_jump(op[bce->comp], label_true);
+        switch (bce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_ifeq, label_true); break;
+            case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_ifne, label_true); break;
+            case ast::ComparisonExpression::Comparison::LT: context.emit_jump(OP_iflt, label_true); break;
+            case ast::ComparisonExpression::Comparison::GT: context.emit_jump(OP_ifgt, label_true); break;
+            case ast::ComparisonExpression::Comparison::LE: context.emit_jump(OP_ifle, label_true); break;
+            case ast::ComparisonExpression::Comparison::GE: context.emit_jump(OP_ifge, label_true); break;
+        }
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
@@ -1757,9 +1783,9 @@ public:
 
     virtual void generate_comparison(Context &context) const override {
         context.ca.code << OP_invokevirtual << context.cf.Method("neon/type/Array", "equals", "(Ljava/lang/Object;)Z");
-        if (ace->comp == ast::ComparisonExpression::EQ) {
+        if (ace->comp == ast::ComparisonExpression::Comparison::EQ) {
             // nothing
-        } else if (ace->comp == ast::ComparisonExpression::NE) {
+        } else if (ace->comp == ast::ComparisonExpression::Comparison::NE) {
             context.ca.code << OP_iconst_1;
             context.ca.code << OP_ixor;
         } else {
@@ -1779,9 +1805,9 @@ public:
 
     virtual void generate_comparison(Context &context) const override {
         context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "equals", "(Ljava/lang/Object;)Z");
-        if (dce->comp == ast::ComparisonExpression::EQ) {
+        if (dce->comp == ast::ComparisonExpression::Comparison::EQ) {
             // nothing
-        } else if (dce->comp == ast::ComparisonExpression::NE) {
+        } else if (dce->comp == ast::ComparisonExpression::Comparison::NE) {
             context.ca.code << OP_iconst_1;
             context.ca.code << OP_ixor;
         } else {
@@ -1802,9 +1828,9 @@ public:
     virtual void generate_comparison(Context &context) const override {
         // TODO: Need to recursively evaluate equality.
         context.ca.code << OP_invokevirtual << context.cf.Method("java/lang/Object", "equals", "(Ljava/lang/Object;)Z");
-        if (rce->comp == ast::ComparisonExpression::EQ) {
+        if (rce->comp == ast::ComparisonExpression::Comparison::EQ) {
             // nothing
-        } else if (rce->comp == ast::ComparisonExpression::NE) {
+        } else if (rce->comp == ast::ComparisonExpression::Comparison::NE) {
             context.ca.code << OP_iconst_1;
             context.ca.code << OP_ixor;
         } else {
@@ -1823,9 +1849,13 @@ public:
     const ast::PointerComparisonExpression *pce;
 
     virtual void generate_comparison(Context &context) const override {
-        static const uint8_t op[] = {OP_if_acmpeq, OP_if_acmpne};
         auto label_true = context.create_label();
-        context.emit_jump(op[pce->comp], label_true);
+        switch (pce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_if_acmpeq, label_true); break;
+            case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_if_acmpne, label_true); break;
+            default:
+                internal_error("unexpected comparison type");
+        }
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
@@ -1869,9 +1899,13 @@ public:
     const ast::FunctionPointerComparisonExpression *fpce;
 
     virtual void generate_comparison(Context &context) const override {
-        static const uint8_t op[] = {OP_if_acmpeq, OP_if_acmpne};
         auto label_true = context.create_label();
-        context.emit_jump(op[fpce->comp], label_true);
+        switch (fpce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_if_acmpeq, label_true); break;
+            case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_if_acmpne, label_true); break;
+            default:
+                internal_error("unexpected comparison type");
+        }
         context.ca.code << OP_getstatic << context.cf.Field("java/lang/Boolean", "FALSE", "Ljava/lang/Boolean;");
         auto label_false = context.create_label();
         context.emit_jump(OP_goto, label_false);
@@ -2577,8 +2611,14 @@ public:
             context.ca.code << OP_dup;
             expr->generate(context);
             context.ca.code << OP_invokeinterface << context.cf.InterfaceMethod("java/lang/Comparable", "compareTo", "(Ljava/lang/Object;)I") << static_cast<uint8_t>(2) << static_cast<uint8_t>(0);
-            static const uint8_t op[] = {OP_ifeq, OP_ifne, OP_iflt, OP_ifgt, OP_ifle, OP_ifge};
-            context.emit_jump(op[comp], label_true);
+            switch (comp) {
+                case ast::ComparisonExpression::Comparison::EQ: context.emit_jump(OP_ifeq, label_true); break;
+                case ast::ComparisonExpression::Comparison::NE: context.emit_jump(OP_ifne, label_true); break;
+                case ast::ComparisonExpression::Comparison::LT: context.emit_jump(OP_iflt, label_true); break;
+                case ast::ComparisonExpression::Comparison::GT: context.emit_jump(OP_ifgt, label_true); break;
+                case ast::ComparisonExpression::Comparison::LE: context.emit_jump(OP_ifle, label_true); break;
+                case ast::ComparisonExpression::Comparison::GE: context.emit_jump(OP_ifge, label_true); break;
+            }
             context.emit_jump(OP_goto, label_false);
         }
     private:
@@ -2861,7 +2901,7 @@ public:
             params.push_back(q);
             g_variable_cache[p] = q;
             signature.append(q->type->jtype);
-            if (q->fp->mode == ast::ParameterType::INOUT || q->fp->mode == ast::ParameterType::OUT) {
+            if (q->fp->mode == ast::ParameterType::Mode::INOUT || q->fp->mode == ast::ParameterType::Mode::OUT) {
                 out_count++;
             }
             i++;
@@ -2911,7 +2951,7 @@ public:
                     } else {
                         int i = 1;
                         for (auto p: params) {
-                            if (p->fp->mode == ast::ParameterType::INOUT || p->fp->mode == ast::ParameterType::OUT) {
+                            if (p->fp->mode == ast::ParameterType::Mode::INOUT || p->fp->mode == ast::ParameterType::Mode::OUT) {
                                 ca.code << OP_dup;
                                 function_context.push_integer(i);
                                 p->generate_load(function_context);
@@ -2967,7 +3007,7 @@ public:
         if (out_count > 0) {
             int i = 1;
             for (auto p: params) {
-                if (p->fp->mode == ast::ParameterType::INOUT || p->fp->mode == ast::ParameterType::OUT) {
+                if (p->fp->mode == ast::ParameterType::Mode::INOUT || p->fp->mode == ast::ParameterType::Mode::OUT) {
                     if (dynamic_cast<const DummyExpression *>(args[i-1]) == nullptr) {
                         context.ca.code << OP_dup;
                         context.push_integer(i);
@@ -3007,7 +3047,7 @@ public:
     PredefinedFunction(const ast::PredefinedFunction *pf): Variable(pf), pf(pf), out_count(0) {
         const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(pf->type);
         for (auto p: tf->params) {
-            if (p->mode == ast::ParameterType::INOUT || p->mode == ast::ParameterType::OUT) {
+            if (p->mode == ast::ParameterType::Mode::INOUT || p->mode == ast::ParameterType::Mode::OUT) {
                 out_count++;
             }
         }
@@ -3029,7 +3069,7 @@ public:
                     const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(pf->type);
                     int i = 1;
                     for (auto p: tf->params) {
-                        if (p->mode == ast::ParameterType::INOUT || p->mode == ast::ParameterType::OUT) {
+                        if (p->mode == ast::ParameterType::Mode::INOUT || p->mode == ast::ParameterType::Mode::OUT) {
                             if (dynamic_cast<const DummyExpression *>(args[i-1]) == nullptr) {
                                 context.ca.code << OP_dup;
                                 context.push_integer(i);
@@ -3066,7 +3106,7 @@ public:
         int i = 0;
         for (auto p: functype->paramtypes) {
             signature.append(p.second->jtype);
-            if (p.first == ast::ParameterType::INOUT || p.first == ast::ParameterType::OUT) {
+            if (p.first == ast::ParameterType::Mode::INOUT || p.first == ast::ParameterType::Mode::OUT) {
                 out_count++;
             }
             i++;

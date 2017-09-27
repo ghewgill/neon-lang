@@ -3691,7 +3691,7 @@ FUNCTION dumpConcatenationExpression(node: VALID POINTER TO ParseTreeNode, depth
 END FUNCTION
 
 FUNCTION dumpComparisonExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
-    dumpNode(depth, "ComparisonExpression(\(node->comparisonexpression.comp))")
+    dumpNode(depth, "ComparisonExpression(\(string.upper(node->comparisonexpression.comp.toString())))")
     dumpParseTree(node->comparisonexpression.left, depth+1)
     dumpParseTree(node->comparisonexpression.right, depth+1)
 END FUNCTION
@@ -3804,7 +3804,7 @@ FUNCTION dumpFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, depth: Nu
     dumpParseTree(node->functiondeclaration.returntype, depth+1)
     FOREACH a IN node->functiondeclaration.args DO
         FOREACH n IN a.names DO
-            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpNode(depth+1, "\(string.upper(a.mode.toString())) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
     END FOREACH
@@ -3818,7 +3818,7 @@ FUNCTION dumpForeignFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, de
     dumpParseTree(node->foreignfunctiondeclaration.returntype, depth+1)
     FOREACH a IN node->foreignfunctiondeclaration.args DO
         FOREACH n IN a.names DO
-            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpNode(depth+1, "\(string.upper(a.mode.toString())) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
     END FOREACH
@@ -3830,7 +3830,7 @@ FUNCTION dumpNativeFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, dep
     dumpParseTree(node->functiondeclaration.returntype, depth+1)
     FOREACH a IN node->functiondeclaration.args DO
         FOREACH n IN a.names DO
-            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpNode(depth+1, "\(string.upper(a.mode.toString())) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
     END FOREACH
@@ -3841,7 +3841,7 @@ FUNCTION dumpExtensionFunctionDeclaration(node: VALID POINTER TO ParseTreeNode, 
     dumpParseTree(node->functiondeclaration.returntype, depth+1)
     FOREACH a IN node->functiondeclaration.args DO
         FOREACH n IN a.names DO
-            dumpNode(depth+1, "\(a.mode) \(n.text)")
+            dumpNode(depth+1, "\(string.upper(a.mode.toString())) \(n.text)")
             dumpParseTree(a.type, depth+2)
         END FOREACH
     END FOREACH
@@ -3896,7 +3896,7 @@ FUNCTION dumpCaseStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     FOREACH clause IN node->casestatement.clauses DO
         FOREACH cond IN clause.conditions DO
             IF cond.high_expr = NIL THEN
-                dumpNode(depth+1, "ComparisonWhenCondition(\(cond.cond))")
+                dumpNode(depth+1, "ComparisonWhenCondition(\(string.upper(cond.cond.toString())))")
                 dumpParseTree(cond.expr, depth+2)
             ELSE
                 dumpNode(depth+1, "RangeWhenCondition")

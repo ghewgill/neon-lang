@@ -802,8 +802,12 @@ public:
     const ast::BooleanComparisonExpression *bce;
 
     virtual void generate_comparison(Context &context) const override {
-        static const char *op[] = {" == ", " != "};
-        context.out << op[bce->comp];
+        switch (bce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.out << " == "; break;
+            case ast::ComparisonExpression::Comparison::NE: context.out << " != "; break;
+            default:
+                internal_error("unexpected comparison type");
+        }
     }
 private:
     BooleanComparisonExpression(const BooleanComparisonExpression &);
@@ -816,8 +820,14 @@ public:
     const ast::NumericComparisonExpression *nce;
 
     virtual void generate_comparison(Context &context) const override {
-        static const char *op[] = {" == ", " != ", " < ", " > ", " <= ", " >= "};
-        context.out << op[nce->comp];
+        switch (nce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.out << " == "; break;
+            case ast::ComparisonExpression::Comparison::NE: context.out << " != "; break;
+            case ast::ComparisonExpression::Comparison::LT: context.out << " < "; break;
+            case ast::ComparisonExpression::Comparison::GT: context.out << " > "; break;
+            case ast::ComparisonExpression::Comparison::LE: context.out << " <= "; break;
+            case ast::ComparisonExpression::Comparison::GE: context.out << " >= "; break;
+        }
     }
 private:
     NumericComparisonExpression(const NumericComparisonExpression &);
@@ -830,8 +840,12 @@ public:
     const ast::EnumComparisonExpression *ece;
 
     virtual void generate_comparison(Context &context) const override {
-        static const char *op[] = {" === ", " !== "};
-        context.out << op[ece->comp];
+        switch (ece->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.out << " === "; break;
+            case ast::ComparisonExpression::Comparison::NE: context.out << " !== "; break;
+            default:
+                internal_error("unexpected comparison type");
+        }
     }
 private:
     EnumComparisonExpression(const EnumComparisonExpression &);
@@ -844,8 +858,14 @@ public:
     const ast::StringComparisonExpression *sce;
 
     virtual void generate_comparison(Context &context) const override {
-        static const char *op[] = {" == ", " != ", " < ", " > ", " <= ", " >= "};
-        context.out << op[sce->comp];
+        switch (sce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.out << " == "; break;
+            case ast::ComparisonExpression::Comparison::NE: context.out << " != "; break;
+            case ast::ComparisonExpression::Comparison::LT: context.out << " < "; break;
+            case ast::ComparisonExpression::Comparison::GT: context.out << " > "; break;
+            case ast::ComparisonExpression::Comparison::LE: context.out << " <= "; break;
+            case ast::ComparisonExpression::Comparison::GE: context.out << " >= "; break;
+        }
     }
 private:
     StringComparisonExpression(const StringComparisonExpression &);
@@ -858,8 +878,14 @@ public:
     const ast::BytesComparisonExpression *bce;
 
     virtual void generate_comparison(Context &context) const override {
-        static const char *op[] = {" == ", " != ", " < ", " > ", " <= ", " >= "};
-        context.out << op[bce->comp];
+        switch (bce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.out << " == "; break;
+            case ast::ComparisonExpression::Comparison::NE: context.out << " != "; break;
+            case ast::ComparisonExpression::Comparison::LT: context.out << " < "; break;
+            case ast::ComparisonExpression::Comparison::GT: context.out << " > "; break;
+            case ast::ComparisonExpression::Comparison::LE: context.out << " <= "; break;
+            case ast::ComparisonExpression::Comparison::GE: context.out << " >= "; break;
+        }
     }
 private:
     BytesComparisonExpression(const BytesComparisonExpression &);
@@ -944,8 +970,12 @@ public:
     const ast::FunctionPointerComparisonExpression *fpce;
 
     virtual void generate_comparison(Context &context) const override {
-        static const char *op[] = {" === ", " !== "};
-        context.out << op[fpce->comp];
+        switch (fpce->comp) {
+            case ast::ComparisonExpression::Comparison::EQ: context.out << " === "; break;
+            case ast::ComparisonExpression::Comparison::NE: context.out << " !== "; break;
+            default:
+                internal_error("unexpected comparison type");
+        }
     }
 private:
     FunctionPointerComparisonExpression(const FunctionPointerComparisonExpression &);
@@ -1518,9 +1548,15 @@ public:
         ast::ComparisonExpression::Comparison comp;
         const Expression *expr;
         virtual void generate(Context &context, const Expression *value) const override {
-            static const char *op[] = {" == ", " != ", " < ", " > ", " <= ", " >= "};
             value->generate(context);
-            context.out << op[comp];
+            switch (comp) {
+                case ast::ComparisonExpression::Comparison::EQ: context.out << " == "; break;
+                case ast::ComparisonExpression::Comparison::NE: context.out << " != "; break;
+                case ast::ComparisonExpression::Comparison::LT: context.out << " < "; break;
+                case ast::ComparisonExpression::Comparison::GT: context.out << " > "; break;
+                case ast::ComparisonExpression::Comparison::LE: context.out << " <= "; break;
+                case ast::ComparisonExpression::Comparison::GE: context.out << " >= "; break;
+            }
             expr->generate(context);
         }
     private:
@@ -1801,7 +1837,7 @@ public:
             FunctionParameter *q = new FunctionParameter(p, i);
             params.push_back(q);
             g_variable_cache[p] = q;
-            if (q->fp->mode == ast::ParameterType::INOUT || q->fp->mode == ast::ParameterType::OUT) {
+            if (q->fp->mode == ast::ParameterType::Mode::INOUT || q->fp->mode == ast::ParameterType::Mode::OUT) {
                 out_count++;
             }
             i++;
@@ -1845,7 +1881,7 @@ public:
     PredefinedFunction(const ast::PredefinedFunction *pf): Variable(pf), pf(pf), out_count(0) {
         const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(pf->type);
         for (auto p: tf->params) {
-            if (p->mode == ast::ParameterType::INOUT || p->mode == ast::ParameterType::OUT) {
+            if (p->mode == ast::ParameterType::Mode::INOUT || p->mode == ast::ParameterType::Mode::OUT) {
                 out_count++;
             }
         }
@@ -1873,7 +1909,7 @@ public:
         const TypeFunction *functype = dynamic_cast<const TypeFunction *>(transform(mf->type));
         int i = 0;
         for (auto p: functype->paramtypes) {
-            if (p.first == ast::ParameterType::INOUT || p.first == ast::ParameterType::OUT) {
+            if (p.first == ast::ParameterType::Mode::INOUT || p.first == ast::ParameterType::Mode::OUT) {
                 out_count++;
             }
             i++;

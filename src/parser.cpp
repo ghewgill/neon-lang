@@ -113,12 +113,12 @@ Parser::Parser(const TokenizedSource &tokens)
 static ComparisonExpression::Comparison comparisonFromToken(const Token &token)
 {
     switch (token.type) {
-        case EQUAL:     return ComparisonExpression::EQ;
-        case NOTEQUAL:  return ComparisonExpression::NE;
-        case LESS:      return ComparisonExpression::LT;
-        case GREATER:   return ComparisonExpression::GT;
-        case LESSEQ:    return ComparisonExpression::LE;
-        case GREATEREQ: return ComparisonExpression::GE;
+        case EQUAL:     return ComparisonExpression::Comparison::EQ;
+        case NOTEQUAL:  return ComparisonExpression::Comparison::NE;
+        case LESS:      return ComparisonExpression::Comparison::LT;
+        case GREATER:   return ComparisonExpression::Comparison::GT;
+        case LESSEQ:    return ComparisonExpression::Comparison::LE;
+        case GREATEREQ: return ComparisonExpression::Comparison::GE;
         default:
             internal_error("invalid comparison type");
     }
@@ -1001,11 +1001,11 @@ void Parser::parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vec
     ++i;
     if (tokens[i].type != RPAREN) {
         for (;;) {
-            FunctionParameterGroup::Mode mode = FunctionParameterGroup::IN;
+            FunctionParameterGroup::Mode mode = FunctionParameterGroup::Mode::IN;
             switch (tokens[i].type) {
-                case IN:    mode = FunctionParameterGroup::IN;       i++; break;
-                case INOUT: mode = FunctionParameterGroup::INOUT;    i++; break;
-                case OUT:   mode = FunctionParameterGroup::OUT;      i++; break;
+                case IN:    mode = FunctionParameterGroup::Mode::IN;       i++; break;
+                case INOUT: mode = FunctionParameterGroup::Mode::INOUT;    i++; break;
+                case OUT:   mode = FunctionParameterGroup::Mode::OUT;      i++; break;
                 default:
                     break;
             }
@@ -1575,7 +1575,7 @@ std::unique_ptr<Statement> Parser::parseCaseStatement()
                         std::unique_ptr<CaseStatement::WhenCondition> cond { new CaseStatement::RangeWhenCondition(tok_when, std::move(when), std::move(when2)) };
                         conditions.push_back(std::move(cond));
                     } else {
-                        std::unique_ptr<CaseStatement::WhenCondition> cond { new CaseStatement::ComparisonWhenCondition(tok_when, ComparisonExpression::EQ, std::move(when)) };
+                        std::unique_ptr<CaseStatement::WhenCondition> cond { new CaseStatement::ComparisonWhenCondition(tok_when, ComparisonExpression::Comparison::EQ, std::move(when)) };
                         conditions.push_back(std::move(cond));
                     }
                     break;

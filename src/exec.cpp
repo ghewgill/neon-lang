@@ -246,12 +246,12 @@ public:
     std::list<Cell> allocs;
     unsigned int allocations;
 
-    enum DebuggerState {
-        DEBUGGER_STOPPED,
-        DEBUGGER_RUN,
-        DEBUGGER_STEP_INSTRUCTION,
-        DEBUGGER_STEP_SOURCE,
-        DEBUGGER_QUIT,
+    enum class DebuggerState {
+        STOPPED,
+        RUN,
+        STEP_INSTRUCTION,
+        STEP_SOURCE,
+        QUIT,
     };
     static const char *DebuggerStateName[];
     HttpServer *debug_server;
@@ -631,7 +631,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     allocs(),
     allocations(0),
     debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
-    debugger_state(DEBUGGER_STOPPED),
+    debugger_state(DebuggerState::STOPPED),
     debugger_step_source_depth(0),
     debugger_breakpoints(),
     debugger_log()
@@ -1823,7 +1823,7 @@ void Executor::raise(const RtlException &x)
 
 void Executor::breakpoint()
 {
-    debugger_state = DEBUGGER_STOPPED;
+    debugger_state = DebuggerState::STOPPED;
 }
 
 void Executor::log(const std::string &message)
@@ -1843,21 +1843,21 @@ static void mark(Cell *c)
         }
         c->gc.marked = true;
         switch (c->get_type()) {
-            case Cell::cNone:
-            case Cell::cBoolean:
-            case Cell::cNumber:
-            case Cell::cString:
+            case Cell::Type::None:
+            case Cell::Type::Boolean:
+            case Cell::Type::Number:
+            case Cell::Type::String:
                 // nothing
                 break;
-            case Cell::cAddress:
+            case Cell::Type::Address:
                 todo.push_back(c->address());
                 break;
-            case Cell::cArray:
+            case Cell::Type::Array:
                 for (auto &x: c->array()) {
                     todo.push_back(const_cast<Cell *>(&x));
                 }
                 break;
-            case Cell::cDictionary:
+            case Cell::Type::Dictionary:
                 for (auto &x: c->dictionary()) {
                     todo.push_back(const_cast<Cell *>(&x.second));
                 }
@@ -1947,29 +1947,29 @@ void Executor::exec_loop(size_t min_callstack_depth)
         //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << " st " << stack.depth() << "\n";
         if (debug_server != nullptr) {
             switch (debugger_state) {
-                case DEBUGGER_STOPPED:
+                case DebuggerState::STOPPED:
                     break;
-                case DEBUGGER_RUN:
+                case DebuggerState::RUN:
                     if (debugger_breakpoints.find(ip) != debugger_breakpoints.end()) {
-                        debugger_state = DEBUGGER_STOPPED;
+                        debugger_state = DebuggerState::STOPPED;
                     }
                     break;
-                case DEBUGGER_STEP_INSTRUCTION:
-                    debugger_state = DEBUGGER_STOPPED;
+                case DebuggerState::STEP_INSTRUCTION:
+                    debugger_state = DebuggerState::STOPPED;
                     break;
-                case DEBUGGER_STEP_SOURCE:
+                case DebuggerState::STEP_SOURCE:
                     if (callstack.size() <= debugger_step_source_depth && module->debug != nullptr && module->debug->line_numbers.find(ip) != module->debug->line_numbers.end()) {
-                        debugger_state = DEBUGGER_STOPPED;
+                        debugger_state = DebuggerState::STOPPED;
                     }
                     break;
-                case DEBUGGER_QUIT:
+                case DebuggerState::QUIT:
                     break;
             }
             debug_server->service(false);
-            while (debugger_state == DEBUGGER_STOPPED) {
+            while (debugger_state == DebuggerState::STOPPED) {
                 debug_server->service(true);
             }
-            if (debugger_state == DEBUGGER_QUIT) {
+            if (debugger_state == DebuggerState::QUIT) {
                 return;
             }
         }
@@ -2085,32 +2085,32 @@ template <> struct default_value_writer<Cell> {
         // Parameter needs to be `const`, but we need to call (benign) non-const methods.
         Cell &cell = const_cast<Cell &>(ccell);
         switch (cell.get_type()) {
-            case Cell::cNone:
+            case Cell::Type::None:
                 writer.write("type", "none");
                 writer.write("value", nullptr);
                 break;
-            case Cell::cAddress:
+            case Cell::Type::Address:
                 writer.write("type", "address");
                 writer.write("value", std::to_string(reinterpret_cast<intptr_t>(cell.address())));
                 break;
-            case Cell::cBoolean:
+            case Cell::Type::Boolean:
                 writer.write("type", "boolean");
                 writer.write("value", cell.boolean());
                 break;
-            case Cell::cNumber:
+            case Cell::Type::Number:
                 writer.write("type", "number");
                 writer.write("value", cell.number());
                 break;
-            case Cell::cString:
+            case Cell::Type::String:
                 writer.write("type", "string");
                 writer.write("value", cell.string().str());
                 break;
-            case Cell::cArray: {
+            case Cell::Type::Array: {
                 writer.write("type", "array");
                 writer.write_array("value", cell.array_for_write().begin(), cell.array_for_write().end());
                 break;
             }
-            case Cell::cDictionary: {
+            case Cell::Type::Dictionary: {
                 writer.write("type", "dictionary");
                 auto d = writer.nested_object("value");
                 for (auto &x: cell.dictionary_for_write()) {
@@ -2194,7 +2194,7 @@ void Executor::handle_GET(const std::string &path, HttpResponse &response)
     } else if (path == "/status") {
         response.code = 200;
         minijson::object_writer writer(r, config);
-        writer.write("state", DebuggerStateName[debugger_state]);
+        writer.write("state", DebuggerStateName[static_cast<int>(debugger_state)]);
         writer.write("module", module->name);
         writer.write("ip", ip);
         writer.write("log_messages", debugger_log.size());
@@ -2222,24 +2222,24 @@ void Executor::handle_POST(const std::string &path, const std::string &data, Htt
         }
     } else if (path == "/continue") {
         response.code = 200;
-        debugger_state = DEBUGGER_RUN;
+        debugger_state = DebuggerState::RUN;
     } else if (path == "/log") {
         response.code = 200;
         minijson::write_array(r, debugger_log.begin(), debugger_log.end(), config);
         debugger_log.clear();
     } else if (path == "/quit") {
         response.code = 200;
-        debugger_state = DEBUGGER_QUIT;
+        debugger_state = DebuggerState::QUIT;
     } else if (path == "/step/instruction") {
         response.code = 200;
-        debugger_state = DEBUGGER_STEP_INSTRUCTION;
+        debugger_state = DebuggerState::STEP_INSTRUCTION;
     } else if (parts.size() == 4 && parts[1] == "step" && parts[2] == "source") {
         response.code = 200;
-        debugger_state = DEBUGGER_STEP_SOURCE;
+        debugger_state = DebuggerState::STEP_SOURCE;
         debugger_step_source_depth = callstack.size() + std::stoi(parts[3]);
     } else if (path == "/stop") {
         response.code = 200;
-        debugger_state = DEBUGGER_STOPPED;
+        debugger_state = DebuggerState::STOPPED;
     }
     if (response.code == 0) {
         response.code = 404;

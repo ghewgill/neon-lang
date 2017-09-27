@@ -93,41 +93,41 @@ Program
     nullptr
   FunctionDeclaration(name)
     nullptr
-    in x
+    IN x
       TypeSimple(type)
   FunctionDeclaration(name)
     nullptr
-    in x
+    IN x
       TypeSimple(type)
-    in y
+    IN y
       TypeSimple(type)
   FunctionDeclaration(name)
     TypeSimple(type)
   FunctionDeclaration(name)
     nullptr
-    in x
+    IN x
       TypeSimple(type)
   FunctionDeclaration(name)
     nullptr
-    in x
+    IN x
       TypeSimple(type)
-    in y
-      TypeSimple(type)
-  FunctionDeclaration(name)
-    nullptr
-    in x
+    IN y
       TypeSimple(type)
   FunctionDeclaration(name)
     nullptr
-    out x
+    IN x
       TypeSimple(type)
   FunctionDeclaration(name)
     nullptr
-    inout x
+    OUT x
       TypeSimple(type)
   FunctionDeclaration(name)
     nullptr
-    in x
+    INOUT x
+      TypeSimple(type)
+  FunctionDeclaration(name)
+    nullptr
+    IN x
       TypeSimple(type)
   ExceptionDeclaration(name)
   InterfaceDeclaration()
@@ -163,35 +163,18 @@ Program
     IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(cond)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
-      IdentifierExpression(cond)
-      ExpressionStatement
-        FunctionCallExpression
-          IdentifierExpression(statement)
-  CaseStatement
-    IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
-      IdentifierExpression(cond)
-      ExpressionStatement
-        FunctionCallExpression
-          IdentifierExpression(statement)
-      ExpressionStatement
-        FunctionCallExpression
-          IdentifierExpression(statement)
-  CaseStatement
-    IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(cond)
       ExpressionStatement
         FunctionCallExpression
           IdentifierExpression(statement)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(cond)
       ExpressionStatement
         FunctionCallExpression
@@ -201,7 +184,24 @@ Program
           IdentifierExpression(statement)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
+      IdentifierExpression(cond)
+      ExpressionStatement
+        FunctionCallExpression
+          IdentifierExpression(statement)
+  CaseStatement
+    IdentifierExpression(expr)
+    ComparisonWhenCondition(EQ)
+      IdentifierExpression(cond)
+      ExpressionStatement
+        FunctionCallExpression
+          IdentifierExpression(statement)
+      ExpressionStatement
+        FunctionCallExpression
+          IdentifierExpression(statement)
+  CaseStatement
+    IdentifierExpression(expr)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(cond)
       ExpressionStatement
         FunctionCallExpression
@@ -214,9 +214,9 @@ Program
           IdentifierExpression(statement)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(cond)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(cond)
   CheckStatement
     IdentifierExpression(expr)
@@ -235,31 +235,31 @@ Program
         IdentifierExpression(statement)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(ne)
+    ComparisonWhenCondition(NE)
       IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(lt)
+    ComparisonWhenCondition(LT)
       IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(gt)
+    ComparisonWhenCondition(GT)
       IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(le)
+    ComparisonWhenCondition(LE)
       IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(ge)
+    ComparisonWhenCondition(GE)
       IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
-    ComparisonWhenCondition(eq)
+    ComparisonWhenCondition(EQ)
       IdentifierExpression(expr)
   CaseStatement
     IdentifierExpression(expr)
@@ -586,32 +586,32 @@ Program
         IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
-    ComparisonExpression(eq)
+    ComparisonExpression(EQ)
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
-    ComparisonExpression(ne)
+    ComparisonExpression(NE)
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
-    ComparisonExpression(lt)
+    ComparisonExpression(LT)
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
-    ComparisonExpression(gt)
+    ComparisonExpression(GT)
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
-    ComparisonExpression(le)
+    ComparisonExpression(LE)
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
-    ComparisonExpression(ge)
+    ComparisonExpression(GE)
       IdentifierExpression(expr)
       IdentifierExpression(expr)
   AssignmentStatement

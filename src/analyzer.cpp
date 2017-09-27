@@ -570,7 +570,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
 {
     {
         std::vector<FunctionParameter *> params;
-        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::IN, nullptr);
+        FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
         params.push_back(fp);
         Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, 1);
         std::vector<const Expression *> values;
@@ -1025,11 +1025,11 @@ const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const st
     std::vector<const ast::ParameterType *> params;
     bool in_default = false;
     for (auto &x: type->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
+            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
+            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
         const ast::Type *ptype = analyze(x->type.get());
         const ast::Expression *def = nullptr;
@@ -1647,7 +1647,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         if (dynamic_cast<const ast::DummyExpression *>(e) != nullptr && a->mode.type != OUT) {
             error2(3193, a->expr->token, "Underscore can only be used with OUT parameter", ftype->params[p]->declaration, "function argument here");
         }
-        if (ftype->params[p]->mode == ast::ParameterType::IN) {
+        if (ftype->params[p]->mode == ast::ParameterType::Mode::IN) {
             if (ftype->params[p]->type != nullptr) {
                 // TODO: Above check works around problem in sdl.RenderDrawLines.
                 // Something about a compound type in a predefined function parameter list.
@@ -1666,16 +1666,16 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (not e->type->is_assignment_compatible(ftype->params[p]->type)) {
                 error2(3194, a->expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
             }
-            if (ftype->params[p]->mode == ast::ParameterType::INOUT && not ref->can_generate_address()) {
+            if (ftype->params[p]->mode == ast::ParameterType::Mode::INOUT && not ref->can_generate_address()) {
                 error(3241, a->expr->token, "using this kind of expression with an INOUT parameter is currently not supported");
             }
         }
-        if (ftype->params[p]->mode == ast::ParameterType::OUT && a->mode.type != OUT) {
+        if (ftype->params[p]->mode == ast::ParameterType::Mode::OUT && a->mode.type != OUT) {
             error(3184, a->expr->token, "OUT keyword required");
-        } else if (ftype->params[p]->mode == ast::ParameterType::INOUT && a->mode.type != INOUT) {
+        } else if (ftype->params[p]->mode == ast::ParameterType::Mode::INOUT && a->mode.type != INOUT) {
             error(3185, a->expr->token, "INOUT keyword required");
-        } else if ((a->mode.type == IN && ftype->params[p]->mode != ast::ParameterType::IN)
-                || (a->mode.type == INOUT && ftype->params[p]->mode != ast::ParameterType::INOUT)) {
+        } else if ((a->mode.type == IN && ftype->params[p]->mode != ast::ParameterType::Mode::IN)
+                || (a->mode.type == INOUT && ftype->params[p]->mode != ast::ParameterType::Mode::INOUT)) {
             error(3186, a->mode, "parameter mode must match if specified");
         }
         args[p] = e;
@@ -1763,8 +1763,8 @@ const ast::Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *ex
             "math$intdiv",
             new ast::TypeFunction(
                 ast::TYPE_NUMBER, {
-                    new ast::ParameterType(Token(), ast::ParameterType::IN, ast::TYPE_NUMBER, nullptr),
-                    new ast::ParameterType(Token(), ast::ParameterType::IN, ast::TYPE_NUMBER, nullptr)
+                    new ast::ParameterType(Token(), ast::ParameterType::Mode::IN, ast::TYPE_NUMBER, nullptr),
+                    new ast::ParameterType(Token(), ast::ParameterType::Mode::IN, ast::TYPE_NUMBER, nullptr)
                 }
             )
         )), {
@@ -1848,7 +1848,7 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
         error(3030, token, "type mismatch");
     }
     if (left->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
-        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
+        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3031, token, "comparison not available for Boolean");
         }
         return new ast::BooleanComparisonExpression(left, right, comp);
@@ -1859,29 +1859,29 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
     } else if (left->type->is_assignment_compatible(ast::TYPE_BYTES)) {
         return new ast::BytesComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
+        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3032, token, "comparison not available for Array");
         }
         return new ast::ArrayComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
+        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3033, token, "comparison not available for Dictionary");
         }
         return new ast::DictionaryComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
+        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3034, token, "comparison not available for RECORD");
         }
         return new ast::RecordComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr) {
         return new ast::EnumComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
+        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3100, token, "comparison not available for POINTER");
         }
         return new ast::PointerComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr) {
-        if (comp != ast::ComparisonExpression::EQ && comp != ast::ComparisonExpression::NE) {
+        if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3180, token, "comparison not available for FUNCTION");
         }
         return new ast::FunctionPointerComparisonExpression(left, right, comp);
@@ -1956,7 +1956,7 @@ const ast::Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
     // A more general purpose and cleaner implementation would be welcome.
     const pt::ComparisonExpression *lne = dynamic_cast<const pt::ComparisonExpression *>(expr->left.get());
     const pt::ComparisonExpression *rne = dynamic_cast<const pt::ComparisonExpression *>(expr->right.get());
-    if (lne != nullptr && rne != nullptr && lne->comp == pt::ComparisonExpression::NE && rne->comp == pt::ComparisonExpression::NE) {
+    if (lne != nullptr && rne != nullptr && lne->comp == pt::ComparisonExpression::Comparison::NE && rne->comp == pt::ComparisonExpression::Comparison::NE) {
         const pt::IdentifierExpression *lid = dynamic_cast<const pt::IdentifierExpression *>(lne->left.get());
         const pt::IdentifierExpression *rid = dynamic_cast<const pt::IdentifierExpression *>(rne->left.get());
         if (lid != nullptr && rid != nullptr && lid->name == rid->name) {
@@ -2240,11 +2240,11 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
             }
             i++;
             while (descriptor.at(i) != ']') {
-                ast::ParameterType::Mode mode = ast::ParameterType::IN;
+                ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
                 switch (descriptor.at(i)) {
-                    case '>': mode = ast::ParameterType::IN;    break;
-                    case '*': mode = ast::ParameterType::INOUT; break;
-                    case '<': mode = ast::ParameterType::OUT;   break;
+                    case '>': mode = ast::ParameterType::Mode::IN;    break;
+                    case '*': mode = ast::ParameterType::Mode::INOUT; break;
+                    case '<': mode = ast::ParameterType::Mode::OUT;   break;
                     default:
                         internal_error("unexpected mode indicator");
                 }
@@ -2615,11 +2615,11 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
     std::vector<ast::FunctionParameter *> args;
     bool in_default = false;
     for (auto &x: declaration->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
+            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
+            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
         const ast::Type *ptype = analyze(x->type.get());
         if (dynamic_cast<const ast::TypeClass *>(ptype) != nullptr) {
@@ -2642,10 +2642,10 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
         if (x->default_value != nullptr) {
             const bool is_dummy = dynamic_cast<pt::DummyExpression *>(x->default_value.get()) != nullptr;
             switch (mode) {
-                case ast::ParameterType::IN:
+                case ast::ParameterType::Mode::IN:
                     break;
-                case ast::ParameterType::INOUT:
-                case ast::ParameterType::OUT:
+                case ast::ParameterType::Mode::INOUT:
+                case ast::ParameterType::Mode::OUT:
                     if (not is_dummy) {
                         error(3175, x->default_value->token, "default value only available for IN parameters");
                     }
@@ -2772,11 +2772,11 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaratio
     std::vector<ast::FunctionParameter *> args;
     bool in_default = false;
     for (auto &x: declaration->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
+            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
+            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
         const ast::Type *ptype = analyze(x->type.get());
         const ast::Expression *def = nullptr;
@@ -2839,7 +2839,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaratio
         param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
     }
     for (auto p: function->params) {
-        if (p->mode == ast::ParameterType::OUT) {
+        if (p->mode == ast::ParameterType::Mode::OUT) {
             error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + p->name);
         }
         if (param_types.find(p->name) == param_types.end()) {
@@ -2862,11 +2862,11 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
     std::vector<const ast::ParameterType *> params;
     bool in_default = false;
     for (auto &x: declaration->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
+            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
+            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
         const ast::Type *ptype = analyze(x->type.get());
         const ast::Expression *def = nullptr;
@@ -2900,11 +2900,11 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
     std::vector<ast::FunctionParameter *> params;
     bool in_default = false;
     for (auto &x: declaration->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::IN;
+        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
         switch (x->mode) {
-            case pt::FunctionParameterGroup::IN:    mode = ast::ParameterType::IN;       break;
-            case pt::FunctionParameterGroup::INOUT: mode = ast::ParameterType::INOUT;    break;
-            case pt::FunctionParameterGroup::OUT:   mode = ast::ParameterType::OUT;      break;
+            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
+            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
+            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
         const ast::Type *ptype = analyze(x->type.get());
         const ast::Expression *def = nullptr;
@@ -3329,60 +3329,60 @@ static bool operator>=(const Number &x, const Number &y) { return number_is_grea
 template <typename T> bool check(ast::ComparisonExpression::Comparison comp1, const T &value1, ast::ComparisonExpression::Comparison comp2, const T &value2)
 {
     switch (comp1) {
-        case ast::ComparisonExpression::EQ:
+        case ast::ComparisonExpression::Comparison::EQ:
             switch (comp2) {
-                case ast::ComparisonExpression::EQ: return value1 == value2;
-                case ast::ComparisonExpression::NE: return value1 != value2;
-                case ast::ComparisonExpression::LT: return value1 < value2;
-                case ast::ComparisonExpression::GT: return value1 > value2;
-                case ast::ComparisonExpression::LE: return value1 <= value2;
-                case ast::ComparisonExpression::GE: return value1 >= value2;
+                case ast::ComparisonExpression::Comparison::EQ: return value1 == value2;
+                case ast::ComparisonExpression::Comparison::NE: return value1 != value2;
+                case ast::ComparisonExpression::Comparison::LT: return value1 < value2;
+                case ast::ComparisonExpression::Comparison::GT: return value1 > value2;
+                case ast::ComparisonExpression::Comparison::LE: return value1 <= value2;
+                case ast::ComparisonExpression::Comparison::GE: return value1 >= value2;
             }
             break;
-        case ast::ComparisonExpression::NE:
+        case ast::ComparisonExpression::Comparison::NE:
             switch (comp2) {
-                case ast::ComparisonExpression::EQ: return value1 != value2;
+                case ast::ComparisonExpression::Comparison::EQ: return value1 != value2;
                 default: return true;
             }
             break;
-        case ast::ComparisonExpression::LT:
+        case ast::ComparisonExpression::Comparison::LT:
             switch (comp2) {
-                case ast::ComparisonExpression::EQ: return value1 < value2;
-                case ast::ComparisonExpression::NE: return true;
-                case ast::ComparisonExpression::LT: return true;
-                case ast::ComparisonExpression::GT: return value1 > value2;
-                case ast::ComparisonExpression::LE: return true;
-                case ast::ComparisonExpression::GE: return value1 > value2;
+                case ast::ComparisonExpression::Comparison::EQ: return value1 < value2;
+                case ast::ComparisonExpression::Comparison::NE: return true;
+                case ast::ComparisonExpression::Comparison::LT: return true;
+                case ast::ComparisonExpression::Comparison::GT: return value1 > value2;
+                case ast::ComparisonExpression::Comparison::LE: return true;
+                case ast::ComparisonExpression::Comparison::GE: return value1 > value2;
             }
             break;
-        case ast::ComparisonExpression::GT:
+        case ast::ComparisonExpression::Comparison::GT:
             switch (comp2) {
-                case ast::ComparisonExpression::EQ: return value1 > value2;
-                case ast::ComparisonExpression::NE: return true;
-                case ast::ComparisonExpression::LT: return value1 < value2;
-                case ast::ComparisonExpression::GT: return true;
-                case ast::ComparisonExpression::LE: return value1 < value2;
-                case ast::ComparisonExpression::GE: return true;
+                case ast::ComparisonExpression::Comparison::EQ: return value1 > value2;
+                case ast::ComparisonExpression::Comparison::NE: return true;
+                case ast::ComparisonExpression::Comparison::LT: return value1 < value2;
+                case ast::ComparisonExpression::Comparison::GT: return true;
+                case ast::ComparisonExpression::Comparison::LE: return value1 < value2;
+                case ast::ComparisonExpression::Comparison::GE: return true;
             }
             break;
-        case ast::ComparisonExpression::LE:
+        case ast::ComparisonExpression::Comparison::LE:
             switch (comp2) {
-                case ast::ComparisonExpression::EQ: return value1 >= value2;
-                case ast::ComparisonExpression::NE: return true;
-                case ast::ComparisonExpression::LT: return true;
-                case ast::ComparisonExpression::GT: return value1 > value2;
-                case ast::ComparisonExpression::LE: return true;
-                case ast::ComparisonExpression::GE: return value1 >= value2;
+                case ast::ComparisonExpression::Comparison::EQ: return value1 >= value2;
+                case ast::ComparisonExpression::Comparison::NE: return true;
+                case ast::ComparisonExpression::Comparison::LT: return true;
+                case ast::ComparisonExpression::Comparison::GT: return value1 > value2;
+                case ast::ComparisonExpression::Comparison::LE: return true;
+                case ast::ComparisonExpression::Comparison::GE: return value1 >= value2;
             }
             break;
-        case ast::ComparisonExpression::GE:
+        case ast::ComparisonExpression::Comparison::GE:
             switch (comp2) {
-                case ast::ComparisonExpression::EQ: return value1 <= value2;
-                case ast::ComparisonExpression::NE: return true;
-                case ast::ComparisonExpression::LT: return value1 < value2;
-                case ast::ComparisonExpression::GT: return true;
-                case ast::ComparisonExpression::LE: return value1 <= value2;
-                case ast::ComparisonExpression::GE: return true;
+                case ast::ComparisonExpression::Comparison::EQ: return value1 <= value2;
+                case ast::ComparisonExpression::Comparison::NE: return true;
+                case ast::ComparisonExpression::Comparison::LT: return value1 < value2;
+                case ast::ComparisonExpression::Comparison::GT: return true;
+                case ast::ComparisonExpression::Comparison::LE: return value1 <= value2;
+                case ast::ComparisonExpression::Comparison::GE: return true;
             }
             break;
     }
@@ -3392,12 +3392,12 @@ template <typename T> bool check(ast::ComparisonExpression::Comparison comp1, co
 template <typename T> bool check(ast::ComparisonExpression::Comparison comp1, const T &value1, const T &value2low, const T &value2high)
 {
     switch (comp1) {
-        case ast::ComparisonExpression::EQ: return value1 >= value2low && value1 <= value2high;
-        case ast::ComparisonExpression::NE: return value1 != value2low || value1 != value2high;
-        case ast::ComparisonExpression::LT: return value1 > value2low;
-        case ast::ComparisonExpression::GT: return value1 > value2high;
-        case ast::ComparisonExpression::LE: return value1 >= value2low;
-        case ast::ComparisonExpression::GE: return value1 <= value2high;
+        case ast::ComparisonExpression::Comparison::EQ: return value1 >= value2low && value1 <= value2high;
+        case ast::ComparisonExpression::Comparison::NE: return value1 != value2low || value1 != value2high;
+        case ast::ComparisonExpression::Comparison::LT: return value1 > value2low;
+        case ast::ComparisonExpression::Comparison::GT: return value1 > value2high;
+        case ast::ComparisonExpression::Comparison::LE: return value1 >= value2low;
+        case ast::ComparisonExpression::Comparison::GE: return value1 <= value2high;
     }
     return false;
 }
@@ -3554,9 +3554,9 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         column++;
     }
     switch (scope.top()->sql_whenever[NotFound]) {
-        case Continue:
+        case SqlWheneverAction::Continue:
             break;
-        case SqlPrint:
+        case SqlWheneverAction::SqlPrint:
             else_statements.push_back(
                 new ast::ExpressionStatement(
                     statement->token.line,
@@ -3567,7 +3567,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case Stop:
+        case SqlWheneverAction::Stop:
             else_statements.push_back(
                 new ast::ExpressionStatement(
                     statement->token.line,
@@ -3578,7 +3578,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoExitLoop:
+        case SqlWheneverAction::DoExitLoop:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -3586,7 +3586,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoExitFor:
+        case SqlWheneverAction::DoExitFor:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -3594,7 +3594,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoExitForeach:
+        case SqlWheneverAction::DoExitForeach:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -3602,7 +3602,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoExitRepeat:
+        case SqlWheneverAction::DoExitRepeat:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -3610,7 +3610,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoExitWhile:
+        case SqlWheneverAction::DoExitWhile:
             else_statements.push_back(
                 new ast::ExitStatement(
                     statement->token.line,
@@ -3618,7 +3618,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoNextLoop:
+        case SqlWheneverAction::DoNextLoop:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -3626,7 +3626,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoNextFor:
+        case SqlWheneverAction::DoNextFor:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -3634,7 +3634,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoNextForeach:
+        case SqlWheneverAction::DoNextForeach:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -3642,7 +3642,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoNextRepeat:
+        case SqlWheneverAction::DoNextRepeat:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -3650,7 +3650,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoNextWhile:
+        case SqlWheneverAction::DoNextWhile:
             else_statements.push_back(
                 new ast::NextStatement(
                     statement->token.line,
@@ -3658,7 +3658,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 )
             );
             break;
-        case DoRaiseException:
+        case SqlWheneverAction::DoRaiseException:
             else_statements.push_back(
                 new ast::RaiseStatement(
                     statement->token.line,
@@ -3983,7 +3983,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
                     new ast::NumericComparisonExpression(
                         new ast::VariableExpression(var),
                         new ast::VariableExpression(bound),
-                        number_is_negative(step->eval_number(statement->step ? statement->step->token : Token())) ? ast::ComparisonExpression::LT : ast::ComparisonExpression::GT
+                        number_is_negative(step->eval_number(statement->step ? statement->step->token : Token())) ? ast::ComparisonExpression::Comparison::LT : ast::ComparisonExpression::Comparison::GT
                     ),
                     std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
                 )
@@ -4069,7 +4069,7 @@ const ast::Statement *Analyzer::analyze(const pt::ForeachStatement *statement)
                     new ast::NumericComparisonExpression(
                         new ast::VariableExpression(index),
                         new ast::VariableExpression(bound),
-                        ast::ComparisonExpression::GE
+                        ast::ComparisonExpression::Comparison::GE
                     ),
                     std::vector<const ast::Statement *> { new ast::ExitStatement(statement->token.line, loop_id) }
                 ),
@@ -4670,7 +4670,7 @@ public:
     virtual void visit(const pt::FunctionDeclaration *node) {
         VariableChecker vc;
         for (auto &a: node->args) {
-            if (a->mode == pt::FunctionParameterGroup::OUT) {
+            if (a->mode == pt::FunctionParameterGroup::Mode::OUT) {
                 for (auto name: a->names) {
                     vc.add_variable(name, false);
                     vc.out_parameters.push_back(name.text);

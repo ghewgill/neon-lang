@@ -500,9 +500,9 @@ std::string ast::TypeFunction::get_type_descriptor(Emitter &emitter) const
         }
         char m;
         switch (p->mode) {
-            case ParameterType::IN:    m = '>'; break;
-            case ParameterType::INOUT: m = '*'; break;
-            case ParameterType::OUT:   m = '<'; break;
+            case ParameterType::Mode::IN:    m = '>'; break;
+            case ParameterType::Mode::INOUT: m = '*'; break;
+            case ParameterType::Mode::OUT:   m = '<'; break;
             default:
                 internal_error("invalid parameter mode");
         }
@@ -898,15 +898,15 @@ void ast::FunctionParameter::generate_address(Emitter &emitter) const
     }
     assert(emitter.get_function_depth() >= nesting_depth);
     switch (mode) {
-        case ParameterType::IN:
-        case ParameterType::OUT:
+        case ParameterType::Mode::IN:
+        case ParameterType::Mode::OUT:
             if (emitter.get_function_depth() > nesting_depth) {
                 emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
             } else {
                 emitter.emit(PUSHPL, index);
             }
             break;
-        case ParameterType::INOUT:
+        case ParameterType::Mode::INOUT:
             if (emitter.get_function_depth() > nesting_depth) {
                 emitter.emit(PUSHPOL, static_cast<uint32_t>(emitter.get_function_depth() - nesting_depth), index);
             } else {
@@ -937,15 +937,15 @@ void ast::Function::postdeclare(Emitter &emitter) const
     emitter.emit(ENTER, static_cast<uint32_t>(nesting_depth), static_cast<uint32_t>(frame->getCount()));
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
-            case ParameterType::IN:
+            case ParameterType::Mode::IN:
                 (*p)->generate_address(emitter);
                 (*p)->generate_store(emitter);
                 break;
-            case ParameterType::INOUT:
+            case ParameterType::Mode::INOUT:
                 emitter.emit(PUSHPL, (*p)->index);
                 emitter.emit(STOREP);
                 break;
-            case ParameterType::OUT:
+            case ParameterType::Mode::OUT:
                 break;
         }
     }
@@ -958,10 +958,10 @@ void ast::Function::postdeclare(Emitter &emitter) const
     emitter.jump_target(exit);
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
-            case ParameterType::IN:
-            case ParameterType::INOUT:
+            case ParameterType::Mode::IN:
+            case ParameterType::Mode::INOUT:
                 break;
-            case ParameterType::OUT:
+            case ParameterType::Mode::OUT:
                 (*p)->generate_address(emitter);
                 (*p)->generate_load(emitter);
                 break;
@@ -1041,14 +1041,14 @@ void ast::ExtensionFunction::generate_call(Emitter &emitter) const
     uint32_t out_param_count = 0;
     for (auto p: params) {
         switch (p->mode) {
-            case ParameterType::IN:
+            case ParameterType::Mode::IN:
                 in_param_count++;
                 break;
-            case ParameterType::INOUT:
+            case ParameterType::Mode::INOUT:
                 in_param_count++;
                 out_param_count++;
                 break;
-            case ParameterType::OUT:
+            case ParameterType::Mode::OUT:
                 out_param_count++;
                 break;
         }
@@ -1086,7 +1086,7 @@ void ast::ForeignFunction::predeclare(Emitter &emitter) const
             ss << ",";
         }
         first = false;
-        if (param->mode == ParameterType::INOUT) {
+        if (param->mode == ParameterType::Mode::INOUT) {
             ss << '*';
         }
         ss << param_types.at(param->name);
@@ -1349,62 +1349,110 @@ void ast::ChainedComparisonExpression::generate_expr(Emitter &emitter) const
 
 void ast::BooleanComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQB, NEB};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQB); break;
+        case Comparison::NE: emitter.emit(NEB); break;
+        default:
+            internal_error("unexpected comparison type");
+    }
 }
 
 void ast::NumericComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQN); break;
+        case Comparison::NE: emitter.emit(NEN); break;
+        case Comparison::LT: emitter.emit(LTN); break;
+        case Comparison::GT: emitter.emit(GTN); break;
+        case Comparison::LE: emitter.emit(LEN); break;
+        case Comparison::GE: emitter.emit(GEN); break;
+    }
 }
 
 void ast::EnumComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQN, NEN, LTN, GTN, LEN, GEN};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQN); break;
+        case Comparison::NE: emitter.emit(NEN); break;
+        case Comparison::LT: emitter.emit(LTN); break;
+        case Comparison::GT: emitter.emit(GTN); break;
+        case Comparison::LE: emitter.emit(LEN); break;
+        case Comparison::GE: emitter.emit(GEN); break;
+    }
 }
 
 void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQS, NES, LTS, GTS, LES, GES};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQS); break;
+        case Comparison::NE: emitter.emit(NES); break;
+        case Comparison::LT: emitter.emit(LTS); break;
+        case Comparison::GT: emitter.emit(GTS); break;
+        case Comparison::LE: emitter.emit(LES); break;
+        case Comparison::GE: emitter.emit(GES); break;
+    }
 }
 
 void ast::BytesComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQS, NES, LTS, GTS, LES, GES};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQS); break;
+        case Comparison::NE: emitter.emit(NES); break;
+        case Comparison::LT: emitter.emit(LTS); break;
+        case Comparison::GT: emitter.emit(GTS); break;
+        case Comparison::LE: emitter.emit(LES); break;
+        case Comparison::GE: emitter.emit(GES); break;
+    }
 }
 
 void ast::ArrayComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQA, NEA};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQA); break;
+        case Comparison::NE: emitter.emit(NEA); break;
+        default:
+            internal_error("unexpected comparison type");
+    }
 }
 
 void ast::RecordComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQA, NEA};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQA); break;
+        case Comparison::NE: emitter.emit(NEA); break;
+        default:
+            internal_error("unexpected comparison type");
+    }
 }
 
 void ast::DictionaryComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQD, NED};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQD); break;
+        case Comparison::NE: emitter.emit(NED); break;
+        default:
+            internal_error("unexpected comparison type");
+    }
 }
 
 void ast::PointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQP, NEP};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQP); break;
+        case Comparison::NE: emitter.emit(NEP); break;
+        default:
+            internal_error("unexpected comparison type");
+    }
 }
 
 void ast::FunctionPointerComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
-    static const unsigned char op[] = {EQA, NEA};
-    emitter.emit(op[comp]);
+    switch (comp) {
+        case Comparison::EQ: emitter.emit(EQA); break;
+        case Comparison::NE: emitter.emit(NEA); break;
+        default:
+            internal_error("unexpected comparison type");
+    }
 }
 
 void ast::ValidPointerExpression::generate_expr(Emitter &emitter) const
@@ -1676,16 +1724,16 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
         auto param = ftype->params[i];
         auto arg = args[i];
         switch (param->mode) {
-            case ParameterType::IN:
+            case ParameterType::Mode::IN:
                 arg->generate(emitter);
                 if (param->type != nullptr) {
                     param->type->generate_convert(emitter, arg->type);
                 }
                 break;
-            case ParameterType::INOUT:
+            case ParameterType::Mode::INOUT:
                 dynamic_cast<const ReferenceExpression *>(arg)->generate_address_read(emitter);
                 break;
-            case ParameterType::OUT:
+            case ParameterType::Mode::OUT:
                 break;
         }
     }
@@ -1716,10 +1764,10 @@ void ast::FunctionCall::generate_expr(Emitter &emitter) const
         auto param = ftype->params[i];
         auto arg = args[i];
         switch (param->mode) {
-            case ParameterType::IN:
-            case ParameterType::INOUT:
+            case ParameterType::Mode::IN:
+            case ParameterType::Mode::INOUT:
                 break;
-            case ParameterType::OUT:
+            case ParameterType::Mode::OUT:
                 dynamic_cast<const ReferenceExpression *>(arg)->generate_store(emitter);
                 break;
         }
@@ -1737,7 +1785,7 @@ bool ast::FunctionCall::all_in_parameters() const
         ftype = pf->functype;
     }
     for (size_t i = 0; i < args.size(); i++) {
-        if (ftype->params[i]->mode != ParameterType::IN) {
+        if (ftype->params[i]->mode != ParameterType::Mode::IN) {
             return false;
         }
     }
@@ -1889,7 +1937,7 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
         for (auto &clause: clauses) {
             for (auto cond: clause.first) {
                 const ComparisonWhenCondition *comp = dynamic_cast<const ComparisonWhenCondition *>(cond);
-                if (comp != nullptr && comp->comp == ComparisonExpression::EQ) {
+                if (comp != nullptr && comp->comp == ComparisonExpression::Comparison::EQ) {
                     Number n = comp->expr->eval_number(Token());
                     if (number_is_integer(n)) {
                         int32_t x = number_to_sint32(n);
@@ -1987,7 +2035,7 @@ void ast::CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) con
 
     emitter.emit(DUP);
     expr->generate(emitter);
-    emitter.emit(op[comp]);
+    emitter.emit(op[static_cast<int>(comp)]); // Casting enum to int for index.
 }
 
 void ast::CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
@@ -2006,13 +2054,13 @@ void ast::CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
     emitter.emit(DUP);
     auto result_label = emitter.create_label();
     low_expr->generate(emitter);
-    emitter.emit(op[ComparisonExpression::GE]);
+    emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::GE)]);
     emitter.emit(DUP);
     emitter.emit_jump(JF, result_label);
     emitter.emit(DROP);
     emitter.emit(DUP);
     high_expr->generate(emitter);
-    emitter.emit(op[ComparisonExpression::LE]);
+    emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::LE)]);
     emitter.jump_target(result_label);
 }
 

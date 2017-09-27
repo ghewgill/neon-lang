@@ -14,7 +14,7 @@ enum SqlWheneverCondition {
     SqlWheneverConditionCount
 };
 
-enum SqlWheneverAction {
+enum class SqlWheneverAction {
     Continue,
     SqlPrint,
     Stop,

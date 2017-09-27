@@ -22,14 +22,14 @@ public:
     Cell &operator=(const Cell &rhs);
     bool operator==(const Cell &rhs) const;
 
-    enum Type {
-        cNone,
-        cAddress,
-        cBoolean,
-        cNumber,
-        cString,
-        cArray,
-        cDictionary
+    enum class Type {
+        None,
+        Address,
+        Boolean,
+        Number,
+        String,
+        Array,
+        Dictionary
     };
     Type get_type() const { return type; }
 

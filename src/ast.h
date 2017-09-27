@@ -252,7 +252,7 @@ class Scope {
 public:
     Scope(Scope *parent, Frame *frame): parent(parent), frame(frame), names(), forwards() {
         for (int x = 0; x < SqlWheneverConditionCount; x++) {
-            sql_whenever[x] = parent != nullptr ? parent->sql_whenever[x] : Continue;
+            sql_whenever[x] = parent != nullptr ? parent->sql_whenever[x] : SqlWheneverAction::Continue;
         }
     }
     virtual ~Scope() {}
@@ -441,7 +441,7 @@ extern TypeBytes *TYPE_BYTES;
 
 class ParameterType {
 public:
-    enum Mode {
+    enum class Mode {
         IN,
         INOUT,
         OUT
@@ -868,7 +868,7 @@ private:
 
 class FunctionParameter: public LocalVariable {
 public:
-    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, size_t nesting_depth, ParameterType::Mode mode, const Expression *default_value): LocalVariable(declaration, name, type, nesting_depth, mode == ParameterType::IN), mode(mode), default_value(default_value) {}
+    FunctionParameter(const Token &declaration, const std::string &name, const Type *type, size_t nesting_depth, ParameterType::Mode mode, const Expression *default_value): LocalVariable(declaration, name, type, nesting_depth, mode == ParameterType::Mode::IN), mode(mode), default_value(default_value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     ParameterType::Mode mode;
     const Expression *default_value;
@@ -1367,9 +1367,20 @@ private:
 
 class ComparisonExpression: public Expression {
 public:
-    enum Comparison {
+    enum class Comparison {
         EQ, NE, LT, GT, LE, GE
     };
+    static std::string to_string(Comparison comp) {
+        switch (comp) {
+            case Comparison::EQ: return "EQ";
+            case Comparison::NE: return "NE";
+            case Comparison::LT: return "LT";
+            case Comparison::GT: return "GT";
+            case Comparison::LE: return "LE";
+            case Comparison::GE: return "GE";
+        }
+        return "(undefined)";
+    }
     ComparisonExpression(const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right), comp(comp) {}
 
     const Expression *const left;
@@ -1412,7 +1423,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "BooleanComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "BooleanComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1427,7 +1438,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "NumericComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "NumericComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1442,7 +1453,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "EnumComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "EnumComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1457,7 +1468,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "StringComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "StringComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1472,7 +1483,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "BytesComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "BytesComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1487,7 +1498,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "ArrayComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "ArrayComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1502,7 +1513,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "DictionaryComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "DictionaryComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1517,7 +1528,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "RecordComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "RecordComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
@@ -1532,13 +1543,13 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "PointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "PointerComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
 class ValidPointerExpression: public PointerComparisonExpression {
 public:
-    ValidPointerExpression(const Variable *var, const Expression *ptr): PointerComparisonExpression(ptr, new ConstantNilExpression(), ComparisonExpression::NE), var(var) {}
+    ValidPointerExpression(const Variable *var, const Expression *ptr): PointerComparisonExpression(ptr, new ConstantNilExpression(), ComparisonExpression::Comparison::NE), var(var) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Variable *var;
@@ -1564,7 +1575,7 @@ public:
     virtual void generate_comparison_opcode(Emitter &emitter) const override;
 
     virtual std::string text() const override {
-        return "FunctionPointerComparisonExpression(" + left->text() + std::to_string(comp) + right->text() + ")";
+        return "FunctionPointerComparisonExpression(" + left->text() + to_string(comp) + right->text() + ")";
     }
 };
 
