@@ -8,10 +8,10 @@ install:
       Start-Process "python-2.7.9.amd64.msi" -ArgumentList "/quiet" -Wait
     }
 - ps: >-
-    if (-not (Test-Path C:\Python27\Lib\site-packages\scons-2.4.1)){
-      Start-FileDownload "http://downloads.sourceforge.net/project/scons/scons/2.4.1/scons-2.4.1.zip" -FileName "scons-2.4.1.zip"
-      7z x -y scons-2.4.1.zip
+    if (-not (Test-Path C:\Python27\Lib\site-packages\scons-3.0.0)){
+      Start-FileDownload "https://downloads.sourceforge.net/project/scons/scons/3.0.0/scons-3.0.0.zip" -FileName "scons-3.0.0.zip"
+      7z x -y scons-3.0.0.zip
     }
 build_script:
-- cmd: C:\Python27\python.exe scons-2.4.1\setup.py install
+- cmd: C:\Python27\python.exe scons-3.0.0\setup.py install
 - cmd: c:\python27\scons
