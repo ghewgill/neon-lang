@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import distutils.spawn
 import operator
 import os
@@ -187,7 +189,7 @@ elif os.name == "nt":
         "lib/file_const_win32.cpp",
     ])
 else:
-    print "Unsupported platform:", os.name
+    print("Unsupported platform:", os.name, file=sys.stderr)
     sys.exit(1)
 
 rtl_cpp = rtl_const + squeeze([
@@ -234,15 +236,15 @@ lib_neon = Glob("lib/*.neon")
 
 def build_rtl_inc(target, source, env):
     with open("src/rtl.inc", "w") as f:
-        print >>f, "static struct {"
-        print >>f, "    const char *name;"
-        print >>f, "    const char *source;"
-        print >>f, "} rtl_sources[] = {"
+        print("static struct {", file=f)
+        print("    const char *name;", file=f)
+        print("    const char *source;", file=f)
+        print("} rtl_sources[] = {", file=f)
         for fn in source:
-            print >>f, "    {{\"{}\",".format(fn.name.replace(".neon", ""))
+            print("    {{\"{}\",".format(fn.name.replace(".neon", "")), file=f)
             f.write("        \"" + "\\n\"\n        \"".join(x.replace("\\", "\\\\").replace('"', '\\"') for x in open(fn.abspath).read().split("\n")))
-            print >>f, "\"},"
-        print >>f, "};"
+            print("\"},", file=f)
+        print("};", file=f)
 
 env.Command("src/rtl.inc", lib_neon, build_rtl_inc)
 
@@ -263,7 +265,7 @@ if os.name == "posix":
             "lib/time_linux.cpp",
         ])
     else:
-        print >>sys.stderr, "Unsupported platform:", sys.platform
+        print("Unsupported platform:", sys.platform, file=sys.stderr)
         sys.exit(1)
     rtl_platform = "src/rtl_posix.cpp"
 elif os.name == "nt":
@@ -276,7 +278,7 @@ elif os.name == "nt":
     ])
     rtl_platform = "src/rtl_win32.cpp"
 else:
-    print "Unsupported platform:", os.name
+    print("Unsupported platform:", os.name, file=sys.stderr)
     sys.exit(1)
 
 env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc", "src/enums.inc", "src/exceptions.inc", "src/constants_compile.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
@@ -314,20 +316,20 @@ def build_rtlx_inc(target, source, env):
     with open("src/rtlx.inc", "w") as f:
         for fn in source:
             bytecode = open(fn.abspath, "rb").read()
-            print >>f, "static const unsigned char bytecode_{}[] = {{{}}};".format(
+            print("static const unsigned char bytecode_{}[] = {{{}}};".format(
                 fn.name.replace(".neonx", ""),
                 ",".join("0x{:02x}".format(ord(x)) for x in bytecode)
-            )
-        print >>f, "static struct {"
-        print >>f, "    const char *name;"
-        print >>f, "    size_t length;"
-        print >>f, "    const unsigned char *bytecode;"
-        print >>f, "} rtl_bytecode[] = {"
+            ), file=f)
+        print("static struct {", file=f)
+        print("    const char *name;", file=f)
+        print("    size_t length;", file=f)
+        print("    const unsigned char *bytecode;", file=f)
+        print("} rtl_bytecode[] = {", file=f)
         for fn in source:
             modname = fn.name.replace(".neonx", "")
             bytecode = open(fn.abspath, "rb").read()
-            print >>f, "    {{\"{}\", {}, bytecode_{}}},".format(modname, len(bytecode), modname)
-        print >>f, "};"
+            print("    {{\"{}\", {}, bytecode_{}}},".format(modname, len(bytecode), modname), file=f)
+        print("};", file=f)
 
 lib_neon_without_global = [x for x in lib_neon if x.name != "global.neon"]
 for fn in lib_neon_without_global:

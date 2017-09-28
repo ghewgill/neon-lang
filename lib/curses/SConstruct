@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import shutil
 import sys
@@ -28,7 +30,7 @@ if sys.platform == "win32":
 else:
     conf = Configure(env)
     if not conf.CheckLibWithHeader("ncurses", "curses.h", "C++"):
-        print "Could not find ncurses library"
+        print("Could not find ncurses library", file=sys.stderr)
         Exit(1)
     conf.Finish()
 

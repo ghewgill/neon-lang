@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 import shutil
 import sys
@@ -12,7 +14,7 @@ def find_tool(name):
         fn = os.path.join(p, name)
         if os.access(fn, os.F_OK):
             return fn
-    print >>sys.stderr, "could not find tool:", name
+    print("could not find tool:", name, file=sys.stderr)
     sys.exit(1)
 
 def subs(target, source, env):
