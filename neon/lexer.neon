@@ -453,6 +453,9 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                 IF i < source.length() AND source[i] = "." THEN
                     n.append(source[i])
                     INC i
+                    IF NOT number_start(source[i]) THEN
+                        error(1028, t, "fractional part of number must contain at least one digit")
+                    END IF
                     WHILE i < source.length() AND number_decimal_body(source[i]) DO
                         IF source[i] <> "_" THEN
                             n.append(source[i])
