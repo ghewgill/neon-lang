@@ -1,4 +1,6 @@
 Tutorial
 ========
 
-(to be written)
+.. admonition:: TODO
+
+   Tutorial goes here

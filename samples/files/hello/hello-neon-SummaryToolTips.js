@@ -1,0 +1,1 @@
+NDSummary.OnToolTipsLoaded("File:hello/hello.neon",{5:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">The canonical &quot;Hello World&quot; program.</div></div>"});

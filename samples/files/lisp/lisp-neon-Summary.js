@@ -1,0 +1,1 @@
+NDFramePage.OnPageTitleLoaded("File:lisp/lisp.neon","lisp.neon");NDSummary.OnSummaryLoaded("File:lisp/lisp.neon",[["Neon","Neon"]],[["Files","File"]],[[10,0,0,"lisp","lisp"]]);

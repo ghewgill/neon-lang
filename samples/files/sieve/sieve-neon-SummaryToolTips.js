@@ -1,0 +1,1 @@
+NDSummary.OnToolTipsLoaded("File:sieve/sieve.neon",{12:"<div class=\"NDToolTip TFile LNeon\"><div class=\"TTSummary\">Compute prime numbers up to 100 with the Sieve of Eratosthenes.</div></div>"});

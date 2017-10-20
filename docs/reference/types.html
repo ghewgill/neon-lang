@@ -130,8 +130,40 @@ END RECORD
 </pre></div>
 </div>
 </div>
+<div class="section" id="class">
+<h2>5.2.7. Class<a class="headerlink" href="#class" title="Permalink to this headline">¶</a></h2>
+<p>Classes are aggregate types similar to records, but have different semantics and are always allocated dynamically.</p>
+<p>Example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>TYPE Item IS CLASS
+    name: String
+    size: Number
+END CLASS
+
+LET p: POINTER TO Item := NEW Item()
+
+p-&gt;name := &quot;Widget&quot;
+p-&gt;size := 5
+</pre></div>
+</div>
+<p>Classes may also have methods:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>TYPE Cart IS CLASS
+    apples: Number
+    oranges: Number
+END CLASS
+
+FUNCTION Cart.totalFruit(self: VALID POINTER TO Cart): Number
+    RETURN self-&gt;apples + self-&gt;oranges
+END FUNCTION
+
+LET c: POINTER TO Cart := NEW Cart()
+c-&gt;apples := 5
+c-&gt;oranges := 6
+print(str(c-&gt;totalFruit()))
+</pre></div>
+</div>
+</div>
 <div class="section" id="array">
-<h2>5.2.7. Array<a class="headerlink" href="#array" title="Permalink to this headline">¶</a></h2>
+<h2>5.2.8. Array<a class="headerlink" href="#array" title="Permalink to this headline">¶</a></h2>
 <p>Arrays are variable size sequences of values indexed by nonnegative integers.
 Arrays are dynamically sized as needed.</p>
 <p>Example:</p>
@@ -143,7 +175,7 @@ a[1] := &quot;World&quot;
 </div>
 </div>
 <div class="section" id="dictionary">
-<h2>5.2.8. Dictionary<a class="headerlink" href="#dictionary" title="Permalink to this headline">¶</a></h2>
+<h2>5.2.9. Dictionary<a class="headerlink" href="#dictionary" title="Permalink to this headline">¶</a></h2>
 <p>Dictionaries are an associative map which pairs a unique <code class="docutils literal"><span class="pre">String</span></code> with a value of some type.</p>
 <p>Example:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>VAR d: Dictionary&lt;Number&gt; := {}
@@ -155,9 +187,9 @@ d[&quot;bronze&quot;] := 3
 </div>
 </div>
 <div class="section" id="pointers">
-<h2>5.2.9. Pointers<a class="headerlink" href="#pointers" title="Permalink to this headline">¶</a></h2>
-<p>Pointers are addresses of dynamically allocated records.
-The <code class="docutils literal"><span class="pre">NEW</span></code> keyword allocates a new record of a given type and returns a pointer to it.
+<h2>5.2.10. Pointers<a class="headerlink" href="#pointers" title="Permalink to this headline">¶</a></h2>
+<p>Pointers are addresses of dynamically allocated class objects.
+The <code class="docutils literal"><span class="pre">NEW</span></code> keyword allocates a new object of a given type and returns a pointer to it.
 Pointers may have the value <code class="docutils literal"><span class="pre">NIL</span></code> that does not point to any object.
 To use (dereference) a pointer, it must first be checked for validity (not <code class="docutils literal"><span class="pre">NIL</span></code>) using the <code class="docutils literal"><span class="pre">IF</span> <span class="pre">VALID</span></code> construct.</p>
 <p>Example:</p>
@@ -213,7 +245,8 @@ END IF
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../library.html">6. Standard Library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../samples.html">7. Samples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions.html">7. Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples.html">8. Samples</a></li>
 </ul>
 
 <div class="relations">

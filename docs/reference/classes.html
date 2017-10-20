@@ -42,6 +42,78 @@
             
   <div class="section" id="classes">
 <h1>5.7. Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h1>
+<p>Classes are similar to records with some additional features:</p>
+<ul class="simple">
+<li>Instances of classes must be dynamically allocated with <code class="docutils literal"><span class="pre">NEW</span></code>.</li>
+<li>Class instances are always referenced by pointer.</li>
+<li>Classes support interfaces.</li>
+</ul>
+<div class="section" id="declaration">
+<h2>5.7.1. Declaration<a class="headerlink" href="#declaration" title="Permalink to this headline">¶</a></h2>
+<p>Classes are declared using <code class="docutils literal"><span class="pre">TYPE</span></code> with <code class="docutils literal"><span class="pre">CLASS</span></code>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>TYPE Person IS CLASS
+    name: String
+    phone: String
+    pets: Number
+END CLASS
+</pre></div>
+</div>
+<p>Like records, classes may declare <code class="docutils literal"><span class="pre">PRIVATE</span></code> fields.</p>
+</div>
+<div class="section" id="allocation">
+<h2>5.7.2. Allocation<a class="headerlink" href="#allocation" title="Permalink to this headline">¶</a></h2>
+<p>A new instance of a class must be created using the <code class="docutils literal"><span class="pre">NEW</span></code> keyword:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>TYPE Person IS CLASS
+    name: String
+    phone: String
+    pets: Number
+END CLASS
+
+LET p: POINTER TO Person := NEW Person(name WITH &quot;Alice&quot;)
+print(p-&gt;name)
+</pre></div>
+</div>
+</div>
+<div class="section" id="interfaces">
+<h2>5.7.3. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h2>
+<p>An interface is declared using the <code class="docutils literal"><span class="pre">INTERFACE</span></code> declaration:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>INTERFACE Animal
+    FUNCTION voice(self: Animal)
+END INTERFACE
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+TYPE Cat IS CLASS IMPLEMENTS Animal
+    furColour: String
+END CLASS
+
+FUNCTION Cat.voice(self: VALID POINTER TO Cat)
+    print(&quot;meow&quot;)
+END FUNCTION
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+TYPE Bird IS CLASS IMPLEMENTS Animal
+    featherColour: String
+END CLASS
+
+FUNCTION Bird.voice(self: VALID POINTER TO Bird)
+    print(&quot;chirp&quot;)
+END FUNCTION
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+VAR animals: Array&lt;VALID POINTER TO Animal&gt; := []
+animals.append(NEW Cat)
+animals.append(NEW Bird)
+FOREACH x IN animals DO
+    x-&gt;voice()
+END FOREACH
+</pre></div>
+</div>
+<p>Each class that implements the interface uses the <code class="docutils literal"><span class="pre">IMPLEMENTS</span></code> keyword to indicate.
+The type <code class="docutils literal"><span class="pre">POINTER</span> <span class="pre">TO</span> <span class="pre">Animal</span></code> refers to instances of classes that implement the <code class="docutils literal"><span class="pre">Animal</span></code> interface.</p>
+</div>
 </div>
 
 
@@ -79,7 +151,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../library.html">6. Standard Library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../samples.html">7. Samples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions.html">7. Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples.html">8. Samples</a></li>
 </ul>
 
 <div class="relations">

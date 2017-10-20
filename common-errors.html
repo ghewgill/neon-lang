@@ -51,7 +51,7 @@ Although this is well-defined, it is often counterintuitive for beginners. Consi
 <span class="o">&gt;&gt;&gt;</span> <span class="n">b</span> <span class="o">==</span> <span class="mf">0.3</span>
 <span class="bp">False</span></code></pre></figure>
 
-<p>This happens because <code class="highlighter-rouge">0.2</code> cannot be repesented exactly in binary floating point. </p>
+<p>This happens because <code class="highlighter-rouge">0.2</code> cannot be repesented exactly in binary floating point.</p>
 
 <p>To resolve this problem, Neon uses the <a href="https://en.wikipedia.org/wiki/Decimal128_floating-point_format">decimal128</a> floating point type, which matches the base 10 that humans use to read and write numbers.</p>
 
@@ -90,7 +90,7 @@ However, this is not prohibited by the language.</p>
 
 <p>To resolve this problem, Neon introduces the idea of a “valid” pointer. A valid pointer is one that has been checked against <code class="highlighter-rouge">NIL</code> (the null reference) using a special form of the <code class="highlighter-rouge">IF</code> statement. The resulting valid pointer can be dereferenced without causing a null pointer exception.</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>TYPE Node IS CLASS
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>TYPE Node IS CLASS
     next: POINTER TO Node
     value: String
 END CLASS
@@ -100,8 +100,7 @@ VAR node: POINTER TO Node := NIL
 IF VALID node AS p THEN
     print(p-&gt;value)
 END IF
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><a name="empty_loop"></a></p>
 
@@ -118,14 +117,13 @@ END IF
 
 <p>To resolve this problem, Neon requires an explicitly terminated block in every compound statement:</p>
 
-<div class="highlighter-rouge"><pre class="highlight"><code>VAR x: Number := 0
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>VAR x: Number := 0
 
 WHILE x &lt; 5 DO
     print(x.toString())
     INC x
 END WHILE
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p><a name="logical_alternative"></a></p>
 

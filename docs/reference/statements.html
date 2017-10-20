@@ -57,8 +57,28 @@ a := 5
 <p>A function call statement is the same as a function call in an expression, except that the function cannot return a value.
 See <a href="#id1"><span class="problematic" id="id2">Functions_</span></a> for complete information about function calls.</p>
 </div>
+<div class="section" id="assert">
+<h2>5.5.3. <code class="docutils literal"><span class="pre">ASSERT</span></code><a class="headerlink" href="#assert" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">ASSERT</span></code> statement evaluates an expression and if the expression is <code class="docutils literal"><span class="pre">FALSE</span></code>, prints a diagnostic message and raises an exception.</p>
+<p>For example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>LET s: String := &quot;foo&quot;
+ASSERT s[0] = &quot;x&quot;       % exception
+</pre></div>
+</div>
+<p>The output is:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>Assert failed (test.neon line 2):
+ASSERT s[0] = &quot;x&quot;
+Assert expression dump:
+  s[0]  is f
+  s[0] = &quot;x&quot; is FALSE
+Unhandled exception AssertFailedException (ASSERT s[0] = &quot;x&quot;) (code 0)
+  Stack frame #1: file test.neon line 2 address 213
+    ASSERT s[0] = &quot;x&quot;
+</pre></div>
+</div>
+</div>
 <div class="section" id="case">
-<h2>5.5.3. <code class="docutils literal"><span class="pre">CASE</span></code><a class="headerlink" href="#case" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.4. <code class="docutils literal"><span class="pre">CASE</span></code><a class="headerlink" href="#case" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">CASE</span></code> statement selects one of a number of alternative code paths based on the value of an expression.</p>
 <p>Example:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>VAR x: Number := 0
@@ -105,8 +125,29 @@ The possible kinds of <code class="docutils literal"><span class="pre">WHEN</spa
 The values of <code class="docutils literal"><span class="pre">WHEN</span></code> clauses must not overlap.
 The optional <code class="docutils literal"><span class="pre">WHEN</span> <span class="pre">OTHERS</span></code> clause is executed when no other <code class="docutils literal"><span class="pre">WHEN</span></code> clauses match.</p>
 </div>
+<div class="section" id="check">
+<h2>5.5.5. <code class="docutils literal"><span class="pre">CHECK</span></code><a class="headerlink" href="#check" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">CHECK</span></code> statement evaluates a boolean expression and, if it is <code class="docutils literal"><span class="pre">FALSE</span></code>, evaluates a block:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>FUNCTION foo(n: Number)
+    CHECK n &gt;= 0 ELSE
+        RAISE InvalidValueException
+    END CHECK
+    print(&quot;\(n)&quot;)
+END FUNCTION
+</pre></div>
+</div>
+<p>The block of statements must end in a block-exiting statement which is one of <code class="docutils literal"><span class="pre">EXIT</span></code>, <code class="docutils literal"><span class="pre">NEXT</span></code>, <code class="docutils literal"><span class="pre">RAISE</span></code>, or <code class="docutils literal"><span class="pre">RETURN</span></code>.
+This statement is useful to check a condition while guaranteeing that execution will not continue after the <code class="docutils literal"><span class="pre">END</span> <span class="pre">CHECK</span></code> if the condition is false.</p>
+</div>
+<div class="section" id="exec">
+<h2>5.5.6. <code class="docutils literal"><span class="pre">EXEC</span></code><a class="headerlink" href="#exec" title="Permalink to this headline">¶</a></h2>
+<div class="admonition-todo admonition">
+<p class="first admonition-title">TODO</p>
+<p class="last">EXEC</p>
+</div>
+</div>
 <div class="section" id="exit">
-<h2>5.5.4. <code class="docutils literal"><span class="pre">EXIT</span></code><a class="headerlink" href="#exit" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.7. <code class="docutils literal"><span class="pre">EXIT</span></code><a class="headerlink" href="#exit" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">EXIT</span></code> statement has five different forms:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -141,7 +182,7 @@ The optional <code class="docutils literal"><span class="pre">WHEN</span> <span 
 </table>
 </div>
 <div class="section" id="for">
-<h2>5.5.5. <code class="docutils literal"><span class="pre">FOR</span></code><a class="headerlink" href="#for" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.8. <code class="docutils literal"><span class="pre">FOR</span></code><a class="headerlink" href="#for" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">FOR</span></code> loop iterates a numeric variable over a range of values.
 The loop control variable is implicitly a <code class="docutils literal"><span class="pre">Number</span></code> and must not be already declared outside the <code class="docutils literal"><span class="pre">FOR</span></code> statement.</p>
 <p>Example:</p>
@@ -165,8 +206,20 @@ END WHILE
 It may be any number, including fractional values, except 0.
 It must, however, be a compile time constant.</p>
 </div>
+<div class="section" id="foreach">
+<h2>5.5.9. <code class="docutils literal"><span class="pre">FOREACH</span></code><a class="headerlink" href="#foreach" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">FOREACH</span></code> loop iterates through an array from the first element to a last, executing the statements within the block.
+The loop control variable is implicitly declared and must not be already declared outside the <code class="docutils literal"><span class="pre">FOREACH</span></code> statement.</p>
+<p>Example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>LET a: Array&lt;String&gt; := [&quot;one&quot;, &quot;two&quot;, &quot;three&quot;]
+FOREACH x IN a DO
+    print(x)
+END FOREACH
+</pre></div>
+</div>
+</div>
 <div class="section" id="if">
-<h2>5.5.6. <code class="docutils literal"><span class="pre">IF</span></code><a class="headerlink" href="#if" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.10. <code class="docutils literal"><span class="pre">IF</span></code><a class="headerlink" href="#if" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">IF</span></code> statement tests a condition of type <code class="docutils literal"><span class="pre">Boolean</span></code> and executes one of two alternatives.</p>
 <p>Example:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>VAR x: Number := 0
@@ -204,8 +257,19 @@ END IF
 </pre></div>
 </div>
 </div>
+<div class="section" id="inc">
+<h2>5.5.11. <code class="docutils literal"><span class="pre">INC</span></code><a class="headerlink" href="#inc" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal"><span class="pre">INC</span></code> statement increments a variable of type <code class="docutils literal"><span class="pre">Number</span></code>.</p>
+<p>Example:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>VAR x: Number := 5
+INC x
+ASSERT x = 6
+</pre></div>
+</div>
+<p>In this example, <code class="docutils literal"><span class="pre">INC</span> <span class="pre">x</span></code> is equivalent to <code class="docutils literal"><span class="pre">x</span> <span class="pre">:=</span> <span class="pre">x</span> <span class="pre">+</span> <span class="pre">1</span></code>.</p>
+</div>
 <div class="section" id="let">
-<h2>5.5.7. <code class="docutils literal"><span class="pre">LET</span></code><a class="headerlink" href="#let" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.12. <code class="docutils literal"><span class="pre">LET</span></code><a class="headerlink" href="#let" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">LET</span></code> statement introduces a new read-only variable and assigns a value (which can be an arbitrary expression, evaluated at run time).</p>
 <p>Example:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>FUNCTION five(): Number
@@ -215,7 +279,9 @@ END FUNCTION
 LET ten: Number := 2 * five()
 </pre></div>
 </div>
-<p><code class="docutils literal"><span class="pre">LOOP</span></code></p>
+</div>
+<div class="section" id="loop">
+<h2>5.5.13. <code class="docutils literal"><span class="pre">LOOP</span></code><a class="headerlink" href="#loop" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">LOOP</span></code> statement begins a loop with no specific exit condition.
 There is normally an <code class="docutils literal"><span class="pre">EXIT</span> <span class="pre">LOOP</span></code> statement within the loop for a termination condition.</p>
 <p>Example:</p>
@@ -232,7 +298,7 @@ END LOOP
 </div>
 </div>
 <div class="section" id="next">
-<h2>5.5.8. <code class="docutils literal"><span class="pre">NEXT</span></code><a class="headerlink" href="#next" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.14. <code class="docutils literal"><span class="pre">NEXT</span></code><a class="headerlink" href="#next" title="Permalink to this headline">¶</a></h2>
 <p>The <cite>NEXT</cite> statement has four different forms:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -266,7 +332,7 @@ END LOOP
 <p>When using <code class="docutils literal"><span class="pre">NEXT</span> <span class="pre">REPEAT</span></code> or <code class="docutils literal"><span class="pre">NEXT</span> <span class="pre">WHILE</span></code>, the loop condition is tested before continuing to the next iteration.</p>
 </div>
 <div class="section" id="raise">
-<h2>5.5.9. <code class="docutils literal"><span class="pre">RAISE</span></code><a class="headerlink" href="#raise" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.15. <code class="docutils literal"><span class="pre">RAISE</span></code><a class="headerlink" href="#raise" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">RAISE</span></code> statement raises an exception.</p>
 <p>Example:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>EXCEPTION InvalidWidgetSizeException
@@ -281,7 +347,7 @@ END IF
 If no exception handler is found, the program terminates with a message and stack trace.</p>
 </div>
 <div class="section" id="repeat">
-<h2>5.5.10. <code class="docutils literal"><span class="pre">REPEAT</span></code><a class="headerlink" href="#repeat" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.16. <code class="docutils literal"><span class="pre">REPEAT</span></code><a class="headerlink" href="#repeat" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">REPEAT</span></code> statement begins a loop with a bottom-tested condition.
 Execution always proceeds into the loop body at least once.</p>
 <p>Example:</p>
@@ -294,7 +360,9 @@ UNTIL x = 10
 </pre></div>
 </div>
 <p>The above loop will print the whole numbers 0 through 9.</p>
-<p><code class="docutils literal"><span class="pre">RETURN</span></code></p>
+</div>
+<div class="section" id="return">
+<h2>5.5.17. <code class="docutils literal"><span class="pre">RETURN</span></code><a class="headerlink" href="#return" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">RETURN</span></code> statement returns a value from a function.
 The type of the expression in the <code class="docutils literal"><span class="pre">RETURN</span></code> statement must match the return type declared in the function header (which means that it is only valid to use <code class="docutils literal"><span class="pre">RETURN</span></code> for a function that actually returns a value).</p>
 <p>Example:</p>
@@ -305,7 +373,7 @@ END FUNCTION
 </div>
 </div>
 <div class="section" id="try">
-<h2>5.5.11. <code class="docutils literal"><span class="pre">TRY</span></code><a class="headerlink" href="#try" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.18. <code class="docutils literal"><span class="pre">TRY</span></code><a class="headerlink" href="#try" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">TRY</span></code> statement introduces a block that handles exceptions.
 After entering a <code class="docutils literal"><span class="pre">TRY</span></code> block, any exception that happens within the block is checked against the <code class="docutils literal"><span class="pre">TRAP</span></code> clauses.
 If an exception matching a clause is raised, the corresponding exception handler starts running.</p>
@@ -324,7 +392,7 @@ END TRY
 </div>
 </div>
 <div class="section" id="while">
-<h2>5.5.12. <code class="docutils literal"><span class="pre">WHILE</span></code><a class="headerlink" href="#while" title="Permalink to this headline">¶</a></h2>
+<h2>5.5.19. <code class="docutils literal"><span class="pre">WHILE</span></code><a class="headerlink" href="#while" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal"><span class="pre">WHILE</span></code> statement begins a loop with a top-tested condition.
 The condition is tested before every loop iteration, including the first one.</p>
 <p>Example:</p>
@@ -375,7 +443,8 @@ END WHILE
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../library.html">6. Standard Library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../samples.html">7. Samples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions.html">7. Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples.html">8. Samples</a></li>
 </ul>
 
 <div class="relations">

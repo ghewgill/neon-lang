@@ -1,0 +1,1 @@
+NDSummary.OnToolTipsLoaded("File:samples.txt",{21:"<div class=\"NDToolTip TSection LTextFile\"><div class=\"TTSummary\">Neon samples.</div></div>"});

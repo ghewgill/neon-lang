@@ -44,14 +44,14 @@
 <h1>5.3. Declarations<a class="headerlink" href="#declarations" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="types">
 <h2>5.3.1. Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h2>
-<p>User defined types are introduced with the <code class="docutils literal"><span class="pre">RECORD</span></code> keyword:</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span>VAR r: RECORD
-    size: Number
-    colour: String
-END RECORD
+<p>New type names are introduced using the <code class="docutils literal"><span class="pre">TYPE</span></code> keyword:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>TYPE Length IS Number
+
+VAR len: Length
 </pre></div>
 </div>
-<p>Types may be assigned names using the <code class="docutils literal"><span class="pre">TYPE</span></code> keyword:</p>
+<p>In the above case, <code class="docutils literal"><span class="pre">Length</span></code> is an alias for <code class="docutils literal"><span class="pre">Number</span></code> and the two can be used interchangeably.</p>
+<p>More often the <code class="docutils literal"><span class="pre">TYPE</span></code> keyword is used for introducing aggregate types:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>TYPE Widget IS RECORD
     size: Number
     colour: String
@@ -72,6 +72,8 @@ CONSTANT Sky: String := &quot;blue&quot;
 This may be an expression:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>CONSTANT Pi: Number := 3.141592653589793
 CONSTANT Pi2: Number := Pi ^ 2
+
+CONSTANT Greeting: String := &quot;Hello &quot; &amp; &quot;world&quot;
 </pre></div>
 </div>
 </div>
@@ -83,11 +85,58 @@ VAR colour: String
 </pre></div>
 </div>
 <p>Variables declared outside a function are <em>global</em> variables.
-Variables declared inside a function are visible only from within that function.</p>
+Variables declared inside a function are visible only from within the scope where they are declared.</p>
 <p>Read-only values (therefore not actually <em>variables</em>) are declared with the <code class="docutils literal"><span class="pre">LET</span></code> keyword:</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>IMPORT os
 
 LET path: String := os.getenv(&quot;PATH&quot;)
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The difference between <code class="docutils literal"><span class="pre">LET</span></code> and <code class="docutils literal"><span class="pre">CONSTANT</span></code> is that a <code class="docutils literal"><span class="pre">CONSTANT</span></code> value must be able to be evaluated at <em>compile</em> time.
+A <code class="docutils literal"><span class="pre">LET</span></code> value can be initialised from data that is known only at runtime.</p>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">If you calculate a value, or save the return value from a function call, then usually <code class="docutils literal"><span class="pre">LET</span></code> is what you want to use.
+Use <code class="docutils literal"><span class="pre">VAR</span></code> only when necessary in the case where your program logic needs to modify the variable later.</p>
+</div>
+</div>
+<div class="section" id="exceptions">
+<h2>5.3.4. Exceptions<a class="headerlink" href="#exceptions" title="Permalink to this headline">¶</a></h2>
+<p>Exceptions are declared with the <code class="docutils literal"><span class="pre">EXCEPTION</span></code> keyword:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>EXCEPTION PrinterOutOfPaperException
+</pre></div>
+</div>
+<p>Exception names must end with the word <code class="docutils literal"><span class="pre">Exception</span></code>.</p>
+<p>Exceptions may also declare <em>subexceptions</em>:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>EXCEPTION PrinterException
+EXCEPTION PrinterException.OutOfPaper
+</pre></div>
+</div>
+</div>
+<div class="section" id="interfaces">
+<h2>5.3.5. Interfaces<a class="headerlink" href="#interfaces" title="Permalink to this headline">¶</a></h2>
+<p>Interfaces are declared with the <code class="docutils literal"><span class="pre">INTERFACE</span></code> keyword:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>INTERFACE Shape
+    FUNCTION perimeter(self: Shape): Number
+    FUNCTION area(self: Shape): Number
+END INTERFACE
+</pre></div>
+</div>
+<p>Interfaces are used with classes to declare that a class must implement a specific set of functions.</p>
+</div>
+<div class="section" id="exports">
+<h2>5.3.6. Exports<a class="headerlink" href="#exports" title="Permalink to this headline">¶</a></h2>
+<p>Identifiers can be exported using the <code class="docutils literal"><span class="pre">EXPORT</span></code> keyword:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>EXPORT name
+
+VAR name: String
+</pre></div>
+</div>
+<p>The <code class="docutils literal"><span class="pre">EXPORT</span></code> keyword may be combined with the declaration:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>EXPORT VAR name: String
 </pre></div>
 </div>
 </div>
@@ -128,7 +177,8 @@ LET path: String := os.getenv(&quot;PATH&quot;)
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../library.html">6. Standard Library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../samples.html">7. Samples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extensions.html">7. Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samples.html">8. Samples</a></li>
 </ul>
 
 <div class="relations">

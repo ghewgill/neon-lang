@@ -44,7 +44,7 @@
 <h1>4. Neon Overview<a class="headerlink" href="#neon-overview" title="Permalink to this headline">¶</a></h1>
 <p>The following is a brief description of Neon for experienced programmers.
 There are plenty of examples, because experienced programmers know how to read code, and can pick up concepts more quickly by reading code than by reading a description of code.</p>
-<p>Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and [others](motivation.html).
+<p>Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and <a class="reference external" href="/motivation.html">others</a>.
 Program structure and modules are influenced by Python.</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>% This sample program greets the user
 % until an empty line is entered.
@@ -70,9 +70,22 @@ All variables must be explicitly initialised before use.</p>
 </div>
 <div class="section" id="types">
 <h2>4.2. Types<a class="headerlink" href="#types" title="Permalink to this headline">¶</a></h2>
-<p>The scalar types are <code class="docutils literal"><span class="pre">Boolean</span></code> (<code class="docutils literal"><span class="pre">TRUE</span></code> or <code class="docutils literal"><span class="pre">FALSE</span></code>), <code class="docutils literal"><span class="pre">Number</span></code> (decimal floating point), <code class="docutils literal"><span class="pre">String</span></code> (Unicode text), <code class="docutils literal"><span class="pre">Bytes</span></code> (arbitrary blocks of bytes), and enumerations.
-Aggregate types are <code class="docutils literal"><span class="pre">RECORD</span></code> (named fields), <code class="docutils literal"><span class="pre">CLASS</span></code> (dynamically allocated objects), <code class="docutils literal"><span class="pre">Array</span></code> (arbitrary size vector), and <code class="docutils literal"><span class="pre">Dictionary</span></code> (map indexed by a <code class="docutils literal"><span class="pre">String</span></code> key).
-Dynamic heap allocation is supported by a <code class="docutils literal"><span class="pre">POINTER</span></code> type.</p>
+<p>The scalar types are:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Boolean</span></code> (<code class="docutils literal"><span class="pre">TRUE</span></code> or <code class="docutils literal"><span class="pre">FALSE</span></code>)</li>
+<li><code class="docutils literal"><span class="pre">Number</span></code> (decimal floating point)</li>
+<li><code class="docutils literal"><span class="pre">String</span></code> (Unicode text)</li>
+<li><code class="docutils literal"><span class="pre">Bytes</span></code> (arbitrary blocks of bytes)</li>
+<li>enumerations (named values)</li>
+</ul>
+<p>Aggregate types are:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">RECORD</span></code> (named fields)</li>
+<li><code class="docutils literal"><span class="pre">CLASS</span></code> (dynamically allocated objects)</li>
+<li><code class="docutils literal"><span class="pre">Array</span></code> (arbitrary size vector)</li>
+<li><code class="docutils literal"><span class="pre">Dictionary</span></code> (map indexed by a <code class="docutils literal"><span class="pre">String</span></code> key)</li>
+</ul>
+<p>Dynamic heap allocation is supported by a <code class="docutils literal"><span class="pre">POINTER</span></code> type.</p>
 <div class="highlight-none"><div class="highlight"><pre><span></span>TYPE Colour IS ENUM
     red
     green
@@ -322,7 +335,8 @@ END FUNCTION
 </li>
 <li class="toctree-l1"><a class="reference internal" href="reference/index.html">5. Language Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="library.html">6. Standard Library</a></li>
-<li class="toctree-l1"><a class="reference internal" href="samples.html">7. Samples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extensions.html">7. Extensions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samples.html">8. Samples</a></li>
 </ul>
 
 <div class="relations">

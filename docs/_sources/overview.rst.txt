@@ -4,7 +4,7 @@ Neon Overview
 The following is a brief description of Neon for experienced programmers.
 There are plenty of examples, because experienced programmers know how to read code, and can pick up concepts more quickly by reading code than by reading a description of code.
 
-Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and [others](motivation.html).
+Neon is a statically typed imperative language, with roots in Pascal, Modula-2, Ada, and `others </motivation.html>`_.
 Program structure and modules are influenced by Python.
 
 ::
@@ -34,8 +34,21 @@ All variables must be explicitly initialised before use.
 Types
 -----
 
-The scalar types are ``Boolean`` (``TRUE`` or ``FALSE``), ``Number`` (decimal floating point), ``String`` (Unicode text), ``Bytes`` (arbitrary blocks of bytes), and enumerations.
-Aggregate types are ``RECORD`` (named fields), ``CLASS`` (dynamically allocated objects), ``Array`` (arbitrary size vector), and ``Dictionary`` (map indexed by a ``String`` key).
+The scalar types are:
+
+- ``Boolean`` (``TRUE`` or ``FALSE``)
+- ``Number`` (decimal floating point)
+- ``String`` (Unicode text)
+- ``Bytes`` (arbitrary blocks of bytes)
+- enumerations (named values)
+
+Aggregate types are:
+
+- ``RECORD`` (named fields)
+- ``CLASS`` (dynamically allocated objects)
+- ``Array`` (arbitrary size vector)
+- ``Dictionary`` (map indexed by a ``String`` key)
+
 Dynamic heap allocation is supported by a ``POINTER`` type.
 
 ::
