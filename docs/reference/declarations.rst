@@ -57,10 +57,12 @@ Read-only values (therefore not actually *variables*) are declared with the ``LE
 .. note::
 
    The difference between ``LET`` and ``CONSTANT`` is that a ``CONSTANT`` value must be able to be evaluated at *compile* time.
+   A ``LET`` value can be initialised from data that is known only at runtime.
 
 .. tip::
 
-   If you calculate a value, or save the return value from a function call, then usually ``LET`` is what you want to use. Use ``VAR`` only when necessary in the case where your program logic needs to modify the variable later.
+   If you calculate a value, or save the return value from a function call, then usually ``LET`` is what you want to use.
+   Use ``VAR`` only when necessary in the case where your program logic needs to modify the variable later.
 
 Exceptions
 ----------

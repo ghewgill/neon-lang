@@ -21,9 +21,23 @@ See Functions_ for complete information about function calls.
 ``ASSERT``
 ----------
 
-.. admonition:: TODO
+The ``ASSERT`` statement evaluates an expression and if the expression is ``FALSE``, prints a diagnostic message and raises an exception.
 
-   ASSERT
+For example::
+
+    LET s: String := "foo"
+    ASSERT s[0] = "x"       % exception
+
+The output is::
+
+  Assert failed (test.neon line 2):
+  ASSERT s[0] = "x"
+  Assert expression dump:
+    s[0]  is f
+    s[0] = "x" is FALSE
+  Unhandled exception AssertFailedException (ASSERT s[0] = "x") (code 0)
+    Stack frame #1: file test.neon line 2 address 213
+      ASSERT s[0] = "x"
 
 ``CASE``
 --------
@@ -65,9 +79,17 @@ The optional ``WHEN OTHERS`` clause is executed when no other ``WHEN`` clauses m
 ``CHECK``
 ---------
 
-.. admonition:: TODO
+The ``CHECK`` statement evaluates a boolean expression and, if it is ``FALSE``, evaluates a block::
 
-   CHECK
+    FUNCTION foo(n: Number)
+        CHECK n >= 0 ELSE
+            RAISE InvalidValueException
+        END CHECK
+        print("\(n)")
+    END FUNCTION
+
+The block of statements must end in a block-exiting statement which is one of ``EXIT``, ``NEXT``, ``RAISE``, or ``RETURN``.
+This statement is useful to check a condition while guaranteeing that execution will not continue after the ``END CHECK`` if the condition is false.
 
 ``EXEC``
 --------
@@ -123,9 +145,15 @@ It must, however, be a compile time constant.
 ``FOREACH``
 -----------
 
-.. admonition:: TODO
+The ``FOREACH`` loop iterates through an array from the first element to a last, executing the statements within the block.
+The loop control variable is implicitly declared and must not be already declared outside the ``FOREACH`` statement.
 
-   FOREACH
+Example::
+
+    LET a: Array<String> := ["one", "two", "three"]
+    FOREACH x IN a DO
+        print(x)
+    END FOREACH
 
 ``IF``
 ------
@@ -171,9 +199,15 @@ The ``IF VALID`` form is used to test a pointer value to check whether it is ``N
 ``INC``
 -------
 
-.. admonition:: TODO
+The ``INC`` statement increments a variable of type ``Number``.
 
-   INC
+Example::
+
+    VAR x: Number := 5
+    INC x
+    ASSERT x = 6
+
+In this example, ``INC x`` is equivalent to ``x := x + 1``.
 
 ``LET``
 -------

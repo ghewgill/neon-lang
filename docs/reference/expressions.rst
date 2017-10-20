@@ -26,7 +26,13 @@ Example::
         "three": 3
     }
 
-For convenience, both literal arrays and dictionaries accept a trailing comma after the final element.
+For convenience, both literal arrays and dictionaries accept a trailing comma after the final element::
+
+    LET numbers: Array<String> := [
+        "zero",
+        "one",
+        "two",
+    ]
 
 Boolean Operators
 -----------------
@@ -133,19 +139,19 @@ Operator Precedence
 
 The operator precedence is as follows, highest to lowest:
 
-============================== ===========
-Operator                       Description
-============================== ===========
-``(`` ``)``                    subexpression
-``^``                          exponentiation
-``*`` ``/`` ``MOD`` ``INTDIV`` multiplication, division, modulo
-``+`` ``-`` ``&``              addition, subtraction, concatenation
-``<`` ``=`` ``>``              comparison
-``IN``                         membership
-``AND``                        conjunction
-``OR``                         disjunction
-``IF``                         conditional
-============================== ===========
+====================================== ===========
+Operator                               Description
+====================================== ===========
+``( )``                                subexpression
+``^``                                  exponentiation
+``*`` ``/`` ``MOD`` ``INTDIV``         multiplication, division, modulo
+``+`` ``-`` ``&``                      addition, subtraction, concatenation
+``=`` ``<>`` ``<`` ``>`` ``<=`` ``>=`` comparison
+``IN`` ``NOT IN``                      membership
+``AND``                                conjunction
+``OR``                                 disjunction
+``IF``                                 conditional
+====================================== ===========
 
 Array Subscripts
 ----------------
@@ -209,9 +215,18 @@ The parentheses around the entire conditional expression are required.
 Try Expression
 --------------
 
-.. admonition:: TODO
+A try expression is like an inline ``TRY`` statement::
 
-   try expression
+    LET a: Number := 5
+    LET b: Number := 0
+    LET n: Number := (TRY a / b TRAP DivideByZeroException GIVES -1)
+
+The expression following ``TRY`` is evaluated.
+If an exception is raised, then it is matched against the ``TRAP`` clauses.
+A matching ``TRAP`` clause with a ``GIVES`` keyword evalues the ``GIVES`` expression and returns that as the value of the try expression.
+
+The keyword ``DO`` can be used instead of ``GIVES``.
+The ``DO`` keywords introduces a new statement block which must end with a block-exiting statement (``EXIT``, ``NEXT``, ``RAISE``, or ``RETURN``).
 
 Expression Substitution
 -----------------------
