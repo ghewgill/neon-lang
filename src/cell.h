@@ -8,6 +8,8 @@
 #include "number.h"
 #include "utf8string.h"
 
+// TODO: See if we can use std::variant (C++17) for this.
+
 class Cell {
 public:
     Cell();
