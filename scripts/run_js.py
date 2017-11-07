@@ -118,6 +118,7 @@ ExcludeTests = [
     "t/struct-test.neon",           # DictionaryInExpression
     "t/sudoku-test.neon",           # ArrayReferenceRangeExpression
     "t/sys-exit.neon",              # module sys
+    "t/tail-call.neon",             # recursion limit
     "t/time-stopwatch.neon",        # module time
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # keyword enum
