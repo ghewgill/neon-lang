@@ -181,10 +181,10 @@ private:
 
 class SqlStatementInfo {
 public:
-    SqlStatementInfo(std::unique_ptr<SqlStatement> &&sql, const std::vector<std::string> &assignments, const std::vector<std::string> &parameters): sql(std::move(sql)), assignments(assignments), parameters(parameters) {}
+    SqlStatementInfo(std::unique_ptr<SqlStatement> &&sql, const std::vector<Token> &assignments, const std::vector<Token> &parameters): sql(std::move(sql)), assignments(assignments), parameters(parameters) {}
     std::unique_ptr<SqlStatement> sql;
-    std::vector<std::string> assignments;
-    std::vector<std::string> parameters;
+    std::vector<Token> assignments;
+    std::vector<Token> parameters;
 };
 
 std::unique_ptr<SqlStatementInfo> parseSqlStatement(const Token &token, const std::string &statement);

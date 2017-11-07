@@ -253,8 +253,8 @@ class Parser {
 public:
     Parser(Lexer &lexer): lexer(lexer), assignments(), parameters() {}
     Lexer &lexer;
-    std::vector<std::string> assignments;
-    std::vector<std::string> parameters;
+    std::vector<::Token> assignments;
+    std::vector<::Token> parameters;
 
     bool check_next(Token expected)
     {
@@ -578,7 +578,10 @@ public:
             if (lexer.peek() != IDENTIFIER) {
                 error(4227, lexer.get_this_token(), "identifier expected");
             }
-            assignments.push_back(lexer.value());
+            // Make a temporary token and adjust the string to just the part we want.
+            ::Token t = lexer.get_this_token();
+            t.text = lexer.value();
+            assignments.push_back(t);
             lexer.next();
             if (lexer.peek() != COMMA) {
                 break;
@@ -602,7 +605,11 @@ public:
                 if (isalnum(sql[i])) {
                     name.push_back(sql[i]);
                 } else {
-                    parameters.push_back(name);
+                    ::Token tok = ::Token(lexer.token);
+                    // Not sure exactly why this offset of 2 needs to be here.
+                    tok.column = tok.column + i - name.length() + 2;
+                    tok.text = name;
+                    parameters.push_back(tok);
                     name = std::string();
                 }
             }

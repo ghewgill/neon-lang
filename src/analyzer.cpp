@@ -3520,7 +3520,11 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     }
     std::vector<const ast::VariableExpression *> out_bindings;
     for (auto name: statement->info->assignments) {
-        out_bindings.push_back(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName(name))));
+        const ast::Variable *var = dynamic_cast<const ast::Variable *>(scope.top()->lookupName(name.text));
+        if (var == nullptr) {
+            error(4306, name, "variable not found");
+        }
+        out_bindings.push_back(new ast::VariableExpression(var));
     }
     ast::Variable *result = scope.top()->makeTemporary(type_row);
     ast::Variable *found = scope.top()->makeTemporary(ast::TYPE_BOOLEAN);
@@ -3869,7 +3873,11 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
     } else if (query != nullptr) {
         std::vector<std::pair<std::string, const ast::Expression *>> binding_vars;
         for (auto p: statement->info->parameters) {
-            binding_vars.push_back(std::make_pair(p, new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName(p.substr(1))))));
+            const ast::Variable *var = dynamic_cast<const ast::Variable *>(scope.top()->lookupName(p.text.substr(1)));
+            if (var == nullptr) {
+                error(4305, p, "variable not found");
+            }
+            binding_vars.push_back(std::make_pair(p.text, new ast::VariableExpression(var)));
         }
         process_into_results(
             statement,
@@ -4754,11 +4762,11 @@ public:
     }
     virtual void visit(const pt::ExecStatement *node) {
         for (auto &var: node->info->assignments) {
-            mark_assigned(var);
+            mark_assigned(var.text);
         }
         for (auto p: node->info->parameters) {
             for (auto s = scopes.rbegin(); s != scopes.rend(); ++s) {
-                auto i = s->variables.find(p.substr(1));
+                auto i = s->variables.find(p.text.substr(1));
                 if (i != s->variables.end()) {
                     i->second.used = true;
                     break;
