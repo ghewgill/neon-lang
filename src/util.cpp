@@ -46,7 +46,7 @@ void SourceError::write(std::ostream &out)
     out << "Error in file: " << token.file << "\n";
     out << "\n";
     out << token.line << "| " << token.source_line << "\n";
-    out << std::string(std::to_string(token.line).length()+1+token.column, ' ') << std::string(token.token.text.length(), '~') << "\n";
+    out << std::string(std::to_string(token.line).length()+1+token.column, ' ') << std::string(token.text.length(), '~') << "\n";
     out << std::setw(std::to_string(token.line).length()+2+token.column) << "^" << "\n";
     out << "Error N" << number << ": " << token.line << ":" << token.column << " " << message << "\n";
     if (token2.type != NONE) {
