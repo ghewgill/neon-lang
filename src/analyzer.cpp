@@ -3524,6 +3524,9 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
         if (var == nullptr) {
             error(4306, name, "variable not found");
         }
+        if (var->type != ast::TYPE_STRING) {
+            error(4307, name, "INTO variable must be of type String (current implementation limitation)");
+        }
         out_bindings.push_back(new ast::VariableExpression(var));
     }
     ast::Variable *result = scope.top()->makeTemporary(type_row);
