@@ -454,7 +454,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 if (i != source.end() && *i == '.') {
                     n.push_back(*i);
                     utf8::advance(i, 1, source.end());
-                    if (not number_start(*i)) {
+                    if (i != source.end() && not number_start(*i)) {
                         error(1028, t, "fractional part of number must contain at least one digit");
                     }
                     while (i != source.end() && number_decimal_body(*i)) {
