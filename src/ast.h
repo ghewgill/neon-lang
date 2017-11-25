@@ -2603,10 +2603,11 @@ public:
 
 class ModuleFunction: public Variable {
 public:
-    ModuleFunction(const std::string &module, const std::string &name, const Type *type, unsigned int entry): Variable(Token(), name, type, true), module(module), entry(entry) {}
+    ModuleFunction(const std::string &module, const std::string &name, const Type *type, const std::string &descriptor): Variable(Token(), name, type, true), module(module), name(name), descriptor(descriptor) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
-    const unsigned int entry;
+    const std::string name;
+    const std::string descriptor;
 
     virtual void predeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override { internal_error("ModuleFunction"); }

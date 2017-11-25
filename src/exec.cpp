@@ -203,6 +203,7 @@ public:
     std::vector<size_t> rtl_call_tokens;
     std::vector<std::pair<bool, Number>> number_table;
     std::vector<ForeignCallInfo *> foreign_functions;
+    std::map<std::pair<std::string, std::string>, std::pair<Module *, unsigned int>> module_functions;
 private:
     Module(const Module &);
     Module &operator=(const Module &);
@@ -660,7 +661,8 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
     globals(object.global_size),
     rtl_call_tokens(object.strtable.size(), SIZE_MAX),
     number_table(object.strtable.size()),
-    foreign_functions()
+    foreign_functions(),
+    module_functions()
 {
     for (auto i: object.imports) {
         std::string name = object.strtable[i.first];
@@ -1301,20 +1303,38 @@ void Executor::exec_CALLMF()
     ip++;
     uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
-    uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
+    uint32_t func  = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
     ip += 4;
     if (callstack.size() >= param_recursion_limit) {
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
         return;
     }
     callstack.push_back(std::make_pair(module, ip));
-    auto m = modules.find(module->object.strtable[mod]);
-    if (m == modules.end()) {
-        fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
-        exit(1);
+    auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
+    if (f != module->module_functions.end()) {
+        module = f->second.first;
+        ip = f->second.second;
+    } else {
+        auto m = modules.find(module->object.strtable[mod]);
+        if (m == modules.end()) {
+            fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
+            exit(1);
+        }
+        bool found = false;
+        for (auto f: m->second->object.export_functions) {
+            if (m->second->object.strtable[f.name] + "," + m->second->object.strtable[f.descriptor] == module->object.strtable[func]) {
+                ip = f.entry;
+                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ip);
+                found = true;
+                break;
+            }
+        }
+        if (not found) {
+            fprintf(stderr, "fatal: module function not found: %s\n", module->object.strtable[func].c_str());
+            exit(1);
+        }
+        module = m->second;
     }
-    module = m->second;
-    ip = val;
 }
 
 void Executor::exec_CALLI()

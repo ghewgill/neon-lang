@@ -536,9 +536,9 @@ void Disassembler::disasm_CALLMF()
     index++;
     uint32_t mod = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
     index += 4;
-    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
+    uint32_t func = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
     index += 4;
-    out << "CALLMF " << mod << "," << addr << "\n";
+    out << "CALLMF " << obj.strtable[mod] << "," << obj.strtable[func] << "\n";
 }
 
 void Disassembler::disasm_CALLI()

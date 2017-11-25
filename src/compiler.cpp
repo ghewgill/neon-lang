@@ -1067,7 +1067,7 @@ void ast::ModuleFunction::predeclare(Emitter &emitter) const
 
 void ast::ModuleFunction::generate_call(Emitter &emitter) const
 {
-    emitter.emit(CALLMF, emitter.str(module), entry);
+    emitter.emit(CALLMF, emitter.str(module), emitter.str(name + "," + descriptor));
 }
 
 void ast::ForeignFunction::predeclare(Emitter &emitter) const

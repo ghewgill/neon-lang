@@ -822,9 +822,9 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const std::string method = function_name.substr(i+1);
             ast::Name *n = module->scope->lookupName(typestr);
             ast::Type *type = dynamic_cast<ast::Type *>(n);
-            type->methods[method] = new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry);
+            type->methods[method] = new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), object.strtable[f.descriptor]);
         } else {
-            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), f.entry));
+            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), object.strtable[f.descriptor]));
         }
     }
     for (auto e: object.export_exceptions) {
