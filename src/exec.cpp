@@ -203,7 +203,7 @@ public:
     std::vector<size_t> rtl_call_tokens;
     std::vector<std::pair<bool, Number>> number_table;
     std::vector<ForeignCallInfo *> foreign_functions;
-    std::map<std::pair<std::string, std::string>, std::pair<Module *, unsigned int>> module_functions;
+    std::map<std::pair<std::string, std::string>, std::pair<Module *, Bytecode::Bytes::size_type>> module_functions;
 private:
     Module(const Module &);
     Module &operator=(const Module &);
