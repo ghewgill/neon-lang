@@ -320,15 +320,15 @@ public:
     }
 
     std::map<std::pair<std::string, std::string>, uint16_t> NameAndType_constants;
-    uint16_t NameAndType(const std::string &name, const std::string &descriptor) {
-        auto key = std::make_pair(name, descriptor);
+    uint16_t NameAndType(const std::string &aname, const std::string &descriptor) {
+        auto key = std::make_pair(aname, descriptor);
         auto i = NameAndType_constants.find(key);
         if (i != NameAndType_constants.end()) {
             return i->second;
         }
         cp_info cp;
         cp.tag = CONSTANT_NameAndType;
-        cp.info << utf8(name);
+        cp.info << utf8(aname);
         cp.info << utf8(descriptor);
         constant_pool.push_back(cp);
         constant_pool_count++;
@@ -337,8 +337,8 @@ public:
     }
 
     std::map<std::tuple<std::string, std::string, std::string>, uint16_t> Field_constants;
-    uint16_t Field(const std::string &cls, const std::string &name, const std::string &descriptor) {
-        auto key = std::make_tuple(cls, name, descriptor);
+    uint16_t Field(const std::string &cls, const std::string &aname, const std::string &descriptor) {
+        auto key = std::make_tuple(cls, aname, descriptor);
         auto i = Field_constants.find(key);
         if (i != Field_constants.end()) {
             return i->second;
@@ -346,7 +346,7 @@ public:
         cp_info cp;
         cp.tag = CONSTANT_Fieldref;
         cp.info << Class(cls);
-        cp.info << NameAndType(name, descriptor);
+        cp.info << NameAndType(aname, descriptor);
         constant_pool.push_back(cp);
         constant_pool_count++;
         Field_constants[key] = constant_pool_count;
@@ -354,8 +354,8 @@ public:
     }
 
     std::map<std::tuple<std::string, std::string, std::string>, uint16_t> Method_constants;
-    uint16_t Method(const std::string &cls, const std::string &name, const std::string &descriptor) {
-        auto key = std::make_tuple(cls, name, descriptor);
+    uint16_t Method(const std::string &cls, const std::string &aname, const std::string &descriptor) {
+        auto key = std::make_tuple(cls, aname, descriptor);
         auto i = Method_constants.find(key);
         if (i != Method_constants.end()) {
             return i->second;
@@ -363,7 +363,7 @@ public:
         cp_info cp;
         cp.tag = CONSTANT_Methodref;
         cp.info << Class(cls);
-        cp.info << NameAndType(name, descriptor);
+        cp.info << NameAndType(aname, descriptor);
         constant_pool.push_back(cp);
         constant_pool_count++;
         Method_constants[key] = constant_pool_count;
@@ -371,8 +371,8 @@ public:
     }
 
     std::map<std::tuple<std::string, std::string, std::string>, uint16_t> InterfaceMethod_constants;
-    uint16_t InterfaceMethod(const std::string &cls, const std::string &name, const std::string &descriptor) {
-        auto key = std::make_tuple(cls, name, descriptor);
+    uint16_t InterfaceMethod(const std::string &cls, const std::string &aname, const std::string &descriptor) {
+        auto key = std::make_tuple(cls, aname, descriptor);
         auto i = InterfaceMethod_constants.find(key);
         if (i != InterfaceMethod_constants.end()) {
             return i->second;
@@ -380,7 +380,7 @@ public:
         cp_info cp;
         cp.tag = CONSTANT_InterfaceMethodref;
         cp.info << Class(cls);
-        cp.info << NameAndType(name, descriptor);
+        cp.info << NameAndType(aname, descriptor);
         constant_pool.push_back(cp);
         constant_pool_count++;
         InterfaceMethod_constants[key] = constant_pool_count;
@@ -3067,17 +3067,17 @@ public:
                 context.ca.code << OP_invokestatic << context.cf.Method(FunctionSignatures[i].module, FunctionSignatures[i].function, FunctionSignatures[i].signature);
                 if (out_count > 0) {
                     const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(pf->type);
-                    int i = 1;
+                    int a = 1;
                     for (auto p: tf->params) {
                         if (p->mode == ast::ParameterType::Mode::INOUT || p->mode == ast::ParameterType::Mode::OUT) {
-                            if (dynamic_cast<const DummyExpression *>(args[i-1]) == nullptr) {
+                            if (dynamic_cast<const DummyExpression *>(args[a-1]) == nullptr) {
                                 context.ca.code << OP_dup;
-                                context.push_integer(i);
+                                context.push_integer(a);
                                 context.ca.code << OP_aaload;
-                                context.ca.code << OP_checkcast << context.cf.Class(args[i-1]->type->classname);
-                                args[i-1]->generate_store(context);
+                                context.ca.code << OP_checkcast << context.cf.Class(args[a-1]->type->classname);
+                                args[a-1]->generate_store(context);
                             }
-                            i++;
+                            a++;
                         }
                     }
                     if (tf->returntype != ast::TYPE_NOTHING) {
@@ -3165,8 +3165,8 @@ public:
         cf.super_class = cf.Class("Ljava/lang/Object;");
 
         ClassContext classcontext(support, cf);
-        for (size_t i = 0; i < program->frame->getCount(); i++) {
-            auto slot = program->frame->getSlot(i);
+        for (size_t s = 0; s < program->frame->getCount(); s++) {
+            auto slot = program->frame->getSlot(s);
             const GlobalVariable *global = dynamic_cast<const GlobalVariable *>(g_variable_cache[dynamic_cast<const ast::GlobalVariable *>(slot.ref)]);
             if (global != nullptr) {
                 bool exported = false;

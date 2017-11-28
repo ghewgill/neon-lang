@@ -48,8 +48,8 @@ void run_from_bundle(const std::string &name, bool enable_assert, unsigned short
     }
     for (;;) {
         unz_file_info file_info;
-        char name[256];
-        r = unzGetCurrentFileInfo(zip, &file_info, name, sizeof(name), NULL, 0, NULL, 0);
+        char filename[256];
+        r = unzGetCurrentFileInfo(zip, &file_info, filename, sizeof(filename), NULL, 0, NULL, 0);
         if (r != UNZ_OK) {
             fprintf(stderr, "zip file info\n");
             exit(1);
@@ -74,7 +74,7 @@ void run_from_bundle(const std::string &name, bool enable_assert, unsigned short
             }
         }
         unzCloseCurrentFile(zip);
-        g_Contents[name] = bytecode;
+        g_Contents[filename] = bytecode;
         r = unzGoToNextFile(zip);
         if (r != UNZ_OK) {
             break;

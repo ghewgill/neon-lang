@@ -552,8 +552,8 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
         return;
     }
     if (params != NULL) {
-        auto &a = reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(params))->array();
-        for (auto i = a.rbegin(); i != a.rend(); ++i) {
+        auto &ps = reinterpret_cast<Cell *>(const_cast<struct Ne_ParameterList *>(params))->array();
+        for (auto i = ps.rbegin(); i != ps.rend(); ++i) {
             g_executor->stack.push(*i);
         }
     }
@@ -665,19 +665,19 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
     module_functions()
 {
     for (auto i: object.imports) {
-        std::string name = object.strtable[i.first];
-        if (executor->modules.find(name) != executor->modules.end()) {
+        std::string importname = object.strtable[i.first];
+        if (executor->modules.find(importname) != executor->modules.end()) {
             continue;
         }
         Bytecode code;
-        if (not support->loadBytecode(name, code)) {
-            fprintf(stderr, "couldn't load module: %s\n", name.c_str());
+        if (not support->loadBytecode(importname, code)) {
+            fprintf(stderr, "couldn't load module: %s\n", importname.c_str());
             exit(1);
         }
         // TODO: check hash of exports
-        executor->init_order.push_back(name);
-        executor->modules[name] = nullptr; // Prevent unwanted recursion.
-        executor->modules[name] = new Module(name, code, nullptr, executor, support);
+        executor->init_order.push_back(importname);
+        executor->modules[importname] = nullptr; // Prevent unwanted recursion.
+        executor->modules[importname] = new Module(importname, code, nullptr, executor, support);
     }
 }
 
@@ -1321,9 +1321,9 @@ void Executor::exec_CALLMF()
             exit(1);
         }
         bool found = false;
-        for (auto f: m->second->object.export_functions) {
-            if (m->second->object.strtable[f.name] + "," + m->second->object.strtable[f.descriptor] == module->object.strtable[func]) {
-                ip = f.entry;
+        for (auto ef: m->second->object.export_functions) {
+            if (m->second->object.strtable[ef.name] + "," + m->second->object.strtable[ef.descriptor] == module->object.strtable[func]) {
+                ip = ef.entry;
                 module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ip);
                 found = true;
                 break;
@@ -1668,10 +1668,10 @@ void Executor::exec_CALLX()
             break;
         }
         case Ne_EXCEPTION: {
-            utf8string name = Cell(retval.array()[0]).string();
+            utf8string exceptionname = Cell(retval.array()[0]).string();
             utf8string info = Cell(retval.array()[1]).string();
             Number code = Cell(retval.array()[2]).number();
-            raise_literal(name, ExceptionInfo(info, code));
+            raise_literal(exceptionname, ExceptionInfo(info, code));
             break;
         }
         default:
@@ -2182,11 +2182,11 @@ void Executor::handle_GET(const std::string &path, HttpResponse &response)
         }
         writer.close();
     } else if (parts.size() >= 3 && parts[1] == "module") {
-        std::string module = parts[2];
-        if (module == "-") {
-            module = "";
+        std::string modname = parts[2];
+        if (modname == "-") {
+            modname = "";
         }
-        Module *m = modules[module];
+        Module *m = modules[modname];
         if (parts.size() == 4 && parts[3] == "bytecode") {
             response.code = 200;
             minijson::write_array(r, m->object.obj.begin(), m->object.obj.end());

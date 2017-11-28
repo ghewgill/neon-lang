@@ -71,9 +71,9 @@ Bytecode::Bytecode()
 {
 }
 
-bool Bytecode::load(const std::string &source_path, const std::vector<unsigned char> &bytes)
+bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned char> &bytes)
 {
-    this->source_path = source_path;
+    source_path = a_source_path;
     obj = bytes;
 
     size_t i = 0;
@@ -225,101 +225,101 @@ bool Bytecode::load(const std::string &source_path, const std::vector<unsigned c
 
 Bytecode::Bytes Bytecode::getBytes() const
 {
-    std::vector<unsigned char> obj;
+    std::vector<unsigned char> objret;
 
     assert(source_hash.length() == 32);
     for (int i = 0; i < 32; i++) {
-        obj.push_back(source_hash[i]);
+        objret.push_back(source_hash[i]);
     }
 
-    put_uint16(obj, static_cast<uint16_t>(global_size));
+    put_uint16(objret, static_cast<uint16_t>(global_size));
 
-    std::vector<unsigned char> t;
+    std::vector<unsigned char> strtable_flat;
     for (auto s: strtable) {
-        put_uint32(t, static_cast<uint32_t>(s.length()));
-        std::copy(s.begin(), s.end(), std::back_inserter(t));
+        put_uint32(strtable_flat, static_cast<uint32_t>(s.length()));
+        std::copy(s.begin(), s.end(), std::back_inserter(strtable_flat));
     }
-    put_uint32(obj, static_cast<uint32_t>(t.size()));
-    std::copy(t.begin(), t.end(), std::back_inserter(obj));
+    put_uint32(objret, static_cast<uint32_t>(strtable_flat.size()));
+    std::copy(strtable_flat.begin(), strtable_flat.end(), std::back_inserter(objret));
 
-    put_uint16(obj, static_cast<uint16_t>(export_types.size()));
+    put_uint16(objret, static_cast<uint16_t>(export_types.size()));
     for (auto t: export_types) {
-        put_uint16(obj, static_cast<uint16_t>(t.name));
-        put_uint16(obj, static_cast<uint16_t>(t.descriptor));
+        put_uint16(objret, static_cast<uint16_t>(t.name));
+        put_uint16(objret, static_cast<uint16_t>(t.descriptor));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(export_constants.size()));
+    put_uint16(objret, static_cast<uint16_t>(export_constants.size()));
     for (auto c: export_constants) {
-        put_uint16(obj, static_cast<uint16_t>(c.name));
-        put_uint16(obj, static_cast<uint16_t>(c.type));
-        put_uint16(obj, static_cast<uint16_t>(c.value.size()));
-        std::copy(c.value.begin(), c.value.end(), std::back_inserter(obj));
+        put_uint16(objret, static_cast<uint16_t>(c.name));
+        put_uint16(objret, static_cast<uint16_t>(c.type));
+        put_uint16(objret, static_cast<uint16_t>(c.value.size()));
+        std::copy(c.value.begin(), c.value.end(), std::back_inserter(objret));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(export_variables.size()));
+    put_uint16(objret, static_cast<uint16_t>(export_variables.size()));
     for (auto v: export_variables) {
-        put_uint16(obj, static_cast<uint16_t>(v.name));
-        put_uint16(obj, static_cast<uint16_t>(v.type));
-        put_uint16(obj, static_cast<uint16_t>(v.index));
+        put_uint16(objret, static_cast<uint16_t>(v.name));
+        put_uint16(objret, static_cast<uint16_t>(v.type));
+        put_uint16(objret, static_cast<uint16_t>(v.index));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(export_functions.size()));
+    put_uint16(objret, static_cast<uint16_t>(export_functions.size()));
     for (auto f: export_functions) {
-        put_uint16(obj, static_cast<uint16_t>(f.name));
-        put_uint16(obj, static_cast<uint16_t>(f.descriptor));
-        put_uint32(obj, static_cast<uint32_t>(f.entry));
+        put_uint16(objret, static_cast<uint16_t>(f.name));
+        put_uint16(objret, static_cast<uint16_t>(f.descriptor));
+        put_uint32(objret, static_cast<uint32_t>(f.entry));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(export_exceptions.size()));
+    put_uint16(objret, static_cast<uint16_t>(export_exceptions.size()));
     for (auto e: export_exceptions) {
-        put_uint16(obj, static_cast<uint16_t>(e.name));
+        put_uint16(objret, static_cast<uint16_t>(e.name));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(export_interfaces.size()));
+    put_uint16(objret, static_cast<uint16_t>(export_interfaces.size()));
     for (auto i: export_interfaces) {
-        put_uint16(obj, static_cast<uint16_t>(i.name));
-        put_uint16(obj, static_cast<uint16_t>(i.method_descriptors.size()));
+        put_uint16(objret, static_cast<uint16_t>(i.name));
+        put_uint16(objret, static_cast<uint16_t>(i.method_descriptors.size()));
         for (auto m: i.method_descriptors) {
-            put_uint16(obj, static_cast<uint16_t>(m.first));
-            put_uint16(obj, static_cast<uint16_t>(m.second));
+            put_uint16(objret, static_cast<uint16_t>(m.first));
+            put_uint16(objret, static_cast<uint16_t>(m.second));
         }
     }
 
-    put_uint16(obj, static_cast<uint16_t>(imports.size()));
+    put_uint16(objret, static_cast<uint16_t>(imports.size()));
     for (auto i: imports) {
-        put_uint16(obj, static_cast<uint16_t>(i.first));
+        put_uint16(objret, static_cast<uint16_t>(i.first));
         assert(i.second.length() == 32);
         for (int j = 0; j < 32; j++) {
-            obj.push_back(i.second[j]);
+            objret.push_back(i.second[j]);
         }
     }
 
-    put_uint16(obj, static_cast<uint16_t>(functions.size()));
+    put_uint16(objret, static_cast<uint16_t>(functions.size()));
     for (auto f: functions) {
-        put_uint16(obj, static_cast<uint16_t>(f.name));
-        put_uint32(obj, static_cast<uint32_t>(f.entry));
+        put_uint16(objret, static_cast<uint16_t>(f.name));
+        put_uint32(objret, static_cast<uint32_t>(f.entry));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(exceptions.size()));
+    put_uint16(objret, static_cast<uint16_t>(exceptions.size()));
     for (auto e: exceptions) {
-        put_uint16(obj, static_cast<uint16_t>(e.start));
-        put_uint16(obj, static_cast<uint16_t>(e.end));
-        put_uint16(obj, static_cast<uint16_t>(e.excid));
-        put_uint16(obj, static_cast<uint16_t>(e.handler));
+        put_uint16(objret, static_cast<uint16_t>(e.start));
+        put_uint16(objret, static_cast<uint16_t>(e.end));
+        put_uint16(objret, static_cast<uint16_t>(e.excid));
+        put_uint16(objret, static_cast<uint16_t>(e.handler));
     }
 
-    put_uint16(obj, static_cast<uint16_t>(classes.size()));
+    put_uint16(objret, static_cast<uint16_t>(classes.size()));
     for (auto c: classes) {
-        put_uint16(obj, static_cast<uint16_t>(c.name));
-        put_uint16(obj, static_cast<uint16_t>(c.interfaces.size()));
+        put_uint16(objret, static_cast<uint16_t>(c.name));
+        put_uint16(objret, static_cast<uint16_t>(c.interfaces.size()));
         for (auto i: c.interfaces) {
-            put_uint16(obj, static_cast<uint16_t>(i.size()));
+            put_uint16(objret, static_cast<uint16_t>(i.size()));
             for (auto m: i) {
-                put_uint16(obj, static_cast<uint16_t>(m));
+                put_uint16(objret, static_cast<uint16_t>(m));
             }
         }
     }
 
-    std::copy(code.begin(), code.end(), std::back_inserter(obj));
-    return obj;
+    std::copy(code.begin(), code.end(), std::back_inserter(objret));
+    return objret;
 }

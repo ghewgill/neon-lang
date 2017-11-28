@@ -133,6 +133,7 @@ else:
         "-Wextra",
         "-Weffc++",
         #"-Wold-style-cast",    # Enable this temporarily to check, but it breaks with gcc and #defines with C casts in standard headers.
+        "-Wshadow",
         "-Werror",
     ])
     if "CLANG_SANITIZE" in env:

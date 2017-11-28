@@ -728,10 +728,10 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
             t.column = column + (i - startindex);
             t.text = "";
             while (i != source.end() && *i != ';') {
-                uint32_t c = utf8::peek_next(i, source.end());
+                uint32_t e = utf8::peek_next(i, source.end());
                 utf8::advance(i, 1, source.end());
-                utf8::append(c, std::back_inserter(t.text));
-                if (c == '\n' && i != source.end()) {
+                utf8::append(e, std::back_inserter(t.text));
+                if (e == '\n' && i != source.end()) {
                     line++;
                     column = 0;
                     linestart = i+1;

@@ -133,8 +133,8 @@ public:
 private:
     static std::string extract_module_name(const pt::Program *program);
     ast::Module *import_module(const Token &token, const std::string &name);
-    ast::Type *deserialize_type(ast::Scope *scope, const std::string &descriptor, std::string::size_type &i);
-    ast::Type *deserialize_type(ast::Scope *scope, const std::string &descriptor);
+    ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i);
+    ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor);
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
@@ -773,16 +773,16 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     ast::Module *module = new ast::Module(Token(), global_scope, name);
     // Must do interfaces before types (so classes can refer to these).
     for (auto i: object.export_interfaces) {
-        std::string name = object.strtable[i.name];
+        std::string interfacename = object.strtable[i.name];
         std::vector<std::pair<Token, const ast::TypeFunction *>> methods;
-        for (auto m: i.method_descriptors) {
-            const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[m.second]));
+        for (auto method: i.method_descriptors) {
+            const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[method.second]));
             if (tf == nullptr) {
                 internal_error("deserialized type not function");
             }
-            methods.push_back(std::make_pair(Token(IDENTIFIER, object.strtable[m.first]), tf));
+            methods.push_back(std::make_pair(Token(IDENTIFIER, object.strtable[method.first]), tf));
         }
-        module->scope->addName(Token(IDENTIFIER, ""), name, new ast::Interface(Token(), name, methods));
+        module->scope->addName(Token(IDENTIFIER, ""), interfacename, new ast::Interface(Token(), interfacename, methods));
     }
     for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
@@ -828,25 +828,25 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         }
     }
     for (auto e: object.export_exceptions) {
-        std::string name = object.strtable[e.name];
-        std::string::size_type p = name.find('.');
+        std::string exceptionname = object.strtable[e.name];
+        std::string::size_type p = exceptionname.find('.');
         if (p != std::string::npos) {
-            ast::Name *n = module->scope->lookupName(name.substr(0, p));
+            ast::Name *n = module->scope->lookupName(exceptionname.substr(0, p));
             if (n == nullptr) {
                 internal_error("name not found in exception import");
             }
-            ast::Exception *e = dynamic_cast<ast::Exception *>(n);
-            if (e == nullptr) {
+            ast::Exception *exc = dynamic_cast<ast::Exception *>(n);
+            if (exc == nullptr) {
                 internal_error("name not exception in exception import");
             }
             for (;;) {
-                std::string::size_type q = name.find('.', p+1);
+                std::string::size_type q = exceptionname.find('.', p+1);
                 if (q == std::string::npos) {
-                    e->subexceptions[name.substr(p+1, q)] = new ast::Exception(Token(), name.substr(0, q));
+                    exc->subexceptions[exceptionname.substr(p+1, q)] = new ast::Exception(Token(), exceptionname.substr(0, q));
                     break;
                 }
-                auto s = e->subexceptions.find(name.substr(p+1, q));
-                if (s == e->subexceptions.end()) {
+                auto s = exc->subexceptions.find(exceptionname.substr(p+1, q));
+                if (s == exc->subexceptions.end()) {
                     internal_error("subexception not found in exception import");
                 }
                 p = q;
@@ -885,12 +885,12 @@ const ast::Type *Analyzer::analyze_enum(const pt::TypeEnum *type, const std::str
     std::map<std::string, int> names;
     int index = 0;
     for (auto x: type->names) {
-        std::string name = x.first.text;
-        auto t = names.find(name);
+        std::string enumname = x.first.text;
+        auto t = names.find(enumname);
         if (t != names.end()) {
-            error2(3010, x.first, "duplicate enum: " + name, type->names[t->second].first, "first declaration here");
+            error2(3010, x.first, "duplicate enum: " + enumname, type->names[t->second].first, "first declaration here");
         }
-        names[name] = index;
+        names[enumname] = index;
         index++;
     }
     return new ast::TypeEnum(type->token, module_name, name, names, this);
@@ -942,11 +942,11 @@ const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::s
             }
             s = mod->scope;
         }
-        const ast::Name *name = s->lookupName(i.second.text);
-        if (name == nullptr) {
+        const ast::Name *interfacename = s->lookupName(i.second.text);
+        if (interfacename == nullptr) {
             error(3248, i.second, "interface name not found");
         }
-        const ast::Interface *iface = dynamic_cast<const ast::Interface *>(name);
+        const ast::Interface *iface = dynamic_cast<const ast::Interface *>(interfacename);
         if (iface == nullptr) {
             error(3249, i.second, "interface name expected here");
         }
@@ -1291,11 +1291,11 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
     if (name != nullptr) {
         const ast::TypeEnum *enumtype = dynamic_cast<const ast::TypeEnum *>(name);
         if (enumtype != nullptr) {
-            auto name = enumtype->names.find(expr->name.text);
-            if (name == enumtype->names.end()) {
+            auto enumname = enumtype->names.find(expr->name.text);
+            if (enumname == enumtype->names.end()) {
                 error2(3023, expr->name, "identifier not member of enum: " + expr->name.text, enumtype->declaration, "enum declared here");
             }
-            return new ast::ConstantEnumExpression(enumtype, name->second);
+            return new ast::ConstantEnumExpression(enumtype, enumname->second);
         }
     }
     const ast::Expression *base = analyze(expr->base.get());
@@ -2001,7 +2001,7 @@ const ast::Expression *Analyzer::analyze(const pt::TryExpression *expr)
     auto eci = expr->catches.begin();
     for (auto &c: catches) {
         const ast::ExceptionHandlerStatement *ehs = dynamic_cast<const ast::ExceptionHandlerStatement *>(c.handler);
-        const ast::Expression *e = dynamic_cast<const ast::Expression *>(c.handler);
+        const ast::Expression *h = dynamic_cast<const ast::Expression *>(c.handler);
         if (ehs != nullptr) {
             if (ehs->statements.empty()) {
                 error(3202, expr->expr->token, "body cannot be empty");
@@ -2009,7 +2009,7 @@ const ast::Expression *Analyzer::analyze(const pt::TryExpression *expr)
             if (not ehs->statements.back()->is_scope_exit_statement()) {
                 error(3203, dynamic_cast<const pt::TryHandlerStatement *>((*eci)->handler.get())->body.back()->token, "handler must end in EXIT, NEXT, RAISE, or RETURN");
             }
-        } else if (e != nullptr) {
+        } else if (h != nullptr) {
             // pass
         } else {
             internal_error("unexpected catch type");
@@ -2089,7 +2089,7 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
     }
 }
 
-ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &descriptor, std::string::size_type &i)
+ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i)
 {
     switch (descriptor.at(i)) {
         case 'Z': i++; return ast::TYPE_NOTHING;
@@ -2103,7 +2103,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                 internal_error("deserialize_type");
             }
             i++;
-            const ast::Type *type = deserialize_type(scope, descriptor, i);
+            const ast::Type *type = deserialize_type(s, descriptor, i);
             if (descriptor.at(i) != '>') {
                 internal_error("deserialize_type");
             }
@@ -2116,7 +2116,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                 internal_error("deserialize_type");
             }
             i++;
-            const ast::Type *type = deserialize_type(scope, descriptor, i);
+            const ast::Type *type = deserialize_type(s, descriptor, i);
             if (descriptor.at(i) != '>') {
                 internal_error("deserialize_type");
             }
@@ -2138,7 +2138,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                             iname.push_back(descriptor.at(i));
                             i++;
                         }
-                        const ast::Interface *iface = dynamic_cast<const ast::Interface *>(scope->lookupName(iname));
+                        const ast::Interface *iface = dynamic_cast<const ast::Interface *>(s->lookupName(iname));
                         if (iface == nullptr) {
                             internal_error("interface not found on import");
                         }
@@ -2166,7 +2166,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                     i++;
                 }
                 i++;
-                const ast::Type *type = deserialize_type(scope, descriptor, i);
+                const ast::Type *type = deserialize_type(s, descriptor, i);
                 Token token;
                 token.text = name;
                 fields.push_back(ast::TypeRecord::Field(token, type, is_private));
@@ -2198,7 +2198,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                 internal_error("deserialize_type");
             }
             i++;
-            ast::Interface *iface = dynamic_cast<ast::Interface *>(scope->lookupName(iname));
+            ast::Interface *iface = dynamic_cast<ast::Interface *>(s->lookupName(iname));
             if (iface == nullptr) {
                 internal_error("deserialize_type");
             }
@@ -2255,7 +2255,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                     i++;
                 }
                 i++;
-                const ast::Type *type = deserialize_type(scope, descriptor, i);
+                const ast::Type *type = deserialize_type(s, descriptor, i);
                 Token token;
                 token.text = name;
                 // TODO: default value
@@ -2269,7 +2269,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                 internal_error("deserialize_type");
             }
             i++;
-            const ast::Type *returntype = deserialize_type(scope, descriptor, i);
+            const ast::Type *returntype = deserialize_type(s, descriptor, i);
             return new ast::TypeFunction(returntype, params);
         }
         case 'P': {
@@ -2280,7 +2280,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
             i++;
             const ast::TypeClass *classtype = nullptr;
             if (descriptor.at(i) != '>') {
-                const ast::Type *type = deserialize_type(scope, descriptor, i);
+                const ast::Type *type = deserialize_type(s, descriptor, i);
                 classtype = dynamic_cast<const ast::TypeClass *>(type);
                 if (classtype == nullptr) {
                     internal_error("deserialize_type");
@@ -2294,7 +2294,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
         }
         case 'Q': {
             i++;
-            ast::TypeFunction *f = dynamic_cast<ast::TypeFunction *>(deserialize_type(scope, descriptor, i));
+            ast::TypeFunction *f = dynamic_cast<ast::TypeFunction *>(deserialize_type(s, descriptor, i));
             return new ast::TypeFunctionPointer(Token(), f);
         }
         case '~': {
@@ -2305,15 +2305,15 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
                 i++;
             }
             i++;
-            ast::Scope *s = scope;
+            ast::Scope *t = s;
             std::string localname = name;
             auto dot = name.find('.');
             if (dot != std::string::npos) {
                 const ast::Module *module = import_module(Token(), name.substr(0, dot));
-                s = module->scope;
+                t = module->scope;
                 localname = name.substr(dot+1);
             }
-            ast::Type *type = dynamic_cast<ast::Type *>(s->lookupName(localname));
+            ast::Type *type = dynamic_cast<ast::Type *>(t->lookupName(localname));
             if (type == nullptr) {
                 internal_error("reference to unknown type in exports: " + name);
             }
@@ -2324,10 +2324,10 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &desc
     }
 }
 
-ast::Type *Analyzer::deserialize_type(ast::Scope *scope, const std::string &descriptor)
+ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descriptor)
 {
     std::string::size_type i = 0;
-    ast::Type *r = deserialize_type(scope, descriptor, i);
+    ast::Type *r = deserialize_type(s, descriptor, i);
     if (i != descriptor.length()) {
         internal_error("deserialize_type: " + descriptor + " " + std::to_string(i));
     }
@@ -2659,11 +2659,11 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
         } else if (in_default) {
             error(3150, x->token, "default value must be specified for this parameter");
         }
-        for (auto name: x->names) {
-            if (scope.top()->lookupName(name.text)) {
-                error(3174, name, "duplicate identifier");
+        for (auto argname: x->names) {
+            if (scope.top()->lookupName(argname.text)) {
+                error(3174, argname, "duplicate identifier");
             }
-            ast::FunctionParameter *fp = new ast::FunctionParameter(name, name.text, ptype, frame.top()->get_depth()+1, mode, def);
+            ast::FunctionParameter *fp = new ast::FunctionParameter(argname, argname.text, ptype, frame.top()->get_depth()+1, mode, def);
             args.push_back(fp);
         }
     }
@@ -2680,13 +2680,13 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
                             error(3255, declaration->rparen, "wrong number of arguments");
                         }
                         bool first = true;
-                        for (size_t i = 0; i < args.size(); i++) {
+                        for (size_t a = 0; a < args.size(); a++) {
                             if (first) {
                                 first = false;
                                 continue;
                             }
-                            if (args[i]->type != m.second->params[i]->type) {
-                                error(3256, args[i]->declaration, "parameter types must match interface");
+                            if (args[a]->type != m.second->params[a]->type) {
+                                error(3256, args[a]->declaration, "parameter types must match interface");
                             }
                         }
                     }
@@ -2789,8 +2789,8 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaratio
         } else if (in_default) {
             error(3151, x->token, "default value must be specified for this parameter");
         }
-        for (auto name: x->names) {
-            ast::FunctionParameter *fp = new ast::FunctionParameter(name, name.text, ptype, frame.size()-1, mode, def);
+        for (auto parametername: x->names) {
+            ast::FunctionParameter *fp = new ast::FunctionParameter(parametername, parametername.text, ptype, frame.size()-1, mode, def);
             args.push_back(fp);
         }
     }
@@ -2880,8 +2880,8 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
         } else if (in_default) {
             error(3168, x->token, "default value must be specified for this parameter");
         }
-        for (auto name: x->names) {
-            ast::ParameterType *pt = new ast::ParameterType(name, mode, ptype, def);
+        for (auto parametername: x->names) {
+            ast::ParameterType *pt = new ast::ParameterType(parametername, mode, ptype, def);
             params.push_back(pt);
         }
     }
@@ -2918,8 +2918,8 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
         } else if (in_default) {
             error(3244, x->token, "default value must be specified for this parameter");
         }
-        for (auto name: x->names) {
-            ast::FunctionParameter *fp = new ast::FunctionParameter(name, name.text, ptype, frame.size()-1, mode, def);
+        for (auto parametername: x->names) {
+            ast::FunctionParameter *fp = new ast::FunctionParameter(parametername, parametername.text, ptype, frame.size()-1, mode, def);
             params.push_back(fp);
         }
     }
@@ -2981,8 +2981,8 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
     std::vector<std::pair<Token, const ast::TypeFunction *>> methods;
     std::map<std::string, Token> method_names;
     for (auto &x: declaration->methods) {
-        std::string name = x.first.text;
-        auto prev = method_names.find(name);
+        std::string methodname = x.first.text;
+        auto prev = method_names.find(methodname);
         if (prev != method_names.end()) {
             error2(3247, x.first, "duplicate method: " + x.first.text, prev->second, "first declaration here");
         }
@@ -2998,7 +2998,7 @@ const ast::Statement *Analyzer::analyze(const pt::InterfaceDeclaration *declarat
             error(3254, fp->functype->params[0]->declaration, "first parameter must be interface type");
         }
         methods.push_back(std::make_pair(x.first, fp->functype));
-        method_names[name] = x.first;
+        method_names[methodname] = x.first;
     }
     scope.pop();
     scope.top()->addName(declaration->token, name, new ast::Interface(declaration->token, name, methods));
@@ -3168,8 +3168,8 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         )
     );
     std::set<std::string> seen;
-    for (auto e: parts) {
-        const std::string str = statement->token.source_line().substr(e->get_start_column()-1, e->get_end_column()-e->get_start_column());
+    for (auto part: parts) {
+        const std::string str = statement->token.source_line().substr(part->get_start_column()-1, part->get_end_column()-part->get_start_column());
         if (seen.find(str) != seen.end()) {
             continue;
         }
@@ -3180,7 +3180,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         // (this takes care of the call to .toString()).
         std::vector<std::pair<std::unique_ptr<pt::Expression>, Token>> iparts;
         iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), 0, "  " + str + " is ") }, Token()));
-        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(e) }, Token()));
+        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(part) }, Token()));
         std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
         try {
             statements.push_back(
@@ -3254,15 +3254,15 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 ast::ComparisonExpression::Comparison comp = static_cast<ast::ComparisonExpression::Comparison>(cwc->comp); // TODO: remove cast
                 const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::ComparisonWhenCondition(cwc->expr->token, comp, when);
                 for (auto clause: clauses) {
-                    for (auto c: clause.first) {
-                        if (cond->overlaps(c)) {
-                            error2(3062, cwc->expr->token, "overlapping case condition", c->token, "overlaps here");
+                    for (auto cc: clause.first) {
+                        if (cond->overlaps(cc)) {
+                            error2(3062, cwc->expr->token, "overlapping case condition", cc->token, "overlaps here");
                         }
                     }
                 }
-                for (auto c: conditions) {
-                    if (cond->overlaps(c)) {
-                        error2(3063, cwc->expr->token, "overlapping case condition", c->token, "overlaps here");
+                for (auto cc: conditions) {
+                    if (cond->overlaps(cc)) {
+                        error2(3063, cwc->expr->token, "overlapping case condition", cc->token, "overlaps here");
                     }
                 }
                 conditions.push_back(cond);
@@ -3295,15 +3295,15 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 }
                 const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::RangeWhenCondition(rwc->low_expr->token, when, when2);
                 for (auto clause: clauses) {
-                    for (auto c: clause.first) {
-                        if (cond->overlaps(c)) {
-                            error2(3064, rwc->low_expr->token, "overlapping case condition", c->token, "overlaps here");
+                    for (auto cc: clause.first) {
+                        if (cond->overlaps(cc)) {
+                            error2(3064, rwc->low_expr->token, "overlapping case condition", cc->token, "overlaps here");
                         }
                     }
                 }
-                for (auto c: conditions) {
-                    if (cond->overlaps(c)) {
-                        error2(3065, rwc->low_expr->token, "overlapping case condition", c->token, "overlaps here");
+                for (auto cc: conditions) {
+                    if (cond->overlaps(cc)) {
+                        error2(3065, rwc->low_expr->token, "overlapping case condition", cc->token, "overlaps here");
                     }
                 }
                 conditions.push_back(cond);
@@ -3731,7 +3731,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             )
         ));
     } else if (connect != nullptr) {
-        const ast::PredefinedFunction *open = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("open"));
+        const ast::PredefinedFunction *openfunc = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("open"));
         const SqlValueLiteral *target_literal = dynamic_cast<const SqlValueLiteral *>(connect->target.get());
         const SqlValueVariable *target_variable = dynamic_cast<const SqlValueVariable *>(connect->target.get());
         const ast::Expression *target;
@@ -3759,7 +3759,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
                 statement->token.line,
                 {new ast::VariableExpression(name)},
                 new ast::FunctionCall(
-                    new ast::VariableExpression(open),
+                    new ast::VariableExpression(openfunc),
                     {target}
                 )
             ));
@@ -3770,7 +3770,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
                 statement->token.line,
                 {new ast::VariableExpression(name)},
                 new ast::FunctionCall(
-                    new ast::VariableExpression(open),
+                    new ast::VariableExpression(openfunc),
                     {target}
                 )
             ));
@@ -3795,7 +3795,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             internal_error("unexpected declare type");
         }
     } else if (disconnect != nullptr) {
-        const ast::PredefinedFunction *close = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("close"));
+        const ast::PredefinedFunction *closefunc = dynamic_cast<const ast::PredefinedFunction *>(sqlite->scope->lookupName("close"));
         const SqlIdentifierSymbol *name_symbol = dynamic_cast<const SqlIdentifierSymbol *>(disconnect->name.get());
         const SqlIdentifierVariable *name_variable = dynamic_cast<const SqlIdentifierVariable *>(disconnect->name.get());
         if (name_symbol != nullptr) {
@@ -3805,7 +3805,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             statements.push_back(new ast::ExpressionStatement(
                 statement->token.line,
                 new ast::FunctionCall(
-                    new ast::VariableExpression(close),
+                    new ast::VariableExpression(closefunc),
                     {new ast::VariableExpression(name)}
                 )
             ));
@@ -3819,7 +3819,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             statements.push_back(new ast::ExpressionStatement(
                 statement->token.line,
                 new ast::FunctionCall(
-                    new ast::VariableExpression(close),
+                    new ast::VariableExpression(closefunc),
                     {new ast::VariableExpression(db)}
                 )
             ));
@@ -4518,8 +4518,8 @@ const ast::Program *Analyzer::analyze()
         ast::Frame::Slot s = r->frame->getSlot(i);
         ast::TypeClass *c = dynamic_cast<ast::TypeClass *>(s.ref);
         if (c != nullptr) {
-            for (auto i: c->interfaces) {
-                for (auto m: i->methods) {
+            for (auto iface: c->interfaces) {
+                for (auto m: iface->methods) {
                     if (c->methods.find(m.first.text) == c->methods.end()) {
                         error2(3252, c->declaration, "method missing", m.first, "declared here");
                     }

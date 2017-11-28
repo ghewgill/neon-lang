@@ -736,10 +736,12 @@ void Disassembler::disassemble()
 {
     out << "Global size: " << obj.global_size << "\n";
     out << "String table: [\n";
-    int i = 0;
-    for (auto s: obj.strtable) {
-        out << "  " << i << " " << s << "\n";
-        i++;
+    {
+        int i = 0;
+        for (auto s: obj.strtable) {
+            out << "  " << i << " " << s << "\n";
+            i++;
+        }
     }
     out << "]\n";
 

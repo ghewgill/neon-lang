@@ -1867,14 +1867,14 @@ std::unique_ptr<Statement> Parser::parseTryStatement()
         }
         auto &tok_do = tokens[i];
         ++i;
-        std::vector<std::unique_ptr<Statement>> statements;
+        std::vector<std::unique_ptr<Statement>> stmts;
         while (tokens[i].type != TRAP && tokens[i].type != END && tokens[i].type != END_OF_FILE) {
             std::unique_ptr<Statement> stmt = parseStatement();
             if (stmt != nullptr) {
-                statements.push_back(std::move(stmt));
+                stmts.push_back(std::move(stmt));
             }
         }
-        catches.emplace_back(new TryTrap(exceptions, infoname, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(statements)) }));
+        catches.emplace_back(new TryTrap(exceptions, infoname, std::unique_ptr<ParseTreeNode> { new TryHandlerStatement(tok_do, std::move(stmts)) }));
     }
     if (tokens[i].type != END) {
         error(2062, tokens[i], "'END' expected");
@@ -1968,7 +1968,7 @@ std::unique_ptr<Statement> Parser::parseAssert()
     exprs.push_back(std::move(e));
     while (tokens[i].type == COMMA) {
         ++i;
-        std::unique_ptr<Expression> e = parseExpression();
+        e = parseExpression();
         exprs.push_back(std::move(e));
     }
     return std::unique_ptr<Statement> { new AssertStatement(tok_assert, std::move(exprs), tok_assert.source_line()) };

@@ -105,10 +105,10 @@ bool Client::handle_request()
         lines.push_back(request.substr(start, i));
         i += 2;
     }
-    std::vector<std::string> request = split(lines[0], ' ');
-    const std::string &method = request[0];
-    path = request[1];
-    //const std::string &version = request[2];
+    std::vector<std::string> req = split(lines[0], ' ');
+    const std::string &method = req[0];
+    path = req[1];
+    //const std::string &version = req[2];
     HttpResponse response;
     if (method == "GET") {
         handler->handle_GET(path, response);
@@ -245,7 +245,7 @@ void HttpServerImpl::service(bool wait)
         for (auto i = clients.begin(); i != clients.end(); ) {
             if (FD_ISSET(i->socket, &rfds)) {
                 char buf[200];
-                int n = recv(i->socket, buf, sizeof(buf), 0);
+                n = recv(i->socket, buf, sizeof(buf), 0);
                 if (n > 0) {
                     if (i->handle_data(std::string(buf, n))) {
                         auto d = i;

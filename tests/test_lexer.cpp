@@ -128,12 +128,12 @@ int main(int argc, char *argv[])
             //for (size_t i = 0; i < tokenized->source_lines.size(); i++) {
             //    printf("%lu: %lu %lu\n", i, tokenized->source_lines[i].first, tokenized->source_lines[i].second);
             //}
-            auto &tokens = tokenized->tokens;
-            assert(tokens.size() == 2);
-            assert(tokens[0].type == IDENTIFIER); assert(tokens[0].line == 2); assert(tokens[0].column == 1); assert(tokens[0].text == "a");
-            assert(tokens[0].source->source_lines[2].first == 1); assert(tokens[0].source->source_lines[2].second == 1);
-            assert(tokens[0].source_line() == "a");
-            assert(tokens[1].type == END_OF_FILE);
+            auto &tt = tokenized->tokens;
+            assert(tt.size() == 2);
+            assert(tt[0].type == IDENTIFIER); assert(tt[0].line == 2); assert(tt[0].column == 1); assert(tt[0].text == "a");
+            assert(tt[0].source->source_lines[2].first == 1); assert(tt[0].source->source_lines[2].second == 1);
+            assert(tt[0].source_line() == "a");
+            assert(tt[1].type == END_OF_FILE);
         }
     }
 
