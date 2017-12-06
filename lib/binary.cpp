@@ -9,6 +9,7 @@ template <typename T> class traits {};
 template <> class traits<int32_t> {
 public:
     static const unsigned int BITS = 32;
+    static const int32_t ONE = 1;
     static const Number MIN;
     static const Number MAX;
     static Number to_number(int32_t x) { return number_from_sint32(x); }
@@ -21,6 +22,7 @@ const Number traits<int32_t>::MAX = traits<int32_t>::to_number(std::numeric_limi
 template <> class traits<uint32_t> {
 public:
     static const unsigned int BITS = 32;
+    static const uint32_t ONE = 1U;
     static const Number MIN;
     static const Number MAX;
     static Number to_number(uint32_t x) { return number_from_uint32(x); }
@@ -33,6 +35,7 @@ const Number traits<uint32_t>::MAX = traits<uint32_t>::to_number(std::numeric_li
 template <> class traits<int64_t> {
 public:
     static const unsigned int BITS = 64;
+    static const int64_t ONE = 1L;
     static const Number MIN;
     static const Number MAX;
     static Number to_number(int64_t x) { return number_from_sint64(x); }
@@ -45,6 +48,7 @@ const Number traits<int64_t>::MAX = traits<int64_t>::to_number(std::numeric_limi
 template <> class traits<uint64_t> {
 public:
     static const unsigned int BITS = 64;
+    static const uint64_t ONE = 1UL;
     static const Number MIN;
     static const Number MAX;
     static Number to_number(uint64_t x) { return number_from_uint64(x); }
@@ -87,7 +91,7 @@ template <typename T> Number binary_extract(Number x, Number n, Number w)
     if (v == traits<T>::BITS) {
         return x;
     }
-    return traits<T>::to_number((traits<T>::from_number(x) >> b) & (static_cast<T>(1 << v) - 1));
+    return traits<T>::to_number((traits<T>::from_number(x) >> b) & (static_cast<T>(traits<T>::ONE << v) - traits<T>::ONE));
 }
 
 template <typename T> bool binary_get(Number x, Number n)
@@ -98,7 +102,7 @@ template <typename T> bool binary_get(Number x, Number n)
     if (b >= traits<T>::BITS) {
         return false;
     }
-    return (traits<T>::from_number(x) & static_cast<T>(1 << b)) != 0;
+    return (traits<T>::from_number(x) & static_cast<T>(traits<T>::ONE << b)) != 0;
 }
 
 template <typename T> Number binary_not(Number x)
@@ -129,7 +133,7 @@ template <typename T> Number binary_replace(Number x, Number n, Number w, Number
         v = traits<T>::BITS - b;
     }
     T z = traits<T>::from_number(y);
-    T mask = v < traits<T>::BITS ? static_cast<T>(1 << v) - 1 : ~0;
+    T mask = v < traits<T>::BITS ? static_cast<T>(traits<T>::ONE << v) - traits<T>::ONE : ~0;
     return traits<T>::to_number((traits<T>::from_number(x) & ~(mask << b)) | (z << b));
 }
 
@@ -142,9 +146,9 @@ template <typename T> Number binary_set(Number x, Number n, bool v)
         return x;
     }
     if (v) {
-        return traits<T>::to_number(traits<T>::from_number(x) | static_cast<T>(1 << b));
+        return traits<T>::to_number(traits<T>::from_number(x) | static_cast<T>(traits<T>::ONE << b));
     } else {
-        return traits<T>::to_number(traits<T>::from_number(x) & ~static_cast<T>(1 << b));
+        return traits<T>::to_number(traits<T>::from_number(x) & ~static_cast<T>(traits<T>::ONE << b));
     }
 }
 

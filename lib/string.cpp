@@ -44,7 +44,10 @@ std::string join(const std::vector<utf8string> &a, const std::string &d)
 std::string lower(const std::string &s)
 {
     std::string r;
-    std::transform(s.begin(), s.end(), std::back_inserter(r), ::tolower);
+    //std::transform(s.begin(), s.end(), std::back_inserter(r), ::tolower);
+    for (auto c: s) {
+        r.push_back(static_cast<char>(::tolower(c)));
+    }
     return r;
 }
 
@@ -98,7 +101,10 @@ std::string trim(const std::string &s)
 std::string upper(const std::string &s)
 {
     std::string r;
-    std::transform(s.begin(), s.end(), std::back_inserter(r), ::toupper);
+    //std::transform(s.begin(), s.end(), std::back_inserter(r), ::toupper);
+    for (auto c: s) {
+        r.push_back(static_cast<char>(::toupper(c)));
+    }
     return r;
 }
 

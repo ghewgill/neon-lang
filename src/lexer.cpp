@@ -194,7 +194,10 @@ inline bool space(uint32_t c)
 uint32_t unicode_lookup(const Token &t, const std::string &name)
 {
     std::string uname;
-    std::transform(name.begin(), name.end(), std::back_inserter(uname), ::toupper);
+    //std::transform(name.begin(), name.end(), std::back_inserter(uname), ::toupper);
+    for (auto c: name) {
+        uname.push_back(static_cast<char>(::toupper(c)));
+    }
     size_t low = 0;
     size_t high = sizeof(UnicodeData) / sizeof(UnicodeData[0]) - 1;
     while (low <= high) {

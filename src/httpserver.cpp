@@ -146,8 +146,14 @@ bool Client::header_match(const std::string &header, const std::string &target, 
 {
     std::string h = header.substr(0, target.length());
     std::string t = target;
-    std::transform(h.begin(), h.end(), h.begin(), tolower);
-    std::transform(t.begin(), t.end(), t.begin(), tolower);
+    //std::transform(h.begin(), h.end(), h.begin(), tolower);
+    //std::transform(t.begin(), t.end(), t.begin(), tolower);
+    for (auto &c: h) {
+        c = static_cast<char>(::tolower(c));
+    }
+    for (auto &c: t) {
+        c = static_cast<char>(::tolower(c));
+    }
     if (h == t) {
         auto i = target.length();
         while (i < header.length() && isspace(header[i])) {

@@ -180,7 +180,10 @@ public:
             }
             current_value = statement.substr(start, index-start);
             std::string keyword;
-            std::transform(current_value.begin(), current_value.end(), std::back_inserter(keyword), ::toupper);
+            //std::transform(current_value.begin(), current_value.end(), std::back_inserter(keyword), ::toupper);
+            for (auto c: current_value) {
+                keyword.push_back(static_cast<char>(::toupper(c)));
+            }
             if (keyword == "ALL")           current = ALL;
             if (keyword == "AS")            current = AS;
             if (keyword == "BINARY")        current = BINARY;

@@ -285,8 +285,8 @@ const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     i += 4;
     while (len > 0) {
-        std::string name = TypeString::deserialize_string(value, i);
-        dict.push_back(std::make_pair(name, elementtype->deserialize_value(value, i)));
+        std::string key = TypeString::deserialize_string(value, i);
+        dict.push_back(std::make_pair(key, elementtype->deserialize_value(value, i)));
         len--;
     }
     return new DictionaryLiteralExpression(elementtype, dict);

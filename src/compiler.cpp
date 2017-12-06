@@ -392,9 +392,9 @@ void ast::Type::postdeclare(Emitter &emitter) const
     }
 }
 
-void ast::Type::generate_export(Emitter &emitter, const std::string &name) const
+void ast::Type::generate_export(Emitter &emitter, const std::string &export_name) const
 {
-    emitter.add_export_type(name, get_type_descriptor(emitter));
+    emitter.add_export_type(export_name, get_type_descriptor(emitter));
     for (auto m: methods) {
         // TODO: This is kind of a hack. It seems to work because
         // predefined functions are available everywhere and don't
@@ -406,7 +406,7 @@ void ast::Type::generate_export(Emitter &emitter, const std::string &name) const
         if (f == nullptr) {
             internal_error("method should be function: " + this->name + "." + m.second->name + " " + m.second->text());
         }
-        emitter.add_export_function(name + "." + m.first, f->type->get_type_descriptor(emitter), emitter.function_label(f->entry_label).get_target());
+        emitter.add_export_function(export_name + "." + m.first, f->type->get_type_descriptor(emitter), emitter.function_label(f->entry_label).get_target());
     }
 }
 
@@ -862,9 +862,9 @@ void ast::GlobalVariable::generate_address(Emitter &emitter) const
     emitter.emit(PUSHPG, index);
 }
 
-void ast::GlobalVariable::generate_export(Emitter &emitter, const std::string &name) const
+void ast::GlobalVariable::generate_export(Emitter &emitter, const std::string &export_name) const
 {
-    emitter.add_export_variable(name, emitter.get_type_reference(type), index);
+    emitter.add_export_variable(export_name, emitter.get_type_reference(type), index);
 }
 
 void ast::ExternalGlobalVariable::generate_address(Emitter &emitter) const
@@ -1003,9 +1003,9 @@ void ast::Function::generate_call(Emitter &emitter) const
     emitter.emit_jump(CALLF, emitter.function_label(entry_label));
 }
 
-void ast::Function::generate_export(Emitter &emitter, const std::string &name) const
+void ast::Function::generate_export(Emitter &emitter, const std::string &export_name) const
 {
-    emitter.add_export_function(name, type->get_type_descriptor(emitter), emitter.function_label(entry_label).get_target());
+    emitter.add_export_function(export_name, type->get_type_descriptor(emitter), emitter.function_label(entry_label).get_target());
 }
 
 void ast::PredefinedFunction::predeclare(Emitter &emitter) const
@@ -1107,26 +1107,26 @@ void ast::ForeignFunction::generate_call(Emitter &emitter) const
     emitter.emit(CALLE, foreign_index);
 }
 
-void ast::Exception::generate_export(Emitter &emitter, const std::string &name) const
+void ast::Exception::generate_export(Emitter &emitter, const std::string &export_name) const
 {
-    emitter.add_export_exception(name);
+    emitter.add_export_exception(export_name);
     for (auto s: subexceptions) {
-        s.second->generate_export(emitter, name + "." + s.first);
+        s.second->generate_export(emitter, export_name + "." + s.first);
     }
 }
 
-void ast::Interface::generate_export(Emitter &emitter, const std::string &name) const
+void ast::Interface::generate_export(Emitter &emitter, const std::string &export_name) const
 {
     std::vector<std::pair<std::string, std::string>> method_descriptors;
     for (auto m: methods) {
         method_descriptors.push_back(std::make_pair(m.first.text, m.second->get_type_descriptor(emitter)));
     }
-    emitter.add_export_interface(name, method_descriptors);
+    emitter.add_export_interface(export_name, method_descriptors);
 }
 
-void ast::Constant::generate_export(Emitter &emitter, const std::string &name) const
+void ast::Constant::generate_export(Emitter &emitter, const std::string &export_name) const
 {
-    emitter.add_export_constant(name, emitter.get_type_reference(type), type->serialize(value));
+    emitter.add_export_constant(export_name, emitter.get_type_reference(type), type->serialize(value));
 }
 
 void ast::Expression::generate(Emitter &emitter) const
@@ -2299,122 +2299,122 @@ static std::string hex_from_binary(const std::string &bin)
 
 void ast::TypeBoolean::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Boolean");
-    type.write("representation", "boolean");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Boolean");
+    node.write("representation", "boolean");
+    node.close();
 }
 
 void ast::TypeNumber::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Number");
-    type.write("representation", "number");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Number");
+    node.write("representation", "number");
+    node.close();
 }
 
 void ast::TypeString::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "String");
-    type.write("representation", "string");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "String");
+    node.write("representation", "string");
+    node.close();
 }
 
 void ast::TypeBytes::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Bytes");
-    type.write("representation", "string");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Bytes");
+    node.write("representation", "string");
+    node.close();
 }
 
 void ast::TypeFunction::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Function(...)");
-    type.write("representation", "function");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Function(...)");
+    node.write("representation", "function");
+    node.close();
 }
 
 void ast::TypeArray::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Array");
-    type.write("representation", "array");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Array");
+    node.write("representation", "array");
+    node.close();
 }
 
 void ast::TypeDictionary::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Dictionary");
-    type.write("representation", "dictionary");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Dictionary");
+    node.write("representation", "dictionary");
+    node.close();
 }
 
 void ast::TypeRecord::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Record");
-    type.write("representation", "array");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Record");
+    node.write("representation", "array");
+    node.close();
 }
 
 void ast::TypePointer::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Pointer");
-    type.write("representation", "address");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Pointer");
+    node.write("representation", "address");
+    node.close();
 }
 
 void ast::TypeInterfacePointer::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "InterfacePointer");
-    type.write("representation", "array");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "InterfacePointer");
+    node.write("representation", "array");
+    node.close();
 }
 
 void ast::TypeFunctionPointer::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "FunctionPointer");
-    type.write("representation", "array");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "FunctionPointer");
+    node.write("representation", "array");
+    node.close();
 }
 
 void ast::TypeEnum::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Enum");
-    type.write("representation", "number");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Enum");
+    node.write("representation", "number");
+    node.close();
 }
 
 void ast::TypeModule::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Module");
-    type.write("representation", "module");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Module");
+    node.write("representation", "module");
+    node.close();
 }
 
 void ast::TypeException::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Exception");
-    type.write("representation", "none");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Exception");
+    node.write("representation", "none");
+    node.close();
 }
 
 void ast::TypeInterface::debuginfo(Emitter &, minijson::object_writer &out) const
 {
-    auto type = out.nested_object("type");
-    type.write("display", "Interface");
-    type.write("representation", "none");
-    type.close();
+    auto node = out.nested_object("type");
+    node.write("display", "Interface");
+    node.write("representation", "none");
+    node.close();
 }
 
 void ast::Function::debuginfo(Emitter &emitter, minijson::object_writer &out) const

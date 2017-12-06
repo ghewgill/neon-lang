@@ -106,6 +106,7 @@ if sys.platform == "win32":
         "/W4",
         "/WX",
         "/FS",
+        "/wd4324", # structure was padded due to alignment specifier
     ])
     if not env["RELEASE"]:
         env.Append(LINKFLAGS=[
