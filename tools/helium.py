@@ -2569,7 +2569,6 @@ ExcludeTests = [
     "t/cformat-test.neon",      # Module not required
     "t/comments.neon",          # Nested comments not required
     "t/complex-test.neon",      # Module not required
-    "t/compress-test.neon",     # Module not required
     "t/concat-bytes.neon",      # Feature not required
     "t/datetime-test.neon",     # Module not required
     "t/debug-example.neon",     # Feature not required
@@ -2578,7 +2577,6 @@ ExcludeTests = [
     "t/encoding-base64.neon",   # HEXBYTES not implemented yet
     "t/exception-as.neon",      # Exception offset not supported
     "t/export-inline.neon",     # Native mul not required
-    "t/extsample-test.neon",    # Extension functions not required
     "t/ffi.neon",               # FFI not required
     "t/file-symlink.neon",      # Feature not required
     "t/fork.neon",              # fork not required
@@ -2589,7 +2587,6 @@ ExcludeTests = [
     "t/gc3.neon",               # Garbage collector not required
     "t/gc-array.neon",          # Garbage collector not required
     "t/gc-long-chain.neon",     # Garbage collector not required
-    "t/http-test.neon",         # Module not required
     "t/import-string.neon",     # Feature not required
     "t/interface-parameter-import.neon", # Feature not required (import alias)
     "t/interface-parameter-import2.neon", # Feature not required (import alias)
@@ -2620,12 +2617,10 @@ ExcludeTests = [
     "t/parameter-out-string.neon", # Feature not required
     "t/process-test.neon",      # Module not required
     "t/recursion-limit.neon",   # Feature not required
-    "t/regex-test.neon",        # Module not required
     "t/repl_import.neon",       # Module not required
     "t/return-case.neon",       # Feature not required
     "t/sdl-test.neon",          # Module not required
     "t/shebang.neon",           # Feature not required
-    "t/sodium-test.neon",       # Module not required
     "t/sql-connect.neon",       # Feature not required
     "t/sql-cursor.neon",        # Feature not required
     "t/sql-embed.neon",         # Feature not required
@@ -2640,7 +2635,12 @@ ExcludeTests = [
     "t/time-test.neon",         # Module not required
     "t/variant-test.neon",      # Module not required
     "t/win32-test.neon",        # Module not required
-    "t/zeromq-test.neon",       # Module not required
+    "lib/compress/t/compress-test.neon",        # Module not required
+    "lib/extsample/t/extsample-test.neon",      # Extension functions not required
+    "lib/http/t/http-test.neon",                # Module not required
+    "lib/regex/t/regex-test.neon",              # Module not required
+    "lib/sodium/t/sodium-test.neon",            # Module not required
+    "lib/zeromq/t/zeromq-test.neon",            # Module not required
 
     "t/array2d.neon",           # Not implemented in helium yet
     "t/assert-empty-array.neon", # TODO only for C++ implementation
@@ -2650,7 +2650,6 @@ ExcludeTests = [
     "t/file-test.neon",         # Code in module doesn't work yet
     "t/file-writebytes.neon",   # FIXME
     "t/function-pointer.neon",  # Function pointer not required yet
-    "t/hash-test.neon",         # Module not required yet
     "t/import.neon",            # Module import not required yet
     "t/io-test.neon",           # Module not required yet
     "t/module2.neon",           # Feature not required yet
@@ -2665,6 +2664,7 @@ ExcludeTests = [
     "t/unicode-length.neon",    # Currently works here, but still TODO in cpp
     "t/uninitialised-if-exit.neon", # FIXME
     "t/valuecopy.neon",         # Feature not required yet
+    "lib/hash/t/hash-test.neon",                # Module not required yet
 ]
 
 if sys.argv[1].replace("\\", "/") in ExcludeTests:

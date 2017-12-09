@@ -21,7 +21,6 @@ ExcludeTests = [
     "t/cformat-test.neon",          # module
     "t/cmdline.neon",               # command line format
     "t/complex-test.neon",          # module
-    "t/compress-test.neon",         # module compress
     "t/concat-bytes.neon",          # bytes
     "t/datetime-test.neon",         # module
     "t/debug-example.neon",         # keyword in
@@ -34,7 +33,6 @@ ExcludeTests = [
     "t/exception-as.neon",          # exception offset
     "t/exception-subexception.neon",# exception multiple handlers
     "t/export.neon",                # method
-    "t/extsample-test.neon",        # extension functions
     "t/ffi.neon",                   # ffi
     "t/file-exists.neon",           # module file
     "t/file-filecopied.neon",       # module file
@@ -55,8 +53,6 @@ ExcludeTests = [
     "t/gc1.neon",                   # gc
     "t/gc2.neon",                   # gc
     "t/gc3.neon",                   # gc
-    "t/hash-test.neon",             # bytes
-    "t/http-test.neon",             # StringReferenceIndexExpression
     "t/import.neon",                # import
     "t/interface-parameter-export.neon", # method
     "t/interface-parameter-import.neon", # method
@@ -96,10 +92,8 @@ ExcludeTests = [
     "t/process-test.neon",          # module process
     "t/record-private.neon",        # methods
     "t/recursion-limit.neon",       # module runtime
-    "t/regex-test.neon",            # module regex
     "t/repl_import.neon",           # module random
     "t/retval-index.neon",          # StringValueIndexExpression
-    "t/sodium-test.neon",           # module sodium
     "t/sql-connect.neon",           # module sqlite
     "t/sql-cursor.neon",            # module sqlite
     "t/sql-embed.neon",             # module sqlite
@@ -130,7 +124,13 @@ ExcludeTests = [
     "t/variant-test.neon",          # bytes
     "t/while-valid.neon",           # unknown
     "t/win32-test.neon",            # module win32
-    "t/zeromq-test.neon",           # module zeromq
+    "lib/compress/t/compress-test.neon",        # module compress
+    "lib/extsample/t/extsample-test.neon",      # extension functions
+    "lib/hash/t/hash-test.neon",                # bytes
+    "lib/http/t/http-test.neon",                # StringReferenceIndexExpression
+    "lib/regex/t/regex-test.neon",              # module regex
+    "lib/sodium/t/sodium-test.neon",            # module sodium
+    "lib/zeromq/t/zeromq-test.neon",            # module zeromq
 ]
 
 fullname = sys.argv[1]

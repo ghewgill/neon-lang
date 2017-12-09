@@ -8,7 +8,6 @@ ExcludeTests = [
     "t/cformat-test.neon",          # module variant
     "t/cmdline.neon",               # PredefinedVariable sys$args
     "t/complex-test.neon",          # illegal character dot
-    "t/compress-test.neon",         # compress.gzip
     "t/concat-bytes.neon",          # confusion between Bytes and String
     "t/datetime-test.neon",         # illegal character dot
     "t/debug-example.neon",         # debugger.log
@@ -19,7 +18,6 @@ ExcludeTests = [
     "t/exception-as.neon",          # ExceptionType
     "t/exception-code.neon",        # ExceptionType
     "t/export.neon",                # enum with no name
-    "t/extsample-test.neon",        # extension functions
     "t/ffi.neon",                   # ForeignFunction
     "t/file-filecopied1.neon",      # exception identification
     "t/file-symlink.neon",          # file.symlink
@@ -33,8 +31,6 @@ ExcludeTests = [
     "t/gc1.neon",                   # PredefinedVariable
     "t/gc2.neon",                   # PredefinedVariable
     "t/gc3.neon",                   # PredefinedVariable
-    "t/hash-test.neon",             # sha-3
-    "t/http-test.neon",             # module os
     "t/import.neon",                # illegal character dot
     "t/index.neon",                 # copy semantics
     "t/inline-construct-record.neon",   # stack size too large
@@ -72,11 +68,9 @@ ExcludeTests = [
     "t/parameter-inout-string.neon",# actually works here so avoid the TODO
     "t/process-test.neon",          # module process
     "t/recursion-limit.neon",       # module runtime
-    "t/regex-test.neon",            # module regex
     "t/repl_import.neon",           # module random
     "t/repl_nested.neon",           # nested function
     "t/rtl.neon",                   # ExceptionType
-    "t/sodium-test.neon",           # module sodium
     "t/sql-connect.neon",           # module sqlite
     "t/sql-cursor.neon",            # module sqlite
     "t/sql-embed.neon",             # module sqlite
@@ -99,7 +93,13 @@ ExcludeTests = [
     "t/unicode-length.neon",        # actually works here so avoid the TODO
     "t/variant-test.neon",          # illegal character dot
     "t/win32-test.neon",            # illegal character dot
-    "t/zeromq-test.neon",           # module zeromq
+    "lib/compress/t/compress-test.neon",        # compress.gzip
+    "lib/extsample/t/extsample-test.neon",      # extension functions
+    "lib/hash/t/hash-test.neon",                # sha-3
+    "lib/http/t/http-test.neon",                # module os
+    "lib/regex/t/regex-test.neon",              # module regex
+    "lib/sodium/t/sodium-test.neon",            # module sodium
+    "lib/zeromq/t/zeromq-test.neon",            # module zeromq
 ]
 
 fullname = sys.argv[1]

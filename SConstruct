@@ -87,17 +87,13 @@ libminizip = add_external(SConscript("external/SConscript-libminizip", exports=[
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
-SConscript("lib/compress/SConstruct")
-SConscript("lib/crypto/SConstruct")
-SConscript("lib/curses/SConstruct")
-SConscript("lib/easysid/SConstruct")
-SConscript("lib/extsample/SConstruct")
-SConscript("lib/hash/SConstruct")
-SConscript("lib/http/SConstruct")
-SConscript("lib/regex/SConstruct")
-SConscript("lib/sdl/SConstruct")
-SConscript("lib/sodium/SConstruct")
-SConscript("lib/zeromq/SConstruct")
+modules = []
+for module in os.listdir("lib"):
+    sconstruct = os.path.join("lib", module, "SConstruct")
+    if os.path.exists(sconstruct):
+        modules.append(module)
+        SConscript(sconstruct)
+modules.sort()
 
 SConscript("external/SConscript-naturaldocs")
 
@@ -510,13 +506,16 @@ else:
 test_sources = []
 for f in Glob("t/*.neon"):
     test_sources.append(f)
+for m in modules:
+    for f in Glob(os.path.join("lib", m, "t", "*.neon")):
+        test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
 env.Depends(tests, test_ffi)
-env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" t")
+env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(x.path for x in test_sources))
 if use_node:
-    tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" t")
-tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" t")
-tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" t")
+    tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(x.path for x in test_sources))
+tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(x.path for x in test_sources))
+tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
 env.Depends(tests_jvm, jvm_classes)
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
