@@ -4,3 +4,21 @@
 [submodule "lib/zeromq"]
 	path = lib/zeromq
 	url = https://github.com/ghewgill/neon-zeromq
+[submodule "lib/sodium"]
+	path = lib/sodium
+	url = https://github.com/ghewgill/neon-sodium
+[submodule "lib/crypto"]
+	path = lib/crypto
+	url = https://github.com/ghewgill/neon-crypto
+[submodule "lib/curses"]
+	path = lib/curses
+	url = https://github.com/ghewgill/neon-curses
+[submodule "lib/easysid"]
+	path = lib/easysid
+	url = https://github.com/ghewgill/neon-easysid
+[submodule "lib/hash"]
+	path = lib/hash
+	url = https://github.com/ghewgill/neon-hash
+[submodule "lib/regex"]
+	path = lib/regex
+	url = https://github.com/ghewgill/neon-regex
