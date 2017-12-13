@@ -7,8 +7,8 @@ env = Environment()
 
 easysidenv = Environment()
 
-env["ENV"]["PROCESSOR_ARCHITECTURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
-env["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
+easysidenv["ENV"]["PROCESSOR_ARCHITECTURE"] = os.getenv("PROCESSOR_ARCHITECTURE")
+easysidenv["ENV"]["PROCESSOR_ARCHITEW6432"] = os.getenv("PROCESSOR_ARCHITEW6432")
 
 if GetOption("clean"):
     shutil.rmtree("easysid-version-1.0", ignore_errors=True)
