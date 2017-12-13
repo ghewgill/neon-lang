@@ -534,6 +534,9 @@ for path, dirs, files in os.walk("."):
             if f.endswith(".neon") and f != "global.neon":
                 if f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
                     continue
+                # These are skipped for now because they depend on extension modules that may not exist.
+                if f in ["lisp.neon", "sudoku.neon"]:
+                    continue
                 samples.append(os.path.join(path, f))
 for sample in samples:
     env.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")

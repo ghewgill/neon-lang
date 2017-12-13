@@ -1,3 +1,5 @@
+% SKIP (regex is an extension module which may not exist)
+
 IMPORT os
 IMPORT sys
 

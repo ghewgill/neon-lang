@@ -1,3 +1,5 @@
+% SKIP (regex is an extension module which may not exist)
+
 IMPORT multiarray
 
 IMPORT "samples/sudoku/sudoku" ALIAS sudoku
