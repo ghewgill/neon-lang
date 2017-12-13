@@ -1,3 +1,0 @@
-EXPORT AES_CBC_256_Decrypt
-
-DECLARE EXTENSION FUNCTION AES_CBC_256_Decrypt(ciphertext: Bytes, key: Bytes, iv: Bytes): Bytes
