@@ -1,0 +1,6 @@
+[submodule "lib/sdl"]
+	path = lib/sdl
+	url = https://github.com/ghewgill/neon-sdl
+[submodule "lib/zeromq"]
+	path = lib/zeromq
+	url = https://github.com/ghewgill/neon-zeromq
