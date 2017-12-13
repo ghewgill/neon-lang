@@ -1,7 +1,7 @@
 FOREIGN FUNCTION set_reg(reg: Number, value: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "reg": "uint8"
@@ -13,7 +13,7 @@ END FUNCTION
 FOREIGN FUNCTION set_freq(voice: Number, freq: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -25,7 +25,7 @@ END FUNCTION
 FOREIGN FUNCTION set_pw(voice: Number, pw: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -37,7 +37,7 @@ END FUNCTION
 FOREIGN FUNCTION set_wave(voice: Number, wave: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -49,7 +49,7 @@ END FUNCTION
 FOREIGN FUNCTION set_test(voice: Number, test: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -61,7 +61,7 @@ END FUNCTION
 FOREIGN FUNCTION set_ring(voice: Number, ring: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -73,7 +73,7 @@ END FUNCTION
 FOREIGN FUNCTION set_sync(voice: Number, sync: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -85,7 +85,7 @@ END FUNCTION
 FOREIGN FUNCTION set_gate(voice: Number, gate: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -97,7 +97,7 @@ END FUNCTION
 FOREIGN FUNCTION set_adsr(voice: Number, attack, decay, sustain, release: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -112,7 +112,7 @@ END FUNCTION
 FOREIGN FUNCTION set_filter_freq(freq: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "freq": "uint16"
@@ -123,7 +123,7 @@ END FUNCTION
 FOREIGN FUNCTION set_filter_res(res: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "res": "uint8"
@@ -134,7 +134,7 @@ END FUNCTION
 FOREIGN FUNCTION set_filter_enable(voice: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "voice": "uint8"
@@ -145,7 +145,7 @@ END FUNCTION
 FOREIGN FUNCTION set_filter_lp(enable: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "enable": "uint8"
@@ -156,7 +156,7 @@ END FUNCTION
 FOREIGN FUNCTION set_filter_bp(enable: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "enable": "uint8"
@@ -167,7 +167,7 @@ END FUNCTION
 FOREIGN FUNCTION set_filter_hp(enable: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "enable": "uint8"
@@ -178,7 +178,7 @@ END FUNCTION
 FOREIGN FUNCTION set_voice3_mute(mute: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "mute": "uint8"
@@ -189,7 +189,7 @@ END FUNCTION
 FOREIGN FUNCTION set_volume(volume: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "volume": "uint8"
@@ -200,7 +200,7 @@ END FUNCTION
 FOREIGN FUNCTION run_ms(ms: Number)
 {
     "library": {
-        "name": "external/easysid-version-1.0/libeasysid"
+        "name": "lib/easysid/easysid-version-1.0/libeasysid"
     }
     "types": {
         "ms": "uint32"
