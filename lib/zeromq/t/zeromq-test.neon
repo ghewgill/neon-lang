@@ -1,6 +1,0 @@
-IMPORT zeromq
-
-VAR major, minor, patch: Number
-zeromq.zmq_version(OUT major, OUT minor, OUT patch)
-print("version \(major).\(minor).\(patch)")
-%= version 4.2.0
