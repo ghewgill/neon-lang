@@ -11,7 +11,7 @@ errors = None
 runner = ["bin/neon"]
 
 def run(fn):
-    print ("Running {}...".format(fn))
+    print ("Running {} {}...".format(" ".join(runner), fn))
 
     try:
         src = codecs.open(fn, encoding="UTF-8").read().replace("\r\n", "\n")
