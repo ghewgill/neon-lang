@@ -29,20 +29,13 @@ CMakeFiles/
 external/IntelRDFPMathLib20U1/
 external/utfcpp-master/
 external/libffi-3.2.1/
-external/PDCurses-3.4/
 external/hash-library/
-external/pcre2-10.10/
-external/curl-7.41.0/
 external/sqlite-amalgamation-3080803/
 external/zlib-1.2.8/
-external/bzip2-1.0.6/
-external/xz-5.2.1/
 external/minijson_writer-master/
 external/NaturalDocs/
 external/pyparsing-2.0.3/
 external/minizip11/
-external/libsodium-1.0.5/
-external/libressl-2.2.4/
 
 external/etc
 external/include

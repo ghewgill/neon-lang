@@ -22,3 +22,6 @@
 [submodule "lib/regex"]
 	path = lib/regex
 	url = https://github.com/ghewgill/neon-regex
+[submodule "lib/fltk"]
+	path = lib/fltk
+	url = https://github.com/ghewgill/neon-fltk
