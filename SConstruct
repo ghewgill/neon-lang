@@ -535,7 +535,8 @@ for path, dirs, files in os.walk("."):
                 if f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
                     continue
                 # These are skipped for now because they depend on extension modules that may not exist.
-                if f in ["lisp.neon", "sudoku.neon"]:
+                # Definitely need a better way to handle this.
+                if f in ["apple2.neon", "bbs.neon", "editor.neon", "forth.neon", "hello-curses.neon", "httpd.neon", "lisp.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
                     continue
                 samples.append(os.path.join(path, f))
 for sample in samples:
