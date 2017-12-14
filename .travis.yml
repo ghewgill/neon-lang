@@ -6,10 +6,13 @@ compiler:
   - gcc
   # It seems that the clang compiler on travis doesn't correctly build its own headers.
   #- clang
+git:
+  submodules: false
 env:
-  - RELEASE=0
-  - RELEASE=1
+  - RELEASE=0 WITH_SUBMODULES=0
+  - RELEASE=0 WITH_SUBMODULES=1
+  - RELEASE=1 WITH_SUBMODULES=1
 before_install:
   - which scons || brew install scons
-script: scons RELEASE=$RELEASE
+script: ([ "$WITH_SUBMODULES" == "1" ] && git submodule update --init); scons RELEASE=$RELEASE
 sudo: false
