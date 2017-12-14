@@ -1,27 +1,36 @@
 [submodule "lib/sdl"]
 	path = lib/sdl
 	url = https://github.com/ghewgill/neon-sdl
+	ignore = untracked
 [submodule "lib/zeromq"]
 	path = lib/zeromq
 	url = https://github.com/ghewgill/neon-zeromq
+	ignore = untracked
 [submodule "lib/sodium"]
 	path = lib/sodium
 	url = https://github.com/ghewgill/neon-sodium
+	ignore = untracked
 [submodule "lib/crypto"]
 	path = lib/crypto
 	url = https://github.com/ghewgill/neon-crypto
+	ignore = untracked
 [submodule "lib/curses"]
 	path = lib/curses
 	url = https://github.com/ghewgill/neon-curses
+	ignore = untracked
 [submodule "lib/easysid"]
 	path = lib/easysid
 	url = https://github.com/ghewgill/neon-easysid
+	ignore = untracked
 [submodule "lib/hash"]
 	path = lib/hash
 	url = https://github.com/ghewgill/neon-hash
+	ignore = untracked
 [submodule "lib/regex"]
 	path = lib/regex
 	url = https://github.com/ghewgill/neon-regex
+	ignore = untracked
 [submodule "lib/fltk"]
 	path = lib/fltk
 	url = https://github.com/ghewgill/neon-fltk
+	ignore = untracked
