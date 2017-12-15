@@ -1,6 +1,7 @@
 #include "bytecode.h"
 
 #include <assert.h>
+#include <iterator>
 #include <stdint.h>
 
 class BytecodeException: public std::exception {};

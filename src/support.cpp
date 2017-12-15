@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iso646.h>
+#include <iterator>
 #include <sstream>
 
 #ifdef _WIN32
