@@ -1,6 +1,11 @@
-# Use Visual Studio 2013, the target platform for Neon.
-# Later, we'll move up to VS2015.
-os: Visual Studio 2013
+image:
+    - Visual Studio 2013
+    - Visual Studio 2015
+    - Visual Studio 2017
+environment:
+    matrix:
+        - WITH_SUBMODULES: 0
+        - WITH_SUBMODULES: 1
 install:
 - ps: >-
     if (-not (Test-Path C:\Python27)){
@@ -14,4 +19,5 @@ install:
     }
 build_script:
 - cmd: C:\Python27\python.exe scons-3.0.0\setup.py install
+- cmd: if %WITH_SUBMODULES%==1 git submodule update --init
 - cmd: c:\python27\scons
