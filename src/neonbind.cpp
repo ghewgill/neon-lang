@@ -3,6 +3,7 @@
 #endif
 #include <fstream>
 #include <iso646.h>
+#include <iterator>
 #include <map>
 #include <sstream>
 #include <stdio.h>

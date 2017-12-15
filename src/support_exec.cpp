@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iso646.h>
+#include <iterator>
 #include <sstream>
 
 #include "bytecode.h"
