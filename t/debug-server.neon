@@ -1,3 +1,5 @@
+% SKIP (needs http module)
+
 IMPORT http
 %IMPORT io
 IMPORT json
