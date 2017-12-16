@@ -536,7 +536,7 @@ for path, dirs, files in os.walk("."):
                     continue
                 # These are skipped for now because they depend on extension modules that may not exist.
                 # Definitely need a better way to handle this.
-                if f in ["apple2.neon", "bbs.neon", "editor.neon", "forth.neon", "hello-curses.neon", "httpd.neon", "lisp.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
+                if f in ["apple2.neon", "bbs.neon", "coverage.neon", "editor.neon", "forth.neon", "hello-curses.neon", "httpd.neon", "lisp.neon", "ndb.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
                     continue
                 samples.append(os.path.join(path, f))
 for sample in samples:
