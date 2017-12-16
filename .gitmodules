@@ -38,3 +38,6 @@
 	path = lib/http
 	url = https://github.com/ghewgill/neon-http
 	ignore = untracked
+[submodule "lib/compress"]
+	path = lib/compress
+	url = https://github.com/ghewgill/neon-compress
