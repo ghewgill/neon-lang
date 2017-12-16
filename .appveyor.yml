@@ -6,6 +6,12 @@ environment:
     matrix:
         - WITH_SUBMODULES: 0
         - WITH_SUBMODULES: 1
+matrix:
+    exclude:
+        - image: Visual Studio 2015
+          WITH_SUBMODULES: 1
+        - image: Visual Studio 2017
+          WITH_SUBMODULES: 1
 install:
 - ps: >-
     if (-not (Test-Path C:\Python27)){
