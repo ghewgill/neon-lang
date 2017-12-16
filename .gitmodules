@@ -34,3 +34,7 @@
 	path = lib/fltk
 	url = https://github.com/ghewgill/neon-fltk
 	ignore = untracked
+[submodule "lib/http"]
+	path = lib/http
+	url = https://github.com/ghewgill/neon-http
+	ignore = untracked
