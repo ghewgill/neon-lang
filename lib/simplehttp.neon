@@ -1,0 +1,156 @@
+%|
+ |  File: simplehttp
+ |
+ |  Functions for making HTTP requests.
+ |%
+IMPORT net
+IMPORT string
+
+EXPORT HttpException
+
+EXPORT get
+EXPORT post
+
+%|
+ |  Exception: HttpException
+ |
+ |  Raised when an HTTP request returns anything other than 200 OK.
+ |%
+EXCEPTION HttpException
+
+%|
+ |  Function: get
+ |
+ |  Perform an HTTP GET operation with the specified url.
+ |
+ |  Parameters:
+ |      url - the url
+ |      headers - the response headers from the server
+ |%
+FUNCTION get(url: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
+    RETURN exec("GET", url, "", requestHeaders, OUT responseHeaders)
+END FUNCTION
+
+%|
+ |  Function: post
+ |
+ |  Perform an HTTP POST operation with the specified url and post data.
+ |
+ |  Parameters:
+ |      url - the url
+ |      post_data - the body of the POST request
+ |      headers - the response headers from the server
+ |%
+FUNCTION post(url: String, post_data: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
+    RETURN exec("POST", url, post_data, requestHeaders, OUT responseHeaders)
+END FUNCTION
+
+FUNCTION exec(method: String, url: String, post_data: String, requestHeaders: Dictionary<String>, OUT responseHeaders: Array<String> DEFAULT _): Bytes
+    VAR server: String
+    VAR port: Number
+    VAR path: String
+    decomposeUrl(url, OUT server, OUT port, OUT path)
+    LET s: net.Socket := net.tcpSocket()
+    s.connect(server, port)
+    VAR request: String := "\(method) \(path) HTTP/1.0\r\n"
+    request.append("Host: \(server)\r\n")
+    IF method = "POST" THEN
+        request.append("Content-Length: \(post_data.length())\r\n")
+    END IF
+    FOREACH h IN requestHeaders.keys() DO
+        request.append("\(h): \(requestHeaders[h])\r\n")
+    END FOREACH
+    request.append("\r\n")
+    s.send(request.toBytes())
+    IF method = "POST" THEN
+        s.send(post_data.toBytes())
+    END IF
+    VAR response: Bytes := HEXBYTES ""
+    LOOP
+        LET buf: Bytes := s.recv(1024)
+        IF buf.size() = 0 THEN
+            EXIT LOOP
+        END IF
+        response := response & buf
+    END LOOP
+    responseHeaders := []
+    VAR i: Number := 0
+    LET status: String := nextLine(response, INOUT i)
+    LOOP
+        LET header: String := nextLine(response, INOUT i)
+        IF header = "" THEN
+            EXIT LOOP
+        END IF
+        responseHeaders.append(header)
+    END LOOP
+    s.close()
+    RETURN response[i TO LAST]
+END FUNCTION
+
+FUNCTION decomposeUrl(url: String, OUT server: String, OUT port: Number, OUT path: String)
+    LET schemecolon: Number := string.find(url, ":")
+    CHECK schemecolon >= 0 ELSE
+        RAISE HttpException(info WITH "url format error")
+    END CHECK
+    LET scheme: String := url[FIRST TO schemecolon-1]
+    CHECK scheme = "http" ELSE
+        RAISE HttpException(info WITH "url scheme not supported")
+    END CHECK
+    CHECK url[schemecolon TO schemecolon+2] = "://" ELSE
+        RAISE HttpException(info WITH "url format error")
+    END CHECK
+    LET tail: String := url[schemecolon+3 TO LAST]
+    LET slash: Number := string.find(tail, "/")
+    CHECK slash >= 0 ELSE
+        RAISE HttpException(info WITH "url format error")
+    END CHECK
+    LET portcolon: Number := string.find(tail, ":")
+    server := tail[FIRST TO (IF portcolon >= 0 THEN portcolon-1 ELSE slash-1)]
+    port := (IF 0 <= portcolon < slash THEN num(tail[portcolon+1 TO slash-1]) ELSE 80)
+    path := tail[slash TO LAST]
+END FUNCTION
+
+FUNCTION nextLine(buf: Bytes, INOUT i: Number): String
+    LET a: Array<Number> := buf.toArray()
+    LET start: Number := i
+    VAR lastchar: Number := i-1
+    WHILE chr(a[i]) <> "\n" DO
+        IF chr(a[i]) <> "\r" THEN
+            lastchar := i
+        END IF
+        INC i
+    END WHILE
+    INC i
+    RETURN buf[start TO lastchar].decodeToString()
+END FUNCTION
+
+BEGIN MAIN
+    FUNCTION check(url: String, server: String, port: Number, path: String)
+        VAR s: String
+        VAR p: Number
+        VAR t: String
+        decomposeUrl(url, OUT s, OUT p, OUT t)
+        ASSERT s = server
+        ASSERT p = port
+        ASSERT t = path
+    END FUNCTION
+    check("http://hello/world", "hello", 80, "/world")
+    check("http://hello:1234/world", "hello", 1234, "/world")
+
+    VAR x: String := "hello\r\nworld\r\n\r\n"
+    VAR b: Bytes := x.toBytes()
+    VAR i: Number := 0
+    ASSERT nextLine(b, INOUT i) = "hello"
+    ASSERT i = 7
+    ASSERT nextLine(b, INOUT i) = "world"
+    ASSERT i = 14
+    ASSERT nextLine(b, INOUT i) = ""
+    ASSERT i = 16
+
+    VAR responseHeaders: Array<String>
+    LET r: Bytes := get("http://neverssl.com/", {}, OUT responseHeaders)
+    FOREACH h IN responseHeaders DO
+        print(h)
+    END FOREACH
+    print("size=\(r.size())")
+END MAIN

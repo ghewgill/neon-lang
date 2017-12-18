@@ -1,6 +1,6 @@
-IMPORT http
 IMPORT json
 IMPORT os
+IMPORT simplehttp
 IMPORT string
 IMPORT sys
 IMPORT time
@@ -9,12 +9,12 @@ IMPORT variant
 CONSTANT Port: Number := 20179
 
 FUNCTION get(url: String): variant.Variant
-    LET data: String := http.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
+    LET data: String := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
 
 FUNCTION post(url: String, post_data: String): variant.Variant
-    LET data: String := http.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
+    LET data: String := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
 
@@ -75,7 +75,7 @@ LOOP
         time.sleep(0.1)
         TRY
             r := get("/status")
-        TRAP http.HttpException DO
+        TRAP simplehttp.HttpException DO
             EXIT LOOP
         END TRY
     UNTIL r.getDictionary()["state"].getString() = "stopped"
