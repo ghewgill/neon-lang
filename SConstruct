@@ -545,7 +545,7 @@ env.Command("tests_2", ["samples/hello/hello.neonx", neonx], neonx[0].abspath + 
 
 env.Command("test_grammar", ["contrib/grammar/neon.ebnf", "src/token.h", "src/parser.cpp"], sys.executable + " contrib/grammar/test-grammar.py lib/*.neon neon/*.neon tools/*.neon {} t/*.neon t/errors/N3*.neon >$TARGET".format(" ".join(x for x in reduce(operator.add, ([os.path.join(path, x) for x in files] for path, dirs, files in os.walk("samples"))) if x.endswith(".neon"))))
 env.Command("test_grammar_random", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-random.py")
-env.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "contrib/grammar/ebnf_w3c.neon", neon], neon[0].path + " contrib/grammar/ebnf_w3c.neon <$SOURCE >$TARGET")
+env.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "contrib/grammar/ebnf_w3c.neon", neon], sys.executable + " tools/helium.py contrib/grammar/ebnf_w3c.neon <$SOURCE >$TARGET")
 
 env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
 

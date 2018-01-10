@@ -2384,6 +2384,7 @@ def run(program):
     program.env.declare("chr", None, neon_chr)
     program.env.declare("concat", None, neon_concat)
     program.env.declare("format", None, neon_format)
+    program.env.declare("input", None, neon_input)
     program.env.declare("int", None, neon_int)
     program.env.declare("max", None, neon_max)
     program.env.declare("min", None, neon_min)
@@ -2424,6 +2425,9 @@ def neon_format(env, s, fmt):
         return format(int(s), fmt)
     else:
         return format(s, fmt)
+
+def neon_input(env, x):
+    return raw_input()
 
 def neon_int(env, x):
     return int(x)
