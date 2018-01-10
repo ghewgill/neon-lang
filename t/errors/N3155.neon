@@ -1,4 +1,4 @@
-IMPORT module
+IMPORT sys
 
-VAR x: module.bar
-              %<
+VAR x: sys.bar
+           %<

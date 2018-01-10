@@ -1,4 +1,4 @@
-IMPORT module
+IMPORT sys
 
-VAR x: module.const
-              %<
+VAR x: sys.args
+           %<
