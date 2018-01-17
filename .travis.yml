@@ -4,15 +4,19 @@ os:
   - osx
 compiler:
   - gcc
-  # It seems that the clang compiler on travis doesn't correctly build its own headers.
-  #- clang
+  - clang
 git:
   submodules: false
 env:
-  - RELEASE=0 WITH_SUBMODULES=0
-  - RELEASE=0 WITH_SUBMODULES=1
-  - RELEASE=1 WITH_SUBMODULES=1
+  - BUILDER=scons RELEASE=0 WITH_SUBMODULES=0
+  - BUILDER=scons RELEASE=0 WITH_SUBMODULES=1
+  - BUILDER=scons RELEASE=1 WITH_SUBMODULES=1
+  - BUILDER=cmake WITH_SUBMODULES=0
 before_install:
   - which scons || brew install scons
-script: ([ "$WITH_SUBMODULES" == "1" ] && git submodule update --init); scons RELEASE=$RELEASE
+before_script:
+  - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
+script:
+  - if [ "$BUILDER" == "scons" ]; then scons RELEASE=$RELEASE; fi
+  - if [ "$BUILDER" == "cmake" ]; then scons external/lib && cmake . && make && ctest; fi
 sudo: false

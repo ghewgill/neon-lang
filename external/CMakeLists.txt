@@ -1,0 +1,8 @@
+include(libbid.cmake)
+include(libffi.cmake)
+include(libhash.cmake)
+include(minijson.cmake)
+include(minizip.cmake)
+include(sqlite.cmake)
+include(utfcpp.cmake)
+include(zlib.cmake)

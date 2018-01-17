@@ -23,8 +23,6 @@ bin/
 errors.txt
 config.cache
 test_grammar
-CMakeCache.txt
-CMakeFiles/
 
 external/IntelRDFPMathLib20U1/
 external/utfcpp-master/
@@ -41,3 +39,21 @@ external/etc
 external/include
 external/lib
 external/share
+
+# CMake ignores from https://github.com/github/gitignore/blob/master/CMake.gitignore
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+
+# CMake outputs for MSVC
+*.vcxproj
+*.vcxproj.filters
+
+# CMake output for Ninja
+*.ninja

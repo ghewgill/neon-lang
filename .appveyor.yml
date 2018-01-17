@@ -4,13 +4,21 @@ image:
     - Visual Studio 2017
 environment:
     matrix:
-        - WITH_SUBMODULES: 0
-        - WITH_SUBMODULES: 1
+        - BUILDER: scons
+          WITH_SUBMODULES: 0
+        - BUILDER: scons
+          WITH_SUBMODULES: 1
+        - BUILDER: cmake
+          WITH_SUBMODULES: 0
+        - BUILDER: cmake
+          WITH_SUBMODULES: 1
 matrix:
     exclude:
         - image: Visual Studio 2015
           WITH_SUBMODULES: 1
         - image: Visual Studio 2017
+          WITH_SUBMODULES: 1
+        - BUILDER: cmake
           WITH_SUBMODULES: 1
 install:
 - ps: >-
@@ -26,4 +34,5 @@ install:
 build_script:
 - cmd: C:\Python27\python.exe scons-3.0.0\setup.py install
 - cmd: if %WITH_SUBMODULES%==1 git submodule update --init
-- cmd: c:\python27\scons
+- cmd: if %BUILDER%==scons c:\python27\scons
+- cmd: if %BUILDER%==cmake c:\python27\scons external/lib && cmake . && msbuild ALL_BUILD.vcxproj && ctest

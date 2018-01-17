@@ -14,6 +14,8 @@
 
 #ifdef _MSC_VER
 #define unlink _unlink
+#else
+#include <unistd.h>
 #endif
 
 #include <zip.h>
