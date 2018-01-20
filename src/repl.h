@@ -24,6 +24,9 @@ private:
     std::map<std::string, ast::ExternalGlobalInfo> globals_ast;
     std::map<std::string, Cell *> globals_cells;
     std::vector<std::unique_ptr<TokenizedSource>> input;
+private:
+    Repl(const Repl &) = delete;
+    Repl operator=(const Repl &) = delete;
 };
 
 #endif // REPL_H
