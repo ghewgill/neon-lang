@@ -17,7 +17,10 @@ Repl::Repl(int argc, char *argv[], bool no_prompt, bool stop_on_any_error, bool 
     stop_on_any_error(stop_on_any_error),
     dump_listing(dump_listing),
     compiler_support("", nullptr),
-    runtime_support("")
+    runtime_support(""),
+    globals_ast(),
+    globals_cells(),
+    input()
 {
     if (not no_prompt) {
         std::cout << "Neon 0.1\n";
