@@ -351,6 +351,7 @@ neon = env.Program("bin/neon", [
     "src/number.cpp",
     "src/parser.cpp",
     "src/pt_dump.cpp",
+    "src/repl.cpp",
     "src/rtl_compile.cpp",
     "src/rtl_exec.cpp",
     rtl_cpp,

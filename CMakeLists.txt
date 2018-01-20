@@ -262,6 +262,7 @@ target_link_libraries(neonc bid hash-library)
 
 add_executable(neon
     src/main.cpp
+    src/repl.cpp
     $<TARGET_OBJECTS:common>
     $<TARGET_OBJECTS:compiler>
     $<TARGET_OBJECTS:executor>
