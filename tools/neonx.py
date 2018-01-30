@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import decimal
 import struct
 import sys
 
@@ -125,12 +126,19 @@ class Bytecode:
             i += strlen
         return r
 
+class Value:
+    def __init__(self, value):
+        self.value = value
+
 class Executor:
     def __init__(self, bytecode):
         self.object = Bytecode(bytecode)
         self.ip = 0
         self.stack = []
         self.callstack = []
+        self.globals = [None] * self.object.global_size
+        for i in range(len(self.globals)):
+            self.globals[i] = Value(None)
 
     def run(self):
         self.callstack.append((None, len(self.object.code)))
@@ -147,15 +155,19 @@ class Executor:
         assert False
 
     def PUSHN(self):
-        assert False
+        val = struct.unpack_from(">L", self.object.code, self.ip+1)[0]
+        self.ip += 5
+        self.stack.append(Value(decimal.Decimal(self.object.strtable[val])))
 
     def PUSHS(self):
         val = struct.unpack_from(">L", self.object.code, self.ip+1)[0]
         self.ip += 5
-        self.stack.append(self.object.strtable[val])
+        self.stack.append(Value(self.object.strtable[val]))
 
     def PUSHPG(self):
-        assert False
+        addr = struct.unpack_from(">L", self.object.code, self.ip+1)[0]
+        self.ip += 5
+        self.stack.append(self.globals[addr])
 
     def PUSHPPG(self):
         assert False
@@ -176,7 +188,9 @@ class Executor:
         assert False
 
     def LOADN(self):
-        assert False
+        self.ip += 1
+        addr = self.stack.pop()
+        self.stack.append(Value(addr.value))
 
     def LOADS(self):
         assert False
@@ -194,7 +208,10 @@ class Executor:
         assert False
 
     def STOREN(self):
-        assert False
+        self.ip += 1
+        addr = self.stack.pop()
+        value = self.stack.pop().value
+        addr.value = value
 
     def STORES(self):
         assert False
@@ -212,22 +229,40 @@ class Executor:
         assert False
 
     def ADDN(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a + b))
 
     def SUBN(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a - b))
 
     def MULN(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a * b))
 
     def DIVN(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a / b))
 
     def MODN(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a % b))
 
     def EXPN(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a ** b))
 
     def EQB(self):
         assert False
@@ -330,10 +365,13 @@ class Executor:
         self.ip += 5
         func = self.object.strtable[val]
         if func == "print":
-            s = self.stack.pop()
+            s = self.stack.pop().value
             print(s)
+        elif func == "str":
+            v = self.stack.pop().value
+            self.stack.append(Value(str(v)))
         else:
-            assert False
+            assert False, func
 
     def CALLF(self):
         assert False
@@ -390,7 +428,9 @@ class Executor:
         assert False
 
     def RESETC(self):
-        assert False
+        self.ip += 1
+        value = self.stack.pop()
+        value.value = None
 
     def PUSHPEG(self):
         assert False
