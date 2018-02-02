@@ -192,7 +192,6 @@ def parse_params(paramstr):
             break
     return r
 
-constants = dict()
 enums = dict()
 variables = dict()
 functions = dict()
@@ -244,18 +243,21 @@ for fn in sys.argv[1:]:
                 elif a[:3] == ["DECLARE", "NATIVE", "CONSTANT"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
                     assert m is not None
-                    name = prefix + m.group(1)
+                    name = prefix + "_CONSTANT_" + m.group(1)
                     ntype = m.group(2)
                     assert ntype in ["Number", "String"]
                     ctype = ntype
                     if ctype == "String":
                         ctype = "std::string"
                     a = name.split("$")
-                    constants[name] = [
+                    functions[name] = [
                         name,
-                        ctype,
+                        AstFromNeon[ntype],
+                        ntype,
                         name in exported,
-                        "new ast::Constant{}Expression(rtl::{}::CONSTANT_{})".format(ntype, a[0], a[1])
+                        [],
+                        [],
+                        []
                     ]
                 elif a[:3] == ["DECLARE", "NATIVE", "VAR"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
@@ -356,28 +358,6 @@ with open("src/thunks.inc", "w") as inc:
         print >>inc, "    }"
         print >>inc, "}"
         print >>inc, ""
-
-with open("src/constants_compile.inc", "w") as inc:
-    print >>inc, "namespace rtl {"
-    for name, ctype, exported, init in constants.values():
-        if exported:
-            a = name.split("$")
-            print >>inc, "namespace {} {{ extern const {} CONSTANT_{}; }}".format(a[0], ctype, a[1])
-    print >>inc, "}"
-    # There aren't currently any global predefined constants.
-    #print >>inc, "static void init_builtin_constants(ast::Scope *{})".format("scope" if any("$" not in x[0] for x in constants.values()) else "")
-    #print >>inc, "{"
-    #for name, ctype, exported, init in constants.values():
-    #    if "$" not in name:
-    #        print >>inc, "    scope->addName(Token(), \"{}\", new Constant(Token(), \"{}\", {}));".format(name, name, init)
-    #print >>inc, "}";
-    print >>inc, "static const ast::Expression *get_native_constant_value(const std::string &{})".format("name" if any("$" in x[0] for x in constants.values()) else "")
-    print >>inc, "{"
-    for name, ctype, exported, init in constants.values():
-        if exported:
-            print >>inc, "    if (name == \"{}\") return {};".format(name, init)
-    print >>inc, "    internal_error(\"native constant not found: \" + name);"
-    print >>inc, "}";
 
 with open("src/variables_compile.inc", "w") as inc:
     print >>inc, "static void init_builtin_variables(const std::string &module, ast::Scope *scope)"

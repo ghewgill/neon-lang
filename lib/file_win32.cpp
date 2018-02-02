@@ -21,6 +21,11 @@ namespace rtl {
 
 namespace file {
 
+std::string _CONSTANT_Separator()
+{
+    return "\\";
+}
+
 void copy(const std::string &filename, const std::string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), TRUE);

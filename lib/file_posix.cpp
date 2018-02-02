@@ -28,6 +28,11 @@ namespace rtl {
 
 namespace file {
 
+std::string _CONSTANT_Separator()
+{
+    return "/";
+}
+
 void copy(const std::string &filename, const std::string &destination)
 {
 #ifdef __APPLE__

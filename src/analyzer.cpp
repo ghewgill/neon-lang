@@ -15,8 +15,6 @@
 #include "support.h"
 #include "util.h"
 
-#include "constants_compile.inc"
-
 class Analyzer {
 public:
     Analyzer(ICompilerSupport *support, const pt::Program *program, std::map<std::string, ast::ExternalGlobalInfo> *external_globals);
@@ -2455,8 +2453,24 @@ const ast::Statement *Analyzer::analyze_decl(const pt::NativeConstantDeclaration
 const ast::Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration *declaration)
 {
     std::string name = declaration->name.text;
-    scope.top()->addName(declaration->name, name, new ast::Constant(declaration->name, name, get_native_constant_value(module_name + "$" + name)));
-    return new ast::NullStatement(declaration->token.line);
+    const ast::Type *type = analyze(declaration->type.get());
+    ast::Variable *v = frame.top()->createVariable(declaration->name, name, type, true);
+    scope.top()->addName(v->declaration, v->name, v, true);
+    return new ast::AssignmentStatement(
+        declaration->token.line,
+        {
+            new ast::VariableExpression(v)
+        },
+        new ast::FunctionCall(
+            new ast::VariableExpression(
+                new ast::PredefinedFunction(
+                    module_name + "$_CONSTANT_" + name,
+                    new ast::TypeFunction(type, {})
+                )
+            ),
+            {}
+        )
+    );
 }
 
 const ast::Statement *Analyzer::analyze_decl(const pt::ExtensionConstantDeclaration *declaration)

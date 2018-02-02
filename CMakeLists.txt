@@ -45,7 +45,7 @@ else (WIN32)
 endif (WIN32)
 
 add_custom_command(
-    OUTPUT src/thunks.inc src/functions_compile.inc src/functions_exec.inc src/enums.inc src/exceptions.inc src/constants_compile.inc
+    OUTPUT src/thunks.inc src/functions_compile.inc src/functions_exec.inc src/enums.inc src/exceptions.inc
     COMMAND python scripts/make_thunks.py ${RTL_NEON}
     DEPENDS scripts/make_thunks.py
     DEPENDS ${RTL_NEON}
