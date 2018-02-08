@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 IncludeTests = [
-    "t/arithmetic.neon",
+    #"t/arithmetic.neon",
     "t/hello.neon",
 ]
 
@@ -20,4 +20,4 @@ if fullname.replace("\\", "/") in ExcludeTests:
     sys.exit(99)
 
 subprocess.check_call([os.path.join("bin", "neonc"), "-q", fullname])
-subprocess.check_call(["contrib/msvc/Debug/neonvm.exe", fullname + "x"])
+subprocess.check_call(["contrib/msvc/Debug/neonvm", fullname + "x"])
