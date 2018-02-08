@@ -5,13 +5,15 @@
 #include "opcode.h"
 #include "stack.h"
 
+#define error(s) fprintf(stderr, "%s\n", s); abort();
+
 typedef unsigned int uint32_t;
 typedef unsigned short uint16_t;
 
 static short get_uint16(const unsigned char *pobj, unsigned int nBuffSize, unsigned int *i)
 {
     if (*i+2 > nBuffSize) {
-        perror("Bytecode exception: Read past EOF.");
+        error("Bytecode exception: Read past EOF.");
     }
     short r = (pobj[*i] << 8) | pobj[*i+1];
     *i += 2;
@@ -21,7 +23,7 @@ static short get_uint16(const unsigned char *pobj, unsigned int nBuffSize, unsig
 static unsigned int get_uint32(const unsigned char *pobj, unsigned int nBuffSize, unsigned int *i)
 {
     if (*i+4 > nBuffSize) {
-        perror("Bytecode excpetion: Read past EOF.");
+        error("Bytecode excpetion: Read past EOF.");
     }
     long r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
     *i += 4;
@@ -216,6 +218,7 @@ int main(int argc, char* argv[])
 {
     if (argc <= 1) {
         printf("\nusage: %s program.neon\n", argv[0]);
+        return 1;
     }
     struct tagTBytecode *pModule;
     FILE *fp = fopen(argv[1], "rb");
@@ -258,19 +261,19 @@ struct tagTExecutor *new_executer(struct tagTBytecode *object)
 
 void exec_ENTER()
 {
-    perror("not implemented");}
+    error("not implemented");}
 
 void exec_LEAVE()
 {
-    perror("not implemented");}
+    error("not implemented");}
 
 void exec_PUSHB()
 {
-    perror("not implemented");}
+    error("not implemented");}
 
 void exec_PUSHN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHS(struct tagTExecutor *self)
@@ -282,287 +285,287 @@ void exec_PUSHS(struct tagTExecutor *self)
 
 void exec_PUSHPG()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHPPG()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHPMG()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHPL()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHPOL()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHI()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LOADB()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LOADN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LOADS()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LOADA()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LOADD()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LOADP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_STOREB()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_STOREN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_STORES()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_STOREA()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_STORED()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_STOREP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NEGN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_ADDN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_SUBN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_MULN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_DIVN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_MODN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EXPN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EQB()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NEB()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EQN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NEN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LTN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_GTN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LEN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_GEN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EQS()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NES()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LTS()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_GTS()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_LES()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_GES()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EQA()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NEA()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EQD()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NED()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EQP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NEP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_ANDB()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_ORB()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_NOTB()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INDEXAR()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INDEXAW()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INDEXAV()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INDEXAN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INDEXDR()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INDEXDW()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INDEXDV()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_INA()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_IND()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_CALLP(struct tagTExecutor *self)
@@ -575,58 +578,58 @@ void exec_CALLP(struct tagTExecutor *self)
         const char *s = pop(&self->stack);
         printf("%s\n", s);
     } else {
-        perror("exec_CALLP(): Invalid function call");
+        error("exec_CALLP(): Invalid function call");
     }
 }
 
 void exec_CALLF()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_CALLMF()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_CALLI()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_JUMP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_JF()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_JT()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_JFCHAIN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_DUP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_DUPX1()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_DROP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_RET(struct tagTExecutor *self)
@@ -637,81 +640,81 @@ void exec_RET(struct tagTExecutor *self)
 
 void exec_CALLE()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_CONSA()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_CONSD()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_EXCEPT()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_ALLOC()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHNIL()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_JNASSERT()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_RESETC()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHPEG()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_JUMPTBL()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_CALLX()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_SWAP()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_DROPN()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_PUSHM()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_CALLV()
 {
-    perror("not implemented");}
+    error("not implemented");}
 
 void exec_PUSHCI()
 {
-    perror("not implemented");
+    error("not implemented");
 }
 
 void exec_loop(struct tagTExecutor *self)
@@ -815,381 +818,3 @@ void exec_loop(struct tagTExecutor *self)
         }
     }
 }
-
-
-//self.callstack.append((None, len(self.object.code)))
-//        while self.ip < len(self.object.code):
-//            Dispatch[ord(self.object.code[self.ip])](self)
-//
-//    def ENTER(self):
-//        assert False
-//
-//    def LEAVE(self):
-//        assert False
-//
-//    def PUSHB(self):
-//        assert False
-//
-//    def PUSHN(self):
-//        assert False
-//
-//    def PUSHS(self):
-//        val = struct.unpack_from(">L", self.object.code, self.ip+1)[0]
-//        self.ip += 5
-//        self.stack.append(self.object.strtable[val])
-//
-//    def PUSHPG(self):
-//        assert False
-//
-//    def PUSHPPG(self):
-//        assert False
-//
-//    def PUSHPMG(self):
-//        assert False
-//
-//    def PUSHPL(self):
-//        assert False
-//
-//    def PUSHPOL(self):
-//        assert False
-//
-//    def PUSHI(self):
-//        assert False
-//
-//    def LOADB(self):
-//        assert False
-//
-//    def LOADN(self):
-//        assert False
-//
-//    def LOADS(self):
-//        assert False
-//
-//    def LOADA(self):
-//        assert False
-//
-//    def LOADD(self):
-//        assert False
-//
-//    def LOADP(self):
-//        assert False
-//
-//    def STOREB(self):
-//        assert False
-//
-//    def STOREN(self):
-//        assert False
-//
-//    def STORES(self):
-//        assert False
-//
-//    def STOREA(self):
-//        assert False
-//
-//    def STORED(self):
-//        assert False
-//
-//    def STOREP(self):
-//        assert False
-//
-//    def NEGN(self):
-//        assert False
-//
-//    def ADDN(self):
-//        assert False
-//
-//    def SUBN(self):
-//        assert False
-//
-//    def MULN(self):
-//        assert False
-//
-//    def DIVN(self):
-//        assert False
-//
-//    def MODN(self):
-//        assert False
-//
-//    def EXPN(self):
-//        assert False
-//
-//    def EQB(self):
-//        assert False
-//
-//    def NEB(self):
-//        assert False
-//
-//    def EQN(self):
-//        assert False
-//
-//    def NEN(self):
-//        assert False
-//
-//    def LTN(self):
-//        assert False
-//
-//    def GTN(self):
-//        assert False
-//
-//    def LEN(self):
-//        assert False
-//
-//    def GEN(self):
-//        assert False
-//
-//    def EQS(self):
-//        assert False
-//
-//    def NES(self):
-//        assert False
-//
-//    def LTS(self):
-//        assert False
-//
-//    def GTS(self):
-//        assert False
-//
-//    def LES(self):
-//        assert False
-//
-//    def GES(self):
-//        assert False
-//
-//    def EQA(self):
-//        assert False
-//
-//    def NEA(self):
-//        assert False
-//
-//    def EQD(self):
-//        assert False
-//
-//    def NED(self):
-//        assert False
-//
-//    def EQP(self):
-//        assert False
-//
-//    def NEP(self):
-//        assert False
-//
-//    def ANDB(self):
-//        assert False
-//
-//    def ORB(self):
-//        assert False
-//
-//    def NOTB(self):
-//        assert False
-//
-//    def INDEXAR(self):
-//        assert False
-//
-//    def INDEXAW(self):
-//        assert False
-//
-//    def INDEXAV(self):
-//        assert False
-//
-//    def INDEXAN(self):
-//        assert False
-//
-//    def INDEXDR(self):
-//        assert False
-//
-//    def INDEXDW(self):
-//        assert False
-//
-//    def INDEXDV(self):
-//        assert False
-//
-//    def INA(self):
-//        assert False
-//
-//    def IND(self):
-//        assert False
-//
-//    def CALLP(self):
-//        val = struct.unpack_from(">L", self.object.code, self.ip+1)[0]
-//        self.ip += 5
-//        func = self.object.strtable[val]
-//        if func == "print":
-//            s = self.stack.pop()
-//            print(s)
-//        else:
-//            assert False
-//
-//    def CALLF(self):
-//        assert False
-//
-//    def CALLMF(self):
-//        assert False
-//
-//    def CALLI(self):
-//        assert False
-//
-//    def JUMP(self):
-//        assert False
-//
-//    def JF(self):
-//        assert False
-//
-//    def JT(self):
-//        assert False
-//
-//    def JFCHAIN(self):
-//        assert False
-//
-//    def DUP(self):
-//        assert False
-//
-//    def DUPX1(self):
-//        assert False
-//
-//    def DROP(self):
-//        assert False
-//
-//    def RET(self):
-//        (_module, self.ip) = self.callstack.pop()
-//
-//    def CALLE(self):
-//        assert False
-//
-//    def CONSA(self):
-//        assert False
-//
-//    def CONSD(self):
-//        assert False
-//
-//    def EXCEPT(self):
-//        assert False
-//
-//    def ALLOC(self):
-//        assert False
-//
-//    def PUSHNIL(self):
-//        assert False
-//
-//    def JNASSERT(self):
-//        assert False
-//
-//    def RESETC(self):
-//        assert False
-//
-//    def PUSHPEG(self):
-//        assert False
-//
-//    def JUMPTBL(self):
-//        assert False
-//
-//    def CALLX(self):
-//        assert False
-//
-//    def SWAP(self):
-//        assert False
-//
-//    def DROPN(self):
-//        assert False
-//
-//    def PUSHM(self):
-//        assert False
-//
-//    def CALLV(self):
-//        assert False
-//
-//    def PUSHCI(self):
-//        assert False
-//
-//Dispatch = [
-//    Executor.ENTER,
-//    Executor.LEAVE,
-//    Executor.PUSHB,
-//    Executor.PUSHN,
-//    Executor.PUSHS,
-//    Executor.PUSHPG,
-//    Executor.PUSHPPG,
-//    Executor.PUSHPMG,
-//    Executor.PUSHPL,
-//    Executor.PUSHPOL,
-//    Executor.PUSHI,
-//    Executor.LOADB,
-//    Executor.LOADN,
-//    Executor.LOADS,
-//    Executor.LOADA,
-//    Executor.LOADD,
-//    Executor.LOADP,
-//    Executor.STOREB,
-//    Executor.STOREN,
-//    Executor.STORES,
-//    Executor.STOREA,
-//    Executor.STORED,
-//    Executor.STOREP,
-//    Executor.NEGN,
-//    Executor.ADDN,
-//    Executor.SUBN,
-//    Executor.MULN,
-//    Executor.DIVN,
-//    Executor.MODN,
-//    Executor.EXPN,
-//    Executor.EQB,
-//    Executor.NEB,
-//    Executor.EQN,
-//    Executor.NEN,
-//    Executor.LTN,
-//    Executor.GTN,
-//    Executor.LEN,
-//    Executor.GEN,
-//    Executor.EQS,
-//    Executor.NES,
-//    Executor.LTS,
-//    Executor.GTS,
-//    Executor.LES,
-//    Executor.GES,
-//    Executor.EQA,
-//    Executor.NEA,
-//    Executor.EQD,
-//    Executor.NED,
-//    Executor.EQP,
-//    Executor.NEP,
-//    Executor.ANDB,
-//    Executor.ORB,
-//    Executor.NOTB,
-//    Executor.INDEXAR,
-//    Executor.INDEXAW,
-//    Executor.INDEXAV,
-//    Executor.INDEXAN,
-//    Executor.INDEXDR,
-//    Executor.INDEXDW,
-//    Executor.INDEXDV,
-//    Executor.INA,
-//    Executor.IND,
-//    Executor.CALLP,
-//    Executor.CALLF,
-//    Executor.CALLMF,
-//    Executor.CALLI,
-//    Executor.JUMP,
-//    Executor.JF,
-//    Executor.JT,
-//    Executor.JFCHAIN,
-//    Executor.DUP,
-//    Executor.DUPX1,
-//    Executor.DROP,
-//    Executor.RET,
-//    Executor.CALLE,
-//    Executor.CONSA,
-//    Executor.CONSD,
-//    Executor.EXCEPT,
-//    Executor.ALLOC,
-//    Executor.PUSHNIL,
-//    Executor.JNASSERT,
-//    Executor.RESETC,
-//    Executor.PUSHPEG,
-//    Executor.JUMPTBL,
-//    Executor.CALLX,
-//    Executor.SWAP,
-//    Executor.DROPN,
-//    Executor.PUSHM,
-//    Executor.CALLV,
-//    Executor.PUSHCI,
-//]
-

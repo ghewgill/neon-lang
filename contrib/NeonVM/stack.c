@@ -27,7 +27,8 @@ void push(struct TStackNode **root, void *data)
 void *pop(struct TStackNode **root)
 {
     if (isEmpty(*root)) {
-        perror("Stack underflow error");
+        fprintf(stderr, "Stack underflow error");
+        abort();
     }
 
     struct TStackNode *temp = *root;
@@ -42,7 +43,8 @@ void *pop(struct TStackNode **root)
 void *peek(struct TStackNode *root)
 {
     if (isEmpty(root)) {
-        perror("Stack underflow error");
+        fprintf(stderr, "Stack underflow error");
+        abort();
     }
 
     return root->data;
