@@ -3,85 +3,44 @@
 #include <limits.h>
 
 #include "stack.h"
+#include "util.h"
 
-struct TStackNode *newNode(void *data)
+struct tagTStack *createStack(int capacity)
 {
-    struct TStackNode *stackNode = malloc(sizeof(struct TStackNode));
-    stackNode->data = data;
-    stackNode->next = NULL;
-    return stackNode;
+    struct tagTStack *stack = malloc(sizeof(struct tagTStack));
+    if (stack == NULL) {
+        fatal_error("Could not allocate memory for stack.");
+    }
+    stack->capacity = capacity;
+    stack->top = -1;
+    stack->data = malloc(stack->capacity * sizeof(void *));
+    return stack;
 }
 
-int isEmpty(struct TStackNode *root)
+int isFull(struct tagTStack *stack)
 {
-    return !root;
+    return stack->top == stack->capacity - 1;
 }
 
-void push(struct TStackNode **root, void *data)
+int isEmpty(struct tagTStack *stack)
 {
-    struct TStackNode *stackNode = newNode(data);
-    stackNode->next = *root;
-    *root = stackNode;
+    return stack->top == -1;
 }
 
-void *pop(struct TStackNode **root)
+void push(struct tagTStack *stack, void *item)
 {
-    if (isEmpty(*root)) {
-        fprintf(stderr, "Stack underflow error");
-        abort();
+    if (isFull(stack)) {
+        fatal_error("Stack overflow error.");
     }
 
-    struct TStackNode *temp = *root;
-    *root = (*root)->next;
-//    *root->size--;
-    void *data = temp->data;
-    free(temp);
-
-    return data;
+    stack->data[++stack->top] = item;
 }
 
-void *peek(struct TStackNode *root)
+void *pop(struct tagTStack *stack)
 {
-    if (isEmpty(root)) {
-        fprintf(stderr, "Stack underflow error");
-        abort();
+    if (isEmpty(stack)) {
+        fatal_error("Stack underflow error.");
     }
 
-    return root->data;
+    return stack->data[stack->top--];
 }
-
-int size(struct TStackNode **root)
-{
-    int i = 0;
-    struct TStackNode *temp = *root;
-
-    if (isEmpty(*root)) {
-        return i;
-    }
-
-    while ((temp)->next) {
-        temp = (temp)->next;
-        i++;
-    }
-    return i+1;
-}
-
-//#define __TEST
-#ifdef __TEST
-int main()
-{
-    struct TStackNode* root = NULL;
-
-    push(&root, 10);
-    push(&root, 20);
-    push(&root, 30);
-
-    //printf("There are %d items on the stack.\n", count(&root));
-    printf("%d popped from stack\n", pop(&root));
-    printf("The top element is %d.\n", peek(root));
-    printf("%d popped from stack\n", pop(&root));
-    printf("Top element is %d\n", peek(root));
-
-    return 0;
-}
-#endif
