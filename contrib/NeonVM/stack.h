@@ -1,16 +1,16 @@
 #ifndef __STACK_H
 #define __STACK_H
 
-typedef struct TStackNode {
-    void *data;
-    struct TStackNode *next;
-} StackNode;
+typedef struct tagTStack {
+    int top;
+    int capacity;
+    void **data;
+} TStack;
 
-struct TStackNode *newNode(void *data);
-int isEmpty(struct TStackNode *root);
-void push(struct TStackNode **root, void *data);
-void *pop(struct TStackNode **root);
-void *peek(struct TStackNode *root);
-int size(struct TStackNode **root);
+struct tagTStack *createStack(int capacity);
+int isFull(struct tagTStack *stack);
+int isEmpty(struct tagTStack *stack);
+void push(struct tagTStack *stack, void* item);
+void *pop(struct tagTStack *stack);
 
 #endif

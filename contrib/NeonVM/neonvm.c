@@ -1,118 +1,127 @@
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "opcode.h"
 #include "stack.h"
+#include "util.h"
 
-#define error(s) fprintf(stderr, "%s\n", s); abort();
+typedef unsigned char       uint8_t;
+typedef signed   char       int8_t;
+typedef unsigned short      uint16_t;
+typedef signed   short      int16_t;
+typedef unsigned int        uint32_t;
+typedef signed   int        int32_t;
 
-typedef unsigned int uint32_t;
-typedef unsigned short uint16_t;
-
-static short get_uint16(const unsigned char *pobj, unsigned int nBuffSize, unsigned int *i)
+static uint16_t get_uint16(const uint8_t *pobj, uint32_t nBuffSize, uint32_t *i)
 {
     if (*i+2 > nBuffSize) {
-        error("Bytecode exception: Read past EOF.");
+        fatal_error("Bytecode exception: Read past EOF.");
     }
-    short r = (pobj[*i] << 8) | pobj[*i+1];
+    uint16_t r = (pobj[*i] << 8) | pobj[*i+1];
     *i += 2;
     return r;
 }
 
-static unsigned int get_uint32(const unsigned char *pobj, unsigned int nBuffSize, unsigned int *i)
+static uint32_t get_uint32(const uint8_t *pobj, uint32_t nBuffSize, uint32_t *i)
 {
     if (*i+4 > nBuffSize) {
-        error("Bytecode excpetion: Read past EOF.");
+        fatal_error("Bytecode excpetion: Read past EOF.");
     }
-    long r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
+    uint32_t r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
     *i += 4;
     return r;
 }
 
 struct NString {
-    unsigned int length;
-    char *data;
+    uint32_t length;
+    int8_t *data;
 };
 
-static unsigned char **getstrtable(const unsigned char *start, const unsigned char *end, unsigned int *cnt)
+static uint8_t **getstrtable(const uint8_t *start, const uint8_t *end, uint32_t *count)
 {
-    unsigned char **r = NULL;
-    unsigned int i = 0;
+    uint8_t **r = NULL;
+    uint32_t i = 0;
 
-    *cnt = 0;
+    // First, initialize the string count to zero.
+    *count = 0;
     // We're going to iterate the string table first, to get the count,
     // then we'll allocate the data.
-    const unsigned char *s = start;
+    const uint8_t *s = start;
     while (s != end) {
         s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
-        *cnt = *cnt + 1;
+        (*count)++;
     }
 
-    r = malloc((sizeof(unsigned char *)) * *cnt);
+    r = malloc((sizeof(uint8_t *)) * *count);
+    if (r == NULL) {
+        fatal_error("Could not allocate memory for %d strings.", *count);
+    }
+
     while (start != end) {
-        size_t strlen = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
+        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
         start += 4;
 
-        r[i] = (unsigned char*)malloc(strlen+1);
-        memcpy(r[i], start, strlen);
-        r[i][strlen] = '\0';
+        r[i] = malloc(len+1);
+        if (r[i] == NULL) {
+            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
+        }
+        memcpy(r[i], start, len);
+        r[i][len] = '\0';
         i++;
-        start += strlen;
+        start += len;
     }
     return r;
 }
 
 typedef struct tagTType {
-    short name;
-    short descriptor;
-} Type, *pType;
+    int16_t name;
+    int16_t descriptor;
+} Type;
 
 typedef struct tagTBytecode {
-    unsigned char source_hash[32];
-    unsigned short global_size;
-    unsigned int strtablesize;
-    unsigned int strtablelen;
-    unsigned char **strtable;
-    unsigned int typesize;
-    unsigned int constantsize;
-    unsigned int variablesize;
-    unsigned int functionsize;
-    unsigned int exceptionsize;
-    unsigned int exceptionexportsize;
-    unsigned int interfaceexportsize;
-    unsigned int importsize;
-    unsigned int classsize;
-    const unsigned char *code;
-    unsigned int codelen;
+    uint8_t source_hash[32];
+    uint16_t global_size;
+    uint32_t strtablesize;
+    uint32_t strtablelen;
+    uint8_t **strtable;
+    uint32_t typesize;
+    uint32_t constantsize;
+    uint32_t variablesize;
+    uint32_t functionsize;
+    uint32_t exceptionsize;
+    uint32_t exceptionexportsize;
+    uint32_t interfaceexportsize;
+    uint32_t importsize;
+    uint32_t classsize;
+    const uint8_t *code;
+    uint32_t codelen;
 
     struct Type *pExportTypes;
-} TBytecode, *pBytecode;
+} TBytecode;
 
 struct tagTExecutor;
 
 void exec_loop(struct tagTExecutor *self);
+void exec_run(struct tagTExecutor *self);
 
 typedef struct tagTExecutor {
     struct tagTBytecode *object;
-    unsigned int ip;
-    struct TStackNode *stack;
-    struct TStackNode *callstack;
-
-    void(*exec_loop)(struct tagTExecutor *self);
-    void(*exec_run)(struct tagTExecutor *self);
-} TExecutor, *pTExecutor;
+    uint32_t ip;
+    struct tagTStack *stack;
+    struct tagTStack *callstack;
+} TExecutor;
 
 struct tagTExecutor *new_executer(struct tagTBytecode *object);
 
-static void loadBytecode(const unsigned char *bytecode, unsigned int len, struct tagTBytecode *pBytecode)
+static void loadBytecode(const uint8_t *bytecode, uint32_t len, struct tagTBytecode *pBytecode)
 {
-    unsigned int i = 0;
+    uint32_t i = 0;
 
     memcpy(pBytecode->source_hash, bytecode, 32);
     i += 32;
     pBytecode->global_size = get_uint16(bytecode, len, &i);
-    //i += 2;
 
     pBytecode->strtablesize = get_uint32(bytecode, len, &i);
     //i += 4;
@@ -217,7 +226,7 @@ static void loadBytecode(const unsigned char *bytecode, unsigned int len, struct
 int main(int argc, char* argv[])
 {
     if (argc <= 1) {
-        printf("\nusage: %s program.neon\n", argv[0]);
+        printf("\nusage: %s program.neonx\n", argv[0]);
         return 1;
     }
     struct tagTBytecode *pModule;
@@ -226,23 +235,29 @@ int main(int argc, char* argv[])
     long nSize = ftell(fp);
     fseek(fp, 0, SEEK_SET);
 
-    pModule = (struct tagTBytecode *)malloc((sizeof(struct tagTBytecode)));
-    unsigned char *bytecode = (unsigned char*)malloc(nSize);
+    pModule = malloc((sizeof(struct tagTBytecode)));
+    if (pModule == NULL) {
+        fatal_error("Could not allocate memory for neon executable.  Error %s", _strerror(NULL));
+    }
+    uint8_t *bytecode = malloc(nSize);
+    if (bytecode == NULL) {
+        fatal_error("Could not allocate memory for neon bytecode.  Error %s.", _strerror(NULL));
+    }
     size_t bytes_read = fread(bytecode, 1, nSize, fp);
 
     loadBytecode(bytecode, bytes_read, pModule);
 
     struct tagTExecutor *exec = new_executer(pModule);
-    exec->exec_run(exec);
-
+    exec_run(exec);
 }
 
 void exec_run(struct tagTExecutor *self)
 {
-    push(&self->callstack, &self->object->codelen);
+    uint32_t i;
+    push(self->callstack, &self->object->codelen);
     exec_loop(self);
 
-    for (unsigned int i = 0; i < self->object->strtablelen; i++) {
+    for (i = 0; i < self->object->strtablelen; i++) {
         free(self->object->strtable[i]);
     }
 }
@@ -250,477 +265,485 @@ void exec_run(struct tagTExecutor *self)
 struct tagTExecutor *new_executer(struct tagTBytecode *object)
 {
     struct tagTExecutor *r = malloc(sizeof(struct tagTExecutor));
+    if (r == NULL) {
+        fatal_error("Failed to allocate memory for Neon executable.  Error: ", _strerror(NULL));
+    }
     r->object = object;
-    r->callstack = NULL;
-    r->stack = NULL;
+    r->callstack = createStack(300);
+    r->stack = createStack(300);
     r->ip = 0;
-    r->exec_loop = exec_loop;
-    r->exec_run = exec_run;
+    return r;
+}
+
+static uint32_t exec_getOperand(struct tagTExecutor *self)
+{
+    uint32_t r = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
+    self->ip += 5;
     return r;
 }
 
 void exec_ENTER()
 {
-    error("not implemented");}
+    exec_error("not implemented");
+}
 
 void exec_LEAVE()
 {
-    error("not implemented");}
+    exec_error("not implemented");
+}
 
 void exec_PUSHB()
 {
-    error("not implemented");}
+    exec_error("not implemented");
+}
 
 void exec_PUSHN()
 {
-    error("not implemented");
+    exec_error("not implemented");
 }
 
 void exec_PUSHS(struct tagTExecutor *self)
 {
-    uint32_t val = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
-    self->ip += 5;
-    push(&self->stack, self->object->strtable[val]);
+    uint32_t val = exec_getOperand(self);
+    push(self->stack, self->object->strtable[val]);
 }
 
 void exec_PUSHPG()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHPPG()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHPMG()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHPL()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHPOL()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHI()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LOADB()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LOADN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LOADS()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LOADA()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LOADD()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LOADP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_STOREB()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_STOREN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_STORES()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_STOREA()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_STORED()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_STOREP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NEGN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_ADDN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_SUBN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_MULN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_DIVN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_MODN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EXPN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EQB()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NEB()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EQN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NEN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LTN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_GTN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LEN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_GEN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EQS()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NES()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LTS()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_GTS()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_LES()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_GES()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EQA()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NEA()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EQD()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NED()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EQP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NEP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_ANDB()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_ORB()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_NOTB()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INDEXAR()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INDEXAW()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INDEXAV()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INDEXAN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INDEXDR()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INDEXDW()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INDEXDV()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_INA()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_IND()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_CALLP(struct tagTExecutor *self)
 {
-    uint32_t val = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
-    self->ip += 5;
-    const unsigned char *func = self->object->strtable[val];
+    uint32_t val = exec_getOperand(self);
+    const uint8_t *func = self->object->strtable[val];
 
     if (strcmp((const char*)func, "print") == 0) {
-        const char *s = pop(&self->stack);
+        const char *s = pop(self->stack);
         printf("%s\n", s);
     } else {
-        error("exec_CALLP(): Invalid function call");
+        exec_error("exec_CALLP(): \"%s\" - invalid or unsupported predefined function call.", func);
     }
 }
 
 void exec_CALLF()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_CALLMF()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_CALLI()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_JUMP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_JF()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_JT()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_JFCHAIN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_DUP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_DUPX1()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_DROP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_RET(struct tagTExecutor *self)
 {
-    const char *code = pop(&self->callstack);
-    self->ip = (code[3] << 24) | (code[2] << 16) | (code[1] << 8) | code[0];
+    self->ip = *(uint32_t*)pop(self->callstack);
 }
 
 void exec_CALLE()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_CONSA()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_CONSD()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_EXCEPT()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_ALLOC()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHNIL()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_JNASSERT()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_RESETC()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHPEG()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_JUMPTBL()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_CALLX()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_SWAP()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_DROPN()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHM()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_CALLV()
 {
-    error("not implemented");}
+    fatal_error("not implemented");
+}
 
 void exec_PUSHCI()
 {
-    error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
-        //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << " st " << stack.depth() << "\n";
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(); break;
             case LEAVE:   exec_LEAVE(); break;
@@ -813,8 +836,7 @@ void exec_loop(struct tagTExecutor *self)
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(); break;
             default:
-                fprintf(stderr, "exec: Unexpected opcode: %d\n", self->object->code[self->ip]);
-                abort();
+                fatal_error("exec: Unexpected opcode: %d\n", self->object->code[self->ip]);
         }
     }
 }
