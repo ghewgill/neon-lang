@@ -249,6 +249,7 @@ int main(int argc, char* argv[])
 
     struct tagTExecutor *exec = new_executer(pModule);
     exec_run(exec);
+    return 0;
 }
 
 void exec_run(struct tagTExecutor *self)
