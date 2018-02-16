@@ -237,11 +237,11 @@ int main(int argc, char* argv[])
 
     pModule = malloc((sizeof(struct tagTBytecode)));
     if (pModule == NULL) {
-        fatal_error("Could not allocate memory for neon executable.  Error %s", strerror(errno));
+        fatal_error("Could not allocate memory for neon executable.");
     }
     uint8_t *bytecode = malloc(nSize);
     if (bytecode == NULL) {
-        fatal_error("Could not allocate memory for neon bytecode.  Error %s.", strerror(errno));
+        fatal_error("Could not allocate memory for neon bytecode.");
     }
     size_t bytes_read = fread(bytecode, 1, nSize, fp);
 
@@ -266,7 +266,7 @@ struct tagTExecutor *new_executer(struct tagTBytecode *object)
 {
     struct tagTExecutor *r = malloc(sizeof(struct tagTExecutor));
     if (r == NULL) {
-        fatal_error("Failed to allocate memory for Neon executable.  Error: ", strerror(errno));
+        fatal_error("Failed to allocate memory for Neon executable.");
     }
     r->object = object;
     r->callstack = createStack(300);
