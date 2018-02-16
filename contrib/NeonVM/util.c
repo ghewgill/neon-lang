@@ -7,7 +7,7 @@
 static void formatted_string(const char *pszFormat, va_list args)
 {
     char szErrStr[512];
-    _vsnprintf(szErrStr, 512, pszFormat, args);
+    vsnprintf(szErrStr, 512, pszFormat, args);
     fprintf(stderr, "%s\n", szErrStr);
 }
 
@@ -27,4 +27,3 @@ void fatal_error(const char *msg, ...)
     va_end(args);
     abort();
 }
-
