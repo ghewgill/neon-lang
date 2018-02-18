@@ -1,0 +1,72 @@
+IMPORT binary
+IMPORT hash
+IMPORT math
+IMPORT sys
+IMPORT time
+
+FUNCTION b32decode(s: String): Bytes
+    ASSERT s.length() = 16
+    VAR b: Array<Number> := [0,0,0,0,0,0,0,0,0,0]
+    FOR i := 0 TO 15 DO
+        VAR x: Number := 0
+        IF "A" <= s[i] <= "Z" THEN
+            x := ord(s[i]) - ord("A")
+        ELSIF "0" <= s[i] <= "7" THEN
+            x := ord(s[i]) - ord("2") + 26
+        ELSE
+            RAISE InvalidValueException
+        END IF
+        b[5*i INTDIV 8] := binary.and32(0xff, binary.or32(b[5*i INTDIV 8], binary.shiftRight32(binary.shiftLeft32(x, 3), 5*i MOD 8)))
+        IF 5*i MOD 8 >= 4 THEN
+            b[5*i INTDIV 8 + 1] := binary.and32(0xff, binary.or32(b[5*i INTDIV 8 + 1], binary.shiftLeft32(x, 3 + 8 - (5*i MOD 8))))
+        END IF
+    END FOR
+    RETURN b.toBytes()
+END FUNCTION
+
+FUNCTION hmac_sha1(key: Bytes, msg: Bytes): Bytes
+    CONSTANT ipad: Bytes := HEXBYTES "36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36 36"
+    CONSTANT opad: Bytes := HEXBYTES "5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c 5c"
+    VAR a: Array<Number> := key.toArray()
+    WHILE a.size() < 64 DO
+        a.append(0)
+    END WHILE
+    VAR k1: Bytes := a.toBytes()
+    RETURN hash.sha1Raw(binary.xorBytes(k1, opad) & hash.sha1Raw(binary.xorBytes(k1, ipad) & msg))
+END FUNCTION
+
+% Test values from https://en.wikipedia.org/wiki/Hash-based_message_authentication_code
+ASSERT hmac_sha1(HEXBYTES "", HEXBYTES "")   = HEXBYTES "fbdb1d1b18aa6c08324b7d64b71fb76370690e1d"
+LET kk: String := "key"
+LET mm: String := "The quick brown fox jumps over the lazy dog"
+ASSERT hmac_sha1(kk.toBytes(), mm.toBytes())   = HEXBYTES "de7c9b85b8b78aa6bc8a7a36f70a90701c9db4d9"
+
+FUNCTION hotp(sbytes: Bytes, movingFactor: Number): String
+    VAR data: Array<Number> := [0,0,0,0]
+    FOR i := 4 TO 7 DO
+        data.append(binary.and32(0xff, binary.shiftRight32(movingFactor, 56 - 8*i)))
+    END FOR
+    LET r: Bytes := hmac_sha1(sbytes, data.toBytes())
+    LET a: Array<Number> := r.toArray()
+    LET offset: Number := a[19] MOD 16
+    LET bin_code: Number := binary.and32(0x7fffffff, binary.shiftLeft32(a[offset], 24) + binary.shiftLeft32(a[offset+1], 16) + binary.shiftLeft32(a[offset+2], 8) + a[offset+3])
+    LET otp: Number := bin_code MOD 1000000
+    RETURN "\(otp:06d)"
+END FUNCTION
+
+% Test values from https://tools.ietf.org/html/rfc4226
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 0) = "755224"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 1) = "287082"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 2) = "359152"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 3) = "969429"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 4) = "338314"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 5) = "254676"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 6) = "287922"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 7) = "162583"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 8) = "399871"
+ASSERT hotp(HEXBYTES "3132333435363738393031323334353637383930", 9) = "520489"
+
+BEGIN MAIN
+    LET secret: Bytes := b32decode(sys.args[1])
+    print(hotp(secret, math.trunc(time.now()) INTDIV 30))
+END MAIN
