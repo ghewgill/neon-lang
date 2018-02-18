@@ -1,0 +1,28 @@
+IMPORT file
+IMPORT string
+IMPORT sys
+
+VAR lines: Array<String> := file.readLines(sys.args[1])
+FOREACH s IN lines DO
+    VAR i: Number := string.find(s, "IMPORT")
+    IF i < 0 THEN
+        NEXT FOREACH
+    END IF
+    i := i + 6
+    LET spaces: Number := i
+    WHILE s[i] = " " DO
+        INC i
+    END WHILE
+    IF i = spaces THEN
+        NEXT FOREACH
+    END IF
+    LET start: Number := i
+    WHILE i < s.length() AND "a" <= string.lower(s[i]) <= "z" DO
+        INC i
+    END WHILE
+    IF i = start THEN
+        NEXT FOREACH
+    END IF
+    LET module: String := s[start TO i-1]
+    print(module)
+END FOREACH

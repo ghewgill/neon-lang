@@ -2500,8 +2500,8 @@ def neon_file_readBytes(env, fn):
         return r
 
 def neon_file_readLines(env, fn):
-    with open(fn, "r") as f:
-        return list(map(str.rstrip, f.readlines()))
+    with codecs.open(fn, "r", encoding="utf-8") as f:
+        return list(map(lambda x: x.rstrip(), f.readlines()))
 
 def neon_file_removeEmptyDirectory(env, path):
     try:

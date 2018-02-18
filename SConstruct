@@ -536,11 +536,12 @@ for path, dirs, files in os.walk("."):
             if f.endswith(".neon") and f != "global.neon":
                 if f in ["sdl.neon", "flappy.neon", "life.neon", "mandelbrot.neon", "spacedebris.neon"]:
                     continue
-                # These are skipped for now because they depend on extension modules that may not exist.
-                # Definitely need a better way to handle this.
-                if f in ["apple2.neon", "bbs.neon", "editor.neon", "forth.neon", "hello-curses.neon", "httpd.neon", "lisp.neon", "othello.neon", "rain.neon", "sudoku.neon", "tetris.neon"]:
-                    continue
-                samples.append(os.path.join(path, f))
+                modules = subprocess.check_output([sys.executable, "tools/helium.py", "tools/imports.neon", os.path.join(path, f)]).split()
+                missing = [m for m in modules if not os.path.exists("lib/{}.neon".format(m)) and not os.path.exists("lib/{}/{}.neon".format(m, m)) and not os.path.exists(os.path.join(path, m+".neon"))]
+                if not missing:
+                    samples.append(os.path.join(path, f))
+                else:
+                    print("note: skipping sample {} because of missing modules {}".format(f, missing))
 for sample in samples:
     env.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
 env.Command("tests_2", ["samples/hello/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
