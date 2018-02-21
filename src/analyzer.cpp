@@ -126,6 +126,7 @@ public:
     const ast::Statement *analyze(const pt::ReturnStatement *statement);
     const ast::Statement *analyze(const pt::TryStatement *statement);
     const ast::Statement *analyze(const pt::TryHandlerStatement *statement);
+    const ast::Statement *analyze(const pt::UnusedStatement *statement);
     const ast::Statement *analyze(const pt::WhileStatement *statement);
     const ast::Program *analyze();
 private:
@@ -225,6 +226,7 @@ public:
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::UnusedStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
     const ast::Type *type;
@@ -320,6 +322,7 @@ public:
     virtual void visit(const pt::ReturnStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::TryHandlerStatement *) override { internal_error("pt::Statement"); }
+    virtual void visit(const pt::UnusedStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::WhileStatement *) override { internal_error("pt::Statement"); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
     const ast::Expression *expr;
@@ -414,6 +417,7 @@ public:
     virtual void visit(const pt::ReturnStatement *) override {}
     virtual void visit(const pt::TryStatement *) override {}
     virtual void visit(const pt::TryHandlerStatement *) override {}
+    virtual void visit(const pt::UnusedStatement *) override {}
     virtual void visit(const pt::WhileStatement *) override {}
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
@@ -508,6 +512,7 @@ public:
     virtual void visit(const pt::ReturnStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TryStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::TryHandlerStatement *p) override { v.push_back(a->analyze(p)); }
+    virtual void visit(const pt::UnusedStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::WhileStatement *p) override { v.push_back(a->analyze(p)); }
     virtual void visit(const pt::Program *) override { internal_error("pt::Program"); }
 private:
@@ -4379,6 +4384,11 @@ const ast::Statement *Analyzer::analyze(const pt::TryHandlerStatement *statement
     return new ast::ExceptionHandlerStatement(statement->token.line, statements);
 }
 
+const ast::Statement *Analyzer::analyze(const pt::UnusedStatement *statement)
+{
+    return new ast::NullStatement(statement->token.line);
+}
+
 const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 {
     const ast::Expression *cond = nullptr;
@@ -4624,7 +4634,7 @@ public:
                 if (uninitialised) {
                     error2(3190, node->token, "Uninitialised variable: " + node->name, i->second.token, "Variable declared here");
                 }
-                i->second.used = true;
+                i->second.mark_used(node->token);
                 break;
             }
         }
@@ -4639,7 +4649,7 @@ public:
             if (x->mode.type == OUT) {
                 const pt::IdentifierExpression *expr = dynamic_cast<const pt::IdentifierExpression *>(x->expr.get());
                 if (expr != nullptr) {
-                    mark_assigned(expr->name);
+                    mark_assigned(expr->name, expr->token);
                 }
             } else {
                 x->expr->accept(this);
@@ -4725,11 +4735,11 @@ public:
         for (auto &x: node->variables) {
             const pt::IdentifierExpression *expr = dynamic_cast<const pt::IdentifierExpression *>(x.get());
             if (expr != nullptr) {
-                mark_assigned(expr->name);
+                mark_assigned(expr->name, expr->token);
                 for (auto s = scopes.rbegin(); s != scopes.rend(); ++s) {
                     auto i = s->variables.find(expr->name);
                     if (i != s->variables.end()) {
-                        i->second.used = true;
+                        i->second.mark_used(expr->token);
                         break;
                     }
                 }
@@ -4766,7 +4776,7 @@ public:
             leave();
         }
         for (auto a: assigned) {
-            mark_assigned(a);
+            mark_assigned(a, Token());
         }
     }
     virtual void visit(const pt::CheckStatement *node) {
@@ -4779,13 +4789,13 @@ public:
     }
     virtual void visit(const pt::ExecStatement *node) {
         for (auto &var: node->info->assignments) {
-            mark_assigned(var.text);
+            mark_assigned(var.text, var);
         }
         for (auto p: node->info->parameters) {
             for (auto s = scopes.rbegin(); s != scopes.rend(); ++s) {
                 auto i = s->variables.find(p.text.substr(1));
                 if (i != s->variables.end()) {
-                    i->second.used = true;
+                    i->second.mark_used(p);
                     break;
                 }
             }
@@ -4841,7 +4851,7 @@ public:
         intersect(assigned, scopes.back().assigned);
         leave();
         for (auto a: assigned) {
-            mark_assigned(a);
+            mark_assigned(a, Token());
         }
     }
     virtual void visit(const pt::IncrementStatement *node) {
@@ -4880,6 +4890,22 @@ public:
             s->accept(this);
         }
     }
+    virtual void visit(const pt::UnusedStatement *node) {
+        for (auto &v: node->vars) {
+            bool found = false;
+            for (auto s = scopes.rbegin(); s != scopes.rend(); ++s) {
+                auto i = s->variables.find(v.text);
+                if (i != s->variables.end()) {
+                    i->second.mark_declared_unused(v);
+                    found = true;
+                    break;
+                }
+            }
+            if (not found) {
+                error(3258, v, "variable not found");
+            }
+        }
+    }
     virtual void visit(const pt::WhileStatement *node) {
         node->cond->accept(this);
         enter(true);
@@ -4895,10 +4921,27 @@ public:
     }
 private:
     struct VariableInfo {
-        VariableInfo(): token(), used(false) {}
-        VariableInfo(const Token &token): token(token), used(false) {}
+        VariableInfo(): token(), usage(Usage::UNUSED) {}
+        VariableInfo(const Token &token): token(token), usage(Usage::UNUSED) {}
         Token token;
-        bool used;
+        enum class Usage {
+            UNUSED,
+            DECLARED_UNUSED,
+            USED
+        };
+        Usage usage;
+        void mark_used(const Token &t) {
+            if (usage == Usage::DECLARED_UNUSED) {
+                error(3260, t, "variable already declared unused");
+            }
+            usage = Usage::USED;
+        }
+        void mark_declared_unused(const Token &t) {
+            if (usage == VariableInfo::Usage::USED) {
+                error(3259, t, "variable already used");
+            }
+            usage = Usage::DECLARED_UNUSED;
+        }
     };
     struct ScopeInfo {
         ScopeInfo(): conditional(false), variables(), assigned() {}
@@ -4926,12 +4969,12 @@ private:
     }
     void check_unused() {
         for (auto &name: scopes.back().variables) {
-            if (not name.second.used) {
+            if (name.second.usage == VariableInfo::Usage::UNUSED) {
                 error(3205, name.second.token, "Unused variable");
             }
         }
     }
-    void mark_assigned(const std::string &name) {
+    void mark_assigned(const std::string &name, const Token &t) {
         bool unconditional = true;
         for (auto s = scopes.rbegin(); s != scopes.rend(); ++s) {
             if (unconditional) {
@@ -4939,7 +4982,7 @@ private:
             }
             auto i = s->variables.find(name);
             if (i != s->variables.end()) {
-                i->second.used = true;
+                i->second.mark_used(t);
                 break;
             }
             if (s->conditional) {

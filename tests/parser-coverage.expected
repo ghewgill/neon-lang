@@ -492,6 +492,8 @@ Program
   TryStatement
   TryStatement
   TryStatement
+  UnusedStatement
+  UnusedStatement
   WhileStatement
     IdentifierExpression(expr)
     WHILE

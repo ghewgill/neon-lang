@@ -52,6 +52,7 @@ Statement =
     RepeatStatement |
     ReturnStatement |
     TryStatement |
+    UnusedStatement |
     WhileStatement;
 
 ImportDeclaration = 'IMPORT', (Identifier, ['.', Identifier], ['ALIAS', Identifier] | StringLiteral, 'ALIAS', Identifier);
@@ -143,6 +144,8 @@ RepeatStatement = 'REPEAT', ['LABEL', Identifier], {Statement}, 'UNTIL', Express
 ReturnStatement = 'RETURN', Expression;
 
 TryStatement = 'TRY', {Statement}, {'TRAP', Identifier, {'.', Identifier}, ['AS', Identifier], 'DO', {Statement}}, 'END', 'TRY';
+
+UnusedStatement = 'UNUSED', Identifier, {',', Identifier};
 
 WhileStatement = 'WHILE', WhileExpression, ['LABEL', Identifier], 'DO', {Statement}, 'END', 'WHILE';
 

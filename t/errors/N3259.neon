@@ -1,0 +1,4 @@
+VAR i: Number
+i := 5
+UNUSED i
+       %<

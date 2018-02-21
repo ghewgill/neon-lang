@@ -145,6 +145,7 @@ CLASS = Keyword("CLASS")
 TRAP = Keyword("TRAP")
 INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
+UNUSED = Keyword("UNUSED")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -2101,6 +2102,15 @@ class Parser:
         self.expect(TRY)
         return TryStatement(statements, catches)
 
+    def parse_unused_statement(self):
+        self.expect(UNUSED)
+        while True:
+            self.identifier()
+            if self.tokens[self.i] is not COMMA:
+                break
+            self.expect(COMMA)
+        return None
+
     def parse_var_statement(self):
         self.expect(VAR)
         vars = self.parse_variable_declaration()
@@ -2170,6 +2180,7 @@ class Parser:
         if self.tokens[self.i] is RAISE:    return self.parse_raise_statement()
         if self.tokens[self.i] is ASSERT:   return self.parse_assert()
         if self.tokens[self.i] is CHECK:    return self.parse_check_statement()
+        if self.tokens[self.i] is UNUSED:   return self.parse_unused_statement()
         if self.tokens[self.i] is BEGIN:    return self.parse_main_statement()
         if isinstance(self.tokens[self.i], Identifier):
             expr = self.parse_expression()

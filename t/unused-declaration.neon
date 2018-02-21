@@ -1,0 +1,4 @@
+FUNCTION foo()
+    VAR i: Number
+    UNUSED i
+END FUNCTION

@@ -115,6 +115,7 @@ TYPE Type IS ENUM
     extension
     interface
     implements
+    unused
     unknown
     max_token
 END ENUM
@@ -373,6 +374,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "EXTENSION" THEN t.type := Type.extension
             ELSIF t.text = "INTERFACE" THEN t.type := Type.interface
             ELSIF t.text = "IMPLEMENTS" THEN t.type := Type.implements
+            ELSIF t.text = "UNUSED" THEN t.type := Type.unused
             ELSIF all_upper(t.text) THEN
                 t.type := Type.unknown
             ELSIF string.find(t.text, "__") >= 0 THEN

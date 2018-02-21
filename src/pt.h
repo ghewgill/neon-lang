@@ -96,6 +96,7 @@ class RepeatStatement;
 class ReturnStatement;
 class TryStatement;
 class TryHandlerStatement;
+class UnusedStatement;
 class WhileStatement;
 
 class Program;
@@ -188,6 +189,7 @@ public:
     virtual void visit(const ReturnStatement *) = 0;
     virtual void visit(const TryStatement *) = 0;
     virtual void visit(const TryHandlerStatement *) = 0;
+    virtual void visit(const UnusedStatement *) = 0;
     virtual void visit(const WhileStatement *) = 0;
     virtual void visit(const Program *) = 0;
 };
@@ -950,6 +952,13 @@ class TryHandlerStatement: public BlockStatement {
 public:
     TryHandlerStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+};
+
+class UnusedStatement: public Statement {
+public:
+    UnusedStatement(const Token &token, const std::vector<Token> &vars): Statement(token), vars(vars) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::vector<Token> vars;
 };
 
 class WhileStatement: public BaseLoopStatement {

@@ -455,6 +455,9 @@ public:
             child(x.get());
         }
     }
+    virtual void visit(const UnusedStatement *) override {
+        write("UnusedStatement");
+    }
     virtual void visit(const WhileStatement *node) override {
         write("WhileStatement");
         child(node->cond.get());

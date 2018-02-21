@@ -74,6 +74,7 @@ public:
     std::unique_ptr<Statement> parseTryStatement();
     std::unique_ptr<Statement> parseRaiseStatement();
     std::unique_ptr<Statement> parseExecStatement();
+    std::unique_ptr<Statement> parseUnusedStatement();
     std::unique_ptr<Statement> parseImport();
     std::unique_ptr<Statement> parseAssert();
     std::unique_ptr<Statement> parseBegin();
@@ -1927,6 +1928,25 @@ std::unique_ptr<Statement> Parser::parseExecStatement()
     return std::unique_ptr<Statement> { new ExecStatement(tok_exec, text, std::move(info)) };
 }
 
+std::unique_ptr<Statement> Parser::parseUnusedStatement()
+{
+    auto &tok_unused = tokens[i];
+    ++i;
+    std::vector<Token> vars;
+    for (;;) {
+        if (tokens[i].type != IDENTIFIER) {
+            error(2134, tokens[i], "identifier expected");
+        }
+        vars.push_back(tokens[i]);
+        ++i;
+        if (tokens[i].type != COMMA) {
+            break;
+        }
+        ++i;
+    }
+    return std::unique_ptr<Statement> { new UnusedStatement(tok_unused, vars) };
+}
+
 std::unique_ptr<Statement> Parser::parseImport()
 {
     auto &tok_import = tokens[i];
@@ -2063,6 +2083,8 @@ std::unique_ptr<Statement> Parser::parseStatement()
         return parseCheckStatement();
     } else if (tokens[i].type == EXEC) {
         return parseExecStatement();
+    } else if (tokens[i].type == UNUSED) {
+        return parseUnusedStatement();
     } else if (tokens[i].type == IDENTIFIER) {
         const Token &start = tokens[i];
         if (tokens[i+1].type != ASSIGN

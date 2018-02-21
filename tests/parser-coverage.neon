@@ -218,6 +218,10 @@ TRY TRAP name DO statement() END TRY
 TRY TRAP name DO statement() statement() END TRY
 TRY TRAP name AS x DO END TRY
 
+% UnusedStatement
+UNUSED x
+UNUSED x, y
+
 % WhileStatement
 WHILE expr DO END WHILE
 WHILE expr DO statement() END WHILE

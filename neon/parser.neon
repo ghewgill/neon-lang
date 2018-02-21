@@ -179,6 +179,7 @@ TYPE Type IS ENUM
     ReturnStatement
     TryStatement
     TryHandlerStatement
+    UnusedStatement
     WhileStatement
     Program
 END ENUM
@@ -545,6 +546,10 @@ TYPE TryHandlerStatement IS RECORD
     statements: Array<POINTER TO ParseTreeNode>
 END RECORD
 
+TYPE UnusedStatement IS RECORD
+    vars: Array<lexer.Token>
+END RECORD
+
 TYPE WhileStatement IS RECORD
     cond: POINTER TO ParseTreeNode
     label: lexer.Token
@@ -624,6 +629,7 @@ TYPE ParseTreeNode IS CLASS
     returnstatement: ReturnStatement
     trystatement: TryStatement
     tryhandlerstatement: TryHandlerStatement
+    unusedstatement: UnusedStatement
     whilestatement: WhileStatement
     program: Program
 END CLASS
@@ -3276,6 +3282,31 @@ FUNCTION Parser.parseTryStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     )
 END FUNCTION
 
+FUNCTION Parser.parseUnusedStatement(INOUT self: Parser): POINTER TO ParseTreeNode
+    ASSERT self.token.type = TokenType.unused
+    LET tokUnused: lexer.Token := self.token
+    self.nextToken()
+    VAR vars: Array<lexer.Token> := []
+    LOOP
+        IF self.token.type <> TokenType.identifier THEN
+            error(2134, self.token, "identifier expected")
+        END IF
+        vars.append(self.token)
+        self.nextToken()
+        IF self.token.type <> TokenType.comma THEN
+            EXIT LOOP
+        END IF
+        self.nextToken()
+    END LOOP
+    RETURN NEW ParseTreeNode(
+        type WITH Type.UnusedStatement,
+        token WITH tokUnused,
+        unusedstatement WITH UnusedStatement(
+            vars WITH vars
+        )
+    )
+END FUNCTION
+
 FUNCTION Parser.parseWhileStatement(INOUT self: Parser): POINTER TO ParseTreeNode
     ASSERT self.token.type = TokenType.while
     LET tokWhile: lexer.Token := self.token
@@ -3379,6 +3410,8 @@ FUNCTION Parser.parseStatement(INOUT self: Parser): POINTER TO ParseTreeNode
             RETURN self.parseReturnStatement()
         WHEN TokenType.try DO
             RETURN self.parseTryStatement()
+        WHEN TokenType.unused DO
+            RETURN self.parseUnusedStatement()
         WHEN TokenType.while DO
             RETURN self.parseWhileStatement()
         WHEN TokenType.identifier DO
@@ -4013,6 +4046,10 @@ END FUNCTION
 FUNCTION dumpTryHandlerStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
+FUNCTION dumpUnusedStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "UnusedStatement")
+END FUNCTION
+
 FUNCTION dumpWhileStatement(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "WhileStatement")
     dumpParseTree(node->whilestatement.cond, depth+1)
@@ -4109,6 +4146,7 @@ LET Dumper: IParseTreeVisitor := {
     "ReturnStatement":                      dumpReturnStatement,
     "TryStatement":                         dumpTryStatement,
     "TryHandlerStatement":                  dumpTryHandlerStatement,
+    "UnusedStatement":                      dumpUnusedStatement,
     "WhileStatement":                       dumpWhileStatement,
     "Program":                              dumpProgram,
 }

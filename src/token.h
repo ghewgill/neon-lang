@@ -115,6 +115,7 @@ enum TokenType {
     EXTENSION,
     INTERFACE,
     IMPLEMENTS,
+    UNUSED,
     UNKNOWN,
     MAX_TOKEN
 };
