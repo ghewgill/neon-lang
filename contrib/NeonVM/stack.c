@@ -13,7 +13,10 @@ struct tagTStack *createStack(int capacity)
     }
     stack->capacity = capacity;
     stack->top = -1;
-    stack->data = malloc(stack->capacity * sizeof(void *));
+    stack->data = malloc(stack->capacity * sizeof(Cell));
+    if (stack->data == NULL) {
+        fatal_error("Could not allocate stack memory.");
+    }
     return stack;
 }
 
@@ -27,7 +30,7 @@ int isEmpty(struct tagTStack *stack)
     return stack->top == -1;
 }
 
-void push(struct tagTStack *stack, void *item)
+void push(struct tagTStack *stack, Cell *item)
 {
     if (isFull(stack)) {
         fatal_error("Stack overflow error.");
@@ -36,11 +39,20 @@ void push(struct tagTStack *stack, void *item)
     stack->data[++stack->top] = item;
 }
 
-void *pop(struct tagTStack *stack)
+void pop(struct tagTStack *stack)
 {
     if (isEmpty(stack)) {
         fatal_error("Stack underflow error.");
     }
 
-    return stack->data[stack->top--];
+    free(stack->data[stack->top--]);
+}
+
+Cell *top(struct tagTStack *stack)
+{
+    if (isEmpty(stack)) {
+        fatal_error("Stack underflow error.");
+    }
+
+    return stack->data[stack->top];
 }

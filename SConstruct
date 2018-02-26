@@ -421,9 +421,11 @@ neonbind = env.Program("bin/neonbind", [
 
 neoncx = env.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/neonvm.c",
+    "contrib/NeonVM/cell.c",
     "contrib/NeonVM/stack.c",
     "contrib/NeonVM/util.c",
-])
+] + libbid,
+)
 
 env.Depends("src/number.h", libbid)
 env.Depends("src/exec.cpp", libffi)
