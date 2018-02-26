@@ -1,8 +1,11 @@
+#include <assert.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#include "cell.h"
 #include "opcode.h"
 #include "stack.h"
 #include "util.h"
@@ -14,7 +17,7 @@ typedef signed   short      int16_t;
 typedef unsigned int        uint32_t;
 typedef signed   int        int32_t;
 
-static uint16_t get_uint16(const uint8_t *pobj, uint32_t nBuffSize, uint32_t *i)
+static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
 {
     if (*i+2 > nBuffSize) {
         fatal_error("Bytecode exception: Read past EOF.");
@@ -24,7 +27,7 @@ static uint16_t get_uint16(const uint8_t *pobj, uint32_t nBuffSize, uint32_t *i)
     return r;
 }
 
-static uint32_t get_uint32(const uint8_t *pobj, uint32_t nBuffSize, uint32_t *i)
+static uint32_t get_uint32(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
 {
     if (*i+4 > nBuffSize) {
         fatal_error("Bytecode excpetion: Read past EOF.");
@@ -96,7 +99,7 @@ typedef struct tagTBytecode {
     uint32_t importsize;
     uint32_t classsize;
     const uint8_t *code;
-    uint32_t codelen;
+    size_t codelen;
 
     struct Type *pExportTypes;
 } TBytecode;
@@ -110,12 +113,15 @@ typedef struct tagTExecutor {
     struct tagTBytecode *object;
     uint32_t ip;
     struct tagTStack *stack;
-    struct tagTStack *callstack;
+    //struct tagTStack *callstack;
+    uint32_t callstack[300];
+    uint32_t callstacktop;
+    Cell **globals;
 } TExecutor;
 
 struct tagTExecutor *new_executer(struct tagTBytecode *object);
 
-static void loadBytecode(const uint8_t *bytecode, uint32_t len, struct tagTBytecode *pBytecode)
+static void loadBytecode(const uint8_t *bytecode, size_t len, struct tagTBytecode *pBytecode)
 {
     uint32_t i = 0;
 
@@ -255,26 +261,86 @@ int main(int argc, char* argv[])
 void exec_run(struct tagTExecutor *self)
 {
     uint32_t i;
-    push(self->callstack, &self->object->codelen);
+    self->callstack[self->callstacktop] = (uint32_t)self->object->codelen;
+
     exec_loop(self);
 
     for (i = 0; i < self->object->strtablelen; i++) {
         free(self->object->strtable[i]);
     }
+    for (i = 0; i < self->object->global_size; i++) {
+        free(self->globals[i]);
+    }
 }
 
 struct tagTExecutor *new_executer(struct tagTBytecode *object)
 {
+    uint32_t i;
     struct tagTExecutor *r = malloc(sizeof(struct tagTExecutor));
     if (r == NULL) {
         fatal_error("Failed to allocate memory for Neon executable.");
     }
     r->object = object;
-    r->callstack = createStack(300);
     r->stack = createStack(300);
     r->ip = 0;
+    r->callstacktop = 0;
+    r->globals = malloc(sizeof(Cell) * r->object->global_size);
+    if (r->globals == NULL) {
+        fatal_error("Failed to allocate memory for global variables.");
+    }
+    for (i = 0; i < r->object->global_size; i++) {
+        r->globals[i] = cell_newCell();
+        if (r->globals[i] == NULL) {
+            fatal_error("Could not allocate memory for global storage.");
+        }
+    }
     return r;
 }
+
+//char *number_to_string(BID_UINT128 x)
+//{
+//    const int PRECISION = 34;
+//
+//    static char buf[50];
+//    bid128_to_string(buf, x);
+//    char *p = strstr(buf, "E");
+//    if (p == NULL) {
+//        return buf;
+//    }
+//    int E = p - &buf[0];
+//
+//    int exponent = std::stoi(sbuf.substr(E+1));
+//    sbuf = sbuf.substr(0, E);
+//    const std::string::size_type last_significant_digit = sbuf.find_last_not_of('0');
+//    if (last_significant_digit == 0) {
+//        return "0";
+//    }
+//    const int trailing_zeros = static_cast<int>(sbuf.length() - (last_significant_digit + 1));
+//    exponent += trailing_zeros;
+//    sbuf = sbuf.substr(0, last_significant_digit + 1);
+//    if (exponent != 0) {
+//        if (exponent > 0 && sbuf.length() + exponent <= PRECISION+1) {
+//            sbuf.append(exponent, '0');
+//        } else if (exponent < 0 && -exponent < static_cast<int>(sbuf.length()-1)) {
+//            sbuf = sbuf.substr(0, sbuf.length()+exponent) + "." + sbuf.substr(sbuf.length()+exponent);
+//        } else if (exponent < 0 && -exponent == static_cast<int>(sbuf.length()-1)) {
+//            sbuf = sbuf.substr(0, 1) + "0." + sbuf.substr(1);
+//        } else if (exponent < 0 && sbuf.length() - exponent <= PRECISION+2) {
+//            sbuf.insert(1, "0." + std::string(-exponent-(sbuf.length()-1), '0'));
+//        } else {
+//            exponent += static_cast<int>(sbuf.length() - 2);
+//            if (sbuf.length() >= 3) {
+//                sbuf.insert(2, 1, '.');
+//            }
+//            sbuf.push_back('e');
+//            sbuf.append(std::to_string(exponent));
+//        }
+//    }
+//    if (sbuf.at(0) == '+') {
+//        sbuf = sbuf.substr(1);
+//    }
+//    return sbuf;
+//}
 
 static uint32_t exec_getOperand(struct tagTExecutor *self)
 {
@@ -298,20 +364,23 @@ void exec_PUSHB()
     exec_error("not implemented");
 }
 
-void exec_PUSHN()
+void exec_PUSHN(struct tagTExecutor *self)
 {
-    exec_error("not implemented");
+    uint32_t val = exec_getOperand(self);
+    push(self->stack, cell_fromNumber(bid128_from_string(self->object->strtable[val])));
 }
 
 void exec_PUSHS(struct tagTExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
-    push(self->stack, self->object->strtable[val]);
+    push(self->stack, cell_fromString(self->object->strtable[val]));
 }
 
-void exec_PUSHPG()
+void exec_PUSHPG(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t addr = exec_getOperand(self);
+    assert(addr < self->object->global_size);
+    push(self->stack, cell_fromAddress(&self->globals[addr]));
 }
 
 void exec_PUSHPPG()
@@ -344,39 +413,48 @@ void exec_LOADB()
     fatal_error("not implemented");
 }
 
-void exec_LOADN()
+void exec_LOADN(struct tagTExecutor *self)
 {
+    self->ip += 1;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, addr);
+}
+
+void exec_LOADS(struct tagTExecutor *self)
+{
+    *self = *self;
     fatal_error("not implemented");
 }
 
-void exec_LOADS()
+void exec_LOADA(struct tagTExecutor *self)
 {
+    *self = *self;
     fatal_error("not implemented");
 }
 
-void exec_LOADA()
+void exec_LOADD(struct tagTExecutor *self)
 {
+    *self = *self;
     fatal_error("not implemented");
 }
 
-void exec_LOADD()
+void exec_LOADP(struct tagTExecutor *self)
 {
+    *self = *self;
     fatal_error("not implemented");
 }
 
-void exec_LOADP()
+void exec_STOREB(struct tagTExecutor *self)
 {
+    *self = *self;
     fatal_error("not implemented");
 }
 
-void exec_STOREB()
+void exec_STOREN(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
-}
-
-void exec_STOREN()
-{
-    fatal_error("not implemented");
+    self->ip += 1;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    addr->number = top(self->stack)->number; pop(self->stack);
 }
 
 void exec_STORES()
@@ -600,8 +678,13 @@ void exec_CALLP(struct tagTExecutor *self)
     const uint8_t *func = self->object->strtable[val];
 
     if (strcmp((const char*)func, "print") == 0) {
-        const char *s = pop(self->stack);
+        const char *s = top(self->stack)->string; pop(self->stack);
         printf("%s\n", s);
+    } else if (strcmp((const char*)func, "str") == 0) {
+        BID_UINT128 v = top(self->stack)->number; pop(self->stack);
+        char x[50];
+        bid128_to_string(x, v);
+        push(self->stack, cell_fromString(_strdup(x)));
     } else {
         exec_error("exec_CALLP(): \"%s\" - invalid or unsupported predefined function call.", func);
     }
@@ -659,7 +742,7 @@ void exec_DROP()
 
 void exec_RET(struct tagTExecutor *self)
 {
-    self->ip = *(uint32_t*)pop(self->callstack);
+    self->ip = self->callstack[self->callstacktop--];
 }
 
 void exec_CALLE()
@@ -697,9 +780,11 @@ void exec_JNASSERT()
     fatal_error("not implemented");
 }
 
-void exec_RESETC()
+void exec_RESETC(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip += 1;
+    Cell *addr = top(self->stack); pop(self->stack);
+    addr = cell_newCell(addr);
 }
 
 void exec_PUSHPEG()
@@ -749,22 +834,22 @@ void exec_loop(struct tagTExecutor *self)
             case ENTER:   exec_ENTER(); break;
             case LEAVE:   exec_LEAVE(); break;
             case PUSHB:   exec_PUSHB(); break;
-            case PUSHN:   exec_PUSHN(); break;
+            case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;
-            case PUSHPG:  exec_PUSHPG(); break;
+            case PUSHPG:  exec_PUSHPG(self); break;
             case PUSHPPG: exec_PUSHPPG(); break;
             case PUSHPMG: exec_PUSHPMG(); break;
             case PUSHPL:  exec_PUSHPL(); break;
             case PUSHPOL: exec_PUSHPOL(); break;
             case PUSHI:   exec_PUSHI(); break;
             case LOADB:   exec_LOADB(); break;
-            case LOADN:   exec_LOADN(); break;
-            case LOADS:   exec_LOADS(); break;
-            case LOADA:   exec_LOADA(); break;
-            case LOADD:   exec_LOADD(); break;
-            case LOADP:   exec_LOADP(); break;
-            case STOREB:  exec_STOREB(); break;
-            case STOREN:  exec_STOREN(); break;
+            case LOADN:   exec_LOADN(self); break;
+            case LOADS:   exec_LOADS(self); break;
+            case LOADA:   exec_LOADA(self); break;
+            case LOADD:   exec_LOADD(self); break;
+            case LOADP:   exec_LOADP(self); break;
+            case STOREB:  exec_STOREB(self); break;
+            case STOREN:  exec_STOREN(self); break;
             case STORES:  exec_STORES(); break;
             case STOREA:  exec_STOREA(); break;
             case STORED:  exec_STORED(); break;
@@ -827,7 +912,7 @@ void exec_loop(struct tagTExecutor *self)
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(); break;
             case JNASSERT:exec_JNASSERT(); break;
-            case RESETC:  exec_RESETC(); break;
+            case RESETC:  exec_RESETC(self); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(); break;
             case CALLX:   exec_CALLX(); break;
