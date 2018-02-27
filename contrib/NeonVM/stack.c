@@ -13,7 +13,7 @@ struct tagTStack *createStack(int capacity)
     }
     stack->capacity = capacity;
     stack->top = -1;
-    stack->data = malloc(stack->capacity * sizeof(Cell));
+    stack->data = malloc(stack->capacity * sizeof(Cell *));
     if (stack->data == NULL) {
         fatal_error("Could not allocate stack memory.");
     }

@@ -19,18 +19,18 @@ Cell *cell_fromNumber(BID_UINT128 n)
     return x;
 }
 
-Cell *cell_fromString(char *s)
+Cell *cell_fromString(const char *s)
 {
     Cell *x = malloc(sizeof(Cell));
     if (x == NULL) {
         fatal_error("Could not allocate new string object.");
     }
     x->Type = String;
-    x->string = s;
+    x->string = _strdup(s);
     return x;
 }
 
-Cell *cell_fromCell(Cell *c)
+Cell *cell_fromCell(const Cell *c)
 {
     Cell *x = malloc(sizeof(Cell));
     if (x == NULL) {
@@ -61,7 +61,17 @@ Cell *cell_fromCell(Cell *c)
 Cell *cell_fromAddress(Cell *c)
 {
     Cell *x = cell_newCell();
+    x->address = c;
+    x->Type = Address;
     return x;
+}
+
+void cell_resetCell(Cell *c)
+{
+    c->number = bid128_from_uint32(0);
+    c->string = NULL;
+    c->address = NULL;
+    c->Type = None;
 }
 
 Cell *cell_newCell()
