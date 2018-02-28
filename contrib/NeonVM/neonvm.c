@@ -289,13 +289,9 @@ struct tagTExecutor *new_executer(struct tagTBytecode *object)
     if (r->globals == NULL) {
         fatal_error("Failed to allocate memory for global variables.");
     }
-    memset(r->globals, 0xDB, sizeof(Cell) * r->object->global_size);
-    //for (i = 0; i < r->object->global_size; i++) {
-    //    r->globals[i] = cell_newCell();
-    //    if (r->globals[i] == NULL) {
-    //        fatal_error("Could not allocate memory for global storage.");
-    //    }
-    //}
+    for (i = 0; i < r->object->global_size; i++) {
+        cell_resetCell(&r->globals[i]);
+    }
     return r;
 }
 
@@ -396,9 +392,8 @@ void exec_LOADB()
 void exec_LOADN(struct tagTExecutor *self)
 {
     self->ip += 1;
-    Cell *addr = top(self->stack)->address;
-    push(self->stack, addr);
-    pop(self->stack);
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromCell(addr));
 }
 
 void exec_LOADS(struct tagTExecutor *self)
@@ -775,8 +770,8 @@ void exec_JNASSERT()
 void exec_RESETC(struct tagTExecutor *self)
 {
     self->ip += 1;
-    cell_resetCell(cell_fromAddress(top(self->stack)->address));
-    //pop(self->stack);
+    Cell *addr = cell_fromAddress(top(self->stack)->address); pop(self->stack);
+    cell_resetCell(addr);
 }
 
 void exec_PUSHPEG()
