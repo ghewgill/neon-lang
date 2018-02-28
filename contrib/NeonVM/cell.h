@@ -16,17 +16,24 @@
 #pragma warning(pop)
 #endif
 
+typedef enum tagEtype {
+    None,
+    Address,
+    Number,
+    String,
+} CellType;
+
 typedef struct tagTCell {
-    char *string;
     BID_UINT128 number;
     struct tagTCell *address;
-
-    enum tagEtype {
-        None,
-        Address,
-        Number,
-        String,
-    } Type;
+    char *string;
+    CellType type;
+    //enum tagEtype {
+    //    None,
+    //    Address,
+    //    Number,
+    //    String,
+    //} Type;
 } Cell;
 
 Cell *cell_newCell();

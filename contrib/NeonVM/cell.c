@@ -14,7 +14,7 @@ Cell *cell_fromNumber(BID_UINT128 n)
     if (x == NULL) {
         fatal_error("Could not allocate new number object.");
     }
-    x->Type = Number;
+    x->type = Number;
     x->number = n;
     return x;
 }
@@ -25,7 +25,7 @@ Cell *cell_fromString(const char *s)
     if (x == NULL) {
         fatal_error("Could not allocate new string object.");
     }
-    x->Type = String;
+    x->type = String;
     x->string = _strdup(s);
     return x;
 }
@@ -37,32 +37,40 @@ Cell *cell_fromCell(const Cell *c)
         fatal_error("Could not allocate new Cell object.");
     }
     assert(c != NULL);
-    x->Type = c->Type;
-    switch (c->Type) {
+    x->type = c->type;
+    switch (c->type) {
         case Address:
-            x->address = c->address;
+            memcpy(x, c, sizeof(Cell));
+            //x->address = c->address;
             break;
         case String:
             x->string = _strdup(c->string);
             x->number = bid128_from_uint32(0);
+            x->address = NULL;
             break;
         case Number:
             x->number = c->number;
             x->string = NULL;
+            x->address = NULL;
             break;
         case None:
+            x->number = bid128_from_uint32(0);
+            x->string = NULL;
+            x->address = c->address;
+            break;
         default:
             x->number = bid128_from_uint32(0);
             x->string = NULL;
+            x->address = NULL;
     }
     return x;
 }
 
 Cell *cell_fromAddress(Cell *c)
 {
-    Cell *x = cell_newCell();
-    x->address = c;
-    x->Type = Address;
+    Cell *x = cell_fromCell(c);
+    //x->address = c;
+    //x->type = Address;
     return x;
 }
 
@@ -71,7 +79,7 @@ void cell_resetCell(Cell *c)
     c->number = bid128_from_uint32(0);
     c->string = NULL;
     c->address = NULL;
-    c->Type = None;
+    c->type = None;
 }
 
 Cell *cell_newCell()
@@ -81,6 +89,6 @@ Cell *cell_newCell()
     c->number = bid128_from_uint32(0);
     c->string = NULL;
     c->address = NULL;
-    c->Type = None;
+    c->type = None;
     return c;
 }
