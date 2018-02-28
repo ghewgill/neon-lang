@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "cell.h"
+#include "number.h"
 #include "opcode.h"
 #include "stack.h"
 #include "util.h"
@@ -35,6 +36,43 @@ static uint32_t get_uint32(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
     uint32_t r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
     *i += 4;
     return r;
+}
+
+char *number_to_string(BID_UINT128 x)
+{
+    static char buf[50];
+    char val[50];
+    bid128_to_string(val, x);
+    sprintf(buf, "%g", atof(val));
+    return buf;
+    //buf = atoi()
+
+    //char *s = &val[0];
+
+    //// Skip over the leading +, if there is one.
+    //while(*s != '\0' && (*s == '+')) s++;
+
+    //char *v = s;
+
+    //while (*s != '\0' && (*s != 'E')) s++;
+
+    //char *E = s;
+
+    //if (*s == 'E') {
+    //    // Deal with the exponent.
+    //    int i;
+    //    iLeadingZeros = abs(atoi(++s));
+    //    for (i = 0; i < iLeadingZeros; i++) {
+    //        lead[i] = '0';
+    //    }
+    //    lead[i++] = '.';
+    //    lead[i++] = '\0';
+    //    strcpy(buf, lead);
+    //}
+
+    //*E = '\0';
+    //strcat(buf, v);
+    //return buf;
 }
 
 struct NString {
@@ -295,29 +333,6 @@ struct tagTExecutor *new_executer(struct tagTBytecode *object)
     return r;
 }
 
-char *number_to_string(BID_UINT128 x)
-{
-    const int PRECISION = 34;
-
-    static char buf[50];
-    static char val[50];
-    bid128_to_string(buf, x);
-
-    char *s = &buf[0];
-
-    // Skip over the leading +
-    while(*s != '\0' && (*s == '+')) s++;
-
-    char *v = s;
-
-    while (*s != '\0' && (*s != 'E')) s++;
-    char *E = s;
-    *E = '\0';
-    strcpy(val, v);
-
-    return val;
-}
-
 static uint32_t exec_getOperand(struct tagTExecutor *self)
 {
     uint32_t r = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
@@ -343,13 +358,13 @@ void exec_PUSHB()
 void exec_PUSHN(struct tagTExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
-    push(self->stack, cell_fromNumber(bid128_from_string(self->object->strtable[val])));
+    push(self->stack, cell_fromNumber(bid128_from_string((char*)self->object->strtable[val])));
 }
 
 void exec_PUSHS(struct tagTExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
-    push(self->stack, cell_fromString(self->object->strtable[val]));
+    push(self->stack, cell_fromString((const char*)self->object->strtable[val]));
 }
 
 void exec_PUSHPG(struct tagTExecutor *self)
@@ -430,7 +445,10 @@ void exec_STOREN(struct tagTExecutor *self)
 {
     self->ip += 1;
     Cell *addr = top(self->stack)->address; pop(self->stack);
-    addr->number = top(self->stack)->number; pop(self->stack);
+    cell_copyCell(addr, top(self->stack)); pop(self->stack);
+    //addr->type = Number;
+    //cell_copyCell(addr, top(self->stack)); pop(self->stack);
+    //addr->number = top(self->stack)->number; pop(self->stack);
 }
 
 void exec_STORES()
@@ -490,14 +508,20 @@ void exec_DIVN(struct tagTExecutor *self)
     push(self->stack, cell_fromNumber(bid128_div(a, b)));
 }
 
-void exec_MODN()
+void exec_MODN(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip += 1;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromNumber(number_modulo(a, b)));
 }
 
-void exec_EXPN()
+void exec_EXPN(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip += 1;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromNumber(bid128_pow(a, b)));
 }
 
 void exec_EQB()
@@ -770,7 +794,7 @@ void exec_JNASSERT()
 void exec_RESETC(struct tagTExecutor *self)
 {
     self->ip += 1;
-    Cell *addr = cell_fromAddress(top(self->stack)->address); pop(self->stack);
+    Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_resetCell(addr);
 }
 
@@ -846,8 +870,8 @@ void exec_loop(struct tagTExecutor *self)
             case SUBN:    exec_SUBN(self); break;
             case MULN:    exec_MULN(self); break;
             case DIVN:    exec_DIVN(self); break;
-            case MODN:    exec_MODN(); break;
-            case EXPN:    exec_EXPN(); break;
+            case MODN:    exec_MODN(self); break;
+            case EXPN:    exec_EXPN(self); break;
             case EQB:     exec_EQB(); break;
             case NEB:     exec_NEB(); break;
             case EQN:     exec_EQN(); break;

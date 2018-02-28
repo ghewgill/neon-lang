@@ -101,6 +101,12 @@ env.Append(CPPPATH=[
     "src",
 ])
 if sys.platform == "win32":
+    env.Append(CFLAGS=[
+        "/W4",
+        "/MDd",
+        "/wd4324", # structure was padded due to alignment specifier
+        "/wd4996", # CRT deprecation warnings
+    ])
     env.Append(CXXFLAGS=[
         "/EHsc",
         "/W4",
@@ -422,6 +428,7 @@ neonbind = env.Program("bin/neonbind", [
 neoncx = env.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/neonvm.c",
     "contrib/NeonVM/cell.c",
+    "contrib/NeonVM/number.c",
     "contrib/NeonVM/stack.c",
     "contrib/NeonVM/util.c",
 ] + libbid,
