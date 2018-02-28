@@ -3,7 +3,7 @@ import subprocess
 import sys
 
 IncludeTests = [
-    #"t/arithmetic.neon",
+    "t/arithmetic.neon",
     "t/hello.neon",
 ]
 

@@ -45,7 +45,8 @@ void pop(struct tagTStack *stack)
         fatal_error("Stack underflow error.");
     }
 
-    free(stack->data[stack->top--]);
+    Cell *p = stack->data[stack->top--];
+    cell_freeCell(p);
 }
 
 Cell *top(struct tagTStack *stack)
