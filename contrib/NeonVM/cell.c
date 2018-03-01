@@ -33,14 +33,16 @@ Cell *cell_fromCell(const Cell *c)
     switch (c->type) {
         case Address:
             cell_copyCell(x, c);
-            //memcpy(x, c, sizeof(Cell));
-            //x->address = c->address;
             break;
         case String:
             x->string = _strdup(c->string);
+            x->address = NULL;
+            x->number = bid128_from_uint32(0);
             break;
         case Number:
             x->number = c->number;
+            x->string = NULL;
+            x->address = NULL;
             break;
         case None:
         default:
@@ -64,7 +66,10 @@ void cell_copyCell(Cell *dest, const Cell *source)
     assert(source != NULL);
     assert(dest != NULL);
 
-    memcpy(dest, source, sizeof(Cell));
+    dest->number = source->number;
+    dest->string = _strdup(source->string);
+    dest->address = source->address;
+    dest->type = source->type;
 }
 
 void cell_resetCell(Cell *c)

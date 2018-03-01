@@ -80,9 +80,9 @@ struct NString {
     int8_t *data;
 };
 
-static uint8_t **getstrtable(const uint8_t *start, const uint8_t *end, uint32_t *count)
+static char **getstrtable(const uint8_t *start, const uint8_t *end, uint32_t *count)
 {
-    uint8_t **r = NULL;
+    char **r = NULL;
     uint32_t i = 0;
 
     // First, initialize the string count to zero.
@@ -126,7 +126,7 @@ typedef struct tagTBytecode {
     uint16_t global_size;
     uint32_t strtablesize;
     uint32_t strtablelen;
-    uint8_t **strtable;
+    char **strtable;
     uint32_t typesize;
     uint32_t constantsize;
     uint32_t variablesize;
@@ -687,7 +687,7 @@ void exec_IND()
 void exec_CALLP(struct tagTExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
-    const uint8_t *func = self->object->strtable[val];
+    const char *func = self->object->strtable[val];
 
     if (strcmp((const char*)func, "print") == 0) {
         const char *s = top(self->stack)->string;
