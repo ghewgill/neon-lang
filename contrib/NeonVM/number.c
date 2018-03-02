@@ -13,6 +13,8 @@ void number_toString(BID_UINT128 x, char *buf, size_t len)
     const int PRECISION = 34;
     int iLeadingZeros = 0;
 
+    len = len;
+    PRECISION;
     char val[50];
     char lead[50];
     bid128_to_string(val, x);

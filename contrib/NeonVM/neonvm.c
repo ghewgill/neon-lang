@@ -45,34 +45,6 @@ char *number_to_string(BID_UINT128 x)
     bid128_to_string(val, x);
     sprintf(buf, "%g", atof(val));
     return buf;
-    //buf = atoi()
-
-    //char *s = &val[0];
-
-    //// Skip over the leading +, if there is one.
-    //while(*s != '\0' && (*s == '+')) s++;
-
-    //char *v = s;
-
-    //while (*s != '\0' && (*s != 'E')) s++;
-
-    //char *E = s;
-
-    //if (*s == 'E') {
-    //    // Deal with the exponent.
-    //    int i;
-    //    iLeadingZeros = abs(atoi(++s));
-    //    for (i = 0; i < iLeadingZeros; i++) {
-    //        lead[i] = '0';
-    //    }
-    //    lead[i++] = '.';
-    //    lead[i++] = '\0';
-    //    strcpy(buf, lead);
-    //}
-
-    //*E = '\0';
-    //strcat(buf, v);
-    //return buf;
 }
 
 struct NString {
@@ -307,9 +279,6 @@ void exec_run(struct tagTExecutor *self)
         free(self->object->strtable[i]);
     }
     free(self->globals);
-    //for (i = 0; i < self->object->global_size; i++) {
-    //    free(self->globals[i]);
-    //}
 }
 
 struct tagTExecutor *new_executer(struct tagTBytecode *object)
@@ -446,9 +415,6 @@ void exec_STOREN(struct tagTExecutor *self)
     self->ip += 1;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
-    //addr->type = Number;
-    //cell_copyCell(addr, top(self->stack)); pop(self->stack);
-    //addr->number = top(self->stack)->number; pop(self->stack);
 }
 
 void exec_STORES()

@@ -20,7 +20,7 @@ Cell *cell_fromString(const char *s)
 {
     Cell *x = cell_newCell();
     x->type = String;
-    x->string = _strdup(s);
+    x->string = strdup(s);
     return x;
 }
 
@@ -35,7 +35,7 @@ Cell *cell_fromCell(const Cell *c)
             cell_copyCell(x, c);
             break;
         case String:
-            x->string = _strdup(c->string);
+            x->string = strdup(c->string);
             x->address = NULL;
             x->number = bid128_from_uint32(0);
             break;
@@ -67,7 +67,7 @@ void cell_copyCell(Cell *dest, const Cell *source)
     assert(dest != NULL);
 
     dest->number = source->number;
-    dest->string = _strdup(source->string);
+    dest->string = strdup(source->string);
     dest->address = source->address;
     dest->type = source->type;
 }

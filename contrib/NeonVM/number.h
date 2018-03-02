@@ -16,6 +16,10 @@
 #pragma warning(pop)
 #endif
 
+#ifdef _MSC_VER
+#define strdup(x) _strdup(x)
+#endif
+
 void number_toString(BID_UINT128 x, char *buf, size_t len);
 
 BID_UINT128 number_modulo(BID_UINT128 x, BID_UINT128 y);
