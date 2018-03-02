@@ -8,6 +8,11 @@
 #include "cell.h"
 #include "util.h"
 
+#ifdef _MSC_VER
+#define strdup(x) _strdup(x)
+#endif
+
+
 Cell *cell_fromNumber(BID_UINT128 n)
 {
     Cell *x = cell_newCell();
@@ -67,7 +72,11 @@ void cell_copyCell(Cell *dest, const Cell *source)
     assert(dest != NULL);
 
     dest->number = source->number;
-    dest->string = strdup(source->string);
+    if (source->type == String && source->string != NULL) {
+        dest->string = strdup(source->string);
+    } else {
+        dest->string = NULL;
+    }
     dest->address = source->address;
     dest->type = source->type;
 }

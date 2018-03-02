@@ -327,13 +327,13 @@ void exec_PUSHB()
 void exec_PUSHN(struct tagTExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
-    push(self->stack, cell_fromNumber(bid128_from_string((char*)self->object->strtable[val])));
+    push(self->stack, cell_fromNumber(bid128_from_string(self->object->strtable[val])));
 }
 
 void exec_PUSHS(struct tagTExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
-    push(self->stack, cell_fromString((const char*)self->object->strtable[val]));
+    push(self->stack, cell_fromString(self->object->strtable[val]));
 }
 
 void exec_PUSHPG(struct tagTExecutor *self)
@@ -655,11 +655,11 @@ void exec_CALLP(struct tagTExecutor *self)
     uint32_t val = exec_getOperand(self);
     const char *func = self->object->strtable[val];
 
-    if (strcmp((const char*)func, "print") == 0) {
+    if (strcmp(func, "print") == 0) {
         const char *s = top(self->stack)->string;
         printf("%s\n", s);
         pop(self->stack);
-    } else if (strcmp((const char*)func, "str") == 0) {
+    } else if (strcmp(func, "str") == 0) {
         BID_UINT128 v = top(self->stack)->number; pop(self->stack);
         push(self->stack, cell_fromString(number_to_string(v)));
     } else {
