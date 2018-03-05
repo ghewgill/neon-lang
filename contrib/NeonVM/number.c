@@ -15,6 +15,7 @@ void number_toString(BID_UINT128 x, char *buf, size_t len)
 
     len = len;
     PRECISION;
+
     char val[50];
     char lead[50];
     bid128_to_string(val, x);

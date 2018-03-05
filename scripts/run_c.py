@@ -4,6 +4,8 @@ import sys
 
 IncludeTests = [
     "t/arithmetic.neon",
+    "t/for.neon",
+    "t/function.neon",
     "t/hello.neon",
 ]
 
