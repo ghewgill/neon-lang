@@ -134,6 +134,7 @@ typedef struct tagTExecutor {
     int32_t callstacktop;
     int32_t param_recursion_limit;
     Cell *globals;
+    Cell *frames;
 } TExecutor;
 
 struct tagTExecutor *new_executer(struct tagTBytecode *object);
@@ -307,6 +308,7 @@ struct tagTExecutor *new_executer(struct tagTBytecode *object)
     r->stack = createStack(300);
     r->ip = 0;
     r->callstacktop = -1;
+    r->frames = NULL;
     r->param_recursion_limit = 1000;
     r->globals = malloc(sizeof(Cell) * r->object->global_size);
     if (r->globals == NULL) {
@@ -337,6 +339,13 @@ void exec_ENTER(struct tagTExecutor *self)
     self->ip += 4;
     uint32_t val = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
     self->ip += 4;
+    self->frames = malloc(sizeof(Cell) * val);
+    if (self->frames == NULL) {
+        fatal_error("Failed to allocate memory for function local variables.");
+    }
+    for (uint32_t i = 0; i < val; i++) {
+        cell_resetCell(&self->frames[i]);
+    }
     // ToDo: Implement Activiation frame support
     //add(frame_newFrame(val));
     //nested_frames.resize(nest-1);
@@ -345,7 +354,7 @@ void exec_ENTER(struct tagTExecutor *self)
 
 void exec_LEAVE(struct tagTExecutor *self)
 {
-    //remove(self->frames);
+    free(self->frames);
     self->ip++;
 }
 
@@ -383,9 +392,10 @@ void exec_PUSHPMG()
     fatal_error("not implemented");
 }
 
-void exec_PUSHPL()
+void exec_PUSHPL(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t addr = exec_getOperand(self);
+    push(self->stack, cell_fromAddress(&self->frames[addr]));
 }
 
 void exec_PUSHPOL()
@@ -867,7 +877,7 @@ void exec_loop(struct tagTExecutor *self)
             case PUSHPG:  exec_PUSHPG(self); break;
             case PUSHPPG: exec_PUSHPPG(); break;
             case PUSHPMG: exec_PUSHPMG(); break;
-            case PUSHPL:  exec_PUSHPL(); break;
+            case PUSHPL:  exec_PUSHPL(self); break;
             case PUSHPOL: exec_PUSHPOL(); break;
             case PUSHI:   exec_PUSHI(); break;
             case LOADB:   exec_LOADB(); break;

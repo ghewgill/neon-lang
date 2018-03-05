@@ -6,6 +6,7 @@ IncludeTests = [
     "t/arithmetic.neon",
     "t/for.neon",
     "t/function.neon",
+    "t/function-local.neon",
     "t/hello.neon",
 ]
 

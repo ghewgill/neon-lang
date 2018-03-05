@@ -29,6 +29,6 @@ Cell *cell_fromString(const char *s);
 Cell *cell_fromCell(const Cell *c);
 Cell *cell_fromAddress(Cell *c);
 void cell_copyCell(Cell *dest, const Cell *source);
-void  cell_resetCell(Cell *c);
+void cell_resetCell(Cell *c);
 
 #endif
