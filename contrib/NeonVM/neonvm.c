@@ -93,6 +93,11 @@ typedef struct tagTType {
     int16_t descriptor;
 } Type;
 
+typedef struct tagTFunction {
+    uint16_t name;
+    uint32_t entry;
+} Function;
+
 typedef struct tagTBytecode {
     uint8_t source_hash[32];
     uint16_t global_size;
@@ -112,6 +117,7 @@ typedef struct tagTBytecode {
     size_t codelen;
 
     struct Type *pExportTypes;
+    struct tagTFunction *pFunctions;
 } TBytecode;
 
 struct tagTExecutor;
@@ -125,7 +131,8 @@ typedef struct tagTExecutor {
     struct tagTStack *stack;
     //struct tagTStack *callstack;
     uint32_t callstack[300];
-    uint32_t callstacktop;
+    int32_t callstacktop;
+    int32_t param_recursion_limit;
     Cell *globals;
 } TExecutor;
 
@@ -221,6 +228,14 @@ static void loadBytecode(const uint8_t *bytecode, size_t len, struct tagTBytecod
     //    while importsize > 0:
     //        assert False, importsize
     pBytecode->functionsize = get_uint16(bytecode, len, &i);
+    pBytecode->pFunctions = malloc(sizeof(Function) * pBytecode->functionsize);
+    if (pBytecode->pFunctions == NULL) {
+        fatal_error("Could not allocate memory for function info.");
+    }
+    for (uint32_t f = 0; f < pBytecode->functionsize; f++) {
+        pBytecode->pFunctions[f].name = get_uint16(bytecode, len, &i);
+        pBytecode->pFunctions[f].entry = get_uint32(bytecode, len, &i);
+    }
     //    functionsize = struct.unpack(">H", bytecode[i:i+2])[0]
     //    i += 2
     //    while functionsize > 0:
@@ -271,7 +286,7 @@ int main(int argc, char* argv[])
 void exec_run(struct tagTExecutor *self)
 {
     uint32_t i;
-    self->callstack[self->callstacktop] = (uint32_t)self->object->codelen;
+    self->callstack[++self->callstacktop] = (uint32_t)self->object->codelen;
 
     exec_loop(self);
 
@@ -291,7 +306,8 @@ struct tagTExecutor *new_executer(struct tagTBytecode *object)
     r->object = object;
     r->stack = createStack(300);
     r->ip = 0;
-    r->callstacktop = 0;
+    r->callstacktop = -1;
+    r->param_recursion_limit = 1000;
     r->globals = malloc(sizeof(Cell) * r->object->global_size);
     if (r->globals == NULL) {
         fatal_error("Failed to allocate memory for global variables.");
@@ -309,19 +325,33 @@ static uint32_t exec_getOperand(struct tagTExecutor *self)
     return r;
 }
 
-void exec_ENTER()
+typedef struct tagTActivationFrame {
+    size_t count;
+    Cell *locals;
+} TActivationFrame;
+
+void exec_ENTER(struct tagTExecutor *self)
 {
-    exec_error("not implemented");
+    self->ip += 1;
+    uint32_t nest = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
+    self->ip += 4;
+    uint32_t val = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
+    self->ip += 4;
+    // ToDo: Implement Activiation frame support
+    //add(frame_newFrame(val));
+    //nested_frames.resize(nest-1);
+    //nested_frames.push_back(&frames.back());
 }
 
-void exec_LEAVE()
+void exec_LEAVE(struct tagTExecutor *self)
 {
-    exec_error("not implemented");
+    //remove(self->frames);
+    self->ip++;
 }
 
 void exec_PUSHB()
 {
-    exec_error("not implemented");
+    fatal_error("not implemented");
 }
 
 void exec_PUSHN(struct tagTExecutor *self)
@@ -437,9 +467,11 @@ void exec_STOREP()
     fatal_error("not implemented");
 }
 
-void exec_NEGN()
+void exec_NEGN(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 x = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromNumber(bid128_negate(x)));
 }
 
 void exec_ADDN(struct tagTExecutor *self)
@@ -474,7 +506,7 @@ void exec_DIVN(struct tagTExecutor *self)
     push(self->stack, cell_fromNumber(bid128_div(a, b)));
 }
 
-void exec_MODN(struct tagTExecutor*self)
+void exec_MODN(struct tagTExecutor *self)
 {
     self->ip += 1;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
@@ -482,7 +514,7 @@ void exec_MODN(struct tagTExecutor*self)
     push(self->stack, cell_fromNumber(number_modulo(a, b)));
 }
 
-void exec_EXPN(struct tagTExecutor*self)
+void exec_EXPN(struct tagTExecutor *self)
 {
     self->ip += 1;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
@@ -500,32 +532,38 @@ void exec_NEB()
     fatal_error("not implemented");
 }
 
-void exec_EQN()
+void exec_EQN(struct tagTExecutor*self)
 {
     fatal_error("not implemented");
 }
 
-void exec_NEN()
+void exec_NEN(struct tagTExecutor*self)
 {
     fatal_error("not implemented");
 }
 
-void exec_LTN()
+void exec_LTN(struct tagTExecutor*self)
+{
+    self->ip += 1;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromBoolean(bid128_quiet_less(a, b)));
+}
+
+void exec_GTN(struct tagTExecutor*self)
+{
+    self->ip += 1;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromBoolean(bid128_quiet_greater(a, b)));
+}
+
+void exec_LEN(struct tagTExecutor*self)
 {
     fatal_error("not implemented");
 }
 
-void exec_GTN()
-{
-    fatal_error("not implemented");
-}
-
-void exec_LEN()
-{
-    fatal_error("not implemented");
-}
-
-void exec_GEN()
+void exec_GEN(struct tagTExecutor*self)
 {
     fatal_error("not implemented");
 }
@@ -667,9 +705,16 @@ void exec_CALLP(struct tagTExecutor *self)
     }
 }
 
-void exec_CALLF()
+void exec_CALLF(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t val = exec_getOperand(self);
+    if (self->callstacktop >= self->param_recursion_limit) {
+        // ToDo: handle runtime exceptions
+        //raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
+        //return;
+    }
+    self->callstack[++self->callstacktop] = self->ip;
+    self->ip = val;
 }
 
 void exec_CALLMF()
@@ -682,14 +727,20 @@ void exec_CALLI()
     fatal_error("not implemented");
 }
 
-void exec_JUMP()
+void exec_JUMP(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t target = exec_getOperand(self);
+    self->ip = target;
 }
 
-void exec_JF()
+void exec_JF(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t target = exec_getOperand(self);
+        //(module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    bool a = top(self->stack)->boolean; pop(self->stack);
+    if (!a) {
+        self->ip = target;
+    }
 }
 
 void exec_JT()
@@ -808,8 +859,8 @@ void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
         switch (self->object->code[self->ip]) {
-            case ENTER:   exec_ENTER(); break;
-            case LEAVE:   exec_LEAVE(); break;
+            case ENTER:   exec_ENTER(self); break;
+            case LEAVE:   exec_LEAVE(self); break;
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;
@@ -831,7 +882,7 @@ void exec_loop(struct tagTExecutor *self)
             case STOREA:  exec_STOREA(); break;
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(); break;
-            case NEGN:    exec_NEGN(); break;
+            case NEGN:    exec_NEGN(self); break;
             case ADDN:    exec_ADDN(self); break;
             case SUBN:    exec_SUBN(self); break;
             case MULN:    exec_MULN(self); break;
@@ -840,12 +891,12 @@ void exec_loop(struct tagTExecutor *self)
             case EXPN:    exec_EXPN(self); break;
             case EQB:     exec_EQB(); break;
             case NEB:     exec_NEB(); break;
-            case EQN:     exec_EQN(); break;
-            case NEN:     exec_NEN(); break;
-            case LTN:     exec_LTN(); break;
-            case GTN:     exec_GTN(); break;
-            case LEN:     exec_LEN(); break;
-            case GEN:     exec_GEN(); break;
+            case EQN:     exec_EQN(self); break;
+            case NEN:     exec_NEN(self); break;
+            case LTN:     exec_LTN(self); break;
+            case GTN:     exec_GTN(self); break;
+            case LEN:     exec_LEN(self); break;
+            case GEN:     exec_GEN(self); break;
             case EQS:     exec_EQS(); break;
             case NES:     exec_NES(); break;
             case LTS:     exec_LTS(); break;
@@ -871,11 +922,11 @@ void exec_loop(struct tagTExecutor *self)
             case INA:     exec_INA(); break;
             case IND:     exec_IND(); break;
             case CALLP:   exec_CALLP(self); break;
-            case CALLF:   exec_CALLF(); break;
+            case CALLF:   exec_CALLF(self); break;
             case CALLMF:  exec_CALLMF(); break;
             case CALLI:   exec_CALLI(); break;
-            case JUMP:    exec_JUMP(); break;
-            case JF:      exec_JF(); break;
+            case JUMP:    exec_JUMP(self); break;
+            case JF:      exec_JF(self); break;
             case JT:      exec_JT(); break;
             case JFCHAIN: exec_JFCHAIN(); break;
             case DUP:     exec_DUP(); break;
