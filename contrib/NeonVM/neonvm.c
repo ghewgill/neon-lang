@@ -11,13 +11,6 @@
 #include "stack.h"
 #include "util.h"
 
-typedef unsigned char       uint8_t;
-typedef signed   char       int8_t;
-typedef unsigned short      uint16_t;
-typedef signed   short      int16_t;
-typedef unsigned int        uint32_t;
-typedef signed   int        int32_t;
-
 static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
 {
     if (*i+2 > nBuffSize) {
@@ -334,7 +327,7 @@ typedef struct tagTActivationFrame {
 
 void exec_ENTER(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     uint32_t nest = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
     self->ip += 4;
     uint32_t val = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
@@ -415,21 +408,23 @@ void exec_LOADB()
 
 void exec_LOADN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     push(self->stack, cell_fromCell(addr));
 }
 
 void exec_LOADS(struct tagTExecutor *self)
 {
-    self = self;
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromCell(addr));
 }
 
 void exec_LOADA(struct tagTExecutor *self)
 {
-    self = self;
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromCell(addr));
 }
 
 void exec_LOADD(struct tagTExecutor *self)
@@ -452,19 +447,23 @@ void exec_STOREB(struct tagTExecutor *self)
 
 void exec_STOREN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STORES()
+void exec_STORES(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STOREA()
+void exec_STOREA(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
 void exec_STORED()
@@ -486,7 +485,7 @@ void exec_NEGN(struct tagTExecutor *self)
 
 void exec_ADDN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(bid128_add(a, b)));
@@ -494,7 +493,7 @@ void exec_ADDN(struct tagTExecutor *self)
 
 void exec_SUBN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(bid128_sub(a, b)));
@@ -502,7 +501,7 @@ void exec_SUBN(struct tagTExecutor *self)
 
 void exec_MULN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(bid128_mul(a, b)));
@@ -510,7 +509,7 @@ void exec_MULN(struct tagTExecutor *self)
 
 void exec_DIVN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(bid128_div(a, b)));
@@ -518,7 +517,7 @@ void exec_DIVN(struct tagTExecutor *self)
 
 void exec_MODN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(number_modulo(a, b)));
@@ -526,7 +525,7 @@ void exec_MODN(struct tagTExecutor *self)
 
 void exec_EXPN(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(bid128_pow(a, b)));
@@ -544,17 +543,23 @@ void exec_NEB()
 
 void exec_EQN(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromBoolean(bid128_quiet_equal(a, b)));
 }
 
 void exec_NEN(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromBoolean(bid128_quiet_not_equal(a, b)));
 }
 
 void exec_LTN(struct tagTExecutor*self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromBoolean(bid128_quiet_less(a, b)));
@@ -562,7 +567,7 @@ void exec_LTN(struct tagTExecutor*self)
 
 void exec_GTN(struct tagTExecutor*self)
 {
-    self->ip += 1;
+    self->ip++;
     BID_UINT128 b = top(self->stack)->number; pop(self->stack);
     BID_UINT128 a = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromBoolean(bid128_quiet_greater(a, b)));
@@ -570,12 +575,18 @@ void exec_GTN(struct tagTExecutor*self)
 
 void exec_LEN(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromBoolean(bid128_quiet_less_equal(a, b)));
 }
 
 void exec_GEN(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 b = top(self->stack)->number; pop(self->stack);
+    BID_UINT128 a = top(self->stack)->number; pop(self->stack);
+    push(self->stack, cell_fromBoolean(bid128_quiet_greater_equal(a, b)));
 }
 
 void exec_EQS()
@@ -707,9 +718,50 @@ void exec_CALLP(struct tagTExecutor *self)
         const char *s = top(self->stack)->string;
         printf("%s\n", s);
         pop(self->stack);
+    } else if (strcmp(func, "array__concat") == 0) {
+        Cell *right = cell_fromCell(top(self->stack)); pop(self->stack);
+        Cell *left  = cell_fromCell(top(self->stack)); pop(self->stack);
+        Cell *a = cell_createArrayCell(left->array_size + right->array_size);
+
+        for (uint32_t i = 0; i < left->array_size; i++) {
+            cell_copyCell(&a->array[i], &left->array[i]);
+        }
+        for (uint32_t i = 0; i < right->array_size; i++) {
+            cell_copyCell(&a->array[i+left->array_size], &right->array[i]);
+        }
+        push(self->stack, a);
+        cell_freeCell(left);
+        cell_freeCell(right);
+    } else if (strcmp(func, "array__toString__number") == 0) {
+        // ToDo: Fix this to use proper string appends!!
+        Cell *a = top(self->stack);
+        char *s = malloc(1024);
+        strcpy(s, "[");
+        for (uint32_t x = 0; x < a->array_size; x++) {
+            if (strlen(s) > 1) {
+                strcat(s, ", ");
+            }
+            strcat(s, number_to_string(a->array[x].number));
+        }
+        strcat(s, "]");
+        pop(self->stack);
+        push(self->stack, cell_fromString(s));
+    } else if (strcmp(func, "concat") == 0) {
+        char *b = _strdup(top(self->stack)->string); pop(self->stack);
+        char *a = _strdup(top(self->stack)->string); pop(self->stack);
+        char *n = malloc(strlen(a) + strlen(b) + 1);
+        strcpy(n, a);
+        strcat(n, b);
+        push(self->stack, cell_fromString(n));
+        free(a);
+        free(b);
+        free(n);
     } else if (strcmp(func, "str") == 0) {
         BID_UINT128 v = top(self->stack)->number; pop(self->stack);
         push(self->stack, cell_fromString(number_to_string(v)));
+    } else if (strcmp(func, "strb") == 0) {
+        bool v = top(self->stack)->boolean; pop(self->stack);
+        push(self->stack, cell_fromString(v ? "TRUE" : "FALSE"));
     } else {
         exec_error("exec_CALLP(): \"%s\" - invalid or unsupported predefined function call.", func);
     }
@@ -788,9 +840,17 @@ void exec_CALLE()
     fatal_error("not implemented");
 }
 
-void exec_CONSA()
+void exec_CONSA(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t val = exec_getOperand(self);
+    Cell *a = cell_createArrayCell(val);
+
+    while (val > 0) {
+        cell_copyCell(&a->array[a->array_size - val], top(self->stack));
+        val--;
+        pop(self->stack);
+    }
+    push(self->stack, a);
 }
 
 void exec_CONSD()
@@ -820,7 +880,7 @@ void exec_JNASSERT()
 
 void exec_RESETC(struct tagTExecutor *self)
 {
-    self->ip += 1;
+    self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_resetCell(addr);
 }
@@ -888,8 +948,8 @@ void exec_loop(struct tagTExecutor *self)
             case LOADP:   exec_LOADP(self); break;
             case STOREB:  exec_STOREB(self); break;
             case STOREN:  exec_STOREN(self); break;
-            case STORES:  exec_STORES(); break;
-            case STOREA:  exec_STOREA(); break;
+            case STORES:  exec_STORES(self); break;
+            case STOREA:  exec_STOREA(self); break;
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(); break;
             case NEGN:    exec_NEGN(self); break;
@@ -944,7 +1004,7 @@ void exec_loop(struct tagTExecutor *self)
             case DROP:    exec_DROP(); break;
             case RET:     exec_RET(self); break;
             case CALLE:   exec_CALLE(); break;
-            case CONSA:   exec_CONSA(); break;
+            case CONSA:   exec_CONSA(self); break;
             case CONSD:   exec_CONSD(); break;
             case EXCEPT:  exec_EXCEPT(); break;
             case ALLOC:   exec_ALLOC(); break;
