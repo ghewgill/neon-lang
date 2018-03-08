@@ -19,5 +19,6 @@
 void number_toString(BID_UINT128 x, char *buf, size_t len);
 
 BID_UINT128 number_modulo(BID_UINT128 x, BID_UINT128 y);
+bool number_is_integer(BID_UINT128 x);
 
 #endif

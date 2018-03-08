@@ -5,6 +5,7 @@ import sys
 IncludeTests = [
     "t/arithmetic.neon",
     "t/array-concat.neon",
+    "t/array-slice.neon",
     "t/comparison.neon"
     "t/for.neon",
     "t/function.neon",
