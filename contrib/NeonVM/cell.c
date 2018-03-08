@@ -9,6 +9,28 @@
 #include "cell.h"
 #include "util.h"
 
+Cell *cell_fromAddress(Cell *c)
+{
+    Cell *x = cell_newCell();
+    x->type = Address;
+    x->address = c;
+    return x;
+}
+
+Cell * cell_fromArray(Cell * c)
+{
+    uint32_t i;
+    Cell *a = cell_newCell();
+
+    a->type = Array;
+    a->array_size = c->array_size;
+    a->array = malloc(sizeof(Cell) * c->array_size);
+    for (i = 0; i < c->array_size; i++) {
+        cell_copyCell(&a->array[i], &c->array[i]);
+    }
+    return a;
+}
+
 Cell *cell_fromBoolean(bool b)
 {
     Cell *x = cell_newCell();
@@ -50,7 +72,7 @@ Cell *cell_fromCell(const Cell *c)
             for (i = 0; i < x->array_size; i++) {
                 cell_copyCell(&x->array[i], &c->array[i]);
             }
-            x->boolean = c->boolean;
+            x->boolean = false;
             x->number = bid128_from_uint32(0);
             x->string = NULL;
             x->address = NULL;
@@ -88,34 +110,12 @@ Cell *cell_fromCell(const Cell *c)
             x->boolean = false;
             x->array = NULL;
             x->array_size = 0;
-
+            break;
     }
     return x;
 }
 
-Cell *cell_fromAddress(Cell *c)
-{
-    Cell *x = cell_newCell();
-    x->type = Address;
-    x->address = c;
-    return x;
-}
-
-Cell * cell_fromArray(Cell * c)
-{
-    uint32_t i;
-    Cell *a = cell_newCell();
-
-    a->type = Array;
-    a->array_size = c->array_size;
-    a->array = malloc(sizeof(Cell) * c->array_size);
-    for (i = 0; i < c->array_size; i++) {
-        cell_copyCell(&a->array[i], &c->array[i]);
-    }
-    return a;
-}
-
-Cell *cell_createArrayCell(uint32_t iElements)
+Cell *cell_createArrayCell(uint64_t iElements)
 {
     Cell *c = cell_newCell();
 
@@ -125,10 +125,46 @@ Cell *cell_createArrayCell(uint32_t iElements)
     if (c->array == NULL) {
         fatal_error("Unable to allocate memory for array.");
     }
-    for (uint32_t i = 0; i < c->array_size; i++) {
+    for (uint64_t i = 0; i < c->array_size; i++) {
         cell_resetCell(&c->array[i]);
     }
     return c;
+}
+
+Cell *cell_arrayIndexForRead(Cell *c, size_t i)
+{
+    if (c->type == None) {
+        c->type = Array;
+    }
+    assert(c->type == Array);
+    if (!c->array) {
+        c->array = malloc(sizeof(Cell) * i);
+        c->array_size = i;
+        if (c->array == NULL) {
+            fatal_error("Unable to allcoate memory for Read Array.");
+        }
+    }
+    return &c->array[i];
+}
+
+Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
+{
+    if (c->type == None) {
+        c->type = Array;
+    }
+    assert(c->type == Array);
+    if (!c->array) {
+        c->array = malloc(sizeof(Cell) * i);
+        if (c->array == NULL) {
+            fatal_error("Unable to allcoate memory for Read Array.");
+        }
+    }
+
+    if (i >= c->array_size) {
+        c->array = realloc(c->array, i+1);
+        c->array->array_size = i;
+    }
+    return &c->array[i];
 }
 
 void cell_copyCell(Cell *dest, const Cell *source)

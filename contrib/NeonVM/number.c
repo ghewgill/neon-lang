@@ -61,6 +61,12 @@ BID_UINT128 number_modulo(BID_UINT128 x, BID_UINT128 y)
     return r;
 }
 
+bool number_is_integer(BID_UINT128 x)
+{
+    BID_UINT128 i = bid128_round_integral_zero(x);
+    return bid128_quiet_equal(x, i) != 0;
+}
+
 #ifdef __NUMBER_TESTS
 void main()
 {

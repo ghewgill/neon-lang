@@ -329,6 +329,7 @@ void exec_ENTER(struct tagTExecutor *self)
 {
     self->ip++;
     uint32_t nest = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
+    nest = nest; // ToDo: Remove this, pelase...
     self->ip += 4;
     uint32_t val = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
     self->ip += 4;
@@ -351,9 +352,11 @@ void exec_LEAVE(struct tagTExecutor *self)
     self->ip++;
 }
 
-void exec_PUSHB()
+void exec_PUSHB(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    bool val = self->object->code[self->ip+1] != 0;
+    self->ip += 2;
+    push(self->stack, cell_fromBoolean(val));
 }
 
 void exec_PUSHN(struct tagTExecutor *self)
@@ -664,19 +667,88 @@ void exec_NOTB()
     fatal_error("not implemented");
 }
 
-void exec_INDEXAR()
+void exec_INDEXAR(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 index = top(self->stack)->number; pop(self->stack);
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+
+    if (!number_is_integer(index)) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        return;
+    }
+    int64_t i = bid128_to_int64_int(index);
+    if (i < 0) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        return;
+    }
+    uint64_t j = (uint64_t)i;
+    if (j >= addr->array_size) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(j)));
+        return;
+    }
+    push(self->stack, cell_fromAddress(cell_arrayIndexForRead(addr, j)));
 }
 
-void exec_INDEXAW()
+void exec_INDEXAW(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 index = top(self->stack)->number; pop(self->stack);
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+
+    if (!number_is_integer(index)) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        return;
+    }
+    int64_t i = bid128_to_int64_int(index);
+    if (i < 0) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        return;
+    }
+    uint64_t j = (uint64_t)i;
+    push(self->stack, cell_fromAddress(cell_arrayIndexForWrite(addr, j)));
 }
 
-void exec_INDEXAV()
+void exec_INDEXAV(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    BID_UINT128 index = top(self->stack)->number; pop(self->stack);
+    Cell *array = top(self->stack);
+
+    if (!number_is_integer(index)) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        return;
+    }
+    int64_t i = bid128_to_int64_int(index);
+    if (i < 0) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        return;
+    }
+    uint64_t j = (uint64_t)i;
+    if (j >= array->array_size) {
+        // ToDo: Implement runtime exceptions
+        assert(false);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(j)));
+        return;
+    }
+    assert(j < array->array_size);
+    Cell *val = cell_fromCell(&array->array[j]);
+    pop(self->stack);
+    push(self->stack, val);
 }
 
 void exec_INDEXAN()
@@ -732,6 +804,86 @@ void exec_CALLP(struct tagTExecutor *self)
         push(self->stack, a);
         cell_freeCell(left);
         cell_freeCell(right);
+    } else if (strcmp(func, "array__size") == 0) {
+        Cell *a = top(self->stack);
+        Cell *r = cell_fromNumber(bid128_from_int64(a->array_size));
+        pop(self->stack);
+        push(self->stack, r);
+    } else if (strcmp(func, "array__slice") == 0) {
+        bool last_from_end = top(self->stack)->boolean; pop(self->stack);
+        BID_UINT128 last  = top(self->stack)->number; pop(self->stack);
+        bool first_from_end  = top(self->stack)->boolean; pop(self->stack);
+        BID_UINT128 first = top(self->stack)->number; pop(self->stack);
+        const Cell *array = cell_fromCell(top(self->stack)); pop(self->stack);
+
+        int64_t fst = bid128_to_int64_int(first);
+        int64_t lst = bid128_to_int64_int(last);
+        if (first_from_end) {
+            fst += array->array_size - 1;
+        }
+        if (fst < 0) {
+            fst = 0;
+        }
+        if (fst > (int64_t)array->array_size) {
+            fst = array->array_size;
+        }
+        if (last_from_end) {
+            lst += array->array_size - 1;
+        }
+        if (lst < -1) {
+            lst = -1;
+        }
+        if (lst >= (int64_t)array->array_size) {
+            lst = array->array_size - 1;
+        }
+        Cell *r = cell_createArrayCell(lst - fst + 1);
+        int64_t ri = 0;
+        for (int64_t i = fst; i < lst + 1; i++) {
+            cell_copyCell(&r->array[ri++], &array->array[i]);
+        }
+        push(self->stack, r);
+    } else if (strcmp(func, "array__splice") == 0) {
+        bool last_from_end = top(self->stack)->boolean; pop(self->stack);
+        BID_UINT128 last  = top(self->stack)->number; pop(self->stack);
+        bool first_from_end  = top(self->stack)->boolean; pop(self->stack);
+        BID_UINT128 first = top(self->stack)->number; pop(self->stack);
+        Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+        Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+        const Cell *array = a;
+
+        int64_t fst = bid128_to_int64_int(first);
+        int64_t lst = bid128_to_int64_int(last);
+        if (first_from_end) {
+            fst += array->array_size - 1;
+        }
+        if (fst < 0) {
+            fst = 0;
+        }
+        if (fst > (int64_t)array->array_size) {
+            fst = array->array_size;
+        }
+        if (last_from_end) {
+            lst += array->array_size - 1;
+        }
+        if (lst < -1) {
+            lst = -1;
+        }
+        if (lst >= (int64_t)array->array_size) {
+            lst = array->array_size - 1;
+        }
+        
+        Cell *r = cell_createArrayCell(b->array_size + (array->array_size - (lst - fst)) - 1);
+        int64_t ai = 0;
+        for (int64_t i = 0; i < fst; i++) {
+            cell_copyCell(&r->array[ai++], &array->array[i]);
+        }
+        for (uint64_t i = 0; i < b->array_size; i++) {
+            cell_copyCell(&r->array[ai++], &b->array[i]);
+        }
+        for (uint64_t i = lst + 1; i < array->array_size; i++) {
+            cell_copyCell(&r->array[ai++], &array->array[i]);
+        }
+        push(self->stack, r);
     } else if (strcmp(func, "array__toString__number") == 0) {
         // ToDo: Fix this to use proper string appends!!
         Cell *a = top(self->stack);
@@ -746,9 +898,10 @@ void exec_CALLP(struct tagTExecutor *self)
         strcat(s, "]");
         pop(self->stack);
         push(self->stack, cell_fromString(s));
+        free(s);
     } else if (strcmp(func, "concat") == 0) {
-        char *b = _strdup(top(self->stack)->string); pop(self->stack);
-        char *a = _strdup(top(self->stack)->string); pop(self->stack);
+        char *b = strdup(top(self->stack)->string); pop(self->stack);
+        char *a = strdup(top(self->stack)->string); pop(self->stack);
         char *n = malloc(strlen(a) + strlen(b) + 1);
         strcpy(n, a);
         strcat(n, b);
@@ -756,6 +909,15 @@ void exec_CALLP(struct tagTExecutor *self)
         free(a);
         free(b);
         free(n);
+    } else if (strcmp(func, "number__toString") == 0) {
+        BID_UINT128 v = top(self->stack)->number; pop(self->stack);
+        push(self->stack, cell_fromString(number_to_string(v)));
+    } else if (strcmp(func, "string__append") == 0) {
+        char *b = strdup(top(self->stack)->string); pop(self->stack);
+        Cell *addr = top(self->stack)->address; pop(self->stack);
+        addr->string = realloc(addr->string, strlen(addr->string) + strlen(b) + 1);
+        strcat(addr->string, b);
+        push(self->stack, cell_fromAddress(addr));
     } else if (strcmp(func, "str") == 0) {
         BID_UINT128 v = top(self->stack)->number; pop(self->stack);
         push(self->stack, cell_fromString(number_to_string(v)));
@@ -764,6 +926,7 @@ void exec_CALLP(struct tagTExecutor *self)
         push(self->stack, cell_fromString(v ? "TRUE" : "FALSE"));
     } else {
         exec_error("exec_CALLP(): \"%s\" - invalid or unsupported predefined function call.", func);
+        assert(false);
     }
 }
 
@@ -931,7 +1094,7 @@ void exec_loop(struct tagTExecutor *self)
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(self); break;
             case LEAVE:   exec_LEAVE(self); break;
-            case PUSHB:   exec_PUSHB(); break;
+            case PUSHB:   exec_PUSHB(self); break;
             case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;
             case PUSHPG:  exec_PUSHPG(self); break;
@@ -982,9 +1145,9 @@ void exec_loop(struct tagTExecutor *self)
             case ANDB:    exec_ANDB(); break;
             case ORB:     exec_ORB(); break;
             case NOTB:    exec_NOTB(); break;
-            case INDEXAR: exec_INDEXAR(); break;
-            case INDEXAW: exec_INDEXAW(); break;
-            case INDEXAV: exec_INDEXAV(); break;
+            case INDEXAR: exec_INDEXAR(self); break;
+            case INDEXAW: exec_INDEXAW(self); break;
+            case INDEXAV: exec_INDEXAV(self); break;
             case INDEXAN: exec_INDEXAN(); break;
             case INDEXDR: exec_INDEXDR(); break;
             case INDEXDW: exec_INDEXDW(); break;
