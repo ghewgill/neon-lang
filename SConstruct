@@ -101,6 +101,14 @@ env.Append(CPPPATH=[
     "src",
 ])
 if sys.platform == "win32":
+    env.Append(CFLAGS=[
+        "/W4",
+        "/MDd",
+        "/Za",
+        "/wd4324", # structure was padded due to alignment specifier
+        "/wd4996", # CRT deprecation warnings
+        "/wd4001", # Single line comments in MSVC STD header files.
+    ])
     env.Append(CXXFLAGS=[
         "/EHsc",
         "/W4",
@@ -121,6 +129,9 @@ if sys.platform == "win32":
         env.Append(CXXFLAGS=[
             "/Ox",
             "/MD",
+        ])
+        env.Append(CFLAGS=[
+            "-std=c89",
         ])
     env.Append(LIBS=["user32", "wsock32"])
 else:
@@ -419,6 +430,17 @@ neonbind = env.Program("bin/neonbind", [
     "src/support_exec.cpp",
 ])
 
+neoncx = env.Program("contrib/msvc/Debug/neonvm", [
+    "contrib/NeonVM/neonvm.c",
+    "contrib/NeonVM/cell.c",
+    "contrib/NeonVM/global.c",
+    "contrib/NeonVM/number.c",
+    "contrib/NeonVM/stack.c",
+    "contrib/NeonVM/string.c",
+    "contrib/NeonVM/util.c",
+] + libbid,
+)
+
 env.Depends("src/number.h", libbid)
 env.Depends("src/exec.cpp", libffi)
 
@@ -519,6 +541,7 @@ if use_node:
 tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(x.path for x in test_sources))
 tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
 tests_py = env.Command("tests_py", [neonc, "scripts/run_test.py", "scripts/run_py.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_py.py\" " + " ".join(x.path for x in test_sources))
+tests_cx = env.Command("tests_cx", [neonc, neoncx, "scripts/run_test.py", "scripts/run_c.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_c.py\" " + " ".join(x.path for x in test_sources))
 env.Depends(tests_jvm, jvm_classes)
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
