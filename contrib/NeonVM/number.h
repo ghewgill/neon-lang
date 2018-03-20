@@ -16,9 +16,14 @@
 #pragma warning(pop)
 #endif
 
-void number_toString(BID_UINT128 x, char *buf, size_t len);
+#include "util.h"
 
-BID_UINT128 number_modulo(BID_UINT128 x, BID_UINT128 y);
-bool number_is_integer(BID_UINT128 x);
+typedef BID_UINT128 Number;
+
+void number_toString(Number x, char *buf, size_t len);
+char *number_to_string(Number x);
+
+Number number_modulo(Number x, Number y);
+BOOL number_is_integer(Number x);
 
 #endif

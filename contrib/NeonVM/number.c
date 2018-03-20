@@ -8,7 +8,17 @@
 #include "cell.h"
 #include "number.h"
 
-void number_toString(BID_UINT128 x, char *buf, size_t len)
+char *number_to_string(Number x)
+{
+    static char buf[50];
+    char val[50];
+    bid128_to_string(val, x);
+    sprintf(buf, "%g", atof(val));
+    return buf;
+}
+
+// ToDo: Implement proper number to string formatter.
+void number_toString(Number x, char *buf, size_t len)
 {
     const int PRECISION = 34;
     int iLeadingZeros = 0;
@@ -47,23 +57,23 @@ void number_toString(BID_UINT128 x, char *buf, size_t len)
     strcat(buf, v);
 }
 
-BID_UINT128 number_modulo(BID_UINT128 x, BID_UINT128 y)
+Number number_modulo(Number x, Number y)
 {
-    BID_UINT128 m = bid128_abs(y);
+    Number m = bid128_abs(y);
     if (bid128_isSigned(x)) {
-        BID_UINT128 q = bid128_round_integral_positive(bid128_div(bid128_abs(x), m));
+        Number q = bid128_round_integral_positive(bid128_div(bid128_abs(x), m));
         x = bid128_add(x, bid128_mul(m, q));
     }
-    BID_UINT128 r = bid128_fmod(x, m);
+    Number r = bid128_fmod(x, m);
     if (bid128_isSigned(y) && !bid128_isZero(r)) {
         r = bid128_sub(r, m);
     }
     return r;
 }
 
-bool number_is_integer(BID_UINT128 x)
+BOOL number_is_integer(Number x)
 {
-    BID_UINT128 i = bid128_round_integral_zero(x);
+    Number i = bid128_round_integral_zero(x);
     return bid128_quiet_equal(x, i) != 0;
 }
 

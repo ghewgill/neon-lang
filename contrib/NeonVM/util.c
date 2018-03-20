@@ -1,4 +1,5 @@
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -27,3 +28,31 @@ void fatal_error(const char *msg, ...)
     va_end(args);
     abort();
 }
+
+//void *new(uint64_t iBytes)
+//{
+//    void *n = malloc(iBytes);
+//
+//    if (!n) {
+//        fatal_error("unable to allocate requested bytes of memory.  (0x%08X)", iBytes);
+//    }
+//    return n;
+//}
+//
+//void *renew(void *p, uint64_t iBytes)
+//{
+//    void *n = realloc(p, iBytes);
+//
+//    if (!n) {
+//        fatal_error("unable to expand allocated memory by 0x%08X bytes.", iBytes);
+//    }
+//    return n;
+//}
+//
+//void delete(void **d)
+//{
+//    if (*d) {
+//        free(*d);
+//    }
+//    *d = NULL;
+//}
