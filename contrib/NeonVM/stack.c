@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -13,11 +14,24 @@ struct tagTStack *createStack(int capacity)
     }
     stack->capacity = capacity;
     stack->top = -1;
+    stack->max = -1;
     stack->data = malloc(stack->capacity * sizeof(Cell *));
     if (stack->data == NULL) {
         fatal_error("Could not allocate stack memory.");
     }
     return stack;
+}
+
+void destroyStack(struct tagTStack *stack)
+{
+    //assert(isEmpty(stack));
+
+    while (!isEmpty(stack)) {
+        pop(stack);
+    }
+    free(stack->data);
+    stack->top = -1;
+    stack->data = NULL;
 }
 
 int isFull(struct tagTStack *stack)
@@ -36,6 +50,7 @@ void push(struct tagTStack *stack, Cell *item)
         fatal_error("Stack overflow error.");
     }
 
+    if (stack->max < (stack->top + 1)) stack->max++;
     stack->data[++stack->top] = item;
 }
 

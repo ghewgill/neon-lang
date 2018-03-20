@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stdarg.h>
-#include <stdbool.h>
+//#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,18 +11,18 @@
 
 Cell *cell_fromAddress(Cell *c)
 {
-    Cell *x = cell_newCell();
-    x->type = Address;
+    Cell *x = cell_newCell(cNothing);
+    x->type = cAddress;
     x->address = c;
     return x;
 }
 
 Cell * cell_fromArray(Cell * c)
 {
-    uint32_t i;
+    uint64_t i;
     Cell *a = cell_newCell();
 
-    a->type = Array;
+    a->type = cArray;
     a->array_size = c->array_size;
     a->array = malloc(sizeof(Cell) * c->array_size);
     for (i = 0; i < c->array_size; i++) {
@@ -31,27 +31,38 @@ Cell * cell_fromArray(Cell * c)
     return a;
 }
 
-Cell *cell_fromBoolean(bool b)
+Cell *cell_fromBoolean(BOOL b)
 {
     Cell *x = cell_newCell();
-    x->type = Boolean;
+    x->type = cBoolean;
     x->boolean = b;
     return x;
 }
 
-Cell *cell_fromNumber(BID_UINT128 n)
+Cell *cell_fromNumber(Number n)
 {
     Cell *x = cell_newCell();
-    x->type = Number;
+    x->type = cNumber;
     x->number = n;
     return x;
 }
 
-Cell *cell_fromString(const char *s)
+Cell *cell_fromString(const char *s, int64_t length)
 {
     Cell *x = cell_newCell();
-    x->type = String;
-    x->string = strdup(s);
+    x->type = cString;
+    x->string = string_newString();
+
+    if (length == -1) {
+        x->string->length = strlen(s);
+    } else {
+        x->string->length = length;
+    }
+    x->string->data = malloc(x->string->length);
+    if (!x->string->data) {
+        fatal_error("Failed to allocate memory for new cell string.");
+    }
+    memcpy(x->string->data, s, x->string->length);
     return x;
 }
 
@@ -63,51 +74,60 @@ Cell *cell_fromCell(const Cell *c)
     Cell *x = cell_newCell();
     x->type = c->type;
     switch (c->type) {
-        case Address:
+        case cAddress:
             cell_copyCell(x, c);
             break;
-        case Array:
+        case cArray:
             x->array_size = c->array_size;
             x->array = malloc(sizeof(Cell) * c->array_size);
             for (i = 0; i < x->array_size; i++) {
                 cell_copyCell(&x->array[i], &c->array[i]);
             }
-            x->boolean = false;
+            x->boolean = FALSE;
             x->number = bid128_from_uint32(0);
             x->string = NULL;
+            //x->string->length = 0;
             x->address = NULL;
             break;
-        case Boolean:
+        case cBoolean:
             x->boolean = c->boolean;
             x->number = bid128_from_uint32(0);
             x->string = NULL;
+            //x->string->length = 0;
             x->address = NULL;
             x->array = NULL;
             x->array_size = 0;
             break;
-        case String:
-            x->string = strdup(c->string);
+        case cString:
+            x->string = string_copyString(c->string);
+            //x->string->length = c->string->length;
+            //x->string->data = malloc(x->string->length);
+            //memcpy(x->string->data, c->string->data, x->string->length);
+            //if (!x->string) {
+            //    fatal_error("Failed to allocate memory for cell string.");
+            //}
             x->address = NULL;
             x->number = bid128_from_uint32(0);
-            x->boolean = false;
+            x->boolean = FALSE;
             x->array = NULL;
             x->array_size = 0;
             break;
-        case Number:
+        case cNumber:
             x->number = c->number;
             x->string = NULL;
             x->address = NULL;
-            x->boolean = false;
+            x->boolean = FALSE;
             x->array = NULL;
             x->array_size = 0;
             break;
-        case None:
-            assert(c->type == None);
+        case cNothing:
+            assert(c->type == cNothing);
+            break;
         default:
             x->number = bid128_from_uint32(0);
             x->string = NULL;
             x->address = NULL;
-            x->boolean = false;
+            x->boolean = FALSE;
             x->array = NULL;
             x->array_size = 0;
             break;
@@ -119,7 +139,7 @@ Cell *cell_createArrayCell(uint64_t iElements)
 {
     Cell *c = cell_newCell();
 
-    c->type = Array;
+    c->type = cArray;
     c->array_size = iElements;
     c->array = malloc(sizeof(Cell) * c->array_size);
     if (c->array == NULL) {
@@ -131,40 +151,110 @@ Cell *cell_createArrayCell(uint64_t iElements)
     return c;
 }
 
-Cell *cell_arrayIndexForRead(Cell *c, size_t i)
+void cell_appendArrayElement(Cell *c, const Cell e)
 {
-    if (c->type == None) {
-        c->type = Array;
+    if (c->type == cNothing) {
+        c->type = cArray;
     }
-    assert(c->type == Array);
+    assert(c->type == cArray);
+    if (c->array) {
+        c->array = realloc(c->array, sizeof(Cell) * (c->array_size + 1));
+        if (c->array == NULL) {
+            fatal_error("Unable to expand array.");
+        }
+        c->array_size++;
+    }
     if (!c->array) {
-        c->array = malloc(sizeof(Cell) * i);
-        c->array_size = i;
+        c->array = malloc(sizeof(Cell));
+        c->array_size = 1;
         if (c->array == NULL) {
             fatal_error("Unable to allcoate memory for Read Array.");
         }
+    }
+    cell_copyCell(&c->array[c->array_size-1], &e);
+}
+
+Cell *cell_arrayIndexForRead(Cell *c, size_t i)
+{
+    if (c->type == cNothing) {
+        c->type = cArray;
+    }
+    assert(c->type == cArray);
+    if (!c->array) {
+        //c->array = malloc(sizeof(Cell) * i);
+        //c->array_size = i;
+        //if (c->array == NULL) {
+        //    fatal_error("Unable to allcoate memory for Read Array.");
+        //}
     }
     return &c->array[i];
 }
 
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
 {
-    if (c->type == None) {
-        c->type = Array;
+    uint64_t n;
+
+    if (c->type == cNothing) {
+        c->type = cArray;
     }
-    assert(c->type == Array);
-    if (!c->array) {
-        c->array = malloc(sizeof(Cell) * i);
+    assert(c->type == cArray);
+    if (i >= c->array_size) {
+        c->array = realloc(c->array, sizeof(Cell) * (i+1));
         if (c->array == NULL) {
-            fatal_error("Unable to allcoate memory for Read Array.");
+            fatal_error("Unable to reallcoate memory for write array.");
+        }
+        if (c->array_size) {
+            for (n = c->array_size; n < i; n++) {
+                cell_resetCell(&c->array[n]);
+            }
+            c->array->array_size = i;
+        } else {
+            c->array_size++;
         }
     }
-
-    if (i >= c->array_size) {
-        c->array = realloc(c->array, i+1);
-        c->array->array_size = i;
-    }
     return &c->array[i];
+}
+
+Cell *cell_arrayForWrite(Cell *c)
+{
+    if (c->type == cNothing) {
+        c = cell_createArrayCell(1);
+    }
+    assert(c->type == cArray);
+    if (c->array == NULL) {
+        c->array = malloc(sizeof(Cell));
+        if (c->array == NULL) {
+            fatal_error("Unable to allocate memory for write array.");
+        }
+    }
+    return c->array;
+}
+
+Cell *cell_createDictionaryCell(uint64_t iEntries)
+{
+    Cell *c = cell_newCell();
+
+    c->type = cDictionary;
+    c->dictionary_size = iEntries;
+
+    // ToDo: Implement dictionary Cell Types
+    assert(c->type != cDictionary);
+
+    return c;
+}
+
+Cell *cell_createStringCell(uint64_t length)
+{
+    Cell *c = cell_newCell();
+
+    c->type = cString;
+    c->string = string_newString();
+    c->string->length = length;
+    c->string->data = malloc(length);
+    if (!c->string->data) {
+        fatal_error("Unable to allocate requested string with length 0x%08X.", length);
+    }
+    return c;
 }
 
 void cell_copyCell(Cell *dest, const Cell *source)
@@ -172,14 +262,22 @@ void cell_copyCell(Cell *dest, const Cell *source)
     assert(source != NULL);
     assert(dest != NULL);
 
+    cell_clearCell(dest);
+
     dest->number = source->number;
-    if (source->type == String && source->string != NULL) {
-        dest->string = strdup(source->string);
+    if (source->type == cString && source->string != NULL) {
+        dest->string = string_copyString(source->string);
+        //dest->string->length = source->string->length;
+        //dest->string = malloc(source->string->length);
+        //if (!dest->string) {
+        //    fatal_error("Failed to allocate memory for cell string copy.");
+        //}
+        //memcpy(dest->string, source->string, source->string->length);
     } else {
         dest->string = NULL;
     }
     dest->array_size = source->array_size;
-    if (source->type == Array && source->array != NULL) {
+    if (source->type == cArray && source->array != NULL) {
         uint32_t i = 0;
         dest->array = malloc(sizeof(Cell) * dest->array_size);
         for (i = 0; i < dest->array_size; i++) {
@@ -193,15 +291,20 @@ void cell_copyCell(Cell *dest, const Cell *source)
     dest->type = source->type;
 }
 
-void cell_resetCell(Cell *c)
+int32_t cell_cellCompare(const Cell * s, const Cell * d)
 {
-    c->number = bid128_from_uint32(0);
-    c->string = NULL;
-    c->array_size = 0;
-    c->array = NULL;
-    c->address = NULL;
-    c->boolean = false;
-    c->type = None;
+    // ToDo: Fix this, so that it actually COMPARES two cells, and returns 0 if equal, -1 if less than, and > 0 if greater than.
+    if (s->type != d->type) {
+        return -1;
+    }
+
+    switch (s->type) {
+        case cString:   return strcmp(s->string->data, d->string->data);
+        case cAddress:  return s->address == d->address != 0;
+        case cBoolean:  return s->boolean == d->boolean != 0;
+        case cArray:    return s->array_size == d->array_size != 0;
+    }
+    return 1;
 }
 
 Cell *cell_newCell()
@@ -214,16 +317,52 @@ Cell *cell_newCell()
     c->number = bid128_from_uint32(0);
     c->string = NULL;
     c->address = NULL;
-    c->boolean = false;
+    c->boolean = FALSE;
     c->array = NULL;
     c->array_size = 0;
-    c->type = None;
+    c->type = cNothing;
     return c;
+}
+
+Cell *cell_newCellType(CellType t)
+{
+    Cell *c = cell_newCell();
+    c->type = t;
+
+    return c;
+}
+
+void cell_resetCell(Cell *c)
+{
+    c->number = bid128_from_uint32(0);
+    c->string = NULL;
+    c->array = NULL;
+    c->array_size = 0;
+    c->address = NULL;
+    c->boolean = FALSE;
+    c->type = cNothing;
+}
+
+void cell_clearCell(Cell *c)
+{
+    assert(c != NULL);
+
+    if (c->type == cString) {
+        string_freeString(c->string);
+        free(c->string);
+    } else if (c->type == cArray) {
+        uint64_t i;
+        for (i = 0; i < c->array_size; i++) {
+            cell_clearCell(&c->array[i]);
+        }
+        free(c->array);
+    }
+    cell_resetCell(c);
 }
 
 void cell_freeCell(Cell *c)
 {
-    free(c->string);
-    free(c->array);
+    cell_clearCell(c);
     free(c);
 }
+

@@ -104,8 +104,10 @@ if sys.platform == "win32":
     env.Append(CFLAGS=[
         "/W4",
         "/MDd",
+        "/Za",
         "/wd4324", # structure was padded due to alignment specifier
         "/wd4996", # CRT deprecation warnings
+        "/wd4001", # Single line comments in MSVC STD header files.
     ])
     env.Append(CXXFLAGS=[
         "/EHsc",
@@ -127,6 +129,9 @@ if sys.platform == "win32":
         env.Append(CXXFLAGS=[
             "/Ox",
             "/MD",
+        ])
+        env.Append(CFLAGS=[
+            "-std=c89",
         ])
     env.Append(LIBS=["user32", "wsock32"])
 else:
@@ -428,8 +433,10 @@ neonbind = env.Program("bin/neonbind", [
 neoncx = env.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/neonvm.c",
     "contrib/NeonVM/cell.c",
+    "contrib/NeonVM/global.c",
     "contrib/NeonVM/number.c",
     "contrib/NeonVM/stack.c",
+    "contrib/NeonVM/string.c",
     "contrib/NeonVM/util.c",
 ] + libbid,
 )
