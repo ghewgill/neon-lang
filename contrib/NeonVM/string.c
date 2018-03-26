@@ -14,10 +14,6 @@
 #include "string.h"
 #include "util.h"
 
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
-
 TString *string_createCString(const char *s)
 {
     /*TString *c = string_newString();*/
@@ -77,6 +73,31 @@ TString *string_copyString(TString *s)
     return r;
 }
 
+TString *string_fromString(TString *s)
+{
+    TString *r = string_newString();
+
+    r->length = s->length;
+    r->data = malloc(r->length);
+    if (!r->data) {
+        fatal_error("Unable to allocate string data for copy.");
+    }
+    memcpy(r->data, s->data, r->length);
+
+    return r;
+}
+
+int string_compareString(TString *lhs, TString *rhs)
+{
+    if (lhs->length > rhs->length) {
+        return 1;
+    } else if (lhs->length < rhs->length) {
+        return -1;
+    }
+
+    return memcmp(lhs->data, rhs->data, lhs->length);
+}
+
 //Cell *string_copyString(Cell *c)
 //{
 //    Cell *r = cell_newCell(cString);
@@ -120,3 +141,6 @@ TString *string_appendString(TString *s, TString *ns)
     return s;
 }
 
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif

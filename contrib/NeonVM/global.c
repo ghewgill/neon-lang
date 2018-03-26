@@ -26,6 +26,9 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("print",                     print),
     PDFUNC("str",                       str),
     PDFUNC("strb",                      strb),
+    PDFUNC("ord",                       ord),
+
+    PDFUNC("sys$exit",                  sys_exit),
 
     PDFUNC("array__append",             array__append),
     PDFUNC("array__concat",             array__concat),
@@ -35,6 +38,8 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("array__splice",             array__splice),
     PDFUNC("array__toBytes__number",    array__toBytes__number),
     PDFUNC("array__toString__number",   array__toString__number),
+
+    PDFUNC("boolean__toString",         boolean__toString),
 
     PDFUNC("bytes__decodeToString",     bytes__decodeToString),
     PDFUNC("bytes__range",              bytes__range),
@@ -46,6 +51,8 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("number__toString",          number__toString),
 
     PDFUNC("string__append",            string__append),
+    PDFUNC("string__length",            string__length),
+    PDFUNC("string__splice",            string__splice),
     PDFUNC("string__substring",         string__substring),
 
     { 0 }
@@ -101,6 +108,26 @@ void strb(TStack *stack)
     push(stack, cell_fromString(v ? "TRUE" : "FALSE", -1));
 }
 
+void ord(TStack *stack)
+{
+    Cell *s = top(stack);
+
+    if (s->string->length != 1) {
+//        throw RtlException(global::Exception_ArrayIndexException, "ord() requires string of length 1");
+    }
+    Number r = bid128_from_uint32((uint32_t)s->string->data[0]);
+    pop(stack);
+    push(stack, cell_fromNumber(r));
+}
+
+
+
+void sys_exit(TStack *stack)
+{
+    int64_t e = bid128_to_int64_int(top(stack)->number); pop(stack);
+    exit((int)e);
+}
+
 
 
 
@@ -109,6 +136,7 @@ void array__append(TStack *stack)
     Cell *element = cell_fromCell(top(stack)); pop(stack);
     Cell *array  = top(stack)->address;
     cell_appendArrayElement(array, *element);
+    cell_freeCell(element);
 }
 
 void array__concat(TStack *stack)
@@ -276,6 +304,13 @@ void array__toString__number(TStack *stack)
 
 
 
+void boolean__toString(TStack *stack)
+{
+    BOOL v = top(stack)->boolean; pop(stack);
+    push(stack, cell_fromString(v ? "TRUE" : "FALSE", -1));
+}
+
+
 
 void bytes__decodeToString(TStack *stack)
 {
@@ -423,6 +458,47 @@ void string__append(TStack *stack)
     addr->string->length += b->string->length;
 
     cell_freeCell(b);
+}
+
+void string__length(TStack *stack)
+{
+    uint64_t n = top(stack)->string->length; pop(stack);
+    push(stack, cell_fromNumber(bid128_from_uint64(n)));
+}
+
+void string__splice(TStack *stack)
+{
+    // TODO: utf8
+    BOOL last_from_end = top(stack)->boolean;   pop(stack);
+    Number last  = top(stack)->number;          pop(stack);
+    BOOL first_from_end  = top(stack)->boolean; pop(stack);
+    Number first = top(stack)->number;          pop(stack);
+    Cell *s = cell_fromCell(top(stack));        pop(stack);
+    Cell *t = cell_fromCell(top(stack));        pop(stack);
+
+    int64_t f = bid128_to_int64_int(first);
+    int64_t l = bid128_to_int64_int(last);
+    if (first_from_end) {
+        f += s->string->length - 1;
+    }
+    if (last_from_end) {
+        l += s->string->length - 1;
+    }
+
+    Cell *sub = cell_newCellType(cString);
+    sub->string = string_newString();
+    sub->string->length = t->string->length + (((f - 1) + s->string->length) - l);
+    sub->string->data = malloc(sub->string->length);
+    memcpy(sub->string->data, s->string->data, f);
+    //memcpy(&sub->string->data[f], t->string->data, (t->string->length - f));
+    memcpy(&sub->string->data[f], t->string->data, t->string->length);
+    //memcpy(&sub->string->data[t->string->length], &s->string->data[l + 1], s->string->length - (l + 1));
+    memcpy(&sub->string->data[f + t->string->length], &s->string->data[l + 1], s->string->length - (l + 1));
+
+    cell_freeCell(s);
+    cell_freeCell(t);
+
+    push(stack, sub);
 }
 
 void string__substring(TStack *stack)

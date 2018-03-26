@@ -26,8 +26,9 @@ ExcludeTests = [
     "t/debug-example.neon",         # module
     "t/debug-server.neon",          # module
     "t/decimal.neon",               # arithmetic
-    "t/dictionary-sorted.neon",     # assert
-    "t/dictionary.neon",            # exception
+    "t/dictionary-keys.neon",       # dictionary
+    "t/dictionary-sorted.neon",     # assert / dictionary
+    "t/dictionary.neon",            # exception / dictionary
     "t/divide-by-zero.neon",        # assert
     "t/encoding-base64.neon",       # assert
     "t/equality.neon",              # class
@@ -42,6 +43,7 @@ ExcludeTests = [
     "t/export-recursive.neon",      # export
     "t/export.neon",                # export
     "t/ffi.neon",                   # ffi
+    "t/file-exists.neon",           # module
     "t/file-filecopied.neon",       # exception
     "t/file-filecopied1.neon",      # exception
     "t/file-filecopied2.neon",      # exception
@@ -51,6 +53,8 @@ ExcludeTests = [
     "t/file-writebytes.neon",       # file
     "t/file-writelines.neon",       # file
     "t/foreach-eval.neon",          # assert
+    "t/foreach-function.neon",      # dictionary
+    "t/foreach-value.neon",         # dictionary
     "t/fork.neon",                  # posix
     "t/function-default-out.neon",  # assert
     "t/function-pointer-nowhere.neon", # functionpointer
@@ -61,6 +65,7 @@ ExcludeTests = [
     "t/gc2.neon",                   # class
     "t/gc3.neon",                   # class
     "t/import.neon",                # exception
+    "t/in.neon",                    # dictionary
     "t/intdiv.neon",                # assert
     "t/interface-parameter-export.neon", # export
     "t/interface-parameter-export2.neon", # export
@@ -71,16 +76,22 @@ ExcludeTests = [
     "t/io-test.neon",               # module
     "t/json-test.neon",             # module
     "t/lexical-scope.neon",         # exception
+    "t/literal.neon",               # dictionary
     "t/literal-array.neon",         # assert
+    "t/literal-empty.neon",         # dictionary
     "t/math-test.neon",             # precision
     "t/mkdir.neon",                 # exception
     "t/mmap-test.neon",             # mmap
+    "t/module-alias.neon",          # module
     "t/module-alias2.neon",         # module
+    "t/module-import-name-alias.neon", #module
     "t/module-import-name-alias2.neon", # module
+    "t/module-import-name.neon",    # module
     "t/module-import-name2.neon",   # module
     "t/module.neon",                # module
     "t/module2.neon",               # exception
     "t/multiarray-test.neon",       # module
+    "t/nested-substitution.neon",   #dictionary
     "t/net-test.neon",              # net
     "t/new-init-module.neon",       # class
     "t/new-init.neon",              # class
@@ -104,6 +115,7 @@ ExcludeTests = [
     "t/pointer6.neon",              # class
     "t/pointer7.neon",              # class
     "t/pointer8.neon",              # class
+    "t/predeclare3.neon",           # dictionary
     "t/process-test.neon",          # process
     "t/recursion-limit.neon",       # runtime
     "t/repl_import.neon",           # random
@@ -125,12 +137,16 @@ ExcludeTests = [
     "t/struct-test.neon",           # module
     "t/sys-exit.neon",              # exception
     "t/time-stopwatch.neon",        # module
+    "t/time-test.neon",             # module
     "t/try-expression.neon",        # exception
     "t/unicode-char.neon",          # utf8
+    "t/unicode-length.neon",        # assert / utf8
     "t/uninitialised-case.neon",    # JUMPTBL
     "t/valid-pointer.neon",         # class
+    "t/value-index.neon",           # dictionary
     "t/variant-test.neon",          # exception
     "t/while-valid.neon",           # class
+    "t/win32-test.neon",            # module
 
     "lib/extsample/t/extsample-test.neon",        # module
 ]

@@ -17,6 +17,9 @@ void concat(TStack *stack);
 void print(TStack *stack);
 void str(TStack *stack);
 void strb(TStack *stack);
+void ord(TStack *stack);
+
+void sys_exit(TStack *stack);
 
 void array__append(TStack *stack);
 void array__concat(TStack *stack);
@@ -26,6 +29,8 @@ void array__slice(TStack *stack);
 void array__splice(TStack *stack);
 void array__toBytes__number(TStack *stack);
 void array__toString__number(TStack *stack);
+
+void boolean__toString(TStack *stack);
 
 void bytes__decodeToString(TStack *stack);
 void bytes__range(TStack *stack);
@@ -37,6 +42,9 @@ void bytes__toString(TStack *stack);
 void number__toString(TStack *stack);
 
 void string__append(TStack *stack);
+void string__length(TStack *stack);
+void string__splice(TStack *Stack);
 void string__substring(TStack *stack);
+
 
 #endif

@@ -434,6 +434,7 @@ neoncx = env.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/neonvm.c",
     "contrib/NeonVM/cell.c",
     "contrib/NeonVM/global.c",
+    "contrib/NeonVM/framestack.c",
     "contrib/NeonVM/number.c",
     "contrib/NeonVM/stack.c",
     "contrib/NeonVM/string.c",

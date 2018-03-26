@@ -61,7 +61,7 @@ TDictionaryEntry *insert(struct tagTDictionary *self, const char *key, struct ta
         return de;
     }
 
-    if (cell_cellCompare(de->value, value) == 0) {
+    if (cell_compareCell(de->value, value) == 0) {
        return NULL;
     }
     return de;

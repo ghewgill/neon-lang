@@ -174,6 +174,20 @@ void cell_appendArrayElement(Cell *c, const Cell e)
     cell_copyCell(&c->array[c->array_size-1], &e);
 }
 
+BOOL cell_arrayElementExists(const Cell *a, const Cell *e)
+{
+    uint64_t i;
+
+    assert(a->type == cArray);
+
+    for (i = 0; i < a->array_size; i++) {
+        if (cell_compareCell(&a->array[i], e) == 0) {
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 Cell *cell_arrayIndexForRead(Cell *c, size_t i)
 {
     if (c->type == cNothing) {
@@ -291,18 +305,20 @@ void cell_copyCell(Cell *dest, const Cell *source)
     dest->type = source->type;
 }
 
-int32_t cell_cellCompare(const Cell * s, const Cell * d)
+int32_t cell_compareCell(const Cell * s, const Cell * d)
 {
+    assert(s->type == d->type);
     // ToDo: Fix this, so that it actually COMPARES two cells, and returns 0 if equal, -1 if less than, and > 0 if greater than.
     if (s->type != d->type) {
         return -1;
     }
 
     switch (s->type) {
-        case cString:   return strcmp(s->string->data, d->string->data);
+        case cString:   return string_compareString(s->string, d->string);
         case cAddress:  return s->address == d->address != 0;
         case cBoolean:  return s->boolean == d->boolean != 0;
         case cArray:    return s->array_size == d->array_size != 0;
+        case cNumber:   return bid128_quiet_equal(s->number, d->number) != 0;
     }
     return 1;
 }

@@ -56,10 +56,11 @@ Cell *cell_fromCell(const Cell *c);
 void cell_copyCell(Cell *dest, const Cell *source);
 void cell_assignCell(Cell *dest, const Cell *source);
 
-int32_t cell_cellCompare(const Cell *s, const Cell *d);
+int32_t cell_compareCell(const Cell *s, const Cell *d);
 
 Cell *cell_arrayIndexForRead(Cell* c, size_t i);
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i);
 void cell_appendArrayElement(Cell *c, const Cell e);
+BOOL cell_arrayElementExists(const Cell *a, const Cell *e);
 
 #endif

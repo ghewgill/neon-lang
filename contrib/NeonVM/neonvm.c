@@ -13,6 +13,7 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <time.h>
 #ifndef __MS_HEAP_DBG
 #include <stdlib.h>
 #endif
@@ -20,15 +21,13 @@
 
 #include "cell.h"
 #include "global.h"
+#include "framestack.h"
 #include "number.h"
 #include "opcode.h"
 #include "stack.h"
 #include "string.h"
 #include "util.h"
 
-#ifdef _MSC_VER
-#pragma warning (pop)
-#endif
 
 typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
@@ -68,6 +67,17 @@ typedef struct tagTFunction {
     uint32_t entry;
 } Function;
 
+typedef struct tagTExportFunction {
+    uint16_t name;
+    uint16_t descriptor;
+    uint32_t entry;
+} ExportFunction;
+
+typedef struct tagTImport {
+    uint16_t name;
+    uint8_t hash[32];
+} Import;
+
 typedef struct tagTBytecode {
     uint8_t source_hash[32];
     uint16_t global_size;
@@ -78,6 +88,7 @@ typedef struct tagTBytecode {
     uint32_t typesize;
     uint32_t constantsize;
     uint32_t variablesize;
+    uint32_t export_functionsize;
     uint32_t functionsize;
     uint32_t exceptionsize;
     uint32_t exceptionexportsize;
@@ -88,7 +99,9 @@ typedef struct tagTBytecode {
     size_t codelen;
 
     struct Type *pExportTypes;
+    struct tagTExportFunction *export_functions;
     struct tagTFunction *pFunctions;
+    struct tagTImport  *imports;
 } TBytecode;
 
 static char **getstrtable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
@@ -158,9 +171,10 @@ void bytecode_freeBytecode(TBytecode *b)
     }
 
     free(b->pFunctions);
+    free(b->imports);
+    free(b->export_functions);
     free(b->pExportTypes);
     for (i = 0; i < b->strtablelen; i++) {
-        //free(b->strtable[i]);
         free(b->strings[i]->data);
         free(b->strings[i]);
     }
@@ -179,22 +193,21 @@ typedef struct tagTExecutor {
     int32_t callstacktop;
     int32_t param_recursion_limit;
     Cell *globals;
-    Cell *frames;
-    uint64_t frame_size;
+    TFrameStack *framestack;
+    //uint64_t frames;
 
+    /* Debug / Diagnostic fields */
     uint64_t total_opcodes;
     uint64_t callstack_depth;
+    clock_t time_start;
+    clock_t time_end;
 } TExecutor;
 
 void exec_freeExecutor(TExecutor *e)
 {
     uint32_t i;
 
-    if (gOptions.ExecutorDebugStats) {
-        fprintf(stderr, "Neon C Executor Statistics\n--------------------------\n"
-                        "Max Opstack Height     : %d\nMax Callstack Height   : %lld\nOpcodes Executed       : %lld\n",
-                        e->stack->max, e->callstack_depth, e->total_opcodes);
-    }
+
 
     for (i = 0; i < e->object->global_size; i++) {
         cell_clearCell(&e->globals[i]);
@@ -202,7 +215,8 @@ void exec_freeExecutor(TExecutor *e)
     free(e->globals);
     destroyStack(e->stack);
     free(e->stack);
-    free(e->frames);
+    destroyFrameStack(e->framestack);
+    free(e->framestack);
 
     bytecode_freeBytecode(e->object);
 
@@ -270,20 +284,16 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, struct ta
     //        i += 2
     //        self.export_variables.append(v)
     //        variablesize -= 1
-    pBytecode->functionsize = get_uint16(bytecode, len, &i);
-    //    functionsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_functions = []
-    //    while functionsize > 0:
-    //        f = Function()
-    //        f.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        f.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        f.entry = struct.unpack(">H", bytecode[i:i+4])[0]
-    //        i += 4
-    //        self.export_functions.append(f)
-    //        functionsize -= 1
+    pBytecode->export_functionsize = get_uint16(bytecode, len, &i);
+    pBytecode->export_functions = malloc(sizeof(ExportFunction) * pBytecode->export_functionsize);
+    if (pBytecode->export_functions == NULL) {
+        fatal_error("Could not allocate memory for exported function info.");
+    }
+    for (uint32_t f = 0; f < pBytecode->export_functionsize; f++) {
+        pBytecode->export_functions[f].name = get_uint16(bytecode, len, &i);
+        pBytecode->export_functions[f].descriptor = get_uint16(bytecode, len, &i);
+        pBytecode->export_functions[f].entry = get_uint32(bytecode, len, &i);
+    }
     pBytecode->exceptionexportsize = get_uint16(bytecode, len, &i);
     //    exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
     //    i += 2
@@ -300,10 +310,15 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, struct ta
     //    while interfaceexportsize > 0:
     //        assert False, interfaceexportsize
     pBytecode->importsize = get_uint16(bytecode, len, &i);
-    //    importsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    while importsize > 0:
-    //        assert False, importsize
+    pBytecode->imports = malloc(sizeof(Import) * pBytecode->importsize);
+    if (pBytecode->imports == NULL) {
+        fatal_error("Could not allocate memory for exported function info.");
+    }
+    for (uint32_t f = 0; f < pBytecode->importsize; f++) {
+        pBytecode->imports[f].name = get_uint16(bytecode, len, &i);
+        memcpy(pBytecode->imports[f].hash, bytecode, 32);
+        i+=32;
+    }
     pBytecode->functionsize = get_uint16(bytecode, len, &i);
     pBytecode->pFunctions = malloc(sizeof(Function) * pBytecode->functionsize);
     if (pBytecode->pFunctions == NULL) {
@@ -313,10 +328,6 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, struct ta
         pBytecode->pFunctions[f].name = get_uint16(bytecode, len, &i);
         pBytecode->pFunctions[f].entry = get_uint32(bytecode, len, &i);
     }
-    //    functionsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    while functionsize > 0:
-    //        assert False, functionsize
     pBytecode->exceptionsize = get_uint16(bytecode, len, &i);
     //    exceptionsize = struct.unpack(">H", bytecode[i:i+2])[0]
     //    i += 2
@@ -350,7 +361,7 @@ BOOL ParseOptions(int argc, char* argv[])
     BOOL Retval = FALSE;
     for (int nIndex = 1; nIndex < argc; nIndex++) {
         if (*argv[nIndex] == '-') {
-            if(argv[nIndex][1] == 'H' || argv[nIndex][1] == 'h' || argv[nIndex][1] == '?' || (argv[nIndex][1] == '-' && (argv[nIndex][1] == 'H' || argv[nIndex][1] == 'h'))) {
+            if(argv[nIndex][1] == 'H' || argv[nIndex][1] == 'h' || argv[nIndex][1] == '?' || ((argv[nIndex][1] == '-' && argv[nIndex][2] != '\0') && (argv[nIndex][2] == 'H' || argv[nIndex][2] == 'h'))) {
                 Usage(TRUE);
                 exit(1);
             } else if (argv[nIndex][1] == 'D' || argv[nIndex][1] == 'd') {
@@ -370,23 +381,29 @@ BOOL ParseOptions(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+    char *p = argv[0];
+    char *s = p;
+
+    while (*p) {
+        if (*p == '\\' || *p == '/') {
+            s = p;
+        }
+        p++;
+    }
+    gOptions.pszExecutableName = ++s;
+
 #ifdef __MS_HEAP_DBG
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetBreakAlloc(149);
-//    _CrtSetBreakAlloc(156);
-//    _CrtSetBreakAlloc(157);
+    //_CrtSetBreakAlloc(119);
+    //_CrtSetBreakAlloc(306);
+    //_CrtSetBreakAlloc(307);
 #endif
-    if (argc <= 1) {
-        printf("\nusage: %s program.neonx\n", argv[0]);
-        return 1;
+    if (!ParseOptions(argc, argv)) {
+        return 3;
     }
-
-
-
-    const char *pszFilename = argv[1];
-    FILE *fp = fopen(pszFilename, "rb");
+    FILE *fp = fopen(gOptions.pszFilename, "rb");
     if (!fp) {
-        fprintf(stderr, "Could not open Neon executable: %s\n Error: %d - %s.\n", pszFilename, errno, strerror(errno));
+        fprintf(stderr, "Could not open Neon executable: %s\n Error: %d - %s.\n", gOptions.pszFilename, errno, strerror(errno));
         return 2;
     }
     fseek(fp, 0, SEEK_END);
@@ -403,8 +420,34 @@ int main(int argc, char* argv[])
     bytecode_loadBytecode(bytecode, bytes_read, pModule);
 
     TExecutor *exec = exec_newExecuter(pModule);
+    
+    clock_t t;
 
+    t = clock();
+    exec->time_start = clock();
     exec_run(exec);
+    exec->time_end = clock();
+
+    if (gOptions.ExecutorDebugStats) {
+        fprintf(stderr, "** Neon C Executor Statistics **\n--------------------------------\n"
+                        "Total Opcodes Executed : %lld\n"
+                        "Max Opstack Height     : %d\n"
+                        "Opstack Height         : %d\n"
+                        "Max Callstack Height   : %lld\n"
+                        "CallStack Height       : %d\n"
+                        "Global Size            : %d\n"
+                        "Max Framesets          : %d\n"
+                        "Execution Time         : %fms\n",
+                        exec->total_opcodes,
+                        exec->stack->max,
+                        exec->stack->top,
+                        exec->callstack_depth, 
+                        exec->callstacktop, 
+                        exec->object->global_size, 
+                        exec->framestack->max,
+                        (((float)exec->time_end - exec->time_start) / CLOCKS_PER_SEC) * 1000
+        );
+    }
 
     exec_freeExecutor(exec);
     free(bytecode);
@@ -433,9 +476,8 @@ struct tagTExecutor *exec_newExecuter(struct tagTBytecode *object)
     r->stack = createStack(300);
     r->ip = 0;
     r->callstacktop = -1;
-    r->frames = NULL;
-    r->frame_size = 0;
     r->param_recursion_limit = 1000;
+    r->framestack = createFrameStack(r->param_recursion_limit);
     r->globals = malloc(sizeof(Cell) * r->object->global_size);
     if (r->globals == NULL) {
         fatal_error("Failed to allocate memory for global variables.");
@@ -446,6 +488,7 @@ struct tagTExecutor *exec_newExecuter(struct tagTBytecode *object)
 
     // Debug / Diagnostic fields
     r->total_opcodes = 0;
+    r->callstack_depth = 0;
     return r;
 }
 
@@ -465,18 +508,18 @@ void exec_ENTER(struct tagTExecutor *self)
 {
     self->ip++;
     uint32_t nest = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
-    nest = nest; // ToDo: Remove this, pelase...
+    nest = nest; // ToDo: Please remove!
     self->ip += 4;
     uint32_t val = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
     self->ip += 4;
-    self->frame_size += val;
-    self->frames = realloc(self->frames, sizeof(Cell) * self->frame_size);
-    if (self->frames == NULL) {
-        fatal_error("Failed to allocate memory for function local variables.");
-    }
-    for (uint32_t i = 0; i < val; i++) {
-        cell_resetCell(&self->frames[i]);
-    }
+
+    //self->frame_size = val;
+    //self->frames = malloc(sizeof(Cell) * self->frame_size);
+    //if (self->frames == NULL) {
+    //    fatal_error("Failed to allocate memory for function local variables.");
+    //}
+    framestack_pushFrame(self->framestack, frame_createFrame(val));
+
     // ToDo: Implement Activiation frame support
     //add(frame_newFrame(val));
     //nested_frames.resize(nest-1);
@@ -485,12 +528,7 @@ void exec_ENTER(struct tagTExecutor *self)
 
 void exec_LEAVE(struct tagTExecutor *self)
 {
-    uint64_t i;
-    for (i = 0; i < self->frame_size; i++) {
-        cell_clearCell(&self->frames[i]);
-    }
-    free(self->frames);
-    self->frames = NULL;
+    framestack_popFrame(self->framestack);
     self->ip++;
 }
 
@@ -533,7 +571,8 @@ void exec_PUSHPMG()
 void exec_PUSHPL(struct tagTExecutor *self)
 {
     uint32_t addr = exec_getOperand(self);
-    push(self->stack, cell_fromAddress(&self->frames[addr]));
+    //push(self->stack, cell_fromAddress(&self->frames[addr]));
+    push(self->stack, cell_fromAddress(&framestack_topFrame(self->framestack)->locals[addr]));
 }
 
 void exec_PUSHPOL()
@@ -582,8 +621,9 @@ void exec_LOADD(struct tagTExecutor *self)
 
 void exec_LOADP(struct tagTExecutor *self)
 {
-    self = self;
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromCell(addr));
 }
 
 void exec_STOREB(struct tagTExecutor *self)
@@ -619,9 +659,11 @@ void exec_STORED()
     fatal_error("not implemented");
 }
 
-void exec_STOREP()
+void exec_STOREP(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
 void exec_NEGN(struct tagTExecutor *self)
@@ -737,34 +779,70 @@ void exec_GEN(struct tagTExecutor*self)
     push(self->stack, cell_fromBoolean(bid128_quiet_greater_equal(a, b)));
 }
 
-void exec_EQS()
+void exec_EQS(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) == 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
 }
 
-void exec_NES()
+void exec_NES(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) != 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
 }
 
-void exec_LTS()
+void exec_LTS(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) < 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
 }
 
-void exec_GTS()
+void exec_GTS(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) > 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
 }
 
-void exec_LES()
+void exec_LES(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) <= 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
 }
 
-void exec_GES()
+void exec_GES(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) >= 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
 }
 
 void exec_EQA()
@@ -898,9 +976,29 @@ void exec_INDEXAV(struct tagTExecutor *self)
     push(self->stack, val);
 }
 
-void exec_INDEXAN()
+void exec_INDEXAN(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Number index = top(self->stack)->number; pop(self->stack);
+    Cell *array = top(self->stack);
+
+    if (!number_is_integer(index)) {
+        // ToDo: Implement runtime exceptions
+        assert(FALSE);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        return;
+    }
+    int64_t i = bid128_to_int64_int(index);
+    if (i < 0) {
+        // ToDo: Implement runtime exceptions
+        assert(FALSE);
+        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        return;
+    }
+    uint64_t j = (uint64_t)i;
+    Cell *val = (j < array->array_size ? cell_fromCell(&array->array[j]) : cell_newCell());
+    pop(self->stack);
+    push(self->stack, val);
 }
 
 void exec_INDEXDR()
@@ -918,9 +1016,17 @@ void exec_INDEXDV()
     fatal_error("not implemented");
 }
 
-void exec_INA()
+void exec_INA(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *array = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *val = cell_fromCell(top(self->stack)); pop(self->stack);
+
+    BOOL v = cell_arrayElementExists(array, val);
+    cell_freeCell(val);
+    cell_freeCell(array);
+
+    push(self->stack, cell_fromBoolean(v));
 }
 
 void exec_IND()
@@ -984,9 +1090,17 @@ void exec_JT(struct tagTExecutor *self)
     }
 }
 
-void exec_JFCHAIN()
+void exec_JFCHAIN(struct tagTExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t target = exec_getOperand(self);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    if (!a->boolean) {
+        self->ip = target;
+        pop(self->stack);
+        push(self->stack, a);
+        return;
+    }
+    cell_freeCell(a);
 }
 
 void exec_DUP(struct tagTExecutor *self)
@@ -995,9 +1109,14 @@ void exec_DUP(struct tagTExecutor *self)
     push(self->stack, cell_fromCell(top(self->stack)));
 }
 
-void exec_DUPX1()
+void exec_DUPX1(struct tagTExecutor*self)
 {
-    fatal_error("not implemented");
+    self->ip++;
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    push(self->stack, a);
+    push(self->stack, b);
+    push(self->stack, cell_fromCell(a));
 }
 
 void exec_DROP(struct tagTExecutor *self)
@@ -1147,7 +1266,7 @@ void exec_loop(struct tagTExecutor *self)
             case STORES:  exec_STORES(self); break;
             case STOREA:  exec_STOREA(self); break;
             case STORED:  exec_STORED(); break;
-            case STOREP:  exec_STOREP(); break;
+            case STOREP:  exec_STOREP(self); break;
             case NEGN:    exec_NEGN(self); break;
             case ADDN:    exec_ADDN(self); break;
             case SUBN:    exec_SUBN(self); break;
@@ -1163,12 +1282,12 @@ void exec_loop(struct tagTExecutor *self)
             case GTN:     exec_GTN(self); break;
             case LEN:     exec_LEN(self); break;
             case GEN:     exec_GEN(self); break;
-            case EQS:     exec_EQS(); break;
-            case NES:     exec_NES(); break;
-            case LTS:     exec_LTS(); break;
-            case GTS:     exec_GTS(); break;
-            case LES:     exec_LES(); break;
-            case GES:     exec_GES(); break;
+            case EQS:     exec_EQS(self); break;
+            case NES:     exec_NES(self); break;
+            case LTS:     exec_LTS(self); break;
+            case GTS:     exec_GTS(self); break;
+            case LES:     exec_LES(self); break;
+            case GES:     exec_GES(self); break;
             case EQA:     exec_EQA(); break;
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
@@ -1181,11 +1300,11 @@ void exec_loop(struct tagTExecutor *self)
             case INDEXAR: exec_INDEXAR(self); break;
             case INDEXAW: exec_INDEXAW(self); break;
             case INDEXAV: exec_INDEXAV(self); break;
-            case INDEXAN: exec_INDEXAN(); break;
+            case INDEXAN: exec_INDEXAN(self); break;
             case INDEXDR: exec_INDEXDR(); break;
             case INDEXDW: exec_INDEXDW(); break;
             case INDEXDV: exec_INDEXDV(); break;
-            case INA:     exec_INA(); break;
+            case INA:     exec_INA(self); break;
             case IND:     exec_IND(); break;
             case CALLP:   exec_CALLP(self); break;
             case CALLF:   exec_CALLF(self); break;
@@ -1194,9 +1313,9 @@ void exec_loop(struct tagTExecutor *self)
             case JUMP:    exec_JUMP(self); break;
             case JF:      exec_JF(self); break;
             case JT:      exec_JT(self); break;
-            case JFCHAIN: exec_JFCHAIN(); break;
+            case JFCHAIN: exec_JFCHAIN(self); break;
             case DUP:     exec_DUP(self); break;
-            case DUPX1:   exec_DUPX1(); break;
+            case DUPX1:   exec_DUPX1(self); break;
             case DROP:    exec_DROP(self); break;
             case RET:     exec_RET(self); break;
             case CALLE:   exec_CALLE(); break;
@@ -1221,3 +1340,7 @@ void exec_loop(struct tagTExecutor *self)
         self->total_opcodes++;
     }
 }
+
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif
