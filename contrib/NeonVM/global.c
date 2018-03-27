@@ -51,6 +51,7 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("number__toString",          number__toString),
 
     PDFUNC("string__append",            string__append),
+    PDFUNC("string__toBytes",           string__toBytes),
     PDFUNC("string__length",            string__length),
     PDFUNC("string__splice",            string__splice),
     PDFUNC("string__substring",         string__substring),
@@ -458,6 +459,12 @@ void string__append(TStack *stack)
     addr->string->length += b->string->length;
 
     cell_freeCell(b);
+}
+
+void string__toBytes(TStack *stack)
+{
+    Cell *r = cell_fromCell(top(stack)); pop(stack);
+    push(stack, r);
 }
 
 void string__length(TStack *stack)

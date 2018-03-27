@@ -148,7 +148,13 @@ ExcludeTests = [
     "t/while-valid.neon",           # class
     "t/win32-test.neon",            # module
 
-    "lib/extsample/t/extsample-test.neon",        # module
+    "lib/compress/t/compress-test.neon",            # module
+    "lib/extsample/t/extsample-test.neon",          # module
+    "lib/hash/t/hash-test.neon",                    # assert
+    "lib/http/t/http-test.neon",                    # module
+    "lib/regex/t/regex-test.neon",                  # module
+    "lib/sodium/t/sodium-test.neon",                # module
+    "lib/zeromq/t/zeromq-test.neon",                # module
 ]
 
 fullname = sys.argv[1]

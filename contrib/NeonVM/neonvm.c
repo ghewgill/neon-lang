@@ -369,7 +369,7 @@ BOOL ParseOptions(int argc, char* argv[])
             }
         } else {
             Retval = TRUE;
-            gOptions.pszFilename = strdup(argv[nIndex]);
+            gOptions.pszFilename = argv[nIndex];
         }
     }
     if (!gOptions.pszFilename) {

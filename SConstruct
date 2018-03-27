@@ -101,14 +101,6 @@ env.Append(CPPPATH=[
     "src",
 ])
 if sys.platform == "win32":
-    env.Append(CFLAGS=[
-        "/W4",
-        "/MDd",
-        "/Za",
-        "/wd4324", # structure was padded due to alignment specifier
-        "/wd4996", # CRT deprecation warnings
-        "/wd4001", # Single line comments in MSVC STD header files.
-    ])
     env.Append(CXXFLAGS=[
         "/EHsc",
         "/W4",
@@ -129,9 +121,6 @@ if sys.platform == "win32":
         env.Append(CXXFLAGS=[
             "/Ox",
             "/MD",
-        ])
-        env.Append(CFLAGS=[
-            "-std=c89",
         ])
     env.Append(LIBS=["user32", "wsock32"])
 else:
@@ -430,7 +419,35 @@ neonbind = env.Program("bin/neonbind", [
     "src/support_exec.cpp",
 ])
 
-neoncx = env.Program("contrib/msvc/Debug/neonvm", [
+envcnex = env.Clone()
+if sys.platform == "win32":
+    envcnex.Append(CFLAGS=[
+        "/W4",
+        "/MDd",
+        "/Za",
+        "/wd4324", # structure was padded due to alignment specifier
+        "/wd4996", # CRT deprecation warnings
+        "/wd4001", # Single line comments in MSVC STD header files.
+    ])
+    if not env["RELEASE"]:
+        envcnex.Append(LINKFLAGS=[
+            "/DEBUG",
+        ])
+        envcnex.Append(CXXFLAGS=[
+            "/MDd",
+            "/Zi",
+            "/Od",
+        ])
+    else:
+        envcnex.Append(CXXFLAGS=[
+            "/Ox",
+            "/MD",
+        ])
+        envcnex.Append(CFLAGS=[
+            "-std=c89",
+        ])
+envcnex.Prepend(LIBS=squeeze([libbid]))
+neoncx = envcnex.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/neonvm.c",
     "contrib/NeonVM/cell.c",
     "contrib/NeonVM/global.c",

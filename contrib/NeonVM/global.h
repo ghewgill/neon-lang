@@ -42,6 +42,7 @@ void bytes__toString(TStack *stack);
 void number__toString(TStack *stack);
 
 void string__append(TStack *stack);
+void string__toBytes(TStack *stack);
 void string__length(TStack *stack);
 void string__splice(TStack *Stack);
 void string__substring(TStack *stack);
