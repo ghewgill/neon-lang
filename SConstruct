@@ -425,28 +425,14 @@ if sys.platform == "win32":
         "/W4",
         "/MDd",
         "/Za",
-        "/wd4324", # structure was padded due to alignment specifier
         "/wd4996", # CRT deprecation warnings
         "/wd4001", # Single line comments in MSVC STD header files.
     ])
-    if not env["RELEASE"]:
-        envcnex.Append(LINKFLAGS=[
-            "/DEBUG",
-        ])
-        envcnex.Append(CXXFLAGS=[
-            "/MDd",
-            "/Zi",
-            "/Od",
-        ])
-    else:
-        envcnex.Append(CXXFLAGS=[
-            "/Ox",
-            "/MD",
-        ])
-        envcnex.Append(CFLAGS=[
-            "-std=c89",
-        ])
-envcnex.Prepend(LIBS=squeeze([libbid]))
+else:
+    envcnex.Append(CFLAGS=[
+        "-std=c89",
+    ])
+
 neoncx = envcnex.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/neonvm.c",
     "contrib/NeonVM/cell.c",
@@ -456,7 +442,7 @@ neoncx = envcnex.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/stack.c",
     "contrib/NeonVM/string.c",
     "contrib/NeonVM/util.c",
-] + libbid,
+],
 )
 
 env.Depends("src/number.h", libbid)
