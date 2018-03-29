@@ -1,6 +1,6 @@
 #ifdef _MSC_VER
 #pragma warning (push)
-#pragma warning (disable: 4001)
+#pragma warning (disable: 4001)     // Disable single-line comment warning.
 #endif
 
 #ifdef __MS_HEAP_DBG

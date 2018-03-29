@@ -1,6 +1,5 @@
 #ifndef __GLOBAL_H
 #define __GLOBAL_H
-//#include <stdbool.h>
 #include <stdint.h>
 
 #include "stack.h"
@@ -46,6 +45,5 @@ void string__toBytes(TStack *stack);
 void string__length(TStack *stack);
 void string__splice(TStack *Stack);
 void string__substring(TStack *stack);
-
 
 #endif

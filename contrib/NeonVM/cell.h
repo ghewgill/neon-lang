@@ -1,6 +1,5 @@
 #ifndef __CELL_H
 #define __CELL_H
-//#include <stdbool.h>
 #include <stdint.h>
 
 #include "dictionary.h"
@@ -26,13 +25,9 @@ typedef struct tagTCell {
     struct tagTDictionary *dictionary; // ToDo: Implement dictionary Cell Types
     uint64_t dictionary_size;
     struct tagTString *string;
-    //char *string;
-    //uint64_t string_size;
     CellType type;
     BOOL boolean;
 } Cell;
-
-//char *string_copyString(Cell *c);
 
 Cell *cell_createArrayCell(uint64_t elements);
 Cell *cell_createDictionaryCell(uint64_t elements);

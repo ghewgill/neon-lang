@@ -1,13 +1,6 @@
 #ifndef __STRING_H
 #define __STRING_H
-//#include <stdbool.h>
 #include <stdint.h>
-
-#ifdef _MSC_VER
-#ifndef strdup
-#define strdup(x) _strdup(x)
-#endif
-#endif
 
 typedef struct tagTString {
     size_t length;

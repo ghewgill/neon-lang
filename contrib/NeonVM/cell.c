@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdarg.h>
-//#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -86,26 +85,18 @@ Cell *cell_fromCell(const Cell *c)
             x->boolean = FALSE;
             x->number = bid128_from_uint32(0);
             x->string = NULL;
-            //x->string->length = 0;
             x->address = NULL;
             break;
         case cBoolean:
             x->boolean = c->boolean;
             x->number = bid128_from_uint32(0);
             x->string = NULL;
-            //x->string->length = 0;
             x->address = NULL;
             x->array = NULL;
             x->array_size = 0;
             break;
         case cString:
             x->string = string_copyString(c->string);
-            //x->string->length = c->string->length;
-            //x->string->data = malloc(x->string->length);
-            //memcpy(x->string->data, c->string->data, x->string->length);
-            //if (!x->string) {
-            //    fatal_error("Failed to allocate memory for cell string.");
-            //}
             x->address = NULL;
             x->number = bid128_from_uint32(0);
             x->boolean = FALSE;
@@ -258,12 +249,6 @@ void cell_copyCell(Cell *dest, const Cell *source)
     dest->number = source->number;
     if (source->type == cString && source->string != NULL) {
         dest->string = string_copyString(source->string);
-        //dest->string->length = source->string->length;
-        //dest->string = malloc(source->string->length);
-        //if (!dest->string) {
-        //    fatal_error("Failed to allocate memory for cell string copy.");
-        //}
-        //memcpy(dest->string, source->string, source->string->length);
     } else {
         dest->string = NULL;
     }

@@ -12,12 +12,6 @@
 #include "string.h"
 #include "util.h"
 
-#ifdef _MSC_VER
-#ifndef strdup
-#define strdup(x) _strdup(x)
-#endif
-#endif
-
 #define STRING_BUFFER_SIZE      120
 #define PDFUNC(name, func)      { name, (void (*)(TStack *))(func) }
 
