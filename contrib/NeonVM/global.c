@@ -309,6 +309,7 @@ void boolean__toString(TStack *stack)
 
 void bytes__decodeToString(TStack *stack)
 {
+    // ToDo: Remove the following line once implemented.  Only used to prevent compiler warning.
     stack = stack;
     // ToDo: handle UTF8 String
 }

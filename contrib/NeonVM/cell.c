@@ -159,7 +159,7 @@ void cell_appendArrayElement(Cell *c, const Cell e)
         c->array = malloc(sizeof(Cell));
         c->array_size = 1;
         if (c->array == NULL) {
-            fatal_error("Unable to allcoate memory for Read Array.");
+            fatal_error("Unable to allcoate memory for appended array element.");
         }
     }
     cell_copyCell(&c->array[c->array_size-1], &e);
@@ -234,7 +234,7 @@ Cell *cell_createStringCell(uint64_t length)
     c->string->length = length;
     c->string->data = malloc(length);
     if (!c->string->data) {
-        fatal_error("Unable to allocate requested string with length 0x%08X.", length);
+        fatal_error("Unable to allocate memory for requested string with length of %ld.", length);
     }
     return c;
 }

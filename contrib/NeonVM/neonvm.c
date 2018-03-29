@@ -223,7 +223,7 @@ void exec_freeExecutor(TExecutor *e)
     free(e);
 }
 
-struct tagTExecutor *exec_newExecuter(struct tagTBytecode *object);
+struct tagTExecutor *exec_newExecutor(struct tagTBytecode *object);
 
 static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, struct tagTBytecode *pBytecode)
 {
@@ -419,7 +419,7 @@ int main(int argc, char* argv[])
 
     bytecode_loadBytecode(bytecode, bytes_read, pModule);
 
-    TExecutor *exec = exec_newExecuter(pModule);
+    TExecutor *exec = exec_newExecutor(pModule);
     
     clock_t t;
 
@@ -465,7 +465,7 @@ int exec_run(struct tagTExecutor *self)
     return 0;
 }
 
-struct tagTExecutor *exec_newExecuter(struct tagTBytecode *object)
+struct tagTExecutor *exec_newExecutor(struct tagTBytecode *object)
 {
     uint32_t i;
     struct tagTExecutor *r = malloc(sizeof(struct tagTExecutor));
