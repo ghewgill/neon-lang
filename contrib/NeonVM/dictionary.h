@@ -14,13 +14,13 @@ typedef struct tagTDictionaryEntry {
 } TDictionaryEntry;
 
 typedef struct tagTDictionary {
-    struct tagTDictionaryEntry **hashtable;
+    TDictionaryEntry **hashtable;
     TDictionaryEntry (*insert)(struct tagTDictionary *, const char *, struct tagTCell *);
     TDictionaryEntry (*lookup)(struct tagTDictionary *, const char *);
 } Dictionary;
 
-TDictionaryEntry *lookup(struct tagTDictionary *self, const char *s);
-TDictionaryEntry *insert(struct tagTDictionary *self, const char *key, struct tagTCell *value);
+TDictionaryEntry *lookup(Dictionary *self, const char *s);
+TDictionaryEntry *insert(Dictionary *self, const char *key, struct tagTCell *value);
 
 Dictionary *dictionary_createDictionary();
 

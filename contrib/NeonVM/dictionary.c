@@ -33,7 +33,7 @@ static uint64_t hash(const char *s)
     return hashval % HASHSIZE;
 }
 
-TDictionaryEntry *lookup(struct tagTDictionary *self, const char *s)
+TDictionaryEntry *lookup(Dictionary *self, const char *s)
 {
     TDictionaryEntry *de;
     for (de = self->hashtable[hash(s)]; de != NULL; de = de->next) {
@@ -44,7 +44,7 @@ TDictionaryEntry *lookup(struct tagTDictionary *self, const char *s)
     return NULL;
 }
 
-TDictionaryEntry *insert(struct tagTDictionary *self, const char *key, struct tagTCell *value)
+TDictionaryEntry *insert(Dictionary *self, const char *key, Cell *value)
 {
     TDictionaryEntry *de;
     uint64_t hashval;

@@ -10,13 +10,13 @@ typedef struct tagTStack {
     Cell **data;
 } TStack;
 
-struct tagTStack *createStack(int capacity);
-void destroyStack(struct tagTStack *stack);
+TStack *createStack(int capacity);
+void destroyStack(TStack *stack);
 
-int isFull(struct tagTStack *stack);
-int isEmpty(struct tagTStack *stack);
-void push(struct tagTStack *stack, Cell *item);
-void pop(struct tagTStack *stack);
-Cell *top(struct tagTStack *stack);
+int isFull(TStack *stack);
+int isEmpty(TStack *stack);
+void push(TStack *stack, Cell *item);
+void pop(TStack *stack);
+Cell *top(TStack *stack);
 
 #endif
