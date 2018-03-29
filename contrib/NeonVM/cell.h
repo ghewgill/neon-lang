@@ -54,7 +54,6 @@ Cell *cell_fromString(const char *s, int64_t length);
 Cell *cell_fromCell(const Cell *c);
 
 void cell_copyCell(Cell *dest, const Cell *source);
-void cell_assignCell(Cell *dest, const Cell *source);
 
 int32_t cell_compareCell(const Cell *s, const Cell *d);
 

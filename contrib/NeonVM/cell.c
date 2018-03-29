@@ -221,21 +221,6 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
     return &c->array[i];
 }
 
-Cell *cell_arrayForWrite(Cell *c)
-{
-    if (c->type == cNothing) {
-        c = cell_createArrayCell(1);
-    }
-    assert(c->type == cArray);
-    if (c->array == NULL) {
-        c->array = malloc(sizeof(Cell));
-        if (c->array == NULL) {
-            fatal_error("Unable to allocate memory for write array.");
-        }
-    }
-    return c->array;
-}
-
 Cell *cell_createDictionaryCell(uint64_t iEntries)
 {
     Cell *c = cell_newCell();
