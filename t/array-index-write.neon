@@ -1,0 +1,7 @@
+VAR a: Array<Number> := []
+VAR x: Number := 0
+a[5] := 6
+x := a[5]
+
+print("\(a.size()), \(x)")
+%= 6, 6

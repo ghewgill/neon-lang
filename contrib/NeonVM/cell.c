@@ -206,8 +206,6 @@ Cell *cell_arrayIndexForRead(Cell *c, size_t i)
 
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
 {
-    uint64_t n;
-
     if (c->type == cNothing) {
         c->type = cArray;
     }
@@ -217,14 +215,8 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
         if (c->array == NULL) {
             fatal_error("Unable to reallcoate memory for write array.");
         }
-        if (c->array_size) {
-            for (n = c->array_size; n < i; n++) {
-                cell_resetCell(&c->array[n]);
-            }
-            c->array->array_size = i;
-        } else {
-            c->array_size++;
-        }
+        c->array_size = i+1;
+        cell_resetCell(&c->array[i]);
     }
     return &c->array[i];
 }
