@@ -70,3 +70,15 @@ Cell *top(TStack *stack)
 
     return stack->data[stack->top];
 }
+
+Cell *peek(TStack *stack, int element)
+{
+    if (isEmpty(stack)) {
+        fatal_error("Stack underflow error.");
+    }
+    if ((stack->top - element) < 0) {
+        fatal_error("Stack overflow error.");
+    }
+
+    return stack->data[stack->top - element];
+}

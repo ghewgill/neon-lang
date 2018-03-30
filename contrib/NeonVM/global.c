@@ -78,15 +78,20 @@ void print(TStack *stack)
 
 void concat(TStack *stack)
 {
-    Cell *b = cell_fromCell(top(stack)); pop(stack);
-    Cell *a = cell_fromCell(top(stack)); pop(stack);
+    //Cell *b = cell_fromCell(top(stack)); pop(stack);
+    Cell *b = peek(stack, 0);
+    //Cell *a = cell_fromCell(top(stack)); pop(stack);
+    Cell *a = peek(stack, 1);
     Cell *r = cell_createStringCell(b->string->length + a->string->length);
 
     memcpy(r->string->data, a->string->data, a->string->length);
     memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
 
-    cell_freeCell(a);
-    cell_freeCell(b);
+    pop(stack);
+    pop(stack);
+
+    //cell_freeCell(a);
+    //cell_freeCell(b);
 
     push(stack, r);
 }

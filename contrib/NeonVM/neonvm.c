@@ -198,7 +198,7 @@ typedef struct tagTExecutor {
 
     /* Debug / Diagnostic fields */
     uint64_t total_opcodes;
-    uint64_t callstack_depth;
+    uint64_t callstack_height;
     clock_t time_start;
     clock_t time_end;
 } TExecutor;
@@ -223,9 +223,9 @@ void exec_freeExecutor(TExecutor *e)
     free(e);
 }
 
-struct tagTExecutor *exec_newExecutor(struct tagTBytecode *object);
+TExecutor *exec_newExecutor(TBytecode *object);
 
-static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, struct tagTBytecode *pBytecode)
+static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode *pBytecode)
 {
     uint32_t i = 0;
 
@@ -391,8 +391,9 @@ int main(int argc, char* argv[])
         p++;
     }
     gOptions.pszExecutableName = ++s;
-
 #ifdef __MS_HEAP_DBG
+    // ToDo: Remove this!  This is only for debugging.
+    gOptions.ExecutorDebugStats = TRUE;
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     //_CrtSetBreakAlloc(119);
     //_CrtSetBreakAlloc(306);
@@ -429,7 +430,7 @@ int main(int argc, char* argv[])
     exec->time_end = clock();
 
     if (gOptions.ExecutorDebugStats) {
-        fprintf(stderr, "** Neon C Executor Statistics **\n--------------------------------\n"
+        fprintf(stderr, "\n*** Neon C Executor Statistics ***\n----------------------------------\n"
                         "Total Opcodes Executed : %lld\n"
                         "Max Opstack Height     : %d\n"
                         "Opstack Height         : %d\n"
@@ -439,9 +440,9 @@ int main(int argc, char* argv[])
                         "Max Framesets          : %d\n"
                         "Execution Time         : %fms\n",
                         exec->total_opcodes,
-                        exec->stack->max,
+                        exec->stack->max + 1,
                         exec->stack->top,
-                        exec->callstack_depth, 
+                        exec->callstack_height + 1, 
                         exec->callstacktop, 
                         exec->object->global_size, 
                         exec->framestack->max,
@@ -458,17 +459,20 @@ int main(int argc, char* argv[])
 int exec_run(struct tagTExecutor *self)
 {
     self->callstack[++self->callstacktop] = (uint32_t)self->object->codelen;
+    self->callstack_height = self->callstacktop;
 
     exec_loop(self);
-    //assert(isEmpty(self->stack));
+    if (gOptions.ExecutorDebugStats) {
+        assert(isEmpty(self->stack));
+    }
 
     return 0;
 }
 
-struct tagTExecutor *exec_newExecutor(struct tagTBytecode *object)
+TExecutor *exec_newExecutor(TBytecode *object)
 {
     uint32_t i;
-    struct tagTExecutor *r = malloc(sizeof(struct tagTExecutor));
+    TExecutor *r = malloc(sizeof(TExecutor));
     if (r == NULL) {
         fatal_error("Failed to allocate memory for Neon executable.");
     }
@@ -488,23 +492,23 @@ struct tagTExecutor *exec_newExecutor(struct tagTBytecode *object)
 
     // Debug / Diagnostic fields
     r->total_opcodes = 0;
-    r->callstack_depth = 0;
+    r->callstack_height = 0;
     return r;
 }
 
-static uint32_t exec_getOperand(struct tagTExecutor *self)
+static uint32_t exec_getOperand(TExecutor *self)
 {
     uint32_t r = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
     self->ip += 5;
     return r;
 }
 
-typedef struct tagTActivationFrame {
-    size_t count;
-    Cell *locals;
-} TActivationFrame;
+//typedef struct tagTActivationFrame {
+//    size_t count;
+//    Cell *locals;
+//} TActivationFrame;
 
-void exec_ENTER(struct tagTExecutor *self)
+void exec_ENTER(TExecutor *self)
 {
     self->ip++;
     uint32_t nest = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
@@ -526,32 +530,32 @@ void exec_ENTER(struct tagTExecutor *self)
     //nested_frames.push_back(&frames.back());
 }
 
-void exec_LEAVE(struct tagTExecutor *self)
+void exec_LEAVE(TExecutor *self)
 {
     framestack_popFrame(self->framestack);
     self->ip++;
 }
 
-void exec_PUSHB(struct tagTExecutor *self)
+void exec_PUSHB(TExecutor *self)
 {
     BOOL val = self->object->code[self->ip+1] != 0;
     self->ip += 2;
     push(self->stack, cell_fromBoolean(val));
 }
 
-void exec_PUSHN(struct tagTExecutor *self)
+void exec_PUSHN(TExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
     push(self->stack, cell_fromNumber(bid128_from_string(self->object->strings[val]->data)));
 }
 
-void exec_PUSHS(struct tagTExecutor *self)
+void exec_PUSHS(TExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
     push(self->stack, cell_fromString(self->object->strings[val]->data, self->object->strings[val]->length));
 }
 
-void exec_PUSHPG(struct tagTExecutor *self)
+void exec_PUSHPG(TExecutor *self)
 {
     uint32_t addr = exec_getOperand(self);
     assert(addr < self->object->global_size);
@@ -568,7 +572,7 @@ void exec_PUSHPMG()
     fatal_error("not implemented");
 }
 
-void exec_PUSHPL(struct tagTExecutor *self)
+void exec_PUSHPL(TExecutor *self)
 {
     uint32_t addr = exec_getOperand(self);
     //push(self->stack, cell_fromAddress(&self->frames[addr]));
@@ -585,69 +589,69 @@ void exec_PUSHI()
     fatal_error("not implemented");
 }
 
-void exec_LOADB(struct tagTExecutor *self)
+void exec_LOADB(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_LOADN(struct tagTExecutor *self)
+void exec_LOADN(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_LOADS(struct tagTExecutor *self)
+void exec_LOADS(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_LOADA(struct tagTExecutor *self)
+void exec_LOADA(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_LOADD(struct tagTExecutor *self)
+void exec_LOADD(TExecutor *self)
 {
     self = self;
     fatal_error("not implemented");
 }
 
-void exec_LOADP(struct tagTExecutor *self)
+void exec_LOADP(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_STOREB(struct tagTExecutor *self)
+void exec_STOREB(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STOREN(struct tagTExecutor *self)
+void exec_STOREN(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STORES(struct tagTExecutor *self)
+void exec_STORES(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STOREA(struct tagTExecutor *self)
+void exec_STOREA(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -659,21 +663,21 @@ void exec_STORED()
     fatal_error("not implemented");
 }
 
-void exec_STOREP(struct tagTExecutor *self)
+void exec_STOREP(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_NEGN(struct tagTExecutor *self)
+void exec_NEGN(TExecutor *self)
 {
     self->ip++;
     Number x = top(self->stack)->number; pop(self->stack);
     push(self->stack, cell_fromNumber(bid128_negate(x)));
 }
 
-void exec_ADDN(struct tagTExecutor *self)
+void exec_ADDN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -681,7 +685,7 @@ void exec_ADDN(struct tagTExecutor *self)
     push(self->stack, cell_fromNumber(bid128_add(a, b)));
 }
 
-void exec_SUBN(struct tagTExecutor *self)
+void exec_SUBN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -689,7 +693,7 @@ void exec_SUBN(struct tagTExecutor *self)
     push(self->stack, cell_fromNumber(bid128_sub(a, b)));
 }
 
-void exec_MULN(struct tagTExecutor *self)
+void exec_MULN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -697,7 +701,7 @@ void exec_MULN(struct tagTExecutor *self)
     push(self->stack, cell_fromNumber(bid128_mul(a, b)));
 }
 
-void exec_DIVN(struct tagTExecutor *self)
+void exec_DIVN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -705,7 +709,7 @@ void exec_DIVN(struct tagTExecutor *self)
     push(self->stack, cell_fromNumber(bid128_div(a, b)));
 }
 
-void exec_MODN(struct tagTExecutor *self)
+void exec_MODN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -713,7 +717,7 @@ void exec_MODN(struct tagTExecutor *self)
     push(self->stack, cell_fromNumber(number_modulo(a, b)));
 }
 
-void exec_EXPN(struct tagTExecutor *self)
+void exec_EXPN(TExecutor *self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -731,7 +735,7 @@ void exec_NEB()
     fatal_error("not implemented");
 }
 
-void exec_EQN(struct tagTExecutor*self)
+void exec_EQN(TExecutor*self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -739,7 +743,7 @@ void exec_EQN(struct tagTExecutor*self)
     push(self->stack, cell_fromBoolean(bid128_quiet_equal(a, b)));
 }
 
-void exec_NEN(struct tagTExecutor*self)
+void exec_NEN(TExecutor*self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -747,7 +751,7 @@ void exec_NEN(struct tagTExecutor*self)
     push(self->stack, cell_fromBoolean(bid128_quiet_not_equal(a, b)));
 }
 
-void exec_LTN(struct tagTExecutor*self)
+void exec_LTN(TExecutor*self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -755,7 +759,7 @@ void exec_LTN(struct tagTExecutor*self)
     push(self->stack, cell_fromBoolean(bid128_quiet_less(a, b)));
 }
 
-void exec_GTN(struct tagTExecutor*self)
+void exec_GTN(TExecutor*self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -763,7 +767,7 @@ void exec_GTN(struct tagTExecutor*self)
     push(self->stack, cell_fromBoolean(bid128_quiet_greater(a, b)));
 }
 
-void exec_LEN(struct tagTExecutor*self)
+void exec_LEN(TExecutor*self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -771,7 +775,7 @@ void exec_LEN(struct tagTExecutor*self)
     push(self->stack, cell_fromBoolean(bid128_quiet_less_equal(a, b)));
 }
 
-void exec_GEN(struct tagTExecutor*self)
+void exec_GEN(TExecutor*self)
 {
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
@@ -779,7 +783,7 @@ void exec_GEN(struct tagTExecutor*self)
     push(self->stack, cell_fromBoolean(bid128_quiet_greater_equal(a, b)));
 }
 
-void exec_EQS(struct tagTExecutor*self)
+void exec_EQS(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -790,7 +794,7 @@ void exec_EQS(struct tagTExecutor*self)
     push(self->stack, r);
 }
 
-void exec_NES(struct tagTExecutor*self)
+void exec_NES(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -801,7 +805,7 @@ void exec_NES(struct tagTExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LTS(struct tagTExecutor*self)
+void exec_LTS(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -812,7 +816,7 @@ void exec_LTS(struct tagTExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GTS(struct tagTExecutor*self)
+void exec_GTS(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -823,7 +827,7 @@ void exec_GTS(struct tagTExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LES(struct tagTExecutor*self)
+void exec_LES(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -834,7 +838,7 @@ void exec_LES(struct tagTExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GES(struct tagTExecutor*self)
+void exec_GES(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -885,14 +889,14 @@ void exec_ORB()
     fatal_error("not implemented");
 }
 
-void exec_NOTB(struct tagTExecutor *self)
+void exec_NOTB(TExecutor *self)
 {
     self->ip++;
     BOOL x = top(self->stack)->boolean; pop(self->stack);
     push(self->stack, cell_fromBoolean(!x));
 }
 
-void exec_INDEXAR(struct tagTExecutor *self)
+void exec_INDEXAR(TExecutor *self)
 {
     self->ip++;
     Number index = top(self->stack)->number; pop(self->stack);
@@ -921,7 +925,7 @@ void exec_INDEXAR(struct tagTExecutor *self)
     push(self->stack, cell_fromAddress(cell_arrayIndexForRead(addr, j)));
 }
 
-void exec_INDEXAW(struct tagTExecutor *self)
+void exec_INDEXAW(TExecutor *self)
 {
     self->ip++;
     Number index = top(self->stack)->number; pop(self->stack);
@@ -944,7 +948,7 @@ void exec_INDEXAW(struct tagTExecutor *self)
     push(self->stack, cell_fromAddress(cell_arrayIndexForWrite(addr, j)));
 }
 
-void exec_INDEXAV(struct tagTExecutor *self)
+void exec_INDEXAV(TExecutor *self)
 {
     self->ip++;
     Number index = top(self->stack)->number; pop(self->stack);
@@ -976,7 +980,7 @@ void exec_INDEXAV(struct tagTExecutor *self)
     push(self->stack, val);
 }
 
-void exec_INDEXAN(struct tagTExecutor *self)
+void exec_INDEXAN(TExecutor *self)
 {
     self->ip++;
     Number index = top(self->stack)->number; pop(self->stack);
@@ -1016,7 +1020,7 @@ void exec_INDEXDV()
     fatal_error("not implemented");
 }
 
-void exec_INA(struct tagTExecutor *self)
+void exec_INA(TExecutor *self)
 {
     self->ip++;
     Cell *array = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -1034,7 +1038,7 @@ void exec_IND()
     fatal_error("not implemented");
 }
 
-void exec_CALLP(struct tagTExecutor *self)
+void exec_CALLP(TExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
     const char *func = self->object->strings[val]->data;
@@ -1044,7 +1048,7 @@ void exec_CALLP(struct tagTExecutor *self)
     }
 }
 
-void exec_CALLF(struct tagTExecutor *self)
+void exec_CALLF(TExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
@@ -1053,6 +1057,7 @@ void exec_CALLF(struct tagTExecutor *self)
         //return;
     }
     self->callstack[++self->callstacktop] = self->ip;
+    self->callstack_height = self->callstacktop;
     self->ip = val;
 }
 
@@ -1066,13 +1071,13 @@ void exec_CALLI()
     fatal_error("not implemented");
 }
 
-void exec_JUMP(struct tagTExecutor *self)
+void exec_JUMP(TExecutor *self)
 {
     uint32_t target = exec_getOperand(self);
     self->ip = target;
 }
 
-void exec_JF(struct tagTExecutor *self)
+void exec_JF(TExecutor *self)
 {
     uint32_t target = exec_getOperand(self);
     BOOL a = top(self->stack)->boolean; pop(self->stack);
@@ -1081,7 +1086,7 @@ void exec_JF(struct tagTExecutor *self)
     }
 }
 
-void exec_JT(struct tagTExecutor *self)
+void exec_JT(TExecutor *self)
 {
     uint32_t target = exec_getOperand(self);
     BOOL a = top(self->stack)->boolean; pop(self->stack);
@@ -1090,7 +1095,7 @@ void exec_JT(struct tagTExecutor *self)
     }
 }
 
-void exec_JFCHAIN(struct tagTExecutor *self)
+void exec_JFCHAIN(TExecutor *self)
 {
     uint32_t target = exec_getOperand(self);
     Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -1103,13 +1108,13 @@ void exec_JFCHAIN(struct tagTExecutor *self)
     cell_freeCell(a);
 }
 
-void exec_DUP(struct tagTExecutor *self)
+void exec_DUP(TExecutor *self)
 {
     self->ip++;
     push(self->stack, cell_fromCell(top(self->stack)));
 }
 
-void exec_DUPX1(struct tagTExecutor*self)
+void exec_DUPX1(TExecutor*self)
 {
     self->ip++;
     Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -1119,13 +1124,13 @@ void exec_DUPX1(struct tagTExecutor*self)
     push(self->stack, cell_fromCell(a));
 }
 
-void exec_DROP(struct tagTExecutor *self)
+void exec_DROP(TExecutor *self)
 {
     self->ip++;
     pop(self->stack);
 }
 
-void exec_RET(struct tagTExecutor *self)
+void exec_RET(TExecutor *self)
 {
     self->ip = self->callstack[self->callstacktop--];
 }
@@ -1135,7 +1140,7 @@ void exec_CALLE()
     fatal_error("not implemented");
 }
 
-void exec_CONSA(struct tagTExecutor *self)
+void exec_CONSA(TExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
     Cell *a = cell_createArrayCell(val);
@@ -1148,7 +1153,7 @@ void exec_CONSA(struct tagTExecutor *self)
     push(self->stack, a);
 }
 
-void exec_CONSD(struct tagTExecutor *self)
+void exec_CONSD(TExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
     Cell *a = cell_createDictionaryCell(val);
@@ -1182,7 +1187,7 @@ void exec_ALLOC()
     fatal_error("not implemented");
 }
 
-void exec_PUSHNIL(struct tagTExecutor *self)
+void exec_PUSHNIL(TExecutor *self)
 {
     self->ip++;
     push(self->stack, NULL);
@@ -1193,7 +1198,7 @@ void exec_JNASSERT()
     fatal_error("not implemented");
 }
 
-void exec_RESETC(struct tagTExecutor *self)
+void exec_RESETC(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);

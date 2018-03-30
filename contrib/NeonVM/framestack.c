@@ -6,9 +6,9 @@
 #include "framestack.h"
 #include "util.h"
 
-struct tagTFrameStack *createFrameStack(uint32_t capacity)
+TFrameStack *createFrameStack(uint32_t capacity)
 {
-    struct tagTFrameStack *frames = malloc(sizeof(struct tagTFrameStack));
+    TFrameStack *frames = malloc(sizeof(TFrameStack));
     if (frames == NULL) {
         fatal_error("Could not allocate memory for framestack.");
     }
@@ -22,7 +22,7 @@ struct tagTFrameStack *createFrameStack(uint32_t capacity)
     return frames;
 }
 
-void destroyFrameStack(struct tagTFrameStack *framestack)
+void destroyFrameStack(TFrameStack *framestack)
 {
     assert(framestack_isEmpty(framestack));
 
@@ -35,17 +35,17 @@ void destroyFrameStack(struct tagTFrameStack *framestack)
     framestack->data = NULL;
 }
 
-int framestack_isFull(struct tagTFrameStack *framestack)
+int framestack_isFull(TFrameStack *framestack)
 {
     return framestack->top == framestack->capacity - 1;
 }
 
-int framestack_isEmpty(struct tagTFrameStack *framestack)
+int framestack_isEmpty(TFrameStack *framestack)
 {
     return framestack->top == -1;
 }
 
-void framestack_pushFrame(struct tagTFrameStack *framestack, TFrame *item)
+void framestack_pushFrame(TFrameStack *framestack, TFrame *item)
 {
     if (framestack_isFull(framestack)) {
         fatal_error("FrameStack overflow error.");
@@ -55,7 +55,7 @@ void framestack_pushFrame(struct tagTFrameStack *framestack, TFrame *item)
     framestack->data[++framestack->top] = item;
 }
 
-void framestack_popFrame(struct tagTFrameStack *framestack)
+void framestack_popFrame(TFrameStack *framestack)
 {
     if (framestack_isEmpty(framestack)) {
         fatal_error("FrameStack underflow error.");
@@ -69,7 +69,7 @@ void framestack_popFrame(struct tagTFrameStack *framestack)
     free(f);
 }
 
-TFrame *framestack_topFrame(struct tagTFrameStack *framestack)
+TFrame *framestack_topFrame(TFrameStack *framestack)
 {
     if (framestack_isEmpty(framestack)) {
         fatal_error("FrameStack underflow error.");

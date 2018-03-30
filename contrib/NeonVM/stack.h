@@ -18,5 +18,6 @@ int isEmpty(TStack *stack);
 void push(TStack *stack, Cell *item);
 void pop(TStack *stack);
 Cell *top(TStack *stack);
+Cell *peek(TStack *stack, int element);
 
 #endif
