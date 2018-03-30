@@ -1,3 +1,7 @@
+#ifdef _MSC_VER
+#pragma warning (push)
+#pragma warning (disable: 4001)     /* Disable single-line comment warning. */
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -82,3 +86,7 @@ Cell *peek(TStack *stack, int element)
 
     return stack->data[stack->top - element];
 }
+
+#ifdef _MSC_VER
+#pragma warning (pop)
+#endif
