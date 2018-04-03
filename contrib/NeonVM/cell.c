@@ -16,7 +16,7 @@ Cell *cell_fromAddress(Cell *c)
     return x;
 }
 
-Cell * cell_fromArray(Cell * c)
+Cell * cell_fromArray(Cell *c)
 {
     uint64_t i;
     Cell *a = cell_newCell();
@@ -111,6 +111,14 @@ Cell *cell_fromCell(const Cell *c)
             x->array = NULL;
             x->array_size = 0;
             break;
+        case cString:
+            x->string = string_copyString(c->string);
+            x->address = NULL;
+            x->number = bid128_from_uint32(0);
+            x->boolean = FALSE;
+            x->array = NULL;
+            x->array_size = 0;
+            break;
         case cNothing:
             assert(c->type == cNothing);
             break;
@@ -142,7 +150,7 @@ Cell *cell_createArrayCell(uint64_t iElements)
     return c;
 }
 
-void cell_appendArrayElement(Cell *c, const Cell e)
+void cell_arrayAppendElement(Cell *c, const Cell e)
 {
     if (c->type == cNothing) {
         c->type = cArray;
@@ -177,6 +185,21 @@ BOOL cell_arrayElementExists(const Cell *a, const Cell *e)
         }
     }
     return FALSE;
+}
+
+Cell *cell_arrayForWrite(Cell *c)
+{
+    if (c->type == cNothing) {
+        c->type = cArray;
+    }
+    assert(c->type == cArray);
+    if (c->array) {
+        c->array = malloc(sizeof(Cell));
+        if (!c->array) {
+            fatal_error("Could not allocate array for write.");
+        }
+    }
+    return c->array;
 }
 
 Cell *cell_arrayIndexForRead(Cell *c, size_t i)
@@ -217,7 +240,7 @@ Cell *cell_createDictionaryCell(uint64_t iEntries)
     Cell *c = cell_newCell();
 
     c->type = cDictionary;
-    c->dictionary_size = iEntries;
+//    c->dictionary_size = iEntries;
 
     // ToDo: Implement dictionary Cell Types
     assert(c->type != cDictionary);

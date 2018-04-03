@@ -22,16 +22,20 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("strb",                      strb),
     PDFUNC("ord",                       ord),
 
+    PDFUNC("io$fprint",                 io_fprint),
+
     PDFUNC("sys$exit",                  sys_exit),
 
     PDFUNC("array__append",             array__append),
     PDFUNC("array__concat",             array__concat),
     PDFUNC("array__extend",             array__extend),
+    PDFUNC("array__resize",             array__resize),
     PDFUNC("array__size",               array__size),
     PDFUNC("array__slice",              array__slice),
     PDFUNC("array__splice",             array__splice),
     PDFUNC("array__toBytes__number",    array__toBytes__number),
     PDFUNC("array__toString__number",   array__toString__number),
+    PDFUNC("array__toString__string",   array__toString__string),
 
     PDFUNC("boolean__toString",         boolean__toString),
 
@@ -52,6 +56,17 @@ TDispatch gfuncDispatch[] = {
 
     { 0 }
 };
+
+static FILE *check_file(void *pf)
+{
+    FILE *f = (FILE *)(pf);
+    if (f == NULL) {
+        assert(f == NULL);
+        // ToDo: Neon Exceptions
+        //throw RtlException(rtl::io::Exception_IoException_InvalidFile, "");
+    }
+    return f;
+}
 
 int global_callFunction(const char *pszFunc, TStack *stack)
 {
@@ -122,6 +137,23 @@ void ord(TStack *stack)
 
 
 
+
+void io_fprint(TStack *stack)
+{
+    Cell *s = peek(stack, 0);
+    Cell *pf = peek(stack, 1);
+
+    //FILE *f = check_file(pf);
+    FILE *f = check_file(stderr);
+    fwrite(s->string->data, 1, s->string->length, f);
+    fputs("\n", f);
+
+    pop(stack);
+    pop(stack);
+}
+
+
+
 void sys_exit(TStack *stack)
 {
     int64_t e = bid128_to_int64_int(top(stack)->number); pop(stack);
@@ -135,7 +167,7 @@ void array__append(TStack *stack)
 {
     Cell *element = cell_fromCell(top(stack)); pop(stack);
     Cell *array  = top(stack)->address;
-    cell_appendArrayElement(array, *element);
+    cell_arrayAppendElement(array, *element);
     cell_freeCell(element);
 }
 
@@ -163,9 +195,25 @@ void array__extend(TStack *stack)
     Cell *elements = cell_fromCell(top(stack)); pop(stack);
     Cell *array  = top(stack)->address;
     for (i = 0; i < elements->array_size; i++) {
-        cell_appendArrayElement(array, elements->array[i]);
+        cell_arrayAppendElement(array, elements->array[i]);
     }
     cell_freeCell(elements);
+}
+
+void array__resize(TStack *stack)
+{
+    Number new_size = top(stack)->number; pop(stack);
+    Cell *self = top(stack)->address;
+
+    if (!number_is_integer(new_size)) {
+        // ToDo: throw RtlException(Exception_ArrayIndexException, number_to_string(new_size));
+    }
+
+    self->array = realloc(self->array, (sizeof(struct tagTCell) * bid128_to_int64_int(new_size)));
+    if (!self->array) {
+        fatal_error("Could not expand array with %d existing elements to %d elements.", self->array_size, bid128_to_int64_int(new_size));
+    }
+    self->array_size = bid128_to_int64_int(new_size);
 }
 
 void array__size(TStack *stack)
@@ -219,8 +267,10 @@ void array__splice(TStack *stack)
     Number last  = top(stack)->number;          pop(stack);
     BOOL first_from_end  = top(stack)->boolean; pop(stack);
     Number first = top(stack)->number;          pop(stack);
-    Cell *a = cell_fromCell(top(stack));        pop(stack);
-    Cell *b = cell_fromCell(top(stack));        pop(stack);
+    Cell *a = peek(stack, 0);
+    Cell *b = peek(stack, 1);
+    //Cell *a = cell_fromCell(top(stack));        pop(stack);
+    //Cell *b = cell_fromCell(top(stack));        pop(stack);
     const Cell *array = a;
 
     int64_t fst = bid128_to_int64_int(first);
@@ -255,8 +305,10 @@ void array__splice(TStack *stack)
     for (uint64_t i = lst + 1; i < array->array_size; i++) {
         cell_copyCell(&r->array[ai++], &array->array[i]);
     }
-    cell_freeCell(b);
-    cell_freeCell(a);
+    pop(stack);
+    pop(stack);
+    //cell_freeCell(b);
+    //cell_freeCell(a);
 
     push(stack, r);
 }
@@ -301,6 +353,31 @@ void array__toString__number(TStack *stack)
     push(stack, cell_fromString(s, strlen(s)));
     free(s);
 }
+
+void array__toString__string(TStack *stack)
+{
+    uint64_t x, y;
+    // ToDo: Fix this to use proper string appends!!
+    Cell *a = top(stack);
+    char *s = malloc(STRING_BUFFER_SIZE);
+    // ToDo: Remove c strings, implement UTF8 strings.
+    strcpy(s, "[");
+    for (x = 0; x < a->array_size; x++) {
+        if (strlen(s) > 1) {
+            strcat(s, ", ");
+        }
+        strcat(s, "\"");
+        for (y = 0; y < a->array[x].string->length; y++) {
+            strcat(s, &a->array[x].string->data[y]);
+        }
+        strcat(s, "\"");
+    }
+    strcat(s, "]");
+    pop(stack);
+    push(stack, cell_fromString(s, strlen(s)));
+    free(s);
+}
+
 
 
 
@@ -437,6 +514,7 @@ void bytes__toString(TStack *stack)
 
     push(stack, ret);
 }
+
 
 
 

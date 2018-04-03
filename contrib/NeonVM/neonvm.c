@@ -31,11 +31,12 @@
 
 typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
+    BOOL EnableAssertions;
     char *pszFilename;
     char *pszExecutableName;
 } TOptions;
 
-static TOptions gOptions = { FALSE, NULL, NULL };
+static TOptions gOptions = { FALSE, TRUE, NULL, NULL };
 
 static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
 {
@@ -78,6 +79,13 @@ typedef struct tagTImport {
     uint8_t hash[32];
 } Import;
 
+typedef struct tagTException {
+    uint16_t start;
+    uint16_t end;
+    uint16_t exid;
+    uint16_t handler;
+} Exception;
+
 typedef struct tagTBytecode {
     uint8_t source_hash[32];
     uint16_t global_size;
@@ -102,6 +110,7 @@ typedef struct tagTBytecode {
     struct tagTExportFunction *export_functions;
     struct tagTFunction *pFunctions;
     struct tagTImport  *imports;
+    struct tagTException *exceptions;
 } TBytecode;
 
 static char **getstrtable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
@@ -150,7 +159,7 @@ static char **getstrtable(TBytecode *pBytecode, const uint8_t *start, const uint
 struct tagTExecutor;
 
 void exec_loop(struct tagTExecutor *self);
-int exec_run(struct tagTExecutor *self);
+int exec_run(struct tagTExecutor *self, BOOL enable_assert);
 
 TBytecode *bytecode_newBytecode()
 {
@@ -173,6 +182,7 @@ void bytecode_freeBytecode(TBytecode *b)
     free(b->pFunctions);
     free(b->imports);
     free(b->export_functions);
+    free(b->exceptions);
     free(b->pExportTypes);
     for (i = 0; i < b->strtablelen; i++) {
         free(b->strings[i]->data);
@@ -194,6 +204,7 @@ typedef struct tagTExecutor {
     int32_t param_recursion_limit;
     Cell *globals;
     TFrameStack *framestack;
+    BOOL enable_assert;
     //uint64_t frames;
 
     /* Debug / Diagnostic fields */
@@ -207,15 +218,13 @@ void exec_freeExecutor(TExecutor *e)
 {
     uint32_t i;
 
-
-
     for (i = 0; i < e->object->global_size; i++) {
         cell_clearCell(&e->globals[i]);
     }
     free(e->globals);
     destroyStack(e->stack);
     free(e->stack);
-    destroyFrameStack(e->framestack);
+    framestack_destroyFrameStack(e->framestack);
     free(e->framestack);
 
     bytecode_freeBytecode(e->object);
@@ -238,7 +247,7 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode
     pBytecode->global_size = get_uint16(bytecode, len, &i);
 
     pBytecode->strtablesize = get_uint32(bytecode, len, &i);
-    //i += 4;
+
     pBytecode->strtable = getstrtable(pBytecode, &bytecode[i], &bytecode[i + pBytecode->strtablesize], &pBytecode->strtablelen);
     i += pBytecode->strtablesize;
 
@@ -284,6 +293,7 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode
     //        i += 2
     //        self.export_variables.append(v)
     //        variablesize -= 1
+
     pBytecode->export_functionsize = get_uint16(bytecode, len, &i);
     pBytecode->export_functions = malloc(sizeof(ExportFunction) * pBytecode->export_functionsize);
     if (pBytecode->export_functions == NULL) {
@@ -309,6 +319,7 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode
     //    i += 2
     //    while interfaceexportsize > 0:
     //        assert False, interfaceexportsize
+
     pBytecode->importsize = get_uint16(bytecode, len, &i);
     pBytecode->imports = malloc(sizeof(Import) * pBytecode->importsize);
     if (pBytecode->imports == NULL) {
@@ -319,6 +330,7 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode
         memcpy(pBytecode->imports[f].hash, bytecode, 32);
         i+=32;
     }
+
     pBytecode->functionsize = get_uint16(bytecode, len, &i);
     pBytecode->pFunctions = malloc(sizeof(Function) * pBytecode->functionsize);
     if (pBytecode->pFunctions == NULL) {
@@ -328,11 +340,19 @@ static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode
         pBytecode->pFunctions[f].name = get_uint16(bytecode, len, &i);
         pBytecode->pFunctions[f].entry = get_uint32(bytecode, len, &i);
     }
+
     pBytecode->exceptionsize = get_uint16(bytecode, len, &i);
-    //    exceptionsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    while exceptionsize > 0:
-    //        assert False, exceptionsize
+    pBytecode->exceptions = malloc(sizeof(Exception) * pBytecode->exceptionsize);
+    if (pBytecode->exceptions == NULL) {
+        fatal_error("Could not allocate memory for exception info.");
+    }
+    for (uint32_t e = 0; e < pBytecode->exceptionsize; e++) {
+        pBytecode->exceptions[e].start = get_uint16(bytecode, len, &i);
+        pBytecode->exceptions[e].end = get_uint16(bytecode, len, &i);
+        pBytecode->exceptions[e].exid = get_uint16(bytecode, len, &i);
+        pBytecode->exceptions[e].handler = get_uint16(bytecode, len, &i);
+    }
+
     pBytecode->classsize = get_uint16(bytecode, len, &i);
     //    classsize = struct.unpack(">H", bytecode[i:i+2])[0]
     //    i += 2
@@ -350,6 +370,7 @@ BOOL Usage(BOOL bShowHelp)
         fprintf(stderr, "\n Where [options] is one or more of the following:\n");
         fprintf(stderr, "     -d       Display executor debug stats.\n");
         fprintf(stderr, "     -h       Display this help screen.\n");
+        fprintf(stderr, "     -n       No Assertions\n");
         return FALSE;
     }
     fprintf(stderr, "\n");
@@ -366,6 +387,8 @@ BOOL ParseOptions(int argc, char* argv[])
                 exit(1);
             } else if (argv[nIndex][1] == 'D' || argv[nIndex][1] == 'd') {
                 gOptions.ExecutorDebugStats = TRUE;
+            } else if (argv[nIndex][1] == 'N' || argv[nIndex][1] == 'n') {
+                gOptions.EnableAssertions = FALSE;
             }
         } else {
             Retval = TRUE;
@@ -381,6 +404,7 @@ BOOL ParseOptions(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+    clock_t t;
     char *p = argv[0];
     char *s = p;
 
@@ -404,7 +428,7 @@ int main(int argc, char* argv[])
     }
     FILE *fp = fopen(gOptions.pszFilename, "rb");
     if (!fp) {
-        fprintf(stderr, "Could not open Neon executable: %s\n Error: %d - %s.\n", gOptions.pszFilename, errno, strerror(errno));
+        fprintf(stderr, "Could not open Neon executable: %s\nError: %d - %s.\n", gOptions.pszFilename, errno, strerror(errno));
         return 2;
     }
     fseek(fp, 0, SEEK_END);
@@ -421,12 +445,10 @@ int main(int argc, char* argv[])
     bytecode_loadBytecode(bytecode, bytes_read, pModule);
 
     TExecutor *exec = exec_newExecutor(pModule);
-    
-    clock_t t;
 
     t = clock();
     exec->time_start = clock();
-    exec_run(exec);
+    exec_run(exec, gOptions.EnableAssertions);
     exec->time_end = clock();
 
     if (gOptions.ExecutorDebugStats) {
@@ -456,10 +478,11 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-int exec_run(struct tagTExecutor *self)
+int exec_run(TExecutor *self, BOOL enable_assert)
 {
     self->callstack[++self->callstacktop] = (uint32_t)self->object->codelen;
     self->callstack_height = self->callstacktop;
+    self->enable_assert = enable_assert;
 
     exec_loop(self);
     if (gOptions.ExecutorDebugStats) {
@@ -481,7 +504,8 @@ TExecutor *exec_newExecutor(TBytecode *object)
     r->ip = 0;
     r->callstacktop = -1;
     r->param_recursion_limit = 1000;
-    r->framestack = createFrameStack(r->param_recursion_limit);
+    r->enable_assert = TRUE;
+    r->framestack = framestack_createFrameStack(r->param_recursion_limit);
     r->globals = malloc(sizeof(Cell) * r->object->global_size);
     if (r->globals == NULL) {
         fatal_error("Failed to allocate memory for global variables.");
@@ -562,9 +586,12 @@ void exec_PUSHPG(TExecutor *self)
     push(self->stack, cell_fromAddress(&self->globals[addr]));
 }
 
-void exec_PUSHPPG()
+/* push pointer to predefined global */
+void exec_PUSHPPG(TExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t addr = exec_getOperand(self);
+    //assert(addr < self->object->global_size);
+    push(self->stack, cell_fromAddress(cell_newCell()));
 }
 
 void exec_PUSHPMG()
@@ -1193,9 +1220,12 @@ void exec_PUSHNIL(TExecutor *self)
     push(self->stack, NULL);
 }
 
-void exec_JNASSERT()
+void exec_JNASSERT(TExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t target = exec_getOperand(self);
+    if (!self->enable_assert) {
+        self->ip = target;
+    }
 }
 
 void exec_RESETC(TExecutor *self)
@@ -1255,7 +1285,7 @@ void exec_loop(struct tagTExecutor *self)
             case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;
             case PUSHPG:  exec_PUSHPG(self); break;
-            case PUSHPPG: exec_PUSHPPG(); break;
+            case PUSHPPG: exec_PUSHPPG(self); break;
             case PUSHPMG: exec_PUSHPMG(); break;
             case PUSHPL:  exec_PUSHPL(self); break;
             case PUSHPOL: exec_PUSHPOL(); break;
@@ -1329,7 +1359,7 @@ void exec_loop(struct tagTExecutor *self)
             case EXCEPT:  exec_EXCEPT(); break;
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(self); break;
-            case JNASSERT:exec_JNASSERT(); break;
+            case JNASSERT:exec_JNASSERT(self); break;
             case RESETC:  exec_RESETC(self); break;
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(); break;

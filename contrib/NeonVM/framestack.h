@@ -15,8 +15,8 @@ typedef struct tagTFrameStack {
     TFrame **data;
 } TFrameStack;
 
-struct tagTFrameStack *createFrameStack(uint32_t capacity);
-void destroyFrameStack(struct tagTFrameStack *framestack);
+struct tagTFrameStack *framestack_createFrameStack(uint32_t capacity);
+void framestack_destroyFrameStack(struct tagTFrameStack *framestack);
 
 int framestack_isFull(struct tagTFrameStack *framestack);
 int framestack_isEmpty(struct tagTFrameStack *framestack);

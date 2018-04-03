@@ -5,12 +5,12 @@ import sys
 ExcludeTests = [
     "t/array-fraction.neon",        # exception
     "t/array-negative.neon",        # exception
-    "t/array-resize.neon",          # assert
-    "t/array-subscript.neon",       # assert
-    "t/array-tostring.neon",        # assert
+    "t/array-resize.neon",          # exception
+    #"t/array-subscript.neon",       # assert
+    "t/array-tostring.neon",        # array__toString__string
     "t/array.neon",                 # exception
-    "t/assert-enum.neon",           # assert
-    "t/assert.neon",                # assert
+    #"t/assert-enum.neon",           # assert
+    #"t/assert.neon",                # assert
     "t/assignment.neon",            # dictionary / classes
     "t/bigint-test.neon",           # module
     "t/binary-test.neon",           # module
@@ -29,8 +29,8 @@ ExcludeTests = [
     "t/dictionary-keys.neon",       # dictionary
     "t/dictionary-sorted.neon",     # assert / dictionary
     "t/dictionary.neon",            # exception / dictionary
-    "t/divide-by-zero.neon",        # assert
-    "t/encoding-base64.neon",       # assert
+    "t/divide-by-zero.neon",        # exception
+    "t/encoding-base64.neon",       # module
     "t/equality.neon",              # class
     "t/exception-as.neon",          # exception
     "t/exception-code.neon",        # exception
@@ -52,11 +52,11 @@ ExcludeTests = [
     "t/file-test.neon",             # exception
     "t/file-writebytes.neon",       # file
     "t/file-writelines.neon",       # file
-    "t/foreach-eval.neon",          # assert
+    #"t/foreach-eval.neon",          # assert
     "t/foreach-function.neon",      # dictionary
     "t/foreach-value.neon",         # dictionary
     "t/fork.neon",                  # posix
-    "t/function-default-out.neon",  # assert
+    #"t/function-default-out.neon",  # assert
     "t/function-pointer-nowhere.neon", # functionpointer
     "t/function-pointer.neon",      # functionpointer
     "t/gc-array.neon",              # class
@@ -66,7 +66,7 @@ ExcludeTests = [
     "t/gc3.neon",                   # class
     "t/import.neon",                # exception
     "t/in.neon",                    # dictionary
-    "t/intdiv.neon",                # assert
+    "t/intdiv.neon",                # assert / math$intdiv
     "t/interface-parameter-export.neon", # export
     "t/interface-parameter-export2.neon", # export
     "t/interface-parameter-import.neon", # class
@@ -77,7 +77,7 @@ ExcludeTests = [
     "t/json-test.neon",             # module
     "t/lexical-scope.neon",         # exception
     "t/literal.neon",               # dictionary
-    "t/literal-array.neon",         # assert
+    "t/literal-array.neon",         # assert / array__range
     "t/literal-empty.neon",         # dictionary
     "t/math-test.neon",             # precision
     "t/mkdir.neon",                 # exception
@@ -96,7 +96,7 @@ ExcludeTests = [
     "t/new-init-module.neon",       # class
     "t/new-init.neon",              # class
     "t/number-ceil.neon",           # precision
-    "t/number-underscore.neon",     # assert
+    #"t/number-underscore.neon",     # assert
     "t/os-test.neon",               # os
     "t/outer-parameter.neon",       # PUSHPOL
     "t/outer-tail.neon",            # PUSHPOL
@@ -130,17 +130,18 @@ ExcludeTests = [
     "t/sqlite-test.neon",           # sqlite
     "t/stack-overflow.neon",        # stack
     "t/string-bytes.neon",          # format
+    "t/string-compare.neon",        # compare
     "t/string-escape.neon",         # utf8
     "t/string-format.neon",         # format
-    "t/string-slice.neon",          # assert
-    "t/string-test.neon",           # assert
+    #"t/string-slice.neon",          # assert
+    "t/string-test.neon",           # assert / string$find
     "t/struct-test.neon",           # module
     "t/sys-exit.neon",              # exception
     "t/time-stopwatch.neon",        # module
     "t/time-test.neon",             # module
     "t/try-expression.neon",        # exception
     "t/unicode-char.neon",          # utf8
-    "t/unicode-length.neon",        # assert / utf8
+    #"t/unicode-length.neon",        # assert / utf8
     "t/uninitialised-case.neon",    # JUMPTBL
     "t/valid-pointer.neon",         # class
     "t/value-index.neon",           # dictionary

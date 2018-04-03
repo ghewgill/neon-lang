@@ -6,7 +6,7 @@
 #include "framestack.h"
 #include "util.h"
 
-TFrameStack *createFrameStack(uint32_t capacity)
+TFrameStack *framestack_createFrameStack(uint32_t capacity)
 {
     TFrameStack *frames = malloc(sizeof(TFrameStack));
     if (frames == NULL) {
@@ -22,7 +22,7 @@ TFrameStack *createFrameStack(uint32_t capacity)
     return frames;
 }
 
-void destroyFrameStack(TFrameStack *framestack)
+void framestack_destroyFrameStack(TFrameStack *framestack)
 {
     assert(framestack_isEmpty(framestack));
 

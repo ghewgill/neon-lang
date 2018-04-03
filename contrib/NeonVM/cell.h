@@ -54,7 +54,8 @@ int32_t cell_compareCell(const Cell *s, const Cell *d);
 
 Cell *cell_arrayIndexForRead(Cell* c, size_t i);
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i);
-void cell_appendArrayElement(Cell *c, const Cell e);
+void cell_arrayAppendElement(Cell *c, const Cell e);
 BOOL cell_arrayElementExists(const Cell *a, const Cell *e);
+Cell *cell_arrayForWrite(Cell *c);
 
 #endif

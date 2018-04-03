@@ -18,16 +18,22 @@ void str(TStack *stack);
 void strb(TStack *stack);
 void ord(TStack *stack);
 
+
+void io_fprint(TStack *stack);
+
+
 void sys_exit(TStack *stack);
 
 void array__append(TStack *stack);
 void array__concat(TStack *stack);
 void array__extend(TStack *stack);
+void array__resize(TStack *stack);
 void array__size(TStack *stack);
 void array__slice(TStack *stack);
 void array__splice(TStack *stack);
 void array__toBytes__number(TStack *stack);
 void array__toString__number(TStack *stack);
+void array__toString__string(TStack *stack);
 
 void boolean__toString(TStack *stack);
 
