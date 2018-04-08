@@ -1,0 +1,19 @@
+EXCEPTION TestException
+
+FUNCTION bar()
+    VAR x: Number
+    x := 5
+    RAISE TestException
+END FUNCTION
+
+FUNCTION foo()
+    VAR x: Number
+    x := 2
+    TRY
+        bar()
+    TRAP TestException DO
+        ASSERT x = 2
+    END TRY
+END FUNCTION
+
+foo()
