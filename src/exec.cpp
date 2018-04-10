@@ -1890,14 +1890,6 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
             break;
         }
         sp -= 1;
-        // This unwinds the local variable frames as needed, but it's sort of a hack
-        // because it has to avoid trying to pop any frames for top level code that's
-        // not in a function. Better would be to somehow combine the return address
-        // stack and the local variable frames so they are managed together.
-        // See t/exception-unwind.neon and https://github.com/ghewgill/neon-lang/issues/189
-        if (not frames.empty()) {
-            frames.pop_back();
-        }
         tmodule = callstack[sp].first;
         tip = callstack[sp].second;
     }
