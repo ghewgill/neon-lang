@@ -60,12 +60,12 @@ void *open(const std::string &name, Cell &mode)
     return fopen(name.c_str(), m);
 }
 
-std::string readBytes(void *pf, Number count)
+std::vector<unsigned char> readBytes(void *pf, Number count)
 {
     FILE *f = check_file(pf);
     uint64_t ncount = number_to_uint64(count);
-    std::string r(ncount, 0);
-    size_t n = fread(const_cast<char *>(r.data()), 1, ncount, f);
+    std::vector<unsigned char> r(ncount);
+    size_t n = fread(const_cast<unsigned char *>(r.data()), 1, ncount, f);
     r.resize(n);
     return r;
 }
@@ -128,7 +128,7 @@ void write(void *pf, const std::string &s)
     fputs(s.c_str(), f);
 }
 
-void writeBytes(void *pf, const std::string &b)
+void writeBytes(void *pf, const std::vector<unsigned char> &b)
 {
     FILE *f = check_file(pf);
     fwrite(b.data(), 1, b.size(), f);

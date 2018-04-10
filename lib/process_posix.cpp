@@ -9,7 +9,7 @@ namespace rtl {
 
 namespace process {
 
-Number call(const std::string &command, std::string *stdout, std::string *stderr)
+Number call(const std::string &command, std::vector<unsigned char> *out, std::vector<unsigned char> *err)
 {
     int pout[2];
     int perr[2];
@@ -38,6 +38,8 @@ Number call(const std::string &command, std::string *stdout, std::string *stderr
     }
     close(pout[1]);
     close(perr[1]);
+    out->clear();
+    err->clear();
     for (;;) {
         fd_set fds;
         FD_ZERO(&fds);
@@ -64,7 +66,7 @@ Number call(const std::string &command, std::string *stdout, std::string *stderr
             char buf[1024];
             ssize_t n = read(pout[0], buf, sizeof(buf));
             if (n > 0) {
-                stdout->append(std::string(buf, n));
+                std::copy(buf, buf+n, std::back_inserter(*out));
             } else {
                 close(pout[0]);
                 pout[0] = -1;
@@ -74,7 +76,7 @@ Number call(const std::string &command, std::string *stdout, std::string *stderr
             char buf[1024];
             ssize_t n = read(perr[0], buf, sizeof(buf));
             if (n > 0) {
-                stderr->append(std::string(buf, n));
+                std::copy(buf, buf+n, std::back_inserter(*err));
             } else {
                 close(perr[0]);
                 perr[0] = -1;

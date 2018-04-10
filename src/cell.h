@@ -19,6 +19,7 @@ public:
     explicit Cell(Number value);
     explicit Cell(const utf8string &value);
     explicit Cell(const char *value);
+    explicit Cell(const std::vector<unsigned char> &value);
     explicit Cell(const std::vector<Cell> &value, bool alloced = false);
     explicit Cell(const std::map<utf8string, Cell> &value);
     Cell &operator=(const Cell &rhs);
@@ -30,6 +31,7 @@ public:
         Boolean,
         Number,
         String,
+        Bytes,
         Array,
         Dictionary
     };
@@ -40,6 +42,8 @@ public:
     Number &number();
     const utf8string &string();
     utf8string &string_for_write();
+    const std::vector<unsigned char> &bytes();
+    std::vector<unsigned char> &bytes_for_write();
     const std::vector<Cell> &array();
     std::vector<Cell> &array_for_write();
     Cell &array_index_for_read(size_t i);
@@ -64,6 +68,7 @@ private:
     bool boolean_value;
     Number number_value;
     std::shared_ptr<utf8string> string_ptr;
+    std::shared_ptr<std::vector<unsigned char>> bytes_ptr;
     std::shared_ptr<std::vector<Cell>> array_ptr;
     std::shared_ptr<std::map<utf8string, Cell>> dictionary_ptr;
 };

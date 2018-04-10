@@ -10,6 +10,7 @@ Cell::Cell()
     boolean_value(false),
     number_value(),
     string_ptr(),
+    bytes_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -22,6 +23,7 @@ Cell::Cell(const Cell &rhs)
     boolean_value(rhs.boolean_value),
     number_value(rhs.number_value),
     string_ptr(rhs.string_ptr),
+    bytes_ptr(rhs.bytes_ptr),
     array_ptr(rhs.array_ptr),
     dictionary_ptr(rhs.dictionary_ptr)
 {
@@ -34,6 +36,7 @@ Cell::Cell(Cell *value)
     boolean_value(false),
     number_value(),
     string_ptr(),
+    bytes_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -46,6 +49,7 @@ Cell::Cell(bool value)
     boolean_value(value),
     number_value(),
     string_ptr(),
+    bytes_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -58,6 +62,7 @@ Cell::Cell(Number value)
     boolean_value(false),
     number_value(value),
     string_ptr(),
+    bytes_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -70,6 +75,7 @@ Cell::Cell(const utf8string &value)
     boolean_value(false),
     number_value(),
     string_ptr(std::make_shared<utf8string>(value)),
+    bytes_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -82,6 +88,20 @@ Cell::Cell(const char *value)
     boolean_value(false),
     number_value(),
     string_ptr(std::make_shared<utf8string>(value)),
+    bytes_ptr(),
+    array_ptr(),
+    dictionary_ptr()
+{
+}
+
+Cell::Cell(const std::vector<unsigned char> &value)
+  : gc(),
+    type(Type::Bytes),
+    address_value(nullptr),
+    boolean_value(false),
+    number_value(),
+    string_ptr(),
+    bytes_ptr(std::make_shared<std::vector<unsigned char>>(value)),
     array_ptr(),
     dictionary_ptr()
 {
@@ -94,6 +114,7 @@ Cell::Cell(const std::vector<Cell> &value, bool alloced)
     boolean_value(false),
     number_value(),
     string_ptr(),
+    bytes_ptr(),
     array_ptr(std::make_shared<std::vector<Cell>>(value)),
     dictionary_ptr()
 {
@@ -106,6 +127,7 @@ Cell::Cell(const std::map<utf8string, Cell> &value)
     boolean_value(false),
     number_value(),
     string_ptr(),
+    bytes_ptr(),
     array_ptr(),
     dictionary_ptr(std::make_shared<std::map<utf8string, Cell>>(value))
 {
@@ -121,6 +143,7 @@ Cell &Cell::operator=(const Cell &rhs)
     boolean_value = rhs.boolean_value;
     number_value = rhs.number_value;
     string_ptr = rhs.string_ptr;
+    bytes_ptr = rhs.bytes_ptr;
     array_ptr = rhs.array_ptr;
     dictionary_ptr = rhs.dictionary_ptr;
     return *this;
@@ -135,6 +158,7 @@ bool Cell::operator==(const Cell &rhs) const
         case Type::Boolean:      return boolean_value == rhs.boolean_value;
         case Type::Number:       return number_is_equal(number_value, rhs.number_value);
         case Type::String:       return *string_ptr == *rhs.string_ptr;
+        case Type::Bytes:        return *bytes_ptr == *rhs.bytes_ptr;
         case Type::Array:        return *array_ptr == *rhs.array_ptr;
         case Type::Dictionary:   return *dictionary_ptr == *rhs.dictionary_ptr;
     }
@@ -193,6 +217,33 @@ utf8string &Cell::string_for_write()
         string_ptr = std::make_shared<utf8string>(*string_ptr);
     }
     return *string_ptr;
+}
+
+const std::vector<unsigned char> &Cell::bytes()
+{
+    if (type == Type::None) {
+        type = Type::Bytes;
+    }
+    assert(type == Type::Bytes);
+    if (not bytes_ptr) {
+        bytes_ptr = std::make_shared<std::vector<unsigned char>>();
+    }
+    return *bytes_ptr;
+}
+
+std::vector<unsigned char> &Cell::bytes_for_write()
+{
+    if (type == Type::None) {
+        type = Type::Bytes;
+    }
+    assert(type == Type::Bytes);
+    if (not bytes_ptr) {
+        bytes_ptr = std::make_shared<std::vector<unsigned char>>();
+    }
+    if (not bytes_ptr.unique()) {
+        bytes_ptr = std::make_shared<std::vector<unsigned char>>(*bytes_ptr);
+    }
+    return *bytes_ptr;
 }
 
 const std::vector<Cell> &Cell::array()
