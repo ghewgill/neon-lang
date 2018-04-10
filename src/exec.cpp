@@ -157,6 +157,24 @@ static void *marshal_string_a(Cell &cell, void *&p, size_t &space)
     return a;
 }
 
+static void *marshal_bytes(Cell &cell, void *&p, size_t &space)
+{
+    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
+    *a = const_cast<unsigned char *>(cell.bytes().data());
+    p = a + 1;
+    space -= sizeof(void *);
+    return a;
+}
+
+static void *marshal_bytes_a(Cell &cell, void *&p, size_t &space)
+{
+    void **a = reinterpret_cast<void **>(align(alignof(void *), sizeof(void *), p, space));
+    *a = const_cast<unsigned char *>(cell.address()->bytes().data());
+    p = a + 1;
+    space -= sizeof(void *);
+    return a;
+}
+
 template <typename T> static Cell unmarshal_boolean(void *p)
 {
     return Cell(*reinterpret_cast<T *>(p) != 0);
@@ -1537,8 +1555,8 @@ void Executor::exec_CALLE()
             else if (p == "double")   { fci->types.push_back(&ffi_type_double);  fci->marshal.push_back(marshal_number<double  >); }
             else if (p == "string")   { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string          ); }
             else if (p == "*string")  { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string_a        ); }
-            else if (p == "bytes")    { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string          ); }
-            else if (p == "*bytes")   { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_string_a        ); }
+            else if (p == "bytes")    { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_bytes           ); }
+            else if (p == "*bytes")   { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_bytes_a         ); }
             else if (p == "pointer")  { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_pointer         ); }
             else if (p == "*pointer") { fci->types.push_back(&ffi_type_pointer); fci->marshal.push_back(marshal_pointer_a       ); }
             else {
