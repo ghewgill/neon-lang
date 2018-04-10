@@ -7,7 +7,7 @@ namespace rtl {
 
 namespace process {
 
-Number call(const std::string &command, std::string *out, std::string *err)
+Number call(const std::string &command, std::vector<unsigned char> *out, std::vector<unsigned char> *err)
 {
     HANDLE out_read, out_write;
     HANDLE err_read, err_write;
@@ -42,8 +42,8 @@ Number call(const std::string &command, std::string *out, std::string *err)
     CloseHandle(pi.hThread);
     CloseHandle(out_write);
     CloseHandle(err_write);
-    *out = "";
-    *err = "";
+    out->clear();
+    err->clear();
     while (out_read != INVALID_HANDLE_VALUE || err_read != INVALID_HANDLE_VALUE) {
         char buf[1024];
         DWORD n;
@@ -53,7 +53,7 @@ Number call(const std::string &command, std::string *out, std::string *err)
                 out_read = INVALID_HANDLE_VALUE;
                 continue;
             }
-            out->append(std::string(buf, n));
+            std::copy(buf, buf+n, std::back_inserter(*out));
         }
         if (err_read != INVALID_HANDLE_VALUE) {
             if (not ReadFile(err_read, buf, sizeof(buf), &n, NULL)) {
@@ -61,7 +61,7 @@ Number call(const std::string &command, std::string *out, std::string *err)
                 err_read = INVALID_HANDLE_VALUE;
                 continue;
             }
-            err->append(std::string(buf, n));
+            std::copy(buf, buf+n, std::back_inserter(*err));
         }
     }
     if (out_read != INVALID_HANDLE_VALUE) {

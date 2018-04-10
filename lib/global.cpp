@@ -111,9 +111,9 @@ Cell array__splice(Cell &b, Cell &a, Number first, bool first_from_end, Number l
     return Cell(r);
 }
 
-std::string array__toBytes__number(const std::vector<Number> &a)
+std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
 {
-    std::string r;
+    std::vector<unsigned char> r;
     r.reserve(a.size());
     for (auto x: a) {
         uint64_t b = number_to_uint64(x);
@@ -218,9 +218,9 @@ std::string string__substring(const std::string &t, Number first, bool first_fro
     return s.substr(start, end-start);
 }
 
-std::string string__toBytes(const std::string &self)
+std::vector<unsigned char> string__toBytes(const std::string &self)
 {
-    return self;
+    return std::vector<unsigned char>(self.data(), self.data()+self.size());
 }
 
 std::string string__toString(const std::string &self)
@@ -229,7 +229,7 @@ std::string string__toString(const std::string &self)
     return "\"" + self + "\"";
 }
 
-std::string bytes__range(const std::string &t, Number first, bool first_from_end, Number last, bool last_from_end)
+std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     assert(number_is_integer(first));
     assert(number_is_integer(last));
@@ -241,15 +241,17 @@ std::string bytes__range(const std::string &t, Number first, bool first_from_end
     if (last_from_end) {
         l += t.size() - 1;
     }
-    return t.substr(f, l + 1 - f);
+    std::vector<unsigned char> r;
+    std::copy(t.begin()+f, t.begin()+l+1, std::back_inserter(r));
+    return r;
 }
 
-Number bytes__size(const std::string &self)
+Number bytes__size(const std::vector<unsigned char> &self)
 {
-    return number_from_uint64(self.length());
+    return number_from_uint64(self.size());
 }
 
-std::string bytes__splice(const std::string &t, const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
+std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, const std::vector<unsigned char> &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
@@ -259,19 +261,23 @@ std::string bytes__splice(const std::string &t, const std::string &s, Number fir
     if (last_from_end) {
         l += s.size() - 1;
     }
-    return s.substr(0, f) + t + s.substr(l + 1);
+    std::vector<unsigned char> r;
+    std::copy(s.begin(), s.begin()+f, std::back_inserter(r));
+    std::copy(t.begin(), t.end(), std::back_inserter(r));
+    std::copy(s.begin()+l+1, s.end(), std::back_inserter(r));
+    return r;
 }
 
-std::string bytes__decodeToString(const std::string &self)
+std::string bytes__decodeToString(const std::vector<unsigned char> &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
         throw RtlException(Exception_Utf8DecodingException, std::to_string(std::distance(self.begin(), inv)));
     }
-    return self;
+    return std::string(self.begin(), self.end());
 }
 
-std::vector<Number> bytes__toArray(const std::string &self)
+std::vector<Number> bytes__toArray(const std::vector<unsigned char> &self)
 {
     std::vector<Number> r;
     for (auto x: self) {
@@ -280,7 +286,7 @@ std::vector<Number> bytes__toArray(const std::string &self)
     return r;
 }
 
-std::string bytes__toString(const std::string &self)
+std::string bytes__toString(const std::vector<unsigned char> &self)
 {
     std::stringstream r;
     r << "HEXBYTES \"";
@@ -314,9 +320,11 @@ std::string interfacepointer__toString(Cell &p)
     return "<ip:" + std::to_string(reinterpret_cast<intptr_t>(p.array_for_write()[0].address())) + "," + number_to_string(p.array_for_write()[1].number()) + ">";
 }
 
-std::string concatBytes(const std::string &a, const std::string &b)
+std::vector<unsigned char> concatBytes(const std::vector<unsigned char> &a, const std::vector<unsigned char> &b)
 {
-    return a + b;
+    std::vector<unsigned char> r = a;
+    std::copy(b.begin(), b.end(), std::back_inserter(r));
+    return r;
 }
 
 std::string input(const std::string &prompt)

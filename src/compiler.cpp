@@ -457,12 +457,12 @@ void ast::TypeString::generate_call(Emitter &) const
 
 void ast::TypeBytes::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADS);
+    emitter.emit(LOADT);
 }
 
 void ast::TypeBytes::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STORES);
+    emitter.emit(STORET);
 }
 
 void ast::TypeBytes::generate_call(Emitter &) const
@@ -1157,7 +1157,7 @@ void ast::ConstantStringExpression::generate_expr(Emitter &emitter) const
 void ast::ConstantBytesExpression::generate_expr(Emitter &emitter) const
 {
     unsigned int index = emitter.str(contents);
-    emitter.emit(PUSHS, index);
+    emitter.emit(PUSHT, index);
 }
 
 void ast::ConstantEnumExpression::generate_expr(Emitter &emitter) const
@@ -1396,12 +1396,12 @@ void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitte
 void ast::BytesComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQS); break;
-        case Comparison::NE: emitter.emit(NES); break;
-        case Comparison::LT: emitter.emit(LTS); break;
-        case Comparison::GT: emitter.emit(GTS); break;
-        case Comparison::LE: emitter.emit(LES); break;
-        case Comparison::GE: emitter.emit(GES); break;
+        case Comparison::EQ: emitter.emit(EQT); break;
+        case Comparison::NE: emitter.emit(NET); break;
+        case Comparison::LT: emitter.emit(LTT); break;
+        case Comparison::GT: emitter.emit(GTT); break;
+        case Comparison::LE: emitter.emit(LET); break;
+        case Comparison::GE: emitter.emit(GET); break;
     }
 }
 

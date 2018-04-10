@@ -92,24 +92,24 @@ void socket_listen(Cell &handle, Number port)
     }
 }
 
-std::string socket_recv(Cell &handle, Number count)
+std::vector<unsigned char> socket_recv(Cell &handle, Number count)
 {
     SOCKET s = number_to_sint32(handle.number());
     int n = number_to_sint32(count);
-    std::string buf(n, '\0');
-    int r = recv(s, const_cast<char *>(buf.data()), n, 0);
+    std::vector<unsigned char> buf(n);
+    int r = recv(s, const_cast<unsigned char *>(buf.data()), n, 0);
     if (r < 0) {
         perror("recv");
-        return "";
+        return std::vector<unsigned char>();
     }
     buf.resize(r);
     return buf;
 }
 
-void socket_send(Cell &handle, const std::string &data)
+void socket_send(Cell &handle, const std::vector<unsigned char> &data)
 {
     SOCKET s = number_to_sint32(handle.number());
-    send(s, data.data(), static_cast<int>(data.length()), 0);
+    send(s, data.data(), static_cast<int>(data.size()), 0);
 }
 
 bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)

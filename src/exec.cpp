@@ -266,6 +266,7 @@ public:
     void exec_PUSHB();
     void exec_PUSHN();
     void exec_PUSHS();
+    void exec_PUSHT();
     void exec_PUSHPG();
     void exec_PUSHPPG();
     void exec_PUSHPMG();
@@ -275,12 +276,14 @@ public:
     void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
+    void exec_LOADT();
     void exec_LOADA();
     void exec_LOADD();
     void exec_LOADP();
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
+    void exec_STORET();
     void exec_STOREA();
     void exec_STORED();
     void exec_STOREP();
@@ -305,6 +308,12 @@ public:
     void exec_GTS();
     void exec_LES();
     void exec_GES();
+    void exec_EQT();
+    void exec_NET();
+    void exec_LTT();
+    void exec_GTT();
+    void exec_LET();
+    void exec_GET();
     void exec_EQA();
     void exec_NEA();
     void exec_EQD();
@@ -471,17 +480,17 @@ void cell_set_string(struct Ne_Cell *cell, const char *value)
 
 const unsigned char *cell_get_bytes(const struct Ne_Cell *cell)
 {
-    return reinterpret_cast<const unsigned char *>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().data());
+    return reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->bytes().data();
 }
 
 int cell_get_bytes_size(const struct Ne_Cell *cell)
 {
-    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->string().length());
+    return static_cast<int>(reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(cell))->bytes().size());
 }
 
 void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
 {
-    reinterpret_cast<Cell *>(cell)->string_for_write() = std::string(reinterpret_cast<const char *>(value), size);
+    reinterpret_cast<Cell *>(cell)->bytes_for_write() = std::vector<unsigned char>(value, value+size);
 }
 
 void *cell_get_pointer(const struct Ne_Cell *cell)
@@ -723,6 +732,13 @@ void Executor::exec_PUSHS()
     stack.push(Cell(module->object.strtable[val]));
 }
 
+void Executor::exec_PUSHT()
+{
+    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    ip += 5;
+    stack.push(Cell(std::vector<unsigned char>(reinterpret_cast<const unsigned char *>(module->object.strtable[val].data()), reinterpret_cast<const unsigned char *>(module->object.strtable[val].data()) + module->object.strtable[val].size())));
+}
+
 void Executor::exec_PUSHPG()
 {
     uint32_t addr = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
@@ -801,6 +817,14 @@ void Executor::exec_LOADS()
     stack.push(Cell(*addr));
 }
 
+void Executor::exec_LOADT()
+{
+    ip++;
+    Cell *addr = stack.top().address(); stack.pop();
+    addr->bytes();
+    stack.push(Cell(*addr));
+}
+
 void Executor::exec_LOADA()
 {
     ip++;
@@ -846,6 +870,14 @@ void Executor::exec_STORES()
     Cell *addr = stack.top().address(); stack.pop();
     *addr = stack.top(); stack.pop();
     addr->string();
+}
+
+void Executor::exec_STORET()
+{
+    ip++;
+    Cell *addr = stack.top().address(); stack.pop();
+    *addr = stack.top(); stack.pop();
+    addr->bytes();
 }
 
 void Executor::exec_STOREA()
@@ -1044,6 +1076,54 @@ void Executor::exec_GES()
     ip++;
     utf8string b = stack.top().string(); stack.pop();
     utf8string a = stack.top().string(); stack.pop();
+    stack.push(Cell(a >= b));
+}
+
+void Executor::exec_EQT()
+{
+    ip++;
+    std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
+    std::vector<unsigned char> a = stack.top().bytes(); stack.pop();
+    stack.push(Cell(a == b));
+}
+
+void Executor::exec_NET()
+{
+    ip++;
+    std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
+    std::vector<unsigned char> a = stack.top().bytes(); stack.pop();
+    stack.push(Cell(a != b));
+}
+
+void Executor::exec_LTT()
+{
+    ip++;
+    std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
+    std::vector<unsigned char> a = stack.top().bytes(); stack.pop();
+    stack.push(Cell(a < b));
+}
+
+void Executor::exec_GTT()
+{
+    ip++;
+    std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
+    std::vector<unsigned char> a = stack.top().bytes(); stack.pop();
+    stack.push(Cell(a > b));
+}
+
+void Executor::exec_LET()
+{
+    ip++;
+    std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
+    std::vector<unsigned char> a = stack.top().bytes(); stack.pop();
+    stack.push(Cell(a <= b));
+}
+
+void Executor::exec_GET()
+{
+    ip++;
+    std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
+    std::vector<unsigned char> a = stack.top().bytes(); stack.pop();
     stack.push(Cell(a >= b));
 }
 
@@ -1875,6 +1955,7 @@ static void mark(Cell *c)
             case Cell::Type::Boolean:
             case Cell::Type::Number:
             case Cell::Type::String:
+            case Cell::Type::Bytes:
                 // nothing
                 break;
             case Cell::Type::Address:
@@ -2007,6 +2088,7 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
+            case PUSHT:   exec_PUSHT(); break;
             case PUSHPG:  exec_PUSHPG(); break;
             case PUSHPPG: exec_PUSHPPG(); break;
             case PUSHPMG: exec_PUSHPMG(); break;
@@ -2016,12 +2098,14 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case LOADB:   exec_LOADB(); break;
             case LOADN:   exec_LOADN(); break;
             case LOADS:   exec_LOADS(); break;
+            case LOADT:   exec_LOADT(); break;
             case LOADA:   exec_LOADA(); break;
             case LOADD:   exec_LOADD(); break;
             case LOADP:   exec_LOADP(); break;
             case STOREB:  exec_STOREB(); break;
             case STOREN:  exec_STOREN(); break;
             case STORES:  exec_STORES(); break;
+            case STORET:  exec_STORET(); break;
             case STOREA:  exec_STOREA(); break;
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(); break;
@@ -2046,6 +2130,12 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case GTS:     exec_GTS(); break;
             case LES:     exec_LES(); break;
             case GES:     exec_GES(); break;
+            case EQT:     exec_EQT(); break;
+            case NET:     exec_NET(); break;
+            case LTT:     exec_LTT(); break;
+            case GTT:     exec_GTT(); break;
+            case LET_:    exec_LET(); break;
+            case GET:     exec_GET(); break;
             case EQA:     exec_EQA(); break;
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
@@ -2132,6 +2222,10 @@ template <> struct default_value_writer<Cell> {
             case Cell::Type::String:
                 writer.write("type", "string");
                 writer.write("value", cell.string().str());
+                break;
+            case Cell::Type::Bytes:
+                writer.write("type", "bytes");
+                writer.write("value", std::string(reinterpret_cast<const char *>(cell.bytes().data()), cell.bytes().size()));
                 break;
             case Cell::Type::Array: {
                 writer.write("type", "array");

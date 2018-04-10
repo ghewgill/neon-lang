@@ -27,6 +27,7 @@ private:
     void disasm_PUSHB();
     void disasm_PUSHN();
     void disasm_PUSHS();
+    void disasm_PUSHT();
     void disasm_PUSHPG();
     void disasm_PUSHPPG();
     void disasm_PUSHPMG();
@@ -36,12 +37,14 @@ private:
     void disasm_LOADB();
     void disasm_LOADN();
     void disasm_LOADS();
+    void disasm_LOADT();
     void disasm_LOADA();
     void disasm_LOADD();
     void disasm_LOADP();
     void disasm_STOREB();
     void disasm_STOREN();
     void disasm_STORES();
+    void disasm_STORET();
     void disasm_STOREA();
     void disasm_STORED();
     void disasm_STOREP();
@@ -66,6 +69,12 @@ private:
     void disasm_GTS();
     void disasm_LES();
     void disasm_GES();
+    void disasm_EQT();
+    void disasm_NET();
+    void disasm_LTT();
+    void disasm_GTT();
+    void disasm_LET();
+    void disasm_GET();
     void disasm_EQA();
     void disasm_NEA();
     void disasm_EQD();
@@ -162,6 +171,13 @@ void Disassembler::disasm_PUSHS()
     out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
+void Disassembler::disasm_PUSHT()
+{
+    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
+    index += 5;
+    out << "PUSHT " << val << "\n";
+}
+
 void Disassembler::disasm_PUSHPG()
 {
     uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
@@ -229,6 +245,12 @@ void Disassembler::disasm_LOADS()
     index++;
 }
 
+void Disassembler::disasm_LOADT()
+{
+    out << "LOADT\n";
+    index++;
+}
+
 void Disassembler::disasm_LOADA()
 {
     out << "LOADA\n";
@@ -262,6 +284,12 @@ void Disassembler::disasm_STOREN()
 void Disassembler::disasm_STORES()
 {
     out << "STORES\n";
+    index++;
+}
+
+void Disassembler::disasm_STORET()
+{
+    out << "STORET\n";
     index++;
 }
 
@@ -406,6 +434,42 @@ void Disassembler::disasm_LES()
 void Disassembler::disasm_GES()
 {
     out << "GES\n";
+    index++;
+}
+
+void Disassembler::disasm_EQT()
+{
+    out << "EQT\n";
+    index++;
+}
+
+void Disassembler::disasm_NET()
+{
+    out << "NET\n";
+    index++;
+}
+
+void Disassembler::disasm_LTT()
+{
+    out << "LTT\n";
+    index++;
+}
+
+void Disassembler::disasm_GTT()
+{
+    out << "GTT\n";
+    index++;
+}
+
+void Disassembler::disasm_LET()
+{
+    out << "LET\n";
+    index++;
+}
+
+void Disassembler::disasm_GET()
+{
+    out << "GET\n";
     index++;
 }
 
@@ -812,6 +876,7 @@ void Disassembler::disassemble()
             case PUSHB:   disasm_PUSHB(); break;
             case PUSHN:   disasm_PUSHN(); break;
             case PUSHS:   disasm_PUSHS(); break;
+            case PUSHT:   disasm_PUSHT(); break;
             case PUSHPG:  disasm_PUSHPG(); break;
             case PUSHPPG: disasm_PUSHPPG(); break;
             case PUSHPMG: disasm_PUSHPMG(); break;
@@ -821,12 +886,14 @@ void Disassembler::disassemble()
             case LOADB:   disasm_LOADB(); break;
             case LOADN:   disasm_LOADN(); break;
             case LOADS:   disasm_LOADS(); break;
+            case LOADT:   disasm_LOADT(); break;
             case LOADA:   disasm_LOADA(); break;
             case LOADD:   disasm_LOADD(); break;
             case LOADP:   disasm_LOADP(); break;
             case STOREB:  disasm_STOREB(); break;
             case STOREN:  disasm_STOREN(); break;
             case STORES:  disasm_STORES(); break;
+            case STORET:  disasm_STORET(); break;
             case STOREA:  disasm_STOREA(); break;
             case STORED:  disasm_STORED(); break;
             case STOREP:  disasm_STOREP(); break;
@@ -851,6 +918,12 @@ void Disassembler::disassemble()
             case GTS:     disasm_GTS(); break;
             case LES:     disasm_LES(); break;
             case GES:     disasm_GES(); break;
+            case EQT:     disasm_EQT(); break;
+            case NET:     disasm_NET(); break;
+            case LTT:     disasm_LTT(); break;
+            case GTT:     disasm_GTT(); break;
+            case LET_:    disasm_LET(); break;
+            case GET:     disasm_GET(); break;
             case EQA:     disasm_EQA(); break;
             case NEA:     disasm_NEA(); break;
             case EQD:     disasm_EQD(); break;

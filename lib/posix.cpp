@@ -288,30 +288,30 @@ Number pathconf(const std::string &path, Number name)
 //    return r;
 //}
 
-Number pread(Number fildes, std::string *buf, Number nbyte, Number offset)
+Number pread(Number fildes, std::vector<unsigned char> *buf, Number nbyte, Number offset)
 {
     size_t n = number_to_uint64(nbyte);
     buf->reserve(n);
-    return wrap(::pread(number_to_sint32(fildes), const_cast<char *>(buf->data()), n, number_to_uint64(offset)));
+    return wrap(::pread(number_to_sint32(fildes), reinterpret_cast<char *>(const_cast<unsigned char *>(buf->data())), n, number_to_uint64(offset)));
 }
 
-Number pwrite(Number fildes, const std::string &buf, Number nbyte, Number offset)
+Number pwrite(Number fildes, const std::vector<unsigned char> &buf, Number nbyte, Number offset)
 {
     return wrap(::pwrite(number_to_sint32(fildes), buf.data(), number_to_uint64(nbyte), number_to_uint64(offset)));
 }
 
-Number read(Number fildes, std::string *buf, Number nbyte)
+Number read(Number fildes, std::vector<unsigned char> *buf, Number nbyte)
 {
     size_t n = number_to_uint64(nbyte);
     buf->reserve(n);
-    return wrap(::read(number_to_sint32(fildes), const_cast<char *>(buf->data()), n));
+    return wrap(::read(number_to_sint32(fildes), reinterpret_cast<char *>(const_cast<unsigned char *>(buf->data())), n));
 }
 
-Number readlink(const std::string &path, std::string *buf, Number bufsize)
+Number readlink(const std::string &path, std::vector<unsigned char> *buf, Number bufsize)
 {
     size_t n = number_to_uint64(bufsize);
     buf->reserve(n);
-    return wrap(::readlink(path.c_str(), const_cast<char *>(buf->data()), n));
+    return wrap(::readlink(path.c_str(), reinterpret_cast<char *>(const_cast<unsigned char *>(buf->data())), n));
 }
 
 #if HAVE_AT_FUNCTIONS
@@ -498,9 +498,9 @@ Number waitpid(Number pid, Number *stat, Number options)
     return r;
 }
 
-Number write(Number fildes, const std::string &buf)
+Number write(Number fildes, const std::vector<unsigned char> &buf)
 {
-    return wrap(::write(number_to_sint32(fildes), buf.data(), buf.length()));
+    return wrap(::write(number_to_sint32(fildes), buf.data(), buf.size()));
 }
 
 } // namespace posix
