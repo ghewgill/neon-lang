@@ -14,6 +14,7 @@ typedef enum tagEType {
     cBoolean,
     cDictionary,
     cNumber,
+    cPointer,
     cString,
 } CellType;
 
@@ -21,17 +22,18 @@ typedef struct tagTCell {
     Number number;
     struct tagTCell *address;
     struct tagTCell *array;
-    uint64_t array_size;
+    size_t array_size;
     struct tagTDictionary *dictionary; // ToDo: Implement dictionary Cell Types
-    uint64_t dictionary_size;
+    //size_t dictionary_size;
     struct tagTString *string;
     CellType type;
     BOOL boolean;
 } Cell;
 
-Cell *cell_createArrayCell(uint64_t elements);
-Cell *cell_createDictionaryCell(uint64_t elements);
-Cell *cell_createStringCell(uint64_t size);
+Cell *cell_createAddressCell(void *a);
+Cell *cell_createArrayCell(size_t elements);
+Cell *cell_createDictionaryCell(size_t elements);
+Cell *cell_createStringCell(size_t size);
 
 Cell *cell_newCell();
 Cell *cell_newCellType(CellType t);
@@ -43,14 +45,19 @@ void cell_resetCell(Cell *c);
 Cell *cell_fromAddress(Cell *c);
 Cell *cell_fromArray(Cell *c);
 Cell *cell_fromBoolean(BOOL b);
+Cell *cell_fromPointer(void *p);
 Cell *cell_fromNumber(Number n);
 Cell *cell_fromString(const char *s, int64_t length);
-
 Cell *cell_fromCell(const Cell *c);
 
 void cell_copyCell(Cell *dest, const Cell *source);
 
 int32_t cell_compareCell(const Cell *s, const Cell *d);
+
+void cell_setString(Cell *c, TString *s);
+void cell_setNumber(Cell *c, Number n);
+void cell_setBoolean(Cell *c, BOOL b);
+
 
 Cell *cell_arrayIndexForRead(Cell* c, size_t i);
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i);

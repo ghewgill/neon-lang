@@ -46,6 +46,14 @@ Cell *cell_fromNumber(Number n)
     return x;
 }
 
+Cell *cell_fromPointer(void *p)
+{
+    Cell *x = cell_newCell(cNothing);
+    x->type = cPointer;
+    x->address = (void*)p;
+    return x;
+}
+
 Cell *cell_fromString(const char *s, int64_t length)
 {
     Cell *x = cell_newCell();
@@ -95,10 +103,10 @@ Cell *cell_fromCell(const Cell *c)
             x->array = NULL;
             x->array_size = 0;
             break;
-        case cString:
-            x->string = string_copyString(c->string);
-            x->address = NULL;
-            x->number = bid128_from_uint32(0);
+        case cPointer:
+            x->address = (void*)c;
+            x->number = bid128_from_uint32(0);;
+            x->string = NULL;
             x->boolean = FALSE;
             x->array = NULL;
             x->array_size = 0;
@@ -134,7 +142,33 @@ Cell *cell_fromCell(const Cell *c)
     return x;
 }
 
-Cell *cell_createArrayCell(uint64_t iElements)
+void cell_setString(Cell *c, TString *s)
+{
+    c->string = s;
+    c->type = cString;
+}
+
+void cell_setNumber(Cell *c, Number n)
+{
+    c->number = n;
+    c->type = cNumber;
+}
+
+void cell_setBoolean(Cell *c, BOOL b)
+{
+    c->boolean = b;
+    c->type = cBoolean;
+}
+
+Cell *cell_createAddressCell(void *a)
+{
+    Cell *r = cell_newCell();
+    r->type = cAddress;
+    r->address = (Cell*)a;
+    return r;
+}
+
+Cell *cell_createArrayCell(size_t iElements)
 {
     Cell *c = cell_newCell();
 
@@ -220,6 +254,7 @@ Cell *cell_arrayIndexForRead(Cell *c, size_t i)
 
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
 {
+    size_t n;
     if (c->type == cNothing) {
         c->type = cArray;
     }
@@ -229,13 +264,15 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
         if (c->array == NULL) {
             fatal_error("Unable to reallcoate memory for write array.");
         }
+        for (n = c->array_size; n < i; n++) {
+            cell_resetCell(&c->array[n]);
+        }
         c->array_size = i+1;
-        cell_resetCell(&c->array[i]);
     }
     return &c->array[i];
 }
 
-Cell *cell_createDictionaryCell(uint64_t iEntries)
+Cell *cell_createDictionaryCell(size_t iEntries)
 {
     Cell *c = cell_newCell();
 
@@ -248,7 +285,7 @@ Cell *cell_createDictionaryCell(uint64_t iEntries)
     return c;
 }
 
-Cell *cell_createStringCell(uint64_t length)
+Cell *cell_createStringCell(size_t length)
 {
     Cell *c = cell_newCell();
 
@@ -350,7 +387,6 @@ void cell_clearCell(Cell *c)
 
     if (c->type == cString) {
         string_freeString(c->string);
-        free(c->string);
     } else if (c->type == cArray) {
         uint64_t i;
         for (i = 0; i < c->array_size; i++) {

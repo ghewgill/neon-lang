@@ -1,6 +1,9 @@
 #ifndef __UTIL_H
 #define __UTIL_H
 
+#define estr(x)      #x
+#define ENUM(x)     estr(x)
+
 void exec_error(const char *msg, ...);
 void fatal_error(const char *msg, ...);
 

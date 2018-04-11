@@ -77,14 +77,71 @@ Cell *top(TStack *stack)
 
 Cell *peek(TStack *stack, int element)
 {
-    if (isEmpty(stack)) {
+    if (isEmpty(stack) || ((stack->top - element) < 0)) {
         fatal_error("Stack underflow error.");
-    }
-    if ((stack->top - element) < 0) {
-        fatal_error("Stack overflow error.");
     }
 
     return stack->data[stack->top - element];
+}
+
+TCallStack * createCallStack(int capacity)
+{
+    TCallStack *s = malloc(sizeof(TCallStack));
+    if (!s) {
+        fatal_error("Could not allocate memory for callstack.");
+    }
+    s->CallStack.capacity = capacity;
+    s->CallStack.height = -1;
+    s->CallStack.max = INT_MAX;
+    s->CallStack.data = malloc(sizeof(size_t) * INITIAL_CALLSTACK);
+    if (!s->CallStack.data) {
+        fatal_error("Could not allocate memory for callstack data.");
+    }
+    s->push = callstack_push;
+    s->pop = callstack_pop;
+    s->top = callstack_top;
+    return s;
+}
+
+void destroyCallStack(TCallStack *stack)
+{
+    if (stack) {
+        if (stack->CallStack.data) {
+            free(stack->CallStack.data);
+        }
+        free(stack);
+    }
+}
+
+void callstack_push(struct tagTCallStack *stack, size_t val)
+{
+    if (stack->CallStack.max < (stack->CallStack.height + 1)) stack->CallStack.max++;
+
+    if (stack->CallStack.height == stack->CallStack.len) {
+        stack->CallStack.len *= 2;
+        stack->CallStack.data = realloc(stack->CallStack.data, (sizeof(size_t) * stack->CallStack.len));
+        if (!stack->CallStack.data) {
+            fatal_error("Could not realloc callstack for %d elements.", stack->CallStack.len);
+        }
+    }
+    stack->CallStack.data[++stack->CallStack.height] = val;
+}
+
+void callstack_pop(struct tagTCallStack *stack)
+{
+    stack->CallStack.height--;
+    if (stack->CallStack.height < (stack->CallStack.len / 2)) {
+        stack->CallStack.data = realloc(stack->CallStack.data, (sizeof(size_t) * (stack->CallStack.len / 2)));
+        if (!stack->CallStack.data) {
+            fatal_error("Could not trim callstack down to %d elements.", (stack->CallStack.len / 2));
+        }
+        stack->CallStack.len /= 2;
+    }
+}
+
+size_t callstack_top(struct tagTCallStack *stack)
+{
+    return stack->CallStack.data[stack->CallStack.height];
 }
 
 #ifdef _MSC_VER

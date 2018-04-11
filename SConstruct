@@ -424,7 +424,7 @@ if sys.platform == "win32":
     envcnex.Append(CFLAGS=[
         "/W4",
         "/MDd",
-        "/Za",
+        #"/Za",
         "/wd4996", # CRT deprecation warnings
         "/wd4001", # Single line comments in MSVC STD header files.
     ])
@@ -435,6 +435,7 @@ else:
 
 neoncx = envcnex.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/neonvm.c",
+    "contrib/NeonVM/bytecode.c",
     "contrib/NeonVM/cell.c",
     "contrib/NeonVM/global.c",
     "contrib/NeonVM/framestack.c",

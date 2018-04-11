@@ -28,6 +28,8 @@
 #include "string.h"
 #include "util.h"
 
+#define EXECUTOR_DEBUG_OUTPUT       TRUE
+
 
 typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
@@ -38,181 +40,160 @@ typedef struct tagTCommandLineOptions {
 
 static TOptions gOptions = { FALSE, TRUE, NULL, NULL };
 
-static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
-{
-    if (*i+2 > nBuffSize) {
-        fatal_error("Bytecode exception: Read past EOF.");
-    }
-    uint16_t r = (pobj[*i] << 8) | pobj[*i+1];
-    *i += 2;
-    return r;
-}
+//typedef struct tagTType {
+//    int16_t name;
+//    int16_t descriptor;
+//} Type;
+//
+//typedef struct tagTFunction {
+//    uint16_t name;
+//    uint32_t entry;
+//} Function;
+//
+//typedef struct tagTExportFunction {
+//    uint16_t name;
+//    uint16_t descriptor;
+//    uint32_t entry;
+//} ExportFunction;
+//
+//typedef struct tagTImport {
+//    uint16_t name;
+//    uint8_t hash[32];
+//} Import;
+//
+//typedef struct tagTException {
+//    uint16_t start;
+//    uint16_t end;
+//    uint16_t exid;
+//    uint16_t handler;
+//} Exception;
+//
+//typedef struct tagTBytecode {
+//    uint8_t source_hash[32];
+//    uint16_t global_size;
+//    uint32_t strtablesize;
+//    uint32_t strtablelen;
+//    TString **strings;
+//    char **strtable;
+//    uint32_t typesize;
+//    uint32_t constantsize;
+//    uint32_t variablesize;
+//    uint32_t export_functionsize;
+//    uint32_t functionsize;
+//    uint32_t exceptionsize;
+//    uint32_t exceptionexportsize;
+//    uint32_t interfaceexportsize;
+//    uint32_t importsize;
+//    uint32_t classsize;
+//    const uint8_t *code;
+//    size_t codelen;
+//
+//    struct Type *pExportTypes;
+//    struct tagTExportFunction *export_functions;
+//    struct tagTFunction *pFunctions;
+//    struct tagTImport  *imports;
+//    struct tagTException *exceptions;
+//} TBytecode;
 
-static uint32_t get_uint32(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
-{
-    if (*i+4 > nBuffSize) {
-        fatal_error("Bytecode excpetion: Read past EOF.");
-    }
-    uint32_t r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
-    *i += 4;
-    return r;
-}
+//static char **bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
+//{
+//    char **r = NULL;
+//    uint32_t i = 0;
+//
+//    /* First, initialize the string count to zero. */
+//    *count = 0;
+//    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
+//    /  We're going to iterate the string table first, to get the count,
+//    /  then we'll allocate the data. */
+//    const uint8_t *s = start;
+//    while (s != end) {
+//        s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
+//        (*count)++;
+//    }
+//
+//    r = malloc((sizeof(uint8_t *)) * *count);
+//    if (r == NULL) {
+//        fatal_error("Could not allocate memory for %d strings.", *count);
+//    }
+//    pBytecode->strings = malloc(sizeof(TString *) * *count);
+//
+//    while (start != end) {
+//        //TString *ts = malloc(sizeof(TString));
+//        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
+//        start += 4;
+//
+//        TString *ts = string_newString();
+//        ts->length = len;
+//        ts->data = malloc(len+1); /* Always add null termination regardless of length. */
+//        //if (r[i] == NULL) {
+//        //    fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
+//        //}
+//        //memcpy(r[i], start, len);
+//        memcpy(ts->data, start, len);
+//        //r[i][len] = '\0';
+//        ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
+//        pBytecode->strings[i++] = ts;
+//        start += len;
+//    }
+//    return r;
+//}
+//
+//struct tagTExecutor;
+//
+//
+//TBytecode *bytecode_newBytecode()
+//{
+//    TBytecode *pBytecode = malloc(sizeof(TBytecode));
+//    if (!pBytecode) {
+//        fatal_error("Could not allocate memory for neon bytecode.");
+//    }
+//
+//    memset(pBytecode, 0x00, sizeof(TBytecode));
+//    return pBytecode;
+//}
+//
+//void bytecode_freeBytecode(TBytecode *b)
+//{
+//    uint32_t i;
+//    if (!b) {
+//        return;
+//    }
+//
+//    free(b->functions);
+//    free(b->imports);
+//    free(b->export_functions);
+//    free(b->exceptions);
+//    free(b->export_types);
+//    for (i = 0; i < b->strtablelen; i++) {
+//        free(b->strings[i]->data);
+//        free(b->strings[i]);
+//    }
+//    free(b->strtable);
+//    free(b->strings);
+//    free(b);
+//    b = NULL;
+//}
 
-typedef struct tagTType {
-    int16_t name;
-    int16_t descriptor;
-} Type;
-
-typedef struct tagTFunction {
-    uint16_t name;
-    uint32_t entry;
-} Function;
-
-typedef struct tagTExportFunction {
-    uint16_t name;
-    uint16_t descriptor;
-    uint32_t entry;
-} ExportFunction;
-
-typedef struct tagTImport {
-    uint16_t name;
-    uint8_t hash[32];
-} Import;
-
-typedef struct tagTException {
-    uint16_t start;
-    uint16_t end;
-    uint16_t exid;
-    uint16_t handler;
-} Exception;
-
-typedef struct tagTBytecode {
-    uint8_t source_hash[32];
-    uint16_t global_size;
-    uint32_t strtablesize;
-    uint32_t strtablelen;
-    TString **strings;
-    char **strtable;
-    uint32_t typesize;
-    uint32_t constantsize;
-    uint32_t variablesize;
-    uint32_t export_functionsize;
-    uint32_t functionsize;
-    uint32_t exceptionsize;
-    uint32_t exceptionexportsize;
-    uint32_t interfaceexportsize;
-    uint32_t importsize;
-    uint32_t classsize;
-    const uint8_t *code;
-    size_t codelen;
-
-    struct Type *pExportTypes;
-    struct tagTExportFunction *export_functions;
-    struct tagTFunction *pFunctions;
-    struct tagTImport  *imports;
-    struct tagTException *exceptions;
-} TBytecode;
-
-static char **getstrtable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
-{
-    char **r = NULL;
-    uint32_t i = 0;
-
-    /* First, initialize the string count to zero. */
-    *count = 0;
-    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
-    /  We're going to iterate the string table first, to get the count,
-    /  then we'll allocate the data. */
-    const uint8_t *s = start;
-    while (s != end) {
-        s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
-        (*count)++;
-    }
-
-    r = malloc((sizeof(uint8_t *)) * *count);
-    if (r == NULL) {
-        fatal_error("Could not allocate memory for %d strings.", *count);
-    }
-    pBytecode->strings = malloc(sizeof(TString *) * *count);
-
-    while (start != end) {
-        TString *ts = malloc(sizeof(TString));
-        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
-        start += 4;
-
-        ts->length = len;
-        ts->data = malloc(len+1); /* Always add null termination regardless of length. */
-        //r[i] = malloc(len+1);
-        //if (r[i] == NULL) {
-        //    fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
-        //}
-        //memcpy(r[i], start, len);
-        memcpy(ts->data, start, len);
-        //r[i][len] = '\0';
-        ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
-        pBytecode->strings[i++] = ts;
-        start += len;
-    }
-    return r;
-}
-
-struct tagTExecutor;
-
-void exec_loop(struct tagTExecutor *self);
-int exec_run(struct tagTExecutor *self, BOOL enable_assert);
-
-TBytecode *bytecode_newBytecode()
-{
-    TBytecode *pBytecode = malloc(sizeof(TBytecode));
-    if (!pBytecode) {
-        fatal_error("Could not allocate memory for neon bytecode.");
-    }
-
-    memset(pBytecode, 0x00, sizeof(TBytecode));
-    return pBytecode;
-}
-
-void bytecode_freeBytecode(TBytecode *b)
-{
-    uint32_t i;
-    if (!b) {
-        return;
-    }
-
-    free(b->pFunctions);
-    free(b->imports);
-    free(b->export_functions);
-    free(b->exceptions);
-    free(b->pExportTypes);
-    for (i = 0; i < b->strtablelen; i++) {
-        free(b->strings[i]->data);
-        free(b->strings[i]);
-    }
-    free(b->strtable);
-    free(b->strings);
-    free(b);
-    b = NULL;
-}
-
-typedef struct tagTExecutor {
-    struct tagTBytecode *object;
-    uint32_t ip;
-    struct tagTStack *stack;
-    /*struct tagTStack *callstack; */
-    uint32_t callstack[300];
-    int32_t callstacktop;
-    int32_t param_recursion_limit;
-    Cell *globals;
-    TFrameStack *framestack;
-    BOOL enable_assert;
-    //uint64_t frames;
-
-    /* Debug / Diagnostic fields */
-    uint64_t total_opcodes;
-    uint64_t callstack_height;
-    clock_t time_start;
-    clock_t time_end;
-} TExecutor;
+//typedef struct tagTExecutor {
+//    struct tagTBytecode *object;
+//    uint32_t ip;
+//    struct tagTStack *stack;
+//    /*struct tagTStack *callstack; */
+//    uint32_t callstack[300];
+//    int32_t callstacktop;
+//    int32_t param_recursion_limit;
+//    Cell *globals;
+//    TFrameStack *framestack;
+//    BOOL enable_assert;
+//    //uint64_t frames;
+//    void (*rtl_raise)(struct tagTExecutor *, const char *, const char *, Number);
+//
+//    /* Debug / Diagnostic fields */
+//    uint64_t total_opcodes;
+//    uint64_t callstack_height;
+//    clock_t time_start;
+//    clock_t time_end;
+//} TExecutor;
 
 void exec_freeExecutor(TExecutor *e)
 {
@@ -226,6 +207,7 @@ void exec_freeExecutor(TExecutor *e)
     free(e->stack);
     framestack_destroyFrameStack(e->framestack);
     free(e->framestack);
+    free(e->module);
 
     bytecode_freeBytecode(e->object);
 
@@ -234,133 +216,133 @@ void exec_freeExecutor(TExecutor *e)
 
 TExecutor *exec_newExecutor(TBytecode *object);
 
-static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode *pBytecode)
-{
-    uint32_t i = 0;
-
-    if (!pBytecode) {
-        pBytecode = bytecode_newBytecode();
-    }
-
-    memcpy(pBytecode->source_hash, bytecode, 32);
-    i += 32;
-    pBytecode->global_size = get_uint16(bytecode, len, &i);
-
-    pBytecode->strtablesize = get_uint32(bytecode, len, &i);
-
-    pBytecode->strtable = getstrtable(pBytecode, &bytecode[i], &bytecode[i + pBytecode->strtablesize], &pBytecode->strtablelen);
-    i += pBytecode->strtablesize;
-
-    pBytecode->typesize = get_uint16(bytecode, len, &i);
-    //    typesize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_types = []
-    //    while typesize > 0:
-    //        t = Type()
-    //        t.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        t.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        self.export_types.append(t)
-    //        typesize -= 1
-    pBytecode->constantsize = get_uint16(bytecode, len, &i);
-    //    constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_constants = []
-    //    while constantsize > 0:
-    //        c = Constant()
-    //        c.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        c.type = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        size = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        c.value = bytecode[i:i+size]
-    //        i += size
-    //        self.export_constants.append(c)
-    //        constantsize -= 1
-    pBytecode->variablesize = get_uint16(bytecode, len, &i);
-    //    variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_variables = []
-    //    while variablesize > 0:
-    //        v = Variable()
-    //        v.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        v.type = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        v.index = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        self.export_variables.append(v)
-    //        variablesize -= 1
-
-    pBytecode->export_functionsize = get_uint16(bytecode, len, &i);
-    pBytecode->export_functions = malloc(sizeof(ExportFunction) * pBytecode->export_functionsize);
-    if (pBytecode->export_functions == NULL) {
-        fatal_error("Could not allocate memory for exported function info.");
-    }
-    for (uint32_t f = 0; f < pBytecode->export_functionsize; f++) {
-        pBytecode->export_functions[f].name = get_uint16(bytecode, len, &i);
-        pBytecode->export_functions[f].descriptor = get_uint16(bytecode, len, &i);
-        pBytecode->export_functions[f].entry = get_uint32(bytecode, len, &i);
-    }
-    pBytecode->exceptionexportsize = get_uint16(bytecode, len, &i);
-    //    exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_exceptions = []
-    //    while exceptionexportsize > 0:
-    //        e = ExceptionExport()
-    //        e.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        self.export_exceptions.append(e)
-    //        exceptionexportsize -= 1
-    pBytecode->interfaceexportsize = get_uint16(bytecode, len, &i);
-    //    interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    while interfaceexportsize > 0:
-    //        assert False, interfaceexportsize
-
-    pBytecode->importsize = get_uint16(bytecode, len, &i);
-    pBytecode->imports = malloc(sizeof(Import) * pBytecode->importsize);
-    if (pBytecode->imports == NULL) {
-        fatal_error("Could not allocate memory for exported function info.");
-    }
-    for (uint32_t f = 0; f < pBytecode->importsize; f++) {
-        pBytecode->imports[f].name = get_uint16(bytecode, len, &i);
-        memcpy(pBytecode->imports[f].hash, bytecode, 32);
-        i+=32;
-    }
-
-    pBytecode->functionsize = get_uint16(bytecode, len, &i);
-    pBytecode->pFunctions = malloc(sizeof(Function) * pBytecode->functionsize);
-    if (pBytecode->pFunctions == NULL) {
-        fatal_error("Could not allocate memory for function info.");
-    }
-    for (uint32_t f = 0; f < pBytecode->functionsize; f++) {
-        pBytecode->pFunctions[f].name = get_uint16(bytecode, len, &i);
-        pBytecode->pFunctions[f].entry = get_uint32(bytecode, len, &i);
-    }
-
-    pBytecode->exceptionsize = get_uint16(bytecode, len, &i);
-    pBytecode->exceptions = malloc(sizeof(Exception) * pBytecode->exceptionsize);
-    if (pBytecode->exceptions == NULL) {
-        fatal_error("Could not allocate memory for exception info.");
-    }
-    for (uint32_t e = 0; e < pBytecode->exceptionsize; e++) {
-        pBytecode->exceptions[e].start = get_uint16(bytecode, len, &i);
-        pBytecode->exceptions[e].end = get_uint16(bytecode, len, &i);
-        pBytecode->exceptions[e].exid = get_uint16(bytecode, len, &i);
-        pBytecode->exceptions[e].handler = get_uint16(bytecode, len, &i);
-    }
-
-    pBytecode->classsize = get_uint16(bytecode, len, &i);
-    //    classsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    while classsize > 0:
-    //        assert False, classsize
-    pBytecode->code = bytecode + i;
-    pBytecode->codelen = len - i;
-}
+//static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode *pBytecode)
+//{
+//    uint32_t i = 0;
+//
+//    if (!pBytecode) {
+//        pBytecode = bytecode_newBytecode();
+//    }
+//
+//    memcpy(pBytecode->source_hash, bytecode, 32);
+//    i += 32;
+//    pBytecode->global_size = get_uint16(bytecode, len, &i);
+//
+//    pBytecode->strtablesize = get_uint32(bytecode, len, &i);
+//
+//    pBytecode->strtable = bytecode_getStringTable(pBytecode, &bytecode[i], &bytecode[i + pBytecode->strtablesize], &pBytecode->strtablelen);
+//    i += pBytecode->strtablesize;
+//
+//    pBytecode->typesize = get_uint16(bytecode, len, &i);
+//    //    typesize = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //    i += 2
+//    //    self.export_types = []
+//    //    while typesize > 0:
+//    //        t = Type()
+//    //        t.name = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        t.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        self.export_types.append(t)
+//    //        typesize -= 1
+//    pBytecode->constantsize = get_uint16(bytecode, len, &i);
+//    //    constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //    i += 2
+//    //    self.export_constants = []
+//    //    while constantsize > 0:
+//    //        c = Constant()
+//    //        c.name = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        c.type = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        size = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        c.value = bytecode[i:i+size]
+//    //        i += size
+//    //        self.export_constants.append(c)
+//    //        constantsize -= 1
+//    pBytecode->variablesize = get_uint16(bytecode, len, &i);
+//    //    variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //    i += 2
+//    //    self.export_variables = []
+//    //    while variablesize > 0:
+//    //        v = Variable()
+//    //        v.name = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        v.type = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        v.index = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        self.export_variables.append(v)
+//    //        variablesize -= 1
+//
+//    pBytecode->export_functionsize = get_uint16(bytecode, len, &i);
+//    pBytecode->export_functions = malloc(sizeof(ExportFunction) * pBytecode->export_functionsize);
+//    if (pBytecode->export_functions == NULL) {
+//        fatal_error("Could not allocate memory for exported function info.");
+//    }
+//    for (uint32_t f = 0; f < pBytecode->export_functionsize; f++) {
+//        pBytecode->export_functions[f].name = get_uint16(bytecode, len, &i);
+//        pBytecode->export_functions[f].descriptor = get_uint16(bytecode, len, &i);
+//        pBytecode->export_functions[f].entry = get_uint32(bytecode, len, &i);
+//    }
+//    pBytecode->exceptionexportsize = get_uint16(bytecode, len, &i);
+//    //    exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //    i += 2
+//    //    self.export_exceptions = []
+//    //    while exceptionexportsize > 0:
+//    //        e = ExceptionExport()
+//    //        e.name = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //        i += 2
+//    //        self.export_exceptions.append(e)
+//    //        exceptionexportsize -= 1
+//    pBytecode->interfaceexportsize = get_uint16(bytecode, len, &i);
+//    //    interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //    i += 2
+//    //    while interfaceexportsize > 0:
+//    //        assert False, interfaceexportsize
+//
+//    pBytecode->importsize = get_uint16(bytecode, len, &i);
+//    pBytecode->imports = malloc(sizeof(Import) * pBytecode->importsize);
+//    if (pBytecode->imports == NULL) {
+//        fatal_error("Could not allocate memory for exported function info.");
+//    }
+//    for (uint32_t f = 0; f < pBytecode->importsize; f++) {
+//        pBytecode->imports[f].name = get_uint16(bytecode, len, &i);
+//        memcpy(pBytecode->imports[f].hash, bytecode, 32);
+//        i+=32;
+//    }
+//
+//    pBytecode->functionsize = get_uint16(bytecode, len, &i);
+//    pBytecode->functions = malloc(sizeof(Function) * pBytecode->functionsize);
+//    if (pBytecode->functions == NULL) {
+//        fatal_error("Could not allocate memory for function info.");
+//    }
+//    for (uint32_t f = 0; f < pBytecode->functionsize; f++) {
+//        pBytecode->functions[f].name = get_uint16(bytecode, len, &i);
+//        pBytecode->functions[f].entry = get_uint32(bytecode, len, &i);
+//    }
+//
+//    pBytecode->exceptionsize = get_uint16(bytecode, len, &i);
+//    pBytecode->exceptions = malloc(sizeof(Exception) * pBytecode->exceptionsize);
+//    if (pBytecode->exceptions == NULL) {
+//        fatal_error("Could not allocate memory for exception info.");
+//    }
+//    for (uint32_t e = 0; e < pBytecode->exceptionsize; e++) {
+//        pBytecode->exceptions[e].start = get_uint16(bytecode, len, &i);
+//        pBytecode->exceptions[e].end = get_uint16(bytecode, len, &i);
+//        pBytecode->exceptions[e].exid = get_uint16(bytecode, len, &i);
+//        pBytecode->exceptions[e].handler = get_uint16(bytecode, len, &i);
+//    }
+//
+//    pBytecode->classsize = get_uint16(bytecode, len, &i);
+//    //    classsize = struct.unpack(">H", bytecode[i:i+2])[0]
+//    //    i += 2
+//    //    while classsize > 0:
+//    //        assert False, classsize
+//    pBytecode->code = bytecode + i;
+//    pBytecode->codelen = len - i;
+//}
 
 BOOL Usage(BOOL bShowHelp)
 {
@@ -417,9 +399,9 @@ int main(int argc, char* argv[])
     gOptions.pszExecutableName = ++s;
 #ifdef __MS_HEAP_DBG
     // ToDo: Remove this!  This is only for debugging.
-    gOptions.ExecutorDebugStats = TRUE;
+    //gOptions.ExecutorDebugStats = TRUE;
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    //_CrtSetBreakAlloc(119);
+    _CrtSetBreakAlloc(107);
     //_CrtSetBreakAlloc(306);
     //_CrtSetBreakAlloc(307);
 #endif
@@ -442,7 +424,7 @@ int main(int argc, char* argv[])
     }
     size_t bytes_read = fread(bytecode, 1, nSize, fp);
 
-    bytecode_loadBytecode(bytecode, bytes_read, pModule);
+    bytecode_loadBytecode(pModule, bytecode, bytes_read);
 
     TExecutor *exec = exec_newExecutor(pModule);
 
@@ -454,17 +436,17 @@ int main(int argc, char* argv[])
     if (gOptions.ExecutorDebugStats) {
         fprintf(stderr, "\n*** Neon C Executor Statistics ***\n----------------------------------\n"
                         "Total Opcodes Executed : %lld\n"
-                        "Max Opstack Height     : %d\n"
-                        "Opstack Height         : %d\n"
-                        "Max Callstack Height   : %lld\n"
-                        "CallStack Height       : %d\n"
-                        "Global Size            : %d\n"
-                        "Max Framesets          : %d\n"
+                        "Max Opstack Height     : %ld\n"
+                        "Opstack Height         : %ld\n"
+                        "Max Callstack Height   : %ld\n"
+                        "CallStack Height       : %ld\n"
+                        "Global Size            : %ld\n"
+                        "Max Framesets          : %ld\n"
                         "Execution Time         : %fms\n",
                         exec->total_opcodes,
                         exec->stack->max + 1,
                         exec->stack->top,
-                        exec->callstack_height + 1, 
+                        exec->callstack_max_height + 1, 
                         exec->callstacktop, 
                         exec->object->global_size, 
                         exec->framestack->max,
@@ -481,7 +463,7 @@ int main(int argc, char* argv[])
 int exec_run(TExecutor *self, BOOL enable_assert)
 {
     self->callstack[++self->callstacktop] = (uint32_t)self->object->codelen;
-    self->callstack_height = self->callstacktop;
+    self->callstack_max_height = self->callstacktop;
     self->enable_assert = enable_assert;
 
     exec_loop(self);
@@ -500,11 +482,13 @@ TExecutor *exec_newExecutor(TBytecode *object)
         fatal_error("Failed to allocate memory for Neon executable.");
     }
     r->object = object;
+    r->rtl_raise = exec_rtl_raiseException;
     r->stack = createStack(300);
     r->ip = 0;
     r->callstacktop = -1;
     r->param_recursion_limit = 1000;
     r->enable_assert = TRUE;
+    r->debug = EXECUTOR_DEBUG_OUTPUT;
     r->framestack = framestack_createFrameStack(r->param_recursion_limit);
     r->globals = malloc(sizeof(Cell) * r->object->global_size);
     if (r->globals == NULL) {
@@ -513,11 +497,71 @@ TExecutor *exec_newExecutor(TBytecode *object)
     for (i = 0; i < r->object->global_size; i++) {
         cell_resetCell(&r->globals[i]);
     }
+    r->module = malloc(sizeof(TModule) * 1);
+    if (!r->module) {
+        fatal_error("Failed to allocatge memory for neon module(s).");
+    }
+    r->module->name = "";
 
     // Debug / Diagnostic fields
     r->total_opcodes = 0;
-    r->callstack_height = 0;
+    r->callstack_max_height = 0;
     return r;
+}
+
+typedef struct tagTExceptionInfo {
+    TString **info;
+    size_t size;
+    Number code;
+} ExceptionInfo;
+
+void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number code)
+{
+    Cell *exceptionvar = cell_createArrayCell(4);
+    cell_setString(&exceptionvar->array[0], string_fromString(name));
+    cell_setString(&exceptionvar->array[1], string_fromString(info));
+    cell_setNumber(&exceptionvar->array[2], code);
+    cell_setNumber(&exceptionvar->array[3], number_from_uint64(self->ip));
+    uint64_t tip = self->ip;
+    uint32_t sp = self->callstacktop;
+    while (1) {
+        uint64_t i;
+        for (i = 0; i < self->object->exceptionsize; i++) {
+            if ((self->object->exceptions[i].start <= tip) && (tip < self->object->exceptions[i].end)) {
+                TString *handler = self->object->strings[self->object->exceptions[i].exid];
+                if ((string_compareString(name, handler) == 0) || (name->length > handler->length && string_startsWith(name, handler) && name->data[handler->length] == '.')) {
+                    self->ip = self->object->exceptions[i].handler;
+                    self->callstacktop = sp;
+                    push(self->stack, exceptionvar);
+                    return;
+                }
+            }
+        }
+        if (sp == 0) {
+            break;
+        }
+        tip = self->callstack[sp--];
+        framestack_popFrame(self->framestack);
+    }
+    //char *n = string_asCString(name);
+    //char *i = string_asCString(info);
+    fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
+    //free(n);
+    //free(i);
+    //exec_freeExecutor(self);
+    exit(1);
+}
+
+void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info, Number code)
+{
+    TString *n, *i;
+
+    n = string_createCString(name);
+    i = string_createCString(info);
+
+    exec_raiseLiteral(self, n, i, code);
+    string_freeString(n);
+    string_freeString(i);
 }
 
 static uint32_t exec_getOperand(TExecutor *self)
@@ -590,13 +634,13 @@ void exec_PUSHPG(TExecutor *self)
 void exec_PUSHPPG(TExecutor *self)
 {
     uint32_t addr = exec_getOperand(self);
-    //assert(addr < self->object->global_size);
+    //assert(addr < self->object->global_variables->size);
     push(self->stack, cell_fromAddress(cell_newCell()));
 }
 
 void exec_PUSHPMG()
 {
-    fatal_error("not implemented");
+    fatal_error("PUSHPMG not implemented");
 }
 
 void exec_PUSHPL(TExecutor *self)
@@ -608,12 +652,12 @@ void exec_PUSHPL(TExecutor *self)
 
 void exec_PUSHPOL()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_PUSHPOL not implemented");
 }
 
 void exec_PUSHI()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_PUSHI not implemented");
 }
 
 void exec_LOADB(TExecutor *self)
@@ -647,7 +691,7 @@ void exec_LOADA(TExecutor *self)
 void exec_LOADD(TExecutor *self)
 {
     self = self;
-    fatal_error("not implemented");
+    fatal_error("exec_LOADD not implemented");
 }
 
 void exec_LOADP(TExecutor *self)
@@ -687,7 +731,7 @@ void exec_STOREA(TExecutor *self)
 
 void exec_STORED()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_STORED not implemented");
 }
 
 void exec_STOREP(TExecutor *self)
@@ -754,12 +798,12 @@ void exec_EXPN(TExecutor *self)
 
 void exec_EQB()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_EQB not implemented");
 }
 
 void exec_NEB()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_NEB not implemented");
 }
 
 void exec_EQN(TExecutor*self)
@@ -878,42 +922,42 @@ void exec_GES(TExecutor*self)
 
 void exec_EQA()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_EQA not implemented");
 }
 
 void exec_NEA()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_NEA not implemented");
 }
 
 void exec_EQD()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_EQD not implemented");
 }
 
 void exec_NED()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_NED not implemented");
 }
 
 void exec_EQP()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_EQP not implemented");
 }
 
 void exec_NEP()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_NEP not implemented");
 }
 
 void exec_ANDB()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_ANDB not implemented");
 }
 
 void exec_ORB()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_ORB not implemented");
 }
 
 void exec_NOTB(TExecutor *self)
@@ -930,27 +974,47 @@ void exec_INDEXAR(TExecutor *self)
     Cell *addr = top(self->stack)->address; pop(self->stack);
 
     if (!number_is_integer(index)) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
         return;
     }
-    int64_t i = bid128_to_int64_int(index);
+    int64_t i = number_to_sint64(index);
     if (i < 0) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
         return;
     }
     uint64_t j = (uint64_t)i;
     if (j >= addr->array_size) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(j)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)), BID_ZERO);
         return;
     }
     push(self->stack, cell_fromAddress(cell_arrayIndexForRead(addr, j)));
 }
+
+//typedef enum tagTExceptionType {
+//    eNone,
+//    eDateTime,
+//    eFile,
+//    eGlobal,
+//    eIO,
+//    eMMap,
+//    eNet,
+//    eOS,
+//    eProcess,
+//    eSqlite,
+//} ExceptionType;
+//
+//typedef enum tagTExceptions {
+//    NoException,
+//    ArrayIndexException,
+//} Exceptions;
+//
+//static struct tagTException {
+//    ExceptionType type;
+//    TString exception;
+//} Exception[] = {
+//    { eGlobal, { 19, "ArrayIndexException" } },
+//    { eGlobal, { 21, "AssertFailedException"} },
+//};
 
 void exec_INDEXAW(TExecutor *self)
 {
@@ -959,16 +1023,12 @@ void exec_INDEXAW(TExecutor *self)
     Cell *addr = top(self->stack)->address; pop(self->stack);
 
     if (!number_is_integer(index)) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
         return;
     }
-    int64_t i = bid128_to_int64_int(index);
+    int64_t i = number_to_sint64(index);
     if (i < 0) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
         return;
     }
     uint64_t j = (uint64_t)i;
@@ -982,23 +1042,17 @@ void exec_INDEXAV(TExecutor *self)
     Cell *array = top(self->stack);
 
     if (!number_is_integer(index)) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
         return;
     }
-    int64_t i = bid128_to_int64_int(index);
+    int64_t i = number_to_sint64(index);
     if (i < 0) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
         return;
     }
     uint64_t j = (uint64_t)i;
     if (j >= array->array_size) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(j)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)), BID_ZERO);
         return;
     }
     assert(j < array->array_size);
@@ -1014,19 +1068,16 @@ void exec_INDEXAN(TExecutor *self)
     Cell *array = top(self->stack);
 
     if (!number_is_integer(index)) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(number_to_string(index)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(index), BID_ZERO);
         return;
     }
-    int64_t i = bid128_to_int64_int(index);
+    int64_t i = number_to_sint64(index);
     if (i < 0) {
-        // ToDo: Implement runtime exceptions
-        assert(FALSE);
-        //raise(rtl::global::Exception_ArrayIndexException, ExceptionInfo(std::to_string(i)));
+        self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_sint64(i)), BID_ZERO);
         return;
     }
     uint64_t j = (uint64_t)i;
+    // ToDo: Debug this.  I think is following code is WRONG!
     Cell *val = (j < array->array_size ? cell_fromCell(&array->array[j]) : cell_newCell());
     pop(self->stack);
     push(self->stack, val);
@@ -1034,17 +1085,17 @@ void exec_INDEXAN(TExecutor *self)
 
 void exec_INDEXDR()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_INDEXDR not implemented");
 }
 
 void exec_INDEXDW()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_INDEXDW not implemented");
 }
 
 void exec_INDEXDV()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_INDEXDV not implemented");
 }
 
 void exec_INA(TExecutor *self)
@@ -1062,7 +1113,7 @@ void exec_INA(TExecutor *self)
 
 void exec_IND()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_IND not implemented");
 }
 
 void exec_CALLP(TExecutor *self)
@@ -1070,7 +1121,7 @@ void exec_CALLP(TExecutor *self)
     uint32_t val = exec_getOperand(self);
     const char *func = self->object->strings[val]->data;
 
-    if (!global_callFunction(func, self->stack)) {
+    if (!global_callFunction(func, self)) {
         fatal_error("exec_CALLP(): \"%s\" - invalid or unsupported predefined function call.", func);
     }
 }
@@ -1084,18 +1135,18 @@ void exec_CALLF(TExecutor *self)
         //return;
     }
     self->callstack[++self->callstacktop] = self->ip;
-    self->callstack_height = self->callstacktop;
+    self->callstack_max_height = self->callstacktop;
     self->ip = val;
 }
 
 void exec_CALLMF()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_CALLMF not implemented");
 }
 
 void exec_CALLI()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_CALLI not implemented");
 }
 
 void exec_JUMP(TExecutor *self)
@@ -1164,7 +1215,7 @@ void exec_RET(TExecutor *self)
 
 void exec_CALLE()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_CALLE not implemented");
 }
 
 void exec_CONSA(TExecutor *self)
@@ -1204,14 +1255,27 @@ void exec_CONSD(TExecutor *self)
     //stack.push(d);
 }
 
-void exec_EXCEPT()
+void exec_EXCEPT(TExecutor *self)
 {
-    fatal_error("not implemented");
+    uint32_t val = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
+    Cell *exinfo = cell_fromCell(top(self->stack)); pop(self->stack);
+    TString *info = NULL;
+    Number code = BID_ZERO;
+
+    size_t size = exinfo->array_size;
+    if (size >= 1) {
+        info = string_fromString(exinfo->array[0].string);
+    }
+    if (size >= 2) {
+        code = exinfo->array[1].number;
+    }
+    cell_freeCell(exinfo);
+    exec_raiseLiteral(self, self->object->strings[val], info, code);
 }
 
 void exec_ALLOC()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_ALLOC not implemented");
 }
 
 void exec_PUSHNIL(TExecutor *self)
@@ -1237,47 +1301,48 @@ void exec_RESETC(TExecutor *self)
 
 void exec_PUSHPEG()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_PUSHPEG not implemented");
 }
 
 void exec_JUMPTBL()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_JUMPTBL not implemented");
 }
 
 void exec_CALLX()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_CALLX not implemented");
 }
 
 void exec_SWAP()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_SWAP not implemented");
 }
 
 void exec_DROPN()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_DROPN not implemented");
 }
 
 void exec_PUSHM()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_PUSHM not implemented");
 }
 
 void exec_CALLV()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_CALLV not implemented");
 }
 
 void exec_PUSHCI()
 {
-    fatal_error("not implemented");
+    fatal_error("exec_PUSHCI not implemented");
 }
 
 void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
+        if (self->debug) fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top);
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(self); break;
             case LEAVE:   exec_LEAVE(self); break;
@@ -1356,7 +1421,7 @@ void exec_loop(struct tagTExecutor *self)
             case CALLE:   exec_CALLE(); break;
             case CONSA:   exec_CONSA(self); break;
             case CONSD:   exec_CONSD(self); break;
-            case EXCEPT:  exec_EXCEPT(); break;
+            case EXCEPT:  exec_EXCEPT(self); break;
             case ALLOC:   exec_ALLOC(); break;
             case PUSHNIL: exec_PUSHNIL(self); break;
             case JNASSERT:exec_JNASSERT(self); break;

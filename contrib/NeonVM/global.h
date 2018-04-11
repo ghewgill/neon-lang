@@ -2,54 +2,64 @@
 #define __GLOBAL_H
 #include <stdint.h>
 
-#include "stack.h"
+#include "exec.h"
 
 typedef struct tagTDispatch {
     char *name;
-    void (*func)(struct tagTStack *s);
+    void (*func)(struct tagTExecutor *s);
 } TDispatch;
 
-int global_callFunction(const char *pszFunc, TStack *stack);
+int global_callFunction(const char *pszFunc, TExecutor *exec);
 
-static void print(TStack *stack);
-void concat(TStack *stack);
-void print(TStack *stack);
-void str(TStack *stack);
-void strb(TStack *stack);
-void ord(TStack *stack);
-
-
-void io_fprint(TStack *stack);
+static void print(TExecutor *exec);
+void concat(TExecutor *exec);
+void concatBytes(TExecutor *exec);
+void print(TExecutor *exec);
+void str(TExecutor *exec);
+void strb(TExecutor *exec);
+void ord(TExecutor *exec);
 
 
-void sys_exit(TStack *stack);
 
-void array__append(TStack *stack);
-void array__concat(TStack *stack);
-void array__extend(TStack *stack);
-void array__resize(TStack *stack);
-void array__size(TStack *stack);
-void array__slice(TStack *stack);
-void array__splice(TStack *stack);
-void array__toBytes__number(TStack *stack);
-void array__toString__number(TStack *stack);
-void array__toString__string(TStack *stack);
+/* file.neon functions */
+void file$copy(TExecutor *exec);
+void file$delete(TExecutor *exec);
 
-void boolean__toString(TStack *stack);
 
-void bytes__decodeToString(TStack *stack);
-void bytes__range(TStack *stack);
-void bytes__size(TStack *stack);
-void bytes__splice(TStack *stack);
-void bytes__toArray(TStack *stack);
-void bytes__toString(TStack *stack);
+/* io.neon functions */
+void io$fprint(TExecutor *exec);
 
-void number__toString(TStack *stack);
 
-void string__append(TStack *stack);
-void string__toBytes(TStack *stack);
-void string__length(TStack *stack);
-void string__splice(TStack *Stack);
-void string__substring(TStack *stack);
+
+/* sys.neon functions */
+void sys$exit(TExecutor *exec);
+
+void array__append(TExecutor *exec);
+void array__concat(TExecutor *exec);
+void array__extend(TExecutor *exec);
+void array__resize(TExecutor *exec);
+void array__size(TExecutor *exec);
+void array__slice(TExecutor *exec);
+void array__splice(TExecutor *exec);
+void array__toBytes__number(TExecutor *exec);
+void array__toString__number(TExecutor *exec);
+void array__toString__string(TExecutor *exec);
+
+void boolean__toString(TExecutor *exec);
+
+void bytes__decodeToString(TExecutor *exec);
+void bytes__range(TExecutor *exec);
+void bytes__size(TExecutor *exec);
+void bytes__splice(TExecutor *exec);
+void bytes__toArray(TExecutor *exec);
+void bytes__toString(TExecutor *exec);
+
+void number__toString(TExecutor *exec);
+
+void string__append(TExecutor *exec);
+void string__toBytes(TExecutor *exec);
+void string__length(TExecutor *exec);
+void string__splice(TExecutor *exec);
+void string__substring(TExecutor *exec);
 
 #endif

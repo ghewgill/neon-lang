@@ -77,6 +77,45 @@ BOOL number_is_integer(Number x)
     return bid128_quiet_equal(x, i) != 0;
 }
 
+/*
+ * Number TO functions
+ */
+
+int32_t number_to_sint32(Number x)
+{
+    return bid128_to_int32_int(x);
+}
+
+uint32_t number_to_uint32(Number x)
+{
+    return bid128_to_uint32_int(x);
+}
+
+int64_t number_to_sint64(Number x)
+{ 
+    return bid128_to_int64_int(x);
+}
+
+uint64_t number_to_uint64(Number x)
+{
+    return bid128_to_uint64_int(x);
+}
+
+
+/*
+ * Number FROM functions
+ */
+
+Number number_from_uint64(uint64_t x)
+{
+    return bid128_from_uint64(x);
+}
+
+Number number_from_sint64(int64_t x)
+{
+    return bid128_from_int64(x);
+}
+
 #ifdef __NUMBER_TESTS
 void main()
 {

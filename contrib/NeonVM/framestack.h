@@ -16,13 +16,13 @@ typedef struct tagTFrameStack {
 } TFrameStack;
 
 struct tagTFrameStack *framestack_createFrameStack(uint32_t capacity);
-void framestack_destroyFrameStack(struct tagTFrameStack *framestack);
+void framestack_destroyFrameStack(TFrameStack *framestack);
 
-int framestack_isFull(struct tagTFrameStack *framestack);
-int framestack_isEmpty(struct tagTFrameStack *framestack);
-void framestack_pushFrame(struct tagTFrameStack *framestack, TFrame *frame);
-void framestack_popFrame(struct tagTFrameStack *framestack);
-TFrame *framestack_topFrame(struct tagTFrameStack *framestack);
+int framestack_isFull(TFrameStack *framestack);
+int framestack_isEmpty(TFrameStack *framestack);
+void framestack_pushFrame(TFrameStack *framestack, TFrame *frame);
+void framestack_popFrame(TFrameStack *framestack);
+TFrame *framestack_topFrame(TFrameStack *framestack);
 
 TFrame *frame_createFrame(uint32_t size);
 

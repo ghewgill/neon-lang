@@ -24,7 +24,7 @@ TFrameStack *framestack_createFrameStack(uint32_t capacity)
 
 void framestack_destroyFrameStack(TFrameStack *framestack)
 {
-    assert(framestack_isEmpty(framestack));
+//    assert(framestack_isEmpty(framestack));
 
     while (!framestack_isEmpty(framestack)) {
         framestack_popFrame(framestack);

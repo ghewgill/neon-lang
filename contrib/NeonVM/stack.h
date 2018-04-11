@@ -1,6 +1,8 @@
 #ifndef __STACK_H
 #define __STACK_H
 
+#define INITIAL_CALLSTACK       10
+
 #include "cell.h"
 
 typedef struct tagTStack {
@@ -19,5 +21,25 @@ void push(TStack *stack, Cell *item);
 void pop(TStack *stack);
 Cell *top(TStack *stack);
 Cell *peek(TStack *stack, int element);
+
+typedef struct tagTCallStack {
+    struct tagTCallStack {
+        int height;
+        int capacity;
+        int max;
+        int len;
+        size_t *data;
+    } CallStack;
+
+    void (*push)(struct tagTCallStack *,size_t);
+    void (*pop)(struct tagTCallStack *);
+    size_t (*top)(struct tagTCallStack *);
+} TCallStack;
+
+TCallStack *createCallStack(int capacity);
+void destroyCallStack(TCallStack *stack);
+void callstack_push(struct tagTCallStack *stack, size_t data);
+void callstack_pop(struct tagTCallStack *stack);
+size_t callstack_top(struct tagTCallStack *stack);
 
 #endif
