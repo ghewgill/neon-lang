@@ -1,5 +1,5 @@
-#ifndef __UTIL_H
-#define __UTIL_H
+#ifndef _UTIL_H
+#define _UTIL_H
 
 #define estr(x)      #x
 #define ENUM(x)     estr(x)

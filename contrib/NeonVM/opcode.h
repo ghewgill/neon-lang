@@ -1,5 +1,5 @@
-#ifndef OPCODE_H
-#define OPCODE_H
+#ifndef _OPCODE_H
+#define _OPCODE_H
 
 #define FOREACH_OPCODE(OPCODE) \
     OPCODE(ENTER)\

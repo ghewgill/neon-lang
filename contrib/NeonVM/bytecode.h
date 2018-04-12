@@ -1,5 +1,5 @@
-#ifndef __BYTECODE_H
-#define __BYTECODE_H
+#ifndef _BYTECODE_H
+#define _BYTECODE_H
 #include <stdint.h>
 
 #include "cell.h"

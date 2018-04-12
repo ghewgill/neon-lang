@@ -1,5 +1,5 @@
-#ifndef __STACK_H
-#define __STACK_H
+#ifndef _STACK_H
+#define _STACK_H
 
 #include "cell.h"
 

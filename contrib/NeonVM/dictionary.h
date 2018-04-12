@@ -1,5 +1,5 @@
-#ifndef __DICTIONARY_H
-#define __DICTIONARY_H
+#ifndef _DICTIONARY_H
+#define _DICTIONARY_H
 #include <stdint.h>
 
 #include "cell.h"

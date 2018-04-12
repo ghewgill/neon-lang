@@ -1,5 +1,5 @@
-#ifndef __FRAMESTACK_H
-#define __FRAMESTACK_H
+#ifndef _FRAMESTACK_H
+#define _FRAMESTACK_H
 
 #include "cell.h"
 

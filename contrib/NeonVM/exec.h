@@ -1,5 +1,5 @@
-#ifndef __EXEC_H
-#define __EXEC_H
+#ifndef _EXEC_H
+#define _EXEC_H
 #include <stdint.h>
 #include <time.h>
 

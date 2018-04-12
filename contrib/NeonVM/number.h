@@ -1,5 +1,5 @@
-#ifndef __NUMBER_H
-#define __NUMBER_H
+#ifndef _NUMBER_H
+#define _NUMBER_H
 
 #define DECIMAL_GLOBAL_ROUNDING 1
 #define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
