@@ -6,7 +6,7 @@
 
 class BytecodeException: public std::exception {};
 
-static void put_vint(std::vector<unsigned char> &obj, unsigned int x)
+void Bytecode::put_vint(std::vector<unsigned char> &obj, unsigned int x)
 {
     std::vector<unsigned char> t;
     unsigned char flag = 0x00;
@@ -18,7 +18,25 @@ static void put_vint(std::vector<unsigned char> &obj, unsigned int x)
     std::copy(t.rbegin(), t.rend(), std::back_inserter(obj));
 }
 
-static unsigned int get_vint(const std::vector<unsigned char> &obj, size_t &i)
+void Bytecode::put_vint(std::vector<unsigned char> &obj, unsigned int x, size_t width)
+{
+    std::vector<unsigned char> r;
+    put_vint(r, x);
+    assert(r.size() <= width);
+    size_t s = r.size();
+    while (s < width) {
+        obj.push_back(0x80);
+        s++;
+    }
+    std::copy(r.begin(), r.end(), std::back_inserter(obj));
+}
+
+void Bytecode::put_vint(std::vector<unsigned char> &obj, size_t x)
+{
+    put_vint(obj, static_cast<unsigned int>(x));
+}
+
+unsigned int Bytecode::get_vint(const std::vector<unsigned char> &obj, size_t &i)
 {
     unsigned int r = 0;
     while (i < obj.size()) {
@@ -38,7 +56,7 @@ static std::vector<std::string> getstrtable(const std::vector<unsigned char> &ob
     std::vector<std::string> r;
     while (i < size) {
         size_t j = start + i;
-        size_t len = get_vint(obj, j);
+        size_t len = Bytecode::get_vint(obj, j);
         i = j - start;
         r.push_back(std::string(reinterpret_cast<const char *>(&obj[start+i]), len));
         i += len;
