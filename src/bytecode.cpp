@@ -1,6 +1,7 @@
 #include "bytecode.h"
 
 #include <assert.h>
+#include <climits>
 #include <iterator>
 #include <stdint.h>
 
@@ -42,6 +43,10 @@ unsigned int Bytecode::get_vint(const std::vector<unsigned char> &obj, size_t &i
     while (i < obj.size()) {
         unsigned int x = obj[i];
         i++;
+        if (r & ~(UINT_MAX >> 7)) {
+            fprintf(stderr, "Integer value exceeds maximum (%u)\n", UINT_MAX);
+            exit(1);
+        }
         r = (r << 7) | (x & 0x7f);
         if ((x & 0x80) == 0) {
             break;
