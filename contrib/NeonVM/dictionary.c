@@ -1,6 +1,10 @@
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
-//#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,37 +15,8 @@
 #include "string.h"
 #include "util.h"
 
-//#define HASHSIZE            0x800000000000
-//#define HASHBITS             10
-//#define HASHSIZE(n)         ((uint32_t)1<<(n))
-//#define HASHMASK(n)         (HASHSIZE(n)-1)
-//static struct tagTDictionary *hashtab[HASHSIZE];
 #define DEF_DICTIONARY_SIZE 10
 
-//Dictionary *dictionary_createDictionary()
-//{
-//    // ToDo: Memory allocation / Error checking.
-//    //Dictionary *d = malloc(sizeof(Dictionary));
-//    //d->insert = &insert; //(tagTDictionary *,const char *,tagTCell *);
-//    //d->lookup = lookup;
-//
-//    //d->hashtable = malloc(sizeof(TDictionaryEntry*));
-//
-//    return dictionary_newDictionary(DEF_DICTIONARY_SIZE);
-//
-//
-//    //return d;
-//}
-
-////static uint64_t hash(const char *s)
-////{
-////    uint64_t hashval;
-////    for (hashval = 0; *s != '\0'; s++) {
-////        hashval = *s + 31 * hashval;
-////    }
-////    return hashval % HASHSIZE;
-////}
-//
 static uint32_t hash(TString *s)
 {
     size_t i = 0;
@@ -56,57 +31,11 @@ static uint32_t hash(TString *s)
     hash += hash << 15;
     return (hash & HASHMASK(HASHBITS));
 }
-//
-////int lookup(unsigned char *key) {
-////  int index = hash(key) % (1<<20);
-////  for (struct entry *e = table[index]; e != NULL; e = e->next) {
-////    if (!strcmp(key, e->key)) return e->value;
-////  }
-////  // not found
-//
-//TDictionaryEntry *lookup(Dictionary *self, TString *s)
-//{
-//    TDictionaryEntry *de;
-//    for (de = self->hashtable[hash(s)]; de != NULL; de = de->next) {
-//        if (string_compareString(s, de->key) == 0) {
-//            return de->value;
-//        }
-//    }
-//    return NULL;
-//}
-//
-//TDictionaryEntry *insert(Dictionary *self, TString *s, Cell *value)
-//{
-//    TDictionaryEntry *de;
-//    uint32_t hashval;
-//    de = lookup(self, s);
-//    if (de == NULL) {
-//        de = malloc(sizeof(TDictionaryEntry));
-//        if (de == NULL) {
-//            fatal_error("Could not allocate new dictionary node.");
-//        }
-//        hashval = hash(s);
-//        de->value = value;
-//        de->key = s;
-//        de->next = self->hashtable[hashval];
-//        self->hashtable[hashval] = de;
-//    }
-//
-//    de->next = dictionary_createDictionaryEntry(s, value;)
-//    return de;
-//}
 
 static int64_t dictionary_findIndex(Dictionary *self, TString *key)
 {
     int64_t i;
 
-    //DictionaryEntry *de;
-    //for (de = self->hashtable[hash(key)]; de != NULL; de = de->next) {
-    //    if (string_compareString(key, de->key) == 0) {
-    //        return de->value;
-    //    }
-    //}
-    //return NULL;
     for (i = 0; i < self->len; i++) {
         if (string_compareString(self->data[i].key, key) == 0) {
             return i;
@@ -170,3 +99,13 @@ void dictionary_freeDictionary(Dictionary *self)
     free(self->data);
     free(self);
 }
+
+Cell *dictionary_getKeys(Dictionary *self)
+{
+    Cell *r = cell_createArrayCell(self->len);
+    return r;
+}
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

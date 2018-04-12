@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -17,7 +22,7 @@ char *number_to_string(Number x)
     return buf;
 }
 
-// ToDo: Implement proper number to string formatter.
+/* ToDo: Implement proper number to string formatter. */
 void number_toString(Number x, char *buf, size_t len)
 {
     const int PRECISION = 34;
@@ -32,7 +37,7 @@ void number_toString(Number x, char *buf, size_t len)
 
     char *s = &val[0];
 
-    // Skip over the leading +, if there is one.
+    /* Skip over the leading +, if there is one. */
     while(*s != '\0' && (*s == '+')) s++;
 
     char *v = s;
@@ -42,7 +47,7 @@ void number_toString(Number x, char *buf, size_t len)
     char *E = s;
 
     if (*s == 'E') {
-        // Deal with the exponent.
+        /* Deal with the exponent. */
         int i;
         iLeadingZeros = abs(atoi(++s));
         for (i = 0; i < iLeadingZeros; i++) {
@@ -131,4 +136,8 @@ void main()
     assert(number_to_string(number_from_string("1234.5678e-4")) == "0.12345678");
     assert(number_to_string(number_from_string("1234.5678e-5")) == "0.012345678");
 }
+#endif
+
+#ifdef _MSC_VER
+#pragma warning(pop)
 #endif

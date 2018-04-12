@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -29,10 +34,8 @@ static uint32_t get_uint32(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
     return r;
 }
 
-//static char **bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
 static void bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
 {
-    //char **r = NULL;
     uint32_t i = 0;
 
     /* First, initialize the string count to zero. */
@@ -46,31 +49,22 @@ static void bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, 
         (*count)++;
     }
 
-    //r = malloc((sizeof(uint8_t *)) * *count);
-    //if (r == NULL) {
-    //    fatal_error("Could not allocate memory for %d strings.", *count);
-    //}
     pBytecode->strings = malloc(sizeof(TString *) * *count);
-
     while (start != end) {
-        //TString *ts = malloc(sizeof(TString));
         size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
         start += 4;
 
         TString *ts = string_newString();
         ts->length = len;
         ts->data = malloc(len+1); /* Always add null termination regardless of length. */
-        //if (r[i] == NULL) {
-        //    fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
-        //}
-        //memcpy(r[i], start, len);
+        if (!ts->data) {
+            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
+        }
         memcpy(ts->data, start, len);
-        //r[i][len] = '\0';
         ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
         pBytecode->strings[i++] = ts;
         start += len;
     }
-    //return r;
 }
 
 TBytecode *bytecode_newBytecode()
@@ -98,10 +92,7 @@ void bytecode_freeBytecode(TBytecode *b)
     free(b->export_types);
     for (i = 0; i < b->strtablelen; i++) {
         string_freeString(b->strings[i]);
-        //free(b->strings[i]->data);
-        //free(b->strings[i]);
     }
-    //free(b->strtable);
     free(b->strings);
     free(b);
     b = NULL;
@@ -125,48 +116,53 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
     i += b->strtablesize;
 
     b->typesize = get_uint16(bytecode, len, &i);
-    //    typesize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_types = []
-    //    while typesize > 0:
-    //        t = Type()
-    //        t.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        t.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        self.export_types.append(t)
-    //        typesize -= 1
+    /*
+        typesize = struct.unpack(">H", bytecode[i:i+2])[0]
+        i += 2
+        self.export_types = []
+        while typesize > 0:
+            t = Type()
+            t.name = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            t.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            self.export_types.append(t)
+            typesize -= 1
+    */
     b->constantsize = get_uint16(bytecode, len, &i);
-    //    constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_constants = []
-    //    while constantsize > 0:
-    //        c = Constant()
-    //        c.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        c.type = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        size = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        c.value = bytecode[i:i+size]
-    //        i += size
-    //        self.export_constants.append(c)
-    //        constantsize -= 1
+    /*
+        constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
+        i += 2
+        self.export_constants = []
+        while constantsize > 0:
+            c = Constant()
+            c.name = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            c.type = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            size = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            c.value = bytecode[i:i+size]
+            i += size
+            self.export_constants.append(c)
+            constantsize -= 1
+    */
     b->variablesize = get_uint16(bytecode, len, &i);
-    //    variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_variables = []
-    //    while variablesize > 0:
-    //        v = Variable()
-    //        v.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        v.type = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        v.index = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        self.export_variables.append(v)
-    //        variablesize -= 1
-
+    /*
+        variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
+        i += 2
+        self.export_variables = []
+        while variablesize > 0:
+            v = Variable()
+            v.name = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            v.type = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            v.index = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            self.export_variables.append(v)
+            variablesize -= 1
+    */
     b->export_functionsize = get_uint16(bytecode, len, &i);
     b->export_functions = malloc(sizeof(ExportFunction) * b->export_functionsize);
     if (b->export_functions == NULL) {
@@ -178,21 +174,24 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
         b->export_functions[f].entry = get_uint32(bytecode, len, &i);
     }
     b->exceptionexportsize = get_uint16(bytecode, len, &i);
-    //    exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    self.export_exceptions = []
-    //    while exceptionexportsize > 0:
-    //        e = ExceptionExport()
-    //        e.name = struct.unpack(">H", bytecode[i:i+2])[0]
-    //        i += 2
-    //        self.export_exceptions.append(e)
-    //        exceptionexportsize -= 1
+    /*
+        exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
+        i += 2
+        self.export_exceptions = []
+        while exceptionexportsize > 0:
+            e = ExceptionExport()
+            e.name = struct.unpack(">H", bytecode[i:i+2])[0]
+            i += 2
+            self.export_exceptions.append(e)
+            exceptionexportsize -= 1
+    */
     b->interfaceexportsize = get_uint16(bytecode, len, &i);
-    //    interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    while interfaceexportsize > 0:
-    //        assert False, interfaceexportsize
-
+    /*
+        interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
+        i += 2
+        while interfaceexportsize > 0:
+            assert False, interfaceexportsize
+    */
     b->importsize = get_uint16(bytecode, len, &i);
     b->imports = malloc(sizeof(Import) * b->importsize);
     if (b->imports == NULL) {
@@ -227,11 +226,16 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
     }
 
     b->classsize = get_uint16(bytecode, len, &i);
-    //    classsize = struct.unpack(">H", bytecode[i:i+2])[0]
-    //    i += 2
-    //    while classsize > 0:
-    //        assert False, classsize
+    /*
+        classsize = struct.unpack(">H", bytecode[i:i+2])[0]
+        i += 2
+        while classsize > 0:
+            assert False, classsize
+    */
     b->code = bytecode + i;
     b->codelen = len - i;
 }
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

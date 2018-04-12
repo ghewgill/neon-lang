@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -117,9 +122,7 @@ void print(TExecutor *exec)
 
 void concat(TExecutor *exec)
 {
-    //Cell *b = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *b = peek(exec->stack, 0);
-    //Cell *a = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *a = peek(exec->stack, 1);
     Cell *r = cell_createStringCell(b->string->length + a->string->length);
 
@@ -128,9 +131,6 @@ void concat(TExecutor *exec)
 
     pop(exec->stack);
     pop(exec->stack);
-
-    //cell_freeCell(a);
-    //cell_freeCell(b);
 
     push(exec->stack, r);
 }
@@ -167,8 +167,8 @@ void ord(TExecutor *exec)
     Cell *s = top(exec->stack);
 
     if (s->string->length != 1) {
-        // ToDo: Excpetion handling.
-//        throw RtlException(global::Exception_ArrayIndexException, "ord() requires string of length 1");
+        /* ToDo: Excpetion handling. */
+/*        throw RtlException(global::Exception_ArrayIndexException, "ord() requires string of length 1"); */
     }
     Number r = bid128_from_uint32((uint32_t)s->string->data[0]);
     pop(exec->stack);
@@ -246,11 +246,9 @@ void sys_exit(TExecutor *exec)
 
 void array__append(TExecutor *exec)
 {
-    //Cell *element = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *element = peek(exec->stack, 0);
     Cell *array  = peek(exec->stack, 1)->address;
     cell_arrayAppendElement(array, *element);
-    //cell_freeCell(element);
     pop(exec->stack);
 }
 
@@ -352,8 +350,6 @@ void array__splice(TExecutor *exec)
     Number first = top(exec->stack)->number;          pop(exec->stack);
     Cell *a = peek(exec->stack, 0);
     Cell *b = peek(exec->stack, 1);
-    //Cell *a = cell_fromCell(top(exec->stack));        pop(exec->stack);
-    //Cell *b = cell_fromCell(top(exec->stack));        pop(exec->stack);
     const Cell *array = a;
 
     int64_t fst = number_to_sint64(first);
@@ -390,8 +386,6 @@ void array__splice(TExecutor *exec)
     }
     pop(exec->stack);
     pop(exec->stack);
-    //cell_freeCell(b);
-    //cell_freeCell(a);
 
     push(exec->stack, r);
 }
@@ -408,7 +402,7 @@ void array__toBytes__number(TExecutor *exec)
         uint64_t b = bid128_to_uint64_int(a->array[x].number);
         if (b >= 256) {
             assert(b <= 256);
-            //throw RtlException(Exception_ByteOutOfRangeException, std::to_string(b));
+            /* ToDo: Exception handling: throw RtlException(Exception_ByteOutOfRangeException, std::to_string(b)); */
         }
         r->string->data[i++] = (uint8_t)b;
     }
@@ -420,10 +414,9 @@ void array__toBytes__number(TExecutor *exec)
 void array__toString__number(TExecutor *exec)
 {
     size_t x;
-    // ToDo: Fix this to use proper string appends!!
+    /* ToDo: Fix this to use proper string appends!! */
     Cell *a = top(exec->stack);
     char *s = malloc(STRING_BUFFER_SIZE);
-    // ToDo: Remove c strings
     strcpy(s, "[");
     for (x = 0; x < a->array_size; x++) {
         if (strlen(s) > 1) {
@@ -440,10 +433,10 @@ void array__toString__number(TExecutor *exec)
 void array__toString__string(TExecutor *exec)
 {
     size_t x, y;
-    // ToDo: Fix this to use proper string appends!!
+    /* ToDo: Fix this to use proper string appends!! */
     Cell *a = top(exec->stack);
     char *s = malloc(STRING_BUFFER_SIZE);
-    // ToDo: Remove c strings, implement UTF8 strings.
+    /* ToDo: Remove c strings, implement UTF8 strings. */
     strcpy(s, "[");
     for (x = 0; x < a->array_size; x++) {
         if (strlen(s) > 1) {
@@ -474,8 +467,9 @@ void boolean__toString(TExecutor *exec)
 
 void bytes__decodeToString(TExecutor *exec)
 {
-    // ToDo: handle UTF8 String
-    // ToDo: Remove the following line once implemented.  Only used to prevent compiler warning.
+    /* ToDo: handle UTF8 String
+     * ToDo: Remove the following line once implemented.  Only used to prevent compiler warning.
+     */
     exec = exec;
 }
 
@@ -501,7 +495,7 @@ void bytes__range(TExecutor *exec)
     Cell *sub = cell_newCellType(cString);
     sub->string = string_newString();
     sub->string->length = lst + 1 - fst;
-    // ToDo: Memory Check!
+    /* ToDo: Memory Check! */
     sub->string->data = malloc(sub->string->length);
     memcpy(sub->string->data, &t->string->data[fst], lst + 1 - fst);
     cell_freeCell(t);
@@ -511,7 +505,7 @@ void bytes__range(TExecutor *exec)
 
 void bytes__size(TExecutor *exec)
 {
-    // ToDo: Do not perform unnecessary cell copy here.
+    /* ToDo: Do not perform unnecessary cell copy here. */
     Cell *self = cell_fromCell(top(exec->stack)); pop(exec->stack);
 
     push(exec->stack, cell_fromNumber(bid128_from_uint64(self->string->length)));
@@ -571,7 +565,6 @@ void bytes__toString(TExecutor *exec)
     size_t i;
     Cell *s = cell_fromCell(top(exec->stack)); pop(exec->stack);
     TString *r = string_createCString("HEXBYTES \"");
-    //Cell *r = cell_fromString("HEXBYTES \"", -1);
 
     first = TRUE;
     for (i = 0; i < s->string->length; i++) {
@@ -635,7 +628,7 @@ void string__length(TExecutor *exec)
 
 void string__splice(TExecutor *exec)
 {
-    // TODO: utf8
+    /* TODO: utf8 */
     BOOL last_from_end = top(exec->stack)->boolean;   pop(exec->stack);
     Number last  = top(exec->stack)->number;          pop(exec->stack);
     BOOL first_from_end  = top(exec->stack)->boolean; pop(exec->stack);
@@ -657,9 +650,7 @@ void string__splice(TExecutor *exec)
     sub->string->length = t->string->length + (((f - 1) + s->string->length) - l);
     sub->string->data = malloc(sub->string->length);
     memcpy(sub->string->data, s->string->data, f);
-    //memcpy(&sub->string->data[f], t->string->data, (t->string->length - f));
     memcpy(&sub->string->data[f], t->string->data, t->string->length);
-    //memcpy(&sub->string->data[t->string->length], &s->string->data[l + 1], s->string->length - (l + 1));
     memcpy(&sub->string->data[f + t->string->length], &s->string->data[l + 1], s->string->length - (l + 1));
 
     cell_freeCell(s);
@@ -699,3 +690,7 @@ void string__substring(TExecutor *exec)
     cell_freeCell(a);
     free(sub);
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

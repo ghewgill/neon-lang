@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -242,13 +247,6 @@ Cell *cell_arrayIndexForRead(Cell *c, size_t i)
         c->type = cArray;
     }
     assert(c->type == cArray);
-    if (!c->array) {
-        //c->array = malloc(sizeof(Cell) * i);
-        //c->array_size = i;
-        //if (c->array == NULL) {
-        //    fatal_error("Unable to allcoate memory for Read Array.");
-        //}
-    }
     return &c->array[i];
 }
 
@@ -277,9 +275,8 @@ Cell *cell_createDictionaryCell(size_t iEntries)
     Cell *c = cell_newCell();
 
     c->type = cDictionary;
-//    c->dictionary_size = iEntries;
 
-    // ToDo: Implement dictionary Cell Types
+    /* ToDo: Implement dictionary Cell Types */
     assert(c->type != cDictionary);
 
     return c;
@@ -330,7 +327,7 @@ void cell_copyCell(Cell *dest, const Cell *source)
 int32_t cell_compareCell(const Cell * s, const Cell * d)
 {
     assert(s->type == d->type);
-    // ToDo: Fix this, so that it actually COMPARES two cells, and returns 0 if equal, -1 if less than, and > 0 if greater than.
+    /* ToDo: Fix this, so that it actually COMPARES two cells, and returns 0 if equal, -1 if less than, and > 0 if greater than. */
     if (s->type != d->type) {
         return -1;
     }
@@ -403,3 +400,6 @@ void cell_freeCell(Cell *c)
     free(c);
 }
 
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

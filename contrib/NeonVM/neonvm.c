@@ -1,8 +1,7 @@
 #ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable: 4001)     // Disable single-line comment warning.
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
 #endif
-
 #ifdef __MS_HEAP_DBG
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -40,161 +39,6 @@ typedef struct tagTCommandLineOptions {
 
 static TOptions gOptions = { FALSE, TRUE, NULL, NULL };
 
-//typedef struct tagTType {
-//    int16_t name;
-//    int16_t descriptor;
-//} Type;
-//
-//typedef struct tagTFunction {
-//    uint16_t name;
-//    uint32_t entry;
-//} Function;
-//
-//typedef struct tagTExportFunction {
-//    uint16_t name;
-//    uint16_t descriptor;
-//    uint32_t entry;
-//} ExportFunction;
-//
-//typedef struct tagTImport {
-//    uint16_t name;
-//    uint8_t hash[32];
-//} Import;
-//
-//typedef struct tagTException {
-//    uint16_t start;
-//    uint16_t end;
-//    uint16_t exid;
-//    uint16_t handler;
-//} Exception;
-//
-//typedef struct tagTBytecode {
-//    uint8_t source_hash[32];
-//    uint16_t global_size;
-//    uint32_t strtablesize;
-//    uint32_t strtablelen;
-//    TString **strings;
-//    char **strtable;
-//    uint32_t typesize;
-//    uint32_t constantsize;
-//    uint32_t variablesize;
-//    uint32_t export_functionsize;
-//    uint32_t functionsize;
-//    uint32_t exceptionsize;
-//    uint32_t exceptionexportsize;
-//    uint32_t interfaceexportsize;
-//    uint32_t importsize;
-//    uint32_t classsize;
-//    const uint8_t *code;
-//    size_t codelen;
-//
-//    struct Type *pExportTypes;
-//    struct tagTExportFunction *export_functions;
-//    struct tagTFunction *pFunctions;
-//    struct tagTImport  *imports;
-//    struct tagTException *exceptions;
-//} TBytecode;
-
-//static char **bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
-//{
-//    char **r = NULL;
-//    uint32_t i = 0;
-//
-//    /* First, initialize the string count to zero. */
-//    *count = 0;
-//    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
-//    /  We're going to iterate the string table first, to get the count,
-//    /  then we'll allocate the data. */
-//    const uint8_t *s = start;
-//    while (s != end) {
-//        s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
-//        (*count)++;
-//    }
-//
-//    r = malloc((sizeof(uint8_t *)) * *count);
-//    if (r == NULL) {
-//        fatal_error("Could not allocate memory for %d strings.", *count);
-//    }
-//    pBytecode->strings = malloc(sizeof(TString *) * *count);
-//
-//    while (start != end) {
-//        //TString *ts = malloc(sizeof(TString));
-//        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
-//        start += 4;
-//
-//        TString *ts = string_newString();
-//        ts->length = len;
-//        ts->data = malloc(len+1); /* Always add null termination regardless of length. */
-//        //if (r[i] == NULL) {
-//        //    fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
-//        //}
-//        //memcpy(r[i], start, len);
-//        memcpy(ts->data, start, len);
-//        //r[i][len] = '\0';
-//        ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
-//        pBytecode->strings[i++] = ts;
-//        start += len;
-//    }
-//    return r;
-//}
-//
-//struct tagTExecutor;
-//
-//
-//TBytecode *bytecode_newBytecode()
-//{
-//    TBytecode *pBytecode = malloc(sizeof(TBytecode));
-//    if (!pBytecode) {
-//        fatal_error("Could not allocate memory for neon bytecode.");
-//    }
-//
-//    memset(pBytecode, 0x00, sizeof(TBytecode));
-//    return pBytecode;
-//}
-//
-//void bytecode_freeBytecode(TBytecode *b)
-//{
-//    uint32_t i;
-//    if (!b) {
-//        return;
-//    }
-//
-//    free(b->functions);
-//    free(b->imports);
-//    free(b->export_functions);
-//    free(b->exceptions);
-//    free(b->export_types);
-//    for (i = 0; i < b->strtablelen; i++) {
-//        free(b->strings[i]->data);
-//        free(b->strings[i]);
-//    }
-//    free(b->strtable);
-//    free(b->strings);
-//    free(b);
-//    b = NULL;
-//}
-
-//typedef struct tagTExecutor {
-//    struct tagTBytecode *object;
-//    uint32_t ip;
-//    struct tagTStack *stack;
-//    /*struct tagTStack *callstack; */
-//    uint32_t callstack[300];
-//    int32_t callstacktop;
-//    int32_t param_recursion_limit;
-//    Cell *globals;
-//    TFrameStack *framestack;
-//    BOOL enable_assert;
-//    //uint64_t frames;
-//    void (*rtl_raise)(struct tagTExecutor *, const char *, const char *, Number);
-//
-//    /* Debug / Diagnostic fields */
-//    uint64_t total_opcodes;
-//    uint64_t callstack_height;
-//    clock_t time_start;
-//    clock_t time_end;
-//} TExecutor;
-
 void exec_freeExecutor(TExecutor *e)
 {
     uint32_t i;
@@ -215,134 +59,6 @@ void exec_freeExecutor(TExecutor *e)
 }
 
 TExecutor *exec_newExecutor(TBytecode *object);
-
-//static void bytecode_loadBytecode(const uint8_t *bytecode, size_t len, TBytecode *pBytecode)
-//{
-//    uint32_t i = 0;
-//
-//    if (!pBytecode) {
-//        pBytecode = bytecode_newBytecode();
-//    }
-//
-//    memcpy(pBytecode->source_hash, bytecode, 32);
-//    i += 32;
-//    pBytecode->global_size = get_uint16(bytecode, len, &i);
-//
-//    pBytecode->strtablesize = get_uint32(bytecode, len, &i);
-//
-//    pBytecode->strtable = bytecode_getStringTable(pBytecode, &bytecode[i], &bytecode[i + pBytecode->strtablesize], &pBytecode->strtablelen);
-//    i += pBytecode->strtablesize;
-//
-//    pBytecode->typesize = get_uint16(bytecode, len, &i);
-//    //    typesize = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //    i += 2
-//    //    self.export_types = []
-//    //    while typesize > 0:
-//    //        t = Type()
-//    //        t.name = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        t.descriptor = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        self.export_types.append(t)
-//    //        typesize -= 1
-//    pBytecode->constantsize = get_uint16(bytecode, len, &i);
-//    //    constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //    i += 2
-//    //    self.export_constants = []
-//    //    while constantsize > 0:
-//    //        c = Constant()
-//    //        c.name = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        c.type = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        size = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        c.value = bytecode[i:i+size]
-//    //        i += size
-//    //        self.export_constants.append(c)
-//    //        constantsize -= 1
-//    pBytecode->variablesize = get_uint16(bytecode, len, &i);
-//    //    variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //    i += 2
-//    //    self.export_variables = []
-//    //    while variablesize > 0:
-//    //        v = Variable()
-//    //        v.name = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        v.type = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        v.index = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        self.export_variables.append(v)
-//    //        variablesize -= 1
-//
-//    pBytecode->export_functionsize = get_uint16(bytecode, len, &i);
-//    pBytecode->export_functions = malloc(sizeof(ExportFunction) * pBytecode->export_functionsize);
-//    if (pBytecode->export_functions == NULL) {
-//        fatal_error("Could not allocate memory for exported function info.");
-//    }
-//    for (uint32_t f = 0; f < pBytecode->export_functionsize; f++) {
-//        pBytecode->export_functions[f].name = get_uint16(bytecode, len, &i);
-//        pBytecode->export_functions[f].descriptor = get_uint16(bytecode, len, &i);
-//        pBytecode->export_functions[f].entry = get_uint32(bytecode, len, &i);
-//    }
-//    pBytecode->exceptionexportsize = get_uint16(bytecode, len, &i);
-//    //    exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //    i += 2
-//    //    self.export_exceptions = []
-//    //    while exceptionexportsize > 0:
-//    //        e = ExceptionExport()
-//    //        e.name = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //        i += 2
-//    //        self.export_exceptions.append(e)
-//    //        exceptionexportsize -= 1
-//    pBytecode->interfaceexportsize = get_uint16(bytecode, len, &i);
-//    //    interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //    i += 2
-//    //    while interfaceexportsize > 0:
-//    //        assert False, interfaceexportsize
-//
-//    pBytecode->importsize = get_uint16(bytecode, len, &i);
-//    pBytecode->imports = malloc(sizeof(Import) * pBytecode->importsize);
-//    if (pBytecode->imports == NULL) {
-//        fatal_error("Could not allocate memory for exported function info.");
-//    }
-//    for (uint32_t f = 0; f < pBytecode->importsize; f++) {
-//        pBytecode->imports[f].name = get_uint16(bytecode, len, &i);
-//        memcpy(pBytecode->imports[f].hash, bytecode, 32);
-//        i+=32;
-//    }
-//
-//    pBytecode->functionsize = get_uint16(bytecode, len, &i);
-//    pBytecode->functions = malloc(sizeof(Function) * pBytecode->functionsize);
-//    if (pBytecode->functions == NULL) {
-//        fatal_error("Could not allocate memory for function info.");
-//    }
-//    for (uint32_t f = 0; f < pBytecode->functionsize; f++) {
-//        pBytecode->functions[f].name = get_uint16(bytecode, len, &i);
-//        pBytecode->functions[f].entry = get_uint32(bytecode, len, &i);
-//    }
-//
-//    pBytecode->exceptionsize = get_uint16(bytecode, len, &i);
-//    pBytecode->exceptions = malloc(sizeof(Exception) * pBytecode->exceptionsize);
-//    if (pBytecode->exceptions == NULL) {
-//        fatal_error("Could not allocate memory for exception info.");
-//    }
-//    for (uint32_t e = 0; e < pBytecode->exceptionsize; e++) {
-//        pBytecode->exceptions[e].start = get_uint16(bytecode, len, &i);
-//        pBytecode->exceptions[e].end = get_uint16(bytecode, len, &i);
-//        pBytecode->exceptions[e].exid = get_uint16(bytecode, len, &i);
-//        pBytecode->exceptions[e].handler = get_uint16(bytecode, len, &i);
-//    }
-//
-//    pBytecode->classsize = get_uint16(bytecode, len, &i);
-//    //    classsize = struct.unpack(">H", bytecode[i:i+2])[0]
-//    //    i += 2
-//    //    while classsize > 0:
-//    //        assert False, classsize
-//    pBytecode->code = bytecode + i;
-//    pBytecode->codelen = len - i;
-//}
 
 BOOL Usage(BOOL bShowHelp)
 {
@@ -398,12 +114,10 @@ int main(int argc, char* argv[])
     }
     gOptions.pszExecutableName = ++s;
 #ifdef __MS_HEAP_DBG
-    // ToDo: Remove this!  This is only for debugging.
-    //gOptions.ExecutorDebugStats = TRUE;
+    /* ToDo: Remove this!  This is only for debugging. */
+    /* gOptions.ExecutorDebugStats = TRUE; */
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
     _CrtSetBreakAlloc(107);
-    //_CrtSetBreakAlloc(306);
-    //_CrtSetBreakAlloc(307);
 #endif
     if (!ParseOptions(argc, argv)) {
         return 3;
@@ -503,7 +217,7 @@ TExecutor *exec_newExecutor(TBytecode *object)
     }
     r->module->name = "";
 
-    // Debug / Diagnostic fields
+    /* Debug / Diagnostic fields */
     r->total_opcodes = 0;
     r->callstack_max_height = 0;
     return r;
@@ -543,12 +257,7 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         tip = self->callstack[sp--];
         framestack_popFrame(self->framestack);
     }
-    //char *n = string_asCString(name);
-    //char *i = string_asCString(info);
     fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
-    //free(n);
-    //free(i);
-    //exec_freeExecutor(self);
     exit(1);
 }
 
@@ -571,31 +280,22 @@ static uint32_t exec_getOperand(TExecutor *self)
     return r;
 }
 
-//typedef struct tagTActivationFrame {
-//    size_t count;
-//    Cell *locals;
-//} TActivationFrame;
-
 void exec_ENTER(TExecutor *self)
 {
     self->ip++;
     uint32_t nest = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
-    nest = nest; // ToDo: Please remove!
+    nest = nest; /* ToDo: Please remove! */
     self->ip += 4;
     uint32_t val = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
     self->ip += 4;
 
-    //self->frame_size = val;
-    //self->frames = malloc(sizeof(Cell) * self->frame_size);
-    //if (self->frames == NULL) {
-    //    fatal_error("Failed to allocate memory for function local variables.");
-    //}
     framestack_pushFrame(self->framestack, frame_createFrame(val));
 
-    // ToDo: Implement Activiation frame support
+    /* ToDo: Implement Activiation frame support
     //add(frame_newFrame(val));
     //nested_frames.resize(nest-1);
     //nested_frames.push_back(&frames.back());
+    */
 }
 
 void exec_LEAVE(TExecutor *self)
@@ -634,7 +334,7 @@ void exec_PUSHPG(TExecutor *self)
 void exec_PUSHPPG(TExecutor *self)
 {
     uint32_t addr = exec_getOperand(self);
-    //assert(addr < self->object->global_variables->size);
+    /* assert(addr < self->object->global_variables->size); */
     push(self->stack, cell_fromAddress(cell_newCell()));
 }
 
@@ -646,7 +346,7 @@ void exec_PUSHPMG()
 void exec_PUSHPL(TExecutor *self)
 {
     uint32_t addr = exec_getOperand(self);
-    //push(self->stack, cell_fromAddress(&self->frames[addr]));
+    /* push(self->stack, cell_fromAddress(&self->frames[addr])); */
     push(self->stack, cell_fromAddress(&framestack_topFrame(self->framestack)->locals[addr]));
 }
 
@@ -990,32 +690,6 @@ void exec_INDEXAR(TExecutor *self)
     push(self->stack, cell_fromAddress(cell_arrayIndexForRead(addr, j)));
 }
 
-//typedef enum tagTExceptionType {
-//    eNone,
-//    eDateTime,
-//    eFile,
-//    eGlobal,
-//    eIO,
-//    eMMap,
-//    eNet,
-//    eOS,
-//    eProcess,
-//    eSqlite,
-//} ExceptionType;
-//
-//typedef enum tagTExceptions {
-//    NoException,
-//    ArrayIndexException,
-//} Exceptions;
-//
-//static struct tagTException {
-//    ExceptionType type;
-//    TString exception;
-//} Exception[] = {
-//    { eGlobal, { 19, "ArrayIndexException" } },
-//    { eGlobal, { 21, "AssertFailedException"} },
-//};
-
 void exec_INDEXAW(TExecutor *self)
 {
     self->ip++;
@@ -1077,7 +751,7 @@ void exec_INDEXAN(TExecutor *self)
         return;
     }
     uint64_t j = (uint64_t)i;
-    // ToDo: Debug this.  I think is following code is WRONG!
+    /* ToDo: Debug this.  I think is following code is WRONG! */
     Cell *val = (j < array->array_size ? cell_fromCell(&array->array[j]) : cell_newCell());
     pop(self->stack);
     push(self->stack, val);
@@ -1130,9 +804,10 @@ void exec_CALLF(TExecutor *self)
 {
     uint32_t val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
-        // ToDo: handle runtime exceptions
+        /* ToDo: handle runtime exceptions
         //raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
         //return;
+        */
     }
     self->callstack[++self->callstacktop] = self->ip;
     self->callstack_max_height = self->callstacktop;
@@ -1236,23 +911,7 @@ void exec_CONSD(TExecutor *self)
     uint32_t val = exec_getOperand(self);
     Cell *a = cell_createDictionaryCell(val);
 
-    //while (val > 0) {
-    //    cell_copyCell(&a->array[a->array_size - val], top(self->stack));
-    //    val--;
-    //    pop(self->stack);
-    //}
     push(self->stack, a);
-
-    //uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    //ip += 5;
-    //Cell d;
-    //while (val > 0) {
-    //    Cell value = stack.top(); stack.pop();
-    //    utf8string key = stack.top().string(); stack.pop();
-    //    d.dictionary_index_for_write(key) = value;
-    //    val--;
-    //}
-    //stack.push(d);
 }
 
 void exec_EXCEPT(TExecutor *self)

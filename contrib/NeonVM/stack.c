@@ -1,7 +1,8 @@
 #ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable: 4001)     /* Disable single-line comment warning. */
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
 #endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -145,5 +146,5 @@ size_t callstack_top(struct tagTCallStack *stack)
 }
 
 #ifdef _MSC_VER
-#pragma warning (pop)
+#pragma warning(pop)
 #endif

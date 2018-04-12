@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
+#endif
+
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -28,3 +33,7 @@ void fatal_error(const char *msg, ...)
     va_end(args);
     abort();
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

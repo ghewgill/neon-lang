@@ -23,8 +23,7 @@ typedef struct tagTCell {
     struct tagTCell *address;
     struct tagTCell *array;
     size_t array_size;
-    struct tagTDictionary *dictionary; // ToDo: Implement dictionary Cell Types
-    //size_t dictionary_size;
+    struct tagTDictionary *dictionary;
     struct tagTString *string;
     CellType type;
     BOOL boolean;

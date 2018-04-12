@@ -1,3 +1,8 @@
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,13 +29,13 @@ TFrameStack *framestack_createFrameStack(uint32_t capacity)
 
 void framestack_destroyFrameStack(TFrameStack *framestack)
 {
-//    assert(framestack_isEmpty(framestack));
+/*    assert(framestack_isEmpty(framestack)); */
 
     while (!framestack_isEmpty(framestack)) {
         framestack_popFrame(framestack);
     }
     free(framestack->data);
-    // Don't destroy the framestack->max member, that's for diagnostic purposes.
+    /* Don't destroy the framestack->max member, that's for diagnostic purposes. */
     framestack->top = -1;
     framestack->data = NULL;
 }
@@ -83,13 +88,13 @@ TFrame *frame_createFrame(uint32_t size)
     uint32_t i;
     TFrame *f = malloc(sizeof(TFrame));
     if (!f) {
-        // ToDo: Fail
+        /* ToDo: Fail */
     }
 
     f->frame_size = size;
     f->locals = malloc(sizeof(Cell) * f->frame_size);
     if (!f->locals) {
-        // ToDo: Fail
+        /* ToDo: Fail */
     }
 
     for (i = 0; i < f->frame_size; i++) {
@@ -97,3 +102,7 @@ TFrame *frame_createFrame(uint32_t size)
     }
     return f;
 }
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif

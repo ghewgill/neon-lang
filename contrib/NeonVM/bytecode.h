@@ -40,7 +40,6 @@ typedef struct tagTBytecode {
     uint32_t strtablesize;
     uint32_t strtablelen;
     TString **strings;
-//    char **strtable;
     uint32_t typesize;
     uint32_t constantsize;
     uint32_t variablesize;

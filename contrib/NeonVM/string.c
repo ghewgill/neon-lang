@@ -1,7 +1,8 @@
 #ifdef _MSC_VER
-#pragma warning (push)
-#pragma warning (disable: 4001)     /* Disable sing-line comment warning */
+#pragma warning(push)
+#pragma warning(disable: 4001)      /* Disable single line comment warnings that appear in MS header files. */
 #endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -61,10 +62,6 @@ void string_clearString(TString *s)
             s->data = NULL;
             s->length = 0;
         }
-        //s->data = malloc(s->length);
-        //if (!s->data) {
-        //    fatal_error("Could not clear string.");
-        //}
     }
 }
 
@@ -89,7 +86,6 @@ TString *string_copyString(TString *s)
 TString *string_fromString(TString *s)
 {
     TString *r = string_newString();
-    //assert(s != NULL);
 
     if (s != NULL) {
         r->length = s->length;
@@ -122,25 +118,6 @@ BOOL string_isEmpty(TString *s)
     }
     return TRUE;
 }
-
-//Cell *string_copyString(Cell *c)
-//{
-//    Cell *r = cell_newCell(cString);
-//
-//    r->string = string_newString();
-//
-//    if (c->string) {
-//        r->string->length = c->string->length;
-//        r->string->data = malloc(c->string->length);
-//        if (!r->string->data) {
-//            fatal_error("Unable to allocate requested to copy string with length 0x%08X.", c->string->length);
-//        }
-//        memcpy(r->string->data, c->string->data, c->string->length);
-//    } else {
-//        r->string = NULL;
-//    }
-//    return r;
-//}
 
 TString *string_appendCString(TString *s, const char *ns)
 {
@@ -230,6 +207,7 @@ int main()
     return 0;
 }
 #endif
+
 #ifdef _MSC_VER
-#pragma warning (pop)
+#pragma warning(pop)
 #endif
