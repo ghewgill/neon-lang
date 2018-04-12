@@ -1,8 +1,6 @@
 #ifndef __STACK_H
 #define __STACK_H
 
-#define INITIAL_CALLSTACK       10
-
 #include "cell.h"
 
 typedef struct tagTStack {

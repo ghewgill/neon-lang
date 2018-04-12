@@ -11,6 +11,8 @@
 #include "stack.h"
 #include "util.h"
 
+#define INITIAL_CALLSTACK       10
+
 TStack *createStack(int capacity)
 {
     TStack *stack = malloc(sizeof(TStack));
@@ -53,7 +55,10 @@ void push(TStack *stack, Cell *item)
         fatal_error("Stack overflow error.");
     }
 
-    if (stack->max < (stack->top + 1)) stack->max++;
+    if (stack->max < (stack->top + 1)) {
+        stack->max++;
+    }
+
     stack->data[++stack->top] = item;
 }
 
@@ -78,7 +83,7 @@ Cell *top(TStack *stack)
 
 Cell *peek(TStack *stack, int element)
 {
-    if (isEmpty(stack) || ((stack->top - element) < 0)) {
+    if (element > stack->top) {
         fatal_error("Stack underflow error.");
     }
 

@@ -56,7 +56,9 @@ void framestack_pushFrame(TFrameStack *framestack, TFrame *item)
         fatal_error("FrameStack overflow error.");
     }
 
-    if (framestack->max < (framestack->top + 1)) framestack->max++;
+    if (framestack->max < (framestack->top + 1)) {
+        framestack->max++;
+    }
     framestack->data[++framestack->top] = item;
 }
 

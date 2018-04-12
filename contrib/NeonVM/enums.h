@@ -1,5 +1,5 @@
 #ifndef __ENUMS_H
-#define __ENUMBS_H
+#define __ENUMS_H
 
 #define ENUM_Platform_posix             0
 #define ENUM_Platform_win32             1

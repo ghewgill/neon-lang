@@ -1001,7 +1001,7 @@ void exec_PUSHCI()
 void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
-        if (self->debug) fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top);
+        if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(self); break;
             case LEAVE:   exec_LEAVE(self); break;
