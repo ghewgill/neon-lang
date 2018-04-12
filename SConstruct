@@ -430,7 +430,7 @@ if sys.platform == "win32":
     ])
 else:
     envcnex.Append(CFLAGS=[
-        "-std=c89",
+        "-std=c99",
     ])
 
 neoncx = envcnex.Program("contrib/msvc/Debug/neonvm", [
