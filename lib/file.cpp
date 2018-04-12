@@ -9,9 +9,9 @@ namespace rtl {
 
 namespace file {
 
-std::string readBytes(const std::string &filename)
+std::vector<unsigned char> readBytes(const std::string &filename)
 {
-    std::string r;
+    std::vector<unsigned char> r;
     std::ifstream f(filename, std::ios::binary);
     if (not f.is_open()) {
         throw RtlException(Exception_FileException_Open, filename);
@@ -23,7 +23,7 @@ std::string readBytes(const std::string &filename)
         if (n == 0) {
             break;
         }
-        r.append(std::string(buf, n));
+        std::copy(buf, buf+n, std::back_inserter(r));
     }
     return r;
 }
@@ -42,13 +42,13 @@ std::vector<utf8string> readLines(const std::string &filename)
     return r;
 }
 
-void writeBytes(const std::string &filename, const std::string &data)
+void writeBytes(const std::string &filename, const std::vector<unsigned char> &data)
 {
     std::ofstream f(filename, std::ios::binary);
     if (not f.is_open()) {
         throw RtlException(Exception_FileException_Open, filename);
     }
-    if (not f.write(data.c_str(), data.length())) {
+    if (not f.write(reinterpret_cast<const char *>(data.data()), data.size())) {
         throw RtlException(Exception_FileException_Write, filename);
     }
 }

@@ -74,18 +74,18 @@ void *open(const std::string &name, Cell &)
     return f;
 }
 
-std::string read(void *pf, Number offset, Number count)
+std::vector<unsigned char> read(void *pf, Number offset, Number count)
 {
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        return std::string();
+        return std::vector<unsigned char>();
     }
     uint64_t c = number_to_uint64(count);
     if (o + c > f->len) {
         c = f->len - o;
     }
-    return std::string(f->view + o, f->view + o + c);
+    return std::vector<unsigned char>(f->view + o, f->view + o + c);
 }
 
 Number size(void *pf)
@@ -94,17 +94,17 @@ Number size(void *pf)
     return number_from_uint64(f->len);
 }
 
-void write(void *pf, Number offset, const std::string &data)
+void write(void *pf, Number offset, const std::vector<unsigned char> &data)
 {
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
         throw RtlException(global::Exception_ValueRangeException, "");
     }
-    if (o + data.length() > f->len) {
+    if (o + data.size() > f->len) {
         throw RtlException(global::Exception_ValueRangeException, "");
     }
-    memcpy(f->view + o, data.data(), data.length());
+    memcpy(f->view + o, data.data(), data.size());
 }
 
 } // namespace mmap
