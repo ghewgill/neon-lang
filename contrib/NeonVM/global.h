@@ -22,17 +22,17 @@ void ord(TExecutor *exec);
 
 
 /* file.neon functions */
-void file$copy(TExecutor *exec);
-void file$delete(TExecutor *exec);
+void file_copy(TExecutor *exec);
+void file_delete(TExecutor *exec);
 
 
 /* io.neon functions */
-void io$fprint(TExecutor *exec);
+void io_fprint(TExecutor *exec);
 
 
 
 /* sys.neon functions */
-void sys$exit(TExecutor *exec);
+void sys_exit(TExecutor *exec);
 
 void array__append(TExecutor *exec);
 void array__concat(TExecutor *exec);

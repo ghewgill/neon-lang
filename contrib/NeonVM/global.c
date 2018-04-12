@@ -25,12 +25,12 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("strb",                      strb),
     PDFUNC("ord",                       ord),
 
-    PDFUNC("file$copy",                 file$copy),
-    PDFUNC("file$delete",               file$delete),
+    PDFUNC("file$copy",                 file_copy),
+    PDFUNC("file$delete",               file_delete),
 
-    PDFUNC("io$fprint",                 io$fprint),
+    PDFUNC("io$fprint",                 io_fprint),
 
-    PDFUNC("sys$exit",                  sys$exit),
+    PDFUNC("sys$exit",                  sys_exit),
 
     PDFUNC("array__append",             array__append),
     PDFUNC("array__concat",             array__concat),
@@ -176,7 +176,7 @@ void ord(TExecutor *exec)
 }
 
 
-void file$copy(TExecutor *exec)
+void file_copy(TExecutor *exec)
 {
     char *destination = string_asCString(peek(exec->stack, 1)->string);
     char *filename = string_asCString(peek(exec->stack, 0)->string);
@@ -191,7 +191,7 @@ void file$copy(TExecutor *exec)
     pop(exec->stack);
 }
 
-void file$delete(TExecutor *exec)
+void file_delete(TExecutor *exec)
 {
     char *filename = string_asCString(peek(exec->stack, 0)->string);
 
@@ -207,7 +207,7 @@ void file$delete(TExecutor *exec)
 
 
 
-void io$fprint(TExecutor *exec)
+void io_fprint(TExecutor *exec)
 {
     Cell *s = peek(exec->stack, 0);
     Cell *pf = peek(exec->stack, 1);
@@ -222,7 +222,7 @@ void io$fprint(TExecutor *exec)
 
 
 
-void sys$exit(TExecutor *exec)
+void sys_exit(TExecutor *exec)
 {
     char ex[64];
     Number x = top(exec->stack)->number; pop(exec->stack);
