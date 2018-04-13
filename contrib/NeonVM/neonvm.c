@@ -323,6 +323,12 @@ void exec_PUSHS(TExecutor *self)
     push(self->stack, cell_fromString(self->object->strings[val]->data, self->object->strings[val]->length));
 }
 
+void exec_PUSHT(TExecutor *self)
+{
+    uint32_t val = exec_getOperand(self);
+    push(self->stack, cell_fromString(self->object->strings[val]->data, self->object->strings[val]->length));
+}
+
 void exec_PUSHPG(TExecutor *self)
 {
     uint32_t addr = exec_getOperand(self);
@@ -381,6 +387,13 @@ void exec_LOADS(TExecutor *self)
     push(self->stack, cell_fromCell(addr));
 }
 
+void exec_LOADT(TExecutor *self)
+{
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromCell(addr));
+}
+
 void exec_LOADA(TExecutor *self)
 {
     self->ip++;
@@ -416,6 +429,13 @@ void exec_STOREN(TExecutor *self)
 }
 
 void exec_STORES(TExecutor *self)
+{
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_copyCell(addr, top(self->stack)); pop(self->stack);
+}
+
+void exec_STORET(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -610,6 +630,72 @@ void exec_LES(TExecutor*self)
 }
 
 void exec_GES(TExecutor*self)
+{
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) >= 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
+}
+
+void exec_EQT(TExecutor*self)
+{
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) == 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
+}
+
+void exec_NET(TExecutor*self)
+{
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) != 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
+}
+
+void exec_LTT(TExecutor*self)
+{
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) < 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
+}
+
+void exec_GTT(TExecutor*self)
+{
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) > 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
+}
+
+void exec_LET(TExecutor*self)
+{
+    self->ip++;
+    Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *r = cell_fromBoolean(string_compareString(a->string, b->string) <= 0);
+    cell_freeCell(b);
+    cell_freeCell(a);
+    push(self->stack, r);
+}
+
+void exec_GET(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -1001,13 +1087,14 @@ void exec_PUSHCI()
 void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
-        if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
+        //if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(self); break;
             case LEAVE:   exec_LEAVE(self); break;
             case PUSHB:   exec_PUSHB(self); break;
             case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;
+            case PUSHT:   exec_PUSHT(self); break;
             case PUSHPG:  exec_PUSHPG(self); break;
             case PUSHPPG: exec_PUSHPPG(self); break;
             case PUSHPMG: exec_PUSHPMG(); break;
@@ -1017,12 +1104,14 @@ void exec_loop(struct tagTExecutor *self)
             case LOADB:   exec_LOADB(self); break;
             case LOADN:   exec_LOADN(self); break;
             case LOADS:   exec_LOADS(self); break;
+            case LOADT:   exec_LOADT(self); break;
             case LOADA:   exec_LOADA(self); break;
             case LOADD:   exec_LOADD(self); break;
             case LOADP:   exec_LOADP(self); break;
             case STOREB:  exec_STOREB(self); break;
             case STOREN:  exec_STOREN(self); break;
             case STORES:  exec_STORES(self); break;
+            case STORET:  exec_STORET(self); break;
             case STOREA:  exec_STOREA(self); break;
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(self); break;
@@ -1047,6 +1136,12 @@ void exec_loop(struct tagTExecutor *self)
             case GTS:     exec_GTS(self); break;
             case LES:     exec_LES(self); break;
             case GES:     exec_GES(self); break;
+            case EQT:     exec_EQT(self); break;
+            case NET:     exec_NET(self); break;
+            case LTT:     exec_LTT(self); break;
+            case GTT:     exec_GTT(self); break;
+            case LET:     exec_LET(self); break;
+            case GET:     exec_GET(self); break;
             case EQA:     exec_EQA(); break;
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
