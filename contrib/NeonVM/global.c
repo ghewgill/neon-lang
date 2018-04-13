@@ -17,7 +17,7 @@
 #include "string.h"
 #include "util.h"
 
-#include <windows.h>
+//#include <windows.h>
 
 #define STRING_BUFFER_SIZE      120
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
@@ -77,24 +77,24 @@ static FILE *check_file(TExecutor *exec, void *pf)
     }
     return f;
 }
-
+#define DWORD int32_t
 static void handle_error(TExecutor *exec, DWORD error, const char *path)
 {
-    switch (error) {
-        case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException_DirectoryExists", path, BID_ZERO);
-        case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException_PermissionDenied", path, BID_ZERO);
-        case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException_PathNotFound", path, BID_ZERO);
-        case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException_Exists", path, BID_ZERO);
-        case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException_PermissionDenied", path, BID_ZERO);
-        default: {
-            TString *err = string_createCString(path);
-            string_appendCString(err, ": ");
-            string_appendCString(err, number_to_string(number_from_uint64(error)));
-            char *pszErr = string_asCString(err);
-            exec->rtl_raise(exec, "FileException", pszErr, BID_ZERO);
-            free(pszErr);
-        }
-    }
+    //switch (error) {
+    //    case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException_DirectoryExists", path, BID_ZERO);
+    //    case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException_PermissionDenied", path, BID_ZERO);
+    //    case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException_PathNotFound", path, BID_ZERO);
+    //    case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException_Exists", path, BID_ZERO);
+    //    case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException_PermissionDenied", path, BID_ZERO);
+    //    default: {
+    //        TString *err = string_createCString(path);
+    //        string_appendCString(err, ": ");
+    //        string_appendCString(err, number_to_string(number_from_uint64(error)));
+    //        char *pszErr = string_asCString(err);
+    //        exec->rtl_raise(exec, "FileException", pszErr, BID_ZERO);
+    //        free(pszErr);
+    //    }
+    //}
 }
 
 int global_callFunction(const char *pszFunc, TExecutor *exec)
@@ -181,10 +181,10 @@ void file_copy(TExecutor *exec)
     char *destination = string_asCString(peek(exec->stack, 1)->string);
     char *filename = string_asCString(peek(exec->stack, 0)->string);
 
-    BOOL r = CopyFile(filename, destination, TRUE);
-    if (!r) {
-        handle_error(exec, GetLastError(), destination);
-    }
+    //BOOL r = CopyFile(filename, destination, TRUE);
+    //if (!r) {
+    //    handle_error(exec, GetLastError(), destination);
+    //}
     free(destination);
     free(filename);
     pop(exec->stack);
@@ -195,12 +195,12 @@ void file_delete(TExecutor *exec)
 {
     char *filename = string_asCString(peek(exec->stack, 0)->string);
 
-    BOOL r = DeleteFile(filename);
-    if (!r) {
-        if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-            handle_error(exec, GetLastError(), filename);
-        }
-    }
+    //BOOL r = DeleteFile(filename);
+    //if (!r) {
+    //    if (GetLastError() != ERROR_FILE_NOT_FOUND) {
+    //        handle_error(exec, GetLastError(), filename);
+    //    }
+    //}
     pop(exec->stack);
     free(filename);
 }
