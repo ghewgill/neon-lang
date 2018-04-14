@@ -1,13 +1,11 @@
 #ifndef _STACK_H
 #define _STACK_H
 
-#include "cell.h"
-
 typedef struct tagTStack {
     int top;
     int capacity;
     int max;
-    Cell **data;
+    struct tagTCell **data;
 } TStack;
 
 TStack *createStack(int capacity);

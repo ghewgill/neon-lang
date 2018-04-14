@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "cell.h"
+#include "exec.h"
 #include "global.h"
 #include "number.h"
 #include "stack.h"

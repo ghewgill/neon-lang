@@ -18,7 +18,9 @@
 #endif
 #include <string.h>
 
+#include "bytecode.h"
 #include "cell.h"
+#include "exec.h"
 #include "global.h"
 #include "framestack.h"
 #include "number.h"

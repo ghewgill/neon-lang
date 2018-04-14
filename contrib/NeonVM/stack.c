@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#include "cell.h"
 #include "stack.h"
 #include "util.h"
 

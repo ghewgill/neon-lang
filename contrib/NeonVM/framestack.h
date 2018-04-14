@@ -1,8 +1,6 @@
 #ifndef _FRAMESTACK_H
 #define _FRAMESTACK_H
 
-#include "cell.h"
-
 typedef struct tagTFrame {
     Cell *locals;
     uint32_t frame_size;

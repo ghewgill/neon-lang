@@ -3,10 +3,8 @@
 #include <stdint.h>
 #include <time.h>
 
-#include "bytecode.h"
-#include "cell.h"
-#include "framestack.h"
-#include "stack.h"
+#include "number.h"
+#include "util.h"
 
 typedef struct tagTModule {
     char *name;
@@ -20,8 +18,8 @@ typedef struct tagTExecutor {
     uint32_t callstack[300];
     int32_t callstacktop;
     int32_t param_recursion_limit;
-    Cell *globals;
-    TFrameStack *framestack;
+    struct tagTCell *globals;
+    struct tagTFrameStack *framestack;
     BOOL enable_assert;
     BOOL debug;
     void (*rtl_raise)(struct tagTExecutor *, const char *, const char *, Number);
@@ -37,6 +35,6 @@ typedef struct tagTExecutor {
 void exec_loop(struct tagTExecutor *self);
 int exec_run(struct tagTExecutor *self, BOOL enable_assert);
 
-void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info, Number code);
+void exec_rtl_raiseException(struct tagTExecutor *self, const char *name, const char *info, Number code);
 
 #endif

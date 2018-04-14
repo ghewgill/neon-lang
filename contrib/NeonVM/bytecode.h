@@ -2,8 +2,6 @@
 #define _BYTECODE_H
 #include <stdint.h>
 
-#include "cell.h"
-#include "string.h"
 #include "util.h"
 
 typedef struct tagTType {
@@ -39,7 +37,7 @@ typedef struct tagTBytecode {
     uint16_t global_size;
     uint32_t strtablesize;
     uint32_t strtablelen;
-    TString **strings;
+    struct tagTString **strings;
     uint32_t typesize;
     uint32_t constantsize;
     uint32_t variablesize;

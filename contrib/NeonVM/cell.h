@@ -2,9 +2,7 @@
 #define _CELL_H
 #include <stdint.h>
 
-#include "dictionary.h"
 #include "number.h"
-#include "string.h"
 #include "util.h"
 
 typedef enum tagEType {
@@ -25,7 +23,7 @@ typedef struct tagTCell {
     size_t array_size;
     struct tagTDictionary *dictionary;
     struct tagTString *string;
-    CellType type;
+    enum tagEType type;
     BOOL boolean;
 } Cell;
 
@@ -53,7 +51,7 @@ void cell_copyCell(Cell *dest, const Cell *source);
 
 int32_t cell_compareCell(const Cell *s, const Cell *d);
 
-void cell_setString(Cell *c, TString *s);
+void cell_setString(Cell *c, struct tagTString *s);
 void cell_setNumber(Cell *c, Number n);
 void cell_setBoolean(Cell *c, BOOL b);
 

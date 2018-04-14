@@ -5,9 +5,11 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
 
+#include "cell.h"
 #include "framestack.h"
 #include "util.h"
 
