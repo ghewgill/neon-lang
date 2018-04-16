@@ -3174,7 +3174,7 @@ public:
         cf.constant_pool_count = 0;
         cf.access_flags = ACC_PUBLIC | ACC_SUPER;
         cf.this_class = cf.Class(cf.name);
-        cf.super_class = cf.Class("Ljava/lang/Object;");
+        cf.super_class = cf.Class("java/lang/Object");
 
         ClassContext classcontext(support, cf);
         for (size_t s = 0; s < program->frame->getCount(); s++) {
