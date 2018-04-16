@@ -26,7 +26,7 @@
 #include "number.h"
 #include "opcode.h"
 #include "stack.h"
-#include "string.h"
+#include "nstring.h"
 #include "util.h"
 
 #define EXECUTOR_DEBUG_OUTPUT       TRUE

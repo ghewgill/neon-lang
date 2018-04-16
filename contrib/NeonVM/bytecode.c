@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "bytecode.h"
-#include "string.h"
+#include "nstring.h"
 #include "util.h"
 
 static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)

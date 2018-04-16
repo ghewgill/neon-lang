@@ -12,7 +12,7 @@
 #include <string.h>
 
 #include "cell.h"
-#include "string.h"
+#include "nstring.h"
 #include "util.h"
 
 TString *string_createCString(const char *s)

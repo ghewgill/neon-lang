@@ -12,7 +12,7 @@
 
 #include "cell.h"
 #include "dictionary.h"
-#include "string.h"
+#include "nstring.h"
 #include "util.h"
 
 #define DEF_DICTIONARY_SIZE 10

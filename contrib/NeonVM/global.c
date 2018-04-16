@@ -15,7 +15,7 @@
 #include "global.h"
 #include "number.h"
 #include "stack.h"
-#include "string.h"
+#include "nstring.h"
 #include "util.h"
 
 //#include <windows.h>

@@ -11,7 +11,7 @@
 #include <string.h>
 
 #include "cell.h"
-#include "string.h"
+#include "nstring.h"
 #include "util.h"
 
 Cell *cell_fromAddress(Cell *c)
