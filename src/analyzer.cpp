@@ -903,7 +903,7 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
 {
     std::vector<ast::TypeRecord::Field> fields;
     if (for_class) {
-        fields.push_back(ast::TypeRecord::Field(Token(), new ast::TypePointer(Token(), nullptr), true));
+        fields.push_back(ast::TypeRecord::Field(Token("__classtype"), new ast::TypePointer(Token(), nullptr), true));
     }
     std::map<std::string, Token> field_names;
     for (auto &x: type->fields) {
