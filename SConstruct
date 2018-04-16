@@ -441,7 +441,7 @@ neoncx = envcnex.Program("contrib/msvc/Debug/neonvm", [
     "contrib/NeonVM/framestack.c",
     "contrib/NeonVM/number.c",
     "contrib/NeonVM/stack.c",
-    "contrib/NeonVM/string.c",
+    "contrib/NeonVM/nstring.c",
     "contrib/NeonVM/util.c",
 ],
 )
