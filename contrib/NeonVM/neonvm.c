@@ -9,6 +9,8 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
+#include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -151,15 +153,15 @@ int main(int argc, char* argv[])
 
     if (gOptions.ExecutorDebugStats) {
         fprintf(stderr, "\n*** Neon C Executor Statistics ***\n----------------------------------\n"
-                        "Total Opcodes Executed : %lld\n"
-                        "Max Opstack Height     : %ld\n"
-                        "Opstack Height         : %ld\n"
-                        "Max Callstack Height   : %ld\n"
-                        "CallStack Height       : %ld\n"
-                        "Global Size            : %ld\n"
-                        "Max Framesets          : %ld\n"
+                        "Total Opcodes Executed : %" PRIu64 "\n"
+                        "Max Opstack Height     : %d\n"
+                        "Opstack Height         : %d\n"
+                        "Max Callstack Height   : %" PRIu32 "\n"
+                        "CallStack Height       : %" PRId32 "\n"
+                        "Global Size            : %" PRIu16 "\n"
+                        "Max Framesets          : %d\n"
                         "Execution Time         : %fms\n",
-                        exec->total_opcodes,
+                        (long long int)exec->total_opcodes,
                         exec->stack->max + 1,
                         exec->stack->top,
                         exec->callstack_max_height + 1, 
