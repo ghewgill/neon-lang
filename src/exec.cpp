@@ -711,10 +711,8 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
 void Executor::exec_ENTER()
 {
     ip++;
-    uint32_t nest = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
-    uint32_t val = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
+    uint32_t nest = Bytecode::get_vint(module->object.code, ip);
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     frames.push_back(ActivationFrame(val));
     nested_frames.resize(nest-1);
     nested_frames.push_back(&frames.back());
@@ -735,8 +733,8 @@ void Executor::exec_PUSHB()
 
 void Executor::exec_PUSHN()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (not module->number_table[val].first) {
         module->number_table[val] = std::make_pair(true, number_from_string(module->object.strtable[val]));
     }
@@ -745,40 +743,38 @@ void Executor::exec_PUSHN()
 
 void Executor::exec_PUSHS()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     stack.push(Cell(module->object.strtable[val]));
 }
 
 void Executor::exec_PUSHT()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     stack.push(Cell(std::vector<unsigned char>(reinterpret_cast<const unsigned char *>(module->object.strtable[val].data()), reinterpret_cast<const unsigned char *>(module->object.strtable[val].data()) + module->object.strtable[val].size())));
 }
 
 void Executor::exec_PUSHPG()
 {
-    uint32_t addr = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t addr = Bytecode::get_vint(module->object.code, ip);
     assert(addr < module->globals.size());
     stack.push(Cell(&module->globals.at(addr)));
 }
 
 void Executor::exec_PUSHPPG()
 {
-    uint32_t name = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t name = Bytecode::get_vint(module->object.code, ip);
     stack.push(Cell(rtl_variable(module->object.strtable[name])));
 }
 
 void Executor::exec_PUSHPMG()
 {
     ip++;
-    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
-    uint32_t addr = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
+    uint32_t mod = Bytecode::get_vint(module->object.code, ip);
+    uint32_t addr = Bytecode::get_vint(module->object.code, ip);
     auto m = modules.find(module->object.strtable[mod]);
     if (m == modules.end()) {
         fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
@@ -790,26 +786,23 @@ void Executor::exec_PUSHPMG()
 
 void Executor::exec_PUSHPL()
 {
-    uint32_t addr = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t addr = Bytecode::get_vint(module->object.code, ip);
     stack.push(Cell(&frames.back().locals.at(addr)));
 }
 
 void Executor::exec_PUSHPOL()
 {
     ip++;
-    uint32_t back = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
-    uint32_t addr = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
+    uint32_t back = Bytecode::get_vint(module->object.code, ip);
+    uint32_t addr = Bytecode::get_vint(module->object.code, ip);
     stack.push(Cell(&nested_frames[nested_frames.size()-1-back]->locals.at(addr)));
 }
 
 void Executor::exec_PUSHI()
 {
     ip++;
-    uint32_t x = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
+    uint32_t x = Bytecode::get_vint(module->object.code, ip);
     stack.push(Cell(number_from_uint32(x)));
 }
 
@@ -1373,21 +1366,22 @@ void Executor::exec_IND()
 
 void Executor::exec_CALLP()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    const size_t start_ip = ip;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     std::string func = module->object.strtable.at(val);
     try {
         rtl_call(stack, func, module->rtl_call_tokens[val]);
     } catch (RtlException &x) {
-        ip -= 5;
+        ip = start_ip;
         raise(x);
     }
 }
 
 void Executor::exec_CALLF()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
         return;
@@ -1399,10 +1393,8 @@ void Executor::exec_CALLF()
 void Executor::exec_CALLMF()
 {
     ip++;
-    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
-    uint32_t func  = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
+    uint32_t mod = Bytecode::get_vint(module->object.code, ip);
+    uint32_t func  = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
         return;
@@ -1457,15 +1449,15 @@ void Executor::exec_CALLI()
 
 void Executor::exec_JUMP()
 {
-    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t target = Bytecode::get_vint(module->object.code, ip);
     ip = target;
 }
 
 void Executor::exec_JF()
 {
-    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t target = Bytecode::get_vint(module->object.code, ip);
     bool a = stack.top().boolean(); stack.pop();
     if (not a) {
         ip = target;
@@ -1474,8 +1466,8 @@ void Executor::exec_JF()
 
 void Executor::exec_JT()
 {
-    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t target = Bytecode::get_vint(module->object.code, ip);
     bool a = stack.top().boolean(); stack.pop();
     if (a) {
         ip = target;
@@ -1484,8 +1476,8 @@ void Executor::exec_JT()
 
 void Executor::exec_JFCHAIN()
 {
-    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t target = Bytecode::get_vint(module->object.code, ip);
     Cell a = stack.top(); stack.pop();
     if (not a.boolean()) {
         ip = target;
@@ -1525,8 +1517,8 @@ void Executor::exec_RET()
 
 void Executor::exec_CALLE()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     ForeignCallInfo *fci = val < module->foreign_functions.size() ? module->foreign_functions.at(val) : nullptr;
     if (fci == nullptr) {
         fci = new ForeignCallInfo;
@@ -1613,8 +1605,8 @@ void Executor::exec_CALLE()
 
 void Executor::exec_CONSA()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     std::vector<Cell> a;
     while (val > 0) {
         a.push_back(stack.top());
@@ -1626,8 +1618,8 @@ void Executor::exec_CONSA()
 
 void Executor::exec_CONSD()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     Cell d;
     while (val > 0) {
         Cell value = stack.top(); stack.pop();
@@ -1640,7 +1632,10 @@ void Executor::exec_CONSD()
 
 void Executor::exec_EXCEPT()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
+    const size_t start_ip = ip;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
+    ip = start_ip;
     std::vector<Cell> info = stack.top().array(); stack.pop();
     ExceptionInfo ei;
     size_t size = info.size();
@@ -1655,8 +1650,8 @@ void Executor::exec_EXCEPT()
 
 void Executor::exec_ALLOC()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     allocs.emplace_front(std::vector<Cell>(val), true);
     Cell *cell = &allocs.front();
     stack.push(Cell(cell));
@@ -1675,8 +1670,8 @@ void Executor::exec_PUSHNIL()
 
 void Executor::exec_JNASSERT()
 {
-    uint32_t target = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t target = Bytecode::get_vint(module->object.code, ip);
     if (not enable_assert) {
         ip = target;
     }
@@ -1691,8 +1686,8 @@ void Executor::exec_RESETC()
 
 void Executor::exec_PUSHPEG()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     if (external_globals == nullptr) {
         fprintf(stderr, "internal error: no external globals\n");
         exit(1);
@@ -1707,30 +1702,27 @@ void Executor::exec_PUSHPEG()
 
 void Executor::exec_JUMPTBL()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     Number n = stack.top().number(); stack.pop();
     if (number_is_integer(n)) {
         uint32_t i = number_to_uint32(n);
         if (i < val) {
-            ip += 5 * i;
+            ip += 6 * i;
         } else {
-            ip += 5 * val;
+            ip += 6 * val;
         }
     } else {
-        ip += 5 * val;
+        ip += 6 * val;
     }
 }
 
 void Executor::exec_CALLX()
 {
     ip++;
-    uint32_t mod = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
-    uint32_t name = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
-    uint32_t out_param_count = (module->object.code[ip] << 24) | (module->object.code[ip+1] << 16) | (module->object.code[ip+2] << 8) | module->object.code[ip+3];
-    ip += 4;
+    uint32_t mod = Bytecode::get_vint(module->object.code, ip);
+    uint32_t name = Bytecode::get_vint(module->object.code, ip);
+    uint32_t out_param_count = Bytecode::get_vint(module->object.code, ip);
     std::string modname = module->object.strtable[mod];
     std::string modlib = just_path(module->object.source_path) + LIBRARY_NAME_PREFIX + "neon_" + modname;
     if (g_ExtensionModules.find(modname) == g_ExtensionModules.end()) {
@@ -1789,8 +1781,8 @@ void Executor::exec_SWAP()
 
 void Executor::exec_DROPN()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     std::vector<Cell> hold;
     for (uint32_t i = 0; i < val; i++) {
         hold.push_back(stack.top());
@@ -1810,8 +1802,8 @@ void Executor::exec_PUSHM()
 
 void Executor::exec_CALLV()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     std::vector<Cell> &pi = stack.top().array_for_write();
     Cell *instance = pi[0].address();
     size_t interface_index = number_to_uint32(pi[1].number());
@@ -1825,8 +1817,8 @@ void Executor::exec_CALLV()
 
 void Executor::exec_PUSHCI()
 {
-    uint32_t val = (module->object.code[ip+1] << 24) | (module->object.code[ip+2] << 16) | (module->object.code[ip+3] << 8) | module->object.code[ip+4];
-    ip += 5;
+    ip++;
+    uint32_t val = Bytecode::get_vint(module->object.code, ip);
     auto dot = module->object.strtable[val].find('.');
     if (dot == std::string::npos) {
         for (auto &c: module->object.classes) {

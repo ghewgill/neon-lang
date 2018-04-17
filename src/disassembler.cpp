@@ -137,10 +137,8 @@ Disassembler::Disassembler(std::ostream &out, const Bytecode::Bytes &bytes, cons
 void Disassembler::disasm_ENTER()
 {
     index++;
-    uint32_t nest = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
-    uint32_t val = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
+    uint32_t nest = Bytecode::get_vint(obj.code, index);
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "ENTER " << nest << "," << val << "\n";
 }
 
@@ -159,71 +157,66 @@ void Disassembler::disasm_PUSHB()
 
 void Disassembler::disasm_PUSHN()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 1 + sizeof(val);
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "PUSHN " << obj.strtable[val] << "\n";
 }
 
 void Disassembler::disasm_PUSHS()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "PUSHS \"" << obj.strtable[val] << "\"\n";
 }
 
 void Disassembler::disasm_PUSHT()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "PUSHT " << val << "\n";
 }
 
 void Disassembler::disasm_PUSHPG()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "PUSHPG " << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHPPG()
 {
-    uint32_t name = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t name = Bytecode::get_vint(obj.code, index);
     out << "PUSHPPG " << obj.strtable[name] << "\n";
 }
 
 void Disassembler::disasm_PUSHPMG()
 {
     index++;
-    uint32_t module = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
-    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
+    uint32_t module = Bytecode::get_vint(obj.code, index);
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "PUSHPMG " << module << "," << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHPL()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "PUSHPL " << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHPOL()
 {
     index++;
-    uint32_t enclosing = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
-    uint32_t addr = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
+    uint32_t enclosing = Bytecode::get_vint(obj.code, index);
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "PUSHPOL " << enclosing << "," << addr << "\n";
 }
 
 void Disassembler::disasm_PUSHI()
 {
     index++;
-    uint32_t x = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
+    uint32_t x = Bytecode::get_vint(obj.code, index);
     out << "PUSHI " << x << "\n";
 }
 
@@ -583,25 +576,23 @@ void Disassembler::disasm_IND()
 
 void Disassembler::disasm_CALLP()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "CALLP " << val << " " << (val < obj.strtable.size() ? obj.strtable[val] : "(invalid)") << "\n";
 }
 
 void Disassembler::disasm_CALLF()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "CALLF " << addr << "\n";
 }
 
 void Disassembler::disasm_CALLMF()
 {
     index++;
-    uint32_t mod = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
-    uint32_t func = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
+    uint32_t mod = Bytecode::get_vint(obj.code, index);
+    uint32_t func = Bytecode::get_vint(obj.code, index);
     out << "CALLMF " << obj.strtable[mod] << "," << obj.strtable[func] << "\n";
 }
 
@@ -613,29 +604,29 @@ void Disassembler::disasm_CALLI()
 
 void Disassembler::disasm_JUMP()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "JUMP " << addr << "\n";
 }
 
 void Disassembler::disasm_JF()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "JF " << addr << "\n";
 }
 
 void Disassembler::disasm_JT()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "JT " << addr << "\n";
 }
 
 void Disassembler::disasm_JFCHAIN()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "JFCHAIN " << addr << "\n";
 }
 
@@ -665,36 +656,36 @@ void Disassembler::disasm_RET()
 
 void Disassembler::disasm_CALLE()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "CALLE " << obj.strtable[val] << "\n";
 }
 
 void Disassembler::disasm_CONSA()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "CONSA " << val << "\n";
 }
 
 void Disassembler::disasm_CONSD()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "CONSD " << val << "\n";
 }
 
 void Disassembler::disasm_EXCEPT()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "EXCEPT \"" << obj.strtable[val] << "\"\n";
 }
 
 void Disassembler::disasm_ALLOC()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "ALLOC " << val << "\n";
 }
 
@@ -706,8 +697,8 @@ void Disassembler::disasm_PUSHNIL()
 
 void Disassembler::disasm_JNASSERT()
 {
-    uint32_t addr = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
     out << "JNASSERT " << addr << "\n";
 }
 
@@ -719,27 +710,24 @@ void Disassembler::disasm_RESETC()
 
 void Disassembler::disasm_PUSHPEG()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "PUSHPEG \"" << obj.strtable[val] << "\"\n";
 }
 
 void Disassembler::disasm_JUMPTBL()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "JUMPTBL " << val << "\n";
 }
 
 void Disassembler::disasm_CALLX()
 {
     index++;
-    uint32_t module = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
-    uint32_t name = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
-    uint32_t out_param_count = (obj.code[index] << 24) | (obj.code[index+1] << 16) | (obj.code[index+2] << 8) | obj.code[index+3];
-    index += 4;
+    uint32_t module = Bytecode::get_vint(obj.code, index);
+    uint32_t name = Bytecode::get_vint(obj.code, index);
+    uint32_t out_param_count = Bytecode::get_vint(obj.code, index);
     out << "CALLX " << obj.strtable[module] << "." << obj.strtable[name] << "," << out_param_count << "\n";
 }
 
@@ -751,8 +739,8 @@ void Disassembler::disasm_SWAP()
 
 void Disassembler::disasm_DROPN()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "DROPN " << val << "\n";
 }
 
@@ -764,15 +752,15 @@ void Disassembler::disasm_PUSHM()
 
 void Disassembler::disasm_CALLV()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "CALLV " << val << "\n";
 }
 
 void Disassembler::disasm_PUSHCI()
 {
-    uint32_t val = (obj.code[index+1] << 24) | (obj.code[index+2] << 16) | (obj.code[index+3] << 8) | obj.code[index+4];
-    index += 5;
+    index++;
+    uint32_t val = Bytecode::get_vint(obj.code, index);
     out << "PUSHCI \"" << obj.strtable[val] << "\"\n";
 }
 
@@ -783,10 +771,12 @@ std::string Disassembler::decode_value(const std::string &type, const Bytecode::
             return value.at(0) != 0 ? "TRUE" : "FALSE";
         }
         case 'N': {
+            // TODO: vint
             uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(2) << 8) | value.at(3);
             return std::string(&value.at(4), &value.at(4)+len);
         }
         case 'S': {
+            // TODO: vint
             uint32_t len = (value.at(0) << 24) | (value.at(1) << 16) | (value.at(2) << 8) | value.at(3);
             return std::string(&value.at(4), &value.at(4)+len);
         }

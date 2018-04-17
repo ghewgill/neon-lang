@@ -77,6 +77,7 @@ std::string TypeString::serialize(const std::string &value)
 {
     uint32_t len = static_cast<uint32_t>(value.length());
     std::string r;
+    // TODO: vint
     r.push_back(static_cast<unsigned char>(len >> 24) & 0xff);
     r.push_back(static_cast<unsigned char>(len >> 16) & 0xff);
     r.push_back(static_cast<unsigned char>(len >> 8) & 0xff);
@@ -91,6 +92,7 @@ std::string TypeString::serialize(const Expression *value) const
 
 std::string TypeString::deserialize_string(const Bytecode::Bytes &value, int &i)
 {
+    // TODO: vint
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     std::string s(&value.at(i+4), &value.at(i+4)+len);
     i += 4 + len;
@@ -212,6 +214,7 @@ std::string TypeArray::serialize(const Expression *value) const
 {
     std::string r;
     const ArrayLiteralExpression *a = dynamic_cast<const ArrayLiteralExpression *>(value);
+    // TODO: vint
     r.push_back(static_cast<unsigned char>(a->elements.size() >> 24) & 0xff);
     r.push_back(static_cast<unsigned char>(a->elements.size() >> 16) & 0xff);
     r.push_back(static_cast<unsigned char>(a->elements.size() >> 8) & 0xff);
@@ -225,6 +228,7 @@ std::string TypeArray::serialize(const Expression *value) const
 const Expression *TypeArray::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
     std::vector<const Expression *> elements;
+    // TODO: vint
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     i += 4;
     while (len > 0) {
@@ -268,6 +272,7 @@ std::string TypeDictionary::serialize(const Expression *value) const
 {
     std::string r;
     const DictionaryLiteralExpression *d = dynamic_cast<const DictionaryLiteralExpression *>(value);
+    // TODO: vint
     r.push_back(static_cast<unsigned char>(d->dict.size() >> 24) & 0xff);
     r.push_back(static_cast<unsigned char>(d->dict.size() >> 16) & 0xff);
     r.push_back(static_cast<unsigned char>(d->dict.size() >> 8) & 0xff);
@@ -282,6 +287,7 @@ std::string TypeDictionary::serialize(const Expression *value) const
 const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
     std::vector<std::pair<std::string, const Expression *>> dict;
+    // TODO: vint
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     i += 4;
     while (len > 0) {
@@ -306,6 +312,7 @@ std::string TypeRecord::serialize(const Expression *value) const
 {
     std::string r;
     const RecordLiteralExpression *a = dynamic_cast<const RecordLiteralExpression *>(value);
+    // TODO: vint
     r.push_back(static_cast<unsigned char>(a->values.size() >> 24) & 0xff);
     r.push_back(static_cast<unsigned char>(a->values.size() >> 16) & 0xff);
     r.push_back(static_cast<unsigned char>(a->values.size() >> 8) & 0xff);
@@ -319,6 +326,7 @@ std::string TypeRecord::serialize(const Expression *value) const
 const Expression *TypeRecord::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
     std::vector<const Expression *> elements;
+    // TODO: vint
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     i += 4;
     int f = 0;

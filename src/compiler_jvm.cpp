@@ -2925,7 +2925,7 @@ public:
     virtual void generate_decl(ClassContext &context, bool) const override {
         method_info m;
         m.access_flags = ACC_PUBLIC | ACC_STATIC;
-        m.name_index = context.cf.utf8(f->name);
+        m.name_index = context.cf.utf8(make_java_method_name(f->name));
         m.descriptor_index = context.cf.utf8(signature);
         {
             attribute_info a;
@@ -3003,7 +3003,7 @@ public:
         for (auto a: args) {
             a->generate(context);
         }
-        context.ca.code << OP_invokestatic << context.cf.Method(context.cf.name, f->name, signature);
+        context.ca.code << OP_invokestatic << context.cf.Method(context.cf.name, make_java_method_name(f->name), signature);
         if (out_count > 0) {
             int i = 1;
             for (auto p: params) {
@@ -3040,6 +3040,18 @@ public:
 private:
     Function(const Function &);
     Function &operator=(const Function &);
+
+    static std::string make_java_method_name(std::string s)
+    {
+        for (;;) {
+            std::string::size_type i = s.find_first_of('.');
+            if (i == std::string::npos) {
+                break;
+            }
+            s = s.substr(0, i) + "__" + s.substr(i+1);
+        }
+        return s;
+    }
 };
 
 class PredefinedFunction: public Variable {
@@ -3162,7 +3174,7 @@ public:
         cf.constant_pool_count = 0;
         cf.access_flags = ACC_PUBLIC | ACC_SUPER;
         cf.this_class = cf.Class(cf.name);
-        cf.super_class = cf.Class("Ljava/lang/Object;");
+        cf.super_class = cf.Class("java/lang/Object");
 
         ClassContext classcontext(support, cf);
         for (size_t s = 0; s < program->frame->getCount(); s++) {
