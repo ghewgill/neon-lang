@@ -104,7 +104,7 @@ public:
 
     static void put_vint(std::vector<unsigned char> &obj, unsigned int x);
     static void put_vint(std::vector<unsigned char> &obj, unsigned int x, size_t width);
-    static void put_vint(std::vector<unsigned char> &obj, size_t x);
+    static void put_vint_size(std::vector<unsigned char> &obj, size_t x);
     static unsigned int get_vint(const std::vector<unsigned char> &obj, size_t &i);
 };
 
