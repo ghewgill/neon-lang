@@ -19,7 +19,7 @@ Cell *top(TStack *stack);
 Cell *peek(TStack *stack, int element);
 
 typedef struct tagTCallStack {
-    struct tagTCallStack {
+    struct {
         int height;
         int capacity;
         int max;
