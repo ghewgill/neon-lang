@@ -99,10 +99,7 @@ void Emitter::emit(unsigned char b)
 
 void Emitter::emit_uint32(uint32_t value)
 {
-    emit(static_cast<unsigned char>((value >> 24) & 0xff));
-    emit(static_cast<unsigned char>((value >> 16) & 0xff));
-    emit(static_cast<unsigned char>((value >> 8) & 0xff));
-    emit(static_cast<unsigned char>(value & 0xff));
+    Bytecode::put_vint(object.code, value);
 }
 
 void Emitter::emit(unsigned char b, uint32_t value)
@@ -207,7 +204,12 @@ void Emitter::emit_jump(unsigned char b, Label &label)
         emit_uint32(label.target);
     } else {
         label.fixups.push_back(static_cast<unsigned int>(object.code.size()));
-        emit_uint32(UINT32_MAX);
+        // Leave room enough for 32 bit values.
+        emit(0);
+        emit(0);
+        emit(0);
+        emit(0);
+        emit(0);
     }
 }
 
@@ -216,10 +218,10 @@ void Emitter::jump_target(Label &label)
     assert(label.target == UINT_MAX);
     label.target = static_cast<unsigned int>(object.code.size());
     for (auto offset: label.fixups) {
-        object.code[offset] = static_cast<unsigned char>((label.target >> 24) & 0xff);
-        object.code[offset+1] = static_cast<unsigned char>((label.target >> 16) & 0xff);
-        object.code[offset+2] = static_cast<unsigned char>((label.target >> 8) & 0xff);
-        object.code[offset+3] = static_cast<unsigned char>(label.target & 0xff);
+        std::vector<unsigned char> target;
+        Bytecode::put_vint(target, label.target, 5);
+        assert(target.size() == 5); // Matches the amount reserved in emit_jump.
+        std::copy(target.begin(), target.end(), object.code.begin() + offset);
     }
 }
 

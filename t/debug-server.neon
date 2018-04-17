@@ -50,7 +50,7 @@ ASSERT r.getArray()[0].getDictionary()["value"].getString() = "hello world"
 r := post("/step/source/0", "")
 
 r := get("/status")
-ASSERT r.getDictionary()["ip"].getNumber() = 11 % Dependent on actual bytecode
+ASSERT r.getDictionary()["ip"].getNumber() = 5 % Dependent on actual bytecode
 
 r := get("/module/-/global/0")
 ASSERT r.getDictionary()["type"].getString() = "string"
