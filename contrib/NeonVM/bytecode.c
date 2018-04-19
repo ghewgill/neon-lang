@@ -15,58 +15,139 @@
 #include "nstring.h"
 #include "util.h"
 
-static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
+//static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
+//{
+//    if (*i+2 > nBuffSize) {
+//        fatal_error("Bytecode exception: Read past EOF.");
+//    }
+//    uint16_t r = (pobj[*i] << 8) | pobj[*i+1];
+//    *i += 2;
+//    return r;
+//}
+//
+//static uint32_t get_uint32(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
+//{
+//    if (*i+4 > nBuffSize) {
+//        fatal_error("Bytecode excpetion: Read past EOF.");
+//    }
+//    uint32_t r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
+//    *i += 4;
+//    return r;
+//}
+
+unsigned int get_vint(const uint8_t *pobj, size_t nBuffSize, size_t *i)
 {
-    if (*i+2 > nBuffSize) {
-        fatal_error("Bytecode exception: Read past EOF.");
+    unsigned int r = 0;
+    while (*i < nBuffSize) {
+        unsigned int x = pobj[*i];
+        (*i)++;
+        if (r & ~(UINT_MAX >> 7)) {
+            fatal_error("Integer value exceeds maximum (%u)", UINT_MAX);
+        }
+        r = (r << 7) | (x & 0x7f);
+        if ((x & 0x80) == 0) {
+            break;
+        }
     }
-    uint16_t r = (pobj[*i] << 8) | pobj[*i+1];
-    *i += 2;
     return r;
 }
 
-static uint32_t get_uint32(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
+//static void bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
+//{
+//    uint32_t i = 0;
+//
+//    /* First, initialize the string count to zero. */
+//    *count = 0;
+//    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
+//    /  We're going to iterate the string table first, to get the count,
+//    /  then we'll allocate the data. */
+//    const uint8_t *s = start;
+//    while (s != end) {
+//        s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
+//        (*count)++;
+//    }
+//
+//    pBytecode->strings = malloc(sizeof(TString *) * *count);
+//    while (start != end) {
+//        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
+//        start += 4;
+//
+//        TString *ts = string_newString();
+//        ts->length = len;
+//        ts->data = malloc(len+1); /* Always add null termination regardless of length. */
+//        if (!ts->data) {
+//            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
+//        }
+//        memcpy(ts->data, start, len);
+//        ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
+//        pBytecode->strings[i++] = ts;
+//        start += len;
+//    }
+//}
+
+//static void bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
+//{
+//    unsigned int i = pBytecode->codelen - (end - start);
+//    unsigned int size = 0;
+//    /* First, initialize the string count to zero. */
+//    *count = 0;
+//    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
+//    /  We're going to iterate the string table first, to get the count,
+//    /  then we'll allocate the data. */
+//    size = get_vint(start, end-start, &i);
+//
+//    //const uint8_t *s = start;
+//    //while (s != end) {
+//    //    s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
+//    //    (*count)++;
+//    //}
+//
+//    pBytecode->strings = malloc(sizeof(TString *) * *count);
+//    while (start != end) {
+//        //size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
+//        unsigned int len = get_vint(start, end-start, &i);
+//        start += 4;
+//
+//        TString *ts = string_newString();
+//        ts->length = len;
+//        ts->data = malloc(len+1); /* Always add null termination regardless of length. */
+//        if (!ts->data) {
+//            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
+//        }
+//        memcpy(ts->data, start, len);
+//        ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
+//        pBytecode->strings[i++] = ts;
+//        start += len;
+//    }
+//}
+
+static struct tagTString **getstrtable(const unsigned char *obj, size_t size, size_t *i, unsigned int *count)
 {
-    if (*i+4 > nBuffSize) {
-        fatal_error("Bytecode excpetion: Read past EOF.");
-    }
-    uint32_t r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
-    *i += 4;
-    return r;
-}
-
-static void bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
-{
-    uint32_t i = 0;
-
-    /* First, initialize the string count to zero. */
-    *count = 0;
-    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
-    /  We're going to iterate the string table first, to get the count,
-    /  then we'll allocate the data. */
-    const uint8_t *s = start;
-    while (s != end) {
-        s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
-        (*count)++;
-    }
-
-    pBytecode->strings = malloc(sizeof(TString *) * *count);
-    while (start != end) {
-        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
-        start += 4;
-
+//    size_t index = 0;
+    TString **r = NULL;
+    
+    while (*i < size) {
+        r = realloc(r, sizeof(TString *) * ((*count) + 1));
+        if (!r) {
+            fatal_error("Could not allocate string table data.");
+        }
+        //size_t j = *i + *count;
+        size_t len = get_vint(obj, size, i);
+        //i = j - start;
         TString *ts = string_newString();
         ts->length = len;
         ts->data = malloc(len+1); /* Always add null termination regardless of length. */
         if (!ts->data) {
-            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
+            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, *count);
         }
-        memcpy(ts->data, start, len);
+        memcpy(ts->data, &obj[*i], len);
         ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
-        pBytecode->strings[i++] = ts;
-        start += len;
+        r[(*count)++] = ts;
+        *i += len;
     }
+    return r;
 }
+
 
 TBytecode *bytecode_newBytecode()
 {
@@ -101,7 +182,7 @@ void bytecode_freeBytecode(TBytecode *b)
 
 void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
 {
-    uint32_t i = 0;
+    size_t i = 0;
 
     if (!b) {
         b = bytecode_newBytecode();
@@ -109,14 +190,15 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
 
     memcpy(b->source_hash, bytecode, 32);
     i += 32;
-    b->global_size = get_uint16(bytecode, len, &i);
+    b->global_size = get_vint(bytecode, len, &i);
 
-    b->strtablesize = get_uint32(bytecode, len, &i);
+    b->strtablesize = get_vint(bytecode, len, &i);
 
-    bytecode_getStringTable(b, &bytecode[i], &bytecode[i + b->strtablesize], &b->strtablelen);
-    i += b->strtablesize;
+    //bytecode_getStringTable(b, &bytecode[i], &bytecode[i + b->strtablesize], &b->strtablelen);
+    b->strings = getstrtable(bytecode, b->strtablesize + i, &i, &b->strtablelen);
+    //i += b->strtablesize;
 
-    b->typesize = get_uint16(bytecode, len, &i);
+    b->typesize = get_vint(bytecode, len, &i);
     /*
         typesize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2
@@ -130,7 +212,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
             self.export_types.append(t)
             typesize -= 1
     */
-    b->constantsize = get_uint16(bytecode, len, &i);
+    b->constantsize = get_vint(bytecode, len, &i);
     /*
         constantsize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2
@@ -146,9 +228,9 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
             c.value = bytecode[i:i+size]
             i += size
             self.export_constants.append(c)
-            constantsize -= 1
+            constantsize -= 1;
     */
-    b->variablesize = get_uint16(bytecode, len, &i);
+    b->variablesize = get_vint(bytecode, len, &i);
     /*
         variablesize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2
@@ -164,17 +246,17 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
             self.export_variables.append(v)
             variablesize -= 1
     */
-    b->export_functionsize = get_uint16(bytecode, len, &i);
+    b->export_functionsize = get_vint(bytecode, len, &i);
     b->export_functions = malloc(sizeof(ExportFunction) * b->export_functionsize);
     if (b->export_functions == NULL) {
         fatal_error("Could not allocate memory for exported function info.");
     }
     for (uint32_t f = 0; f < b->export_functionsize; f++) {
-        b->export_functions[f].name = get_uint16(bytecode, len, &i);
-        b->export_functions[f].descriptor = get_uint16(bytecode, len, &i);
-        b->export_functions[f].entry = get_uint32(bytecode, len, &i);
+        b->export_functions[f].name = get_vint(bytecode, len, &i);
+        b->export_functions[f].descriptor = get_vint(bytecode, len, &i);
+        b->export_functions[f].entry = get_vint(bytecode, len, &i);
     }
-    b->exceptionexportsize = get_uint16(bytecode, len, &i);
+    b->exceptionexportsize = get_vint(bytecode, len, &i);
     /*
         exceptionexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2
@@ -186,47 +268,47 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
             self.export_exceptions.append(e)
             exceptionexportsize -= 1
     */
-    b->interfaceexportsize = get_uint16(bytecode, len, &i);
+    b->interfaceexportsize = get_vint(bytecode, len, &i);
     /*
         interfaceexportsize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2
         while interfaceexportsize > 0:
             assert False, interfaceexportsize
     */
-    b->importsize = get_uint16(bytecode, len, &i);
+    b->importsize = get_vint(bytecode, len, &i);
     b->imports = malloc(sizeof(Import) * b->importsize);
     if (b->imports == NULL) {
         fatal_error("Could not allocate memory for exported function info.");
     }
     for (uint32_t f = 0; f < b->importsize; f++) {
-        b->imports[f].name = get_uint16(bytecode, len, &i);
+        b->imports[f].name = get_vint(bytecode, len, &i);
         memcpy(b->imports[f].hash, bytecode, 32);
         i+=32;
     }
 
-    b->functionsize = get_uint16(bytecode, len, &i);
+    b->functionsize = get_vint(bytecode, len, &i);
     b->functions = malloc(sizeof(Function) * b->functionsize);
     if (b->functions == NULL) {
         fatal_error("Could not allocate memory for function info.");
     }
     for (uint32_t f = 0; f < b->functionsize; f++) {
-        b->functions[f].name = get_uint16(bytecode, len, &i);
-        b->functions[f].entry = get_uint32(bytecode, len, &i);
+        b->functions[f].name = get_vint(bytecode, len, &i);
+        b->functions[f].entry = get_vint(bytecode, len, &i);
     }
 
-    b->exceptionsize = get_uint16(bytecode, len, &i);
+    b->exceptionsize = get_vint(bytecode, len, &i);
     b->exceptions = malloc(sizeof(Exception) * b->exceptionsize);
     if (b->exceptions == NULL) {
         fatal_error("Could not allocate memory for exception info.");
     }
     for (uint32_t e = 0; e < b->exceptionsize; e++) {
-        b->exceptions[e].start = get_uint16(bytecode, len, &i);
-        b->exceptions[e].end = get_uint16(bytecode, len, &i);
-        b->exceptions[e].exid = get_uint16(bytecode, len, &i);
-        b->exceptions[e].handler = get_uint16(bytecode, len, &i);
+        b->exceptions[e].start = get_vint(bytecode, len, &i);
+        b->exceptions[e].end = get_vint(bytecode, len, &i);
+        b->exceptions[e].exid = get_vint(bytecode, len, &i);
+        b->exceptions[e].handler = get_vint(bytecode, len, &i);
     }
 
-    b->classsize = get_uint16(bytecode, len, &i);
+    b->classsize = get_vint(bytecode, len, &i);
     /*
         classsize = struct.unpack(">H", bytecode[i:i+2])[0]
         i += 2

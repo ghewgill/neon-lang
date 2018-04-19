@@ -5,49 +5,49 @@
 #include "util.h"
 
 typedef struct tagTType {
-    int16_t name;
-    int16_t descriptor;
+    unsigned int name;
+    unsigned int descriptor;
 } Type;
 
 typedef struct tagTFunction {
-    uint16_t name;
-    uint32_t entry;
+    unsigned int name;
+    unsigned int entry;
 } Function;
 
 typedef struct tagTExportFunction {
-    uint16_t name;
-    uint16_t descriptor;
-    uint32_t entry;
+    unsigned int name;
+    unsigned int descriptor;
+    unsigned int entry;
 } ExportFunction;
 
 typedef struct tagTImport {
-    uint16_t name;
-    uint8_t hash[32];
+    unsigned int name;
+    unsigned int hash[32];
 } Import;
 
 typedef struct tagTException {
-    uint16_t start;
-    uint16_t end;
-    uint16_t exid;
-    uint16_t handler;
+    unsigned int start;
+    unsigned int end;
+    unsigned int exid;
+    unsigned int handler;
 } Exception;
 
 typedef struct tagTBytecode {
     uint8_t source_hash[32];
-    uint16_t global_size;
-    uint32_t strtablesize;
-    uint32_t strtablelen;
+    unsigned int global_size;
+    unsigned int strtablesize;
+    unsigned int strtablelen;
     struct tagTString **strings;
-    uint32_t typesize;
-    uint32_t constantsize;
-    uint32_t variablesize;
-    uint32_t export_functionsize;
-    uint32_t functionsize;
-    uint32_t exceptionsize;
-    uint32_t exceptionexportsize;
-    uint32_t interfaceexportsize;
-    uint32_t importsize;
-    uint32_t classsize;
+    unsigned int typesize;
+    unsigned int constantsize;
+    unsigned int variablesize;
+    unsigned int export_functionsize;
+    unsigned int functionsize;
+    unsigned int exceptionsize;
+    unsigned int exceptionexportsize;
+    unsigned int interfaceexportsize;
+    unsigned int importsize;
+    unsigned int classsize;
     const uint8_t *code;
     size_t codelen;
 
@@ -62,5 +62,7 @@ typedef struct tagTBytecode {
 TBytecode *bytecode_newBytecode();
 void bytecode_freeBytecode(TBytecode *b);
 void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len);
+
+unsigned int get_vint(const uint8_t *pobj, size_t nBuffSize, size_t *i);
 
 #endif

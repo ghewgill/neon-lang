@@ -277,24 +277,31 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
     string_freeString(i);
 }
 
-static uint32_t exec_getOperand(TExecutor *self)
+static unsigned int exec_getOperand(TExecutor *self)
 {
-    uint32_t r = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
-    self->ip += 5;
+    unsigned int r = 0;
+    while (self->ip < self->object->codelen) {
+        unsigned int x = self->object->code[self->ip];
+        self->ip++;
+        if (r & ~(UINT_MAX >> 7)) {
+            fatal_error("Integer value exceeds maximum (%u)", UINT_MAX);
+        }
+        r = (r << 7) | (x & 0x7f);
+        if ((x & 0x80) == 0) {
+            break;
+        }
+    }
     return r;
 }
 
 void exec_ENTER(TExecutor *self)
 {
     self->ip++;
-    uint32_t nest = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
+    unsigned int nest = exec_getOperand(self);
     nest = nest; /* ToDo: Please remove! */
-    self->ip += 4;
-    uint32_t val = (self->object->code[self->ip] << 24) | (self->object->code[self->ip+1] << 16) | (self->object->code[self->ip+2] << 8) | self->object->code[self->ip+3];
-    self->ip += 4;
+    unsigned int val = exec_getOperand(self);
 
     framestack_pushFrame(self->framestack, frame_createFrame(val));
-
     /* ToDo: Implement Activiation frame support
     //add(frame_newFrame(val));
     //nested_frames.resize(nest-1);
@@ -317,25 +324,29 @@ void exec_PUSHB(TExecutor *self)
 
 void exec_PUSHN(TExecutor *self)
 {
-    uint32_t val = exec_getOperand(self);
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
     push(self->stack, cell_fromNumber(bid128_from_string(self->object->strings[val]->data)));
 }
 
 void exec_PUSHS(TExecutor *self)
 {
-    uint32_t val = exec_getOperand(self);
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
     push(self->stack, cell_fromString(self->object->strings[val]->data, self->object->strings[val]->length));
 }
 
 void exec_PUSHT(TExecutor *self)
 {
-    uint32_t val = exec_getOperand(self);
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
     push(self->stack, cell_fromString(self->object->strings[val]->data, self->object->strings[val]->length));
 }
 
 void exec_PUSHPG(TExecutor *self)
 {
-    uint32_t addr = exec_getOperand(self);
+    self->ip++;
+    unsigned int addr = exec_getOperand(self);
     assert(addr < self->object->global_size);
     push(self->stack, cell_fromAddress(&self->globals[addr]));
 }
@@ -343,7 +354,7 @@ void exec_PUSHPG(TExecutor *self)
 /* push pointer to predefined global */
 void exec_PUSHPPG(TExecutor *self)
 {
-    uint32_t addr = exec_getOperand(self);
+    unsigned int addr = exec_getOperand(self);
     /* assert(addr < self->object->global_variables->size); */
     push(self->stack, cell_fromAddress(cell_newCell()));
 }
@@ -355,7 +366,8 @@ void exec_PUSHPMG()
 
 void exec_PUSHPL(TExecutor *self)
 {
-    uint32_t addr = exec_getOperand(self);
+    self->ip++;
+    unsigned int addr = exec_getOperand(self);
     /* push(self->stack, cell_fromAddress(&self->frames[addr])); */
     push(self->stack, cell_fromAddress(&framestack_topFrame(self->framestack)->locals[addr]));
 }
@@ -882,7 +894,8 @@ void exec_IND()
 
 void exec_CALLP(TExecutor *self)
 {
-    uint32_t val = exec_getOperand(self);
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
     const char *func = self->object->strings[val]->data;
 
     if (!global_callFunction(func, self)) {
@@ -892,7 +905,8 @@ void exec_CALLP(TExecutor *self)
 
 void exec_CALLF(TExecutor *self)
 {
-    uint32_t val = exec_getOperand(self);
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
     if (self->callstacktop >= self->param_recursion_limit) {
         /* ToDo: handle runtime exceptions
         //raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(""));
@@ -916,13 +930,15 @@ void exec_CALLI()
 
 void exec_JUMP(TExecutor *self)
 {
-    uint32_t target = exec_getOperand(self);
+    self->ip++;
+    unsigned int target = exec_getOperand(self);
     self->ip = target;
 }
 
 void exec_JF(TExecutor *self)
 {
-    uint32_t target = exec_getOperand(self);
+    self->ip++;
+    unsigned int target = exec_getOperand(self);
     BOOL a = top(self->stack)->boolean; pop(self->stack);
     if (!a) {
         self->ip = target;
@@ -931,7 +947,8 @@ void exec_JF(TExecutor *self)
 
 void exec_JT(TExecutor *self)
 {
-    uint32_t target = exec_getOperand(self);
+    self->ip++;
+    unsigned int target = exec_getOperand(self);
     BOOL a = top(self->stack)->boolean; pop(self->stack);
     if (a) {
         self->ip = target;
@@ -940,7 +957,8 @@ void exec_JT(TExecutor *self)
 
 void exec_JFCHAIN(TExecutor *self)
 {
-    uint32_t target = exec_getOperand(self);
+    self->ip++;
+    unsigned int target = exec_getOperand(self);
     Cell *a = cell_fromCell(top(self->stack)); pop(self->stack);
     if (!a->boolean) {
         self->ip = target;
@@ -985,7 +1003,8 @@ void exec_CALLE()
 
 void exec_CONSA(TExecutor *self)
 {
-    uint32_t val = exec_getOperand(self);
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
     Cell *a = cell_createArrayCell(val);
 
     while (val > 0) {
@@ -998,7 +1017,8 @@ void exec_CONSA(TExecutor *self)
 
 void exec_CONSD(TExecutor *self)
 {
-    uint32_t val = exec_getOperand(self);
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
     Cell *a = cell_createDictionaryCell(val);
 
     push(self->stack, a);
@@ -1006,7 +1026,10 @@ void exec_CONSD(TExecutor *self)
 
 void exec_EXCEPT(TExecutor *self)
 {
-    uint32_t val = (self->object->code[self->ip+1] << 24) | (self->object->code[self->ip+2] << 16) | (self->object->code[self->ip+3] << 8) | self->object->code[self->ip+4];
+    const size_t start_ip = self->ip;
+    self->ip++;
+    unsigned int val = exec_getOperand(self);
+    self->ip = start_ip;
     Cell *exinfo = cell_fromCell(top(self->stack)); pop(self->stack);
     TString *info = NULL;
     Number code = BID_ZERO;
@@ -1035,7 +1058,8 @@ void exec_PUSHNIL(TExecutor *self)
 
 void exec_JNASSERT(TExecutor *self)
 {
-    uint32_t target = exec_getOperand(self);
+    self->ip++;
+    unsigned int target = exec_getOperand(self);
     if (!self->enable_assert) {
         self->ip = target;
     }
@@ -1091,7 +1115,7 @@ void exec_PUSHCI()
 void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
-        //if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
+        if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(self); break;
             case LEAVE:   exec_LEAVE(self); break;
