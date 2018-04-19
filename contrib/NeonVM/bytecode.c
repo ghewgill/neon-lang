@@ -15,27 +15,7 @@
 #include "nstring.h"
 #include "util.h"
 
-//static uint16_t get_uint16(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
-//{
-//    if (*i+2 > nBuffSize) {
-//        fatal_error("Bytecode exception: Read past EOF.");
-//    }
-//    uint16_t r = (pobj[*i] << 8) | pobj[*i+1];
-//    *i += 2;
-//    return r;
-//}
-//
-//static uint32_t get_uint32(const uint8_t *pobj, size_t nBuffSize, uint32_t *i)
-//{
-//    if (*i+4 > nBuffSize) {
-//        fatal_error("Bytecode excpetion: Read past EOF.");
-//    }
-//    uint32_t r = (pobj[*i] << 24) | (pobj[*i+1] << 16) | (pobj[*i+2] << 8) | pobj[*i+3];
-//    *i += 4;
-//    return r;
-//}
-
-unsigned int get_vint(const uint8_t *pobj, size_t nBuffSize, size_t *i)
+unsigned int get_vint(const uint8_t *pobj, unsigned int nBuffSize, unsigned int *i)
 {
     unsigned int r = 0;
     while (*i < nBuffSize) {
@@ -52,88 +32,16 @@ unsigned int get_vint(const uint8_t *pobj, size_t nBuffSize, size_t *i)
     return r;
 }
 
-//static void bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
-//{
-//    uint32_t i = 0;
-//
-//    /* First, initialize the string count to zero. */
-//    *count = 0;
-//    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
-//    /  We're going to iterate the string table first, to get the count,
-//    /  then we'll allocate the data. */
-//    const uint8_t *s = start;
-//    while (s != end) {
-//        s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
-//        (*count)++;
-//    }
-//
-//    pBytecode->strings = malloc(sizeof(TString *) * *count);
-//    while (start != end) {
-//        size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
-//        start += 4;
-//
-//        TString *ts = string_newString();
-//        ts->length = len;
-//        ts->data = malloc(len+1); /* Always add null termination regardless of length. */
-//        if (!ts->data) {
-//            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
-//        }
-//        memcpy(ts->data, start, len);
-//        ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
-//        pBytecode->strings[i++] = ts;
-//        start += len;
-//    }
-//}
-
-//static void bytecode_getStringTable(TBytecode *pBytecode, const uint8_t *start, const uint8_t *end, uint32_t *count)
-//{
-//    unsigned int i = pBytecode->codelen - (end - start);
-//    unsigned int size = 0;
-//    /* First, initialize the string count to zero. */
-//    *count = 0;
-//    /* ToDo: Do this in a single pass, a linked list of strings, perhaps.
-//    /  We're going to iterate the string table first, to get the count,
-//    /  then we'll allocate the data. */
-//    size = get_vint(start, end-start, &i);
-//
-//    //const uint8_t *s = start;
-//    //while (s != end) {
-//    //    s += ((s[0] << 24) | (s[1] << 16) | (s[2] << 8) | s[3]) + 4;
-//    //    (*count)++;
-//    //}
-//
-//    pBytecode->strings = malloc(sizeof(TString *) * *count);
-//    while (start != end) {
-//        //size_t len = (start[0] << 24) | (start[1] << 16) | (start[2] << 8) | start[3];
-//        unsigned int len = get_vint(start, end-start, &i);
-//        start += 4;
-//
-//        TString *ts = string_newString();
-//        ts->length = len;
-//        ts->data = malloc(len+1); /* Always add null termination regardless of length. */
-//        if (!ts->data) {
-//            fatal_error("Could not allocate %d bytes for string index %d in string table.", len + 1, i);
-//        }
-//        memcpy(ts->data, start, len);
-//        ts->data[len] = '\0'; /* Null terminate all strings, regardless of string type. */
-//        pBytecode->strings[i++] = ts;
-//        start += len;
-//    }
-//}
-
-static struct tagTString **getstrtable(const unsigned char *obj, size_t size, size_t *i, unsigned int *count)
+static struct tagTString **getstrtable(const unsigned char *obj, unsigned int size, unsigned int *i, unsigned int *count)
 {
-//    size_t index = 0;
     TString **r = NULL;
-    
+
     while (*i < size) {
         r = realloc(r, sizeof(TString *) * ((*count) + 1));
         if (!r) {
             fatal_error("Could not allocate string table data.");
         }
-        //size_t j = *i + *count;
-        size_t len = get_vint(obj, size, i);
-        //i = j - start;
+        unsigned int len = get_vint(obj, size, i);
         TString *ts = string_newString();
         ts->length = len;
         ts->data = malloc(len+1); /* Always add null termination regardless of length. */
@@ -147,7 +55,6 @@ static struct tagTString **getstrtable(const unsigned char *obj, size_t size, si
     }
     return r;
 }
-
 
 TBytecode *bytecode_newBytecode()
 {
@@ -180,9 +87,9 @@ void bytecode_freeBytecode(TBytecode *b)
     b = NULL;
 }
 
-void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len)
+void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int len)
 {
-    size_t i = 0;
+    unsigned int i = 0;
 
     if (!b) {
         b = bytecode_newBytecode();

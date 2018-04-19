@@ -49,7 +49,7 @@ typedef struct tagTBytecode {
     unsigned int importsize;
     unsigned int classsize;
     const uint8_t *code;
-    size_t codelen;
+    unsigned int codelen;
 
     struct tagTType *export_types;
     struct tagTExportFunction *export_functions;
@@ -61,8 +61,8 @@ typedef struct tagTBytecode {
 
 TBytecode *bytecode_newBytecode();
 void bytecode_freeBytecode(TBytecode *b);
-void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, size_t len);
+void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int len);
 
-unsigned int get_vint(const uint8_t *pobj, size_t nBuffSize, size_t *i);
+unsigned int get_vint(const uint8_t *pobj, unsigned int nBuffSize, unsigned int *i);
 
 #endif

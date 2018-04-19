@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
     if (bytecode == NULL) {
         fatal_error("Could not allocate memory for neon bytecode.");
     }
-    size_t bytes_read = fread(bytecode, 1, nSize, fp);
+    unsigned int bytes_read = (unsigned int)fread(bytecode, 1, nSize, fp);
 
     bytecode_loadBytecode(pModule, bytecode, bytes_read);
 
@@ -280,19 +280,7 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
 
 static unsigned int exec_getOperand(TExecutor *self)
 {
-    unsigned int r = 0;
-    while (self->ip < self->object->codelen) {
-        unsigned int x = self->object->code[self->ip];
-        self->ip++;
-        if (r & ~(UINT_MAX >> 7)) {
-            fatal_error("Integer value exceeds maximum (%u)", UINT_MAX);
-        }
-        r = (r << 7) | (x & 0x7f);
-        if ((x & 0x80) == 0) {
-            break;
-        }
-    }
-    return r;
+    return get_vint(self->object->code, self->object->codelen, &self->ip);
 }
 
 void exec_ENTER(TExecutor *self)
@@ -1027,7 +1015,7 @@ void exec_CONSD(TExecutor *self)
 
 void exec_EXCEPT(TExecutor *self)
 {
-    const size_t start_ip = self->ip;
+    const unsigned int start_ip = self->ip;
     self->ip++;
     unsigned int val = exec_getOperand(self);
     self->ip = start_ip;

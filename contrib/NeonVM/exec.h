@@ -12,10 +12,10 @@ typedef struct tagTModule {
 
 typedef struct tagTExecutor {
     struct tagTBytecode *object;
-    uint32_t ip;
+    unsigned int ip;
     struct tagTStack *stack;
     /*struct tagTStack *callstack; */
-    uint32_t callstack[300];
+    unsigned int callstack[300];
     int32_t callstacktop;
     int32_t param_recursion_limit;
     struct tagTCell *globals;
