@@ -282,6 +282,7 @@ else:
 env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc", "src/enums.inc", "src/exceptions.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
 
 jvm_classes = env.Java("jvm", "jvm")
+jnex_classes = env.Java("exec/jnex/src", "exec/jnex/src")
 
 neonc = env.Program("bin/neonc", [
     "src/analyzer.cpp",
@@ -545,7 +546,8 @@ if use_node:
     tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(x.path for x in test_sources))
 tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(x.path for x in test_sources))
 tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
-#tests_py = env.Command("tests_py", [neonc, "scripts/run_test.py", "scripts/run_py.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_py.py\" " + " ".join(x.path for x in test_sources))
+tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "scripts/run_pynex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_pynex.py\" " + " ".join(x.path for x in test_sources))
+tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "scripts/run_jnex.py", jnex_classes, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jnex.py\" " + " ".join(x.path for x in test_sources))
 tests_cx = env.Command("tests_cx", [neonc, neoncx, "scripts/run_test.py", "scripts/run_c.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_c.py\" " + " ".join(x.path for x in test_sources))
 env.Depends(tests_jvm, jvm_classes)
 testenv = env.Clone()

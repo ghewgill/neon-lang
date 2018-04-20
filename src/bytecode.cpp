@@ -32,7 +32,7 @@ void Bytecode::put_vint(std::vector<unsigned char> &obj, unsigned int x, size_t 
     std::copy(r.begin(), r.end(), std::back_inserter(obj));
 }
 
-void Bytecode::put_vint(std::vector<unsigned char> &obj, size_t x)
+void Bytecode::put_vint_size(std::vector<unsigned char> &obj, size_t x)
 {
     put_vint(obj, static_cast<unsigned int>(x));
 }
@@ -250,60 +250,60 @@ Bytecode::Bytes Bytecode::getBytes() const
         objret.push_back(source_hash[i]);
     }
 
-    put_vint(objret, global_size);
+    put_vint_size(objret, global_size);
 
     std::vector<unsigned char> strtable_flat;
     for (auto s: strtable) {
-        put_vint(strtable_flat, s.length());
+        put_vint_size(strtable_flat, s.length());
         std::copy(s.begin(), s.end(), std::back_inserter(strtable_flat));
     }
-    put_vint(objret, strtable_flat.size());
+    put_vint_size(objret, strtable_flat.size());
     std::copy(strtable_flat.begin(), strtable_flat.end(), std::back_inserter(objret));
 
-    put_vint(objret, export_types.size());
+    put_vint_size(objret, export_types.size());
     for (auto t: export_types) {
         put_vint(objret, t.name);
         put_vint(objret, t.descriptor);
     }
 
-    put_vint(objret, export_constants.size());
+    put_vint_size(objret, export_constants.size());
     for (auto c: export_constants) {
         put_vint(objret, c.name);
         put_vint(objret, c.type);
-        put_vint(objret, c.value.size());
+        put_vint_size(objret, c.value.size());
         std::copy(c.value.begin(), c.value.end(), std::back_inserter(objret));
     }
 
-    put_vint(objret, export_variables.size());
+    put_vint_size(objret, export_variables.size());
     for (auto v: export_variables) {
         put_vint(objret, v.name);
         put_vint(objret, v.type);
         put_vint(objret, v.index);
     }
 
-    put_vint(objret, export_functions.size());
+    put_vint_size(objret, export_functions.size());
     for (auto f: export_functions) {
         put_vint(objret, f.name);
         put_vint(objret, f.descriptor);
         put_vint(objret, f.entry);
     }
 
-    put_vint(objret, export_exceptions.size());
+    put_vint_size(objret, export_exceptions.size());
     for (auto e: export_exceptions) {
         put_vint(objret, e.name);
     }
 
-    put_vint(objret, export_interfaces.size());
+    put_vint_size(objret, export_interfaces.size());
     for (auto i: export_interfaces) {
         put_vint(objret, i.name);
-        put_vint(objret, i.method_descriptors.size());
+        put_vint_size(objret, i.method_descriptors.size());
         for (auto m: i.method_descriptors) {
             put_vint(objret, m.first);
             put_vint(objret, m.second);
         }
     }
 
-    put_vint(objret, imports.size());
+    put_vint_size(objret, imports.size());
     for (auto i: imports) {
         put_vint(objret, i.first);
         assert(i.second.length() == 32);
@@ -312,13 +312,13 @@ Bytecode::Bytes Bytecode::getBytes() const
         }
     }
 
-    put_vint(objret, functions.size());
+    put_vint_size(objret, functions.size());
     for (auto f: functions) {
         put_vint(objret, f.name);
         put_vint(objret, f.entry);
     }
 
-    put_vint(objret, exceptions.size());
+    put_vint_size(objret, exceptions.size());
     for (auto e: exceptions) {
         put_vint(objret, e.start);
         put_vint(objret, e.end);
@@ -326,12 +326,12 @@ Bytecode::Bytes Bytecode::getBytes() const
         put_vint(objret, e.handler);
     }
 
-    put_vint(objret, classes.size());
+    put_vint_size(objret, classes.size());
     for (auto c: classes) {
         put_vint(objret, c.name);
-        put_vint(objret, c.interfaces.size());
+        put_vint_size(objret, c.interfaces.size());
         for (auto i: c.interfaces) {
-            put_vint(objret, i.size());
+            put_vint_size(objret, i.size());
             for (auto m: i) {
                 put_vint(objret, m);
             }
