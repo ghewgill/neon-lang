@@ -420,6 +420,31 @@ neonbind = env.Program("bin/neonbind", [
     "src/support_exec.cpp",
 ])
 
+envcnex = env.Clone()
+if sys.platform == "win32":
+    envcnex.Append(CFLAGS=[
+        "/W4",
+        "/MDd",
+        "/wd4996", # CRT deprecation warnings
+    ])
+else:
+    envcnex.Append(CFLAGS=[
+        "-std=c99",
+    ])
+
+cnex = envcnex.Program("bin/cnex", [
+    "exec/cnex/cnex.c",
+    "exec/cnex/bytecode.c",
+    "exec/cnex/cell.c",
+    "exec/cnex/global.c",
+    "exec/cnex/framestack.c",
+    "exec/cnex/number.c",
+    "exec/cnex/stack.c",
+    "exec/cnex/nstring.c",
+    "exec/cnex/util.c",
+],
+)
+
 env.Depends("src/number.h", libbid)
 env.Depends("src/exec.cpp", libffi)
 
@@ -521,6 +546,7 @@ tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources
 tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
 tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "scripts/run_pynex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_pynex.py\" " + " ".join(x.path for x in test_sources))
 tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "scripts/run_jnex.py", jnex_classes, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jnex.py\" " + " ".join(x.path for x in test_sources))
+tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "scripts/run_cnex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cnex.py\" " + " ".join(x.path for x in test_sources))
 env.Depends(tests_jvm, jvm_classes)
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
