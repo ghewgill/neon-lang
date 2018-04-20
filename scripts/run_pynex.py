@@ -7,7 +7,6 @@ ExcludeTests = [
     "t/bigint-test.neon",           # module
     "t/binary-test.neon",           # module
     "t/cal-test.neon",              # os.system
-    "t/case-overlap.neon",          # JUMPTBL
     "t/cformat-test.neon",          # module
     "t/class-empty.neon",           # class
     "t/cmdline.neon",               # module
@@ -45,10 +44,9 @@ ExcludeTests = [
     "t/interface-parameter-import.neon", # class
     "t/interface-parameter-import2.neon", # class
     "t/interface.neon",             # class
-    "t/intrinsic.neon",             # JUMPTBL
+    "t/intrinsic.neon",             # format
     "t/io-test.neon",               # module
     "t/json-test.neon",             # module
-    "t/lexical-scope.neon",         # JUMPTBL
     "t/math-test.neon",             # precision
     "t/mkdir.neon",                 # file
     "t/mmap-test.neon",             # mmap
@@ -98,7 +96,6 @@ ExcludeTests = [
     "t/struct-test.neon",           # module
     "t/time-stopwatch.neon",        # module
     "t/unicode-char.neon",          # utf8
-    "t/uninitialised-case.neon",    # JUMPTBL
     "t/valid-pointer.neon",         # class
     "t/variant-test.neon",          # module
     "t/while-valid.neon",           # class

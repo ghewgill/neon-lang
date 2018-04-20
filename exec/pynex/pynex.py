@@ -718,7 +718,17 @@ class Executor:
         assert False
 
     def JUMPTBL(self):
-        assert False
+        self.ip += 1
+        val, self.ip = get_vint(self.object.code, self.ip)
+        n = self.stack.pop().value
+        if is_integer(n):
+            i = int(n)
+            if 0 <= i < val:
+                self.ip += 6 * i
+            else:
+                self.ip += 6 * val
+        else:
+            self.ip += 6 * val
 
     def CALLX(self):
         assert False

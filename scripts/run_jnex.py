@@ -16,7 +16,6 @@ ExcludeTests = [
     "t/binary-test.neon",           # binary
     "t/bytes-literal.neon",         # array
     "t/cal-test.neon",              # import
-    "t/case-overlap.neon",          # JUMPTBL
     "t/cformat-test.neon",          # import
     "t/class-empty.neon",           # classes
     "t/cmdline.neon",               # PUSHPPG
@@ -62,11 +61,10 @@ ExcludeTests = [
     "t/interface-parameter-import.neon",    # import
     "t/interface-parameter-import2.neon",   # types
     "t/interface.neon",             # classes
-    "t/intrinsic.neon",             # JUMPTBL
+    "t/intrinsic.neon",             # format
     "t/io-test.neon",               # import
     "t/json-test.neon",             # import
     "t/lexer-unicode.neon",         # INA
-    "t/lexical-scope.neon",         # JUMPTBL
     "t/literal-array.neon",         # import
     "t/math-test.neon",             # math
     "t/mkdir.neon",                 # file
@@ -132,7 +130,6 @@ ExcludeTests = [
     "t/time-test.neon",             # import
     "t/unicode-char.neon",          # UTF-8
     "t/unicode-length.neon",        # UTF-8
-    "t/uninitialised-case.neon",    # JUMPTBL
     "t/valid-pointer.neon",         # classes
     "t/variant-test.neon",          # variant module
     "t/while-valid.neon",           # classes

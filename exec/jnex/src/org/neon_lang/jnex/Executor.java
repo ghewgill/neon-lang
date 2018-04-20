@@ -158,7 +158,7 @@ class Executor {
                 case JNASSERT: doJNASSERT(); break;
                 case RESETC: doRESETC(); break;
                 //case PUSHPEG
-                //case JUMPTBL
+                case JUMPTBL: doJUMPTBL(); break;
                 //case CALLX
                 //case SWAP
                 //case DROPN
@@ -777,6 +777,23 @@ class Executor {
         ip++;
         Cell addr = stack.removeFirst().getAddress();
         addr.reset();
+    }
+
+    private void doJUMPTBL()
+    {
+        ip++;
+        int val = getVint();
+        BigDecimal n = stack.removeFirst().getNumber();
+        try {
+            int i = n.intValueExact();
+            if (i >= 0 && i < val) {
+                ip += 6 * i;
+            } else {
+                ip += 6 * val;
+            }
+        } catch (ArithmeticException x) {
+            ip += 6 * val;
+        }
     }
 
     private void raiseLiteral(String name)
