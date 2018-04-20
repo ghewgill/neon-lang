@@ -342,6 +342,7 @@ void exec_PUSHPG(TExecutor *self)
 /* push pointer to predefined global */
 void exec_PUSHPPG(TExecutor *self)
 {
+    self->ip++;
     unsigned int addr = exec_getOperand(self);
     /* assert(addr < self->object->global_variables->size); */
     push(self->stack, cell_fromAddress(cell_newCell()));
@@ -1103,7 +1104,7 @@ void exec_PUSHCI()
 void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
-        if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
+        //if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(self); break;
             case LEAVE:   exec_LEAVE(self); break;

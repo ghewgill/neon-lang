@@ -20,7 +20,7 @@ unsigned int get_vint(const uint8_t *pobj, unsigned int nBuffSize, unsigned int 
 {
     unsigned int r = 0;
     while (*i < nBuffSize) {
-        unsigned int x = pobj[*i];
+        unsigned char x = pobj[*i];
         (*i)++;
         if (r & ~(UINT_MAX >> 7)) {
             fatal_error("Integer value exceeds maximum (%u)", UINT_MAX);
