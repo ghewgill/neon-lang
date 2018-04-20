@@ -434,16 +434,16 @@ else:
         "-std=c99",
     ])
 
-neoncx = envcnex.Program("contrib/msvc/Debug/neonvm", [
-    "contrib/NeonVM/neonvm.c",
-    "contrib/NeonVM/bytecode.c",
-    "contrib/NeonVM/cell.c",
-    "contrib/NeonVM/global.c",
-    "contrib/NeonVM/framestack.c",
-    "contrib/NeonVM/number.c",
-    "contrib/NeonVM/stack.c",
-    "contrib/NeonVM/nstring.c",
-    "contrib/NeonVM/util.c",
+neoncx = envcnex.Program("bin/cnex", [
+    "exec/cnex/cnex.c",
+    "exec/cnex/bytecode.c",
+    "exec/cnex/cell.c",
+    "exec/cnex/global.c",
+    "exec/cnex/framestack.c",
+    "exec/cnex/number.c",
+    "exec/cnex/stack.c",
+    "exec/cnex/nstring.c",
+    "exec/cnex/util.c",
 ],
 )
 
@@ -548,7 +548,7 @@ tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources
 tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
 tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "scripts/run_pynex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_pynex.py\" " + " ".join(x.path for x in test_sources))
 tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "scripts/run_jnex.py", jnex_classes, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jnex.py\" " + " ".join(x.path for x in test_sources))
-tests_cx = env.Command("tests_cx", [neonc, neoncx, "scripts/run_test.py", "scripts/run_c.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_c.py\" " + " ".join(x.path for x in test_sources))
+tests_cnex = env.Command("tests_cnex", [neonc, neoncx, "scripts/run_test.py", "scripts/run_cnex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cnex.py\" " + " ".join(x.path for x in test_sources))
 env.Depends(tests_jvm, jvm_classes)
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
