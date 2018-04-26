@@ -122,6 +122,21 @@ add_custom_target(jnex ALL
     DEPENDS ${JNEX_CLASSES}
 )
 
+add_executable(cnex
+    exec/cnex/bytecode.c
+    exec/cnex/cell.c
+    exec/cnex/cnex.c
+    exec/cnex/framestack.c
+    exec/cnex/global.c
+    exec/cnex/nstring.c
+    exec/cnex/number.c
+    exec/cnex/stack.c
+    exec/cnex/util.c
+)
+target_link_libraries(cnex
+    bid
+)
+
 add_library(common OBJECT
     src/bytecode.cpp
     src/format.cpp
@@ -518,6 +533,10 @@ foreach (TEST ${TESTS})
     add_test(
         NAME "jnex:${T}"
         COMMAND python scripts/run_test.py --runner "python scripts/run_jnex.py" t/${T}
+    )
+    add_test(
+        NAME "cnex:${T}"
+        COMMAND python scripts/run_test.py --runner "python scripts/run_cnex.py" t/${T}
     )
 endforeach ()
 
