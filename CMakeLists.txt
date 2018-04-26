@@ -133,6 +133,9 @@ add_executable(cnex
     exec/cnex/stack.c
     exec/cnex/util.c
 )
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99")
+endif ()
 target_link_libraries(cnex
     bid
 )
