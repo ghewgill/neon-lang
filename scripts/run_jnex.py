@@ -11,13 +11,11 @@ ExcludeTests = [
     "t/array2d.neon",               # copy semantics
     "t/assert-enum.neon",           # import
     "t/assert.neon",                # import
-    "t/assignment.neon",            # classes
     "t/bigint-test.neon",           # import
     "t/binary-test.neon",           # binary
     "t/bytes-literal.neon",         # array
     "t/cal-test.neon",              # import
     "t/cformat-test.neon",          # import
-    "t/class-empty.neon",           # classes
     "t/cmdline.neon",               # PUSHPPG
     "t/complex-test.neon",          # import
     "t/concat-bytes.neon",          # import
@@ -27,7 +25,7 @@ ExcludeTests = [
     "t/decimal.neon",               # number format
     "t/dictionary-sorted.neon",     # import
     "t/encoding-base64.neon",       # import
-    "t/equality.neon",              # classes
+    "t/equality.neon",              # PUSHM
     "t/export-function-indent.neon",# function_export
     "t/export-inline.neon",         # types
     "t/export.neon",                # types
@@ -60,7 +58,7 @@ ExcludeTests = [
     "t/interface-parameter-export2.neon",   # function_export
     "t/interface-parameter-import.neon",    # import
     "t/interface-parameter-import2.neon",   # types
-    "t/interface.neon",             # classes
+    "t/interface.neon",             # SWAP
     "t/intrinsic.neon",             # format
     "t/io-test.neon",               # import
     "t/json-test.neon",             # import
@@ -85,7 +83,6 @@ ExcludeTests = [
     "t/multiarray-test.neon",       # import
     "t/net-test.neon",              # import
     "t/new-init-module.neon",       # module
-    "t/new-init.neon",              # classes
     "t/number-ceil.neon",           # math
     "t/os-test.neon",               # os
     "t/outer-parameter.neon",       # PUSHPOL
@@ -94,17 +91,6 @@ ExcludeTests = [
     "t/outer2.neon",                # PUSHPOL
     "t/parameter-out-array.neon",   # array__splice
     "t/parameter-out-string.neon",  # string__splice
-    "t/pointer-method.neon",        # classes
-    "t/pointer-nil.neon",           # classes
-    "t/pointer-valid.neon",         # classes
-    "t/pointer.neon",               # classes
-    "t/pointer2.neon",              # classes
-    "t/pointer3.neon",              # classes
-    "t/pointer4.neon",              # classes
-    "t/pointer5.neon",              # classes
-    "t/pointer6.neon",              # classes
-    "t/pointer7.neon",              # classes
-    "t/pointer8.neon",              # classes
     "t/process-test.neon",          # process
     "t/recursion-limit.neon",       # runtime
     "t/repl_import.neon",           # random
@@ -130,9 +116,7 @@ ExcludeTests = [
     "t/time-test.neon",             # import
     "t/unicode-char.neon",          # UTF-8
     "t/unicode-length.neon",        # UTF-8
-    "t/valid-pointer.neon",         # classes
     "t/variant-test.neon",          # variant module
-    "t/while-valid.neon",           # classes
     "t/win32-test.neon",            # CALLMF
 ]
 

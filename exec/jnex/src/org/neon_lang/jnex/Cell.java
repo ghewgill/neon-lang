@@ -52,6 +52,12 @@ class Cell {
         dictionary = d;
     }
 
+    Cell(Object[] g)
+    {
+        type = Type.GENERIC;
+        generic = g;
+    }
+
     public Cell copy()
     {
         Cell r = new Cell();
@@ -63,6 +69,7 @@ class Cell {
         r.bytes = bytes;
         r.array = array; // TODO copy
         r.dictionary = dictionary; // TODO copy
+        r.generic = generic;
         return r;
     }
 
@@ -111,6 +118,12 @@ class Cell {
     {
         assert type == Type.DICTIONARY : type;
         return dictionary;
+    }
+
+    public Object[] getGeneric()
+    {
+        assert type == Type.GENERIC : type;
+        return generic;
     }
 
     public void set(Cell a)
@@ -227,6 +240,20 @@ class Cell {
                 r.append("}");
                 break;
             }
+            case GENERIC: {
+                r.append("generic:[");
+                boolean first = true;
+                for (Object a: generic) {
+                    if (first) {
+                        first = false;
+                    } else {
+                        r.append(",");
+                    }
+                    r.append(a.toString());
+                }
+                r.append("]");
+                break;
+            }
         }
         r.append(")");
         return r.toString();
@@ -241,6 +268,7 @@ class Cell {
         BYTES,
         ARRAY,
         DICTIONARY,
+        GENERIC,
     }
 
     private Type type;
@@ -251,4 +279,5 @@ class Cell {
     private byte[] bytes;
     private List<Cell> array;
     private Map<String, Cell> dictionary;
+    private Object[] generic;
 }

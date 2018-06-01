@@ -13,6 +13,11 @@ class Bytecode {
         int handler;
     }
 
+    class ClassInfo {
+        int name;
+        int[][] interfaces;
+    }
+
     Bytecode(DataInput in)
     {
         int i;
@@ -77,7 +82,30 @@ class Bytecode {
             }
 
             int classsize = readVint(in);
-            assert classsize == 0 : "classes";
+            classes = new ClassInfo[classsize];
+            i = 0;
+            while (classsize > 0) {
+                ClassInfo ci = new ClassInfo();
+                ci.name = readVint(in);
+                int interfacecount = readVint(in);
+                ci.interfaces = new int[interfacecount][];
+                int ii = 0;
+                while (interfacecount > 0) {
+                    int methodcount = readVint(in);
+                    ci.interfaces[ii]= new int[methodcount];
+                    int mi = 0;
+                    while (methodcount > 0) {
+                        ci.interfaces[ii][mi] = readVint(in);
+                        mi++;
+                        methodcount--;
+                    }
+                    ii++;
+                    interfacecount--;
+                }
+                classes[i] = ci;
+                i++;
+                classsize--;
+            }
 
             code = new ArrayList<Byte>();
             while (true) {
@@ -135,5 +163,6 @@ class Bytecode {
     byte[][] bytetable;
     String[] strtable;
     ExceptionInfo[] exceptions;
+    ClassInfo[] classes;
     ArrayList<Byte> code;
 }

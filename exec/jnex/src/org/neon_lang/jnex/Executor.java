@@ -123,8 +123,8 @@ class Executor {
                 //case NEA
                 //case EQD
                 //case NED
-                //case EQP
-                //case NEP
+                case EQP: doEQP(); break;
+                case NEP: doNEP(); break;
                 //case ANDB
                 //case ORB
                 case NOTB: doNOTB(); break;
@@ -153,7 +153,7 @@ class Executor {
                 case CONSA: doCONSA(); break;
                 case CONSD: doCONSD(); break;
                 case EXCEPT: doEXCEPT(); break;
-                //case ALLOC
+                case ALLOC: doALLOC(); break;
                 case PUSHNIL: doPUSHNIL(); break;
                 case JNASSERT: doJNASSERT(); break;
                 case RESETC: doRESETC(); break;
@@ -164,7 +164,7 @@ class Executor {
                 //case DROPN
                 //case PUSHM
                 //case CALLV
-                //case PUSHCI
+                case PUSHCI: doPUSHCI(); break;
                 default:
                     System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
                     System.exit(1);
@@ -500,6 +500,22 @@ class Executor {
         stack.addFirst(new Cell(a.compareTo(b) > 0));
     }
 
+    private void doEQP()
+    {
+        ip++;
+        Cell b = stack.removeFirst().getAddress();
+        Cell a = stack.removeFirst().getAddress();
+        stack.addFirst(new Cell(a == b));
+    }
+
+    private void doNEP()
+    {
+        ip++;
+        Cell b = stack.removeFirst().getAddress();
+        Cell a = stack.removeFirst().getAddress();
+        stack.addFirst(new Cell(a != b));
+    }
+
     private void doNOTB()
     {
         ip++;
@@ -757,6 +773,13 @@ class Executor {
         raiseLiteral(object.strtable[val], ei);
     }
 
+    private void doALLOC()
+    {
+        ip++;
+        int val = getVint();
+        stack.addFirst(new Cell(new Cell(new ArrayList<Cell>(val))));
+    }
+
     private void doPUSHNIL()
     {
         ip++;
@@ -794,6 +817,26 @@ class Executor {
         } catch (ArithmeticException x) {
             ip += 6 * val;
         }
+    }
+
+    private void doPUSHCI()
+    {
+        ip++;
+        int val = getVint();
+        String name = object.strtable[val];
+        if (!name.contains(".")) {
+            for (Bytecode.ClassInfo c: object.classes) {
+                if (c.name == val) {
+                    Cell ci = new Cell(new Object[] {null, c});
+                    stack.addFirst(ci);
+                    return;
+                }
+            }
+        } else {
+            // TODO
+        }
+        System.err.println("neon: unknown class name " + name);
+        System.exit(1);
     }
 
     private void raiseLiteral(String name)
