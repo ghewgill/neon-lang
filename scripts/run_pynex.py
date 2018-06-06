@@ -8,7 +8,7 @@ ExcludeTests = [
     "t/binary-test.neon",           # module
     "t/cal-test.neon",              # os.system
     "t/cformat-test.neon",          # module
-    "t/class-empty.neon",           # class
+    "t/class-empty.neon",           # pointer
     "t/cmdline.neon",               # module
     "t/complex-test.neon",          # module
     "t/datetime-test.neon",         # module
@@ -17,7 +17,7 @@ ExcludeTests = [
     "t/decimal.neon",               # arithmetic
     "t/dictionary-sorted.neon",     # module
     "t/encoding-base64.neon",       # module
-    "t/equality.neon",              # class
+    "t/equality.neon",              # PUSHM
     "t/export-inline.neon",         # export
     "t/export-recursive.neon",      # export
     "t/export.neon",                # export
@@ -33,17 +33,17 @@ ExcludeTests = [
     "t/fork.neon",                  # posix
     "t/function-pointer-nowhere.neon", # functionpointer
     "t/function-pointer.neon",      # functionpointer
-    "t/gc-array.neon",              # class
-    "t/gc-long-chain.neon",         # class
-    "t/gc1.neon",                   # class
-    "t/gc2.neon",                   # class
-    "t/gc3.neon",                   # class
-    "t/import.neon",                # class
+    "t/gc-array.neon",              # runtime
+    "t/gc-long-chain.neon",         # runtime
+    "t/gc1.neon",                   # runtime
+    "t/gc2.neon",                   # runtime
+    "t/gc3.neon",                   # runtime
+    "t/import.neon",                # module
     "t/interface-parameter-export.neon", # export
     "t/interface-parameter-export2.neon", # export
-    "t/interface-parameter-import.neon", # class
-    "t/interface-parameter-import2.neon", # class
-    "t/interface.neon",             # class
+    "t/interface-parameter-import.neon", # module
+    "t/interface-parameter-import2.neon", # module
+    "t/interface.neon",             # SWAP
     "t/intrinsic.neon",             # format
     "t/io-test.neon",               # module
     "t/json-test.neon",             # module
@@ -57,8 +57,8 @@ ExcludeTests = [
     "t/module2.neon",               # module
     "t/multiarray-test.neon",       # module
     "t/net-test.neon",              # net
-    "t/new-init-module.neon",       # class
-    "t/new-init.neon",              # class
+    "t/new-init-module.neon",       # module
+    "t/new-init.neon",              # io
     "t/number-ceil.neon",           # precision
     "t/os-test.neon",               # os
     "t/outer-parameter.neon",       # PUSHPOL
@@ -66,18 +66,18 @@ ExcludeTests = [
     "t/outer.neon",                 # PUSHPOL
     "t/outer2.neon",                # PUSHPOL
     "t/parameters.neon",            # INOUT
-    "t/pointer-method.neon",        # class
-    "t/pointer-nil.neon",           # class
-    "t/pointer-valid.neon",         # class
-    "t/pointer.neon",               # class
-    "t/pointer1.neon",              # class
-    "t/pointer2.neon",              # class
-    "t/pointer3.neon",              # class
-    "t/pointer4.neon",              # class
-    "t/pointer5.neon",              # class
-    "t/pointer6.neon",              # class
-    "t/pointer7.neon",              # class
-    "t/pointer8.neon",              # class
+    "t/pointer-method.neon",        # pointer
+    "t/pointer-nil.neon",           # pointer
+    "t/pointer-valid.neon",         # pointer
+    "t/pointer.neon",               # pointer
+    "t/pointer1.neon",              # pointer
+    "t/pointer2.neon",              # pointer
+    "t/pointer3.neon",              # pointer
+    "t/pointer4.neon",              # pointer
+    "t/pointer5.neon",              # pointer
+    "t/pointer6.neon",              # pointer
+    "t/pointer7.neon",              # pointer
+    "t/pointer8.neon",              # pointer
     "t/process-test.neon",          # process
     "t/recursion-limit.neon",       # runtime
     "t/repl_import.neon",           # random
@@ -96,9 +96,9 @@ ExcludeTests = [
     "t/struct-test.neon",           # module
     "t/time-stopwatch.neon",        # module
     "t/unicode-char.neon",          # utf8
-    "t/valid-pointer.neon",         # class
+    "t/valid-pointer.neon",         # pointer
     "t/variant-test.neon",          # module
-    "t/while-valid.neon",           # class
+    "t/while-valid.neon",           # pointer
     "t/win32-test.neon",            # module
 ]
 

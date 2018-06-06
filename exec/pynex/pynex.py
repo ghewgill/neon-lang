@@ -44,6 +44,11 @@ class Import:
         self.name = 0
         self.hash = None
 
+class ClassInfo:
+    def __init__(self):
+        self.name = 0
+        self.interfaces = None
+
 class Bytecode:
     def __init__(self, bytecode):
         i = 0
@@ -139,8 +144,23 @@ class Bytecode:
             exceptionsize -= 1
 
         classsize, i = get_vint(bytecode, i)
+        self.classinfo = []
         while classsize > 0:
-            assert False, classsize
+            c = ClassInfo()
+            c.name, i = get_vint(bytecode, i)
+            interfacecount, i = get_vint(bytecode, i)
+            c.interfaces = []
+            while interfacecount > 0:
+                methodcount, i = get_vint(bytecode, i)
+                methods = []
+                while methodcount > 0:
+                    method, i = get_vint(bytecode, i)
+                    methods.append(method)
+                    methodcount -= 1
+                c.interfaces.append(methods)
+                interfacecount -= 1
+            self.classinfo.append(c)
+            classsize -= 1
 
         self.code = bytecode[i:]
 
@@ -154,13 +174,17 @@ class Bytecode:
             i += strlen
         return r
 
+class Generic:
+    def __init__(self, a):
+        self.a = a
+
 class Value:
     def __init__(self, value):
         self.value = value
     def __repr__(self):
-        return "Value({})".format(repr(self.value))
+        return "Value({}:{})".format(id(self.value), repr(self.value))
     def copy(self):
-        if self.value is None or isinstance(self.value, (bool, str, unicode, decimal.Decimal)):
+        if self.value is None or isinstance(self.value, (bool, str, unicode, decimal.Decimal, Generic)):
             return Value(self.value)
         elif isinstance(self.value, list):
             return Value([x.copy() for x in self.value])
@@ -187,7 +211,7 @@ class Executor:
     def run(self):
         self.callstack.append((None, len(self.object.code)))
         while self.ip < len(self.object.code):
-            #print("ip={}".format(self.ip)); print(repr(self.stack))
+            #print(repr(list(reversed(self.stack)))); print("ip={} {}".format(self.ip, str(Dispatch[ord(self.object.code[self.ip])]).split(".")[-1]))
             Dispatch[ord(self.object.code[self.ip])](self)
 
     def ENTER(self):
@@ -503,7 +527,10 @@ class Executor:
         assert False
 
     def NEP(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a != b))
 
     def ANDB(self):
         assert False
@@ -697,7 +724,12 @@ class Executor:
         self.raise_literal(self.object.strtable[val], (info, code))
 
     def ALLOC(self):
-        assert False
+        self.ip += 1
+        val, self.ip = get_vint(self.object.code, self.ip)
+        a = []
+        for _ in range(val):
+            a.append(Value(None))
+        self.stack.append(Value(a))
 
     def PUSHNIL(self):
         self.ip += 1
@@ -746,7 +778,18 @@ class Executor:
         assert False
 
     def PUSHCI(self):
-        assert False
+        self.ip += 1
+        val, self.ip = get_vint(self.object.code, self.ip)
+        name = self.object.strtable[val]
+        if "." not in name:
+            for c in self.object.classinfo:
+                if c.name == val:
+                    self.stack.append(Value(Generic([None, c])))
+                    return
+        else:
+            pass # TODO
+        print("neon: unknown class name {}".format(name), file=sys.stderr)
+        sys.exit(1)
 
     def raise_literal(self, name, info):
         exceptionvar = [
