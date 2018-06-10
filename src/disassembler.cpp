@@ -41,6 +41,7 @@ private:
     void disasm_LOADA();
     void disasm_LOADD();
     void disasm_LOADP();
+    void disasm_LOADJ();
     void disasm_STOREB();
     void disasm_STOREN();
     void disasm_STORES();
@@ -48,6 +49,7 @@ private:
     void disasm_STOREA();
     void disasm_STORED();
     void disasm_STOREP();
+    void disasm_STOREJ();
     void disasm_NEGN();
     void disasm_ADDN();
     void disasm_SUBN();
@@ -121,6 +123,8 @@ private:
     void disasm_PUSHM();
     void disasm_CALLV();
     void disasm_PUSHCI();
+    void disasm_CONVJN();
+    void disasm_CONVJS();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -262,6 +266,12 @@ void Disassembler::disasm_LOADP()
     index++;
 }
 
+void Disassembler::disasm_LOADJ()
+{
+    out << "LOADJ\n";
+    index++;
+}
+
 void Disassembler::disasm_STOREB()
 {
     out << "STOREB\n";
@@ -301,6 +311,12 @@ void Disassembler::disasm_STORED()
 void Disassembler::disasm_STOREP()
 {
     out << "STOREP\n";
+    index++;
+}
+
+void Disassembler::disasm_STOREJ()
+{
+    out << "STOREJ\n";
     index++;
 }
 
@@ -764,6 +780,18 @@ void Disassembler::disasm_PUSHCI()
     out << "PUSHCI \"" << obj.strtable[val] << "\"\n";
 }
 
+void Disassembler::disasm_CONVJN()
+{
+    out << "CONVJN\n";
+    index++;
+}
+
+void Disassembler::disasm_CONVJS()
+{
+    out << "CONVJS\n";
+    index++;
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -880,6 +908,7 @@ void Disassembler::disassemble()
             case LOADA:   disasm_LOADA(); break;
             case LOADD:   disasm_LOADD(); break;
             case LOADP:   disasm_LOADP(); break;
+            case LOADJ:   disasm_LOADJ(); break;
             case STOREB:  disasm_STOREB(); break;
             case STOREN:  disasm_STOREN(); break;
             case STORES:  disasm_STORES(); break;
@@ -887,6 +916,7 @@ void Disassembler::disassemble()
             case STOREA:  disasm_STOREA(); break;
             case STORED:  disasm_STORED(); break;
             case STOREP:  disasm_STOREP(); break;
+            case STOREJ:  disasm_STOREJ(); break;
             case NEGN:    disasm_NEGN(); break;
             case ADDN:    disasm_ADDN(); break;
             case SUBN:    disasm_SUBN(); break;
@@ -960,6 +990,8 @@ void Disassembler::disassemble()
             case PUSHM:   disasm_PUSHM(); break;
             case CALLV:   disasm_CALLV(); break;
             case PUSHCI:  disasm_PUSHCI(); break;
+            case CONVJN:  disasm_CONVJN(); break;
+            case CONVJS:  disasm_CONVJS(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";

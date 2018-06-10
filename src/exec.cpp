@@ -298,6 +298,7 @@ public:
     void exec_LOADA();
     void exec_LOADD();
     void exec_LOADP();
+    void exec_LOADJ();
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
@@ -305,6 +306,7 @@ public:
     void exec_STOREA();
     void exec_STORED();
     void exec_STOREP();
+    void exec_STOREJ();
     void exec_NEGN();
     void exec_ADDN();
     void exec_SUBN();
@@ -378,6 +380,8 @@ public:
     void exec_PUSHM();
     void exec_CALLV();
     void exec_PUSHCI();
+    void exec_CONVJN();
+    void exec_CONVJS();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -859,6 +863,13 @@ void Executor::exec_LOADP()
     stack.push(Cell(addr->address()));
 }
 
+void Executor::exec_LOADJ()
+{
+    ip++;
+    Cell *addr = stack.top().address(); stack.pop();
+    stack.push(Cell(addr->object()));
+}
+
 void Executor::exec_STOREB()
 {
     ip++;
@@ -913,6 +924,13 @@ void Executor::exec_STOREP()
     Cell *addr = stack.top().address(); stack.pop();
     Cell *val = stack.top().address(); stack.pop();
     *addr = Cell(val);
+}
+
+void Executor::exec_STOREJ()
+{
+    ip++;
+    Cell *addr = stack.top().address(); stack.pop();
+    *addr = stack.top(); stack.pop();
 }
 
 void Executor::exec_NEGN()
@@ -1851,6 +1869,20 @@ void Executor::exec_PUSHCI()
     exit(1);
 }
 
+void Executor::exec_CONVJN()
+{
+    ip++;
+    std::shared_ptr<Object> p = stack.top().object(); stack.pop();
+    stack.push(Cell(p->toNumber()));
+}
+
+void Executor::exec_CONVJS()
+{
+    ip++;
+    std::shared_ptr<Object> p = stack.top().object(); stack.pop();
+    stack.push(Cell(p->toString()));
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -1958,6 +1990,7 @@ static void mark(Cell *c)
             case Cell::Type::Number:
             case Cell::Type::String:
             case Cell::Type::Bytes:
+            case Cell::Type::Object:
                 // nothing
                 break;
             case Cell::Type::Address:
@@ -2104,6 +2137,7 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case LOADA:   exec_LOADA(); break;
             case LOADD:   exec_LOADD(); break;
             case LOADP:   exec_LOADP(); break;
+            case LOADJ:   exec_LOADJ(); break;
             case STOREB:  exec_STOREB(); break;
             case STOREN:  exec_STOREN(); break;
             case STORES:  exec_STORES(); break;
@@ -2111,6 +2145,7 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case STOREA:  exec_STOREA(); break;
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(); break;
+            case STOREJ:  exec_STOREJ(); break;
             case NEGN:    exec_NEGN(); break;
             case ADDN:    exec_ADDN(); break;
             case SUBN:    exec_SUBN(); break;
@@ -2184,6 +2219,8 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(); break;
+            case CONVJN:  exec_CONVJN(); break;
+            case CONVJS:  exec_CONVJS(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();
@@ -2228,6 +2265,10 @@ template <> struct default_value_writer<Cell> {
             case Cell::Type::Bytes:
                 writer.write("type", "bytes");
                 writer.write("value", std::string(reinterpret_cast<const char *>(cell.bytes().data()), cell.bytes().size()));
+                break;
+            case Cell::Type::Object:
+                writer.write("type", "object");
+                writer.write("value", std::to_string(reinterpret_cast<intptr_t>(cell.object().get())));
                 break;
             case Cell::Type::Array: {
                 writer.write("type", "array");

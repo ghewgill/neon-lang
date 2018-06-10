@@ -442,6 +442,13 @@ void ast::TypeNumber::generate_call(Emitter &) const
     internal_error("TypeNumber");
 }
 
+void ast::TypeNumber::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CONVJN);
+    }
+}
+
 void ast::TypeString::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADS);
@@ -457,6 +464,13 @@ void ast::TypeString::generate_call(Emitter &) const
     internal_error("TypeString");
 }
 
+void ast::TypeString::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CONVJS);
+    }
+}
+
 void ast::TypeBytes::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADT);
@@ -470,6 +484,30 @@ void ast::TypeBytes::generate_store(Emitter &emitter) const
 void ast::TypeBytes::generate_call(Emitter &) const
 {
     internal_error("TypeBytes");
+}
+
+void ast::TypeObject::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADJ);
+}
+
+void ast::TypeObject::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREJ);
+}
+
+void ast::TypeObject::generate_call(Emitter &) const
+{
+    internal_error(__PRETTY_FUNCTION__);
+}
+
+void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_NUMBER) {
+        emitter.emit(CALLP, emitter.str("makeObjectNumber"));
+    } else if (from == TYPE_STRING) {
+        emitter.emit(CALLP, emitter.str("makeObjectString"));
+    }
 }
 
 void ast::TypeFunction::predeclare(Emitter &emitter) const
@@ -2328,6 +2366,14 @@ void ast::TypeBytes::debuginfo(Emitter &, minijson::object_writer &out) const
     auto node = out.nested_object("type");
     node.write("display", "Bytes");
     node.write("representation", "string");
+    node.close();
+}
+
+void ast::TypeObject::debuginfo(Emitter &, minijson::object_writer &out) const
+{
+    auto node = out.nested_object("type");
+    node.write("display", "Object");
+    node.write("representation", "object");
     node.close();
 }
 

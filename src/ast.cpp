@@ -17,6 +17,7 @@ TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber(Token());
 TypeString *TYPE_STRING = new TypeString();
 TypeBytes *TYPE_BYTES = new TypeBytes();
+TypeObject *TYPE_OBJECT = new TypeObject();
 TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(Token(), TYPE_NUMBER);
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
 TypeDictionary *TYPE_DICTIONARY_STRING = new TypeDictionary(Token(), TYPE_STRING);
@@ -57,6 +58,11 @@ const Expression *TypeNumber::make_default_value() const
     return new ConstantNumberExpression(number_from_uint32(0));
 }
 
+bool TypeNumber::is_assignment_compatible(const Type *rhs) const
+{
+    return this == rhs || rhs == TYPE_OBJECT;
+}
+
 std::string TypeNumber::serialize(const Expression *value) const
 {
     Number x = value->eval_number();
@@ -71,6 +77,11 @@ const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, in
 const Expression *TypeString::make_default_value() const
 {
     return new ConstantStringExpression("");
+}
+
+bool TypeString::is_assignment_compatible(const Type *rhs) const
+{
+    return this == rhs || rhs == TYPE_OBJECT;
 }
 
 std::string TypeString::serialize(const std::string &value)
@@ -117,6 +128,21 @@ std::string TypeBytes::serialize(const Expression *value) const
 const Expression *TypeBytes::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
     return new ConstantBytesExpression("Imported value", TypeString::deserialize_string(value, i));
+}
+
+const Expression *TypeObject::make_default_value() const
+{
+    return nullptr; // TODO
+}
+
+std::string TypeObject::serialize(const Expression *) const
+{
+    return "";
+}
+
+const Expression *TypeObject::deserialize_value(const Bytecode::Bytes &, int &) const
+{
+    return nullptr; // TODO
 }
 
 TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
@@ -1071,6 +1097,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
     scope->addName(Token(IDENTIFIER, "Number"), "Number", TYPE_NUMBER);
     scope->addName(Token(IDENTIFIER, "String"), "String", TYPE_STRING);
     scope->addName(Token(IDENTIFIER, "Bytes"), "Bytes", TYPE_BYTES);
+    scope->addName(Token(IDENTIFIER, "Object"), "Object", TYPE_OBJECT);
 
     {
         std::vector<const ParameterType *> params;

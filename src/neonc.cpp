@@ -20,9 +20,9 @@ struct {
     std::string name;
     CompileProc proc;
 } Targets[] = {
-    {"cpp", compile_cpp},
-    {"js", compile_js},
-    {"jvm", compile_jvm},
+//    {"cpp", compile_cpp},
+//    {"js", compile_js},
+//    {"jvm", compile_jvm},
 };
 
 int main(int argc, char *argv[])

@@ -32,6 +32,7 @@ public:
     virtual void visit(const class TypeNumber *node) = 0;
     virtual void visit(const class TypeString *node) = 0;
     virtual void visit(const class TypeBytes *node) = 0;
+    virtual void visit(const class TypeObject *node) = 0;
     virtual void visit(const class TypeFunction *node) = 0;
     virtual void visit(const class TypeArray *node) = 0;
     virtual void visit(const class TypeDictionary *node) = 0;
@@ -387,9 +388,11 @@ public:
     TypeNumber(const Token &declaration, const std::string &name): Type(declaration, name) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "N"; }
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
@@ -405,9 +408,11 @@ public:
     TypeString(): Type(Token(), "String") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "S"; }
     static std::string serialize(const std::string &value);
     virtual std::string serialize(const Expression *value) const override;
@@ -438,6 +443,27 @@ public:
 };
 
 extern TypeBytes *TYPE_BYTES;
+
+class TypeObject: public Type {
+public:
+    TypeObject(): Type(Token(), "Object") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *) const override { return true; }
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
+    virtual std::string get_type_descriptor(Emitter &) const override { return "O"; }
+    virtual std::string serialize(const Expression *value) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
+
+    virtual std::string text() const override { return "TypeOjbect"; }
+};
+
+extern TypeObject *TYPE_OBJECT;
 
 class ParameterType {
 public:

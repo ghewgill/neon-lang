@@ -20,6 +20,7 @@ AstFromNeon = {
     "Bytes": ("TYPE_BYTES", VALUE),
     "INOUT Bytes": ("TYPE_BYTES", REF),
     "OUT Bytes": ("TYPE_BYTES", OUT),
+    "Object": ("TYPE_OBJECT", VALUE),
     "Array": ("TYPE_ARRAY", VALUE),
     "INOUT Array": ("TYPE_ARRAY", REF),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
@@ -72,6 +73,7 @@ CppFromAstReturn = {
     ("TYPE_STRING", REF): "std::string *",
     ("TYPE_BYTES", VALUE): "std::vector<unsigned char>",
     ("TYPE_BYTES", REF): "std::vector<unsigned char> *",
+    ("TYPE_OBJECT", VALUE): "std::shared_ptr<Object>",
     ("TYPE_ARRAY", VALUE): "Cell",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
@@ -120,6 +122,7 @@ JvmFromAst = {
     ("TYPE_STRING", OUT): "Ljava/lang/String;", # TODO
     ("TYPE_BYTES", VALUE): "[B",
     ("TYPE_BYTES", OUT): "Ljava/lang/Object;", # TODO
+    ("TYPE_OBJECT", VALUE): "Lneon/type/Object",
     ("TYPE_ARRAY", VALUE): "Lneon/type/Array;",
     ("TYPE_ARRAY", REF): "Lneon/type/Array;",
     ("TYPE_ARRAY_NUMBER", VALUE): "Lneon/type/Array;",

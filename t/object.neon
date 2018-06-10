@@ -1,0 +1,9 @@
+VAR x: Object
+
+x := 5
+print(str(x))
+%= 5
+
+x := "hello"
+print(x)
+%= hello

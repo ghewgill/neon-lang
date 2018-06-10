@@ -179,6 +179,8 @@ DECLARE NATIVE FUNCTION bytes__toString(self: Bytes): String
 DECLARE NATIVE FUNCTION pointer__toString(self: POINTER): String
 DECLARE NATIVE FUNCTION functionpointer__toString(self: Cell): String
 DECLARE NATIVE FUNCTION interfacepointer__toString(self: Cell): String
+DECLARE NATIVE FUNCTION makeObjectNumber(n: Number): Object
+DECLARE NATIVE FUNCTION makeObjectString(s: String): Object
 
 %|
  |  Function: chr

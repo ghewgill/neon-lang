@@ -342,6 +342,34 @@ void print(const std::string &s)
     std::cout << s << "\n";
 }
 
+class ObjectNumber: public Object {
+public:
+    ObjectNumber(Number &n): n(n) {}
+    virtual Number toNumber() const { return n; }
+    virtual std::string toString() const { /* TODO raise exception */ return ""; }
+private:
+    const Number n;
+};
+
+std::shared_ptr<Object> makeObjectNumber(Number n)
+{
+    return std::shared_ptr<Object>(new ObjectNumber(n));
+}
+
+class ObjectString: public Object {
+public:
+    ObjectString(const std::string &s): s(s) {}
+    virtual Number toNumber() const { /* TODO raise exception */ return Number(); }
+    virtual std::string toString() const { return s; }
+private:
+    const std::string s;
+};
+
+std::shared_ptr<Object> makeObjectString(const std::string &s)
+{
+    return std::shared_ptr<Object>(new ObjectString(s));
+}
+
 } // namespace global
 
 } // namespace rtl
