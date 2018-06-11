@@ -672,6 +672,18 @@ private:
     TypeBytes &operator=(const TypeBytes &);
 };
 
+class TypeObject: public Type {
+public:
+    TypeObject(const ast::TypeObject *to): Type(to, "java/lang/Object", "java/lang/Object"), to(to) {} // TODO
+    const ast::TypeObject *to;
+    virtual void generate_default(Context &context) const override {
+        context.ca.code << OP_aconst_null; // TODO
+    }
+private:
+    TypeObject(const TypeObject &);
+    TypeObject &operator=(const TypeObject &);
+};
+
 class TypeFunction: public Type {
 public:
     TypeFunction(const ast::TypeFunction *tf): Type(tf, ""), tf(tf), returntype(transform(tf->returntype)), paramtypes() {
@@ -3252,6 +3264,7 @@ public:
     virtual void visit(const ast::TypeNumber *node) { r = new TypeNumber(node); }
     virtual void visit(const ast::TypeString *node) { r = new TypeString(node); }
     virtual void visit(const ast::TypeBytes *node) { r = new TypeBytes(node); }
+    virtual void visit(const ast::TypeObject *node) { r = new TypeObject(node); }
     virtual void visit(const ast::TypeFunction *node) { r = new TypeFunction(node); }
     virtual void visit(const ast::TypeArray *node) { r = new TypeArray(node); }
     virtual void visit(const ast::TypeDictionary *node) { r = new TypeDictionary(node); }
@@ -3371,6 +3384,7 @@ public:
     virtual void visit(const ast::TypeNumber *) {}
     virtual void visit(const ast::TypeString *) {}
     virtual void visit(const ast::TypeBytes *) {}
+    virtual void visit(const ast::TypeObject *) {}
     virtual void visit(const ast::TypeFunction *) {}
     virtual void visit(const ast::TypeArray *) {}
     virtual void visit(const ast::TypeDictionary *) {}
@@ -3490,6 +3504,7 @@ public:
     virtual void visit(const ast::TypeNumber *) {}
     virtual void visit(const ast::TypeString *) {}
     virtual void visit(const ast::TypeBytes *) {}
+    virtual void visit(const ast::TypeObject *) {}
     virtual void visit(const ast::TypeFunction *) {}
     virtual void visit(const ast::TypeArray *) {}
     virtual void visit(const ast::TypeDictionary *) {}
@@ -3609,6 +3624,7 @@ public:
     virtual void visit(const ast::TypeNumber *) {}
     virtual void visit(const ast::TypeString *) {}
     virtual void visit(const ast::TypeBytes *) {}
+    virtual void visit(const ast::TypeObject *) {}
     virtual void visit(const ast::TypeFunction *) {}
     virtual void visit(const ast::TypeArray *) {}
     virtual void visit(const ast::TypeDictionary *) {}

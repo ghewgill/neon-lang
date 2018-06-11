@@ -297,6 +297,9 @@ class Executor:
         addr = self.stack.pop()
         self.stack.append(addr.copy())
 
+    def LOADJ(self):
+        assert False
+
     def STOREB(self):
         self.ip += 1
         addr = self.stack.pop()
@@ -338,6 +341,9 @@ class Executor:
         addr = self.stack.pop()
         value = self.stack.pop()
         addr.value = value.value
+
+    def STOREJ(self):
+        assert False
 
     def NEGN(self):
         self.ip += 1
@@ -748,6 +754,12 @@ class Executor:
     def PUSHCI(self):
         assert False
 
+    def CONVJN(self):
+        assert False
+
+    def CONVJS(self):
+        assert False
+
     def raise_literal(self, name, info):
         exceptionvar = [
             Value(name),
@@ -795,6 +807,7 @@ Dispatch = [
     Executor.LOADA,
     Executor.LOADD,
     Executor.LOADP,
+    Executor.LOADJ,
     Executor.STOREB,
     Executor.STOREN,
     Executor.STORES,
@@ -802,6 +815,7 @@ Dispatch = [
     Executor.STOREA,
     Executor.STORED,
     Executor.STOREP,
+    Executor.STOREJ,
     Executor.NEGN,
     Executor.ADDN,
     Executor.SUBN,
@@ -875,6 +889,8 @@ Dispatch = [
     Executor.PUSHM,
     Executor.CALLV,
     Executor.PUSHCI,
+    Executor.CONVJN,
+    Executor.CONVJS,
 ]
 
 def neon_array__append(self):

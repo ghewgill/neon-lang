@@ -85,6 +85,7 @@ class Executor {
                 case LOADA: doLOADA(); break;
                 case LOADD: doLOADD(); break;
                 case LOADP: doLOADP(); break;
+                //case LOADJ
                 case STOREB: doSTOREB(); break;
                 case STOREN: doSTOREN(); break;
                 case STORES: doSTORES(); break;
@@ -92,6 +93,7 @@ class Executor {
                 case STOREA: doSTOREA(); break;
                 case STORED: doSTORED(); break;
                 case STOREP: doSTOREP(); break;
+                //case STOREJ
                 case NEGN: doNEGN(); break;
                 case ADDN: doADDN(); break;
                 case SUBN: doSUBN(); break;
@@ -165,6 +167,8 @@ class Executor {
                 //case PUSHM
                 //case CALLV
                 case PUSHCI: doPUSHCI(); break;
+                //case CONVJN
+                //case CONVJS
                 default:
                     System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
                     System.exit(1);
@@ -915,6 +919,7 @@ class Executor {
         LOADA,
         LOADD,
         LOADP,
+        LOADJ,
         STOREB,
         STOREN,
         STORES,
@@ -922,6 +927,7 @@ class Executor {
         STOREA,
         STORED,
         STOREP,
+        STOREJ,
         NEGN,
         ADDN,
         SUBN,
@@ -995,6 +1001,8 @@ class Executor {
         PUSHM,
         CALLV,
         PUSHCI,
+        CONVJN,
+        CONVJS,
     }
 
     private interface GenericFunction {

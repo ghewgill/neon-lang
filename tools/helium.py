@@ -2239,6 +2239,10 @@ class ClassBytes(Class):
                 return self.a.decode("utf-8")
         return Bytes()
 
+class ClassObject(Class):
+    def default(self, env):
+        return None
+
 class ClassArray(Class):
     def __init__(self, elementtype):
         self.elementtype = elementtype
@@ -2392,6 +2396,7 @@ def run(program):
     program.env.declare("Number", Class(), ClassNumber())
     program.env.declare("String", Class(), ClassString())
     program.env.declare("Bytes", Class(), ClassBytes())
+    program.env.declare("Object", Class(), ClassObject())
     program.env.declare("chr", None, neon_chr)
     program.env.declare("concat", None, neon_concat)
     program.env.declare("format", None, neon_format)

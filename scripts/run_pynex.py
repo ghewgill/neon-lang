@@ -60,6 +60,7 @@ ExcludeTests = [
     "t/new-init-module.neon",       # class
     "t/new-init.neon",              # class
     "t/number-ceil.neon",           # precision
+    "t/object.neon",                # object
     "t/os-test.neon",               # os
     "t/outer-parameter.neon",       # PUSHPOL
     "t/outer-tail.neon",            # PUSHPOL
