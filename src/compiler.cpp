@@ -498,7 +498,7 @@ void ast::TypeObject::generate_store(Emitter &emitter) const
 
 void ast::TypeObject::generate_call(Emitter &) const
 {
-    internal_error(__PRETTY_FUNCTION__);
+    internal_error("TypeObject");
 }
 
 void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
