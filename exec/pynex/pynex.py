@@ -754,12 +754,6 @@ class Executor:
     def PUSHCI(self):
         assert False
 
-    def CONVJN(self):
-        assert False
-
-    def CONVJS(self):
-        assert False
-
     def raise_literal(self, name, info):
         exceptionvar = [
             Value(name),
@@ -889,8 +883,6 @@ Dispatch = [
     Executor.PUSHM,
     Executor.CALLV,
     Executor.PUSHCI,
-    Executor.CONVJN,
-    Executor.CONVJS,
 ]
 
 def neon_array__append(self):

@@ -351,7 +351,7 @@ private:
     const Number n;
 };
 
-std::shared_ptr<Object> makeObjectNumber(Number n)
+std::shared_ptr<Object> object__makeNumber(Number n)
 {
     return std::shared_ptr<Object>(new ObjectNumber(n));
 }
@@ -365,9 +365,19 @@ private:
     const std::string s;
 };
 
-std::shared_ptr<Object> makeObjectString(const std::string &s)
+std::shared_ptr<Object> object__makeString(const std::string &s)
 {
     return std::shared_ptr<Object>(new ObjectString(s));
+}
+
+Number object__toNumber(std::shared_ptr<Object> obj)
+{
+    return obj->toNumber();
+}
+
+std::string object__toString(std::shared_ptr<Object> obj)
+{
+    return obj->toString();
 }
 
 } // namespace global

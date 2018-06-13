@@ -445,7 +445,7 @@ void ast::TypeNumber::generate_call(Emitter &) const
 void ast::TypeNumber::generate_convert(Emitter &emitter, const Type *from) const
 {
     if (from == TYPE_OBJECT) {
-        emitter.emit(CONVJN);
+        emitter.emit(CALLP, emitter.str("object__toNumber"));
     }
 }
 
@@ -467,7 +467,7 @@ void ast::TypeString::generate_call(Emitter &) const
 void ast::TypeString::generate_convert(Emitter &emitter, const Type *from) const
 {
     if (from == TYPE_OBJECT) {
-        emitter.emit(CONVJS);
+        emitter.emit(CALLP, emitter.str("object__toString"));
     }
 }
 
@@ -504,9 +504,9 @@ void ast::TypeObject::generate_call(Emitter &) const
 void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
 {
     if (from == TYPE_NUMBER) {
-        emitter.emit(CALLP, emitter.str("makeObjectNumber"));
+        emitter.emit(CALLP, emitter.str("object__makeNumber"));
     } else if (from == TYPE_STRING) {
-        emitter.emit(CALLP, emitter.str("makeObjectString"));
+        emitter.emit(CALLP, emitter.str("object__makeString"));
     }
 }
 

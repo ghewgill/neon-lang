@@ -103,8 +103,6 @@ enum Opcode {
     PUSHM,      // push current module
     CALLV,      // call virtual
     PUSHCI,     // push class info
-    CONVJN,     // convert object to number
-    CONVJS,     // convert object to string
 };
 
 #endif

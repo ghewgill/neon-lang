@@ -380,8 +380,6 @@ public:
     void exec_PUSHM();
     void exec_CALLV();
     void exec_PUSHCI();
-    void exec_CONVJN();
-    void exec_CONVJS();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -1869,20 +1867,6 @@ void Executor::exec_PUSHCI()
     exit(1);
 }
 
-void Executor::exec_CONVJN()
-{
-    ip++;
-    std::shared_ptr<Object> p = stack.top().object(); stack.pop();
-    stack.push(Cell(p->toNumber()));
-}
-
-void Executor::exec_CONVJS()
-{
-    ip++;
-    std::shared_ptr<Object> p = stack.top().object(); stack.pop();
-    stack.push(Cell(p->toString()));
-}
-
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -2219,8 +2203,6 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(); break;
-            case CONVJN:  exec_CONVJN(); break;
-            case CONVJS:  exec_CONVJS(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

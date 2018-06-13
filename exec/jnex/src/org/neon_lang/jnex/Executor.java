@@ -167,8 +167,6 @@ class Executor {
                 //case PUSHM
                 //case CALLV
                 case PUSHCI: doPUSHCI(); break;
-                //case CONVJN
-                //case CONVJS
                 default:
                     System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
                     System.exit(1);
@@ -1001,8 +999,6 @@ class Executor {
         PUSHM,
         CALLV,
         PUSHCI,
-        CONVJN,
-        CONVJS,
     }
 
     private interface GenericFunction {
