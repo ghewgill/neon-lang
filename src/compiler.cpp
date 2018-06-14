@@ -427,6 +427,13 @@ void ast::TypeBoolean::generate_call(Emitter &) const
     internal_error("TypeBoolean");
 }
 
+void ast::TypeBoolean::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CALLP, emitter.str("object__toBoolean"));
+    }
+}
+
 void ast::TypeNumber::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADN);
@@ -503,7 +510,9 @@ void ast::TypeObject::generate_call(Emitter &) const
 
 void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
 {
-    if (from == TYPE_NUMBER) {
+    if (from == TYPE_BOOLEAN) {
+        emitter.emit(CALLP, emitter.str("object__makeBoolean"));
+    } else if (from == TYPE_NUMBER) {
         emitter.emit(CALLP, emitter.str("object__makeNumber"));
     } else if (from == TYPE_STRING) {
         emitter.emit(CALLP, emitter.str("object__makeString"));

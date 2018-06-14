@@ -41,6 +41,11 @@ const Expression *TypeBoolean::make_default_value() const
     return new ConstantBooleanExpression(false);
 }
 
+bool TypeBoolean::is_assignment_compatible(const Type *rhs) const
+{
+    return this == rhs || rhs == TYPE_OBJECT;
+}
+
 std::string TypeBoolean::serialize(const Expression *value) const
 {
     return value->eval_boolean() ? std::string(1, 1) : std::string(1, 0);

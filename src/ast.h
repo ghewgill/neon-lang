@@ -369,9 +369,11 @@ public:
     TypeBoolean(): Type(Token(), "Boolean") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "B"; }
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;

@@ -1,5 +1,9 @@
 VAR x: Object
 
+x := TRUE
+print(strb(x))
+%= TRUE
+
 x := 5
 print(str(x))
 %= 5

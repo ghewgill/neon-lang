@@ -342,11 +342,23 @@ void print(const std::string &s)
     std::cout << s << "\n";
 }
 
+class ObjectBoolean: public Object {
+public:
+    ObjectBoolean(bool b): b(b) {}
+    virtual bool toBoolean(bool &r) const override { r = b; return true; }
+private:
+    const bool b;
+};
+
+std::shared_ptr<Object> object__makeBoolean(bool b)
+{
+    return std::shared_ptr<Object>(new ObjectBoolean(b));
+}
+
 class ObjectNumber: public Object {
 public:
     ObjectNumber(Number &n): n(n) {}
-    virtual Number toNumber() const { return n; }
-    virtual std::string toString() const { /* TODO raise exception */ return ""; }
+    virtual bool toNumber(Number &r) const override { r = n; return true; }
 private:
     const Number n;
 };
@@ -359,8 +371,7 @@ std::shared_ptr<Object> object__makeNumber(Number n)
 class ObjectString: public Object {
 public:
     ObjectString(const std::string &s): s(s) {}
-    virtual Number toNumber() const { /* TODO raise exception */ return Number(); }
-    virtual std::string toString() const { return s; }
+    virtual bool toString(std::string &r) const { r = s; return true;}
 private:
     const std::string s;
 };
@@ -370,14 +381,31 @@ std::shared_ptr<Object> object__makeString(const std::string &s)
     return std::shared_ptr<Object>(new ObjectString(s));
 }
 
+bool object__toBoolean(std::shared_ptr<Object> obj)
+{
+    bool r;
+    if (not obj->toBoolean(r)) {
+        throw RtlException(Exception_DynamicConversionException, "");
+    }
+    return r;
+}
+
 Number object__toNumber(std::shared_ptr<Object> obj)
 {
-    return obj->toNumber();
+    Number r;
+    if (not obj->toNumber(r)) {
+        throw RtlException(Exception_DynamicConversionException, "");
+    }
+    return r;
 }
 
 std::string object__toString(std::shared_ptr<Object> obj)
 {
-    return obj->toString();
+    std::string r;
+    if (not obj->toString(r)) {
+        throw RtlException(Exception_DynamicConversionException, "");
+    }
+    return r;
 }
 
 } // namespace global

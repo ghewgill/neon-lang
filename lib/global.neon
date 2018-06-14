@@ -80,6 +80,13 @@ EXCEPTION DictionaryIndexException
 EXCEPTION DivideByZeroException
 
 %|
+ |  Exception: DynamicConversionException
+ |
+ |  Dynamic conversion exception.
+ |%
+EXCEPTION DynamicConversionException
+
+%|
  |  Exception: EndOfFileException
  |
  |  End of input file.
@@ -179,8 +186,10 @@ DECLARE NATIVE FUNCTION bytes__toString(self: Bytes): String
 DECLARE NATIVE FUNCTION pointer__toString(self: POINTER): String
 DECLARE NATIVE FUNCTION functionpointer__toString(self: Cell): String
 DECLARE NATIVE FUNCTION interfacepointer__toString(self: Cell): String
+DECLARE NATIVE FUNCTION object__makeBoolean(b: Boolean): Object
 DECLARE NATIVE FUNCTION object__makeNumber(n: Number): Object
 DECLARE NATIVE FUNCTION object__makeString(s: String): Object
+DECLARE NATIVE FUNCTION object__toBoolean(obj: Object): Boolean
 DECLARE NATIVE FUNCTION object__toNumber(obj: Object): Number
 DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 
