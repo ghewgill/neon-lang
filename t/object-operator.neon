@@ -1,0 +1,6 @@
+LET a: Object := 3
+LET b: Object := 4
+
+ASSERT a + 4 = 7
+ASSERT 3 + b = 7
+ASSERT a + b = 7

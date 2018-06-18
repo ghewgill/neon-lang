@@ -85,6 +85,7 @@ ExcludeTests = [
     "t/new-init-module.neon",       # module
     "t/number-ceil.neon",           # math
     "t/object.neon",                # object
+    "t/object-operator.neon",       # object
     "t/os-test.neon",               # os
     "t/outer-parameter.neon",       # PUSHPOL
     "t/outer-tail.neon",            # PUSHPOL

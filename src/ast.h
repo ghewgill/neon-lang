@@ -944,7 +944,7 @@ public:
     bool eval_boolean(const Token &token) const;
     Number eval_number(const Token &token) const;
     std::string eval_string(const Token &token) const;
-    void generate(Emitter &emitter) const;
+    void generate(Emitter &emitter, const Type *target_type = nullptr) const;
     virtual void generate_expr(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
 
@@ -2098,7 +2098,7 @@ public:
     virtual bool eval_boolean() const override { return constant->value->eval_boolean(); }
     virtual Number eval_number() const override { return constant->value->eval_number(); }
     virtual std::string eval_string() const override { return constant->value->eval_string(); }
-    virtual void generate_expr(Emitter &emitter) const override { constant->value->generate(emitter); }
+    virtual void generate_expr(Emitter &emitter) const override { constant->value->generate(emitter, type); }
 
     virtual std::string text() const override { return "ConstantExpression(" + constant->text() + ")"; }
 private:

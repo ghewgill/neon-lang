@@ -1178,12 +1178,15 @@ void ast::Constant::generate_export(Emitter &emitter, const std::string &export_
     emitter.add_export_constant(export_name, emitter.get_type_reference(type), type->serialize(value));
 }
 
-void ast::Expression::generate(Emitter &emitter) const
+void ast::Expression::generate(Emitter &emitter, const Type *target_type) const
 {
     if (type != nullptr) {
         type->predeclare(emitter);
     }
     generate_expr(emitter);
+    if (target_type != nullptr) {
+        target_type->generate_convert(emitter, type);
+    }
 }
 
 void ast::ConstantBooleanExpression::generate_expr(Emitter &emitter) const
@@ -1516,8 +1519,8 @@ void ast::ValidPointerExpression::generate_expr(Emitter &emitter) const
 
 void ast::AdditionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(ADDN);
 }
 
