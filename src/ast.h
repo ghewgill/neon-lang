@@ -1409,8 +1409,9 @@ public:
         }
         return "(undefined)";
     }
-    ComparisonExpression(const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right), comp(comp) {}
+    ComparisonExpression(const Type *operand_type, const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), operand_type(operand_type), left(left), right(right), comp(comp) {}
 
+    const Type *const operand_type;
     const Expression *const left;
     const Expression *const right;
     const Comparison comp;
@@ -1442,7 +1443,7 @@ private:
 
 class BooleanComparisonExpression: public ComparisonExpression {
 public:
-    BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_BOOLEAN, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1457,7 +1458,7 @@ public:
 
 class NumericComparisonExpression: public ComparisonExpression {
 public:
-    NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_NUMBER, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1472,7 +1473,7 @@ public:
 
 class EnumComparisonExpression: public ComparisonExpression {
 public:
-    EnumComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    EnumComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1487,7 +1488,7 @@ public:
 
 class StringComparisonExpression: public ComparisonExpression {
 public:
-    StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_STRING, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1502,7 +1503,7 @@ public:
 
 class BytesComparisonExpression: public ComparisonExpression {
 public:
-    BytesComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    BytesComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_BYTES, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1517,7 +1518,7 @@ public:
 
 class ArrayComparisonExpression: public ComparisonExpression {
 public:
-    ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("ArrayComparisonExpression"); }
@@ -1532,7 +1533,7 @@ public:
 
 class DictionaryComparisonExpression: public ComparisonExpression {
 public:
-    DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("DictionaryComparisonExpression"); }
@@ -1547,7 +1548,7 @@ public:
 
 class RecordComparisonExpression: public ComparisonExpression {
 public:
-    RecordComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    RecordComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("RecordComparisonExpression"); }
@@ -1562,7 +1563,7 @@ public:
 
 class PointerComparisonExpression: public ComparisonExpression {
 public:
-    PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("PointerComparisonExpression"); }
@@ -1594,7 +1595,7 @@ private:
 
 class FunctionPointerComparisonExpression: public ComparisonExpression {
 public:
-    FunctionPointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    FunctionPointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("FunctionPointerComparisonExpression"); }

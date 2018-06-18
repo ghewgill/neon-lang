@@ -1850,40 +1850,43 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
     if (not left->type->is_assignment_compatible(right->type)) {
         error(3030, token, "type mismatch");
     }
-    if (left->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
+    if (left->type == ast::TYPE_OBJECT && right->type == ast::TYPE_OBJECT) {
+        error(3261, token, "cannot compare two values of type Object");
+    }
+    if (left->type->is_assignment_compatible(ast::TYPE_BOOLEAN) && right->type->is_assignment_compatible(ast::TYPE_BOOLEAN)) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3031, token, "comparison not available for Boolean");
         }
         return new ast::BooleanComparisonExpression(left, right, comp);
-    } else if (left->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
+    } else if (left->type->is_assignment_compatible(ast::TYPE_NUMBER) && right->type->is_assignment_compatible(ast::TYPE_NUMBER)) {
         return new ast::NumericComparisonExpression(left, right, comp);
-    } else if (left->type->is_assignment_compatible(ast::TYPE_STRING)) {
+    } else if (left->type->is_assignment_compatible(ast::TYPE_STRING) && right->type->is_assignment_compatible(ast::TYPE_STRING)) {
         return new ast::StringComparisonExpression(left, right, comp);
-    } else if (left->type->is_assignment_compatible(ast::TYPE_BYTES)) {
+    } else if (left->type->is_assignment_compatible(ast::TYPE_BYTES) && right->type->is_assignment_compatible(ast::TYPE_BYTES)) {
         return new ast::BytesComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3032, token, "comparison not available for Array");
         }
         return new ast::ArrayComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr && dynamic_cast<const ast::TypeDictionary *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3033, token, "comparison not available for Dictionary");
         }
         return new ast::DictionaryComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr && dynamic_cast<const ast::TypeRecord *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3034, token, "comparison not available for RECORD");
         }
         return new ast::RecordComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr && dynamic_cast<const ast::TypeEnum *>(right->type) != nullptr) {
         return new ast::EnumComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr && dynamic_cast<const ast::TypePointer *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3100, token, "comparison not available for POINTER");
         }
         return new ast::PointerComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr && dynamic_cast<const ast::TypeFunctionPointer *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3180, token, "comparison not available for FUNCTION");
         }

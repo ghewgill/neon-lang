@@ -1277,13 +1277,13 @@ void ast::NewClassExpression::generate_expr(Emitter &emitter) const
 
 void ast::UnaryMinusExpression::generate_expr(Emitter &emitter) const
 {
-    value->generate(emitter);
+    value->generate(emitter, TYPE_NUMBER);
     emitter.emit(NEGN);
 }
 
 void ast::LogicalNotExpression::generate_expr(Emitter &emitter) const
 {
-    value->generate(emitter);
+    value->generate(emitter, TYPE_BOOLEAN);
     emitter.emit(NOTB);
 }
 
@@ -1338,23 +1338,23 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
 
 void ast::DisjunctionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
+    left->generate(emitter, TYPE_BOOLEAN);
     emitter.emit(DUP);
     auto true_label = emitter.create_label();
     emitter.emit_jump(JT, true_label);
     emitter.emit(DROP);
-    right->generate(emitter);
+    right->generate(emitter, TYPE_BOOLEAN);
     emitter.jump_target(true_label);
 }
 
 void ast::ConjunctionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
+    left->generate(emitter, TYPE_BOOLEAN);
     emitter.emit(DUP);
     auto false_label = emitter.create_label();
     emitter.emit_jump(JF, false_label);
     emitter.emit(DROP);
-    right->generate(emitter);
+    right->generate(emitter, TYPE_BOOLEAN);
     emitter.jump_target(false_label);
 }
 
@@ -1374,8 +1374,8 @@ void ast::DictionaryInExpression::generate_expr(Emitter &emitter) const
 
 void ast::ComparisonExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, operand_type);
+    right->generate(emitter, operand_type);
     generate_comparison_opcode(emitter);
 }
 
@@ -1526,36 +1526,36 @@ void ast::AdditionExpression::generate_expr(Emitter &emitter) const
 
 void ast::SubtractionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(SUBN);
 }
 
 void ast::MultiplicationExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(MULN);
 }
 
 void ast::DivisionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(DIVN);
 }
 
 void ast::ModuloExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(MODN);
 }
 
 void ast::ExponentiationExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(EXPN);
 }
 
@@ -1879,7 +1879,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
 {
     auto skip_label = emitter.create_label();
     emitter.emit_jump(JNASSERT, skip_label);
-    expr->generate(emitter);
+    expr->generate(emitter, TYPE_BOOLEAN);
     emitter.emit_jump(JT, skip_label);
     for (auto stmt: statements) {
         stmt->generate(emitter);
