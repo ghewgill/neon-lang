@@ -38,6 +38,18 @@ Number number_modulo(Number x, Number y)
 
 Number number_pow(Number x, Number y)
 {
+    if (number_is_integer(y) && not number_is_negative(y)) {
+        uint32_t iy = number_to_uint32(y);
+        Number r = number_from_uint32(1);
+        while (iy != 0) {
+            if (iy & 1) {
+                r = number_multiply(r, x);
+            }
+            x = number_multiply(x, x);
+            iy >>= 1;
+        }
+        return r;
+    }
     return bid128_pow(x.x, y.x);
 }
 
