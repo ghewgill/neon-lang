@@ -595,7 +595,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
 }
 
 ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : ReferenceExpression(ref->type, ref->is_readonly),
+  : ReferenceExpression(TYPE_STRING, ref->is_readonly),
     ref(ref),
     first(first),
     first_from_end(first_from_end),
@@ -625,7 +625,7 @@ ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const Refere
 }
 
 ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : Expression(str->type, str->is_readonly),
+  : Expression(TYPE_STRING, str->is_readonly),
     str(str),
     first(first),
     first_from_end(first_from_end),
@@ -645,7 +645,7 @@ ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *st
 }
 
 ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : ReferenceExpression(ref->type, ref->is_readonly),
+  : ReferenceExpression(TYPE_BYTES, ref->is_readonly),
     ref(ref),
     first(first),
     first_from_end(first_from_end),
@@ -675,7 +675,7 @@ ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const Referenc
 }
 
 ast::BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : Expression(str->type, str->is_readonly),
+  : Expression(TYPE_BYTES, str->is_readonly),
     str(str),
     first(first),
     first_from_end(first_from_end),

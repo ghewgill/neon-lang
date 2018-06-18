@@ -1194,7 +1194,7 @@ private:
 
 class UnaryMinusExpression: public Expression {
 public:
-    UnaryMinusExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
+    UnaryMinusExpression(const Expression *value): Expression(TYPE_NUMBER, value->is_constant), value(value) {
         if (not type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("UnaryMinusExpression");
         }
@@ -1218,7 +1218,7 @@ private:
 
 class LogicalNotExpression: public Expression {
 public:
-    LogicalNotExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
+    LogicalNotExpression(const Expression *value): Expression(TYPE_BOOLEAN, value->is_constant), value(value) {
         if (not type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("LogicalNotExpression");
         }
@@ -1307,7 +1307,7 @@ private:
 
 class DisjunctionExpression: public Expression {
 public:
-    DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    DisjunctionExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_BOOLEAN) || not right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("DisjunctionExpression");
         }
@@ -1332,7 +1332,7 @@ private:
 
 class ConjunctionExpression: public Expression {
 public:
-    ConjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    ConjunctionExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_BOOLEAN) || not right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("ConjunctionExpression");
         }
@@ -1609,7 +1609,7 @@ public:
 
 class AdditionExpression: public Expression {
 public:
-    AdditionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    AdditionExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("AdditionExpression");
         }
@@ -1634,7 +1634,7 @@ private:
 
 class SubtractionExpression: public Expression {
 public:
-    SubtractionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    SubtractionExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("SubtractionExpression");
         }
@@ -1659,7 +1659,7 @@ private:
 
 class MultiplicationExpression: public Expression {
 public:
-    MultiplicationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    MultiplicationExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("MultiplicationExpression");
         }
@@ -1684,7 +1684,7 @@ private:
 
 class DivisionExpression: public Expression {
 public:
-    DivisionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    DivisionExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("DivisionExpression");
         }
@@ -1709,7 +1709,7 @@ private:
 
 class ModuloExpression: public Expression {
 public:
-    ModuloExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    ModuloExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("ModuloExpression");
         }
@@ -1734,7 +1734,7 @@ private:
 
 class ExponentiationExpression: public Expression {
 public:
-    ExponentiationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    ExponentiationExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("ExponentiationExpression");
         }
