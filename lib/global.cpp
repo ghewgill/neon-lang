@@ -373,7 +373,7 @@ std::shared_ptr<Object> object__makeNumber(Number n)
 class ObjectString: public Object {
 public:
     ObjectString(const std::string &s): s(s) {}
-    virtual bool getString(std::string &r) const { r = s; return true;}
+    virtual bool getString(std::string &r) const override { r = s; return true;}
     virtual std::string toString() const override { return s; }
 private:
     const std::string s;
