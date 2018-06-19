@@ -1579,7 +1579,7 @@ void ast::DummyExpression::generate_store(Emitter &emitter) const
 void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
     array->generate_address_read(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_NUMBER);
     if (always_create) {
         emitter.emit(INDEXAW);
     } else {
@@ -1590,14 +1590,14 @@ void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter)
 void ast::ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
     array->generate_address_write(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_NUMBER);
     emitter.emit(INDEXAW);
 }
 
 void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     array->generate(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_NUMBER);
     if (always_create) {
         emitter.emit(INDEXAN);
     } else {
@@ -1608,21 +1608,21 @@ void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 void ast::DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
     dictionary->generate_address_read(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_STRING);
     emitter.emit(INDEXDR);
 }
 
 void ast::DictionaryReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
     dictionary->generate_address_write(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_STRING);
     emitter.emit(INDEXDW);
 }
 
 void ast::DictionaryValueIndexExpression::generate_expr(Emitter &emitter) const
 {
     dictionary->generate(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_STRING);
     emitter.emit(INDEXDV);
 }
 

@@ -62,3 +62,11 @@ ASSERT 5 > a
 
 ASSERT a >= 2
 ASSERT 5 >= a
+
+LET t: Array<Number> := [0, 1, 2, 3]
+ASSERT t[a] = 3
+
+LET s: Object := "hello"
+
+LET u: Dictionary<Number> := {"hello": 5}
+ASSERT u[s] = 5
