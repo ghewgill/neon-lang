@@ -430,7 +430,7 @@ void ast::TypeBoolean::generate_call(Emitter &) const
 void ast::TypeBoolean::generate_convert(Emitter &emitter, const Type *from) const
 {
     if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__toBoolean"));
+        emitter.emit(CALLP, emitter.str("object__getBoolean"));
     }
 }
 
@@ -452,7 +452,7 @@ void ast::TypeNumber::generate_call(Emitter &) const
 void ast::TypeNumber::generate_convert(Emitter &emitter, const Type *from) const
 {
     if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__toNumber"));
+        emitter.emit(CALLP, emitter.str("object__getNumber"));
     }
 }
 
@@ -474,7 +474,7 @@ void ast::TypeString::generate_call(Emitter &) const
 void ast::TypeString::generate_convert(Emitter &emitter, const Type *from) const
 {
     if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__toString"));
+        emitter.emit(CALLP, emitter.str("object__getString"));
     }
 }
 

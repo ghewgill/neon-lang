@@ -189,8 +189,9 @@ DECLARE NATIVE FUNCTION interfacepointer__toString(self: Cell): String
 DECLARE NATIVE FUNCTION object__makeBoolean(b: Boolean): Object
 DECLARE NATIVE FUNCTION object__makeNumber(n: Number): Object
 DECLARE NATIVE FUNCTION object__makeString(s: String): Object
-DECLARE NATIVE FUNCTION object__toBoolean(obj: Object): Boolean
-DECLARE NATIVE FUNCTION object__toNumber(obj: Object): Number
+DECLARE NATIVE FUNCTION object__getBoolean(obj: Object): Boolean
+DECLARE NATIVE FUNCTION object__getNumber(obj: Object): Number
+DECLARE NATIVE FUNCTION object__getString(obj: Object): String
 DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 
 %|

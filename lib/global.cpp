@@ -345,7 +345,8 @@ void print(const std::string &s)
 class ObjectBoolean: public Object {
 public:
     ObjectBoolean(bool b): b(b) {}
-    virtual bool toBoolean(bool &r) const override { r = b; return true; }
+    virtual bool getBoolean(bool &r) const override { r = b; return true; }
+    virtual std::string toString() const { return b ? "TRUE" : "FALSE"; }
 private:
     const bool b;
 };
@@ -358,7 +359,8 @@ std::shared_ptr<Object> object__makeBoolean(bool b)
 class ObjectNumber: public Object {
 public:
     ObjectNumber(Number &n): n(n) {}
-    virtual bool toNumber(Number &r) const override { r = n; return true; }
+    virtual bool getNumber(Number &r) const override { r = n; return true; }
+    virtual std::string toString() const { return number_to_string(n); }
 private:
     const Number n;
 };
@@ -371,7 +373,8 @@ std::shared_ptr<Object> object__makeNumber(Number n)
 class ObjectString: public Object {
 public:
     ObjectString(const std::string &s): s(s) {}
-    virtual bool toString(std::string &r) const { r = s; return true;}
+    virtual bool getString(std::string &r) const { r = s; return true;}
+    virtual std::string toString() const { return s; }
 private:
     const std::string s;
 };
@@ -381,19 +384,28 @@ std::shared_ptr<Object> object__makeString(const std::string &s)
     return std::shared_ptr<Object>(new ObjectString(s));
 }
 
-bool object__toBoolean(std::shared_ptr<Object> obj)
+bool object__getBoolean(std::shared_ptr<Object> obj)
 {
     bool r;
-    if (not obj->toBoolean(r)) {
+    if (not obj->getBoolean(r)) {
         throw RtlException(Exception_DynamicConversionException, "");
     }
     return r;
 }
 
-Number object__toNumber(std::shared_ptr<Object> obj)
+Number object__getNumber(std::shared_ptr<Object> obj)
 {
     Number r;
-    if (not obj->toNumber(r)) {
+    if (not obj->getNumber(r)) {
+        throw RtlException(Exception_DynamicConversionException, "");
+    }
+    return r;
+}
+
+std::string object__getString(std::shared_ptr<Object> obj)
+{
+    std::string r;
+    if (not obj->getString(r)) {
         throw RtlException(Exception_DynamicConversionException, "");
     }
     return r;
@@ -401,11 +413,7 @@ Number object__toNumber(std::shared_ptr<Object> obj)
 
 std::string object__toString(std::shared_ptr<Object> obj)
 {
-    std::string r;
-    if (not obj->toString(r)) {
-        throw RtlException(Exception_DynamicConversionException, "");
-    }
-    return r;
+    return obj->toString();
 }
 
 } // namespace global

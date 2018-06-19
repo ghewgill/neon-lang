@@ -11,9 +11,10 @@
 class Object {
 public:
     virtual ~Object() {}
-    virtual bool toBoolean(bool &) const { return false; }
-    virtual bool toNumber(Number &) const { return false; }
-    virtual bool toString(std::string &) const { return false; }
+    virtual bool getBoolean(bool &) const { return false; }
+    virtual bool getNumber(Number &) const { return false; }
+    virtual bool getString(std::string &) const { return false; }
+    virtual std::string toString() const = 0;
 };
 
 // TODO: See if we can use std::variant (C++17) for this.

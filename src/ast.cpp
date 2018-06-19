@@ -1164,6 +1164,11 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["toString"] = new PredefinedFunction("bytes__toString", new TypeFunction(TYPE_STRING, params));
     }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_OBJECT, nullptr));
+        TYPE_OBJECT->methods["toString"] = new PredefinedFunction("object__toString", new TypeFunction(TYPE_STRING, params));
+    }
 
     for (auto e: rtl::ExceptionNames) {
         scope->addName(Token(IDENTIFIER, e.name), e.name, new Exception(Token(), e.name));

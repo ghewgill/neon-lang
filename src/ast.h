@@ -462,7 +462,7 @@ public:
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
-    virtual std::string text() const override { return "TypeOjbect"; }
+    virtual std::string text() const override { return "TypeObject"; }
 };
 
 extern TypeObject *TYPE_OBJECT;

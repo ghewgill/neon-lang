@@ -1453,7 +1453,7 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
             }
         }
         const ast::Expression *str;
-        if (e->type->is_assignment_compatible(ast::TYPE_STRING)) {
+        if (e->type->is_assignment_compatible(ast::TYPE_STRING) && e->type != ast::TYPE_OBJECT) {
             str = e;
         } else {
             auto toString = e->type->methods.find("toString");
