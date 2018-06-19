@@ -346,7 +346,7 @@ class ObjectBoolean: public Object {
 public:
     ObjectBoolean(bool b): b(b) {}
     virtual bool getBoolean(bool &r) const override { r = b; return true; }
-    virtual std::string toString() const { return b ? "TRUE" : "FALSE"; }
+    virtual std::string toString() const override { return b ? "TRUE" : "FALSE"; }
 private:
     const bool b;
 };
@@ -360,7 +360,7 @@ class ObjectNumber: public Object {
 public:
     ObjectNumber(Number &n): n(n) {}
     virtual bool getNumber(Number &r) const override { r = n; return true; }
-    virtual std::string toString() const { return number_to_string(n); }
+    virtual std::string toString() const override { return number_to_string(n); }
 private:
     const Number n;
 };
@@ -374,7 +374,7 @@ class ObjectString: public Object {
 public:
     ObjectString(const std::string &s): s(s) {}
     virtual bool getString(std::string &r) const { r = s; return true;}
-    virtual std::string toString() const { return s; }
+    virtual std::string toString() const override { return s; }
 private:
     const std::string s;
 };
