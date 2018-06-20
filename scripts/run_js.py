@@ -83,6 +83,7 @@ ExcludeTests = [
     "t/multiarray-test.neon",       # module multiarray
     "t/net-test.neon",              # module net
     "t/number-ceil.neon",           # number formatting
+    "t/object.neon",                # object
     "t/os-test.neon",               # module os
     "t/parameter-out-array.neon",   # out parameters
     "t/parameter-out-string.neon",  # StringReferenceIndexExpression

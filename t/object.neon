@@ -11,3 +11,14 @@ print(str(x))
 x := "hello"
 print(x)
 %= hello
+
+LET one: Object := 1
+LET two: Object := 2
+LET three: Object := 3
+x := [one, two, three]
+print("\(x)")
+%= [1, 2, 3]
+
+x := {"one": one, "two": two, "three": three}
+print("\(x)")
+%= {"one": 1, "three": 3, "two": 2}

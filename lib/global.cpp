@@ -358,7 +358,7 @@ std::shared_ptr<Object> object__makeBoolean(bool b)
 
 class ObjectNumber: public Object {
 public:
-    ObjectNumber(Number &n): n(n) {}
+    ObjectNumber(Number n): n(n) {}
     virtual bool getNumber(Number &r) const override { r = n; return true; }
     virtual std::string toString() const override { return number_to_string(n); }
 private:
@@ -373,7 +373,7 @@ std::shared_ptr<Object> object__makeNumber(Number n)
 class ObjectString: public Object {
 public:
     ObjectString(const std::string &s): s(s) {}
-    virtual bool getString(std::string &r) const override { r = s; return true;}
+    virtual bool getString(std::string &r) const override { r = s; return true; }
     virtual std::string toString() const override { return s; }
 private:
     const std::string s;
@@ -384,11 +384,69 @@ std::shared_ptr<Object> object__makeString(const std::string &s)
     return std::shared_ptr<Object>(new ObjectString(s));
 }
 
+class ObjectArray: public Object {
+public:
+    ObjectArray(std::vector<std::shared_ptr<Object>> a): a(a) {}
+    virtual bool getArray(std::vector<std::shared_ptr<Object>> &r) const override { r = a; return true; }
+    virtual std::string toString() const override {
+        std::string r = "[";
+        bool first = true;
+        for (auto x: a) {
+            if (not first) {
+                r.append(", ");
+            } else {
+                first = false;
+            }
+            r.append(x->toString());
+        }
+        r.append("]");
+        return r;
+    }
+private:
+    std::vector<std::shared_ptr<Object>> a;
+};
+
+std::shared_ptr<Object> object__makeArray(std::vector<std::shared_ptr<Object>> a)
+{
+    return std::shared_ptr<Object>(new ObjectArray(a));
+}
+
+class ObjectDictionary: public Object {
+public:
+    ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
+    virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
+    virtual std::string toString() const override {
+        std::string r = "{";
+        bool first = true;
+        // TODO: keys in sorted order
+        for (auto x: d) {
+            if (not first) {
+                r.append(", ");
+            } else {
+                first = false;
+            }
+            r.append("\"");
+            r.append(x.first.c_str());
+            r.append("\": ");
+            r.append(x.second->toString());
+        }
+        r.append("}");
+        return r;
+    }
+private:
+    std::map<utf8string, std::shared_ptr<Object>> d;
+};
+
+std::shared_ptr<Object> object__makeDictionary(std::map<utf8string, std::shared_ptr<Object>> d)
+{
+    return std::shared_ptr<Object>(new ObjectDictionary(d));
+}
+
 bool object__getBoolean(std::shared_ptr<Object> obj)
 {
     bool r;
     if (not obj->getBoolean(r)) {
-        throw RtlException(Exception_DynamicConversionException, "");
+        throw RtlException(Exception_DynamicConversionException, "to Boolean");
     }
     return r;
 }
@@ -397,7 +455,7 @@ Number object__getNumber(std::shared_ptr<Object> obj)
 {
     Number r;
     if (not obj->getNumber(r)) {
-        throw RtlException(Exception_DynamicConversionException, "");
+        throw RtlException(Exception_DynamicConversionException, "to Number");
     }
     return r;
 }
@@ -406,7 +464,25 @@ std::string object__getString(std::shared_ptr<Object> obj)
 {
     std::string r;
     if (not obj->getString(r)) {
-        throw RtlException(Exception_DynamicConversionException, "");
+        throw RtlException(Exception_DynamicConversionException, "to String");
+    }
+    return r;
+}
+
+std::vector<std::shared_ptr<Object>> object__getArray(std::shared_ptr<Object> obj)
+{
+    std::vector<std::shared_ptr<Object>> r;
+    if (not obj->getArray(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to Array");
+    }
+    return r;
+}
+
+std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_ptr<Object> obj)
+{
+    std::map<utf8string, std::shared_ptr<Object>> r;
+    if (not obj->getDictionary(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to Dictionary");
     }
     return r;
 }

@@ -535,6 +535,7 @@ private:
 
 extern TypeArray *TYPE_ARRAY_NUMBER;
 extern TypeArray *TYPE_ARRAY_STRING;
+extern TypeArray *TYPE_ARRAY_OBJECT;
 
 class TypeDictionary: public Type {
 public:
@@ -561,6 +562,7 @@ private:
 };
 
 extern TypeDictionary *TYPE_DICTIONARY_STRING;
+extern TypeDictionary *TYPE_DICTIONARY_OBJECT;
 
 class TypeRecord: public Type {
 public:

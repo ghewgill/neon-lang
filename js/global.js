@@ -77,6 +77,10 @@ neon = {
             return x.toString();
         },
 
+        object__toString: function(x) {
+            return x.toString();
+        },
+
         ord: function(s) {
             if (s.length != 1) {
                 throw new neon.NeonException("ArrayIndexException", {info: "ord() requires string of length 1"});

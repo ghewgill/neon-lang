@@ -14,6 +14,8 @@ public:
     virtual bool getBoolean(bool &) const { return false; }
     virtual bool getNumber(Number &) const { return false; }
     virtual bool getString(std::string &) const { return false; }
+    virtual bool getArray(std::vector<std::shared_ptr<Object>> &) const { return false; }
+    virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &) const { return false; }
     virtual std::string toString() const = 0;
 };
 

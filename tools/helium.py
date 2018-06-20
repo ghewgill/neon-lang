@@ -510,6 +510,7 @@ class InterpolatedStringExpression:
                   else neon_strb(env, x) if isinstance(x, bool)
                   else neon_str(env, x) if isinstance(x, (int, float))
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in x)) if isinstance(x, list)
+                  else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, (str, unicode)) else str(v))) for k, v in x.items()))) if isinstance(x, dict)
                   else x.toString(env, x))
             r += neon_format(env, s, f) if f else s
         return r

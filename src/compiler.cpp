@@ -516,6 +516,23 @@ void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
         emitter.emit(CALLP, emitter.str("object__makeNumber"));
     } else if (from == TYPE_STRING) {
         emitter.emit(CALLP, emitter.str("object__makeString"));
+    } else {
+        const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
+        if (atype != nullptr) {
+            if (atype->elementtype == TYPE_OBJECT) {
+                emitter.emit(CALLP, emitter.str("object__makeArray"));
+            } else {
+                internal_error("unimplemented: can only convert Array<Object> to Object");
+            }
+        }
+        const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
+        if (dtype != nullptr) {
+            if (dtype->elementtype == TYPE_OBJECT) {
+                emitter.emit(CALLP, emitter.str("object__makeDictionary"));
+            } else {
+                internal_error("unimplemented: can only convert Dictionary<Object> to Object");
+            }
+        }
     }
 }
 
