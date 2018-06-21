@@ -627,6 +627,7 @@ class DotExpression:
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
+            return obj[self.field] # Support a.b syntax where a is an object.
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):

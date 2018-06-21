@@ -18,7 +18,13 @@ LET three: Object := 3
 x := [one, two, three]
 print("\(x)")
 %= [1, 2, 3]
+print(str(x[0]))
+%= 1
 
 x := {"one": one, "two": two, "three": three}
 print("\(x)")
 %= {"one": 1, "three": 3, "two": 2}
+print(str(x["two"]))
+%= 2
+print(str(x.three))
+%= 3

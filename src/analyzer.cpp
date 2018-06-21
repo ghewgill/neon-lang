@@ -1302,6 +1302,9 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
         }
     }
     const ast::Expression *base = analyze(expr->base.get());
+    if (base->type == ast::TYPE_OBJECT) {
+        return new ast::ObjectSubscriptExpression(base, new ast::ConstantStringExpression(expr->name.text));
+    }
     const ast::TypeRecord *recordtype = dynamic_cast<const ast::TypeRecord *>(base->type);
     if (recordtype == nullptr) {
         error(3046, expr->base->token, "not a record");
@@ -1433,6 +1436,11 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         } else {
             return new ast::StringValueIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
         }
+    } else if (type == ast::TYPE_OBJECT) {
+        if (not index->type->is_assignment_compatible(ast::TYPE_OBJECT)) {
+            error(3262, expr->index->token, "index must be an object");
+        }
+        return new ast::ObjectSubscriptExpression(base, index);
     } else {
         error2(3044, expr->token, "not an array or dictionary", type->declaration, "declaration here");
     }

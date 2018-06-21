@@ -1675,6 +1675,13 @@ void ast::BytesValueIndexExpression::generate_expr(Emitter &emitter) const
     load->generate(emitter);
 }
 
+void ast::ObjectSubscriptExpression::generate_expr(Emitter &emitter) const
+{
+    obj->generate(emitter);
+    index->generate(emitter, TYPE_OBJECT);
+    emitter.emit(CALLP, emitter.str("object__subscript"));
+}
+
 void ast::RecordReferenceFieldExpression::generate_address_read(Emitter &emitter) const
 {
     ref->generate_address_read(emitter);

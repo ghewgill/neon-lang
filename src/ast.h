@@ -102,6 +102,7 @@ public:
     virtual void visit(const class StringValueIndexExpression *node) = 0;
     virtual void visit(const class BytesReferenceIndexExpression *node) = 0;
     virtual void visit(const class BytesValueIndexExpression *node) = 0;
+    virtual void visit(const class ObjectSubscriptExpression *node) = 0;
     virtual void visit(const class RecordReferenceFieldExpression *node) = 0;
     virtual void visit(const class RecordValueFieldExpression *node) = 0;
     virtual void visit(const class ArrayReferenceRangeExpression *node) = 0;
@@ -1976,6 +1977,25 @@ public:
 private:
     BytesValueIndexExpression(const BytesValueIndexExpression &);
     BytesValueIndexExpression &operator=(const BytesValueIndexExpression &);
+};
+
+class ObjectSubscriptExpression: public Expression {
+public:
+    ObjectSubscriptExpression(const Expression *obj, const Expression *index): Expression(TYPE_OBJECT, false), obj(obj), index(index) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *obj;
+    const Expression *index;
+
+    virtual bool eval_boolean() const override { internal_error("ObjectSubscriptExpression"); }
+    virtual Number eval_number() const override { internal_error("ObjectSubscriptExpression"); }
+    virtual std::string eval_string() const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "ObjectSubscriptExpression(" + obj->text() + ", " + index->text() + ")"; }
+private:
+    ObjectSubscriptExpression(const ObjectSubscriptExpression &);
+    ObjectSubscriptExpression &operator=(const ObjectSubscriptExpression &);
 };
 
 class RecordReferenceFieldExpression: public ReferenceExpression {

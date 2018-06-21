@@ -388,6 +388,14 @@ class ObjectArray: public Object {
 public:
     ObjectArray(std::vector<std::shared_ptr<Object>> a): a(a) {}
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &r) const override { r = a; return true; }
+    virtual std::shared_ptr<Object> subscript(std::shared_ptr<Object> index) const override {
+        Number i;
+        if (not index->getNumber(i)) {
+            throw RtlException(Exception_DynamicConversionException, "to Number");
+        }
+        // TODO: bounds checking
+        return a.at(number_to_uint32(i));
+    }
     virtual std::string toString() const override {
         std::string r = "[";
         bool first = true;
@@ -415,6 +423,13 @@ class ObjectDictionary: public Object {
 public:
     ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
+    virtual std::shared_ptr<Object> subscript(std::shared_ptr<Object> index) const override {
+        std::string i;
+        if (not index->getString(i)) {
+            throw RtlException(Exception_DynamicConversionException, "to String");
+        }
+        return d.at(i);
+    }
     virtual std::string toString() const override {
         std::string r = "{";
         bool first = true;
@@ -490,6 +505,15 @@ std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_
 std::string object__toString(std::shared_ptr<Object> obj)
 {
     return obj->toString();
+}
+
+std::shared_ptr<Object> object__subscript(std::shared_ptr<Object> obj, std::shared_ptr<Object> index)
+{
+    std::shared_ptr<Object> r = obj->subscript(index);
+    if (not r) {
+        throw RtlException(Exception_ObjectSubscriptException, "");
+    }
+    return r;
 }
 
 } // namespace global

@@ -129,6 +129,13 @@ EXCEPTION FunctionNotFoundException
 EXCEPTION LibraryNotFoundException
 
 %|
+ |  Exception: ObjectSubscriptException
+ |
+ |  Object subscript exception.
+ |%
+EXCEPTION ObjectSubscriptException
+
+%|
  |  Exception: SqlException
  |
  |  SQL exception.
@@ -196,6 +203,7 @@ DECLARE NATIVE FUNCTION object__getNumber(obj: Object): Number
 DECLARE NATIVE FUNCTION object__getString(obj: Object): String
 DECLARE NATIVE FUNCTION object__getArray(obj: Object): Array<Object>
 DECLARE NATIVE FUNCTION object__getDictionary(obj: Object): Dictionary<Object>
+DECLARE NATIVE FUNCTION object__subscript(obj: Object, index: Object): Object
 DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 
 %|
