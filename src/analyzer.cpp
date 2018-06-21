@@ -2111,6 +2111,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
         case 'N': i++; return ast::TYPE_NUMBER;
         case 'S': i++; return ast::TYPE_STRING;
         case 'Y': i++; return ast::TYPE_BYTES;
+        case 'O': i++; return ast::TYPE_OBJECT;
         case 'A': {
             i++;
             if (descriptor.at(i) != '<') {

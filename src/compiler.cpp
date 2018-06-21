@@ -605,7 +605,7 @@ void ast::TypeArray::generate_call(Emitter &) const
 void ast::TypeArray::generate_convert(Emitter &, const Type *from) const
 {
     const TypeArray *a = dynamic_cast<const TypeArray *>(from);
-    if (a->elementtype == ast::TYPE_OBJECT) {
+    if (a->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
         // The following comment is for the error detector so we can still have
         // the old t/errors/N3079.neon file in the repo (though marked TODO).
         // This error will come back and have to be detected at the analyze stage.
@@ -652,7 +652,7 @@ void ast::TypeDictionary::generate_call(Emitter &) const
 void ast::TypeDictionary::generate_convert(Emitter &, const Type *from) const
 {
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
-    if (d->elementtype == ast::TYPE_OBJECT) {
+    if (d->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
         // The following comment is for the error detector so we can still have
         // the old t/errors/N3072.neon file in the repo (though marked TODO).
         // This error will come back and have to be detected at the analyze stage.
