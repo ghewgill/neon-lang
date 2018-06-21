@@ -602,6 +602,18 @@ void ast::TypeArray::generate_call(Emitter &) const
     internal_error("TypeArray");
 }
 
+void ast::TypeArray::generate_convert(Emitter &, const Type *from) const
+{
+    const TypeArray *a = dynamic_cast<const TypeArray *>(from);
+    if (a->elementtype == ast::TYPE_OBJECT) {
+        // The following comment is for the error detector so we can still have
+        // the old t/errors/N3079.neon file in the repo (though marked TODO).
+        // This error will come back and have to be detected at the analyze stage.
+        // error(3079, "type mismatch")
+        internal_error("TODO: conversion of array type from " + from->text() + " to " + text());
+    }
+}
+
 std::string ast::TypeArray::get_type_descriptor(Emitter &emitter) const
 {
     return "A<" + emitter.get_type_reference(elementtype) + ">";
@@ -635,6 +647,18 @@ void ast::TypeDictionary::generate_store(Emitter &emitter) const
 void ast::TypeDictionary::generate_call(Emitter &) const
 {
     internal_error("TypeDictionary");
+}
+
+void ast::TypeDictionary::generate_convert(Emitter &, const Type *from) const
+{
+    const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
+    if (d->elementtype == ast::TYPE_OBJECT) {
+        // The following comment is for the error detector so we can still have
+        // the old t/errors/N3072.neon file in the repo (though marked TODO).
+        // This error will come back and have to be detected at the analyze stage.
+        // error(3072, "type mismatch")
+        internal_error("TODO: conversion of dictionary type from " + from->text() + " to " + text());
+    }
 }
 
 std::string ast::TypeDictionary::get_type_descriptor(Emitter &emitter) const
@@ -1249,7 +1273,7 @@ void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 void ast::ArrayLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {
-        (*e)->generate(emitter);
+        (*e)->generate(emitter, elementtype);
     }
     emitter.emit(CONSA, static_cast<uint32_t>(elements.size()));
 }
@@ -1258,7 +1282,7 @@ void ast::DictionaryLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto d = dict.rbegin(); d != dict.rend(); ++d) {
         emitter.emit(PUSHS, emitter.str(d->first));
-        d->second->generate(emitter);
+        d->second->generate(emitter, elementtype);
     }
     emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
 }

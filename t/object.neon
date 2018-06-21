@@ -28,3 +28,19 @@ print(str(x["two"]))
 %= 2
 print(str(x.three))
 %= 3
+
+x := [1, 2, "three"]
+print("\(x)")
+%= [1, 2, "three"]
+
+%x := [1, 2, 3]
+%print("\(x)")
+%%= [1, 2, 3]
+
+x := {"one": 1, "two": 2, "three": "three"}
+print("\(x)")
+%= {"one": 1, "three": "three", "two": 2}
+
+%x := {"one": 1, "two": 2, "three": 3}
+%print("\(x)")
+%%= {"one": 1, "three": 3, "two": 2}

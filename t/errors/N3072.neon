@@ -1,11 +1,5 @@
-FOREIGN FUNCTION Sleep(ms: Number)
-{
-     "library": {
-          "name": 32
-     }
-     "types": {
-              %<
-          "dwMilliseconds": "uint32"
-     }
-}
-END FUNCTION
+% TODO
+VAR d: Dictionary<Number>
+
+a := {"one": 1, "two": 2, "three": "Three", "four": 4, "five": 5}
+                                   %<

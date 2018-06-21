@@ -374,7 +374,7 @@ class ObjectString: public Object {
 public:
     ObjectString(const std::string &s): s(s) {}
     virtual bool getString(std::string &r) const override { r = s; return true; }
-    virtual std::string toString() const override { return s; }
+    virtual std::string toString() const override { return "\"" + s + "\""; }
 private:
     const std::string s;
 };

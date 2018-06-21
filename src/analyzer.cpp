@@ -1171,7 +1171,7 @@ const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
         if (elementtype == nullptr) {
             elementtype = element->type;
         } else if (not element->type->is_assignment_compatible(elementtype)) {
-            error(3079, x->token, "type mismatch");
+            elementtype = ast::TYPE_OBJECT;
         }
         elements.push_back(element);
     }
@@ -1220,7 +1220,7 @@ const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *
         if (elementtype == nullptr) {
             elementtype = element->type;
         } else if (not element->type->is_assignment_compatible(elementtype)) {
-            error(3072, x.second->token, "type mismatch");
+            elementtype = ast::TYPE_OBJECT;
         }
         elements.push_back(std::make_pair(key, element));
     }

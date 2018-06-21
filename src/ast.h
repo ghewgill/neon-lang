@@ -522,6 +522,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
@@ -550,6 +551,7 @@ public:
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
