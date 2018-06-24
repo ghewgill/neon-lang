@@ -21,9 +21,9 @@ TYPE Handle IS POINTER
 % Type: WIN32_FIND_DATA
 TYPE WIN32_FIND_DATA IS RECORD
     dwFileAttributes: Number
-    ftCreationTime: Bytes
-    ftLastAccessTime: Bytes
-    ftLastWriteTime: Bytes
+    ftCreationTime: Number
+    ftLastAccessTime: Number
+    ftLastWriteTime: Number
     nFileSizeHigh: Number
     nFileSizeLow: Number
     dwReserved0: Number
@@ -34,9 +34,9 @@ END RECORD
 
 LET Struct_WIN32_FIND_DATA: struct.Struct := struct.make([
     struct.field("dwFileAttributes",    struct.Type.int32LE,  4),
-    struct.field("ftCreationTime",      struct.Type.bytes,    8),
-    struct.field("ftLastAccessTime",    struct.Type.bytes,    8),
-    struct.field("ftLastWriteTime",     struct.Type.bytes,    8),
+    struct.field("ftCreationTime",      struct.Type.uint64LE, 8),
+    struct.field("ftLastAccessTime",    struct.Type.uint64LE, 8),
+    struct.field("ftLastWriteTime",     struct.Type.uint64LE, 8),
     struct.field("nFileSizeHigh",       struct.Type.int32LE,  4),
     struct.field("nFileSizeLow",        struct.Type.int32LE,  4),
     struct.field("dwReserved0",         struct.Type.int32LE,  4),
@@ -48,9 +48,9 @@ LET Struct_WIN32_FIND_DATA: struct.Struct := struct.make([
 FUNCTION WIN32_FIND_DATA.pack(self: WIN32_FIND_DATA): Bytes
     VAR d: Dictionary<variant.Variant> := {}
     d["dwFileAttributes"]   := variant.makeNumber(self.dwFileAttributes)
-    d["ftCreationTime"]     := variant.makeBytes(self.ftCreationTime)
-    d["ftLastAccessTime"]   := variant.makeBytes(self.ftLastAccessTime)
-    d["ftLastWriteTime"]    := variant.makeBytes(self.ftLastWriteTime)
+    d["ftCreationTime"]     := variant.makeNumber(self.ftCreationTime)
+    d["ftLastAccessTime"]   := variant.makeNumber(self.ftLastAccessTime)
+    d["ftLastWriteTime"]    := variant.makeNumber(self.ftLastWriteTime)
     d["nFileSizeHigh"]      := variant.makeNumber(self.nFileSizeHigh)
     d["nFileSizeLow"]       := variant.makeNumber(self.nFileSizeLow)
     d["dwReserved0"]        := variant.makeNumber(self.dwReserved0)
@@ -63,9 +63,9 @@ END FUNCTION
 FUNCTION WIN32_FIND_DATA.unpack(INOUT self: WIN32_FIND_DATA, data: Bytes)
     LET d: Dictionary<variant.Variant> := Struct_WIN32_FIND_DATA.unpack(data)
     self.dwFileAttributes   := d["dwFileAttributes"].getNumber()
-    self.ftCreationTime     := d["ftCreationTime"].getBytes()
-    self.ftLastAccessTime   := d["ftLastAccessTime"].getBytes()
-    self.ftLastWriteTime    := d["ftLastWriteTime"].getBytes()
+    self.ftCreationTime     := d["ftCreationTime"].getNumber()
+    self.ftLastAccessTime   := d["ftLastAccessTime"].getNumber()
+    self.ftLastWriteTime    := d["ftLastWriteTime"].getNumber()
     self.nFileSizeHigh      := d["nFileSizeHigh"].getNumber()
     self.nFileSizeLow       := d["nFileSizeLow"].getNumber()
     self.dwReserved0        := d["dwReserved0"].getNumber()
