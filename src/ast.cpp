@@ -189,6 +189,8 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
             methods["toString"] = new PredefinedFunction("array__toString__number", new TypeFunction(TYPE_STRING, params));
         } else if (elementtype == TYPE_STRING) {
             methods["toString"] = new PredefinedFunction("array__toString__string", new TypeFunction(TYPE_STRING, params));
+        } else if (elementtype == TYPE_OBJECT) {
+            methods["toString"] = new PredefinedFunction("array__toString__object", new TypeFunction(TYPE_STRING, params));
         }
     }
 }
@@ -236,6 +238,9 @@ bool TypeFunction::is_assignment_compatible(const Type *rhs) const
 
 bool TypeArray::is_assignment_compatible(const Type *rhs) const
 {
+    if (rhs == TYPE_OBJECT) {
+        return true;
+    }
     const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);
     if (a == nullptr) {
         return false;
@@ -294,6 +299,9 @@ const Expression *TypeDictionary::make_default_value() const
 
 bool TypeDictionary::is_assignment_compatible(const Type *rhs) const
 {
+    if (rhs == TYPE_OBJECT) {
+        return true;
+    }
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
     if (d == nullptr) {
         return false;

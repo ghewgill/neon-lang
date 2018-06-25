@@ -598,13 +598,25 @@ void ast::TypeArray::generate_call(Emitter &) const
 
 void ast::TypeArray::generate_convert(Emitter &emitter, const Type *from) const
 {
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CALLP, emitter.str("object__getArray"));
+        if (elementtype != TYPE_OBJECT) {
+            auto iter_label = emitter.create_label();
+            emitter.emit_jump(MAPA, iter_label);
+            elementtype->generate_convert(emitter, TYPE_OBJECT);
+            emitter.emit(RET);
+            emitter.jump_target(iter_label);
+        }
+        return;
+    }
     const TypeArray *a = dynamic_cast<const TypeArray *>(from);
     if (elementtype == ast::TYPE_OBJECT && a->elementtype != TYPE_OBJECT) {
-        auto iter_label  = emitter.create_label();
+        auto iter_label = emitter.create_label();
         emitter.emit_jump(MAPA, iter_label);
         elementtype->generate_convert(emitter, a->elementtype);
         emitter.emit(RET);
         emitter.jump_target(iter_label);
+        return;
     }
     if (a->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
         // The following comment is for the error detector so we can still have
@@ -652,9 +664,20 @@ void ast::TypeDictionary::generate_call(Emitter &) const
 
 void ast::TypeDictionary::generate_convert(Emitter &emitter, const Type *from) const
 {
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CALLP, emitter.str("object__getDictionary"));
+        if (elementtype != TYPE_OBJECT) {
+            auto iter_label = emitter.create_label();
+            emitter.emit_jump(MAPD, iter_label);
+            elementtype->generate_convert(emitter, TYPE_OBJECT);
+            emitter.emit(RET);
+            emitter.jump_target(iter_label);
+        }
+        return;
+    }
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
     if (elementtype == ast::TYPE_OBJECT && d->elementtype != TYPE_OBJECT) {
-        auto iter_label  = emitter.create_label();
+        auto iter_label = emitter.create_label();
         emitter.emit_jump(MAPD, iter_label);
         elementtype->generate_convert(emitter, d->elementtype);
         emitter.emit(RET);

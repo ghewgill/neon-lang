@@ -54,3 +54,19 @@ LET ad: Dictionary<Number> := {"one": 1, "two": 2, "three": 3}
 x := ad
 print("\(x)")
 %= {"one": 1, "three": 3, "two": 2}
+
+x := [1, 2, 3]
+LET zo: Array<Object> := x
+print("\(zo)")
+%= [1, 2, 3]
+LET zn: Array<Number> := x
+print("\(zn)")
+%= [1, 2, 3]
+
+x := {"one": 1, "two": 2, "three": 3}
+LET yo: Dictionary<Object> := x
+%print("\(yo)")
+%%= {"one": 1, "three": 3, "two": 2}
+LET yn: Dictionary<Number> := x
+%print("\(yn)")
+%%= {"one": 1, "three": 3, "two": 2}

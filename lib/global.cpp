@@ -152,6 +152,19 @@ std::string array__toString__string(const std::vector<utf8string> &a)
     return r;
 }
 
+std::string array__toString__object(std::vector<std::shared_ptr<Object>> a)
+{
+    std::string r = "[";
+    for (auto &x: a) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(x->toString());
+    }
+    r.append("]");
+    return r;
+}
+
 std::string boolean__toString(bool self)
 {
     return self ? "TRUE" : "FALSE";
