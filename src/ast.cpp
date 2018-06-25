@@ -142,6 +142,19 @@ const Expression *TypeObject::make_default_value() const
     return nullptr; // TODO
 }
 
+bool TypeObject::is_assignment_compatible(const Type *rhs) const
+{
+    return
+        rhs == nullptr ||
+        dynamic_cast<const TypePointerNil *>(rhs) != nullptr ||
+        rhs == TYPE_BOOLEAN ||
+        rhs == TYPE_NUMBER ||
+        rhs == TYPE_STRING ||
+        rhs == TYPE_OBJECT ||
+        (dynamic_cast<const TypeArray *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeArray *>(rhs)->elementtype)) ||
+        (dynamic_cast<const TypeDictionary *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeDictionary *>(rhs)->elementtype));
+}
+
 std::string TypeObject::serialize(const Expression *) const
 {
     return "";
@@ -1173,6 +1186,11 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["toString"] = new PredefinedFunction("bytes__toString", new TypeFunction(TYPE_STRING, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_OBJECT, nullptr));
+        TYPE_OBJECT->methods["isNull"] = new PredefinedFunction("object__isNull", new TypeFunction(TYPE_BOOLEAN, params));
     }
     {
         std::vector<const ParameterType *> params;

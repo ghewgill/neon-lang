@@ -515,6 +515,11 @@ std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_
     return r;
 }
 
+bool object__isNull(std::shared_ptr<Object> obj)
+{
+    return obj == nullptr;
+}
+
 std::string object__toString(std::shared_ptr<Object> obj)
 {
     return obj->toString();

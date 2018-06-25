@@ -61,6 +61,7 @@ ExcludeTests = [
     "t/new-init.neon",              # class
     "t/number-ceil.neon",           # precision
     "t/object.neon",                # object
+    "t/object-null.neon",           # object
     "t/object-operator.neon",       # object
     "t/os-test.neon",               # os
     "t/outer-parameter.neon",       # PUSHPOL

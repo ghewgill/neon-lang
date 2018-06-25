@@ -453,7 +453,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual const Expression *make_default_value() const override;
-    virtual bool is_assignment_compatible(const Type *) const override { return true; }
+    virtual bool is_assignment_compatible(const Type *) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
