@@ -380,6 +380,8 @@ public:
     void exec_PUSHM();
     void exec_CALLV();
     void exec_PUSHCI();
+    void exec_MAPA();
+    void exec_MAPD();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -1867,6 +1869,40 @@ void Executor::exec_PUSHCI()
     exit(1);
 }
 
+void Executor::exec_MAPA()
+{
+    ip++;
+    uint32_t target = Bytecode::get_vint(module->object.code, ip);
+    const auto start = ip;
+    const std::vector<Cell> a = stack.top().array(); stack.pop();
+    std::vector<Cell> r;
+    for (auto x: a) {
+        stack.push(x);
+        callstack.push_back(std::make_pair(module, start));
+        exec_loop(callstack.size() - 1);
+        r.push_back(stack.top()); stack.pop();
+    }
+    stack.push(Cell(r));
+    ip = target;
+}
+
+void Executor::exec_MAPD()
+{
+    ip++;
+    uint32_t target = Bytecode::get_vint(module->object.code, ip);
+    const auto start = ip;
+    const std::map<utf8string, Cell> d = stack.top().dictionary(); stack.pop();
+    std::map<utf8string, Cell> r;
+    for (auto x: d) {
+        stack.push(x.second);
+        callstack.push_back(std::make_pair(module, start));
+        exec_loop(callstack.size() - 1);
+        r[x.first] = stack.top(); stack.pop();
+    }
+    stack.push(Cell(r));
+    ip = target;
+}
+
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
     // The fields here must match the declaration of
@@ -2203,6 +2239,8 @@ void Executor::exec_loop(size_t min_callstack_depth)
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(); break;
+            case MAPA:    exec_MAPA(); break;
+            case MAPD:    exec_MAPD(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

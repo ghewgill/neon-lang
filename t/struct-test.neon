@@ -41,7 +41,7 @@ print(str(v["field1"]))
 print(v["field2"])
 %= hello
 
-b := s.pack({"field1": 5, "field2": "hi"}) % TODO: remove field1 (currently needed for wip object support)
+b := s.pack({"field2": "hi"})
 a := b.toArray()
 print("\(a.size())")
 %= 24

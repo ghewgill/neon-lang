@@ -519,19 +519,13 @@ void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
     } else {
         const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
         if (atype != nullptr) {
-            if (atype->elementtype == TYPE_OBJECT) {
-                emitter.emit(CALLP, emitter.str("object__makeArray"));
-            } else {
-                internal_error("unimplemented: can only convert Array<Object> to Object");
-            }
+            TYPE_ARRAY_OBJECT->generate_convert(emitter, from);
+            emitter.emit(CALLP, emitter.str("object__makeArray"));
         }
         const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
         if (dtype != nullptr) {
-            if (dtype->elementtype == TYPE_OBJECT) {
-                emitter.emit(CALLP, emitter.str("object__makeDictionary"));
-            } else {
-                internal_error("unimplemented: can only convert Dictionary<Object> to Object");
-            }
+            TYPE_DICTIONARY_OBJECT->generate_convert(emitter, from);
+            emitter.emit(CALLP, emitter.str("object__makeDictionary"));
         }
     }
 }
@@ -602,9 +596,16 @@ void ast::TypeArray::generate_call(Emitter &) const
     internal_error("TypeArray");
 }
 
-void ast::TypeArray::generate_convert(Emitter &, const Type *from) const
+void ast::TypeArray::generate_convert(Emitter &emitter, const Type *from) const
 {
     const TypeArray *a = dynamic_cast<const TypeArray *>(from);
+    if (elementtype == ast::TYPE_OBJECT && a->elementtype != TYPE_OBJECT) {
+        auto iter_label  = emitter.create_label();
+        emitter.emit_jump(MAPA, iter_label);
+        elementtype->generate_convert(emitter, a->elementtype);
+        emitter.emit(RET);
+        emitter.jump_target(iter_label);
+    }
     if (a->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
         // The following comment is for the error detector so we can still have
         // the old t/errors/N3079.neon file in the repo (though marked TODO).
@@ -649,9 +650,16 @@ void ast::TypeDictionary::generate_call(Emitter &) const
     internal_error("TypeDictionary");
 }
 
-void ast::TypeDictionary::generate_convert(Emitter &, const Type *from) const
+void ast::TypeDictionary::generate_convert(Emitter &emitter, const Type *from) const
 {
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
+    if (elementtype == ast::TYPE_OBJECT && d->elementtype != TYPE_OBJECT) {
+        auto iter_label  = emitter.create_label();
+        emitter.emit_jump(MAPD, iter_label);
+        elementtype->generate_convert(emitter, d->elementtype);
+        emitter.emit(RET);
+        emitter.jump_target(iter_label);
+    }
     if (d->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
         // The following comment is for the error detector so we can still have
         // the old t/errors/N3072.neon file in the repo (though marked TODO).
@@ -1825,10 +1833,7 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
         auto arg = args[i];
         switch (param->mode) {
             case ParameterType::Mode::IN:
-                arg->generate(emitter);
-                if (param->type != nullptr) {
-                    param->type->generate_convert(emitter, arg->type);
-                }
+                arg->generate(emitter, param->type);
                 break;
             case ParameterType::Mode::INOUT:
                 dynamic_cast<const ReferenceExpression *>(arg)->generate_address_read(emitter);

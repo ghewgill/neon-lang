@@ -123,6 +123,8 @@ private:
     void disasm_PUSHM();
     void disasm_CALLV();
     void disasm_PUSHCI();
+    void disasm_MAPA();
+    void disasm_MAPD();
 
     std::string decode_value(const std::string &type, const Bytecode::Bytes &value);
 private:
@@ -778,6 +780,20 @@ void Disassembler::disasm_PUSHCI()
     out << "PUSHCI \"" << obj.strtable[val] << "\"\n";
 }
 
+void Disassembler::disasm_MAPA()
+{
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
+    out << "MAPA " << addr << "\n";
+}
+
+void Disassembler::disasm_MAPD()
+{
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
+    out << "MAPD " << addr << "\n";
+}
+
 std::string Disassembler::decode_value(const std::string &type, const Bytecode::Bytes &value)
 {
     switch (type.at(0)) {
@@ -976,6 +992,8 @@ void Disassembler::disassemble()
             case PUSHM:   disasm_PUSHM(); break;
             case CALLV:   disasm_CALLV(); break;
             case PUSHCI:  disasm_PUSHCI(); break;
+            case MAPA:    disasm_MAPA(); break;
+            case MAPD:    disasm_MAPD(); break;
         }
         if (index == last_index) {
             out << "disassembler: Unexpected opcode: " << static_cast<int>(obj.code[index]) << "\n";
