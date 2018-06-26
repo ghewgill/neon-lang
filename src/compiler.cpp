@@ -598,8 +598,11 @@ void ast::TypeArray::generate_call(Emitter &) const
 
 void ast::TypeArray::generate_convert(Emitter &emitter, const Type *from) const
 {
-    if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__getArray"));
+    const TypeArray *a = dynamic_cast<const TypeArray *>(from);
+    if (from == TYPE_OBJECT || (a != nullptr && a->elementtype == TYPE_OBJECT)) {
+        if (from == TYPE_OBJECT) {
+            emitter.emit(CALLP, emitter.str("object__getArray"));
+        }
         if (elementtype != TYPE_OBJECT) {
             auto iter_label = emitter.create_label();
             emitter.emit_jump(MAPA, iter_label);
@@ -609,7 +612,6 @@ void ast::TypeArray::generate_convert(Emitter &emitter, const Type *from) const
         }
         return;
     }
-    const TypeArray *a = dynamic_cast<const TypeArray *>(from);
     if (elementtype == ast::TYPE_OBJECT && a->elementtype != TYPE_OBJECT) {
         auto iter_label = emitter.create_label();
         emitter.emit_jump(MAPA, iter_label);
@@ -664,8 +666,11 @@ void ast::TypeDictionary::generate_call(Emitter &) const
 
 void ast::TypeDictionary::generate_convert(Emitter &emitter, const Type *from) const
 {
-    if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__getDictionary"));
+    const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
+    if (from == TYPE_OBJECT || (d != nullptr && d->elementtype == TYPE_OBJECT)) {
+        if (from == TYPE_OBJECT) {
+            emitter.emit(CALLP, emitter.str("object__getDictionary"));
+        }
         if (elementtype != TYPE_OBJECT) {
             auto iter_label = emitter.create_label();
             emitter.emit_jump(MAPD, iter_label);
@@ -675,7 +680,6 @@ void ast::TypeDictionary::generate_convert(Emitter &emitter, const Type *from) c
         }
         return;
     }
-    const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
     if (elementtype == ast::TYPE_OBJECT && d->elementtype != TYPE_OBJECT) {
         auto iter_label = emitter.create_label();
         emitter.emit_jump(MAPD, iter_label);
@@ -1428,6 +1432,25 @@ void ast::ConjunctionExpression::generate_expr(Emitter &emitter) const
     emitter.emit(DROP);
     right->generate(emitter, TYPE_BOOLEAN);
     emitter.jump_target(false_label);
+}
+
+void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
+{
+    left->generate(emitter);
+    Bytecode::ExceptionInfo ei;
+    ei.start = emitter.current_ip();
+    target->generate_convert(emitter, left->type);
+    emitter.emit(DROP);
+    emitter.emit(PUSHB, 1);
+    auto skip = emitter.create_label();
+    emitter.emit_jump(JUMP, skip);
+    ei.end = emitter.current_ip();
+    ei.excid = emitter.str("DynamicConversionException");
+    ei.handler = emitter.current_ip();
+    emitter.add_exception(ei);
+    emitter.emit(DROP);
+    emitter.emit(PUSHB, 0);
+    emitter.jump_target(skip);
 }
 
 void ast::ArrayInExpression::generate_expr(Emitter &emitter) const

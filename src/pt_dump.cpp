@@ -188,6 +188,11 @@ public:
             child(x->right.get());
         }
     }
+    virtual void visit(const TypeTestExpression *node) override {
+        write("TypeTestExpression");
+        child(node->left.get());
+        child(node->target.get());
+    }
     virtual void visit(const MembershipExpression *node) override {
         write("MembershipExpression");
         child(node->left.get());

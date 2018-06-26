@@ -43,6 +43,7 @@ public:
     std::unique_ptr<Expression> parseMultiplication();
     std::unique_ptr<Expression> parseAddition();
     std::unique_ptr<Expression> parseComparison();
+    std::unique_ptr<Expression> parseTypeTest();
     std::unique_ptr<Expression> parseMembership();
     std::unique_ptr<Expression> parseConjunction();
     std::unique_ptr<Expression> parseDisjunction();
@@ -521,6 +522,7 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
  *  * / MOD  multiplication, division, modulo   parseMultiplication
  *  + -      addition, subtraction              parseAddition
  *  < = >    comparison                         parseComparison
+ *  isa      type test                          parseTypeTest
  *  in       membership                         parseMembership
  *  and      conjunction                        parseConjunction
  *  or       disjunction                        parseDisjunction
@@ -838,9 +840,23 @@ std::unique_ptr<Expression> Parser::parseComparison()
     }
 }
 
-std::unique_ptr<Expression> Parser::parseMembership()
+std::unique_ptr<Expression> Parser::parseTypeTest()
 {
     std::unique_ptr<Expression> left = parseComparison();
+    if (tokens[i].type == ISA) {
+        auto &tok_op = tokens[i];
+        ++i;
+        std::unique_ptr<Type> target = parseType();
+        std::unique_ptr<Expression> r { new TypeTestExpression(tok_op, std::move(left), std::move(target)) };
+        return r;
+    } else {
+        return left;
+    }
+}
+
+std::unique_ptr<Expression> Parser::parseMembership()
+{
+    std::unique_ptr<Expression> left = parseTypeTest();
     if (tokens[i].type == IN || (tokens[i].type == NOT && tokens[i+1].type == IN)) {
         auto &tok_op = tokens[i];
         bool notin = tokens[i].type == NOT;
@@ -848,7 +864,7 @@ std::unique_ptr<Expression> Parser::parseMembership()
             ++i;
         }
         ++i;
-        std::unique_ptr<Expression> right = parseComparison();
+        std::unique_ptr<Expression> right = parseTypeTest();
         std::unique_ptr<Expression> r { new MembershipExpression(tok_op, std::move(left), std::move(right)) };
         if (notin) {
             r.reset(new LogicalNotExpression(tok_op, std::move(r)));

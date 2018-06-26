@@ -146,6 +146,7 @@ TRAP = Keyword("TRAP")
 INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
+ISA = Keyword("ISA")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -770,6 +771,26 @@ class TryExpression:
                     break
             else:
                 raise
+
+class TypeTestExpression:
+    def __init__(self, left, target):
+        self.left = left
+        self.target = target
+    def eval(self, env):
+        v = self.left.eval(env)
+        if isinstance(self.target, TypeSimple):
+            if self.target.name == "Boolean":
+                return isinstance(v, bool)
+            if self.target.name == "Number":
+                return isinstance(v, (int, float))
+            if self.target.name == "String":
+                return isinstance(v, (str, unicode))
+        if isinstance(self.target, TypeParameterised):
+            if self.target.elementtype.name == "Number":
+                return all(isinstance(x, int) for x in v)
+            if self.target.elementtype.name == "Object":
+                return True
+        assert False, "add type ISA support for target {}".format(self.target)
 
 class MembershipExpression:
     def __init__(self, left, right):
@@ -1679,14 +1700,23 @@ class Parser:
         else:
             return ChainedComparisonExpression(comps)
 
-    def parse_membership(self):
+    def parse_typetest(self):
         left = self.parse_comparison()
+        if self.tokens[self.i] is ISA:
+            self.i += 1
+            target = self.parse_type()
+            return TypeTestExpression(left, target)
+        else:
+            return left
+
+    def parse_membership(self):
+        left = self.parse_typetest()
         if self.tokens[self.i] is IN or (self.tokens[self.i] is NOT and self.tokens[self.i+1] is IN):
             notin = self.tokens[self.i] is NOT
             if notin:
                 self.i += 1
             self.i += 1
-            right = self.parse_comparison()
+            right = self.parse_typetest()
             r = MembershipExpression(left, right)
             if notin:
                 r = LogicalNotExpression(r)

@@ -1997,6 +1997,7 @@ public:
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
@@ -2118,6 +2119,7 @@ public:
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
@@ -2239,6 +2241,7 @@ public:
     virtual void visit(const ast::TryExpression *node) { r = new TryExpression(node); }
     virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
     virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
     virtual void visit(const ast::ChainedComparisonExpression *node) { r = new ChainedComparisonExpression(node); }
@@ -2360,6 +2363,7 @@ public:
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}

@@ -73,6 +73,7 @@ public:
     virtual void visit(const class TryExpression *node) = 0;
     virtual void visit(const class DisjunctionExpression *node) = 0;
     virtual void visit(const class ConjunctionExpression *node) = 0;
+    virtual void visit(const class TypeTestExpression *node) = 0;
     virtual void visit(const class ArrayInExpression *node) = 0;
     virtual void visit(const class DictionaryInExpression *node) = 0;
     virtual void visit(const class ChainedComparisonExpression *node) = 0;
@@ -1358,6 +1359,25 @@ public:
 private:
     ConjunctionExpression(const ConjunctionExpression &);
     ConjunctionExpression &operator=(const ConjunctionExpression &);
+};
+
+class TypeTestExpression: public Expression {
+public:
+    TypeTestExpression(const Expression *left, const Type *target): Expression(TYPE_BOOLEAN, left->type != TYPE_OBJECT), left(left), target(target) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *left;
+    const Type *target;
+
+    virtual bool eval_boolean() const override;
+    virtual Number eval_number() const override { internal_error("TypeTestExpression"); }
+    virtual std::string eval_string() const override { internal_error("TypeTestExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "TypeTestExpression(" + left->text() + ", " + target->text() + ")"; }
+private:
+    TypeTestExpression(const TypeTestExpression &);
+    TypeTestExpression &operator=(const TypeTestExpression &);
 };
 
 class ArrayInExpression: public Expression {

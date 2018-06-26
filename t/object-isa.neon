@@ -1,0 +1,11 @@
+LET x: Object := 5
+ASSERT x ISA Number
+ASSERT NOT (x ISA String)
+
+% This doesn't work yet because an exception thrown within MAPA fails spectacularly.
+% ASSERT NOT ([1, "two"] ISA Array<Number>)
+ASSERT [1, "two"] ISA Array<Object>
+
+% This doesn't work yet because an exception thrown within MAPD fails spectacularly.
+% ASSERT NOT ({"one": 1, "two": "two"} ISA Dictionary<Number>)
+ASSERT {"one": 1, "two": "two"} ISA Dictionary<Object>

@@ -713,6 +713,14 @@ std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dict
     return dict;
 }
 
+bool TypeTestExpression::eval_boolean() const
+{
+    if (type == TYPE_OBJECT) {
+        internal_error("unexpected object type");
+    }
+    return target->is_assignment_compatible(left->type);
+}
+
 bool BooleanComparisonExpression::eval_boolean() const
 {
     switch (comp) {

@@ -163,7 +163,9 @@ DisjunctionExpression = ConjunctionExpression, {'OR', ConjunctionExpression};
 
 ConjunctionExpression = MembershipExpression, {'AND', MembershipExpression};
 
-MembershipExpression = ComparisonExpression, [('IN' | 'NOT', 'IN'), ComparisonExpression];
+MembershipExpression = TypeTestExpression, [('IN' | 'NOT', 'IN'), TypeTestExpression];
+
+TypeTestExpression = ComparisonExpression, ['ISA', Type];
 
 ComparisonExpression = AdditionExpression, {('=' | '<>' | '<' | '>' | '<=' | '>='), AdditionExpression};
 

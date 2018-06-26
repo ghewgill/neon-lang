@@ -84,6 +84,7 @@ ExcludeTests = [
     "t/net-test.neon",              # module net
     "t/number-ceil.neon",           # number formatting
     "t/object.neon",                # object
+    "t/object-isa.neon",            # object
     "t/object-null.neon",           # object
     "t/os-test.neon",               # module os
     "t/parameter-out-array.neon",   # out parameters

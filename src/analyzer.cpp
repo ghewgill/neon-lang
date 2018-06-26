@@ -75,6 +75,7 @@ public:
     const ast::Expression *analyze(const pt::ConcatenationExpression *expr);
     const ast::Expression *analyze(const pt::ComparisonExpression *expr);
     const ast::Expression *analyze(const pt::ChainedComparisonExpression *expr);
+    const ast::Expression *analyze(const pt::TypeTestExpression *expr);
     const ast::Expression *analyze(const pt::MembershipExpression *expr);
     const ast::Expression *analyze(const pt::ConjunctionExpression *expr);
     const ast::Expression *analyze(const pt::DisjunctionExpression *expr);
@@ -185,6 +186,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TypeTestExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
@@ -281,6 +283,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ComparisonExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ChainedComparisonExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::TypeTestExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::MembershipExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ConjunctionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DisjunctionExpression *p) override { expr = a->analyze(p); }
@@ -376,6 +379,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TypeTestExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
@@ -471,6 +475,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TypeTestExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
@@ -1924,6 +1929,13 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
         token = x->right->token;
     }
     return new ast::ChainedComparisonExpression(comps);
+}
+
+const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
+{
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Type *target = analyze(expr->target.get());
+    return new ast::TypeTestExpression(left, target);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
@@ -4681,6 +4693,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ComparisonExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ChainedComparisonExpression *node) { node->left->accept(this); for (auto &x: node->comps) x->right->accept(this); }
+    virtual void visit(const pt::TypeTestExpression *node) { node->left->accept(this); }
     virtual void visit(const pt::MembershipExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ConjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::DisjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
