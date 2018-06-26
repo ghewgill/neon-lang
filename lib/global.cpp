@@ -362,6 +362,9 @@ public:
     virtual std::string toString() const override { return b ? "TRUE" : "FALSE"; }
 private:
     const bool b;
+private:
+    ObjectBoolean(const ObjectBoolean &);
+    ObjectBoolean &operator=(const ObjectBoolean &);
 };
 
 std::shared_ptr<Object> object__makeBoolean(bool b)
@@ -376,6 +379,9 @@ public:
     virtual std::string toString() const override { return number_to_string(n); }
 private:
     const Number n;
+private:
+    ObjectNumber(const ObjectNumber &);
+    ObjectNumber &operator=(const ObjectNumber &);
 };
 
 std::shared_ptr<Object> object__makeNumber(Number n)
@@ -390,6 +396,9 @@ public:
     virtual std::string toString() const override { return "\"" + s + "\""; }
 private:
     const std::string s;
+private:
+    ObjectString(const ObjectString &);
+    ObjectString &operator=(const ObjectString &);
 };
 
 std::shared_ptr<Object> object__makeString(const std::string &s)
@@ -425,6 +434,9 @@ public:
     }
 private:
     std::vector<std::shared_ptr<Object>> a;
+private:
+    ObjectArray(const ObjectArray &);
+    ObjectArray &operator=(const ObjectArray &);
 };
 
 std::shared_ptr<Object> object__makeArray(std::vector<std::shared_ptr<Object>> a)
@@ -463,6 +475,9 @@ public:
     }
 private:
     std::map<utf8string, std::shared_ptr<Object>> d;
+private:
+    ObjectDictionary(const ObjectDictionary &);
+    ObjectDictionary &operator=(const ObjectDictionary &);
 };
 
 std::shared_ptr<Object> object__makeDictionary(std::map<utf8string, std::shared_ptr<Object>> d)
