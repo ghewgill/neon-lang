@@ -473,7 +473,7 @@ std::shared_ptr<Object> object__makeDictionary(std::map<utf8string, std::shared_
 bool object__getBoolean(std::shared_ptr<Object> obj)
 {
     bool r;
-    if (not obj->getBoolean(r)) {
+    if (obj == nullptr || not obj->getBoolean(r)) {
         throw RtlException(Exception_DynamicConversionException, "to Boolean");
     }
     return r;
@@ -482,7 +482,7 @@ bool object__getBoolean(std::shared_ptr<Object> obj)
 Number object__getNumber(std::shared_ptr<Object> obj)
 {
     Number r;
-    if (not obj->getNumber(r)) {
+    if (obj == nullptr || not obj->getNumber(r)) {
         throw RtlException(Exception_DynamicConversionException, "to Number");
     }
     return r;
@@ -491,7 +491,7 @@ Number object__getNumber(std::shared_ptr<Object> obj)
 std::string object__getString(std::shared_ptr<Object> obj)
 {
     std::string r;
-    if (not obj->getString(r)) {
+    if (obj == nullptr || not obj->getString(r)) {
         throw RtlException(Exception_DynamicConversionException, "to String");
     }
     return r;
@@ -500,7 +500,7 @@ std::string object__getString(std::shared_ptr<Object> obj)
 std::vector<std::shared_ptr<Object>> object__getArray(std::shared_ptr<Object> obj)
 {
     std::vector<std::shared_ptr<Object>> r;
-    if (not obj->getArray(r)) {
+    if (obj == nullptr || not obj->getArray(r)) {
         throw RtlException(Exception_DynamicConversionException, "to Array");
     }
     return r;
@@ -509,7 +509,7 @@ std::vector<std::shared_ptr<Object>> object__getArray(std::shared_ptr<Object> ob
 std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_ptr<Object> obj)
 {
     std::map<utf8string, std::shared_ptr<Object>> r;
-    if (not obj->getDictionary(r)) {
+    if (obj == nullptr || not obj->getDictionary(r)) {
         throw RtlException(Exception_DynamicConversionException, "to Dictionary");
     }
     return r;
@@ -522,11 +522,17 @@ bool object__isNull(std::shared_ptr<Object> obj)
 
 std::string object__toString(std::shared_ptr<Object> obj)
 {
+    if (obj == nullptr) {
+        return "null";
+    }
     return obj->toString();
 }
 
 std::shared_ptr<Object> object__subscript(std::shared_ptr<Object> obj, std::shared_ptr<Object> index)
 {
+    if (obj == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, "object is null");
+    }
     std::shared_ptr<Object> r = obj->subscript(index);
     if (not r) {
         throw RtlException(Exception_ObjectSubscriptException, "");
