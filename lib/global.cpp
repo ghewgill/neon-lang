@@ -410,13 +410,14 @@ class ObjectArray: public Object {
 public:
     ObjectArray(std::vector<std::shared_ptr<Object>> a): a(a) {}
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &r) const override { r = a; return true; }
-    virtual std::shared_ptr<Object> subscript(std::shared_ptr<Object> index) const override {
+    virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
         Number i;
         if (not index->getNumber(i)) {
             throw RtlException(Exception_DynamicConversionException, "to Number");
         }
         // TODO: bounds checking
-        return a.at(number_to_uint32(i));
+        r = a.at(number_to_uint32(i));
+        return true;
     }
     virtual std::string toString() const override {
         std::string r = "[";
@@ -448,12 +449,17 @@ class ObjectDictionary: public Object {
 public:
     ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
-    virtual std::shared_ptr<Object> subscript(std::shared_ptr<Object> index) const override {
+    virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
         std::string i;
         if (not index->getString(i)) {
             throw RtlException(Exception_DynamicConversionException, "to String");
         }
-        return d.at(i);
+        auto e = d.find(i);
+        if (e == d.end()) {
+            return false;
+        }
+        r = e->second;
+        return true;
     }
     virtual std::string toString() const override {
         std::string r = "{";
@@ -548,9 +554,9 @@ std::shared_ptr<Object> object__subscript(std::shared_ptr<Object> obj, std::shar
     if (obj == nullptr) {
         throw RtlException(Exception_DynamicConversionException, "object is null");
     }
-    std::shared_ptr<Object> r = obj->subscript(index);
-    if (not r) {
-        throw RtlException(Exception_ObjectSubscriptException, "");
+    std::shared_ptr<Object> r;
+    if (obj == nullptr || not obj->subscript(index, r)) {
+        throw RtlException(Exception_ObjectSubscriptException, index->toString());
     }
     return r;
 }

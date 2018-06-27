@@ -16,7 +16,7 @@ public:
     virtual bool getString(std::string &) const { return false; }
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &) const { return false; }
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &) const { return false; }
-    virtual std::shared_ptr<Object> subscript(std::shared_ptr<Object>) const { return nullptr; }
+    virtual bool subscript(std::shared_ptr<Object>, std::shared_ptr<Object> &) const { return false; }
     virtual std::string toString() const = 0;
 };
 
