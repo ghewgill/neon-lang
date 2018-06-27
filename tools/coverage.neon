@@ -4,7 +4,6 @@ IMPORT simplehttp
 IMPORT string
 IMPORT sys
 IMPORT time
-IMPORT variant
 
 CONSTANT Port: Number := 20179
 
@@ -18,12 +17,12 @@ VAR LineFromAddress: Array<Number> := []
 VAR AddressFromLine: Array<Number> := []
 VAR LineStatus: Array<Status> := []
 
-FUNCTION get(url: String): variant.Variant
+FUNCTION get(url: String): Object
     LET data: String := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
 
-FUNCTION post(url: String, post_data: String): variant.Variant
+FUNCTION post(url: String, post_data: String): Object
     LET data: String := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
@@ -38,17 +37,18 @@ LET source: String := sys.args[1]
 LET target: os.Process := os.spawn("bin/neon -d \(Port) " & string.join(sys.args[1 TO LAST], " "))
 time.sleep(1)
 
-LET debug: variant.Variant := get("/module/-/debuginfo")
+LET debug: Object := get("/module/-/debuginfo")
 
-FOREACH ln IN debug.getDictionary()["line_numbers"].getArray() DO
-    LET addr: Number := ln.getArray()[0].getNumber()
-    LET line: Number := ln.getArray()[1].getNumber()
+LET linenumbers: Array<Object> := debug.line_numbers
+FOREACH ln IN linenumbers DO
+    LET addr: Number := ln[0]
+    LET line: Number := ln[1]
     LineFromAddress[addr] := line
     AddressFromLine[line] := addr
     LineStatus[line] := Status.nothit
 END FOREACH
 
-VAR r: variant.Variant
+VAR r: Object
 
 FOREACH status IN LineStatus INDEX line DO
     IF status = Status.nothit THEN
@@ -64,9 +64,9 @@ LOOP
         TRAP simplehttp.HttpException DO
             EXIT LOOP
         END TRY
-    UNTIL r.getDictionary()["state"].getString() = "stopped"
+    UNTIL r.state = "stopped"
 
-    LET ip: Number := r.getDictionary()["ip"].getNumber()
+    LET ip: Number := r.ip
     LET line: Number := LineFromAddress[ip]
     IF line > 0 THEN
         LineStatus[line] := Status.hit
@@ -76,8 +76,8 @@ LOOP
     r := post("/continue", "")
 END LOOP
 
-LET sourcelines: Array<variant.Variant> := debug.getDictionary()["source"].getArray()
+LET sourcelines: Array<Object> := debug.source
 FOR line := 1 TO sourcelines.size()-1 DO
     LET status: Status := (IF line < LineStatus.size() THEN LineStatus[line] ELSE Status.none)
-    print("\(status:6) \(line:>4) | \(sourcelines[line].getString())")
+    print("\(status:6) \(line:>4) | \(sourcelines[line])")
 END FOR

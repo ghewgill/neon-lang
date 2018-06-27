@@ -4,16 +4,15 @@ IMPORT simplehttp
 IMPORT string
 IMPORT sys
 IMPORT time
-IMPORT variant
 
 CONSTANT Port: Number := 20179
 
-FUNCTION get(url: String): variant.Variant
+FUNCTION get(url: String): Object
     LET data: String := simplehttp.get("http://127.0.0.1:\(Port)\(url)", {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
 
-FUNCTION post(url: String, post_data: String): variant.Variant
+FUNCTION post(url: String, post_data: String): Object
     LET data: String := simplehttp.post("http://127.0.0.1:\(Port)\(url)", post_data, {}, OUT responseHeaders WITH _).decodeToString()
     RETURN json.decode(data)
 END FUNCTION
@@ -50,22 +49,22 @@ print("Neon debugger. Type 'help' for help.")
 
 LET target: os.Process := os.spawn("bin/neon -d \(Port) \(sys.args[1])")
 time.sleep(0.1)
-VAR r: variant.Variant
+VAR r: Object
 
 r := get("/module/-/debuginfo")
-FOREACH s IN r.getDictionary()["source"].getArray() INDEX i DO
-    Source[i] := s.getString()
-END FOREACH
-FOREACH ln IN r.getDictionary()["line_numbers"].getArray() DO
-    LET addr: Number := ln.getArray()[0].getNumber()
-    LET line: Number := ln.getArray()[1].getNumber()
+Source := r.source
+LET linenumbers: Array<Object> := r.line_numbers
+FOREACH ln IN linenumbers DO
+    LET addr: Number := ln[0]
+    LET line: Number := ln[1]
     LineFromAddress[addr] := line
     AddressFromLine[line] := addr
 END FOREACH
-FOREACH g IN r.getDictionary()["globals"].getArray() DO
-    Globals[g.getDictionary()["name"].getString()] := Global(
-        index WITH g.getDictionary()["index"].getNumber(),
-        repr WITH g.getDictionary()["type"].getDictionary()["representation"].getString()
+LET globals: Array<Object> := r.globals
+FOREACH g IN globals DO
+    Globals[g.name] := Global(
+        index WITH g.index,
+        repr WITH g.type.representation
     )
 END FOREACH
 
@@ -78,16 +77,17 @@ LOOP
         TRAP simplehttp.HttpException DO
             EXIT LOOP
         END TRY
-    UNTIL r.getDictionary()["state"].getString() = "stopped"
+    UNTIL r.state = "stopped"
 
-    IF r.getDictionary()["log_messages"].getNumber() > 0 THEN
-        LET log: variant.Variant := post("/log", "")
-        FOREACH message IN log.getArray() DO
-            print(message.getString())
+    IF r.log_messages > 0 THEN
+        LET log: Object := post("/log", "")
+        LET messages: Array<Object> := log
+        FOREACH message IN messages DO
+            print(message)
         END FOREACH
     END IF
 
-    LET ip: Number := r.getDictionary()["ip"].getNumber()
+    LET ip: Number := r.ip
     IF LineFromAddress[ip] > 0 THEN
         print("\(LineFromAddress[ip]) | \(Source[LineFromAddress[ip]])")
     ELSE
@@ -109,7 +109,7 @@ LOOP
     ELSIF a[0] IN ["g", "globals"] THEN
         FOREACH name IN Globals.keys() DO
             r := get("/module/-/global/\(Globals[name].index)")
-            LET value: variant.Variant := r.getDictionary()["value"]
+            LET value: Object := r.value
             print("\(name)\t\(value)")
         END FOREACH
     ELSIF a[0] IN ["h", "help"] THEN
@@ -123,7 +123,7 @@ LOOP
     ELSIF a[0] IN ["p", "print"] THEN
         LET g: Global := Globals[a[1]]
         r := get("/module/-/global/\(g.index)")
-        LET v: variant.Variant := r.getDictionary()["value"]
+        LET v: Object := r.value
         print("\(v)")
     ELSIF a[0] IN ["q", "quit"] THEN
         r := post("/quit", "")

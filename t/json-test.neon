@@ -1,68 +1,66 @@
 IMPORT json
 
-IMPORT variant
-
 VAR s: String
-VAR v: variant.Variant
+VAR v: Object
 
-s := json.encode(variant.makeNull())
+s := json.encode(NIL)
 print(s)
 %= null
 v := json.decode(s)
 print("\(v.isNull())")
 %= TRUE
 
-s := json.encode(variant.makeBoolean(TRUE))
+s := json.encode(TRUE)
 print(s)
 %= true
 v := json.decode(s)
-print("\(v.getBoolean())")
+print("\(v)")
 %= TRUE
 
-s := json.encode(variant.makeNumber(5))
+s := json.encode(5)
 print(s)
 %= 5
 v := json.decode(s)
-print("\(v.getNumber())")
+print("\(v)")
 %= 5
 
-s := json.encode(variant.makeString("fork"))
+s := json.encode("fork")
 print(s)
 %= "fork"
 v := json.decode(s)
-print("\(v.getString())")
-%= fork
+print("\(v)")
+%= "fork"
 
-s := json.encode(variant.makeArray([variant.makeNumber(5), variant.makeString("fork")]))
+s := json.encode([5, "fork"])
 print(s)
 %= [5,"fork"]
 v := json.decode(s)
-print("\(v.getArray()[0].getNumber()) \(v.getArray()[1].getString())")
-%= 5 fork
+print("\(v[0]) \(v[1])")
+%= 5 "fork"
 
-s := json.encode(variant.makeDictionary({
-    "null": variant.makeNull()
-    "boolean": variant.makeBoolean(TRUE)
-    "number": variant.makeNumber(5)
-    "string": variant.makeString("fork")
-}))
+s := json.encode({
+    "null": NIL,
+    "boolean": TRUE
+    "number": 5
+    "string": "fork"
+})
 print(s)
 %= {"boolean":true,"null":null,"number":5,"string":"fork"}
 v := json.decode(s)
-print(v.getDictionary()["null"].isNull().toString())
+print(v["null"].isNull().toString())
 %= TRUE
-print(v.getDictionary()["boolean"].getBoolean().toString())
+print(strb(v["boolean"]))
 %= TRUE
-print(v.getDictionary()["number"].getNumber().toString())
+print(str(v["number"]))
 %= 5
-print(v.getDictionary()["string"].getString())
+print(v["string"])
 %= fork
 
 v := json.decode(@@"{"foo": "bar\"baz"}"@@)
-print(v.getDictionary()["foo"].getString())
+print(v.foo)
 %= bar"baz
 
-LET a: json.Node := json.makeNode(json.decode(@@"
+LET a: Object := json.decode(@@"
     {
         "z": null,
         "b": true,
@@ -77,17 +75,17 @@ LET a: json.Node := json.makeNode(json.decode(@@"
             "foo": "bar"
         }
     }
-"@@))
-ASSERT a.isNullAt(["z"]) = TRUE
-ASSERT a.getBooleanAt(["b"]) = TRUE
-ASSERT a.getStringAt(["s"]) = "one"
-ASSERT a.getNumberAt(["n"]) = 5
-ASSERT a.getStringAt(["a", "1"]) = "one"
-ASSERT a.getStringAt(["o", "foo"]) = "bar"
+"@@)
+ASSERT a.z.isNull() = TRUE
+ASSERT a.b = TRUE
+ASSERT a.s = "one"
+ASSERT a.n = 5
+ASSERT a.a[1] = "one"
+ASSERT a.o.foo = "bar"
 
-ASSERT a.isNullAtPath("z") = TRUE
-ASSERT a.getBooleanAtPath("b") = TRUE
-ASSERT a.getStringAtPath("s") = "one"
-ASSERT a.getNumberAtPath("n") = 5
-ASSERT a.getStringAtPath("a/1") = "one"
-ASSERT a.getStringAtPath("o/foo") = "bar"
+%ASSERT a.atPath("z") = TRUE
+%ASSERT a.atPath("b") = TRUE
+%ASSERT a.atPath("s") = "one"
+%ASSERT a.atPath("n") = 5
+%ASSERT a.atPath("a/1") = "one"
+%ASSERT a.atPath("o/foo") = "bar"

@@ -6,126 +6,10 @@
 
 EXPORT decode
 EXPORT encode
-EXPORT Node
-EXPORT makeNode
-
-IMPORT string
-IMPORT variant
-IMPORT variant.Type
-IMPORT variant.Variant
 
 % TODO: This encoder and decoder does not handle all backslash
 % character escapes yet.
 % TODO: Also, this could probably be improved a lot by using regex.
-
-TYPE Node IS RECORD
-    node: variant.Variant
-END RECORD
-
-FUNCTION makeNode(v: variant.Variant): Node
-    RETURN Node(node WITH v)
-END FUNCTION
-
-FUNCTION Node.isNull(self: Node): Boolean
-    RETURN self.node.isNull()
-END FUNCTION
-
-FUNCTION Node.getBoolean(self: Node): Boolean
-    RETURN self.node.getBoolean()
-END FUNCTION
-
-FUNCTION Node.getString(self: Node): String
-    RETURN self.node.getString()
-END FUNCTION
-
-FUNCTION Node.getNumber(self: Node): Number
-    RETURN self.node.getNumber()
-END FUNCTION
-
-FUNCTION Node.getArray(self: Node): Array<Node>
-    VAR r: Array<Node> := []
-    FOREACH n IN self.node.getArray() DO
-        r.append(makeNode(n))
-    END FOREACH
-    RETURN r
-END FUNCTION
-
-FUNCTION Node.getDictionary(self: Node): Dictionary<Node>
-    VAR r: Dictionary<Node> := {}
-    VAR d: Dictionary<variant.Variant> := self.node.getDictionary()
-    FOREACH k IN d.keys() DO
-        r[k] := makeNode(d[k])
-    END FOREACH
-    RETURN r
-END FUNCTION
-
-FUNCTION Node.getVariantAt(self: Node, path: Array<String>): variant.Variant
-    VAR v: variant.Variant := self.node
-    FOREACH p IN path DO
-        CASE v.getType()
-            WHEN variant.Type.dictionary DO
-                v := v.getDictionary()[p]
-            WHEN variant.Type.array DO
-                v := v.getArray()[num(p)]
-            WHEN OTHERS DO
-                RAISE variant.TypeMismatchException
-        END CASE
-    END FOREACH
-    RETURN v
-END FUNCTION
-
-FUNCTION Node.isNullAt(self: Node, path: Array<String>): Boolean
-    RETURN self.getVariantAt(path).isNull()
-END FUNCTION
-
-FUNCTION Node.getBooleanAt(self: Node, path: Array<String>): Boolean
-    RETURN self.getVariantAt(path).getBoolean()
-END FUNCTION
-
-FUNCTION Node.getStringAt(self: Node, path: Array<String>): String
-    RETURN self.getVariantAt(path).getString()
-END FUNCTION
-
-FUNCTION Node.getNumberAt(self: Node, path: Array<String>): Number
-    RETURN self.getVariantAt(path).getNumber()
-END FUNCTION
-
-FUNCTION Node.getArrayAt(self: Node, path: Array<String>): Array<Node>
-    RETURN makeNode(self.getVariantAt(path)).getArray()
-END FUNCTION
-
-FUNCTION Node.getDictionaryAt(self: Node, path: Array<String>): Dictionary<Node>
-    RETURN makeNode(self.getVariantAt(path)).getDictionary()
-END FUNCTION
-
-FUNCTION resolvePath(path: String): Array<String>
-    % TODO: Handle ~0 and ~1 from https://tools.ietf.org/html/rfc6901
-    RETURN string.split(path, "/")
-END FUNCTION
-
-FUNCTION Node.isNullAtPath(self: Node, path: String): Boolean
-    RETURN self.isNullAt(resolvePath(path))
-END FUNCTION
-
-FUNCTION Node.getBooleanAtPath(self: Node, path: String): Boolean
-    RETURN self.getBooleanAt(resolvePath(path))
-END FUNCTION
-
-FUNCTION Node.getStringAtPath(self: Node, path: String): String
-    RETURN self.getStringAt(resolvePath(path))
-END FUNCTION
-
-FUNCTION Node.getNumberAtPath(self: Node, path: String): Number
-    RETURN self.getNumberAt(resolvePath(path))
-END FUNCTION
-
-FUNCTION Node.getArrayAtPath(self: Node, path: String): Array<Node>
-    RETURN self.getArrayAt(resolvePath(path))
-END FUNCTION
-
-FUNCTION Node.getDictionaryAtPath(self: Node, path: String): Dictionary<Node>
-    RETURN self.getDictionaryAt(resolvePath(path))
-END FUNCTION
 
 %|
  |  Exception: JsonFormatException
@@ -140,7 +24,7 @@ FUNCTION skipWhitespace(json: String, INOUT index: Number)
     END WHILE
 END FUNCTION
 
-FUNCTION decodePart(json: String, INOUT index: Number): Variant
+FUNCTION decodePart(json: String, INOUT index: Number): Object
     skipWhitespace(json, INOUT index)
     CASE json[index]
         WHEN "a" TO "z" DO
@@ -151,11 +35,11 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
             LET s: String := json[start TO index-1]
             CASE s
                 WHEN "null" DO
-                    RETURN variant.makeNull()
+                    RETURN NIL
                 WHEN "false" DO
-                    RETURN variant.makeBoolean(FALSE)
+                    RETURN FALSE
                 WHEN "true" DO
-                    RETURN variant.makeBoolean(TRUE)
+                    RETURN TRUE
                 WHEN OTHERS DO
                     RAISE JsonFormatException(info WITH "null or false or true expected")
             END CASE
@@ -164,7 +48,7 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
             WHILE index < json.length() AND ("0" <= json[index] <= "9" OR json[index] = "-" OR json[index] = "+" OR json[index] = "." OR json[index] = "e" OR json[index] = "E") DO
                 INC index
             END WHILE
-            RETURN variant.makeNumber(num(json[start TO index-1]))
+            RETURN num(json[start TO index-1])
         WHEN "\"" DO
             INC index
             VAR t: String := ""
@@ -178,10 +62,10 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 INC index
             END WHILE
             INC index
-            RETURN variant.makeString(t)
+            RETURN t
         WHEN "[" DO
             INC index
-            VAR a: Array<Variant> := []
+            VAR a: Array<Object> := []
             LOOP
                 skipWhitespace(json, INOUT index)
                 IF json[index] = "]" THEN
@@ -196,20 +80,20 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 END IF
             END LOOP
             INC index
-            RETURN variant.makeArray(a)
+            RETURN a
         WHEN "{" DO
             INC index
-            VAR d: Dictionary<Variant> := {}
+            VAR d: Dictionary<Object> := {}
             LOOP
                 skipWhitespace(json, INOUT index)
                 IF json[index] = "}" THEN
                     EXIT LOOP
                 END IF
-                LET vkey: Variant := decodePart(json, INOUT index)
-                IF vkey.getType() <> Type.string THEN
-                    RAISE JsonFormatException(info WITH "string key expected")
-                END IF
-                LET key: String := vkey.getString()
+                LET vkey: Object := decodePart(json, INOUT index)
+                %IF vkey.getType() <> Type.string THEN
+                %    RAISE JsonFormatException(info WITH "string key expected")
+                %END IF
+                LET key: String := vkey
                 skipWhitespace(json, INOUT index)
                 IF json[index] <> ":" THEN
                     RAISE JsonFormatException(info WITH ": expected")
@@ -224,17 +108,17 @@ FUNCTION decodePart(json: String, INOUT index: Number): Variant
                 END IF
             END LOOP
             INC index
-            RETURN variant.makeDictionary(d)
+            RETURN d
     END CASE
-    RETURN variant.makeNull()
+    RETURN NIL
 END FUNCTION
 
 %|
  |  Function: decode
  |
- |  Decode JSON data in a string to a result in a <Variant>.
+ |  Decode JSON data in a string to a result in a <Object>.
  |%
-FUNCTION decode(json: String): Variant
+FUNCTION decode(json: String): Object
     VAR i: Number := 0
     RETURN decodePart(json, INOUT i)
 END FUNCTION
@@ -242,42 +126,47 @@ END FUNCTION
 %|
  |  Function: encode
  |
- |  Encode a value in a <Variant> to JSON data in a string.
+ |  Encode a value in a <Object> to JSON data in a string.
  |%
-FUNCTION encode(data: Variant): String
-    CASE data.getType()
-        WHEN Type.null DO
-            RETURN "null"
-        WHEN Type.boolean DO
-            RETURN (IF data.getBoolean() THEN "true" ELSE "false")
-        WHEN Type.number DO
-            RETURN str(data.getNumber())
-        WHEN Type.string DO
-            RETURN "\"" & data.getString() & "\""
-        WHEN Type.array DO
-            VAR r: String := "["
-            LET a: Array<Variant> := data.getArray()
-            FOREACH x IN a DO
-                IF r.length() > 1 THEN
-                    r.append(",")
-                END IF
-                r.append(encode(x))
-            END FOREACH
-            r.append("]")
-            RETURN r
-        WHEN Type.dictionary DO
-            VAR r: String := "{"
-            LET d: Dictionary<Variant> := data.getDictionary()
-            LET keys: Array<String> := d.keys()
-            % TODO: This should just be d.keys(), see t/foreach-value.neon
-            FOREACH x IN keys DO
-                IF r.length() > 1 THEN
-                    r.append(",")
-                END IF
-                r.append(encode(variant.makeString(x)) & ":" & encode(d[x]))
-            END FOREACH
-            r.append("}")
-            RETURN r
-    END CASE
+FUNCTION encode(data: Object): String
+    % TODO: use CASE ISA when available
+    IF data.isNull() THEN
+        RETURN "null"
+    END IF
+    IF data ISA Boolean THEN
+        RETURN (IF data THEN "true" ELSE "false")
+    END IF
+    IF data ISA Number THEN
+        RETURN str(data)
+    END IF
+    IF data ISA String THEN
+        RETURN "\"" & data & "\""
+    END IF
+    IF data ISA Array<Object> THEN
+        VAR r: String := "["
+        LET a: Array<Object> := data
+        FOREACH x IN a DO
+            IF r.length() > 1 THEN
+                r.append(",")
+            END IF
+            r.append(encode(x))
+        END FOREACH
+        r.append("]")
+        RETURN r
+    END IF
+    IF data ISA Dictionary<Object> THEN
+        VAR r: String := "{"
+        LET d: Dictionary<Object> := data
+        LET keys: Array<String> := d.keys()
+        % TODO: This should just be d.keys(), see t/foreach-value.neon
+        FOREACH x IN keys DO
+            IF r.length() > 1 THEN
+                r.append(",")
+            END IF
+            r.append(encode(x) & ":" & encode(d[x]))
+        END FOREACH
+        r.append("}")
+        RETURN r
+    END IF
     RETURN "?unknown"
 END FUNCTION
