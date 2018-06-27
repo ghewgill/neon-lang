@@ -37,7 +37,7 @@ public:
         Label *next;
     };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions(), function_info(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
     void emit(unsigned char b);
     void emit_uint32(uint32_t value);
     void emit(unsigned char b, uint32_t value);
@@ -60,8 +60,9 @@ public:
     Label &get_next_label(unsigned int loop_id);
     void debug_line(int line);
     void add_exception(const Bytecode::ExceptionInfo &ei);
-    void push_function_exit(Label &label);
-    void pop_function_exit();
+    void push_function_info(const ast::Function *func, Label &label);
+    void pop_function_info();
+    const ast::Type *get_function_type();
     Label &get_function_exit();
     void set_current_function_depth(size_t function_depth);
     size_t get_function_depth();
@@ -80,7 +81,7 @@ private:
     Bytecode object;
     std::vector<std::string> globals;
     std::vector<std::pair<std::string, Label>> functions;
-    std::stack<Label *> function_exit;
+    std::stack<std::pair<const ast::Function *, Label *>> function_info;
     size_t current_function_depth;
     std::map<size_t, LoopLabels> loop_labels;
     std::set<const ast::Type *> exported_types;
@@ -264,24 +265,32 @@ void Emitter::add_exception(const Bytecode::ExceptionInfo &ei)
     object.exceptions.push_back(ei);
 }
 
-void Emitter::push_function_exit(Label &exit)
+void Emitter::push_function_info(const ast::Function *func, Label &exit)
 {
-    // Turns out the function_exit stack is never more than one function deep. Apparently.
-    assert(function_exit.empty());
-    function_exit.push(&exit);
+    // Turns out the function_info stack is never more than one function deep. Apparently.
+    assert(function_info.empty());
+    function_info.push(std::make_pair(func, &exit));
 }
 
-void Emitter::pop_function_exit()
+void Emitter::pop_function_info()
 {
-    function_exit.pop();
+    function_info.pop();
+}
+
+const ast::Type *Emitter::get_function_type()
+{
+    if (function_info.empty()) {
+        internal_error("get_function_type");
+    }
+    return dynamic_cast<const ast::TypeFunction *>(function_info.top().first->type)->returntype;
 }
 
 Emitter::Label &Emitter::get_function_exit()
 {
-    if (function_exit.empty()) {
+    if (function_info.empty()) {
         internal_error("get_function_exit");
     }
-    return *function_exit.top();
+    return *function_info.top().second;
 }
 
 void Emitter::set_current_function_depth(size_t function_depth)
@@ -1075,11 +1084,11 @@ void ast::Function::postdeclare(Emitter &emitter) const
         }
     }
     auto exit = emitter.create_label();
-    emitter.push_function_exit(exit);
+    emitter.push_function_info(this, exit);
     for (auto stmt: statements) {
         stmt->generate(emitter);
     }
-    emitter.pop_function_exit();
+    emitter.pop_function_info();
     emitter.jump_target(exit);
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
@@ -1324,16 +1333,20 @@ void ast::DictionaryLiteralExpression::generate_expr(Emitter &emitter) const
 
 void ast::RecordLiteralExpression::generate_expr(Emitter &emitter) const
 {
+    auto f = dynamic_cast<const ast::TypeRecord *>(type)->fields.rbegin();
     for (auto v = values.rbegin(); v != values.rend(); ++v) {
-        (*v)->generate(emitter);
+        assert(f != dynamic_cast<const ast::TypeRecord *>(type)->fields.rend());
+        (*v)->generate(emitter, f->type);
+        f++;
     }
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
 }
 
 void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
 {
+    auto t = dynamic_cast<const ast::TypeClass *>(type);
     for (size_t i = values.size()-1; i > 0; i--) {
-        values[i]->generate(emitter);
+        values[i]->generate(emitter, t->fields[i].type);
     }
     emitter.emit(PUSHCI, emitter.str(type->name));
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
@@ -1365,7 +1378,7 @@ void ast::LogicalNotExpression::generate_expr(Emitter &emitter) const
 
 void ast::ConditionalExpression::generate_expr(Emitter &emitter) const
 {
-    condition->generate(emitter);
+    condition->generate(emitter, TYPE_BOOLEAN);
     auto else_label = emitter.create_label();
     emitter.emit_jump(JF, else_label);
     left->generate(emitter);
@@ -2023,7 +2036,7 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
     for (auto cs: condition_statements) {
         const Expression *condition = cs.first;
         const std::vector<const Statement *> &statements = cs.second;
-        condition->generate(emitter);
+        condition->generate(emitter, TYPE_BOOLEAN);
         auto else_label = emitter.create_label();
         emitter.emit_jump(JF, else_label);
         for (auto stmt: statements) {
@@ -2071,7 +2084,7 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
     }
 
     if (expr != nullptr) {
-        expr->generate(emitter);
+        expr->generate(emitter, emitter.get_function_type());
     }
     emitter.emit_jump(JUMP, emitter.get_function_exit());
 }
