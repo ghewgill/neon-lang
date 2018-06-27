@@ -2687,7 +2687,6 @@ ExcludeTests = [
     "t/tail-call.neon",         # Feature not required
     "t/time-stopwatch.neon",    # Module not required
     "t/time-test.neon",         # Module not required
-    "t/variant-test.neon",      # Module not required
     "t/win32-test.neon",        # Module not required
     "lib/compress/t/compress-test.neon",        # Module not required
     "lib/extsample/t/extsample-test.neon",      # Extension functions not required

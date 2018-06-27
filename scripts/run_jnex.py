@@ -120,7 +120,6 @@ ExcludeTests = [
     "t/time-test.neon",             # import
     "t/unicode-char.neon",          # UTF-8
     "t/unicode-length.neon",        # UTF-8
-    "t/variant-test.neon",          # variant module
     "t/win32-test.neon",            # CALLMF
 ]
 

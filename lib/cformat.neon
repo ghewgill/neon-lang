@@ -15,7 +15,7 @@ EXPORT sprintf
  |
  |  Parameters:
  |      fmt - the format string
- |      value - the array of <Variant> values to format
+ |      value - the array of <Object> values to format
  |
  |  Description:
  |      The available formatting codes are
@@ -62,7 +62,7 @@ END FUNCTION
  |
  |  Parameters:
  |      fmt - the format string
- |      value - the array of <Variant> values to format
+ |      value - the array of <Object> values to format
  |
  |  Exceptions:
  |      - <TypeMismatch> - if the wrong type is supplied for a parameter

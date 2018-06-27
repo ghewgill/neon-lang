@@ -101,7 +101,6 @@ ExcludeTests = [
     "t/time-stopwatch.neon",        # module
     "t/unicode-char.neon",          # utf8
     "t/valid-pointer.neon",         # class
-    "t/variant-test.neon",          # module
     "t/while-valid.neon",           # class
     "t/win32-test.neon",            # module
 ]

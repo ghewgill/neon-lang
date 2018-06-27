@@ -124,7 +124,6 @@ ExcludeTests = [
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-try.neon",     # js syntax error
     "t/value-index.neon",           # DictionaryValueIndexExpression
-    "t/variant-test.neon",          # bytes
     "t/while-valid.neon",           # unknown
     "t/win32-test.neon",            # module win32
     "lib/compress/t/compress-test.neon",        # module compress

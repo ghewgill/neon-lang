@@ -126,7 +126,6 @@ ExcludeTests = [
     "t/uninitialised-case.neon",    # JUMPTBL
     "t/valid-pointer.neon",         # class
     "t/value-index.neon",           # dictionary
-    "t/variant-test.neon",          # dictionary
     "t/while-valid.neon",           # class
     "t/win32-test.neon",            # module
 
