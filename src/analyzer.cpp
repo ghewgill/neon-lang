@@ -3713,7 +3713,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                 new ast::RaiseStatement(
                     statement->token.line,
                     sql_exception,
-                    new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionInfo")->type), {
+                    new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionInfo")), {
                         new ast::ConstantStringExpression("No records found")
                     })
                 )
@@ -4276,7 +4276,7 @@ const ast::Statement *Analyzer::analyze(const pt::RaiseStatement *statement)
         info = analyze(statement->info.get());
     } else {
         std::vector<const ast::Expression *> values;
-        info = new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(s->lookupName("ExceptionInfo")->type), values);
+        info = new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(s->lookupName("ExceptionInfo")), values);
     }
     return new ast::RaiseStatement(statement->token.line, sn, info);
 }

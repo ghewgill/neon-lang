@@ -1150,7 +1150,11 @@ private:
 
 class RecordLiteralExpression: public Expression {
 public:
-    RecordLiteralExpression(const TypeRecord *type, const std::vector<const Expression *> &values): Expression(type, all_constant(values)), values(values) {}
+    RecordLiteralExpression(const TypeRecord *type, const std::vector<const Expression *> &values): Expression(type, all_constant(values)), values(values) {
+        if (type == nullptr) {
+            internal_error("RecordLiteralExpression: unexpected null type");
+        }
+    }
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const Expression *> values;
