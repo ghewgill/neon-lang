@@ -33,6 +33,14 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
+const Expression *Type::convert(const Expression *expr) const
+{
+    if (expr->type != this) {
+        return nullptr;
+    }
+    return expr;
+}
+
 void Type::generate_convert(Emitter &, const Type *) const
 {
     // No conversion code necessary by default.
@@ -46,6 +54,16 @@ const Expression *TypeBoolean::make_default_value() const
 bool TypeBoolean::is_assignment_compatible(const Type *rhs) const
 {
     return this == rhs || rhs == TYPE_OBJECT;
+}
+
+const Expression *TypeBoolean::convert(const Expression *expr) const
+{
+    if (expr->type == this) {
+        return expr;
+    } else if (expr->type == TYPE_OBJECT) {
+        return new BooleanFromObjectConversionExpression(expr);
+    }
+    return nullptr;
 }
 
 std::string TypeBoolean::serialize(const Expression *value) const
@@ -70,6 +88,16 @@ bool TypeNumber::is_assignment_compatible(const Type *rhs) const
     return this == rhs || rhs == TYPE_OBJECT;
 }
 
+const Expression *TypeNumber::convert(const Expression *expr) const
+{
+    if (expr->type == this) {
+        return expr;
+    } else if (expr->type == TYPE_OBJECT) {
+        return new NumberFromObjectConversionExpression(expr);
+    }
+    return nullptr;
+}
+
 std::string TypeNumber::serialize(const Expression *value) const
 {
     Number x = value->eval_number();
@@ -89,6 +117,16 @@ const Expression *TypeString::make_default_value() const
 bool TypeString::is_assignment_compatible(const Type *rhs) const
 {
     return this == rhs || rhs == TYPE_OBJECT;
+}
+
+const Expression *TypeString::convert(const Expression *expr) const
+{
+    if (expr->type == this) {
+        return expr;
+    } else if (expr->type == TYPE_OBJECT) {
+        return new StringFromObjectConversionExpression(expr);
+    }
+    return nullptr;
 }
 
 std::string TypeString::serialize(const std::string &value)
@@ -153,6 +191,24 @@ bool TypeObject::is_assignment_compatible(const Type *rhs) const
         rhs == TYPE_OBJECT ||
         (dynamic_cast<const TypeArray *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeArray *>(rhs)->elementtype)) ||
         (dynamic_cast<const TypeDictionary *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeDictionary *>(rhs)->elementtype));
+}
+
+const Expression *TypeObject::convert(const Expression *expr) const
+{
+    if (dynamic_cast<const TypePointerNil *>(expr->type) != nullptr) {
+        return new ConstantNilExpression(); // TODO: null object
+    } else if (expr->type == TYPE_BOOLEAN) {
+        return new ObjectFromBooleanConversionExpression(expr);
+    } else if (expr->type == TYPE_NUMBER) {
+        return new ObjectFromNumberConversionExpression(expr);
+    } else if (expr->type == TYPE_STRING) {
+        return new ObjectFromStringConversionExpression(expr);
+    } else if (dynamic_cast<const TypeArray *>(expr->type) != nullptr) {
+        return new ObjectFromArrayConversionExpression(expr);
+    } else if (dynamic_cast<const TypeDictionary *>(expr->type) != nullptr) {
+        return new ObjectFromDictionaryConversionExpression(expr);
+    }
+    return nullptr;
 }
 
 std::string TypeObject::serialize(const Expression *) const
@@ -261,6 +317,17 @@ bool TypeArray::is_assignment_compatible(const Type *rhs) const
     return elementtype == nullptr || a->elementtype == nullptr || elementtype->is_assignment_compatible(a->elementtype);
 }
 
+const Expression *TypeArray::convert(const Expression *expr) const
+{
+    if (expr->type == TYPE_OBJECT) {
+        return new ArrayFromObjectConversionExpression(this, expr);
+    }
+    if (dynamic_cast<const TypeArray *>(expr->type) != nullptr) {
+        return new ArrayFromArrayConversionExpression(this, expr);
+    }
+    return nullptr;
+}
+
 std::string TypeArray::serialize(const Expression *value) const
 {
     std::string r;
@@ -320,6 +387,17 @@ bool TypeDictionary::is_assignment_compatible(const Type *rhs) const
         return false;
     }
     return elementtype == nullptr || d->elementtype == nullptr || elementtype->is_assignment_compatible(d->elementtype);
+}
+
+const Expression *TypeDictionary::convert(const Expression *expr) const
+{
+    if (expr->type == TYPE_OBJECT) {
+        return new DictionaryFromObjectConversionExpression(this, expr);
+    }
+    if (dynamic_cast<const TypeDictionary *>(expr->type) != nullptr) {
+        return new DictionaryFromDictionaryConversionExpression(this, expr);
+    }
+    return nullptr;
 }
 
 std::string TypeDictionary::serialize(const Expression *value) const

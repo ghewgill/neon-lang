@@ -1125,6 +1125,22 @@ private:
     FunctionParameter &operator=(const FunctionParameter &);
 };
 
+class ConversionExpression: public Expression {
+public:
+    ConversionExpression(const ast::ConversionExpression *ce): Expression(ce), ce(ce), expr(transform(ce->expr)) {}
+    const ast::ConversionExpression *ce;
+    const Expression *expr;
+
+    virtual void generate(Context &context) const override {
+        expr->generate(context);
+    }
+    virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConversionExpression"); }
+    virtual void generate_store(Context &) const override { internal_error("ConversionExpression"); }
+private:
+    ConversionExpression(const ConversionExpression &);
+    ConversionExpression &operator=(const ConversionExpression &);
+};
+
 class ConstantBooleanExpression: public Expression {
 public:
     ConstantBooleanExpression(const ast::ConstantBooleanExpression *cbe): Expression(cbe), cbe(cbe) {}
@@ -3287,6 +3303,7 @@ public:
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
+    virtual void visit(const ast::ConversionExpression *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
     virtual void visit(const ast::ConstantNumberExpression *) {}
     virtual void visit(const ast::ConstantStringExpression *) {}
@@ -3409,6 +3426,7 @@ public:
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
+    virtual void visit(const ast::ConversionExpression *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
     virtual void visit(const ast::ConstantNumberExpression *) {}
     virtual void visit(const ast::ConstantStringExpression *) {}
@@ -3531,6 +3549,7 @@ public:
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
+    virtual void visit(const ast::ConversionExpression *node) { r = new ConversionExpression(node); }
     virtual void visit(const ast::ConstantBooleanExpression *node) { r = new ConstantBooleanExpression(node); }
     virtual void visit(const ast::ConstantNumberExpression *node) { r = new ConstantNumberExpression(node); }
     virtual void visit(const ast::ConstantStringExpression *node) { r = new ConstantStringExpression(node); }
@@ -3653,6 +3672,7 @@ public:
     virtual void visit(const ast::Exception *) {}
     virtual void visit(const ast::Interface *) {}
     virtual void visit(const ast::Constant *) {}
+    virtual void visit(const ast::ConversionExpression *) {}
     virtual void visit(const ast::ConstantBooleanExpression *) {}
     virtual void visit(const ast::ConstantNumberExpression *) {}
     virtual void visit(const ast::ConstantStringExpression *) {}

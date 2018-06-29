@@ -1274,6 +1274,24 @@ void ast::Expression::generate(Emitter &emitter, const Type *target_type) const
     }
 }
 
+void ast::BooleanFromObjectConversionExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    emitter.emit(CALLP, emitter.str("object__getBoolean"));
+}
+
+void ast::NumberFromObjectConversionExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    emitter.emit(CALLP, emitter.str("object__getNumber"));
+}
+
+void ast::StringFromObjectConversionExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    emitter.emit(CALLP, emitter.str("object__getString"));
+}
+
 void ast::ConstantBooleanExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHB);

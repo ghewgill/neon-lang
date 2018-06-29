@@ -1189,14 +1189,17 @@ const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *
     if (not ast::TYPE_NUMBER->is_assignment_compatible(first->type)) {
         error(2100, expr->first->token, "numeric expression expected");
     }
+    first = ast::TYPE_NUMBER->convert(first);
     const ast::Expression *last = analyze(expr->last.get());
     if (not ast::TYPE_NUMBER->is_assignment_compatible(last->type)) {
         error(2101, expr->last->token, "numeric expression expected");
     }
+    last = ast::TYPE_NUMBER->convert(last);
     const ast::Expression *step = analyze(expr->step.get());
     if (not ast::TYPE_NUMBER->is_assignment_compatible(step->type)) {
         error(2102, expr->step->token, "numeric expression expected");
     }
+    step = ast::TYPE_NUMBER->convert(step);
     const ast::VariableExpression *range = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("array__range")));
     std::vector<const ast::Expression *> args;
     args.push_back(first);
@@ -1373,6 +1376,7 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         if (not ast::TYPE_NUMBER->is_assignment_compatible(index->type)) {
             error2(3041, expr->index->token, "index must be a number", arraytype->declaration, "array declared here");
         }
+        index = ast::TYPE_NUMBER->convert(index);
         type = arraytype->elementtype;
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
@@ -1424,6 +1428,7 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         if (not ast::TYPE_STRING->is_assignment_compatible(index->type)) {
             error2(3042, expr->index->token, "index must be a string", dicttype->declaration, "dictionary declared here");
         }
+        index = ast::TYPE_STRING->convert(index);
         type = dicttype->elementtype;
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
@@ -1435,6 +1440,7 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         if (not ast::TYPE_NUMBER->is_assignment_compatible(index->type)) {
             error(3043, expr->index->token, "index must be a number");
         }
+        index = ast::TYPE_NUMBER->convert(index);
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
         if (ref != nullptr) {
             return new ast::StringReferenceIndexExpression(ref, index, expr->from_last, index, expr->from_last, this);
@@ -1445,6 +1451,7 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         if (not ast::TYPE_OBJECT->is_assignment_compatible(index->type)) {
             error(3262, expr->index->token, "index must be an object");
         }
+        index = ast::TYPE_OBJECT->convert(index);
         return new ast::ObjectSubscriptExpression(base, index);
     } else {
         error2(3044, expr->token, "not an array or dictionary", type->declaration, "declaration here");
@@ -1467,7 +1474,7 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
         }
         const ast::Expression *str;
         if (ast::TYPE_STRING->is_assignment_compatible(e->type) && e->type != ast::TYPE_OBJECT) {
-            str = e;
+            str = ast::TYPE_STRING->convert(e);
         } else {
             auto toString = e->type->methods.find("toString");
             if (toString == e->type->methods.end()) {
@@ -1596,6 +1603,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (not f->type->is_assignment_compatible(element->type)) {
                 error2(3131, x->expr->token, "type mismatch", f->name, "field declared here");
             }
+            element = f->type->convert(element);
             if (elements[p] != nullptr) {
                 error(3210, x->name, "field name already specified");
             }
@@ -1670,6 +1678,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
                     error2(3019, a->expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
                 }
+                e = ftype->params[p]->type->convert(e);
             }
         } else {
             const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(e);
@@ -1716,6 +1725,7 @@ const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
     if (not ast::TYPE_NUMBER->is_assignment_compatible(atom->type)) {
         error(3144, expr->expr->token, "number required");
     }
+    atom = ast::TYPE_NUMBER->convert(atom);
     return atom;
 }
 
@@ -1725,6 +1735,7 @@ const ast::Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
     if (not ast::TYPE_NUMBER->is_assignment_compatible(atom->type)) {
         error(3021, expr->expr->token, "number required for negation");
     }
+    atom = ast::TYPE_NUMBER->convert(atom);
     return new ast::UnaryMinusExpression(atom);
 }
 
@@ -1734,6 +1745,7 @@ const ast::Expression *Analyzer::analyze(const pt::LogicalNotExpression *expr)
     if (not ast::TYPE_BOOLEAN->is_assignment_compatible(atom->type)) {
         error(3022, expr->expr->token, "boolean required for logical not");
     }
+    atom = ast::TYPE_BOOLEAN->convert(atom);
     return new ast::LogicalNotExpression(atom);
 }
 
@@ -1742,6 +1754,8 @@ const ast::Expression *Analyzer::analyze(const pt::ExponentiationExpression *exp
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::ExponentiationExpression(left, right);
     } else {
         error(3024, expr->token, "type mismatch");
@@ -1753,6 +1767,8 @@ const ast::Expression *Analyzer::analyze(const pt::MultiplicationExpression *exp
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::MultiplicationExpression(left, right);
     } else {
         error(3025, expr->token, "type mismatch");
@@ -1764,6 +1780,8 @@ const ast::Expression *Analyzer::analyze(const pt::DivisionExpression *expr)
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::DivisionExpression(left, right);
     } else {
         error(3026, expr->token, "type mismatch");
@@ -1775,6 +1793,8 @@ const ast::Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *ex
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::FunctionCall(new ast::VariableExpression(new ast::PredefinedFunction(
             "math$intdiv",
             new ast::TypeFunction(
@@ -1797,6 +1817,8 @@ const ast::Expression *Analyzer::analyze(const pt::ModuloExpression *expr)
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::ModuloExpression(left, right);
     } else {
         error(3027, expr->token, "type mismatch");
@@ -1808,6 +1830,8 @@ const ast::Expression *Analyzer::analyze(const pt::AdditionExpression *expr)
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::AdditionExpression(left, right);
     } else if (ast::TYPE_STRING->is_assignment_compatible(left->type) && ast::TYPE_STRING->is_assignment_compatible(right->type)) {
         error(3124, expr->token, "type mismatch (use & to concatenate strings)");
@@ -1821,6 +1845,8 @@ const ast::Expression *Analyzer::analyze(const pt::SubtractionExpression *expr)
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::SubtractionExpression(left, right);
     } else {
         error(3029, expr->token, "type mismatch");
@@ -1832,11 +1858,15 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_STRING->is_assignment_compatible(left->type) && ast::TYPE_STRING->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_STRING->convert(left);
+        right = ast::TYPE_STRING->convert(right);
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
         return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat"))), args);
     } else if (ast::TYPE_BYTES->is_assignment_compatible(left->type) && ast::TYPE_BYTES->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_BYTES->convert(left);
+        right = ast::TYPE_BYTES->convert(right);
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
@@ -1867,15 +1897,23 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
         error(3261, token, "cannot compare two values of type Object");
     }
     if (ast::TYPE_BOOLEAN->is_assignment_compatible(left->type) && ast::TYPE_BOOLEAN->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_BOOLEAN->convert(left);
+        right = ast::TYPE_BOOLEAN->convert(right);
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3031, token, "comparison not available for Boolean");
         }
         return new ast::BooleanComparisonExpression(left, right, comp);
     } else if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_NUMBER->convert(left);
+        right = ast::TYPE_NUMBER->convert(right);
         return new ast::NumericComparisonExpression(left, right, comp);
     } else if (ast::TYPE_STRING->is_assignment_compatible(left->type) && ast::TYPE_STRING->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_STRING->convert(left);
+        right = ast::TYPE_STRING->convert(right);
         return new ast::StringComparisonExpression(left, right, comp);
     } else if (ast::TYPE_BYTES->is_assignment_compatible(left->type) && ast::TYPE_BYTES->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_BYTES->convert(left);
+        right = ast::TYPE_BYTES->convert(right);
         return new ast::BytesComparisonExpression(left, right, comp);
     } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
@@ -1948,11 +1986,13 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
         if (not arraytype->elementtype->is_assignment_compatible(left->type)) {
             error(3082, expr->left->token, "type mismatch");
         }
+        left = arraytype->elementtype->convert(left);
         return new ast::ArrayInExpression(left, right);
     } else if (dicttype != nullptr) {
         if (not ast::TYPE_STRING->is_assignment_compatible(left->type)) {
             error(3083, expr->left->token, "type mismatch");
         }
+        left = ast::TYPE_STRING->convert(left);
         return new ast::DictionaryInExpression(left, right);
     } else {
         error(3081, expr->right->token, "IN must be used with Array or Dictionary");
@@ -1964,6 +2004,8 @@ const ast::Expression *Analyzer::analyze(const pt::ConjunctionExpression *expr)
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_BOOLEAN->is_assignment_compatible(left->type) && ast::TYPE_BOOLEAN->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_BOOLEAN->convert(left);
+        right = ast::TYPE_BOOLEAN->convert(right);
         return new ast::ConjunctionExpression(left, right);
     } else {
         error(3035, expr->token, "type mismatch");
@@ -2003,6 +2045,8 @@ const ast::Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
     if (ast::TYPE_BOOLEAN->is_assignment_compatible(left->type) && ast::TYPE_BOOLEAN->is_assignment_compatible(right->type)) {
+        left = ast::TYPE_BOOLEAN->convert(left);
+        right = ast::TYPE_BOOLEAN->convert(right);
         return new ast::DisjunctionExpression(left, right);
     } else {
         error(3036, expr->token, "type mismatch");
@@ -2084,9 +2128,11 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
     if (not ast::TYPE_NUMBER->is_assignment_compatible(first->type)) {
         error(3141, expr->range->first.get()->token, "range index must be a number");
     }
+    first = ast::TYPE_NUMBER->convert(first);
     if (not ast::TYPE_NUMBER->is_assignment_compatible(last->type)) {
         error(3142, expr->range->last.get()->token, "range index must be a number");
     }
+    last = ast::TYPE_NUMBER->convert(last);
     const ast::Type *type = base->type;
     const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(type);
     if (arraytype != nullptr) {
@@ -2452,6 +2498,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *decl
     if (not type->is_assignment_compatible(value->type)) {
         error(3015, declaration->value->token, "type mismatch");
     }
+    value = type->convert(value);
     if (not value->is_constant) {
         error(3016, declaration->value->token, "value must be constant");
     }
@@ -2569,6 +2616,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
         if (not type->is_assignment_compatible(expr->type)) {
             error(3113, declaration->value->token, "type mismatch");
         }
+        expr = type->convert(expr);
     }
     for (auto v: variables) {
         scope.top()->addName(v->declaration, v->name, v, true);
@@ -2620,6 +2668,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declarati
     if (not type->is_assignment_compatible(expr->type)) {
         error(3140, declaration->value->token, "type mismatch");
     }
+    expr = type->convert(expr);
     const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(type);
     if (ptype != nullptr && dynamic_cast<const ast::NewClassExpression *>(expr) != nullptr) {
         type = new ast::TypeValidPointer(Token(), ptype->reftype);
@@ -3153,6 +3202,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     if (not ast::TYPE_BOOLEAN->is_assignment_compatible(expr->type)) {
         error(3173, statement->exprs[0]->token, "boolean value expected");
     }
+    expr = ast::TYPE_BOOLEAN->convert(expr);
     std::vector<const pt::Expression *> parts;
     deconstruct(e, parts);
     for (auto x = statement->exprs.begin()+1; x != statement->exprs.end(); ++x) {
@@ -3269,6 +3319,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
     if (not expr->type->is_assignment_compatible(rhs->type)) {
         error(3057, statement->expr->token, "type mismatch");
     }
+    rhs = expr->type->convert(rhs);
     std::vector<const ast::ReferenceExpression *> vars;
     vars.push_back(ref);
     return new ast::AssignmentStatement(statement->token.line, vars, rhs);
@@ -3510,6 +3561,7 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
     if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
         error(3199, statement->cond->token, "boolean value expected");
     }
+    cond = ast::TYPE_BOOLEAN->convert(cond);
     condition_statements.push_back(std::make_pair(cond, std::vector<const ast::Statement *>()));
     std::vector<const ast::Statement *> else_statements = analyze(statement->body);
     if (else_statements.empty()) {
@@ -3995,10 +4047,12 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
     if (not ast::TYPE_NUMBER->is_assignment_compatible(start->type)) {
         error(3067, statement->start->token, "numeric expression expected");
     }
+    start = ast::TYPE_NUMBER->convert(start);
     const ast::Expression *end = analyze(statement->end.get());
     if (not ast::TYPE_NUMBER->is_assignment_compatible(end->type)) {
         error(3068, statement->end->token, "numeric expression expected");
     }
+    end = ast::TYPE_NUMBER->convert(end);
     const ast::Expression *step = nullptr;
     if (statement->step != nullptr) {
         step = analyze(statement->step.get());
@@ -4183,7 +4237,8 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
             }
         } else {
             cond = analyze(c.first.get());
-            if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
+            cond = ast::TYPE_BOOLEAN->convert(cond);
+            if (cond == nullptr) {
                 error(3048, c.first->token, "boolean value expected");
             }
         }
@@ -4298,6 +4353,7 @@ const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
         error(3086, statement->cond->token, "boolean value expected");
     }
+    cond = ast::TYPE_BOOLEAN->convert(cond);
     statements.push_back(
         new ast::IfStatement(
             statement->cond->token.line,
@@ -4325,6 +4381,7 @@ const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     } else if (not functiontypes.top().second->returntype->is_assignment_compatible(expr->type)) {
         error(3095, statement->expr->token, "type mismatch in RETURN");
     }
+    expr = functiontypes.top().second->returntype->convert(expr);
     return new ast::ReturnStatement(statement->token.line, expr);
 }
 
@@ -4449,6 +4506,7 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
         if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
             error(3049, statement->cond->token, "boolean value expected");
         }
+        cond = ast::TYPE_BOOLEAN->convert(cond);
     }
     scope.push(new ast::Scope(scope.top(), frame.top()));
     unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(statement));

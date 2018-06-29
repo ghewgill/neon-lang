@@ -55,6 +55,7 @@ public:
     virtual void visit(const class Exception *node) = 0;
     virtual void visit(const class Interface *node) = 0;
     virtual void visit(const class Constant *node) = 0;
+    virtual void visit(const class ConversionExpression *node) = 0; // TODO: Probably need each one of the conversions here for the back end compilers.
     virtual void visit(const class ConstantBooleanExpression *node) = 0;
     virtual void visit(const class ConstantNumberExpression *node) = 0;
     virtual void visit(const class ConstantStringExpression *node) = 0;
@@ -313,6 +314,7 @@ public:
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const { return this == rhs; }
+    virtual const Expression *convert(const Expression *expr) const;
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
@@ -372,6 +374,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual const Expression *convert(const Expression *expr) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -393,6 +396,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual const Expression *convert(const Expression *expr) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -413,6 +417,7 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual const Expression *convert(const Expression *expr) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -455,6 +460,7 @@ public:
 
     virtual const Expression *make_default_value() const override;
     virtual bool is_assignment_compatible(const Type *) const override;
+    virtual const Expression *convert(const Expression *expr) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -520,6 +526,7 @@ public:
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual const Expression *convert(const Expression *expr) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -549,6 +556,7 @@ public:
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual const Expression *convert(const Expression *expr) const;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
@@ -966,6 +974,7 @@ protected:
     friend class TypeString;
     friend class TypeBytes;
     friend class TypeEnum;
+    friend class ConversionExpression;
     friend class UnaryMinusExpression;
     friend class LogicalNotExpression;
     friend class DisjunctionExpression;
@@ -1001,6 +1010,95 @@ public:
 private:
     Constant(const Constant &);
     Constant &operator=(const Constant &);
+};
+
+class ConversionExpression: public Expression {
+public:
+    ConversionExpression(const Type *type, const Expression *expr): Expression(type, expr->is_constant), expr(expr) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *expr;
+
+    virtual bool eval_boolean() const override { return expr->eval_boolean(); }
+    virtual Number eval_number() const override { return expr->eval_number(); }
+    virtual std::string eval_string() const override { return expr->eval_string(); }
+
+    virtual std::string text() const override { return "ConversionExpression(" + expr->text() + ")"; }
+private:
+    ConversionExpression(const ConversionExpression &);
+    ConversionExpression &operator=(const ConversionExpression &);
+};
+
+class BooleanFromObjectConversionExpression: public ConversionExpression {
+public:
+    BooleanFromObjectConversionExpression(const Expression *expr): ConversionExpression(TYPE_BOOLEAN, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class NumberFromObjectConversionExpression: public ConversionExpression {
+public:
+    NumberFromObjectConversionExpression(const Expression *expr): ConversionExpression(TYPE_NUMBER, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class StringFromObjectConversionExpression: public ConversionExpression {
+public:
+    StringFromObjectConversionExpression(const Expression *expr): ConversionExpression(TYPE_STRING, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class ObjectFromBooleanConversionExpression: public ConversionExpression {
+public:
+    ObjectFromBooleanConversionExpression(const Expression *expr): ConversionExpression(TYPE_OBJECT, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class ObjectFromNumberConversionExpression: public ConversionExpression {
+public:
+    ObjectFromNumberConversionExpression(const Expression *expr): ConversionExpression(TYPE_OBJECT, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class ObjectFromStringConversionExpression: public ConversionExpression {
+public:
+    ObjectFromStringConversionExpression(const Expression *expr): ConversionExpression(TYPE_OBJECT, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class ObjectFromArrayConversionExpression: public ConversionExpression {
+public:
+    ObjectFromArrayConversionExpression(const Expression *expr): ConversionExpression(TYPE_OBJECT, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class ObjectFromDictionaryConversionExpression: public ConversionExpression {
+public:
+    ObjectFromDictionaryConversionExpression(const Expression *expr): ConversionExpression(TYPE_OBJECT, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class ArrayFromArrayConversionExpression: public ConversionExpression {
+public:
+    ArrayFromArrayConversionExpression(const TypeArray *atype, const Expression *expr): ConversionExpression(atype, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class ArrayFromObjectConversionExpression: public ConversionExpression {
+public:
+    ArrayFromObjectConversionExpression(const TypeArray *atype, const Expression *expr): ConversionExpression(atype, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class DictionaryFromDictionaryConversionExpression: public ConversionExpression {
+public:
+    DictionaryFromDictionaryConversionExpression(const TypeDictionary *atype, const Expression *expr): ConversionExpression(atype, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
+};
+
+class DictionaryFromObjectConversionExpression: public ConversionExpression {
+public:
+    DictionaryFromObjectConversionExpression(const TypeDictionary *atype, const Expression *expr): ConversionExpression(atype, expr) {}
+    virtual void generate_expr(Emitter &emitter) const override;
 };
 
 class ConstantBooleanExpression: public Expression {
