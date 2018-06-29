@@ -536,6 +536,10 @@ void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
             TYPE_DICTIONARY_OBJECT->generate_convert(emitter, from);
             emitter.emit(CALLP, emitter.str("object__makeDictionary"));
         }
+        const TypeRecord *rtype = dynamic_cast<const TypeRecord *>(from);
+        if (rtype != nullptr) {
+            emitter.emit_jump(CALLF, emitter.function_label(rtype->makeObject->entry_label));
+        }
     }
 }
 

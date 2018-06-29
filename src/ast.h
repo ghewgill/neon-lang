@@ -586,11 +586,12 @@ public:
         const Type *type;
         bool is_private;
     };
-    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields): Type(declaration, name), module(module), fields(fields), field_names(make_field_names(fields)) {}
+    TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields, Analyzer *analyzer);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::string module;
     const std::vector<Field> fields;
     const std::map<std::string, size_t> field_names;
+    Function *makeObject;
 
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
@@ -605,6 +606,8 @@ public:
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
+    void make_object_function(Analyzer *analyzer);
+
     virtual std::string text() const override;
 private:
     static std::map<std::string, size_t> make_field_names(const std::vector<Field> &fields) {
@@ -616,11 +619,14 @@ private:
         }
         return r;
     }
+private:
+    TypeRecord(const TypeRecord &);
+    TypeRecord &operator=(const TypeRecord &);
 };
 
 class TypeClass: public TypeRecord {
 public:
-    TypeClass(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields, const std::vector<const Interface *> &interfaces): TypeRecord(declaration, module, name, fields), interfaces(interfaces) {}
+    TypeClass(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields, const std::vector<const Interface *> &interfaces, Analyzer *analyzer): TypeRecord(declaration, module, name, fields, analyzer), interfaces(interfaces) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<const Interface *> interfaces;
 
@@ -631,7 +637,7 @@ public:
 
 class TypeForwardClass: public TypeClass {
 public:
-    TypeForwardClass(const Token &declaration): TypeClass(declaration, "module", "forward", std::vector<Field>(), std::vector<const Interface *>()) {}
+    TypeForwardClass(const Token &declaration): TypeClass(declaration, "module", "forward", std::vector<Field>(), std::vector<const Interface *>(), nullptr) {}
 };
 
 class TypePointer: public Type {

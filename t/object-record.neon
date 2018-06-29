@@ -1,0 +1,9 @@
+TYPE Rec IS RECORD
+    n: Number
+    s: String
+END RECORD
+
+VAR x: Object
+x := Rec(n WITH 5, s WITH "foo")
+print("\(x)")
+%= {"n": 5, "s": "foo"}

@@ -599,6 +599,59 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
     }
 }
 
+ast::TypeRecord::TypeRecord(const Token &declaration, const std::string &module, const std::string &name, const std::vector<Field> &fields, Analyzer *analyzer)
+  : Type(declaration, name),
+    module(module),
+    fields(fields),
+    field_names(make_field_names(fields)),
+    makeObject(nullptr)
+{
+    make_object_function(analyzer);
+}
+
+void ast::TypeRecord::make_object_function(Analyzer *analyzer)
+{
+    if (analyzer != nullptr) {
+        bool all_object_types = true;
+        for (auto &f: fields) {
+            if (not TYPE_OBJECT->is_assignment_compatible(f.type)) {
+                all_object_types = false;
+                break;
+            }
+        }
+        if (all_object_types) {
+            std::vector<FunctionParameter *> params { new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr) };
+            makeObject = new Function(Token(), "record.makeObject", TYPE_OBJECT, analyzer->global_scope->frame, analyzer->global_scope, params, 1);
+            Variable *d = makeObject->scope->makeTemporary(TYPE_DICTIONARY_OBJECT);
+            for (auto &f: fields) {
+                makeObject->statements.push_back(
+                    new AssignmentStatement(
+                        0,
+                        {new DictionaryReferenceIndexExpression(
+                            TYPE_OBJECT,
+                            new VariableExpression(d),
+                            new ConstantStringExpression(f.name.text)
+                        )},
+                        new RecordReferenceFieldExpression(
+                            f.type,
+                            new VariableExpression(makeObject->params[0]),
+                            f.name.text,
+                            false
+                        )
+                    )
+                );
+            }
+            makeObject->statements.push_back(
+                new ReturnStatement(
+                    0,
+                    new VariableExpression(d)
+                )
+            );
+            methods["_makeObject"] = makeObject;
+        }
+    }
+}
+
 ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
   : ReferenceExpression(TYPE_STRING, ref->is_readonly),
     ref(ref),
@@ -795,21 +848,23 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     for (auto t: object.export_types) {
         if (object.strtable[t.descriptor][0] == 'R') {
             // Support recursive record type declarations.
-            ast::TypeRecord *actual_record = new ast::TypeRecord(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>());
+            ast::TypeRecord *actual_record = new ast::TypeRecord(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>(), nullptr);
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_record);
             ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
             const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(type);
             const_cast<std::vector<ast::TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
+            actual_record->make_object_function(this);
         } else if (object.strtable[t.descriptor][0] == 'C') {
             // Support recursive class type declarations.
-            ast::TypeClass *actual_class = new ast::TypeClass(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>());
+            ast::TypeClass *actual_class = new ast::TypeClass(Token(), name, name + "." + object.strtable[t.name], std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>(), nullptr);
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], actual_class);
             ast::Type *type = deserialize_type(module->scope, object.strtable[t.descriptor]);
             const ast::TypeClass *classtype = dynamic_cast<const ast::TypeClass *>(type);
             const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
             const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
             const_cast<std::vector<const ast::Interface *> &>(actual_class->interfaces) = classtype->interfaces;
+            actual_class->make_object_function(this);
         } else {
             module->scope->addName(Token(IDENTIFIER, ""), object.strtable[t.name], deserialize_type(module->scope, object.strtable[t.descriptor]));
         }
@@ -933,7 +988,7 @@ std::vector<ast::TypeRecord::Field> Analyzer::analyze_fields(const pt::TypeRecor
 const ast::Type *Analyzer::analyze_record(const pt::TypeRecord *type, const std::string &name)
 {
     std::vector<ast::TypeRecord::Field> fields = analyze_fields(type, false);
-    return new ast::TypeRecord(type->token, module_name, name, fields);
+    return new ast::TypeRecord(type->token, module_name, name, fields, this);
 }
 
 const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::string &name)
@@ -960,7 +1015,7 @@ const ast::Type *Analyzer::analyze_class(const pt::TypeClass *type, const std::s
         }
         interfaces.push_back(iface);
     }
-    return new ast::TypeClass(type->token, module_name, name, fields, interfaces);
+    return new ast::TypeClass(type->token, module_name, name, fields, interfaces, this);
 }
 
 const ast::Type *Analyzer::analyze(const pt::TypePointer *type, const std::string &)
@@ -2203,9 +2258,9 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             }
             i++;
             if (kind == 'R') {
-                return new ast::TypeRecord(Token(), "module", "record", fields);
+                return new ast::TypeRecord(Token(), "module", "record", fields, this);
             } else if (kind == 'C') {
-                return new ast::TypeClass(Token(), "module", "class", fields, interfaces);
+                return new ast::TypeClass(Token(), "module", "class", fields, interfaces, this);
             } else {
                 internal_error("what kind?");
             }
@@ -2399,11 +2454,11 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
     const pt::TypeRecord *recdecl = dynamic_cast<const pt::TypeRecord *>(declaration->type.get());
     if (classdecl != nullptr) {
         // Support recursive class type declarations.
-        actual_class = new ast::TypeClass(classdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>());
+        actual_class = new ast::TypeClass(classdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>(), std::vector<const ast::Interface *>(), nullptr);
         scope.top()->addName(declaration->token, name, actual_class);
     } else if (recdecl != nullptr) {
         // Support recursive record type declarations.
-        actual_record = new ast::TypeRecord(recdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>());
+        actual_record = new ast::TypeRecord(recdecl->token, module_name, name, std::vector<ast::TypeRecord::Field>(), nullptr);
         scope.top()->addName(declaration->token, name, actual_record);
     }
     const ast::Type *type = analyze(declaration->type.get(), name);
@@ -2412,11 +2467,13 @@ const ast::Statement *Analyzer::analyze(const pt::TypeDeclaration *declaration)
         const_cast<std::vector<ast::TypeRecord::Field> &>(actual_class->fields) = classtype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_class->field_names) = classtype->field_names;
         const_cast<std::vector<const ast::Interface *> &>(actual_class->interfaces) = classtype->interfaces;
+        actual_class->make_object_function(this);
         type = actual_class;
     } else if (actual_record != nullptr) {
         const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(type);
         const_cast<std::vector<ast::TypeRecord::Field> &>(actual_record->fields) = rectype->fields;
         const_cast<std::map<std::string, size_t> &>(actual_record->field_names) = rectype->field_names;
+        actual_record->make_object_function(this);
         type = actual_record;
     } else {
         ast::Type *t = const_cast<ast::Type *>(type);

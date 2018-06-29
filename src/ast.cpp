@@ -144,15 +144,21 @@ const Expression *TypeObject::make_default_value() const
 
 bool TypeObject::is_assignment_compatible(const Type *rhs) const
 {
-    return
-        rhs == nullptr ||
+    if (rhs == nullptr ||
         dynamic_cast<const TypePointerNil *>(rhs) != nullptr ||
         rhs == TYPE_BOOLEAN ||
         rhs == TYPE_NUMBER ||
         rhs == TYPE_STRING ||
         rhs == TYPE_OBJECT ||
         (dynamic_cast<const TypeArray *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeArray *>(rhs)->elementtype)) ||
-        (dynamic_cast<const TypeDictionary *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeDictionary *>(rhs)->elementtype));
+        (dynamic_cast<const TypeDictionary *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeDictionary *>(rhs)->elementtype))) {
+        return true;
+    }
+    const TypeRecord *r = dynamic_cast<const TypeRecord *>(rhs);
+    if (r != nullptr && r->makeObject != nullptr) {
+        return true;
+    }
+    return false;
 }
 
 std::string TypeObject::serialize(const Expression *) const
@@ -1216,7 +1222,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         std::vector<TypeRecord::Field> fields;
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
-        Type *exception_info = new TypeRecord(Token(), "global", "ExceptionInfo", fields);
+        Type *exception_info = new TypeRecord(Token(), "global", "ExceptionInfo", fields, nullptr);
         scope->addName(Token(IDENTIFIER, "ExceptionInfo"), "ExceptionInfo", exception_info, true);
     }
     {
@@ -1227,7 +1233,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         fields.push_back(TypeRecord::Field(Token("info"), TYPE_STRING, false));
         fields.push_back(TypeRecord::Field(Token("code"), TYPE_NUMBER, false));
         fields.push_back(TypeRecord::Field(Token("offset"), TYPE_NUMBER, false));
-        Type *exception_type = new TypeRecord(Token(), "global", "ExceptionType", fields);
+        Type *exception_type = new TypeRecord(Token(), "global", "ExceptionType", fields, nullptr);
         scope->addName(Token(IDENTIFIER, "ExceptionType"), "ExceptionType", exception_type, true);
     }
 
