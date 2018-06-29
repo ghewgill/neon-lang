@@ -140,6 +140,7 @@ TYPE Type IS ENUM
     ConcatenationExpression
     ComparisonExpression
     ChainedComparisonExpression
+    TypeTestExpression
     MembershipExpression
     ConjunctionExpression
     DisjunctionExpression
@@ -348,6 +349,13 @@ TYPE ChainedComparisonExpression IS RECORD
     endColumn: Number
     left: POINTER TO ParseTreeNode
     comps: Array<ChainedComparisonPart>
+END RECORD
+
+TYPE TypeTestExpression IS RECORD
+    startColumn: Number
+    endColumn: Number
+    left: POINTER TO ParseTreeNode
+    target: POINTER TO ParseTreeNode
 END RECORD
 
 TYPE ConditionalExpression IS RECORD
@@ -595,6 +603,7 @@ TYPE ParseTreeNode IS CLASS
     functioncallexpression: FunctionCallExpression
     comparisonexpression: ComparisonExpression
     chainedcomparisonexpression: ChainedComparisonExpression
+    typetestexpression: TypeTestExpression
     conditionalexpression: ConditionalExpression
     tryexpression: TryExpression
     newclassexpression: NewClassExpression
@@ -703,6 +712,7 @@ FUNCTION getStartColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.ConcatenationExpression      DO RETURN node->binaryexpression.startColumn
             WHEN Type.ComparisonExpression         DO RETURN node->comparisonexpression.startColumn
             WHEN Type.ChainedComparisonExpression  DO RETURN node->chainedcomparisonexpression.startColumn
+            WHEN Type.TypeTestExpression           DO RETURN node->typetestexpression.startColumn
             WHEN Type.MembershipExpression         DO RETURN node->binaryexpression.startColumn
             WHEN Type.ConjunctionExpression        DO RETURN node->binaryexpression.startColumn
             WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.startColumn
@@ -751,6 +761,7 @@ FUNCTION getEndColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.ConcatenationExpression      DO RETURN node->binaryexpression.endColumn
             WHEN Type.ComparisonExpression         DO RETURN node->comparisonexpression.endColumn
             WHEN Type.ChainedComparisonExpression  DO RETURN node->chainedcomparisonexpression.endColumn
+            WHEN Type.TypeTestExpression           DO RETURN node->typetestexpression.endColumn
             WHEN Type.MembershipExpression         DO RETURN node->binaryexpression.endColumn
             WHEN Type.ConjunctionExpression        DO RETURN node->binaryexpression.endColumn
             WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.endColumn
@@ -1188,6 +1199,7 @@ END FUNCTION
  |  * / MOD  multiplication, division, modulo   parseMultiplication
  |  + -      addition, subtraction              parseAddition
  |  < = >    comparison                         parseComparison
+ |  isa      type test                          parseTypeTest
  |  in       membership                         parseMembership
  |  and      conjunction                        parseConjunction
  |  or       disjunction                        parseDisjunction
@@ -1763,8 +1775,30 @@ FUNCTION Parser.parseComparison(INOUT self: Parser): POINTER TO ParseTreeNode
     END IF
 END FUNCTION
 
-FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
+FUNCTION Parser.parseTypeTest(INOUT self: Parser): POINTER TO ParseTreeNode
     VAR left: POINTER TO ParseTreeNode := self.parseComparison()
+    IF self.token.type = TokenType.isa THEN
+        LET tokOp: lexer.Token := self.token
+        self.nextToken()
+        LET target: POINTER TO ParseTreeNode := self.parseType()
+        VAR r: POINTER TO ParseTreeNode := NEW ParseTreeNode(
+            type WITH Type.TypeTestExpression,
+            token WITH tokOp,
+            typetestexpression WITH TypeTestExpression(
+                startColumn WITH getStartColumn(left),
+                endColumn WITH tokOp.column, % TODO: should use end of target
+                left WITH left,
+                target WITH target
+            )
+        )
+        RETURN r
+    ELSE
+        RETURN left
+    END IF
+END FUNCTION
+
+FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseTypeTest()
     IF self.token.type = TokenType.in OR (self.token.type = TokenType.not AND self.tokens[self.index+1].type = TokenType.in) THEN
         LET tokOp: lexer.Token := self.token
         LET notin: Boolean := tokOp.type = TokenType.not
@@ -1772,7 +1806,7 @@ FUNCTION Parser.parseMembership(INOUT self: Parser): POINTER TO ParseTreeNode
             self.nextToken()
         END IF
         self.nextToken()
-        LET right: POINTER TO ParseTreeNode := self.parseComparison()
+        LET right: POINTER TO ParseTreeNode := self.parseTypeTest()
         VAR r: POINTER TO ParseTreeNode := NEW ParseTreeNode(
             type WITH Type.MembershipExpression,
             token WITH tokOp,
@@ -3737,6 +3771,12 @@ FUNCTION dumpChainedComparisonExpression(node: VALID POINTER TO ParseTreeNode, d
     END FOREACH
 END FUNCTION
 
+FUNCTION dumpTypeTestExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "TypeTestExpression")
+    dumpParseTree(node->typetestexpression.left, depth+1)
+    dumpParseTree(node->typetestexpression.target, depth+1)
+END FUNCTION
+
 FUNCTION dumpMembershipExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "MembershipExpression")
     dumpParseTree(node->binaryexpression.left, depth+1)
@@ -4107,6 +4147,7 @@ LET Dumper: IParseTreeVisitor := {
     "ConcatenationExpression":              dumpConcatenationExpression,
     "ComparisonExpression":                 dumpComparisonExpression,
     "ChainedComparisonExpression":          dumpChainedComparisonExpression,
+    "TypeTestExpression":                   dumpTypeTestExpression,
     "MembershipExpression":                 dumpMembershipExpression,
     "ConjunctionExpression":                dumpConjunctionExpression,
     "DisjunctionExpression":                dumpDisjunctionExpression,

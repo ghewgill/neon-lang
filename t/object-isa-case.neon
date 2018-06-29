@@ -1,9 +1,9 @@
 % TODO
 
-VAR x: Object := 5
-CASE x
-    WHEN ISA Number DO
-        print("number")
-    WHEN ISA String DO
-        print("string")
-END CASE
+%VAR x: Object := 5
+%CASE x
+%    WHEN ISA Number DO
+%        print("number")
+%    WHEN ISA String DO
+%        print("string")
+%END CASE
