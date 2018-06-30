@@ -193,7 +193,6 @@ static Cell unmarshal_pointer(void *p)
 class ActivationFrame {
 public:
     ActivationFrame(size_t count): locals(count) {}
-    // TODO (for nested functions) std::vector<ActivationFrame *> outer;
     std::vector<Cell> locals;
 };
 
