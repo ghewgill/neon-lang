@@ -20,6 +20,11 @@ bool executor_module_is_main();
 void executor_set_garbage_collection_interval(size_t count);
 void executor_set_recursion_limit(size_t depth);
 
-void exec(const std::string &source_path, const std::vector<unsigned char> &obj, const DebugInfo *debug, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals = nullptr);
+struct ExecOptions {
+    bool enable_assert;
+    bool enable_trace;
+};
+
+void exec(const std::string &source_path, const std::vector<unsigned char> &obj, const DebugInfo *debug, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals = nullptr);
 
 #endif

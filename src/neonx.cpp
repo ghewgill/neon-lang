@@ -35,7 +35,10 @@ void run_from_neonx(const std::string &name, int argc, char *argv[])
     std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
 
     // TODO: Implement reading DebugInfo from another file.
-    exec(name, bytecode, nullptr, &runtime_support, g_enable_assert, g_debug_port, argc, argv);
+    struct ExecOptions options;
+    options.enable_assert = g_enable_assert;
+    options.enable_trace = false;
+    exec(name, bytecode, nullptr, &runtime_support, &options, g_debug_port, argc, argv);
 }
 
 int main(int argc, char *argv[])

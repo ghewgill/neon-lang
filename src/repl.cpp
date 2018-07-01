@@ -103,7 +103,10 @@ void Repl::handle(const std::string &s)
             if (dump_listing) {
                 disassemble(bytecode, std::cerr, &debug);
             }
-            exec("-", bytecode, &debug, &runtime_support, false, 0, argc, argv, &globals_cells);
+            struct ExecOptions options;
+            options.enable_assert = true;
+            options.enable_trace = false;
+            exec("-", bytecode, &debug, &runtime_support, &options, 0, argc, argv, &globals_cells);
             input.emplace_back(std::move(tokens));
         } catch (CompilerError *error) {
             error->write(std::cerr);

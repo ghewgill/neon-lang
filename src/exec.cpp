@@ -18,6 +18,7 @@
 #include "bytecode.h"
 #include "cell.h"
 #include "debuginfo.h"
+#include "disassembler.h"
 #include "httpserver.h"
 #include "neonext.h"
 #include "number.h"
@@ -228,7 +229,7 @@ private:
 
 class Executor: public IHttpServerHandler {
 public:
-    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, std::map<std::string, Cell *> *external_globals);
+    Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, std::map<std::string, Cell *> *external_globals);
     virtual ~Executor();
 
     // Module: debugger
@@ -246,7 +247,7 @@ public:
     void exec_loop(size_t min_callstack_depth);
 //private:
     const std::string source_path;
-    const bool enable_assert;
+    const ExecOptions *options;
 
     size_t param_garbage_collection_interval;
     size_t param_recursion_limit;
@@ -641,9 +642,9 @@ const Ne_MethodTable ExtensionMethodTable = {
     raise_exception
 };
 
-Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, std::map<std::string, Cell *> *external_globals)
+Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes, const DebugInfo *debuginfo, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, std::map<std::string, Cell *> *external_globals)
   : source_path(source_path),
-    enable_assert(enable_assert),
+    options(options),
     param_garbage_collection_interval(1000),
     param_recursion_limit(1000),
     external_globals(external_globals),
@@ -1671,7 +1672,7 @@ void Executor::exec_JNASSERT()
 {
     ip++;
     uint32_t target = Bytecode::get_vint(module->object.code, ip);
-    if (not enable_assert) {
+    if (not options->enable_assert) {
         ip = target;
     }
 }
@@ -2054,7 +2055,10 @@ void Executor::exec()
 void Executor::exec_loop(size_t min_callstack_depth)
 {
     while (callstack.size() > min_callstack_depth && ip < module->object.code.size()) {
-        //std::cerr << "mod " << module->name << " ip " << ip << " op " << (int)module->object.code[ip] << " st " << stack.depth() << "\n";
+        if (options->enable_trace) {
+            auto i = ip;
+            std::cerr << "mod " << module->name << " ip " << ip << " " << disassemble_instruction(module->object, i) << " | st " << stack.depth() << "\n";
+        }
         if (debug_server != nullptr) {
             switch (debugger_state) {
                 case DebuggerState::STOPPED:
@@ -2406,8 +2410,8 @@ void executor_set_recursion_limit(size_t depth)
     g_executor->set_recursion_limit(depth);
 }
 
-void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, bool enable_assert, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals)
+void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals)
 {
     rtl_exec_init(argc, argv);
-    Executor(source_path, obj, debuginfo, support, enable_assert, debug_port, external_globals).exec();
+    Executor(source_path, obj, debuginfo, support, options, debug_port, external_globals).exec();
 }

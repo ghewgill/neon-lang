@@ -331,6 +331,7 @@ target_link_libraries(neon
 add_executable(neonx
     src/neonx.cpp
     src/bundle.cpp
+    src/disassembler.cpp
     $<TARGET_OBJECTS:common>
     $<TARGET_OBJECTS:executor>
 )
@@ -355,6 +356,7 @@ endif (WIN32)
 add_executable(neonstub
     src/neonstub.cpp
     src/bundle.cpp
+    src/disassembler.cpp
     $<TARGET_OBJECTS:common>
     $<TARGET_OBJECTS:executor>
 )

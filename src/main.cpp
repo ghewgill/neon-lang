@@ -20,6 +20,7 @@ bool dump_parse = false;
 bool dump_ast = false;
 bool dump_listing = false;
 bool enable_assert = true;
+bool enable_trace = false;
 unsigned short debug_port = 0;
 bool repl_no_prompt = false;
 bool repl_stop_on_any_error = false;
@@ -95,6 +96,8 @@ int main(int argc, char *argv[])
             repl_no_prompt = true;
         } else if (arg == "--repl-stop-on-any-error") {
             repl_stop_on_any_error = true;
+        } else if (arg == "-t") {
+            enable_trace = true;
         } else {
             fprintf(stderr, "Unknown option: %s\n", arg.c_str());
             exit(1);
@@ -168,5 +171,8 @@ int main(int argc, char *argv[])
         std::copy(s.begin(), s.end(), std::back_inserter(bytecode));
     }
 
-    exec(name, bytecode, &debug, &runtime_support, enable_assert, debug_port, argc-a, argv+a);
+    struct ExecOptions options;
+    options.enable_assert = enable_assert;
+    options.enable_trace = enable_trace;
+    exec(name, bytecode, &debug, &runtime_support, &options, debug_port, argc-a, argv+a);
 }

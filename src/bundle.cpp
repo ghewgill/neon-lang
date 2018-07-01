@@ -84,5 +84,8 @@ void run_from_bundle(const std::string &name, bool enable_assert, unsigned short
 
     ZipSupport zip_support;
 
-    exec(name, g_Contents[".neonx"], nullptr, &zip_support, enable_assert, debug_port, argc, argv);
+    struct ExecOptions options;
+    options.enable_assert = enable_assert;
+    options.enable_trace = false;
+    exec(name, g_Contents[".neonx"], nullptr, &zip_support, &options, debug_port, argc, argv);
 }
