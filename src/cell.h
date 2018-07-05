@@ -43,7 +43,7 @@ public:
     const utf8string &string();
     utf8string &string_for_write();
     const std::vector<unsigned char> &bytes();
-    std::vector<unsigned char> &bytes_for_write();
+    void set_bytes(const std::vector<unsigned char> &bytes);
     const std::vector<Cell> &array();
     std::vector<Cell> &array_for_write();
     Cell &array_index_for_read(size_t i);

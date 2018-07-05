@@ -508,7 +508,7 @@ int cell_get_bytes_size(const struct Ne_Cell *cell)
 
 void cell_set_bytes(struct Ne_Cell *cell, const unsigned char *value, int size)
 {
-    reinterpret_cast<Cell *>(cell)->bytes_for_write() = std::vector<unsigned char>(value, value+size);
+    reinterpret_cast<Cell *>(cell)->set_bytes(std::vector<unsigned char>(value, value+size));
 }
 
 void *cell_get_pointer(const struct Ne_Cell *cell)

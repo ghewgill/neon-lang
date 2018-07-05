@@ -231,19 +231,13 @@ const std::vector<unsigned char> &Cell::bytes()
     return *bytes_ptr;
 }
 
-std::vector<unsigned char> &Cell::bytes_for_write()
+void Cell::set_bytes(const std::vector<unsigned char> &bytes)
 {
     if (type == Type::None) {
         type = Type::Bytes;
     }
     assert(type == Type::Bytes);
-    if (not bytes_ptr) {
-        bytes_ptr = std::make_shared<std::vector<unsigned char>>();
-    }
-    if (not bytes_ptr.unique()) {
-        bytes_ptr = std::make_shared<std::vector<unsigned char>>(*bytes_ptr);
-    }
-    return *bytes_ptr;
+    bytes_ptr = std::make_shared<std::vector<unsigned char>>(bytes);
 }
 
 const std::vector<Cell> &Cell::array()
