@@ -60,6 +60,7 @@ ExcludeTests = [
     "t/new-init-module.neon",       # NoClassDefFoundError
     "t/number-ceil.neon",           # module math
     "t/os-test.neon",               # module os
+    "t/outer-issue192.neon",        # verifier
     "t/outer-parameter.neon",       # verifier
     "t/outer-tail.neon",            # verifier
     "t/outer.neon",                 # verifier

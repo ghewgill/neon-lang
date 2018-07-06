@@ -1,0 +1,13 @@
+FUNCTION func(s: String)
+END FUNCTION
+
+foo()
+
+FUNCTION foo()
+    VAR s: String := ""
+    FUNCTION bar()
+        func(s)
+    END FUNCTION
+    func(s)
+    bar()
+END FUNCTION

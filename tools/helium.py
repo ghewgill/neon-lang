@@ -2626,6 +2626,7 @@ ExcludeTests = [
     "t/os-test.neon",           # Module not required
     "t/outer.neon",             # Feature not required
     "t/outer2.neon",            # Feature not required
+    "t/outer-issue192.neon",    # Feature not required
     "t/outer-parameter.neon",   # Feature not required
     "t/outer-tail.neon",        # Feature not required
     "t/parameter-out-array.neon", # Feature not required

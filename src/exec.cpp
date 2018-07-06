@@ -193,8 +193,13 @@ static Cell unmarshal_pointer(void *p)
 
 class ActivationFrame {
 public:
-    ActivationFrame(size_t count): locals(count) {}
+    ActivationFrame(uint32_t nesting_depth, ActivationFrame *outer, size_t count): nesting_depth(nesting_depth), outer(outer), locals(count) {}
+    uint32_t nesting_depth;
+    ActivationFrame *outer;
     std::vector<Cell> locals;
+private:
+    ActivationFrame(const ActivationFrame &);
+    ActivationFrame &operator=(const ActivationFrame &);
 };
 
 // The fields here must match the declaration of
@@ -260,7 +265,6 @@ public:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
-    std::vector<ActivationFrame *> nested_frames;
 
     std::list<Cell> allocs;
     unsigned int allocations;
@@ -655,7 +659,6 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     stack(),
     callstack(),
     frames(),
-    nested_frames(),
     allocs(),
     allocations(0),
     debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
@@ -708,14 +711,32 @@ Module::Module(const std::string &name, const Bytecode &object, const DebugInfo 
     }
 }
 
+inline void dump_frames(Executor *exec)
+{
+    if (false) {
+        printf("Frames:\n");
+        for (auto &f: exec->frames) {
+            printf("  %p { nest=%u outer=%p locals=%lu }\n", &f, f.nesting_depth, f.outer, f.locals.size());
+        }
+    }
+}
+
 void Executor::exec_ENTER()
 {
     ip++;
     uint32_t nest = Bytecode::get_vint(module->object.code, ip);
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
-    frames.push_back(ActivationFrame(val));
-    nested_frames.resize(nest-1);
-    nested_frames.push_back(&frames.back());
+    ActivationFrame *outer = nullptr;
+    if (frames.size() > 0) {
+        assert(nest <= frames.back().nesting_depth+1);
+        outer = &frames.back();
+        while (outer != nullptr && nest <= outer->nesting_depth) {
+            assert(outer->outer == nullptr || outer->nesting_depth == outer->outer->nesting_depth+1);
+            outer = outer->outer;
+        }
+    }
+    frames.emplace_back(nest, outer, val);
+    dump_frames(this);
 }
 
 void Executor::exec_LEAVE()
@@ -796,7 +817,13 @@ void Executor::exec_PUSHPOL()
     ip++;
     uint32_t back = Bytecode::get_vint(module->object.code, ip);
     uint32_t addr = Bytecode::get_vint(module->object.code, ip);
-    stack.push(Cell(&nested_frames[nested_frames.size()-1-back]->locals.at(addr)));
+    dump_frames(this);
+    ActivationFrame *frame = &frames.back();
+    while (back > 0) {
+        frame = frame->outer;
+        back--;
+    }
+    stack.push(Cell(&frame->locals.at(addr)));
 }
 
 void Executor::exec_PUSHI()
