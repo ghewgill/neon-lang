@@ -716,7 +716,7 @@ inline void dump_frames(Executor *exec)
     if (false) {
         printf("Frames:\n");
         for (auto &f: exec->frames) {
-            printf("  %p { nest=%u outer=%p locals=%lu }\n", &f, f.nesting_depth, f.outer, f.locals.size());
+            printf("  %p { nest=%u outer=%p locals=%zu }\n", &f, f.nesting_depth, f.outer, f.locals.size());
         }
     }
 }
