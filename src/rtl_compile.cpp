@@ -15,6 +15,7 @@ static const ast::Type *resolve_type(const PredefinedType &ptype, ast::Scope *sc
 
 void rtl_compile_init(ast::Scope *scope)
 {
+    init_builtin_functions();
     //init_builtin_constants(scope);
     for (auto f: BuiltinFunctions) {
         std::vector<const ast::ParameterType *> params;

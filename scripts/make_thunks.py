@@ -395,9 +395,12 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "    bool exported;"
     print >>inc, "    int count;"
     print >>inc, "    struct {ast::ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
-    print >>inc, "} BuiltinFunctions[] = {"
+    print >>inc, "}} BuiltinFunctions[{}];".format(len(functions))
+    print >>inc, "void init_builtin_functions() {"
+    bfi = 0
     for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
-        print >>inc, "    {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}}},".format(
+        print >>inc, "    BuiltinFunctions[{}] = {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}}};".format(
+            bfi,
             name.replace("global$", ""),
             "ast::"+rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr",
             "\"{}\"".format(rtypename) or "nullptr",
@@ -405,7 +408,8 @@ with open("src/functions_compile.inc", "w") as inc:
             len(params),
             ",".join("{{ast::ParameterType::Mode::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
         )
-    print >>inc, "};";
+        bfi += 1
+    print >>inc, "}";
 
 with open("src/functions_compile_jvm.inc", "w") as inc:
     print >>inc, "static struct {"
