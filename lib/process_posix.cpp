@@ -1,5 +1,6 @@
 #include <errno.h>
 #include <string>
+#include <sys/select.h>
 #include <sys/wait.h>
 #include <unistd.h>
 

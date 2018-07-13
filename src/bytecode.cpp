@@ -4,6 +4,7 @@
 #include <climits>
 #include <iterator>
 #include <stdint.h>
+#include <stdlib.h>
 
 class BytecodeException: public std::exception {};
 
