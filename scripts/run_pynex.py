@@ -60,6 +60,11 @@ ExcludeTests = [
     "t/new-init-module.neon",       # class
     "t/new-init.neon",              # class
     "t/number-ceil.neon",           # precision
+    "t/object.neon",                # object
+    "t/object-isa.neon",            # object
+    "t/object-isa-case.neon",       # object
+    "t/object-null.neon",           # object
+    "t/object-operator.neon",       # object
     "t/os-test.neon",               # os
     "t/outer-issue192.neon",        # PUSHPOL
     "t/outer-parameter.neon",       # PUSHPOL
@@ -98,7 +103,6 @@ ExcludeTests = [
     "t/time-stopwatch.neon",        # module
     "t/unicode-char.neon",          # utf8
     "t/valid-pointer.neon",         # class
-    "t/variant-test.neon",          # module
     "t/while-valid.neon",           # class
     "t/win32-test.neon",            # module
 ]

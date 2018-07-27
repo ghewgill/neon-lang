@@ -84,6 +84,11 @@ ExcludeTests = [
     "t/net-test.neon",              # import
     "t/new-init-module.neon",       # module
     "t/number-ceil.neon",           # math
+    "t/object.neon",                # object
+    "t/object-isa.neon",            # object
+    "t/object-isa-case.neon",       # object
+    "t/object-null.neon",           # object
+    "t/object-operator.neon",       # object
     "t/os-test.neon",               # os
     "t/outer-issue192.neon",        # PUSHPOL
     "t/outer-parameter.neon",       # PUSHPOL
@@ -117,7 +122,6 @@ ExcludeTests = [
     "t/time-test.neon",             # import
     "t/unicode-char.neon",          # UTF-8
     "t/unicode-length.neon",        # UTF-8
-    "t/variant-test.neon",          # variant module
     "t/win32-test.neon",            # CALLMF
 ]
 

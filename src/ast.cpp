@@ -17,9 +17,12 @@ TypeBoolean *TYPE_BOOLEAN = new TypeBoolean();
 TypeNumber *TYPE_NUMBER = new TypeNumber(Token());
 TypeString *TYPE_STRING = new TypeString();
 TypeBytes *TYPE_BYTES = new TypeBytes();
+TypeObject *TYPE_OBJECT = new TypeObject();
 TypeArray *TYPE_ARRAY_NUMBER = new TypeArray(Token(), TYPE_NUMBER);
 TypeArray *TYPE_ARRAY_STRING = new TypeArray(Token(), TYPE_STRING);
+TypeArray *TYPE_ARRAY_OBJECT = new TypeArray(Token(), TYPE_OBJECT);
 TypeDictionary *TYPE_DICTIONARY_STRING = new TypeDictionary(Token(), TYPE_STRING);
+TypeDictionary *TYPE_DICTIONARY_OBJECT = new TypeDictionary(Token(), TYPE_OBJECT);
 TypeModule *TYPE_MODULE = new TypeModule();
 TypeException *TYPE_EXCEPTION = new TypeException();
 TypeInterface *TYPE_INTERFACE = new TypeInterface();
@@ -40,6 +43,11 @@ const Expression *TypeBoolean::make_default_value() const
     return new ConstantBooleanExpression(false);
 }
 
+bool TypeBoolean::is_assignment_compatible(const Type *rhs) const
+{
+    return this == rhs || rhs == TYPE_OBJECT;
+}
+
 std::string TypeBoolean::serialize(const Expression *value) const
 {
     return value->eval_boolean() ? std::string(1, 1) : std::string(1, 0);
@@ -57,6 +65,11 @@ const Expression *TypeNumber::make_default_value() const
     return new ConstantNumberExpression(number_from_uint32(0));
 }
 
+bool TypeNumber::is_assignment_compatible(const Type *rhs) const
+{
+    return this == rhs || rhs == TYPE_OBJECT;
+}
+
 std::string TypeNumber::serialize(const Expression *value) const
 {
     Number x = value->eval_number();
@@ -71,6 +84,11 @@ const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, in
 const Expression *TypeString::make_default_value() const
 {
     return new ConstantStringExpression("");
+}
+
+bool TypeString::is_assignment_compatible(const Type *rhs) const
+{
+    return this == rhs || rhs == TYPE_OBJECT;
 }
 
 std::string TypeString::serialize(const std::string &value)
@@ -109,6 +127,11 @@ const Expression *TypeBytes::make_default_value() const
     return new ConstantBytesExpression("", "");
 }
 
+bool TypeBytes::is_assignment_compatible(const Type *rhs) const
+{
+    return this == rhs || rhs == TYPE_OBJECT;
+}
+
 std::string TypeBytes::serialize(const Expression *value) const
 {
     return TypeString::serialize(value->eval_string());
@@ -117,6 +140,35 @@ std::string TypeBytes::serialize(const Expression *value) const
 const Expression *TypeBytes::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
     return new ConstantBytesExpression("Imported value", TypeString::deserialize_string(value, i));
+}
+
+const Expression *TypeObject::make_default_value() const
+{
+    return nullptr; // TODO
+}
+
+bool TypeObject::is_assignment_compatible(const Type *rhs) const
+{
+    return
+        rhs == nullptr ||
+        dynamic_cast<const TypePointerNil *>(rhs) != nullptr ||
+        rhs == TYPE_BOOLEAN ||
+        rhs == TYPE_NUMBER ||
+        rhs == TYPE_STRING ||
+        rhs == TYPE_BYTES ||
+        rhs == TYPE_OBJECT ||
+        (dynamic_cast<const TypeArray *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeArray *>(rhs)->elementtype)) ||
+        (dynamic_cast<const TypeDictionary *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeDictionary *>(rhs)->elementtype));
+}
+
+std::string TypeObject::serialize(const Expression *) const
+{
+    return "";
+}
+
+const Expression *TypeObject::deserialize_value(const Bytecode::Bytes &, int &) const
+{
+    return nullptr; // TODO
 }
 
 TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
@@ -156,13 +208,15 @@ TypeArray::TypeArray(const Token &declaration, const Type *elementtype)
             methods["toString"] = new PredefinedFunction("array__toString__number", new TypeFunction(TYPE_STRING, params));
         } else if (elementtype == TYPE_STRING) {
             methods["toString"] = new PredefinedFunction("array__toString__string", new TypeFunction(TYPE_STRING, params));
+        } else if (elementtype == TYPE_OBJECT) {
+            methods["toString"] = new PredefinedFunction("array__toString__object", new TypeFunction(TYPE_STRING, params));
         }
     }
 }
 
 const Expression *TypeArray::make_default_value() const
 {
-    return new ArrayLiteralExpression(nullptr, {});
+    return new ArrayLiteralExpression(nullptr, {}, {});
 }
 
 bool TypeFunction::is_assignment_compatible(const Type *rhs) const
@@ -203,6 +257,24 @@ bool TypeFunction::is_assignment_compatible(const Type *rhs) const
 
 bool TypeArray::is_assignment_compatible(const Type *rhs) const
 {
+    const TypeArrayLiteral *tal = dynamic_cast<const TypeArrayLiteral *>(rhs);
+    if (tal != nullptr && elementtype != nullptr) {
+        int i = 0;
+        for (auto e: tal->elements) {
+            if (not elementtype->is_assignment_compatible(e->type)) {
+                error(3079, tal->elementtokens[i], "type mismatch");
+            }
+            i++;
+        }
+    }
+    return is_assignment_compatible_no_error(rhs);
+}
+
+bool TypeArray::is_assignment_compatible_no_error(const Type *rhs) const
+{
+    if (rhs == TYPE_OBJECT) {
+        return true;
+    }
     const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);
     if (a == nullptr) {
         return false;
@@ -235,7 +307,7 @@ const Expression *TypeArray::deserialize_value(const Bytecode::Bytes &value, int
         elements.push_back(elementtype->deserialize_value(value, i));
         len--;
     }
-    return new ArrayLiteralExpression(elementtype, elements);
+    return new ArrayLiteralExpression(elementtype, elements, {});
 }
 
 TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype)
@@ -256,11 +328,29 @@ TypeDictionary::TypeDictionary(const Token &declaration, const Type *elementtype
 
 const Expression *TypeDictionary::make_default_value() const
 {
-    return new DictionaryLiteralExpression(nullptr, {});
+    return new DictionaryLiteralExpression(nullptr, {}, {});
 }
 
 bool TypeDictionary::is_assignment_compatible(const Type *rhs) const
 {
+    const TypeDictionaryLiteral *tdl = dynamic_cast<const TypeDictionaryLiteral *>(rhs);
+    if (tdl != nullptr && elementtype != nullptr) {
+        int i = 0;
+        for (auto &e: tdl->elements) {
+            if (not elementtype->is_assignment_compatible(e.second->type)) {
+                error(3072, tdl->elementtokens[i], "type mismatch");
+            }
+            i++;
+        }
+    }
+    return is_assignment_compatible_no_error(rhs);
+}
+
+bool TypeDictionary::is_assignment_compatible_no_error(const Type *rhs) const
+{
+    if (rhs == TYPE_OBJECT) {
+        return true;
+    }
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
     if (d == nullptr) {
         return false;
@@ -295,12 +385,12 @@ const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value
         dict.push_back(std::make_pair(key, elementtype->deserialize_value(value, i)));
         len--;
     }
-    return new DictionaryLiteralExpression(elementtype, dict);
+    return new DictionaryLiteralExpression(elementtype, dict, {});
 }
 
 const Expression *TypeRecord::make_default_value() const
 {
-    return new ArrayLiteralExpression(nullptr, {});
+    return new ArrayLiteralExpression(nullptr, {}, {});
 }
 
 bool TypeRecord::is_assignment_compatible(const Type *rhs) const
@@ -657,6 +747,14 @@ std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dict
         dict[e.first] = e.second;
     }
     return dict;
+}
+
+bool TypeTestExpression::eval_boolean() const
+{
+    if (type == TYPE_OBJECT) {
+        internal_error("unexpected object type");
+    }
+    return target->is_assignment_compatible(left->type);
 }
 
 bool BooleanComparisonExpression::eval_boolean() const
@@ -1071,6 +1169,7 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
     scope->addName(Token(IDENTIFIER, "Number"), "Number", TYPE_NUMBER);
     scope->addName(Token(IDENTIFIER, "String"), "String", TYPE_STRING);
     scope->addName(Token(IDENTIFIER, "Bytes"), "Bytes", TYPE_BYTES);
+    scope->addName(Token(IDENTIFIER, "Object"), "Object", TYPE_OBJECT);
 
     {
         std::vector<const ParameterType *> params;
@@ -1131,6 +1230,16 @@ Program::Program(const std::string &source_path, const std::string &source_hash,
         std::vector<const ParameterType *> params;
         params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_BYTES, nullptr));
         TYPE_BYTES->methods["toString"] = new PredefinedFunction("bytes__toString", new TypeFunction(TYPE_STRING, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_OBJECT, nullptr));
+        TYPE_OBJECT->methods["isNull"] = new PredefinedFunction("object__isNull", new TypeFunction(TYPE_BOOLEAN, params));
+    }
+    {
+        std::vector<const ParameterType *> params;
+        params.push_back(new ParameterType(Token(), ParameterType::Mode::IN, TYPE_OBJECT, nullptr));
+        TYPE_OBJECT->methods["toString"] = new PredefinedFunction("object__toString", new TypeFunction(TYPE_STRING, params));
     }
 
     for (auto e: rtl::ExceptionNames) {

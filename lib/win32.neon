@@ -13,7 +13,6 @@ EXPORT Handle
 EXPORT WIN32_FIND_DATA
 
 IMPORT struct
-IMPORT variant
 
 % Type: Handle
 TYPE Handle IS POINTER
@@ -46,32 +45,32 @@ LET Struct_WIN32_FIND_DATA: struct.Struct := struct.make([
 ])
 
 FUNCTION WIN32_FIND_DATA.pack(self: WIN32_FIND_DATA): Bytes
-    VAR d: Dictionary<variant.Variant> := {}
-    d["dwFileAttributes"]   := variant.makeNumber(self.dwFileAttributes)
-    d["ftCreationTime"]     := variant.makeNumber(self.ftCreationTime)
-    d["ftLastAccessTime"]   := variant.makeNumber(self.ftLastAccessTime)
-    d["ftLastWriteTime"]    := variant.makeNumber(self.ftLastWriteTime)
-    d["nFileSizeHigh"]      := variant.makeNumber(self.nFileSizeHigh)
-    d["nFileSizeLow"]       := variant.makeNumber(self.nFileSizeLow)
-    d["dwReserved0"]        := variant.makeNumber(self.dwReserved0)
-    d["dwReserved1"]        := variant.makeNumber(self.dwReserved1)
-    d["cFileName"]          := variant.makeString(self.cFileName)
-    d["cAlternateFileName"] := variant.makeString(self.cAlternateFileName)
+    VAR d: Dictionary<Object> := {}
+    d["dwFileAttributes"]   := self.dwFileAttributes
+    d["ftCreationTime"]     := self.ftCreationTime
+    d["ftLastAccessTime"]   := self.ftLastAccessTime
+    d["ftLastWriteTime"]    := self.ftLastWriteTime
+    d["nFileSizeHigh"]      := self.nFileSizeHigh
+    d["nFileSizeLow"]       := self.nFileSizeLow
+    d["dwReserved0"]        := self.dwReserved0
+    d["dwReserved1"]        := self.dwReserved1
+    d["cFileName"]          := self.cFileName
+    d["cAlternateFileName"] := self.cAlternateFileName
     RETURN Struct_WIN32_FIND_DATA.pack(d)
 END FUNCTION
 
 FUNCTION WIN32_FIND_DATA.unpack(INOUT self: WIN32_FIND_DATA, data: Bytes)
-    LET d: Dictionary<variant.Variant> := Struct_WIN32_FIND_DATA.unpack(data)
-    self.dwFileAttributes   := d["dwFileAttributes"].getNumber()
-    self.ftCreationTime     := d["ftCreationTime"].getNumber()
-    self.ftLastAccessTime   := d["ftLastAccessTime"].getNumber()
-    self.ftLastWriteTime    := d["ftLastWriteTime"].getNumber()
-    self.nFileSizeHigh      := d["nFileSizeHigh"].getNumber()
-    self.nFileSizeLow       := d["nFileSizeLow"].getNumber()
-    self.dwReserved0        := d["dwReserved0"].getNumber()
-    self.dwReserved1        := d["dwReserved1"].getNumber()
-    self.cFileName          := d["cFileName"].getString()
-    self.cAlternateFileName := d["cAlternateFileName"].getString()
+    LET d: Dictionary<Object> := Struct_WIN32_FIND_DATA.unpack(data)
+    self.dwFileAttributes   := d["dwFileAttributes"]
+    self.ftCreationTime     := d["ftCreationTime"]
+    self.ftLastAccessTime   := d["ftLastAccessTime"]
+    self.ftLastWriteTime    := d["ftLastWriteTime"]
+    self.nFileSizeHigh      := d["nFileSizeHigh"]
+    self.nFileSizeLow       := d["nFileSizeLow"]
+    self.dwReserved0        := d["dwReserved0"]
+    self.dwReserved1        := d["dwReserved1"]
+    self.cFileName          := d["cFileName"]
+    self.cAlternateFileName := d["cAlternateFileName"]
 END FUNCTION
 
 % Title: Win32 API Functions

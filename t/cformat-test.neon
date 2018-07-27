@@ -1,5 +1,4 @@
 IMPORT cformat
-IMPORT variant
 
-cformat.printf("We have %d of the %ss.", [variant.makeNumber(5), variant.makeString("fork")])
+cformat.printf("We have %d of the %ss.", [5, "fork"])
 %= We have 5 of the forks.

@@ -427,6 +427,13 @@ void ast::TypeBoolean::generate_call(Emitter &) const
     internal_error("TypeBoolean");
 }
 
+void ast::TypeBoolean::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CALLP, emitter.str("object__getBoolean"));
+    }
+}
+
 void ast::TypeNumber::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADN);
@@ -440,6 +447,13 @@ void ast::TypeNumber::generate_store(Emitter &emitter) const
 void ast::TypeNumber::generate_call(Emitter &) const
 {
     internal_error("TypeNumber");
+}
+
+void ast::TypeNumber::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CALLP, emitter.str("object__getNumber"));
+    }
 }
 
 void ast::TypeString::generate_load(Emitter &emitter) const
@@ -457,6 +471,13 @@ void ast::TypeString::generate_call(Emitter &) const
     internal_error("TypeString");
 }
 
+void ast::TypeString::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CALLP, emitter.str("object__getString"));
+    }
+}
+
 void ast::TypeBytes::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADT);
@@ -470,6 +491,58 @@ void ast::TypeBytes::generate_store(Emitter &emitter) const
 void ast::TypeBytes::generate_call(Emitter &) const
 {
     internal_error("TypeBytes");
+}
+
+void ast::TypeBytes::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT) {
+        emitter.emit(CALLP, emitter.str("object__getBytes"));
+    }
+}
+
+void ast::TypeObject::generate_load(Emitter &emitter) const
+{
+    emitter.emit(LOADJ);
+}
+
+void ast::TypeObject::generate_store(Emitter &emitter) const
+{
+    emitter.emit(STOREJ);
+}
+
+void ast::TypeObject::generate_call(Emitter &) const
+{
+    internal_error("TypeObject");
+}
+
+void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
+{
+    if (from == TYPE_OBJECT || from == nullptr) {
+        return;
+    } else if (from == TYPE_BOOLEAN) {
+        emitter.emit(CALLP, emitter.str("object__makeBoolean"));
+    } else if (from == TYPE_NUMBER) {
+        emitter.emit(CALLP, emitter.str("object__makeNumber"));
+    } else if (from == TYPE_STRING) {
+        emitter.emit(CALLP, emitter.str("object__makeString"));
+    } else if (from == TYPE_BYTES) {
+        emitter.emit(CALLP, emitter.str("object__makeBytes"));
+    } else if (dynamic_cast<const TypePointerNil *>(from) != nullptr) {
+        emitter.emit(DROP);
+        emitter.emit(CALLP, emitter.str("object__makeNull"));
+    } else {
+        const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
+        const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
+        if (atype != nullptr) {
+            TYPE_ARRAY_OBJECT->generate_convert(emitter, from);
+            emitter.emit(CALLP, emitter.str("object__makeArray"));
+        } else if (dtype != nullptr) {
+            TYPE_DICTIONARY_OBJECT->generate_convert(emitter, from);
+            emitter.emit(CALLP, emitter.str("object__makeDictionary"));
+        } else {
+            internal_error("Unknown type conversion s to Object");
+        }
+    }
 }
 
 void ast::TypeFunction::predeclare(Emitter &emitter) const
@@ -538,6 +611,35 @@ void ast::TypeArray::generate_call(Emitter &) const
     internal_error("TypeArray");
 }
 
+void ast::TypeArray::generate_convert(Emitter &emitter, const Type *from) const
+{
+    const TypeArray *a = dynamic_cast<const TypeArray *>(from);
+    if (from == TYPE_OBJECT || (a != nullptr && a->elementtype == TYPE_OBJECT)) {
+        if (from == TYPE_OBJECT) {
+            emitter.emit(CALLP, emitter.str("object__getArray"));
+        }
+        if (elementtype != TYPE_OBJECT) {
+            auto iter_label = emitter.create_label();
+            emitter.emit_jump(MAPA, iter_label);
+            elementtype->generate_convert(emitter, TYPE_OBJECT);
+            emitter.emit(RET);
+            emitter.jump_target(iter_label);
+        }
+        return;
+    }
+    if (elementtype == ast::TYPE_OBJECT && a->elementtype != TYPE_OBJECT) {
+        auto iter_label = emitter.create_label();
+        emitter.emit_jump(MAPA, iter_label);
+        elementtype->generate_convert(emitter, a->elementtype);
+        emitter.emit(RET);
+        emitter.jump_target(iter_label);
+        return;
+    }
+    if (a->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
+        internal_error("TODO: conversion of array type from " + from->text() + " to " + text());
+    }
+}
+
 std::string ast::TypeArray::get_type_descriptor(Emitter &emitter) const
 {
     return "A<" + emitter.get_type_reference(elementtype) + ">";
@@ -571,6 +673,34 @@ void ast::TypeDictionary::generate_store(Emitter &emitter) const
 void ast::TypeDictionary::generate_call(Emitter &) const
 {
     internal_error("TypeDictionary");
+}
+
+void ast::TypeDictionary::generate_convert(Emitter &emitter, const Type *from) const
+{
+    const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
+    if (from == TYPE_OBJECT || (d != nullptr && d->elementtype == TYPE_OBJECT)) {
+        if (from == TYPE_OBJECT) {
+            emitter.emit(CALLP, emitter.str("object__getDictionary"));
+        }
+        if (elementtype != TYPE_OBJECT) {
+            auto iter_label = emitter.create_label();
+            emitter.emit_jump(MAPD, iter_label);
+            elementtype->generate_convert(emitter, TYPE_OBJECT);
+            emitter.emit(RET);
+            emitter.jump_target(iter_label);
+        }
+        return;
+    }
+    if (elementtype == ast::TYPE_OBJECT && d->elementtype != TYPE_OBJECT) {
+        auto iter_label = emitter.create_label();
+        emitter.emit_jump(MAPD, iter_label);
+        elementtype->generate_convert(emitter, d->elementtype);
+        emitter.emit(RET);
+        emitter.jump_target(iter_label);
+    }
+    if (d->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
+        internal_error("TODO: conversion of dictionary type from " + from->text() + " to " + text());
+    }
 }
 
 std::string ast::TypeDictionary::get_type_descriptor(Emitter &emitter) const
@@ -1131,12 +1261,15 @@ void ast::Constant::generate_export(Emitter &emitter, const std::string &export_
     emitter.add_export_constant(export_name, emitter.get_type_reference(type), type->serialize(value));
 }
 
-void ast::Expression::generate(Emitter &emitter) const
+void ast::Expression::generate(Emitter &emitter, const Type *target_type) const
 {
     if (type != nullptr) {
         type->predeclare(emitter);
     }
     generate_expr(emitter);
+    if (target_type != nullptr) {
+        target_type->generate_convert(emitter, type);
+    }
 }
 
 void ast::ConstantBooleanExpression::generate_expr(Emitter &emitter) const
@@ -1179,10 +1312,15 @@ void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
     emitter.emit(CONSA, 2);
 }
 
+void ast::TypeConversionExpression::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter, type);
+}
+
 void ast::ArrayLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {
-        (*e)->generate(emitter);
+        (*e)->generate(emitter, elementtype);
     }
     emitter.emit(CONSA, static_cast<uint32_t>(elements.size()));
 }
@@ -1191,23 +1329,27 @@ void ast::DictionaryLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto d = dict.rbegin(); d != dict.rend(); ++d) {
         emitter.emit(PUSHS, emitter.str(d->first));
-        d->second->generate(emitter);
+        d->second->generate(emitter, elementtype);
     }
     emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
 }
 
 void ast::RecordLiteralExpression::generate_expr(Emitter &emitter) const
 {
+    auto f = dynamic_cast<const ast::TypeRecord *>(type)->fields.rbegin();
     for (auto v = values.rbegin(); v != values.rend(); ++v) {
-        (*v)->generate(emitter);
+        assert(f != dynamic_cast<const ast::TypeRecord *>(type)->fields.rend());
+        (*v)->generate(emitter, f->type);
+        f++;
     }
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
 }
 
 void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
 {
+    auto t = dynamic_cast<const ast::TypeClass *>(type);
     for (size_t i = values.size()-1; i > 0; i--) {
-        values[i]->generate(emitter);
+        values[i]->generate(emitter, t->fields[i].type);
     }
     emitter.emit(PUSHCI, emitter.str(type->name));
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
@@ -1216,7 +1358,7 @@ void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
 void ast::NewClassExpression::generate_expr(Emitter &emitter) const
 {
     if (value != nullptr) {
-        value->generate(emitter);
+        value->generate(emitter, value->type);
     }
     emitter.emit(ALLOC, static_cast<uint32_t>(reftype->fields.size()));
     if (value != nullptr) {
@@ -1227,26 +1369,26 @@ void ast::NewClassExpression::generate_expr(Emitter &emitter) const
 
 void ast::UnaryMinusExpression::generate_expr(Emitter &emitter) const
 {
-    value->generate(emitter);
+    value->generate(emitter, TYPE_NUMBER);
     emitter.emit(NEGN);
 }
 
 void ast::LogicalNotExpression::generate_expr(Emitter &emitter) const
 {
-    value->generate(emitter);
+    value->generate(emitter, TYPE_BOOLEAN);
     emitter.emit(NOTB);
 }
 
 void ast::ConditionalExpression::generate_expr(Emitter &emitter) const
 {
-    condition->generate(emitter);
+    condition->generate(emitter, TYPE_BOOLEAN);
     auto else_label = emitter.create_label();
     emitter.emit_jump(JF, else_label);
-    left->generate(emitter);
+    left->generate(emitter, nullptr);
     auto end_label = emitter.create_label();
     emitter.emit_jump(JUMP, end_label);
     emitter.jump_target(else_label);
-    right->generate(emitter);
+    right->generate(emitter, nullptr);
     emitter.jump_target(end_label);
 }
 
@@ -1254,7 +1396,7 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
 {
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();
-    expr->generate(emitter);
+    expr->generate(emitter, nullptr);
     auto skip = emitter.create_label();
     emitter.emit_jump(JUMP, skip);
     ei.end = emitter.current_ip();
@@ -1277,7 +1419,7 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
                 stmt->generate(emitter);
             }
         } else if (e != nullptr) {
-            e->generate(emitter);
+            e->generate(emitter, nullptr);
         } else {
             internal_error("unexpected catch type");
         }
@@ -1288,55 +1430,75 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
 
 void ast::DisjunctionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
+    left->generate(emitter, TYPE_BOOLEAN);
     emitter.emit(DUP);
     auto true_label = emitter.create_label();
     emitter.emit_jump(JT, true_label);
     emitter.emit(DROP);
-    right->generate(emitter);
+    right->generate(emitter, TYPE_BOOLEAN);
     emitter.jump_target(true_label);
 }
 
 void ast::ConjunctionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
+    left->generate(emitter, TYPE_BOOLEAN);
     emitter.emit(DUP);
     auto false_label = emitter.create_label();
     emitter.emit_jump(JF, false_label);
     emitter.emit(DROP);
-    right->generate(emitter);
+    right->generate(emitter, TYPE_BOOLEAN);
     emitter.jump_target(false_label);
+}
+
+void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
+{
+    assert(left->type == TYPE_OBJECT);
+    left->generate(emitter, TYPE_OBJECT);
+    Bytecode::ExceptionInfo ei;
+    ei.start = emitter.current_ip();
+    target->generate_convert(emitter, left->type);
+    emitter.emit(DROP);
+    emitter.emit(PUSHB, 1);
+    auto skip = emitter.create_label();
+    emitter.emit_jump(JUMP, skip);
+    ei.end = emitter.current_ip();
+    ei.excid = emitter.str("DynamicConversionException");
+    ei.handler = emitter.current_ip();
+    emitter.add_exception(ei);
+    emitter.emit(DROP);
+    emitter.emit(PUSHB, 0);
+    emitter.jump_target(skip);
 }
 
 void ast::ArrayInExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, right->type);
     emitter.emit(INA);
 }
 
 void ast::DictionaryInExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_STRING);
+    right->generate(emitter, right->type);
     emitter.emit(IND);
 }
 
 void ast::ComparisonExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, operand_type);
+    right->generate(emitter, operand_type);
     generate_comparison_opcode(emitter);
 }
 
 void ast::ChainedComparisonExpression::generate_expr(Emitter &emitter) const
 {
-    comps[0]->left->generate(emitter);
+    comps[0]->left->generate(emitter, nullptr);
     auto skip_label = emitter.create_label();
     size_t i = 0;
     for (auto c: comps) {
         bool last = i == comps.size() - 1;
-        c->right->generate(emitter);
+        c->right->generate(emitter, nullptr);
         if (not last) {
             emitter.emit(DUPX1);
         }
@@ -1459,53 +1621,53 @@ void ast::FunctionPointerComparisonExpression::generate_comparison_opcode(Emitte
 
 void ast::ValidPointerExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
+    left->generate(emitter, nullptr);
     emitter.emit(DUP);
     var->generate_address(emitter);
     var->generate_store(emitter);
-    right->generate(emitter);
+    right->generate(emitter, nullptr);
     emitter.emit(NEP);
 }
 
 void ast::AdditionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(ADDN);
 }
 
 void ast::SubtractionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(SUBN);
 }
 
 void ast::MultiplicationExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(MULN);
 }
 
 void ast::DivisionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(DIVN);
 }
 
 void ast::ModuloExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(MODN);
 }
 
 void ast::ExponentiationExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter);
-    right->generate(emitter);
+    left->generate(emitter, TYPE_NUMBER);
+    right->generate(emitter, TYPE_NUMBER);
     emitter.emit(EXPN);
 }
 
@@ -1529,7 +1691,7 @@ void ast::DummyExpression::generate_store(Emitter &emitter) const
 void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
     array->generate_address_read(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_NUMBER);
     if (always_create) {
         emitter.emit(INDEXAW);
     } else {
@@ -1540,14 +1702,14 @@ void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter)
 void ast::ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
     array->generate_address_write(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_NUMBER);
     emitter.emit(INDEXAW);
 }
 
 void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    array->generate(emitter);
-    index->generate(emitter);
+    array->generate(emitter, nullptr);
+    index->generate(emitter, TYPE_NUMBER);
     if (always_create) {
         emitter.emit(INDEXAN);
     } else {
@@ -1558,54 +1720,61 @@ void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 void ast::DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
     dictionary->generate_address_read(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_STRING);
     emitter.emit(INDEXDR);
 }
 
 void ast::DictionaryReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
     dictionary->generate_address_write(emitter);
-    index->generate(emitter);
+    index->generate(emitter, TYPE_STRING);
     emitter.emit(INDEXDW);
 }
 
 void ast::DictionaryValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    dictionary->generate(emitter);
-    index->generate(emitter);
+    dictionary->generate(emitter, nullptr);
+    index->generate(emitter, TYPE_STRING);
     emitter.emit(INDEXDV);
 }
 
 void ast::StringReferenceIndexExpression::generate_load(Emitter &emitter) const
 {
-    load->generate(emitter);
+    load->generate(emitter, nullptr);
 }
 
 void ast::StringReferenceIndexExpression::generate_store(Emitter &emitter) const
 {
-    store->generate(emitter);
+    store->generate(emitter, nullptr);
     ref->generate_store(emitter);
 }
 
 void ast::StringValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    load->generate(emitter);
+    load->generate(emitter, nullptr);
 }
 
 void ast::BytesReferenceIndexExpression::generate_load(Emitter &emitter) const
 {
-    load->generate(emitter);
+    load->generate(emitter, nullptr);
 }
 
 void ast::BytesReferenceIndexExpression::generate_store(Emitter &emitter) const
 {
-    store->generate(emitter);
+    store->generate(emitter, nullptr);
     ref->generate_store(emitter);
 }
 
 void ast::BytesValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    load->generate(emitter);
+    load->generate(emitter, nullptr);
+}
+
+void ast::ObjectSubscriptExpression::generate_expr(Emitter &emitter) const
+{
+    obj->generate(emitter, TYPE_OBJECT);
+    index->generate(emitter, TYPE_OBJECT);
+    emitter.emit(CALLP, emitter.str("object__subscript"));
 }
 
 void ast::RecordReferenceFieldExpression::generate_address_read(Emitter &emitter) const
@@ -1644,7 +1813,7 @@ void ast::RecordReferenceFieldExpression::generate_address_write(Emitter &emitte
 
 void ast::RecordValueFieldExpression::generate_expr(Emitter &emitter) const
 {
-    rec->generate(emitter);
+    rec->generate(emitter, nullptr);
     const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(rec->type);
     if (rectype == nullptr) {
         internal_error("RecordValueFieldExpression");
@@ -1663,28 +1832,28 @@ void ast::RecordValueFieldExpression::generate_expr(Emitter &emitter) const
 
 void ast::ArrayReferenceRangeExpression::generate_load(Emitter &emitter) const
 {
-    load->generate(emitter);
+    load->generate(emitter, nullptr);
 }
 
 void ast::ArrayReferenceRangeExpression::generate_store(Emitter &emitter) const
 {
-    store->generate(emitter);
+    store->generate(emitter, nullptr);
     ref->generate_store(emitter);
 }
 
 void ast::ArrayValueRangeExpression::generate_expr(Emitter &emitter) const
 {
-    load->generate(emitter);
+    load->generate(emitter, nullptr);
 }
 
 void ast::PointerDereferenceExpression::generate_address_read(Emitter &emitter) const
 {
-    ptr->generate(emitter);
+    ptr->generate(emitter, type);
 }
 
 void ast::PointerDereferenceExpression::generate_address_write(Emitter &emitter) const
 {
-    ptr->generate(emitter);
+    ptr->generate(emitter, type);
 }
 
 void ast::VariableExpression::generate_expr(Emitter &emitter) const
@@ -1727,10 +1896,7 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
         auto arg = args[i];
         switch (param->mode) {
             case ParameterType::Mode::IN:
-                arg->generate(emitter);
-                if (param->type != nullptr) {
-                    param->type->generate_convert(emitter, arg->type);
-                }
+                arg->generate(emitter, param->type);
                 break;
             case ParameterType::Mode::INOUT:
                 dynamic_cast<const ReferenceExpression *>(arg)->generate_address_read(emitter);
@@ -1829,7 +1995,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
 {
     auto skip_label = emitter.create_label();
     emitter.emit_jump(JNASSERT, skip_label);
-    expr->generate(emitter);
+    expr->generate(emitter, TYPE_BOOLEAN);
     emitter.emit_jump(JT, skip_label);
     for (auto stmt: statements) {
         stmt->generate(emitter);
@@ -1842,19 +2008,19 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
 
 void ast::AssignmentStatement::generate_code(Emitter &emitter) const
 {
-    expr->generate(emitter);
+    assert(variables.size() > 0);
+    expr->generate(emitter, variables[0]->type);
     for (size_t i = 0; i < variables.size() - 1; i++) {
         emitter.emit(DUP);
     }
     for (auto v: variables) {
-         v->type->generate_convert(emitter, expr->type);
          v->generate_store(emitter);
     }
 }
 
 void ast::ExpressionStatement::generate_code(Emitter &emitter) const
 {
-    expr->generate(emitter);
+    expr->generate(emitter, nullptr);
 }
 
 void ast::IncrementStatement::generate_code(Emitter &emitter) const
@@ -1874,7 +2040,7 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
     for (auto cs: condition_statements) {
         const Expression *condition = cs.first;
         const std::vector<const Statement *> &statements = cs.second;
-        condition->generate(emitter);
+        condition->generate(emitter, TYPE_BOOLEAN);
         auto else_label = emitter.create_label();
         emitter.emit_jump(JF, else_label);
         for (auto stmt: statements) {
@@ -1922,14 +2088,14 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
     }
 
     if (expr != nullptr) {
-        expr->generate(emitter);
+        expr->generate(emitter, nullptr);
     }
     emitter.emit_jump(JUMP, emitter.get_function_exit());
 }
 
 void ast::CaseStatement::generate_code(Emitter &emitter) const
 {
-    expr->generate(emitter);
+    expr->generate(emitter, expr->type);
     auto end_label = emitter.create_label();
 
     if (dynamic_cast<const TypeNumber *>(expr->type) != nullptr) {
@@ -2036,7 +2202,7 @@ void ast::CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) con
     }
 
     emitter.emit(DUP);
-    expr->generate(emitter);
+    expr->generate(emitter, expr->type);
     emitter.emit(op[static_cast<int>(comp)]); // Casting enum to int for index.
 }
 
@@ -2055,15 +2221,34 @@ void ast::CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
 
     emitter.emit(DUP);
     auto result_label = emitter.create_label();
-    low_expr->generate(emitter);
+    low_expr->generate(emitter, low_expr->type);
     emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::GE)]);
     emitter.emit(DUP);
     emitter.emit_jump(JF, result_label);
     emitter.emit(DROP);
     emitter.emit(DUP);
-    high_expr->generate(emitter);
+    high_expr->generate(emitter, high_expr->type);
     emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::LE)]);
     emitter.jump_target(result_label);
+}
+
+void ast::CaseStatement::TypeTestWhenCondition::generate(Emitter &emitter) const
+{
+    emitter.emit(DUP);
+    Bytecode::ExceptionInfo ei;
+    ei.start = emitter.current_ip();
+    target->generate_convert(emitter, exprtype);
+    emitter.emit(DROP);
+    emitter.emit(PUSHB, 1);
+    auto skip = emitter.create_label();
+    emitter.emit_jump(JUMP, skip);
+    ei.end = emitter.current_ip();
+    ei.excid = emitter.str("DynamicConversionException");
+    ei.handler = emitter.current_ip();
+    emitter.add_exception(ei);
+    emitter.emit(DROP);
+    emitter.emit(PUSHB, 0);
+    emitter.jump_target(skip);
 }
 
 void ast::BaseLoopStatement::generate_code(Emitter &emitter) const
@@ -2135,7 +2320,7 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
 
 void ast::RaiseStatement::generate_code(Emitter &emitter) const
 {
-    info->generate(emitter);
+    info->generate(emitter, info->type);
     unsigned int index = emitter.str(exception->name);
     emitter.emit(EXCEPT, index);
 }
@@ -2328,6 +2513,14 @@ void ast::TypeBytes::debuginfo(Emitter &, minijson::object_writer &out) const
     auto node = out.nested_object("type");
     node.write("display", "Bytes");
     node.write("representation", "string");
+    node.close();
+}
+
+void ast::TypeObject::debuginfo(Emitter &, minijson::object_writer &out) const
+{
+    auto node = out.nested_object("type");
+    node.write("display", "Object");
+    node.write("representation", "object");
     node.close();
 }
 

@@ -1,0 +1,189 @@
+VAR x: Object
+
+x := FALSE
+ASSERT x ISA Object
+ASSERT x ISA Boolean
+ASSERT NOT (x ISA Number)
+ASSERT NOT (x ISA String)
+ASSERT NOT (x ISA Bytes)
+ASSERT NOT (x ISA Array<Object>)
+ASSERT NOT (x ISA Array<Number>)
+ASSERT NOT (x ISA Dictionary<Object>)
+ASSERT NOT (x ISA Dictionary<Number>)
+
+x := 5
+ASSERT x ISA Object
+ASSERT NOT (x ISA Boolean)
+ASSERT x ISA Number
+ASSERT NOT (x ISA String)
+ASSERT NOT (x ISA Bytes)
+ASSERT NOT (x ISA Array<Object>)
+ASSERT NOT (x ISA Array<Number>)
+ASSERT NOT (x ISA Dictionary<Object>)
+ASSERT NOT (x ISA Dictionary<Number>)
+
+x := "foo"
+ASSERT x ISA Object
+ASSERT NOT (x ISA Boolean)
+ASSERT NOT (x ISA Number)
+ASSERT x ISA String
+ASSERT NOT (x ISA Bytes)
+ASSERT NOT (x ISA Array<Object>)
+ASSERT NOT (x ISA Array<Number>)
+ASSERT NOT (x ISA Dictionary<Object>)
+ASSERT NOT (x ISA Dictionary<Number>)
+
+x := HEXBYTES ""
+ASSERT x ISA Object
+ASSERT NOT (x ISA Boolean)
+ASSERT NOT (x ISA Number)
+ASSERT NOT (x ISA String)
+ASSERT x ISA Bytes
+ASSERT NOT (x ISA Array<Object>)
+ASSERT NOT (x ISA Array<Number>)
+ASSERT NOT (x ISA Dictionary<Object>)
+ASSERT NOT (x ISA Dictionary<Number>)
+
+x := [5, "foo"]
+ASSERT x ISA Object
+ASSERT NOT (x ISA Boolean)
+ASSERT NOT (x ISA Number)
+ASSERT NOT (x ISA String)
+ASSERT NOT (x ISA Bytes)
+ASSERT x ISA Array<Object>
+ASSERT NOT (x ISA Array<Number>)
+ASSERT NOT (x ISA Dictionary<Object>)
+ASSERT NOT (x ISA Dictionary<Number>)
+
+x := [5, 6]
+ASSERT x ISA Object
+ASSERT NOT (x ISA Boolean)
+ASSERT NOT (x ISA Number)
+ASSERT NOT (x ISA String)
+ASSERT NOT (x ISA Bytes)
+ASSERT x ISA Array<Object>
+ASSERT x ISA Array<Number>
+ASSERT NOT (x ISA Dictionary<Object>)
+ASSERT NOT (x ISA Dictionary<Number>)
+
+x := {"a": 5, "b": "foo"}
+ASSERT x ISA Object
+ASSERT NOT (x ISA Boolean)
+ASSERT NOT (x ISA Number)
+ASSERT NOT (x ISA String)
+ASSERT NOT (x ISA Bytes)
+ASSERT NOT (x ISA Array<Object>)
+ASSERT NOT (x ISA Array<Number>)
+ASSERT x ISA Dictionary<Object>
+ASSERT NOT (x ISA Dictionary<Number>)
+
+x := {"a": 5, "b": 6}
+ASSERT x ISA Object
+ASSERT NOT (x ISA Boolean)
+ASSERT NOT (x ISA Number)
+ASSERT NOT (x ISA String)
+ASSERT NOT (x ISA Bytes)
+ASSERT NOT (x ISA Array<Object>)
+ASSERT NOT (x ISA Array<Number>)
+ASSERT x ISA Dictionary<Object>
+ASSERT x ISA Dictionary<Number>
+
+ASSERT FALSE ISA Object
+ASSERT FALSE ISA Boolean
+ASSERT NOT (FALSE ISA Number)
+ASSERT NOT (FALSE ISA String)
+ASSERT NOT (FALSE ISA Bytes)
+ASSERT NOT (FALSE ISA Array<Object>)
+ASSERT NOT (FALSE ISA Array<Number>)
+ASSERT NOT (FALSE ISA Dictionary<Object>)
+ASSERT NOT (FALSE ISA Dictionary<Number>)
+
+ASSERT 5 ISA Object
+ASSERT NOT (5 ISA Boolean)
+ASSERT 5 ISA Number
+ASSERT NOT (5 ISA String)
+ASSERT NOT (5 ISA Bytes)
+ASSERT NOT (5 ISA Array<Object>)
+ASSERT NOT (5 ISA Array<Number>)
+ASSERT NOT (5 ISA Dictionary<Object>)
+ASSERT NOT (5 ISA Dictionary<Number>)
+
+ASSERT "foo" ISA Object
+ASSERT NOT ("foo" ISA Boolean)
+ASSERT NOT ("foo" ISA Number)
+ASSERT "foo" ISA String
+ASSERT NOT ("foo" ISA Bytes)
+ASSERT NOT ("foo" ISA Array<Object>)
+ASSERT NOT ("foo" ISA Array<Number>)
+ASSERT NOT ("foo" ISA Dictionary<Object>)
+ASSERT NOT ("foo" ISA Dictionary<Number>)
+
+ASSERT HEXBYTES "" ISA Object
+ASSERT NOT (HEXBYTES "" ISA Boolean)
+ASSERT NOT (HEXBYTES "" ISA Number)
+ASSERT NOT (HEXBYTES "" ISA String)
+ASSERT HEXBYTES "" ISA Bytes
+ASSERT NOT (HEXBYTES "" ISA Array<Object>)
+ASSERT NOT (HEXBYTES "" ISA Array<Number>)
+ASSERT NOT (HEXBYTES "" ISA Dictionary<Object>)
+ASSERT NOT (HEXBYTES "" ISA Dictionary<Number>)
+
+ASSERT [5, "foo"] ISA Object
+ASSERT NOT ([5, "foo"] ISA Boolean)
+ASSERT NOT ([5, "foo"] ISA Number)
+ASSERT NOT ([5, "foo"] ISA String)
+ASSERT NOT ([5, "foo"] ISA Bytes)
+ASSERT [5, "foo"] ISA Array<Object>
+ASSERT NOT ([5, "foo"] ISA Array<Number>)
+ASSERT NOT ([5, "foo"] ISA Dictionary<Object>)
+ASSERT NOT ([5, "foo"] ISA Dictionary<Number>)
+
+ASSERT [5, 6] ISA Object
+ASSERT NOT ([5, 6] ISA Boolean)
+ASSERT NOT ([5, 6] ISA Number)
+ASSERT NOT ([5, 6] ISA String)
+ASSERT NOT ([5, 6] ISA Bytes)
+ASSERT [5, 6] ISA Array<Object>
+ASSERT [5, 6] ISA Array<Number>
+ASSERT NOT ([5, 6] ISA Dictionary<Object>)
+ASSERT NOT ([5, 6] ISA Dictionary<Number>)
+
+ASSERT ["foo", "bar"] ISA Object
+ASSERT NOT (["foo", "bar"] ISA Boolean)
+ASSERT NOT (["foo", "bar"] ISA Number)
+ASSERT NOT (["foo", "bar"] ISA String)
+ASSERT NOT (["foo", "bar"] ISA Bytes)
+ASSERT ["foo", "bar"] ISA Array<Object>
+ASSERT NOT (["foo", "bar"] ISA Array<Number>)
+ASSERT NOT (["foo", "bar"] ISA Dictionary<Object>)
+ASSERT NOT (["foo", "bar"] ISA Dictionary<Number>)
+
+ASSERT {"a": 5, "b": "foo"} ISA Object
+ASSERT NOT ({"a": 5, "b": "foo"} ISA Boolean)
+ASSERT NOT ({"a": 5, "b": "foo"} ISA Number)
+ASSERT NOT ({"a": 5, "b": "foo"} ISA String)
+ASSERT NOT ({"a": 5, "b": "foo"} ISA Bytes)
+ASSERT NOT ({"a": 5, "b": "foo"} ISA Array<Object>)
+ASSERT NOT ({"a": 5, "b": "foo"} ISA Array<Number>)
+ASSERT {"a": 5, "b": "foo"} ISA Dictionary<Object>
+ASSERT NOT ({"a": 5, "b": "foo"} ISA Dictionary<Number>)
+
+ASSERT {"a": 5, "b": 6} ISA Object
+ASSERT NOT ({"a": 5, "b": 6} ISA Boolean)
+ASSERT NOT ({"a": 5, "b": 6} ISA Number)
+ASSERT NOT ({"a": 5, "b": 6} ISA String)
+ASSERT NOT ({"a": 5, "b": 6} ISA Bytes)
+ASSERT NOT ({"a": 5, "b": 6} ISA Array<Object>)
+ASSERT NOT ({"a": 5, "b": 6} ISA Array<Number>)
+ASSERT {"a": 5, "b": 6} ISA Dictionary<Object>
+ASSERT {"a": 5, "b": 6} ISA Dictionary<Number>
+
+ASSERT {"a": "foo", "b": "bar"} ISA Object
+ASSERT NOT ({"a": "foo", "b": "bar"} ISA Boolean)
+ASSERT NOT ({"a": "foo", "b": "bar"} ISA Number)
+ASSERT NOT ({"a": "foo", "b": "bar"} ISA String)
+ASSERT NOT ({"a": "foo", "b": "bar"} ISA Bytes)
+ASSERT NOT ({"a": "foo", "b": "bar"} ISA Array<Object>)
+ASSERT NOT ({"a": "foo", "b": "bar"} ISA Array<Number>)
+ASSERT {"a": "foo", "b": "bar"} ISA Dictionary<Object>
+ASSERT NOT ({"a": "foo", "b": "bar"} ISA Dictionary<Number>)

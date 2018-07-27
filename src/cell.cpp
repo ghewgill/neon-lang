@@ -11,6 +11,7 @@ Cell::Cell()
     number_value(),
     string_ptr(),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -24,6 +25,7 @@ Cell::Cell(const Cell &rhs)
     number_value(rhs.number_value),
     string_ptr(rhs.string_ptr),
     bytes_ptr(rhs.bytes_ptr),
+    object_ptr(rhs.object_ptr),
     array_ptr(rhs.array_ptr),
     dictionary_ptr(rhs.dictionary_ptr)
 {
@@ -37,6 +39,7 @@ Cell::Cell(Cell *value)
     number_value(),
     string_ptr(),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -50,6 +53,7 @@ Cell::Cell(bool value)
     number_value(),
     string_ptr(),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -63,6 +67,7 @@ Cell::Cell(Number value)
     number_value(value),
     string_ptr(),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -76,6 +81,7 @@ Cell::Cell(const utf8string &value)
     number_value(),
     string_ptr(std::make_shared<utf8string>(value)),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -89,6 +95,7 @@ Cell::Cell(const char *value)
     number_value(),
     string_ptr(std::make_shared<utf8string>(value)),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(),
     dictionary_ptr()
 {
@@ -102,6 +109,21 @@ Cell::Cell(const std::vector<unsigned char> &value)
     number_value(),
     string_ptr(),
     bytes_ptr(std::make_shared<std::vector<unsigned char>>(value)),
+    object_ptr(),
+    array_ptr(),
+    dictionary_ptr()
+{
+}
+
+Cell::Cell(std::shared_ptr<Object> value)
+  : gc(),
+    type(Type::Object),
+    address_value(nullptr),
+    boolean_value(false),
+    number_value(),
+    string_ptr(),
+    bytes_ptr(),
+    object_ptr(value),
     array_ptr(),
     dictionary_ptr()
 {
@@ -115,6 +137,7 @@ Cell::Cell(const std::vector<Cell> &value, bool alloced)
     number_value(),
     string_ptr(),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(std::make_shared<std::vector<Cell>>(value)),
     dictionary_ptr()
 {
@@ -128,6 +151,7 @@ Cell::Cell(const std::map<utf8string, Cell> &value)
     number_value(),
     string_ptr(),
     bytes_ptr(),
+    object_ptr(),
     array_ptr(),
     dictionary_ptr(std::make_shared<std::map<utf8string, Cell>>(value))
 {
@@ -144,6 +168,7 @@ Cell &Cell::operator=(const Cell &rhs)
     number_value = rhs.number_value;
     string_ptr = rhs.string_ptr;
     bytes_ptr = rhs.bytes_ptr;
+    object_ptr = rhs.object_ptr;
     array_ptr = rhs.array_ptr;
     dictionary_ptr = rhs.dictionary_ptr;
     return *this;
@@ -159,6 +184,7 @@ bool Cell::operator==(const Cell &rhs) const
         case Type::Number:       return number_is_equal(number_value, rhs.number_value);
         case Type::String:       return *string_ptr == *rhs.string_ptr;
         case Type::Bytes:        return *bytes_ptr == *rhs.bytes_ptr;
+        case Type::Object:       return object_ptr == rhs.object_ptr;
         case Type::Array:        return *array_ptr == *rhs.array_ptr;
         case Type::Dictionary:   return *dictionary_ptr == *rhs.dictionary_ptr;
     }
@@ -238,6 +264,15 @@ void Cell::set_bytes(const std::vector<unsigned char> &bytes)
     }
     assert(type == Type::Bytes);
     bytes_ptr = std::make_shared<std::vector<unsigned char>>(bytes);
+}
+
+std::shared_ptr<Object> Cell::object()
+{
+    if (type == Type::None) {
+        type = Type::Object;
+    }
+    assert(type == Type::Object);
+    return object_ptr;
 }
 
 const std::vector<Cell> &Cell::array()

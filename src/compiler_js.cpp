@@ -178,6 +178,18 @@ private:
     TypeBytes &operator=(const TypeBytes &);
 };
 
+class TypeObject: public Type {
+public:
+    TypeObject(const ast::TypeObject *to): Type(to), to(to) {}
+    const ast::TypeObject *to;
+    virtual void generate_default(Context &context) const override {
+        context.out << "nullptr";
+    }
+private:
+    TypeObject(const TypeObject &);
+    TypeObject &operator=(const TypeObject &);
+};
+
 class TypeFunction: public Type {
 public:
     TypeFunction(const ast::TypeFunction *tf): Type(tf), tf(tf), returntype(transform(tf->returntype)), paramtypes() {
@@ -470,6 +482,20 @@ public:
 private:
     ConstantNowhereExpression(const ConstantNowhereExpression &);
     ConstantNowhereExpression &operator=(const ConstantNowhereExpression &);
+};
+
+class TypeConversionExpression: public Expression {
+public:
+    TypeConversionExpression(const ast::TypeConversionExpression *tce): Expression(tce), tce(tce), expr(transform(tce->expr)) {}
+    const ast::TypeConversionExpression *tce;
+    const Expression *expr;
+
+    virtual void generate(Context &context) const override {
+        expr->generate(context);
+    }
+private:
+    TypeConversionExpression(const TypeConversionExpression &);
+    TypeConversionExpression &operator=(const TypeConversionExpression &);
 };
 
 class ArrayLiteralExpression: public Expression {
@@ -1581,16 +1607,31 @@ public:
         RangeWhenCondition(const RangeWhenCondition &);
         RangeWhenCondition &operator=(const RangeWhenCondition &);
     };
+    class TypeTestWhenCondition: public WhenCondition {
+    public:
+        TypeTestWhenCondition(Type *target): target(target) {}
+        const Type *target;
+        virtual void generate(Context &context, const Expression *value) const override {
+            value->generate(context);
+            // TODO
+        }
+    private:
+        TypeTestWhenCondition(const TypeTestWhenCondition &);
+        TypeTestWhenCondition &operator=(const TypeTestWhenCondition &);
+    };
     CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
         for (auto &c: cs->clauses) {
             std::vector<const WhenCondition *> whens;
             for (auto w: c.first) {
                 auto *cwc = dynamic_cast<const ast::CaseStatement::ComparisonWhenCondition *>(w);
                 auto *rwc = dynamic_cast<const ast::CaseStatement::RangeWhenCondition *>(w);
+                auto *twc = dynamic_cast<const ast::CaseStatement::TypeTestWhenCondition *>(w);
                 if (cwc != nullptr) {
                     whens.push_back(new ComparisonWhenCondition(cwc->comp, transform(cwc->expr)));
                 } else if (rwc != nullptr) {
                     whens.push_back(new RangeWhenCondition(transform(rwc->low_expr), transform(rwc->high_expr)));
+                } else if (twc != nullptr) {
+                    whens.push_back(new TypeTestWhenCondition(transform(twc->target)));
                 } else {
                     internal_error("CaseStatement");
                 }
@@ -1973,6 +2014,7 @@ public:
     virtual void visit(const ast::TypeNumber *node) { r = new TypeNumber(node); }
     virtual void visit(const ast::TypeString *node) { r = new TypeString(node); }
     virtual void visit(const ast::TypeBytes *node) { r = new TypeBytes(node); }
+    virtual void visit(const ast::TypeObject *node) { r = new TypeObject(node); }
     virtual void visit(const ast::TypeFunction *node) { r = new TypeFunction(node); }
     virtual void visit(const ast::TypeArray *node) { r = new TypeArray(node); }
     virtual void visit(const ast::TypeDictionary *node) { r = new TypeDictionary(node); }
@@ -2002,6 +2044,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
+    virtual void visit(const ast::TypeConversionExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
@@ -2013,6 +2056,7 @@ public:
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
@@ -2042,6 +2086,7 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::ObjectSubscriptExpression *) {}
     virtual void visit(const ast::RecordReferenceFieldExpression *) {}
     virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
@@ -2092,6 +2137,7 @@ public:
     virtual void visit(const ast::TypeNumber *) {}
     virtual void visit(const ast::TypeString *) {}
     virtual void visit(const ast::TypeBytes *) {}
+    virtual void visit(const ast::TypeObject *) {}
     virtual void visit(const ast::TypeFunction *) {}
     virtual void visit(const ast::TypeArray *) {}
     virtual void visit(const ast::TypeDictionary *) {}
@@ -2121,6 +2167,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
+    virtual void visit(const ast::TypeConversionExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
@@ -2132,6 +2179,7 @@ public:
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
@@ -2161,6 +2209,7 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::ObjectSubscriptExpression *) {}
     virtual void visit(const ast::RecordReferenceFieldExpression *) {}
     virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}
@@ -2211,6 +2260,7 @@ public:
     virtual void visit(const ast::TypeNumber *) {}
     virtual void visit(const ast::TypeString *) {}
     virtual void visit(const ast::TypeBytes *) {}
+    virtual void visit(const ast::TypeObject *) {}
     virtual void visit(const ast::TypeFunction *) {}
     virtual void visit(const ast::TypeArray *) {}
     virtual void visit(const ast::TypeDictionary *) {}
@@ -2240,6 +2290,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *node) { r = new ConstantEnumExpression(node); }
     virtual void visit(const ast::ConstantNilExpression *node) { r = new ConstantNilExpression(node); }
     virtual void visit(const ast::ConstantNowhereExpression *node) { r = new ConstantNowhereExpression(node); }
+    virtual void visit(const ast::TypeConversionExpression *node) { r = new TypeConversionExpression(node); }
     virtual void visit(const ast::ArrayLiteralExpression *node) { r = new ArrayLiteralExpression(node); }
     virtual void visit(const ast::DictionaryLiteralExpression *node) { r = new DictionaryLiteralExpression(node); }
     virtual void visit(const ast::RecordLiteralExpression *node) { r = new RecordLiteralExpression(node); }
@@ -2251,6 +2302,7 @@ public:
     virtual void visit(const ast::TryExpression *node) { r = new TryExpression(node); }
     virtual void visit(const ast::DisjunctionExpression *node) { r = new DisjunctionExpression(node); }
     virtual void visit(const ast::ConjunctionExpression *node) { r = new ConjunctionExpression(node); }
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *node) { r = new ArrayInExpression(node); }
     virtual void visit(const ast::DictionaryInExpression *node) { r =  new DictionaryInExpression(node); }
     virtual void visit(const ast::ChainedComparisonExpression *node) { r = new ChainedComparisonExpression(node); }
@@ -2280,6 +2332,7 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *node) { r = new BytesValueIndexExpression(node); }
+    virtual void visit(const ast::ObjectSubscriptExpression *) { /* TODO */ }
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
@@ -2330,6 +2383,7 @@ public:
     virtual void visit(const ast::TypeNumber *) {}
     virtual void visit(const ast::TypeString *) {}
     virtual void visit(const ast::TypeBytes *) {}
+    virtual void visit(const ast::TypeObject *) {}
     virtual void visit(const ast::TypeFunction *) {}
     virtual void visit(const ast::TypeArray *) {}
     virtual void visit(const ast::TypeDictionary *) {}
@@ -2359,6 +2413,7 @@ public:
     virtual void visit(const ast::ConstantEnumExpression *) {}
     virtual void visit(const ast::ConstantNilExpression *) {}
     virtual void visit(const ast::ConstantNowhereExpression *) {}
+    virtual void visit(const ast::TypeConversionExpression *) {}
     virtual void visit(const ast::ArrayLiteralExpression *) {}
     virtual void visit(const ast::DictionaryLiteralExpression *) {}
     virtual void visit(const ast::RecordLiteralExpression *) {}
@@ -2370,6 +2425,7 @@ public:
     virtual void visit(const ast::TryExpression *) {}
     virtual void visit(const ast::DisjunctionExpression *) {}
     virtual void visit(const ast::ConjunctionExpression *) {}
+    virtual void visit(const ast::TypeTestExpression *) {}
     virtual void visit(const ast::ArrayInExpression *) {}
     virtual void visit(const ast::DictionaryInExpression *) {}
     virtual void visit(const ast::ChainedComparisonExpression *) {}
@@ -2399,6 +2455,7 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *) {}
     virtual void visit(const ast::BytesReferenceIndexExpression *) {}
     virtual void visit(const ast::BytesValueIndexExpression *) {}
+    virtual void visit(const ast::ObjectSubscriptExpression *) {}
     virtual void visit(const ast::RecordReferenceFieldExpression *) {}
     virtual void visit(const ast::RecordValueFieldExpression *) {}
     virtual void visit(const ast::ArrayReferenceRangeExpression *) {}

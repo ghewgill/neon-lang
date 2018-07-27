@@ -146,6 +146,7 @@ TRAP = Keyword("TRAP")
 INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
+ISA = Keyword("ISA")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -510,6 +511,7 @@ class InterpolatedStringExpression:
                   else neon_strb(env, x) if isinstance(x, bool)
                   else neon_str(env, x) if isinstance(x, (int, float))
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in x)) if isinstance(x, list)
+                  else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, (str, unicode)) else str(v))) for k, v in x.items()))) if isinstance(x, dict)
                   else x.toString(env, x))
             r += neon_format(env, s, f) if f else s
         return r
@@ -626,10 +628,13 @@ class DotExpression:
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
+            return obj[self.field] # Support a.b syntax where a is an object.
         elif isinstance(obj, Program):
             return obj.env.get_value(self.field)
         elif hasattr(obj, self.field):
             return getattr(obj, self.field)
+        if self.field == "isNull":
+            return lambda env, self: obj is None
         assert False, (self.field, obj)
     def set(self, env, value):
         setattr(self.expr.eval(env), self.field, value)
@@ -766,6 +771,41 @@ class TryExpression:
                     break
             else:
                 raise
+
+class TypeTestExpression:
+    def __init__(self, left, target):
+        self.left = left
+        self.target = target
+    def eval(self, env):
+        v = self.left.eval(env)
+        if isinstance(self.target, TypeSimple):
+            if self.target.name == "Boolean":
+                return isinstance(v, bool)
+            if self.target.name == "Number":
+                return isinstance(v, (int, float)) and not isinstance(v, bool)
+            if self.target.name == "String":
+                return isinstance(v, (str, unicode)) and not isinstance(v, bytes)
+            if self.target.name == "Bytes":
+                return isinstance(v, bytes)
+            if self.target.name == "Object":
+                return True
+            assert False, "add type ISA support for target {}".format(self.target.name)
+        if isinstance(self.target, TypeParameterised):
+            if self.target.kind is ARRAY:
+                if not isinstance(v, list):
+                    return False
+                if self.target.elementtype.name == "Number":
+                    return all(isinstance(x, int) and not isinstance(x, bool) for x in v)
+                if self.target.elementtype.name == "Object":
+                    return True
+            if self.target.kind is DICTIONARY:
+                if not isinstance(v, dict):
+                    return False
+                if self.target.elementtype.name == "Number":
+                    return all(isinstance(x, int) and not isinstance(x, bool) for x in v.values())
+                if self.target.elementtype.name == "Object":
+                    return True
+        assert False, "add type ISA support for target {}".format(self.target)
 
 class MembershipExpression:
     def __init__(self, left, right):
@@ -931,6 +971,22 @@ class CaseStatement:
             self.high = high
         def check(self, env, x):
             return self.low.eval(env) <= x <= self.high.eval(env)
+    class TypeTestWhenCondition:
+        def __init__(self, target):
+            self.target = target
+        def check(self, env, x):
+            if isinstance(self.target, TypeSimple):
+                if self.target.name == "Boolean":
+                    return isinstance(x, bool)
+                if self.target.name == "Number":
+                    return isinstance(x, (int, float))
+                if self.target.name == "String":
+                    return isinstance(x, (str, unicode))
+            if isinstance(self.target, TypeParameterised):
+                if self.target.elementtype.name == "Number":
+                    return all(isinstance(t, int) for t in x)
+                if self.target.elementtype.name == "Object":
+                    return True
     def __init__(self, expr, clauses):
         self.expr = expr
         self.clauses = clauses
@@ -1497,7 +1553,7 @@ class Parser:
             assert isinstance(self.tokens[self.i], String)
             assert self.tokens[self.i].value == ""
             self.i += 1
-            return StringLiteralExpression("") # FIXME: hack to just return something
+            return StringLiteralExpression(bytes("")) # FIXME: hack to just return something
         elif t is PLUS:
             self.i += 1
             atom = self.parse_atom()
@@ -1675,14 +1731,23 @@ class Parser:
         else:
             return ChainedComparisonExpression(comps)
 
-    def parse_membership(self):
+    def parse_typetest(self):
         left = self.parse_comparison()
+        if self.tokens[self.i] is ISA:
+            self.i += 1
+            target = self.parse_type()
+            return TypeTestExpression(left, target)
+        else:
+            return left
+
+    def parse_membership(self):
+        left = self.parse_typetest()
         if self.tokens[self.i] is IN or (self.tokens[self.i] is NOT and self.tokens[self.i+1] is IN):
             notin = self.tokens[self.i] is NOT
             if notin:
                 self.i += 1
             self.i += 1
-            right = self.parse_comparison()
+            right = self.parse_typetest()
             r = MembershipExpression(left, right)
             if notin:
                 r = LogicalNotExpression(r)
@@ -1775,6 +1840,11 @@ class Parser:
                     self.i += 1
                     when = self.parse_expression()
                     conditions.append(CaseStatement.ComparisonWhenCondition(op, when))
+                elif t is ISA:
+                    op = t
+                    self.i += 1
+                    when = self.parse_type()
+                    conditions.append(CaseStatement.TypeTestWhenCondition(when))
                 else:
                     when = self.parse_expression()
                     if self.tokens[self.i] is TO:
@@ -2239,6 +2309,10 @@ class ClassBytes(Class):
                 return self.a.decode("utf-8")
         return Bytes()
 
+class ClassObject(Class):
+    def default(self, env):
+        return None
+
 class ClassArray(Class):
     def __init__(self, elementtype):
         self.elementtype = elementtype
@@ -2392,6 +2466,7 @@ def run(program):
     program.env.declare("Number", Class(), ClassNumber())
     program.env.declare("String", Class(), ClassString())
     program.env.declare("Bytes", Class(), ClassBytes())
+    program.env.declare("Object", Class(), ClassObject())
     program.env.declare("chr", None, neon_chr)
     program.env.declare("concat", None, neon_concat)
     program.env.declare("format", None, neon_format)
@@ -2649,7 +2724,6 @@ ExcludeTests = [
     "t/tail-call.neon",         # Feature not required
     "t/time-stopwatch.neon",    # Module not required
     "t/time-test.neon",         # Module not required
-    "t/variant-test.neon",      # Module not required
     "t/win32-test.neon",        # Module not required
     "lib/compress/t/compress-test.neon",        # Module not required
     "lib/extsample/t/extsample-test.neon",      # Extension functions not required

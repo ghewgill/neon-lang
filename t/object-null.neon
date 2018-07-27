@@ -1,0 +1,4 @@
+VAR x: Object := NIL
+ASSERT x.isNull()
+x := 5
+ASSERT NOT x.isNull()

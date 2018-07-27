@@ -8,6 +8,19 @@
 #include "number.h"
 #include "utf8string.h"
 
+class Object {
+public:
+    virtual ~Object() {}
+    virtual bool getBoolean(bool &) const { return false; }
+    virtual bool getNumber(Number &) const { return false; }
+    virtual bool getString(std::string &) const { return false; }
+    virtual bool getBytes(std::vector<unsigned char> &) const { return false; }
+    virtual bool getArray(std::vector<std::shared_ptr<Object>> &) const { return false; }
+    virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &) const { return false; }
+    virtual bool subscript(std::shared_ptr<Object>, std::shared_ptr<Object> &) const { return false; }
+    virtual std::string toString() const = 0;
+};
+
 // TODO: See if we can use std::variant (C++17) for this.
 
 class Cell {
@@ -20,6 +33,7 @@ public:
     explicit Cell(const utf8string &value);
     explicit Cell(const char *value);
     explicit Cell(const std::vector<unsigned char> &value);
+    explicit Cell(std::shared_ptr<Object> value);
     explicit Cell(const std::vector<Cell> &value, bool alloced = false);
     explicit Cell(const std::map<utf8string, Cell> &value);
     Cell &operator=(const Cell &rhs);
@@ -32,6 +46,7 @@ public:
         Number,
         String,
         Bytes,
+        Object,
         Array,
         Dictionary
     };
@@ -44,6 +59,7 @@ public:
     utf8string &string_for_write();
     const std::vector<unsigned char> &bytes();
     void set_bytes(const std::vector<unsigned char> &bytes);
+    std::shared_ptr<Object> object();
     const std::vector<Cell> &array();
     std::vector<Cell> &array_for_write();
     Cell &array_index_for_read(size_t i);
@@ -69,6 +85,7 @@ private:
     Number number_value;
     std::shared_ptr<utf8string> string_ptr;
     std::shared_ptr<std::vector<unsigned char>> bytes_ptr;
+    std::shared_ptr<Object> object_ptr;
     std::shared_ptr<std::vector<Cell>> array_ptr;
     std::shared_ptr<std::map<utf8string, Cell>> dictionary_ptr;
 };

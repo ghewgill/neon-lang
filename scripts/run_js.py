@@ -83,6 +83,10 @@ ExcludeTests = [
     "t/multiarray-test.neon",       # module multiarray
     "t/net-test.neon",              # module net
     "t/number-ceil.neon",           # number formatting
+    "t/object.neon",                # object
+    "t/object-isa.neon",            # object
+    "t/object-isa-case.neon",       # object
+    "t/object-null.neon",           # object
     "t/os-test.neon",               # module os
     "t/parameter-out-array.neon",   # out parameters
     "t/parameter-out-string.neon",  # StringReferenceIndexExpression
@@ -121,7 +125,6 @@ ExcludeTests = [
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-try.neon",     # js syntax error
     "t/value-index.neon",           # DictionaryValueIndexExpression
-    "t/variant-test.neon",          # bytes
     "t/while-valid.neon",           # unknown
     "t/win32-test.neon",            # module win32
     "lib/compress/t/compress-test.neon",        # module compress

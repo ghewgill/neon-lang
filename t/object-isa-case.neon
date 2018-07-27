@@ -1,0 +1,17 @@
+VAR x: Object := 5
+CASE x
+    WHEN ISA Number DO
+        print("number")
+    WHEN ISA String DO
+        print("string")
+END CASE
+%= number
+
+x := "test"
+CASE x
+    WHEN ISA Number DO
+        print("number")
+    WHEN ISA String DO
+        print("string")
+END CASE
+%= string

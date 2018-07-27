@@ -42,6 +42,7 @@ private:
     void disasm_LOADA();
     void disasm_LOADD();
     void disasm_LOADP();
+    void disasm_LOADJ();
     void disasm_STOREB();
     void disasm_STOREN();
     void disasm_STORES();
@@ -49,6 +50,7 @@ private:
     void disasm_STOREA();
     void disasm_STORED();
     void disasm_STOREP();
+    void disasm_STOREJ();
     void disasm_NEGN();
     void disasm_ADDN();
     void disasm_SUBN();
@@ -122,6 +124,8 @@ private:
     void disasm_PUSHM();
     void disasm_CALLV();
     void disasm_PUSHCI();
+    void disasm_MAPA();
+    void disasm_MAPD();
 };
 
 void InstructionDisassembler::disasm_ENTER()
@@ -252,6 +256,12 @@ void InstructionDisassembler::disasm_LOADP()
     index++;
 }
 
+void InstructionDisassembler::disasm_LOADJ()
+{
+    out << "LOADJ";
+    index++;
+}
+
 void InstructionDisassembler::disasm_STOREB()
 {
     out << "STOREB";
@@ -291,6 +301,12 @@ void InstructionDisassembler::disasm_STORED()
 void InstructionDisassembler::disasm_STOREP()
 {
     out << "STOREP";
+    index++;
+}
+
+void InstructionDisassembler::disasm_STOREJ()
+{
+    out << "STOREJ";
     index++;
 }
 
@@ -754,6 +770,20 @@ void InstructionDisassembler::disasm_PUSHCI()
     out << "PUSHCI \"" << obj.strtable[val] << "\"";
 }
 
+void InstructionDisassembler::disasm_MAPA()
+{
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
+    out << "MAPA " << addr;
+}
+
+void InstructionDisassembler::disasm_MAPD()
+{
+    index++;
+    uint32_t addr = Bytecode::get_vint(obj.code, index);
+    out << "MAPD " << addr;
+}
+
 void InstructionDisassembler::disassemble()
 {
     switch (static_cast<Opcode>(obj.code[index])) {
@@ -776,6 +806,7 @@ void InstructionDisassembler::disassemble()
         case LOADA:   disasm_LOADA(); break;
         case LOADD:   disasm_LOADD(); break;
         case LOADP:   disasm_LOADP(); break;
+        case LOADJ:   disasm_LOADJ(); break;
         case STOREB:  disasm_STOREB(); break;
         case STOREN:  disasm_STOREN(); break;
         case STORES:  disasm_STORES(); break;
@@ -783,6 +814,7 @@ void InstructionDisassembler::disassemble()
         case STOREA:  disasm_STOREA(); break;
         case STORED:  disasm_STORED(); break;
         case STOREP:  disasm_STOREP(); break;
+        case STOREJ:  disasm_STOREJ(); break;
         case NEGN:    disasm_NEGN(); break;
         case ADDN:    disasm_ADDN(); break;
         case SUBN:    disasm_SUBN(); break;
@@ -856,6 +888,8 @@ void InstructionDisassembler::disassemble()
         case PUSHM:   disasm_PUSHM(); break;
         case CALLV:   disasm_CALLV(); break;
         case PUSHCI:  disasm_PUSHCI(); break;
+        case MAPA:    disasm_MAPA(); break;
+        case MAPD:    disasm_MAPD(); break;
     }
 }
 

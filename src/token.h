@@ -116,6 +116,7 @@ enum TokenType {
     INTERFACE,
     IMPLEMENTS,
     UNUSED,
+    ISA,
     UNKNOWN,
     MAX_TOKEN
 };

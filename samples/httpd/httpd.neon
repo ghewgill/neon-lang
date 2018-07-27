@@ -8,7 +8,6 @@ IMPORT file
 IMPORT net
 IMPORT regex
 IMPORT string
-IMPORT variant
 
 FUNCTION toBytes(s: String): Bytes
     RETURN s.toBytes()
@@ -21,12 +20,12 @@ TYPE Response IS RECORD
     content: Bytes
 END RECORD
 
-TYPE RequestHandler IS FUNCTION(path: String, params: Array<variant.Variant>): Response
+TYPE RequestHandler IS FUNCTION(path: String, params: Array<Object>): Response
 
 TYPE Handler IS RECORD
     path: String
     callback: RequestHandler
-    params: Array<variant.Variant>
+    params: Array<Object>
 END RECORD
 
 TYPE Client IS RECORD
@@ -41,7 +40,7 @@ TYPE HttpServer IS RECORD
     handlers: Array<Handler>
 END RECORD
 
-FUNCTION HttpServer.addHandler(INOUT self: HttpServer, path: String, callback: RequestHandler, params: Array<variant.Variant>)
+FUNCTION HttpServer.addHandler(INOUT self: HttpServer, path: String, callback: RequestHandler, params: Array<Object>)
     self.handlers.append(Handler(path WITH path, callback WITH callback, params WITH params))
 END FUNCTION
 
@@ -114,9 +113,9 @@ FUNCTION HttpServer.handle_request(INOUT self: HttpServer, INOUT client: Client)
     client.socket.send(response.content)
 END FUNCTION
 
-FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
+FUNCTION path_handler(path: String, params: Array<Object>): Response
     VAR r: Response := Response()
-    LET local_path: String := params[0].getString() & path
+    LET local_path: String := params[0] & path
     IF file.isDirectory(local_path) THEN
         IF path[LAST] <> "/" THEN
             r.code := 302
@@ -152,5 +151,5 @@ FUNCTION path_handler(path: String, params: Array<variant.Variant>): Response
 END FUNCTION
 
 VAR server: HttpServer := HttpServer(port WITH 8080)
-server.addHandler("/", path_handler, [variant.makeString(".")])
+server.addHandler("/", path_handler, ["."])
 server.serve()

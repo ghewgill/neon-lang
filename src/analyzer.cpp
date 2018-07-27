@@ -75,6 +75,7 @@ public:
     const ast::Expression *analyze(const pt::ConcatenationExpression *expr);
     const ast::Expression *analyze(const pt::ComparisonExpression *expr);
     const ast::Expression *analyze(const pt::ChainedComparisonExpression *expr);
+    const ast::Expression *analyze(const pt::TypeTestExpression *expr);
     const ast::Expression *analyze(const pt::MembershipExpression *expr);
     const ast::Expression *analyze(const pt::ConjunctionExpression *expr);
     const ast::Expression *analyze(const pt::DisjunctionExpression *expr);
@@ -185,6 +186,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TypeTestExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
@@ -281,6 +283,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ComparisonExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ChainedComparisonExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::TypeTestExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::MembershipExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ConjunctionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DisjunctionExpression *p) override { expr = a->analyze(p); }
@@ -376,6 +379,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TypeTestExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
@@ -471,6 +475,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ComparisonExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ChainedComparisonExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::TypeTestExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
@@ -589,13 +594,13 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             }
             values[n.second] = new ConstantStringExpression(n.first);
         }
-        f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values), new VariableExpression(fp), false)));
+        f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp), false)));
         methods["toString"] = f;
     }
 }
 
 ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : ReferenceExpression(ref->type, ref->is_readonly),
+  : ReferenceExpression(TYPE_STRING, ref->is_readonly),
     ref(ref),
     first(first),
     first_from_end(first_from_end),
@@ -625,7 +630,7 @@ ast::StringReferenceIndexExpression::StringReferenceIndexExpression(const Refere
 }
 
 ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : Expression(str->type, str->is_readonly),
+  : Expression(TYPE_STRING, str->is_readonly),
     str(str),
     first(first),
     first_from_end(first_from_end),
@@ -645,7 +650,7 @@ ast::StringValueIndexExpression::StringValueIndexExpression(const Expression *st
 }
 
 ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const ReferenceExpression *ref, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : ReferenceExpression(ref->type, ref->is_readonly),
+  : ReferenceExpression(TYPE_BYTES, ref->is_readonly),
     ref(ref),
     first(first),
     first_from_end(first_from_end),
@@ -675,7 +680,7 @@ ast::BytesReferenceIndexExpression::BytesReferenceIndexExpression(const Referenc
 }
 
 ast::BytesValueIndexExpression::BytesValueIndexExpression(const Expression *str, const Expression *first, bool first_from_end, const Expression *last, bool last_from_end, Analyzer *analyzer)
-  : Expression(str->type, str->is_readonly),
+  : Expression(TYPE_BYTES, str->is_readonly),
     str(str),
     first(first),
     first_from_end(first_from_end),
@@ -1165,17 +1170,19 @@ const ast::Expression *Analyzer::analyze(const pt::BytesLiteralExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
 {
     std::vector<const ast::Expression *> elements;
+    std::vector<Token> elementtokens;
     const ast::Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
         const ast::Expression *element = analyze(x.get());
         if (elementtype == nullptr) {
             elementtype = element->type;
         } else if (not element->type->is_assignment_compatible(elementtype)) {
-            error(3079, x->token, "type mismatch");
+            elementtype = ast::TYPE_OBJECT;
         }
         elements.push_back(element);
+        elementtokens.push_back(x->token);
     }
-    return new ast::ArrayLiteralExpression(elementtype, elements);
+    return new ast::ArrayLiteralExpression(elementtype, elements, elementtokens);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *expr)
@@ -1204,6 +1211,7 @@ const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *
 {
     std::vector<std::pair<std::string, const ast::Expression *>> elements;
     std::map<std::string, Token> keys;
+    std::vector<Token> elementtokens;
     const ast::Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
         const ast::Expression *k = analyze(x.first.get());
@@ -1220,11 +1228,12 @@ const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *
         if (elementtype == nullptr) {
             elementtype = element->type;
         } else if (not element->type->is_assignment_compatible(elementtype)) {
-            error(3072, x.second->token, "type mismatch");
+            elementtype = ast::TYPE_OBJECT;
         }
         elements.push_back(std::make_pair(key, element));
+        elementtokens.push_back(x.second->token);
     }
-    return new ast::DictionaryLiteralExpression(elementtype, elements);
+    return new ast::DictionaryLiteralExpression(elementtype, elements, elementtokens);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::NilLiteralExpression *)
@@ -1302,6 +1311,9 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
         }
     }
     const ast::Expression *base = analyze(expr->base.get());
+    if (base->type == ast::TYPE_OBJECT) {
+        return new ast::ObjectSubscriptExpression(base, new ast::ConstantStringExpression(expr->name.text));
+    }
     const ast::TypeRecord *recordtype = dynamic_cast<const ast::TypeRecord *>(base->type);
     if (recordtype == nullptr) {
         error(3046, expr->base->token, "not a record");
@@ -1433,6 +1445,11 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
         } else {
             return new ast::StringValueIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
         }
+    } else if (type == ast::TYPE_OBJECT) {
+        if (not ast::TYPE_OBJECT->is_assignment_compatible(index->type)) {
+            error(3262, expr->index->token, "index must be an object");
+        }
+        return new ast::ObjectSubscriptExpression(base, index);
     } else {
         error2(3044, expr->token, "not an array or dictionary", type->declaration, "declaration here");
     }
@@ -1453,7 +1470,7 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
             }
         }
         const ast::Expression *str;
-        if (ast::TYPE_STRING->is_assignment_compatible(e->type)) {
+        if (ast::TYPE_STRING->is_assignment_compatible(e->type) && e->type != ast::TYPE_OBJECT) {
             str = e;
         } else {
             auto toString = e->type->methods.find("toString");
@@ -1850,6 +1867,9 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
     if (not left->type->is_assignment_compatible(right->type)) {
         error(3030, token, "type mismatch");
     }
+    if (left->type == ast::TYPE_OBJECT && right->type == ast::TYPE_OBJECT) {
+        error(3261, token, "cannot compare two values of type Object");
+    }
     if (ast::TYPE_BOOLEAN->is_assignment_compatible(left->type) && ast::TYPE_BOOLEAN->is_assignment_compatible(right->type)) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3031, token, "comparison not available for Boolean");
@@ -1861,29 +1881,29 @@ static ast::ComparisonExpression *analyze_comparison(const Token &token, const a
         return new ast::StringComparisonExpression(left, right, comp);
     } else if (ast::TYPE_BYTES->is_assignment_compatible(left->type) && ast::TYPE_BYTES->is_assignment_compatible(right->type)) {
         return new ast::BytesComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3032, token, "comparison not available for Array");
         }
         return new ast::ArrayComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr && dynamic_cast<const ast::TypeDictionary *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3033, token, "comparison not available for Dictionary");
         }
         return new ast::DictionaryComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr && dynamic_cast<const ast::TypeRecord *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3034, token, "comparison not available for RECORD");
         }
         return new ast::RecordComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr && dynamic_cast<const ast::TypeEnum *>(right->type) != nullptr) {
         return new ast::EnumComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr && dynamic_cast<const ast::TypePointer *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3100, token, "comparison not available for POINTER");
         }
         return new ast::PointerComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr) {
+    } else if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr && dynamic_cast<const ast::TypeFunctionPointer *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3180, token, "comparison not available for FUNCTION");
         }
@@ -1913,6 +1933,23 @@ const ast::Expression *Analyzer::analyze(const pt::ChainedComparisonExpression *
         token = x->right->token;
     }
     return new ast::ChainedComparisonExpression(comps);
+}
+
+const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
+{
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Type *target = analyze(expr->target.get());
+    if (not target->is_assignment_compatible_no_error(left->type)) {
+        return new ast::ConstantBooleanExpression(false);
+    }
+    if (left->type != ast::TYPE_OBJECT) {
+        // TODO: Many kinds of type tests can be statically determined here.
+        // However, this requires a bit more than just the simple test commented out here.
+        //return new ast::ConstantBooleanExpression(target->is_assignment_compatible(left->type));
+        // So for now, do it dynamically at runtime.
+        left = new ast::TypeConversionExpression(ast::TYPE_OBJECT, left);
+    }
+    return new ast::TypeTestExpression(left, target);
 }
 
 const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
@@ -2100,6 +2137,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
         case 'N': i++; return ast::TYPE_NUMBER;
         case 'S': i++; return ast::TYPE_STRING;
         case 'Y': i++; return ast::TYPE_BYTES;
+        case 'O': i++; return ast::TYPE_OBJECT;
         case 'A': {
             i++;
             if (descriptor.at(i) != '<') {
@@ -3262,6 +3300,7 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
         for (auto &c: x.first) {
             const pt::CaseStatement::ComparisonWhenCondition *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(c.get());
             const pt::CaseStatement::RangeWhenCondition *rwc = dynamic_cast<const pt::CaseStatement::RangeWhenCondition *>(c.get());
+            const pt::CaseStatement::TypeTestWhenCondition *twc = dynamic_cast<const pt::CaseStatement::TypeTestWhenCondition *>(c.get());
             if (cwc != nullptr) {
                 const ast::Expression *when = analyze(cwc->expr.get());
                 if (not when->type->is_assignment_compatible(expr->type)) {
@@ -3285,8 +3324,7 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                     }
                 }
                 conditions.push_back(cond);
-            }
-            if (rwc != nullptr) {
+            } else if (rwc != nullptr) {
                 const ast::Expression *when = analyze(rwc->low_expr.get());
                 if (not when->type->is_assignment_compatible(expr->type)) {
                     error(3053, rwc->low_expr->token, "type mismatch");
@@ -3326,6 +3364,15 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                     }
                 }
                 conditions.push_back(cond);
+            } else if (twc != nullptr) {
+                if (expr->type != ast::TYPE_OBJECT) {
+                    error2(3263, statement->expr->token, "WHEN ISA requires Object type", twc->token, "used here");
+                }
+                const ast::Type *target = analyze(twc->target.get());
+                const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, expr->type, target);
+                conditions.push_back(cond);
+            } else {
+                internal_error("unknown case when condition");
             }
         }
         scope.push(new ast::Scope(scope.top(), frame.top()));
@@ -3475,6 +3522,16 @@ bool ast::CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond)
         }
     } else {
         internal_error("RangeWhenCondition");
+    }
+}
+
+bool ast::CaseStatement::TypeTestWhenCondition::overlaps(const WhenCondition *cond) const
+{
+    const TypeTestWhenCondition *twhen = dynamic_cast<const TypeTestWhenCondition *>(cond);
+    if (twhen != nullptr) {
+        return target == twhen->target;
+    } else {
+        internal_error("TypeTestWhenCondition");
     }
 }
 
@@ -3908,7 +3965,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             {
                 new ast::VariableExpression(dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"))),
                 new ast::ConstantStringExpression(query->query),
-                new ast::DictionaryLiteralExpression(ast::TYPE_STRING, binding_vars)
+                new ast::DictionaryLiteralExpression(ast::TYPE_STRING, binding_vars, {})
             },
             statements
         );
@@ -4296,10 +4353,16 @@ const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     const ast::Expression *expr = analyze(statement->expr.get());
     if (functiontypes.empty()) {
         error(3093, statement->token, "RETURN not allowed outside function");
-    } else if (functiontypes.top().second->returntype == ast::TYPE_NOTHING) {
+    }
+    const ast::Type *returntype = functiontypes.top().second->returntype;
+    if (returntype == ast::TYPE_NOTHING) {
         error(3094, statement->token, "function does not return a value");
-    } else if (not functiontypes.top().second->returntype->is_assignment_compatible(expr->type)) {
+    }
+    if (not returntype->is_assignment_compatible(expr->type)) {
         error(3095, statement->expr->token, "type mismatch in RETURN");
+    }
+    if (returntype != expr->type) {
+        return new ast::ReturnStatement(statement->token.line, new ast::TypeConversionExpression(functiontypes.top().second->returntype, expr));
     }
     return new ast::ReturnStatement(statement->token.line, expr);
 }
@@ -4669,6 +4732,7 @@ public:
     virtual void visit(const pt::ConcatenationExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ComparisonExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ChainedComparisonExpression *node) { node->left->accept(this); for (auto &x: node->comps) x->right->accept(this); }
+    virtual void visit(const pt::TypeTestExpression *node) { node->left->accept(this); }
     virtual void visit(const pt::MembershipExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ConjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::DisjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
@@ -4756,11 +4820,16 @@ public:
             for (auto &w: c.first) {
                 auto *cwc = dynamic_cast<const pt::CaseStatement::ComparisonWhenCondition *>(w.get());
                 auto *rwc = dynamic_cast<const pt::CaseStatement::RangeWhenCondition *>(w.get());
+                auto *twc = dynamic_cast<const pt::CaseStatement::TypeTestWhenCondition *>(w.get());
                 if (cwc != nullptr) {
                     cwc->expr->accept(this);
                 } else if (rwc != nullptr) {
                     rwc->low_expr->accept(this);
                     rwc->high_expr->accept(this);
+                } else if (twc != nullptr) {
+                     // no action
+                } else {
+                    internal_error("unknown case when condition");
                 }
             }
             enter(true);

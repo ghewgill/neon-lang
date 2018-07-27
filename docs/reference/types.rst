@@ -2,7 +2,9 @@ Types
 =====
 
 Neon is statically and strongly typed.
-Every value has a definite type, and there are no automatic conversions between types.
+Every value has a definite type, and there are no automatic conversions of values between types.
+
+There is a dynamic ``Object`` type which can hold values of any of the concrete types.
 
 Boolean
 -------
@@ -178,3 +180,24 @@ Example::
         p->name := "Widget"
         p->size := 5
     END IF
+
+Object
+------
+
+The ``Object`` type can hold values of any of the concrete types.
+When used, ``Object`` values are converted back to the required concrete type when used.
+If the value is of the wrong type (eg. a ``Number`` where a ``String`` is required), then a ``DynamicConversionException`` is raised.
+
+Example::
+
+    VAR x: Object
+
+    x := "hello"
+    print(x)
+
+    x := 5
+    TRY
+        print(x)
+    TRAP DynamicConversionException DO
+        print("Exception raised")
+    END TRY

@@ -1,6 +1,4 @@
 IMPORT struct
-IMPORT variant
-
 VAR s: struct.Struct := struct.make([
     struct.field("field1", struct.Type.int32BE, 4),
     struct.field("field2", struct.Type.string, 20),
@@ -10,8 +8,8 @@ print("\(s.sizeof())")
 %= 24
 
 VAR b: Bytes := s.pack({
-    "field1": variant.makeNumber(500),
-    "field2": variant.makeString("hello"),
+    "field1": 500,
+    "field2": "hello",
 })
 VAR a: Array<Number> := b.toArray()
 print("\(a.size())")
@@ -37,13 +35,13 @@ print(str(a[8]))
 print(str(a[9]))
 %= 0
 
-LET v: Dictionary<variant.Variant> := s.unpack(b)
-print(str(v["field1"].getNumber()))
+LET v: Dictionary<Object> := s.unpack(b)
+print(str(v["field1"]))
 %= 500
-print(v["field2"].getString())
+print(v["field2"])
 %= hello
 
-b := s.pack({"field2": variant.makeString("hi")})
+b := s.pack({"field2": "hi"})
 a := b.toArray()
 print("\(a.size())")
 %= 24

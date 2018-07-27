@@ -85,6 +85,7 @@ class Executor {
                 case LOADA: doLOADA(); break;
                 case LOADD: doLOADD(); break;
                 case LOADP: doLOADP(); break;
+                //case LOADJ
                 case STOREB: doSTOREB(); break;
                 case STOREN: doSTOREN(); break;
                 case STORES: doSTORES(); break;
@@ -92,6 +93,7 @@ class Executor {
                 case STOREA: doSTOREA(); break;
                 case STORED: doSTORED(); break;
                 case STOREP: doSTOREP(); break;
+                //case STOREJ
                 case NEGN: doNEGN(); break;
                 case ADDN: doADDN(); break;
                 case SUBN: doSUBN(); break;
@@ -915,6 +917,7 @@ class Executor {
         LOADA,
         LOADD,
         LOADP,
+        LOADJ,
         STOREB,
         STOREN,
         STORES,
@@ -922,6 +925,7 @@ class Executor {
         STOREA,
         STORED,
         STOREP,
+        STOREJ,
         NEGN,
         ADDN,
         SUBN,

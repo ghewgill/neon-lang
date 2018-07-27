@@ -1,0 +1,3 @@
+VAR a, b: Object
+ASSERT a = b
+         %<

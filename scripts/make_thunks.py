@@ -20,14 +20,17 @@ AstFromNeon = {
     "Bytes": ("TYPE_BYTES", VALUE),
     "INOUT Bytes": ("TYPE_BYTES", REF),
     "OUT Bytes": ("TYPE_BYTES", OUT),
+    "Object": ("TYPE_OBJECT", VALUE),
     "Array": ("TYPE_ARRAY", VALUE),
     "INOUT Array": ("TYPE_ARRAY", REF),
     "Array<Number>": ("TYPE_ARRAY_NUMBER", VALUE),
     "Array<String>": ("TYPE_ARRAY_STRING", VALUE),
     "INOUT Array<String>": ("TYPE_ARRAY_STRING", REF),
     "OUT Array<String>": ("TYPE_ARRAY_STRING", OUT),
+    "Array<Object>": ("TYPE_ARRAY_OBJECT", VALUE),
     "Dictionary": ("TYPE_DICTIONARY", VALUE),
     "Dictionary<String>": ("TYPE_DICTIONARY_STRING", VALUE),
+    "Dictionary<Object>": ("TYPE_DICTIONARY_OBJECT", VALUE),
 }
 
 CppFromAstParam = {
@@ -48,14 +51,17 @@ CppFromAstParam = {
     ("TYPE_BYTES", VALUE): "const std::vector<unsigned char> &",
     ("TYPE_BYTES", REF): "std::vector<unsigned char> *",
     ("TYPE_BYTES", OUT): "std::vector<unsigned char>",
+    ("TYPE_OBJECT", VALUE): "std::shared_ptr<Object>",
     ("TYPE_ARRAY", VALUE): "Cell",
     ("TYPE_ARRAY", REF): "Cell *",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", OUT): "std::vector<utf8string>",
+    ("TYPE_ARRAY_OBJECT", VALUE): "std::vector<std::shared_ptr<Object>>",
     ("TYPE_DICTIONARY", VALUE): "Cell",
     ("TYPE_DICTIONARY_STRING", VALUE): "std::map<utf8string, utf8string>",
+    ("TYPE_DICTIONARY_OBJECT", VALUE): "std::map<utf8string, std::shared_ptr<Object>>",
 }
 
 CppFromAstReturn = {
@@ -72,10 +78,13 @@ CppFromAstReturn = {
     ("TYPE_STRING", REF): "std::string *",
     ("TYPE_BYTES", VALUE): "std::vector<unsigned char>",
     ("TYPE_BYTES", REF): "std::vector<unsigned char> *",
+    ("TYPE_OBJECT", VALUE): "std::shared_ptr<Object>",
     ("TYPE_ARRAY", VALUE): "Cell",
     ("TYPE_ARRAY_NUMBER", VALUE): "std::vector<Number>",
     ("TYPE_ARRAY_STRING", VALUE): "std::vector<utf8string>",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string> *",
+    ("TYPE_ARRAY_OBJECT", VALUE): "std::vector<std::shared_ptr<Object>>",
+    ("TYPE_DICTIONARY_OBJECT", VALUE): "std::map<utf8string, std::shared_ptr<Object>>",
 }
 
 CppFromAstArg = {
@@ -95,14 +104,17 @@ CppFromAstArg = {
     ("TYPE_BYTES", VALUE): "const std::vector<unsigned char> &",
     ("TYPE_BYTES", REF): "std::vector<unsigned char> *",
     ("TYPE_BYTES", OUT): "std::vector<unsigned char> *",
+    ("TYPE_OBJECT", VALUE): "std::shared_ptr<Object>",
     ("TYPE_ARRAY", VALUE): "Cell &",
     ("TYPE_ARRAY", REF): "Cell *",
     ("TYPE_ARRAY_NUMBER", VALUE): "const std::vector<Number> &",
     ("TYPE_ARRAY_STRING", VALUE): "const std::vector<utf8string> &",
     ("TYPE_ARRAY_STRING", REF): "std::vector<utf8string> *",
     ("TYPE_ARRAY_STRING", OUT): "std::vector<utf8string> *",
+    ("TYPE_ARRAY_OBJECT", VALUE): "std::vector<std::shared_ptr<Object>>",
     ("TYPE_DICTIONARY", VALUE): "Cell &",
     ("TYPE_DICTIONARY_STRING", VALUE): "const std::map<utf8string, utf8string> &",
+    ("TYPE_DICTIONARY_OBJECT", VALUE): "std::map<utf8string, std::shared_ptr<Object>>",
 }
 
 JvmFromAst = {
@@ -120,13 +132,16 @@ JvmFromAst = {
     ("TYPE_STRING", OUT): "Ljava/lang/String;", # TODO
     ("TYPE_BYTES", VALUE): "[B",
     ("TYPE_BYTES", OUT): "Ljava/lang/Object;", # TODO
+    ("TYPE_OBJECT", VALUE): "Lneon/type/Object",
     ("TYPE_ARRAY", VALUE): "Lneon/type/Array;",
     ("TYPE_ARRAY", REF): "Lneon/type/Array;",
     ("TYPE_ARRAY_NUMBER", VALUE): "Lneon/type/Array;",
     ("TYPE_ARRAY_STRING", VALUE): "Lneon/type/Array;",
     ("TYPE_ARRAY_STRING", OUT): "Lneon/type/Array;", # TODO
+    ("TYPE_ARRAY_OBJECT", VALUE): "Lneon/type/Array;",
     ("TYPE_DICTIONARY", VALUE): "Ljava/util/Map;",
     ("TYPE_DICTIONARY_STRING", VALUE): "Ljava/util/Map;",
+    ("TYPE_DICTIONARY_OBJECT", VALUE): "Ljava/util/Map;",
 }
 
 CellField = {
@@ -142,6 +157,7 @@ CellField = {
     ("TYPE_BYTES", VALUE): "bytes()",
     ("TYPE_BYTES", REF): "address()->bytes()",
     ("TYPE_BYTES", OUT): "address()->bytes()",
+    ("TYPE_OBJECT", VALUE): "object()",
     ("TYPE_ARRAY_NUMBER", VALUE): "array()",
     ("TYPE_ARRAY_STRING", VALUE): "array()",
     ("TYPE_ARRAY_STRING", REF): "array()",
@@ -153,7 +169,9 @@ ArrayElementField = {
     ("TYPE_ARRAY_NUMBER", VALUE): "number()",
     ("TYPE_ARRAY_STRING", VALUE): "string()",
     ("TYPE_ARRAY_STRING", REF): "string()",
+    ("TYPE_ARRAY_OBJECT", VALUE): "object()",
     ("TYPE_DICTIONARY_STRING", VALUE): "string()",
+    ("TYPE_DICTIONARY_OBJECT", VALUE): "object()",
 }
 
 def parse_params(paramstr):
@@ -184,7 +202,7 @@ def parse_params(paramstr):
         t, i = next_token(paramstr, i)
         typename = t
         m = re.match(r"Array<(.*)>$", typename)
-        if m is not None and m.group(1) not in ["Number", "String"]:
+        if m is not None and m.group(1) not in ["Number", "String", "Object"]:
             typename = "Array"
         r.extend(zip(["{} {}".format(mode, typename).strip()] * len(names), names))
         t, i = next_token(paramstr, i)
@@ -338,6 +356,10 @@ with open("src/thunks.inc", "w") as inc:
             if rtype[0].startswith("TYPE_ARRAY_"):
                 print >>inc, "        std::vector<Cell> t;"
                 print >>inc, "        for (auto x: r) t.push_back(Cell(x));"
+                print >>inc, "        stack.push(Cell(t));"
+            elif rtype[0].startswith("TYPE_DICTIONARY_"):
+                print >>inc, "        std::map<utf8string, Cell> t;"
+                print >>inc, "        for (auto x: r) t[x.first] = Cell(x.second);"
                 print >>inc, "        stack.push(Cell(t));"
             elif rtype[0] == "TYPE_POINTER":
                 print >>inc, "        stack.push(Cell(static_cast<Cell *>(r)));"

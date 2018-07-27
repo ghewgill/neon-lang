@@ -80,6 +80,13 @@ EXCEPTION DictionaryIndexException
 EXCEPTION DivideByZeroException
 
 %|
+ |  Exception: DynamicConversionException
+ |
+ |  Dynamic conversion exception.
+ |%
+EXCEPTION DynamicConversionException
+
+%|
  |  Exception: EndOfFileException
  |
  |  End of input file.
@@ -122,6 +129,13 @@ EXCEPTION FunctionNotFoundException
 EXCEPTION LibraryNotFoundException
 
 %|
+ |  Exception: ObjectSubscriptException
+ |
+ |  Object subscript exception.
+ |%
+EXCEPTION ObjectSubscriptException
+
+%|
  |  Exception: SqlException
  |
  |  SQL exception.
@@ -160,6 +174,7 @@ DECLARE NATIVE FUNCTION array__splice(b: Array, a: Array, first: Number, first_f
 DECLARE NATIVE FUNCTION array__toBytes__number(self: Array<Number>): Bytes
 DECLARE NATIVE FUNCTION array__toString__number(self: Array<Number>): String
 DECLARE NATIVE FUNCTION array__toString__string(self: Array<String>): String
+DECLARE NATIVE FUNCTION array__toString__object(self: Array<Object>): String
 DECLARE NATIVE FUNCTION boolean__toString(self: Boolean): String
 DECLARE NATIVE FUNCTION dictionary__size(self: Dictionary): Number
 DECLARE NATIVE FUNCTION dictionary__keys(self: Dictionary): Array<String>
@@ -179,6 +194,22 @@ DECLARE NATIVE FUNCTION bytes__toString(self: Bytes): String
 DECLARE NATIVE FUNCTION pointer__toString(self: POINTER): String
 DECLARE NATIVE FUNCTION functionpointer__toString(self: Cell): String
 DECLARE NATIVE FUNCTION interfacepointer__toString(self: Cell): String
+DECLARE NATIVE FUNCTION object__makeNull(): Object
+DECLARE NATIVE FUNCTION object__makeBoolean(b: Boolean): Object
+DECLARE NATIVE FUNCTION object__makeNumber(n: Number): Object
+DECLARE NATIVE FUNCTION object__makeString(s: String): Object
+DECLARE NATIVE FUNCTION object__makeBytes(b: Bytes): Object
+DECLARE NATIVE FUNCTION object__makeArray(a: Array<Object>): Object
+DECLARE NATIVE FUNCTION object__makeDictionary(d: Dictionary<Object>): Object
+DECLARE NATIVE FUNCTION object__getBoolean(obj: Object): Boolean
+DECLARE NATIVE FUNCTION object__getNumber(obj: Object): Number
+DECLARE NATIVE FUNCTION object__getString(obj: Object): String
+DECLARE NATIVE FUNCTION object__getBytes(obj: Object): Bytes
+DECLARE NATIVE FUNCTION object__getArray(obj: Object): Array<Object>
+DECLARE NATIVE FUNCTION object__getDictionary(obj: Object): Dictionary<Object>
+DECLARE NATIVE FUNCTION object__isNull(obj: Object): Boolean
+DECLARE NATIVE FUNCTION object__subscript(obj: Object, index: Object): Object
+DECLARE NATIVE FUNCTION object__toString(obj: Object): String
 
 %|
  |  Function: chr

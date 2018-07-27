@@ -1,0 +1,5 @@
+CASE 5
+     %<1
+    WHEN ISA Number DO
+    %<2
+END CASE

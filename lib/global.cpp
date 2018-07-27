@@ -152,6 +152,19 @@ std::string array__toString__string(const std::vector<utf8string> &a)
     return r;
 }
 
+std::string array__toString__object(std::vector<std::shared_ptr<Object>> a)
+{
+    std::string r = "[";
+    for (auto &x: a) {
+        if (r.length() > 1) {
+            r.append(", ");
+        }
+        r.append(x->toString());
+    }
+    r.append("]");
+    return r;
+}
+
 std::string boolean__toString(bool self)
 {
     return self ? "TRUE" : "FALSE";
@@ -340,6 +353,259 @@ std::string input(const std::string &prompt)
 void print(const std::string &s)
 {
     std::cout << s << "\n";
+}
+
+std::shared_ptr<Object> object__makeNull()
+{
+    return std::shared_ptr<Object>(nullptr);
+}
+
+class ObjectBoolean: public Object {
+public:
+    ObjectBoolean(bool b): b(b) {}
+    virtual bool getBoolean(bool &r) const override { r = b; return true; }
+    virtual std::string toString() const override { return b ? "TRUE" : "FALSE"; }
+private:
+    const bool b;
+private:
+    ObjectBoolean(const ObjectBoolean &);
+    ObjectBoolean &operator=(const ObjectBoolean &);
+};
+
+std::shared_ptr<Object> object__makeBoolean(bool b)
+{
+    return std::shared_ptr<Object>(new ObjectBoolean(b));
+}
+
+class ObjectNumber: public Object {
+public:
+    ObjectNumber(Number n): n(n) {}
+    virtual bool getNumber(Number &r) const override { r = n; return true; }
+    virtual std::string toString() const override { return number_to_string(n); }
+private:
+    const Number n;
+private:
+    ObjectNumber(const ObjectNumber &);
+    ObjectNumber &operator=(const ObjectNumber &);
+};
+
+std::shared_ptr<Object> object__makeNumber(Number n)
+{
+    return std::shared_ptr<Object>(new ObjectNumber(n));
+}
+
+class ObjectString: public Object {
+public:
+    ObjectString(const std::string &s): s(s) {}
+    virtual bool getString(std::string &r) const override { r = s; return true; }
+    virtual std::string toString() const override { return "\"" + s + "\""; }
+private:
+    const std::string s;
+private:
+    ObjectString(const ObjectString &);
+    ObjectString &operator=(const ObjectString &);
+};
+
+std::shared_ptr<Object> object__makeString(const std::string &s)
+{
+    return std::shared_ptr<Object>(new ObjectString(s));
+}
+
+class ObjectBytes: public Object {
+public:
+    ObjectBytes(const std::vector<unsigned char> &b): b(b) {}
+    virtual bool getBytes(std::vector<unsigned char> &r) const override { r = b; return true; }
+    virtual std::string toString() const override {
+        std::string r = "HEXBYTES \"";
+        bool first = true;
+        for (auto x: b) {
+            if (first) {
+                first = false;
+            } else {
+                r += ' ';
+            }
+            char buf[3];
+            snprintf(buf, sizeof(buf), "%02x", x);
+        }
+        r += "\"";
+        return r;
+    }
+private:
+    const std::vector<unsigned char> b;
+private:
+    ObjectBytes(const ObjectBytes &);
+    ObjectBytes &operator=(const ObjectBytes &);
+};
+
+std::shared_ptr<Object> object__makeBytes(const std::vector<unsigned char> &b)
+{
+    return std::shared_ptr<Object>(new ObjectBytes(b));
+}
+
+class ObjectArray: public Object {
+public:
+    ObjectArray(std::vector<std::shared_ptr<Object>> a): a(a) {}
+    virtual bool getArray(std::vector<std::shared_ptr<Object>> &r) const override { r = a; return true; }
+    virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
+        Number i;
+        if (not index->getNumber(i)) {
+            throw RtlException(Exception_DynamicConversionException, "to Number");
+        }
+        uint64_t ii = number_to_uint64(i);
+        if (ii >= a.size()) {
+            throw RtlException(Exception_ArrayIndexException, number_to_string(i));
+        }
+        r = a.at(ii);
+        return true;
+    }
+    virtual std::string toString() const override {
+        std::string r = "[";
+        bool first = true;
+        for (auto x: a) {
+            if (not first) {
+                r.append(", ");
+            } else {
+                first = false;
+            }
+            r.append(x->toString());
+        }
+        r.append("]");
+        return r;
+    }
+private:
+    std::vector<std::shared_ptr<Object>> a;
+private:
+    ObjectArray(const ObjectArray &);
+    ObjectArray &operator=(const ObjectArray &);
+};
+
+std::shared_ptr<Object> object__makeArray(std::vector<std::shared_ptr<Object>> a)
+{
+    return std::shared_ptr<Object>(new ObjectArray(a));
+}
+
+class ObjectDictionary: public Object {
+public:
+    ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
+    virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
+    virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
+        std::string i;
+        if (not index->getString(i)) {
+            throw RtlException(Exception_DynamicConversionException, "to String");
+        }
+        auto e = d.find(i);
+        if (e == d.end()) {
+            return false;
+        }
+        r = e->second;
+        return true;
+    }
+    virtual std::string toString() const override {
+        std::string r = "{";
+        bool first = true;
+        for (auto x: d) {
+            if (not first) {
+                r.append(", ");
+            } else {
+                first = false;
+            }
+            r.append("\"");
+            r.append(x.first.c_str());
+            r.append("\": ");
+            r.append(x.second->toString());
+        }
+        r.append("}");
+        return r;
+    }
+private:
+    std::map<utf8string, std::shared_ptr<Object>> d;
+private:
+    ObjectDictionary(const ObjectDictionary &);
+    ObjectDictionary &operator=(const ObjectDictionary &);
+};
+
+std::shared_ptr<Object> object__makeDictionary(std::map<utf8string, std::shared_ptr<Object>> d)
+{
+    return std::shared_ptr<Object>(new ObjectDictionary(d));
+}
+
+bool object__getBoolean(std::shared_ptr<Object> obj)
+{
+    bool r;
+    if (obj == nullptr || not obj->getBoolean(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to Boolean");
+    }
+    return r;
+}
+
+Number object__getNumber(std::shared_ptr<Object> obj)
+{
+    Number r;
+    if (obj == nullptr || not obj->getNumber(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to Number");
+    }
+    return r;
+}
+
+std::string object__getString(std::shared_ptr<Object> obj)
+{
+    std::string r;
+    if (obj == nullptr || not obj->getString(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to String");
+    }
+    return r;
+}
+
+std::vector<unsigned char> object__getBytes(std::shared_ptr<Object> obj)
+{
+    std::vector<unsigned char> r;
+    if (obj == nullptr || not obj->getBytes(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to Bytes");
+    }
+    return r;
+}
+
+std::vector<std::shared_ptr<Object>> object__getArray(std::shared_ptr<Object> obj)
+{
+    std::vector<std::shared_ptr<Object>> r;
+    if (obj == nullptr || not obj->getArray(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to Array");
+    }
+    return r;
+}
+
+std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_ptr<Object> obj)
+{
+    std::map<utf8string, std::shared_ptr<Object>> r;
+    if (obj == nullptr || not obj->getDictionary(r)) {
+        throw RtlException(Exception_DynamicConversionException, "to Dictionary");
+    }
+    return r;
+}
+
+bool object__isNull(std::shared_ptr<Object> obj)
+{
+    return obj == nullptr;
+}
+
+std::string object__toString(std::shared_ptr<Object> obj)
+{
+    if (obj == nullptr) {
+        return "null";
+    }
+    return obj->toString();
+}
+
+std::shared_ptr<Object> object__subscript(std::shared_ptr<Object> obj, std::shared_ptr<Object> index)
+{
+    if (obj == nullptr) {
+        throw RtlException(Exception_DynamicConversionException, "object is null");
+    }
+    std::shared_ptr<Object> r;
+    if (obj == nullptr || not obj->subscript(index, r)) {
+        throw RtlException(Exception_ObjectSubscriptException, index->toString());
+    }
+    return r;
 }
 
 } // namespace global

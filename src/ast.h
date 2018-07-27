@@ -32,6 +32,7 @@ public:
     virtual void visit(const class TypeNumber *node) = 0;
     virtual void visit(const class TypeString *node) = 0;
     virtual void visit(const class TypeBytes *node) = 0;
+    virtual void visit(const class TypeObject *node) = 0;
     virtual void visit(const class TypeFunction *node) = 0;
     virtual void visit(const class TypeArray *node) = 0;
     virtual void visit(const class TypeDictionary *node) = 0;
@@ -61,6 +62,7 @@ public:
     virtual void visit(const class ConstantEnumExpression *node) = 0;
     virtual void visit(const class ConstantNilExpression *node) = 0;
     virtual void visit(const class ConstantNowhereExpression *node) = 0;
+    virtual void visit(const class TypeConversionExpression *node) = 0;
     virtual void visit(const class ArrayLiteralExpression *node) = 0;
     virtual void visit(const class DictionaryLiteralExpression *node) = 0;
     virtual void visit(const class RecordLiteralExpression *node) = 0;
@@ -72,6 +74,7 @@ public:
     virtual void visit(const class TryExpression *node) = 0;
     virtual void visit(const class DisjunctionExpression *node) = 0;
     virtual void visit(const class ConjunctionExpression *node) = 0;
+    virtual void visit(const class TypeTestExpression *node) = 0;
     virtual void visit(const class ArrayInExpression *node) = 0;
     virtual void visit(const class DictionaryInExpression *node) = 0;
     virtual void visit(const class ChainedComparisonExpression *node) = 0;
@@ -101,6 +104,7 @@ public:
     virtual void visit(const class StringValueIndexExpression *node) = 0;
     virtual void visit(const class BytesReferenceIndexExpression *node) = 0;
     virtual void visit(const class BytesValueIndexExpression *node) = 0;
+    virtual void visit(const class ObjectSubscriptExpression *node) = 0;
     virtual void visit(const class RecordReferenceFieldExpression *node) = 0;
     virtual void visit(const class RecordValueFieldExpression *node) = 0;
     virtual void visit(const class ArrayReferenceRangeExpression *node) = 0;
@@ -310,6 +314,7 @@ public:
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const { return this == rhs; }
+    virtual bool is_assignment_compatible_no_error(const Type *rhs) const { return is_assignment_compatible(rhs); }
     virtual void generate_load(Emitter &emitter) const = 0;
     virtual void generate_store(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &emitter) const = 0;
@@ -368,9 +373,11 @@ public:
     TypeBoolean(): Type(Token(), "Boolean") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "B"; }
     virtual std::string serialize(const Expression *) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
@@ -387,9 +394,11 @@ public:
     TypeNumber(const Token &declaration, const std::string &name): Type(declaration, name) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "N"; }
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
@@ -405,9 +414,11 @@ public:
     TypeString(): Type(Token(), "String") {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "S"; }
     static std::string serialize(const std::string &value);
     virtual std::string serialize(const Expression *value) const override;
@@ -426,9 +437,11 @@ public:
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &) const override { return "Y"; }
     virtual std::string serialize(const Expression *value) const override;
     virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
@@ -438,6 +451,27 @@ public:
 };
 
 extern TypeBytes *TYPE_BYTES;
+
+class TypeObject: public Type {
+public:
+    TypeObject(): Type(Token(), "Object") {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    virtual const Expression *make_default_value() const override;
+    virtual bool is_assignment_compatible(const Type *) const override;
+    virtual void generate_load(Emitter &emitter) const override;
+    virtual void generate_store(Emitter &emitter) const override;
+    virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
+    virtual std::string get_type_descriptor(Emitter &) const override { return "O"; }
+    virtual std::string serialize(const Expression *value) const override;
+    virtual const Expression *deserialize_value(const Bytecode::Bytes &value, int &i) const override;
+    virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
+
+    virtual std::string text() const override { return "TypeObject"; }
+};
+
+extern TypeObject *TYPE_OBJECT;
 
 class ParameterType {
 public:
@@ -490,9 +524,11 @@ public:
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual bool is_assignment_compatible_no_error(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
@@ -507,6 +543,14 @@ private:
 
 extern TypeArray *TYPE_ARRAY_NUMBER;
 extern TypeArray *TYPE_ARRAY_STRING;
+extern TypeArray *TYPE_ARRAY_OBJECT;
+
+class TypeArrayLiteral: public TypeArray {
+public:
+    TypeArrayLiteral(const Token &declaration, const Type *elementtype, const std::vector<const Expression *> &elements, const std::vector<Token> &elementtokens): TypeArray(declaration, elementtype), elements(elements), elementtokens(elementtokens) {}
+    std::vector<const Expression *> elements;
+    std::vector<Token> elementtokens;
+};
 
 class TypeDictionary: public Type {
 public:
@@ -517,9 +561,11 @@ public:
     virtual const Expression *make_default_value() const override;
     virtual void predeclare(Emitter &emitter) const override;
     virtual bool is_assignment_compatible(const Type *rhs) const override;
+    virtual bool is_assignment_compatible_no_error(const Type *rhs) const override;
     virtual void generate_load(Emitter &emitter) const override;
     virtual void generate_store(Emitter &emitter) const override;
     virtual void generate_call(Emitter &emitter) const override;
+    virtual void generate_convert(Emitter &emitter, const Type *from) const override;
     virtual std::string get_type_descriptor(Emitter &emitter) const override;
     virtual void get_type_references(std::set<const Type *> &references) const override;
     virtual std::string serialize(const Expression *value) const override;
@@ -533,6 +579,14 @@ private:
 };
 
 extern TypeDictionary *TYPE_DICTIONARY_STRING;
+extern TypeDictionary *TYPE_DICTIONARY_OBJECT;
+
+class TypeDictionaryLiteral: public TypeDictionary {
+public:
+    TypeDictionaryLiteral(const Token &declaration, const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements, const std::vector<Token> &elementtokens): TypeDictionary(declaration, elementtype), elements(elements), elementtokens(elementtokens) {}
+    std::vector<std::pair<std::string, const Expression *>> elements;
+    std::vector<Token> elementtokens;
+};
 
 class TypeRecord: public Type {
 public:
@@ -916,7 +970,7 @@ public:
     bool eval_boolean(const Token &token) const;
     Number eval_number(const Token &token) const;
     std::string eval_string(const Token &token) const;
-    void generate(Emitter &emitter) const;
+    void generate(Emitter &emitter, const Type *target_type) const;
     virtual void generate_expr(Emitter &emitter) const = 0;
     virtual void generate_call(Emitter &) const { internal_error("Expression::generate_call"); }
 
@@ -1071,9 +1125,27 @@ public:
     virtual std::string text() const override { return "ConstantNowhereExpression"; }
 };
 
+class TypeConversionExpression: public Expression {
+public:
+    TypeConversionExpression(const Type *type, const Expression *expr): Expression(type, expr->is_constant), expr(expr) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *expr;
+
+    virtual bool eval_boolean() const override { internal_error("TypeConversionExpression"); }
+    virtual Number eval_number() const override { internal_error("TypeConversionExpression"); }
+    virtual std::string eval_string() const override { internal_error("TypeConversionExpression"); }
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "TypeConversionExpression(" + expr->text() + ")"; }
+private:
+    TypeConversionExpression(const TypeConversionExpression &);
+    TypeConversionExpression &operator=(const TypeConversionExpression &);
+};
+
 class ArrayLiteralExpression: public Expression {
 public:
-    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements): Expression(new TypeArray(Token(), elementtype), all_constant(elements)), elementtype(elementtype), elements(elements) {}
+    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements, const std::vector<Token> elementtokens): Expression(new TypeArrayLiteral(Token(), elementtype, elements, elementtokens), all_constant(elements)), elementtype(elementtype), elements(elements) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Type *elementtype;
@@ -1094,7 +1166,7 @@ private:
 
 class DictionaryLiteralExpression: public Expression {
 public:
-    DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements): Expression(new TypeDictionary(Token(), elementtype), all_constant(elements)), elementtype(elementtype), dict(make_dictionary(elements)) {}
+    DictionaryLiteralExpression(const Type *elementtype, const std::vector<std::pair<std::string, const Expression *>> &elements, const std::vector<Token> &elementtokens): Expression(new TypeDictionaryLiteral(Token(), elementtype, elements, elementtokens), all_constant(elements)), elementtype(elementtype), dict(make_dictionary(elements)) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Type *elementtype;
@@ -1170,7 +1242,7 @@ private:
 
 class UnaryMinusExpression: public Expression {
 public:
-    UnaryMinusExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
+    UnaryMinusExpression(const Expression *value): Expression(TYPE_NUMBER, value->is_constant), value(value) {
         if (not type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("UnaryMinusExpression");
         }
@@ -1194,7 +1266,7 @@ private:
 
 class LogicalNotExpression: public Expression {
 public:
-    LogicalNotExpression(const Expression *value): Expression(value->type, value->is_constant), value(value) {
+    LogicalNotExpression(const Expression *value): Expression(TYPE_BOOLEAN, value->is_constant), value(value) {
         if (not type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("LogicalNotExpression");
         }
@@ -1283,7 +1355,7 @@ private:
 
 class DisjunctionExpression: public Expression {
 public:
-    DisjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    DisjunctionExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_BOOLEAN) || not right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("DisjunctionExpression");
         }
@@ -1308,7 +1380,7 @@ private:
 
 class ConjunctionExpression: public Expression {
 public:
-    ConjunctionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    ConjunctionExpression(const Expression *left, const Expression *right): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_BOOLEAN) || not right->type->is_assignment_compatible(TYPE_BOOLEAN)) {
             internal_error("ConjunctionExpression");
         }
@@ -1329,6 +1401,25 @@ public:
 private:
     ConjunctionExpression(const ConjunctionExpression &);
     ConjunctionExpression &operator=(const ConjunctionExpression &);
+};
+
+class TypeTestExpression: public Expression {
+public:
+    TypeTestExpression(const Expression *left, const Type *target): Expression(TYPE_BOOLEAN, left->type != TYPE_OBJECT), left(left), target(target) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *left;
+    const Type *target;
+
+    virtual bool eval_boolean() const override;
+    virtual Number eval_number() const override { internal_error("TypeTestExpression"); }
+    virtual std::string eval_string() const override { internal_error("TypeTestExpression"); }
+    virtual void generate_expr(Emitter &emitter) const override;
+
+    virtual std::string text() const override { return "TypeTestExpression(" + left->text() + ", " + target->text() + ")"; }
+private:
+    TypeTestExpression(const TypeTestExpression &);
+    TypeTestExpression &operator=(const TypeTestExpression &);
 };
 
 class ArrayInExpression: public Expression {
@@ -1385,8 +1476,9 @@ public:
         }
         return "(undefined)";
     }
-    ComparisonExpression(const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), left(left), right(right), comp(comp) {}
+    ComparisonExpression(const Type *operand_type, const Expression *left, const Expression *right, Comparison comp): Expression(TYPE_BOOLEAN, left->is_constant && right->is_constant), operand_type(operand_type), left(left), right(right), comp(comp) {}
 
+    const Type *const operand_type;
     const Expression *const left;
     const Expression *const right;
     const Comparison comp;
@@ -1418,7 +1510,7 @@ private:
 
 class BooleanComparisonExpression: public ComparisonExpression {
 public:
-    BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    BooleanComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_BOOLEAN, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1433,7 +1525,7 @@ public:
 
 class NumericComparisonExpression: public ComparisonExpression {
 public:
-    NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    NumericComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_NUMBER, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1448,7 +1540,7 @@ public:
 
 class EnumComparisonExpression: public ComparisonExpression {
 public:
-    EnumComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    EnumComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1463,7 +1555,7 @@ public:
 
 class StringComparisonExpression: public ComparisonExpression {
 public:
-    StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    StringComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_STRING, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1478,7 +1570,7 @@ public:
 
 class BytesComparisonExpression: public ComparisonExpression {
 public:
-    BytesComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    BytesComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(TYPE_BYTES, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override;
@@ -1493,7 +1585,7 @@ public:
 
 class ArrayComparisonExpression: public ComparisonExpression {
 public:
-    ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    ArrayComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("ArrayComparisonExpression"); }
@@ -1508,7 +1600,7 @@ public:
 
 class DictionaryComparisonExpression: public ComparisonExpression {
 public:
-    DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    DictionaryComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("DictionaryComparisonExpression"); }
@@ -1523,7 +1615,7 @@ public:
 
 class RecordComparisonExpression: public ComparisonExpression {
 public:
-    RecordComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    RecordComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("RecordComparisonExpression"); }
@@ -1538,7 +1630,7 @@ public:
 
 class PointerComparisonExpression: public ComparisonExpression {
 public:
-    PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    PointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("PointerComparisonExpression"); }
@@ -1570,7 +1662,7 @@ private:
 
 class FunctionPointerComparisonExpression: public ComparisonExpression {
 public:
-    FunctionPointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left, right, comp) {}
+    FunctionPointerComparisonExpression(const Expression *left, const Expression *right, Comparison comp): ComparisonExpression(left->type, left, right, comp) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual bool eval_boolean() const override { internal_error("FunctionPointerComparisonExpression"); }
@@ -1585,7 +1677,7 @@ public:
 
 class AdditionExpression: public Expression {
 public:
-    AdditionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    AdditionExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("AdditionExpression");
         }
@@ -1610,7 +1702,7 @@ private:
 
 class SubtractionExpression: public Expression {
 public:
-    SubtractionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    SubtractionExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("SubtractionExpression");
         }
@@ -1635,7 +1727,7 @@ private:
 
 class MultiplicationExpression: public Expression {
 public:
-    MultiplicationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    MultiplicationExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("MultiplicationExpression");
         }
@@ -1660,7 +1752,7 @@ private:
 
 class DivisionExpression: public Expression {
 public:
-    DivisionExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    DivisionExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("DivisionExpression");
         }
@@ -1685,7 +1777,7 @@ private:
 
 class ModuloExpression: public Expression {
 public:
-    ModuloExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    ModuloExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("ModuloExpression");
         }
@@ -1710,7 +1802,7 @@ private:
 
 class ExponentiationExpression: public Expression {
 public:
-    ExponentiationExpression(const Expression *left, const Expression *right): Expression(left->type, left->is_constant && right->is_constant), left(left), right(right) {
+    ExponentiationExpression(const Expression *left, const Expression *right): Expression(TYPE_NUMBER, left->is_constant && right->is_constant), left(left), right(right) {
         if (not left->type->is_assignment_compatible(TYPE_NUMBER) || not right->type->is_assignment_compatible(TYPE_NUMBER)) {
             internal_error("ExponentiationExpression");
         }
@@ -1951,6 +2043,25 @@ private:
     BytesValueIndexExpression &operator=(const BytesValueIndexExpression &);
 };
 
+class ObjectSubscriptExpression: public Expression {
+public:
+    ObjectSubscriptExpression(const Expression *obj, const Expression *index): Expression(TYPE_OBJECT, false), obj(obj), index(index) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
+    const Expression *obj;
+    const Expression *index;
+
+    virtual bool eval_boolean() const override { internal_error("ObjectSubscriptExpression"); }
+    virtual Number eval_number() const override { internal_error("ObjectSubscriptExpression"); }
+    virtual std::string eval_string() const override { internal_error("ObjectSubscriptExpression"); }
+    virtual void generate_expr(Emitter &) const override;
+
+    virtual std::string text() const override { return "ObjectSubscriptExpression(" + obj->text() + ", " + index->text() + ")"; }
+private:
+    ObjectSubscriptExpression(const ObjectSubscriptExpression &);
+    ObjectSubscriptExpression &operator=(const ObjectSubscriptExpression &);
+};
+
 class RecordReferenceFieldExpression: public ReferenceExpression {
 public:
     RecordReferenceFieldExpression(const Type *type, const ReferenceExpression *ref, const std::string &field, bool always_create): ReferenceExpression(type, ref->is_readonly), ref(ref), field(field), always_create(always_create) {}
@@ -2074,7 +2185,7 @@ public:
     virtual bool eval_boolean() const override { return constant->value->eval_boolean(); }
     virtual Number eval_number() const override { return constant->value->eval_number(); }
     virtual std::string eval_string() const override { return constant->value->eval_string(); }
-    virtual void generate_expr(Emitter &emitter) const override { constant->value->generate(emitter); }
+    virtual void generate_expr(Emitter &emitter) const override { constant->value->generate(emitter, type); }
 
     virtual std::string text() const override { return "ConstantExpression(" + constant->text() + ")"; }
 private:
@@ -2431,6 +2542,17 @@ public:
     private:
         RangeWhenCondition(const RangeWhenCondition &);
         RangeWhenCondition &operator=(const RangeWhenCondition &);
+    };
+    class TypeTestWhenCondition: public WhenCondition {
+    public:
+        TypeTestWhenCondition(const Token &token, const Type *exprtype, const Type *target): WhenCondition(token), exprtype(exprtype), target(target) {}
+        const Type *exprtype;
+        const Type *target;
+        virtual bool overlaps(const WhenCondition *cond) const override;
+        virtual void generate(Emitter &emitter) const override;
+    private:
+        TypeTestWhenCondition(const TypeTestWhenCondition &);
+        TypeTestWhenCondition &operator=(const TypeTestWhenCondition &);
     };
     CaseStatement(int line, const Expression *expr, const std::vector<std::pair<std::vector<const WhenCondition *>, std::vector<const Statement *>>> &clauses): Statement(line), expr(expr), clauses(clauses) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }

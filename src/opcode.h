@@ -21,6 +21,7 @@ enum Opcode {
     LOADA,      // load array
     LOADD,      // load dictionary
     LOADP,      // load pointer
+    LOADJ,      // load object
     STOREB,     // store boolean
     STOREN,     // store number
     STORES,     // store string
@@ -28,6 +29,7 @@ enum Opcode {
     STOREA,     // store array
     STORED,     // store dictionary
     STOREP,     // store pointer
+    STOREJ,     // store object
     NEGN,       // negate number
     ADDN,       // add number
     SUBN,       // subtract number
@@ -101,6 +103,8 @@ enum Opcode {
     PUSHM,      // push current module
     CALLV,      // call virtual
     PUSHCI,     // push class info
+    MAPA,       // map array
+    MAPD,       // map dictionary
 };
 
 #endif

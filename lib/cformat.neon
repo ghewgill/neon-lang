@@ -7,8 +7,6 @@
 EXPORT printf
 EXPORT sprintf
 
-IMPORT variant.Variant
-
 %|
  |  Function: sprintf
  |
@@ -17,7 +15,7 @@ IMPORT variant.Variant
  |
  |  Parameters:
  |      fmt - the format string
- |      value - the array of <Variant> values to format
+ |      value - the array of <Object> values to format
  |
  |  Description:
  |      The available formatting codes are
@@ -31,7 +29,7 @@ IMPORT variant.Variant
  |  See Also:
  |      <printf>
  |%
-FUNCTION sprintf(fmt: String, value: Array<Variant>): String
+FUNCTION sprintf(fmt: String, value: Array<Object>): String
     % TODO: This needs a lot more functionality, it is intended
     % as a functional equivalent to the C sprintf function.
     VAR r: String := ""
@@ -42,10 +40,10 @@ FUNCTION sprintf(fmt: String, value: Array<Variant>): String
             INC i
             CASE fmt[i]
                 WHEN "d" DO
-                    r.append(value[a].getNumber().toString())
+                    r.append(str(value[a]))
                     INC a
                 WHEN "s" DO
-                    r.append(value[a].getString())
+                    r.append(value[a])
                     INC a
             END CASE
         ELSE
@@ -64,7 +62,7 @@ END FUNCTION
  |
  |  Parameters:
  |      fmt - the format string
- |      value - the array of <Variant> values to format
+ |      value - the array of <Object> values to format
  |
  |  Exceptions:
  |      - <TypeMismatch> - if the wrong type is supplied for a parameter
@@ -72,6 +70,6 @@ END FUNCTION
  |  See Also:
  |      <sprintf>
  |%
-FUNCTION printf(fmt: String, value: Array<Variant>)
+FUNCTION printf(fmt: String, value: Array<Object>)
     print(sprintf(fmt, value))
 END FUNCTION

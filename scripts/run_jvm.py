@@ -5,7 +5,7 @@ ExcludeTests = [
     "t/array-resize.neon",          # array default item
     "t/array2d.neon",               # array copying semantics
     "t/bigint-test.neon",           # illegal character dot
-    "t/cformat-test.neon",          # module variant
+    "t/cformat-test.neon",          # object
     "t/cmdline.neon",               # PredefinedVariable sys$args
     "t/complex-test.neon",          # illegal character dot
     "t/concat-bytes.neon",          # confusion between Bytes and String
@@ -59,6 +59,11 @@ ExcludeTests = [
     "t/net-test.neon",              # illegal character dot
     "t/new-init-module.neon",       # NoClassDefFoundError
     "t/number-ceil.neon",           # module math
+    "t/object.neon",                # object
+    "t/object-isa.neon",            # object
+    "t/object-isa-case.neon",       # object
+    "t/object-null.neon",           # object
+    "t/object-operator.neon",       # object
     "t/os-test.neon",               # module os
     "t/outer-issue192.neon",        # verifier
     "t/outer-parameter.neon",       # verifier
@@ -92,7 +97,6 @@ ExcludeTests = [
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # enum tostring
     "t/unicode-length.neon",        # actually works here so avoid the TODO
-    "t/variant-test.neon",          # illegal character dot
     "t/win32-test.neon",            # illegal character dot
     "lib/compress/t/compress-test.neon",        # compress.gzip
     "lib/extsample/t/extsample-test.neon",      # extension functions

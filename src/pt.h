@@ -52,6 +52,7 @@ class SubtractionExpression;
 class ConcatenationExpression;
 class ComparisonExpression;
 class ChainedComparisonExpression;
+class TypeTestExpression;
 class MembershipExpression;
 class ConjunctionExpression;
 class DisjunctionExpression;
@@ -146,6 +147,7 @@ public:
     virtual void visit(const ConcatenationExpression *) = 0;
     virtual void visit(const ComparisonExpression *) = 0;
     virtual void visit(const ChainedComparisonExpression *) = 0;
+    virtual void visit(const TypeTestExpression *) = 0;
     virtual void visit(const MembershipExpression *) = 0;
     virtual void visit(const ConjunctionExpression *) = 0;
     virtual void visit(const DisjunctionExpression *) = 0;
@@ -545,6 +547,14 @@ public:
     std::vector<std::unique_ptr<Part>> comps;
 };
 
+class TypeTestExpression: public Expression {
+public:
+    TypeTestExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Type> &&target): Expression(token, left->get_start_column(), token.column + token.text.length()/* TODO */), left(std::move(left)), target(std::move(target)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+    std::unique_ptr<Expression> left;
+    std::unique_ptr<Type> target;
+};
+
 class MembershipExpression: public BinaryExpression {
 public:
     MembershipExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
@@ -835,6 +845,11 @@ public:
         RangeWhenCondition(const Token &token, std::unique_ptr<Expression> &&low_expr, std::unique_ptr<Expression> &&high_expr): WhenCondition(token), low_expr(std::move(low_expr)), high_expr(std::move(high_expr)) {}
         std::unique_ptr<Expression> low_expr;
         std::unique_ptr<Expression> high_expr;
+    };
+    class TypeTestWhenCondition: public WhenCondition {
+    public:
+        TypeTestWhenCondition(const Token &token, std::unique_ptr<Type> &&target): WhenCondition(token), target(std::move(target)) {}
+        std::unique_ptr<Type> target;
     };
     CaseStatement(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::pair<std::vector<std::unique_ptr<WhenCondition>>, std::vector<std::unique_ptr<Statement>>>> &&clauses): Statement(token), expr(std::move(expr)), clauses(std::move(clauses)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }

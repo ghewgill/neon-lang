@@ -78,6 +78,11 @@ ExcludeTests = [
     "t/new-init-module.neon",       # class
     "t/new-init.neon",              # class
     "t/number-ceil.neon",           # precision
+    "t/object.neon",                # object
+    "t/object-isa.neon",            # object
+    "t/object-isa-case.neon",       # object
+    "t/object-null.neon",           # object
+    "t/object-operator.neon",       # object
     "t/os-test.neon",               # os
     "t/outer-issue192.neon",        # PUSHPOL
     "t/outer-parameter.neon",       # PUSHPOL
@@ -123,7 +128,6 @@ ExcludeTests = [
     "t/uninitialised-case.neon",    # JUMPTBL
     "t/valid-pointer.neon",         # class
     "t/value-index.neon",           # dictionary
-    "t/variant-test.neon",          # dictionary
     "t/while-valid.neon",           # class
     "t/win32-test.neon",            # module
 
