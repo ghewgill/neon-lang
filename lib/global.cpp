@@ -1,3 +1,9 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
+#endif
 #include <assert.h>
 #include <iso646.h>
 #include <iostream>
