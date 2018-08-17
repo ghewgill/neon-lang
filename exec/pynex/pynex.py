@@ -22,6 +22,18 @@ def get_vint(b, i):
             break
     return r, i
 
+def quoted(s):
+    return '"' + s.replace('"', r'\"') + '"'
+
+class InternalException:
+    def __init__(self, name, info):
+        self.name = name
+        self.info = info
+
+class Bytes:
+    def __init__(self, s):
+        self.s = s
+
 class Type:
     def __init__(self):
         self.name = 0
@@ -160,7 +172,7 @@ class Value:
     def __repr__(self):
         return "Value({})".format(repr(self.value))
     def copy(self):
-        if self.value is None or isinstance(self.value, (bool, str, unicode, decimal.Decimal)):
+        if self.value is None or isinstance(self.value, (bool, str, unicode, Bytes, decimal.Decimal)):
             return Value(self.value)
         elif isinstance(self.value, list):
             return Value([x.copy() for x in self.value])
@@ -168,6 +180,11 @@ class Value:
             return Value({k: v.copy() for k, v in self.value.items()})
         else:
             assert False, " ".join([str(type(self.value)), repr(self.value)])
+    def literal(self):
+        if isinstance(self.value, str):
+            return quoted(self.value)
+        else:
+            return str(self.value)
 
 Globals = {
     "io$stderr": Value(None),
@@ -183,6 +200,7 @@ class Executor:
         self.globals = [None] * self.object.global_size
         for i in range(len(self.globals)):
             self.globals[i] = Value(None)
+        self.map_depth = 0
 
     def run(self):
         self.callstack.append((None, len(self.object.code)))
@@ -222,7 +240,7 @@ class Executor:
     def PUSHT(self):
         self.ip += 1
         val, self.ip = get_vint(self.object.code, self.ip)
-        self.stack.append(Value(self.object.strtable[val]))
+        self.stack.append(Value(Bytes(self.object.strtable[val])))
 
     def PUSHPG(self):
         self.ip += 1
@@ -298,7 +316,9 @@ class Executor:
         self.stack.append(addr.copy())
 
     def LOADJ(self):
-        assert False
+        self.ip += 1
+        addr = self.stack.pop()
+        self.stack.append(addr.copy())
 
     def STOREB(self):
         self.ip += 1
@@ -343,7 +363,10 @@ class Executor:
         addr.value = value.value
 
     def STOREJ(self):
-        assert False
+        self.ip += 1
+        addr = self.stack.pop()
+        value = self.stack.pop()
+        addr.value = value.value
 
     def NEGN(self):
         self.ip += 1
@@ -400,10 +423,16 @@ class Executor:
         self.stack.append(Value(a ** b))
 
     def EQB(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a == b))
 
     def NEB(self):
-        assert False
+        self.ip += 1
+        b = self.stack.pop().value
+        a = self.stack.pop().value
+        self.stack.append(Value(a != b))
 
     def EQN(self):
         self.ip += 1
@@ -472,7 +501,7 @@ class Executor:
         self.ip += 1
         b = self.stack.pop().value
         a = self.stack.pop().value
-        self.stack.append(Value(a == b))
+        self.stack.append(Value(a.s == b.s))
 
     def NET(self):
         assert False
@@ -754,7 +783,58 @@ class Executor:
     def PUSHCI(self):
         assert False
 
+    def MAPA(self):
+        self.ip += 1
+        target, self.ip = get_vint(self.object.code, self.ip)
+        start = self.ip
+        self.map_depth += 1
+        a = self.stack.pop().value
+        r = []
+        for x in a:
+            self.stack.append(x)
+            callbreak = len(self.callstack)
+            self.callstack.append((None, start))
+            try:
+                while len(self.callstack) > callbreak:
+                    Dispatch[ord(self.object.code[self.ip])](self)
+            except InternalException as x:
+                self.callstack.pop()
+                self.map_depth -= 1
+                self.raise_literal(x.name, x.info)
+                return
+            r.append(self.stack.pop())
+        self.stack.append(Value(r))
+        self.map_depth -= 1
+        self.ip = target
+
+    def MAPD(self):
+        self.ip += 1
+        target, self.ip = get_vint(self.object.code, self.ip)
+        start = self.ip
+        self.map_depth += 1
+        d = self.stack.pop().value
+        r = {}
+        for k, v in d.items():
+            self.stack.append(v)
+            callbreak = len(self.callstack)
+            self.callstack.append((None, start))
+            try:
+                while len(self.callstack) > callbreak:
+                    Dispatch[ord(self.object.code[self.ip])](self)
+            except InternalException as x:
+                self.callstack.pop()
+                self.map_depth -= 1
+                self.raise_literal(x.name, x.info)
+                return
+            r[k] = self.stack.pop()
+        self.stack.append(Value(r))
+        self.map_depth -= 1
+        self.ip = target
+
     def raise_literal(self, name, info):
+        if self.map_depth > 0:
+            raise InternalException(name, info)
+
         exceptionvar = [
             Value(name),
             Value(info[0]),
@@ -883,6 +963,8 @@ Dispatch = [
     Executor.PUSHM,
     Executor.CALLV,
     Executor.PUSHCI,
+    Executor.MAPA,
+    Executor.MAPD,
 ]
 
 def neon_array__append(self):
@@ -962,9 +1044,13 @@ def neon_array__splice(self):
 
 def neon_array__toBytes__number(self):
     a = self.stack.pop().value
-    self.stack.append(Value("".join(chr(int(x.value)) for x in a)))
+    self.stack.append(Value(Bytes("".join(chr(int(x.value)) for x in a))))
 
 def neon_array__toString__number(self):
+    a = self.stack.pop().value
+    self.stack.append(Value("[{}]".format(", ".join(str(x.value) for x in a))))
+
+def neon_array__toString__object(self):
     a = self.stack.pop().value
     self.stack.append(Value("[{}]".format(", ".join(str(x.value) for x in a))))
 
@@ -978,7 +1064,7 @@ def neon_boolean__toString(self):
 
 def neon_bytes__decodeToString(self):
     b = self.stack.pop().value
-    self.stack.append(Value(str(b)))
+    self.stack.append(Value(b.s))
 
 def neon_bytes__range(self):
     last_from_end = self.stack.pop().value
@@ -987,14 +1073,14 @@ def neon_bytes__range(self):
     first = int(self.stack.pop().value)
     b = self.stack.pop().value
     if first_from_end:
-        first += len(b) - 1
+        first += len(b.s) - 1
     if last_from_end:
-        last += len(b) - 1
-    self.stack.append(Value(b[first:last+1]))
+        last += len(b.s) - 1
+    self.stack.append(Value(Bytes(b.s[first:last+1])))
 
 def neon_bytes__size(self):
     b = self.stack.pop().value
-    self.stack.append(Value(decimal.Decimal(len(b))))
+    self.stack.append(Value(decimal.Decimal(len(b.s))))
 
 def neon_bytes__splice(self):
     last_from_end = self.stack.pop().value
@@ -1004,19 +1090,19 @@ def neon_bytes__splice(self):
     a = self.stack.pop().value
     b = self.stack.pop().value
     if first_from_end:
-        first += len(a) - 1
+        first += len(a.s) - 1
     if last_from_end:
-        last += len(a) - 1
-    r = a[:first] + b + a[last+1:]
-    self.stack.append(Value(r))
+        last += len(a.s) - 1
+    r = a.s[:first] + b.s + a.s[last+1:]
+    self.stack.append(Value(Bytes(r)))
 
 def neon_bytes__toArray(self):
     b = self.stack.pop().value
-    self.stack.append(Value([Value(decimal.Decimal(ord(x))) for x in b]))
+    self.stack.append(Value([Value(decimal.Decimal(ord(x))) for x in b.s]))
 
 def neon_bytes__toString(self):
     b = self.stack.pop().value
-    self.stack.append(Value("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(ord(x)) for x in b))))
+    self.stack.append(Value("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(ord(x)) for x in b.s))))
 
 def neon_chr(self):
     n = self.stack.pop().value
@@ -1030,7 +1116,7 @@ def neon_concat(self):
 def neon_concatBytes(self):
     b = self.stack.pop().value
     a = self.stack.pop().value
-    self.stack.append(Value(a + b))
+    self.stack.append(Value(Bytes(a.s + b.s)))
 
 def neon_dictionary__keys(self):
     d = self.stack.pop().value
@@ -1056,6 +1142,98 @@ def neon_num(self):
 
 def neon_number__toString(self):
     neon_str(self)
+
+def neon_object__getArray(self):
+    v = self.stack.pop().value
+    if not isinstance(v, list):
+        self.raise_literal("DynamicConversionException", ("to Array", 0))
+        return
+    self.stack.append(Value(v))
+
+def neon_object__getBoolean(self):
+    v = self.stack.pop().value
+    if not isinstance(v, bool):
+        self.raise_literal("DynamicConversionException", ("to Boolean", 0))
+        return
+    self.stack.append(Value(v))
+
+def neon_object__getBytes(self):
+    v = self.stack.pop().value
+    if not isinstance(v, Bytes):
+        self.raise_literal("DynamicConversionException", ("to Bytes", 0))
+        return
+    self.stack.append(Value(v))
+
+def neon_object__getDictionary(self):
+    v = self.stack.pop().value
+    if not isinstance(v, dict):
+        self.raise_literal("DynamicConversionException", ("to Dictionary", 0))
+        return
+    self.stack.append(Value(v))
+
+def neon_object__getNumber(self):
+    v = self.stack.pop().value
+    if not isinstance(v, decimal.Decimal):
+        self.raise_literal("DynamicConversionException", ("to Number", 0))
+        return
+    self.stack.append(Value(v))
+
+def neon_object__getString(self):
+    v = self.stack.pop().value
+    if not isinstance(v, str):
+        self.raise_literal("DynamicConversionException", ("to String", 0))
+        return
+    self.stack.append(Value(v))
+
+def neon_object__isNull(self):
+    v = self.stack.pop().value
+    self.stack.append(Value(v is None))
+
+def neon_object__makeArray(self):
+    v = self.stack.pop().value
+    self.stack.append(Value(v))
+
+def neon_object__makeBoolean(self):
+    v = self.stack.pop().value
+    self.stack.append(Value(v))
+
+def neon_object__makeBytes(self):
+    v = self.stack.pop().value
+    self.stack.append(Value(v))
+
+def neon_object__makeDictionary(self):
+    v = self.stack.pop().value
+    self.stack.append(Value(v))
+
+def neon_object__makeNull(self):
+    self.stack.append(Value(None))
+
+def neon_object__makeNumber(self):
+    v = self.stack.pop().value
+    self.stack.append(Value(v))
+
+def neon_object__makeString(self):
+    v = self.stack.pop().value
+    self.stack.append(Value(v))
+
+def neon_object__subscript(self):
+    i = self.stack.pop().value
+    v = self.stack.pop().value
+    if isinstance(v, list):
+        self.stack.append(v[int(i)])
+    elif isinstance(v, dict):
+        self.stack.append(v[i])
+    else:
+        assert False, v
+
+def neon_object__toString(self):
+    v = self.stack.pop().value
+    if isinstance(v, list):
+        self.stack.append(Value("[{}]".format(", ".join(x.literal() for x in v))))
+    elif isinstance(v, dict):
+        self.stack.append(Value("{{{}}}".format(", ".join("{}: {}".format(quoted(k), x.literal()) for k, x in sorted(v.items())))))
+    else:
+        self.stack.append(Value(v.literal()))
 
 def neon_ord(self):
     s = self.stack.pop().value
@@ -1116,7 +1294,7 @@ def neon_string__substring(self):
 
 def neon_string__toBytes(self):
     s = self.stack.pop().value
-    self.stack.append(Value(s))
+    self.stack.append(Value(Bytes(s)))
 
 def neon_substring(self):
     length = int(self.stack.pop().value)
