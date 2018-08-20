@@ -84,11 +84,6 @@ ExcludeTests = [
     "t/net-test.neon",              # import
     "t/new-init-module.neon",       # module
     "t/number-ceil.neon",           # math
-    "t/object.neon",                # object
-    "t/object-isa.neon",            # object
-    "t/object-isa-case.neon",       # object
-    "t/object-null.neon",           # object
-    "t/object-operator.neon",       # object
     "t/os-test.neon",               # os
     "t/outer-issue192.neon",        # PUSHPOL
     "t/outer-parameter.neon",       # PUSHPOL

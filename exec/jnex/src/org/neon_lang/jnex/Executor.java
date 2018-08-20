@@ -28,6 +28,7 @@ class Executor {
         predefined.put("array__splice", this::array__splice);
         predefined.put("array__toBytes__number", this::array__toBytes__number);
         predefined.put("array__toString__number", this::array__toString__number);
+        predefined.put("array__toString__object", this::array__toString__object);
         predefined.put("boolean__toString", this::boolean__toString);
         predefined.put("bytes__decodeToString", this::bytes__decodeToString);
         predefined.put("bytes__range", this::bytes__range);
@@ -39,6 +40,22 @@ class Executor {
         predefined.put("concat", this::concat);
         predefined.put("dictionary__keys", this::dictionary__keys);
         predefined.put("number__toString", this::number__toString);
+        predefined.put("object__getArray", this::object__getArray);
+        predefined.put("object__getBoolean", this::object__getBoolean);
+        predefined.put("object__getBytes", this::object__getBytes);
+        predefined.put("object__getDictionary", this::object__getDictionary);
+        predefined.put("object__getNumber", this::object__getNumber);
+        predefined.put("object__getString", this::object__getString);
+        predefined.put("object__isNull", this::object__isNull);
+        predefined.put("object__makeArray", this::object__makeArray);
+        predefined.put("object__makeBoolean", this::object__makeBoolean);
+        predefined.put("object__makeBytes", this::object__makeBytes);
+        predefined.put("object__makeDictionary", this::object__makeDictionary);
+        predefined.put("object__makeNull", this::object__makeNull);
+        predefined.put("object__makeNumber", this::object__makeNumber);
+        predefined.put("object__makeString", this::object__makeString);
+        predefined.put("object__subscript", this::object__subscript);
+        predefined.put("object__toString", this::object__toString);
         predefined.put("ord", this::ord);
         predefined.put("print", this::print);
         predefined.put("str", this::number__toString);
@@ -62,7 +79,12 @@ class Executor {
     void run()
     {
         callstack.addFirst(object.code.size());
-        while (ip < object.code.size()) {
+        execLoop(0);
+    }
+
+    void execLoop(int min_callstack_depth)
+    {
+        while (callstack.size() > min_callstack_depth && ip < object.code.size()) {
             //System.err.println("ip=" + ip + " op=" + opcodes[object.code.get(ip)]);
             //for (Cell c: stack) { System.err.println("  " + c); }
             switch (opcodes[object.code.get(ip)]) {
@@ -85,7 +107,7 @@ class Executor {
                 case LOADA: doLOADA(); break;
                 case LOADD: doLOADD(); break;
                 case LOADP: doLOADP(); break;
-                //case LOADJ
+                case LOADJ: doLOADJ(); break;
                 case STOREB: doSTOREB(); break;
                 case STOREN: doSTOREN(); break;
                 case STORES: doSTORES(); break;
@@ -93,7 +115,7 @@ class Executor {
                 case STOREA: doSTOREA(); break;
                 case STORED: doSTORED(); break;
                 case STOREP: doSTOREP(); break;
-                //case STOREJ
+                case STOREJ: doSTOREJ(); break;
                 case NEGN: doNEGN(); break;
                 case ADDN: doADDN(); break;
                 case SUBN: doSUBN(); break;
@@ -101,8 +123,8 @@ class Executor {
                 case DIVN: doDIVN(); break;
                 case MODN: doMODN(); break;
                 case EXPN: doEXPN(); break;
-                //case EQB
-                //case NEB
+                case EQB: doEQB(); break;
+                case NEB: doNEB(); break;
                 case EQN: doEQN(); break;
                 case NEN: doNEN(); break;
                 case LTN: doLTN(); break;
@@ -167,6 +189,8 @@ class Executor {
                 //case PUSHM
                 //case CALLV
                 case PUSHCI: doPUSHCI(); break;
+                case MAPA: doMAPA(); break;
+                case MAPD: doMAPD(); break;
                 default:
                     System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
                     System.exit(1);
@@ -323,6 +347,13 @@ class Executor {
         stack.addFirst(new Cell(addr.getAddress()));
     }
 
+    private void doLOADJ()
+    {
+        ip++;
+        Cell addr = stack.removeFirst().getAddress();
+        stack.addFirst(new Cell(addr.getObject()));
+    }
+
     private void doSTOREB()
     {
         ip++;
@@ -376,6 +407,14 @@ class Executor {
         ip++;
         Cell addr = stack.removeFirst().getAddress();
         Cell val = stack.removeFirst().getAddress();
+        addr.set(val);
+    }
+
+    private void doSTOREJ()
+    {
+        ip++;
+        Cell addr = stack.removeFirst().getAddress();
+        NeObject val = stack.removeFirst().getObject();
         addr.set(val);
     }
 
@@ -435,7 +474,39 @@ class Executor {
         ip++;
         BigDecimal b = stack.removeFirst().getNumber();
         BigDecimal a = stack.removeFirst().getNumber();
+        try {
+            int p = b.intValue();
+            if (p >= 0) {
+                BigDecimal r = BigDecimal.ONE;
+                while (p != 0) {
+                    if ((p & 1) != 0) {
+                        r = r.multiply(a);
+                    }
+                    a = a.multiply(a);
+                    p >>= 1;
+                }
+                stack.addFirst(new Cell(r));
+                return;
+            }
+        } catch (ArithmeticException x) {
+        }
         stack.addFirst(new Cell(BigDecimalMath.pow(a, b)));
+    }
+
+    private void doEQB()
+    {
+        ip++;
+        boolean b = stack.removeFirst().getBoolean();
+        boolean a = stack.removeFirst().getBoolean();
+        stack.addFirst(new Cell(a == b));
+    }
+
+    private void doNEB()
+    {
+        ip++;
+        boolean b = stack.removeFirst().getBoolean();
+        boolean a = stack.removeFirst().getBoolean();
+        stack.addFirst(new Cell(a != b));
     }
 
     private void doEQN()
@@ -841,6 +912,58 @@ class Executor {
         System.exit(1);
     }
 
+    private void doMAPA()
+    {
+        ip++;
+        int target = getVint();
+        final int start = ip;
+        mapDepth++;
+        List<Cell> a = stack.removeFirst().getArray();
+        List<Cell> r = new ArrayList<Cell>();
+        for (Cell x: a) {
+            stack.addFirst(x);
+            callstack.addFirst(start);
+            try {
+                execLoop(callstack.size() - 1);
+            } catch (InternalException ix) {
+                callstack.removeFirst();
+                mapDepth--;
+                raiseLiteral(ix.name, ix.info);
+                return;
+            }
+            r.add(stack.removeFirst());
+        }
+        stack.addFirst(new Cell(r));
+        mapDepth--;
+        ip = target;
+    }
+
+    private void doMAPD()
+    {
+        ip++;
+        int target = getVint();
+        final int start = ip;
+        mapDepth++;
+        Map<String, Cell> d = stack.removeFirst().getDictionary();
+        Map<String, Cell> r = new TreeMap<String, Cell>();
+        for (Map.Entry<String, Cell> x: d.entrySet()) {
+            stack.addFirst(x.getValue());
+            callstack.addFirst(start);
+            try {
+                execLoop(callstack.size() - 1);
+            } catch (InternalException ix) {
+                callstack.removeFirst();
+                mapDepth--;
+                raiseLiteral(ix.name, ix.info);
+                return;
+            }
+            r.put(x.getKey(), stack.removeFirst());
+        }
+        stack.addFirst(new Cell(r));
+        mapDepth--;
+        ip = target;
+    }
+
     private void raiseLiteral(String name)
     {
         raiseLiteral(name, new ExceptionInfo());
@@ -855,6 +978,10 @@ class Executor {
 
     private void raiseLiteral(String name, ExceptionInfo info)
     {
+        if (mapDepth > 0) {
+            throw new InternalException(name, info);
+        }
+
         Cell exceptionvar = new Cell(new ArrayList<Cell>(Arrays.asList(
             new Cell(name),
             new Cell(info.info),
@@ -895,6 +1022,15 @@ class Executor {
     private class ExceptionInfo {
         String info = "";
         BigDecimal code = BigDecimal.valueOf(0);
+    }
+
+    private class InternalException extends RuntimeException {
+        InternalException(String name, ExceptionInfo info) {
+            this.name = name;
+            this.info = info;
+        }
+        String name;
+        ExceptionInfo info;
     }
 
     public enum Opcode {
@@ -999,6 +1135,8 @@ class Executor {
         PUSHM,
         CALLV,
         PUSHCI,
+        MAPA,
+        MAPD,
     }
 
     private interface GenericFunction {
@@ -1014,6 +1152,7 @@ class Executor {
     private ArrayDeque<Cell> stack;
     private Cell[] globals;
     private ArrayDeque<Cell[]> frames;
+    private int mapDepth;
 
     private void array__append()
     {
@@ -1106,6 +1245,23 @@ class Executor {
                 r.append(", ");
             }
             r.append(x.getNumber());
+        }
+        r.append("]");
+        stack.addFirst(new Cell(r.toString()));
+    }
+
+    private void array__toString__object()
+    {
+        List<Cell> a = stack.removeFirst().getArray();
+        StringBuilder r = new StringBuilder("[");
+        boolean first = true;
+        for (Cell x: a) {
+            if (first) {
+                first = false;
+            } else {
+                r.append(", ");
+            }
+            r.append(x.getObject().toString());
         }
         r.append("]");
         stack.addFirst(new Cell(r.toString()));
@@ -1229,6 +1385,181 @@ class Executor {
             }
         }
         stack.addFirst(new Cell(s));
+    }
+
+    private void object__getArray()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        List<NeObject> a = o.getArray();
+        if (a == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        List<Cell> r = new ArrayList<Cell>();
+        for (NeObject x: a) {
+            r.add(new Cell(x));
+        }
+        stack.addFirst(new Cell(r));
+    }
+
+    private void object__getBoolean()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        Boolean b = o.getBoolean();
+        if (b == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        stack.addFirst(new Cell(b));
+    }
+
+    private void object__getBytes()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        byte[] b = o.getBytes();
+        if (b == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        stack.addFirst(new Cell(b));
+    }
+
+    private void object__getDictionary()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        Map<String, NeObject> d = o.getDictionary();
+        if (d == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        Map<String, Cell> r = new TreeMap<String, Cell>();
+        for (Map.Entry<String, NeObject> x: d.entrySet()) {
+            r.put(x.getKey(), new Cell(x.getValue()));
+        }
+        stack.addFirst(new Cell(r));
+    }
+
+    private void object__getNumber()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        BigDecimal n = o.getNumber();
+        if (n == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        stack.addFirst(new Cell(n));
+    }
+
+    private void object__getString()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        String s = o.getString();
+        if (s == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        stack.addFirst(new Cell(s));
+    }
+
+    private void object__isNull()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        stack.addFirst(new Cell(o == null));
+    }
+
+    private void object__makeArray()
+    {
+        List<Cell> a = stack.removeFirst().getArray();
+        List<NeObject> r = new ArrayList<NeObject>();
+        for (Cell x: a) {
+            r.add(x.getObject());
+        }
+        stack.addFirst(new Cell(new NeObjectArray(r)));
+    }
+
+    private void object__makeBoolean()
+    {
+        boolean b = stack.removeFirst().getBoolean();
+        stack.addFirst(new Cell(new NeObjectBoolean(b)));
+    }
+
+    private void object__makeBytes()
+    {
+        byte[] b = stack.removeFirst().getBytes();
+        stack.addFirst(new Cell(new NeObjectBytes(b)));
+    }
+
+    private void object__makeDictionary()
+    {
+        Map<String, Cell> d = stack.removeFirst().getDictionary();
+        Map<String, NeObject> r = new TreeMap<String, NeObject>();
+        for (Map.Entry<String, Cell> x: d.entrySet()) {
+            r.put(x.getKey(), x.getValue().getObject());
+        }
+        stack.addFirst(new Cell(new NeObjectDictionary(r)));
+    }
+
+    private void object__makeNull()
+    {
+        stack.addFirst(new Cell((NeObject)null));
+    }
+
+    private void object__makeNumber()
+    {
+        BigDecimal n = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(new NeObjectNumber(n)));
+    }
+
+    private void object__makeString()
+    {
+        String s = stack.removeFirst().getString();
+        stack.addFirst(new Cell(new NeObjectString(s)));
+    }
+
+    private void object__subscript()
+    {
+        NeObject i = stack.removeFirst().getObject();
+        NeObject o = stack.removeFirst().getObject();
+        if (o == null) {
+            raiseLiteral("DynamicConversionException");
+            return;
+        }
+        NeObject r = o.subscript(i);
+        if (r == null) {
+            raiseLiteral("ObjectSubscriptException");
+            return;
+        }
+        stack.addFirst(new Cell(r));
+    }
+
+    private void object__toString()
+    {
+        NeObject o = stack.removeFirst().getObject();
+        stack.addFirst(new Cell(o.toString()));
     }
 
     private void ord()

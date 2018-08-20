@@ -40,6 +40,12 @@ class Cell {
         bytes = b;
     }
 
+    Cell(NeObject o)
+    {
+        type = Type.OBJECT;
+        object = o;
+    }
+
     Cell(List<Cell> a)
     {
         type = Type.ARRAY;
@@ -67,6 +73,7 @@ class Cell {
         r.num = num;
         r.str = str;
         r.bytes = bytes;
+        r.object = object;
         r.array = array; // TODO copy
         r.dictionary = dictionary; // TODO copy
         r.generic = generic;
@@ -106,6 +113,12 @@ class Cell {
     {
         assert type == Type.BYTES : type;
         return bytes;
+    }
+
+    public NeObject getObject()
+    {
+        assert type == Type.OBJECT : type;
+        return object;
     }
 
     public List<Cell> getArray()
@@ -171,6 +184,15 @@ class Cell {
         bytes = b;
     }
 
+    public void set(NeObject o)
+    {
+        if (type == Type.NONE) {
+            type = Type.OBJECT;
+        }
+        assert type == Type.OBJECT : type;
+        object = o;
+    }
+
     public void set(List<Cell> a)
     {
         if (type == Type.NONE) {
@@ -209,6 +231,9 @@ class Cell {
                 break;
             case BYTES:
                 r.append("bytes:" + bytes);
+                break;
+            case OBJECT:
+                r.append("object:" + (object != null ? object.toString() : "null"));
                 break;
             case ARRAY: {
                 r.append("array:[");
@@ -266,6 +291,7 @@ class Cell {
         NUMBER,
         STRING,
         BYTES,
+        OBJECT,
         ARRAY,
         DICTIONARY,
         GENERIC,
@@ -277,6 +303,7 @@ class Cell {
     private BigDecimal num;
     private String str;
     private byte[] bytes;
+    private NeObject object;
     private List<Cell> array;
     private Map<String, Cell> dictionary;
     private Object[] generic;
