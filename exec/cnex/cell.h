@@ -29,7 +29,7 @@ typedef struct tagTCell {
 
 Cell *cell_createAddressCell(Cell *a);
 Cell *cell_createArrayCell(size_t elements);
-Cell *cell_createDictionaryCell(size_t elements);
+Cell *cell_createDictionaryCell(void);
 Cell *cell_createStringCell(size_t size);
 
 Cell *cell_newCell(void);
@@ -62,5 +62,9 @@ Cell *cell_arrayIndexForWrite(Cell *c, size_t i);
 void cell_arrayAppendElement(Cell *c, const Cell e);
 BOOL cell_arrayElementExists(const Cell *a, const Cell *e);
 Cell *cell_arrayForWrite(Cell *c);
+
+
+Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key);
+Cell *cell_dictionaryIndexForRead(Cell *c, struct tagTString *key);
 
 #endif

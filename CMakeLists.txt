@@ -126,6 +126,7 @@ add_executable(cnex
     exec/cnex/bytecode.c
     exec/cnex/cell.c
     exec/cnex/cnex.c
+    exec/cnex/dictionary.c
     exec/cnex/framestack.c
     exec/cnex/global.c
     exec/cnex/nstring.c
@@ -134,7 +135,7 @@ add_executable(cnex
     exec/cnex/util.c
 )
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99")
+    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
 endif ()
 target_link_libraries(cnex
     bid

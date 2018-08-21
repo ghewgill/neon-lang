@@ -9,6 +9,11 @@
 
 #include "cell.h"
 
+
+/*
+ * Number / string functions
+ */
+
 char *number_to_string(Number x)
 {
     static char buf[50];
@@ -21,11 +26,10 @@ char *number_to_string(Number x)
 /* ToDo: Implement proper number to string formatter. */
 void number_toString(Number x, char *buf, size_t len)
 {
-    const int PRECISION = 34;
+    //const int PRECISION = 34; /* ToDo: Finish implementation */
     int iLeadingZeros = 0;
 
-    len = len;
-    PRECISION;
+    assert(len != 0);
 
     char val[50];
     char lead[50];
@@ -57,6 +61,16 @@ void number_toString(Number x, char *buf, size_t len)
     *E = '\0';
     strcat(buf, v);
 }
+
+Number number_from_string(char *s)
+{
+    return bid128_from_string(s);
+}
+
+
+/*
+ * Number math functions
+ */
 
 Number number_modulo(Number x, Number y)
 {
@@ -117,19 +131,34 @@ Number number_from_sint64(int64_t x)
     return bid128_from_int64(x);
 }
 
+
+/*
+ * Number comparison functions
+ */
+
+BOOL number_is_equal(Number x, Number y)
+{
+    return bid128_quiet_equal(x, y);
+}
+
+//#define __NUMBER_TESTS
 #ifdef __NUMBER_TESTS
 void main()
 {
-    assert(number_to_string(number_from_string("1234.5678e5")) == "123456780");
-    assert(number_to_string(number_from_string("1234.5678e4")) == "12345678");
-    assert(number_to_string(number_from_string("1234.5678e3")) == "1234567.8");
-    assert(number_to_string(number_from_string("1234.5678e2")) == "123456.78");
-    assert(number_to_string(number_from_string("1234.5678e1")) == "12345.678");
-    assert(number_to_string(number_from_string("1234.5678e0")) == "1234.5678");
-    assert(number_to_string(number_from_string("1234.5678e-1")) == "123.45678");
-    assert(number_to_string(number_from_string("1234.5678e-2")) == "12.345678");
-    assert(number_to_string(number_from_string("1234.5678e-3")) == "1.2345678");
-    assert(number_to_string(number_from_string("1234.5678e-4")) == "0.12345678");
-    assert(number_to_string(number_from_string("1234.5678e-5")) == "0.012345678");
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e5")), "123456780") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e4")), "12345678") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e3")), "1234567.8") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e2")), "123456.78") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e1")), "12345.678") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e0")), "1234.5678") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e-1")), "123.45678") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e-2")), "12.345678") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e-3")), "1.2345678") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e-4")), "0.12345678") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234.5678e-5")), "0.012345678") == 0);
+
+    assert(strcasecmp(number_to_string(number_from_string("123.45")),      number_to_string(number_from_string("123.45"))) == 0);
+    assert(strcasecmp(number_to_string(number_from_string("12.345")),      number_to_string(number_from_string("123.45"))) != 0);
+    assert(strcasecmp(number_to_string(number_from_string("1234567890")),  number_to_string(number_from_string("1234567890"))) == 0);
 }
 #endif

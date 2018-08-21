@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,13 +95,23 @@ TString *string_fromString(TString *s)
 
 int string_compareString(TString *lhs, TString *rhs)
 {
-    if (lhs->length > rhs->length) {
-        return 1;
-    } else if (lhs->length < rhs->length) {
-        return -1;
-    }
+    int r = 0;
+    uint64_t size = lhs->length;
 
-    return memcmp(lhs->data, rhs->data, lhs->length);
+    if (lhs->length > rhs->length) {
+        size = rhs->length;
+    } else if (lhs->length < rhs->length) {
+        size = lhs->length;
+    } 
+    r = memcmp(lhs->data, rhs->data, size);
+    if (r == 0) {
+        if (lhs->length > rhs->length) {
+            return 1;
+        } else if (lhs->length < rhs->length) {
+            return -1;
+        }
+    }
+    return r;
 }
 
 BOOL string_isEmpty(TString *s)
@@ -152,6 +161,9 @@ TString *string_appendString(TString *s, TString *ns)
 char *string_asCString(TString *s)
 {
     char *r = malloc(s->length + 1);
+    if (r == NULL) {
+        fatal_error("Could not allocate memory for C-String buffer.");
+    }
     /* ToDo: Walk buffer, escape any NUL's that might exist? */
     memcpy(r, s->data, s->length);
     r[s->length] = '\0'; /* NUL terminate the string. */
@@ -177,6 +189,9 @@ char *tprintf(char *dest, TString *s)
         return "";
     }
     char *d = malloc(s->length + 1);
+    if (d == NULL) {
+        fatal_error("Could not allocate %d bytes of memory for tprintf()", s->length + 1);
+    }
     memcpy(d, s->data, s->length);
     d[s->length] = '\0';
     snprintf(dest, TSTR_N, "%s", d);

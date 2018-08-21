@@ -21,11 +21,6 @@ void ord(struct tagTExecutor *exec);
 
 
 
-/* file.neon functions */
-void file_copy(struct tagTExecutor *exec);
-void file_delete(struct tagTExecutor *exec);
-
-
 /* io.neon functions */
 void io_fprint(struct tagTExecutor *exec);
 
@@ -53,6 +48,8 @@ void bytes__size(struct tagTExecutor *exec);
 void bytes__splice(struct tagTExecutor *exec);
 void bytes__toArray(struct tagTExecutor *exec);
 void bytes__toString(struct tagTExecutor *exec);
+
+void dictionary__keys(struct tagTExecutor *exec);
 
 void number__toString(struct tagTExecutor *exec);
 
