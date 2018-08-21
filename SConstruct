@@ -34,13 +34,13 @@ coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darw
 # on non-windows platforms, because windows users may set Git to
 # use crlf line endings.
 if sys.platform != "nt":
-    for subdir in ["contrib", "gh-pages", "lib", "samples", "scripts", "src", "t", "tests", "tools"]:
-        for path, files, dirs in os.walk(subdir):
+    for subdir in ["contrib", "exec", "gh-pages", "lib", "samples", "scripts", "src", "t", "tests", "tools"]:
+        for path, dirs, files in os.walk(subdir):
             for fn in files:
-                if fn.endswith((".cpp", ".neon", ".txt", ".md")):
+                if fn.endswith((".cpp", ".c", ".h", ".neon", ".txt", ".java", ".py", ".md")):
                     with open(os.path.join(path, fn), "rb") as f:
                         data = f.read()
-                        assert "\r\n" not in data, fn
+                        assert "\r\n" not in data, os.path.join(path, fn)
 
 env = Environment()
 
