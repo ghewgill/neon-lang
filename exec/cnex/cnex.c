@@ -10,7 +10,6 @@
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <time.h>
 #ifndef __MS_HEAP_DBG
 #include <stdlib.h>
 #endif
@@ -18,6 +17,7 @@
 
 #include "bytecode.h"
 #include "cell.h"
+#include "dictionary.h"
 #include "exec.h"
 #include "global.h"
 #include "framestack.h"
@@ -27,17 +27,16 @@
 #include "nstring.h"
 #include "util.h"
 
-#define EXECUTOR_DEBUG_OUTPUT       TRUE
-
 
 typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
+    BOOL ExecutorDisassembly;
     BOOL EnableAssertions;
     char *pszFilename;
     char *pszExecutableName;
 } TOptions;
 
-static TOptions gOptions = { FALSE, TRUE, NULL, NULL };
+static TOptions gOptions = { FALSE, FALSE, TRUE, NULL, NULL };
 
 void exec_freeExecutor(TExecutor *e)
 {
@@ -47,14 +46,12 @@ void exec_freeExecutor(TExecutor *e)
         cell_clearCell(&e->globals[i]);
     }
     free(e->globals);
+    assert(isEmpty(e->stack));
     destroyStack(e->stack);
     free(e->stack);
     framestack_destroyFrameStack(e->framestack);
     free(e->framestack);
     free(e->module);
-
-    bytecode_freeBytecode(e->object);
-
     free(e);
 }
 
@@ -66,6 +63,7 @@ void showUsage(void)
     fprintf(stderr, "   %s [options] program.neonx\n", gOptions.pszExecutableName);
     fprintf(stderr, "\n Where [options] is one or more of the following:\n");
     fprintf(stderr, "     -d       Display executor debug stats.\n");
+    fprintf(stderr, "     -D       Display executor disassembly during run.\n");
     fprintf(stderr, "     -h       Display this help screen.\n");
     fprintf(stderr, "     -n       No Assertions\n");
 }
@@ -75,13 +73,18 @@ BOOL ParseOptions(int argc, char* argv[])
     BOOL Retval = FALSE;
     for (int nIndex = 1; nIndex < argc; nIndex++) {
         if (*argv[nIndex] == '-') {
-            if(argv[nIndex][1] == 'H' || argv[nIndex][1] == 'h' || argv[nIndex][1] == '?' || ((argv[nIndex][1] == '-' && argv[nIndex][2] != '\0') && (argv[nIndex][2] == 'H' || argv[nIndex][2] == 'h'))) {
+            if(argv[nIndex][1] == 'h' || argv[nIndex][1] == '?' || ((argv[nIndex][1] == '-' && argv[nIndex][2] != '\0') && (argv[nIndex][2] == 'h'))) {
                 showUsage();
                 exit(1);
-            } else if (argv[nIndex][1] == 'D' || argv[nIndex][1] == 'd') {
+            } else if (argv[nIndex][1] == 'D') {
+                gOptions.ExecutorDisassembly = TRUE;
+            } else if (argv[nIndex][1] == 'd') {
                 gOptions.ExecutorDebugStats = TRUE;
-            } else if (argv[nIndex][1] == 'N' || argv[nIndex][1] == 'n') {
+            } else if (argv[nIndex][1] == 'n') {
                 gOptions.EnableAssertions = FALSE;
+            } else {
+                printf("Unknown option %s\n", argv[nIndex]);
+                return FALSE;
             }
         } else {
             Retval = TRUE;
@@ -116,7 +119,7 @@ int main(int argc, char* argv[])
     /* ToDo: Remove this!  This is only for debugging. */
     /* gOptions.ExecutorDebugStats = TRUE; */
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetBreakAlloc(107);
+    _CrtSetBreakAlloc(143);
 #endif
     if (!ParseOptions(argc, argv)) {
         return 3;
@@ -152,7 +155,7 @@ int main(int argc, char* argv[])
                         "Opstack Height         : %d\n"
                         "Max Callstack Height   : %" PRIu32 "\n"
                         "CallStack Height       : %" PRId32 "\n"
-                        "Global Size            : %" PRIu16 "\n"
+                        "Global Size            : %" PRIu32 "\n"
                         "Max Framesets          : %d\n"
                         "Execution Time         : %fms\n",
                         exec->diagnostics.total_opcodes,
@@ -167,6 +170,8 @@ int main(int argc, char* argv[])
     }
 
     exec_freeExecutor(exec);
+    bytecode_freeBytecode(pModule);
+
     free(bytecode);
 
     return 0;
@@ -200,11 +205,12 @@ TExecutor *exec_newExecutor(TBytecode *object)
     r->callstacktop = -1;
     r->param_recursion_limit = 1000;
     r->enable_assert = TRUE;
-    r->debug = EXECUTOR_DEBUG_OUTPUT;
+    r->debug = gOptions.ExecutorDebugStats;
+    r->disassemble = gOptions.ExecutorDisassembly;
     r->framestack = framestack_createFrameStack(r->param_recursion_limit);
     r->globals = malloc(sizeof(Cell) * r->object->global_size);
     if (r->globals == NULL) {
-        fatal_error("Failed to allocate memory for global variables.");
+        fatal_error("Failed to allocate memory for global storage.");
     }
     for (i = 0; i < r->object->global_size; i++) {
         cell_resetCell(&r->globals[i]);
@@ -231,12 +237,12 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
 {
     Cell *exceptionvar = cell_createArrayCell(4);
     cell_setString(&exceptionvar->array[0], string_fromString(name));
-    cell_setString(&exceptionvar->array[1], string_fromString(info));
+    cell_setString(&exceptionvar->array[1], info);
     cell_setNumber(&exceptionvar->array[2], code);
     cell_setNumber(&exceptionvar->array[3], number_from_uint64(self->ip));
     uint64_t tip = self->ip;
     uint32_t sp = self->callstacktop;
-    while (1) {
+    for (;;) {
         uint64_t i;
         for (i = 0; i < self->object->exceptionsize; i++) {
             if ((self->object->exceptions[i].start <= tip) && (tip < self->object->exceptions[i].end)) {
@@ -268,7 +274,6 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
 
     exec_raiseLiteral(self, n, i, code);
     string_freeString(n);
-    string_freeString(i);
 }
 
 static unsigned int exec_getOperand(TExecutor *self)
@@ -279,16 +284,16 @@ static unsigned int exec_getOperand(TExecutor *self)
 void exec_ENTER(TExecutor *self)
 {
     self->ip++;
-    unsigned int nest = exec_getOperand(self);
-    nest = nest; /* ToDo: Please remove! */
+    // ToDo: Fix function nesting
+    //unsigned int nest = exec_getOperand(self);
+    exec_getOperand(self); // Keep the operand stack aligned properly.
     unsigned int val = exec_getOperand(self);
 
     framestack_pushFrame(self->framestack, frame_createFrame(val));
-    /* ToDo: Implement Activiation frame support
+    /* ToDo: Implement Activiation frame support */
     //add(frame_newFrame(val));
     //nested_frames.resize(nest-1);
     //nested_frames.push_back(&frames.back());
-    */
 }
 
 void exec_LEAVE(TExecutor *self)
@@ -308,7 +313,7 @@ void exec_PUSHN(TExecutor *self)
 {
     self->ip++;
     unsigned int val = exec_getOperand(self);
-    push(self->stack, cell_fromNumber(bid128_from_string(self->object->strings[val]->data)));
+    push(self->stack, cell_fromNumber(number_from_string(self->object->strings[val]->data)));
 }
 
 void exec_PUSHS(TExecutor *self)
@@ -336,13 +341,16 @@ void exec_PUSHPG(TExecutor *self)
 /* push pointer to predefined global */
 void exec_PUSHPPG(TExecutor *self)
 {
+    /* ToDo: Reimplement PUSHPPG opcode correctly. */
     self->ip++;
-    unsigned int addr = exec_getOperand(self);
+    fatal_error("PUSHPPG not implemented");
+    //unsigned int addr = exec_getOperand(self);
+    //addr=addr;
     /* assert(addr < self->object->global_variables->size); */
-    push(self->stack, cell_fromAddress(cell_newCell()));
+    //push(self->stack, cell_fromAddress(cell_newCell()));
 }
 
-void exec_PUSHPMG()
+void exec_PUSHPMG(void)
 {
     fatal_error("PUSHPMG not implemented");
 }
@@ -355,12 +363,12 @@ void exec_PUSHPL(TExecutor *self)
     push(self->stack, cell_fromAddress(&framestack_topFrame(self->framestack)->locals[addr]));
 }
 
-void exec_PUSHPOL()
+void exec_PUSHPOL(void)
 {
     fatal_error("exec_PUSHPOL not implemented");
 }
 
-void exec_PUSHI()
+void exec_PUSHI(void)
 {
     fatal_error("exec_PUSHI not implemented");
 }
@@ -402,8 +410,9 @@ void exec_LOADA(TExecutor *self)
 
 void exec_LOADD(TExecutor *self)
 {
-    self = self;
-    fatal_error("exec_LOADD not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromCell(addr));
 }
 
 void exec_LOADP(TExecutor *self)
@@ -448,9 +457,11 @@ void exec_STOREA(TExecutor *self)
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STORED()
+void exec_STORED(TExecutor *self)
 {
-    fatal_error("exec_STORED not implemented");
+    self->ip++;
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
 void exec_STOREP(TExecutor *self)
@@ -515,12 +526,12 @@ void exec_EXPN(TExecutor *self)
     push(self->stack, cell_fromNumber(bid128_pow(a, b)));
 }
 
-void exec_EQB()
+void exec_EQB(void)
 {
     fatal_error("exec_EQB not implemented");
 }
 
-void exec_NEB()
+void exec_NEB(void)
 {
     fatal_error("exec_NEB not implemented");
 }
@@ -705,42 +716,42 @@ void exec_GET(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_EQA()
+void exec_EQA(void)
 {
     fatal_error("exec_EQA not implemented");
 }
 
-void exec_NEA()
+void exec_NEA(void)
 {
     fatal_error("exec_NEA not implemented");
 }
 
-void exec_EQD()
+void exec_EQD(void)
 {
     fatal_error("exec_EQD not implemented");
 }
 
-void exec_NED()
+void exec_NED(void)
 {
     fatal_error("exec_NED not implemented");
 }
 
-void exec_EQP()
+void exec_EQP(void)
 {
     fatal_error("exec_EQP not implemented");
 }
 
-void exec_NEP()
+void exec_NEP(void)
 {
     fatal_error("exec_NEP not implemented");
 }
 
-void exec_ANDB()
+void exec_ANDB(void)
 {
     fatal_error("exec_ANDB not implemented");
 }
 
-void exec_ORB()
+void exec_ORB(void)
 {
     fatal_error("exec_ORB not implemented");
 }
@@ -842,19 +853,51 @@ void exec_INDEXAN(TExecutor *self)
     push(self->stack, val);
 }
 
-void exec_INDEXDR()
+void exec_INDEXDR(TExecutor *self)
 {
-    fatal_error("exec_INDEXDR not implemented");
+    self->ip++;
+    TString *index = string_fromString(top(self->stack)->string); pop(self->stack);
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    Cell *e = dictionary_findDictionaryEntry(addr->dictionary, index);
+    if (e == NULL) {
+        char *pszIndex = string_asCString(index);
+        self->rtl_raise(self, "DictionaryIndexException", pszIndex, BID_ZERO);
+        free(pszIndex);
+        string_freeString(index);
+        return;
+    }
+    push(self->stack, cell_fromAddress(cell_dictionaryIndexForRead(addr, index)));
+    string_freeString(index);
 }
 
-void exec_INDEXDW()
+void exec_INDEXDW(TExecutor *self)
 {
-    fatal_error("exec_INDEXDW not implemented");
+    self->ip++;
+    TString *index = string_fromString(top(self->stack)->string); pop(self->stack);
+    Cell *addr = top(self->stack)->address; pop(self->stack);
+    push(self->stack, cell_fromAddress(cell_dictionaryIndexForWrite(addr, index)));
+    //string_freeString(index);
 }
 
-void exec_INDEXDV()
+void exec_INDEXDV(TExecutor *self)
 {
-    fatal_error("exec_INDEXDV not implemented");
+    self->ip++;
+    TString *index = peek(self->stack, 0)->string;
+    Cell *dictionary = peek(self->stack, 1);
+    Cell *val = dictionary_findDictionaryEntry(dictionary->dictionary, index);
+    if (val == NULL) {
+        char *pszIndex = string_asCString(index);
+        self->rtl_raise(self, "DictionaryIndexException", pszIndex, BID_ZERO);
+        free(pszIndex);
+        pop(self->stack);
+        pop(self->stack);
+        return;
+    }
+
+    Cell *addr = cell_fromCell(val);
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, addr);
 }
 
 void exec_INA(TExecutor *self)
@@ -870,9 +913,17 @@ void exec_INA(TExecutor *self)
     push(self->stack, cell_fromBoolean(v));
 }
 
-void exec_IND()
+void exec_IND(TExecutor *self)
 {
-    fatal_error("exec_IND not implemented");
+    self->ip++;
+    Dictionary *dictionary = top(self->stack)->dictionary;
+    TString *key = peek(self->stack, 1)->string;
+
+    BOOL v = dictionary_findDictionaryEntry(dictionary, key) != NULL;
+
+    pop(self->stack);
+    pop(self->stack);
+    push(self->stack, cell_fromBoolean(v));
 }
 
 void exec_CALLP(TExecutor *self)
@@ -897,12 +948,12 @@ void exec_CALLF(TExecutor *self)
     self->ip = val;
 }
 
-void exec_CALLMF()
+void exec_CALLMF(void)
 {
     fatal_error("exec_CALLMF not implemented");
 }
 
-void exec_CALLI()
+void exec_CALLI(void)
 {
     fatal_error("exec_CALLI not implemented");
 }
@@ -975,7 +1026,7 @@ void exec_RET(TExecutor *self)
     self->ip = self->callstack[self->callstacktop--];
 }
 
-void exec_CALLE()
+void exec_CALLE(void)
 {
     fatal_error("exec_CALLE not implemented");
 }
@@ -998,9 +1049,15 @@ void exec_CONSD(TExecutor *self)
 {
     self->ip++;
     unsigned int val = exec_getOperand(self);
-    Cell *a = cell_createDictionaryCell(val);
+    Cell *d = cell_createDictionaryCell();
 
-    push(self->stack, a);
+    while (val > 0) {
+        Cell *value = cell_fromCell(top(self->stack)); pop(self->stack);
+        TString *key = string_fromString(top(self->stack)->string); pop(self->stack);
+        dictionary_addDictionaryEntry(d->dictionary, key, value);
+        val--;
+    }
+    push(self->stack, d);
 }
 
 void exec_EXCEPT(TExecutor *self)
@@ -1009,7 +1066,7 @@ void exec_EXCEPT(TExecutor *self)
     self->ip++;
     unsigned int val = exec_getOperand(self);
     self->ip = start_ip;
-    Cell *exinfo = cell_fromCell(top(self->stack)); pop(self->stack);
+    Cell *exinfo = top(self->stack);
     TString *info = NULL;
     Number code = BID_ZERO;
 
@@ -1020,11 +1077,11 @@ void exec_EXCEPT(TExecutor *self)
     if (size >= 2) {
         code = exinfo->array[1].number;
     }
-    cell_freeCell(exinfo);
+    pop(self->stack);
     exec_raiseLiteral(self, self->object->strings[val], info, code);
 }
 
-void exec_ALLOC()
+void exec_ALLOC(void)
 {
     fatal_error("exec_ALLOC not implemented");
 }
@@ -1051,42 +1108,42 @@ void exec_RESETC(TExecutor *self)
     cell_resetCell(addr);
 }
 
-void exec_PUSHPEG()
+void exec_PUSHPEG(void)
 {
     fatal_error("exec_PUSHPEG not implemented");
 }
 
-void exec_JUMPTBL()
+void exec_JUMPTBL(void)
 {
     fatal_error("exec_JUMPTBL not implemented");
 }
 
-void exec_CALLX()
+void exec_CALLX(void)
 {
     fatal_error("exec_CALLX not implemented");
 }
 
-void exec_SWAP()
+void exec_SWAP(void)
 {
     fatal_error("exec_SWAP not implemented");
 }
 
-void exec_DROPN()
+void exec_DROPN(void)
 {
     fatal_error("exec_DROPN not implemented");
 }
 
-void exec_PUSHM()
+void exec_PUSHM(void)
 {
     fatal_error("exec_PUSHM not implemented");
 }
 
-void exec_CALLV()
+void exec_CALLV(void)
 {
     fatal_error("exec_CALLV not implemented");
 }
 
-void exec_PUSHCI()
+void exec_PUSHCI(void)
 {
     fatal_error("exec_PUSHCI not implemented");
 }
@@ -1094,7 +1151,9 @@ void exec_PUSHCI()
 void exec_loop(struct tagTExecutor *self)
 {
     while (self->ip < self->object->codelen) {
-        //if (self->debug) { fprintf(stderr, "mod\t%s\tip:%d\top:\t%s\tst\t%d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); }
+        if (self->disassemble) { 
+            fprintf(stderr, "mod:%s\tip: %d\top: %s\tst: %d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); 
+        }
         switch (self->object->code[self->ip]) {
             case ENTER:   exec_ENTER(self); break;
             case LEAVE:   exec_LEAVE(self); break;
@@ -1120,7 +1179,7 @@ void exec_loop(struct tagTExecutor *self)
             case STORES:  exec_STORES(self); break;
             case STORET:  exec_STORET(self); break;
             case STOREA:  exec_STOREA(self); break;
-            case STORED:  exec_STORED(); break;
+            case STORED:  exec_STORED(self); break;
             case STOREP:  exec_STOREP(self); break;
             case NEGN:    exec_NEGN(self); break;
             case ADDN:    exec_ADDN(self); break;
@@ -1162,11 +1221,11 @@ void exec_loop(struct tagTExecutor *self)
             case INDEXAW: exec_INDEXAW(self); break;
             case INDEXAV: exec_INDEXAV(self); break;
             case INDEXAN: exec_INDEXAN(self); break;
-            case INDEXDR: exec_INDEXDR(); break;
-            case INDEXDW: exec_INDEXDW(); break;
-            case INDEXDV: exec_INDEXDV(); break;
+            case INDEXDR: exec_INDEXDR(self); break;
+            case INDEXDW: exec_INDEXDW(self); break;
+            case INDEXDV: exec_INDEXDV(self); break;
             case INA:     exec_INA(self); break;
-            case IND:     exec_IND(); break;
+            case IND:     exec_IND(self); break;
             case CALLP:   exec_CALLP(self); break;
             case CALLF:   exec_CALLF(self); break;
             case CALLMF:  exec_CALLMF(); break;

@@ -22,6 +22,7 @@ typedef struct tagTExecutor {
     struct tagTFrameStack *framestack;
     BOOL enable_assert;
     BOOL debug;
+    BOOL disassemble;
     void (*rtl_raise)(struct tagTExecutor *, const char *, const char *, Number);
     struct tagTModule *module;
 

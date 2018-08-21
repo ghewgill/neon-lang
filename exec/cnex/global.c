@@ -8,13 +8,13 @@
 #include <string.h>
 
 #include "cell.h"
+#include "dictionary.h"
 #include "exec.h"
 #include "number.h"
 #include "stack.h"
 #include "nstring.h"
 #include "util.h"
 
-//#include <windows.h>
 
 #define STRING_BUFFER_SIZE      120
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
@@ -26,9 +26,6 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("str",                       str),
     PDFUNC("strb",                      strb),
     PDFUNC("ord",                       ord),
-
-    PDFUNC("file$copy",                 file_copy),
-    PDFUNC("file$delete",               file_delete),
 
     PDFUNC("io$fprint",                 io_fprint),
 
@@ -54,6 +51,8 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("bytes__toArray",            bytes__toArray),
     PDFUNC("bytes__toString",           bytes__toString),
 
+    PDFUNC("dictionary__keys",          dictionary__keys),
+
     PDFUNC("number__toString",          number__toString),
 
     PDFUNC("string__append",            string__append),
@@ -73,25 +72,6 @@ static FILE *check_file(TExecutor *exec, void *pf)
         exec->rtl_raise(exec, "IoException_InvalidFile", "", BID_ZERO);
     }
     return f;
-}
-#define DWORD int32_t
-static void handle_error(TExecutor *exec, DWORD error, const char *path)
-{
-    //switch (error) {
-    //    case ERROR_ALREADY_EXISTS:      exec->rtl_raise(exec, "FileException_DirectoryExists", path, BID_ZERO);
-    //    case ERROR_ACCESS_DENIED:       exec->rtl_raise(exec, "FileException_PermissionDenied", path, BID_ZERO);
-    //    case ERROR_PATH_NOT_FOUND:      exec->rtl_raise(exec, "FileException_PathNotFound", path, BID_ZERO);
-    //    case ERROR_FILE_EXISTS:         exec->rtl_raise(exec, "FileException_Exists", path, BID_ZERO);
-    //    case ERROR_PRIVILEGE_NOT_HELD:  exec->rtl_raise(exec, "FileException_PermissionDenied", path, BID_ZERO);
-    //    default: {
-    //        TString *err = string_createCString(path);
-    //        string_appendCString(err, ": ");
-    //        string_appendCString(err, number_to_string(number_from_uint64(error)));
-    //        char *pszErr = string_asCString(err);
-    //        exec->rtl_raise(exec, "FileException", pszErr, BID_ZERO);
-    //        free(pszErr);
-    //    }
-    //}
 }
 
 void global_callFunction(const char *pszFunc, TExecutor *exec)
@@ -172,34 +152,6 @@ void ord(TExecutor *exec)
 }
 
 
-void file_copy(TExecutor *exec)
-{
-    char *destination = string_asCString(peek(exec->stack, 1)->string);
-    char *filename = string_asCString(peek(exec->stack, 0)->string);
-
-    //BOOL r = CopyFile(filename, destination, TRUE);
-    //if (!r) {
-    //    handle_error(exec, GetLastError(), destination);
-    //}
-    free(destination);
-    free(filename);
-    pop(exec->stack);
-    pop(exec->stack);
-}
-
-void file_delete(TExecutor *exec)
-{
-    char *filename = string_asCString(peek(exec->stack, 0)->string);
-
-    //BOOL r = DeleteFile(filename);
-    //if (!r) {
-    //    if (GetLastError() != ERROR_FILE_NOT_FOUND) {
-    //        handle_error(exec, GetLastError(), filename);
-    //    }
-    //}
-    pop(exec->stack);
-    free(filename);
-}
 
 
 
@@ -276,6 +228,7 @@ void array__extend(TExecutor *exec)
         cell_arrayAppendElement(array, elements->array[i]);
     }
     cell_freeCell(elements);
+    pop(exec->stack);
 }
 
 void array__resize(TExecutor *exec)
@@ -287,8 +240,12 @@ void array__resize(TExecutor *exec)
         exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size), BID_ZERO);
     }
 
+    size_t array_size = addr->array_size;
     addr->array_size = number_to_sint64(new_size);
     addr->array = realloc(addr->array, (sizeof(struct tagTCell) * addr->array_size));
+    for (size_t i = array_size; i < addr->array_size; i++) {
+        cell_resetCell(&addr->array[i]);
+    }
     if (addr->array == NULL) {
         fatal_error("Could not expand array to %ld elements.", addr->array_size);
     }
@@ -413,6 +370,9 @@ void array__toString__number(TExecutor *exec)
     /* ToDo: Fix this to use proper string appends!! */
     Cell *a = top(exec->stack);
     char *s = malloc(STRING_BUFFER_SIZE);
+    if (s == NULL) {
+        fatal_error("Could not allocate %d byte string for cNumber array", STRING_BUFFER_SIZE);
+    }
     strcpy(s, "[");
     for (x = 0; x < a->array_size; x++) {
         if (strlen(s) > 1) {
@@ -432,7 +392,9 @@ void array__toString__string(TExecutor *exec)
     /* ToDo: Fix this to use proper string appends!! */
     Cell *a = top(exec->stack);
     char *s = malloc(STRING_BUFFER_SIZE);
-    /* ToDo: Remove c strings, implement UTF8 strings. */
+    if (s == NULL) {
+        fatal_error("Could not allocate %d byte string for cNumber array", STRING_BUFFER_SIZE);
+    }
     strcpy(s, "[");
     for (x = 0; x < a->array_size; x++) {
         if (strlen(s) > 1) {
@@ -466,7 +428,7 @@ void bytes__decodeToString(TExecutor *exec)
     /* ToDo: handle UTF8 String
      * ToDo: Remove the following line once implemented.  Only used to prevent compiler warning.
      */
-    exec = exec;
+    assert(exec != NULL);
 }
 
 void bytes__range(TExecutor *exec)
@@ -491,8 +453,10 @@ void bytes__range(TExecutor *exec)
     Cell *sub = cell_newCellType(cString);
     sub->string = string_newString();
     sub->string->length = lst + 1 - fst;
-    /* ToDo: Memory Check! */
     sub->string->data = malloc(sub->string->length);
+    if (sub->string->data == NULL) {
+        fatal_error("Could not allocate %d bytes for string.", sub->string->length);
+    }
     memcpy(sub->string->data, &t->string->data[fst], lst + 1 - fst);
     cell_freeCell(t);
 
@@ -589,6 +553,18 @@ void bytes__toString(TExecutor *exec)
 
 
 
+void dictionary__keys(TExecutor *exec)
+{
+    Dictionary *d = top(exec->stack)->dictionary; 
+    Cell *r = dictionary_getKeys(d);
+
+    pop(exec->stack);
+    push(exec->stack, r);
+}
+
+
+
+
 void number__toString(TExecutor *exec)
 {
     Number v = top(exec->stack)->number; pop(exec->stack);
@@ -601,9 +577,12 @@ void number__toString(TExecutor *exec)
 void string__append(TExecutor *exec)
 {
     Cell *b = cell_fromCell(top(exec->stack)); pop(exec->stack);
-    Cell *addr = top(exec->stack)->address;
+    Cell *addr = top(exec->stack)->address; pop(exec->stack);
 
     addr->string->data = realloc(addr->string->data, addr->string->length + b->string->length);
+    if (addr->string->data == NULL) {
+        fatal_error("Could not allocate %d bytes for string append.",  addr->string->length + b->string->length);
+    }
     memcpy(&addr->string->data[addr->string->length], b->string->data, b->string->length);
     addr->string->length += b->string->length;
 
@@ -645,6 +624,9 @@ void string__splice(TExecutor *exec)
     sub->string = string_newString();
     sub->string->length = t->string->length + (((f - 1) + s->string->length) - l);
     sub->string->data = malloc(sub->string->length);
+    if (sub->string->data == NULL) {
+        fatal_error("Could not allocate %d bytes to splice string", sub->string->length);
+    }
     memcpy(sub->string->data, s->string->data, f);
     memcpy(&sub->string->data[f], t->string->data, t->string->length);
     memcpy(&sub->string->data[f + t->string->length], &s->string->data[l + 1], s->string->length - (l + 1));
@@ -673,6 +655,9 @@ void string__substring(TExecutor *exec)
         l += a->string->length - 1;
     }
     char *sub = malloc(((l+1) - f) + 1);
+    if (sub == NULL) {
+        fatal_error("Could not allocate %d bytes for substring.", ((l+1) - f) + 1);
+    }
     char *p = (char*)a->string->data + f;
 
     for (x = f, i = 0; x < l+1; x++) {

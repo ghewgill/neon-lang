@@ -426,18 +426,26 @@ envcnex = env.Clone()
 if sys.platform == "win32":
     envcnex.Append(CFLAGS=[
         "/W4",
+        "/WX",
         "/MDd",
         "/wd4996", # CRT deprecation warnings
     ])
 else:
     envcnex.Append(CFLAGS=[
         "-std=c99",
+        "-Wall",
+        "-Werror",
     ])
+    if not env["RELEASE"]:
+        envcnex.Append(CFLAGS=[
+            "-g",
+        ])
 
 cnex = envcnex.Program("bin/cnex", [
     "exec/cnex/cnex.c",
     "exec/cnex/bytecode.c",
     "exec/cnex/cell.c",
+    "exec/cnex/dictionary.c",
     "exec/cnex/global.c",
     "exec/cnex/framestack.c",
     "exec/cnex/number.c",

@@ -17,9 +17,6 @@ ExcludeTests = [
     "t/debug-example.neon",         # module
     "t/debug-server.neon",          # module
     "t/decimal.neon",               # arithmetic
-    "t/dictionary-keys.neon",       # dictionary
-    "t/dictionary-sorted.neon",     # assert / dictionary
-    "t/dictionary.neon",            # exception / dictionary
     "t/divide-by-zero.neon",        # exception
     "t/encoding-base64.neon",       # module
     "t/equality.neon",              # class
@@ -36,8 +33,6 @@ ExcludeTests = [
     "t/file-test.neon",             # module
     "t/file-writebytes.neon",       # file
     "t/file-writelines.neon",       # file
-    "t/foreach-function.neon",      # dictionary
-    "t/foreach-value.neon",         # dictionary
     "t/fork.neon",                  # posix
     "t/function-pointer-nowhere.neon", # functionpointer
     "t/function-pointer.neon",      # functionpointer
@@ -47,7 +42,6 @@ ExcludeTests = [
     "t/gc2.neon",                   # class
     "t/gc3.neon",                   # class
     "t/import.neon",                # class
-    "t/in.neon",                    # dictionary
     "t/intdiv.neon",                # assert / math$intdiv
     "t/interface-parameter-export.neon", # export
     "t/interface-parameter-export2.neon", # export
@@ -58,9 +52,7 @@ ExcludeTests = [
     "t/io-test.neon",               # module
     "t/json-test.neon",             # module
     "t/lexical-scope.neon",         # JUMPTBL
-    "t/literal.neon",               # dictionary
     "t/literal-array.neon",         # assert / array__range
-    "t/literal-empty.neon",         # dictionary
     "t/math-test.neon",             # precision
     "t/mkdir.neon",                 # module
     "t/mmap-test.neon",             # mmap
@@ -73,7 +65,6 @@ ExcludeTests = [
     "t/module.neon",                # module
     "t/module2.neon",               # PUSHPMG
     "t/multiarray-test.neon",       # module
-    "t/nested-substitution.neon",   # dictionary
     "t/net-test.neon",              # net
     "t/new-init-module.neon",       # class
     "t/new-init.neon",              # class
@@ -102,7 +93,6 @@ ExcludeTests = [
     "t/pointer6.neon",              # class
     "t/pointer7.neon",              # class
     "t/pointer8.neon",              # class
-    "t/predeclare3.neon",           # dictionary
     "t/process-test.neon",          # process
     "t/recursion-limit.neon",       # runtime
     "t/repl_import.neon",           # random

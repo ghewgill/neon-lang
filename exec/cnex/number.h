@@ -5,6 +5,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifdef _MSC_VER
+#define strcasecmp _stricmp
+#endif
+
 #define DECIMAL_GLOBAL_ROUNDING 1
 #define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
 
@@ -29,6 +33,8 @@ typedef BID_UINT128 Number;
 void number_toString(Number x, char *buf, size_t len);
 char *number_to_string(Number x);
 
+Number number_from_string(char *s);
+
 int32_t number_to_sint32(Number x);
 uint32_t number_to_uint32(Number x);
 int64_t number_to_sint64(Number x);
@@ -47,5 +53,17 @@ Number number_from_uint64(uint64_t x);
 Number number_from_sint64(int64_t x);
 /*Number number_from_float(float x);
 Number number_from_double(double x);*/
+
+//BOOL number_is_zero(Number x);
+//BOOL number_is_negative(Number x);
+BOOL number_is_equal(Number x, Number y);
+//BOOL number_is_not_equal(Number x, Number y);
+//BOOL number_is_less(Number x, Number y);
+//BOOL number_is_greater(Number x, Number y);
+//BOOL number_is_less_equal(Number x, Number y);
+//BOOL number_is_greater_equal(Number x, Number y);
+//BOOL number_is_integer(Number x);
+//BOOL number_is_odd(Number x);
+//BOOL number_is_nan(Number x);
 
 #endif

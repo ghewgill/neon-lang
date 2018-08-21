@@ -28,9 +28,8 @@ TStack *createStack(int capacity)
 
 void destroyStack(TStack *stack)
 {
-    while (!isEmpty(stack)) {
-        pop(stack);
-    }
+    assert(isEmpty(stack));
+
     free(stack->data);
     stack->top = -1;
     stack->data = NULL;
@@ -87,6 +86,10 @@ Cell *peek(TStack *stack, int element)
     return stack->data[stack->top - element];
 }
 
+
+
+
+
 TCallStack *createCallStack(int capacity)
 {
     TCallStack *s = malloc(sizeof(TCallStack));
@@ -94,7 +97,7 @@ TCallStack *createCallStack(int capacity)
         fatal_error("Could not allocate memory for callstack.");
     }
     s->CallStack.capacity = capacity;
-    s->CallStack.height = -1;
+    s->CallStack.top = -1;
     s->CallStack.max = INT_MAX;
     s->CallStack.data = malloc(sizeof(size_t) * INITIAL_CALLSTACK);
     if (s->CallStack.data == NULL) {
@@ -103,12 +106,14 @@ TCallStack *createCallStack(int capacity)
     s->push = callstack_push;
     s->pop = callstack_pop;
     s->top = callstack_top;
+    s->peek = callstack_peek;
     return s;
 }
 
-void destroyCallStack(TCallStack *stack)
+void destroyCallStack(struct tagTCallStack *stack)
 {
-    if (stack) {
+    if (stack != NULL) {
+        assert(stack->isEmpty(stack));
         if (stack->CallStack.data) {
             free(stack->CallStack.data);
         }
@@ -116,24 +121,31 @@ void destroyCallStack(TCallStack *stack)
     }
 }
 
+int callstack_isEmpty(struct tagTCallStack *stack)
+{
+    return stack->CallStack.top == -1;
+}
+
 void callstack_push(struct tagTCallStack *stack, size_t val)
 {
-    if (stack->CallStack.max < (stack->CallStack.height + 1)) stack->CallStack.max++;
+    if (stack->CallStack.max < (stack->CallStack.top + 1)) {
+        stack->CallStack.max++;
+    }
 
-    if (stack->CallStack.height == stack->CallStack.len) {
+    if (stack->CallStack.top == stack->CallStack.len) {
         stack->CallStack.len *= 2;
         stack->CallStack.data = realloc(stack->CallStack.data, (sizeof(size_t) * stack->CallStack.len));
         if (stack->CallStack.data == NULL) {
             fatal_error("Could not realloc callstack for %d elements.", stack->CallStack.len);
         }
     }
-    stack->CallStack.data[++stack->CallStack.height] = val;
+    stack->CallStack.data[++stack->CallStack.top] = val;
 }
 
 void callstack_pop(struct tagTCallStack *stack)
 {
-    stack->CallStack.height--;
-    if (stack->CallStack.height < (stack->CallStack.len / 2)) {
+    stack->CallStack.top--;
+    if (stack->CallStack.top < (stack->CallStack.len / 2)) {
         stack->CallStack.data = realloc(stack->CallStack.data, (sizeof(size_t) * (stack->CallStack.len / 2)));
         if (stack->CallStack.data == NULL) {
             fatal_error("Could not trim callstack down to %d elements.", (stack->CallStack.len / 2));
@@ -144,5 +156,14 @@ void callstack_pop(struct tagTCallStack *stack)
 
 size_t callstack_top(struct tagTCallStack *stack)
 {
-    return stack->CallStack.data[stack->CallStack.height];
+    return stack->CallStack.data[stack->CallStack.top];
+}
+
+size_t callstack_peek(struct tagTCallStack *stack, int depth)
+{
+    if ((stack->CallStack.top - depth) < 0) {
+        fatal_error("CallStack underflow error.  Element %d not on the stack.", depth);
+    }
+
+    return stack->CallStack.data[stack->CallStack.top - depth];
 }

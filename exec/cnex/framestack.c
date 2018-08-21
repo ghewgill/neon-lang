@@ -88,13 +88,13 @@ TFrame *frame_createFrame(uint32_t size)
     uint32_t i;
     TFrame *f = malloc(sizeof(TFrame));
     if (f == NULL) {
-        /* ToDo: Fail */
+        fatal_error("Could not allocate memory for stack frames.");
     }
 
     f->frame_size = size;
     f->locals = malloc(sizeof(Cell) * f->frame_size);
     if (f->locals == NULL) {
-        /* ToDo: Fail */
+        fatal_error("Could not allocate memory for framne local storage.");
     }
 
     for (i = 0; i < f->frame_size; i++) {

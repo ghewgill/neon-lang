@@ -35,6 +35,7 @@ typedef struct tagTBytecode {
     unsigned int global_size;
     unsigned int strtablesize;
     unsigned int strtablelen;
+
     struct tagTString **strings;
     unsigned int typesize;
     unsigned int constantsize;
