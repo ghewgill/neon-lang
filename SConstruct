@@ -33,7 +33,7 @@ coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darw
 # Check for any files that accidentally contain \r\n. Only do this
 # on non-windows platforms, because windows users may set Git to
 # use crlf line endings.
-if sys.platform != "nt":
+if os.name != "nt":
     for subdir in ["contrib", "exec", "gh-pages", "lib", "samples", "scripts", "src", "t", "tests", "tools"]:
         for path, dirs, files in os.walk(subdir):
             for fn in files:
