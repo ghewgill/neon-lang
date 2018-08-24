@@ -776,7 +776,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     s_importing.push_back(name);
     Bytecode object;
     if (not support->loadBytecode(name, object)) {
-        internal_error("TODO module not found: " + name);
+        error(3001, token, "module not found");
     }
     ast::Module *module = new ast::Module(Token(), global_scope, name);
     // Must do interfaces before types (so classes can refer to these).
