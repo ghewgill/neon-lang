@@ -134,7 +134,7 @@ public:
     const ast::Program *analyze();
 private:
     static std::string extract_module_name(const pt::Program *program);
-    ast::Module *import_module(const Token &token, const std::string &name);
+    ast::Module *import_module(const Token &token, const std::string &name, bool optional);
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i);
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor);
     const ast::Expression *convert(const ast::Type *target, const ast::Expression *e);
@@ -1284,7 +1284,7 @@ std::string Analyzer::extract_module_name(const pt::Program *program)
     return module_name;
 }
 
-ast::Module *Analyzer::import_module(const Token &token, const std::string &name)
+ast::Module *Analyzer::import_module(const Token &token, const std::string &name, bool optional)
 {
     static std::vector<std::string> s_importing;
 
@@ -1298,7 +1298,11 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     s_importing.push_back(name);
     Bytecode object;
     if (not support->loadBytecode(name, object)) {
-        error(3001, token, "module not found");
+        if (optional) {
+            return nullptr;
+        } else {
+            error(3001, token, "module not found");
+        }
     }
     ast::Module *module = new ast::Module(Token(), global_scope, name);
     // Must do interfaces before types (so classes can refer to these).
@@ -3045,7 +3049,7 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             std::string localname = name;
             auto dot = name.find('.');
             if (dot != std::string::npos) {
-                const ast::Module *module = import_module(Token(), name.substr(0, dot));
+                const ast::Module *module = import_module(Token(), name.substr(0, dot), false);
                 t = module->scope;
                 localname = name.substr(dot+1);
             }
@@ -3105,11 +3109,13 @@ const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration
     if (not scope.top()->allocateName(localname, localname.text)) {
         error2(3114, localname, "duplicate definition of name", scope.top()->getDeclaration(localname.text), "first declaration here");
     }
-    ast::Module *module = import_module(declaration->module, declaration->module.text);
-    rtl_import(declaration->module.text, module);
+    ast::Module *module = import_module(declaration->module, declaration->module.text, declaration->optional);
+    if (module != nullptr) {
+        rtl_import(declaration->module.text, module);
+    }
     if (declaration->name.type == NONE) {
         scope.top()->addName(declaration->token, localname.text, module);
-    } else {
+    } else if (module != nullptr) {
         const ast::Name *name = module->scope->lookupName(declaration->name.text);
         if (name != nullptr) {
             scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));
@@ -3766,7 +3772,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
     }
     const ast::Module *textio = dynamic_cast<const ast::Module *>(scope.top()->lookupName("textio"));
     if (textio == nullptr) {
-        ast::Module *module = import_module(Token(), "textio");
+        ast::Module *module = import_module(Token(), "textio", false);
         rtl_import("textio", module);
         global_scope->addName(Token(IDENTIFIER, "textio"), "textio", module, true);
         textio = module;
@@ -4215,7 +4221,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
     }
     const ast::Module *sys = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sys"));
     if (sys == nullptr) {
-        ast::Module *module = import_module(Token(), "sys");
+        ast::Module *module = import_module(Token(), "sys", false);
         rtl_import("sys", module);
         global_scope->addName(Token(IDENTIFIER, "sys"), "sys", module, true);
         sys = module;
@@ -4406,7 +4412,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
 {
     const ast::Module *sqlite = dynamic_cast<const ast::Module *>(scope.top()->lookupName("sqlite"));
     if (sqlite == nullptr) {
-        ast::Module *module = import_module(Token(), "sqlite");
+        ast::Module *module = import_module(Token(), "sqlite", false);
         rtl_import("sqlite", module);
         global_scope->addName(Token(IDENTIFIER, "sqlite"), "sqlite", module, true);
         sqlite = module;

@@ -117,6 +117,7 @@ enum TokenType {
     UNUSED,
     ISA,
     ELLIPSIS,
+    OPTIONAL,
     UNKNOWN,
     MAX_TOKEN
 };

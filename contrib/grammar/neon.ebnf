@@ -53,7 +53,7 @@ Statement =
     UnusedStatement |
     WhileStatement;
 
-ImportDeclaration = 'IMPORT', (Identifier, ['.', Identifier], ['ALIAS', Identifier] | StringLiteral, 'ALIAS', Identifier);
+ImportDeclaration = 'IMPORT', ['OPTIONAL'], (Identifier, ['.', Identifier], ['ALIAS', Identifier] | StringLiteral, 'ALIAS', Identifier);
 
 TypeDeclaration = 'TYPE', Identifier, 'IS', Type;
 
