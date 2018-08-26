@@ -1299,7 +1299,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
     Bytecode object;
     if (not support->loadBytecode(name, object)) {
         if (optional) {
-            return nullptr;
+            return ast::MODULE_MISSING;
         } else {
             error(3001, token, "module not found");
         }
@@ -3110,12 +3110,12 @@ const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration
         error2(3114, localname, "duplicate definition of name", scope.top()->getDeclaration(localname.text), "first declaration here");
     }
     ast::Module *module = import_module(declaration->module, declaration->module.text, declaration->optional);
-    if (module != nullptr) {
+    if (module != ast::MODULE_MISSING) {
         rtl_import(declaration->module.text, module);
     }
     if (declaration->name.type == NONE) {
         scope.top()->addName(declaration->token, localname.text, module);
-    } else if (module != nullptr) {
+    } else if (module != ast::MODULE_MISSING) {
         const ast::Name *name = module->scope->lookupName(declaration->name.text);
         if (name != nullptr) {
             scope.top()->addName(declaration->token, localname.text, module->scope->lookupName(declaration->name.text));

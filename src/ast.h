@@ -2761,6 +2761,8 @@ public:
     virtual std::string text() const override { return "Module"; }
 };
 
+extern Module *MODULE_MISSING;
+
 class Program: public AstNode {
 public:
     Program(const std::string &source_path, const std::string &source_hash, const std::string &module_name);
