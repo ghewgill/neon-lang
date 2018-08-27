@@ -124,6 +124,7 @@ ExcludeTests = [
     "t/unicode-char.neon",          # StringReferenceIndexExpression
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-try.neon",     # js syntax error
+    "t/value-copy.neon",            # value copy
     "t/value-index.neon",           # DictionaryValueIndexExpression
     "t/while-valid.neon",           # unknown
     "t/win32-test.neon",            # module win32

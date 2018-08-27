@@ -1,0 +1,34 @@
+% Check value copy semantics. Objects of most types,
+% principally Array and Dictionary, must make a copy
+% of the value on assignment which is independent from
+% the original value.
+
+VAR b1: Boolean := TRUE
+VAR b2: Boolean := b1
+b1 := FALSE
+ASSERT b2
+
+VAR n1: Number := 5
+VAR n2: Number := n1
+n1 := 10
+ASSERT n2 = 5
+
+VAR s1: String := "foo"
+VAR s2: String := s1
+s1 := "bar"
+ASSERT s2 = "foo"
+
+VAR t1: Bytes := HEXBYTES "01 02 03"
+VAR t2: Bytes := t1
+t1 := HEXBYTES "04 05 06"
+ASSERT t2 = HEXBYTES "01 02 03"
+
+VAR a1: Array<Number> := [1, 2, 3]
+VAR a2: Array<Number> := a1
+a1[0] := -1
+ASSERT a2[0] = 1
+
+VAR d1: Dictionary<Number> := {"one": 1, "two": 2, "three": 3}
+VAR d2: Dictionary<Number> := d1
+d1["one"] := -1
+ASSERT d2["one"] = 1

@@ -97,6 +97,7 @@ ExcludeTests = [
     "t/time-test.neon",             # module time
     "t/tostring.neon",              # enum tostring
     "t/unicode-length.neon",        # actually works here so avoid the TODO
+    "t/value-copy.neon",            # value copy
     "t/win32-test.neon",            # illegal character dot
     "lib/compress/t/compress-test.neon",        # compress.gzip
     "lib/extsample/t/extsample-test.neon",      # extension functions

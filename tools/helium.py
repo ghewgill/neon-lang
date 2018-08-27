@@ -2753,7 +2753,7 @@ ExcludeTests = [
     "t/struct-test.neon",       # Module not required yet
     "t/unicode-length.neon",    # Currently works here, but still TODO in cpp
     "t/uninitialised-if-exit.neon", # FIXME
-    "t/valuecopy.neon",         # Feature not required yet
+    "t/value-copy.neon",        # Feature not required yet
     "lib/hash/t/hash-test.neon",                # Module not required yet
 ]
 
