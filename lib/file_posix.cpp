@@ -12,6 +12,7 @@
 #include <utime.h>
 
 #include "rtl_exec.h"
+#include "enums.inc"
 
 static void handle_error(int error, const std::string &path)
 {
@@ -207,6 +208,29 @@ std::vector<utf8string> files(const std::string &path)
         closedir(d);
     }
     return r;
+}
+
+Cell getInfo(const std::string &name)
+{
+    struct stat st;
+    if (stat(name.c_str(), &st) != 0) {
+        handle_error(errno, name);
+    }
+    std::vector<Cell> r;
+    r.push_back(Cell(name.rfind('/') != std::string::npos ? name.substr(name.rfind('/')+1) : name));
+    r.push_back(Cell(number_from_uint64(st.st_size)));
+    r.push_back(Cell(bool(st.st_mode & 0x04)));
+    r.push_back(Cell(bool(st.st_mode & 0x02)));
+    r.push_back(Cell(bool(st.st_mode & 0x01)));
+    r.push_back(Cell(number_from_uint32(
+        S_ISREG(st.st_mode) ? ENUM_FileType_normal :
+        S_ISDIR(st.st_mode) ? ENUM_FileType_directory :
+        ENUM_FileType_special
+    )));
+    r.push_back(Cell(Number()));
+    r.push_back(Cell(number_from_uint32(st.st_atime)));
+    r.push_back(Cell(number_from_uint32(st.st_mtime)));
+    return Cell(r);
 }
 
 bool isDirectory(const std::string &path)

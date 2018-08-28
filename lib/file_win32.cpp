@@ -3,6 +3,7 @@
 #include <windows.h>
 
 #include "rtl_exec.h"
+#include "enums.inc"
 
 static void handle_error(DWORD error, const std::string &path)
 {
@@ -15,6 +16,14 @@ static void handle_error(DWORD error, const std::string &path)
         default:
             throw RtlException(rtl::file::Exception_FileException, path + ": " + std::to_string(error));
     }
+}
+
+static Number unix_time_from_filetime(const FILETIME &ft)
+{
+    return number_divide(
+        number_from_uint64(((static_cast<uint64_t>(ft.dwHighDateTime) << 32) | ft.dwLowDateTime) - 116444736000000000ULL),
+        number_from_uint32(10000000)
+    );
 }
 
 namespace rtl {
@@ -69,6 +78,32 @@ std::vector<utf8string> files(const std::string &path)
         FindClose(ff);
     }
     return r;
+}
+
+Cell getInfo(const std::string &name)
+{
+    WIN32_FIND_DATA fd;
+    HANDLE ff = FindFirstFile(name.c_str(), &fd);
+    if (ff == INVALID_HANDLE_VALUE) {
+        handle_error(GetLastError(), name);
+    }
+    FindClose(ff);
+    std::vector<Cell> r;
+    r.push_back(Cell(fd.cFileName));
+    r.push_back(Cell(number_from_uint64((static_cast<uint64_t>(fd.nFileSizeHigh) << 32) | fd.nFileSizeLow)));
+    r.push_back(Cell(TRUE));
+    r.push_back(Cell((fd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) == 0));
+    r.push_back(Cell(name.length() >= 4 && name.substr(name.length()-4) == ".exe"));
+    r.push_back(Cell(number_from_uint32(
+        (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ENUM_FileType_directory :
+        (fd.dwFileAttributes & FILE_ATTRIBUTE_DEVICE) ? ENUM_FileType_special :
+        (fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) ? ENUM_FileType_special :
+        ENUM_FileType_normal
+    )));
+    r.push_back(Cell(unix_time_from_filetime(fd.ftCreationTime)));
+    r.push_back(Cell(unix_time_from_filetime(fd.ftLastAccessTime)));
+    r.push_back(Cell(unix_time_from_filetime(fd.ftLastWriteTime)));
+    return Cell(r);
 }
 
 bool isDirectory(const std::string &path)

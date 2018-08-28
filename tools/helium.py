@@ -2573,6 +2573,20 @@ def neon_file_exists(env, fn):
 def neon_file_files(env, path):
     return os.listdir(path)
 
+def neon_file_getInfo(env, name):
+    st = os.stat(name)
+    return [
+        os.path.basename(name),
+        st.st_size,
+        (st.st_mode & 0x04) != 0,
+        (st.st_mode & 0x02) != 0,
+        (st.st_mode & 0x01) != 0,
+        0 if stat.S_ISREG(st.st_mode) else 1 if stat.S_ISDIR(st.st_mode) else 2,
+        0,
+        st.st_atime,
+        st.st_mtime,
+    ]
+
 def neon_file_isDirectory(env, path):
     return os.path.isdir(path)
 

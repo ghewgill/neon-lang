@@ -25,6 +25,17 @@ a := file.files("t")
 print(strb("file-test.neon" IN a))
 %= TRUE
 
+LET fi: file.FileInfo := file.getInfo("t/file-test.neon")
+print(fi.name)
+%= file-test.neon
+ASSERT 1000 <= fi.size <= 10000
+print(strb(fi.readable))
+%= TRUE
+print(fi.type.toString())
+%= normal
+ASSERT fi.lastAccessTime > 0
+ASSERT fi.lastModificationTime > 0
+
 file.writeLines("tmp/file-test.tmp", ["hello", "world"])
 print(strb(file.exists("tmp/file-test.tmp")))
 %= TRUE

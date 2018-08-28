@@ -8,11 +8,15 @@ EXPORT FileException
 
 EXPORT Separator
 
+EXPORT FileType
+EXPORT FileInfo
+
 EXPORT copy
 EXPORT copyOverwriteIfExists
 EXPORT delete
 EXPORT exists
 EXPORT files
+EXPORT getInfo
 EXPORT isDirectory
 EXPORT mkdir
 EXPORT pathJoin
@@ -78,6 +82,34 @@ EXCEPTION FileException.PermissionDenied
 EXCEPTION FileException.Write
 
 %|
+ |  Type: FileType
+ |
+ |  Various types of directory entries.
+ |%
+TYPE FileType IS ENUM
+    normal
+    directory
+    special
+END ENUM
+
+%|
+ |  Type: FileInfo
+ |
+ |  Holds file information returned by <getInfo>.
+ |%
+TYPE FileInfo IS RECORD
+    name: String
+    size: Number
+    readable: Boolean
+    writable: Boolean
+    executable: Boolean
+    type: FileType
+    creationTime: Number % TODO: use datetime.Instant for these
+    lastAccessTime: Number
+    lastModificationTime: Number
+END RECORD
+
+%|
  |  Function: copy
  |
  |  Copies a file to a new destination.  If the destination file already exists, a FileException.Exists
@@ -141,6 +173,13 @@ DECLARE NATIVE FUNCTION exists(filename: String): Boolean
  |  Given a path name, return an array containing the names of the files in that directory.
  |%
 DECLARE NATIVE FUNCTION files(path: String): Array<String>
+
+%|
+ |  Functions: getInfo
+ |
+ |  Given a file name, return the file information.
+ |%
+DECLARE NATIVE FUNCTION getInfo(name: String): FileInfo
 
 %|
  |  Function: isDirectory
