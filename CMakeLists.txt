@@ -20,7 +20,7 @@ endif ()
 
 add_subdirectory(external)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     include_directories(/usr/local/include)
 endif ()
 
@@ -161,7 +161,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(platform_compile
         lib/file_const_posix.cpp
     )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     set(platform_compile
         lib/file_const_posix.cpp
     )
@@ -217,7 +217,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/time_posix.cpp
         lib/time_darwin.cpp
     )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
     set(platform_executor
         src/rtl_posix.cpp
         lib/file_posix.cpp
@@ -323,9 +323,10 @@ target_include_directories(neon PRIVATE
 )
 if (WIN32)
     target_link_libraries(neon wsock32)
-else (WIN32)
-    target_link_libraries(neon dl)
 endif (WIN32)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(neon dl)
+endif ()
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     target_link_libraries(neon pthread)
 endif ()
@@ -357,9 +358,10 @@ target_link_libraries(neonx
 )
 if (WIN32)
     target_link_libraries(neonx wsock32)
-else (WIN32)
-    target_link_libraries(neonx dl)
 endif (WIN32)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(neonx dl)
+endif ()
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     target_link_libraries(neonx pthread)
 endif ()
@@ -385,9 +387,10 @@ target_link_libraries(neonstub
 )
 if (WIN32)
     target_link_libraries(neonstub wsock32)
-else (WIN32)
-    target_link_libraries(neonstub dl)
 endif (WIN32)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(neonstub dl)
+endif ()
 if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     target_link_libraries(neonstub pthread)
 endif ()
