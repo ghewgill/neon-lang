@@ -20,6 +20,10 @@ endif ()
 
 add_subdirectory(external)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    include_directories(/usr/local/include)
+endif ()
+
 set(RTL_NEON
     lib/binary.neon
     lib/datetime.neon
@@ -157,7 +161,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(platform_compile
         lib/file_const_posix.cpp
     )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     set(platform_compile
         lib/file_const_posix.cpp
     )
@@ -213,7 +217,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         lib/time_posix.cpp
         lib/time_darwin.cpp
     )
-elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
     set(platform_executor
         src/rtl_posix.cpp
         lib/file_posix.cpp
@@ -322,6 +326,9 @@ if (WIN32)
 else (WIN32)
     target_link_libraries(neon dl)
 endif (WIN32)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(neon pthread)
+endif ()
 target_link_libraries(neon
     bid
     ${ffi}
@@ -353,6 +360,9 @@ if (WIN32)
 else (WIN32)
     target_link_libraries(neonx dl)
 endif (WIN32)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(neonx pthread)
+endif ()
 
 add_executable(neonstub
     src/neonstub.cpp
@@ -378,6 +388,9 @@ if (WIN32)
 else (WIN32)
     target_link_libraries(neonstub dl)
 endif (WIN32)
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
+    target_link_libraries(neonstub pthread)
+endif ()
 
 add_executable(neondis
     src/bytecode.cpp

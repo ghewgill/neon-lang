@@ -7,7 +7,7 @@ if (NOT EXISTS external/hash-library)
     if (NOT "${retcode}" STREQUAL "0")
         message(FATAL_ERROR "Fatal error extracting archive")
     endif ()
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" OR ${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
         file(GLOB cpps hash-library/*.cpp)
         foreach (fn ${cpps})
             execute_process(
