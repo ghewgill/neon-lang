@@ -1,4 +1,4 @@
-if (NOT EXISTS IntelRDFPMathLib20U1)
+if (NOT EXISTS external/IntelRDFPMathLib20U1)
     execute_process(
         COMMAND python ../scripts/extract.py IntelRDFPMathLib20U1.tar.gz .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

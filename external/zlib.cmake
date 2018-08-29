@@ -1,4 +1,4 @@
-if (NOT EXISTS zlib-1.2.8)
+if (NOT EXISTS external/zlib-1.2.8)
     execute_process(
         COMMAND python ../scripts/extract.py zlib-1.2.8.tar.gz .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

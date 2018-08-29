@@ -1,4 +1,4 @@
-if (NOT EXISTS hash-library)
+if (NOT EXISTS external/hash-library)
     execute_process(
         COMMAND python ../scripts/extract.py hash-library.zip hash-library
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

@@ -1,4 +1,4 @@
-if (NOT EXISTS minizip11)
+if (NOT EXISTS external/minizip11)
     execute_process(
         COMMAND python ../scripts/extract.py unzip11.zip minizip11
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}

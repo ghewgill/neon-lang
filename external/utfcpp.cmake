@@ -1,4 +1,4 @@
-if (NOT EXISTS utfcpp-master)
+if (NOT EXISTS external/utfcpp-master)
     execute_process(
         COMMAND python ../scripts/extract.py utfcpp-master.zip .
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
