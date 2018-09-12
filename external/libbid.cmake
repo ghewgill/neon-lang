@@ -7,6 +7,15 @@ if (NOT EXISTS external/IntelRDFPMathLib20U1)
     if (NOT "${retcode}" STREQUAL "0")
         message(FATAL_ERROR "Fatal error extracting archive")
     endif ()
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD")
+        execute_process(
+            COMMAND perl -p -i -e "s/unsigned short int fexcept_t/unsigned int fexcept_t/" external/IntelRDFPMathLib20U1/LIBRARY/src/bid_functions.h
+            RESULT_VARIABLE retcode
+        )
+        if (NOT "${retcode}" STREQUAL "0")
+            message(FATAL_ERROR "Fatal error extracting archive")
+        endif ()
+    endif ()
 endif ()
 if (WIN32)
     set(dpml_platform
