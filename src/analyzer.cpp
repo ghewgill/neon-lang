@@ -592,7 +592,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
             if (values[n.second] != nullptr) {
                 internal_error("TypeEnum");
             }
-            values[n.second] = new ConstantStringExpression(n.first);
+            values[n.second] = new ConstantStringExpression(utf8string(n.first));
         }
         f->statements.push_back(new ReturnStatement(0, new ArrayValueIndexExpression(TYPE_STRING, new ArrayLiteralExpression(TYPE_STRING, values, {}), new VariableExpression(fp), false)));
         methods["toString"] = f;
@@ -1209,8 +1209,8 @@ const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *
 
 const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *expr)
 {
-    std::vector<std::pair<std::string, const ast::Expression *>> elements;
-    std::map<std::string, Token> keys;
+    std::vector<std::pair<utf8string, const ast::Expression *>> elements;
+    std::map<utf8string, Token> keys;
     std::vector<Token> elementtokens;
     const ast::Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
@@ -1218,7 +1218,7 @@ const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *
         if (not k->is_constant) {
             error(3212, x.first->token, "key value must be constant");
         }
-        std::string key = k->eval_string(x.first->token);
+        utf8string key = k->eval_string(x.first->token);
         auto i = keys.find(key);
         if (i != keys.end()) {
             error2(3080, x.first->token, "duplicate key", i->second, "first key here");
@@ -1312,7 +1312,7 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
     }
     const ast::Expression *base = analyze(expr->base.get());
     if (base->type == ast::TYPE_OBJECT) {
-        return new ast::ObjectSubscriptExpression(base, new ast::ConstantStringExpression(expr->name.text));
+        return new ast::ObjectSubscriptExpression(base, new ast::ConstantStringExpression(utf8string(expr->name.text)));
     }
     const ast::TypeRecord *recordtype = dynamic_cast<const ast::TypeRecord *>(base->type);
     if (recordtype == nullptr) {
@@ -1486,7 +1486,7 @@ const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression 
         if (not fmt.empty()) {
             std::vector<const ast::Expression *> args;
             args.push_back(str);
-            args.push_back(new ast::ConstantStringExpression(fmt));
+            args.push_back(new ast::ConstantStringExpression(utf8string(fmt)));
             str = new ast::FunctionCall(format, args);
         }
         if (r == nullptr) {
@@ -2875,23 +2875,23 @@ const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaratio
         }
     }
 
-    auto klibrary = dict->dict.find("library");
+    auto klibrary = dict->dict.find(utf8string("library"));
     if (klibrary == dict->dict.end()) {
         error(3075, declaration->dict->token, "\"library\" key not found");
     }
     auto &library_dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(klibrary->second)->dict;
-    auto kname = library_dict.find("name");
+    auto kname = library_dict.find(utf8string("name"));
     if (kname == library_dict.end()) {
         error(3076, declaration->dict->token, "\"name\" key not found in library");
     }
-    std::string library_name = kname->second->eval_string(declaration->dict->token);
+    utf8string library_name = kname->second->eval_string(declaration->dict->token);
 
-    auto ktypes = dict->dict.find("types");
+    auto ktypes = dict->dict.find(utf8string("types"));
     if (ktypes == dict->dict.end()) {
         error(3077, declaration->dict->token, "\"types\" key not found");
     }
     auto &types_dict = dynamic_cast<const ast::DictionaryLiteralExpression *>(ktypes->second)->dict;
-    std::map<std::string, std::string> param_types;
+    std::map<utf8string, utf8string> param_types;
     for (auto paramtype: types_dict) {
         param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
     }
@@ -2899,7 +2899,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaratio
         if (p->mode == ast::ParameterType::Mode::OUT) {
             error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + p->name);
         }
-        if (param_types.find(p->name) == param_types.end()) {
+        if (param_types.find(utf8string(p->name)) == param_types.end()) {
             error(3097, declaration->dict->token, "parameter type missing: " + p->name);
         }
     }
@@ -3195,7 +3195,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
                 new ast::VariableExpression(fprint),
                 {
                     new ast::VariableExpression(io_stderr),
-                    new ast::ConstantStringExpression("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):")
+                    new ast::ConstantStringExpression(utf8string("Assert failed (" + statement->token.file() + " line " + std::to_string(statement->token.line) + "):"))
                 }
             )
         )
@@ -3207,7 +3207,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
                 new ast::VariableExpression(fprint),
                 {
                     new ast::VariableExpression(io_stderr),
-                    new ast::ConstantStringExpression(statement->token.source_line())
+                    new ast::ConstantStringExpression(utf8string(statement->token.source_line()))
                 }
             )
         )
@@ -3219,7 +3219,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
                 new ast::VariableExpression(fprint),
                 {
                     new ast::VariableExpression(io_stderr),
-                    new ast::ConstantStringExpression("Assert expression dump:")
+                    new ast::ConstantStringExpression(utf8string("Assert expression dump:"))
                 }
             )
         )
@@ -3236,7 +3236,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
         // parse tree so we can leverage the analyze step for InterpolatedStringExpression
         // (this takes care of the call to .toString()).
         std::vector<std::pair<std::unique_ptr<pt::Expression>, Token>> iparts;
-        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), 0, "  " + str + " is ") }, Token()));
+        iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { new pt::StringLiteralExpression(Token(), 0, utf8string("  " + str + " is ")) }, Token()));
         iparts.push_back(std::make_pair(std::unique_ptr<pt::Expression> { const_cast<pt::Expression *>(part) }, Token()));
         std::unique_ptr<pt::InterpolatedStringExpression> ie { new pt::InterpolatedStringExpression(Token(), std::move(iparts)) };
         try {
@@ -3645,7 +3645,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                     statement->token.line,
                     new ast::FunctionCall(
                         new ast::VariableExpression(print),
-                        {new ast::ConstantStringExpression(sql)}
+                        {new ast::ConstantStringExpression(utf8string(sql))}
                     )
                 )
             );
@@ -3747,7 +3747,7 @@ void Analyzer::process_into_results(const pt::ExecStatement *statement, const st
                     statement->token.line,
                     sql_exception,
                     new ast::RecordLiteralExpression(dynamic_cast<const ast::TypeRecord *>(scope.top()->lookupName("ExceptionInfo")), {
-                        new ast::ConstantStringExpression("No records found")
+                        new ast::ConstantStringExpression(utf8string("No records found"))
                     })
                 )
             );
@@ -3802,7 +3802,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             new ast::FunctionCall(
                 new ast::VariableExpression(cursorClose),
                 {
-                    new ast::ConstantStringExpression(close->name->text())
+                    new ast::ConstantStringExpression(utf8string(close->name->text()))
                 }
             )
         ));
@@ -3812,7 +3812,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
         const SqlValueVariable *target_variable = dynamic_cast<const SqlValueVariable *>(connect->target.get());
         const ast::Expression *target;
         if (target_literal != nullptr) {
-            target = new ast::ConstantStringExpression(target_literal->value);
+            target = new ast::ConstantStringExpression(utf8string(target_literal->value));
         } else if (target_variable != nullptr) {
             const ast::Variable *var = dynamic_cast<ast::Variable *>(scope.top()->lookupName(target_variable->variable.text));
             if (var == nullptr) {
@@ -3862,8 +3862,8 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
                     new ast::VariableExpression(cursorDeclare),
                     {
                         new ast::VariableExpression(dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"))),
-                        new ast::ConstantStringExpression(declare_query->cursor->text()),
-                        new ast::ConstantStringExpression(declare_query->query)
+                        new ast::ConstantStringExpression(utf8string(declare_query->cursor->text())),
+                        new ast::ConstantStringExpression(utf8string(declare_query->query))
                     }
                 )
             ));
@@ -3906,7 +3906,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
         const SqlValueVariable *statement_variable = dynamic_cast<const SqlValueVariable *>(execute->statement.get());
         const ast::Expression *sqlstatement;
         if (statement_literal != nullptr) {
-            sqlstatement = new ast::ConstantStringExpression(statement_literal->value);
+            sqlstatement = new ast::ConstantStringExpression(utf8string(statement_literal->value));
         } else if (statement_variable != nullptr) {
             const ast::Variable *var = dynamic_cast<ast::Variable *>(scope.top()->lookupName(statement_variable->variable.text));
             if (var == nullptr) {
@@ -3934,7 +3934,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             "FETCH",
             cursorFetch,
             {
-                new ast::ConstantStringExpression(fetch->name->text()),
+                new ast::ConstantStringExpression(utf8string(fetch->name->text())),
             },
             statements
         );
@@ -3945,18 +3945,18 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             new ast::FunctionCall(
                 new ast::VariableExpression(cursorOpen),
                 {
-                    new ast::ConstantStringExpression(open->name->text())
+                    new ast::ConstantStringExpression(utf8string(open->name->text()))
                 }
             )
         ));
     } else if (query != nullptr) {
-        std::vector<std::pair<std::string, const ast::Expression *>> binding_vars;
+        std::vector<std::pair<utf8string, const ast::Expression *>> binding_vars;
         for (auto p: statement->info->parameters) {
             const ast::Variable *var = dynamic_cast<const ast::Variable *>(scope.top()->lookupName(p.text.substr(1)));
             if (var == nullptr) {
                 error(4305, p, "variable not found");
             }
-            binding_vars.push_back(std::make_pair(p.text, new ast::VariableExpression(var)));
+            binding_vars.push_back(std::make_pair(utf8string(p.text), new ast::VariableExpression(var)));
         }
         process_into_results(
             statement,
@@ -3964,7 +3964,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExecStatement *statement)
             execOne,
             {
                 new ast::VariableExpression(dynamic_cast<const ast::Variable *>(sqlite->scope->lookupName("db"))),
-                new ast::ConstantStringExpression(query->query),
+                new ast::ConstantStringExpression(utf8string(query->query)),
                 new ast::DictionaryLiteralExpression(ast::TYPE_STRING, binding_vars, {})
             },
             statements

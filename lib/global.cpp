@@ -45,7 +45,7 @@ std::vector<Number> array__range(Number first, Number last, Number step)
 {
     std::vector<Number> r;
     if (number_is_zero(step)) {
-        throw RtlException(Exception_ValueRangeException, number_to_string(step));
+        throw RtlException(Exception_ValueRangeException, utf8string(number_to_string(step)));
     }
     if (number_is_negative(step)) {
         for (Number i = first; number_is_greater_equal(i, last); i = number_add(i, step)) {
@@ -62,7 +62,7 @@ std::vector<Number> array__range(Number first, Number last, Number step)
 void array__resize(Cell *self, Number new_size)
 {
     if (not number_is_integer(new_size)) {
-        throw RtlException(Exception_ArrayIndexException, number_to_string(new_size));
+        throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(new_size)));
     }
     self->array_for_write().resize(number_to_sint64(new_size));
 }
@@ -127,16 +127,16 @@ std::vector<unsigned char> array__toBytes__number(const std::vector<Number> &a)
     for (auto x: a) {
         uint64_t b = number_to_uint64(x);
         if (b >= 256) {
-            throw RtlException(Exception_ByteOutOfRangeException, std::to_string(b));
+            throw RtlException(Exception_ByteOutOfRangeException, utf8string(std::to_string(b)));
         }
         r.push_back(static_cast<unsigned char>(b));
     }
     return r;
 }
 
-std::string array__toString__number(const std::vector<Number> &a)
+utf8string array__toString__number(const std::vector<Number> &a)
 {
-    std::string r = "[";
+    utf8string r {"["};
     for (Number x: a) {
         if (r.length() > 1) {
             r.append(", ");
@@ -147,9 +147,9 @@ std::string array__toString__number(const std::vector<Number> &a)
     return r;
 }
 
-std::string array__toString__string(const std::vector<utf8string> &a)
+utf8string array__toString__string(const std::vector<utf8string> &a)
 {
-    std::string r = "[";
+    utf8string r {"["};
     for (utf8string x: a) {
         if (r.length() > 1) {
             r.append(", ");
@@ -161,9 +161,9 @@ std::string array__toString__string(const std::vector<utf8string> &a)
     return r;
 }
 
-std::string array__toString__object(std::vector<std::shared_ptr<Object>> a)
+utf8string array__toString__object(std::vector<std::shared_ptr<Object>> a)
 {
-    std::string r = "[";
+    utf8string r {"["};
     for (auto &x: a) {
         if (r.length() > 1) {
             r.append(", ");
@@ -174,9 +174,9 @@ std::string array__toString__object(std::vector<std::shared_ptr<Object>> a)
     return r;
 }
 
-std::string boolean__toString(bool self)
+utf8string boolean__toString(bool self)
 {
-    return self ? "TRUE" : "FALSE";
+    return utf8string(self ? "TRUE" : "FALSE");
 }
 
 Number dictionary__size(Cell &self)
@@ -193,22 +193,22 @@ std::vector<utf8string> dictionary__keys(Cell &self)
     return r;
 }
 
-std::string number__toString(Number self)
+utf8string number__toString(Number self)
 {
-    return number_to_string(self);
+    return utf8string(number_to_string(self));
 }
 
-void string__append(utf8string *self, const std::string &t)
+void string__append(utf8string *self, const utf8string &t)
 {
     self->append(t);
 }
 
-Number string__length(const std::string &self)
+Number string__length(const utf8string &self)
 {
     return number_from_uint64(self.length());
 }
 
-std::string string__splice(const std::string &t, const std::string &s, Number first, bool first_from_end, Number last, bool last_from_end)
+utf8string string__splice(const utf8string &t, const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
     // TODO: utf8
     int64_t f = number_to_sint64(first);
@@ -219,12 +219,11 @@ std::string string__splice(const std::string &t, const std::string &s, Number fi
     if (last_from_end) {
         l += s.size() - 1;
     }
-    return s.substr(0, f) + t + s.substr(l + 1);
+    return utf8string(s.str().substr(0, f) + t.str() + s.str().substr(l + 1));
 }
 
-std::string string__substring(const std::string &t, Number first, bool first_from_end, Number last, bool last_from_end)
+utf8string string__substring(const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
-    const utf8string &s = reinterpret_cast<const utf8string &>(t);
     assert(number_is_integer(first));
     assert(number_is_integer(last));
     int64_t f = number_to_sint64(first);
@@ -237,15 +236,15 @@ std::string string__substring(const std::string &t, Number first, bool first_fro
     }
     size_t start = s.index(f);
     size_t end = s.index(l + 1);
-    return s.substr(start, end-start);
+    return utf8string(s.substr(start, end-start));
 }
 
-std::vector<unsigned char> string__toBytes(const std::string &self)
+std::vector<unsigned char> string__toBytes(const utf8string &self)
 {
     return std::vector<unsigned char>(self.data(), self.data()+self.size());
 }
 
-std::string string__toString(const std::string &self)
+utf8string string__toString(const utf8string &self)
 {
     // TODO: Escape things that need escaping.
     return "\"" + self + "\"";
@@ -290,13 +289,13 @@ std::vector<unsigned char> bytes__splice(const std::vector<unsigned char> &t, co
     return r;
 }
 
-std::string bytes__decodeToString(const std::vector<unsigned char> &self)
+utf8string bytes__decodeToString(const std::vector<unsigned char> &self)
 {
     auto inv = utf8::find_invalid(self.begin(), self.end());
     if (inv != self.end()) {
-        throw RtlException(Exception_Utf8DecodingException, std::to_string(std::distance(self.begin(), inv)));
+        throw RtlException(Exception_Utf8DecodingException, utf8string(std::to_string(std::distance(self.begin(), inv))));
     }
-    return std::string(self.begin(), self.end());
+    return utf8string(std::string(self.begin(), self.end()));
 }
 
 std::vector<Number> bytes__toArray(const std::vector<unsigned char> &self)
@@ -308,7 +307,7 @@ std::vector<Number> bytes__toArray(const std::vector<unsigned char> &self)
     return r;
 }
 
-std::string bytes__toString(const std::vector<unsigned char> &self)
+utf8string bytes__toString(const std::vector<unsigned char> &self)
 {
     std::stringstream r;
     r << "HEXBYTES \"";
@@ -324,22 +323,22 @@ std::string bytes__toString(const std::vector<unsigned char> &self)
         r << hex[c & 0xf];
     }
     r << "\"";
-    return r.str();
+    return utf8string(r.str());
 }
 
-std::string pointer__toString(void *p)
+utf8string pointer__toString(void *p)
 {
-    return "<p:" + std::to_string(reinterpret_cast<intptr_t>(p)) + ">";
+    return utf8string("<p:" + std::to_string(reinterpret_cast<intptr_t>(p)) + ">");
 }
 
-std::string functionpointer__toString(Cell &p)
+utf8string functionpointer__toString(Cell &p)
 {
-    return "<fp:ip=" + number_to_string(p.number()) + ">";
+    return utf8string("<fp:ip=" + number_to_string(p.number()) + ">");
 }
 
-std::string interfacepointer__toString(Cell &p)
+utf8string interfacepointer__toString(Cell &p)
 {
-    return "<ip:" + std::to_string(reinterpret_cast<intptr_t>(p.array_for_write()[0].address())) + "," + number_to_string(p.array_for_write()[1].number()) + ">";
+    return utf8string("<ip:" + std::to_string(reinterpret_cast<intptr_t>(p.array_for_write()[0].address())) + "," + number_to_string(p.array_for_write()[1].number()) + ">");
 }
 
 std::vector<unsigned char> concatBytes(const std::vector<unsigned char> &a, const std::vector<unsigned char> &b)
@@ -349,19 +348,19 @@ std::vector<unsigned char> concatBytes(const std::vector<unsigned char> &a, cons
     return r;
 }
 
-std::string input(const std::string &prompt)
+utf8string input(const utf8string &prompt)
 {
-    std::cout << prompt;
+    std::cout << prompt.str();
     std::string r;
     if (not std::getline(std::cin, r)) {
-        throw RtlException(Exception_EndOfFileException, "");
+        throw RtlException(Exception_EndOfFileException, utf8string(""));
     }
-    return r;
+    return utf8string(r);
 }
 
-void print(const std::string &s)
+void print(const utf8string &s)
 {
-    std::cout << s << "\n";
+    std::cout << s.str() << "\n";
 }
 
 std::shared_ptr<Object> object__makeNull()
@@ -373,7 +372,7 @@ class ObjectBoolean: public Object {
 public:
     ObjectBoolean(bool b): b(b) {}
     virtual bool getBoolean(bool &r) const override { r = b; return true; }
-    virtual std::string toString() const override { return b ? "TRUE" : "FALSE"; }
+    virtual utf8string toString() const override { return utf8string(b ? "TRUE" : "FALSE"); }
 private:
     const bool b;
 private:
@@ -390,7 +389,7 @@ class ObjectNumber: public Object {
 public:
     ObjectNumber(Number n): n(n) {}
     virtual bool getNumber(Number &r) const override { r = n; return true; }
-    virtual std::string toString() const override { return number_to_string(n); }
+    virtual utf8string toString() const override { return utf8string(number_to_string(n)); }
 private:
     const Number n;
 private:
@@ -405,17 +404,17 @@ std::shared_ptr<Object> object__makeNumber(Number n)
 
 class ObjectString: public Object {
 public:
-    ObjectString(const std::string &s): s(s) {}
-    virtual bool getString(std::string &r) const override { r = s; return true; }
-    virtual std::string toString() const override { return "\"" + s + "\""; }
+    ObjectString(const utf8string &s): s(s) {}
+    virtual bool getString(utf8string &r) const override { r = s; return true; }
+    virtual utf8string toString() const override { return "\"" + s + "\""; }
 private:
-    const std::string s;
+    const utf8string s;
 private:
     ObjectString(const ObjectString &);
     ObjectString &operator=(const ObjectString &);
 };
 
-std::shared_ptr<Object> object__makeString(const std::string &s)
+std::shared_ptr<Object> object__makeString(const utf8string &s)
 {
     return std::shared_ptr<Object>(new ObjectString(s));
 }
@@ -424,8 +423,8 @@ class ObjectBytes: public Object {
 public:
     ObjectBytes(const std::vector<unsigned char> &b): b(b) {}
     virtual bool getBytes(std::vector<unsigned char> &r) const override { r = b; return true; }
-    virtual std::string toString() const override {
-        std::string r = "HEXBYTES \"";
+    virtual utf8string toString() const override {
+        utf8string r {"HEXBYTES \""};
         bool first = true;
         for (auto x: b) {
             if (first) {
@@ -458,17 +457,17 @@ public:
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
         Number i;
         if (not index->getNumber(i)) {
-            throw RtlException(Exception_DynamicConversionException, "to Number");
+            throw RtlException(Exception_DynamicConversionException, utf8string("to Number"));
         }
         uint64_t ii = number_to_uint64(i);
         if (ii >= a.size()) {
-            throw RtlException(Exception_ArrayIndexException, number_to_string(i));
+            throw RtlException(Exception_ArrayIndexException, utf8string(number_to_string(i)));
         }
         r = a.at(ii);
         return true;
     }
-    virtual std::string toString() const override {
-        std::string r = "[";
+    virtual utf8string toString() const override {
+        utf8string r {"["};
         bool first = true;
         for (auto x: a) {
             if (not first) {
@@ -498,9 +497,9 @@ public:
     ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
-        std::string i;
+        utf8string i;
         if (not index->getString(i)) {
-            throw RtlException(Exception_DynamicConversionException, "to String");
+            throw RtlException(Exception_DynamicConversionException, utf8string("to String"));
         }
         auto e = d.find(i);
         if (e == d.end()) {
@@ -509,8 +508,8 @@ public:
         r = e->second;
         return true;
     }
-    virtual std::string toString() const override {
-        std::string r = "{";
+    virtual utf8string toString() const override {
+        utf8string r {"{"};
         bool first = true;
         for (auto x: d) {
             if (not first) {
@@ -542,7 +541,7 @@ bool object__getBoolean(std::shared_ptr<Object> obj)
 {
     bool r;
     if (obj == nullptr || not obj->getBoolean(r)) {
-        throw RtlException(Exception_DynamicConversionException, "to Boolean");
+        throw RtlException(Exception_DynamicConversionException, utf8string("to Boolean"));
     }
     return r;
 }
@@ -551,16 +550,16 @@ Number object__getNumber(std::shared_ptr<Object> obj)
 {
     Number r;
     if (obj == nullptr || not obj->getNumber(r)) {
-        throw RtlException(Exception_DynamicConversionException, "to Number");
+        throw RtlException(Exception_DynamicConversionException, utf8string("to Number"));
     }
     return r;
 }
 
-std::string object__getString(std::shared_ptr<Object> obj)
+utf8string object__getString(std::shared_ptr<Object> obj)
 {
-    std::string r;
+    utf8string r;
     if (obj == nullptr || not obj->getString(r)) {
-        throw RtlException(Exception_DynamicConversionException, "to String");
+        throw RtlException(Exception_DynamicConversionException, utf8string("to String"));
     }
     return r;
 }
@@ -569,7 +568,7 @@ std::vector<unsigned char> object__getBytes(std::shared_ptr<Object> obj)
 {
     std::vector<unsigned char> r;
     if (obj == nullptr || not obj->getBytes(r)) {
-        throw RtlException(Exception_DynamicConversionException, "to Bytes");
+        throw RtlException(Exception_DynamicConversionException, utf8string("to Bytes"));
     }
     return r;
 }
@@ -578,7 +577,7 @@ std::vector<std::shared_ptr<Object>> object__getArray(std::shared_ptr<Object> ob
 {
     std::vector<std::shared_ptr<Object>> r;
     if (obj == nullptr || not obj->getArray(r)) {
-        throw RtlException(Exception_DynamicConversionException, "to Array");
+        throw RtlException(Exception_DynamicConversionException, utf8string("to Array"));
     }
     return r;
 }
@@ -587,7 +586,7 @@ std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_
 {
     std::map<utf8string, std::shared_ptr<Object>> r;
     if (obj == nullptr || not obj->getDictionary(r)) {
-        throw RtlException(Exception_DynamicConversionException, "to Dictionary");
+        throw RtlException(Exception_DynamicConversionException, utf8string("to Dictionary"));
     }
     return r;
 }
@@ -597,10 +596,10 @@ bool object__isNull(std::shared_ptr<Object> obj)
     return obj == nullptr;
 }
 
-std::string object__toString(std::shared_ptr<Object> obj)
+utf8string object__toString(std::shared_ptr<Object> obj)
 {
     if (obj == nullptr) {
-        return "null";
+        return utf8string("null");
     }
     return obj->toString();
 }
@@ -608,7 +607,7 @@ std::string object__toString(std::shared_ptr<Object> obj)
 std::shared_ptr<Object> object__subscript(std::shared_ptr<Object> obj, std::shared_ptr<Object> index)
 {
     if (obj == nullptr) {
-        throw RtlException(Exception_DynamicConversionException, "object is null");
+        throw RtlException(Exception_DynamicConversionException, utf8string("object is null"));
     }
     std::shared_ptr<Object> r;
     if (obj == nullptr || not obj->subscript(index, r)) {

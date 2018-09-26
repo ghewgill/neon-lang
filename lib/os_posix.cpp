@@ -28,7 +28,7 @@ namespace rtl {
 
 namespace os {
 
-void chdir(const std::string &path)
+void chdir(const utf8string &path)
 {
     int r = ::chdir(path.c_str());
     if (r != 0) {
@@ -36,10 +36,10 @@ void chdir(const std::string &path)
     }
 }
 
-std::string getcwd()
+utf8string getcwd()
 {
     char buf[MAXPATHLEN];
-    return ::getcwd(buf, sizeof(buf));
+    return utf8string(::getcwd(buf, sizeof(buf)));
 }
 
 Cell platform()
@@ -59,7 +59,7 @@ void kill(void *process)
     delete p;
 }
 
-void *spawn(const std::string &command)
+void *spawn(const utf8string &command)
 {
     static bool init_closer = false;
     if (not init_closer) {

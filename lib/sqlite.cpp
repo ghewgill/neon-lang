@@ -20,32 +20,32 @@ namespace rtl {
 
 namespace sqlite {
 
-void *open(const std::string &name)
+void *open(const utf8string &name)
 {
     sqlite3 *db;
     int r = sqlite3_open(name.c_str(), &db);
     if (r != SQLITE_OK) {
-        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(db), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(db)), r);
     }
     return db;
 }
 
-Cell exec(void *db, const std::string &sql, const std::map<utf8string, utf8string> &parameters)
+Cell exec(void *db, const utf8string &sql, const std::map<utf8string, utf8string> &parameters)
 {
     std::vector<Cell> rows;
     sqlite3_stmt *stmt;
     int r = sqlite3_prepare_v2(static_cast<sqlite3 *>(db), sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
         if (c == 0) {
-            throw RtlException(Exception_SqliteException_ParameterName, p.first.c_str());
+            throw RtlException(Exception_SqliteException_ParameterName, utf8string(p.first.c_str()));
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -61,28 +61,28 @@ Cell exec(void *db, const std::string &sql, const std::map<utf8string, utf8strin
             }
             rows.push_back(Cell(row));
         } else {
-            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
         }
     }
     sqlite3_finalize(stmt);
     return Cell(rows);
 }
 
-bool execOne(void *db, const std::string &sql, const std::map<utf8string, utf8string> &parameters, Cell *result)
+bool execOne(void *db, const utf8string &sql, const std::map<utf8string, utf8string> &parameters, Cell *result)
 {
     sqlite3_stmt *stmt;
     int r = sqlite3_prepare_v2(static_cast<sqlite3 *>(db), sql.c_str(), -1, &stmt, NULL);
     if (r != SQLITE_OK) {
-        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
     }
     for (auto p: parameters) {
         int c = sqlite3_bind_parameter_index(stmt, p.first.c_str());
         if (c == 0) {
-            throw RtlException(Exception_SqliteException_ParameterName, p.first.c_str());
+            throw RtlException(Exception_SqliteException_ParameterName, utf8string(p.first.c_str()));
         }
         r = sqlite3_bind_text(stmt, c, p.second.c_str(), -1, SQLITE_TRANSIENT);
         if (r != SQLITE_OK) {
-            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
         }
     }
     int columns = sqlite3_column_count(stmt);
@@ -96,19 +96,19 @@ bool execOne(void *db, const std::string &sql, const std::map<utf8string, utf8st
             result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
         }
     } else {
-        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
     }
     sqlite3_finalize(stmt);
     return true;
 }
 
-Cell execRaw(void *db, const std::string &sql)
+Cell execRaw(void *db, const utf8string &sql)
 {
     std::vector<Cell> rows;
     char *errmsg;
     int r = sqlite3_exec(static_cast<sqlite3 *>(db), sql.c_str(), callback, &rows, &errmsg);
     if (r != SQLITE_OK) {
-        throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+        throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
     }
     return Cell(rows);
 }
@@ -120,13 +120,13 @@ void close(void *db)
 
 class Cursor {
 public:
-    Cursor(sqlite3 *db, const std::string &query): db(db), query(query), stmt(nullptr), columns(0) {}
+    Cursor(sqlite3 *db, const utf8string &query): db(db), query(query), stmt(nullptr), columns(0) {}
     virtual ~Cursor() {}
     void open()
     {
         int r = sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL);
         if (r != SQLITE_OK) {
-            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
         }
         columns = sqlite3_column_count(stmt);
     }
@@ -142,7 +142,7 @@ public:
                 result->array_for_write().push_back(Cell(reinterpret_cast<const char *>(sqlite3_column_text(stmt, i))));
             }
         } else {
-            throw RtlException(global::Exception_SqlException, sqlite3_errmsg(static_cast<sqlite3 *>(db)), r);
+            throw RtlException(global::Exception_SqlException, utf8string(sqlite3_errmsg(static_cast<sqlite3 *>(db))), r);
         }
         return true;
     }
@@ -152,7 +152,7 @@ public:
     }
 
     sqlite3 *db;
-    const std::string query;
+    const utf8string query;
     sqlite3_stmt *stmt;
     int columns;
 private:
@@ -160,37 +160,37 @@ private:
     Cursor &operator=(const Cursor &);
 };
 
-std::map<std::string, std::unique_ptr<Cursor>> Cursors;
+std::map<utf8string, std::unique_ptr<Cursor>> Cursors;
 
-std::string cursorDeclare(void *db, const std::string &name, const std::string &query)
+utf8string cursorDeclare(void *db, const utf8string &name, const utf8string &query)
 {
     Cursors[name] = std::unique_ptr<Cursor> { new Cursor(static_cast<sqlite3 *>(db), query) };
     return name;
 }
 
-void cursorOpen(const std::string &name)
+void cursorOpen(const utf8string &name)
 {
     auto c = Cursors.find(name);
     if (c == Cursors.end()) {
-        throw RtlException(global::Exception_SqlException, name);
+        throw RtlException(global::Exception_SqlException, utf8string(name));
     }
     c->second->open();
 }
 
-bool cursorFetch(const std::string &name, Cell *result)
+bool cursorFetch(const utf8string &name, Cell *result)
 {
     auto c = Cursors.find(name);
     if (c == Cursors.end()) {
-        throw RtlException(global::Exception_SqlException, name);
+        throw RtlException(global::Exception_SqlException, utf8string(name));
     }
     return c->second->fetch(result);
 }
 
-void cursorClose(const std::string &name)
+void cursorClose(const utf8string &name)
 {
     auto c = Cursors.find(name);
     if (c == Cursors.end()) {
-        throw RtlException(global::Exception_SqlException, name);
+        throw RtlException(global::Exception_SqlException, utf8string(name));
     }
     c->second->close();
     Cursors.erase(c);

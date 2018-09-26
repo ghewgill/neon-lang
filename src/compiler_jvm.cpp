@@ -1170,7 +1170,7 @@ public:
     const ast::ConstantStringExpression *cse;
 
     virtual void generate(Context &context) const override {
-        context.ca.code << OP_ldc_w << context.cf.String(cse->value);
+        context.ca.code << OP_ldc_w << context.cf.String(cse->value.str());
     }
 
     virtual void generate_call(Context &, const std::vector<const Expression *> &) const override { internal_error("ConstantStringExpression"); }
@@ -1311,7 +1311,7 @@ class DictionaryLiteralExpression: public Expression {
 public:
     DictionaryLiteralExpression(const ast::DictionaryLiteralExpression *dle): Expression(dle), dle(dle), dict() {
         for (auto d: dle->dict) {
-            dict[d.first] = transform(d.second);
+            dict[d.first.str()] = transform(d.second); // TODO: utf8
         }
     }
     const ast::DictionaryLiteralExpression *dle;

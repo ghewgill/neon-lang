@@ -45,7 +45,7 @@ CppFromAstParam = {
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_NUMBER", REF): "Number *",
-    ("TYPE_STRING", VALUE): "const std::string &", # TODO: should be utf8string I think
+    ("TYPE_STRING", VALUE): "const utf8string &",
     ("TYPE_STRING", REF): "utf8string *",
     ("TYPE_STRING", OUT): "utf8string",
     ("TYPE_BYTES", VALUE): "const std::vector<unsigned char> &",
@@ -74,8 +74,8 @@ CppFromAstReturn = {
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_NUMBER", REF): "Number *",
-    ("TYPE_STRING", VALUE): "std::string",
-    ("TYPE_STRING", REF): "std::string *",
+    ("TYPE_STRING", VALUE): "utf8string",
+    ("TYPE_STRING", REF): "utf8string *",
     ("TYPE_BYTES", VALUE): "std::vector<unsigned char>",
     ("TYPE_BYTES", REF): "std::vector<unsigned char> *",
     ("TYPE_OBJECT", VALUE): "std::shared_ptr<Object>",
@@ -98,7 +98,7 @@ CppFromAstArg = {
     ("TYPE_BOOLEAN", REF): "bool *",
     ("TYPE_NUMBER", VALUE): "Number",
     ("TYPE_NUMBER", REF): "Number *",
-    ("TYPE_STRING", VALUE): "const std::string &", # TODO: should be utf8string I think
+    ("TYPE_STRING", VALUE): "const utf8string &",
     ("TYPE_STRING", REF): "utf8string *",
     ("TYPE_STRING", OUT): "utf8string *",
     ("TYPE_BYTES", VALUE): "const std::vector<unsigned char> &",
@@ -151,7 +151,7 @@ CellField = {
     ("TYPE_BOOLEAN", REF): "address()->boolean()",
     ("TYPE_NUMBER", VALUE): "number()",
     ("TYPE_NUMBER", REF): "address()->number()",
-    ("TYPE_STRING", VALUE): "string().str()",
+    ("TYPE_STRING", VALUE): "string()",
     ("TYPE_STRING", REF): "address()->string_for_write()",
     ("TYPE_STRING", OUT): "address()->string_for_write()",
     ("TYPE_BYTES", VALUE): "bytes()",
@@ -266,7 +266,7 @@ for fn in sys.argv[1:]:
                     assert ntype in ["Number", "String"]
                     ctype = ntype
                     if ctype == "String":
-                        ctype = "std::string"
+                        ctype = "utf8string"
                     a = name.split("$")
                     functions[name] = [
                         name,

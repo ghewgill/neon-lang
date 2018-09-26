@@ -14,7 +14,7 @@ namespace rtl {
 
 namespace os {
 
-void chdir(const std::string &path)
+void chdir(const utf8string &path)
 {
     BOOL r = SetCurrentDirectory(path.c_str());
     if (not r) {
@@ -22,11 +22,11 @@ void chdir(const std::string &path)
     }
 }
 
-std::string getcwd()
+utf8string getcwd()
 {
     char buf[MAX_PATH];
     GetCurrentDirectory(sizeof(buf), buf);
-    return buf;
+    return utf8string(buf);
 }
 
 Cell platform()
@@ -43,7 +43,7 @@ void kill(void *process)
     delete p;
 }
 
-void *spawn(const std::string &command)
+void *spawn(const utf8string &command)
 {
     static HANDLE job = INVALID_HANDLE_VALUE;
     if (job == INVALID_HANDLE_VALUE) {
@@ -71,7 +71,7 @@ void *spawn(const std::string &command)
         &si,
         &pi);
     if (not r) {
-        throw RtlException(file::Exception_FileException_PathNotFound, command.c_str());
+        throw RtlException(file::Exception_FileException_PathNotFound, command);
     }
     AssignProcessToJobObject(job, pi.hProcess);
     p->process = pi.hProcess;

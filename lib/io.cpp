@@ -21,7 +21,7 @@ static FILE *check_file(void *pf)
 {
     FILE *f = static_cast<FILE *>(pf);
     if (f == NULL) {
-        throw RtlException(rtl::io::Exception_IoException_InvalidFile, "");
+        throw RtlException(rtl::io::Exception_IoException_InvalidFile, utf8string(""));
     }
     return f;
 }
@@ -41,14 +41,14 @@ void close(Cell **ppf)
     *ppf = NULL;
 }
 
-void fprint(void *pf, const std::string &s)
+void fprint(void *pf, const utf8string &s)
 {
     FILE *f = check_file(pf);
     fputs(s.c_str(), f);
     fputs("\n", f);
 }
 
-void *open(const std::string &name, Cell &mode)
+void *open(const utf8string &name, Cell &mode)
 {
     const char *m;
     switch (number_to_uint32(mode.number())) {
@@ -113,16 +113,16 @@ void truncate(void *pf)
     long ofs = ftell(f);
     #ifdef _WIN32
         if (_chsize(_fileno(f), ofs) != 0) {
-            throw RtlException(Exception_IoException_Write, "");
+            throw RtlException(Exception_IoException_Write, utf8string(""));
         }
     #else
         if (ftruncate(fileno(f), ofs) != 0) {
-            throw RtlException(Exception_IoException_Write, "");
+            throw RtlException(Exception_IoException_Write, utf8string(""));
         }
     #endif
 }
 
-void write(void *pf, const std::string &s)
+void write(void *pf, const utf8string &s)
 {
     FILE *f = check_file(pf);
     fputs(s.c_str(), f);

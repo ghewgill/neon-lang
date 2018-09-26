@@ -35,22 +35,22 @@ inline Number wrap(int r)
     return number_from_sint32(r);
 }
 
-Number access(const std::string &path, Number amode)
+Number access(const utf8string &path, Number amode)
 {
     return wrap(::access(path.c_str(), number_to_sint32(amode)));
 }
 
-Number chdir(const std::string &path)
+Number chdir(const utf8string &path)
 {
     return wrap(::chdir(path.c_str()));
 }
 
-Number chmod(const std::string &path, Number mode)
+Number chmod(const utf8string &path, Number mode)
 {
     return wrap(::chmod(path.c_str(), number_to_sint32(mode)));
 }
 
-Number chown(const std::string &path, Number owner, Number group)
+Number chown(const utf8string &path, Number owner, Number group)
 {
     return wrap(::chown(path.c_str(), number_to_sint32(owner), number_to_sint32(group)));
 }
@@ -75,7 +75,7 @@ void exit(Number status)
     _exit(number_to_sint32(status));
 }
 
-Number execve(const std::string &path, const std::vector<utf8string> &argv, const std::vector<utf8string> &envp)
+Number execve(const utf8string &path, const std::vector<utf8string> &argv, const std::vector<utf8string> &envp)
 {
     char *a[argv.size()+1];
     for (size_t i = 0; i < argv.size(); i++) {
@@ -93,7 +93,7 @@ Number execve(const std::string &path, const std::vector<utf8string> &argv, cons
 }
 
 #if HAVE_AT_FUNCTIONS
-Number faccessat(Number fd, const std::string &path, Number mode, Number flag)
+Number faccessat(Number fd, const utf8string &path, Number mode, Number flag)
 {
     return wrap(::faccessat(number_to_sint32(fd), path.c_str(), number_to_sint32(mode), number_to_sint32(flag)));
 }
@@ -110,7 +110,7 @@ Number fchmod(Number fildes, Number mode)
 }
 
 #if HAVE_AT_FUNCTIONS
-Number fchmodat(Number fd, const std::string &path, Number mode, Number flag)
+Number fchmodat(Number fd, const utf8string &path, Number mode, Number flag)
 {
     return wrap(::fchmodat(number_to_sint32(fd), path.c_str(), number_to_sint32(mode), number_to_sint32(flag)));
 }
@@ -122,7 +122,7 @@ Number fchown(Number fildes, Number owner, Number group)
 }
 
 #if HAVE_AT_FUNCTIONS
-Number fchownat(Number fd, const std::string &path, Number owner, Number group, Number flag)
+Number fchownat(Number fd, const utf8string &path, Number owner, Number group, Number flag)
 {
     return wrap(::fchownat(number_to_sint32(fd), path.c_str(), number_to_sint32(owner), number_to_sint32(group), number_to_sint32(flag)));
 }
@@ -171,13 +171,13 @@ Number gethostname(utf8string *name)
     return r;
 }
 
-std::string getlogin()
+utf8string getlogin()
 {
     char *r = ::getlogin();
     if (r == NULL) {
-        return std::string();
+        return utf8string();
     }
-    return r;
+    return utf8string(r);
 }
 
 Number getpgid(Number pid)
@@ -225,18 +225,18 @@ Number kill(Number pid, Number sig)
     return wrap(::kill(number_to_sint32(pid), number_to_sint32(sig)));
 }
 
-Number lchown(const std::string &path, Number owner, Number group)
+Number lchown(const utf8string &path, Number owner, Number group)
 {
     return wrap(::lchown(path.c_str(), number_to_sint32(owner), number_to_sint32(group)));
 }
 
-Number link(const std::string &path1, const std::string &path2)
+Number link(const utf8string &path1, const utf8string &path2)
 {
     return wrap(::link(path1.c_str(), path2.c_str()));
 }
 
 #if HAVE_AT_FUNCTIONS
-Number linkat(Number fd1, const std::string &name1, Number fd2, const std::string &name2, Number flag)
+Number linkat(Number fd1, const utf8string &name1, Number fd2, const utf8string &name2, Number flag)
 {
     return wrap(::linkat(number_to_sint32(fd1), name1.c_str(), number_to_sint32(fd2), name2.c_str(), number_to_sint32(flag)));
 }
@@ -252,29 +252,29 @@ Number lseek(Number fildes, Number offset, Number whence)
     return wrap(::lseek(number_to_sint32(fildes), number_to_sint64(offset), number_to_sint32(whence)));
 }
 
-Number mkdir(const std::string &path, Number mode)
+Number mkdir(const utf8string &path, Number mode)
 {
     return wrap(::mkdir(path.c_str(), number_to_sint32(mode)));
 }
 
 #if HAVE_AT_FUNCTIONS
-Number mkdirat(Number fd, const std::string &path, Number mode)
+Number mkdirat(Number fd, const utf8string &path, Number mode)
 {
     return wrap(::mkdirat(number_to_sint32(fd), path.c_str(), number_to_sint32(mode)));
 }
 #endif
 
-Number mkfifo(const std::string &path, Number mode)
+Number mkfifo(const utf8string &path, Number mode)
 {
     return wrap(::mkfifo(path.c_str(), number_to_sint32(mode)));
 }
 
-Number open(const std::string &path, Number oflag, Number mode)
+Number open(const utf8string &path, Number oflag, Number mode)
 {
     return wrap(::open(path.c_str(), number_to_sint32(oflag), number_to_sint32(mode)));
 }
 
-Number pathconf(const std::string &path, Number name)
+Number pathconf(const utf8string &path, Number name)
 {
     return wrap(::pathconf(path.c_str(), number_to_sint32(name)));
 }
@@ -307,7 +307,7 @@ Number read(Number fildes, std::vector<unsigned char> *buf, Number nbyte)
     return wrap(::read(number_to_sint32(fildes), reinterpret_cast<char *>(const_cast<unsigned char *>(buf->data())), n));
 }
 
-Number readlink(const std::string &path, std::vector<unsigned char> *buf, Number bufsize)
+Number readlink(const utf8string &path, std::vector<unsigned char> *buf, Number bufsize)
 {
     size_t n = number_to_uint64(bufsize);
     buf->reserve(n);
@@ -315,7 +315,7 @@ Number readlink(const std::string &path, std::vector<unsigned char> *buf, Number
 }
 
 #if HAVE_AT_FUNCTIONS
-Number readlinkat(Number fd, const std::string &path, std::string *buf, Number bufsize)
+Number readlinkat(Number fd, const utf8string &path, utf8string *buf, Number bufsize)
 {
     size_t n = number_to_uint64(bufsize);
     buf->reserve(n);
@@ -323,19 +323,19 @@ Number readlinkat(Number fd, const std::string &path, std::string *buf, Number b
 }
 #endif
 
-Number rename(const std::string &old, const std::string &new_)
+Number rename(const utf8string &old, const utf8string &new_)
 {
     return wrap(::rename(old.c_str(), new_.c_str()));
 }
 
 #if HAVE_AT_FUNCTIONS
-Number renameat(Number fromfd, const std::string &from, Number tofd, const std::string &to)
+Number renameat(Number fromfd, const utf8string &from, Number tofd, const utf8string &to)
 {
     return wrap(::renameat(number_to_sint32(fromfd), from.c_str(), number_to_sint32(tofd), to.c_str()));
 }
 #endif
 
-Number rmdir(const std::string &path)
+Number rmdir(const utf8string &path)
 {
     return wrap(::rmdir(path.c_str()));
 }
@@ -390,22 +390,22 @@ Number sleep(Number seconds)
     return wrap(::sleep(number_to_sint32(seconds)));
 }
 
-std::string strerror(Number errnum)
+utf8string strerror(Number errnum)
 {
     char *r = ::strerror(number_to_sint32(errnum));
     if (r == NULL) {
-        return std::string();
+        return utf8string();
     }
-    return r;
+    return utf8string(r);
 }
 
-Number symlink(const std::string &path1, const std::string &path2)
+Number symlink(const utf8string &path1, const utf8string &path2)
 {
     return wrap(::symlink(path1.c_str(), path2.c_str()));
 }
 
 #if HAVE_AT_FUNCTIONS
-Number symlinkat(const std::string &name1, Number fd, const std::string &name2)
+Number symlinkat(const utf8string &name1, Number fd, const utf8string &name2)
 {
     return wrap(::symlinkat(name1.c_str(), number_to_sint32(fd), name2.c_str()));
 }
@@ -451,27 +451,27 @@ Number tcsetpgrp(Number fildes, Number pgid_id)
     return wrap(::tcsetpgrp(number_to_sint32(fildes), number_to_sint32(pgid_id)));
 }
 
-Number truncate(const std::string &path, Number length)
+Number truncate(const utf8string &path, Number length)
 {
     return wrap(::truncate(path.c_str(), number_to_uint64(length)));
 }
 
-std::string ttyname(Number fildes)
+utf8string ttyname(Number fildes)
 {
     char *r = ::ttyname(number_to_sint32(fildes));
     if (r == NULL) {
-        return std::string();
+        return utf8string();
     }
-    return r;
+    return utf8string(r);
 }
 
-Number unlink(const std::string &path)
+Number unlink(const utf8string &path)
 {
     return wrap(::unlink(path.c_str()));
 }
 
 #if HAVE_AT_FUNCTIONS
-Number unlinkat(Number fd, const std::string &path, Number flag)
+Number unlinkat(Number fd, const utf8string &path, Number flag)
 {
     return wrap(::unlinkat(number_to_sint32(fd), path.c_str(), number_to_sint32(flag)));
 }

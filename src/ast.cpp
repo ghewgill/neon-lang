@@ -73,17 +73,17 @@ bool TypeNumber::is_assignment_compatible(const Type *rhs) const
 std::string TypeNumber::serialize(const Expression *value) const
 {
     Number x = value->eval_number();
-    return TypeString::serialize(number_to_string(x));
+    return TypeString::serialize(utf8string(number_to_string(x)));
 }
 
 const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
-    return new ConstantNumberExpression(number_from_string(TypeString::deserialize_string(value, i)));
+    return new ConstantNumberExpression(number_from_string(TypeString::deserialize_string(value, i).str()));
 }
 
 const Expression *TypeString::make_default_value() const
 {
-    return new ConstantStringExpression("");
+    return new ConstantStringExpression(utf8string(""));
 }
 
 bool TypeString::is_assignment_compatible(const Type *rhs) const
@@ -91,16 +91,16 @@ bool TypeString::is_assignment_compatible(const Type *rhs) const
     return this == rhs || rhs == TYPE_OBJECT;
 }
 
-std::string TypeString::serialize(const std::string &value)
+std::string TypeString::serialize(const utf8string &value)
 {
-    uint32_t len = static_cast<uint32_t>(value.length());
+    uint32_t len = static_cast<uint32_t>(value.size());
     std::string r;
     // TODO: vint
     r.push_back(static_cast<unsigned char>(len >> 24) & 0xff);
     r.push_back(static_cast<unsigned char>(len >> 16) & 0xff);
     r.push_back(static_cast<unsigned char>(len >> 8) & 0xff);
     r.push_back(static_cast<unsigned char>(len & 0xff));
-    return r + value;
+    return r + value.str();
 }
 
 std::string TypeString::serialize(const Expression *value) const
@@ -108,13 +108,13 @@ std::string TypeString::serialize(const Expression *value) const
     return serialize(value->eval_string());
 }
 
-std::string TypeString::deserialize_string(const Bytecode::Bytes &value, int &i)
+utf8string TypeString::deserialize_string(const Bytecode::Bytes &value, int &i)
 {
     // TODO: vint
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     std::string s(&value.at(i+4), &value.at(i+4)+len);
     i += 4 + len;
-    return s;
+    return utf8string(s);
 }
 
 const Expression *TypeString::deserialize_value(const Bytecode::Bytes &value, int &i) const
@@ -139,7 +139,7 @@ std::string TypeBytes::serialize(const Expression *value) const
 
 const Expression *TypeBytes::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
-    return new ConstantBytesExpression("Imported value", TypeString::deserialize_string(value, i));
+    return new ConstantBytesExpression("Imported value", TypeString::deserialize_string(value, i).str());
 }
 
 const Expression *TypeObject::make_default_value() const
@@ -376,12 +376,12 @@ std::string TypeDictionary::serialize(const Expression *value) const
 
 const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
-    std::vector<std::pair<std::string, const Expression *>> dict;
+    std::vector<std::pair<utf8string, const Expression *>> dict;
     // TODO: vint
     uint32_t len = (value.at(i) << 24) | (value.at(i+1) << 16) | (value.at(i+2) << 8) | value.at(i+3);
     i += 4;
     while (len > 0) {
-        std::string key = TypeString::deserialize_string(value, i);
+        utf8string key = TypeString::deserialize_string(value, i);
         dict.push_back(std::make_pair(key, elementtype->deserialize_value(value, i)));
         len--;
     }
@@ -640,12 +640,12 @@ const Expression *TypeEnum::make_default_value() const
 std::string TypeEnum::serialize(const Expression *value) const
 {
     Number x = value->eval_number();
-    return TypeString::serialize(number_to_string(x));
+    return TypeString::serialize(utf8string(number_to_string(x)));
 }
 
 const Expression *TypeEnum::deserialize_value(const Bytecode::Bytes &value, int &i) const
 {
-    return new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i)));
+    return new ConstantEnumExpression(this, std::stoi(TypeString::deserialize_string(value, i).str()));
 }
 
 bool Expression::eval_boolean(const Token &token) const
@@ -653,7 +653,7 @@ bool Expression::eval_boolean(const Token &token) const
     try {
         return eval_boolean();
     } catch (RtlException &e) {
-        error(3195, token, "Boolean evaluation exception: " + e.name + ": " + e.info);
+        error(3195, token, "Boolean evaluation exception: " + e.name + ": " + e.info.str());
     }
 }
 
@@ -662,16 +662,16 @@ Number Expression::eval_number(const Token &token) const
     try {
         return eval_number();
     } catch (RtlException &e) {
-        error(3196, token, "Numeric evaluation exception: " + e.name + ": " + e.info);
+        error(3196, token, "Numeric evaluation exception: " + e.name + ": " + e.info.str());
     }
 }
 
-std::string Expression::eval_string(const Token &token) const
+utf8string Expression::eval_string(const Token &token) const
 {
     try {
         return eval_string();
     } catch (RtlException &e) {
-        error(3197, token, "String evaluation exception: " + e.name + ": " + e.info);
+        error(3197, token, "String evaluation exception: " + e.name + ": " + e.info.str());
     }
 }
 
@@ -692,7 +692,7 @@ std::string ConstantNumberExpression::text() const
 std::string ConstantStringExpression::text() const
 {
     std::stringstream s;
-    s << "ConstantStringExpression(" << value << ")";
+    s << "ConstantStringExpression(" << value.str() << ")";
     return s.str();
 }
 
@@ -720,7 +720,7 @@ bool ArrayLiteralExpression::all_constant(const std::vector<const Expression *> 
     return true;
 }
 
-bool DictionaryLiteralExpression::all_constant(const std::vector<std::pair<std::string, const Expression *>> &elements)
+bool DictionaryLiteralExpression::all_constant(const std::vector<std::pair<utf8string, const Expression *>> &elements)
 {
     for (auto e: elements) {
         if (not e.second->is_constant) {
@@ -740,9 +740,9 @@ bool RecordLiteralExpression::all_constant(const std::vector<const Expression *>
     return true;
 }
 
-std::map<std::string, const Expression *> DictionaryLiteralExpression::make_dictionary(const std::vector<std::pair<std::string, const Expression *>> &elements)
+std::map<utf8string, const Expression *> DictionaryLiteralExpression::make_dictionary(const std::vector<std::pair<utf8string, const Expression *>> &elements)
 {
-    std::map<std::string, const Expression *> dict;
+    std::map<utf8string, const Expression *> dict;
     for (auto e: elements) {
         dict[e.first] = e.second;
     }
@@ -920,7 +920,7 @@ Number FunctionCall::eval_number() const
     internal_error("unexpected intrinsic");
 }
 
-std::string FunctionCall::eval_string() const
+utf8string FunctionCall::eval_string() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
     const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);

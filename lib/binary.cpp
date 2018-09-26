@@ -61,10 +61,10 @@ const Number traits<uint64_t>::MAX = traits<uint64_t>::to_number(std::numeric_li
 template <typename T> void range_check(Number x)
 {
     if (number_is_less(x, traits<T>::MIN) || number_is_greater(x, traits<T>::MAX)) {
-        throw RtlException(rtl::global::Exception_ValueRangeException, number_to_string(x));
+        throw RtlException(rtl::global::Exception_ValueRangeException, utf8string(number_to_string(x)));
     }
     if (not number_is_integer(x)) {
-        throw RtlException(rtl::global::Exception_ValueRangeException, number_to_string(x));
+        throw RtlException(rtl::global::Exception_ValueRangeException, utf8string(number_to_string(x)));
     }
 }
 
@@ -223,7 +223,7 @@ Number xor64(Number x, Number y)                            { return binary_xor<
 std::vector<unsigned char> andBytes(const std::vector<unsigned char> &x, const std::vector<unsigned char> &y)
 {
     if (x.size() != y.size()) {
-        throw RtlException(global::Exception_ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, utf8string(""));
     }
     std::vector<unsigned char> r;
     r.resize(x.size());
@@ -246,7 +246,7 @@ std::vector<unsigned char> notBytes(const std::vector<unsigned char> &x)
 std::vector<unsigned char> orBytes(const std::vector<unsigned char> &x, const std::vector<unsigned char> &y)
 {
     if (x.size() != y.size()) {
-        throw RtlException(global::Exception_ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, utf8string(""));
     }
     std::vector<unsigned char> r;
     r.resize(x.size());
@@ -259,7 +259,7 @@ std::vector<unsigned char> orBytes(const std::vector<unsigned char> &x, const st
 std::vector<unsigned char> xorBytes(const std::vector<unsigned char> &x, const std::vector<unsigned char> &y)
 {
     if (x.size() != y.size()) {
-        throw RtlException(global::Exception_ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, utf8string(""));
     }
     std::vector<unsigned char> r;
     r.resize(x.size());

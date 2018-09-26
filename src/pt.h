@@ -8,6 +8,7 @@
 #include "number.h"
 #include "sql.h"
 #include "token.h"
+#include "utf8string.h"
 
 namespace pt {
 
@@ -324,9 +325,9 @@ public:
 
 class StringLiteralExpression: public Expression {
 public:
-    StringLiteralExpression(const Token &token, size_t end_column, const std::string &value): Expression(token, token.column, end_column), value(value) {}
+    StringLiteralExpression(const Token &token, size_t end_column, const utf8string &value): Expression(token, token.column, end_column), value(value) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
-    const std::string value;
+    const utf8string value;
 };
 
 class FileLiteralExpression: public Expression {

@@ -14,7 +14,7 @@
 #include "rtl_exec.h"
 #include "enums.inc"
 
-static void handle_error(int error, const std::string &path)
+static void handle_error(int error, const utf8string &path)
 {
     switch (error) {
         case EACCES: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
@@ -29,12 +29,12 @@ namespace rtl {
 
 namespace file {
 
-std::string _CONSTANT_Separator()
+utf8string _CONSTANT_Separator()
 {
-    return "/";
+    return utf8string("/");
 }
 
-void copy(const std::string &filename, const std::string &destination)
+void copy(const utf8string &filename, const utf8string &destination)
 {
 #ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL|COPYFILE_EXCL);
@@ -61,7 +61,7 @@ void copy(const std::string &filename, const std::string &destination)
         int error = errno;
         close(sourcefd);
         if (error == EEXIST) {
-            throw RtlException(Exception_FileException_Exists, destination.c_str());
+            throw RtlException(Exception_FileException_Exists, destination);
         }
         handle_error(error, destination);
     }
@@ -109,7 +109,7 @@ void copy(const std::string &filename, const std::string &destination)
 #endif
 }
 
-void copyOverwriteIfExists(const std::string &filename, const std::string &destination)
+void copyOverwriteIfExists(const utf8string &filename, const utf8string &destination)
 {
 #ifdef __APPLE__
     int r = copyfile(filename.c_str(), destination.c_str(), NULL, COPYFILE_ALL);
@@ -178,7 +178,7 @@ void copyOverwriteIfExists(const std::string &filename, const std::string &desti
 #endif
 }
 
-void delete_(const std::string &filename)
+void delete_(const utf8string &filename)
 {
     int r = unlink(filename.c_str());
     if (r != 0) {
@@ -188,12 +188,12 @@ void delete_(const std::string &filename)
     }
 }
 
-bool exists(const std::string &filename)
+bool exists(const utf8string &filename)
 {
     return access(filename.c_str(), F_OK) == 0;
 }
 
-std::vector<utf8string> files(const std::string &path)
+std::vector<utf8string> files(const utf8string &path)
 {
     std::vector<utf8string> r;
     DIR *d = opendir(path.c_str());
@@ -203,21 +203,21 @@ std::vector<utf8string> files(const std::string &path)
             if (de == NULL) {
                 break;
             }
-            r.push_back(de->d_name);
+            r.push_back(utf8string(de->d_name));
         }
         closedir(d);
     }
     return r;
 }
 
-Cell getInfo(const std::string &name)
+Cell getInfo(const utf8string &name)
 {
     struct stat st;
     if (stat(name.c_str(), &st) != 0) {
         handle_error(errno, name);
     }
     std::vector<Cell> r;
-    r.push_back(Cell(name.rfind('/') != std::string::npos ? name.substr(name.rfind('/')+1) : name));
+    r.push_back(Cell(name.str().rfind('/') != std::string::npos ? utf8string(name.str().substr(name.str().rfind('/')+1)) : name));
     r.push_back(Cell(number_from_uint64(st.st_size)));
     r.push_back(Cell(bool(st.st_mode & 0x04)));
     r.push_back(Cell(bool(st.st_mode & 0x02)));
@@ -233,13 +233,13 @@ Cell getInfo(const std::string &name)
     return Cell(r);
 }
 
-bool isDirectory(const std::string &path)
+bool isDirectory(const utf8string &path)
 {
     struct stat st;
     return stat(path.c_str(), &st) == 0 && (st.st_mode & S_IFDIR) != 0;
 }
 
-void mkdir(const std::string &path)
+void mkdir(const utf8string &path)
 {
     int r = ::mkdir(path.c_str(), 0755);
     if (r != 0) {
@@ -247,7 +247,7 @@ void mkdir(const std::string &path)
     }
 }
 
-void removeEmptyDirectory(const std::string &path)
+void removeEmptyDirectory(const utf8string &path)
 {
     int r = rmdir(path.c_str());
     if (r != 0) {
@@ -255,7 +255,7 @@ void removeEmptyDirectory(const std::string &path)
     }
 }
 
-void rename(const std::string &oldname, const std::string &newname)
+void rename(const utf8string &oldname, const utf8string &newname)
 {
     int r = ::rename(oldname.c_str(), newname.c_str());
     if (r != 0) {
@@ -263,7 +263,7 @@ void rename(const std::string &oldname, const std::string &newname)
     }
 }
 
-void symlink(const std::string &target, const std::string &newlink, bool /*targetIsDirectory*/)
+void symlink(const utf8string &target, const utf8string &newlink, bool /*targetIsDirectory*/)
 {
     int r = ::symlink(target.c_str(), newlink.c_str());
     if (r != 0) {

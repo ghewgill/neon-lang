@@ -10,28 +10,28 @@ namespace rtl {
 
 namespace string {
 
-Number find(const std::string &s, const std::string &t)
+Number find(const utf8string &s, const utf8string &t)
 {
-    std::string::size_type i = s.find(t);
+    std::string::size_type i = s.str().find(t.str());
     if (i == std::string::npos) {
         return number_from_sint64(-1);
     }
     return number_from_uint64(i);
 }
 
-bool hasPrefix(const std::string &s, const std::string &prefix)
+bool hasPrefix(const utf8string &s, const utf8string &prefix)
 {
-    return s.substr(0, prefix.length()) == prefix;
+    return utf8string(s.substr(0, prefix.length())) == prefix;
 }
 
-bool hasSuffix(const std::string &s, const std::string &suffix)
+bool hasSuffix(const utf8string &s, const utf8string &suffix)
 {
-    return s.length() >= suffix.length() && s.substr(s.length() - suffix.length()) == suffix;
+    return s.length() >= suffix.length() && utf8string(s.str().substr(s.length() - suffix.length())) == suffix;
 }
 
-std::string join(const std::vector<utf8string> &a, const std::string &d)
+utf8string join(const std::vector<utf8string> &a, const utf8string &d)
 {
-    std::string r;
+    utf8string r;
     for (auto s: a) {
         if (not r.empty()) {
             r.append(d);
@@ -41,9 +41,10 @@ std::string join(const std::vector<utf8string> &a, const std::string &d)
     return r;
 }
 
-std::string lower(const std::string &s)
+utf8string lower(const utf8string &ss)
 {
-    std::string r;
+    const std::string &s = ss.str(); // TODO: utf8
+    utf8string r;
     //std::transform(s.begin(), s.end(), std::back_inserter(r), ::tolower);
     for (auto c: s) {
         r.push_back(static_cast<char>(::tolower(c)));
@@ -51,34 +52,37 @@ std::string lower(const std::string &s)
     return r;
 }
 
-std::vector<utf8string> split(const std::string &s, const std::string &d)
+std::vector<utf8string> split(const utf8string &ss, const utf8string &dd)
 {
+    const std::string &s = ss.str(); // TODO: utf8
+    const std::string &d = dd.str(); // TODO: utf8
     std::vector<utf8string> r;
     std::string::size_type i = 0;
     while (i < s.length()) {
         std::string::size_type nd = s.find(d, i);
         if (nd == std::string::npos) {
-            r.push_back(s.substr(i));
+            r.push_back(utf8string(s.substr(i)));
             break;
         } else if (nd > i) {
-            r.push_back(s.substr(i, nd-i));
+            r.push_back(utf8string(s.substr(i, nd-i)));
         }
         i = nd + d.length();
     }
     return r;
 }
 
-std::vector<utf8string> splitLines(const std::string &s)
+std::vector<utf8string> splitLines(const utf8string &ss)
 {
+    const std::string &s = ss.str(); // TODO: utf8
     std::vector<utf8string> r;
     std::string::size_type i = 0;
     while (i < s.length()) {
         std::string::size_type nl = s.find_first_of("\r\n", i);
         if (nl == std::string::npos) {
-            r.push_back(s.substr(i));
+            r.push_back(utf8string(s.substr(i)));
             break;
         }
-        r.push_back(s.substr(i, nl-i));
+        r.push_back(utf8string(s.substr(i, nl-i)));
         if (s[nl] == '\r' && nl+1 < s.length() && s[nl+1] == '\n') {
             i = nl + 2;
         } else {
@@ -88,19 +92,21 @@ std::vector<utf8string> splitLines(const std::string &s)
     return r;
 }
 
-std::string trim(const std::string &s)
+utf8string trim(const utf8string &ss)
 {
+    const std::string &s = ss.str(); // TODO: utf8
     std::string::size_type first = s.find_first_not_of(' ');
     std::string::size_type last = s.find_last_not_of(' ');
     if (first == std::string::npos || last == std::string::npos) {
-        return "";
+        return utf8string("");
     }
-    return s.substr(first, last-first+1);
+    return utf8string(s.substr(first, last-first+1));
 }
 
-std::string upper(const std::string &s)
+utf8string upper(const utf8string &ss)
 {
-    std::string r;
+    const std::string &s = ss.str(); // TODO: utf8
+    utf8string r;
     //std::transform(s.begin(), s.end(), std::back_inserter(r), ::toupper);
     for (auto c: s) {
         r.push_back(static_cast<char>(::toupper(c)));

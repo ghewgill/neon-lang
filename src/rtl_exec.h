@@ -8,9 +8,9 @@
 
 class RtlException {
 public:
-    RtlException(const ExceptionName &name, const std::string &info, uint32_t code = 0): name(name.name), info(info), code(code) {}
+    RtlException(const ExceptionName &name, const utf8string &info, uint32_t code = 0): name(name.name), info(info), code(code) {}
     std::string name;
-    std::string info;
+    utf8string info;
     uint32_t code;
 };
 

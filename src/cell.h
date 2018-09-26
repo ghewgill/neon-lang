@@ -13,12 +13,12 @@ public:
     virtual ~Object() {}
     virtual bool getBoolean(bool &) const { return false; }
     virtual bool getNumber(Number &) const { return false; }
-    virtual bool getString(std::string &) const { return false; }
+    virtual bool getString(utf8string &) const { return false; }
     virtual bool getBytes(std::vector<unsigned char> &) const { return false; }
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &) const { return false; }
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &) const { return false; }
     virtual bool subscript(std::shared_ptr<Object>, std::shared_ptr<Object> &) const { return false; }
-    virtual std::string toString() const = 0;
+    virtual utf8string toString() const = 0;
 };
 
 // TODO: See if we can use std::variant (C++17) for this.

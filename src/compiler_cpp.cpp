@@ -418,7 +418,7 @@ public:
     const ast::ConstantStringExpression *cse;
 
     virtual void generate(Context &context) const override {
-        context.out << quoted(cse->value);
+        context.out << quoted(cse->value.str());
     }
 private:
     ConstantStringExpression(const ConstantStringExpression &);
@@ -519,7 +519,7 @@ class DictionaryLiteralExpression: public Expression {
 public:
     DictionaryLiteralExpression(const ast::DictionaryLiteralExpression *dle): Expression(dle), dle(dle), dict() {
         for (auto d: dle->dict) {
-            dict[d.first] = transform(d.second);
+            dict[d.first.str()] = transform(d.second); // TODO: utf8
         }
     }
     const ast::DictionaryLiteralExpression *dle;

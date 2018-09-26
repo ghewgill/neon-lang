@@ -7,23 +7,24 @@
 #include <string>
 
 #include "number.h"
+#include "utf8string.h"
 
 namespace rtl {
 
 namespace os {
 
-std::string getenv(const std::string &name)
+utf8string getenv(const utf8string &name)
 {
     const char *r = ::getenv(name.c_str());
     if (r == NULL) {
-        return std::string();
+        return utf8string();
     }
-    return r;
+    return utf8string(r);
 }
 
-Number system(const std::string &command)
+Number system(const utf8string &command)
 {
-    std::string cmd = command;
+    std::string cmd = command.str();
 #ifdef _WIN32
     // Terrible hack to change slashes to backslashes so cmd.exe isn't confused.
     // Probably better handled by calling a lower level function than system().

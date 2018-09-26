@@ -5,7 +5,7 @@
 #include "rtl_exec.h"
 #include "enums.inc"
 
-static void handle_error(DWORD error, const std::string &path)
+static void handle_error(DWORD error, const utf8string &path)
 {
     switch (error) {
         case ERROR_ALREADY_EXISTS: throw RtlException(rtl::file::Exception_FileException_DirectoryExists, path);
@@ -14,7 +14,7 @@ static void handle_error(DWORD error, const std::string &path)
         case ERROR_FILE_EXISTS: throw RtlException(rtl::file::Exception_FileException_Exists, path);
         case ERROR_PRIVILEGE_NOT_HELD: throw RtlException(rtl::file::Exception_FileException_PermissionDenied, path);
         default:
-            throw RtlException(rtl::file::Exception_FileException, path + ": " + std::to_string(error));
+            throw RtlException(rtl::file::Exception_FileException, path + ": " + utf8string(std::to_string(error)));
     }
 }
 
@@ -30,12 +30,12 @@ namespace rtl {
 
 namespace file {
 
-std::string _CONSTANT_Separator()
+utf8string _CONSTANT_Separator()
 {
-    return "\\";
+    return utf8string("\\");
 }
 
-void copy(const std::string &filename, const std::string &destination)
+void copy(const utf8string &filename, const utf8string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), TRUE);
     if (!r) {
@@ -43,7 +43,7 @@ void copy(const std::string &filename, const std::string &destination)
     }
 }
 
-void copyOverwriteIfExists(const std::string &filename, const std::string &destination)
+void copyOverwriteIfExists(const utf8string &filename, const utf8string &destination)
 {
     BOOL r = CopyFile(filename.c_str(), destination.c_str(), FALSE);
     if (!r) {
@@ -51,7 +51,7 @@ void copyOverwriteIfExists(const std::string &filename, const std::string &desti
     }
 }
 
-void delete_(const std::string &filename)
+void delete_(const utf8string &filename)
 {
     BOOL r = DeleteFile(filename.c_str());
     if (!r) {
@@ -61,26 +61,26 @@ void delete_(const std::string &filename)
     }
 }
 
-bool exists(const std::string &filename)
+bool exists(const utf8string &filename)
 {
     return _access(filename.c_str(), 0) == 0;
 }
 
-std::vector<utf8string> files(const std::string &path)
+std::vector<utf8string> files(const utf8string &path)
 {
     std::vector<utf8string> r;
     WIN32_FIND_DATA fd;
     HANDLE ff = FindFirstFile((path + "\\*").c_str(), &fd);
     if (ff != INVALID_HANDLE_VALUE) {
         do {
-            r.push_back(fd.cFileName);
+            r.push_back(utf8string(fd.cFileName));
         } while (FindNextFile(ff, &fd));
         FindClose(ff);
     }
     return r;
 }
 
-Cell getInfo(const std::string &name)
+Cell getInfo(const utf8string &name)
 {
     WIN32_FIND_DATA fd;
     HANDLE ff = FindFirstFile(name.c_str(), &fd);
@@ -93,7 +93,7 @@ Cell getInfo(const std::string &name)
     r.push_back(Cell(number_from_uint64((static_cast<uint64_t>(fd.nFileSizeHigh) << 32) | fd.nFileSizeLow)));
     r.push_back(Cell(TRUE));
     r.push_back(Cell((fd.dwFileAttributes & FILE_ATTRIBUTE_READONLY) == 0));
-    r.push_back(Cell(name.length() >= 4 && name.substr(name.length()-4) == ".exe"));
+    r.push_back(Cell(name.str().length() >= 4 && name.str().substr(name.str().length()-4) == ".exe"));
     r.push_back(Cell(number_from_uint32(
         (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ? ENUM_FileType_directory :
         (fd.dwFileAttributes & FILE_ATTRIBUTE_DEVICE) ? ENUM_FileType_special :
@@ -106,13 +106,13 @@ Cell getInfo(const std::string &name)
     return Cell(r);
 }
 
-bool isDirectory(const std::string &path)
+bool isDirectory(const utf8string &path)
 {
     DWORD attr = GetFileAttributes(path.c_str());
     return attr != INVALID_FILE_ATTRIBUTES && (attr & FILE_ATTRIBUTE_DIRECTORY) != 0;
 }
 
-void mkdir(const std::string &path)
+void mkdir(const utf8string &path)
 {
     // TODO: Convert UTF-8 path to UCS-16 and call CreateDirectoryW.
     BOOL r = CreateDirectoryA(path.c_str(), NULL);
@@ -121,7 +121,7 @@ void mkdir(const std::string &path)
     }
 }
 
-void removeEmptyDirectory(const std::string &path)
+void removeEmptyDirectory(const utf8string &path)
 {
     BOOL r = RemoveDirectory(path.c_str());
     if (!r) {
@@ -129,7 +129,7 @@ void removeEmptyDirectory(const std::string &path)
     }
 }
 
-void rename(const std::string &oldname, const std::string &newname)
+void rename(const utf8string &oldname, const utf8string &newname)
 {
     BOOL r = MoveFile(oldname.c_str(), newname.c_str());
     if (!r) {
@@ -137,7 +137,7 @@ void rename(const std::string &oldname, const std::string &newname)
     }
 }
 
-void symlink(const std::string &target, const std::string &newlink, bool targetIsDirectory)
+void symlink(const utf8string &target, const utf8string &newlink, bool targetIsDirectory)
 {
     BOOL r = CreateSymbolicLink(newlink.c_str(), target.c_str(), targetIsDirectory ? SYMBOLIC_LINK_FLAG_DIRECTORY : 0);
     if (!r) {

@@ -22,7 +22,7 @@ static MemoryFile *check_file(void *pf)
 {
     MemoryFile *f = static_cast<MemoryFile *>(pf);
     if (f == NULL) {
-        throw RtlException(rtl::mmap::Exception_MmapException_InvalidFile, "");
+        throw RtlException(rtl::mmap::Exception_MmapException_InvalidFile, utf8string(""));
     }
     return f;
 }
@@ -40,14 +40,14 @@ void close(Cell **ppf)
     *ppf = NULL;
 }
 
-void *open(const std::string &name, Cell &)
+void *open(const utf8string &name, Cell &)
 {
     MemoryFile *f = new MemoryFile;
     f->fd = ::open(name.c_str(), O_RDONLY);
     if (f->fd < 0) {
         int e = errno;
         delete f;
-        throw RtlException(Exception_OpenFileException, "open: error (" + std::to_string(e) + ") " + strerror(e));
+        throw RtlException(Exception_OpenFileException, utf8string("open: error (" + std::to_string(e) + ") " + strerror(e)));
     }
     struct stat st;
     fstat(f->fd, &st);
@@ -57,7 +57,7 @@ void *open(const std::string &name, Cell &)
         int e = errno;
         ::close(f->fd);
         delete f;
-        throw RtlException(Exception_OpenFileException, "mmap: error (" + std::to_string(e) + ") " + strerror(e));
+        throw RtlException(Exception_OpenFileException, utf8string("mmap: error (" + std::to_string(e) + ") " + strerror(e)));
     }
     return f;
 }
@@ -87,10 +87,10 @@ void write(void *pf, Number offset, const std::vector<unsigned char> &data)
     MemoryFile *f = check_file(pf);
     uint64_t o = number_to_uint64(offset);
     if (o >= f->len) {
-        throw RtlException(global::Exception_ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, utf8string(""));
     }
     if (o + data.size() > f->len) {
-        throw RtlException(global::Exception_ValueRangeException, "");
+        throw RtlException(global::Exception_ValueRangeException, utf8string(""));
     }
     memcpy(f->view + o, data.data(), data.size());
 }

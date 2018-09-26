@@ -47,7 +47,9 @@ public:
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &name);
+    unsigned int str(const char *s) { return str(std::string(s)); }
     unsigned int str(const std::string &s);
+    unsigned int str(const utf8string &s) { return str(s.str()); }
     unsigned int current_ip();
     unsigned int next_function(const std::string &name);
     Label &function_label(int index);
@@ -1206,10 +1208,10 @@ void ast::ForeignFunction::predeclare(Emitter &emitter) const
 {
     Function::predeclare(emitter);
     std::stringstream ss;
-    ss << library_name << ":" << name << ":";
-    auto r = param_types.find("return");
+    ss << library_name.str() << ":" << name << ":";
+    auto r = param_types.find(utf8string("return"));
     if (r != param_types.end()) {
-        ss << r->second;
+        ss << r->second.str();
     }
     ss << ":";
     bool first = true;
@@ -1221,7 +1223,7 @@ void ast::ForeignFunction::predeclare(Emitter &emitter) const
         if (param->mode == ParameterType::Mode::INOUT) {
             ss << '*';
         }
-        ss << param_types.at(param->name);
+        ss << param_types.at(utf8string(param->name)).str();
     }
     foreign_index = emitter.str(ss.str());
 }

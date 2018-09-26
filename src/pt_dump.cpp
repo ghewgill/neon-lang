@@ -57,7 +57,7 @@ public:
         write("NumberLiteralExpression(" + number_to_string(node->value) + ")");
     }
     virtual void visit(const StringLiteralExpression *node) override {
-        write("StringLiteralExpression(" + node->value + ")");
+        write("StringLiteralExpression(" + node->value.str() + ")");
     }
     virtual void visit(const FileLiteralExpression *node) override {
         write("FileLiteralExpression(" + node->name + ")");

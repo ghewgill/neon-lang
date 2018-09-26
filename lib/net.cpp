@@ -47,7 +47,7 @@ void socket_close(Cell &handle)
     closesocket(s);
 }
 
-void socket_connect(Cell &handle, const std::string &host, Number port)
+void socket_connect(Cell &handle, const utf8string &host, Number port)
 {
     SOCKET s = number_to_sint32(handle.number());
     int p = number_to_sint32(port);
@@ -162,7 +162,7 @@ bool socket_select(Cell *read, Cell *write, Cell *error, Number timeout_seconds)
         }
     } while (false);
     if (r < 0) {
-        throw RtlException(Exception_SocketException, "");
+        throw RtlException(Exception_SocketException, utf8string(""));
     }
     if (r == 0) {
         ra.clear();

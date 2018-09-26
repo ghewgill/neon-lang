@@ -1,4 +1,5 @@
 #include "exec.h"
+#include "utf8string.h"
 
 namespace rtl {
 
@@ -9,9 +10,9 @@ void breakpoint()
     executor_breakpoint();
 }
 
-void log(const std::string &message)
+void log(const utf8string &message)
 {
-    executor_log(message);
+    executor_log(message.str());
 }
 
 } // namespace debugger

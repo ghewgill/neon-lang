@@ -484,7 +484,7 @@ std::unique_ptr<DictionaryLiteralExpression> Parser::parseDictionaryLiteral()
 std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
 {
     std::vector<std::pair<std::unique_ptr<Expression>, Token>> parts;
-    parts.push_back(std::make_pair(std::unique_ptr<Expression> { new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text) }, Token()));
+    parts.push_back(std::make_pair(std::unique_ptr<Expression> { new StringLiteralExpression(tokens[i], tokens[i+1].column, utf8string(tokens[i].text)) }, Token()));
     for (;;) {
         ++i;
         if (tokens[i].type != SUBBEGIN) {
@@ -509,7 +509,7 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
         if (tokens[i].type != STRING) {
             internal_error("parseInterpolatedStringExpression");
         }
-        e.reset(new StringLiteralExpression(tokens[i], tokens[i+1].column, tokens[i].text));
+        e.reset(new StringLiteralExpression(tokens[i], tokens[i+1].column, utf8string(tokens[i].text)));
         parts.push_back(std::make_pair(std::move(e), Token()));
     }
     return std::unique_ptr<Expression> { new InterpolatedStringExpression(parts[0].first->token, std::move(parts)) };
@@ -571,7 +571,7 @@ std::unique_ptr<Expression> Parser::parseAtom()
             } else {
                 auto &tok_string = tokens[i];
                 i++;
-                return std::unique_ptr<Expression> { new StringLiteralExpression(tok_string, tokens[i].column, tok_string.text) };
+                return std::unique_ptr<Expression> { new StringLiteralExpression(tok_string, tokens[i].column, utf8string(tok_string.text)) };
             }
         }
         case EMBED: {

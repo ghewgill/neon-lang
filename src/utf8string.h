@@ -2,6 +2,7 @@
 #define UTF8STRING_H
 
 #include <string>
+#include <vector>
 
 #include <utf8.h>
 
@@ -9,15 +10,19 @@ class utf8string {
 public:
     utf8string(): s(), indexes() {}
     utf8string(const utf8string &s): s(s.s), indexes(s.indexes) {}
-    utf8string(const std::string &s): s(s), indexes() {}
-    utf8string(const char *s): s(s), indexes() {}
+    explicit utf8string(const std::string &s): s(s), indexes() {}
+    explicit utf8string(const char *s): s(s), indexes() {}
     bool operator==(const utf8string &rhs) const { return s == rhs.s; }
     bool operator!=(const utf8string &rhs) const { return s != rhs.s; }
     bool operator<(const utf8string &rhs) const { return s < rhs.s; }
     bool operator>(const utf8string &rhs) const { return s > rhs.s; }
     bool operator<=(const utf8string &rhs) const { return s <= rhs.s; }
     bool operator>=(const utf8string &rhs) const { return s >= rhs.s; }
+    utf8string &operator+=(char c) { push_back(c); return *this; }
+    utf8string &operator+=(const char *t) { append(t); return *this; }
+    void append(const char *t) { invalidate(); s.append(t); }
     void append(const std::string &t) { invalidate(); s.append(t); }
+    void append(const utf8string &t) { invalidate(); s.append(t.s); }
     const char &at(std::string::size_type pos) const { return s.at(pos); }
     const char *c_str() const { return s.c_str(); }
     void clear() { invalidate(); s.clear(); }
@@ -46,5 +51,22 @@ private:
     mutable std::vector<std::string::size_type> indexes;
     void invalidate() { indexes.clear(); }
 };
+
+inline utf8string operator+(utf8string s, const utf8string &t)
+{
+    s.append(t);
+    return s;
+}
+
+inline utf8string operator+(const char *t, const utf8string &s) {
+    utf8string r {t};
+    r.append(s);
+    return r;
+}
+
+inline utf8string operator+(utf8string s, const char *t) {
+    s.append(t);
+    return s;
+}
 
 #endif

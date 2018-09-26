@@ -9,10 +9,10 @@ namespace rtl {
 
 namespace file {
 
-std::vector<unsigned char> readBytes(const std::string &filename)
+std::vector<unsigned char> readBytes(const utf8string &filename)
 {
     std::vector<unsigned char> r;
-    std::ifstream f(filename, std::ios::binary);
+    std::ifstream f(filename.str(), std::ios::binary);
     if (not f.is_open()) {
         throw RtlException(Exception_FileException_Open, filename);
     }
@@ -28,23 +28,23 @@ std::vector<unsigned char> readBytes(const std::string &filename)
     return r;
 }
 
-std::vector<utf8string> readLines(const std::string &filename)
+std::vector<utf8string> readLines(const utf8string &filename)
 {
     std::vector<utf8string> r;
-    std::ifstream f(filename);
+    std::ifstream f(filename.str());
     if (not f.is_open()) {
         throw RtlException(Exception_FileException_Open, filename);
     }
     std::string s;
     while (std::getline(f, s)) {
-        r.push_back(s);
+        r.push_back(utf8string(s));
     }
     return r;
 }
 
-void writeBytes(const std::string &filename, const std::vector<unsigned char> &data)
+void writeBytes(const utf8string &filename, const std::vector<unsigned char> &data)
 {
-    std::ofstream f(filename, std::ios::binary);
+    std::ofstream f(filename.str(), std::ios::binary);
     if (not f.is_open()) {
         throw RtlException(Exception_FileException_Open, filename);
     }
@@ -53,9 +53,9 @@ void writeBytes(const std::string &filename, const std::vector<unsigned char> &d
     }
 }
 
-void writeLines(const std::string &filename, const std::vector<utf8string> &lines)
+void writeLines(const utf8string &filename, const std::vector<utf8string> &lines)
 {
-    std::ofstream f(filename, std::ios::out | std::ios::trunc); // Truncate the file every time we open it to write lines to it.
+    std::ofstream f(filename.str(), std::ios::out | std::ios::trunc); // Truncate the file every time we open it to write lines to it.
     if (not f.is_open()) {
         throw RtlException(Exception_FileException_Open, filename);
     }

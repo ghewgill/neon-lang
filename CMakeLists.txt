@@ -306,6 +306,7 @@ add_executable(neonc
 )
 target_include_directories(neonc
     PRIVATE external/minijson_writer-master
+    PRIVATE external/utfcpp-master/source
 )
 target_link_libraries(neonc bid hash-library)
 
