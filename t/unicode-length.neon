@@ -1,6 +1,3 @@
-% TODO
-% When this works, reenable the lexer-unicode test in SConstruct
-% And reenable this test in helium
 LET s: String := "你好世界"
 ASSERT s.length() = 4
 ASSERT s[0] = "你"

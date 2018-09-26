@@ -122,6 +122,7 @@ ExcludeTests = [
     "t/tostring.neon",              # keyword enum
     "t/try-expression.neon",        # TryExpression
     "t/unicode-char.neon",          # StringReferenceIndexExpression
+    "t/unicode-length.neon",        # StringReferenceIndexExpression
     "t/uninitialised-out.neon",     # out parameter
     "t/uninitialised-try.neon",     # js syntax error
     "t/value-copy.neon",            # value copy

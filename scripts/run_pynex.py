@@ -97,6 +97,7 @@ ExcludeTests = [
     "t/struct-test.neon",           # module
     "t/time-stopwatch.neon",        # module
     "t/unicode-char.neon",          # utf8
+    "t/unicode-length.neon",        # utf8
     "t/valid-pointer.neon",         # class
     "t/while-valid.neon",           # class
     "t/win32-test.neon",            # module
