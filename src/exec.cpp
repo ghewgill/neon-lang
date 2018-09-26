@@ -2497,6 +2497,9 @@ void Executor::handle_POST(const std::string &path, const std::string &data, Htt
         response.code = 404;
         r << "[debug server] path not found: " << path;
     }
+    if (r.str().empty()) {
+        r << "{}";
+    }
     response.content = r.str();
 }
 

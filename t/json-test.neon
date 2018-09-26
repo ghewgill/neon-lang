@@ -31,6 +31,9 @@ v := json.decode(s)
 print("\(v)")
 %= "fork"
 
+ASSERT json.decode(@@""\"\\\/\b\n\f\r\t""@@) = "\"\\/\b\n\f\r\t"
+ASSERT json.decode(@@""\u0021""@@) = "!"
+
 s := json.encode([5, "fork"])
 print(s)
 %= [5,"fork"]
