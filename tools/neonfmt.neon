@@ -42,6 +42,7 @@ CONSTANT BlockStart: Array<lexer.Type> := [
     lexer.Type.do,
     lexer.Type.else,
     lexer.Type.enum,
+    lexer.Type.function, % TODO: not sure this should be here
     lexer.Type.loop,
     lexer.Type.main,
     lexer.Type.record,
@@ -56,6 +57,7 @@ CONSTANT BlockEnd: Array<lexer.Type> := [
     lexer.Type.end,
     lexer.Type.trap,
     lexer.Type.until,
+    lexer.Type.when,
 ]
 
 CONSTANT StatementStart: Array<lexer.Type> := [
@@ -100,6 +102,7 @@ FUNCTION neonfmt(source: String): String
     VAR formatted: Array<String> := [""]
     VAR indent: Number := 0
     VAR last: lexer.Type := lexer.Type.none
+    VAR incase: Boolean := FALSE
     VAR incheck: Boolean := FALSE
     VAR parnest: Number := 0
     VAR typenest: Number := 0
@@ -113,12 +116,28 @@ FUNCTION neonfmt(source: String): String
                 IF last IN [lexer.Type.array, lexer.Type.dictionary] THEN
                     INC typenest
                 END IF
+            WHEN lexer.Type.case DO
+                ASSERT NOT incase
+                incase := TRUE
             WHEN lexer.Type.check DO
                 ASSERT NOT incheck
                 incheck := TRUE
         END CASE
         IF parnest = 0 THEN
-            IF t.type IN BlockEnd THEN
+            IF incase AND t.type = lexer.Type.when THEN
+                INC indent
+                formatted.append(string.repeat("    ", indent))
+                last := lexer.Type.none
+                incase := FALSE
+            ELSIF t.type IN BlockEnd THEN
+                IF t.type = lexer.Type.end AND tokens[i+1].type = lexer.Type.case THEN
+                    IF incase THEN
+                        INC indent
+                    ELSE
+                        DEC indent
+                    END IF
+                    incase := FALSE
+                END IF
                 IF NOT (incheck AND t.type = lexer.Type.else) THEN
                     DEC indent
                     formatted.append(string.repeat("    ", indent))
@@ -312,15 +331,14 @@ BEGIN MAIN
 END MAIN
 "@@)
 
-% TODO CaseStatement
-%check(@@"
-%CASE foo
-%    WHEN 1 DO
-%        foo()
-%    WHEN 2 DO
-%        bar()
-%END CASE
-%"@@)
+check(@@"
+CASE foo
+    WHEN 1 DO
+        foo()
+    WHEN 2 DO
+        bar()
+END CASE
+"@@)
 
 check(@@"
 CHECK foo ELSE
@@ -491,13 +509,12 @@ BEGIN MAIN
 END MAIN
 "@@)
 
-% TODO CaseStatement
-%check(@@"
-%CASE foo
-%END CASE
-%CASE foo
-%END CASE
-%"@@)
+check(@@"
+CASE foo
+END CASE
+CASE foo
+END CASE
+"@@)
 
 check(@@"
 CHECK foo ELSE
