@@ -1,0 +1,570 @@
+IMPORT file
+IMPORT lexer
+IMPORT io
+IMPORT string
+IMPORT sys
+
+BEGIN MAIN
+    LET source: String := file.readBytes(sys.args[1]).decodeToString()
+    LET formatted: String := neonfmt(source)
+    io.write(io.stdout, formatted)
+END MAIN
+
+CONSTANT NoSpaceAfter: Array<lexer.Type> := [
+    lexer.Type.none,
+    lexer.Type.lparen,
+    lexer.Type.lbracket,
+    lexer.Type.lbrace,
+    lexer.Type.dot,
+    lexer.Type.arrow,
+]
+
+CONSTANT NoSpaceBefore: Array<lexer.Type> := [
+    lexer.Type.rparen,
+    lexer.Type.rbracket,
+    lexer.Type.rbrace,
+    lexer.Type.dot,
+    lexer.Type.arrow,
+    lexer.Type.comma,
+    lexer.Type.colon,
+]
+
+CONSTANT DoubleTokenPrefix: Array<lexer.Type> := [
+    lexer.Type.end,
+    lexer.Type.exit,
+    lexer.Type.extension,
+    lexer.Type.native,
+    lexer.Type.next,
+]
+
+CONSTANT BlockStart: Array<lexer.Type> := [
+    lexer.Type.class,
+    lexer.Type.do,
+    lexer.Type.else,
+    lexer.Type.enum,
+    lexer.Type.loop,
+    lexer.Type.main,
+    lexer.Type.record,
+    lexer.Type.repeat,
+    lexer.Type.then,
+    lexer.Type.try,
+]
+
+CONSTANT BlockEnd: Array<lexer.Type> := [
+    lexer.Type.else,
+    lexer.Type.elsif,
+    lexer.Type.end,
+    lexer.Type.trap,
+    lexer.Type.until,
+]
+
+CONSTANT StatementStart: Array<lexer.Type> := [
+    lexer.Type.assert,
+    lexer.Type.begin,
+    lexer.Type.case,
+    lexer.Type.check,
+    lexer.Type.constant,
+    lexer.Type.dec,
+    lexer.Type.declare,
+    lexer.Type.exception,
+    lexer.Type.exit,
+    lexer.Type.for,
+    lexer.Type.foreach,
+    lexer.Type.if,
+    lexer.Type.import,
+    lexer.Type.inc,
+    lexer.Type.let,
+    lexer.Type.loop,
+    lexer.Type.next,
+    lexer.Type.raise,
+    lexer.Type.repeat,
+    lexer.Type.return,
+    lexer.Type.try,
+    lexer.Type.type,
+    lexer.Type.var,
+    lexer.Type.while,
+]
+
+CONSTANT StatementEnd: Array<lexer.Type> := [
+    lexer.Type.identifier,
+    lexer.Type.rbracket,
+    lexer.Type.rparen,
+]
+
+FUNCTION neonfmt(source: String): String
+    LET tokens: Array<lexer.Token> := lexer.tokenize("", source)
+    %FOREACH t IN tokens DO
+    %    print(t.source[t.column-1 TO t.column-1+t.width-1])
+    %END FOREACH
+
+    VAR formatted: Array<String> := [""]
+    VAR indent: Number := 0
+    VAR last: lexer.Type := lexer.Type.none
+    VAR incheck: Boolean := FALSE
+    VAR parnest: Number := 0
+    VAR typenest: Number := 0
+    VAR i: Number := 0
+    WHILE i < tokens.size() DO
+        VAR t: lexer.Token := tokens[i]
+        CASE t.type
+            WHEN lexer.Type.lparen DO
+                INC parnest
+            WHEN lexer.Type.less DO
+                IF last IN [lexer.Type.array, lexer.Type.dictionary] THEN
+                    INC typenest
+                END IF
+            WHEN lexer.Type.check DO
+                ASSERT NOT incheck
+                incheck := TRUE
+        END CASE
+        IF parnest = 0 THEN
+            IF t.type IN BlockEnd THEN
+                IF NOT (incheck AND t.type = lexer.Type.else) THEN
+                    DEC indent
+                    formatted.append(string.repeat("    ", indent))
+                    last := lexer.Type.none
+                END IF
+                IF t.type = lexer.Type.end THEN
+                    formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1] & " ")
+                    INC i
+                    t := tokens[i]
+                    formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1])
+                    INC i
+                    NEXT WHILE
+                END IF
+            ELSIF t.type IN StatementStart OR t.type = lexer.Type.identifier AND last IN (StatementEnd & BlockStart) THEN
+                formatted.append(string.repeat("    ", indent))
+                last := lexer.Type.none
+            END IF
+            IF t.type IN DoubleTokenPrefix THEN
+                IF NOT string.isBlank(formatted[LAST]) THEN
+                    formatted[LAST].append(" ")
+                END IF
+                formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1] & " ")
+                INC i
+                t := tokens[i]
+                formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1])
+                INC i
+                NEXT WHILE
+            END IF
+        END IF
+        IF last NOT IN NoSpaceAfter AND
+            t.type NOT IN NoSpaceBefore AND
+            NOT (last IN [lexer.Type.identifier, lexer.Type.function] AND t.type IN [lexer.Type.lparen, lexer.Type.lbracket]) AND
+            typenest = 0 THEN
+            formatted[LAST].append(" ")
+        END IF
+        formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1])
+        CASE t.type
+            WHEN lexer.Type.rparen DO
+                DEC parnest
+            WHEN lexer.Type.greater DO
+                IF typenest > 0 THEN
+                    DEC typenest
+                END IF
+            WHEN lexer.Type.else DO
+                incheck := FALSE
+        END CASE
+        IF t.type IN BlockStart THEN
+            INC indent
+        END IF
+        last := t.type
+        INC i
+    END WHILE
+    RETURN string.trim(string.join(formatted, "\n")) & "\n"
+END FUNCTION
+
+FUNCTION replace(s: String, original, replacement: String): String
+    VAR r: String := s
+    VAR i: Number := 0
+    WHILE i < r.length() DO
+        IF r[i TO i+original.length()-1] = original THEN
+            r[i TO i+original.length()-1] := replacement
+            i := i + replacement.length()
+        ELSE
+            INC i
+        END IF
+    END WHILE
+    RETURN r
+END FUNCTION
+
+FUNCTION check(source: String)
+    %io.write(io.stderr, source & "\n\n")
+    LET expected: String := (IF string.hasPrefix(source, "\n") THEN "" ELSE "\n") & source & (IF string.hasSuffix(source, "\n") THEN "" ELSE "\n")
+    LET formatted: String := neonfmt(source)
+    IF "\n" & formatted <> expected THEN
+        io.fprint(io.stderr, "--- Input:")
+        io.write(io.stderr, expected)
+        io.fprint(io.stderr, "--- Formatted:")
+        io.write(io.stderr, formatted) %replace(formatted, " ", "."))
+        sys.exit(1)
+    END IF
+END FUNCTION
+
+check("")
+check("a OR b")
+check("a AND b")
+check("a IN b")
+check("a >= b")
+check("a <= b")
+check("a > b")
+check("a < b")
+check("a <> b")
+check("a = b")
+check("a & b")
+check("a - b")
+check("a + b")
+check("a MOD b")
+check("a INTDIV b")
+check("a / b")
+check("a * b")
+check("a ^ b")
+% TODO check("+a")
+% TODO check("-a")
+check("a * (b + c) / d")
+check("[a, b, c]")
+check("[a TO b STEP c]")
+check("{a: b, c: d}")
+check("NEW a.b(c, d)")
+check("a[b, c]")
+check("foo(a, b)")
+check("a.b")
+check("a->b")
+check("foo(IN a, INOUT b, OUT c)")
+check("a[b TO c]")
+
+check("IMPORT foo.bar ALIAS baz")
+check("TYPE Length IS Number")
+check("TYPE List IS Array<Number>")
+check("TYPE List IS Dictionary<Number>")
+check(@@"
+TYPE Rec IS RECORD
+    x: Number
+END RECORD
+"@@)
+check(@@"
+TYPE Cls IS CLASS
+    x: Number
+END CLASS
+"@@)
+check(@@"
+TYPE Enum IS ENUM
+    one
+    two
+END ENUM
+"@@)
+check("TYPE Ptr IS POINTER TO Class")
+check("TYPE Func IS FUNCTION(n: Number)")
+check("TYPE Ext IS a.b")
+
+check("CONSTANT a: Number := 5")
+check("DECLARE NATIVE CONSTANT a: Number")
+check("DECLARE EXTENSION CONSTANT a: Number")
+check("VAR a, b: Number := 0")
+check("DECLARE NATIVE VAR a: Number")
+check("LET a: Number := 0")
+check("DECLARE NATIVE FUNCTION foo(a: Number)")
+check("DECLARE EXTENSION FUNCTION foo(a: Number)")
+check("EXCEPTION FooException")
+check("EXCEPTION FooException.Bar")
+
+% TODO FunctionDeclaration
+% TODO ForeignFunctionDeclaration
+% TODO InterfaceDeclaration
+% TODO ExportDeclaration
+
+check("ASSERT a, b")
+check("a := b")
+% TODO check("EXEC SQL SELECT * FROM table;")
+check("EXIT FUNCTION")
+check("EXIT WHILE")
+check("EXIT FOR")
+check("EXIT FOREACH")
+check("EXIT LOOP")
+check("EXIT REPEAT")
+check("EXIT ident")
+check("INC a")
+check("DEC a")
+check("NEXT WHILE")
+check("NEXT FOR")
+check("NEXT FOREACH")
+check("NEXT LOOP")
+check("NEXT REPEAT")
+check("NEXT ident")
+check("RAISE FooException.Bar")
+check("RAISE FooException(info WITH \"test\", code WITH 1)")
+check("RETURN a")
+check("a := (IF b THEN c ELSE d)")
+check("a := (TRY b)")
+check("a := (TRY b TRAP FooException GIVES 0)")
+check("a := (TRY b TRAP FooException DO foo(5) bar(10))")
+
+check(@@"
+BEGIN MAIN
+    f()
+END MAIN
+"@@)
+
+check(@@"
+BEGIN MAIN
+    print("hello")
+    print("world")
+END MAIN
+"@@)
+
+% TODO CaseStatement
+%check(@@"
+%CASE foo
+%    WHEN 1 DO
+%        foo()
+%    WHEN 2 DO
+%        bar()
+%END CASE
+%"@@)
+
+check(@@"
+CHECK foo ELSE
+    f()
+END CHECK
+"@@)
+
+check(@@"
+FOR i := 1 TO 10 DO
+    f()
+END FOR
+"@@)
+
+check(@@"
+FOREACH a IN b DO
+    f()
+END FOREACH
+"@@)
+
+check(@@"
+IF foo THEN
+    f()
+END IF
+"@@)
+
+check(@@"
+IF foo THEN
+    f()
+ELSE
+    g()
+END IF
+"@@)
+
+check(@@"
+IF foo THEN
+    f()
+ELSIF bar THEN
+    g()
+ELSE
+    h()
+END IF
+"@@)
+
+check(@@"
+LOOP
+    f()
+END LOOP
+"@@)
+
+check(@@"
+REPEAT
+    f()
+UNTIL a
+"@@)
+
+check(@@"
+TRY
+    foo()
+TRAP FooException DO
+    bar()
+END TRY
+"@@)
+
+check(@@"
+WHILE a DO
+    f()
+END WHILE
+"@@)
+
+check(@@"
+IMPORT foo
+IMPORT bar
+"@@)
+check(@@"
+TYPE Length IS Number
+TYPE Colour IS String
+"@@)
+check(@@"
+CONSTANT a: Number := 5
+CONSTANT b: Number := 6
+"@@)
+check(@@"
+DECLARE NATIVE CONSTANT a: Number
+DECLARE NATIVE CONSTANT b: Number
+"@@)
+check(@@"
+DECLARE EXTENSION CONSTANT a: Number
+DECLARE EXTENSION CONSTANT b: Number
+"@@)
+check(@@"
+VAR a: Number
+VAR b: Number := 0
+VAR c: Number := 1
+"@@)
+check(@@"
+DECLARE NATIVE VAR a: Number
+DECLARE NATIVE VAR b: Number
+"@@)
+check(@@"
+LET a: Number := 0
+LET b: Number := 0
+"@@)
+check(@@"
+DECLARE NATIVE FUNCTION foo(a: Number)
+DECLARE NATIVE FUNCTION bar(b: Number)
+"@@)
+check(@@"
+DECLARE EXTENSION FUNCTION foo(a: Number)
+DECLARE EXTENSION FUNCTION bar(b: Number)
+"@@)
+check(@@"
+EXCEPTION FooException
+EXCEPTION FooException.Bar
+EXCEPTION FooException.Baz
+"@@)
+
+% TODO FunctionDeclaration
+% TODO ForeignFunctionDeclaration
+% TODO InterfaceDeclaration
+% TODO ExportDeclaration
+
+check(@@"
+ASSERT a
+ASSERT b
+"@@)
+check(@@"
+a := b
+a := b(1)
+a := b[1]
+a := 0
+"@@)
+% TODO check("EXEC SQL SELECT * FROM table;")
+check(@@"
+EXIT FUNCTION
+EXIT WHILE
+EXIT FOR
+EXIT FOREACH
+EXIT LOOP
+EXIT REPEAT
+EXIT ident
+"@@)
+check(@@"
+INC a
+DEC a
+"@@)
+check(@@"
+NEXT WHILE
+NEXT FOR
+NEXT FOREACH
+NEXT LOOP
+NEXT REPEAT
+NEXT ident
+"@@)
+check(@@"
+RAISE FooException
+RAISE FooException.Bar
+RAISE FooException(info WITH "test", code WITH 1)
+"@@)
+check(@@"
+RETURN a
+RETURN b
+"@@)
+
+check(@@"
+BEGIN MAIN
+END MAIN
+BEGIN MAIN
+END MAIN
+"@@)
+
+% TODO CaseStatement
+%check(@@"
+%CASE foo
+%END CASE
+%CASE foo
+%END CASE
+%"@@)
+
+check(@@"
+CHECK foo ELSE
+END CHECK
+CHECK foo ELSE
+END CHECK
+"@@)
+
+check(@@"
+FOR i := 1 TO 10 DO
+END FOR
+FOR i := 1 TO 10 DO
+END FOR
+"@@)
+
+check(@@"
+FOREACH a IN b DO
+END FOREACH
+FOREACH a IN b DO
+END FOREACH
+"@@)
+
+check(@@"
+IF foo THEN
+END IF
+IF foo THEN
+END IF
+"@@)
+
+check(@@"
+LOOP
+END LOOP
+LOOP
+END LOOP
+"@@)
+
+check(@@"
+REPEAT
+UNTIL a
+REPEAT
+UNTIL a
+"@@)
+
+check(@@"
+TRY
+END TRY
+TRY
+END TRY
+"@@)
+
+check(@@"
+WHILE a DO
+END WHILE
+WHILE a DO
+END WHILE
+"@@)
+
+check(@@"
+IF foo THEN
+    f()
+    g()
+ELSIF bar THEN
+    h()
+ELSE
+    i()
+END IF
+LOOP
+    print("done")
+END LOOP
+"@@)

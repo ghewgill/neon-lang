@@ -126,6 +126,7 @@ TYPE Token IS RECORD
     source: String
     line: Number
     column: Number
+    width: Number
     type: Type
     text: String
     value: Number
@@ -721,6 +722,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             error(1007, t, "Unexpected character")
         END IF
         IF t.type <> Type.none THEN
+            t.width := i - startindex
             tokens.append(t)
         END IF
         column := column + (i - startindex)
