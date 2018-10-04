@@ -7,6 +7,7 @@
 EXPORT find
 EXPORT hasPrefix
 EXPORT hasSuffix
+EXPORT isBlank
 EXPORT join
 EXPORT lower
 EXPORT repeat
@@ -35,6 +36,20 @@ DECLARE NATIVE FUNCTION hasPrefix(s: String, prefix: String): Boolean
  |  Return TRUE if a string has a specific suffix.
  |%
 DECLARE NATIVE FUNCTION hasSuffix(s: String, suffix: String): Boolean
+
+%|
+ |  Function: isBlank
+ |
+ |  Return TRUE if a string is empty or contains only whitespace.
+ |%
+FUNCTION isBlank(s: String): Boolean
+    FOREACH c IN s DO
+        IF c NOT IN [" ", "\t"] THEN
+            RETURN FALSE
+        END IF
+    END FOREACH
+    RETURN TRUE
+END FUNCTION
 
 %|
  |  Function: join
