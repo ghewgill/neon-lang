@@ -42,7 +42,6 @@ CONSTANT BlockStart: Array<lexer.Type> := [
     lexer.Type.do,
     lexer.Type.else,
     lexer.Type.enum,
-    lexer.Type.function, % TODO: not sure this should be here
     lexer.Type.loop,
     lexer.Type.main,
     lexer.Type.record,
@@ -151,7 +150,9 @@ FUNCTION neonfmt(source: String): String
                     INC i
                     NEXT WHILE
                 END IF
-            ELSIF t.type IN StatementStart OR t.type = lexer.Type.identifier AND last IN (StatementEnd & BlockStart) THEN
+            ELSIF t.type IN StatementStart
+                OR t.type = lexer.Type.identifier AND last IN (StatementEnd & BlockStart)
+                OR t.type = lexer.Type.function AND last NOT IN [lexer.Type.is, lexer.Type.colon, lexer.Type.less] THEN
                 formatted.append(string.repeat("    ", indent))
                 last := lexer.Type.none
             END IF
@@ -184,7 +185,7 @@ FUNCTION neonfmt(source: String): String
             WHEN lexer.Type.else DO
                 incheck := FALSE
         END CASE
-        IF t.type IN BlockStart THEN
+        IF t.type IN BlockStart & [lexer.Type.function] THEN
             INC indent
         END IF
         last := t.type
@@ -329,6 +330,28 @@ BEGIN MAIN
     print("hello")
     print("world")
 END MAIN
+"@@)
+
+check(@@"
+FUNCTION foo()
+END FUNCTION
+"@@)
+
+check(@@"
+FUNCTION foo()
+    bar()
+END FUNCTION
+"@@)
+
+check(@@"
+FUNCTION foo(): Number
+END FUNCTION
+"@@)
+
+check(@@"
+FUNCTION foo(): Number
+    bar()
+END FUNCTION
 "@@)
 
 check(@@"
