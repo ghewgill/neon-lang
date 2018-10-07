@@ -13,7 +13,7 @@ EXPORT lower
 EXPORT repeat
 EXPORT split
 EXPORT splitLines
-EXPORT trim
+EXPORT trimCharacters
 EXPORT upper
 
 %|
@@ -102,11 +102,20 @@ DECLARE NATIVE FUNCTION split(s: String, d: String): Array<String>
 DECLARE NATIVE FUNCTION splitLines(s: String): Array<String>
 
 %|
+ |  Function: trimCharacters
+ |
+ |  Trim given characters from the start and end of a string.
+ |%
+DECLARE NATIVE FUNCTION trimCharacters(s: String, trimChars: String): String
+
+%|
  |  Function: trim
  |
- |  Trim whitespace from the start and end of a string.
+ |  Trim spaces from the start and end of a string.
  |%
-DECLARE NATIVE FUNCTION trim(s: String): String
+FUNCTION trim(s: String): String
+    RETURN trimCharacters(s, " ")
+END FUNCTION
 
 %|
  |  Function: upper
