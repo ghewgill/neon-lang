@@ -88,8 +88,12 @@ CONSTANT StatementStart: Array<lexer.Type> := [
 
 CONSTANT StatementEnd: Array<lexer.Type> := [
     lexer.Type.identifier,
+    lexer.Type.number,
     lexer.Type.rbracket,
     lexer.Type.rparen,
+    lexer.Type.end,
+    lexer.Type.exit,
+    lexer.Type.next,
 ]
 
 FUNCTION neonfmt(source: String): String
@@ -144,6 +148,7 @@ FUNCTION neonfmt(source: String): String
                 END IF
                 IF t.type = lexer.Type.end THEN
                     formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1] & " ")
+                    last := t.type
                     INC i
                     t := tokens[i]
                     formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1])
@@ -161,6 +166,7 @@ FUNCTION neonfmt(source: String): String
                     formatted[LAST].append(" ")
                 END IF
                 formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1] & " ")
+                last := t.type
                 INC i
                 t := tokens[i]
                 formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1])
@@ -185,7 +191,7 @@ FUNCTION neonfmt(source: String): String
             WHEN lexer.Type.else DO
                 incheck := FALSE
         END CASE
-        IF t.type IN BlockStart & [lexer.Type.function] THEN
+        IF parnest = 0 AND (t.type IN BlockStart & [lexer.Type.function]) THEN
             INC indent
         END IF
         last := t.type
@@ -593,6 +599,174 @@ WHILE a DO
 END WHILE
 WHILE a DO
 END WHILE
+"@@)
+
+check(@@"
+IMPORT foo
+bar()
+"@@)
+check(@@"
+TYPE Length IS Number
+bar()
+"@@)
+check(@@"
+CONSTANT a: Number := 5
+bar()
+"@@)
+check(@@"
+DECLARE NATIVE CONSTANT a: Number
+bar()
+"@@)
+check(@@"
+DECLARE EXTENSION CONSTANT a: Number
+bar()
+"@@)
+check(@@"
+VAR a: Number
+bar()
+"@@)
+check(@@"
+DECLARE NATIVE VAR a: Number
+bar()
+"@@)
+check(@@"
+LET a: Number := 0
+bar()
+"@@)
+check(@@"
+DECLARE NATIVE FUNCTION foo(a: Number)
+bar()
+"@@)
+check(@@"
+DECLARE EXTENSION FUNCTION foo(a: Number)
+bar()
+"@@)
+check(@@"
+EXCEPTION FooException
+bar()
+"@@)
+
+% TODO FunctionDeclaration
+% TODO ForeignFunctionDeclaration
+% TODO InterfaceDeclaration
+% TODO ExportDeclaration
+
+check(@@"
+ASSERT a
+bar()
+"@@)
+check(@@"
+a := b
+bar()
+"@@)
+% TODO check("EXEC SQL SELECT * FROM table;")
+check(@@"
+EXIT FUNCTION
+bar()
+EXIT WHILE
+bar()
+EXIT FOR
+bar()
+EXIT FOREACH
+bar()
+EXIT LOOP
+bar()
+EXIT REPEAT
+bar()
+EXIT ident
+bar()
+"@@)
+check(@@"
+INC a
+bar()
+DEC a
+bar()
+"@@)
+check(@@"
+NEXT WHILE
+bar()
+NEXT FOR
+bar()
+NEXT FOREACH
+bar()
+NEXT LOOP
+bar()
+NEXT REPEAT
+bar()
+NEXT ident
+bar()
+"@@)
+check(@@"
+RAISE FooException
+bar()
+RAISE FooException.Bar
+bar()
+RAISE FooException(info WITH "test", code WITH 1)
+bar()
+"@@)
+check(@@"
+RETURN a
+bar()
+"@@)
+
+check(@@"
+BEGIN MAIN
+END MAIN
+bar()
+"@@)
+
+check(@@"
+CASE foo
+END CASE
+bar()
+"@@)
+
+check(@@"
+CHECK foo ELSE
+END CHECK
+bar()
+"@@)
+
+check(@@"
+FOR i := 1 TO 10 DO
+END FOR
+bar()
+"@@)
+
+check(@@"
+FOREACH a IN b DO
+END FOREACH
+bar()
+"@@)
+
+check(@@"
+IF foo THEN
+END IF
+bar()
+"@@)
+
+check(@@"
+LOOP
+END LOOP
+bar()
+"@@)
+
+check(@@"
+REPEAT
+UNTIL a
+bar()
+"@@)
+
+check(@@"
+TRY
+END TRY
+bar()
+"@@)
+
+check(@@"
+WHILE a DO
+END WHILE
+bar()
 "@@)
 
 check(@@"
