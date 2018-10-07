@@ -156,12 +156,20 @@ FUNCTION neonfmt(source: String): String
                     INC i
                     t := tokens[i]
                     formatted[LAST].append(t.source[t.column-1 TO t.column-1+t.width-1])
+                    IF t.type IN [lexer.Type.function, lexer.Type.main] THEN
+                        formatted.append("")
+                    END IF
                     INC i
                     NEXT WHILE
                 END IF
             ELSIF t.type IN StatementStart
                 OR t.type = lexer.Type.identifier AND last IN (StatementEnd & BlockStart)
                 OR t.type = lexer.Type.function AND last NOT IN [lexer.Type.is, lexer.Type.colon, lexer.Type.less] THEN
+                IF t.type IN [lexer.Type.function, lexer.Type.begin] THEN
+                    IF formatted.size() >= 1 AND NOT string.isBlank(formatted[LAST]) THEN
+                        formatted.append("")
+                    END IF
+                END IF
                 formatted.append(string.repeat("    ", indent))
                 last := lexer.Type.none
             END IF
@@ -201,7 +209,7 @@ FUNCTION neonfmt(source: String): String
         last := t.type
         INC i
     END WHILE
-    RETURN string.trim(string.join(formatted, "\n")) & "\n"
+    RETURN string.trimCharacters(string.join(formatted, "\n"), " \n") & "\n"
 END FUNCTION
 
 FUNCTION replace(s: String, original, replacement: String): String
@@ -298,7 +306,6 @@ check("DECLARE EXTENSION FUNCTION foo(a: Number)")
 check("EXCEPTION FooException")
 check("EXCEPTION FooException.Bar")
 
-% TODO FunctionDeclaration
 % TODO ForeignFunctionDeclaration
 % TODO InterfaceDeclaration
 % TODO ExportDeclaration
@@ -488,7 +495,6 @@ EXCEPTION FooException.Bar
 EXCEPTION FooException.Baz
 "@@)
 
-% TODO FunctionDeclaration
 % TODO ForeignFunctionDeclaration
 % TODO InterfaceDeclaration
 % TODO ExportDeclaration
@@ -538,8 +544,17 @@ RETURN b
 check(@@"
 BEGIN MAIN
 END MAIN
+
 BEGIN MAIN
 END MAIN
+"@@)
+
+check(@@"
+FUNCTION foo()
+END FUNCTION
+
+FUNCTION bar()
+END FUNCTION
 "@@)
 
 check(@@"
@@ -650,7 +665,6 @@ EXCEPTION FooException
 bar()
 "@@)
 
-% TODO FunctionDeclaration
 % TODO ForeignFunctionDeclaration
 % TODO InterfaceDeclaration
 % TODO ExportDeclaration
@@ -716,6 +730,14 @@ bar()
 check(@@"
 BEGIN MAIN
 END MAIN
+
+bar()
+"@@)
+
+check(@@"
+FUNCTION foo()
+END FUNCTION
+
 bar()
 "@@)
 
