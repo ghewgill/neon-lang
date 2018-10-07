@@ -5,6 +5,10 @@ IMPORT string
 IMPORT sys
 
 BEGIN MAIN
+    IF sys.args.size() < 2 THEN
+        print("Usage: neonfmt filename.neon")
+        sys.exit(1)
+    END IF
     LET source: String := file.readBytes(sys.args[1]).decodeToString()
     LET formatted: String := neonfmt(source)
     io.write(io.stdout, formatted)
