@@ -108,7 +108,7 @@ CONSTANT StatementEnd: Array<lexer.Type> := [
 FUNCTION neonfmt(source: String): String
     LET tokens: Array<lexer.Token> := lexer.tokenize("", source)
     %FOREACH t IN tokens DO
-    %    print(t.source[t.column-1 TO t.column-1+t.width-1])
+    %    print("\(t.type) \(t.column) \(t.width) \(t.source[t.column-1 TO t.column-1+t.width-1])")
     %END FOREACH
 
     VAR formatted: Array<String> := [""]
@@ -190,6 +190,30 @@ FUNCTION neonfmt(source: String): String
                 INC i
                 NEXT WHILE
             END IF
+        END IF
+        IF t.type = lexer.Type.subbegin THEN
+            REPEAT
+                VAR j: Number := i
+                WHILE tokens[j].type NOT IN [lexer.Type.subfmt, lexer.Type.subend] DO
+                    INC j
+                END WHILE
+                formatted[LAST].append(t.source[t.column TO tokens[j].column-2])
+                IF tokens[j].type = lexer.Type.subfmt THEN
+                    formatted[LAST].append(":")
+                    INC j
+                    ASSERT tokens[j].type = lexer.Type.string
+                    formatted[LAST].append(tokens[j].text)
+                    INC j
+                END IF
+                ASSERT tokens[j].type = lexer.Type.subend
+                formatted[LAST].append(")")
+                INC j
+                ASSERT tokens[j].type = lexer.Type.string
+                formatted[LAST].append(tokens[j].source[tokens[j].column-1 TO tokens[j].column-1+tokens[j].width-1])
+                i := j + 1
+                t := tokens[i]
+            UNTIL t.type <> lexer.Type.subbegin
+            NEXT WHILE
         END IF
         IF last NOT IN NoSpaceAfter AND
             t.type NOT IN NoSpaceBefore AND
@@ -842,3 +866,15 @@ d := f(-1, -2)
 d := [-1]
 d := {"a": -1}
 "@@)
+
+% TODO
+%check(@@"
+%TYPE Rec IS RECORD
+%    a: Array<Number>
+%    b: String
+%END TYPE
+%"@@)
+
+check(@@"print("hello \(world)")"@@)
+check(@@"print("hello \(world:5)")"@@)
+check(@@"print("hello \(x) \(y) world")"@@)

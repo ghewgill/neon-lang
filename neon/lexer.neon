@@ -545,8 +545,10 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                                 i := i + len
                             END IF
                         WHEN "(" DO
+                            t.width := i - startindex
                             tokens.append(t)
                             t.column := column + (i - startindex) - 1
+                            t.width := 0
                             t.type := Type.subbegin
                             tokens.append(t)
                             LET start: Number := i
@@ -584,6 +586,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                             tokens.extend(subtokens)
                             IF colon > start THEN
                                 t.column := column + (colon - startindex)
+                                t.width := 0
                                 t.type := Type.subfmt
                                 tokens.append(t)
                                 INC t.column
@@ -592,11 +595,14 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                                 tokens.append(t)
                             END IF
                             t.column := column + (i - startindex) - 1
+                            t.width := 0
                             t.type := Type.subend
                             tokens.append(t)
                             t.column := column + (i - startindex)
                             t.type := Type.string
                             t.text := ""
+                            column := column + (i - startindex)
+                            startindex := i
                             NEXT WHILE
                         WHEN OTHERS DO
                             error(1009, t, "invalid escape character")
