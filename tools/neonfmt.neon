@@ -194,6 +194,7 @@ FUNCTION neonfmt(source: String): String
         IF last NOT IN NoSpaceAfter AND
             t.type NOT IN NoSpaceBefore AND
             NOT (last IN [lexer.Type.identifier, lexer.Type.function] AND t.type IN [lexer.Type.lparen, lexer.Type.lbracket]) AND
+            NOT (last IN [lexer.Type.minus, lexer.Type.plus] AND tokens[i-2].type IN [lexer.Type.assign, lexer.Type.lparen, lexer.Type.lbracket, lexer.Type.comma, lexer.Type.colon]) AND
             typenest = 0 THEN
             formatted[LAST].append(" ")
         END IF
@@ -827,4 +828,17 @@ bar()
 check(@@"
 a := 0
 _ := foo()
+"@@)
+
+check("a := -1")
+check("b := -a")
+check("c := -(a + b)")
+check("a := +1")
+check("b := +a")
+check("c := +(a + b)")
+check(@@"
+d := f(-1)
+d := f(-1, -2)
+d := [-1]
+d := {"a": -1}
 "@@)
