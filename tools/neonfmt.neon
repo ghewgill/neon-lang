@@ -64,6 +64,7 @@ CONSTANT BlockEnd: Array<lexer.Type> := [
 ]
 
 CONSTANT StatementStart: Array<lexer.Type> := [
+    lexer.Type.underscore,
     lexer.Type.assert,
     lexer.Type.begin,
     lexer.Type.case,
@@ -821,4 +822,9 @@ a := ""
 a := []
 a := {}
 bar()
+"@@)
+
+check(@@"
+a := 0
+_ := foo()
 "@@)
