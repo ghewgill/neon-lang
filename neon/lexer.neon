@@ -109,6 +109,7 @@ TYPE Type IS ENUM
     gives
     nowhere
     intdiv
+    exec
     label
     class
     trap
@@ -370,6 +371,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             ELSIF t.text = "GIVES" THEN t.type := Type.gives
             ELSIF t.text = "NOWHERE" THEN t.type := Type.nowhere
             ELSIF t.text = "INTDIV" THEN t.type := Type.intdiv
+            ELSIF t.text = "EXEC" THEN t.type := Type.exec
             ELSIF t.text = "LABEL" THEN t.type := Type.label
             ELSIF t.text = "CLASS" THEN t.type := Type.class
             ELSIF t.text = "TRAP" THEN t.type := Type.trap
@@ -726,6 +728,18 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
             END WHILE
         ELSE
             error(1007, t, "Unexpected character")
+        END IF
+        IF t.type = Type.exec THEN
+            t.width := i - startindex
+            tokens.append(t)
+            t.type := Type.string
+            t.column := column + (i - startindex)
+            t.text := ""
+            WHILE source[i] <> ";" DO
+                t.text.append(source[i])
+                INC i
+            END WHILE
+            INC i
         END IF
         IF t.type <> Type.none THEN
             t.width := i - startindex

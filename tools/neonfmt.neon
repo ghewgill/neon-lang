@@ -21,6 +21,7 @@ CONSTANT NoSpaceAfter: Array<lexer.Type> := [
     lexer.Type.lbrace,
     lexer.Type.dot,
     lexer.Type.arrow,
+    lexer.Type.exec,
 ]
 
 CONSTANT NoSpaceBefore: Array<lexer.Type> := [
@@ -878,3 +879,5 @@ d := {"a": -1}
 check(@@"print("hello \(world)")"@@)
 check(@@"print("hello \(world:5)")"@@)
 check(@@"print("hello \(x) \(y) world")"@@)
+
+check("EXEC SELECT * FROM table;")
