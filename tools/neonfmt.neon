@@ -91,9 +91,13 @@ CONSTANT StatementStart: Array<lexer.Type> := [
 ]
 
 CONSTANT StatementEnd: Array<lexer.Type> := [
+    lexer.Type.false,
+    lexer.Type.true,
     lexer.Type.identifier,
     lexer.Type.number,
+    lexer.Type.string,
     lexer.Type.rbracket,
+    lexer.Type.rbrace,
     lexer.Type.rparen,
     lexer.Type.end,
     lexer.Type.exit,
@@ -807,4 +811,14 @@ END IF
 LOOP
     print("done")
 END LOOP
+"@@)
+
+check(@@"
+a := FALSE
+a := TRUE
+a := 0
+a := ""
+a := []
+a := {}
+bar()
 "@@)
