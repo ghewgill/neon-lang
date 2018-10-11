@@ -4201,7 +4201,7 @@ FUNCTION dumpParseTree(pt: POINTER TO ParseTreeNode, depth: Number)
 END FUNCTION
 
 BEGIN MAIN
-    LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], file.readBytes(sys.args[1]).decodeToString())
+    LET tokens: Array<lexer.Token> := lexer.tokenize(sys.args[1], file.readBytes(sys.args[1]).decodeToString(), includeComments WITH FALSE)
     %print("tokens \(tokens.size())")
     VAR parser: Parser := makeParser(tokens)
     LET pt: POINTER TO ParseTreeNode := parser.parse()
