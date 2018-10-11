@@ -107,7 +107,7 @@ CONSTANT StatementEnd: Array<lexer.Type> := [
 ]
 
 FUNCTION neonfmt(source: String): String
-    LET tokens: Array<lexer.Token> := lexer.tokenize("", source)
+    LET tokens: Array<lexer.Token> := lexer.tokenize("", source, includeComments WITH TRUE)
     %FOREACH t IN tokens DO
     %    print("\(t.type) \(t.column) \(t.width) \(t.source[t.column-1 TO t.column-1+t.width-1])")
     %END FOREACH
@@ -123,6 +123,12 @@ FUNCTION neonfmt(source: String): String
     WHILE i < tokens.size() DO
         VAR t: lexer.Token := tokens[i]
         CASE t.type
+            WHEN lexer.Type.blank_line DO
+                IF NOT string.isBlank(formatted[LAST]) THEN
+                    formatted.append(string.repeat("    ", indent))
+                END IF
+                INC i
+                NEXT WHILE
             WHEN lexer.Type.lparen DO
                 INC parnest
             WHEN lexer.Type.less DO
@@ -240,7 +246,10 @@ FUNCTION neonfmt(source: String): String
         last := t.type
         INC i
     END WHILE
-    RETURN string.trimCharacters(string.join(formatted, "\n"), " \n") & "\n"
+    FOR j := 0 TO formatted.size()-1 DO
+        formatted[j] := string.trimCharacters(formatted[j], "", " ")
+    END FOR
+    RETURN string.trimCharacters(string.join(formatted, "\n"), " \n", " \n") & "\n"
 END FUNCTION
 
 FUNCTION replace(s: String, original, replacement: String): String
@@ -881,3 +890,15 @@ check(@@"print("hello \(world:5)")"@@)
 check(@@"print("hello \(x) \(y) world")"@@)
 
 check("EXEC SELECT * FROM table;")
+
+check(@@"
+IF foo() THEN
+
+END IF
+
+IF bar() THEN
+    a := b
+
+    baz()
+END IF
+"@@)

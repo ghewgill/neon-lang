@@ -9,6 +9,7 @@ EXPORT tokenize
 TYPE Type IS ENUM
     none
     end_of_file
+    blank_line
     number
     string
     identifier
@@ -216,7 +217,7 @@ FUNCTION unicodeLookup(t: Token, name: String): String
     RETURN ""
 END FUNCTION
 
-FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start: Number, source: String, actual_source_line: String DEFAULT ""): Array<Token>
+FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start: Number, includeComments: Boolean, source: String, actual_source_line: String DEFAULT ""): Array<Token>
     VAR column: Number := column_start
     VAR tokens: Array<Token> := []
     VAR linestart: Number := 0
@@ -584,7 +585,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                             END WHILE
                             LET end: Number := (IF colon > start THEN colon ELSE i - 1)
                             LET col: Number := column + (start - startindex)
-                            LET subtokens: Array<Token> := tokenize_fragment(source_path, INOUT line, col, source[start TO end-1], t.source)
+                            LET subtokens: Array<Token> := tokenize_fragment(source_path, INOUT line, col, includeComments, source[start TO end-1], t.source)
                             tokens.extend(subtokens)
                             IF colon > start THEN
                                 t.column := column + (colon - startindex)
@@ -716,6 +717,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                 END WHILE
             END IF
         ELSIF space(c) THEN
+            VAR newlines: Number := 0
             WHILE i < source.length() AND space(source[i]) DO
                 IF source[i] = "\n" THEN
                     INC line
@@ -723,6 +725,12 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                     column := 1
                     linestart := i + 1
                     lineend := findLineEnd(source, i+1)
+                    IF includeComments THEN
+                        INC newlines
+                        IF newlines = 2 THEN
+                            t.type := Type.blank_line
+                        END IF
+                    END IF
                 END IF
                 INC i
             END WHILE
@@ -770,7 +778,7 @@ FUNCTION expand_tabs(s: String): String
     RETURN r
 END FUNCTION
 
-FUNCTION tokenize(source_path: String, orig_source: String): Array<Token>
+FUNCTION tokenize(source_path: String, orig_source: String, includeComments: Boolean): Array<Token>
     LET source: String := expand_tabs(orig_source)
     VAR i: Number := 0
     IF source[0 TO 1] = "#!" THEN
@@ -780,7 +788,7 @@ FUNCTION tokenize(source_path: String, orig_source: String): Array<Token>
         END IF
     END IF
     VAR line: Number := 1
-    VAR r: Array<Token> := tokenize_fragment(source_path, INOUT line, 1, source[i TO LAST])
+    VAR r: Array<Token> := tokenize_fragment(source_path, INOUT line, 1, includeComments, source[i TO LAST])
     r.append(Token(line WITH line, column WITH 1, type WITH Type.end_of_file))
     RETURN r
 END FUNCTION
@@ -814,7 +822,7 @@ BEGIN MAIN
     FOREACH fn IN sys.args[1 TO LAST] DO
         LET bytes: Bytes := file.readBytes(fn)
         TRY
-            LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString())
+            LET tokens: Array<Token> := tokenize(fn, bytes.decodeToString(), includeComments WITH FALSE)
             FOREACH t IN tokens DO
                 print("\(t)")
             END FOREACH
