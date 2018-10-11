@@ -93,6 +93,7 @@ CONSTANT StatementStart: Array<lexer.Type> := [
 ]
 
 CONSTANT StatementEnd: Array<lexer.Type> := [
+    lexer.Type.line_comment,
     lexer.Type.false,
     lexer.Type.true,
     lexer.Type.identifier,
@@ -902,3 +903,27 @@ IF bar() THEN
     baz()
 END IF
 "@@)
+
+check("foo() %| comment |%")
+% TODO
+%check(@@"
+%%| comment before |%
+%foo()
+%"@@)
+% TODO
+%check(@@"
+%foo()
+%%| comment after |%
+%"@@)
+check("IF %| comment between |% foo THEN")
+
+check("foo() % comment")
+check(@@"
+% comment before
+foo()
+"@@)
+% TODO
+%check(@@"
+%foo()
+%% comment after
+%"@@)

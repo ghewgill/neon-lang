@@ -10,6 +10,8 @@ TYPE Type IS ENUM
     none
     end_of_file
     blank_line
+    line_comment
+    block_comment
     number
     string
     identifier
@@ -711,10 +713,18 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
                         INC i
                     END IF
                 UNTIL level = 0
+                IF includeComments THEN
+                    t.type := Type.block_comment
+                    t.text := source[startindex TO i]
+                END IF
             ELSE
                 WHILE i < source.length() AND source[i] <> "\n" DO
                     INC i
                 END WHILE
+                IF includeComments THEN
+                    t.type := Type.line_comment
+                    t.text := source[startindex TO i-1]
+                END IF
             END IF
         ELSIF space(c) THEN
             VAR newlines: Number := 0
