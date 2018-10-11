@@ -106,7 +106,7 @@ DECLARE NATIVE FUNCTION splitLines(s: String): Array<String>
  |
  |  Trim given characters from the start and end of a string.
  |%
-DECLARE NATIVE FUNCTION trimCharacters(s: String, trimChars: String): String
+DECLARE NATIVE FUNCTION trimCharacters(s: String, trimLeadingChars, trimTrailingChars: String): String
 
 %|
  |  Function: trim
@@ -114,7 +114,7 @@ DECLARE NATIVE FUNCTION trimCharacters(s: String, trimChars: String): String
  |  Trim spaces from the start and end of a string.
  |%
 FUNCTION trim(s: String): String
-    RETURN trimCharacters(s, " ")
+    RETURN trimCharacters(s, " ", " ")
 END FUNCTION
 
 %|

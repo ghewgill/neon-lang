@@ -92,11 +92,11 @@ std::vector<utf8string> splitLines(const utf8string &ss)
     return r;
 }
 
-utf8string trimCharacters(const utf8string &ss, const utf8string &trimChars)
+utf8string trimCharacters(const utf8string &ss, const utf8string &trimLeadingChars, const utf8string &trimTrailingChars)
 {
     const std::string &s = ss.str(); // TODO: utf8
-    std::string::size_type first = s.find_first_not_of(trimChars.str());
-    std::string::size_type last = s.find_last_not_of(trimChars.str());
+    std::string::size_type first = s.find_first_not_of(trimLeadingChars.str());
+    std::string::size_type last = s.find_last_not_of(trimTrailingChars.str());
     if (first == std::string::npos || last == std::string::npos) {
         return utf8string("");
     }

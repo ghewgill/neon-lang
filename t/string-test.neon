@@ -27,10 +27,16 @@ ASSERT string.splitLines("a\nb") = ["a", "b"]
 ASSERT string.splitLines("a\nb\n") = ["a", "b"]
 ASSERT string.splitLines("hello\nworld\r\neverybody\n") = ["hello", "world", "everybody"]
 
-print(string.trimCharacters("  Hello World  ", " "))
+print(string.trimCharacters("  Hello World  ", " ", " "))
 %= Hello World
 
-print(string.trimCharacters(" ", " "))
+print(string.trimCharacters("  Hello World  ", " ", ""))
+%= Hello World  
+
+print(string.trimCharacters("  Hello World  ", "", " "))
+%=   Hello World
+
+print(string.trimCharacters(" ", " ", " "))
 %= 
 
 print(string.upper("Hello World"))

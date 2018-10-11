@@ -2650,8 +2650,8 @@ def neon_string_splitLines(env, s):
     s = re.sub("\n$", "", s, 1)
     return s.split("\n")
 
-def neon_string_trimCharacters(env, s, t):
-    return s.strip(t)
+def neon_string_trimCharacters(env, s, leading, trailing):
+    return s.lstrip(leading).rstrip(trailing)
 
 def neon_string_upper(env, s):
     return s.upper()
