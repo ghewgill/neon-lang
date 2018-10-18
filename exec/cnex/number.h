@@ -1,5 +1,5 @@
-#ifndef _NUMBER_H
-#define _NUMBER_H
+#ifndef NUMBER_H
+#define NUMBER_H
 
 #include <stdint.h>
 #include <stdio.h>

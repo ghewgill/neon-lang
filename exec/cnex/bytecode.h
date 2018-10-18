@@ -1,5 +1,5 @@
-#ifndef _BYTECODE_H
-#define _BYTECODE_H
+#ifndef BYTECODE_H
+#define BYTECODE_H
 #include <stdint.h>
 
 typedef struct tagTType {
