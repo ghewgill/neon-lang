@@ -1,5 +1,5 @@
-#ifndef _GLOBAL_H
-#define _GLOBAL_H
+#ifndef GLOBAL_H
+#define GLOBAL_H
 #include <stdint.h>
 
 struct tagTExecutor;

@@ -1,5 +1,5 @@
-#ifndef _CELL_H
-#define _CELL_H
+#ifndef CELL_H
+#define CELL_H
 #include <stdint.h>
 
 #include "number.h"

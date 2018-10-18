@@ -1,5 +1,5 @@
-#ifndef _STACK_H
-#define _STACK_H
+#ifndef STACK_H
+#define STACK_H
 #include <stddef.h>
 
 typedef struct tagTStack {

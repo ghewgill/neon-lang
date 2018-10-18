@@ -1,5 +1,5 @@
-#ifndef _FRAMESTACK_H
-#define _FRAMESTACK_H
+#ifndef FRAMESTACK_H
+#define FRAMESTACK_H
 #include <stdint.h>
 
 typedef struct tagTFrame {

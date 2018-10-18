@@ -1,5 +1,5 @@
-#ifndef _DICTIONARY_H
-#define _DICTIONARY_H
+#ifndef DICTIONARY_H
+#define DICTIONARY_H
 #include <stdint.h>
 
 typedef struct tagTDictionaryEntry {
