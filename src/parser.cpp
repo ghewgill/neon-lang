@@ -47,6 +47,7 @@ public:
     std::unique_ptr<Expression> parseMembership();
     std::unique_ptr<Expression> parseConjunction();
     std::unique_ptr<Expression> parseDisjunction();
+    std::unique_ptr<Expression> parseSequence();
     std::unique_ptr<Expression> parseConditional();
     std::unique_ptr<Expression> parseExpression();
     VariableInfo parseVariableDeclaration();
@@ -526,6 +527,7 @@ std::unique_ptr<Expression> Parser::parseInterpolatedStringExpression()
  *  in       membership                         parseMembership
  *  and      conjunction                        parseConjunction
  *  or       disjunction                        parseDisjunction
+ *  |        sequence                           parseSequence
  *  if       conditional                        parseConditional
  */
 
@@ -905,6 +907,21 @@ std::unique_ptr<Expression> Parser::parseDisjunction()
     }
 }
 
+std::unique_ptr<Expression> Parser::parseSequence()
+{
+    std::unique_ptr<Expression> left = parseDisjunction();
+    for (;;) {
+        auto &tok_op = tokens[i];
+        if (tokens[i].type == PIPE) {
+            ++i;
+            std::unique_ptr<Expression> right = parseDisjunction();
+            left.reset(new SequenceExpression(tok_op, std::move(left), std::move(right)));
+        } else {
+            return left;
+        }
+    }
+}
+
 std::unique_ptr<Expression> Parser::parseConditional()
 {
     if (tokens[i].type == IF) {
@@ -982,7 +999,7 @@ std::unique_ptr<Expression> Parser::parseExpression()
     if (expression_depth > 100) {
         error(2067, tokens[i], "exceeded maximum nesting depth");
     }
-    std::unique_ptr<Expression> r = parseDisjunction();
+    std::unique_ptr<Expression> r = parseSequence();
     expression_depth--;
     return r;
 }

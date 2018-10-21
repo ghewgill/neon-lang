@@ -208,6 +208,11 @@ public:
         child(node->left.get());
         child(node->right.get());
     }
+    virtual void visit(const SequenceExpression *node) override {
+        write("SequenceExpression");
+        child(node->left.get());
+        child(node->right.get());
+    }
     virtual void visit(const ConditionalExpression *node) override {
         write("ConditionalExpression");
         child(node->cond.get());

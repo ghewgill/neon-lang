@@ -119,6 +119,7 @@ std::string reconstitute(const Token &t)
         case IMPLEMENTS:  return "IMPLEMENTS";
         case UNUSED:      return "UNUSED";
         case ISA:         return "ISA";
+        case PIPE:        return "PIPE";
         case UNKNOWN:     return "UNKNOWN";
         case MAX_TOKEN:   return "";
     }

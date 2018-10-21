@@ -141,6 +141,7 @@ std::string Token::tostring() const
         case IMPLEMENTS:  s << "IMPLEMENTS"; break;
         case UNUSED:      s << "UNUSED"; break;
         case ISA:         s << "ISA"; break;
+        case PIPE:        s << "PIPE"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -247,6 +248,7 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }
         else if (c == '.') { t.type = DOT; utf8::advance(i, 1, source.end()); }
+        else if (c == '|') { t.type = PIPE; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2212 /*'−'*/) { t.type = MINUS; utf8::advance(i, 1, source.end()); }
         else if (c == 0x00D7 /*'×'*/) { t.type = TIMES; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2215 /*'∕'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }

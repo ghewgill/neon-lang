@@ -57,6 +57,7 @@ class TypeTestExpression;
 class MembershipExpression;
 class ConjunctionExpression;
 class DisjunctionExpression;
+class SequenceExpression;
 class ConditionalExpression;
 class TryExpression;
 class NewClassExpression;
@@ -152,6 +153,7 @@ public:
     virtual void visit(const MembershipExpression *) = 0;
     virtual void visit(const ConjunctionExpression *) = 0;
     virtual void visit(const DisjunctionExpression *) = 0;
+    virtual void visit(const SequenceExpression *) = 0;
     virtual void visit(const ConditionalExpression *) = 0;
     virtual void visit(const TryExpression *) = 0;
     virtual void visit(const NewClassExpression *) = 0;
@@ -571,6 +573,12 @@ public:
 class DisjunctionExpression: public BinaryExpression {
 public:
     DisjunctionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
+};
+
+class SequenceExpression: public BinaryExpression {
+public:
+    SequenceExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 

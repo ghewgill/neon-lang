@@ -117,6 +117,7 @@ enum TokenType {
     IMPLEMENTS,
     UNUSED,
     ISA,
+    PIPE,
     UNKNOWN,
     MAX_TOKEN
 };

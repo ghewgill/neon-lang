@@ -1,0 +1,3 @@
+FUNCTION f(OUT s: String): String RETURN "" END FUNCTION
+print("hi" | f)
+             %<

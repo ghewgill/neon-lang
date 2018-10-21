@@ -79,6 +79,7 @@ public:
     const ast::Expression *analyze(const pt::MembershipExpression *expr);
     const ast::Expression *analyze(const pt::ConjunctionExpression *expr);
     const ast::Expression *analyze(const pt::DisjunctionExpression *expr);
+    const ast::Expression *analyze(const pt::SequenceExpression *expr);
     const ast::Expression *analyze(const pt::ConditionalExpression *expr);
     const ast::Expression *analyze(const pt::TryExpression *expr);
     const ast::Expression *analyze(const pt::NewClassExpression *expr);
@@ -190,6 +191,7 @@ public:
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SequenceExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
@@ -287,6 +289,7 @@ public:
     virtual void visit(const pt::MembershipExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ConjunctionExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::DisjunctionExpression *p) override { expr = a->analyze(p); }
+    virtual void visit(const pt::SequenceExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::ConditionalExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::TryExpression *p) override { expr = a->analyze(p); }
     virtual void visit(const pt::NewClassExpression *p) override { expr = a->analyze(p); }
@@ -383,6 +386,7 @@ public:
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SequenceExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
@@ -479,6 +483,7 @@ public:
     virtual void visit(const pt::MembershipExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConjunctionExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::DisjunctionExpression *) override { internal_error("pt::Expression"); }
+    virtual void visit(const pt::SequenceExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::ConditionalExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::TryExpression *) override { internal_error("pt::Expression"); }
     virtual void visit(const pt::NewClassExpression *) override { internal_error("pt::Expression"); }
@@ -2021,6 +2026,26 @@ const ast::Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
     } else {
         error(3036, expr->token, "type mismatch");
     }
+}
+
+const ast::Expression *Analyzer::analyze(const pt::SequenceExpression *expr)
+{
+    const ast::Expression *left = analyze(expr->left.get());
+    const ast::Expression *right = analyze(expr->right.get());
+    const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(right->type);
+    if (ftype == nullptr) {
+        error(3264, expr->right->token, "not a function");
+    }
+    if (ftype->params.size() != 1) {
+        error(3265, expr->right->token, "function must take one parameter");
+    }
+    if (ftype->params[0]->mode != ast::ParameterType::Mode::IN) {
+        error(3266, expr->right->token, "function must take one IN parameter");
+    }
+    if (not ftype->params[0]->type->is_assignment_compatible(left->type)) {
+        error2(3267, expr->left->token, "type mismatch", ftype->params[0]->declaration, "declaration here");
+    }
+    return new ast::FunctionCall(right, {left});
 }
 
 const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
@@ -4736,6 +4761,7 @@ public:
     virtual void visit(const pt::MembershipExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ConjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::DisjunctionExpression *node) { node->left->accept(this); node->right->accept(this); }
+    virtual void visit(const pt::SequenceExpression *node) { node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::ConditionalExpression *node) { node->cond->accept(this); node->left->accept(this); node->right->accept(this); }
     virtual void visit(const pt::TryExpression *node) {
         node->expr->accept(this);
