@@ -127,6 +127,7 @@ add_custom_target(jnex ALL
 )
 
 add_executable(cnex
+    exec/cnex/array.c
     exec/cnex/bytecode.c
     exec/cnex/cell.c
     exec/cnex/cnex.c

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "array.h"
 #include "cell.h"
 #include "nstring.h"
 #include "util.h"
@@ -87,10 +88,10 @@ int dictionary_compareDictionary(Dictionary *lhs, Dictionary *rhs)
 
     Cell *keys = dictionary_getKeys(lhs);
 
-    for (size_t l = 0; l < keys->array_size; l++) {
-        Cell *e = dictionary_findDictionaryEntry(rhs, keys->array[l].string);
+    for (size_t l = 0; l < keys->array->size; l++) {
+        Cell *e = dictionary_findDictionaryEntry(rhs, keys->array->data[l].string);
         if (e != NULL) {
-            if (cell_compareCell(dictionary_findDictionaryEntry(lhs, keys->array[l].string), e) != 0) {
+            if (cell_compareCell(dictionary_findDictionaryEntry(lhs, keys->array->data[l].string), e) != 0) {
                 cell_freeCell(keys);
                 return FALSE;
             }
@@ -125,7 +126,7 @@ Cell *dictionary_getKeys(Dictionary *self)
         cell_arrayAppendElement(r, *e);
         cell_freeCell(e);
     }
-    qsort(r->array, r->array_size, sizeof(Cell), dictionary_compareKeys);
+    qsort(r->array->data, r->array->size, sizeof(Cell), dictionary_compareKeys);
 
     return r;
 }
