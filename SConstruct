@@ -442,15 +442,16 @@ else:
         ])
 
 cnex = envcnex.Program("bin/cnex", [
-    "exec/cnex/cnex.c",
+    "exec/cnex/array.c",
     "exec/cnex/bytecode.c",
     "exec/cnex/cell.c",
+    "exec/cnex/cnex.c",
     "exec/cnex/dictionary.c",
-    "exec/cnex/global.c",
     "exec/cnex/framestack.c",
+    "exec/cnex/global.c",
+    "exec/cnex/nstring.c",
     "exec/cnex/number.c",
     "exec/cnex/stack.c",
-    "exec/cnex/nstring.c",
     "exec/cnex/util.c",
 ],
 )

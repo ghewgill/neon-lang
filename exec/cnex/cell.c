@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "array.h"
 #include "dictionary.h"
 #include "nstring.h"
 #include "util.h"
@@ -21,17 +22,13 @@ Cell *cell_fromAddress(Cell *c)
 
 Cell * cell_fromArray(Cell *c)
 {
-    uint64_t i;
     Cell *a = cell_newCell();
 
     a->type = cArray;
-    a->array_size = c->array_size;
-    a->array = malloc(sizeof(Cell) * c->array_size);
-    if (a->array == NULL) {
-        fatal_error("Could not allocate memory for copy of array with %d elements.", c->array_size);
-    }
-    for (i = 0; i < c->array_size; i++) {
-        cell_copyCell(&a->array[i], &c->array[i]);
+    a->array = array_createArrayFromSize(c->array->size);
+
+    for (size_t i = 0; i < c->array->size; i++) {
+        cell_copyCell(&a->array->data[i], &c->array->data[i]);
     }
     return a;
 }
@@ -95,7 +92,6 @@ Cell *cell_fromCell(const Cell *c)
 {
     assert(c != NULL);
 
-    uint32_t i = 0;
     Cell *x = cell_newCell();
     x->type = c->type;
     switch (c->type) {
@@ -103,14 +99,9 @@ Cell *cell_fromCell(const Cell *c)
             cell_copyCell(x, c);
             break;
         case cArray:
-            x->array_size = c->array_size;
-            x->array = malloc(sizeof(Cell) * c->array_size);
-            if (x->array == NULL) {
-                fatal_error("Could not allocate memory from array with %d elements.", c->array_size);
-            }
-            for (i = 0; i < x->array_size; i++) {
-                cell_resetCell(&x->array[i]);
-                cell_copyCell(&x->array[i], &c->array[i]);
+            x->array = array_createArrayFromSize(c->array->size);
+            for (size_t i = 0; i < x->array->size; i++) {
+                cell_copyCell(&x->array->data[i], &c->array->data[i]);
             }
             x->boolean = FALSE;
             x->number = bid128_from_uint32(0);
@@ -124,7 +115,6 @@ Cell *cell_fromCell(const Cell *c)
             x->string = NULL;
             x->address = NULL;
             x->array = NULL;
-            x->array_size = 0;
             x->dictionary = NULL;
             break;
         case cDictionary:
@@ -134,7 +124,6 @@ Cell *cell_fromCell(const Cell *c)
             x->string = NULL;
             x->address = NULL;
             x->array = NULL;
-            x->array_size = 0;
             break;
         case cPointer:
             x->address = (void*)c;
@@ -142,7 +131,6 @@ Cell *cell_fromCell(const Cell *c)
             x->string = NULL;
             x->boolean = FALSE;
             x->array = NULL;
-            x->array_size = 0;
             x->dictionary = NULL;
             break;
         case cNumber:
@@ -151,7 +139,6 @@ Cell *cell_fromCell(const Cell *c)
             x->address = NULL;
             x->boolean = FALSE;
             x->array = NULL;
-            x->array_size = 0;
             x->dictionary = NULL;
             break;
         case cString:
@@ -160,7 +147,6 @@ Cell *cell_fromCell(const Cell *c)
             x->number = bid128_from_uint32(0);
             x->boolean = FALSE;
             x->array = NULL;
-            x->array_size = 0;
             x->dictionary = NULL;
             break;
         case cNothing:
@@ -172,7 +158,6 @@ Cell *cell_fromCell(const Cell *c)
             x->address = NULL;
             x->boolean = FALSE;
             x->array = NULL;
-            x->array_size = 0;
             x->dictionary = NULL;
             break;
     }
@@ -208,16 +193,9 @@ Cell *cell_createAddressCell(Cell *a)
 Cell *cell_createArrayCell(size_t iElements)
 {
     Cell *c = cell_newCell();
+    c->array = array_createArrayFromSize(iElements);
 
     c->type = cArray;
-    c->array_size = iElements;
-    c->array = malloc(sizeof(Cell) * c->array_size);
-    if (c->array == NULL) {
-        fatal_error("Unable to allocate memory for array.");
-    }
-    for (uint64_t i = 0; i < c->array_size; i++) {
-        cell_resetCell(&c->array[i]);
-    }
     return c;
 }
 
@@ -227,51 +205,38 @@ void cell_arrayAppendElement(Cell *c, const Cell e)
         c->type = cArray;
     }
     assert(c->type == cArray);
-    if (c->array) {
-        c->array = realloc(c->array, sizeof(Cell) * (c->array_size + 1));
-        if (c->array == NULL) {
+    if (c->array == NULL) {
+        c->array = array_createArray();
+    }
+
+    if (c->array->data) {
+        c->array->data = realloc(c->array->data, sizeof(Cell) * (c->array->size + 1));
+        if (c->array->data == NULL) {
             fatal_error("Unable to expand array.");
         }
-        c->array_size++;
+        c->array->size++;
     }
-    if (c->array == NULL) {
-        c->array = malloc(sizeof(Cell));
-        if (c->array == NULL) {
+    if (c->array->data == NULL) {
+        c->array->data = malloc(sizeof(Cell));
+        if (c->array->data == NULL) {
             fatal_error("Unable to allocate memory for appended array element.");
         }
-        c->array_size = 1;
+        c->array->size = 1;
     }
-    cell_resetCell(&c->array[c->array_size-1]);
-    cell_copyCell(&c->array[c->array_size-1], &e);
+    cell_resetCell(&c->array->data[c->array->size-1]);
+    cell_copyCell(&c->array->data[c->array->size-1], &e);
 }
 
 BOOL cell_arrayElementExists(const Cell *a, const Cell *e)
 {
-    uint64_t i;
-
     assert(a->type == cArray);
 
-    for (i = 0; i < a->array_size; i++) {
-        if (cell_compareCell(&a->array[i], e) == 0) {
+    for (size_t i = 0; i < a->array->size; i++) {
+        if (cell_compareCell(&a->array->data[i], e) == 0) {
             return TRUE;
         }
     }
     return FALSE;
-}
-
-Cell *cell_arrayForWrite(Cell *c)
-{
-    if (c->type == cNothing) {
-        c->type = cArray;
-    }
-    assert(c->type == cArray);
-    if (c->array) {
-        c->array = malloc(sizeof(Cell));
-        if (c->array == NULL) {
-            fatal_error("Could not allocate array for write.");
-        }
-    }
-    return c->array;
 }
 
 Cell *cell_arrayIndexForRead(Cell *c, size_t i)
@@ -280,27 +245,26 @@ Cell *cell_arrayIndexForRead(Cell *c, size_t i)
         c->type = cArray;
     }
     assert(c->type == cArray);
-    return &c->array[i];
+    return &c->array->data[i];
 }
 
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i)
 {
-    size_t n;
     if (c->type == cNothing) {
         c->type = cArray;
     }
     assert(c->type == cArray);
-    if (i >= c->array_size) {
-        c->array = realloc(c->array, sizeof(Cell) * (i+1));
-        if (c->array == NULL) {
+    if (i >= c->array->size) {
+        c->array->data = realloc(c->array->data, sizeof(Cell) * (i+1));
+        if (c->array->data == NULL) {
             fatal_error("Unable to reallcoate memory for write array.");
         }
-        for (n = c->array_size; n < i+1; n++) {
-            cell_resetCell(&c->array[n]);
+        for (size_t n = c->array->size; n < i+1; n++) {
+            cell_resetCell(&c->array->data[n]);
         }
-        c->array_size = i+1;
+        c->array->size = i+1;
     }
-    return &c->array[i];
+    return &c->array->data[i];
 }
 
 Cell *cell_createDictionaryCell(void)
@@ -368,16 +332,11 @@ void cell_copyCell(Cell *dest, const Cell *source)
     } else {
         dest->string = NULL;
     }
-    dest->array_size = source->array_size;
+
     if (source->type == cArray && source->array != NULL) {
-        uint32_t i = 0;
-        dest->array = malloc(sizeof(Cell) * dest->array_size);
-        if (dest->array == NULL) {
-            fatal_error("Could not allocate enough memory to copy array with %d elements.", dest->array_size);
-        }
-        for (i = 0; i < dest->array_size; i++) {
-            cell_resetCell(&dest->array[i]);
-            cell_copyCell(&dest->array[i], &source->array[i]);
+        dest->array = array_createArrayFromSize(source->array->size);
+        for (size_t i = 0; i < dest->array->size; i++) {
+            cell_copyCell(&dest->array->data[i], &source->array->data[i]);
         }
     } else {
         dest->array = NULL;
@@ -402,7 +361,7 @@ int32_t cell_compareCell(const Cell * s, const Cell * d)
 
     switch (s->type) {
         case cAddress:      return s->address != d->address;
-        case cArray:        return s->array_size != d->array_size;
+        case cArray:        return s->array->size != d->array->size;
         case cBoolean:      return s->boolean != d->boolean;
         case cDictionary:   return !dictionary_compareDictionary(s->dictionary, d->dictionary);
         case cNothing:      return s != d;
@@ -425,7 +384,6 @@ Cell *cell_newCell(void)
     c->address = NULL;
     c->boolean = FALSE;
     c->array = NULL;
-    c->array_size = 0;
     c->dictionary = NULL;
     c->type = cNothing;
     return c;
@@ -444,7 +402,6 @@ void cell_resetCell(Cell *c)
     c->number = bid128_from_uint32(0);
     c->string = NULL;
     c->array = NULL;
-    c->array_size = 0;
     c->address = NULL;
     c->boolean = FALSE;
     c->dictionary = NULL;
@@ -458,11 +415,7 @@ void cell_clearCell(Cell *c)
     if (c->type == cString) {
         string_freeString(c->string);
     } else if (c->type == cArray) {
-        uint64_t i;
-        for (i = 0; i < c->array_size; i++) {
-            cell_clearCell(&c->array[i]);
-        }
-        free(c->array);
+        array_freeArray(c->array);
     } else if (c->type == cDictionary) {
         dictionary_freeDictionary(c->dictionary);
     }

@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "array.h"
 #include "cell.h"
 #include "dictionary.h"
 #include "exec.h"
@@ -74,7 +75,7 @@ static FILE *check_file(TExecutor *exec, void *pf)
     return f;
 }
 
-void global_callFunction(const char *pszFunc, TExecutor *exec)
+void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
 {
     uint32_t i;
 
@@ -205,13 +206,13 @@ void array__concat(TExecutor *exec)
 {
     Cell *right = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *left  = cell_fromCell(top(exec->stack)); pop(exec->stack);
-    Cell *a = cell_createArrayCell(left->array_size + right->array_size);
+    Cell *a = cell_createArrayCell(left->array->size + right->array->size);
 
-    for (size_t i = 0; i < left->array_size; i++) {
-        cell_copyCell(&a->array[i], &left->array[i]);
+    for (size_t i = 0; i < left->array->size; i++) {
+        cell_copyCell(&a->array->data[i], &left->array->data[i]);
     }
-    for (size_t i = 0; i < right->array_size; i++) {
-        cell_copyCell(&a->array[i+left->array_size], &right->array[i]);
+    for (size_t i = 0; i < right->array->size; i++) {
+        cell_copyCell(&a->array->data[i+left->array->size], &right->array->data[i]);
     }
     cell_freeCell(left);
     cell_freeCell(right);
@@ -224,8 +225,8 @@ void array__extend(TExecutor *exec)
     size_t i = 0;
     Cell *elements = cell_fromCell(top(exec->stack)); pop(exec->stack);
     Cell *array  = top(exec->stack)->address;
-    for (i = 0; i < elements->array_size; i++) {
-        cell_arrayAppendElement(array, elements->array[i]);
+    for (i = 0; i < elements->array->size; i++) {
+        cell_arrayAppendElement(array, elements->array->data[i]);
     }
     cell_freeCell(elements);
     pop(exec->stack);
@@ -240,20 +241,21 @@ void array__resize(TExecutor *exec)
         exec->rtl_raise(exec, "ArrayIndexException", number_to_string(new_size), BID_ZERO);
     }
 
-    size_t array_size = addr->array_size;
-    addr->array_size = number_to_sint64(new_size);
-    addr->array = realloc(addr->array, (sizeof(struct tagTCell) * addr->array_size));
-    for (size_t i = array_size; i < addr->array_size; i++) {
-        cell_resetCell(&addr->array[i]);
+    size_t array_size = addr->array->size;
+    addr->array->size = number_to_sint64(new_size);
+    addr->array->data = realloc(addr->array->data, (sizeof(Cell) * addr->array->size));
+    if (addr->array->data == NULL) {
+        fatal_error("Could not expand array to %ld elements.", addr->array->size);
     }
-    if (addr->array == NULL) {
-        fatal_error("Could not expand array to %ld elements.", addr->array_size);
+
+    for (size_t i = array_size; i < addr->array->size; i++) {
+        cell_resetCell(&addr->array->data[i]);
     }
 }
 
 void array__size(TExecutor *exec)
 {
-    size_t n = top(exec->stack)->array_size; pop(exec->stack);
+    size_t n = top(exec->stack)->array->size; pop(exec->stack);
     push(exec->stack, cell_fromNumber(bid128_from_int64(n)));
 }
 
@@ -269,27 +271,27 @@ void array__slice(TExecutor *exec)
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
     if (first_from_end) {
-        fst += array->array_size - 1;
+        fst += array->array->size - 1;
     }
     if (fst < 0) {
         fst = 0;
     }
-    if (fst > (int64_t)array->array_size) {
-        fst = array->array_size;
+    if (fst > (int64_t)array->array->size) {
+        fst = array->array->size;
     }
     if (last_from_end) {
-        lst += array->array_size - 1;
+        lst += array->array->size - 1;
     }
     if (lst < -1) {
         lst = -1;
     }
-    if (lst >= (int64_t)array->array_size) {
-        lst = array->array_size - 1;
+    if (lst >= (int64_t)array->array->size) {
+        lst = array->array->size - 1;
     }
     Cell *r = cell_createArrayCell(lst - fst + 1);
 
     for (int64_t i = fst; i < lst + 1; i++) {
-        cell_copyCell(&r->array[ri++], &array->array[i]);
+        cell_copyCell(&r->array->data[ri++], &array->array->data[i]);
     }
     pop(exec->stack);
 
@@ -309,34 +311,34 @@ void array__splice(TExecutor *exec)
     int64_t fst = number_to_sint64(first);
     int64_t lst = number_to_sint64(last);
     if (first_from_end) {
-        fst += array->array_size - 1;
+        fst += array->array->size - 1;
     }
     if (fst < 0) {
         fst = 0;
     }
-    if (fst > (int64_t)array->array_size) {
-        fst = array->array_size;
+    if (fst > (int64_t)array->array->size) {
+        fst = array->array->size;
     }
     if (last_from_end) {
-        lst += array->array_size - 1;
+        lst += array->array->size - 1;
     }
     if (lst < -1) {
         lst = -1;
     }
-    if (lst >= (int64_t)array->array_size) {
-        lst = array->array_size - 1;
+    if (lst >= (int64_t)array->array->size) {
+        lst = array->array->size - 1;
     }
 
-    Cell *r = cell_createArrayCell(b->array_size + (array->array_size - (lst - fst)) - 1);
+    Cell *r = cell_createArrayCell(b->array->size + (array->array->size - (lst - fst)) - 1);
     int64_t ai = 0;
     for (int64_t i = 0; i < fst; i++) {
-        cell_copyCell(&r->array[ai++], &array->array[i]);
+        cell_copyCell(&r->array->data[ai++], &array->array->data[i]);
     }
-    for (size_t i = 0; i < b->array_size; i++) {
-        cell_copyCell(&r->array[ai++], &b->array[i]);
+    for (size_t i = 0; i < b->array->size; i++) {
+        cell_copyCell(&r->array->data[ai++], &b->array->data[i]);
     }
-    for (size_t i = lst + 1; i < array->array_size; i++) {
-        cell_copyCell(&r->array[ai++], &array->array[i]);
+    for (size_t i = lst + 1; i < array->array->size; i++) {
+        cell_copyCell(&r->array->data[ai++], &array->array->data[i]);
     }
     pop(exec->stack);
     pop(exec->stack);
@@ -350,10 +352,10 @@ void array__toBytes__number(TExecutor *exec)
     Cell *a = cell_fromCell(top(exec->stack)); pop(exec->stack);
 
     Cell *r = cell_newCellType(cString);
-    r->string = string_createString(a->array_size);
+    r->string = string_createString(a->array->size);
 
-    for (x = 0, i = 0; x < a->array_size; x++) {
-        uint32_t b = bid128_to_uint32_int(a->array[x].number);
+    for (x = 0, i = 0; x < a->array->size; x++) {
+        uint32_t b = bid128_to_uint32_int(a->array->data[x].number);
         if (b >= 256) {
             exec->rtl_raise(exec, "ByteOutOfRangeException", TO_STRING(b), BID_ZERO);
         }
@@ -374,11 +376,11 @@ void array__toString__number(TExecutor *exec)
         fatal_error("Could not allocate %d byte string for cNumber array", STRING_BUFFER_SIZE);
     }
     strcpy(s, "[");
-    for (x = 0; x < a->array_size; x++) {
+    for (x = 0; x < a->array->size; x++) {
         if (strlen(s) > 1) {
             strcat(s, ", ");
         }
-        strcat(s, number_to_string(a->array[x].number));
+        strcat(s, number_to_string(a->array->data[x].number));
     }
     strcat(s, "]");
     pop(exec->stack);
@@ -396,13 +398,13 @@ void array__toString__string(TExecutor *exec)
         fatal_error("Could not allocate %d byte string for cNumber array", STRING_BUFFER_SIZE);
     }
     strcpy(s, "[");
-    for (x = 0; x < a->array_size; x++) {
+    for (x = 0; x < a->array->size; x++) {
         if (strlen(s) > 1) {
             strcat(s, ", ");
         }
         strcat(s, "\"");
-        for (y = 0; y < a->array[x].string->length; y++) {
-            strcat(s, &a->array[x].string->data[y]);
+        for (y = 0; y < a->array->data[x].string->length; y++) {
+            strcat(s, &a->array->data[x].string->data[y]);
         }
         strcat(s, "\"");
     }
@@ -512,7 +514,7 @@ void bytes__toArray(TExecutor *exec)
 
     for (i = 0, e = 0; i < s->string->length; i++) {
         Cell *n = cell_fromNumber(bid128_from_uint32((uint8_t)s->string->data[i]));
-        cell_copyCell(&a->array[e++], n);
+        cell_copyCell(&a->array->data[e++], n);
         free(n);
     }
     pop(exec->stack);

@@ -15,6 +15,7 @@
 #endif
 #include <string.h>
 
+#include "array.h"
 #include "bytecode.h"
 #include "cell.h"
 #include "dictionary.h"
@@ -119,7 +120,7 @@ int main(int argc, char* argv[])
     /* ToDo: Remove this!  This is only for debugging. */
     /* gOptions.ExecutorDebugStats = TRUE; */
     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetBreakAlloc(143);
+    _CrtSetBreakAlloc(218);
 #endif
     if (!ParseOptions(argc, argv)) {
         return 3;
@@ -236,10 +237,10 @@ typedef struct tagTExceptionInfo {
 void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number code)
 {
     Cell *exceptionvar = cell_createArrayCell(4);
-    cell_setString(&exceptionvar->array[0], string_fromString(name));
-    cell_setString(&exceptionvar->array[1], info);
-    cell_setNumber(&exceptionvar->array[2], code);
-    cell_setNumber(&exceptionvar->array[3], number_from_uint64(self->ip));
+    cell_setString(&exceptionvar->array->data[0], string_fromString(name));
+    cell_setString(&exceptionvar->array->data[1], info);
+    cell_setNumber(&exceptionvar->array->data[2], code);
+    cell_setNumber(&exceptionvar->array->data[3], number_from_uint64(self->ip));
     uint64_t tip = self->ip;
     uint32_t sp = self->callstacktop;
     for (;;) {
@@ -779,7 +780,7 @@ void exec_INDEXAR(TExecutor *self)
         return;
     }
     uint64_t j = (uint64_t)i;
-    if (j >= addr->array_size) {
+    if (j >= addr->array->size) {
         self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)), BID_ZERO);
         return;
     }
@@ -821,12 +822,12 @@ void exec_INDEXAV(TExecutor *self)
         return;
     }
     uint64_t j = (uint64_t)i;
-    if (j >= array->array_size) {
+    if (j >= array->array->size) {
         self->rtl_raise(self, "ArrayIndexException", number_to_string(number_from_uint64(j)), BID_ZERO);
         return;
     }
-    assert(j < array->array_size);
-    Cell *val = cell_fromCell(&array->array[j]);
+    assert(j < array->array->size);
+    Cell *val = cell_fromCell(&array->array->data[j]);
     pop(self->stack);
     push(self->stack, val);
 }
@@ -848,7 +849,7 @@ void exec_INDEXAN(TExecutor *self)
     }
     uint64_t j = (uint64_t)i;
     /* ToDo: Debug this.  I think is following code is WRONG! */
-    Cell *val = (j < array->array_size ? cell_fromCell(&array->array[j]) : cell_newCell());
+    Cell *val = (j < array->array->size ? cell_fromCell(&array->array->data[j]) : cell_newCell());
     pop(self->stack);
     push(self->stack, val);
 }
@@ -1038,7 +1039,7 @@ void exec_CONSA(TExecutor *self)
     Cell *a = cell_createArrayCell(val);
 
     while (val > 0) {
-        cell_copyCell(&a->array[a->array_size - val], top(self->stack));
+        cell_copyCell(&a->array->data[a->array->size - val], top(self->stack));
         val--;
         pop(self->stack);
     }
@@ -1070,12 +1071,12 @@ void exec_EXCEPT(TExecutor *self)
     TString *info = NULL;
     Number code = BID_ZERO;
 
-    size_t size = exinfo->array_size;
+    size_t size = exinfo->array->size;
     if (size >= 1) {
-        info = string_fromString(exinfo->array[0].string);
+        info = string_fromString(exinfo->array->data[0].string);
     }
     if (size >= 2) {
-        code = exinfo->array[1].number;
+        code = exinfo->array->data[1].number;
     }
     pop(self->stack);
     exec_raiseLiteral(self, self->object->strings[val], info, code);
@@ -1148,7 +1149,7 @@ void exec_PUSHCI(void)
     fatal_error("exec_PUSHCI not implemented");
 }
 
-void exec_loop(struct tagTExecutor *self)
+void exec_loop(TExecutor *self)
 {
     while (self->ip < self->object->codelen) {
         if (self->disassemble) { 
