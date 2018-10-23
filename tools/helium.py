@@ -147,6 +147,7 @@ INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
 ISA = Keyword("ISA")
+PIPE = Keyword("PIPE")
 
 # TODO: Nothing really uses this yet.
 # But it's a subclass because we need to tell the difference for toString().
@@ -186,6 +187,7 @@ def tokenize_fragment(source):
         elif source[i] == "=": r.append(EQUAL); i += 1
         elif source[i] == ",": r.append(COMMA); i += 1
         elif source[i] == ".": r.append(DOT); i += 1
+        elif source[i] == "|": r.append(PIPE); i += 1
         elif source[i] == "-":
             if source[i+1] == ">":
                 r.append(ARROW)
@@ -827,6 +829,13 @@ class DisjunctionExpression:
         self.right = right
     def eval(self, env):
         return self.left.eval(env) or self.right.eval(env)
+
+class SequenceExpression:
+    def __init__(self, left, right):
+        self.left = left
+        self.right = right
+    def eval(self, env):
+        return self.right.eval(env)(env, self.left.eval(env))
 
 class ValidPointerExpression:
     def __init__(self, tests):
@@ -1771,6 +1780,14 @@ class Parser:
             left = DisjunctionExpression(left, right)
         return left
 
+    def parse_sequence(self):
+        left = self.parse_disjunction()
+        while self.tokens[self.i] is PIPE:
+            self.i += 1
+            right = self.parse_disjunction()
+            left = SequenceExpression(left, right)
+        return left
+
     def parse_conditional(self):
         if self.tokens[self.i] is IF:
             self.i += 1
@@ -1811,7 +1828,7 @@ class Parser:
                     catches.append((exceptions, infoname, g))
             return TryExpression(expr, catches)
         else:
-            return self.parse_disjunction()
+            return self.parse_sequence()
 
     def parse_expression(self):
         return self.parse_conditional()

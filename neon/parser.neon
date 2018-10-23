@@ -144,6 +144,7 @@ TYPE Type IS ENUM
     MembershipExpression
     ConjunctionExpression
     DisjunctionExpression
+    SequenceExpression
     ConditionalExpression
     TryExpression
     NewClassExpression
@@ -716,6 +717,7 @@ FUNCTION getStartColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.MembershipExpression         DO RETURN node->binaryexpression.startColumn
             WHEN Type.ConjunctionExpression        DO RETURN node->binaryexpression.startColumn
             WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.startColumn
+            WHEN Type.SequenceExpression           DO RETURN node->binaryexpression.startColumn
             WHEN Type.ConditionalExpression        DO RETURN node->binaryexpression.startColumn
             WHEN Type.TryExpression                DO RETURN node->tryexpression.startColumn
             WHEN Type.NewClassExpression           DO RETURN node->newclassexpression.startColumn
@@ -765,6 +767,7 @@ FUNCTION getEndColumn(node: POINTER TO ParseTreeNode): Number
             WHEN Type.MembershipExpression         DO RETURN node->binaryexpression.endColumn
             WHEN Type.ConjunctionExpression        DO RETURN node->binaryexpression.endColumn
             WHEN Type.DisjunctionExpression        DO RETURN node->binaryexpression.endColumn
+            WHEN Type.SequenceExpression           DO RETURN node->binaryexpression.endColumn
             WHEN Type.ConditionalExpression        DO RETURN node->binaryexpression.endColumn
             WHEN Type.TryExpression                DO RETURN node->tryexpression.endColumn
             WHEN Type.NewClassExpression           DO RETURN node->newclassexpression.endColumn
@@ -1203,6 +1206,7 @@ END FUNCTION
  |  in       membership                         parseMembership
  |  and      conjunction                        parseConjunction
  |  or       disjunction                        parseDisjunction
+ |  |        sequence                           parseSequence
  |  if       conditional                        parseConditional
  |%
 
@@ -1880,6 +1884,29 @@ FUNCTION Parser.parseDisjunction(INOUT self: Parser): POINTER TO ParseTreeNode
     END LOOP
 END FUNCTION
 
+FUNCTION Parser.parseSequence(INOUT self: Parser): POINTER TO ParseTreeNode
+    VAR left: POINTER TO ParseTreeNode := self.parseDisjunction()
+    LOOP
+        LET tokOp: lexer.Token := self.token
+        IF self.token.type = TokenType.pipe THEN
+            self.nextToken()
+            LET right: POINTER TO ParseTreeNode := self.parseDisjunction()
+            left := NEW ParseTreeNode(
+                type WITH Type.SequenceExpression,
+                token WITH tokOp,
+                binaryexpression WITH BinaryExpression(
+                    startColumn WITH getStartColumn(left),
+                    endColumn WITH getEndColumn(right),
+                    left WITH left,
+                    right WITH right
+                )
+            )
+        ELSE
+            RETURN left
+        END IF
+    END LOOP
+END FUNCTION
+
 FUNCTION Parser.parseConditional(INOUT self: Parser): POINTER TO ParseTreeNode
     IF self.token.type = TokenType.if THEN
         LET tokIf: lexer.Token := self.token
@@ -1987,7 +2014,7 @@ FUNCTION Parser.parseExpression(INOUT self: Parser): POINTER TO ParseTreeNode
     IF self.expressionDepth > 100 THEN
         error(2067, self.token, "exceeded maximum nesting depth")
     END IF
-    LET r: POINTER TO ParseTreeNode := self.parseDisjunction()
+    LET r: POINTER TO ParseTreeNode := self.parseSequence()
     DEC self.expressionDepth
     RETURN r
 END FUNCTION
@@ -3795,6 +3822,12 @@ FUNCTION dumpDisjunctionExpression(node: VALID POINTER TO ParseTreeNode, depth: 
     dumpParseTree(node->binaryexpression.right, depth+1)
 END FUNCTION
 
+FUNCTION dumpSequenceExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
+    dumpNode(depth, "SequenceExpression")
+    dumpParseTree(node->binaryexpression.left, depth+1)
+    dumpParseTree(node->binaryexpression.right, depth+1)
+END FUNCTION
+
 FUNCTION dumpConditionalExpression(node: VALID POINTER TO ParseTreeNode, depth: Number)
     dumpNode(depth, "ConditionalExpression")
     dumpParseTree(node->conditionalexpression.cond, depth+1)
@@ -4151,6 +4184,7 @@ LET Dumper: IParseTreeVisitor := {
     "MembershipExpression":                 dumpMembershipExpression,
     "ConjunctionExpression":                dumpConjunctionExpression,
     "DisjunctionExpression":                dumpDisjunctionExpression,
+    "SequenceExpression":                   dumpSequenceExpression,
     "ConditionalExpression":                dumpConditionalExpression,
     "TryExpression":                        dumpTryExpression,
     "NewClassExpression":                   dumpNewClassExpression,

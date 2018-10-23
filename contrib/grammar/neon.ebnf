@@ -151,13 +151,15 @@ WhileStatement = 'WHILE', WhileExpression, ['LABEL', Identifier], 'DO', {Stateme
 
 WhileExpression = Expression | ('VALID', (Identifier | (Expression, 'AS', Identifier)), {',', (Identifier | (Expression, 'AS', Identifier))});
 
-BracketedExpression = ConditionalExpression | TryExpression | DisjunctionExpression;
+BracketedExpression = ConditionalExpression | TryExpression | SequenceExpression;
 
 ConditionalExpression = ('IF', Expression, 'THEN', Expression, 'ELSE', Expression);
 
 TryExpression = ('TRY', Expression, {'TRAP', Identifier, ['.', Identifier], ['AS', Identifier], (('DO', {Statement}) | 'GIVES', Expression)});
 
-Expression = DisjunctionExpression;
+Expression = SequenceExpression;
+
+SequenceExpression = DisjunctionExpression, {'|', DisjunctionExpression};
 
 DisjunctionExpression = ConjunctionExpression, {'OR', ConjunctionExpression};
 

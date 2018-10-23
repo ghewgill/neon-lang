@@ -241,6 +241,9 @@ name := (TRY expr TRAP name GIVES expr TRAP name GIVES expr)
 name := (TRY expr TRAP name AS x DO statement())
 name := (TRY expr TRAP name AS x GIVES expr)
 
+% SequenceExpression
+name := expr | expr
+
 % DisjunctionExpression
 name := expr OR expr
 

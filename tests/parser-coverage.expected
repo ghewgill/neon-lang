@@ -567,6 +567,11 @@ Program
         IdentifierExpression(expr)
   AssignmentStatement
     IdentifierExpression(name)
+    SequenceExpression
+      IdentifierExpression(expr)
+      IdentifierExpression(expr)
+  AssignmentStatement
+    IdentifierExpression(name)
     DisjunctionExpression
       IdentifierExpression(expr)
       IdentifierExpression(expr)

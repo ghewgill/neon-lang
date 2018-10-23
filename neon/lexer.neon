@@ -117,6 +117,7 @@ TYPE Type IS ENUM
     implements
     unused
     isa
+    pipe
     unknown
     max_token
 END ENUM
@@ -244,6 +245,7 @@ FUNCTION tokenize_fragment(source_path: String, INOUT line: Number, column_start
         ELSIF c = "=" THEN t.type := Type.equal INC i
         ELSIF c = "," THEN t.type := Type.comma INC i
         ELSIF c = "." THEN t.type := Type.dot INC i
+        ELSIF c = "|" THEN t.type := Type.pipe INC i
         ELSIF c = "\u2212" %|'−'|% THEN t.type := Type.minus INC i
         ELSIF c = "\u00D7" %|'×'|% THEN t.type := Type.times INC i
         ELSIF c = "\u2215" %|'∕'|% THEN t.type := Type.divide INC i
