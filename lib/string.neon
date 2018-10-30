@@ -13,6 +13,7 @@ EXPORT lower
 EXPORT repeat
 EXPORT split
 EXPORT splitLines
+EXPORT trim
 EXPORT trimCharacters
 EXPORT upper
 
