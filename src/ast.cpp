@@ -1111,8 +1111,7 @@ void Scope::resolveForward(const std::string &name, const TypeClass *classtype)
 void Scope::checkForward()
 {
     if (not forwards.empty()) {
-        // TODO: Make this a real error that points to a token.
-        internal_error("unresolved forward declaration: " + forwards.begin()->first);
+        error(3264, forwards.begin()->second[0]->declaration, "unresolved forward declaration");
     }
 }
 
