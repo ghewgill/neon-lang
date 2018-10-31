@@ -106,7 +106,10 @@ void Repl::handle(const std::string &s)
             struct ExecOptions options;
             options.enable_assert = true;
             options.enable_trace = false;
-            exec("-", bytecode, &debug, &runtime_support, &options, 0, argc, argv, &globals_cells);
+            int r = exec("-", bytecode, &debug, &runtime_support, &options, 0, argc, argv, &globals_cells);
+            if (r != 0) {
+                fprintf(stderr, "exit code %d\n", r);
+            }
             input.emplace_back(std::move(tokens));
         } catch (CompilerError *error) {
             error->write(std::cerr);

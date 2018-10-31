@@ -38,7 +38,7 @@ void run_from_neonx(const std::string &name, int argc, char *argv[])
     struct ExecOptions options;
     options.enable_assert = g_enable_assert;
     options.enable_trace = false;
-    exec(name, bytecode, nullptr, &runtime_support, &options, g_debug_port, argc, argv);
+    exit(exec(name, bytecode, nullptr, &runtime_support, &options, g_debug_port, argc, argv));
 }
 
 int main(int argc, char *argv[])

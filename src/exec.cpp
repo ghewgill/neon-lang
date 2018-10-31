@@ -255,8 +255,8 @@ public:
     void set_garbage_collection_interval(size_t count);
     void set_recursion_limit(size_t depth);
 
-    void exec();
-    void exec_loop(size_t min_callstack_depth);
+    int exec();
+    int exec_loop(size_t min_callstack_depth);
 //private:
     const std::string source_path;
     const ExecOptions *options;
@@ -268,6 +268,7 @@ public:
     std::map<std::string, Module *> modules;
     std::vector<std::string> init_order;
     Module *module;
+    int exit_code;
     Bytecode::Bytes::size_type ip;
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
@@ -605,7 +606,10 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     g_executor->callstack.push_back(std::make_pair(g_executor->module, g_executor->ip));
     g_executor->module = mod;
     g_executor->ip = addri;
-    g_executor->exec_loop(g_executor->callstack.size() - 1);
+    int r = g_executor->exec_loop(g_executor->callstack.size() - 1);
+    if (r != 0) {
+        exit(r);
+    }
     if (retval != NULL) {
         *reinterpret_cast<Cell *>(retval) = g_executor->stack.top();
         g_executor->stack.pop();
@@ -668,6 +672,7 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     modules(),
     init_order(),
     module(nullptr),
+    exit_code(0),
     ip(0),
     stack(),
     callstack(),
@@ -1919,7 +1924,10 @@ void Executor::exec_MAPA()
         stack.push(x);
         callstack.push_back(std::make_pair(module, start));
         try {
-            exec_loop(callstack.size() - 1);
+            int r = exec_loop(callstack.size() - 1);
+            if (r != 0) {
+                exit(r);
+            }
         } catch (InternalException *x) {
             callstack.pop_back();
             map_depth--;
@@ -1946,7 +1954,10 @@ void Executor::exec_MAPD()
         stack.push(x.second);
         callstack.push_back(std::make_pair(module, start));
         try {
-            exec_loop(callstack.size() - 1);
+            int r = exec_loop(callstack.size() - 1);
+            if (r != 0) {
+                exit(r);
+            }
         } catch (InternalException *x) {
             callstack.pop_back();
             map_depth--;
@@ -2034,7 +2045,8 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
         ip = callstack.back().second;
         callstack.pop_back();
     }
-    exit(1);
+    // Setting exit_code here will cause exec_loop to terminate and return this exit code.
+    exit_code = 1;
 }
 
 void Executor::raise(const ExceptionName &exception, const ExceptionInfo &info)
@@ -2151,7 +2163,7 @@ void Executor::set_recursion_limit(size_t depth)
     param_recursion_limit = depth;
 }
 
-void Executor::exec()
+int Executor::exec()
 {
     callstack.push_back(std::make_pair(module, module->object.code.size()));
 
@@ -2165,13 +2177,14 @@ void Executor::exec()
     // Set up ip for first module (or main module if no imports).
     exec_RET();
 
-    exec_loop(0);
+    int r = exec_loop(0);
     assert(stack.empty());
+    return r;
 }
 
-void Executor::exec_loop(size_t min_callstack_depth)
+int Executor::exec_loop(size_t min_callstack_depth)
 {
-    while (callstack.size() > min_callstack_depth && ip < module->object.code.size()) {
+    while (callstack.size() > min_callstack_depth && ip < module->object.code.size() && exit_code == 0) {
         if (options->enable_trace) {
             auto i = ip;
             std::cerr << "mod " << module->name << " ip " << ip << " " << disassemble_instruction(module->object, i) << " | st " << stack.depth() << "\n";
@@ -2201,7 +2214,7 @@ void Executor::exec_loop(size_t min_callstack_depth)
                 debug_server->service(true);
             }
             if (debugger_state == DebuggerState::QUIT) {
-                return;
+                return 1;
             }
         }
         switch (static_cast<Opcode>(module->object.code[ip])) {
@@ -2313,6 +2326,7 @@ void Executor::exec_loop(size_t min_callstack_depth)
                 abort();
         }
     }
+    return exit_code;
 }
 
 namespace minijson {
@@ -2538,8 +2552,8 @@ void executor_set_recursion_limit(size_t depth)
     g_executor->set_recursion_limit(depth);
 }
 
-void exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals)
+int exec(const std::string &source_path, const Bytecode::Bytes &obj, const DebugInfo *debuginfo, ICompilerSupport *support, const ExecOptions *options, unsigned short debug_port, int argc, char *argv[], std::map<std::string, Cell *> *external_globals)
 {
     rtl_exec_init(argc, argv);
-    Executor(source_path, obj, debuginfo, support, options, debug_port, external_globals).exec();
+    return Executor(source_path, obj, debuginfo, support, options, debug_port, external_globals).exec();
 }

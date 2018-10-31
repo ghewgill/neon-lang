@@ -174,5 +174,5 @@ int main(int argc, char *argv[])
     struct ExecOptions options;
     options.enable_assert = enable_assert;
     options.enable_trace = enable_trace;
-    exec(name, bytecode, &debug, &runtime_support, &options, debug_port, argc-a, argv+a);
+    exit(exec(name, bytecode, &debug, &runtime_support, &options, debug_port, argc-a, argv+a));
 }
