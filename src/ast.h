@@ -195,7 +195,7 @@ public:
     size_t getCount() const { return slots.size(); }
     virtual int addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced);
     const Slot getSlot(size_t slot);
-    virtual void setReferent(int slot, Name *ref);
+    virtual void setReferent(int slot, const std::string &name, Name *ref);
     void setReferenced(int slot);
 
     virtual size_t get_depth() { return 0; }
@@ -233,7 +233,7 @@ public:
     ExternalGlobalFrame(Frame *outer, std::map<std::string, ExternalGlobalInfo> &external_globals): Frame(outer), external_globals(external_globals) {}
     virtual void predeclare(Emitter &emitter) override;
     virtual int addSlot(const Token &token, const std::string &name, Name *ref, bool init_referenced) override;
-    virtual void setReferent(int slot, Name *ref) override;
+    virtual void setReferent(int slot, const std::string &name, Name *ref) override;
     virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) override;
 private:
     std::map<std::string, ExternalGlobalInfo> &external_globals;

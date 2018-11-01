@@ -985,7 +985,7 @@ const Frame::Slot Frame::getSlot(size_t slot)
     return slots.at(slot);
 }
 
-void Frame::setReferent(int slot, Name *ref)
+void Frame::setReferent(int slot, const std::string &, Name *ref)
 {
     if (slots.at(slot).ref != nullptr) {
         internal_error("ref not null");
@@ -1009,14 +1009,14 @@ int ExternalGlobalFrame::addSlot(const Token &token, const std::string &name, Na
     return Frame::addSlot(token, name, ref, init_referenced);
 }
 
-void ExternalGlobalFrame::setReferent(int slot, Name *ref)
+void ExternalGlobalFrame::setReferent(int slot, const std::string &name, Name *ref)
 {
-    auto g = external_globals.find(ref->name);
+    auto g = external_globals.find(name);
     if (g == external_globals.end()) {
-        internal_error("external global does not exist");
+        internal_error("external global does not exist: " + name);
     }
     g->second.ref = ref;
-    Frame::setReferent(slot, ref);
+    Frame::setReferent(slot, name, ref);
 }
 
 Variable *GlobalFrame::createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly)
@@ -1082,7 +1082,7 @@ void Scope::addName(const Token &token, const std::string &name, Name *ref, bool
     }
     auto a = names.find(name);
     if (a != names.end()) {
-        frame->setReferent(a->second, ref);
+        frame->setReferent(a->second, name, ref);
         if (init_referenced) {
             frame->setReferenced(a->second);
         }
