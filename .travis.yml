@@ -8,10 +8,12 @@ env:
   #- BUILDER=scons RELEASE=0 WITH_SUBMODULES=1
   #- BUILDER=scons RELEASE=1 WITH_SUBMODULES=1
   - BUILDER=cmake WITH_SUBMODULES=0
-#before_install:
-#  - choco install scons
+before_install:
+  - choco install python2
 before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
-  - cmake . && nmake && ctest
+  - cmake .
+  - nmake
+  - ctest
 sudo: false
