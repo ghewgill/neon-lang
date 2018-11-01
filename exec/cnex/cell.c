@@ -324,6 +324,8 @@ Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key)
     int64_t idx = dictionary_findIndex(c->dictionary, key);
     if (idx == -1) {
         idx = dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell());
+    } else {
+        string_freeString(key); // Since we aren't using the provided key, we need to destroy it.
     }
     return c->dictionary->data[idx].value;
 }
