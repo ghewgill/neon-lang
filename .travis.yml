@@ -14,6 +14,6 @@ before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
   - cmake .
-  - nmake
+  - make
   - ctest
 sudo: false
