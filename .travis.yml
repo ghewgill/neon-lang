@@ -13,6 +13,5 @@ env:
 before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
-  - if [ "$BUILDER" == "scons" ]; then scons RELEASE=$RELEASE; fi
-  - if [ "$BUILDER" == "cmake" ]; then scons external/lib && cmake . && make && ctest; fi
+  - cmake . && nmake && ctest
 sudo: false
