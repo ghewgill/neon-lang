@@ -1,9 +1,6 @@
 language: cpp
 os:
   - windows
-compiler:
-  - gcc
-  - clang
 git:
   submodules: false
 env:
@@ -12,7 +9,7 @@ env:
   - BUILDER=scons RELEASE=1 WITH_SUBMODULES=1
   - BUILDER=cmake WITH_SUBMODULES=0
 before_install:
-  - which scons || brew install scons
+  - choco install scons
 before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
