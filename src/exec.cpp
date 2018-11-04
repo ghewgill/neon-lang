@@ -1924,9 +1924,9 @@ void Executor::exec_MAPA()
         stack.push(x);
         callstack.push_back(std::make_pair(module, start));
         try {
-            int r = exec_loop(callstack.size() - 1);
-            if (r != 0) {
-                exit(r);
+            int retval = exec_loop(callstack.size() - 1);
+            if (retval != 0) {
+                exit(retval);
             }
         } catch (InternalException *x) {
             callstack.pop_back();
@@ -1954,9 +1954,9 @@ void Executor::exec_MAPD()
         stack.push(x.second);
         callstack.push_back(std::make_pair(module, start));
         try {
-            int r = exec_loop(callstack.size() - 1);
-            if (r != 0) {
-                exit(r);
+            int retval = exec_loop(callstack.size() - 1);
+            if (retval != 0) {
+                exit(retval);
             }
         } catch (InternalException *x) {
             callstack.pop_back();
@@ -2178,7 +2178,9 @@ int Executor::exec()
     exec_RET();
 
     int r = exec_loop(0);
-    assert(stack.empty());
+    if (r == 0) {
+        assert(stack.empty());
+    }
     return r;
 }
 
