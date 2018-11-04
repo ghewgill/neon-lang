@@ -82,6 +82,7 @@ ExcludeTests = [
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # import
     "t/net-test.neon",              # import
+    "t/net-test-udp.neon",          # import
     "t/new-init-module.neon",       # module
     "t/number-ceil.neon",           # math
     "t/os-test.neon",               # os

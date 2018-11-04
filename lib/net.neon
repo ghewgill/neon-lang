@@ -9,6 +9,7 @@ EXPORT SocketException
 
 EXPORT select
 EXPORT tcpSocket
+EXPORT udpSocket
 
 %|
  |  Exception: SocketException
@@ -34,8 +35,10 @@ END RECORD
  |  Create a new TCP/IP (stream) socket.
  |%
 DECLARE NATIVE FUNCTION tcpSocket(): Socket
+DECLARE NATIVE FUNCTION udpSocket(): Socket
 
 DECLARE NATIVE FUNCTION socket_accept(handle: Handle): Socket
+DECLARE NATIVE FUNCTION socket_bind(handle: Handle, address: String, port: Number)
 DECLARE NATIVE FUNCTION socket_close(handle: Handle)
 DECLARE NATIVE FUNCTION socket_connect(handle: Handle, host: String, port: Number)
 DECLARE NATIVE FUNCTION socket_listen(handle: Handle, port: Number)
@@ -61,6 +64,15 @@ END FUNCTION
  |%
 FUNCTION Socket.accept(self: Socket): Socket
     RETURN socket_accept(self.handle)
+END FUNCTION
+
+%|
+ |  Function: Socket.bind
+ |
+ |  Bind a socket to an address and port number.
+ |%
+FUNCTION Socket.bind(self: Socket, address: String, port: Number)
+    socket_bind(self.handle, address, port)
 END FUNCTION
 
 %|

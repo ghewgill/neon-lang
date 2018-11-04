@@ -57,6 +57,7 @@ ExcludeTests = [
     "t/modulo.neon",                # modulo
     "t/multiarray-test.neon",       # verifier - bad type in putfield
     "t/net-test.neon",              # illegal character dot
+    "t/net-test-udp.neon",          # illegal character dot
     "t/new-init-module.neon",       # NoClassDefFoundError
     "t/number-ceil.neon",           # module math
     "t/object.neon",                # object

@@ -2710,6 +2710,7 @@ ExcludeTests = [
     "t/module-import-name3.neon", # Feature not required
     "t/multiarray-test.neon",   # Module not required
     "t/net-test.neon",          # Module not required
+    "t/net-test-udp.neon",      # Module not required
     "t/number-ceil.neon",       # Feature not required
     "t/number-underscore.neon", # Feature not required
     "t/os-test.neon",           # Module not required

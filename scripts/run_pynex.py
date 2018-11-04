@@ -57,6 +57,7 @@ ExcludeTests = [
     "t/module2.neon",               # module
     "t/multiarray-test.neon",       # module
     "t/net-test.neon",              # net
+    "t/net-test-udp.neon",          # net
     "t/new-init-module.neon",       # class
     "t/new-init.neon",              # class
     "t/number-ceil.neon",           # precision

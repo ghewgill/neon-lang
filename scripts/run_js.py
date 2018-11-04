@@ -82,6 +82,7 @@ ExcludeTests = [
     "t/modulo.neon",                # decimal floating point
     "t/multiarray-test.neon",       # module multiarray
     "t/net-test.neon",              # module net
+    "t/net-test-udp.neon",          # module net
     "t/number-ceil.neon",           # number formatting
     "t/object.neon",                # object
     "t/object-isa.neon",            # object
