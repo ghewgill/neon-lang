@@ -671,25 +671,25 @@ FUNCTION Struct.unpack(self: Struct, data: Bytes): Dictionary<Object>
                 v := unpackInt64LE(data[i TO i+7])
                 i := i + 8
             WHEN Type.uint8 DO
-                v := unpackInt8(data[i TO i])
-                i := i + 2
+                v := unpackUInt8(data[i TO i])
+                INC i
             WHEN Type.uint16BE DO
-                v := unpackInt16BE(data[i TO i+1])
+                v := unpackUInt16BE(data[i TO i+1])
                 i := i + 2
             WHEN Type.uint16LE DO
-                v := unpackInt16LE(data[i TO i+1])
+                v := unpackUInt16LE(data[i TO i+1])
                 i := i + 2
             WHEN Type.uint32BE DO
-                v := unpackInt32BE(data[i TO i+3])
+                v := unpackUInt32BE(data[i TO i+3])
                 i := i + 4
             WHEN Type.uint32LE DO
-                v := unpackInt32LE(data[i TO i+3])
+                v := unpackUInt32LE(data[i TO i+3])
                 i := i + 4
             WHEN Type.uint64BE DO
-                v := unpackInt64BE(data[i TO i+7])
+                v := unpackUInt64BE(data[i TO i+7])
                 i := i + 8
             WHEN Type.uint64LE DO
-                v := unpackInt64LE(data[i TO i+7])
+                v := unpackUInt64LE(data[i TO i+7])
                 i := i + 8
             WHEN Type.string DO
                 VAR s: String := ""
