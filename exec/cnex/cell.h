@@ -45,6 +45,7 @@ Cell *cell_fromPointer(void *p);
 Cell *cell_fromNumber(Number n);
 Cell *cell_fromCString(const char *s);
 Cell *cell_fromStringLength(const char *s, int64_t length);
+Cell *cell_fromString(struct tagTString *s);
 Cell *cell_fromCell(const Cell *c);
 
 void cell_copyCell(Cell *dest, const Cell *source);
@@ -55,6 +56,8 @@ void cell_setString(Cell *c, struct tagTString *s);
 void cell_setNumber(Cell *c, Number n);
 void cell_setBoolean(Cell *c, BOOL b);
 
+
+struct tagTString *cell_toString(Cell *c);
 
 Cell *cell_arrayIndexForRead(Cell* c, size_t i);
 Cell *cell_arrayIndexForWrite(Cell *c, size_t i);
