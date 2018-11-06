@@ -1,18 +1,9 @@
-#ifdef __MS_HEAP_DBG
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#endif
-
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
-#ifndef __MS_HEAP_DBG
-#include <stdlib.h>
-#endif
 #include <string.h>
 
 #include "array.h"
@@ -116,12 +107,7 @@ char *getApplicationName(char *arg)
 int main(int argc, char* argv[])
 {
     gOptions.pszExecutableName = getApplicationName(argv[0]);
-#ifdef __MS_HEAP_DBG
-    /* ToDo: Remove this!  This is only for debugging. */
-    /* gOptions.ExecutorDebugStats = TRUE; */
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetBreakAlloc(218);
-#endif
+
     if (!ParseOptions(argc, argv)) {
         return 3;
     }

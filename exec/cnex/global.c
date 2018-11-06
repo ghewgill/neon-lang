@@ -17,7 +17,6 @@
 #include "util.h"
 
 
-#define STRING_BUFFER_SIZE      120
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
 TDispatch gfuncDispatch[] = {
@@ -368,50 +367,16 @@ void array__toBytes__number(TExecutor *exec)
 
 void array__toString__number(TExecutor *exec)
 {
-    size_t x;
-    /* ToDo: Fix this to use proper string appends!! */
-    Cell *a = top(exec->stack);
-    char *s = malloc(STRING_BUFFER_SIZE);
-    if (s == NULL) {
-        fatal_error("Could not allocate %d byte string for cNumber array", STRING_BUFFER_SIZE);
-    }
-    strcpy(s, "[");
-    for (x = 0; x < a->array->size; x++) {
-        if (strlen(s) > 1) {
-            strcat(s, ", ");
-        }
-        strcat(s, number_to_string(a->array->data[x].number));
-    }
-    strcat(s, "]");
-    pop(exec->stack);
-    push(exec->stack, cell_fromCString(s));
-    free(s);
+    TString *s = cell_toString(top(exec->stack)); pop(exec->stack);
+    push(exec->stack, cell_fromString(s));
+    string_freeString(s);
 }
 
 void array__toString__string(TExecutor *exec)
 {
-    size_t x, y;
-    /* ToDo: Fix this to use proper string appends!! */
-    Cell *a = top(exec->stack);
-    char *s = malloc(STRING_BUFFER_SIZE);
-    if (s == NULL) {
-        fatal_error("Could not allocate %d byte string for cNumber array", STRING_BUFFER_SIZE);
-    }
-    strcpy(s, "[");
-    for (x = 0; x < a->array->size; x++) {
-        if (strlen(s) > 1) {
-            strcat(s, ", ");
-        }
-        strcat(s, "\"");
-        for (y = 0; y < a->array->data[x].string->length; y++) {
-            strcat(s, &a->array->data[x].string->data[y]);
-        }
-        strcat(s, "\"");
-    }
-    strcat(s, "]");
-    pop(exec->stack);
-    push(exec->stack, cell_fromCString(s));
-    free(s);
+    TString *s = cell_toString(top(exec->stack)); pop(exec->stack);
+    push(exec->stack, cell_fromString(s));
+    string_freeString(s);
 }
 
 
@@ -419,8 +384,9 @@ void array__toString__string(TExecutor *exec)
 
 void boolean__toString(TExecutor *exec)
 {
-    BOOL v = top(exec->stack)->boolean; pop(exec->stack);
-    push(exec->stack, cell_fromCString(v ? "TRUE" : "FALSE"));
+    TString *s = cell_toString(top(exec->stack)); pop(exec->stack);
+    push(exec->stack, cell_fromString(s));
+    string_freeString(s);
 }
 
 
