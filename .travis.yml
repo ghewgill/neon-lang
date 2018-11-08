@@ -15,7 +15,7 @@ before_script:
 script:
   - where reg
   - reg QUERY "HKLM\System\CurrentControlSet\Control\Session Manager\Environment"
-  - echo %PATH%
+  - echo %%PATH%%
   - python --help
   - dir c:\python27
   - c:\python27\python --help
