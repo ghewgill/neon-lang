@@ -14,7 +14,7 @@ before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
   - where reg
-  - reg
+  - reg QUERY "HKLM\System\CurrentControlSet\Control\Session Manager\Environment"
   - where choco
   - where refreshenv
   - refreshenv
