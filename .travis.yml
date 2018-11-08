@@ -13,6 +13,8 @@ before_install:
 before_script:
   - if [ "$WITH_SUBMODULES" == "1" ]; then git submodule update --init; fi
 script:
+  - where reg
+  - reg
   - where choco
   - where refreshenv
   - refreshenv
