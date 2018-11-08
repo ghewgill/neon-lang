@@ -18,6 +18,7 @@ script:
   - echo %PATH%
   - python --help
   - c:\python27\python --help
+  - c:\python27\scripts\python --help
   - where choco
   - where refreshenv
   - refreshenv
