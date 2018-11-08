@@ -15,6 +15,9 @@ before_script:
 script:
   - where reg
   - reg QUERY "HKLM\System\CurrentControlSet\Control\Session Manager\Environment"
+  - echo %PATH%
+  - python --help
+  - c:\python27\python --help
   - where choco
   - where refreshenv
   - refreshenv
