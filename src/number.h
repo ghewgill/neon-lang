@@ -9,26 +9,14 @@
 // accidentally use regular arithmetic operations on these numeric
 // values.
 
-#define DECIMAL_GLOBAL_ROUNDING 1
-#define DECIMAL_GLOBAL_EXCEPTION_FLAGS 1
-
-#ifndef _WCHAR_T_DEFINED
-#define _WCHAR_T_DEFINED
-#endif
-#include "bid_conf.h"
-#ifdef _MSC_VER
-#pragma warning(push, 0)
-#endif
-#include "bid_functions.h"
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+#include <gmp.h>
+#include <gmpxx.h>
 
 struct Number {
-    Number(): x(bid128_from_uint32(0)) {}
-    BID_UINT128 x;
+    Number(): x(0) {}
+    mpz_class x;
 private:
-    Number(BID_UINT128 x): x(x) {}
+    Number(mpz_class x): x(x) {}
 
     friend Number number_add(Number x, Number y);
     friend Number number_subtract(Number x, Number y);

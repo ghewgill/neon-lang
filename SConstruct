@@ -131,6 +131,7 @@ else:
         "-Weffc++",
         #"-Wold-style-cast",    # Enable this temporarily to check, but it breaks with gcc and #defines with C casts in standard headers.
         #"-Wshadow",            # Want to enable this, but the compiler used by travis is overzealous about enforcing it where we don't want it to
+        "-Wno-unused-parameter",
         "-Werror",
     ])
     if "CLANG_SANITIZE" in env:
@@ -148,7 +149,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz, "gmpxx", "gmp"]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
