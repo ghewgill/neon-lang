@@ -14,9 +14,9 @@
 
 struct Number {
     Number(): x(0) {}
-    mpz_class x;
+    mpf_class x;
 private:
-    Number(mpz_class x): x(x) {}
+    Number(mpf_class x): x(x) {}
 
     friend Number number_add(Number x, Number y);
     friend Number number_subtract(Number x, Number y);

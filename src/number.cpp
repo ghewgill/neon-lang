@@ -24,14 +24,14 @@ Number number_divide(Number x, Number y)
 
 Number number_modulo(Number x, Number y)
 {
-    return Number(x.x % y.x);
+    return Number();//Number(x.x % y.x);
 }
 
 Number number_pow(Number x, Number y)
 {
-    mpz_class r;
-    mpz_pow_ui(r.get_mpz_t(), x.x.get_mpz_t(), y.x.get_ui());
-    return Number(mpz_class(r));
+    mpf_class r;
+    mpf_pow_ui(r.get_mpf_t(), x.x.get_mpf_t(), y.x.get_ui());
+    return Number(mpf_class(r));
 }
 
 Number number_negate(Number x)
@@ -272,7 +272,19 @@ bool number_is_nan(Number x)
 
 std::string number_to_string(Number x)
 {
-    return x.x.get_str();
+    mp_exp_t exp;
+    std::string r = x.x.get_str(exp);
+    std::string sign = not r.empty() && r[0] == '-' ? "-" : "";
+    std::string m = sign.empty() ? r : r.substr(1);
+    if (m.empty()) {
+        return "0";
+    } else if (exp <= 0) {
+        return sign + "0." + std::string(-exp, '0') + m;
+    } else if (static_cast<size_t>(exp) < m.length()) {
+        return sign + m.substr(0, exp) + "." + m.substr(exp);
+    } else {
+        return sign + m + std::string(exp - m.length(), '0');
+    }
 }
 
 uint8_t number_to_uint8(Number x)
@@ -327,7 +339,7 @@ double number_to_double(Number x)
 
 Number number_from_string(const std::string &s)
 {
-    mpz_class r;
+    mpf_class r;
     r.set_str(s, 10);
     return r;
     return Number();//bid128_from_string(const_cast<char *>(s.c_str()));
