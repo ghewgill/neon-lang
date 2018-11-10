@@ -32,7 +32,9 @@ Number number_divide(Number x, Number y)
 
 Number number_modulo(Number x, Number y)
 {
-    return Number();//Number(x.x % y.x);
+    Number r;
+    mpfr_remainder(r.x, x.x, y.x, MPFR_RNDN);
+    return r;
 }
 
 Number number_pow(Number x, Number y)
