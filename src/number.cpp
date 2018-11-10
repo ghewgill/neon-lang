@@ -4,22 +4,30 @@
 
 Number number_add(Number x, Number y)
 {
-    return Number(x.x + y.x);
+    Number r;
+    mpfr_add(r.x, x.x, y.x, MPFR_RNDN);
+    return r;
 }
 
 Number number_subtract(Number x, Number y)
 {
-    return Number(x.x - y.x);
+    Number r;
+    mpfr_sub(r.x, x.x, y.x, MPFR_RNDN);
+    return r;
 }
 
 Number number_multiply(Number x, Number y)
 {
-    return Number(x.x * y.x);
+    Number r;
+    mpfr_mul(r.x, x.x, y.x, MPFR_RNDN);
+    return r;
 }
 
 Number number_divide(Number x, Number y)
 {
-    return Number(x.x / y.x);
+    Number r;
+    mpfr_div(r.x, x.x, y.x, MPFR_RNDN);
+    return r;
 }
 
 Number number_modulo(Number x, Number y)
@@ -29,9 +37,9 @@ Number number_modulo(Number x, Number y)
 
 Number number_pow(Number x, Number y)
 {
-    mpf_class r;
-    mpf_pow_ui(r.get_mpf_t(), x.x.get_mpf_t(), y.x.get_ui());
-    return Number(mpf_class(r));
+    Number r;
+    mpfr_pow(r.x, x.x, y.x, MPFR_RNDN);
+    return r;
 }
 
 Number number_negate(Number x)
@@ -272,8 +280,13 @@ bool number_is_nan(Number x)
 
 std::string number_to_string(Number x)
 {
-    mp_exp_t exp;
-    std::string r = x.x.get_str(exp);
+    mpfr_exp_t exp;
+    char buf[1+40+1];
+    mpfr_get_str(buf, &exp, 10, 40, x.x, MPFR_RNDN);
+    std::string r = buf;
+    if (not r.empty() && r[0] == '@') {
+        return r;
+    }
     std::string sign = not r.empty() && r[0] == '-' ? "-" : "";
     std::string m = sign.empty() ? r : r.substr(1);
     if (m.empty()) {
@@ -339,10 +352,9 @@ double number_to_double(Number x)
 
 Number number_from_string(const std::string &s)
 {
-    mpf_class r;
-    r.set_str(s, 10);
+    Number r;
+    mpfr_set_str(r.x, s.c_str(), 10, MPFR_RNDN);
     return r;
-    return Number();//bid128_from_string(const_cast<char *>(s.c_str()));
 }
 
 Number number_from_uint8(uint8_t x)

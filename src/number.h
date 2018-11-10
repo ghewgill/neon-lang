@@ -9,14 +9,22 @@
 // accidentally use regular arithmetic operations on these numeric
 // values.
 
-#include <gmp.h>
-#include <gmpxx.h>
+#include <mpfr.h>
 
 struct Number {
-    Number(): x(0) {}
-    mpf_class x;
+    Number() { mpfr_init(x); }
+    Number(const Number &rhs) { mpfr_init_set(x, rhs.x, MPFR_RNDN); }
+    ~Number() { mpfr_clear(x); }
+    Number &operator=(const Number &rhs) {
+        if (&rhs == this) {
+            return *this;
+        }
+        mpfr_set(x, rhs.x, MPFR_RNDN);
+        return *this;
+    }
 private:
-    Number(mpf_class x): x(x) {}
+    mpfr_t x;
+    //Number(const mpfr_t &x) { mpfr_init_set(this->x, x, MPFR_RNDN); }
 
     friend Number number_add(Number x, Number y);
     friend Number number_subtract(Number x, Number y);
@@ -60,6 +68,7 @@ private:
     friend Number number_sinh(Number x);
     friend Number number_tanh(Number x);
     friend Number number_tgamma(Number x);
+    friend std::string number_to_string(Number x);
     friend Number number_from_string(const std::string &s);
     friend Number number_from_uint8(uint8_t x);
     friend Number number_from_sint8(int8_t x);

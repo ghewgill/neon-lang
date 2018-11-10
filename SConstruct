@@ -149,7 +149,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz, "gmpxx", "gmp"]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz, "mpfr", "gmp"]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
