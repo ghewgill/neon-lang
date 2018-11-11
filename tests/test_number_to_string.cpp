@@ -9,7 +9,7 @@ int main()
 {
     std::random_device rd;
     std::mt19937_64 r(rd());
-    for (int i = 0; i < 100000; i++) {
+/*    for (int i = 0; i < 100000; i++) {
         Number n;
         n.x.w[0] = r();
         n.x.w[1] = r();
@@ -22,7 +22,7 @@ int main()
             std::cout << buf1 << " " << buf2 << std::endl;
             assert(false);
         }
-    }
+    }*/
     assert(number_to_string(number_from_string("1234.5678e5")) == "123456780");
     assert(number_to_string(number_from_string("1234.5678e4")) == "12345678");
     assert(number_to_string(number_from_string("1234.5678e3")) == "1234567.8");

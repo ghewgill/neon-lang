@@ -40,7 +40,7 @@ Number number_divide(Number x, Number y)
 Number number_modulo(Number x, Number y)
 {
     Number r;
-    mpfr_remainder(r.x, x.x, y.x, MPFR_RNDN);
+    mpfr_fmod(r.x, x.x, y.x, MPFR_RNDN);
     return r;
 }
 

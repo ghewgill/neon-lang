@@ -12,7 +12,7 @@
 #include <mpfr.h>
 
 struct Number {
-    Number() { mpfr_init(x); }
+    Number() { mpfr_init_set_ui(x, 0, MPFR_RNDN); }
     Number(const Number &rhs) { mpfr_init_set(x, rhs.x, MPFR_RNDN); }
     ~Number() { mpfr_clear(x); }
     Number &operator=(const Number &rhs) {
