@@ -85,6 +85,7 @@ ExcludeTests = [
     "t/net-test-udp.neon",          # module net
     "t/number-ceil.neon",           # number formatting
     "t/object.neon",                # object
+    "t/object-hexbytes.neon",       # object
     "t/object-isa.neon",            # object
     "t/object-isa-case.neon",       # object
     "t/object-null.neon",           # object

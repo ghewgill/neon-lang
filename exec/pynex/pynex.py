@@ -1232,6 +1232,8 @@ def neon_object__toString(self):
         self.stack.append(Value("[{}]".format(", ".join(x.literal() for x in v))))
     elif isinstance(v, dict):
         self.stack.append(Value("{{{}}}".format(", ".join("{}: {}".format(quoted(k), x.literal()) for k, x in sorted(v.items())))))
+    elif isinstance(v, Bytes):
+        self.stack.append(Value("HEXBYTES \"{}\"".format(" ".join("{:02x}".format(ord(x)) for x in v.s))))
     else:
         self.stack.append(Value(v.literal()))
 

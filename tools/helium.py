@@ -2713,6 +2713,7 @@ ExcludeTests = [
     "t/net-test-udp.neon",      # Module not required
     "t/number-ceil.neon",       # Feature not required
     "t/number-underscore.neon", # Feature not required
+    "t/object-hexbytes.neon",   # HEXBYTES not implemented yet
     "t/os-test.neon",           # Module not required
     "t/outer.neon",             # Feature not required
     "t/outer2.neon",            # Feature not required

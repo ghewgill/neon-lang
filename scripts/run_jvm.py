@@ -61,6 +61,7 @@ ExcludeTests = [
     "t/new-init-module.neon",       # NoClassDefFoundError
     "t/number-ceil.neon",           # module math
     "t/object.neon",                # object
+    "t/object-hexbytes.neon",       # object
     "t/object-isa.neon",            # object
     "t/object-isa-case.neon",       # object
     "t/object-null.neon",           # object
