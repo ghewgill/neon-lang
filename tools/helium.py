@@ -148,10 +148,11 @@ IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
 ISA = Keyword("ISA")
 
-# TODO: Nothing really uses this yet.
-# But it's a subclass because we need to tell the difference for toString().
-class bytes(str):
-    pass
+class bytes:
+    def __init__(self, a):
+        self.a = a
+    def __getitem__(self, key):
+        return bytes(self.a.__getitem__(key))
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -510,6 +511,7 @@ class InterpolatedStringExpression:
             s = (x if isinstance(x, (str, unicode))
                   else neon_strb(env, x) if isinstance(x, bool)
                   else neon_str(env, x) if isinstance(x, (int, float))
+                  else "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(b) for b in x.a)) if isinstance(x, bytes)
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in x)) if isinstance(x, list)
                   else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, (str, unicode)) else str(v))) for k, v in x.items()))) if isinstance(x, dict)
                   else x.toString(env, x))
@@ -611,20 +613,23 @@ class DotExpression:
             if self.field == "toString": return lambda env, self: neon_strb(env, obj)
         elif isinstance(obj, int):
             if self.field == "toString": return lambda env, self: str(obj)
-        elif isinstance(obj, bytes):
-            if self.field == "decodeToString": return lambda env, self: obj.decode("utf-8")
-            if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj))
         elif isinstance(obj, (str, unicode)):
             if self.field == "append": return neon_string_append
             if self.field == "length": return lambda env, self: len(self)
             if self.field == "toArray": return lambda env, self: [ord(x) for x in obj]
-            if self.field == "toBytes": return lambda env, self: "".join(x for x in obj.encode("utf-8"))
+            if self.field == "toBytes": return lambda env, self: bytes([ord(x) for x in obj.encode("utf-8")])
             if self.field == "toString": return lambda env, self: obj
+        elif isinstance(obj, bytes):
+            if self.field == "decodeToString": return lambda env, self: "".join(map(chr, obj.a)).decode("utf-8")
+            if self.field == "size": return lambda env, self: len(obj.a)
+            if self.field == "toArray": return lambda env, self: obj.a
+            if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj.a))
         elif isinstance(obj, list):
             if self.field == "append": return lambda env, self, x: obj.append(x)
             if self.field == "extend": return lambda env, self, x: obj.extend(x)
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "size": return lambda env, self: len(obj)
+            if self.field == "toBytes": return lambda env, self: bytes(obj)
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
@@ -784,7 +789,7 @@ class TypeTestExpression:
             if self.target.name == "Number":
                 return isinstance(v, (int, float)) and not isinstance(v, bool)
             if self.target.name == "String":
-                return isinstance(v, (str, unicode)) and not isinstance(v, bytes)
+                return isinstance(v, (str, unicode))
             if self.target.name == "Bytes":
                 return isinstance(v, bytes)
             if self.target.name == "Object":
@@ -1551,9 +1556,9 @@ class Parser:
         elif t is HEXBYTES:
             self.i += 1
             assert isinstance(self.tokens[self.i], String)
-            assert self.tokens[self.i].value == ""
+            b = bytes([int(x, 16) for x in re.findall(r"[0-9a-z]{1,2}", self.tokens[self.i].value)])
             self.i += 1
-            return StringLiteralExpression(bytes("")) # FIXME: hack to just return something
+            return StringLiteralExpression(b)
         elif t is PLUS:
             self.i += 1
             atom = self.parse_atom()
@@ -2666,9 +2671,6 @@ ExcludeTests = [
     "t/bigint-test.neon",       # Module not required
     "t/binary-test.neon",       # Module not required
     "t/bytes-embed.neon",       # Feature not required
-    "t/bytes-literal.neon",     # Feature not required
-    "t/bytes-tostring.neon",    # HEXBYTES not implemented yet
-    "t/bytes-value-index.neon", # HEXBYTES not implemented yet
     "t/cal-test.neon",          # Sample not required
     "t/cformat-test.neon",      # Module not required
     "t/comments.neon",          # Nested comments not required
@@ -2678,7 +2680,7 @@ ExcludeTests = [
     "t/debug-example.neon",     # Feature not required
     "t/debug-server.neon",      # Feature not required
     "t/decimal.neon",           # Module not required
-    "t/encoding-base64.neon",   # HEXBYTES not implemented yet
+    "t/encoding-base64.neon",   # Module not required
     "t/exception-as.neon",      # Exception offset not supported
     "t/export-inline.neon",     # Native mul not required
     "t/ffi.neon",               # FFI not required
@@ -2749,7 +2751,6 @@ ExcludeTests = [
 
     "t/array2d.neon",           # Not implemented in helium yet
     "t/assert-empty-array.neon", # TODO only for C++ implementation
-    "t/bytes.neon",             # FIXME
     "t/bytes-slice.neon",       # FIXME
     "t/dictionary-keys-tostring.neon", # Does not fail here
     "t/file-test.neon",         # Code in module doesn't work yet
@@ -2762,7 +2763,6 @@ ExcludeTests = [
     "t/parameter-inout-array.neon", # Does not fail here
     "t/parameter-inout-string.neon", # Does not fail here
     "t/record-private.neon",    # Feature not required yet
-    "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
     "t/strings.neon",           # Feature not required yet
     "t/string-slice.neon",      # String slice assignment not supported here yet
     "t/struct-test.neon",       # Module not required yet
