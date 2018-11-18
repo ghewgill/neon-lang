@@ -33,6 +33,8 @@ class InternalException:
 class Bytes:
     def __init__(self, s):
         self.s = s
+    def literal(self):
+        return "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(ord(x)) for x in self.s))
 
 class Type:
     def __init__(self):

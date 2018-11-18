@@ -70,3 +70,7 @@ LET yo: Dictionary<Object> := x
 LET yn: Dictionary<Number> := x
 %print("\(yn)")
 %%= {"one": 1, "three": 3, "two": 2}
+
+LET b: Object := HEXBYTES "01 02 aa bb"
+print("\(b)")
+%= HEXBYTES "01 02 aa bb"

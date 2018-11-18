@@ -434,6 +434,7 @@ public:
             }
             char buf[3];
             snprintf(buf, sizeof(buf), "%02x", x);
+            r += buf;
         }
         r += "\"";
         return r;
