@@ -36,6 +36,9 @@ coverage_lib = (["/Library/Developer/CommandLineTools/usr/lib/clang/6.0/lib/darw
 if os.name != "nt":
     for subdir in ["contrib", "exec", "gh-pages", "lib", "samples", "scripts", "src", "t", "tests", "tools"]:
         for path, dirs, files in os.walk(subdir):
+            if subdir == "lib":
+                # Do not check subdirectories of lib (extension modules).
+                dirs[:] = []
             for fn in files:
                 if fn.endswith((".cpp", ".c", ".h", ".neon", ".txt", ".java", ".py", ".md")):
                     with open(os.path.join(path, fn), "rb") as f:
