@@ -351,7 +351,7 @@ neon = env.Program("bin/neon", [
     "src/httpserver.cpp",
     "src/intrinsic.cpp",
     "src/lexer.cpp",
-    "src/main.cpp",
+    "src/neon.cpp",
     "src/number.cpp",
     "src/parser.cpp",
     "src/pt_dump.cpp",

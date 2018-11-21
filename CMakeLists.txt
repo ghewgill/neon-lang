@@ -312,7 +312,7 @@ target_include_directories(neonc
 target_link_libraries(neonc bid hash-library)
 
 add_executable(neon
-    src/main.cpp
+    src/neon.cpp
     src/repl.cpp
     $<TARGET_OBJECTS:common>
     $<TARGET_OBJECTS:compiler>
