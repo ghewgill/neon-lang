@@ -70,9 +70,17 @@ env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.path.dirname(sys.execu
 
 # Find where javac.exe is and add it to our PATH.
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "javac.exe")))
+try:
+    s = subprocess.check_output("javac -version", stderr=subprocess.STDOUT, shell=True)
+except subprocess.CalledProcessError:
+    s = None
+m = s and re.search(r"^javac (\d+)\.(\d+)", s, re.MULTILINE)
+use_java = m is not None and (int(m.group(1)), int(m.group(2))) >= (1, 8)
+print("use_java: {}".format(use_java or (False, repr(s))))
 
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "node")) or os.path.exists(os.path.join(x, "node.exe")))
 use_node = os.system("node --version") == 0
+print("use_node: {}".format(use_node))
 
 def add_external(target):
     env.Depends("external", target)
@@ -284,8 +292,9 @@ else:
 
 env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc", "src/enums.inc", "src/exceptions.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
 
-jvm_classes = env.Java("jvm", "jvm")
-jnex_classes = env.Java("exec/jnex/src", "exec/jnex/src")
+if use_java:
+    jvm_classes = env.Java("jvm", "jvm")
+    jnex_classes = env.Java("exec/jnex/src", "exec/jnex/src")
 
 neonc = env.Program("bin/neonc", [
     "src/analyzer.cpp",
@@ -312,7 +321,8 @@ neonc = env.Program("bin/neonc", [
     "src/util.cpp",
 ] + coverage_lib,
 )
-env.Depends(neonc, jvm_classes)
+if use_java:
+    env.Depends(neonc, jvm_classes)
 
 def build_rtlx_inc(target, source, env):
     with open("src/rtlx.inc", "w") as f:
@@ -556,12 +566,14 @@ env.Depends(tests, test_ffi)
 env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(x.path for x in test_sources))
 if use_node:
     tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(x.path for x in test_sources))
-tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(x.path for x in test_sources))
+if use_java:
+    tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(x.path for x in test_sources))
+    env.Depends(tests_jvm, jvm_classes)
 tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
 tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "scripts/run_pynex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_pynex.py\" " + " ".join(x.path for x in test_sources))
-tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "scripts/run_jnex.py", jnex_classes, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jnex.py\" " + " ".join(x.path for x in test_sources))
+if use_java:
+    tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "scripts/run_jnex.py", jnex_classes, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jnex.py\" " + " ".join(x.path for x in test_sources))
 tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "scripts/run_cnex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cnex.py\" " + " ".join(x.path for x in test_sources))
-env.Depends(tests_jvm, jvm_classes)
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
