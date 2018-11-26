@@ -294,7 +294,7 @@ env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.
 
 if use_java:
     jvm_classes = env.Java("jvm", "jvm")
-    jnex_classes = env.Java("exec/jnex/src", "exec/jnex/src")
+    jnex = SConscript("exec/jnex/SConstruct")
 
 neonc = env.Program("bin/neonc", [
     "src/analyzer.cpp",
@@ -435,39 +435,7 @@ neonbind = env.Program("bin/neonbind", [
     "src/support_exec.cpp",
 ])
 
-envcnex = env.Clone()
-if sys.platform == "win32":
-    envcnex.Append(CFLAGS=[
-        "/W4",
-        "/WX",
-        "/MDd",
-        "/wd4996", # CRT deprecation warnings
-    ])
-else:
-    envcnex.Append(CFLAGS=[
-        "-std=c99",
-        "-Wall",
-        "-Werror",
-    ])
-    if not env["RELEASE"]:
-        envcnex.Append(CFLAGS=[
-            "-g",
-        ])
-
-cnex = envcnex.Program("bin/cnex", [
-    "exec/cnex/array.c",
-    "exec/cnex/bytecode.c",
-    "exec/cnex/cell.c",
-    "exec/cnex/cnex.c",
-    "exec/cnex/dictionary.c",
-    "exec/cnex/framestack.c",
-    "exec/cnex/global.c",
-    "exec/cnex/nstring.c",
-    "exec/cnex/number.c",
-    "exec/cnex/stack.c",
-    "exec/cnex/util.c",
-],
-)
+cnex = SConscript("exec/cnex/SConstruct", exports=["env"])
 
 env.Depends("src/number.h", libbid)
 env.Depends("src/exec.cpp", libffi)
@@ -570,10 +538,10 @@ if use_java:
     tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(x.path for x in test_sources))
     env.Depends(tests_jvm, jvm_classes)
 tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
-tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "scripts/run_pynex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_pynex.py\" " + " ".join(x.path for x in test_sources))
+tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "exec/pynex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/pynex/run_test.py\" " + " ".join(x.path for x in test_sources))
 if use_java:
-    tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "scripts/run_jnex.py", jnex_classes, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jnex.py\" " + " ".join(x.path for x in test_sources))
-tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "scripts/run_cnex.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cnex.py\" " + " ".join(x.path for x in test_sources))
+    tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "exec/jnex/run_test.py", jnex, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/jnex/run_test.py\" " + " ".join(x.path for x in test_sources))
+tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "exec/cnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/cnex/run_test.py\" " + " ".join(x.path for x in test_sources))
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")

@@ -312,6 +312,6 @@ else:
         "IntelRDFPMathLib20U1/LIBRARY/src/wcstod64.c",
     ] + dpml)
 
-env.Append(CPPPATH=["external/IntelRDFPMathLib20U1/LIBRARY/src"])
+env.Append(CPPPATH=[Dir("IntelRDFPMathLib20U1/LIBRARY/src")])
 
 Return(["libbid"])

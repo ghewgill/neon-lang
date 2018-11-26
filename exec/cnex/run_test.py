@@ -138,4 +138,4 @@ if fullname.replace("\\", "/") in ExcludeTests:
     sys.exit(99)
 
 subprocess.check_call([os.path.join("bin", "neonc"), "-q", fullname])
-subprocess.check_call(["bin/cnex", fullname + "x"])
+subprocess.check_call(["exec/cnex/cnex", fullname + "x"])

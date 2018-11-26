@@ -100,51 +100,8 @@ add_custom_target(neon_jvm ALL
     DEPENDS ${NEON_JVM_CLASSES}
 )
 
-set(JNEX
-    exec/jnex/src/org/nevec/rjm/BigIntegerMath.java
-    exec/jnex/src/org/nevec/rjm/BigComplex.java
-    exec/jnex/src/org/nevec/rjm/Ifactor.java
-    exec/jnex/src/org/nevec/rjm/Rational.java
-    exec/jnex/src/org/nevec/rjm/Factorial.java
-    exec/jnex/src/org/nevec/rjm/Prime.java
-    exec/jnex/src/org/nevec/rjm/Bernoulli.java
-    exec/jnex/src/org/nevec/rjm/BigDecimalMath.java
-    exec/jnex/src/org/neon_lang/jnex/Bytecode.java
-    exec/jnex/src/org/neon_lang/jnex/Cell.java
-    exec/jnex/src/org/neon_lang/jnex/Executor.java
-)
-string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX}")
-foreach (java ${JNEX})
-    string(REPLACE ".java" ".class" class ${java})
-    add_custom_command(
-        OUTPUT ${class}
-        COMMAND javac -cp exec/jnex/src ${java}
-        DEPENDS ${java}
-    )
-endforeach ()
-add_custom_target(jnex ALL
-    DEPENDS ${JNEX_CLASSES}
-)
-
-add_executable(cnex
-    exec/cnex/array.c
-    exec/cnex/bytecode.c
-    exec/cnex/cell.c
-    exec/cnex/cnex.c
-    exec/cnex/dictionary.c
-    exec/cnex/framestack.c
-    exec/cnex/global.c
-    exec/cnex/nstring.c
-    exec/cnex/number.c
-    exec/cnex/stack.c
-    exec/cnex/util.c
-)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
-endif ()
-target_link_libraries(cnex
-    bid
-)
+add_subdirectory("exec/jnex")
+add_subdirectory("exec/cnex")
 
 add_library(common OBJECT
     src/bytecode.cpp
@@ -552,15 +509,15 @@ foreach (TEST ${TESTS})
     )
     add_test(
         NAME "pynex:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_pynex.py" t/${T}
+        COMMAND python scripts/run_test.py --runner "python exec/pynex/run_test.py" t/${T}
     )
     add_test(
         NAME "jnex:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_jnex.py" t/${T}
+        COMMAND python scripts/run_test.py --runner "python exec/jnex/run_test.py" t/${T}
     )
     add_test(
         NAME "cnex:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_cnex.py" t/${T}
+        COMMAND python scripts/run_test.py --runner "python exec/cnex/run_test.py" t/${T}
     )
 endforeach ()
 
