@@ -1,5 +1,7 @@
 package neon;
 
+import java.math.BigDecimal;
+
 public class Global {
 
     public static Object[] array__append(neon.type.Array self, Object element) {
@@ -277,6 +279,11 @@ public class Global {
 
     public static String number__toString(neon.type.Number x) {
         return x.toString();
+    }
+
+    public static Boolean odd(neon.type.Number x)
+    {
+        return !x.repr.remainder(new BigDecimal(2)).equals(BigDecimal.ZERO);
     }
 
     public static neon.type.Number ord(String s) {

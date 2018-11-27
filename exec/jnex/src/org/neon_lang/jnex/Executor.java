@@ -56,6 +56,7 @@ class Executor {
         predefined.put("object__makeString", this::object__makeString);
         predefined.put("object__subscript", this::object__subscript);
         predefined.put("object__toString", this::object__toString);
+        predefined.put("odd", this::odd);
         predefined.put("ord", this::ord);
         predefined.put("print", this::print);
         predefined.put("str", this::number__toString);
@@ -64,6 +65,11 @@ class Executor {
         predefined.put("string__length", this::string__length);
         predefined.put("string__substring", this::string__substring);
         predefined.put("string__toBytes", this::string__toBytes);
+        predefined.put("math$abs", this::math$abs);
+        predefined.put("math$ceil", this::math$ceil);
+        predefined.put("math$floor", this::math$floor);
+        predefined.put("math$sign", this::math$sign);
+        predefined.put("math$trunc", this::math$trunc);
 
         object = new Bytecode(in);
         ip = 0;
@@ -1562,6 +1568,12 @@ class Executor {
         stack.addFirst(new Cell(o.toString()));
     }
 
+    private void odd()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(!x.remainder(new BigDecimal(2)).equals(BigDecimal.ZERO)));
+    }
+
     private void ord()
     {
         String s = stack.removeFirst().getString();
@@ -1606,5 +1618,35 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(s.getBytes()));
+    }
+
+    private void math$abs()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.abs()));
+    }
+
+    private void math$ceil()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_CEILING)));
+    }
+
+    private void math$floor()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_FLOOR)));
+    }
+
+    private void math$sign()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(new BigDecimal(x.signum())));
+    }
+
+    private void math$trunc()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_DOWN)));
     }
 }

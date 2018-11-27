@@ -1,4 +1,5 @@
 include(libbid.cmake)
+include(libgmp.cmake)
 include(libffi.cmake)
 include(libhash.cmake)
 include(minijson.cmake)

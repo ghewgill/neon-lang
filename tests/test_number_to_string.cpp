@@ -10,14 +10,14 @@ int main()
     std::random_device rd;
     std::mt19937_64 r(rd());
     for (int i = 0; i < 100000; i++) {
-        Number n;
-        n.x.w[0] = r();
-        n.x.w[1] = r();
+        BID_UINT128 n;
+        n.w[0] = r();
+        n.w[1] = r();
         char buf1[50];
-        bid128_to_string(buf1, n.x);
+        bid128_to_string(buf1, n);
         std::string buf2 = number_to_string(n);
-        Number x = number_from_string(buf1);
-        Number y = number_from_string(buf2.c_str());
+        Number x = bid128_from_string(buf1);
+        Number y = bid128_from_string(const_cast<char *>(buf2.c_str()));
         if (not (number_is_equal(x, y) || (number_is_nan(x) && number_is_nan(y)))) {
             std::cout << buf1 << " " << buf2 << std::endl;
             assert(false);

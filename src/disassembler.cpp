@@ -9,7 +9,6 @@
 
 #include "bytecode.h"
 #include "debuginfo.h"
-#include "number.h"
 #include "opcode.h"
 #include "util.h"
 

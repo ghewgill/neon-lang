@@ -4,7 +4,6 @@ import sys
 ExcludeTests = [
     "t/array-resize.neon",          # array default item
     "t/array2d.neon",               # array copying semantics
-    "t/bigint-test.neon",           # illegal character dot
     "t/cformat-test.neon",          # object
     "t/cmdline.neon",               # PredefinedVariable sys$args
     "t/complex-test.neon",          # illegal character dot

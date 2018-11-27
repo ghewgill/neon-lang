@@ -9,7 +9,7 @@ ExcludeTests = [
     "t/array-tostring.neon",        # array comparison
     "t/array2d.neon",               # copy semantics
     "t/assert-enum.neon",           # enum
-    "t/bigint-test.neon",           # module bigint
+    "t/bigint.neon",                # bigint
     "t/binary-test.neon",           # module binary
     "t/bytes-embed.neon",           # bytes
     "t/bytes-literal.neon",         # bytes

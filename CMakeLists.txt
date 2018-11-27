@@ -113,6 +113,7 @@ add_library(common OBJECT
 target_include_directories(common
     PUBLIC external/IntelRDFPMathLib20U1/LIBRARY/src
     PRIVATE external/utfcpp-master/source
+    PRIVATE external/gmp-6.1.2
 )
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -162,6 +163,7 @@ target_include_directories(compiler
     PRIVATE external/hash-library
     PRIVATE external/minijson_writer-master
     PRIVATE external/utfcpp-master/source
+    PRIVATE external/gmp-6.1.2
 )
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -255,6 +257,7 @@ target_include_directories(executor
     PRIVATE external/minijson_writer-master
     PRIVATE external/sqlite-amalgamation-3080803
     PRIVATE external/utfcpp-master/source
+    PRIVATE external/gmp-6.1.2
 )
 
 add_executable(neonc
@@ -266,7 +269,11 @@ target_include_directories(neonc
     PRIVATE external/minijson_writer-master
     PRIVATE external/utfcpp-master/source
 )
-target_link_libraries(neonc bid hash-library)
+target_link_libraries(neonc
+    bid
+    gmp
+    hash-library
+)
 
 add_executable(neon
     src/neon.cpp
@@ -291,6 +298,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 endif ()
 target_link_libraries(neon
     bid
+    gmp
     ${ffi}
     hash-library
     sqlite3
@@ -310,6 +318,7 @@ target_include_directories(neonx PRIVATE
 )
 target_link_libraries(neonx
     bid
+    gmp
     ${ffi}
     hash-library
     minizip
@@ -339,6 +348,7 @@ target_include_directories(neonstub PRIVATE
 )
 target_link_libraries(neonstub
     bid
+    gmp
     ${ffi}
     hash-library
     minizip
@@ -369,6 +379,7 @@ target_include_directories(neondis PRIVATE
 )
 target_link_libraries(neondis
     bid
+    gmp
     hash-library
 )
 
@@ -397,6 +408,7 @@ target_include_directories(test_lexer PRIVATE
 )
 target_link_libraries(test_lexer
     bid
+    gmp
     hash-library
 )
 add_test(
@@ -419,6 +431,7 @@ target_include_directories(test_parser PRIVATE
 )
 target_link_libraries(test_parser
     bid
+    gmp
     hash-library
 )
 add_test(
@@ -435,7 +448,10 @@ target_include_directories(test_format PRIVATE
     src
     external/utfcpp-master/source
 )
-target_link_libraries(test_format bid)
+target_link_libraries(test_format
+    bid
+    gmp
+)
 add_test(
     NAME test_format
     COMMAND test_format
@@ -448,7 +464,10 @@ add_executable(test_number_to_string
 target_include_directories(test_number_to_string PRIVATE
     src
 )
-target_link_libraries(test_number_to_string bid)
+target_link_libraries(test_number_to_string
+    bid
+    gmp
+)
 add_test(
     NAME test_number_to_string
     COMMAND test_number_to_string

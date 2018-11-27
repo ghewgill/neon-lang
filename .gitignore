@@ -25,6 +25,7 @@ config.cache
 test_grammar
 
 external/IntelRDFPMathLib20U1/
+external/gmp-6.1.2/
 external/utfcpp-master/
 external/libffi-3.2.1/
 external/hash-library/

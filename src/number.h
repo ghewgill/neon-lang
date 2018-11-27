@@ -24,65 +24,31 @@
 #pragma warning(pop)
 #endif
 
-struct Number {
-    Number(): x(bid128_from_uint32(0)) {}
-    BID_UINT128 x;
-private:
-    Number(BID_UINT128 x): x(x) {}
+#ifdef _MSC_VER
+#pragma warning(push, 0)
+#undef min
+#undef max
+#endif
+#include <gmpxx.h>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
-    friend Number number_add(Number x, Number y);
-    friend Number number_subtract(Number x, Number y);
-    friend Number number_multiply(Number x, Number y);
-    friend Number number_divide(Number x, Number y);
-    friend Number number_modulo(Number x, Number y);
-    friend Number number_pow(Number x, Number y);
-    friend Number number_negate(Number x);
-    friend Number number_abs(Number x);
-    friend Number number_sign(Number x);
-    friend Number number_ceil(Number x);
-    friend Number number_floor(Number x);
-    friend Number number_trunc(Number x);
-    friend Number number_exp(Number x);
-    friend Number number_log(Number x);
-    friend Number number_sqrt(Number x);
-    friend Number number_acos(Number x);
-    friend Number number_asin(Number x);
-    friend Number number_atan(Number x);
-    friend Number number_cos(Number x);
-    friend Number number_sin(Number x);
-    friend Number number_tan(Number x);
-    friend Number number_acosh(Number x);
-    friend Number number_asinh(Number x);
-    friend Number number_atanh(Number x);
-    friend Number number_atan2(Number y, Number x);
-    friend Number number_cbrt(Number x);
-    friend Number number_cosh(Number x);
-    friend Number number_erf(Number x);
-    friend Number number_erfc(Number x);
-    friend Number number_exp2(Number x);
-    friend Number number_expm1(Number x);
-    friend Number number_frexp(Number x, int *exp);
-    friend Number number_hypot(Number x, Number y);
-    friend Number number_ldexp(Number x, int exp);
-    friend Number number_lgamma(Number x);
-    friend Number number_log10(Number x);
-    friend Number number_log1p(Number x);
-    friend Number number_log2(Number x);
-    friend Number number_nearbyint(Number x);
-    friend Number number_sinh(Number x);
-    friend Number number_tanh(Number x);
-    friend Number number_tgamma(Number x);
-    friend Number number_from_string(const std::string &s);
-    friend Number number_from_uint8(uint8_t x);
-    friend Number number_from_sint8(int8_t x);
-    friend Number number_from_uint16(uint16_t x);
-    friend Number number_from_sint16(int16_t x);
-    friend Number number_from_uint32(uint32_t x);
-    friend Number number_from_sint32(int32_t x);
-    friend Number number_from_uint64(uint64_t x);
-    friend Number number_from_sint64(int64_t x);
-    friend Number number_from_float(float x);
-    friend Number number_from_double(double x);
+enum class Rep {
+    MPZ,
+    BID
+};
+
+struct Number {
+    Number(): rep(Rep::MPZ), mpz(), bid(bid128_from_uint32(0)) {}
+    Number(const mpz_class &x): rep(Rep::MPZ), mpz(x), bid(bid128_from_uint32(0)) {}
+    Number(BID_UINT128 x): rep(Rep::BID), mpz(), bid(x) {}
+    const mpz_class &get_mpz();
+    BID_UINT128 get_bid();
+    Rep rep;
+private:
+    mpz_class mpz;
+    BID_UINT128 bid;
 };
 
 Number number_add(Number x, Number y);

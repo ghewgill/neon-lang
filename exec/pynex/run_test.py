@@ -4,8 +4,8 @@ import sys
 
 ExcludeTests = [
     "t/array-tostring.neon",        # module
-    "t/bigint-test.neon",           # module
     "t/binary-test.neon",           # module
+    "t/bigint.neon",                # bigint
     "t/cal-test.neon",              # os.system
     "t/cformat-test.neon",          # module
     "t/class-empty.neon",           # class

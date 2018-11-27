@@ -90,6 +90,7 @@ use_posix = os.name == "posix"
 
 add_external(SConscript("external/SConscript-libutf8", exports=["env"]))
 libbid = add_external(SConscript("external/SConscript-libbid", exports=["env"]))
+libgmp = add_external(SConscript("external/SConscript-libgmp", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
 libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
@@ -159,7 +160,7 @@ else:
         env.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz]))
+env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz, libgmp]))
 if os.name == "posix":
     env.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
@@ -614,7 +615,7 @@ if False: # This takes rather too long.
     for fn in Glob("t/*.neon") + Glob("t/errors/*.neon"):
         if fn.name in ["N1000.neon"]:
             continue # Unicode issues
-        if fn.name in ["bigint-test.neon", "decimal.neon", "number-ceil.neon", "number-underscore.neon"]:
+        if fn.name in ["decimal.neon", "number-ceil.neon", "number-underscore.neon"]:
             continue # Python floats are not decimal floating point
         if fn.name in ["sodium-test.neon"]:
             continue # Just too big

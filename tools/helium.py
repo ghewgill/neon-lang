@@ -695,7 +695,17 @@ class ExponentiationExpression:
         self.left = left
         self.right = right
     def eval(self, env):
-        return math.pow(self.left.eval(env), self.right.eval(env))
+        x = self.left.eval(env)
+        y = self.right.eval(env)
+        if x == int(x) and y == int(y) and y >= 0:
+            x = int(x)
+            y = int(y)
+            r = 1
+            for _ in range(y):
+                r *= x
+            return r
+        else:
+            return math.pow(x, y)
 
 class MultiplicationExpression:
     def __init__(self, left, right):
@@ -710,7 +720,17 @@ class DivisionExpression:
         self.right = right
     def eval(self, env):
         try:
-            return self.left.eval(env) / self.right.eval(env)
+            x = self.left.eval(env)
+            y = self.right.eval(env)
+            if x == int(x) and y == int(y):
+                x = int(x)
+                y = int(y)
+                if x % y == 0:
+                    return x // y
+                else:
+                    return x / y
+            else:
+                return x / y
         except ZeroDivisionError:
             raise NeonException("DivideByZeroException")
 
@@ -2530,7 +2550,7 @@ def neon_min(env, x, y):
     return min(x, y)
 
 def neon_num(env, x):
-    return float(x)
+    return int(x) if x.isdigit() else float(x)
 
 def neon_odd(env, x):
     return x & 1
@@ -2630,6 +2650,114 @@ def neon_file_writeLines(env, fn, lines):
     with open(fn, "wb") as f:
         f.writelines(x.encode()+"\n" for x in lines)
 
+def neon_math_abs(env, x):
+    return abs(x)
+
+def neon_math_acos(env, x):
+    return math.acos(x)
+
+def neon_math_acosh(env, x):
+    return math.acosh(x)
+
+def neon_math_asin(env, x):
+    return math.asin(x)
+
+def neon_math_asinh(env, x):
+    return math.asinh(x)
+
+def neon_math_atan(env, x):
+    return math.atan(x)
+
+def neon_math_atanh(env, x):
+    return math.atanh(x)
+
+def neon_math_atan2(env, y, x):
+    return math.atan2(y, x)
+
+def neon_math_cbrt(env, x):
+    return math.cbrt(x)
+
+def neon_math_ceil(env, x):
+    return math.ceil(x)
+
+def neon_math_cos(env, x):
+    return math.cos(x)
+
+def neon_math_cosh(env, x):
+    return math.cosh(x)
+
+def neon_math_erf(env, x):
+    return math.erf(x)
+
+def neon_math_erfc(env, x):
+    return math.erfc(x)
+
+def neon_math_exp(env, x):
+    return math.exp(x)
+
+def neon_math_exp2(env, x):
+    return math.exp2(x)
+
+def neon_math_expm1(env, x):
+    return math.expm1(x)
+
+def neon_math_floor(env, x):
+    return math.floor(x)
+
+def neon_math_frexp(env, x):
+    return math.frexp(x)
+
+def neon_math_hypot(env, x):
+    return math.hypot(x)
+
+def neon_math_intdiv(env, x, y):
+    return math.intdiv(x, y)
+
+def neon_math_ldexp(env, x):
+    return math.ldexp(x)
+
+def neon_math_lgamma(env, x):
+    return math.lgamma(x)
+
+def neon_math_log(env, x):
+    return math.log(x)
+
+def neon_math_log10(env, x):
+    return math.log10(x)
+
+def neon_math_log1p(env, x):
+    return math.log1p(x)
+
+def neon_math_log2(env, x):
+    return math.log2(x)
+
+def neon_math_nearbyint(env, x):
+    return math.nearbyint(x)
+
+def neon_math_sign(env, x):
+    return math.copysign(1, x)
+
+def neon_math_sin(env, x):
+    return math.sin(x)
+
+def neon_math_sinh(env, x):
+    return math.sinh(x)
+
+def neon_math_sqrt(env, x):
+    return math.sqrt(x)
+
+def neon_math_tan(env, x):
+    return math.tan(x)
+
+def neon_math_tanh(env, x):
+    return math.tanh(x)
+
+def neon_math_tgamma(env, x):
+    return math.tgamma(x)
+
+def neon_math_trunc(env, x):
+    return math.trunc(x)
+
 def neon_string_find(env, s, t):
     return s.find(t)
 
@@ -2668,7 +2796,6 @@ def neon_sys_exit(env, n):
 
 ExcludeTests = [
     "t/base.neon",              # Won't need different base literals
-    "t/bigint-test.neon",       # Module not required
     "t/binary-test.neon",       # Module not required
     "t/bytes-embed.neon",       # Feature not required
     "t/cal-test.neon",          # Sample not required

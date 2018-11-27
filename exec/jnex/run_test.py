@@ -11,7 +11,6 @@ ExcludeTests = [
     "t/array2d.neon",               # copy semantics
     "t/assert-enum.neon",           # import
     "t/assert.neon",                # import
-    "t/bigint-test.neon",           # import
     "t/binary-test.neon",           # binary
     "t/bytes-literal.neon",         # array
     "t/cal-test.neon",              # import
