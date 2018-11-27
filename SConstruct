@@ -439,6 +439,7 @@ neonbind = env.Program("bin/neonbind", [
 cnex = SConscript("exec/cnex/SConstruct", exports=["env"])
 
 env.Depends("src/number.h", libbid)
+env.Depends("src/number.h", libgmp)
 env.Depends("src/exec.cpp", libffi)
 
 def UnitTest(env, target, source, **kwargs):
