@@ -23,7 +23,7 @@ if (JAVAC)
     )
     if ("${JAVAC_VERSION_OUT}" MATCHES "javac ([0-9]+\\.[0-9]+)"
      OR "${JAVAC_VERSION_ERR}" MATCHES "javac ([0-9]+\\.[0-9]+)")
-        if ("${CMAKE_MATCH_1}" VERSION_GREATER_EQUAL "1.8")
+        if (NOT "${CMAKE_MATCH_1}" VERSION_LESS "1.8")
             message("javac found: ${JAVAC}")
         else ()
             message("javac found, but version ${CMAKE_MATCH_1} is < 1.8")
