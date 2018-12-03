@@ -78,6 +78,14 @@ m = s and re.search(r"^javac (\d+)\.(\d+)", s, re.MULTILINE)
 use_java = m is not None and (int(m.group(1)), int(m.group(2))) >= (1, 8)
 print("use_java: {}".format(use_java or (False, repr(s))))
 
+env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "rustc")) or os.path.exists(os.path.join(x, "rustc.exe")))
+try:
+    s = subprocess.check_output("rustc --version", stderr=subprocess.STDOUT, shell=True)
+except subprocess.CalledProcessError:
+    s = None
+use_rust = s is not None
+print("use_rust: {}".format(use_rust or (False, repr(s))))
+
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "node")) or os.path.exists(os.path.join(x, "node.exe")))
 use_node = os.system("node --version") == 0
 print("use_node: {}".format(use_node))
@@ -437,6 +445,8 @@ neonbind = env.Program("bin/neonbind", [
 ])
 
 cnex = SConscript("exec/cnex/SConstruct", exports=["env"])
+if use_rust:
+    rsnex = SConscript("exec/rsnex/SConstruct")
 
 env.Depends("src/number.h", libbid)
 env.Depends("src/number.h", libgmp)
@@ -544,6 +554,8 @@ tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "exec/py
 if use_java:
     tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "exec/jnex/run_test.py", jnex, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/jnex/run_test.py\" " + " ".join(x.path for x in test_sources))
 tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "exec/cnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/cnex/run_test.py\" " + " ".join(x.path for x in test_sources))
+if use_rust:
+    tests_rsnex = env.Command("tests_rsnex", [neonc, rsnex, "scripts/run_test.py", "exec/rsnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/rsnex/run_test.py\" " + " ".join(x.path for x in test_sources))
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")

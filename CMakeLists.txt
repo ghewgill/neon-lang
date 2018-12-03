@@ -40,7 +40,14 @@ if (NODEJS)
     message("nodejs found: ${NODEJS}")
 else (NODEJS)
     message("nodejs not found")
-endif ()
+endif (NODEJS)
+
+find_program(RUSTC rustc)
+if (RUSTC)
+    message("rustc found: ${RUSTC}")
+else (RUSTC)
+    message("rustc not found")
+endif (RUSTC)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
@@ -136,6 +143,9 @@ if (JAVAC)
     add_subdirectory("exec/jnex")
 endif (JAVAC)
 add_subdirectory("exec/cnex")
+if (RUSTC)
+    add_subdirectory("exec/rsnex")
+endif (RUSTC)
 
 add_library(common OBJECT
     src/bytecode.cpp
@@ -578,6 +588,12 @@ foreach (TEST ${TESTS})
         NAME "cnex:${T}"
         COMMAND python scripts/run_test.py --runner "python exec/cnex/run_test.py" t/${T}
     )
+    if (RUSTC)
+        add_test(
+            NAME "rsnex:${T}"
+            COMMAND python scripts/run_test.py --runner "python exec/rsnex/run_test.py" t/${T}
+        )
+    endif (RUSTC)
 endforeach ()
 
 add_test(
