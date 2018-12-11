@@ -1766,7 +1766,7 @@ void Executor::exec_JUMPTBL()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     Number n = stack.top().number(); stack.pop();
-    if (number_is_integer(n)) {
+    if (number_is_integer(n) && not number_is_negative(n)) {
         uint32_t i = number_to_uint32(n);
         if (i < val) {
             ip += 6 * i;
