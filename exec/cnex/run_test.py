@@ -8,6 +8,7 @@ ExcludeTests = [
     "t/binary-test.neon",           # module
     "t/bigint.neon",                # assert
     "t/cal-test.neon",              # os.system
+    "t/case-jumptbl.neon",          # JUMPTBL
     "t/case-overlap.neon",          # JUMPTBL
     "t/cformat-test.neon",          # module
     "t/class-empty.neon",           # class
