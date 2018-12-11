@@ -49,6 +49,13 @@ else (RUSTC)
     message("rustc not found")
 endif (RUSTC)
 
+find_program(GO go)
+if (GO)
+    message("go found: ${GO}")
+else (GO)
+    message("go not found")
+endif (GO)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -146,6 +153,9 @@ add_subdirectory("exec/cnex")
 if (RUSTC)
     add_subdirectory("exec/rsnex")
 endif (RUSTC)
+if (GO)
+    add_subdirectory("exec/gonex")
+endif (GO)
 
 add_library(common OBJECT
     src/bytecode.cpp
@@ -594,6 +604,12 @@ foreach (TEST ${TESTS})
             COMMAND python scripts/run_test.py --runner "python exec/rsnex/run_test.py" t/${T}
         )
     endif (RUSTC)
+    if (GO)
+        add_test(
+            NAME "gonex:${T}"
+            COMMAND python scripts/run_test.py --runner "python exec/gonex/run_test.py" t/${T}
+        )
+    endif (GO)
 endforeach ()
 
 add_test(
