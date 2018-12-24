@@ -2529,6 +2529,11 @@ void executor_log(const std::string &message)
     g_executor->log(message);
 }
 
+bool executor_assertions_enabled()
+{
+    return g_executor->options->enable_assert;
+}
+
 void executor_garbage_collect()
 {
     g_executor->garbage_collect();

@@ -14,6 +14,7 @@ void executor_breakpoint();
 void executor_log(const std::string &message);
 
 // Module: runtime
+bool executor_assertions_enabled();
 void executor_garbage_collect();
 size_t executor_get_allocated_object_count();
 bool executor_module_is_main();

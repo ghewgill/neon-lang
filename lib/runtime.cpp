@@ -5,6 +5,11 @@ namespace rtl {
 
 namespace runtime {
 
+bool assertionsEnabled()
+{
+    return executor_assertions_enabled();
+}
+
 void garbageCollect()
 {
     executor_garbage_collect();

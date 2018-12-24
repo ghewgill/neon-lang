@@ -4,11 +4,19 @@
  |  Functions that interact with the Neon runtime system.
  |%
 
+EXPORT assertionsEnabled
 EXPORT garbageCollect
 EXPORT getAllocatedObjectCount
 EXPORT moduleIsMain
 EXPORT setGarbageCollectionInterval
 EXPORT setRecursionLimit
+
+%|
+ |  Function: assertionsEnabled
+ |
+ |  Return TRUE if assertions are currently enabled.
+ |%
+DECLARE NATIVE FUNCTION assertionsEnabled(): Boolean
 
 %|
  |  Function: garbageCollect
