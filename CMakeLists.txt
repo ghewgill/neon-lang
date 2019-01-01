@@ -557,60 +557,52 @@ add_custom_target(w3c_ebnf ALL
     DEPENDS contrib/grammar/neon.w3c.ebnf
 )
 
+function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
+    file(STRINGS "${EXCLUDEFILE}" EXCLUDE_WITH_COMMENTS)
+    set(EXCLUDE "")
+    foreach (EXCL ${EXCLUDE_WITH_COMMENTS})
+        string(REGEX REPLACE "[ ]*#.*" "" E "${EXCL}")
+        list(APPEND EXCLUDE ${E})
+    endforeach()
+    foreach (TEST ${TESTS})
+        get_filename_component(T "${TEST}" NAME)
+        if (TAG)
+            if (NOT ";${EXCLUDE};" MATCHES ";${T};")
+                add_test(
+                    NAME "${TAG}:${T}"
+                    COMMAND python scripts/run_test.py --runner "python ${RUNNER}" ${TEST}
+                )
+            endif()
+        else()
+            add_test(
+                NAME "${T}"
+                COMMAND python scripts/run_test.py ${TEST}
+            )
+        endif()
+    endforeach()
+endfunction(add_tests)
+
 file(GLOB TESTS t/*.neon)
-foreach (TEST ${TESTS})
-    get_filename_component(T "${TEST}" NAME)
-    add_test(
-        NAME "${T}"
-        COMMAND python scripts/run_test.py t/${T}
-    )
-    add_test(
-        NAME "helium:${T}"
-        COMMAND python scripts/run_test.py --runner "python tools/helium.py" t/${T}
-    )
-    add_test(
-        NAME "cpp:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_cpp.py" t/${T}
-    )
-    if (NODEJS)
-        add_test(
-            NAME "js:${T}"
-            COMMAND python scripts/run_test.py --runner "python scripts/run_js.py" t/${T}
-        )
-    endif ()
-    if (JAVAC)
-        add_test(
-            NAME "jvm:${T}"
-            COMMAND python scripts/run_test.py --runner "python scripts/run_jvm.py" t/${T}
-        )
-    endif ()
-    add_test(
-        NAME "pynex:${T}"
-        COMMAND python scripts/run_test.py --runner "python exec/pynex/run_test.py" t/${T}
-    )
-    if (JAVAC)
-        add_test(
-            NAME "jnex:${T}"
-            COMMAND python scripts/run_test.py --runner "python exec/jnex/run_test.py" t/${T}
-        )
-    endif (JAVAC)
-    add_test(
-        NAME "cnex:${T}"
-        COMMAND python scripts/run_test.py --runner "python exec/cnex/run_test.py" t/${T}
-    )
-    if (RUSTC)
-        add_test(
-            NAME "rsnex:${T}"
-            COMMAND python scripts/run_test.py --runner "python exec/rsnex/run_test.py" t/${T}
-        )
-    endif (RUSTC)
-    if (GO)
-        add_test(
-            NAME "gonex:${T}"
-            COMMAND python scripts/run_test.py --runner "python exec/gonex/run_test.py" t/${T}
-        )
-    endif (GO)
-endforeach ()
+add_tests("${TESTS}" "" "" "")
+add_tests("${TESTS}" "helium" "tools/helium.py" "tools/helium-exclude.txt")
+add_tests("${TESTS}" "cpp" "scripts/run_cpp.py" "scripts/cpp-exclude.txt")
+if (NODEJS)
+    add_tests("${TESTS}" "js" "scripts/run_js.py" "scripts/js-exclude.txt")
+endif (NODEJS)
+if (JAVAC)
+    add_tests("${TESTS}" "jvm" "scripts/run_jvm.py" "scripts/jvm-exclude.txt")
+endif (JAVAC)
+add_tests("${TESTS}" "pynex" "exec/pynex/run_test.py" "exec/pynex/exclude.txt")
+if (JAVAC)
+    add_tests("${TESTS}" "jnex" "exec/jnex/run_test.py" "exec/jnex/exclude.txt")
+endif (JAVAC)
+add_tests("${TESTS}" "cnex" "exec/cnex/run_test.py" "exec/cnex/exclude.txt")
+if (RUSTC)
+    add_tests("${TESTS}" "rsnex" "exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
+endif (RUSTC)
+if (GO)
+    add_tests("${TESTS}" "gonex" "exec/gonex/run_test.py" "exec/gonex/exclude.txt")
+endif (GO)
 
 add_test(
     NAME "errors"

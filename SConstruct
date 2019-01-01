@@ -535,6 +535,11 @@ if sys.platform == "win32":
 else:
     test_ffi = env.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
 
+def filter_tests(tests, excludefile):
+    with open(excludefile) as f:
+        exclude = [re.sub(r"\s*(#.*)?$", "", x) for x in f.readlines()]
+    return [x for x in tests if os.path.basename(x) not in exclude]
+
 test_sources = []
 for f in Glob("t/*.neon"):
     test_sources.append(f)
@@ -543,19 +548,19 @@ for m in modules:
         test_sources.append(f)
 tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
 env.Depends(tests, test_ffi)
-env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(x.path for x in test_sources))
+env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(filter_tests((x.path for x in test_sources), "tools/helium-exclude.txt")))
 if use_node:
-    tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(x.path for x in test_sources))
+    tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/js-exclude.txt")))
 if use_java:
-    tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(x.path for x in test_sources))
+    tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/jvm-exclude.txt")))
     env.Depends(tests_jvm, jvm_classes)
-tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(x.path for x in test_sources))
-tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "exec/pynex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/pynex/run_test.py\" " + " ".join(x.path for x in test_sources))
+tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/cpp-exclude.txt")))
+tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "exec/pynex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/pynex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/pynex/exclude.txt")))
 if use_java:
-    tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "exec/jnex/run_test.py", jnex, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/jnex/run_test.py\" " + " ".join(x.path for x in test_sources))
-tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "exec/cnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/cnex/run_test.py\" " + " ".join(x.path for x in test_sources))
+    tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "exec/jnex/run_test.py", jnex, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/jnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/jnex/exclude.txt")))
+tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "exec/cnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/cnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/cnex/exclude.txt")))
 if use_rust:
-    tests_rsnex = env.Command("tests_rsnex", [neonc, rsnex, "scripts/run_test.py", "exec/rsnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/rsnex/run_test.py\" " + " ".join(x.path for x in test_sources))
+    tests_rsnex = env.Command("tests_rsnex", [neonc, rsnex, "scripts/run_test.py", "exec/rsnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/rsnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/rsnex/exclude.txt")))
 testenv = env.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")

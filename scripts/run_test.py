@@ -71,9 +71,6 @@ def run(fn):
 
     p = subprocess.Popen(runner + [fn] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
-    if p.returncode == 99:
-        print("skipped due to runner request")
-        raise TestSkipped()
 
     out = out.decode().replace("\r\n", "\n")
     try:
