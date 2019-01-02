@@ -24,6 +24,7 @@ elif not os.path.exists("gmp-6.1.2/configure"):
         open("gmp-6.1.2/gmp.h", "w").write(gmp_h)
         config_h = open("gmp-6.1.2/config.in").read()
         config_h = config_h.replace("#undef WANT_TMP_ALLOCA", "#define WANT_TMP_ALLOCA 1")
+        config_h = config_h.replace("#undef inline", "/*#undef inline*/")
         open("gmp-6.1.2/config.h", "w").write(config_h)
 
 if sys.platform == "win32":
