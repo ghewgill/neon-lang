@@ -2,17 +2,8 @@ import os
 import subprocess
 import sys
 
-ExcludeTests = [
-]
-
 fullname = sys.argv[1]
 path, name = os.path.split(fullname)
-
-if name != "hello.neon":
-    sys.exit(99)
-
-if fullname.replace("\\", "/") in ExcludeTests:
-    sys.exit(99)
 
 subprocess.check_call([os.path.join("bin", "neonc"), "-q", "-t", "cpp", fullname])
 if sys.platform == "win32":
