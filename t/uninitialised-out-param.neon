@@ -1,0 +1,4 @@
+FUNCTION foo(OUT t: String)
+END FUNCTION
+
+%! Uninitialised

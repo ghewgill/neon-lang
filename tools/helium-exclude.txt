@@ -131,6 +131,9 @@ uninitialised-case-noelse.neon
 uninitialised-if-exit.neon
 uninitialised-if-noelse.neon
 uninitialised-nested.neon
+uninitialised-out-param-exit.neon
+uninitialised-out-param-return.neon
+uninitialised-out-param.neon
 uninitialised-simple.neon
 unused.neon
 unused-return.neon
