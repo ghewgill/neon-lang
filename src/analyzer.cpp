@@ -2028,6 +2028,9 @@ const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
     const ast::Expression *cond = analyze(expr->cond.get());
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
+    if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
+        error(3265, expr->cond->token, "boolean expected");
+    }
     if (not left->type->is_assignment_compatible(right->type)) {
         error(3037, expr->left->token, "type of THEN and ELSE must match");
     }
