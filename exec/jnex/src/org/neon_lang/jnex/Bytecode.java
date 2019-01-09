@@ -11,6 +11,7 @@ class Bytecode {
         int end;
         int excid;
         int handler;
+        int stack_depth;
     }
 
     class ClassInfo {
@@ -76,6 +77,7 @@ class Bytecode {
                 ei.end = readVint(in);
                 ei.excid = readVint(in);
                 ei.handler = readVint(in);
+                ei.stack_depth = readVint(in);
                 exceptions[i] = ei;
                 i++;
                 exceptionsize--;

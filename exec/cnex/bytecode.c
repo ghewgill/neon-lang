@@ -203,6 +203,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
         b->exceptions[e].end = get_vint(bytecode, len, &i);
         b->exceptions[e].exid = get_vint(bytecode, len, &i);
         b->exceptions[e].handler = get_vint(bytecode, len, &i);
+        b->exceptions[e].stack_depth = get_vint(bytecode, len, &i);
     }
 
     b->classsize = get_vint(bytecode, len, &i);

@@ -1009,6 +1009,10 @@ void Disassembler::disassemble()
             }
         }
         out << "  " << index << " ";
+        auto st = debug->stack_depth.find(index);
+        if (st != debug->stack_depth.end()) {
+            out << "(" << st->second << ") ";
+        }
         auto last_index = index;
         std::string s = disassemble_instruction(obj, index);
         out << s << "\n";
@@ -1020,7 +1024,7 @@ void Disassembler::disassemble()
     if (not obj.exceptions.empty()) {
         out << "Exception table:\n";
         for (auto e: obj.exceptions) {
-            out << "  " << e.start << "-" << e.end << " " << obj.strtable[e.excid] << " " << e.handler << "\n";
+            out << "  " << e.start << "-" << e.end << " " << obj.strtable[e.excid] << " handler=" << e.handler << " stack_depth=" << e.stack_depth << "\n";
         }
     }
 }

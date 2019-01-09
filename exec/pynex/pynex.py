@@ -149,6 +149,7 @@ class Bytecode:
             e.end, i = get_vint(bytecode, i)
             e.excid, i = get_vint(bytecode, i)
             e.handler, i = get_vint(bytecode, i)
+            e.stack_depth, i = get_vint(bytecode, i)
             self.exceptions.append(e)
             exceptionsize -= 1
 

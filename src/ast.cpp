@@ -255,6 +255,39 @@ bool TypeFunction::is_assignment_compatible(const Type *rhs) const
     return true;
 }
 
+int TypeFunction::get_stack_delta() const
+{
+    int input_params = 0;
+    int output_params = (returntype != TYPE_NOTHING ? 1 : 0);
+    for (auto p: params) {
+        switch (p->mode) {
+            case ParameterType::Mode::IN:
+            case ParameterType::Mode::INOUT:
+                input_params++;
+                break;
+            case ParameterType::Mode::OUT:
+                output_params++;
+                break;
+        }
+    }
+    return output_params - input_params;
+}
+
+int Function::get_stack_delta() const
+{
+    return dynamic_cast<const TypeFunction *>(type)->get_stack_delta();
+}
+
+int PredefinedFunction::get_stack_delta() const
+{
+    return dynamic_cast<const TypeFunction *>(type)->get_stack_delta();
+}
+
+int ModuleFunction::get_stack_delta() const
+{
+    return dynamic_cast<const TypeFunction *>(type)->get_stack_delta();
+}
+
 bool TypeArray::is_assignment_compatible(const Type *rhs) const
 {
     const TypeArrayLiteral *tal = dynamic_cast<const TypeArrayLiteral *>(rhs);

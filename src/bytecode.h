@@ -75,6 +75,7 @@ public:
         unsigned int end;
         unsigned int excid;
         unsigned int handler;
+        unsigned int stack_depth;
     };
 
     struct ClassInfo {

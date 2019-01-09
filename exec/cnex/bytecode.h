@@ -28,6 +28,7 @@ typedef struct tagTException {
     unsigned int end;
     unsigned int exid;
     unsigned int handler;
+    unsigned int stack_depth;
 } Exception;
 
 typedef struct tagTBytecode {

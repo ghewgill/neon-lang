@@ -193,10 +193,11 @@ static Cell unmarshal_pointer(void *p)
 
 class ActivationFrame {
 public:
-    ActivationFrame(uint32_t nesting_depth, ActivationFrame *outer, size_t count): nesting_depth(nesting_depth), outer(outer), locals(count) {}
+    ActivationFrame(uint32_t nesting_depth, ActivationFrame *outer, size_t count, size_t opstack_depth): nesting_depth(nesting_depth), outer(outer), locals(count), opstack_depth(opstack_depth) {}
     uint32_t nesting_depth;
     ActivationFrame *outer;
     std::vector<Cell> locals;
+    size_t opstack_depth;
 private:
     ActivationFrame(const ActivationFrame &);
     ActivationFrame &operator=(const ActivationFrame &);
@@ -755,7 +756,7 @@ void Executor::exec_ENTER()
             outer = outer->outer;
         }
     }
-    frames.emplace_back(nest, outer, val);
+    frames.emplace_back(nest, outer, val, stack.depth());
     dump_frames(this);
 }
 
@@ -1999,6 +2000,9 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
                  || (exception.length() > handler.length() && exception.substr(0, handler.length()) == handler && exception.at(handler.length()) == '.')) {
                     module = tmodule;
                     ip = e->handler;
+                    while (stack.depth() > frames.back().opstack_depth + e->stack_depth) {
+                        stack.pop();
+                    }
                     callstack.resize(sp);
                     stack.push(exceptionvar);
                     return;
@@ -2009,6 +2013,9 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
             break;
         }
         sp -= 1;
+        if (not frames.empty()) {
+            frames.pop_back();
+        }
         tmodule = callstack[sp].first;
         tip = callstack[sp].second;
     }

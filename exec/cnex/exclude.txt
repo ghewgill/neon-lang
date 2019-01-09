@@ -16,6 +16,7 @@ decimal.neon               # arithmetic
 divide-by-zero.neon        # exception
 encoding-base64.neon       # module
 equality.neon              # class
+exception-opstack.neon     # exception
 export-inline.neon         # export
 export-recursive.neon      # export
 export.neon                # export

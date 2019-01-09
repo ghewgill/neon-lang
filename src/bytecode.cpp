@@ -210,6 +210,7 @@ bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
             e.end = get_vint(obj, i);
             e.excid = get_vint(obj, i);
             e.handler = get_vint(obj, i);
+            e.stack_depth = get_vint(obj, i);
             exceptions.push_back(e);
             exceptionsize--;
         }
@@ -325,6 +326,7 @@ Bytecode::Bytes Bytecode::getBytes() const
         put_vint(objret, e.end);
         put_vint(objret, e.excid);
         put_vint(objret, e.handler);
+        put_vint(objret, e.stack_depth);
     }
 
     put_vint_size(objret, classes.size());

@@ -507,6 +507,8 @@ public:
     virtual const Expression *deserialize_value(const Bytecode::Bytes &, int &) const override { internal_error("TypeFunction"); }
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const override;
 
+    int get_stack_delta() const;
+
     const Type *returntype;
     const std::vector<const ParameterType *> params;
 
@@ -2680,6 +2682,7 @@ public:
     std::vector<const Statement *> statements;
 
     static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
+    int get_stack_delta() const;
 
     virtual void reset() override { entry_label = UINT_MAX; }
     virtual void predeclare(Emitter &emitter) const override;
@@ -2711,6 +2714,8 @@ public:
     virtual void generate_call(Emitter &emitter) const override;
     virtual void generate_export(Emitter &, const std::string &) const override {}
 
+    int get_stack_delta() const;
+
     virtual std::string text() const override { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
 };
 
@@ -2732,6 +2737,7 @@ class ModuleFunction: public Variable {
 public:
     ModuleFunction(const std::string &module, const std::string &name, const Type *type, const std::string &descriptor): Variable(Token(), name, type, true), module(module), name(name), descriptor(descriptor) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
+
     const std::string module;
     const std::string name;
     const std::string descriptor;
@@ -2741,6 +2747,8 @@ public:
     virtual void generate_load(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_store(Emitter &) const override { internal_error("ModuleFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
+
+    int get_stack_delta() const;
 
     virtual std::string text() const override { return "ModuleFunction(" + module + "." + name + ", " + type->text() + ")"; }
 };
