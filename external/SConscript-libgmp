@@ -31,7 +31,7 @@ if sys.platform == "win32":
         gmpenv.Append(CFLAGS=["/MTd"])
     else:
         gmpenv.Append(CFLAGS=["/MT"])
-    gmpenv.Append(CPPPATH=["gmp-6.1.2", "gmp-6.1.2/mpn/x86"])
+    gmpenv.Append(CPPPATH=[Dir("gmp-6.1.2"), Dir("gmp-6.1.2/mpn/x86")])
     gen_fib = gmpenv.Program("gmp-6.1.2/gen-fib", "gmp-6.1.2/gen-fib.c")
     fib_table_h = gmpenv.Command("gmp-6.1.2/fib_table.h", gen_fib, gen_fib[0].abspath + " header 32 0 >$TARGET")
     gen_fac = gmpenv.Program("gmp-6.1.2/gen-fac", "gmp-6.1.2/gen-fac.c")
@@ -167,7 +167,7 @@ else:
     libgmp = gmpenv.Command("lib/libgmp.a", "gmp-6.1.2/configure", "cd external/gmp-6.1.2 && ./configure --prefix=`pwd`/.. --enable-cxx && make && make install")
 
 if sys.platform == "win32":
-    env.Append(CPPPATH=["external/gmp-6.1.2"])
+    env.Append(CPPPATH=[Dir("gmp-6.1.2")])
 else:
     # Avoid triggering warnings like -Weffc++ on these headers.
     env.Append(CPPFLAGS=["-isystem", "external/include"])

@@ -21,7 +21,7 @@ if GetOption("clean"):
 elif not os.path.exists("minizip11/Makefile"):
     zipfile.ZipFile("unzip11.zip").extractall("minizip11")
 
-libminizipenv.Append(CPPPATH=["zlib-1.2.8"])
+libminizipenv.Append(CPPPATH=[Dir("zlib-1.2.8")])
 
 if sys.platform == "win32":
     libminizip = libminizipenv.Library("minizip11/minizip.lib", [

@@ -9,4 +9,4 @@ if GetOption("clean"):
 elif not os.path.exists("utfcpp-master/source/utf8.h"):
     zipfile.ZipFile("utfcpp-master.zip").extractall()
 
-env.Append(CPPPATH=["external/utfcpp-master/source"])
+env.Append(CPPPATH=[Dir("utfcpp-master/source")])

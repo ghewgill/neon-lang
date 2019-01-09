@@ -22,6 +22,6 @@ elif not os.path.exists("sqlite-amalgamation-3080803/sqlite3.c"):
 sqliteenv.Append(CPPFLAGS=["-DSQLITE_THREADSAFE=0"])
 libsqlite = sqliteenv.Library("sqlite-amalgamation-3080803/sqlite3.c")
 
-env.Append(CPPPATH=["external/sqlite-amalgamation-3080803"])
+env.Append(CPPPATH=[Dir("sqlite-amalgamation-3080803")])
 
 Return(["libsqlite"])

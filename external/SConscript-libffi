@@ -72,7 +72,7 @@ elif not os.path.exists("libffi-3.2.1/configure"):
 if sys.platform == "win32":
     env.Append(CPPDEFINES=["FFI_BUILDING"])
     ffienv.Append(CPPDEFINES=["FFI_BUILDING"])
-    ffienv.Append(CPPPATH=["libffi-3.2.1/x86-win64/include"])
+    ffienv.Append(CPPPATH=[Dir("libffi-3.2.1/x86-win64/include")])
     ffi_h = ffienv.Command("libffi-3.2.1/x86-win64/include/ffi.h", "libffi-3.2.1/include/ffi.h.in", subs)
     ffitarget_h = ffienv.Command("libffi-3.2.1/x86-win64/include/ffitarget.h", "libffi-3.2.1/src/x86/ffitarget.h", fix_target)
     fficommon_h = ffienv.Command("libffi-3.2.1/x86-win64/include/ffi_common.h", "libffi-3.2.1/include/ffi_common.h", Copy("$TARGET", "$SOURCE"))
@@ -96,6 +96,6 @@ else:
     ffienv.Command("libffi-3.2.1/Makefile", "libffi-3.2.1/configure", "cd external/libffi-3.2.1 && ./configure --prefix=`pwd`/..")
     libffi = ffienv.Command("lib/libffi.a", "libffi-3.2.1/Makefile", "cd external/libffi-3.2.1 && make && make install")
 
-env.Append(CPPPATH=["external/lib/libffi-3.2.1/include"])
+env.Append(CPPPATH=[Dir("lib/libffi-3.2.1/include")])
 
 Return(["libffi"])

@@ -118,7 +118,7 @@ modules.sort()
 SConscript("external/SConscript-naturaldocs")
 
 env.Append(CPPPATH=[
-    "src",
+    Dir("src"),
 ])
 if sys.platform == "win32":
     env.Append(CXXFLAGS=[
