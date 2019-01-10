@@ -24,6 +24,7 @@ script:
   #- where refreshenv
   #- refreshenv
   - cmake .
+  - type CMakeFiles\CMakeOutput.log
   - dir
   - msbuild
   - ctest
