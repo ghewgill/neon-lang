@@ -16,7 +16,12 @@ namespace global {
 
 utf8string chr(Number x)
 {
-    assert(number_is_integer(x));
+    if (not number_is_integer(x)) {
+        throw RtlException(global::Exception_ValueRangeException, utf8string("chr() argument not an integer"));
+    }
+    if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
+        throw RtlException(global::Exception_ValueRangeException, utf8string("chr() argument out of range 0-0x10ffff"));
+    }
     std::string r;
     utf8::append(number_to_uint32(x), std::back_inserter(r));
     return utf8string(r);

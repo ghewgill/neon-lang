@@ -39,6 +39,12 @@ neon = {
         },
 
         chr: function(x) {
+            if (x != Math.trunc(x)) {
+                throw new neon.NeonException("ValueRangeException", {info: "chr() argument not an integer"});
+            }
+            if (x < 0 || x > 0x10ffff) {
+                throw new neon.NeonException("ValueRangeException", {info: "chr() argument out of range 0-0x10ffff"});
+            }
             return String.fromCharCode(x);
         },
 

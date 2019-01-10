@@ -1,6 +1,20 @@
 print(chr(65))
 %= A
 
+TRY
+    print(chr(1.5))
+TRAP ValueRangeException AS x DO
+    print(x.info)
+END TRY
+%= chr() argument not an integer
+
+TRY
+    print(chr(0x110000))
+TRAP ValueRangeException AS x DO
+    print(x.info)
+END TRY
+%= chr() argument out of range 0-0x10ffff
+
 print(concat("hello", " world"))
 %= hello world
 

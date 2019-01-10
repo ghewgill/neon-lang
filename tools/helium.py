@@ -164,7 +164,7 @@ def number_start(c):
     return c.isdigit()
 
 def number_body(c):
-    return c.isdigit() or c == "."
+    return c.isdigit() or c == "." or c == "x"
 
 def space(c):
     return c.isspace()
@@ -234,7 +234,10 @@ def tokenize_fragment(source):
             while i < len(source) and number_body(source[i]):
                 i += 1
             t = source[start:i]
-            num = int(t) if t.isdigit() else float(t)
+            try:
+                num = int(t, base=0)
+            except ValueError:
+                num = float(t)
             r.append(Number(num))
         elif source[i] == '"':
             i += 1
@@ -2526,6 +2529,10 @@ def neon_array_resize(a, n):
         a.extend([0] * (n - len(a)))
 
 def neon_chr(env, x):
+    if x != int(x):
+        raise NeonException("ValueRangeException", "chr() argument not an integer")
+    if not (0 <= x <= 0x10ffff):
+        raise NeonException("ValueRangeException", "chr() argument out of range 0-0x10ffff")
     return unichr(x)
 
 def neon_concat(env, x, y):

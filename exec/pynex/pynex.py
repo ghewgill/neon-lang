@@ -1109,6 +1109,12 @@ def neon_bytes__toString(self):
 
 def neon_chr(self):
     n = self.stack.pop().value
+    if n != int(n):
+        self.raise_literal("ValueRangeException", ("chr() argument not an integer", 0))
+        return
+    if not (0 <= n <= 0x10ffff):
+        self.raise_literal("ValueRangeException", ("chr() argument out of range 0-0x10ffff", 0))
+        return
     self.stack.append(Value(unichr(int(n))))
 
 def neon_concat(self):
