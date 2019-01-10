@@ -23,7 +23,7 @@ script:
   #- where choco
   #- where refreshenv
   #- refreshenv
-  - cmake .
-  - msbuild
+  - cmake -G "NMake Makfiles" .
+  - nmake
   - ctest
 sudo: false
