@@ -310,7 +310,7 @@ void exec_PUSHS(TExecutor *self)
     push(self->stack, cell_fromStringLength(self->object->strings[val]->data, self->object->strings[val]->length));
 }
 
-void exec_PUSHT(TExecutor *self)
+void exec_PUSHY(TExecutor *self)
 {
     self->ip++;
     unsigned int val = exec_getOperand(self);
@@ -381,7 +381,7 @@ void exec_LOADS(TExecutor *self)
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_LOADT(TExecutor *self)
+void exec_LOADY(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -430,7 +430,7 @@ void exec_STORES(TExecutor *self)
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STORET(TExecutor *self)
+void exec_STOREY(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -637,7 +637,7 @@ void exec_GES(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_EQT(TExecutor*self)
+void exec_EQY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -648,7 +648,7 @@ void exec_EQT(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_NET(TExecutor*self)
+void exec_NEY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -659,7 +659,7 @@ void exec_NET(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LTT(TExecutor*self)
+void exec_LTY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -670,7 +670,7 @@ void exec_LTT(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GTT(TExecutor*self)
+void exec_GTY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -681,7 +681,7 @@ void exec_GTT(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LET(TExecutor*self)
+void exec_LEY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -692,7 +692,7 @@ void exec_LET(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GET(TExecutor*self)
+void exec_GEY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -1147,7 +1147,7 @@ void exec_loop(TExecutor *self)
             case PUSHB:   exec_PUSHB(self); break;
             case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;
-            case PUSHT:   exec_PUSHT(self); break;
+            case PUSHY:   exec_PUSHY(self); break;
             case PUSHPG:  exec_PUSHPG(self); break;
             case PUSHPPG: exec_PUSHPPG(self); break;
             case PUSHPMG: exec_PUSHPMG(); break;
@@ -1157,14 +1157,14 @@ void exec_loop(TExecutor *self)
             case LOADB:   exec_LOADB(self); break;
             case LOADN:   exec_LOADN(self); break;
             case LOADS:   exec_LOADS(self); break;
-            case LOADT:   exec_LOADT(self); break;
+            case LOADY:   exec_LOADY(self); break;
             case LOADA:   exec_LOADA(self); break;
             case LOADD:   exec_LOADD(self); break;
             case LOADP:   exec_LOADP(self); break;
             case STOREB:  exec_STOREB(self); break;
             case STOREN:  exec_STOREN(self); break;
             case STORES:  exec_STORES(self); break;
-            case STORET:  exec_STORET(self); break;
+            case STOREY:  exec_STOREY(self); break;
             case STOREA:  exec_STOREA(self); break;
             case STORED:  exec_STORED(self); break;
             case STOREP:  exec_STOREP(self); break;
@@ -1189,12 +1189,12 @@ void exec_loop(TExecutor *self)
             case GTS:     exec_GTS(self); break;
             case LES:     exec_LES(self); break;
             case GES:     exec_GES(self); break;
-            case EQT:     exec_EQT(self); break;
-            case NET:     exec_NET(self); break;
-            case LTT:     exec_LTT(self); break;
-            case GTT:     exec_GTT(self); break;
-            case LET:     exec_LET(self); break;
-            case GET:     exec_GET(self); break;
+            case EQY:     exec_EQY(self); break;
+            case NEY:     exec_NEY(self); break;
+            case LTY:     exec_LTY(self); break;
+            case GTY:     exec_GTY(self); break;
+            case LEY:     exec_LEY(self); break;
+            case GEY:     exec_GEY(self); break;
             case EQA:     exec_EQA(); break;
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;

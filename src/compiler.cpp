@@ -120,7 +120,7 @@ void Emitter::emit(Opcode b)
             case PUSHB:     stack_depth += 1; break;
             case PUSHN:     stack_depth += 1; break;
             case PUSHS:     stack_depth += 1; break;
-            case PUSHT:     stack_depth += 1; break;
+            case PUSHY:     stack_depth += 1; break;
             case PUSHPG:    stack_depth += 1; break;
             case PUSHPPG:   stack_depth += 1; break;
             case PUSHPMG:   stack_depth += 1; break;
@@ -130,7 +130,7 @@ void Emitter::emit(Opcode b)
             case LOADB:     break;
             case LOADN:     break;
             case LOADS:     break;
-            case LOADT:     break;
+            case LOADY:     break;
             case LOADA:     break;
             case LOADD:     break;
             case LOADP:     break;
@@ -138,7 +138,7 @@ void Emitter::emit(Opcode b)
             case STOREB:    stack_depth -= 2; break;
             case STOREN:    stack_depth -= 2; break;
             case STORES:    stack_depth -= 2; break;
-            case STORET:    stack_depth -= 2; break;
+            case STOREY:    stack_depth -= 2; break;
             case STOREA:    stack_depth -= 2; break;
             case STORED:    stack_depth -= 2; break;
             case STOREP:    stack_depth -= 2; break;
@@ -164,12 +164,12 @@ void Emitter::emit(Opcode b)
             case GTS:       stack_depth -= 1; break;
             case LES:       stack_depth -= 1; break;
             case GES:       stack_depth -= 1; break;
-            case EQT:       stack_depth -= 1; break;
-            case NET:       stack_depth -= 1; break;
-            case LTT:       stack_depth -= 1; break;
-            case GTT:       stack_depth -= 1; break;
-            case LET_:      stack_depth -= 1; break;
-            case GET:       stack_depth -= 1; break;
+            case EQY:       stack_depth -= 1; break;
+            case NEY:       stack_depth -= 1; break;
+            case LTY:       stack_depth -= 1; break;
+            case GTY:       stack_depth -= 1; break;
+            case LEY:       stack_depth -= 1; break;
+            case GEY:       stack_depth -= 1; break;
             case EQA:       stack_depth -= 1; break;
             case NEA:       stack_depth -= 1; break;
             case EQD:       stack_depth -= 1; break;
@@ -634,12 +634,12 @@ void ast::TypeString::generate_convert(Emitter &emitter, const Type *from) const
 
 void ast::TypeBytes::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADT);
+    emitter.emit(LOADY);
 }
 
 void ast::TypeBytes::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STORET);
+    emitter.emit(STOREY);
 }
 
 void ast::TypeBytes::generate_call(Emitter &) const
@@ -1488,7 +1488,7 @@ void ast::ConstantStringExpression::generate_expr(Emitter &emitter) const
 void ast::ConstantBytesExpression::generate_expr(Emitter &emitter) const
 {
     unsigned int index = emitter.str(contents);
-    emitter.emit(PUSHT, index);
+    emitter.emit(PUSHY, index);
 }
 
 void ast::ConstantEnumExpression::generate_expr(Emitter &emitter) const
@@ -1762,12 +1762,12 @@ void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitte
 void ast::BytesComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQT); break;
-        case Comparison::NE: emitter.emit(NET); break;
-        case Comparison::LT: emitter.emit(LTT); break;
-        case Comparison::GT: emitter.emit(GTT); break;
-        case Comparison::LE: emitter.emit(LET_); break;
-        case Comparison::GE: emitter.emit(GET); break;
+        case Comparison::EQ: emitter.emit(EQY); break;
+        case Comparison::NE: emitter.emit(NEY); break;
+        case Comparison::LT: emitter.emit(LTY); break;
+        case Comparison::GT: emitter.emit(GTY); break;
+        case Comparison::LE: emitter.emit(LEY); break;
+        case Comparison::GE: emitter.emit(GEY); break;
     }
 }
 

@@ -99,7 +99,7 @@ class Executor {
                 case PUSHB: doPUSHB(); break;
                 case PUSHN: doPUSHN(); break;
                 case PUSHS: doPUSHS(); break;
-                case PUSHT: doPUSHT(); break;
+                case PUSHY: doPUSHY(); break;
                 case PUSHPG: doPUSHPG(); break;
                 //case PUSHPPG
                 //case PUSHPMG
@@ -109,7 +109,7 @@ class Executor {
                 case LOADB: doLOADB(); break;
                 case LOADN: doLOADN(); break;
                 case LOADS: doLOADS(); break;
-                case LOADT: doLOADT(); break;
+                case LOADY: doLOADY(); break;
                 case LOADA: doLOADA(); break;
                 case LOADD: doLOADD(); break;
                 case LOADP: doLOADP(); break;
@@ -117,7 +117,7 @@ class Executor {
                 case STOREB: doSTOREB(); break;
                 case STOREN: doSTOREN(); break;
                 case STORES: doSTORES(); break;
-                case STORET: doSTORET(); break;
+                case STOREY: doSTOREY(); break;
                 case STOREA: doSTOREA(); break;
                 case STORED: doSTORED(); break;
                 case STOREP: doSTOREP(); break;
@@ -143,12 +143,12 @@ class Executor {
                 case GTS: doGTS(); break;
                 //case LES
                 //case GES
-                //case EQT
-                //case NET
-                //case LTT
-                //case GTT
-                //case LET
-                //case GES
+                //case EQY
+                //case NEY
+                //case LTY
+                //case GTY
+                //case LEY
+                //case GEY
                 //case EQA
                 //case NEA
                 //case EQD
@@ -271,7 +271,7 @@ class Executor {
         stack.addFirst(new Cell(object.strtable[val]));
     }
 
-    private void doPUSHT()
+    private void doPUSHY()
     {
         ip++;
         int val = getVint();
@@ -325,7 +325,7 @@ class Executor {
         stack.addFirst(new Cell(addr.getString()));
     }
 
-    private void doLOADT()
+    private void doLOADY()
     {
         ip++;
         Cell addr = stack.removeFirst().getAddress();
@@ -384,7 +384,7 @@ class Executor {
         addr.set(val);
     }
 
-    private void doSTORET()
+    private void doSTOREY()
     {
         ip++;
         Cell addr = stack.removeFirst().getAddress();
@@ -1045,7 +1045,7 @@ class Executor {
         PUSHB,
         PUSHN,
         PUSHS,
-        PUSHT,
+        PUSHY,
         PUSHPG,
         PUSHPPG,
         PUSHPMG,
@@ -1055,7 +1055,7 @@ class Executor {
         LOADB,
         LOADN,
         LOADS,
-        LOADT,
+        LOADY,
         LOADA,
         LOADD,
         LOADP,
@@ -1063,7 +1063,7 @@ class Executor {
         STOREB,
         STOREN,
         STORES,
-        STORET,
+        STOREY,
         STOREA,
         STORED,
         STOREP,
@@ -1089,12 +1089,12 @@ class Executor {
         GTS,
         LES,
         GES,
-        EQT,
-        NET,
-        LTT,
-        GTT,
-        LET,
-        GET,
+        EQY,
+        NEY,
+        LTY,
+        GTY,
+        LEY,
+        GEY,
         EQA,
         NEA,
         EQD,

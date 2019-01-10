@@ -8,7 +8,7 @@ enum Opcode {
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate
-    PUSHT,      // push bytes immediate
+    PUSHY,      // push bytes immediate
     PUSHPG,     // push pointer to global
     PUSHPPG,    // push pointer to predefined global
     PUSHPMG,    // push pointer to module global
@@ -18,7 +18,7 @@ enum Opcode {
     LOADB,      // load boolean
     LOADN,      // load number
     LOADS,      // load string
-    LOADT,      // load bytes
+    LOADY,      // load bytes
     LOADA,      // load array
     LOADD,      // load dictionary
     LOADP,      // load pointer
@@ -26,7 +26,7 @@ enum Opcode {
     STOREB,     // store boolean
     STOREN,     // store number
     STORES,     // store string
-    STORET,     // store bytes
+    STOREY,     // store bytes
     STOREA,     // store array
     STORED,     // store dictionary
     STOREP,     // store pointer
@@ -52,12 +52,12 @@ enum Opcode {
     GTS,        // compare greater string
     LES,        // compare less equal string
     GES,        // compare greater equal string
-    EQT,        // compare equal bytes
-    NET,        // compare unequal bytes
-    LTT,        // compare less bytes
-    GTT,        // compare greater bytes
-    LET_,       // compare less equal bytes
-    GET,        // compare greater equal bytes
+    EQY,        // compare equal bytes
+    NEY,        // compare unequal bytes
+    LTY,        // compare less bytes
+    GTY,        // compare greater bytes
+    LEY,        // compare less equal bytes
+    GEY,        // compare greater equal bytes
     EQA,        // compare equal array
     NEA,        // compare unequal array
     EQD,        // compare equal dictionary
@@ -245,7 +245,7 @@ impl Executor {
                 x if x == Opcode::PUSHB as u8 => self.op_pushb(),
                 x if x == Opcode::PUSHN as u8 => self.op_pushn(),
                 x if x == Opcode::PUSHS as u8 => self.op_pushs(),
-                x if x == Opcode::PUSHT as u8 => self.op_pusht(),
+                x if x == Opcode::PUSHY as u8 => self.op_pushy(),
                 x if x == Opcode::PUSHPG as u8 => self.op_pushpg(),
                 x if x == Opcode::PUSHPPG as u8 => self.op_pushppg(),
                 x if x == Opcode::PUSHPMG as u8 => self.op_pushpmg(),
@@ -255,7 +255,7 @@ impl Executor {
                 x if x == Opcode::LOADB as u8 => self.op_loadb(),
                 x if x == Opcode::LOADN as u8 => self.op_loadn(),
                 x if x == Opcode::LOADS as u8 => self.op_loads(),
-                x if x == Opcode::LOADT as u8 => self.op_loadt(),
+                x if x == Opcode::LOADY as u8 => self.op_loady(),
                 x if x == Opcode::LOADA as u8 => self.op_loada(),
                 x if x == Opcode::LOADD as u8 => self.op_loadd(),
                 x if x == Opcode::LOADP as u8 => self.op_loadp(),
@@ -263,7 +263,7 @@ impl Executor {
                 x if x == Opcode::STOREB as u8 => self.op_storeb(),
                 x if x == Opcode::STOREN as u8 => self.op_storen(),
                 x if x == Opcode::STORES as u8 => self.op_stores(),
-                x if x == Opcode::STORET as u8 => self.op_storet(),
+                x if x == Opcode::STOREY as u8 => self.op_storey(),
                 x if x == Opcode::STOREA as u8 => self.op_storea(),
                 x if x == Opcode::STORED as u8 => self.op_stored(),
                 x if x == Opcode::STOREP as u8 => self.op_storep(),
@@ -289,12 +289,12 @@ impl Executor {
                 x if x == Opcode::GTS as u8 => self.op_gts(),
                 x if x == Opcode::LES as u8 => self.op_les(),
                 x if x == Opcode::GES as u8 => self.op_ges(),
-                x if x == Opcode::EQT as u8 => self.op_eqt(),
-                x if x == Opcode::NET as u8 => self.op_net(),
-                x if x == Opcode::LTT as u8 => self.op_ltt(),
-                x if x == Opcode::GTT as u8 => self.op_gtt(),
-                x if x == Opcode::LET_ as u8 => self.op_let(),
-                x if x == Opcode::GET as u8 => self.op_get(),
+                x if x == Opcode::EQY as u8 => self.op_eqy(),
+                x if x == Opcode::NEY as u8 => self.op_ney(),
+                x if x == Opcode::LTY as u8 => self.op_lty(),
+                x if x == Opcode::GTY as u8 => self.op_gty(),
+                x if x == Opcode::LEY as u8 => self.op_ley(),
+                x if x == Opcode::GEY as u8 => self.op_gey(),
                 x if x == Opcode::EQA as u8 => self.op_eqa(),
                 x if x == Opcode::NEA as u8 => self.op_nea(),
                 x if x == Opcode::EQD as u8 => self.op_eqd(),
@@ -370,7 +370,7 @@ impl Executor {
         self.stack.push(Cell::String(self.object.strtable[val].to_string()));
     }
 
-    fn op_pusht(&mut self) {
+    fn op_pushy(&mut self) {
         assert!(false, "unimplemented");
     }
 
@@ -410,7 +410,7 @@ impl Executor {
         assert!(false, "unimplemented");
     }
 
-    fn op_loadt(&mut self) {
+    fn op_loady(&mut self) {
         assert!(false, "unimplemented");
     }
 
@@ -442,7 +442,7 @@ impl Executor {
         assert!(false, "unimplemented");
     }
 
-    fn op_storet(&mut self) {
+    fn op_storey(&mut self) {
         assert!(false, "unimplemented");
     }
 
@@ -546,27 +546,27 @@ impl Executor {
         assert!(false, "unimplemented");
     }
 
-    fn op_eqt(&mut self) {
+    fn op_eqy(&mut self) {
         assert!(false, "unimplemented");
     }
 
-    fn op_net(&mut self) {
+    fn op_ney(&mut self) {
         assert!(false, "unimplemented");
     }
 
-    fn op_ltt(&mut self) {
+    fn op_lty(&mut self) {
         assert!(false, "unimplemented");
     }
 
-    fn op_gtt(&mut self) {
+    fn op_gty(&mut self) {
         assert!(false, "unimplemented");
     }
 
-    fn op_let(&mut self) {
+    fn op_ley(&mut self) {
         assert!(false, "unimplemented");
     }
 
-    fn op_get(&mut self) {
+    fn op_gey(&mut self) {
         assert!(false, "unimplemented");
     }
 

@@ -14,7 +14,7 @@ const (
 	PUSHB    = iota // push boolean immediate
 	PUSHN    = iota // push number immediate
 	PUSHS    = iota // push string immediate
-	PUSHT    = iota // push bytes immediate
+	PUSHY    = iota // push bytes immediate
 	PUSHPG   = iota // push pointer to global
 	PUSHPPG  = iota // push pointer to predefined global
 	PUSHPMG  = iota // push pointer to module global
@@ -24,7 +24,7 @@ const (
 	LOADB    = iota // load boolean
 	LOADN    = iota // load number
 	LOADS    = iota // load string
-	LOADT    = iota // load bytes
+	LOADY    = iota // load bytes
 	LOADA    = iota // load array
 	LOADD    = iota // load dictionary
 	LOADP    = iota // load pointer
@@ -32,7 +32,7 @@ const (
 	STOREB   = iota // store boolean
 	STOREN   = iota // store number
 	STORES   = iota // store string
-	STORET   = iota // store bytes
+	STOREY   = iota // store bytes
 	STOREA   = iota // store array
 	STORED   = iota // store dictionary
 	STOREP   = iota // store pointer
@@ -58,12 +58,12 @@ const (
 	GTS      = iota // compare greater string
 	LES      = iota // compare less equal string
 	GES      = iota // compare greater equal string
-	EQT      = iota // compare equal bytes
-	NET      = iota // compare unequal bytes
-	LTT      = iota // compare less bytes
-	GTT      = iota // compare greater bytes
-	LET_     = iota // compare less equal bytes
-	GET      = iota // compare greater equal bytes
+	EQY      = iota // compare equal bytes
+	NEY      = iota // compare unequal bytes
+	LTY      = iota // compare less bytes
+	GTY      = iota // compare greater bytes
+	LEY      = iota // compare less equal bytes
+	GEY      = iota // compare greater equal bytes
 	EQA      = iota // compare equal array
 	NEA      = iota // compare unequal array
 	EQD      = iota // compare equal dictionary
@@ -345,8 +345,8 @@ func (self *executor) run() {
 			self.op_pushn()
 		case PUSHS:
 			self.op_pushs()
-		case PUSHT:
-			self.op_pusht()
+		case PUSHY:
+			self.op_pushy()
 		case PUSHPG:
 			self.op_pushpg()
 		case PUSHPPG:
@@ -365,8 +365,8 @@ func (self *executor) run() {
 			self.op_loadn()
 		case LOADS:
 			self.op_loads()
-		case LOADT:
-			self.op_loadt()
+		case LOADY:
+			self.op_loady()
 		case LOADA:
 			self.op_loada()
 		case LOADD:
@@ -381,8 +381,8 @@ func (self *executor) run() {
 			self.op_storen()
 		case STORES:
 			self.op_stores()
-		case STORET:
-			self.op_storet()
+		case STOREY:
+			self.op_storey()
 		case STOREA:
 			self.op_storea()
 		case STORED:
@@ -433,18 +433,18 @@ func (self *executor) run() {
 			self.op_les()
 		case GES:
 			self.op_ges()
-		case EQT:
-			self.op_eqt()
-		case NET:
-			self.op_net()
-		case LTT:
-			self.op_ltt()
-		case GTT:
-			self.op_gtt()
-		case LET_:
-			self.op_let_()
-		case GET:
-			self.op_get()
+		case EQY:
+			self.op_eqy()
+		case NEY:
+			self.op_ney()
+		case LTY:
+			self.op_lty()
+		case GTY:
+			self.op_gty()
+		case LEY:
+			self.op_ley()
+		case GEY:
+			self.op_gey()
 		case EQA:
 			self.op_eqa()
 		case NEA:
@@ -594,7 +594,7 @@ func (self *executor) op_pushs() {
 	self.push(make_cell_str(self.object.strtable[val]))
 }
 
-func (self *executor) op_pusht() {
+func (self *executor) op_pushy() {
 	assert(false, "unimplemented")
 }
 
@@ -646,7 +646,7 @@ func (self *executor) op_loads() {
 	self.push(*addr)
 }
 
-func (self *executor) op_loadt() {
+func (self *executor) op_loady() {
 	assert(false, "unimplemented")
 }
 
@@ -693,7 +693,7 @@ func (self *executor) op_stores() {
 	*addr = val
 }
 
-func (self *executor) op_storet() {
+func (self *executor) op_storey() {
 	assert(false, "unimplemented")
 }
 
@@ -850,27 +850,27 @@ func (self *executor) op_ges() {
 	assert(false, "unimplemented")
 }
 
-func (self *executor) op_eqt() {
+func (self *executor) op_eqy() {
 	assert(false, "unimplemented")
 }
 
-func (self *executor) op_net() {
+func (self *executor) op_ney() {
 	assert(false, "unimplemented")
 }
 
-func (self *executor) op_ltt() {
+func (self *executor) op_lty() {
 	assert(false, "unimplemented")
 }
 
-func (self *executor) op_gtt() {
+func (self *executor) op_gty() {
 	assert(false, "unimplemented")
 }
 
-func (self *executor) op_let_() {
+func (self *executor) op_ley() {
 	assert(false, "unimplemented")
 }
 
-func (self *executor) op_get() {
+func (self *executor) op_gey() {
 	assert(false, "unimplemented")
 }
 

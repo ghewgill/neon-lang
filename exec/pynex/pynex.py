@@ -240,7 +240,7 @@ class Executor:
         val, self.ip = get_vint(self.object.code, self.ip)
         self.stack.append(Value(self.object.strtable[val]))
 
-    def PUSHT(self):
+    def PUSHY(self):
         self.ip += 1
         val, self.ip = get_vint(self.object.code, self.ip)
         self.stack.append(Value(Bytes(self.object.strtable[val])))
@@ -292,7 +292,7 @@ class Executor:
             addr.value = ""
         self.stack.append(addr.copy())
 
-    def LOADT(self):
+    def LOADY(self):
         self.ip += 1
         addr = self.stack.pop()
         if addr.value is None:
@@ -341,7 +341,7 @@ class Executor:
         value = self.stack.pop()
         addr.value = value.value
 
-    def STORET(self):
+    def STOREY(self):
         self.ip += 1
         addr = self.stack.pop()
         value = self.stack.pop()
@@ -500,25 +500,25 @@ class Executor:
     def GES(self):
         assert False
 
-    def EQT(self):
+    def EQY(self):
         self.ip += 1
         b = self.stack.pop().value
         a = self.stack.pop().value
         self.stack.append(Value(a.s == b.s))
 
-    def NET(self):
+    def NEY(self):
         assert False
 
-    def LTT(self):
+    def LTY(self):
         assert False
 
-    def GTT(self):
+    def GTY(self):
         assert False
 
-    def LET(self):
+    def LEY(self):
         assert False
 
-    def GET(self):
+    def GEY(self):
         assert False
 
     def EQA(self):
@@ -870,7 +870,7 @@ Dispatch = [
     Executor.PUSHB,
     Executor.PUSHN,
     Executor.PUSHS,
-    Executor.PUSHT,
+    Executor.PUSHY,
     Executor.PUSHPG,
     Executor.PUSHPPG,
     Executor.PUSHPMG,
@@ -880,7 +880,7 @@ Dispatch = [
     Executor.LOADB,
     Executor.LOADN,
     Executor.LOADS,
-    Executor.LOADT,
+    Executor.LOADY,
     Executor.LOADA,
     Executor.LOADD,
     Executor.LOADP,
@@ -888,7 +888,7 @@ Dispatch = [
     Executor.STOREB,
     Executor.STOREN,
     Executor.STORES,
-    Executor.STORET,
+    Executor.STOREY,
     Executor.STOREA,
     Executor.STORED,
     Executor.STOREP,
@@ -914,12 +914,12 @@ Dispatch = [
     Executor.GTS,
     Executor.LES,
     Executor.GES,
-    Executor.EQT,
-    Executor.NET,
-    Executor.LTT,
-    Executor.GTT,
-    Executor.LET,
-    Executor.GET,
+    Executor.EQY,
+    Executor.NEY,
+    Executor.LTY,
+    Executor.GTY,
+    Executor.LEY,
+    Executor.GEY,
     Executor.EQA,
     Executor.NEA,
     Executor.EQD,

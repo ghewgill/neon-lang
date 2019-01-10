@@ -7,7 +7,7 @@ enum Opcode {
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate
-    PUSHT,      // push bytes immediate
+    PUSHY,      // push bytes immediate
     PUSHPG,     // push pointer to global
     PUSHPPG,    // push pointer to predefined global
     PUSHPMG,    // push pointer to module global
@@ -17,7 +17,7 @@ enum Opcode {
     LOADB,      // load boolean
     LOADN,      // load number
     LOADS,      // load string
-    LOADT,      // load bytes
+    LOADY,      // load bytes
     LOADA,      // load array
     LOADD,      // load dictionary
     LOADP,      // load pointer
@@ -25,7 +25,7 @@ enum Opcode {
     STOREB,     // store boolean
     STOREN,     // store number
     STORES,     // store string
-    STORET,     // store bytes
+    STOREY,     // store bytes
     STOREA,     // store array
     STORED,     // store dictionary
     STOREP,     // store pointer
@@ -51,12 +51,12 @@ enum Opcode {
     GTS,        // compare greater string
     LES,        // compare less equal string
     GES,        // compare greater equal string
-    EQT,        // compare equal bytes
-    NET,        // compare unequal bytes
-    LTT,        // compare less bytes
-    GTT,        // compare greater bytes
-    LET_,       // compare less equal bytes
-    GET,        // compare greater equal bytes
+    EQY,        // compare equal bytes
+    NEY,        // compare unequal bytes
+    LTY,        // compare less bytes
+    GTY,        // compare greater bytes
+    LEY,        // compare less equal bytes
+    GEY,        // compare greater equal bytes
     EQA,        // compare equal array
     NEA,        // compare unequal array
     EQD,        // compare equal dictionary

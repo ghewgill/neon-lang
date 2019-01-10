@@ -27,7 +27,7 @@ private:
     void disasm_PUSHB();
     void disasm_PUSHN();
     void disasm_PUSHS();
-    void disasm_PUSHT();
+    void disasm_PUSHY();
     void disasm_PUSHPG();
     void disasm_PUSHPPG();
     void disasm_PUSHPMG();
@@ -37,7 +37,7 @@ private:
     void disasm_LOADB();
     void disasm_LOADN();
     void disasm_LOADS();
-    void disasm_LOADT();
+    void disasm_LOADY();
     void disasm_LOADA();
     void disasm_LOADD();
     void disasm_LOADP();
@@ -45,7 +45,7 @@ private:
     void disasm_STOREB();
     void disasm_STOREN();
     void disasm_STORES();
-    void disasm_STORET();
+    void disasm_STOREY();
     void disasm_STOREA();
     void disasm_STORED();
     void disasm_STOREP();
@@ -71,12 +71,12 @@ private:
     void disasm_GTS();
     void disasm_LES();
     void disasm_GES();
-    void disasm_EQT();
-    void disasm_NET();
-    void disasm_LTT();
-    void disasm_GTT();
-    void disasm_LET();
-    void disasm_GET();
+    void disasm_EQY();
+    void disasm_NEY();
+    void disasm_LTY();
+    void disasm_GTY();
+    void disasm_LEY();
+    void disasm_GEY();
     void disasm_EQA();
     void disasm_NEA();
     void disasm_EQD();
@@ -162,11 +162,11 @@ void InstructionDisassembler::disasm_PUSHS()
     out << "PUSHS \"" << obj.strtable[val] << "\"";
 }
 
-void InstructionDisassembler::disasm_PUSHT()
+void InstructionDisassembler::disasm_PUSHY()
 {
     index++;
     uint32_t val = Bytecode::get_vint(obj.code, index);
-    out << "PUSHT " << val;
+    out << "PUSHY " << val;
 }
 
 void InstructionDisassembler::disasm_PUSHPG()
@@ -231,9 +231,9 @@ void InstructionDisassembler::disasm_LOADS()
     index++;
 }
 
-void InstructionDisassembler::disasm_LOADT()
+void InstructionDisassembler::disasm_LOADY()
 {
-    out << "LOADT";
+    out << "LOADY";
     index++;
 }
 
@@ -279,9 +279,9 @@ void InstructionDisassembler::disasm_STORES()
     index++;
 }
 
-void InstructionDisassembler::disasm_STORET()
+void InstructionDisassembler::disasm_STOREY()
 {
-    out << "STORET";
+    out << "STOREY";
     index++;
 }
 
@@ -435,39 +435,39 @@ void InstructionDisassembler::disasm_GES()
     index++;
 }
 
-void InstructionDisassembler::disasm_EQT()
+void InstructionDisassembler::disasm_EQY()
 {
-    out << "EQT";
+    out << "EQY";
     index++;
 }
 
-void InstructionDisassembler::disasm_NET()
+void InstructionDisassembler::disasm_NEY()
 {
-    out << "NET";
+    out << "NEY";
     index++;
 }
 
-void InstructionDisassembler::disasm_LTT()
+void InstructionDisassembler::disasm_LTY()
 {
-    out << "LTT";
+    out << "LTY";
     index++;
 }
 
-void InstructionDisassembler::disasm_GTT()
+void InstructionDisassembler::disasm_GTY()
 {
-    out << "GTT";
+    out << "GTY";
     index++;
 }
 
-void InstructionDisassembler::disasm_LET()
+void InstructionDisassembler::disasm_LEY()
 {
-    out << "LET";
+    out << "LEY";
     index++;
 }
 
-void InstructionDisassembler::disasm_GET()
+void InstructionDisassembler::disasm_GEY()
 {
-    out << "GET";
+    out << "GEY";
     index++;
 }
 
@@ -791,7 +791,7 @@ void InstructionDisassembler::disassemble()
         case PUSHB:   disasm_PUSHB(); break;
         case PUSHN:   disasm_PUSHN(); break;
         case PUSHS:   disasm_PUSHS(); break;
-        case PUSHT:   disasm_PUSHT(); break;
+        case PUSHY:   disasm_PUSHY(); break;
         case PUSHPG:  disasm_PUSHPG(); break;
         case PUSHPPG: disasm_PUSHPPG(); break;
         case PUSHPMG: disasm_PUSHPMG(); break;
@@ -801,7 +801,7 @@ void InstructionDisassembler::disassemble()
         case LOADB:   disasm_LOADB(); break;
         case LOADN:   disasm_LOADN(); break;
         case LOADS:   disasm_LOADS(); break;
-        case LOADT:   disasm_LOADT(); break;
+        case LOADY:   disasm_LOADY(); break;
         case LOADA:   disasm_LOADA(); break;
         case LOADD:   disasm_LOADD(); break;
         case LOADP:   disasm_LOADP(); break;
@@ -809,7 +809,7 @@ void InstructionDisassembler::disassemble()
         case STOREB:  disasm_STOREB(); break;
         case STOREN:  disasm_STOREN(); break;
         case STORES:  disasm_STORES(); break;
-        case STORET:  disasm_STORET(); break;
+        case STOREY:  disasm_STOREY(); break;
         case STOREA:  disasm_STOREA(); break;
         case STORED:  disasm_STORED(); break;
         case STOREP:  disasm_STOREP(); break;
@@ -835,12 +835,12 @@ void InstructionDisassembler::disassemble()
         case GTS:     disasm_GTS(); break;
         case LES:     disasm_LES(); break;
         case GES:     disasm_GES(); break;
-        case EQT:     disasm_EQT(); break;
-        case NET:     disasm_NET(); break;
-        case LTT:     disasm_LTT(); break;
-        case GTT:     disasm_GTT(); break;
-        case LET_:    disasm_LET(); break;
-        case GET:     disasm_GET(); break;
+        case EQY:     disasm_EQY(); break;
+        case NEY:     disasm_NEY(); break;
+        case LTY:     disasm_LTY(); break;
+        case GTY:     disasm_GTY(); break;
+        case LEY:     disasm_LEY(); break;
+        case GEY:     disasm_GEY(); break;
         case EQA:     disasm_EQA(); break;
         case NEA:     disasm_NEA(); break;
         case EQD:     disasm_EQD(); break;

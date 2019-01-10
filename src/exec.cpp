@@ -299,7 +299,7 @@ public:
     void exec_PUSHB();
     void exec_PUSHN();
     void exec_PUSHS();
-    void exec_PUSHT();
+    void exec_PUSHY();
     void exec_PUSHPG();
     void exec_PUSHPPG();
     void exec_PUSHPMG();
@@ -309,7 +309,7 @@ public:
     void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
-    void exec_LOADT();
+    void exec_LOADY();
     void exec_LOADA();
     void exec_LOADD();
     void exec_LOADP();
@@ -317,7 +317,7 @@ public:
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
-    void exec_STORET();
+    void exec_STOREY();
     void exec_STOREA();
     void exec_STORED();
     void exec_STOREP();
@@ -343,12 +343,12 @@ public:
     void exec_GTS();
     void exec_LES();
     void exec_GES();
-    void exec_EQT();
-    void exec_NET();
-    void exec_LTT();
-    void exec_GTT();
-    void exec_LET();
-    void exec_GET();
+    void exec_EQY();
+    void exec_NEY();
+    void exec_LTY();
+    void exec_GTY();
+    void exec_LEY();
+    void exec_GEY();
     void exec_EQA();
     void exec_NEA();
     void exec_EQD();
@@ -790,7 +790,7 @@ void Executor::exec_PUSHS()
     stack.push(Cell(utf8string(module->object.strtable[val])));
 }
 
-void Executor::exec_PUSHT()
+void Executor::exec_PUSHY()
 {
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
@@ -876,7 +876,7 @@ void Executor::exec_LOADS()
     stack.push(Cell(*addr));
 }
 
-void Executor::exec_LOADT()
+void Executor::exec_LOADY()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
@@ -938,7 +938,7 @@ void Executor::exec_STORES()
     addr->string();
 }
 
-void Executor::exec_STORET()
+void Executor::exec_STOREY()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
@@ -1152,7 +1152,7 @@ void Executor::exec_GES()
     stack.push(Cell(a >= b));
 }
 
-void Executor::exec_EQT()
+void Executor::exec_EQY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1160,7 +1160,7 @@ void Executor::exec_EQT()
     stack.push(Cell(a == b));
 }
 
-void Executor::exec_NET()
+void Executor::exec_NEY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1168,7 +1168,7 @@ void Executor::exec_NET()
     stack.push(Cell(a != b));
 }
 
-void Executor::exec_LTT()
+void Executor::exec_LTY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1176,7 +1176,7 @@ void Executor::exec_LTT()
     stack.push(Cell(a < b));
 }
 
-void Executor::exec_GTT()
+void Executor::exec_GTY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1184,7 +1184,7 @@ void Executor::exec_GTT()
     stack.push(Cell(a > b));
 }
 
-void Executor::exec_LET()
+void Executor::exec_LEY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1192,7 +1192,7 @@ void Executor::exec_LET()
     stack.push(Cell(a <= b));
 }
 
-void Executor::exec_GET()
+void Executor::exec_GEY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -2232,7 +2232,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
-            case PUSHT:   exec_PUSHT(); break;
+            case PUSHY:   exec_PUSHY(); break;
             case PUSHPG:  exec_PUSHPG(); break;
             case PUSHPPG: exec_PUSHPPG(); break;
             case PUSHPMG: exec_PUSHPMG(); break;
@@ -2242,7 +2242,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case LOADB:   exec_LOADB(); break;
             case LOADN:   exec_LOADN(); break;
             case LOADS:   exec_LOADS(); break;
-            case LOADT:   exec_LOADT(); break;
+            case LOADY:   exec_LOADY(); break;
             case LOADA:   exec_LOADA(); break;
             case LOADD:   exec_LOADD(); break;
             case LOADP:   exec_LOADP(); break;
@@ -2250,7 +2250,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case STOREB:  exec_STOREB(); break;
             case STOREN:  exec_STOREN(); break;
             case STORES:  exec_STORES(); break;
-            case STORET:  exec_STORET(); break;
+            case STOREY:  exec_STOREY(); break;
             case STOREA:  exec_STOREA(); break;
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(); break;
@@ -2276,12 +2276,12 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case GTS:     exec_GTS(); break;
             case LES:     exec_LES(); break;
             case GES:     exec_GES(); break;
-            case EQT:     exec_EQT(); break;
-            case NET:     exec_NET(); break;
-            case LTT:     exec_LTT(); break;
-            case GTT:     exec_GTT(); break;
-            case LET_:    exec_LET(); break;
-            case GET:     exec_GET(); break;
+            case EQY:     exec_EQY(); break;
+            case NEY:     exec_NEY(); break;
+            case LTY:     exec_LTY(); break;
+            case GTY:     exec_GTY(); break;
+            case LEY:     exec_LEY(); break;
+            case GEY:     exec_GEY(); break;
             case EQA:     exec_EQA(); break;
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
