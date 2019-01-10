@@ -2000,7 +2000,7 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
                  || (exception.length() > handler.length() && exception.substr(0, handler.length()) == handler && exception.at(handler.length()) == '.')) {
                     module = tmodule;
                     ip = e->handler;
-                    while (stack.depth() > frames.back().opstack_depth + e->stack_depth) {
+                    while (stack.depth() > (frames.empty() ? 0 : frames.back().opstack_depth) + e->stack_depth) {
                         stack.pop();
                     }
                     callstack.resize(sp);

@@ -40,7 +40,7 @@ public:
         Label *next;
     };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), stack_depth(0), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), stack_depth(0), in_jumptbl(false), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
     void emit_byte(unsigned char b);
     void emit(Opcode b);
     void emit_uint32(uint32_t value);
@@ -92,6 +92,7 @@ private:
     std::stack<Label *> function_exit;
     size_t current_function_depth;
     int stack_depth;
+    bool in_jumptbl;
     std::map<size_t, LoopLabels> loop_labels;
     std::set<const ast::Type *> exported_types;
     DebugInfo *debug_info;
@@ -114,6 +115,9 @@ void Emitter::emit(Opcode b)
     }
     emit_byte(static_cast<unsigned char>(b));
     if (stack_depth >= 0) {
+        if (in_jumptbl) {
+            in_jumptbl = (b == JUMP);
+        }
         switch (b) {
             case ENTER:     break;
             case LEAVE:     break;
@@ -209,7 +213,7 @@ void Emitter::emit(Opcode b)
             case JNASSERT:  break;
             case RESETC:    stack_depth -= 1; break;
             case PUSHPEG:   stack_depth += 1; break;
-            case JUMPTBL:   stack_depth -= 1; break;
+            case JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
             case CALLX:     break;
             case SWAP:      break;
             case DROPN:     break;
@@ -354,7 +358,7 @@ void Emitter::emit_jump(Opcode b, Label &label)
             }
         }
     }
-    if (b == JUMP || b == RET || b == EXCEPT) {
+    if ((b == JUMP && not in_jumptbl) || b == RET || b == EXCEPT) {
         stack_depth = -1;
     }
 }
