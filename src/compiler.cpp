@@ -112,7 +112,7 @@ void Emitter::emit(Opcode b)
     if (debug_info != nullptr) {
         debug_info->stack_depth[object.code.size()] = stack_depth;
     }
-    emit_byte(b);
+    emit_byte(static_cast<unsigned char>(b));
     if (stack_depth >= 0) {
         switch (b) {
             case ENTER:     break;
