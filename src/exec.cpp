@@ -2196,7 +2196,14 @@ int Executor::exec_loop(size_t min_callstack_depth)
     while (callstack.size() > min_callstack_depth && ip < module->object.code.size() && exit_code == 0) {
         if (options->enable_trace) {
             auto i = ip;
-            std::cerr << "mod " << module->name << " ip " << ip << " " << disassemble_instruction(module->object, i) << " | st " << stack.depth() << "\n";
+            std::cerr << "mod " << module->name << " ip " << ip << " (" << stack.depth() << ") " << disassemble_instruction(module->object, i) << "\n";
+            if (module->debug != nullptr) {
+                auto sd = module->debug->stack_depth.find(ip);
+                if (sd != module->debug->stack_depth.end() && sd->second != static_cast<int>(stack.depth())) {
+                    std::cerr << "stack depth mismatch: expected=" << sd->second << " actual=" << stack.depth() << "\n";
+                    abort();
+                }
+            }
         }
         if (debug_server != nullptr) {
             switch (debugger_state) {
