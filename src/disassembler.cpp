@@ -1009,9 +1009,11 @@ void Disassembler::disassemble()
             }
         }
         out << "  " << index << " ";
-        auto st = debug->stack_depth.find(index);
-        if (st != debug->stack_depth.end()) {
-            out << "(" << st->second << ") ";
+        if (debug != nullptr) {
+            auto st = debug->stack_depth.find(index);
+            if (st != debug->stack_depth.end()) {
+                out << "(" << st->second << ") ";
+            }
         }
         auto last_index = index;
         std::string s = disassemble_instruction(obj, index);
