@@ -12,7 +12,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef WITH_FFI
 #include <ffi.h>
+#endif
 #include <minijson_writer.hpp>
 
 #include "bytecode.h"
@@ -69,6 +71,7 @@ std::string just_path(const std::string &name)
 
 } // namespace
 
+#ifdef WITH_FFI
 class ForeignCallInfo {
 public:
     typedef void *(*marshal_f)(Cell &cell, void *&p, size_t &space);
@@ -80,6 +83,9 @@ public:
     ffi_cif cif;
     void_function_t fp;
 };
+#else
+class ForeignCallInfo;
+#endif
 
 #ifdef _MSC_VER
 #define alignof(T) sizeof(T)
@@ -1578,6 +1584,7 @@ void Executor::exec_RET()
 
 void Executor::exec_CALLE()
 {
+#ifdef WITH_FFI
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     ForeignCallInfo *fci = val < module->foreign_functions.size() ? module->foreign_functions.at(val) : nullptr;
@@ -1662,6 +1669,10 @@ void Executor::exec_CALLE()
     if (fci->unmarshal != nullptr) {
         stack.push(fci->unmarshal(r));
     }
+#else
+    fprintf(stderr, "ffi unsupported\n");
+    abort();
+#endif
 }
 
 void Executor::exec_CONSA()

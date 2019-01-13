@@ -63,5 +63,5 @@ find_library(
     PATHS lib
 )
 if (NOT ffi)
-    message(FATAL_ERROR "Could not find ffi library, run 'scons external/lib' first")
+    #message(FATAL_ERROR "Could not find ffi library, run 'scons external/lib' first")
 endif ()
