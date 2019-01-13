@@ -64,5 +64,5 @@ find_library(
 )
 if (NOT ffi)
     #message(FATAL_ERROR "Could not find ffi library, run 'scons external/lib' first")
-    set(ffi "")
+    set(ffi "user32")
 endif ()
