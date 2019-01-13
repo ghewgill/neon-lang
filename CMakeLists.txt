@@ -334,7 +334,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 endif ()
 target_link_libraries(neon
     bid
-    ${ffi}
+    #${ffi}
     hash-library
     sqlite3
 )
@@ -353,7 +353,7 @@ target_include_directories(neonx PRIVATE
 )
 target_link_libraries(neonx
     bid
-    ${ffi}
+    #${ffi}
     hash-library
     minizip
     sqlite3
@@ -382,7 +382,7 @@ target_include_directories(neonstub PRIVATE
 )
 target_link_libraries(neonstub
     bid
-    ${ffi}
+    #${ffi}
     hash-library
     minizip
     sqlite3

@@ -27,6 +27,6 @@ script:
   - dir CMakeFiles
   - cat CMakeFiles/CMakeOutput.log
   - dir
-  - msbuild
+  - msbuild.exe
   - ctest
 sudo: false
