@@ -215,13 +215,6 @@ public:
     Number code;
 };
 
-class InternalException {
-public:
-    InternalException(const utf8string &name, const ExceptionInfo &info): name(name), info(info) {}
-    utf8string name;
-    ExceptionInfo info;
-};
-
 class Executor;
 
 class Module {
@@ -274,8 +267,6 @@ public:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
-    std::vector<ActivationFrame *> nested_frames;
-    int map_depth;
 
     std::list<Cell> allocs;
     unsigned int allocations;
@@ -395,8 +386,6 @@ public:
     void exec_PUSHM();
     void exec_CALLV();
     void exec_PUSHCI();
-    void exec_MAPA();
-    void exec_MAPD();
 
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
@@ -678,8 +667,6 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     stack(),
     callstack(),
     frames(),
-    nested_frames(),
-    map_depth(0),
     allocs(),
     allocations(0),
     debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
@@ -1913,74 +1900,8 @@ void Executor::exec_PUSHCI()
     exit(1);
 }
 
-void Executor::exec_MAPA()
-{
-    ip++;
-    uint32_t target = Bytecode::get_vint(module->object.code, ip);
-    const auto start = ip;
-    map_depth++;
-    const std::vector<Cell> a = stack.top().array(); stack.pop();
-    std::vector<Cell> r;
-    for (auto x: a) {
-        stack.push(x);
-        callstack.push_back(std::make_pair(module, start));
-        try {
-            int retval = exec_loop(callstack.size() - 1);
-            if (retval != 0) {
-                exit(retval);
-            }
-        } catch (InternalException *x) {
-            callstack.pop_back();
-            map_depth--;
-            raise_literal(x->name, x->info);
-            delete x;
-            return;
-        }
-        r.push_back(stack.top()); stack.pop();
-    }
-    stack.push(Cell(r));
-    map_depth--;
-    ip = target;
-}
-
-void Executor::exec_MAPD()
-{
-    ip++;
-    uint32_t target = Bytecode::get_vint(module->object.code, ip);
-    const auto start = ip;
-    map_depth++;
-    const std::map<utf8string, Cell> d = stack.top().dictionary(); stack.pop();
-    std::map<utf8string, Cell> r;
-    for (auto x: d) {
-        stack.push(x.second);
-        callstack.push_back(std::make_pair(module, start));
-        try {
-            int retval = exec_loop(callstack.size() - 1);
-            if (retval != 0) {
-                exit(retval);
-            }
-        } catch (InternalException *x) {
-            callstack.pop_back();
-            map_depth--;
-            raise_literal(x->name, x->info);
-            delete x;
-            return;
-        }
-        r[x.first] = stack.top(); stack.pop();
-    }
-    stack.push(Cell(r));
-    map_depth--;
-    ip = target;
-}
-
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
-    if (map_depth > 0) {
-        // Allocating and throwing a pointer here avoids a compiler bug:
-        // https://stackoverflow.com/questions/30885997/clang-runtime-fault-when-throwing-aligned-type-compiler-bug
-        throw new InternalException(exception, info);
-    }
-
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
     Cell exceptionvar;
@@ -2335,8 +2256,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(); break;
-            case MAPA:    exec_MAPA(); break;
-            case MAPD:    exec_MAPD(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();

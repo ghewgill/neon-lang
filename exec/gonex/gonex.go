@@ -110,8 +110,6 @@ const (
 	PUSHM    = iota // push current module
 	CALLV    = iota // call virtual
 	PUSHCI   = iota // push class info
-	MAPA     = iota // map array
-	MAPD     = iota // map dictionary
 )
 
 func assert(b bool, msg string) {
@@ -537,10 +535,6 @@ func (self *executor) run() {
 			self.op_callv()
 		case PUSHCI:
 			self.op_pushci()
-		case MAPA:
-			self.op_mapa()
-		case MAPD:
-			self.op_mapd()
 		default:
 			panic(fmt.Sprintf("unknown opcode %d", self.object.code[self.ip]))
 		}
@@ -1311,14 +1305,6 @@ func (self *executor) op_callv() {
 }
 
 func (self *executor) op_pushci() {
-	assert(false, "unimplemented")
-}
-
-func (self *executor) op_mapa() {
-	assert(false, "unimplemented")
-}
-
-func (self *executor) op_mapd() {
 	assert(false, "unimplemented")
 }
 

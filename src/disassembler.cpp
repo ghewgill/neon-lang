@@ -123,8 +123,6 @@ private:
     void disasm_PUSHM();
     void disasm_CALLV();
     void disasm_PUSHCI();
-    void disasm_MAPA();
-    void disasm_MAPD();
 };
 
 void InstructionDisassembler::disasm_ENTER()
@@ -769,20 +767,6 @@ void InstructionDisassembler::disasm_PUSHCI()
     out << "PUSHCI \"" << obj.strtable[val] << "\"";
 }
 
-void InstructionDisassembler::disasm_MAPA()
-{
-    index++;
-    uint32_t addr = Bytecode::get_vint(obj.code, index);
-    out << "MAPA " << addr;
-}
-
-void InstructionDisassembler::disasm_MAPD()
-{
-    index++;
-    uint32_t addr = Bytecode::get_vint(obj.code, index);
-    out << "MAPD " << addr;
-}
-
 void InstructionDisassembler::disassemble()
 {
     switch (static_cast<Opcode>(obj.code[index])) {
@@ -887,8 +871,6 @@ void InstructionDisassembler::disassemble()
         case PUSHM:   disasm_PUSHM(); break;
         case CALLV:   disasm_CALLV(); break;
         case PUSHCI:  disasm_PUSHCI(); break;
-        case MAPA:    disasm_MAPA(); break;
-        case MAPD:    disasm_MAPD(); break;
     }
 }
 

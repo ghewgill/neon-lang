@@ -51,6 +51,7 @@ gc2.neon                   # gc
 gc3.neon                   # gc
 import.neon                # import
 interface-parameter-export.neon # method
+interface-parameter-export2.neon # method
 interface-parameter-import.neon # method
 interface-parameter-import2.neon # method
 in.neon                    # ArrayInExpression
@@ -84,12 +85,14 @@ object.neon                # object
 object-isa.neon            # object
 object-isa-case.neon       # object
 object-null.neon           # object
+object-operator.neon       # object
 os-test.neon               # module os
 parameter-out-array.neon   # out parameters
 parameter-out-string.neon  # StringReferenceIndexExpression
 parameters-ignore.neon     # DummyExpression
 parameters.neon            # keyword in
 pointer-method.neon        # methods
+predeclare1.neon           # something
 process-test.neon          # module process
 record-private.neon        # methods
 recursion-limit.neon       # module runtime

@@ -195,8 +195,6 @@ class Executor {
                 //case PUSHM
                 //case CALLV
                 case PUSHCI: doPUSHCI(); break;
-                case MAPA: doMAPA(); break;
-                case MAPD: doMAPD(); break;
                 default:
                     System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
                     System.exit(1);
@@ -918,58 +916,6 @@ class Executor {
         System.exit(1);
     }
 
-    private void doMAPA()
-    {
-        ip++;
-        int target = getVint();
-        final int start = ip;
-        mapDepth++;
-        List<Cell> a = stack.removeFirst().getArray();
-        List<Cell> r = new ArrayList<Cell>();
-        for (Cell x: a) {
-            stack.addFirst(x);
-            callstack.addFirst(start);
-            try {
-                execLoop(callstack.size() - 1);
-            } catch (InternalException ix) {
-                callstack.removeFirst();
-                mapDepth--;
-                raiseLiteral(ix.name, ix.info);
-                return;
-            }
-            r.add(stack.removeFirst());
-        }
-        stack.addFirst(new Cell(r));
-        mapDepth--;
-        ip = target;
-    }
-
-    private void doMAPD()
-    {
-        ip++;
-        int target = getVint();
-        final int start = ip;
-        mapDepth++;
-        Map<String, Cell> d = stack.removeFirst().getDictionary();
-        Map<String, Cell> r = new TreeMap<String, Cell>();
-        for (Map.Entry<String, Cell> x: d.entrySet()) {
-            stack.addFirst(x.getValue());
-            callstack.addFirst(start);
-            try {
-                execLoop(callstack.size() - 1);
-            } catch (InternalException ix) {
-                callstack.removeFirst();
-                mapDepth--;
-                raiseLiteral(ix.name, ix.info);
-                return;
-            }
-            r.put(x.getKey(), stack.removeFirst());
-        }
-        stack.addFirst(new Cell(r));
-        mapDepth--;
-        ip = target;
-    }
-
     private void raiseLiteral(String name)
     {
         raiseLiteral(name, new ExceptionInfo());
@@ -984,10 +930,6 @@ class Executor {
 
     private void raiseLiteral(String name, ExceptionInfo info)
     {
-        if (mapDepth > 0) {
-            throw new InternalException(name, info);
-        }
-
         Cell exceptionvar = new Cell(new ArrayList<Cell>(Arrays.asList(
             new Cell(name),
             new Cell(info.info),
@@ -1028,15 +970,6 @@ class Executor {
     private class ExceptionInfo {
         String info = "";
         BigDecimal code = BigDecimal.valueOf(0);
-    }
-
-    private class InternalException extends RuntimeException {
-        InternalException(String name, ExceptionInfo info) {
-            this.name = name;
-            this.info = info;
-        }
-        String name;
-        ExceptionInfo info;
     }
 
     public enum Opcode {
@@ -1141,8 +1074,6 @@ class Executor {
         PUSHM,
         CALLV,
         PUSHCI,
-        MAPA,
-        MAPD,
     }
 
     private interface GenericFunction {
@@ -1158,7 +1089,6 @@ class Executor {
     private ArrayDeque<Cell> stack;
     private Cell[] globals;
     private ArrayDeque<Cell[]> frames;
-    private int mapDepth;
 
     private void array__append()
     {

@@ -68,6 +68,7 @@ outer.neon                 # verifier
 outer2.neon                # verifier
 parameter-inout-array.neon # actually works here so avoid the TODO
 parameter-inout-string.neon# actually works here so avoid the TODO
+predeclare1.neon           # something
 process-test.neon          # module process
 recursion-limit.neon       # module runtime
 repl_import.neon           # module random

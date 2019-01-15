@@ -103,8 +103,6 @@ enum Opcode {
     PUSHM,      // push current module
     CALLV,      // call virtual
     PUSHCI,     // push class info
-    MAPA,       // map array
-    MAPD,       // map dictionary
 };
 
 #endif

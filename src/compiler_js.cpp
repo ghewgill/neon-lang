@@ -2095,6 +2095,8 @@ public:
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
     virtual void visit(const ast::InterfaceMethodExpression *) {}
+    virtual void visit(const ast::InterfacePointerConstructor *) {}
+    virtual void visit(const ast::InterfacePointerDeconstructor *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
@@ -2218,6 +2220,8 @@ public:
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
     virtual void visit(const ast::InterfaceMethodExpression *) {}
+    virtual void visit(const ast::InterfacePointerConstructor *) {}
+    virtual void visit(const ast::InterfacePointerDeconstructor *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
@@ -2332,7 +2336,7 @@ public:
     virtual void visit(const ast::StringValueIndexExpression *node) { r = new StringValueIndexExpression(node); }
     virtual void visit(const ast::BytesReferenceIndexExpression *node) { r = new BytesReferenceIndexExpression(node); }
     virtual void visit(const ast::BytesValueIndexExpression *node) { r = new BytesValueIndexExpression(node); }
-    virtual void visit(const ast::ObjectSubscriptExpression *) { /* TODO */ }
+    virtual void visit(const ast::ObjectSubscriptExpression *) { /* TODO */ internal_error("ObjectSubscriptExpression"); }
     virtual void visit(const ast::RecordReferenceFieldExpression *node) { r = new RecordReferenceFieldExpression(node); }
     virtual void visit(const ast::RecordValueFieldExpression *node) { r = new RecordValueFieldExpression(node); }
     virtual void visit(const ast::ArrayReferenceRangeExpression *node) { r = new ArrayReferenceRangeExpression(node); }
@@ -2341,6 +2345,8 @@ public:
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
     virtual void visit(const ast::InterfaceMethodExpression *node) { r = new InterfaceMethodExpression(node); }
+    virtual void visit(const ast::InterfacePointerConstructor *) { internal_error("InterfacePointerConstructor"); }
+    virtual void visit(const ast::InterfacePointerDeconstructor *) { internal_error("InterfacePointerDeconstructor"); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
@@ -2464,6 +2470,8 @@ public:
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
     virtual void visit(const ast::InterfaceMethodExpression *) {}
+    virtual void visit(const ast::InterfacePointerConstructor *) {}
+    virtual void visit(const ast::InterfacePointerDeconstructor *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *node) { r = new NullStatement(node); }

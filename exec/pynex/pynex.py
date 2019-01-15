@@ -25,11 +25,6 @@ def get_vint(b, i):
 def quoted(s):
     return '"' + s.replace('"', r'\"') + '"'
 
-class InternalException:
-    def __init__(self, name, info):
-        self.name = name
-        self.info = info
-
 class Bytes:
     def __init__(self, s):
         self.s = s
@@ -203,7 +198,6 @@ class Executor:
         self.globals = [None] * self.object.global_size
         for i in range(len(self.globals)):
             self.globals[i] = Value(None)
-        self.map_depth = 0
 
     def run(self):
         self.callstack.append((None, len(self.object.code)))
@@ -786,58 +780,7 @@ class Executor:
     def PUSHCI(self):
         assert False
 
-    def MAPA(self):
-        self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
-        start = self.ip
-        self.map_depth += 1
-        a = self.stack.pop().value
-        r = []
-        for x in a:
-            self.stack.append(x)
-            callbreak = len(self.callstack)
-            self.callstack.append((None, start))
-            try:
-                while len(self.callstack) > callbreak:
-                    Dispatch[ord(self.object.code[self.ip])](self)
-            except InternalException as x:
-                self.callstack.pop()
-                self.map_depth -= 1
-                self.raise_literal(x.name, x.info)
-                return
-            r.append(self.stack.pop())
-        self.stack.append(Value(r))
-        self.map_depth -= 1
-        self.ip = target
-
-    def MAPD(self):
-        self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
-        start = self.ip
-        self.map_depth += 1
-        d = self.stack.pop().value
-        r = {}
-        for k, v in d.items():
-            self.stack.append(v)
-            callbreak = len(self.callstack)
-            self.callstack.append((None, start))
-            try:
-                while len(self.callstack) > callbreak:
-                    Dispatch[ord(self.object.code[self.ip])](self)
-            except InternalException as x:
-                self.callstack.pop()
-                self.map_depth -= 1
-                self.raise_literal(x.name, x.info)
-                return
-            r[k] = self.stack.pop()
-        self.stack.append(Value(r))
-        self.map_depth -= 1
-        self.ip = target
-
     def raise_literal(self, name, info):
-        if self.map_depth > 0:
-            raise InternalException(name, info)
-
         exceptionvar = [
             Value(name),
             Value(info[0]),
@@ -966,8 +909,6 @@ Dispatch = [
     Executor.PUSHM,
     Executor.CALLV,
     Executor.PUSHCI,
-    Executor.MAPA,
-    Executor.MAPD,
 ]
 
 def neon_array__append(self):

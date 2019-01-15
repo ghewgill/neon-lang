@@ -104,8 +104,6 @@ enum Opcode {
     PUSHM,      // push current module
     CALLV,      // call virtual
     PUSHCI,     // push class info
-    MAPA,       // map array
-    MAPD,       // map dictionary
 }
 
 fn get_vint(bytes: &[u8], i: &mut usize) -> usize {
@@ -341,8 +339,6 @@ impl Executor {
                 x if x == Opcode::PUSHM as u8 => self.op_pushm(),
                 x if x == Opcode::CALLV as u8 => self.op_callv(),
                 x if x == Opcode::PUSHCI as u8 => self.op_pushci(),
-                x if x == Opcode::MAPA as u8 => self.op_mapa(),
-                x if x == Opcode::MAPD as u8 => self.op_mapd(),
                 _ => panic!("invalid opcode")
             }
         }
@@ -765,14 +761,6 @@ impl Executor {
     }
 
     fn op_pushci(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_mapa(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_mapd(&mut self) {
         assert!(false, "unimplemented");
     }
 

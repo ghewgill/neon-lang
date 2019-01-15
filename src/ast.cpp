@@ -33,19 +33,31 @@ void AstNode::dump(std::ostream &out, int depth) const
     dumpsubnodes(out, depth);
 }
 
-void Type::generate_convert(Emitter &, const Type *) const
+static const Expression *identity_conversion(Analyzer *, const Expression *e) { return e; }
+
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> Type::make_converter(const Type *from) const
 {
-    // No conversion code necessary by default.
+    if (from == this) {
+        return identity_conversion;
+    } else {
+        fprintf(stderr, "might need make_conversion for %s from %s\n", text().c_str(), from->text().c_str());
+        return nullptr;
+    }
+}
+
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeDummy::make_converter(const Type *from) const
+{
+    if (from == TYPE_NOTHING) {
+        return nullptr;
+    }
+    return [this](Analyzer *, const Expression *e) {
+        return new TypeConversionExpression(this, e);
+    };
 }
 
 const Expression *TypeBoolean::make_default_value() const
 {
     return new ConstantBooleanExpression(false);
-}
-
-bool TypeBoolean::is_assignment_compatible(const Type *rhs) const
-{
-    return this == rhs || rhs == TYPE_OBJECT;
 }
 
 std::string TypeBoolean::serialize(const Expression *value) const
@@ -65,11 +77,6 @@ const Expression *TypeNumber::make_default_value() const
     return new ConstantNumberExpression(number_from_uint32(0));
 }
 
-bool TypeNumber::is_assignment_compatible(const Type *rhs) const
-{
-    return this == rhs || rhs == TYPE_OBJECT;
-}
-
 std::string TypeNumber::serialize(const Expression *value) const
 {
     Number x = value->eval_number();
@@ -84,11 +91,6 @@ const Expression *TypeNumber::deserialize_value(const Bytecode::Bytes &value, in
 const Expression *TypeString::make_default_value() const
 {
     return new ConstantStringExpression(utf8string(""));
-}
-
-bool TypeString::is_assignment_compatible(const Type *rhs) const
-{
-    return this == rhs || rhs == TYPE_OBJECT;
 }
 
 std::string TypeString::serialize(const utf8string &value)
@@ -127,11 +129,6 @@ const Expression *TypeBytes::make_default_value() const
     return new ConstantBytesExpression("", "");
 }
 
-bool TypeBytes::is_assignment_compatible(const Type *rhs) const
-{
-    return this == rhs || rhs == TYPE_OBJECT;
-}
-
 std::string TypeBytes::serialize(const Expression *value) const
 {
     return TypeString::serialize(value->eval_string());
@@ -145,20 +142,6 @@ const Expression *TypeBytes::deserialize_value(const Bytecode::Bytes &value, int
 const Expression *TypeObject::make_default_value() const
 {
     return nullptr; // TODO
-}
-
-bool TypeObject::is_assignment_compatible(const Type *rhs) const
-{
-    return
-        rhs == nullptr ||
-        dynamic_cast<const TypePointerNil *>(rhs) != nullptr ||
-        rhs == TYPE_BOOLEAN ||
-        rhs == TYPE_NUMBER ||
-        rhs == TYPE_STRING ||
-        rhs == TYPE_BYTES ||
-        rhs == TYPE_OBJECT ||
-        (dynamic_cast<const TypeArray *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeArray *>(rhs)->elementtype)) ||
-        (dynamic_cast<const TypeDictionary *>(rhs) != nullptr && is_assignment_compatible(dynamic_cast<const TypeDictionary *>(rhs)->elementtype));
 }
 
 std::string TypeObject::serialize(const Expression *) const
@@ -219,40 +202,40 @@ const Expression *TypeArray::make_default_value() const
     return new ArrayLiteralExpression(nullptr, {}, {});
 }
 
-bool TypeFunction::is_assignment_compatible(const Type *rhs) const
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeFunction::make_converter(const Type *from) const
 {
     // TODO: There needs to be a mechanism for reporting more detail about why the
     // type does not match. There are quite a few reasons for this to return false,
     // and the user would probably appreciate more detail.
-    const TypeFunction *f = dynamic_cast<const TypeFunction *>(rhs);
+    const TypeFunction *f = dynamic_cast<const TypeFunction *>(from);
     if (f == nullptr) {
-        const TypeFunctionPointer *p = dynamic_cast<const TypeFunctionPointer *>(rhs);
+        const TypeFunctionPointer *p = dynamic_cast<const TypeFunctionPointer *>(from);
         if (p == nullptr) {
-            return false;
+            return nullptr;
         }
         f = p->functype;
         if (f == nullptr) {
-            return true;
+            return identity_conversion;
         }
     }
-    if (returntype != TYPE_NOTHING && f->returntype != TYPE_NOTHING && not returntype->is_assignment_compatible(f->returntype)) {
-        return false;
+    if (returntype != TYPE_NOTHING && f->returntype != TYPE_NOTHING && returntype->make_converter(f->returntype) == nullptr) {
+        return nullptr;
     }
     if (params.size() != f->params.size()) {
-        return false;
+        return nullptr;
     }
     for (size_t i = 0; i < params.size(); i++) {
         if (params[i]->declaration.text != f->params[i]->declaration.text) {
-            return false;
+            return nullptr;
         }
         if (params[i]->mode != f->params[i]->mode) {
-            return false;
+            return nullptr;
         }
-        if (not f->params[i]->type->is_assignment_compatible(params[i]->type)) {
-            return false;
+        if (f->params[i]->type->make_converter(params[i]->type) == nullptr) {
+            return nullptr;
         }
     }
-    return true;
+    return identity_conversion;
 }
 
 int TypeFunction::get_stack_delta() const
@@ -288,31 +271,13 @@ int ModuleFunction::get_stack_delta() const
     return dynamic_cast<const TypeFunction *>(type)->get_stack_delta();
 }
 
-bool TypeArray::is_assignment_compatible(const Type *rhs) const
+bool TypeArray::is_structure_compatible(const Type *rhs) const
 {
-    const TypeArrayLiteral *tal = dynamic_cast<const TypeArrayLiteral *>(rhs);
-    if (tal != nullptr && elementtype != nullptr) {
-        int i = 0;
-        for (auto e: tal->elements) {
-            if (not elementtype->is_assignment_compatible(e->type)) {
-                error(3079, tal->elementtokens[i], "type mismatch");
-            }
-            i++;
-        }
-    }
-    return is_assignment_compatible_no_error(rhs);
-}
-
-bool TypeArray::is_assignment_compatible_no_error(const Type *rhs) const
-{
-    if (rhs == TYPE_OBJECT) {
-        return true;
-    }
     const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);
     if (a == nullptr) {
         return false;
     }
-    return elementtype == nullptr || a->elementtype == nullptr || elementtype->is_assignment_compatible(a->elementtype);
+    return elementtype->is_structure_compatible(a->elementtype);
 }
 
 std::string TypeArray::serialize(const Expression *value) const
@@ -364,31 +329,13 @@ const Expression *TypeDictionary::make_default_value() const
     return new DictionaryLiteralExpression(nullptr, {}, {});
 }
 
-bool TypeDictionary::is_assignment_compatible(const Type *rhs) const
+bool TypeDictionary::is_structure_compatible(const Type *rhs) const
 {
-    const TypeDictionaryLiteral *tdl = dynamic_cast<const TypeDictionaryLiteral *>(rhs);
-    if (tdl != nullptr && elementtype != nullptr) {
-        int i = 0;
-        for (auto &e: tdl->elements) {
-            if (not elementtype->is_assignment_compatible(e.second->type)) {
-                error(3072, tdl->elementtokens[i], "type mismatch");
-            }
-            i++;
-        }
-    }
-    return is_assignment_compatible_no_error(rhs);
-}
-
-bool TypeDictionary::is_assignment_compatible_no_error(const Type *rhs) const
-{
-    if (rhs == TYPE_OBJECT) {
-        return true;
-    }
     const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(rhs);
     if (d == nullptr) {
         return false;
     }
-    return elementtype == nullptr || d->elementtype == nullptr || elementtype->is_assignment_compatible(d->elementtype);
+    return elementtype->is_structure_compatible(d->elementtype);
 }
 
 std::string TypeDictionary::serialize(const Expression *value) const
@@ -424,11 +371,6 @@ const Expression *TypeDictionary::deserialize_value(const Bytecode::Bytes &value
 const Expression *TypeRecord::make_default_value() const
 {
     return new ArrayLiteralExpression(nullptr, {}, {});
-}
-
-bool TypeRecord::is_assignment_compatible(const Type *rhs) const
-{
-    return this == rhs;
 }
 
 std::string TypeRecord::serialize(const Expression *value) const
@@ -518,23 +460,38 @@ const Expression *TypePointer::make_default_value() const
     return new ConstantNilExpression();
 }
 
-bool TypePointer::is_assignment_compatible(const Type *rhs) const
+bool TypePointer::is_structure_compatible(const Type *rhs) const
 {
-    if (this == rhs) {
-        return true;
-    }
-    if (dynamic_cast<const TypePointerNil *>(rhs) != nullptr) {
-        return true;
-    }
     const TypePointer *p = dynamic_cast<const TypePointer *>(rhs);
     if (p == nullptr) {
         return false;
     }
+    if (reftype == nullptr) {
+        return true;
+    }
+    return reftype->is_structure_compatible(p->reftype);
+}
+
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypePointer::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (dynamic_cast<const TypePointerNil *>(from) != nullptr) {
+        return identity_conversion;
+    }
+    const TypePointer *p = dynamic_cast<const TypePointer *>(from);
+    if (p == nullptr) {
+        return nullptr;
+    }
     if (reftype == nullptr || p->reftype == nullptr) {
-        return false;
+        return nullptr;
     }
     // Shortcut check avoids infinite recursion on records with pointer to itself.
-    return reftype == p->reftype || reftype->is_assignment_compatible(p->reftype);
+    if (reftype == p->reftype || reftype->make_converter(p->reftype) != nullptr) {
+        return identity_conversion;
+    }
+    return nullptr;
 }
 
 std::string TypePointer::serialize(const Expression *) const
@@ -547,18 +504,15 @@ const Expression *TypePointer::deserialize_value(const Bytecode::Bytes &, int &)
     return new ConstantNilExpression();
 }
 
-bool TypeValidPointer::is_assignment_compatible(const Type *rhs) const
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeValidPointer::make_converter(const Type *from) const
 {
-    if (this == rhs) {
-        return true;
+    if (from == this) {
+        return identity_conversion;
     }
-    if (not TypePointer::is_assignment_compatible(rhs)) {
-        return false;
+    if (dynamic_cast<const TypeValidPointer *>(from) == nullptr) {
+        return nullptr;
     }
-    if (dynamic_cast<const TypeValidPointer *>(rhs) == nullptr) {
-        return false;
-    }
-    return true;
+    return TypePointer::make_converter(from);
 }
 
 TypeInterfacePointer::TypeInterfacePointer(const Token &declaration, const Interface *interface)
@@ -577,27 +531,31 @@ const Expression *TypeInterfacePointer::make_default_value() const
     return new ConstantNilExpression();
 }
 
-bool TypeInterfacePointer::is_assignment_compatible(const Type *rhs) const
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeInterfacePointer::make_converter(const Type *from) const
 {
-    if (this == rhs) {
-        return true;
+    if (from == this) {
+        return identity_conversion;
     }
-    if (dynamic_cast<const TypePointerNil *>(rhs) != nullptr) {
-        return true;
+    if (dynamic_cast<const TypePointerNil *>(from) != nullptr) {
+        return identity_conversion;
     }
-    const TypeInterfacePointer *p = dynamic_cast<const TypeInterfacePointer *>(rhs);
+    const TypeInterfacePointer *p = dynamic_cast<const TypeInterfacePointer *>(from);
     if (p != nullptr && interface == p->interface) {
-        return true;
+        return identity_conversion;
     }
-    const TypePointer *pc = dynamic_cast<const TypePointer *>(rhs);
+    const TypePointer *pc = dynamic_cast<const TypePointer *>(from);
     if (pc != nullptr) {
-        for (auto i: pc->reftype->interfaces) {
-            if (i == interface) {
-                return true;
+        size_t i = 0;
+        for (auto it: pc->reftype->interfaces) {
+            if (it == interface) {
+                return [this, i](Analyzer *, const Expression *e) {
+                    return new InterfacePointerConstructor(this, e, i);
+                };
             }
+            i++;
         }
     }
-    return false;
+    return nullptr;
 }
 
 std::string TypeInterfacePointer::serialize(const Expression *) const
@@ -615,18 +573,15 @@ std::string TypeInterfacePointer::text() const
     return "TypeInterfacePointer(" + interface->text() + ")";
 }
 
-bool TypeValidInterfacePointer::is_assignment_compatible(const Type *rhs) const
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeValidInterfacePointer::make_converter(const Type *from) const
 {
-    if (this == rhs) {
-        return true;
+    if (from == this) {
+        return identity_conversion;
     }
-    if (not TypeInterfacePointer::is_assignment_compatible(rhs)) {
-        return false;
+    if (dynamic_cast<const TypeValidPointer *>(from) == nullptr && dynamic_cast<const TypeValidInterfacePointer *>(from) == nullptr) {
+        return nullptr;
     }
-    if (dynamic_cast<const TypeValidPointer *>(rhs) == nullptr && dynamic_cast<const TypeValidInterfacePointer *>(rhs) == nullptr) {
-        return false;
-    }
-    return true;
+    return TypeInterfacePointer::make_converter(from);
 }
 
 std::string TypeValidInterfacePointer::text() const
@@ -650,9 +605,17 @@ const Expression *TypeFunctionPointer::make_default_value() const
     return new ConstantNowhereExpression();
 }
 
-bool TypeFunctionPointer::is_assignment_compatible(const Type *rhs) const
+std::function<const Expression *(Analyzer *analyzer, const Expression *e)> TypeFunctionPointer::make_converter(const Type *from) const
 {
-    return functype != nullptr && functype->is_assignment_compatible(rhs);
+    if (functype == nullptr) {
+        return nullptr;
+    }
+    if (functype->make_converter(from) == nullptr) {
+        return nullptr;
+    }
+    return [this](Analyzer *, const Expression *e) {
+        return new TypeConversionExpression(this, e);
+    };
 }
 
 std::string TypeFunctionPointer::serialize(const Expression *) const
@@ -787,7 +750,7 @@ bool TypeTestExpression::eval_boolean() const
     if (type == TYPE_OBJECT) {
         internal_error("unexpected object type");
     }
-    return target->is_assignment_compatible(left->type);
+    return expr_after_conversion->type->make_converter(expr_before_conversion->type) != nullptr;
 }
 
 bool BooleanComparisonExpression::eval_boolean() const
