@@ -2124,7 +2124,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
                 Opcode op = static_cast<Opcode>(module->object.code[ip]);
                 // TODO: Fix the exclusion of RET here after refactoring function code.
                 if (sd != module->debug->stack_depth.end() && op != ENTER && op != RET) {
-                    int expected_depth = (frames.empty() ? 0 : frames.back().opstack_depth) + sd->second;
+                    int expected_depth = static_cast<int>(frames.empty() ? 0 : frames.back().opstack_depth) + sd->second;
                     if (expected_depth != static_cast<int>(stack.depth())) {
                         std::cerr << "stack depth mismatch: expected=" << expected_depth << " actual=" << stack.depth() << "\n";
                         abort();
