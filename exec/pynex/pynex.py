@@ -208,9 +208,10 @@ class Executor:
     def ENTER(self):
         self.ip += 1
         nest, self.ip = get_vint(self.object.code, self.ip)
-        val, self.ip = get_vint(self.object.code, self.ip)
-        f = [None] * val
-        for i in range(val):
+        params, self.ip = get_vint(self.object.code, self.ip)
+        locals, self.ip = get_vint(self.object.code, self.ip)
+        f = [None] * locals
+        for i in range(locals):
             f[i] = Value(None)
         self.frames.append(f)
 

@@ -1096,7 +1096,7 @@ void ast::Function::postdeclare(Emitter &emitter) const
     emitter.jump_target(emitter.function_label(entry_label));
     emitter.set_current_function_depth(nesting_depth);
     emitter.set_stack_depth(count_in_parameters(params));
-    emitter.emit(ENTER, static_cast<uint32_t>(nesting_depth), static_cast<uint32_t>(frame->getCount()));
+    emitter.emit(ENTER, static_cast<uint32_t>(nesting_depth), static_cast<uint32_t>(count_in_parameters(params)), static_cast<uint32_t>(frame->getCount()));
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::Mode::IN:
@@ -1204,7 +1204,7 @@ void ast::ExtensionFunction::postdeclare(Emitter &emitter) const
 {
     emitter.jump_target(emitter.function_label(entry_label));
     emitter.set_stack_depth(count_in_parameters(params));
-    emitter.emit(ENTER, 1, 0);
+    emitter.emit(ENTER, 1, count_in_parameters(params), 0);
     generate_call(emitter);
     emitter.emit(LEAVE);
     emitter.emit(RET);

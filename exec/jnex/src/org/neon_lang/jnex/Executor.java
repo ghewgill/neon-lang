@@ -234,8 +234,9 @@ class Executor {
     {
         ip++;
         int nest = getVint();
-        int val = getVint();
-        Cell[] frame = new Cell[val];
+        int params = getVint();
+        int locals = getVint();
+        Cell[] frame = new Cell[locals];
         for (int i = 0; i < frame.length; i++) {
             frame[i] = new Cell();
         }

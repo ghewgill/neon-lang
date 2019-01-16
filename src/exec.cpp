@@ -724,7 +724,7 @@ inline void dump_frames(Executor *exec)
     if (false) {
         printf("Frames:\n");
         for (auto &f: exec->frames) {
-            printf("  %p { nest=%u outer=%p locals=%zu }\n", &f, f.nesting_depth, f.outer, f.locals.size());
+            printf("  %p { nest=%u outer=%p locals=%zu opstack_depth=%zu }\n", &f, f.nesting_depth, f.outer, f.locals.size(), f.opstack_depth);
         }
     }
 }
@@ -733,7 +733,8 @@ void Executor::exec_ENTER()
 {
     ip++;
     uint32_t nest = Bytecode::get_vint(module->object.code, ip);
-    uint32_t val = Bytecode::get_vint(module->object.code, ip);
+    uint32_t params = Bytecode::get_vint(module->object.code, ip);
+    uint32_t locals = Bytecode::get_vint(module->object.code, ip);
     ActivationFrame *outer = nullptr;
     if (frames.size() > 0) {
         assert(nest <= frames.back().nesting_depth+1);
@@ -743,7 +744,7 @@ void Executor::exec_ENTER()
             outer = outer->outer;
         }
     }
-    frames.emplace_back(nest, outer, val, stack.depth());
+    frames.emplace_back(nest, outer, locals, stack.depth() - params);
     dump_frames(this);
 }
 
@@ -2120,9 +2121,14 @@ int Executor::exec_loop(size_t min_callstack_depth)
             std::cerr << "mod " << module->name << " ip " << ip << " (" << stack.depth() << ") " << disassemble_instruction(module->object, i) << "\n";
             if (module->debug != nullptr) {
                 auto sd = module->debug->stack_depth.find(ip);
-                if (sd != module->debug->stack_depth.end() && sd->second != static_cast<int>(stack.depth())) {
-                    std::cerr << "stack depth mismatch: expected=" << sd->second << " actual=" << stack.depth() << "\n";
-                    abort();
+                Opcode op = static_cast<Opcode>(module->object.code[ip]);
+                // TODO: Fix the exclusion of RET here after refactoring function code.
+                if (sd != module->debug->stack_depth.end() && op != ENTER && op != RET) {
+                    int expected_depth = (frames.empty() ? 0 : frames.back().opstack_depth) + sd->second;
+                    if (expected_depth != static_cast<int>(stack.depth())) {
+                        std::cerr << "stack depth mismatch: expected=" << expected_depth << " actual=" << stack.depth() << "\n";
+                        abort();
+                    }
                 }
             }
         }

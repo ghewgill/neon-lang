@@ -555,8 +555,10 @@ func (self *executor) op_enter() {
 	self.ip++
 	nest := get_vint(self.object.code, &self.ip)
 	assert(nest >= 0, "To avoid unused variable error")
-	val := get_vint(self.object.code, &self.ip)
-	f := make([]cell, val)
+	params := get_vint(self.object.code, &self.ip)
+	assert(params >= 0, "To avoid unused variable error")
+	locals := get_vint(self.object.code, &self.ip)
+	f := make([]cell, locals)
 	self.frames = append(self.frames, f)
 }
 

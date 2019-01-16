@@ -274,6 +274,7 @@ void exec_ENTER(TExecutor *self)
     // ToDo: Fix function nesting
     //unsigned int nest = exec_getOperand(self);
     exec_getOperand(self); // Keep the operand stack aligned properly.
+    /*unsigned int params =*/ exec_getOperand(self);
     unsigned int val = exec_getOperand(self);
 
     framestack_pushFrame(self->framestack, frame_createFrame(val));

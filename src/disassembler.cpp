@@ -129,8 +129,9 @@ void InstructionDisassembler::disasm_ENTER()
 {
     index++;
     uint32_t nest = Bytecode::get_vint(obj.code, index);
-    uint32_t val = Bytecode::get_vint(obj.code, index);
-    out << "ENTER " << nest << "," << val;
+    uint32_t params = Bytecode::get_vint(obj.code, index);
+    uint32_t locals = Bytecode::get_vint(obj.code, index);
+    out << "ENTER nest=" << nest << ",params=" << params << ",locals=" << locals;
 }
 
 void InstructionDisassembler::disasm_LEAVE()
