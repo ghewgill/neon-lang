@@ -5,6 +5,7 @@
 typedef struct tagTFrame {
     struct tagTCell *locals;
     uint32_t frame_size;
+    int stack_depth;
 } TFrame;
 
 typedef struct tagTFrameStack {
@@ -23,6 +24,6 @@ void framestack_pushFrame(TFrameStack *framestack, TFrame *frame);
 void framestack_popFrame(TFrameStack *framestack);
 TFrame *framestack_topFrame(TFrameStack *framestack);
 
-TFrame *frame_createFrame(uint32_t size);
+TFrame *frame_createFrame(uint32_t size, int stack_depth);
 
 #endif

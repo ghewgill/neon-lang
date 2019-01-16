@@ -39,6 +39,7 @@ exception-function.neon    # exception
 exception.neon             # exception
 exception-nested.neon      # exception
 exception-opstack.neon     # exception
+exception-opstack-depth.neon    # exception
 exception-stackerror.neon  # exception
 exception-subexception.neon# exception
 exception-trace.neon       # exception

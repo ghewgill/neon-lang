@@ -14,6 +14,7 @@ dictionary-sorted.neon     # module
 encoding-base64.neon       # module
 equality.neon              # class
 exception-opstack.neon     # exception
+exception-opstack-depth.neon    # exception
 export-inline.neon         # export
 export-recursive.neon      # export
 export.neon                # export

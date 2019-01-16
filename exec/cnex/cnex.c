@@ -220,6 +220,17 @@ typedef struct tagTExceptionInfo {
     Number code;
 } ExceptionInfo;
 
+void dump_frames(TExecutor *exec)
+{
+    if (0) {
+        printf("Frames:\n");
+        for (int i = 0; i < exec->framestack->top; i++) {
+            TFrame *f = exec->framestack->data[i];
+            printf("  %d { locals=%d }\n", i, f->frame_size);
+        }
+    }
+}
+
 void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number code)
 {
     Cell *exceptionvar = cell_createArrayCell(4);
@@ -236,6 +247,9 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 TString *handler = self->object->strings[self->object->exceptions[i].exid];
                 if ((string_compareString(name, handler) == 0) || (name->length > handler->length && string_startsWith(name, handler) && name->data[handler->length] == '.')) {
                     self->ip = self->object->exceptions[i].handler;
+                    while (self->stack->top > (((framestack_isEmpty(self->framestack) ? -1 : framestack_topFrame(self->framestack)->stack_depth) + (int32_t)self->object->exceptions[i].stack_depth))) {
+                        pop(self->stack);
+                    }
                     self->callstacktop = sp;
                     push(self->stack, exceptionvar);
                     return;
@@ -245,8 +259,10 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         if (sp == 0) {
             break;
         }
+        if (!framestack_isEmpty(self->framestack)) {
+            framestack_popFrame(self->framestack);
+        }
         tip = self->callstack[sp--];
-        framestack_popFrame(self->framestack);
     }
     fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
     exit(1);
@@ -274,10 +290,11 @@ void exec_ENTER(TExecutor *self)
     // ToDo: Fix function nesting
     //unsigned int nest = exec_getOperand(self);
     exec_getOperand(self); // Keep the operand stack aligned properly.
-    /*unsigned int params =*/ exec_getOperand(self);
+    unsigned int params = exec_getOperand(self);
     unsigned int val = exec_getOperand(self);
 
-    framestack_pushFrame(self->framestack, frame_createFrame(val));
+    framestack_pushFrame(self->framestack, frame_createFrame(val, self->stack->top - params));
+    dump_frames(self);
     /* ToDo: Implement Activiation frame support */
     //add(frame_newFrame(val));
     //nested_frames.resize(nest-1);
