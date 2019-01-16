@@ -21,6 +21,7 @@ dictionary-sorted.neon     # import
 encoding-base64.neon       # import
 equality.neon              # PUSHM
 exception-opstack.neon     # exception
+exception-opstack-depth.neon    # exception
 export-function-indent.neon# function_export
 export-inline.neon         # types
 export.neon                # types

@@ -93,6 +93,7 @@ exception-function.neon
 exception.neon
 exception-nested.neon
 exception-opstack.neon
+exception-opstack-depth.neon
 exception-stackerror.neon
 exception-subexception.neon
 exception-trace.neon

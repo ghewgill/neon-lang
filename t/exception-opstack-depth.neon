@@ -1,0 +1,14 @@
+EXCEPTION PrinterOnFireException
+
+FUNCTION foo(x, y: Number): Number
+    RAISE PrinterOnFireException
+    RETURN x+y
+END FUNCTION
+
+TRY
+    _ := foo(1, foo(2, foo(3, foo(4, foo(5, 6)))))
+TRAP PrinterOnFireException DO
+    print("PrinterOnFire")
+END TRY
+
+%= PrinterOnFire
