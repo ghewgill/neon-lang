@@ -9,7 +9,7 @@ if os.name == "posix":
 elif os.path.exists("c:\\program files\\nodejs\\node.exe"):
     node = "\"c:\\program files\\nodejs\\node\""
 else:
-    sys.exit(99)
+    node = "node"
 
 if os.system("{} -q -t js {}".format(os.path.join("bin", "neonc"), fullname)) != 0:
     sys.exit(1)
