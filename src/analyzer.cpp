@@ -718,6 +718,82 @@ static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, con
     );
 }
 
+static const ast::Expression *make_object_conversion_from_record(Analyzer *analyzer, const ast::TypeRecord *rtype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(ast::TYPE_DICTIONARY_OBJECT);
+    std::vector<const ast::Statement *> field_statements;
+    for (auto &f: rtype->fields) {
+        auto converter = ast::TYPE_OBJECT->make_converter(f.type);
+        field_statements.push_back(
+            new ast::AssignmentStatement(
+                0,
+                {new ast::DictionaryReferenceIndexExpression(
+                    ast::TYPE_OBJECT,
+                    new ast::VariableExpression(result),
+                    new ast::ConstantStringExpression(utf8string(f.name.text))
+                )},
+                converter(
+                    analyzer,
+                    new ast::RecordValueFieldExpression(
+                        f.type,
+                        e,
+                        f.name.text,
+                        false
+                    )
+                )
+            )
+        );
+    }
+    return new ast::StatementExpression(
+        new ast::CompoundStatement(0, field_statements),
+        new ast::FunctionCall(
+            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+            {new ast::VariableExpression(result)}
+        )
+    );
+}
+
+static const ast::Expression *make_record_conversion_from_object(Analyzer *analyzer, const ast::TypeRecord *rtype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(rtype);
+    std::vector<const ast::Statement *> field_statements;
+    for (auto &f: rtype->fields) {
+        auto converter = f.type->make_converter(ast::TYPE_OBJECT);
+        field_statements.push_back(
+            new ast::TryStatement(
+                0,
+                {new ast::AssignmentStatement(
+                    0,
+                    {new ast::RecordReferenceFieldExpression(
+                        f.type,
+                        new ast::VariableExpression(result),
+                        f.name.text,
+                        true
+                    )},
+                    converter(
+                        analyzer,
+                        new ast::ObjectSubscriptExpression(
+                            e,
+                            ast::TYPE_OBJECT->make_converter(ast::TYPE_STRING)(analyzer, new ast::ConstantStringExpression(utf8string(f.name.text)))
+                        )
+                    )
+                )},
+                {
+                    ast::TryTrap(
+                        {dynamic_cast<const ast::Exception *>(analyzer->global_scope->lookupName("ObjectSubscriptException"))},
+                        nullptr,
+                        new ast::ExceptionHandlerStatement(0, {new ast::NullStatement(0)})
+                    )
+                }
+            )
+        );
+    }
+    return new ast::StatementExpression(
+        new ast::CompoundStatement(0, field_statements),
+        new ast::VariableExpression(result)
+    );
+}
+
 std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeBoolean::make_converter(const Type *from) const
 {
     if (from == TYPE_BOOLEAN) {
@@ -864,6 +940,13 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
             };
         }
     }
+    const TypeRecord *rtype = dynamic_cast<const TypeRecord *>(from);
+    if (rtype != nullptr) {
+        // TODO: Check convertability of all fields to Object.
+        return [rtype](Analyzer *analyzer, const Expression *e) {
+            return make_object_conversion_from_record(analyzer, rtype, e);
+        };
+    }
     return nullptr;
 }
 
@@ -941,6 +1024,19 @@ std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression 
     return [this, dtype](Analyzer *analyzer, const Expression *e) {
         return make_dictionary_conversion(analyzer, dtype, e, this);
     };
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *from)> ast::TypeRecord::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_record_conversion_from_object(analyzer, this, e);
+        };
+    }
+    return nullptr;
 }
 
 class GlobalScope: public ast::Scope {

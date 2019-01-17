@@ -1173,6 +1173,9 @@ def neon_object__subscript(self):
     if isinstance(v, list):
         self.stack.append(v[int(i)])
     elif isinstance(v, dict):
+        if not i in v:
+            self.raise_literal("ObjectSubscriptException", (i, 0))
+            return
         self.stack.append(v[i])
     else:
         assert False, v

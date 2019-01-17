@@ -223,6 +223,7 @@ object-isa.neon
 object.neon
 object-null.neon
 object-operator.neon
+object-record.neon
 os-test.neon
 outer2.neon
 outer-issue192.neon

@@ -104,6 +104,7 @@ object-isa.neon            # import
 object.neon                # object
 object-null.neon           # object
 object-operator.neon       # object
+object-record.neon         # object
 os-test.neon               # object
 outer2.neon                # pushpol
 outer-issue192.neon        # pushpol

@@ -72,6 +72,7 @@ object-isa.neon            # object
 object-isa-case.neon       # object
 object-null.neon           # object
 object-operator.neon       # object
+object-record.neon         # object
 os-test.neon               # os
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL

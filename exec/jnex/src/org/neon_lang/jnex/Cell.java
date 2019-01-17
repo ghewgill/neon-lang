@@ -1,8 +1,10 @@
 package org.neon_lang.jnex;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 class Cell {
     Cell()
@@ -123,12 +125,20 @@ class Cell {
 
     public List<Cell> getArray()
     {
+        if (type == Type.NONE) {
+            type = type.ARRAY;
+            array = new ArrayList<Cell>();
+        }
         assert type == Type.ARRAY : type;
         return array;
     }
 
     public Map<String, Cell> getDictionary()
     {
+        if (type == Type.NONE) {
+            type = type.DICTIONARY;
+            dictionary = new TreeMap<String, Cell>();
+        }
         assert type == Type.DICTIONARY : type;
         return dictionary;
     }

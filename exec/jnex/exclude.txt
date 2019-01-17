@@ -80,6 +80,7 @@ net-test.neon              # import
 net-test-udp.neon          # import
 new-init-module.neon       # module
 number-ceil.neon           # math
+object-record.neon         # EQA
 os-test.neon               # os
 outer-issue192.neon        # PUSHPOL
 outer-parameter.neon       # PUSHPOL
