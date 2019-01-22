@@ -767,7 +767,8 @@ class Executor:
         assert False
 
     def SWAP(self):
-        assert False
+        self.ip += 1
+        self.stack = self.stack[:-2] + [self.stack[-1], self.stack[-2]]
 
     def DROPN(self):
         assert False

@@ -27,6 +27,7 @@ gc1.neon                   # PredefinedVariable
 gc2.neon                   # PredefinedVariable
 gc3.neon                   # PredefinedVariable
 import.neon                # illegal character dot
+inc-reference.neon         # increment
 index.neon                 # copy semantics
 inline-construct-record.neon   # stack size too large
 inline-init-record.neon    # stack size too large

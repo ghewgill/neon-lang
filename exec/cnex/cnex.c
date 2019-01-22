@@ -1128,9 +1128,13 @@ void exec_CALLX(void)
     fatal_error("exec_CALLX not implemented");
 }
 
-void exec_SWAP(void)
+void exec_SWAP(TExecutor *self)
 {
-    fatal_error("exec_SWAP not implemented");
+    self->ip++;
+    int top = self->stack->top;
+    Cell *t = self->stack->data[top];
+    self->stack->data[top] = self->stack->data[top-1];
+    self->stack->data[top-1] = t;
 }
 
 void exec_DROPN(void)
@@ -1254,7 +1258,7 @@ void exec_loop(TExecutor *self)
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(); break;
             case CALLX:   exec_CALLX(); break;
-            case SWAP:    exec_SWAP(); break;
+            case SWAP:    exec_SWAP(self); break;
             case DROPN:   exec_DROPN(); break;
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;

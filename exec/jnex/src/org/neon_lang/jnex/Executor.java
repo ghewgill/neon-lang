@@ -190,7 +190,7 @@ class Executor {
                 //case PUSHPEG
                 case JUMPTBL: doJUMPTBL(); break;
                 //case CALLX
-                //case SWAP
+                case SWAP: doSWAP(); break;
                 //case DROPN
                 //case PUSHM
                 //case CALLV
@@ -895,6 +895,15 @@ class Executor {
         } catch (ArithmeticException x) {
             ip += 6 * val;
         }
+    }
+
+    private void doSWAP()
+    {
+        ip++;
+        Cell a = stack.removeFirst();
+        Cell b = stack.removeFirst();
+        stack.addFirst(a);
+        stack.addFirst(b);
     }
 
     private void doPUSHCI()

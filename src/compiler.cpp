@@ -2094,12 +2094,12 @@ void ast::ExpressionStatement::generate_code(Emitter &emitter) const
 
 void ast::IncrementStatement::generate_code(Emitter &emitter) const
 {
-    // TODO: This can be improved considerably.
-    ref->generate_address_read(emitter);
+    ref->generate_address_write(emitter);
+    emitter.emit(DUP);
     emitter.emit(LOADN);
     emitter.emit(PUSHN, number_from_sint32(delta));
     emitter.emit(ADDN);
-    ref->generate_address_write(emitter);
+    emitter.emit(SWAP);
     emitter.emit(STOREN);
 }
 

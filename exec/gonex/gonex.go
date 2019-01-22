@@ -1291,7 +1291,9 @@ func (self *executor) op_callx() {
 }
 
 func (self *executor) op_swap() {
-	assert(false, "unimplemented")
+	self.ip++;
+	top := len(self.stack)
+	self.stack[top-2], self.stack[top-1] = self.stack[top-1], self.stack[top-2]
 }
 
 func (self *executor) op_dropn() {
