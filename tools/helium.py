@@ -900,19 +900,20 @@ class FunctionDeclaration:
         self.statements = statements
     def declare(self, env):
         type = ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args)
-        def func(env, *a):
+        def func(env2, *a):
+            e = Environment(env)
             for i, arg in enumerate(self.args):
-                env.declare(arg.name, None, self.args[i].type.resolve(env).default(env) if self.args[i].mode is OUT else a[i] if i < len(a) else arg.default.eval(env))
+                e.declare(arg.name, None, self.args[i].type.resolve(e).default(e) if self.args[i].mode is OUT else a[i] if i < len(a) else arg.default.eval(e))
             for s in self.statements:
-                s.declare(env)
+                s.declare(e)
             r = None
             try:
                 for s in self.statements:
-                    s.run(env)
+                    s.run(e)
             except ReturnException as x:
                 r = x.expr
             if hasattr(func, "_outs"):
-                return [r] + [env.get_value(arg.name) for i, arg in enumerate(self.args) if func._outs[i]]
+                return [r] + [e.get_value(arg.name) for i, arg in enumerate(self.args) if func._outs[i]]
             else:
                 return r
         outs = [x.mode is not IN for x in self.args]

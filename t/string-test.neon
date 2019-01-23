@@ -54,3 +54,8 @@ print(strb(string.hasSuffix("Hello World", "old")))
 
 ASSERT string.repeat("*", 5) = "*****"
 ASSERT string.repeat("XY", 2) = "XYXY"
+
+ASSERT string.replaceOne("hello world", "l", "xxx") = "hexxxlo world"
+ASSERT string.replaceAll("hello world", "l", "xxx") = "hexxxxxxo worxxxd"
+ASSERT string.replaceAll("hello world", "l", "") = "heo word"
+ASSERT string.replaceAll("hello world", "l", "ell") = "heellello worelld"

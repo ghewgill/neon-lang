@@ -11,6 +11,8 @@ EXPORT isBlank
 EXPORT join
 EXPORT lower
 EXPORT repeat
+EXPORT replaceAll
+EXPORT replaceOne
 EXPORT split
 EXPORT splitLines
 EXPORT trim
@@ -86,6 +88,41 @@ FUNCTION repeat(s: String, n: Number): String
         b := b INTDIV 2
     END WHILE
     RETURN r
+END FUNCTION
+
+%|
+ |  Function: replaceAll
+ |
+ |  Return a string with all instances of a given string replaced by another string.
+ |%
+FUNCTION replaceAll(s: String, target: String, replacement: String): String
+    % TODO: This can be improved with a findFrom function, which will allow
+    % us to search for the next instance of target more efficiently than
+    % extracting a substring at each position.
+    VAR t: String := s
+    VAR i: Number := 0
+    WHILE i < t.length() DO
+        IF t[i TO i+target.length()-1] = target THEN
+            t := t[FIRST TO i-1] & replacement & t[i+target.length() TO LAST]
+            i := i + replacement.length()
+        ELSE
+            INC i
+        END IF
+    END WHILE
+    RETURN t
+END FUNCTION
+
+%|
+ |  Function: replaceOne
+ |
+ |  Return a string the first instacne of a given string replaced by another string.
+ |%
+FUNCTION replaceOne(s: String, target: String, replacement: String): String
+    LET i: Number := find(s, target)
+    CHECK i >= 0 ELSE
+        RETURN s
+    END CHECK
+    RETURN s[FIRST TO i-1] & replacement & s[i+target.length() TO LAST]
 END FUNCTION
 
 %|
