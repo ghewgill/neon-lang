@@ -1710,6 +1710,9 @@ const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *
     const ast::Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
         const ast::Expression *k = analyze(x.first.get());
+        if (k->type != ast::TYPE_STRING) {
+            error(3266, x.first->token, "key value must be string");
+        }
         if (not k->is_constant) {
             error(3212, x.first->token, "key value must be constant");
         }
