@@ -7,7 +7,7 @@
 namespace format {
 
 struct Spec {
-    uint32_t fill;
+    char32_t fill;
     char align;
     bool alternate;
     char sign;
