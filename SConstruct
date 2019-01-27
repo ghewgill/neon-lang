@@ -302,7 +302,7 @@ else:
 env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc", "src/enums.inc", "src/exceptions.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
 
 if use_java:
-    jvm_classes = env.Java("jvm", "jvm")
+    jvm_classes = env.Java("rtl/jvm", "rtl/jvm")
     jnex = SConscript("exec/jnex/SConstruct")
 
 neonc = env.Program("bin/neonc", [

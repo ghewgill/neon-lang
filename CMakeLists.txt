@@ -118,26 +118,26 @@ set_source_files_properties(
 
 if (JAVAC)
     set(NEON_JVM
-        jvm/neon/Binary.java
-        jvm/neon/Datetime.java
-        jvm/neon/File.java
-        jvm/neon/Global.java
-        jvm/neon/Hash.java
-        jvm/neon/Io.java
-        jvm/neon/Math.java
-        jvm/neon/Os.java
-        jvm/neon/Sys.java
-        jvm/neon/Time.java
-        jvm/neon/type/Array.java
-        jvm/neon/type/NeonException.java
-        jvm/neon/type/Number.java
+        rtl/jvm/neon/Binary.java
+        rtl/jvm/neon/Datetime.java
+        rtl/jvm/neon/File.java
+        rtl/jvm/neon/Global.java
+        rtl/jvm/neon/Hash.java
+        rtl/jvm/neon/Io.java
+        rtl/jvm/neon/Math.java
+        rtl/jvm/neon/Os.java
+        rtl/jvm/neon/Sys.java
+        rtl/jvm/neon/Time.java
+        rtl/jvm/neon/type/Array.java
+        rtl/jvm/neon/type/NeonException.java
+        rtl/jvm/neon/type/Number.java
     )
     string(REPLACE ".java" ".class" NEON_JVM_CLASSES "${NEON_JVM}")
     foreach (java ${NEON_JVM})
         string(REPLACE ".java" ".class" class ${java})
         add_custom_command(
             OUTPUT ${class}
-            COMMAND javac -cp jvm ${java}
+            COMMAND javac -cp rtl/jvm ${java}
             DEPENDS ${java}
         )
     endforeach ()

@@ -1987,7 +1987,7 @@ public:
             path = program->source_path.substr(0, i + 1);
         }
         std::stringstream out;
-        out << "require(\"../js/global.js\");\n"; // TODO: use correct path (like node_modules maybe?)
+        out << "require(\"../rtl/js/global.js\");\n"; // TODO: use correct path (like node_modules maybe?)
         Context context(out);
         context.out << "try {";
         for (auto s: statements) {
