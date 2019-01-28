@@ -2561,7 +2561,9 @@ def neon_num(env, x):
     return int(x) if x.isdigit() else float(x)
 
 def neon_odd(env, x):
-    return x & 1
+    if x != int(x):
+        raise NeonException("ValueRangeException", "odd() requires integer")
+    return (x & 1) != 0
 
 def neon_ord(env, x):
     if len(x) != 1:

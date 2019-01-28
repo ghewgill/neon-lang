@@ -40,22 +40,28 @@ uint32_t number_to_uint32(Number x);
 int64_t number_to_sint64(Number x);
 uint64_t number_to_uint64(Number x);
 
+Number number_divide(Number x, Number y);
 Number number_modulo(Number x, Number y);
+Number number_multiply(Number x, Number y);
+BOOL number_is_greater(Number x, Number y);
 BOOL number_is_integer(Number x);
+BOOL number_is_nan(Number x);
+Number number_nearbyint(Number x);
+Number number_trunc(Number x);
 
-/*Number number_from_uint8(uint8_t x);
-Number number_from_sint8(int8_t x);
-Number number_from_uint16(uint16_t x);
-Number number_from_sint16(int16_t x);
+//Number number_from_uint8(uint8_t x);
+//Number number_from_sint8(int8_t x);
+//Number number_from_uint16(uint16_t x);
+//Number number_from_sint16(int16_t x);
 Number number_from_uint32(uint32_t x);
-Number number_from_sint32(int32_t x); */
+//Number number_from_sint32(int32_t x);
 Number number_from_uint64(uint64_t x);
 Number number_from_sint64(int64_t x);
-/*Number number_from_float(float x);
-Number number_from_double(double x);*/
+//Number number_from_float(float x);
+//Number number_from_double(double x);
 
-//BOOL number_is_zero(Number x);
-//BOOL number_is_negative(Number x);
+BOOL number_is_zero(Number x);
+BOOL number_is_negative(Number x);
 BOOL number_is_equal(Number x, Number y);
 //BOOL number_is_not_equal(Number x, Number y);
 //BOOL number_is_less(Number x, Number y);
@@ -63,7 +69,7 @@ BOOL number_is_equal(Number x, Number y);
 //BOOL number_is_less_equal(Number x, Number y);
 //BOOL number_is_greater_equal(Number x, Number y);
 //BOOL number_is_integer(Number x);
-//BOOL number_is_odd(Number x);
+BOOL number_is_odd(Number x);
 //BOOL number_is_nan(Number x);
 
 #endif

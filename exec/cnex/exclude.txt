@@ -96,7 +96,6 @@ pointer8.neon              # class
 process-test.neon          # process
 recursion-limit.neon       # runtime
 repl_import.neon           # random
-rtl.neon                   # chr
 sql-connect.neon           # file
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite

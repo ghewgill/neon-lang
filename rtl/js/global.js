@@ -87,6 +87,13 @@ neon = {
             return x.toString();
         },
 
+        odd: function(n) {
+            if (n != Math.trunc(n)) {
+                throw new neon.NeonException("ValueRangeException", {info: "odd() requires integer"});
+            }
+            return (n % 2) != 0;
+        },
+
         ord: function(s) {
             if (s.length != 1) {
                 throw new neon.NeonException("ArrayIndexException", {info: "ord() requires string of length 1"});

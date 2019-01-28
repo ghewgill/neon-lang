@@ -11,12 +11,18 @@ typedef struct tagTDispatch {
 
 void global_callFunction(const char *pszFunc, struct tagTExecutor *exec);
 
-void print(struct tagTExecutor *exec);
-void concat(struct tagTExecutor *exec);
-void concatBytes(struct tagTExecutor *exec);
-void print(struct tagTExecutor *exec);
-void str(struct tagTExecutor *exec);
-void ord(struct tagTExecutor *exec);
+void neon_chr(struct tagTExecutor *exec);
+void neon_concat(struct tagTExecutor *exec);
+void neon_concatBytes(struct tagTExecutor *exec);
+void neon_int(struct tagTExecutor *exec);
+void neon_max(struct tagTExecutor *exec);
+void neon_min(struct tagTExecutor *exec);
+void neon_num(struct tagTExecutor *exec);
+void neon_odd(struct tagTExecutor *exec);
+void neon_ord(struct tagTExecutor *exec);
+void neon_print(struct tagTExecutor *exec);
+void neon_round(struct tagTExecutor *exec);
+void neon_str(struct tagTExecutor *exec);
 
 
 

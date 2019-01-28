@@ -1190,6 +1190,13 @@ def neon_object__toString(self):
     else:
         self.stack.append(Value(v.literal()))
 
+def neon_odd(self):
+    v = self.stack.pop().value
+    if v != int(v):
+        self.raise_literal("ValueRangeException", ("odd() requires integer", 0))
+        return
+    self.stack.append(Value((v % 2) != 0))
+
 def neon_ord(self):
     s = self.stack.pop().value
     if len(s) != 1:
