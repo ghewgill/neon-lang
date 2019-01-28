@@ -27,6 +27,16 @@ print(str(min(45, 67)))
 print(str(num("45")))
 %= 45
 
+print("\(odd(3))")
+%= TRUE
+
+TRY
+    print("\(odd(1.5))")
+TRAP ValueRangeException AS x DO
+    print(x.info)
+END TRY
+%= odd() requires integer
+
 print(str(ord("B")))
 %= 66
 

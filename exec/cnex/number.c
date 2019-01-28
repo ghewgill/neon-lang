@@ -72,6 +72,11 @@ Number number_from_string(char *s)
  * Number math functions
  */
 
+Number number_divide(Number x, Number y)
+{
+    return bid128_div(x, y);
+}
+
 Number number_modulo(Number x, Number y)
 {
     Number m = bid128_abs(y);
@@ -86,10 +91,45 @@ Number number_modulo(Number x, Number y)
     return r;
 }
 
+Number number_multiply(Number x, Number y)
+{
+    return bid128_mul(x, y);
+}
+
+BOOL number_is_greater(Number x, Number y)
+{
+    return bid128_quiet_greater(x, y) != 0;
+}
+
 BOOL number_is_integer(Number x)
 {
     Number i = bid128_round_integral_zero(x);
     return bid128_quiet_equal(x, i) != 0;
+}
+
+BOOL number_is_nan(Number x)
+{
+    return bid128_isNaN(x) != 0;
+}
+
+BOOL number_is_negative(Number x)
+{
+    return bid128_isSigned(x) != 0;
+}
+
+Number number_nearbyint(Number x)
+{
+    return bid128_nearbyint(x);
+}
+
+Number number_trunc(Number x)
+{
+    return bid128_round_integral_zero(x);
+}
+
+BOOL number_is_zero(Number x)
+{
+    return bid128_isZero(x) != 0;
 }
 
 /*
@@ -121,6 +161,11 @@ uint64_t number_to_uint64(Number x)
  * Number FROM functions
  */
 
+Number number_from_uint32(uint32_t x)
+{
+    return bid128_from_uint32(x);
+}
+
 Number number_from_uint64(uint64_t x)
 {
     return bid128_from_uint64(x);
@@ -139,6 +184,11 @@ Number number_from_sint64(int64_t x)
 BOOL number_is_equal(Number x, Number y)
 {
     return bid128_quiet_equal(x, y);
+}
+
+BOOL number_is_odd(Number x)
+{
+    return !bid128_isZero(bid128_fmod(x, bid128_from_uint32(2)));
 }
 
 //#define __NUMBER_TESTS

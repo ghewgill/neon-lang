@@ -17,14 +17,22 @@
 #include "util.h"
 
 
+
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
 TDispatch gfuncDispatch[] = {
-    PDFUNC("concat",                    concat),
-    PDFUNC("concatBytes",               concatBytes),
-    PDFUNC("print",                     print),
-    PDFUNC("str",                       str),
-    PDFUNC("ord",                       ord),
+    PDFUNC("chr",                       neon_chr),
+    PDFUNC("concat",                    neon_concat),
+    PDFUNC("concatBytes",               neon_concatBytes),
+    PDFUNC("int",                       neon_int),
+    PDFUNC("max",                       neon_max),
+    PDFUNC("min",                       neon_min),
+    PDFUNC("num",                       neon_num),
+    PDFUNC("odd",                       neon_odd),
+    PDFUNC("ord",                       neon_ord),
+    PDFUNC("print",                     neon_print),
+    PDFUNC("round",                     neon_round),
+    PDFUNC("str",                       neon_str),
 
     PDFUNC("io$fprint",                 io_fprint),
 
@@ -88,7 +96,127 @@ void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
     fatal_error("global_callFunction(): \"%s\" - invalid or unsupported predefined function call.", pszFunc);
 }
 
-void print(TExecutor *exec)
+void neon_chr(TExecutor *exec)
+{
+    Number x = top(exec->stack)->number; pop(exec->stack);
+
+    if (!number_is_integer(x)) {
+        exec->rtl_raise(exec, "ValueRangeException", "chr() argument not an integer", BID_ZERO);
+        return;
+    }
+    if (number_is_negative(x) || number_is_greater(x, number_from_uint32(0x10ffff))) {
+        exec->rtl_raise(exec, "ValueRangeException", "chr() argument out of range 0-0x10ffff", BID_ZERO);
+        return;
+    }
+
+    Cell *r = cell_createStringCell(0);
+    // ToDo: Implement UTF8 strings here!!
+    string_appendChar(r->string, (char)number_to_uint32(x));
+
+    push(exec->stack, r);
+}
+
+void neon_concat(TExecutor *exec)
+{
+    Cell *b = peek(exec->stack, 0);
+    Cell *a = peek(exec->stack, 1);
+    Cell *r = cell_createStringCell(b->string->length + a->string->length);
+
+    memcpy(r->string->data, a->string->data, a->string->length);
+    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
+
+    pop(exec->stack);
+    pop(exec->stack);
+
+    push(exec->stack, r);
+}
+
+void neon_concatBytes(TExecutor *exec)
+{
+    Cell *b = peek(exec->stack, 0);
+    Cell *a = peek(exec->stack, 1);
+    Cell *r = cell_createStringCell(b->string->length + a->string->length);
+
+    memcpy(r->string->data, a->string->data, a->string->length);
+    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
+
+    pop(exec->stack);
+    pop(exec->stack);
+
+    push(exec->stack, r);
+}
+
+void neon_int(TExecutor *exec)
+{
+    Number a = top(exec->stack)->number; pop(exec->stack);
+
+    push(exec->stack, cell_fromNumber(number_trunc(a)));
+}
+
+void neon_max(TExecutor *exec)
+{
+    Number b = top(exec->stack)->number; pop(exec->stack);
+    Number a = top(exec->stack)->number; pop(exec->stack);
+
+    if (number_is_greater(a, b)) {
+        push(exec->stack, cell_fromNumber(a));
+    } else {
+        push(exec->stack, cell_fromNumber(b));
+    }
+}
+
+void neon_min(TExecutor *exec)
+{
+    Number b = top(exec->stack)->number; pop(exec->stack);
+    Number a = top(exec->stack)->number; pop(exec->stack);
+
+    if (number_is_greater(a, b)) {
+        push(exec->stack, cell_fromNumber(b));
+    } else {
+        push(exec->stack, cell_fromNumber(a));
+    }
+}
+
+void neon_num(TExecutor *exec)
+{
+    char *str = string_asCString(top(exec->stack)->string); pop(exec->stack);
+    Number n = number_from_string(str);
+    free(str);
+
+    if (number_is_nan(n)) {
+        exec->rtl_raise(exec, "ValueRangeException", "num() argument not a number", BID_ZERO);
+        return;
+    }
+    push(exec->stack, cell_fromNumber(n));
+}
+
+void neon_odd(TExecutor *exec)
+{
+    Number n = top(exec->stack)->number; pop(exec->stack);
+
+    if (!number_is_integer(n)) {
+        exec->rtl_raise(exec, "ValueRangeException", "odd() requires integer", BID_ZERO);
+        return;
+    }
+
+    push(exec->stack, cell_fromBoolean(number_is_odd(n)));
+}
+
+void neon_ord(TExecutor *exec)
+{
+    Cell *s = top(exec->stack);
+
+    if (s->string->length != 1) {
+        exec->rtl_raise(exec, "ArrayIndexException", "ord() requires string of length 1", BID_ZERO);
+        return;
+    }
+    Number r = bid128_from_uint32((uint32_t)s->string->data[0]);
+
+    pop(exec->stack);
+    push(exec->stack, cell_fromNumber(r));
+}
+
+void neon_print(TExecutor *exec)
 {
     const Cell *s = top(exec->stack);
     fwrite(s->string->data, 1, s->string->length, stdout);
@@ -96,52 +224,22 @@ void print(TExecutor *exec)
     pop(exec->stack);
 }
 
-void concat(TExecutor *exec)
+void neon_round(TExecutor *exec)
 {
-    Cell *b = peek(exec->stack, 0);
-    Cell *a = peek(exec->stack, 1);
-    Cell *r = cell_createStringCell(b->string->length + a->string->length);
+    Number value = top(exec->stack)->number; pop(exec->stack);
+    Number places = top(exec->stack)->number; pop(exec->stack);
 
-    memcpy(r->string->data, a->string->data, a->string->length);
-    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
-
-    pop(exec->stack);
-    pop(exec->stack);
-
-    push(exec->stack, r);
+    Number scale = number_from_uint32(1);
+    for (int i = number_to_sint32(places); i > 0; i--) {
+        scale = number_multiply(scale, number_from_uint32(10));
+    }
+    push(exec->stack, cell_fromNumber(number_divide(number_nearbyint(number_multiply(value, scale)), scale)));
 }
 
-void concatBytes(TExecutor *exec)
-{
-    Cell *b = peek(exec->stack, 0);
-    Cell *a = peek(exec->stack, 1);
-    Cell *r = cell_createStringCell(b->string->length + a->string->length);
-
-    memcpy(r->string->data, a->string->data, a->string->length);
-    memcpy(&r->string->data[a->string->length], b->string->data, b->string->length);
-
-    pop(exec->stack);
-    pop(exec->stack);
-
-    push(exec->stack, r);
-}
-
-void str(TExecutor *exec)
+void neon_str(TExecutor *exec)
 {
     Number v = top(exec->stack)->number; pop(exec->stack);
     push(exec->stack, cell_fromCString(number_to_string(v)));
-}
-
-void ord(TExecutor *exec)
-{
-    Cell *s = top(exec->stack);
-
-    if (s->string->length != 1) {
-        exec->rtl_raise(exec, "ArrayIndexException", "ord() requires string of length 1", BID_ZERO);
-    }
-    Number r = bid128_from_uint32((uint32_t)s->string->data[0]);
-    pop(exec->stack);
-    push(exec->stack, cell_fromNumber(r));
 }
 
 
