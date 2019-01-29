@@ -300,6 +300,13 @@ DECLARE NATIVE FUNCTION ord(s: String): Number
 DECLARE NATIVE FUNCTION print(s: String)
 
 %|
+ |  Function: round
+ |
+ |  Round a number to a specified number of decimal places.
+ |%
+DECLARE NATIVE FUNCTION round(places: Number, value: Number): Number
+
+%|
  |  Function: str
  |
  |  Convert a number to a decimal string.

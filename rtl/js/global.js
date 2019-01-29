@@ -98,6 +98,11 @@ neon = {
             console.log(s);
         },
 
+        round: function(places, value) {
+            var scale = Math.pow(10, places);
+            return Math.round(value * scale) / scale;
+        },
+
         str: function(x) {
             return x.toString();
         },

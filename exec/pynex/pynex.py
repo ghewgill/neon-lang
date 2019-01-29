@@ -1201,6 +1201,14 @@ def neon_print(self):
     s = self.stack.pop().value
     print(s)
 
+def neon_round(self):
+    value = self.stack.pop().value
+    places = self.stack.pop().value
+    if places == 0:
+        self.stack.append(Value(decimal.Decimal(int(value))))
+    else:
+        self.stack.append(Value(value.quantize(decimal.Decimal("1."+("0"*int(places)))).normalize()))
+
 def neon_str(self):
     v = self.stack.pop().value
     if isinstance(v, decimal.Decimal):
