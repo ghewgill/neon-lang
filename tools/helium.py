@@ -2507,6 +2507,7 @@ def run(program):
     program.env.declare("odd", None, neon_odd)
     program.env.declare("ord", None, neon_ord)
     program.env.declare("print", None, neon_print)
+    program.env.declare("round", None, neon_round)
     program.env.declare("str", None, neon_str)
     program.env.declare("strb", None, neon_strb)
     program.env.declare("substring", None, neon_substring)
@@ -2570,6 +2571,9 @@ def neon_ord(env, x):
 
 def neon_print(env, x):
     print(x)
+
+def neon_round(env, places, value):
+    return round(value, places)
 
 def neon_str(env, x):
     r = str(x)

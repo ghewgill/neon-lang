@@ -91,6 +91,16 @@ Number ord(const utf8string &ss)
     return number_from_uint32(utf8::next(it, s.end()));
 }
 
+Number round(Number places, Number value)
+{
+    // TODO: Find out if there is a pow10 or equivalent function to compute scale.
+    Number scale = number_from_uint32(1);
+    for (int i = number_to_sint32(places); i > 0; i--) {
+        scale = number_multiply(scale, number_from_uint32(10));
+    }
+    return number_divide(number_nearbyint(number_multiply(value, scale)), scale);
+}
+
 utf8string str(Number x)
 {
     return utf8string(number_to_string(x));
