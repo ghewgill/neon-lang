@@ -1208,10 +1208,6 @@ def neon_str(self):
         v = re.sub("\\.0*(?![\\d])", "", str(v))
     self.stack.append(Value(str(v)))
 
-def neon_strb(self):
-    v = self.stack.pop().value
-    self.stack.append(Value("TRUE" if v else "FALSE"))
-
 def neon_string__append(self):
     b = self.stack.pop().value
     a = self.stack.pop()

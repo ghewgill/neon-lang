@@ -30,7 +30,7 @@
             <Keywords name="Keywords4">DEFAULT&#x000D;&#x000A;IN&#x000D;&#x000A;INOUT&#x000D;&#x000A;OUT&#x000D;&#x000A;WITH</Keywords>
             <Keywords name="Keywords5">Array&#x000D;&#x000A;Dictionary</Keywords>
             <Keywords name="Keywords6">.append&#x000D;&#x000A;.extend&#x000D;&#x000A;.resize&#x000D;&#x000A;.size&#x000D;&#x000A;.slice&#x000D;&#x000A;.splice&#x000D;&#x000A;.keys&#x000D;&#x000A;.length&#x000D;&#x000A;.substring&#x000D;&#x000A;.toString&#x000D;&#x000A;.toArray&#x000D;&#x000A;.fromArray&#x000D;&#x000A;.toArray</Keywords>
-            <Keywords name="Keywords7">chr&#x000D;&#x000A;concat&#x000D;&#x000A;format&#x000D;&#x000A;input&#x000D;&#x000A;max&#x000D;&#x000A;min&#x000D;&#x000A;num&#x000D;&#x000A;ord&#x000D;&#x000A;print&#x000D;&#x000A;str&#x000D;&#x000A;strb</Keywords>
+            <Keywords name="Keywords7">chr&#x000D;&#x000A;concat&#x000D;&#x000A;format&#x000D;&#x000A;input&#x000D;&#x000A;max&#x000D;&#x000A;min&#x000D;&#x000A;num&#x000D;&#x000A;ord&#x000D;&#x000A;print&#x000D;&#x000A;str</Keywords>
             <Keywords name="Keywords8">FALSE&#x000D;&#x000A;FIRST&#x000D;&#x000A;LAST&#x000D;&#x000A;NIL&#x000D;&#x000A;NOWHERE&#x000D;&#x000A;TRUE</Keywords>
             <Keywords name="Delimiters">00%| 01 02|% 03[ 04 05] 06{ 07 08} 09@&quot; 10 11&quot; 12% 13 14((EOL)) 15 16 17 18&quot; 19\ 20&quot; 21@@&quot; 22 23&quot;@@</Keywords>
         </KeywordLists>

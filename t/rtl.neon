@@ -43,9 +43,6 @@ print("hello")
 print(str(5))
 %= 5
 
-print(strb(TRUE))
-%= TRUE
-
 print(substring("hello world", 2, 5))
 %= llo w
 

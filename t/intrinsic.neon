@@ -56,12 +56,6 @@ CASE "5"
 END CASE
 %= 5
 
-CASE "FALSE"
-    WHEN strb(FALSE) DO
-        print("FALSE")
-END CASE
-%= FALSE
-
 CASE "oo"
     WHEN substring("foobar", 1, 2) DO
         print("oo")

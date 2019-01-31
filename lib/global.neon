@@ -307,13 +307,6 @@ DECLARE NATIVE FUNCTION print(s: String)
 DECLARE NATIVE FUNCTION str(x: Number): String
 
 %|
- |  Function: strb
- |
- |  Convert a boolean to a string, either TRUE or FALSE.
- |%
-DECLARE NATIVE FUNCTION strb(x: Boolean): String
-
-%|
  |  Function: substring
  |
  |  Return a range of a string with the given offset and length.

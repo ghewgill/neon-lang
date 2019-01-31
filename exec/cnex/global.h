@@ -16,7 +16,6 @@ void concat(struct tagTExecutor *exec);
 void concatBytes(struct tagTExecutor *exec);
 void print(struct tagTExecutor *exec);
 void str(struct tagTExecutor *exec);
-void strb(struct tagTExecutor *exec);
 void ord(struct tagTExecutor *exec);
 
 

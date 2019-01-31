@@ -512,7 +512,7 @@ class InterpolatedStringExpression:
         for e, f in self.parts:
             x = e.eval(env)
             s = (x if isinstance(x, (str, unicode))
-                  else neon_strb(env, x) if isinstance(x, bool)
+                  else ("TRUE" if x else "FALSE") if isinstance(x, bool)
                   else neon_str(env, x) if isinstance(x, (int, float))
                   else "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(b) for b in x.a)) if isinstance(x, bytes)
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in x)) if isinstance(x, list)
@@ -613,7 +613,7 @@ class DotExpression:
     def eval(self, env):
         obj = self.expr.eval(env)
         if isinstance(obj, bool):
-            if self.field == "toString": return lambda env, self: neon_strb(env, obj)
+            if self.field == "toString": return lambda env, self: "TRUE" if obj else "FALSE"
         elif isinstance(obj, int):
             if self.field == "toString": return lambda env, self: str(obj)
         elif isinstance(obj, (str, unicode)):
@@ -2508,7 +2508,6 @@ def run(program):
     program.env.declare("ord", None, neon_ord)
     program.env.declare("print", None, neon_print)
     program.env.declare("str", None, neon_str)
-    program.env.declare("strb", None, neon_strb)
     program.env.declare("substring", None, neon_substring)
     program.run(program.env)
 
@@ -2579,9 +2578,6 @@ def neon_str(env, x):
         else:
             r = re.sub(r"\.0+$", "", r)
     return r
-
-def neon_strb(env, x):
-    return "TRUE" if x else "FALSE"
 
 def neon_substring(env, s, start, length):
     return s[start:start+length]

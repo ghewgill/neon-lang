@@ -24,7 +24,6 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("concatBytes",               concatBytes),
     PDFUNC("print",                     print),
     PDFUNC("str",                       str),
-    PDFUNC("strb",                      strb),
     PDFUNC("ord",                       ord),
 
     PDFUNC("io$fprint",                 io_fprint),
@@ -131,12 +130,6 @@ void str(TExecutor *exec)
 {
     Number v = top(exec->stack)->number; pop(exec->stack);
     push(exec->stack, cell_fromCString(number_to_string(v)));
-}
-
-void strb(TExecutor *exec)
-{
-    BOOL v = top(exec->stack)->boolean; pop(exec->stack);
-    push(exec->stack, cell_fromCString(v ? "TRUE" : "FALSE"));
 }
 
 void ord(TExecutor *exec)

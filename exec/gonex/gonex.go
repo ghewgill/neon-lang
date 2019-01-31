@@ -1106,7 +1106,7 @@ func (self *executor) op_callp() {
 	case "str", "number__toString":
 		n := self.pop().num
 		self.push(make_cell_str(fmt.Sprintf("%v", n)))
-	case "strb", "boolean__toString":
+	case "boolean__toString":
 		b := self.pop().bool
 		if b {
 			self.push(make_cell_str("TRUE"))

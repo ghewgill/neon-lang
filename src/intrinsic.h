@@ -15,7 +15,6 @@ Number num(const utf8string &s);
 bool odd(Number x);
 Number ord(const utf8string &s);
 utf8string str(Number x);
-utf8string strb(bool x);
 utf8string substring(const utf8string &s, Number offset, Number length);
 
 } // namespace global

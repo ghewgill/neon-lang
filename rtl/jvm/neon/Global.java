@@ -342,10 +342,6 @@ public class Global {
         return self.getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
 
-    public static String strb(Boolean x) {
-        return x.toString().toUpperCase();
-    }
-
     public static String substring(String s, neon.type.Number offset, neon.type.Number length) {
         int off = offset.intValue();
         int len = length.intValue();
