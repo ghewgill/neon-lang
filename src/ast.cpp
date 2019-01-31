@@ -924,7 +924,6 @@ utf8string FunctionCall::eval_string() const
     if (f->name == "concat") return rtl::global::concat(args[0]->eval_string(), args[1]->eval_string());
     if (f->name == "format") return rtl::global::format(args[0]->eval_string(), args[1]->eval_string());
     if (f->name == "str") return rtl::global::str(args[0]->eval_number());
-    if (f->name == "strb") return rtl::global::strb(args[0]->eval_boolean());
     if (f->name == "substring") return rtl::global::substring(args[0]->eval_string(), args[1]->eval_number(), args[2]->eval_number());
     internal_error("unexpected intrinsic");
 }
@@ -954,7 +953,6 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
      || f->name == "odd"
      || f->name == "ord"
      || f->name == "str"
-     || f->name == "strb"
      || f->name == "substring") {
         return true;
     }

@@ -6,23 +6,23 @@ a := 4
 b := 5
 c := 6
 
-print(strb(a < b))
+print("\(a < b)")
 %= TRUE
 
-print(strb(a <= b))
+print("\(a <= b)")
 %= TRUE
 
-print(strb(a = b))
+print("\(a = b)")
 %= FALSE
 
-print(strb(a <> b))
+print("\(a <> b)")
 %= TRUE
 
-print(strb(a >= b))
+print("\(a >= b)")
 %= FALSE
 
-print(strb(a > b))
+print("\(a > b)")
 %= FALSE
 
-%print(strb(a < b < c))
+%print("\(a < b < c)")
 %% TRUE

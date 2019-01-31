@@ -52,7 +52,7 @@ print(s)
 v := json.decode(s)
 print(v["null"].isNull().toString())
 %= TRUE
-print(strb(v["boolean"]))
+print((IF v["boolean"] THEN "TRUE" ELSE "FALSE"))
 %= TRUE
 print(str(v["number"]))
 %= 5

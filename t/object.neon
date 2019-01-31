@@ -1,7 +1,11 @@
 VAR x: Object
 
+FUNCTION bstr(z: Boolean): String
+    RETURN (IF z THEN "TRUE" ELSE "FALSE")
+END FUNCTION
+
 x := TRUE
-print(strb(x))
+print(bstr(x))
 %= TRUE
 
 x := 5

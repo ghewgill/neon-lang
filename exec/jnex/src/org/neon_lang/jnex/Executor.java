@@ -60,7 +60,6 @@ class Executor {
         predefined.put("ord", this::ord);
         predefined.put("print", this::print);
         predefined.put("str", this::number__toString);
-        predefined.put("strb", this::boolean__toString);
         predefined.put("string__append", this::string__append);
         predefined.put("string__length", this::string__length);
         predefined.put("string__substring", this::string__substring);

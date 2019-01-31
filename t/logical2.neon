@@ -6,9 +6,9 @@ a := TRUE
 b := TRUE
 c := TRUE
 
-print(strb(a AND b AND c))
+print("\(a AND b AND c)")
 %= TRUE
 
 b := FALSE
-print(strb(a OR b OR c))
+print("\(a OR b OR c)")
 %= TRUE

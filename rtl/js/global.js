@@ -107,10 +107,6 @@ neon = {
             return x.toString();
         },
 
-        strb: function(x) {
-            return x ? "TRUE" : "FALSE";
-        },
-
         string__length: function(self) {
             return self.length;
         },

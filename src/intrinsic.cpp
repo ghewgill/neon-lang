@@ -106,11 +106,6 @@ utf8string str(Number x)
     return utf8string(number_to_string(x));
 }
 
-utf8string strb(bool x)
-{
-    return utf8string(x ? "TRUE" : "FALSE");
-}
-
 utf8string substring(const utf8string &ss, Number offset, Number length)
 {
     std::string s = ss.str(); // TODO
