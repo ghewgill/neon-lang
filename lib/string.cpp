@@ -19,28 +19,6 @@ Number find(const utf8string &s, const utf8string &t)
     return number_from_uint64(i);
 }
 
-bool hasPrefix(const utf8string &s, const utf8string &prefix)
-{
-    return utf8string(s.substr(0, prefix.length())) == prefix;
-}
-
-bool hasSuffix(const utf8string &s, const utf8string &suffix)
-{
-    return s.length() >= suffix.length() && utf8string(s.str().substr(s.length() - suffix.length())) == suffix;
-}
-
-utf8string join(const std::vector<utf8string> &a, const utf8string &d)
-{
-    utf8string r;
-    for (auto s: a) {
-        if (not r.empty()) {
-            r.append(d);
-        }
-        r.append(s.str());
-    }
-    return r;
-}
-
 utf8string lower(const utf8string &ss)
 {
     const std::string &s = ss.str(); // TODO: utf8
