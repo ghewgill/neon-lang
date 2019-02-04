@@ -19,7 +19,7 @@ matrix:
         - image: Visual Studio 2017
           WITH_SUBMODULES: 1
         - BUILDER: cmake
-          WITH_SUBMODULES: 1
+          #WITH_SUBMODULES: 1
 install:
 - ps: >-
     if (-not (Test-Path C:\Python27)){
