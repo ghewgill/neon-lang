@@ -303,10 +303,3 @@ DECLARE NATIVE FUNCTION round(places: Number, value: Number): Number
  |  Convert a number to a decimal string.
  |%
 DECLARE NATIVE FUNCTION str(x: Number): String
-
-%|
- |  Function: substring
- |
- |  Return a range of a string with the given offset and length.
- |%
-DECLARE NATIVE FUNCTION substring(s: String, offset: Number, length: Number): String

@@ -58,9 +58,6 @@ print("hello")
 print(str(5))
 %= 5
 
-print(substring("hello world", 2, 5))
-%= llo w
-
 print(str(int(4)))
 %= 4
 

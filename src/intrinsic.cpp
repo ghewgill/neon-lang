@@ -96,26 +96,6 @@ utf8string str(Number x)
     return utf8string(number_to_string(x));
 }
 
-utf8string substring(const utf8string &ss, Number offset, Number length)
-{
-    std::string s = ss.str(); // TODO
-    assert(number_is_integer(offset));
-    assert(number_is_integer(length));
-    auto start = s.begin();
-    try {
-        utf8::advance(start, number_to_uint32(offset), s.end());
-    } catch (utf8::not_enough_room) {
-        throw RtlException(global::Exception_ArrayIndexException, utf8string("offset"));
-    }
-    auto end = start;
-    try {
-        utf8::advance(end, number_to_uint32(length), s.end());
-    } catch (utf8::not_enough_room) {
-        throw RtlException(global::Exception_ArrayIndexException, utf8string("length"));
-    }
-    return utf8string(std::string(start, end));
-}
-
 } // namespace global
 
 } // namespace rtl
