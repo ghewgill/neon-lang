@@ -913,6 +913,7 @@ Number FunctionCall::eval_number() const
     if (f->name == "max") return rtl::global::max(args[0]->eval_number(), args[1]->eval_number());
     if (f->name == "min") return rtl::global::min(args[0]->eval_number(), args[1]->eval_number());
     if (f->name == "num") return rtl::global::num(args[0]->eval_string());
+    if (f->name == "round") return rtl::global::round(args[0]->eval_number(), args[1]->eval_number());
     internal_error("unexpected intrinsic");
 }
 
@@ -952,6 +953,7 @@ bool FunctionCall::is_intrinsic(const Expression *func, const std::vector<const 
      || f->name == "num"
      || f->name == "odd"
      || f->name == "ord"
+     || f->name == "round"
      || f->name == "str"
      || f->name == "substring") {
         return true;
