@@ -15,7 +15,6 @@
 #include <utf8.h>
 
 #include "cell.h"
-#include "format.h"
 #include "number.h"
 #include "rtl_exec.h"
 

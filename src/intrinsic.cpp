@@ -6,7 +6,6 @@
 
 #include <utf8.h>
 
-#include "format.h"
 #include "number.h"
 #include "rtl_exec.h"
 
@@ -35,15 +34,6 @@ utf8string concat(const utf8string &a, const utf8string &b)
 Number int_(Number a)
 {
     return number_trunc(a);
-}
-
-utf8string format(const utf8string &str, const utf8string &fmt)
-{
-    format::Spec spec;
-    if (not format::parse(fmt.str(), spec)) { // TODO: utf8 if necessary
-        throw RtlException(global::Exception_FormatException, fmt);
-    }
-    return utf8string(format::format(str.str(), spec)); // TODO: utf8
 }
 
 Number max(Number a, Number b)

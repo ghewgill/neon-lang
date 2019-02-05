@@ -1,6 +1,5 @@
 CONSTANT fchr: String := chr(97)
 CONSTANT fconcat: String := concat("a", "b")
-CONSTANT fformat: String := format("foo", ">4")
 CONSTANT fint: Number := int(1.5)
 CONSTANT fmax: Number := max(1, 2)
 CONSTANT fmin: Number := min(3, 4)

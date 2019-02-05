@@ -5,6 +5,7 @@
  |%
 
 EXPORT find
+EXPORT format
 EXPORT hasPrefix
 EXPORT hasSuffix
 EXPORT isBlank
@@ -25,6 +26,115 @@ EXPORT upper
  |  Find the index of a string within another.
  |%
 DECLARE NATIVE FUNCTION find(s: String, t: String): Number
+
+%|
+ |  Function: format
+ |
+ |  Format a string based on the formatting mini-language.
+ |
+ |  TODO
+ |%
+FUNCTION format(s: String, fmt: String): String
+    VAR fill: String := " "
+    VAR align: String := ""
+    VAR sign: String := ""
+    VAR width: Number := -1
+    VAR thousands: Boolean := FALSE
+    VAR precision: Number := -1
+    VAR type: String := ""
+
+    VAR i: Number := 0
+    IF i < fmt.length() AND fmt[i] IN ["<", ">", "=", "^"] THEN
+        align := fmt[i]
+        INC i
+    END IF
+    IF i < fmt.length() AND fmt[i] IN ["+", "-", " "] THEN
+        sign := fmt[i]
+        INC i
+    END IF
+    IF i < fmt.length() AND fmt[i] = "0" THEN
+        fill := fmt[i]
+        INC i
+        IF align = "" THEN
+            align := "="
+        END IF
+    END IF
+    LET start: Number := i
+    WHILE i < fmt.length() AND "0" <= fmt[i] <= "9" DO
+        INC i
+    END WHILE
+    IF i > start THEN
+        width := num(fmt[start TO i-1])
+    END IF
+    IF i < fmt.length() AND fmt[i] = "," THEN
+        thousands := TRUE
+        INC i
+    END IF
+    IF i < fmt.length() AND fmt[i] = "." THEN
+        INC i
+        LET pstart: Number := i
+        WHILE i < fmt.length() AND "0" <= fmt[i] <= "9" DO
+            INC i
+        END WHILE
+        IF i > pstart THEN
+            precision := num(fmt[pstart TO i-1])
+        END IF
+    END IF
+    IF i < fmt.length() THEN
+        type := fmt[i]
+    END IF
+    CASE type
+        WHEN "", "s" DO
+            IF sign <> "" OR align = "=" THEN
+                RAISE FormatException
+            END IF
+        WHEN "d", "x" DO
+            % pass
+        WHEN OTHERS DO
+            RAISE FormatException
+    END CASE
+
+    VAR r: String := s
+    CASE type
+        WHEN "d" DO
+            _ := num(s)
+        WHEN "x" DO
+            VAR x: Number := num(s)
+            r := ""
+            IF x = 0 THEN
+                r := "0"
+            ELSE
+                WHILE x <> 0 DO
+                    CONSTANT hexdigit: String := "0123456789abcdef"
+                    r := hexdigit[x MOD 16] & r
+                    x := x INTDIV 16
+                END WHILE
+            END IF
+    END CASE
+    IF precision >= 0 AND r.length() > precision THEN
+        r := r[FIRST TO precision-1]
+    END IF
+    IF width >= 0 THEN
+        IF r.length() < width THEN
+            LET space: Number := width - r.length()
+            IF align = "" THEN
+                IF type IN ["d", "x"] THEN
+                    align := ">"
+                ELSE
+                    align := "<"
+                END IF
+            END IF
+            IF align = "<" THEN
+                r.append(repeat(fill, space))
+            ELSIF align IN [">", "="] THEN
+                r := repeat(fill, space) & r
+            ELSIF align = "^" THEN
+                r := repeat(fill, space INTDIV 2) & r & repeat(fill, space - space INTDIV 2)
+            END IF
+        END IF
+    END IF
+    RETURN r
+END FUNCTION
 
 %|
  |  Function: hasPrefix

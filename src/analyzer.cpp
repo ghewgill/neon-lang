@@ -9,7 +9,6 @@
 
 #include "ast.h"
 #include "bytecode.h"
-#include "format.h"
 #include "pt.h"
 #include "rtl_compile.h"
 #include "support.h"
@@ -1964,17 +1963,18 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr)
 {
     const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat")));
-    const ast::VariableExpression *format = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("format")));
+    const ast::Module *string = dynamic_cast<const ast::Module *>(scope.top()->lookupName("string"));
+    if (string == nullptr) {
+        ast::Module *module = import_module(Token(), "string");
+        rtl_import("string", module);
+        global_scope->addName(Token(IDENTIFIER, "string"), "string", module, true);
+        string = module;
+    }
+    const ast::VariableExpression *format = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(string->scope->lookupName("format")));
     const ast::Expression *r = nullptr;
     for (auto &x: expr->parts) {
         const ast::Expression *e = analyze(x.first.get());
         std::string fmt = x.second.text;
-        if (not fmt.empty()) {
-            format::Spec spec;
-            if (not format::parse(fmt, spec)) {
-                error(3133, x.second, "invalid format specification");
-            }
-        }
         const ast::Expression *str = convert(ast::TYPE_STRING, e);
         if (str != nullptr && e->type != ast::TYPE_OBJECT) {
             // No action required.

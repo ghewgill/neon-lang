@@ -5,7 +5,6 @@
 #include <set>
 #include <stack>
 
-#include "format.h"
 #include "pt.h"
 #include "sql.h"
 #include "util.h"

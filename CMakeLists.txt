@@ -100,7 +100,6 @@ add_custom_command(
 )
 set_source_files_properties(
     src/ast.cpp
-    src/format.cpp
     PROPERTIES OBJECT_DEPENDS src/exceptions.inc
 )
 
@@ -159,7 +158,6 @@ endif (GO)
 
 add_library(common OBJECT
     src/bytecode.cpp
-    src/format.cpp
     src/intrinsic.cpp
     src/number.cpp
     src/support.cpp
@@ -491,24 +489,6 @@ target_link_libraries(test_parser
 add_test(
     NAME test_parser
     COMMAND test_parser tests/parser_coverage.neon
-)
-
-add_executable(test_format
-    tests/test_format.cpp
-    src/format.cpp
-    src/number.cpp
-)
-target_include_directories(test_format PRIVATE
-    src
-    external/utfcpp-master/source
-)
-target_link_libraries(test_format
-    bid
-    gmp
-)
-add_test(
-    NAME test_format
-    COMMAND test_format
 )
 
 add_executable(test_number_to_string

@@ -315,7 +315,6 @@ neonc = env.Program("bin/neonc", [
     "src/compiler_jvm.cpp",
     "src/debuginfo.cpp",
     "src/disassembler.cpp",
-    "src/format.cpp",
     "src/intrinsic.cpp",
     "src/lexer.cpp",
     "src/neonc.cpp",
@@ -366,7 +365,6 @@ neon = env.Program("bin/neon", [
     "src/debuginfo.cpp",
     "src/disassembler.cpp",
     "src/exec.cpp",
-    "src/format.cpp",
     "src/httpserver.cpp",
     "src/intrinsic.cpp",
     "src/lexer.cpp",
@@ -393,7 +391,6 @@ neonx = env.Program("bin/neonx", [
     "src/cell.cpp",
     "src/disassembler.cpp",
     "src/exec.cpp",
-    "src/format.cpp",
     "src/httpserver.cpp",
     "src/intrinsic.cpp",
     "src/neonx.cpp",
@@ -412,7 +409,6 @@ neonstub = env.Program("bin/neonstub", [
     "src/cell.cpp",
     "src/disassembler.cpp",
     "src/exec.cpp",
-    "src/format.cpp",
     "src/httpserver.cpp",
     "src/intrinsic.cpp",
     "src/neonstub.cpp",
@@ -489,13 +485,6 @@ test_parser = env.Program("bin/test_parser", [
 ] + coverage_lib,
 )
 
-env.UnitTest("bin/test_format", [
-    "tests/test_format.cpp",
-    "src/format.cpp",
-    "src/number.cpp",
-] + coverage_lib,
-)
-
 env.Program("bin/fuzz_lexer", [
     "tests/fuzz_lexer.cpp",
     "src/lexer.cpp",
@@ -511,7 +500,6 @@ env.Program("bin/fuzz_parser", [
     "src/bytecode.cpp",
     "src/compiler.cpp",
     "src/lexer.cpp",
-    "src/format.cpp",
     "src/intrinsic.cpp",
     "src/number.cpp",
     "src/parser.cpp",

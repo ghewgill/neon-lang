@@ -8,7 +8,6 @@ namespace global {
 utf8string chr(Number x);
 utf8string concat(const utf8string &a, const utf8string &b);
 Number int_(Number a);
-utf8string format(const utf8string &str, const utf8string &fmt);
 Number max(Number a, Number b);
 Number min(Number a, Number b);
 Number num(const utf8string &s);

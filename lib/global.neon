@@ -233,15 +233,6 @@ DECLARE NATIVE FUNCTION concat(a: String, b: String): String
 DECLARE NATIVE FUNCTION concatBytes(a: Bytes, b: Bytes): Bytes
 
 %|
- |  Function: format
- |
- |  Format a string based on the formatting mini-language.
- |
- |  TODO
- |%
-DECLARE NATIVE FUNCTION format(str: String, fmt: String): String
-
-%|
  |  Function: input
  |
  |  Read a line of input from the terminal after printing a prompt.

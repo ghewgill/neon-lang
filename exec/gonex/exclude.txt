@@ -1,5 +1,9 @@
 array2d.neon               # copy semantics
+array-append.neon          # import
+array-concat.neon          # import
+array-extend.neon          # import
 array-fraction.neon        # exception
+array-index-write.neon     # import
 array-negative.neon        # exception
 array.neon                 # exception
 array-resize.neon          # import
@@ -22,8 +26,11 @@ cformat-test.neon          # import
 check.neon                 # exception
 class-empty.neon           # class
 cmdline.neon               # pushppg
+comparison.neon            # import
+comparison2.neon           # import
 complex-test.neon          # import
 concat-bytes.neon          # import
+const-expression.neon      # import
 datetime-test.neon         # import
 debug-example.neon         # debugger
 debug-server.neon          # import
@@ -56,9 +63,15 @@ file-symlink.neon          # import
 file-test.neon             # import
 file-writebytes.neon       # import
 file-writelines.neon       # import
+for-bounds.neon            # import
+for-nested2.neon           # import
+for-scope.neon             # import
+foreach.neon               # import
 foreach-eval.neon          # import
 fork.neon                  # posix
+format.neon                # import
 for.neon                   # decimal
+function-defaultargs.neon  # import
 function-pointer.neon      # module
 function-pointer-nowhere.neon # module
 gc1.neon                   # import
@@ -66,6 +79,7 @@ gc2.neon                   # import
 gc3.neon                   # import
 gc-array.neon              # import
 gc-long-chain.neon         # import
+inc-reference.neon         # import
 import-dup.neon            # sys
 import.neon                # import
 import-string.neon         # import
@@ -80,13 +94,20 @@ interface-parameter-import.neon    # importsize
 intrinsic.neon             # jumptbl
 io-test.neon               # import
 json-test.neon             # import
+let.neon                   # import
+lexer-raw.neon             # import
+lexer-unicode.neon         # import
 lexical-scope.neon         # exception
 literal-array.neon         # import
 literal.neon               # map element address
+logical.neon               # import
+logical2.neon              # import
+loop-label.neon            # import
 math-test.neon             # math
 mkdir.neon                 # import
 mmap-test.neon             # import
 module2.neon               # import
+module-alias.neon          # import
 module-alias2.neon         # import
 module-import-name2.neon   # import
 module-import-name-alias2.neon # import
@@ -112,6 +133,7 @@ outer-issue192.neon        # pushpol
 outer.neon                 # pushpol
 outer-parameter.neon       # pushpol
 outer-tail.neon            # pushpol
+parameter-out-array.neon   # import
 pointer2.neon              # class
 pointer3.neon              # class
 pointer4.neon              # class
@@ -124,7 +146,10 @@ pointer-mismatch.neon      # class
 pointer.neon               # class
 pointer-nil.neon           # class
 pointer-valid.neon         # class
+predefined-generation.neon # import
 process-test.neon          # import
+record-empty.neon          # import
+record-init2.neon          # import
 recursion-limit.neon       # runtime
 repl_import.neon           # import
 return-try.neon            # exception
@@ -140,6 +165,7 @@ stack-overflow.neon        # overflow
 string-bytes.neon          # bytes
 string-escape.neon         # utf8
 string-format.neon         # format
+string-multiline.neon      # import
 string-slice.neon          # import
 strings.neon               # string splice
 string-test.neon           # import
@@ -148,12 +174,14 @@ sys-exit.neon              # exception
 time-stopwatch.neon        # import
 time-test.neon             # import
 try-expression.neon        # import
+unary-plus.neon            # import
 unicode-char.neon          # utf8
 unicode-length.neon        # import
 uninitialised-case.neon    # jumptbl
 valid-pointer.neon         # class
 value-copy.neon            # import
 value-index.neon           # dict
+var-declaration.neon       # import
 while-valid.neon           # class
 
 compress-test.neon         # module

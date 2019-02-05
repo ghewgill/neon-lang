@@ -41,6 +41,7 @@ file-writebytes.neon       # module file
 file-writelines.neon       # module file
 for.neon                   # decimal floating point
 foreach-string.neon        # StringValueIndexExpression
+format.neon                # module string
 forth-test.neon            # os.system
 function-default-out.neon  # DummyExpression
 function-pointer.neon      # string.append
@@ -138,3 +139,39 @@ http-test.neon             # StringReferenceIndexExpression
 regex-test.neon            # module regex
 sodium-test.neon           # module sodium
 zeromq-test.neon           # module zeromq
+
+# These are all related to string.format()
+array-append.neon
+array-concat.neon
+array-extend.neon
+array-index-write.neon
+array-subscript.neon
+assert.neon
+class-empty.neon
+comparison.neon
+comparison2.neon
+const-expression.neon
+dictionary-sorted.neon
+exception-code.neon
+for-bounds.neon
+for-nested2.neon
+for-scope.neon
+foreach-eval.neon
+foreach.neon
+function-defaultargs.neon
+intdiv.neon
+let.neon
+lexer-raw.neon
+logical.neon
+logical2.neon
+module-alias.neon
+module-scope.neon
+nested-substitution.neon
+new-init-module.neon
+new-init.neon
+number-underscore.neon
+predefined-generation.neon
+record-empty.neon
+record-init2.neon
+unary-plus.neon
+var-declaration.neon

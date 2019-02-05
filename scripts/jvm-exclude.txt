@@ -19,6 +19,7 @@ file-symlink.neon          # file.symlink
 file-test.neon             # stack size
 for.neon                   # number format (2 vs 2.0)
 fork.neon                  # module posix
+format.neon                # module string
 forth-test.neon            # module os
 function-default-out.neon  # DummyExpression
 gc-array.neon              # module runtime
