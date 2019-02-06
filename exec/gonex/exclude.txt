@@ -14,6 +14,7 @@ assert.neon                # import
 bigint.neon                # import
 binary-test.neon           # binary
 bytes-embed.neon           # bytes
+bytes-index.neon           # index
 bytes-literal.neon         # bytes
 bytes.neon                 # bytes
 bytes-slice.neon           # bytes
@@ -165,6 +166,7 @@ stack-overflow.neon        # overflow
 string-bytes.neon          # bytes
 string-escape.neon         # utf8
 string-format.neon         # format
+string-index.neon          # index
 string-multiline.neon      # import
 string-slice.neon          # import
 strings.neon               # string splice

@@ -1,7 +1,6 @@
 #ifdef _MSC_VER
 #define _CRT_SECURE_NO_WARNINGS
 #endif
-#include <assert.h>
 #include <iso646.h>
 #include <iostream>
 #include <sstream>
@@ -223,8 +222,12 @@ utf8string string__splice(const utf8string &t, const utf8string &s, Number first
 
 utf8string string__substring(const utf8string &s, Number first, bool first_from_end, Number last, bool last_from_end)
 {
-    assert(number_is_integer(first));
-    assert(number_is_integer(last));
+    if (not number_is_integer(first)) {
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(first)));
+    }
+    if (not number_is_integer(last)) {
+        throw RtlException(Exception_StringIndexException, utf8string(number_to_string(last)));
+    }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -233,8 +236,23 @@ utf8string string__substring(const utf8string &s, Number first, bool first_from_
     if (last_from_end) {
         l += s.size() - 1;
     }
+    if (f < 0) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(f)));
+    }
+    if (f >= static_cast<int64_t>(s.size())) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(f)));
+    }
+    if (l >= static_cast<int64_t>(s.size())) {
+        throw RtlException(Exception_StringIndexException, utf8string(std::to_string(l)));
+    }
+    if (l < 0) {
+        l = -1;
+    }
     size_t start = s.index(f);
     size_t end = s.index(l + 1);
+    if (end < start) {
+        return utf8string();
+    }
     return utf8string(s.substr(start, end-start));
 }
 
@@ -251,8 +269,12 @@ utf8string string__toString(const utf8string &self)
 
 std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Number first, bool first_from_end, Number last, bool last_from_end)
 {
-    assert(number_is_integer(first));
-    assert(number_is_integer(last));
+    if (not number_is_integer(first)) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(first)));
+    }
+    if (not number_is_integer(last)) {
+        throw RtlException(Exception_BytesIndexException, utf8string(number_to_string(last)));
+    }
     int64_t f = number_to_sint64(first);
     int64_t l = number_to_sint64(last);
     if (first_from_end) {
@@ -261,8 +283,23 @@ std::vector<unsigned char> bytes__range(const std::vector<unsigned char> &t, Num
     if (last_from_end) {
         l += t.size() - 1;
     }
+    if (f < 0) {
+        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(f)));
+    }
+    if (f >= static_cast<int64_t>(t.size())) {
+        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(f)));
+    }
+    if (l >= static_cast<int64_t>(t.size())) {
+        throw RtlException(Exception_BytesIndexException, utf8string(std::to_string(l)));
+    }
+    if (l < 0) {
+        l = -1;
+    }
     std::vector<unsigned char> r;
-    std::copy(t.begin()+f, t.begin()+l+1, std::back_inserter(r));
+    if (l < f) {
+        return r;
+    }
+    std::copy(t.begin()+f, t.begin()+(l+1), std::back_inserter(r));
     return r;
 }
 

@@ -1,6 +1,7 @@
 array-tostring.neon        # module
 binary-test.neon           # module
 bigint.neon                # bigint
+bytes-index.neon           # index
 cal-test.neon              # os.system
 cformat-test.neon          # module
 class-empty.neon           # class
@@ -92,6 +93,7 @@ stack-overflow.neon        # stack
 string-bytes.neon          # format
 string-escape.neon         # utf8
 string-format.neon         # format
+string-index.neon          # index
 string-test.neon           # module
 struct-test.neon           # module
 time-stopwatch.neon        # module

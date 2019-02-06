@@ -1,5 +1,6 @@
 array-resize.neon          # array default item
 array2d.neon               # array copying semantics
+bytes-index.neon           # index
 cformat-test.neon          # object
 cmdline.neon               # PredefinedVariable sys$args
 complex-test.neon          # illegal character dot
@@ -87,6 +88,7 @@ sqlite-test.neon           # bad type
 stack-overflow.neon        # catch stack overflow
 string-bytes.neon          # format
 string-format.neon         # format
+string-index.neon          # index
 string-test.neon           # module string
 strings.neon               # stack size too large
 struct-test.neon           # illegal character dot

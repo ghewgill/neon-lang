@@ -35,6 +35,7 @@ binary-test.neon
 boolean.neon
 bytecode-stringtable.neon
 bytes-embed.neon
+bytes-index.neon
 bytes-literal.neon
 bytes.neon
 bytes-slice.neon
@@ -294,6 +295,7 @@ stack-overflow.neon
 string-bytes.neon
 string-escape.neon
 string-format.neon
+string-index.neon
 string-multiline.neon
 string-slice.neon
 strings.neon

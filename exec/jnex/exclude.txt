@@ -7,6 +7,7 @@ array2d.neon               # copy semantics
 assert-enum.neon           # import
 assert.neon                # import
 binary-test.neon           # binary
+bytes-index.neon           # index
 bytes-literal.neon         # array
 cal-test.neon              # import
 cformat-test.neon          # import
@@ -106,6 +107,7 @@ stack-overflow.neon        # stack overflow
 string-bytes.neon          # format
 string-escape.neon         # UTF-8
 string-format.neon         # format
+string-index.neon          # index
 string-slice.neon          # string__splice
 string-test.neon           # string
 strings.neon               # string__splice

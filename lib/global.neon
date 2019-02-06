@@ -66,6 +66,13 @@ EXCEPTION AssertFailedException
 EXCEPTION ByteOutOfRangeException
 
 %|
+ |  Exception: BytesIndexException
+ |
+ |  A byte index is not valid or out of range.
+ |%
+EXCEPTION BytesIndexException
+
+%|
  |  Exception: DictionaryIndexException
  |
  |  A dictionary index value does not exist.
@@ -148,6 +155,13 @@ EXCEPTION SqlException
  |  Call stack exceeded limit.
  |%
 EXCEPTION StackOverflowException
+
+%|
+ |  Exception: StringIndexException
+ |
+ |  An string index is not valid or out of range.
+ |%
+EXCEPTION StringIndexException
 
 %|
  |  Exception: Utf8DecodingException

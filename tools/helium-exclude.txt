@@ -91,6 +91,7 @@ base-decimal.neon
 base-invalidchar.neon
 base-invalid-digit.neon
 base-invalid.neon
+bytes-index.neon
 case2.neon
 case4.neon
 comments-block2.neon
@@ -128,6 +129,7 @@ return.neon
 shadow2.neon
 shadow.neon
 stack-overflow.neon
+string-index.neon
 type_mismatch.neon
 uninitialised-case-noelse.neon
 uninitialised-if-exit.neon

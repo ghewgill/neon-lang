@@ -26,166 +26,171 @@ END FUNCTION
 
 FUNCTION decodePart(json: String, INOUT index: Number): Object
     skipWhitespace(json, INOUT index)
-    CASE json[index]
-        WHEN "a" TO "z" DO
-            LET start: Number := index
-            WHILE index < json.length() AND "a" <= json[index] <= "z" DO
-                INC index
-            END WHILE
-            LET s: String := json[start TO index-1]
-            CASE s
-                WHEN "null" DO
-                    RETURN NIL
-                WHEN "false" DO
-                    RETURN FALSE
-                WHEN "true" DO
-                    RETURN TRUE
-                WHEN OTHERS DO
-                    RAISE JsonFormatException(info WITH "null or false or true expected")
-            END CASE
-        WHEN "-", "0" TO "9" DO
-            LET start: Number := index
-            IF json[index] = "-" THEN
-                INC index
-            END IF
-            IF json[index] = "0" THEN
-                INC index
-            ELSE
-                CHECK "1" <= json[index] <= "9" ELSE
-                    RAISE JsonFormatException(info WITH "digit expected")
-                END CHECK
-                INC index
-                WHILE index < json.length() AND "0" <= json[index] <= "9" DO
+    IF index < json.length() THEN
+        CASE json[index]
+            WHEN "a" TO "z" DO
+                LET start: Number := index
+                WHILE index < json.length() AND "a" <= json[index] <= "z" DO
                     INC index
                 END WHILE
-            END IF
-            IF json[index] = "." THEN
-                INC index
-                CHECK "0" <= json[index] <= "9" ELSE
-                    RAISE JsonFormatException(info WITH "digit expected")
-                END CHECK
-                WHILE index < json.length() AND "0" <= json[index] <= "9" DO
-                    INC index
-                END WHILE
-            END IF
-            IF json[index] = "e" OR json[index] = "E" THEN
-                INC index
-                IF json[index] = "+" OR json[index] = "-" THEN
+                LET s: String := json[start TO index-1]
+                CASE s
+                    WHEN "null" DO
+                        RETURN NIL
+                    WHEN "false" DO
+                        RETURN FALSE
+                    WHEN "true" DO
+                        RETURN TRUE
+                    WHEN OTHERS DO
+                        RAISE JsonFormatException(info WITH "null or false or true expected")
+                END CASE
+            WHEN "-", "0" TO "9" DO
+                LET start: Number := index
+                IF json[index] = "-" THEN
                     INC index
                 END IF
-                CHECK "0" <= json[index] <= "9" ELSE
-                    RAISE JsonFormatException(info WITH "digit expected")
-                END CHECK
-                WHILE index < json.length() AND "0" <= json[index] <= "9" DO
+                IF index < json.length() AND json[index] = "0" THEN
                     INC index
-                END WHILE
-            END IF
-            RETURN num(json[start TO index-1])
-        WHEN "\"" DO
-            INC index
-            VAR t: String := ""
-            WHILE index < json.length() AND json[index] <> "\"" DO
-                CHECK 0x20 <= ord(json[index]) <= 0x10ffff ELSE
-                    RAISE JsonFormatException(info WITH "invalid character")
-                END CHECK
-                IF json[index] = "\\" THEN
-                    INC index
-                    CASE json[index]
-                        WHEN "\"", "\\", "/" DO
-                            t.append(json[index])
-                        WHEN "b" DO
-                            t.append("\b")
-                        WHEN "f" DO
-                            t.append("\f")
-                        WHEN "n" DO
-                            t.append("\n")
-                        WHEN "r" DO
-                            t.append("\r")
-                        WHEN "t" DO
-                            t.append("\t")
-                        WHEN "u" DO
-                            VAR char: Number := 0
-                            FOR i := 1 TO 4 DO
-                                IF "0" <= json[index+i] <= "9" THEN
-                                    char := char * 0x10 + (ord(json[index+i]) - ord("0"))
-                                ELSIF "a" <= json[index+i] <= "f" THEN
-                                    char := char * 0x10 + (ord(json[index+i]) - ord("a"))
-                                ELSIF "A" <= json[index+i] <= "F" THEN
-                                    char := char * 0x10 + (ord(json[index+i]) - ord("A"))
-                                ELSE
-                                    RAISE JsonFormatException(info WITH "invalid hex character")
-                                END IF
-                            END FOR
-                            t.append(chr(char))
-                            index := index + 4
-                        WHEN OTHERS DO
-                            RAISE JsonFormatException(info WITH "invalid escape sequence")
-                    END CASE
                 ELSE
-                    t.append(json[index])
+                    CHECK index < json.length() AND "1" <= json[index] <= "9" ELSE
+                        RAISE JsonFormatException(info WITH "digit expected")
+                    END CHECK
+                    INC index
+                    WHILE index < json.length() AND "0" <= json[index] <= "9" DO
+                        INC index
+                    END WHILE
                 END IF
+                IF index < json.length() AND json[index] = "." THEN
+                    INC index
+                    CHECK index < json.length() AND "0" <= json[index] <= "9" ELSE
+                        RAISE JsonFormatException(info WITH "digit expected")
+                    END CHECK
+                    WHILE index < json.length() AND "0" <= json[index] <= "9" DO
+                        INC index
+                    END WHILE
+                END IF
+                IF index < json.length() AND (json[index] = "e" OR json[index] = "E") THEN
+                    INC index
+                    IF index < json.length() AND (json[index] = "+" OR json[index] = "-") THEN
+                        INC index
+                    END IF
+                    CHECK index < json.length() AND "0" <= json[index] <= "9" ELSE
+                        RAISE JsonFormatException(info WITH "digit expected")
+                    END CHECK
+                    WHILE index < json.length() AND "0" <= json[index] <= "9" DO
+                        INC index
+                    END WHILE
+                END IF
+                RETURN num(json[start TO index-1])
+            WHEN "\"" DO
                 INC index
-            END WHILE
-            IF index >= json.length() THEN
-                RAISE JsonFormatException(info WITH "missing trailing quote")
-            END IF
-            INC index
-            RETURN t
-        WHEN "[" DO
-            INC index
-            VAR a: Array<Object> := []
-            skipWhitespace(json, INOUT index)
-            IF json[index] = "]" THEN
+                VAR t: String := ""
+                WHILE index < json.length() AND json[index] <> "\"" DO
+                    CHECK 0x20 <= ord(json[index]) <= 0x10ffff ELSE
+                        RAISE JsonFormatException(info WITH "invalid character")
+                    END CHECK
+                    IF json[index] = "\\" THEN
+                        INC index
+                        CHECK index < json.length() ELSE
+                            EXIT WHILE
+                        END CHECK
+                        CASE json[index]
+                            WHEN "\"", "\\", "/" DO
+                                t.append(json[index])
+                            WHEN "b" DO
+                                t.append("\b")
+                            WHEN "f" DO
+                                t.append("\f")
+                            WHEN "n" DO
+                                t.append("\n")
+                            WHEN "r" DO
+                                t.append("\r")
+                            WHEN "t" DO
+                                t.append("\t")
+                            WHEN "u" DO
+                                VAR char: Number := 0
+                                FOR i := 1 TO 4 DO
+                                    IF "0" <= json[index+i] <= "9" THEN
+                                        char := char * 0x10 + (ord(json[index+i]) - ord("0"))
+                                    ELSIF "a" <= json[index+i] <= "f" THEN
+                                        char := char * 0x10 + (ord(json[index+i]) - ord("a"))
+                                    ELSIF "A" <= json[index+i] <= "F" THEN
+                                        char := char * 0x10 + (ord(json[index+i]) - ord("A"))
+                                    ELSE
+                                        RAISE JsonFormatException(info WITH "invalid hex character")
+                                    END IF
+                                END FOR
+                                t.append(chr(char))
+                                index := index + 4
+                            WHEN OTHERS DO
+                                RAISE JsonFormatException(info WITH "invalid escape sequence")
+                        END CASE
+                    ELSE
+                        t.append(json[index])
+                    END IF
+                    INC index
+                END WHILE
+                CHECK index < json.length() ELSE
+                    RAISE JsonFormatException(info WITH "missing trailing quote")
+                END CHECK
+                INC index
+                RETURN t
+            WHEN "[" DO
+                INC index
+                VAR a: Array<Object> := []
+                skipWhitespace(json, INOUT index)
+                IF index < json.length() AND json[index] = "]" THEN
+                    INC index
+                    RETURN a
+                END IF
+                LOOP
+                    a.append(decodePart(json, INOUT index))
+                    skipWhitespace(json, INOUT index)
+                    IF index < json.length() AND json[index] = "," THEN
+                        INC index
+                    ELSIF index < json.length() AND json[index] = "]" THEN
+                        EXIT LOOP
+                    ELSE
+                        RAISE JsonFormatException(info WITH ", or ] expected")
+                    END IF
+                    skipWhitespace(json, INOUT index)
+                END LOOP
                 INC index
                 RETURN a
-            END IF
-            LOOP
-                a.append(decodePart(json, INOUT index))
+            WHEN "{" DO
+                INC index
+                VAR d: Dictionary<Object> := {}
                 skipWhitespace(json, INOUT index)
-                IF json[index] = "," THEN
+                IF index < json.length() AND json[index] = "}" THEN
                     INC index
-                ELSIF json[index] = "]" THEN
-                    EXIT LOOP
-                ELSE
-                    RAISE JsonFormatException(info WITH ", or ] expected")
+                    RETURN d
                 END IF
-                skipWhitespace(json, INOUT index)
-            END LOOP
-            INC index
-            RETURN a
-        WHEN "{" DO
-            INC index
-            VAR d: Dictionary<Object> := {}
-            skipWhitespace(json, INOUT index)
-            IF json[index] = "}" THEN
+                LOOP
+                    LET vkey: Object := decodePart(json, INOUT index)
+                    IF NOT (vkey ISA String) THEN
+                        RAISE JsonFormatException(info WITH "string key expected")
+                    END IF
+                    LET key: String := vkey
+                    skipWhitespace(json, INOUT index)
+                    IF index >= json.length() OR json[index] <> ":" THEN
+                        RAISE JsonFormatException(info WITH ": expected")
+                    END IF
+                    INC index
+                    d[key] := decodePart(json, INOUT index)
+                    skipWhitespace(json, INOUT index)
+                    IF index < json.length() AND json[index] = "," THEN
+                        INC index
+                    ELSIF index < json.length() AND json[index] = "}" THEN
+                        EXIT LOOP
+                    ELSE
+                        RAISE JsonFormatException(info WITH ", or } expected")
+                    END IF
+                    skipWhitespace(json, INOUT index)
+                END LOOP
                 INC index
                 RETURN d
-            END IF
-            LOOP
-                LET vkey: Object := decodePart(json, INOUT index)
-                IF NOT (vkey ISA String) THEN
-                    RAISE JsonFormatException(info WITH "string key expected")
-                END IF
-                LET key: String := vkey
-                skipWhitespace(json, INOUT index)
-                IF json[index] <> ":" THEN
-                    RAISE JsonFormatException(info WITH ": expected")
-                END IF
-                INC index
-                d[key] := decodePart(json, INOUT index)
-                skipWhitespace(json, INOUT index)
-                IF json[index] = "," THEN
-                    INC index
-                ELSIF json[index] = "}" THEN
-                    EXIT LOOP
-                ELSE
-                    RAISE JsonFormatException(info WITH ", or } expected")
-                END IF
-                skipWhitespace(json, INOUT index)
-            END LOOP
-            INC index
-            RETURN d
-    END CASE
+        END CASE
+    END IF
     RAISE JsonFormatException(info WITH "value expected")
 END FUNCTION
 

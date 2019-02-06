@@ -8,6 +8,7 @@ assert-enum.neon           # enum
 bigint.neon                # bigint
 binary-test.neon           # module binary
 bytes-embed.neon           # bytes
+bytes-index.neon           # index
 bytes-literal.neon         # bytes
 bytes-slice.neon           # bytes
 bytes-tostring.neon        # bytes
@@ -111,6 +112,7 @@ stack-overflow.neon        # catch stack overflow
 string-bytes.neon          # StringReferenceIndexExpression
 string-escape.neon         # StringReferenceIndexExpression
 string-format.neon         # format
+string-index.neon          # index
 string-multiline.neon      # StringReferenceIndexExpression
 string-slice.neon          # StringReferenceIndexExpression
 string-test.neon           # module string
