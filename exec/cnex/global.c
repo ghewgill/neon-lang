@@ -1,7 +1,5 @@
 #include "global.h"
 
-#include "lib/random.h"
-
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -18,6 +16,8 @@
 #include "nstring.h"
 #include "util.h"
 
+#include "lib/binary.h"
+#include "lib/random.h"
 
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
@@ -34,6 +34,36 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("print",                     neon_print),
     PDFUNC("round",                     neon_round),
     PDFUNC("str",                       neon_str),
+
+
+    // Neon Library Modules:
+    // Binary - Bitwise operations
+    PDFUNC("binary$and32",              binary_and32),
+    PDFUNC("binary$and64",              binary_and64),
+    PDFUNC("binary$extract32",          binary_extract32),
+    PDFUNC("binary$extract64",          binary_extract64),
+    PDFUNC("binary$get32",              binary_get32),
+    PDFUNC("binary$get64",              binary_get64),
+    PDFUNC("binary$not32",              binary_not32),
+    PDFUNC("binary$not64",              binary_not64),
+    PDFUNC("binary$or32",               binary_or32),
+    PDFUNC("binary$or64",               binary_or64),
+    PDFUNC("binary$replace32",          binary_replace32),
+    PDFUNC("binary$replace64",          binary_replace64),
+    PDFUNC("binary$set32",              binary_set32),
+    PDFUNC("binary$set64",              binary_set64),
+    PDFUNC("binary$shiftLeft32",        binary_shift_left32),
+    PDFUNC("binary$shiftLeft64",        binary_shift_left64),
+    PDFUNC("binary$shiftRight32",       binary_shift_right32),
+    PDFUNC("binary$shiftRight64",       binary_shift_right64),
+    PDFUNC("binary$shiftRightSigned32", binary_shift_right_signed32),
+    PDFUNC("binary$shiftRightSigned64", binary_shift_right_signed64),
+    PDFUNC("binary$xor32",              binary_xor32),
+    PDFUNC("binary$xor64",              binary_xor64),
+    PDFUNC("binary$andBytes",           binary_andBytes),
+    PDFUNC("binary$notBytes",           binary_notBytes),
+    PDFUNC("binary$orBytes",            binary_orBytes),
+    PDFUNC("binary$xorBytes",           binary_xorBytes),
 
     PDFUNC("io$fprint",                 io_fprint),
 

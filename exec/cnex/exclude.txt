@@ -1,6 +1,5 @@
 array-tostring.neon        # array__toString__string
 assignment.neon            # dictionary / classes
-binary-test.neon           # module
 bigint.neon                # assert
 bytes-index.neon           # PUSHPPG
 cal-test.neon              # os.system
