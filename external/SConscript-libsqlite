@@ -23,5 +23,6 @@ sqliteenv.Append(CPPFLAGS=["-DSQLITE_THREADSAFE=0"])
 libsqlite = sqliteenv.Library("sqlite-amalgamation-3080803/sqlite3.c")
 
 env.Append(CPPPATH=[Dir("sqlite-amalgamation-3080803")])
+env.Append(LIBS=libsqlite)
 
 Return(["libsqlite"])

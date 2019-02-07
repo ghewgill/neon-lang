@@ -41,5 +41,6 @@ else:
         libz = libzenv.Command("zlib-1.2.8/libz.a", "zlib-1.2.8/configure", "cd external/zlib-1.2.8 && ./configure --static && make")
         env.Append(CPPPATH=[Dir("zlib-1.2.8")])
     conf.Finish()
+env.Append(LIBS=libz)
 
 Return(["libz"])

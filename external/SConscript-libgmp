@@ -172,5 +172,6 @@ if sys.platform == "win32":
 else:
     # Avoid triggering warnings like -Weffc++ on these headers.
     env.Append(CPPFLAGS=["-isystem", "external/include"])
+env.Append(LIBS=libgmp)
 
 Return(["libgmp"])

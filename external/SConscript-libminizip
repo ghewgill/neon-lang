@@ -40,5 +40,6 @@ else:
         "minizip11/zip.c",
     ])
     env.Append(CPPPATH=["external/minizip11"])
+env.Append(LIBS=libminizip)
 
 Return(["libminizip"])

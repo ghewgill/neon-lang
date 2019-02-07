@@ -31,5 +31,6 @@ libhash = hashenv.Library("hash-library/hash-library", [
 ])
 
 env.Append(CPPPATH=[Dir("hash-library")])
+env.Append(LIBS=libhash)
 
 Return(["libhash"])

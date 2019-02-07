@@ -102,8 +102,8 @@ libgmp = add_external(SConscript("external/SConscript-libgmp", exports=["env"]))
 libffi = add_external(SConscript("external/SConscript-libffi", exports=["env"]))
 libhash = add_external(SConscript("external/SConscript-libhash", exports=["env"]))
 libsqlite = add_external(SConscript("external/SConscript-libsqlite", exports=["env"]))
-libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 libminizip = add_external(SConscript("external/SConscript-libminizip", exports=["env"]))
+libz = add_external(SConscript("external/SConscript-libz", exports=["env"]))
 add_external(SConscript("external/SConscript-minijson", exports=["env"]))
 add_external(SConscript("external/SConscript-pyparsing", exports=["env"]))
 
@@ -117,34 +117,36 @@ modules.sort()
 
 SConscript("external/SConscript-naturaldocs")
 
-env.Append(CPPPATH=[
+buildenv = env.Clone()
+
+buildenv.Append(CPPPATH=[
     Dir("src"),
 ])
 if sys.platform == "win32":
-    env.Append(CXXFLAGS=[
+    buildenv.Append(CXXFLAGS=[
         "/EHsc",
         "/W4",
         "/WX",
         "/FS",
         "/wd4324", # structure was padded due to alignment specifier
     ])
-    if not env["RELEASE"]:
-        env.Append(LINKFLAGS=[
+    if not buildenv["RELEASE"]:
+        buildenv.Append(LINKFLAGS=[
             "/DEBUG",
         ])
-        env.Append(CXXFLAGS=[
+        buildenv.Append(CXXFLAGS=[
             "/MDd",
             "/Zi",
             "/Od",
         ])
     else:
-        env.Append(CXXFLAGS=[
+        buildenv.Append(CXXFLAGS=[
             "/Ox",
             "/MD",
         ])
-    env.Append(LIBS=["user32", "wsock32"])
+    buildenv.Append(LIBS=["user32", "wsock32"])
 else:
-    env.Append(CXXFLAGS=[
+    buildenv.Append(CXXFLAGS=[
         "-std=c++0x",
         "-Wall",
         "-Wextra",
@@ -153,48 +155,47 @@ else:
         #"-Wshadow",            # Want to enable this, but the compiler used by travis is overzealous about enforcing it where we don't want it to
         "-Werror",
     ])
-    if "CLANG_SANITIZE" in env:
-        env.Append(CXXFLAGS=[
-            "-fsanitize=" + env["CLANG_SANITIZE"],
+    if "CLANG_SANITIZE" in buildenv:
+        buildenv.Append(CXXFLAGS=[
+            "-fsanitize=" + buildenv["CLANG_SANITIZE"],
         ])
-        env.Append(LINKFLAGS=[
-            "-fsanitize=" + env["CLANG_SANITIZE"],
+        buildenv.Append(LINKFLAGS=[
+            "-fsanitize=" + buildenv["CLANG_SANITIZE"],
         ])
-    if not env["RELEASE"]:
-        env.Append(CXXFLAGS=[
+    if not buildenv["RELEASE"]:
+        buildenv.Append(CXXFLAGS=[
             "-g",
         ])
     else:
-        env.Append(CXXFLAGS=[
+        buildenv.Append(CXXFLAGS=[
             "-O3",
         ])
-env.Prepend(LIBS=squeeze([libbid, libffi, libhash, libsqlite, libminizip, libz, libgmp]))
 if os.name == "posix":
-    env.Append(LIBS=["dl"])
+    buildenv.Append(LIBS=["dl"])
 if sys.platform.startswith("linux"):
-    env.Append(LIBS=["rt"])
+    buildenv.Append(LIBS=["rt"])
 
-if "g++" in env.subst("$CXX"):
+if "g++" in buildenv.subst("$CXX"):
     # This adds -Doverride= for GCC earlier than 4.7.
     # (GCC does not support 'override' before 4.7, but
     # it supports everything else we need.)
     try:
-        ver = subprocess.check_output([env.subst("$CXX"), "--version"])
+        ver = subprocess.check_output([buildenv.subst("$CXX"), "--version"])
         if "g++" in ver.split()[0]:
             ver = ver.split("\n")[0]
             ver = re.sub(r"\(.*?\)", "", ver)
             ver = float(re.search(r"(\d+\.\d+)\.", ver).group(1))
             if ver < 4.7:
-                env.Append(CXXFLAGS=["-Doverride="])
+                buildenv.Append(CXXFLAGS=["-Doverride="])
     except Exception as x:
         pass
 
 if coverage:
-    env.Append(CXXFLAGS=[
+    buildenv.Append(CXXFLAGS=[
         "--coverage", "-O0",
     ])
 
-env.Command("src/unicodedata.inc", ["tools/helium.py", "scripts/make_unicode.neon", "data/UnicodeData.txt"], "python $SOURCES > $TARGET")
+buildenv.Command("src/unicodedata.inc", ["tools/helium.py", "scripts/make_unicode.neon", "data/UnicodeData.txt"], "python $SOURCES > $TARGET")
 
 rtl_const = []
 
@@ -264,7 +265,7 @@ def build_rtl_inc(target, source, env):
             print("\"},", file=f)
         print("};", file=f)
 
-env.Command("src/rtl.inc", lib_neon, build_rtl_inc)
+buildenv.Command("src/rtl.inc", lib_neon, build_rtl_inc)
 
 if os.name == "posix":
     rtl_cpp.extend([
@@ -299,13 +300,13 @@ else:
     print("Unsupported platform:", os.name, file=sys.stderr)
     sys.exit(1)
 
-env.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc", "src/enums.inc", "src/exceptions.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
+buildenv.Command(["src/thunks.inc", "src/functions_compile.inc", "src/functions_exec.inc", "src/enums.inc", "src/exceptions.inc"], [rtl_neon, "scripts/make_thunks.py"], sys.executable + " scripts/make_thunks.py " + " ".join(rtl_neon))
 
 if use_java:
-    jvm_classes = env.Java("rtl/jvm", "rtl/jvm")
+    jvm_classes = buildenv.Java("rtl/jvm", "rtl/jvm")
     jnex = SConscript("exec/jnex/SConstruct")
 
-neonc = env.Program("bin/neonc", [
+neonc = buildenv.Program("bin/neonc", [
     "src/analyzer.cpp",
     "src/ast.cpp",
     "src/bytecode.cpp",
@@ -330,7 +331,7 @@ neonc = env.Program("bin/neonc", [
 ] + coverage_lib,
 )
 if use_java:
-    env.Depends(neonc, jvm_classes)
+    buildenv.Depends(neonc, jvm_classes)
 
 def build_rtlx_inc(target, source, env):
     with open("src/rtlx.inc", "w") as f:
@@ -353,10 +354,10 @@ def build_rtlx_inc(target, source, env):
 
 lib_neon_without_global = [x for x in lib_neon if x.name != "global.neon"]
 for fn in lib_neon_without_global:
-    env.Command(fn.abspath+"x", [fn, neonc], neonc[0].abspath + " $SOURCE")
-env.Command("src/rtlx.inc", [x.abspath+"x" for x in lib_neon_without_global], build_rtlx_inc)
+    buildenv.Command(fn.abspath+"x", [fn, neonc], neonc[0].abspath + " $SOURCE")
+buildenv.Command("src/rtlx.inc", [x.abspath+"x" for x in lib_neon_without_global], build_rtlx_inc)
 
-neon = env.Program("bin/neon", [
+neon = buildenv.Program("bin/neon", [
     "src/analyzer.cpp",
     "src/ast.cpp",
     "src/bytecode.cpp",
@@ -385,7 +386,7 @@ neon = env.Program("bin/neon", [
 ] + coverage_lib,
 )
 
-neonx = env.Program("bin/neonx", [
+neonx = buildenv.Program("bin/neonx", [
     "src/bundle.cpp",
     "src/bytecode.cpp",
     "src/cell.cpp",
@@ -403,7 +404,7 @@ neonx = env.Program("bin/neonx", [
 ] + coverage_lib,
 )
 
-neonstub = env.Program("bin/neonstub", [
+neonstub = buildenv.Program("bin/neonstub", [
     "src/bundle.cpp",
     "src/bytecode.cpp",
     "src/cell.cpp",
@@ -421,7 +422,7 @@ neonstub = env.Program("bin/neonstub", [
 ] + coverage_lib,
 )
 
-neondis = env.Program("bin/neondis", [
+neondis = buildenv.Program("bin/neondis", [
     "src/bytecode.cpp",
     "src/debuginfo.cpp",
     "src/disassembler.cpp",
@@ -433,7 +434,7 @@ neondis = env.Program("bin/neondis", [
 ] + coverage_lib,
 )
 
-neonbind = env.Program("bin/neonbind", [
+neonbind = buildenv.Program("bin/neonbind", [
     "src/bytecode.cpp",
     "src/neonbind.cpp",
     "src/support.cpp",
@@ -444,9 +445,9 @@ cnex = SConscript("exec/cnex/SConstruct", exports=["env"])
 if use_rust:
     rsnex = SConscript("exec/rsnex/SConstruct")
 
-env.Depends("src/number.h", libbid)
-env.Depends("src/number.h", libgmp)
-env.Depends("src/exec.cpp", libffi)
+buildenv.Depends("src/number.h", libbid)
+buildenv.Depends("src/number.h", libgmp)
+buildenv.Depends("src/exec.cpp", libffi)
 
 def UnitTest(env, target, source, **kwargs):
     t = env.Program(target, source, **kwargs)
@@ -456,17 +457,17 @@ def UnitTest(env, target, source, **kwargs):
     env.Alias("test", t)
     return t
 
-env.Command("src/errors.txt", ["scripts/extract_errors.py"] + Glob("src/*.cpp"), sys.executable + " scripts/extract_errors.py")
+buildenv.Command("src/errors.txt", ["scripts/extract_errors.py"] + Glob("src/*.cpp"), sys.executable + " scripts/extract_errors.py")
 
 SConsEnvironment.UnitTest = UnitTest
 
-test_number_to_string = env.Program("bin/test_number_to_string", [
+test_number_to_string = buildenv.Program("bin/test_number_to_string", [
     "tests/test_number_to_string.cpp",
     "src/number.cpp",
 ] + coverage_lib,
 )
 
-test_lexer = env.UnitTest("bin/test_lexer", [
+test_lexer = buildenv.UnitTest("bin/test_lexer", [
     "tests/test_lexer.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
@@ -474,7 +475,7 @@ test_lexer = env.UnitTest("bin/test_lexer", [
 ] + coverage_lib,
 )
 
-test_parser = env.Program("bin/test_parser", [
+test_parser = buildenv.Program("bin/test_parser", [
     "tests/test_parser.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
@@ -485,7 +486,7 @@ test_parser = env.Program("bin/test_parser", [
 ] + coverage_lib,
 )
 
-env.Program("bin/fuzz_lexer", [
+buildenv.Program("bin/fuzz_lexer", [
     "tests/fuzz_lexer.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
@@ -493,7 +494,7 @@ env.Program("bin/fuzz_lexer", [
 ] + coverage_lib,
 )
 
-env.Program("bin/fuzz_parser", [
+buildenv.Program("bin/fuzz_parser", [
     "tests/fuzz_parser.cpp",
     "src/analyzer.cpp",
     "src/ast.cpp",
@@ -510,7 +511,7 @@ env.Program("bin/fuzz_parser", [
 ] + coverage_lib,
 )
 
-env.Program("bin/perf_lexer", [
+buildenv.Program("bin/perf_lexer", [
     "tests/perf_lexer.cpp",
     "src/lexer.cpp",
     "src/number.cpp",
@@ -519,9 +520,9 @@ env.Program("bin/perf_lexer", [
 )
 
 if sys.platform == "win32":
-    test_ffi = env.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")
+    test_ffi = buildenv.SharedLibrary("bin/libtest_ffi", "tests/test_ffi.c")
 else:
-    test_ffi = env.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
+    test_ffi = buildenv.SharedLibrary("bin/test_ffi", "tests/test_ffi.c")
 
 def filter_tests(tests, excludefile):
     with open(excludefile) as f:
@@ -534,29 +535,29 @@ for f in Glob("t/*.neon"):
 for m in modules:
     for f in Glob(os.path.join("lib", m, "t", "*.neon")):
         test_sources.append(f)
-tests = env.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
-env.Depends(tests, test_ffi)
-env.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(filter_tests((x.path for x in test_sources), "tools/helium-exclude.txt")))
+tests = buildenv.Command("tests_normal", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py " + " ".join(x.path for x in test_sources))
+buildenv.Depends(tests, test_ffi)
+buildenv.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(filter_tests((x.path for x in test_sources), "tools/helium-exclude.txt")))
 if use_node:
-    tests_js = env.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/js-exclude.txt")))
+    tests_js = buildenv.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/js-exclude.txt")))
 if use_java:
-    tests_jvm = env.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/jvm-exclude.txt")))
-    env.Depends(tests_jvm, jvm_classes)
-tests_cpp = env.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/cpp-exclude.txt")))
-tests_pynex = env.Command("tests_pynex", [neonc, "scripts/run_test.py", "exec/pynex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/pynex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/pynex/exclude.txt")))
+    tests_jvm = buildenv.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/jvm-exclude.txt")))
+    buildenv.Depends(tests_jvm, jvm_classes)
+tests_cpp = buildenv.Command("tests_cpp", [neonc, "scripts/run_test.py", "scripts/run_cpp.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cpp.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/cpp-exclude.txt")))
+tests_pynex = buildenv.Command("tests_pynex", [neonc, "scripts/run_test.py", "exec/pynex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/pynex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/pynex/exclude.txt")))
 if use_java:
-    tests_jnex = env.Command("tests_jnex", [neonc, "scripts/run_test.py", "exec/jnex/run_test.py", jnex, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/jnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/jnex/exclude.txt")))
-tests_cnex = env.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "exec/cnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/cnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/cnex/exclude.txt")))
+    tests_jnex = buildenv.Command("tests_jnex", [neonc, "scripts/run_test.py", "exec/jnex/run_test.py", jnex, test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/jnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/jnex/exclude.txt")))
+tests_cnex = buildenv.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "exec/cnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/cnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/cnex/exclude.txt")))
 if use_rust:
-    tests_rsnex = env.Command("tests_rsnex", [neonc, rsnex, "scripts/run_test.py", "exec/rsnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/rsnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/rsnex/exclude.txt")))
-testenv = env.Clone()
+    tests_rsnex = buildenv.Command("tests_rsnex", [neonc, rsnex, "scripts/run_test.py", "exec/rsnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/rsnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/rsnex/exclude.txt")))
+testenv = buildenv.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
-env.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
+buildenv.Command("tests_number", test_number_to_string, test_number_to_string[0].path)
 for f in Glob("t/repl_*.neon"):
     result = f.abspath + ".result"
-    t = env.Command(result, [f, neon], neon[0].abspath + " --repl-no-prompt --repl-stop-on-any-error <$SOURCE")
-    env.Alias("tests_repl", t)
+    t = buildenv.Command(result, [f, neon], neon[0].abspath + " --repl-no-prompt --repl-stop-on-any-error <$SOURCE")
+    buildenv.Alias("tests_repl", t)
 
 samples = []
 for path, dirs, files in os.walk("."):
@@ -572,50 +573,50 @@ for path, dirs, files in os.walk("."):
                 else:
                     print("note: skipping sample {} because of missing modules {}".format(f, missing))
 for sample in samples:
-    env.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
-env.Command("tests_2", ["samples/hello/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
+    buildenv.Command(sample+"x", [sample, neonc], neonc[0].abspath + " $SOURCE")
+buildenv.Command("tests_2", ["samples/hello/hello.neonx", neonx], neonx[0].abspath + " $SOURCE")
 
-env.Command("test_grammar", ["contrib/grammar/neon.ebnf", "src/token.h", "src/parser.cpp"], sys.executable + " contrib/grammar/test-grammar.py lib/*.neon neon/*.neon tools/*.neon {} t/*.neon t/errors/N3*.neon >$TARGET".format(" ".join(x for x in reduce(operator.add, ([os.path.join(path, x) for x in files] for path, dirs, files in os.walk("samples"))) if x.endswith(".neon"))))
-env.Command("test_grammar_random", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-random.py")
-env.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "contrib/grammar/ebnf_w3c.neon", neon], sys.executable + " tools/helium.py contrib/grammar/ebnf_w3c.neon <$SOURCE >$TARGET")
+buildenv.Command("test_grammar", ["contrib/grammar/neon.ebnf", "src/token.h", "src/parser.cpp"], sys.executable + " contrib/grammar/test-grammar.py lib/*.neon neon/*.neon tools/*.neon {} t/*.neon t/errors/N3*.neon >$TARGET".format(" ".join(x for x in reduce(operator.add, ([os.path.join(path, x) for x in files] for path, dirs, files in os.walk("samples"))) if x.endswith(".neon"))))
+buildenv.Command("test_grammar_random", "contrib/grammar/neon.ebnf", sys.executable + " contrib/grammar/test-random.py")
+buildenv.Command("contrib/grammar/neon.w3c.ebnf", ["contrib/grammar/neon.ebnf", "contrib/grammar/ebnf_w3c.neon", neon], sys.executable + " tools/helium.py contrib/grammar/ebnf_w3c.neon <$SOURCE >$TARGET")
 
-env.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
+buildenv.Command("test_doc", None, sys.executable + " scripts/test_doc.py")
 
 if os.name == "posix":
-    env.Command("tmp/hello", "samples/hello/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
-    env.Command("tests_script", "tmp/hello", "env PATH=bin tmp/hello")
+    buildenv.Command("tmp/hello", "samples/hello/hello.neon", "echo '#!/usr/bin/env neon' | cat - $SOURCE >$TARGET && chmod +x $TARGET")
+    buildenv.Command("tests_script", "tmp/hello", "env PATH=bin tmp/hello")
 
-hello_neb = env.Command("tmp/hello.neb", ["samples/hello/hello.neonx", neonbind], "{} $TARGET $SOURCE".format(neonbind[0].path))
-env.Command("test_hello_neb", [hello_neb, neonx], "{} $SOURCE".format(neonx[0].path))
+hello_neb = buildenv.Command("tmp/hello.neb", ["samples/hello/hello.neonx", neonbind], "{} $TARGET $SOURCE".format(neonbind[0].path))
+buildenv.Command("test_hello_neb", [hello_neb, neonx], "{} $SOURCE".format(neonx[0].path))
 
-hello_exe = env.Command("tmp/hello.exe", ["samples/hello/hello.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
-env.Command("test_hello_exe", hello_exe, hello_exe[0].path)
-cal_exe = env.Command("tmp/cal.exe", ["samples/cal/cal.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
-env.Command("test_cal", cal_exe, cal_exe[0].path)
+hello_exe = buildenv.Command("tmp/hello.exe", ["samples/hello/hello.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
+buildenv.Command("test_hello_exe", hello_exe, hello_exe[0].path)
+cal_exe = buildenv.Command("tmp/cal.exe", ["samples/cal/cal.neonx", neonbind, neonstub], "{} -e $TARGET $SOURCE".format(neonbind[0].path))
+buildenv.Command("test_cal", cal_exe, cal_exe[0].path)
 
 # Need to find where perl actually is, in case it's not in
 # one of the paths supplied by scons by default (for example,
 # on Windows with the GitHub command prompt).
 perl = distutils.spawn.find_executable("perl")
 if perl:
-    env.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3")
-    env.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
+    buildenv.Command("docs", None, perl + " external/NaturalDocs/NaturalDocs -i lib -o HTML gh-pages/html -p lib/nd.proj -ro -xi lib/compress/bzip2-1.0.6 -xi lib/compress/zlib-1.2.8 -xi lib/crypto/include -xi lib/crypto/libressl-2.2.4 -xi lib/fltk/fltk-1.3.4-1 -xi lib/hash/include -xi lib/hash/libressl-2.2.4 -xi lib/http/curl-7.41.0 -xi lib/http/libressl-2.2.4 -xi lib/http/zlib-1.2.8 -xi lib/http/include -xi lib/regex/pcre2-10.10 -xi lib/sdl/SDL2-2.0.3")
+    buildenv.Command("docs_samples", None, perl + " external/NaturalDocs/NaturalDocs -i samples -o HTML gh-pages/samples -p samples/nd.proj -ro")
 
 def compare(target, source, env):
     os.system("diff -u -w {} {}".format(source[0].path, source[1].path))
     assert open(source[0].path).read() == open(source[1].path).read()
 
-lexer_dump_cpp = env.Command("tmp/lexer-coverage.dump_cpp", ["tests/lexer-coverage.neon", test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
-lexer_dump_neon = env.Command("tmp/lexer-coverage.dump_neon", ["tests/lexer-coverage.neon", "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
-lexer_dump_helium = env.Command("tmp/lexer-coverage.dump_helium", ["tests/lexer-coverage.neon", "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
+lexer_dump_cpp = buildenv.Command("tmp/lexer-coverage.dump_cpp", ["tests/lexer-coverage.neon", test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
+lexer_dump_neon = buildenv.Command("tmp/lexer-coverage.dump_neon", ["tests/lexer-coverage.neon", "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
+lexer_dump_helium = buildenv.Command("tmp/lexer-coverage.dump_helium", ["tests/lexer-coverage.neon", "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
 for i, d in enumerate([lexer_dump_cpp, lexer_dump_neon, lexer_dump_helium]):
-    env.Command("tmp/lexer-coverage.dump.dummy{}".format(i), ["tests/lexer-coverage.expected", d], compare)
+    buildenv.Command("tmp/lexer-coverage.dump.dummy{}".format(i), ["tests/lexer-coverage.expected", d], compare)
 
-parser_dump_cpp = env.Command("tmp/parser-coverage.dump_cpp", ["tests/parser-coverage.neon", test_parser], "-{} $SOURCE >$TARGET".format(test_parser[0]))
-parser_dump_neon = env.Command("tmp/parser-coverage.dump_neon", ["tests/parser-coverage.neon", "neon/parser.neon", neon], "-{} neon/parser.neon $SOURCE >$TARGET".format(neon[0]))
-# TODO parser_dump_helium = env.Command("tmp/parser-coverage.dump_helium", ["tests/parser-coverage.neon", "neon/parser.neon", "tools/helium.py"], "-python tools/helium.py neon/parser.neon $SOURCE >$TARGET")
+parser_dump_cpp = buildenv.Command("tmp/parser-coverage.dump_cpp", ["tests/parser-coverage.neon", test_parser], "-{} $SOURCE >$TARGET".format(test_parser[0]))
+parser_dump_neon = buildenv.Command("tmp/parser-coverage.dump_neon", ["tests/parser-coverage.neon", "neon/parser.neon", neon], "-{} neon/parser.neon $SOURCE >$TARGET".format(neon[0]))
+# TODO parser_dump_helium = buildenv.Command("tmp/parser-coverage.dump_helium", ["tests/parser-coverage.neon", "neon/parser.neon", "tools/helium.py"], "-python tools/helium.py neon/parser.neon $SOURCE >$TARGET")
 for i, d in enumerate([parser_dump_cpp, parser_dump_neon]): # TODO , parser_dump_helium]):
-    env.Command("tmp/parser-coverage.dump.dummy{}".format(i), ["tests/parser-coverage.expected", d], compare)
+    buildenv.Command("tmp/parser-coverage.dump.dummy{}".format(i), ["tests/parser-coverage.expected", d], compare)
 
 if False: # This takes rather too long.
     for fn in Glob("t/*.neon") + Glob("t/errors/*.neon"):
@@ -629,9 +630,9 @@ if False: # This takes rather too long.
             continue # Unicode output to file not working with ascii codec
         if fn.name in ["lexer-unicode.neon", "string-bytes.neon", "unicode-char.neon", "unicode-length.neon", "unicode-source.neon", "unicode-string.neon", "utf8-invalid.neon"]:
             continue # TODO (see t/unicode-length.neon)
-        dump_cpp = env.Command("tmp/"+fn.name+".dump_cpp", [fn, test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
-        dump_neon = env.Command("tmp/"+fn.name+".dump_neon", [fn, "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
-        dump_helium = env.Command("tmp/"+fn.name+".dump_helium", [fn, "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
-        comp1 = env.Command("tmp/"+fn.name+".dump.dummy1", [dump_cpp, dump_neon], compare)
-        comp2 = env.Command("tmp/"+fn.name+".dump.dummy2", [dump_cpp, dump_helium], compare)
-        env.Depends("test_compiler", [comp1, comp2])
+        dump_cpp = buildenv.Command("tmp/"+fn.name+".dump_cpp", [fn, test_lexer], "-{} $SOURCE >$TARGET".format(test_lexer[0]))
+        dump_neon = buildenv.Command("tmp/"+fn.name+".dump_neon", [fn, "neon/lexer.neon", neon], "-{} neon/lexer.neon $SOURCE >$TARGET".format(neon[0]))
+        dump_helium = buildenv.Command("tmp/"+fn.name+".dump_helium", [fn, "neon/lexer.neon", "tools/helium.py"], "-python tools/helium.py neon/lexer.neon $SOURCE >$TARGET")
+        comp1 = buildenv.Command("tmp/"+fn.name+".dump.dummy1", [dump_cpp, dump_neon], compare)
+        comp2 = buildenv.Command("tmp/"+fn.name+".dump.dummy2", [dump_cpp, dump_helium], compare)
+        buildenv.Depends("test_compiler", [comp1, comp2])

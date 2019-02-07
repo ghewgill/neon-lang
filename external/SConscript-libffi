@@ -97,5 +97,6 @@ else:
     libffi = ffienv.Command("lib/libffi.a", "libffi-3.2.1/Makefile", "cd external/libffi-3.2.1 && make && make install")
 
 env.Append(CPPPATH=[Dir("lib/libffi-3.2.1/include")])
+env.Append(LIBS=libffi)
 
 Return(["libffi"])
