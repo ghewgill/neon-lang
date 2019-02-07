@@ -267,6 +267,11 @@ BOOL number_is_equal(Number x, Number y)
     return bid128_quiet_equal(x, y);
 }
 
+BOOL number_is_less(Number x, Number y)
+{
+    return bid128_quiet_less(x, y);
+}
+
 BOOL number_is_odd(Number x)
 {
     return !bid128_isZero(bid128_fmod(x, bid128_from_uint32(2)));
