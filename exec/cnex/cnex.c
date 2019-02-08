@@ -107,6 +107,7 @@ char *getApplicationName(char *arg)
 int main(int argc, char* argv[])
 {
     gOptions.pszExecutableName = getApplicationName(argv[0]);
+    global_init();
 
     if (!ParseOptions(argc, argv)) {
         return 3;
