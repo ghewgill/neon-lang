@@ -167,6 +167,10 @@ target_include_directories(common
     PRIVATE external/utfcpp-master/source
     PRIVATE external/gmp-6.1.2
 )
+add_dependencies(common
+    bid
+    gmp
+)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
     set(platform_compile
@@ -216,6 +220,11 @@ target_include_directories(compiler
     PRIVATE external/minijson_writer-master
     PRIVATE external/utfcpp-master/source
     PRIVATE external/gmp-6.1.2
+)
+add_dependencies(compiler
+    bid
+    gmp
+    hash-library
 )
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -310,6 +319,12 @@ target_include_directories(executor
     PRIVATE external/sqlite-amalgamation-3080803
     PRIVATE external/utfcpp-master/source
     PRIVATE external/gmp-6.1.2
+)
+add_dependencies(executor
+    bid
+    gmp
+    hash-library
+    sqlite3
 )
 
 add_executable(neonc
