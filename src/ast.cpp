@@ -904,6 +904,14 @@ std::string FunctionCall::text() const
     return s.str();
 }
 
+bool FunctionCall::eval_boolean() const
+{
+    const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
+    const PredefinedFunction *f = dynamic_cast<const PredefinedFunction *>(ve->var);
+    if (f->name == "odd") return rtl::global::odd(args[0]->eval_number());
+    internal_error("unexpected intrinsic");
+}
+
 Number FunctionCall::eval_number() const
 {
     const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);

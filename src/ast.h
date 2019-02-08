@@ -2284,7 +2284,7 @@ public:
     const Expression *const dispatch;
     const std::vector<const Expression *> args;
 
-    virtual bool eval_boolean() const override { internal_error("FunctionCall"); }
+    virtual bool eval_boolean() const override;
     virtual Number eval_number() const override;
     virtual utf8string eval_string() const override;
     virtual void generate_expr(Emitter &emitter) const override;
