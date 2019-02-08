@@ -9,6 +9,7 @@ typedef struct tagTDispatch {
     void (*func)(struct tagTExecutor *s);
 } TDispatch;
 
+void global_init();
 void global_callFunction(const char *pszFunc, struct tagTExecutor *exec);
 
 void neon_chr(struct tagTExecutor *exec);

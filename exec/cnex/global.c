@@ -1,5 +1,7 @@
 #include "global.h"
 
+#include "lib/random.h"
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -15,7 +17,6 @@
 #include "stack.h"
 #include "nstring.h"
 #include "util.h"
-
 
 
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
@@ -35,6 +36,8 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("str",                       neon_str),
 
     PDFUNC("io$fprint",                 io_fprint),
+
+    PDFUNC("random$uint32",             random_uint32),
 
     PDFUNC("sys$exit",                  sys_exit),
 
@@ -79,6 +82,11 @@ static FILE *check_file(TExecutor *exec, void *pf)
         exec->rtl_raise(exec, "IoException_InvalidFile", "", BID_ZERO);
     }
     return f;
+}
+
+void global_init()
+{
+    random_initModule();
 }
 
 void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
