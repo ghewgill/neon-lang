@@ -131,12 +131,36 @@ func get_vint(bytes []byte, i *int) int {
 	return r
 }
 
+type object interface {
+	//getBoolean() bool
+	//getNumber() float64
+	getString() string
+	//toString() string
+}
+
+type objectBoolean struct {
+	bool bool
+}
+
+func (obj objectBoolean) getBoolean() bool {
+	return obj.bool
+}
+
+type objectString struct {
+	str string
+}
+
+func (obj objectString) getString() string {
+	return obj.str
+}
+
 const (
 	CELL_NONE       = iota
 	CELL_ADDRESS    = iota
 	CELL_BOOLEAN    = iota
 	CELL_NUMBER     = iota
 	CELL_STRING     = iota
+	CELL_OBJECT     = iota
 	CELL_ARRAY      = iota
 	CELL_DICTIONARY = iota
 )
@@ -147,6 +171,7 @@ type cell struct {
 	bool  bool
 	num   float64
 	str   string
+	obj   object
 	array []cell
 	dict  map[string]cell
 }
@@ -179,6 +204,13 @@ func make_cell_str(s string) cell {
 	}
 }
 
+func make_cell_obj(o object) cell {
+	return cell{
+		ctype: CELL_OBJECT,
+		obj:   o,
+	}
+}
+
 func make_cell_array(a []cell) cell {
 	return cell{
 		ctype: CELL_ARRAY,
@@ -206,6 +238,8 @@ func (self cell) Equal(other cell) bool {
 		return self.num == other.num
 	case CELL_STRING:
 		return self.str == other.str
+	case CELL_OBJECT:
+		return self.obj == other.obj
 	case CELL_ARRAY:
 		if len(self.array) != len(other.array) {
 			return false
@@ -665,7 +699,9 @@ func (self *executor) op_loadp() {
 }
 
 func (self *executor) op_loadj() {
-	assert(false, "unimplemented")
+	self.ip++
+	addr := self.pop().addr
+	self.push(*addr)
 }
 
 func (self *executor) op_storeb() {
@@ -715,7 +751,10 @@ func (self *executor) op_storep() {
 }
 
 func (self *executor) op_storej() {
-	assert(false, "unimplemented")
+	self.ip++
+	addr := self.pop().addr
+	val := self.pop()
+	*addr = val
 }
 
 func (self *executor) op_negn() {
@@ -1097,6 +1136,12 @@ func (self *executor) op_callp() {
 	case "math$sqrt":
 		x := self.pop().num
 		self.push(make_cell_num(math.Sqrt(x)))
+	case "object__getString":
+		o := self.pop().obj
+		self.push(make_cell_str(o.getString()))
+	case "object__makeString":
+		s := self.pop().str
+		self.push(make_cell_obj(objectString{str: s}))
 	case "ord":
 		s := self.pop().str
 		self.push(make_cell_num(float64(s[0])))
@@ -1291,7 +1336,7 @@ func (self *executor) op_callx() {
 }
 
 func (self *executor) op_swap() {
-	self.ip++;
+	self.ip++
 	top := len(self.stack)
 	self.stack[top-2], self.stack[top-1] = self.stack[top-1], self.stack[top-2]
 }
