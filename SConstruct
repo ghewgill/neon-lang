@@ -457,7 +457,7 @@ def UnitTest(env, target, source, **kwargs):
     env.Alias("test", t)
     return t
 
-buildenv.Command("src/errors.txt", ["scripts/extract_errors.py"] + Glob("src/*.cpp"), sys.executable + " scripts/extract_errors.py")
+buildenv.Command("src/errors.txt", ["scripts/extract_errors.neon"] + Glob("src/*.cpp"), sys.executable + " tools/helium.py scripts/extract_errors.neon")
 
 SConsEnvironment.UnitTest = UnitTest
 

@@ -144,6 +144,7 @@ INTDIV = Keyword("INTDIV")
 LABEL = Keyword("LABEL")
 CLASS = Keyword("CLASS")
 TRAP = Keyword("TRAP")
+EXTENSION = Keyword("EXTENSION")
 INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
@@ -1956,7 +1957,7 @@ class Parser:
 
     def parse_declaration(self):
         self.expect(DECLARE)
-        if self.tokens[self.i] == NATIVE:
+        if self.tokens[self.i] in [NATIVE, EXTENSION]:
             self.i += 1
             if self.tokens[self.i] == CONSTANT:
                 self.i += 1
@@ -2327,7 +2328,7 @@ class Parser:
             else:
                 return ExpressionStatement(expr)
         else:
-            assert False, self.tokens[self.i]
+            assert False, self.tokens[self.i:self.i+10]
 
     def parse(self):
         statements = []
@@ -2518,10 +2519,61 @@ class ReturnException:
 
 g_Modules = {}
 
+def import_regex():
+    return parse(tokenize("""
+%|
+ |  File: regex
+ |
+ |  Functions for using regular expressions for text searching.
+ |%
+
+EXPORT Group
+EXPORT Match
+
+EXPORT search
+
+EXPORT EXCEPTION SyntaxException
+
+%|
+ |  Type: Group
+ |
+ |  Represents a matching group as part of a <Match> array.
+ |
+ |  Fields:
+ |      start - starting index of group
+ |      end - ending index of group
+ |      group - text of group
+ |%
+TYPE Group IS RECORD
+    matched: Boolean
+    start: Number
+    end: Number
+    group: String
+END RECORD
+
+%|
+ |  Type: Match
+ |
+ |  Represents the result of a successful regex match.
+ |%
+TYPE Match IS Array<Group>
+
+%|
+ |  Function: search
+ |
+ |  Search a string for a given subject regex.
+ |%
+DECLARE EXTENSION FUNCTION search(pattern: String, subject: String, OUT match: Match): Boolean
+    """))
+
 def import_module(name):
     m = g_Modules.get(name)
     if m is None:
-        m = parse(tokenize(codecs.open("lib/{}.neon".format(name), encoding="utf-8").read()))
+        importer = globals().get("import_"+name)
+        if importer is not None:
+            m = importer()
+        else:
+            m = parse(tokenize(codecs.open("lib/{}.neon".format(name), encoding="utf-8").read()))
         g_Modules[name] = m
         m.env.module_name = name
         run(m)
@@ -2841,6 +2893,16 @@ def neon_math_trunc(env, x):
 
 def neon_random_uint32(env):
     return random.randint(0, 0xffffffff)
+
+def neon_regex_search(env, r, s, match):
+    m = re.search(r, s)
+    if m is None:
+        return None
+    for g in range(1 + len(m.groups())):
+        tm = g_Modules["regex"].env.get_value("Group")
+        r = tm.make(env, ["matched", "start", "end", "group"], [m.group(g) is not None, m.start(g), m.end(g), m.group(g)])
+        match.append(r)
+    return (True, match)
 
 def neon_string_find(env, s, t):
     return s.find(t)

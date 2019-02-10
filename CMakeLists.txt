@@ -534,7 +534,7 @@ endif (WIN32)
 
 add_custom_command(
     OUTPUT src/errors.txt
-    COMMAND python scripts/extract_errors.py
+    COMMAND python tools/helium.py scripts/extract_errors.neon
     DEPENDS src/*.cpp
 )
 add_custom_target(errors_txt ALL
