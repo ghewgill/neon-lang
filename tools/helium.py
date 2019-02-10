@@ -4,6 +4,7 @@ import codecs
 import copy
 import math
 import os
+import random
 import re
 import shutil
 import sys
@@ -328,6 +329,12 @@ class TypeParameterised:
         if self.kind is ARRAY: return ClassArray(self.elementtype)
         if self.kind is DICTIONARY: return ClassDictionary(self.elementtype)
 
+class TypeCompound:
+    def __init__(self, name):
+        self.name = name
+    def resolve(self, env):
+        return g_Modules[self.name[0]].env.get_value(self.name[1])
+
 class Field:
     def __init__(self, name, type):
         self.name = name
@@ -612,6 +619,8 @@ class DotExpression:
         self.field = field
     def eval(self, env):
         obj = self.expr.eval(env)
+        return self.eval_obj(env, obj)
+    def eval_obj(self, env, obj):
         if isinstance(obj, bool):
             if self.field == "toString": return lambda env, self: "TRUE" if obj else "FALSE"
         elif isinstance(obj, int):
@@ -653,6 +662,8 @@ class ArrowExpression:
         self.field = field
     def eval(self, env):
         obj = self.expr.eval(env)
+        return self.eval_obj(env, obj)
+    def eval_obj(self, env, obj):
         return getattr(obj, self.field)
     def set(self, env, value):
         obj = self.expr.eval(env)
@@ -868,7 +879,11 @@ class NativeFunction:
         self.returntype = returntype
         self.args = args
     def declare(self, env):
-        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), globals()["neon_{}_{}".format(env.module(), self.name)])
+        f = globals()["neon_{}_{}".format(env.module(), self.name)]
+        outs = [x.mode is not IN for x in self.args]
+        if any(outs):
+            f._outs = outs
+        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), f)
     def run(self, env):
         pass
 
@@ -879,6 +894,12 @@ class NativeVariable:
     def declare(self, env):
         if self.name == "args":
             env.declare(self.name, self.type.resolve(env), sys.argv[1:])
+        elif self.name == "stdin":
+            env.declare(self.name, self.type.resolve(env), sys.stdin)
+        elif self.name == "stdout":
+            env.declare(self.name, self.type.resolve(env), sys.stdout)
+        elif self.name == "stderr":
+            env.declare(self.name, self.type.resolve(env), sys.stderr)
         else:
             assert False, self.name
     def run(self, env):
@@ -932,16 +953,22 @@ class FunctionCallExpression:
         self.args = args
     def eval(self, env):
         args = [a[1].eval(env) for a in self.args]
-        f = self.func.eval(env)
+        obj = None
+        if isinstance(self.func, (DotExpression, ArrowExpression)):
+            # Evaluate and save obj once so we don't evaluate it twice for one call.
+            obj = self.func.expr.eval(env)
+            f = self.func.eval_obj(env, obj)
+        else:
+            f = self.func.eval(env)
         if callable(f):
             e = env
             while e.parent is not None:
                 e = e.parent
             funcenv = Environment(e)
             if isinstance(self.func, DotExpression) and not (isinstance(self.func.expr, IdentifierExpression) and isinstance(env.get_type(self.func.expr.name), ClassModule)):
-                args = [self.func.expr.eval(env)] + args
+                args = [obj] + args
             elif isinstance(self.func, ArrowExpression):
-                args = [self.func.expr.eval(env)] + args
+                args = [obj] + args
             r = f(funcenv, *args)
             if hasattr(f, "_outs"):
                 j = 1
@@ -980,7 +1007,10 @@ class AssignmentStatement:
     def declare(self, env):
         pass
     def run(self, env):
-        self.var.set(env, copy.deepcopy(self.rhs.eval(env)))
+        x = self.rhs.eval(env)
+        if not isinstance(x, file):
+            x = copy.deepcopy(x)
+        self.var.set(env, x)
     def eval(self, env):
         # This is used in the rewrite of a.append(b) to a := a & b.
         r = copy.deepcopy(self.rhs.eval(env))
@@ -1356,6 +1386,8 @@ class Parser:
 
     def parse_pointer_type(self):
         self.expect(POINTER)
+        if self.tokens[self.i] is not TO:
+            return TypePointer(None)
         self.expect(TO)
         type = self.parse_type()
         return TypePointer(type)
@@ -1388,7 +1420,12 @@ class Parser:
         if self.tokens[self.i] is FUNCTION:
             return self.parse_function_type()
         name = self.identifier()
-        return TypeSimple(name)
+        if self.tokens[self.i] is not DOT:
+            return TypeSimple(name)
+        self.i += 1
+        module = name
+        name = self.identifier()
+        return TypeCompound((module, name))
 
     def parse_import(self):
         self.expect(IMPORT)
@@ -2660,6 +2697,40 @@ def neon_file_writeLines(env, fn, lines):
     with open(fn, "wb") as f:
         f.writelines(x.encode()+"\n" for x in lines)
 
+def neon_io_close(env, f):
+    f.close()
+    return (None, None)
+
+def neon_io_fprint(env, f, s):
+    print(s, file=f)
+
+def neon_io_open(env, fn, mode):
+    return open(fn, "wb" if mode.name == "write" else "rb")
+
+def neon_io_readBytes(env, f, count):
+    r = ClassBytes().default(env)
+    r.fromArray(env, [ord(x) for x in f.read(count)])
+    return r
+
+def neon_io_readLine(env, f, r):
+    r = f.readline()
+    return r is not None, r.rstrip()
+
+def neon_io_seek(env, f, offset, whence):
+    f.seek(offset, {"absolute": os.SEEK_SET, "relative": os.SEEK_CUR, "fromEnd": os.SEEK_END}[whence.name])
+
+def neon_io_tell(env, f):
+    return f.tell()
+
+def neon_io_truncate(env, f):
+    f.truncate()
+
+def neon_io_write(env, f, s):
+    f.write(s)
+
+def neon_io_writeBytes(env, f, buf):
+    f.write(buf)
+
 def neon_math_abs(env, x):
     return abs(x)
 
@@ -2767,6 +2838,9 @@ def neon_math_tgamma(env, x):
 
 def neon_math_trunc(env, x):
     return math.trunc(x)
+
+def neon_random_uint32(env):
+    return random.randint(0, 0xffffffff)
 
 def neon_string_find(env, s, t):
     return s.find(t)

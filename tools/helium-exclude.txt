@@ -153,7 +153,7 @@ file-test.neon         # Code in module doesn't work yet
 file-writebytes.neon   # FIXME
 function-pointer.neon  # Function pointer not required yet
 import.neon            # Module import not required yet
-io-test.neon           # Module not required yet
+#io-test.neon           # Module not required yet
 module2.neon           # Feature not required yet
 new-init-module.neon   # Feature not required yet (dotted type)
 parameter-inout-array.neon # Does not fail here
