@@ -142,7 +142,7 @@ END FUNCTION
  |  Return TRUE if a string has a specific prefix.
  |%
 FUNCTION hasPrefix(s: String, prefix: String): Boolean
-    RETURN s[FIRST TO prefix.length()-1] = prefix
+    RETURN prefix.length() <= s.length() AND s[FIRST TO prefix.length()-1] = prefix
 END FUNCTION
 
 %|
@@ -151,7 +151,7 @@ END FUNCTION
  |  Return TRUE if a string has a specific suffix.
  |%
 FUNCTION hasSuffix(s: String, suffix: String): Boolean
-    RETURN s[LAST-(suffix.length()-1) TO LAST] = suffix
+    RETURN suffix.length() <= s.length() AND s[LAST-(suffix.length()-1) TO LAST] = suffix
 END FUNCTION
 
 %|
