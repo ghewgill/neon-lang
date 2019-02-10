@@ -2725,7 +2725,7 @@ def neon_file_readBytes(env, fn):
 
 def neon_file_readLines(env, fn):
     with codecs.open(fn, "r", encoding="utf-8") as f:
-        return list(map(lambda x: x.rstrip(), f.readlines()))
+        return list(map(lambda x: x.rstrip("\r\n"), f.readlines()))
 
 def neon_file_removeEmptyDirectory(env, path):
     try:
@@ -2766,7 +2766,7 @@ def neon_io_readBytes(env, f, count):
 
 def neon_io_readLine(env, f, r):
     r = f.readline()
-    return r is not None, r.rstrip()
+    return r is not None, r.rstrip("\r\n")
 
 def neon_io_seek(env, f, offset, whence):
     f.seek(offset, {"absolute": os.SEEK_SET, "relative": os.SEEK_CUR, "fromEnd": os.SEEK_END}[whence.name])
