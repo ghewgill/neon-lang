@@ -1,6 +1,7 @@
 #ifndef NUMBER_H
 #define NUMBER_H
 
+#include <limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,7 +27,19 @@
 
 #include "util.h"
 
-#define BID_ZERO    bid128_from_uint32(0)
+#define BID_ZERO        bid128_from_uint32(0)
+#define BID_ONE         bid128_from_uint32(1)
+
+#define BID_MIN_INT32   bid128_from_int32(INT_MIN)
+#define BID_MAX_INT32   bid128_from_int32(INT_MAX)
+#define BID_MIN_UINT32  bid128_from_uint32(0)
+#define BID_MAX_UINT32  bid128_from_uint32(UINT_MAX)
+
+#define BID_MIN_INT64   bid128_from_int64(LLONG_MIN)
+#define BID_MAX_INT64   bid128_from_int64(LLONG_MAX)
+#define BID_MIN_UINT64  bid128_from_uint64(0)
+#define BID_MAX_UINT64  bid128_from_uint64(ULLONG_MAX)
+
 
 typedef BID_UINT128 Number;
 
