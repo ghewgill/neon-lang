@@ -38,6 +38,7 @@ void Repl::handle(const std::string &s)
     } else if (s == "exit" || s == "quit") {
         exit(0);
     } else {
+        CompilerError *first_error = nullptr;
         try {
             auto tokens = tokenize("", s);
             const ast::Program *program;
@@ -56,7 +57,8 @@ void Repl::handle(const std::string &s)
                         globals_cells[g.first] = new Cell();
                     }
                 }
-            } catch (CompilerError *) {
+            } catch (CompilerError *e) {
+                first_error = e;
                 auto exprtree = parseExpression(*tokens);
                 std::vector<std::unique_ptr<pt::FunctionCallExpression::Argument>> print_args;
                 print_args.emplace_back(
@@ -112,7 +114,14 @@ void Repl::handle(const std::string &s)
             }
             input.emplace_back(std::move(tokens));
         } catch (CompilerError *error) {
-            error->write(std::cerr);
+            SourceError *se = dynamic_cast<SourceError *>(error);
+            // Error 2015 is "Expression expected", which means the real error
+            // was more likely to be the first one reported.
+            if (se != nullptr && se->number == 2015) {
+                first_error->write(std::cerr);
+            } else {
+                error->write(std::cerr);
+            }
             if (stop_on_any_error) {
                 exit(1);
             }
