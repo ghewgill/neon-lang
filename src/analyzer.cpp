@@ -2554,6 +2554,9 @@ const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
     if (cond == nullptr) {
         error(3265, expr->cond->token, "boolean expected");
     }
+    if (left->type == ast::TYPE_NOTHING || right->type == ast::TYPE_NOTHING) {
+        error(3267, left->type == ast::TYPE_NOTHING ? expr->left->token : expr->right->token, "branch of conditional must return value");
+    }
     // TODO: Relax exact type check.
     if (left->type != right->type) {
         error(3037, expr->left->token, "type of THEN and ELSE must match");
