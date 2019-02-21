@@ -1854,6 +1854,10 @@ void Executor::exec_CALLV()
 {
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
+    if (callstack.size() >= param_recursion_limit) {
+        raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        return;
+    }
     std::vector<Cell> &pi = stack.top().array_for_write();
     Cell *instance = pi[0].address();
     size_t interface_index = number_to_uint32(pi[1].number());
