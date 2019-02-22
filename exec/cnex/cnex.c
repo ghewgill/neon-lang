@@ -24,11 +24,12 @@ typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
     BOOL ExecutorDisassembly;
     BOOL EnableAssertions;
+    int  ArgStart;
     char *pszFilename;
     char *pszExecutableName;
 } TOptions;
 
-static TOptions gOptions = { FALSE, FALSE, TRUE, NULL, NULL };
+static TOptions gOptions = { FALSE, FALSE, TRUE, 0, NULL, NULL };
 
 void exec_freeExecutor(TExecutor *e)
 {
@@ -81,6 +82,7 @@ BOOL ParseOptions(int argc, char* argv[])
         } else {
             // Once we assign the name of the application we're going to execute, stop looking for switches.
             gOptions.pszFilename = argv[nIndex];
+            gOptions.ArgStart = nIndex;
             return TRUE;
         }
     }
@@ -108,11 +110,11 @@ char *getApplicationName(char *arg)
 int main(int argc, char* argv[])
 {
     gOptions.pszExecutableName = getApplicationName(argv[0]);
-    global_init();
-
     if (!ParseOptions(argc, argv)) {
         return 3;
     }
+    global_init(argc, argv, gOptions.ArgStart);
+
     FILE *fp = fopen(gOptions.pszFilename, "rb");
     if (fp == NULL) {
         fprintf(stderr, "Could not open Neon executable: %s\nError: %d - %s.\n", gOptions.pszFilename, errno, strerror(errno));
@@ -158,6 +160,7 @@ int main(int argc, char* argv[])
         );
     }
 
+    global_shutdown();
     exec_freeExecutor(exec);
     bytecode_freeBytecode(pModule);
 
@@ -348,13 +351,11 @@ void exec_PUSHPG(TExecutor *self)
 /* push pointer to predefined global */
 void exec_PUSHPPG(TExecutor *self)
 {
-    /* ToDo: Reimplement PUSHPPG opcode correctly. */
     self->ip++;
-    fatal_error("PUSHPPG not implemented");
-    //unsigned int addr = exec_getOperand(self);
-    //addr=addr;
-    /* assert(addr < self->object->global_variables->size); */
-    //push(self->stack, cell_fromAddress(cell_newCell()));
+    unsigned int addr = exec_getOperand(self);
+    const char *var = self->object->strings[addr]->data;
+
+    push(self->stack, cell_fromAddress(global_getVariable(var)));
 }
 
 void exec_PUSHPMG(void)

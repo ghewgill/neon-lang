@@ -18,6 +18,7 @@
 
 #include "lib/binary.h"
 #include "lib/random.h"
+#include "lib/sys.h"
 
 #define PDFUNC(name, func)      { name, (void (*)(TExecutor *))(func) }
 
@@ -69,6 +70,7 @@ TDispatch gfuncDispatch[] = {
 
     PDFUNC("random$uint32",             random_uint32),
 
+    // System - System level calls
     PDFUNC("sys$exit",                  sys_exit),
 
     PDFUNC("array__append",             array__append),
@@ -104,6 +106,16 @@ TDispatch gfuncDispatch[] = {
     { 0 }
 };
 
+static Cell VAR_args;
+
+struct tagTVariables {
+    const char *name;
+    struct tagTCell *value;
+} BuiltinVariables[] = {
+    { "sys$args",                       &VAR_args   },
+    { 0 },
+};
+
 static FILE *check_file(TExecutor *exec, void *pf)
 {
     FILE *f = (FILE *)(pf);
@@ -114,9 +126,32 @@ static FILE *check_file(TExecutor *exec, void *pf)
     return f;
 }
 
-void global_init()
+void global_init(int argc, char *argv[], int iArgStart)
 {
     random_initModule();
+
+    VAR_args.address = cell_createArrayCell(0);
+    VAR_args.type = cAddress;
+    sys_initModule(argc, argv, iArgStart, VAR_args.address);
+}
+
+void global_shutdown()
+{
+    cell_freeCell(VAR_args.address);
+}
+
+Cell *global_getVariable(const char *pszVar)
+{
+    uint32_t i;
+
+    i = 0;
+    while (BuiltinVariables[i].name) {
+        if (strcmp(pszVar, BuiltinVariables[i].name) == 0) {
+            return BuiltinVariables[i].value->address;
+        }
+        i++;
+    }
+    fatal_error("global_getVariable(): \"%s\" - invalid predefined variable.", pszVar);
 }
 
 void global_callFunction(const char *pszFunc, struct tagTExecutor *exec)
@@ -296,28 +331,6 @@ void io_fprint(TExecutor *exec)
     pop(exec->stack);
     pop(exec->stack);
 }
-
-
-
-void sys_exit(TExecutor *exec)
-{
-    char ex[64];
-    Number x = top(exec->stack)->number; pop(exec->stack);
-
-    if (!number_is_integer(x)) {
-        sprintf(ex, "%s %s", "sys.exit invalid parameter:", number_to_string(x));
-        exec->rtl_raise(exec, "InvalidValueException", ex, BID_ZERO);
-        return;
-    }
-    int r = number_to_sint32(x);
-    if (r < 0 || r > 255) {
-        sprintf(ex, "%s %s", "sys.exit invalid parameter:", number_to_string(x));
-        exec->rtl_raise(exec, "InvalidValueException", ex, BID_ZERO);
-        return;
-    }
-    exit(r);
-}
-
 
 
 
