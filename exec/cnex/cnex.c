@@ -79,8 +79,9 @@ BOOL ParseOptions(int argc, char* argv[])
                 return FALSE;
             }
         } else {
-            Retval = TRUE;
+            // Once we assign the name of the application we're going to execute, stop looking for switches.
             gOptions.pszFilename = argv[nIndex];
+            return TRUE;
         }
     }
     if (gOptions.pszFilename == NULL) {
