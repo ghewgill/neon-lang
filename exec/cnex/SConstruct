@@ -27,6 +27,7 @@ envcnex.Append(CPPPATH=[Dir(".")])
 rtl_c = ([
     "lib/binary.c",
     "lib/random.c",
+    "lib/sys.c",
 ])
 
 cnex = envcnex.Program("cnex", [

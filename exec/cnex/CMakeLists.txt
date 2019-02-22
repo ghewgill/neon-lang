@@ -3,6 +3,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY .)
 set(CNEX_RTL
     lib/binary.c
     lib/random.c
+    lib/sys.c
 )
 
 add_executable(cnex

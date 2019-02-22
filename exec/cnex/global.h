@@ -1,6 +1,5 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
-#include <stdint.h>
 
 struct tagTExecutor;
 
@@ -9,8 +8,10 @@ typedef struct tagTDispatch {
     void (*func)(struct tagTExecutor *s);
 } TDispatch;
 
-void global_init();
+void global_init(int argc, char *argv[], int iArgStart);
+void global_shutdown();
 void global_callFunction(const char *pszFunc, struct tagTExecutor *exec);
+struct tagTCell *global_getVariable(const char *pszVar);
 
 void neon_chr(struct tagTExecutor *exec);
 void neon_concat(struct tagTExecutor *exec);
@@ -31,9 +32,6 @@ void neon_str(struct tagTExecutor *exec);
 void io_fprint(struct tagTExecutor *exec);
 
 
-
-/* sys.neon functions */
-void sys_exit(struct tagTExecutor *exec);
 
 void array__append(struct tagTExecutor *exec);
 void array__concat(struct tagTExecutor *exec);
