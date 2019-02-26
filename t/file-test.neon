@@ -37,7 +37,6 @@ print(bstr(fi.readable))
 %= TRUE
 print(fi.type.toString())
 %= normal
-ASSERT fi.lastAccessTime > 0
 ASSERT fi.lastModificationTime > 0
 
 file.writeLines("tmp/file-test.tmp", ["hello", "world"])

@@ -86,6 +86,14 @@ except subprocess.CalledProcessError:
 use_rust = s is not None
 print("use_rust: {}".format(use_rust or (False, repr(s))))
 
+env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "go")) or os.path.exists(os.path.join(x, "go.exe")))
+try:
+    s = subprocess.check_output("go version", stderr=subprocess.STDOUT, shell=True)
+except subprocess.CalledProcessError:
+    s = None
+use_go = False; s = "not currently working" #s is not None
+print("use_go: {}".format(use_go or (False, repr(s))))
+
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "node")) or os.path.exists(os.path.join(x, "node.exe")))
 use_node = os.system("node --version") == 0
 print("use_node: {}".format(use_node))
@@ -444,6 +452,8 @@ neonbind = buildenv.Program("bin/neonbind", [
 cnex = SConscript("exec/cnex/SConstruct", exports=["env"])
 if use_rust:
     rsnex = SConscript("exec/rsnex/SConstruct")
+if use_go:
+    gonex = SConscript("exec/gonex/SConstruct")
 
 buildenv.Depends("src/number.h", libbid)
 buildenv.Depends("src/number.h", libgmp)
@@ -550,6 +560,8 @@ if use_java:
 tests_cnex = buildenv.Command("tests_cnex", [neonc, cnex, "scripts/run_test.py", "exec/cnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/cnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/cnex/exclude.txt")))
 if use_rust:
     tests_rsnex = buildenv.Command("tests_rsnex", [neonc, rsnex, "scripts/run_test.py", "exec/rsnex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/rsnex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/rsnex/exclude.txt")))
+if use_go:
+    tests_gonex = buildenv.Command("tests_gonex", [neonc, gonex, "scripts/run_test.py", "exec/gonex/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " exec/gonex/run_test.py\" " + " ".join(filter_tests((x.path for x in test_sources), "exec/gonex/exclude.txt")))
 testenv = buildenv.Clone()
 testenv["ENV"]["NEONPATH"] = "t/"
 testenv.Command("tests_error", [neon, "scripts/run_test.py", "src/errors.txt", Glob("t/errors/*")], sys.executable + " scripts/run_test.py --errors t/errors")
