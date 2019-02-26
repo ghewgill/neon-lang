@@ -22,8 +22,6 @@ public:
     void disassemble();
 
 private:
-    void disasm_ENTER();
-    void disasm_LEAVE();
     void disasm_PUSHB();
     void disasm_PUSHN();
     void disasm_PUSHS();
@@ -124,21 +122,6 @@ private:
     void disasm_CALLV();
     void disasm_PUSHCI();
 };
-
-void InstructionDisassembler::disasm_ENTER()
-{
-    index++;
-    uint32_t nest = Bytecode::get_vint(obj.code, index);
-    uint32_t params = Bytecode::get_vint(obj.code, index);
-    uint32_t locals = Bytecode::get_vint(obj.code, index);
-    out << "ENTER nest=" << nest << ",params=" << params << ",locals=" << locals;
-}
-
-void InstructionDisassembler::disasm_LEAVE()
-{
-    out << "LEAVE";
-    index++;
-}
 
 void InstructionDisassembler::disasm_PUSHB()
 {
@@ -588,8 +571,8 @@ void InstructionDisassembler::disasm_CALLP()
 void InstructionDisassembler::disasm_CALLF()
 {
     index++;
-    uint32_t addr = Bytecode::get_vint(obj.code, index);
-    out << "CALLF " << addr;
+    uint32_t findex = Bytecode::get_vint(obj.code, index);
+    out << "CALLF " << obj.functions[findex].name << " " << obj.strtable[obj.functions[findex].name];
 }
 
 void InstructionDisassembler::disasm_CALLMF()
@@ -771,8 +754,6 @@ void InstructionDisassembler::disasm_PUSHCI()
 void InstructionDisassembler::disassemble()
 {
     switch (static_cast<Opcode>(obj.code[index])) {
-        case ENTER:   disasm_ENTER(); break;
-        case LEAVE:   disasm_LEAVE(); break;
         case PUSHB:   disasm_PUSHB(); break;
         case PUSHN:   disasm_PUSHN(); break;
         case PUSHS:   disasm_PUSHS(); break;
@@ -947,7 +928,7 @@ void Disassembler::disassemble()
     }
     out << "  Functions:\n";
     for (auto f: obj.export_functions) {
-        out << "    " << obj.strtable[f.name] << " " << obj.strtable[f.descriptor] << " " << f.entry << "\n";
+        out << "    " << obj.strtable[f.name] << " " << obj.strtable[f.descriptor] << " " << f.index << "\n";
     }
     out << "  Exceptions:\n";
     for (auto e: obj.export_exceptions) {
@@ -968,7 +949,7 @@ void Disassembler::disassemble()
 
     out << "Functions:\n";
     for (auto f: obj.functions) {
-        out << "  " << obj.strtable[f.name] << " " << f.entry << "\n";
+        out << "  " << obj.strtable[f.name] << " nest=" << f.nest << " params=" << f.params << " locals=" << f.locals << " entry=" << f.entry << "\n";
     }
 
     out << "Classes:\n";

@@ -2,8 +2,6 @@
 #define OPCODE_H
 
 enum Opcode {
-    ENTER,      // enter function scope
-    LEAVE,      // leave function scope
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate

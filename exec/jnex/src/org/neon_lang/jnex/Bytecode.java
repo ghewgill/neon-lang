@@ -6,6 +6,14 @@ import java.io.DataInputStream;
 import java.util.ArrayList;
 
 class Bytecode {
+    class FunctionInfo {
+        int name;
+        int nest;
+        int params;
+        int locals;
+        int entry;
+    }
+
     class ExceptionInfo {
         int start;
         int end;
@@ -61,10 +69,17 @@ class Bytecode {
             }
 
             functionsize = readVint(in);
+            functions = new FunctionInfo[functionsize];
+            i = 0;
             while (functionsize > 0) {
-                int name = readVint(in);
-                int entry = readVint(in);
-                // TODO
+                FunctionInfo fi = new FunctionInfo();
+                fi.name = readVint(in);
+                fi.nest = readVint(in);
+                fi.params = readVint(in);
+                fi.locals = readVint(in);
+                fi.entry = readVint(in);
+                functions[i] = fi;
+                i++;
                 functionsize--;
             }
 
@@ -164,6 +179,7 @@ class Bytecode {
     int global_size;
     byte[][] bytetable;
     String[] strtable;
+    FunctionInfo[] functions;
     ExceptionInfo[] exceptions;
     ClassInfo[] classes;
     ArrayList<Byte> code;

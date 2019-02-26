@@ -2714,14 +2714,14 @@ public:
     Scope *scope;
     const std::vector<FunctionParameter *> params;
     size_t nesting_depth;
-    mutable unsigned int entry_label;
+    mutable unsigned int function_index;
 
     std::vector<const Statement *> statements;
 
     static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
     int get_stack_delta() const;
 
-    virtual void reset() override { entry_label = UINT_MAX; }
+    virtual void reset() override { function_index = UINT_MAX; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override {}

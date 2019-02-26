@@ -46,10 +46,10 @@ public:
     };
 
     struct Function {
-        Function(): name(0), descriptor(0), entry(0) {}
+        Function(): name(0), descriptor(0), index(0) {}
         unsigned int name;
         unsigned int descriptor;
-        unsigned int entry;
+        unsigned int index;
     };
 
     struct ExceptionExport {
@@ -64,9 +64,12 @@ public:
     };
 
     struct FunctionInfo {
-        FunctionInfo(): name(0), entry(0) {}
-        FunctionInfo(unsigned int name, unsigned int entry): name(name), entry(entry) {}
+        FunctionInfo(): name(0), nest(0), params(0), locals(0), entry(0) {}
+        FunctionInfo(unsigned int name, unsigned int nest, unsigned int params, unsigned int locals, unsigned int entry): name(name), nest(nest), params(params), locals(locals), entry(entry) {}
         unsigned int name;
+        unsigned int nest;
+        unsigned int params;
+        unsigned int locals;
         unsigned int entry;
     };
 

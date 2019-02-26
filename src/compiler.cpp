@@ -39,8 +39,17 @@ public:
         Label *exit;
         Label *next;
     };
+    class FunctionInfo {
+    public:
+        FunctionInfo(const std::string &name, const Label &label): name(name), nest(0), params(0), locals(0), entry_label(label) {}
+        std::string name;
+        int nest;
+        int params;
+        int locals;
+        Label entry_label;
+    };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), stack_depth(0), in_jumptbl(false), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
+    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions({FunctionInfo("", Label())}), function_exit(), current_function_depth(), stack_depth(0), in_jumptbl(false), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
     void emit_byte(unsigned char b);
     void emit(Opcode b);
     void emit_uint32(uint32_t value);
@@ -56,7 +65,7 @@ public:
     unsigned int str(const utf8string &s) { return str(s.str()); }
     unsigned int current_ip();
     unsigned int next_function(const std::string &name);
-    Label &function_label(int index);
+    FunctionInfo &function_info(int index);
     Label create_label();
     void emit_jump(Opcode b, Label &label);
     void jump_target(Label &label);
@@ -75,7 +84,7 @@ public:
     void add_export_type(const std::string &name, const std::string &descriptor);
     void add_export_constant(const std::string &name, const std::string &type, const std::string &value);
     void add_export_variable(const std::string &name, const std::string &type, int index);
-    void add_export_function(const std::string &name, const std::string &type, int entry);
+    void add_export_function(const std::string &name, const std::string &type, int index);
     void add_export_exception(const std::string &name);
     void add_export_interface(const std::string &name, const std::vector<std::pair<std::string, std::string>> &method_descriptors);
     void add_import(const std::string &name);
@@ -83,12 +92,12 @@ public:
     int get_stack_depth() { return stack_depth; }
     void set_stack_depth(int depth) { stack_depth = depth; }
     void adjust_stack_depth(int delta) { stack_depth += delta; }
-    std::vector<std::pair<const ast::TypeClass *, std::vector<std::vector<Label *>>>> classes;
+    std::vector<std::pair<const ast::TypeClass *, std::vector<std::vector<int>>>> classes;
 private:
     const std::string source_hash;
     Bytecode object;
     std::vector<std::string> globals;
-    std::vector<std::pair<std::string, Label>> functions;
+    std::vector<FunctionInfo> functions;
     std::stack<Label *> function_exit;
     size_t current_function_depth;
     int stack_depth;
@@ -119,8 +128,6 @@ void Emitter::emit(Opcode b)
             in_jumptbl = (b == JUMP);
         }
         switch (b) {
-            case ENTER:     break;
-            case LEAVE:     break;
             case PUSHB:     stack_depth += 1; break;
             case PUSHN:     stack_depth += 1; break;
             case PUSHS:     stack_depth += 1; break;
@@ -271,7 +278,7 @@ std::vector<unsigned char> Emitter::getObject()
     object.source_hash = source_hash;
     object.global_size = globals.size();
     for (auto f: functions) {
-        object.functions.push_back(Bytecode::FunctionInfo(str(f.first), f.second.get_target()));
+        object.functions.push_back(Bytecode::FunctionInfo(str(f.name), f.nest, f.params, f.locals, f.entry_label.get_target()));
     }
     for (auto c: classes) {
         Bytecode::ClassInfo ci;
@@ -279,7 +286,7 @@ std::vector<unsigned char> Emitter::getObject()
         for (auto i: c.second) {
             std::vector<unsigned int> a;
             for (auto m: i) {
-                a.push_back(m->get_target());
+                a.push_back(m);
             }
             ci.interfaces.push_back(a);
         }
@@ -316,13 +323,13 @@ unsigned int Emitter::current_ip()
 unsigned int Emitter::next_function(const std::string &name)
 {
     auto i = functions.size();
-    functions.push_back(std::make_pair(name, create_label()));
+    functions.push_back(FunctionInfo(name, create_label()));
     return static_cast<unsigned int>(i);
 }
 
-Emitter::Label &Emitter::function_label(int index)
+Emitter::FunctionInfo &Emitter::function_info(int index)
 {
-    return functions[index].second;
+    return functions[index];
 }
 
 Emitter::Label Emitter::create_label()
@@ -481,12 +488,12 @@ void Emitter::add_export_variable(const std::string &name, const std::string &ty
     object.export_variables.push_back(variable);
 }
 
-void Emitter::add_export_function(const std::string &name, const std::string &type, int entry)
+void Emitter::add_export_function(const std::string &name, const std::string &type, int index)
 {
     Bytecode::Function function;
     function.name = str(name);
     function.descriptor = str(type);
-    function.entry = entry;
+    function.index = index;
     object.export_functions.push_back(function);
 }
 
@@ -564,7 +571,7 @@ void ast::Type::generate_export(Emitter &emitter, const std::string &export_name
         if (f == nullptr) {
             internal_error("method should be function: " + this->name + "." + m.second->name + " " + m.second->text());
         }
-        emitter.add_export_function(export_name + "." + m.first, f->type->get_type_descriptor(emitter), emitter.function_label(f->entry_label).get_target());
+        emitter.add_export_function(export_name + "." + m.first, f->type->get_type_descriptor(emitter), f->function_index);
     }
 }
 
@@ -1063,8 +1070,8 @@ void ast::Function::predeclare(Emitter &emitter) const
     // TODO: This hack ensures that we only allocate the
     // entry label once, even if predeclare() is called
     // more than once.
-    if (entry_label == UINT_MAX) {
-        entry_label = emitter.next_function(name);
+    if (function_index == UINT_MAX) {
+        function_index = emitter.next_function(name);
     }
 }
 
@@ -1093,10 +1100,12 @@ static int count_out_parameters(const std::vector<ast::FunctionParameter *> &par
 void ast::Function::postdeclare(Emitter &emitter) const
 {
     emitter.debug_line(declaration.line);
-    emitter.jump_target(emitter.function_label(entry_label));
+    emitter.jump_target(emitter.function_info(function_index).entry_label);
     emitter.set_current_function_depth(nesting_depth);
     emitter.set_stack_depth(count_in_parameters(params));
-    emitter.emit(ENTER, static_cast<uint32_t>(nesting_depth), static_cast<uint32_t>(count_in_parameters(params)), static_cast<uint32_t>(frame->getCount()));
+    emitter.function_info(function_index).nest = static_cast<int>(nesting_depth);
+    emitter.function_info(function_index).params = count_in_parameters(params);
+    emitter.function_info(function_index).locals = static_cast<int>(frame->getCount());
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::Mode::IN:
@@ -1129,7 +1138,6 @@ void ast::Function::postdeclare(Emitter &emitter) const
                 break;
         }
     }
-    emitter.emit(LEAVE);
     emitter.emit(RET);
     if (exit.is_reachable() && emitter.get_stack_depth() >= 0) {
         if (dynamic_cast<const TypeFunction *>(type)->returntype != TYPE_NOTHING) {
@@ -1151,7 +1159,7 @@ void ast::Function::postdeclare(Emitter &emitter) const
                 for (size_t i = 0; i < c.first->interfaces.size(); i++) {
                     for (size_t m = 0; m < c.first->interfaces[i]->methods.size(); m++) {
                         if (c.first->interfaces[i]->methods[m].first.text == methodname) {
-                            c.second[i][m] = &emitter.function_label(entry_label);
+                            c.second[i][m] = function_index;
                         }
                     }
                 }
@@ -1164,20 +1172,20 @@ void ast::Function::postdeclare(Emitter &emitter) const
 void ast::Function::generate_load(Emitter &emitter) const
 {
     // Get the address of a function for function pointer support.
-    emitter.emit_jump(PUSHI, emitter.function_label(entry_label));
+    emitter.emit(PUSHI, function_index);
     emitter.emit(PUSHM);
     emitter.emit(CONSA, 2);
 }
 
 void ast::Function::generate_call(Emitter &emitter) const
 {
-    emitter.emit_jump(CALLF, emitter.function_label(entry_label));
+    emitter.emit(CALLF, function_index);
     emitter.adjust_stack_depth(get_stack_delta());
 }
 
 void ast::Function::generate_export(Emitter &emitter, const std::string &export_name) const
 {
-    emitter.add_export_function(export_name, type->get_type_descriptor(emitter), emitter.function_label(entry_label).get_target());
+    emitter.add_export_function(export_name, type->get_type_descriptor(emitter), function_index);
 }
 
 void ast::PredefinedFunction::predeclare(Emitter &emitter) const
@@ -1202,11 +1210,9 @@ void ast::PredefinedFunction::generate_call(Emitter &emitter) const
 
 void ast::ExtensionFunction::postdeclare(Emitter &emitter) const
 {
-    emitter.jump_target(emitter.function_label(entry_label));
+    emitter.jump_target(emitter.function_info(function_index).entry_label);
     emitter.set_stack_depth(count_in_parameters(params));
-    emitter.emit(ENTER, 1, count_in_parameters(params), 0);
     generate_call(emitter);
-    emitter.emit(LEAVE);
     emitter.emit(RET);
     frame->postdeclare(emitter);
 }
@@ -1274,7 +1280,7 @@ void ast::ForeignFunction::predeclare(Emitter &emitter) const
 
 void ast::ForeignFunction::postdeclare(Emitter &emitter) const
 {
-    emitter.jump_target(emitter.function_label(entry_label));
+    emitter.jump_target(emitter.function_info(function_index).entry_label);
     generate_call(emitter);
     emitter.emit(RET);
     frame->postdeclare(emitter);
@@ -2045,9 +2051,9 @@ void ast::TypeDeclarationStatement::generate_code(Emitter &emitter) const
     // This might better be a virtual function call on Type.
     const ast::TypeClass *type_class = dynamic_cast<const ast::TypeClass *>(type);
     if (type_class != nullptr) {
-        std::vector<std::vector<Emitter::Label *>> ifs;
+        std::vector<std::vector<int>> ifs;
         for (auto i: type_class->interfaces) {
-            ifs.push_back(std::vector<Emitter::Label *>(i->methods.size()));
+            ifs.push_back(std::vector<int>(i->methods.size()));
         }
         emitter.classes.push_back(std::make_pair(type_class, ifs));
     }
@@ -2126,6 +2132,7 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
 
 void ast::ReturnStatement::generate_code(Emitter &emitter) const
 {
+#if 0 // It doesn't look like tail calls will be possible without separate ENTER/LEAVE opcodes.
     // Check for a possible tail call. We can only do this if all
     // of the following conditions hold:
     //  - The RETURN statement returns only a call to another function
@@ -2152,13 +2159,14 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
                     if (func->nesting_depth <= emitter.get_function_depth()) {
                         call->generate_parameters(emitter);
                         emitter.emit(LEAVE);
-                        emitter.emit_jump(JUMP, emitter.function_label(func->entry_label));
+                        emitter.emit_jump(JUMP, emitter.function_info(func->function_index).entry_label);
                         return;
                     }
                 }
             }
         }
     }
+#endif
 #endif
 
     if (expr != nullptr) {
@@ -2503,6 +2511,7 @@ void ast::Program::generate(Emitter &emitter) const
     TYPE_BOOLEAN->predeclare(emitter);
     TYPE_NUMBER->predeclare(emitter);
 
+    emitter.jump_target(emitter.function_info(0).entry_label);
     frame->predeclare(emitter);
     for (auto stmt: statements) {
         stmt->generate(emitter);
@@ -2513,7 +2522,7 @@ void ast::Program::generate(Emitter &emitter) const
         emitter.adjust_stack_depth(1);
         auto skip = emitter.create_label();
         emitter.emit_jump(JF, skip);
-        emitter.emit_jump(CALLF, emitter.function_label(main->entry_label));
+        emitter.emit(CALLF, main->function_index);
         emitter.adjust_stack_depth(0);
         emitter.jump_target(skip);
     }
@@ -2696,7 +2705,7 @@ void ast::TypeInterface::debuginfo(Emitter &, minijson::object_writer &out) cons
 
 void ast::Function::debuginfo(Emitter &emitter, minijson::object_writer &out) const
 {
-    out.write("entry", emitter.function_label(entry_label).get_target());
+    out.write("entry", emitter.function_info(function_index).entry_label.get_target());
     auto locals = out.nested_array("locals");
     for (size_t i = 0; i < frame->getCount(); i++) {
         auto slot = frame->getSlot(i);

@@ -2,8 +2,6 @@
 #define OPCODE_H
 
 #define FOREACH_OPCODE(OPCODE) \
-    OPCODE(ENTER)\
-    OPCODE(LEAVE)\
     OPCODE(PUSHB)\
     OPCODE(PUSHN)\
     OPCODE(PUSHS)\

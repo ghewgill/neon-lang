@@ -9,13 +9,16 @@ typedef struct tagTType {
 
 typedef struct tagTFunction {
     unsigned int name;
+    unsigned int nest;
+    unsigned int params;
+    unsigned int locals;
     unsigned int entry;
 } Function;
 
 typedef struct tagTExportFunction {
     unsigned int name;
     unsigned int descriptor;
-    unsigned int entry;
+    unsigned int index;
 } ExportFunction;
 
 typedef struct tagTImport {

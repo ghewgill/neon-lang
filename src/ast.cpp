@@ -1138,7 +1138,7 @@ Function::Function(const Token &declaration, const std::string &name, const Type
     scope(new Scope(parent, frame)),
     params(params),
     nesting_depth(nesting_depth),
-    entry_label(UINT_MAX),
+    function_index(UINT_MAX),
     statements()
 {
     for (auto p: params) {

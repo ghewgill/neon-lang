@@ -83,7 +83,8 @@ class Executor {
 
     void run()
     {
-        callstack.addFirst(object.code.size());
+        ip = object.code.size();
+        invoke(0);
         execLoop(0);
     }
 
@@ -93,8 +94,6 @@ class Executor {
             //System.err.println("ip=" + ip + " op=" + opcodes[object.code.get(ip)]);
             //for (Cell c: stack) { System.err.println("  " + c); }
             switch (opcodes[object.code.get(ip)]) {
-                case ENTER: doENTER(); break;
-                case LEAVE: doLEAVE(); break;
                 case PUSHB: doPUSHB(); break;
                 case PUSHN: doPUSHN(); break;
                 case PUSHS: doPUSHS(); break;
@@ -227,25 +226,6 @@ class Executor {
             }
         }
         return r;
-    }
-
-    private void doENTER()
-    {
-        ip++;
-        int nest = getVint();
-        int params = getVint();
-        int locals = getVint();
-        Cell[] frame = new Cell[locals];
-        for (int i = 0; i < frame.length; i++) {
-            frame[i] = new Cell();
-        }
-        frames.addFirst(frame);
-    }
-
-    private void doLEAVE()
-    {
-        ip++;
-        frames.removeFirst();
     }
 
     private void doPUSHB()
@@ -737,8 +717,7 @@ class Executor {
     {
         ip++;
         int target = getVint();
-        callstack.addFirst(ip);
-        ip = target;
+        invoke(target);
     }
 
     private void doJUMP()
@@ -804,6 +783,7 @@ class Executor {
 
     private void doRET()
     {
+        frames.removeFirst();
         ip = callstack.removeFirst();
     }
 
@@ -925,6 +905,17 @@ class Executor {
         System.exit(1);
     }
 
+    private void invoke(int index)
+    {
+        callstack.addFirst(ip);
+        Cell[] frame = new Cell[object.functions[index].locals];
+        for (int i = 0; i < frame.length; i++) {
+            frame[i] = new Cell();
+        }
+        frames.addFirst(frame);
+        ip = object.functions[index].entry;
+    }
+
     private void raiseLiteral(String name)
     {
         raiseLiteral(name, new ExceptionInfo());
@@ -982,8 +973,6 @@ class Executor {
     }
 
     public enum Opcode {
-        ENTER,
-        LEAVE,
         PUSHB,
         PUSHN,
         PUSHS,

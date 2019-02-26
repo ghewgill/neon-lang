@@ -19,6 +19,7 @@
 #include "nstring.h"
 #include "util.h"
 
+void invoke(TExecutor *self, int index);
 
 typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
@@ -168,8 +169,8 @@ int main(int argc, char* argv[])
 
 int exec_run(TExecutor *self, BOOL enable_assert)
 {
-    self->callstack[++self->callstacktop] = (uint32_t)self->object->codelen;
-    self->diagnostics.callstack_max_height = self->callstacktop;
+    self->ip = (uint32_t)self->object->codelen;
+    invoke(self, 0);
     self->enable_assert = enable_assert;
 
     exec_loop(self);
@@ -284,29 +285,6 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
 static unsigned int exec_getOperand(TExecutor *self)
 {
     return get_vint(self->object->code, self->object->codelen, &self->ip);
-}
-
-void exec_ENTER(TExecutor *self)
-{
-    self->ip++;
-    // ToDo: Fix function nesting
-    //unsigned int nest = exec_getOperand(self);
-    exec_getOperand(self); // Keep the operand stack aligned properly.
-    unsigned int params = exec_getOperand(self);
-    unsigned int val = exec_getOperand(self);
-
-    framestack_pushFrame(self->framestack, frame_createFrame(val, self->stack->top - params));
-    dump_frames(self);
-    /* ToDo: Implement Activiation frame support */
-    //add(frame_newFrame(val));
-    //nested_frames.resize(nest-1);
-    //nested_frames.push_back(&frames.back());
-}
-
-void exec_LEAVE(TExecutor *self)
-{
-    framestack_popFrame(self->framestack);
-    self->ip++;
 }
 
 void exec_PUSHB(TExecutor *self)
@@ -950,9 +928,7 @@ void exec_CALLF(TExecutor *self)
         self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
         return;
     }
-    self->callstack[++self->callstacktop] = self->ip;
-    self->diagnostics.callstack_max_height = self->callstacktop;
-    self->ip = val;
+    invoke(self, val);
 }
 
 void exec_CALLMF(void)
@@ -1030,6 +1006,7 @@ void exec_DROP(TExecutor *self)
 
 void exec_RET(TExecutor *self)
 {
+    framestack_popFrame(self->framestack);
     self->ip = self->callstack[self->callstacktop--];
 }
 
@@ -1159,6 +1136,22 @@ void exec_PUSHCI(void)
     fatal_error("exec_PUSHCI not implemented");
 }
 
+void invoke(TExecutor *self, int index)
+{
+    self->callstack[++self->callstacktop] = self->ip;
+    self->diagnostics.callstack_max_height = self->callstacktop;
+
+    // ToDo: Fix function nesting
+    framestack_pushFrame(self->framestack, frame_createFrame(self->object->functions[index].locals, self->stack->top - self->object->functions[index].params));
+    dump_frames(self);
+    /* ToDo: Implement Activiation frame support */
+    //add(frame_newFrame(val));
+    //nested_frames.resize(nest-1);
+    //nested_frames.push_back(&frames.back());
+
+    self->ip = self->object->functions[index].entry;
+}
+
 void exec_loop(TExecutor *self)
 {
     while (self->ip < self->object->codelen) {
@@ -1166,8 +1159,6 @@ void exec_loop(TExecutor *self)
             fprintf(stderr, "mod:%s\tip: %d\top: %s\tst: %d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); 
         }
         switch (self->object->code[self->ip]) {
-            case ENTER:   exec_ENTER(self); break;
-            case LEAVE:   exec_LEAVE(self); break;
             case PUSHB:   exec_PUSHB(self); break;
             case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;

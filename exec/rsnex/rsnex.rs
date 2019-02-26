@@ -3,8 +3,6 @@ use std::fs;
 use std::io::Read;
 
 enum Opcode {
-    ENTER,      // enter function scope
-    LEAVE,      // leave function scope
     PUSHB,      // push boolean immediate
     PUSHN,      // push number immediate
     PUSHS,      // push string immediate
@@ -129,6 +127,14 @@ enum Cell {
     //Dictionary(Vec<Cell>),
 }
 
+struct Function {
+    _name: usize,
+    _nest: usize,
+    _params: usize,
+    _locals: usize,
+    _entry: usize,
+}
+
 struct Type {
     _name: usize,
     _descriptor: usize,
@@ -138,6 +144,7 @@ struct Bytecode {
     source_hash: Vec<u8>,
     global_size: usize,
     strtable: Vec<String>,
+    functions: Vec<Function>,
     types: Vec<Type>,
     code: Vec<u8>,
 }
@@ -148,6 +155,7 @@ impl Bytecode {
             source_hash: Vec::new(),
             global_size: 0,
             strtable: Vec::new(),
+            functions: Vec::new(),
             types: Vec::new(),
             code: Vec::new(),
         };
@@ -188,7 +196,16 @@ impl Bytecode {
         assert!(importsize == 0);
 
         let functionsize = get_vint(&bytecode, &mut i);
-        assert!(functionsize == 0);
+        for _ in 0..functionsize {
+            let f = Function {
+                _name: get_vint(&bytecode, &mut i),
+                _nest: get_vint(&bytecode, &mut i),
+                _params: get_vint(&bytecode, &mut i),
+                _locals: get_vint(&bytecode, &mut i),
+                _entry: get_vint(&bytecode, &mut i),
+            };
+            r.functions.push(f);
+        }
 
         let exceptionsize = get_vint(&bytecode, &mut i);
         assert!(exceptionsize == 0);
@@ -238,8 +255,6 @@ impl Executor {
         self.callstack.push(self.object.code.len());
         while self.ip < self.object.code.len() {
             match self.object.code[self.ip] {
-                x if x == Opcode::ENTER as u8 => self.op_enter(),
-                x if x == Opcode::LEAVE as u8 => self.op_leave(),
                 x if x == Opcode::PUSHB as u8 => self.op_pushb(),
                 x if x == Opcode::PUSHN as u8 => self.op_pushn(),
                 x if x == Opcode::PUSHS as u8 => self.op_pushs(),
@@ -342,14 +357,6 @@ impl Executor {
                 _ => panic!("invalid opcode")
             }
         }
-    }
-
-    fn op_enter(&mut self) {
-        assert!(false, "unimplemented");
-    }
-
-    fn op_leave(&mut self) {
-        assert!(false, "unimplemented");
     }
 
     fn op_pushb(&mut self) {

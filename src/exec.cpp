@@ -227,7 +227,7 @@ public:
     std::vector<size_t> rtl_call_tokens;
     std::vector<std::pair<bool, Number>> number_table;
     std::vector<ForeignCallInfo *> foreign_functions;
-    std::map<std::pair<std::string, std::string>, std::pair<Module *, Bytecode::Bytes::size_type>> module_functions;
+    std::map<std::pair<std::string, std::string>, std::pair<Module *, int>> module_functions;
 private:
     Module(const Module &);
     Module &operator=(const Module &);
@@ -285,8 +285,6 @@ public:
     std::set<size_t> debugger_breakpoints;
     std::vector<std::string> debugger_log;
 
-    void exec_ENTER();
-    void exec_LEAVE();
     void exec_PUSHB();
     void exec_PUSHN();
     void exec_PUSHS();
@@ -387,6 +385,7 @@ public:
     void exec_CALLV();
     void exec_PUSHCI();
 
+    void invoke(Module *m, uint32_t index);
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
     void raise(const RtlException &x);
@@ -581,8 +580,8 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     }
     std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
     Module *mod = reinterpret_cast<Module *>(a[0].address());
-    Number addr = a[1].number();
-    if (mod == nullptr || number_is_zero(addr) || not number_is_integer(addr)) {
+    Number nindex = a[1].number();
+    if (mod == nullptr || number_is_zero(nindex) || not number_is_integer(nindex)) {
         g_executor->raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
         return;
     }
@@ -592,10 +591,8 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
             g_executor->stack.push(*i);
         }
     }
-    uint32_t addri = number_to_uint32(addr);
-    g_executor->callstack.push_back(std::make_pair(g_executor->module, g_executor->ip));
-    g_executor->module = mod;
-    g_executor->ip = addri;
+    uint32_t index = number_to_uint32(nindex);
+    g_executor->invoke(mod, index);
     int r = g_executor->exec_loop(g_executor->callstack.size() - 1);
     if (r != 0) {
         exit(r);
@@ -727,31 +724,6 @@ inline void dump_frames(Executor *exec)
             printf("  %p { nest=%u outer=%p locals=%zu opstack_depth=%zu }\n", &f, f.nesting_depth, f.outer, f.locals.size(), f.opstack_depth);
         }
     }
-}
-
-void Executor::exec_ENTER()
-{
-    ip++;
-    uint32_t nest = Bytecode::get_vint(module->object.code, ip);
-    uint32_t params = Bytecode::get_vint(module->object.code, ip);
-    uint32_t locals = Bytecode::get_vint(module->object.code, ip);
-    ActivationFrame *outer = nullptr;
-    if (frames.size() > 0) {
-        assert(nest <= frames.back().nesting_depth+1);
-        outer = &frames.back();
-        while (outer != nullptr && nest <= outer->nesting_depth) {
-            assert(outer->outer == nullptr || outer->nesting_depth == outer->outer->nesting_depth+1);
-            outer = outer->outer;
-        }
-    }
-    frames.emplace_back(nest, outer, locals, stack.depth() - params);
-    dump_frames(this);
-}
-
-void Executor::exec_LEAVE()
-{
-    frames.pop_back();
-    ip++;
 }
 
 void Executor::exec_PUSHB()
@@ -1436,44 +1408,36 @@ void Executor::exec_CALLF()
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
-    callstack.push_back(std::make_pair(module, ip));
-    ip = val;
+    invoke(module, val);
 }
 
 void Executor::exec_CALLMF()
 {
     ip++;
     uint32_t mod = Bytecode::get_vint(module->object.code, ip);
-    uint32_t func  = Bytecode::get_vint(module->object.code, ip);
+    uint32_t func = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
-    callstack.push_back(std::make_pair(module, ip));
     auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
     if (f != module->module_functions.end()) {
-        module = f->second.first;
-        ip = f->second.second;
+        invoke(f->second.first, f->second.second);
     } else {
         auto m = modules.find(module->object.strtable[mod]);
         if (m == modules.end()) {
             fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
             exit(1);
         }
-        bool found = false;
         for (auto ef: m->second->object.export_functions) {
             if (m->second->object.strtable[ef.name] + "," + m->second->object.strtable[ef.descriptor] == module->object.strtable[func]) {
-                ip = ef.entry;
-                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ip);
-                found = true;
-                break;
+                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ef.index);
+                invoke(m->second, ef.index);
+                return;
             }
         }
-        if (not found) {
-            fprintf(stderr, "fatal: module function not found: %s\n", module->object.strtable[func].c_str());
-            exit(1);
-        }
-        module = m->second;
+        fprintf(stderr, "fatal: module function not found: %s\n", module->object.strtable[func].c_str());
+        exit(1);
     }
 }
 
@@ -1486,15 +1450,13 @@ void Executor::exec_CALLI()
     }
     std::vector<Cell> a = stack.top().array(); stack.pop();
     Module *mod = reinterpret_cast<Module *>(a[0].address());
-    Number addr = a[1].number();
-    if (number_is_zero(addr) || not number_is_integer(addr)) {
+    Number nindex = a[1].number();
+    if (number_is_zero(nindex) || not number_is_integer(nindex)) {
         raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
         return;
     }
-    uint32_t addri = number_to_uint32(addr);
-    callstack.push_back(std::make_pair(module, ip));
-    module = mod;
-    ip = addri;
+    uint32_t index = number_to_uint32(nindex);
+    invoke(mod, index);
 }
 
 void Executor::exec_JUMP()
@@ -1560,6 +1522,7 @@ void Executor::exec_DROP()
 
 void Executor::exec_RET()
 {
+    frames.pop_back();
     module = callstack.back().first;
     ip = callstack.back().second;
     callstack.pop_back();
@@ -1864,9 +1827,7 @@ void Executor::exec_CALLV()
     Module *m = reinterpret_cast<Module *>(instance->array_for_write()[0].array_for_write()[0].address());
     Bytecode::ClassInfo *classinfo = reinterpret_cast<Bytecode::ClassInfo *>(instance->array_for_write()[0].array_for_write()[1].address());
     stack.pop();
-    callstack.push_back(std::make_pair(module, ip));
-    module = m;
-    ip = classinfo->interfaces[interface_index][val];
+    invoke(m, classinfo->interfaces[interface_index][val]);
 }
 
 void Executor::exec_PUSHCI()
@@ -1903,6 +1864,27 @@ void Executor::exec_PUSHCI()
     }
     fprintf(stderr, "neon: unknown class name %s\n", module->object.strtable[val].c_str());
     exit(1);
+}
+
+void Executor::invoke(Module *m, uint32_t index)
+{
+    callstack.push_back(std::make_pair(module, ip));
+    ActivationFrame *outer = nullptr;
+    unsigned int nest = m->object.functions[index].nest;
+    unsigned int params = m->object.functions[index].params;
+    unsigned int locals = m->object.functions[index].locals;
+    if (frames.size() > 0) {
+        assert(nest <= frames.back().nesting_depth+1);
+        outer = &frames.back();
+        while (outer != nullptr && nest <= outer->nesting_depth) {
+            assert(outer->outer == nullptr || outer->nesting_depth == outer->outer->nesting_depth+1);
+            outer = outer->outer;
+        }
+    }
+    frames.emplace_back(nest, outer, locals, stack.depth() - params);
+    dump_frames(this);
+    module = m;
+    ip = m->object.functions[index].entry;
 }
 
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
@@ -2098,17 +2080,15 @@ void Executor::set_recursion_limit(size_t depth)
 
 int Executor::exec()
 {
-    callstack.push_back(std::make_pair(module, module->object.code.size()));
+    ip = module->object.code.size();
+    invoke(module, 0);
 
     // This sets up the call stack in such a way as to initialize
     // each module in the order determined in init_order, followed
     // by running the code in the main module.
-    callstack.push_back(std::make_pair(module, 0));
     for (auto x = init_order.rbegin(); x != init_order.rend(); ++x) {
-        callstack.push_back(std::make_pair(modules[*x], 0));
+        invoke(modules[*x], 0);
     }
-    // Set up ip for first module (or main module if no imports).
-    exec_RET();
 
     int r = exec_loop(0);
     if (r == 0) {
@@ -2125,9 +2105,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             std::cerr << "mod " << module->name << " ip " << ip << " (" << stack.depth() << ") " << disassemble_instruction(module->object, i) << "\n";
             if (module->debug != nullptr) {
                 auto sd = module->debug->stack_depth.find(ip);
-                Opcode op = static_cast<Opcode>(module->object.code[ip]);
-                // TODO: Fix the exclusion of RET here after refactoring function code.
-                if (sd != module->debug->stack_depth.end() && op != ENTER && op != RET) {
+                if (sd != module->debug->stack_depth.end()) {
                     int expected_depth = static_cast<int>(frames.empty() ? 0 : frames.back().opstack_depth) + sd->second;
                     if (expected_depth != static_cast<int>(stack.depth())) {
                         std::cerr << "stack depth mismatch: expected=" << expected_depth << " actual=" << stack.depth() << "\n";
@@ -2165,8 +2143,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             }
         }
         switch (static_cast<Opcode>(module->object.code[ip])) {
-            case ENTER:   exec_ENTER(); break;
-            case LEAVE:   exec_LEAVE(); break;
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;

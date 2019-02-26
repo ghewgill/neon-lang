@@ -42,10 +42,18 @@ class Constant:
         self.type = 0
         self.value = 0
 
-class Function:
+class ExportFunction:
     def __init__(self):
         self.name = 0
         self.descriptor = 0
+        self.index = 0
+
+class Function:
+    def __init__(self):
+        self.name = 0
+        self.nest = 0
+        self.params = 0
+        self.locals = 0
         self.entry = 0
 
 class Import:
@@ -98,10 +106,10 @@ class Bytecode:
         functionsize, i = get_vint(bytecode, i)
         self.export_functions = []
         while functionsize > 0:
-            f = Function()
+            f = ExportFunction()
             f.name, i = get_vint(bytecode, i)
             f.descriptor, i = get_vint(bytecode, i)
-            f.entry, i = get_vint(bytecode, i)
+            f.index, i = get_vint(bytecode, i)
             self.export_functions.append(f)
             functionsize -= 1
 
@@ -132,6 +140,9 @@ class Bytecode:
         while functionsize > 0:
             f = Function()
             f.name, i = get_vint(bytecode, i)
+            f.nest, i = get_vint(bytecode, i)
+            f.params, i = get_vint(bytecode, i)
+            f.locals, i = get_vint(bytecode, i)
             f.entry, i = get_vint(bytecode, i)
             self.functions.append(f)
             functionsize -= 1
@@ -200,24 +211,11 @@ class Executor:
             self.globals[i] = Value(None)
 
     def run(self):
-        self.callstack.append((None, len(self.object.code)))
+        self.ip = len(self.object.code)
+        self.invoke(None, 0)
         while self.ip < len(self.object.code):
             #print("ip={}".format(self.ip)); print(repr(self.stack))
             Dispatch[ord(self.object.code[self.ip])](self)
-
-    def ENTER(self):
-        self.ip += 1
-        nest, self.ip = get_vint(self.object.code, self.ip)
-        params, self.ip = get_vint(self.object.code, self.ip)
-        locals, self.ip = get_vint(self.object.code, self.ip)
-        f = [None] * locals
-        for i in range(locals):
-            f[i] = Value(None)
-        self.frames.append(f)
-
-    def LEAVE(self):
-        self.ip += 1
-        self.frames.pop()
 
     def PUSHB(self):
         self.ip += 1
@@ -642,8 +640,7 @@ class Executor:
     def CALLF(self):
         self.ip += 1
         target, self.ip = get_vint(self.object.code, self.ip)
-        self.callstack.append((None, self.ip))
-        self.ip = target
+        self.invoke(None, target)
 
     def CALLMF(self):
         assert False
@@ -696,6 +693,7 @@ class Executor:
         self.stack.pop()
 
     def RET(self):
+        self.frames.pop()
         (_module, self.ip) = self.callstack.pop()
 
     def CALLE(self):
@@ -782,6 +780,14 @@ class Executor:
     def PUSHCI(self):
         assert False
 
+    def invoke(self, module, index):
+        self.callstack.append((None, self.ip))
+        f = [None] * self.object.functions[index].locals
+        for i in range(len(f)):
+            f[i] = Value(None)
+        self.frames.append(f)
+        self.ip = self.object.functions[index].entry
+
     def raise_literal(self, name, info):
         exceptionvar = [
             Value(name),
@@ -810,8 +816,6 @@ class Executor:
         sys.exit(1)
 
 Dispatch = [
-    Executor.ENTER,
-    Executor.LEAVE,
     Executor.PUSHB,
     Executor.PUSHN,
     Executor.PUSHS,

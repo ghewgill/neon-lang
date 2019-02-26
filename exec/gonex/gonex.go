@@ -9,8 +9,6 @@ import (
 )
 
 const (
-	ENTER    = iota // enter function scope
-	LEAVE    = iota // leave function scope
 	PUSHB    = iota // push boolean immediate
 	PUSHN    = iota // push number immediate
 	PUSHS    = iota // push string immediate
@@ -269,8 +267,11 @@ func (self cell) Equal(other cell) bool {
 }
 
 type function struct {
-	name  int
-	entry int
+	name   int
+	nest   int
+	params int
+	locals int
+	entry  int
 }
 
 type bytecode struct {
@@ -327,6 +328,9 @@ func make_bytecode(bytes []byte) bytecode {
 	for functionsize > 0 {
 		f := function{}
 		f.name = get_vint(bytes, &i)
+		f.nest = get_vint(bytes, &i)
+		f.params = get_vint(bytes, &i)
+		f.locals = get_vint(bytes, &i)
 		f.entry = get_vint(bytes, &i)
 		r.functions = append(r.functions, f)
 		functionsize--
@@ -364,13 +368,10 @@ func make_executor(bytes []byte) executor {
 }
 
 func (self *executor) run() {
-	self.callstack = append(self.callstack, len(self.object.code))
+	self.ip = len(self.object.code)
+	self.invoke(0)
 	for self.ip < len(self.object.code) {
 		switch self.object.code[self.ip] {
-		case ENTER:
-			self.op_enter()
-		case LEAVE:
-			self.op_leave()
 		case PUSHB:
 			self.op_pushb()
 		case PUSHN:
@@ -583,22 +584,6 @@ func (self *executor) pop() cell {
 
 func (self *executor) push(c cell) {
 	self.stack = append(self.stack, c)
-}
-
-func (self *executor) op_enter() {
-	self.ip++
-	nest := get_vint(self.object.code, &self.ip)
-	assert(nest >= 0, "To avoid unused variable error")
-	params := get_vint(self.object.code, &self.ip)
-	assert(params >= 0, "To avoid unused variable error")
-	locals := get_vint(self.object.code, &self.ip)
-	f := make([]cell, locals)
-	self.frames = append(self.frames, f)
-}
-
-func (self *executor) op_leave() {
-	self.ip++
-	self.frames = self.frames[:len(self.frames)-1]
 }
 
 func (self *executor) op_pushb() {
@@ -1200,8 +1185,7 @@ func (self *executor) op_callp() {
 func (self *executor) op_callf() {
 	self.ip++
 	val := get_vint(self.object.code, &self.ip)
-	self.callstack = append(self.callstack, self.ip)
-	self.ip = val
+	self.invoke(val)
 }
 
 func (self *executor) op_callmf() {
@@ -1268,6 +1252,7 @@ func (self *executor) op_drop() {
 }
 
 func (self *executor) op_ret() {
+	self.frames = self.frames[:len(self.frames)-1]
 	self.ip = self.callstack[len(self.callstack)-1]
 	self.callstack = self.callstack[:len(self.callstack)-1]
 }
@@ -1355,6 +1340,13 @@ func (self *executor) op_callv() {
 
 func (self *executor) op_pushci() {
 	assert(false, "unimplemented")
+}
+
+func (self *executor) invoke(index int) {
+	self.callstack = append(self.callstack, self.ip)
+	f := make([]cell, self.object.functions[index].locals)
+	self.frames = append(self.frames, f)
+	self.ip = self.object.functions[index].entry
 }
 
 func main() {

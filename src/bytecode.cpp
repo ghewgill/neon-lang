@@ -152,7 +152,7 @@ bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
             Function f;
             f.name = get_vint(obj, i);
             f.descriptor = get_vint(obj, i);
-            f.entry = get_vint(obj, i);
+            f.index = get_vint(obj, i);
             export_functions.push_back(f);
             functionsize--;
         }
@@ -198,6 +198,9 @@ bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
         while (functionsize > 0) {
             FunctionInfo f;
             f.name = get_vint(obj, i);
+            f.nest = get_vint(obj, i);
+            f.params = get_vint(obj, i);
+            f.locals = get_vint(obj, i);
             f.entry = get_vint(obj, i);
             functions.push_back(f);
             functionsize--;
@@ -287,7 +290,7 @@ Bytecode::Bytes Bytecode::getBytes() const
     for (auto f: export_functions) {
         put_vint(objret, f.name);
         put_vint(objret, f.descriptor);
-        put_vint(objret, f.entry);
+        put_vint(objret, f.index);
     }
 
     put_vint_size(objret, export_exceptions.size());
@@ -317,6 +320,9 @@ Bytecode::Bytes Bytecode::getBytes() const
     put_vint_size(objret, functions.size());
     for (auto f: functions) {
         put_vint(objret, f.name);
+        put_vint(objret, f.nest);
+        put_vint(objret, f.params);
+        put_vint(objret, f.locals);
         put_vint(objret, f.entry);
     }
 
