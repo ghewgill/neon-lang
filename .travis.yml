@@ -23,6 +23,7 @@ script:
   #- where choco
   #- where refreshenv
   #- refreshenv
+  - cmake --help
   - cmake -G "NMake Makefiles" .
   - dir CMakeFiles
   - cat CMakeFiles/CMakeOutput.log
