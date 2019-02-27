@@ -29,5 +29,5 @@ script:
   - cat CMakeFiles/CMakeOutput.log
   - dir
   #- nmake
-  - ctest -C Debug
+  - ctest -C Debug --output-on-failure
 sudo: false
