@@ -23,10 +23,10 @@ script:
   #- where choco
   #- where refreshenv
   #- refreshenv
-  - cmake .
+  - cmake -G "NMake Makefiles" .
   - dir CMakeFiles
   - cat CMakeFiles/CMakeOutput.log
   - dir
-  - MSBuild.exe
+  - nmake
   - ctest
 sudo: false
