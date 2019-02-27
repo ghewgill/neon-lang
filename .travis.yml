@@ -24,7 +24,7 @@ script:
   #- where refreshenv
   #- refreshenv
   - cmake .
-  - cmake --build .
+  - cmake --build . --config Debug
   - dir CMakeFiles
   - cat CMakeFiles/CMakeOutput.log
   - dir
