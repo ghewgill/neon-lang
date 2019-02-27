@@ -28,6 +28,8 @@ script:
   - dir CMakeFiles
   - cat CMakeFiles/CMakeOutput.log
   - dir
+  - dir bin
+  - dir bin/Debug
   #- nmake
   - ctest -C Debug --output-on-failure
 sudo: false
