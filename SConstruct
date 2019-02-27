@@ -78,6 +78,19 @@ m = s and re.search(r"^javac (\d+)\.(\d+)", s, re.MULTILINE)
 use_java = m is not None and (int(m.group(1)), int(m.group(2))) >= (1, 8)
 print("use_java: {}".format(use_java or (False, repr(s))))
 
+if os.name == "nt":
+    csc = "csc"
+else:
+    env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "mono")))
+    try:
+        s = subprocess.check_output("mono --version", stderr=subprocess.STDOUT, shell=True)
+    except subprocess.CalledProcessError:
+        s = None
+    use_mono = s is not None
+    print("use_mono: {}".format(use_mono or (False, repr(s))))
+    if use_mono:
+        csc = "mcs"
+
 env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "rustc")) or os.path.exists(os.path.join(x, "rustc.exe")))
 try:
     s = subprocess.check_output("rustc --version", stderr=subprocess.STDOUT, shell=True)
@@ -314,11 +327,15 @@ if use_java:
     jvm_classes = buildenv.Java("rtl/jvm", "rtl/jvm")
     jnex = SConscript("exec/jnex/SConstruct")
 
+if os.name == "nt" or use_mono:
+    cli_library = env.Command("t/Neon.dll", "rtl/cli/Global.cs", csc + " /out:$TARGET /target:library $SOURCES")
+
 neonc = buildenv.Program("bin/neonc", [
     "src/analyzer.cpp",
     "src/ast.cpp",
     "src/bytecode.cpp",
     "src/compiler.cpp",
+    "src/compiler_cli.cpp",
     "src/compiler_cpp.cpp",
     "src/compiler_js.cpp",
     "src/compiler_jvm.cpp",
@@ -550,6 +567,9 @@ buildenv.Depends(tests, test_ffi)
 buildenv.Command("tests_helium", [neon, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " tools/helium.py\" " + " ".join(filter_tests((x.path for x in test_sources), "tools/helium-exclude.txt")))
 if use_node:
     tests_js = buildenv.Command("tests_js", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_js.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/js-exclude.txt")))
+if os.name == "nt" or use_mono:
+    tests_cli = buildenv.Command("tests_cli", [neonc, "scripts/run_test.py", "scripts/run_cli.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_cli.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/cli-exclude.txt")))
+    buildenv.Depends(tests_cli, cli_library)
 if use_java:
     tests_jvm = buildenv.Command("tests_jvm", [neonc, "scripts/run_test.py", test_sources], sys.executable + " scripts/run_test.py --runner \"" + sys.executable + " scripts/run_jvm.py\" " + " ".join(filter_tests((x.path for x in test_sources), "scripts/jvm-exclude.txt")))
     buildenv.Depends(tests_jvm, jvm_classes)

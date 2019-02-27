@@ -35,6 +35,29 @@ if (JAVAC)
     endif ()
 endif (JAVAC)
 
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+    find_program(CSC csc)
+    if (CSC)
+        message("csc found: ${CSC}")
+    else (CSC)
+        message("csc not found")
+    endif (CSC)
+else ()
+    find_program(MONO mono)
+    if (MONO)
+        message("mono found: ${MONO}")
+    else (MONO)
+        message("mono not found")
+    endif (MONO)
+    find_program(CSC mcs)
+    if (CSC)
+        message("mcs found: ${CSC}")
+    else (CSC)
+        message("mcs not found")
+        set(MONO "MONO-NOTFOUND")
+    endif (CSC)
+endif ()
+
 find_program(NODEJS NAMES nodejs node)
 if (NODEJS)
     message("nodejs found: ${NODEJS}")
@@ -145,6 +168,21 @@ if (JAVAC)
     )
 endif (JAVAC)
 
+if (CSC)
+    set(NEON_CLI
+        rtl/cli/Global.cs
+    )
+    # TODO: Use cmake C# support (3.8.2+)
+    add_custom_command(
+        OUTPUT t/Neon.dll
+        COMMAND ${CSC} /out:t/Neon.dll /target:library ${NEON_CLI}
+        DEPENDS ${NEON_CLI}
+    )
+    add_custom_target(neon_cli ALL
+        DEPENDS t/Neon.dll
+    )
+endif (CSC)
+
 if (JAVAC)
     add_subdirectory("exec/jnex")
 endif (JAVAC)
@@ -196,6 +234,7 @@ add_library(compiler OBJECT
     src/analyzer.cpp
     src/ast.cpp
     src/compiler.cpp
+    src/compiler_cli.cpp
     src/compiler_cpp.cpp
     src/compiler_js.cpp
     src/compiler_jvm.cpp
@@ -589,6 +628,9 @@ endif (NODEJS)
 if (JAVAC)
     add_tests("${TESTS}" "jvm" "scripts/run_jvm.py" "scripts/jvm-exclude.txt")
 endif (JAVAC)
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR MONO)
+    add_tests("${TESTS}" "cli" "scripts/run_cli.py" "scripts/cli-exclude.txt")
+endif ()
 add_tests("${TESTS}" "pynex" "exec/pynex/run_test.py" "exec/pynex/exclude.txt")
 if (JAVAC)
     add_tests("${TESTS}" "jnex" "exec/jnex/run_test.py" "exec/jnex/exclude.txt")
