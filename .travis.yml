@@ -24,10 +24,10 @@ script:
   #- where refreshenv
   #- refreshenv
   - cmake .
-  - cmake --build . --config Debug
+  - cmake --build .
   - dir CMakeFiles
   - cat CMakeFiles/CMakeOutput.log
   - dir
   #- nmake
-  - ctest
+  - ctest -C Debug
 sudo: false
