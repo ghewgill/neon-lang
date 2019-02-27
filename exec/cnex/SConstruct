@@ -1,0 +1,48 @@
+import sys
+
+Import(["env"])
+
+envcnex = env.Clone()
+
+if sys.platform == "win32":
+    envcnex.Append(CFLAGS=[
+        "/W4",
+        "/WX",
+        "/MDd",
+        "/wd4996", # CRT deprecation warnings
+    ])
+else:
+    envcnex.Append(CFLAGS=[
+        "-std=c99",
+        "-Wall",
+        "-Werror",
+    ])
+    if "RELEASE" in envcnex and not envcnex["RELEASE"]:
+        envcnex.Append(CFLAGS=[
+            "-g",
+        ])
+
+envcnex.Append(CPPPATH=[Dir(".")])
+
+rtl_c = ([
+    "lib/binary.c",
+    "lib/random.c",
+])
+
+cnex = envcnex.Program("cnex", [
+    "array.c",
+    "bytecode.c",
+    "cell.c",
+    "cnex.c",
+    "dictionary.c",
+    "framestack.c",
+    "global.c",
+    "nstring.c",
+    "number.c",
+    "stack.c",
+    "util.c",
+    rtl_c,
+],
+)
+
+Return(["cnex"])

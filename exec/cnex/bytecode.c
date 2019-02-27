@@ -151,7 +151,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     for (uint32_t f = 0; f < b->export_functionsize; f++) {
         b->export_functions[f].name = get_vint(bytecode, len, &i);
         b->export_functions[f].descriptor = get_vint(bytecode, len, &i);
-        b->export_functions[f].entry = get_vint(bytecode, len, &i);
+        b->export_functions[f].index = get_vint(bytecode, len, &i);
     }
     b->exceptionexportsize = get_vint(bytecode, len, &i);
     /*
@@ -190,6 +190,9 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
     }
     for (uint32_t f = 0; f < b->functionsize; f++) {
         b->functions[f].name = get_vint(bytecode, len, &i);
+        b->functions[f].nest = get_vint(bytecode, len, &i);
+        b->functions[f].params = get_vint(bytecode, len, &i);
+        b->functions[f].locals = get_vint(bytecode, len, &i);
         b->functions[f].entry = get_vint(bytecode, len, &i);
     }
 
@@ -203,6 +206,7 @@ void bytecode_loadBytecode(TBytecode *b, const uint8_t *bytecode, unsigned int l
         b->exceptions[e].end = get_vint(bytecode, len, &i);
         b->exceptions[e].exid = get_vint(bytecode, len, &i);
         b->exceptions[e].handler = get_vint(bytecode, len, &i);
+        b->exceptions[e].stack_depth = get_vint(bytecode, len, &i);
     }
 
     b->classsize = get_vint(bytecode, len, &i);

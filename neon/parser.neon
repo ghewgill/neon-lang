@@ -661,7 +661,7 @@ FUNCTION error(number: Number, token: lexer.Token, message: String)
     print("Error in file: \(token.file)")
     print("")
     print("\(token.line)| \(token.source)")
-    print(format("^", ">\(len(token.line.toString())+2+token.column)"))
+    print(string.format("^", ">\(len(token.line.toString())+2+token.column)"))
     print("Error N\(number): \(token.line):\(token.column) \(message)")
     sys.exit(1)
 END FUNCTION

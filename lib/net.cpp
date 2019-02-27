@@ -10,18 +10,36 @@ namespace rtl {
 
 namespace net {
 
-Cell tcpSocket()
-{
 #ifdef _WIN32
+void initWinsock()
+{
     static bool initialized = false;
     if (!initialized) {
         WSADATA wsa;
         WSAStartup(MAKEWORD(1, 1), &wsa);
         initialized = true;
     }
+}
+#endif
+
+Cell tcpSocket()
+{
+#ifdef _WIN32
+    initWinsock();
 #endif
     Cell r;
-    SOCKET s = socket(PF_INET, SOCK_STREAM, 0);
+    SOCKET s = socket(AF_INET, SOCK_STREAM, 0);
+    r.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(s)));
+    return r;
+}
+
+Cell udpSocket()
+{
+#ifdef _WIN32
+    initWinsock();
+#endif
+    Cell r;
+    SOCKET s = socket(AF_INET, SOCK_DGRAM, 0);
     r.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(s)));
     return r;
 }
@@ -39,6 +57,33 @@ Cell socket_accept(Cell &handle)
     Cell client;
     client.array_index_for_write(0) = Cell(number_from_sint32(static_cast<int32_t>(r)));
     return client;
+}
+
+void socket_bind(Cell &handle, const utf8string &address, Number port)
+{
+    SOCKET s = number_to_sint32(handle.number());
+    int p = number_to_sint32(port);
+    in_addr addr;
+    if (address.empty()) {
+        addr.s_addr = INADDR_ANY;
+    } else {
+        addr.s_addr = inet_addr(address.c_str());
+        if (addr.s_addr == INADDR_NONE) {
+            struct hostent *he = gethostbyname(address.c_str());
+            if (he == NULL) {
+                return;
+            }
+            addr = *reinterpret_cast<in_addr *>(he->h_addr);
+        }
+    }
+    sockaddr_in sin;
+    sin.sin_family = AF_INET;
+    sin.sin_addr = addr;
+    sin.sin_port = htons(static_cast<uint16_t>(p));
+    int r = bind(s, reinterpret_cast<sockaddr *>(&sin), sizeof(sin));
+    if (r < 0) {
+        perror("bind");
+    }
 }
 
 void socket_close(Cell &handle)

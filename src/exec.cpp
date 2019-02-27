@@ -199,10 +199,11 @@ static Cell unmarshal_pointer(void *p)
 
 class ActivationFrame {
 public:
-    ActivationFrame(uint32_t nesting_depth, ActivationFrame *outer, size_t count): nesting_depth(nesting_depth), outer(outer), locals(count) {}
+    ActivationFrame(uint32_t nesting_depth, ActivationFrame *outer, size_t count, size_t opstack_depth): nesting_depth(nesting_depth), outer(outer), locals(count), opstack_depth(opstack_depth) {}
     uint32_t nesting_depth;
     ActivationFrame *outer;
     std::vector<Cell> locals;
+    size_t opstack_depth;
 private:
     ActivationFrame(const ActivationFrame &);
     ActivationFrame &operator=(const ActivationFrame &);
@@ -220,13 +221,6 @@ public:
     Number code;
 };
 
-class InternalException {
-public:
-    InternalException(const utf8string &name, const ExceptionInfo &info): name(name), info(info) {}
-    utf8string name;
-    ExceptionInfo info;
-};
-
 class Executor;
 
 class Module {
@@ -239,7 +233,7 @@ public:
     std::vector<size_t> rtl_call_tokens;
     std::vector<std::pair<bool, Number>> number_table;
     std::vector<ForeignCallInfo *> foreign_functions;
-    std::map<std::pair<std::string, std::string>, std::pair<Module *, Bytecode::Bytes::size_type>> module_functions;
+    std::map<std::pair<std::string, std::string>, std::pair<Module *, int>> module_functions;
 private:
     Module(const Module &);
     Module &operator=(const Module &);
@@ -279,8 +273,6 @@ public:
     opstack<Cell> stack;
     std::vector<std::pair<Module *, Bytecode::Bytes::size_type>> callstack;
     std::list<ActivationFrame> frames;
-    std::vector<ActivationFrame *> nested_frames;
-    int map_depth;
 
     std::list<Cell> allocs;
     unsigned int allocations;
@@ -299,12 +291,10 @@ public:
     std::set<size_t> debugger_breakpoints;
     std::vector<std::string> debugger_log;
 
-    void exec_ENTER();
-    void exec_LEAVE();
     void exec_PUSHB();
     void exec_PUSHN();
     void exec_PUSHS();
-    void exec_PUSHT();
+    void exec_PUSHY();
     void exec_PUSHPG();
     void exec_PUSHPPG();
     void exec_PUSHPMG();
@@ -314,7 +304,7 @@ public:
     void exec_LOADB();
     void exec_LOADN();
     void exec_LOADS();
-    void exec_LOADT();
+    void exec_LOADY();
     void exec_LOADA();
     void exec_LOADD();
     void exec_LOADP();
@@ -322,7 +312,7 @@ public:
     void exec_STOREB();
     void exec_STOREN();
     void exec_STORES();
-    void exec_STORET();
+    void exec_STOREY();
     void exec_STOREA();
     void exec_STORED();
     void exec_STOREP();
@@ -348,12 +338,12 @@ public:
     void exec_GTS();
     void exec_LES();
     void exec_GES();
-    void exec_EQT();
-    void exec_NET();
-    void exec_LTT();
-    void exec_GTT();
-    void exec_LET();
-    void exec_GET();
+    void exec_EQY();
+    void exec_NEY();
+    void exec_LTY();
+    void exec_GTY();
+    void exec_LEY();
+    void exec_GEY();
     void exec_EQA();
     void exec_NEA();
     void exec_EQD();
@@ -400,9 +390,8 @@ public:
     void exec_PUSHM();
     void exec_CALLV();
     void exec_PUSHCI();
-    void exec_MAPA();
-    void exec_MAPD();
 
+    void invoke(Module *m, uint32_t index);
     void raise_literal(const utf8string &exception, const ExceptionInfo &info);
     void raise(const ExceptionName &exception, const ExceptionInfo &info);
     void raise(const RtlException &x);
@@ -597,8 +586,8 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
     }
     std::vector<Cell> a = reinterpret_cast<Cell *>(const_cast<struct Ne_Cell *>(callback))->array();
     Module *mod = reinterpret_cast<Module *>(a[0].address());
-    Number addr = a[1].number();
-    if (mod == nullptr || number_is_zero(addr) || not number_is_integer(addr)) {
+    Number nindex = a[1].number();
+    if (mod == nullptr || number_is_zero(nindex) || not number_is_integer(nindex)) {
         g_executor->raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
         return;
     }
@@ -608,10 +597,8 @@ void exec_callback(const struct Ne_Cell *callback, const struct Ne_ParameterList
             g_executor->stack.push(*i);
         }
     }
-    uint32_t addri = number_to_uint32(addr);
-    g_executor->callstack.push_back(std::make_pair(g_executor->module, g_executor->ip));
-    g_executor->module = mod;
-    g_executor->ip = addri;
+    uint32_t index = number_to_uint32(nindex);
+    g_executor->invoke(mod, index);
     int r = g_executor->exec_loop(g_executor->callstack.size() - 1);
     if (r != 0) {
         exit(r);
@@ -683,8 +670,6 @@ Executor::Executor(const std::string &source_path, const Bytecode::Bytes &bytes,
     stack(),
     callstack(),
     frames(),
-    nested_frames(),
-    map_depth(0),
     allocs(),
     allocations(0),
     debug_server(debug_port ? new HttpServer(debug_port, this) : nullptr),
@@ -742,33 +727,9 @@ inline void dump_frames(Executor *exec)
     if (false) {
         printf("Frames:\n");
         for (auto &f: exec->frames) {
-            printf("  %p { nest=%u outer=%p locals=%zu }\n", &f, f.nesting_depth, f.outer, f.locals.size());
+            printf("  %p { nest=%u outer=%p locals=%zu opstack_depth=%zu }\n", &f, f.nesting_depth, f.outer, f.locals.size(), f.opstack_depth);
         }
     }
-}
-
-void Executor::exec_ENTER()
-{
-    ip++;
-    uint32_t nest = Bytecode::get_vint(module->object.code, ip);
-    uint32_t val = Bytecode::get_vint(module->object.code, ip);
-    ActivationFrame *outer = nullptr;
-    if (frames.size() > 0) {
-        assert(nest <= frames.back().nesting_depth+1);
-        outer = &frames.back();
-        while (outer != nullptr && nest <= outer->nesting_depth) {
-            assert(outer->outer == nullptr || outer->nesting_depth == outer->outer->nesting_depth+1);
-            outer = outer->outer;
-        }
-    }
-    frames.emplace_back(nest, outer, val);
-    dump_frames(this);
-}
-
-void Executor::exec_LEAVE()
-{
-    frames.pop_back();
-    ip++;
 }
 
 void Executor::exec_PUSHB()
@@ -795,7 +756,7 @@ void Executor::exec_PUSHS()
     stack.push(Cell(utf8string(module->object.strtable[val])));
 }
 
-void Executor::exec_PUSHT()
+void Executor::exec_PUSHY()
 {
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
@@ -881,7 +842,7 @@ void Executor::exec_LOADS()
     stack.push(Cell(*addr));
 }
 
-void Executor::exec_LOADT()
+void Executor::exec_LOADY()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
@@ -943,7 +904,7 @@ void Executor::exec_STORES()
     addr->string();
 }
 
-void Executor::exec_STORET()
+void Executor::exec_STOREY()
 {
     ip++;
     Cell *addr = stack.top().address(); stack.pop();
@@ -1157,7 +1118,7 @@ void Executor::exec_GES()
     stack.push(Cell(a >= b));
 }
 
-void Executor::exec_EQT()
+void Executor::exec_EQY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1165,7 +1126,7 @@ void Executor::exec_EQT()
     stack.push(Cell(a == b));
 }
 
-void Executor::exec_NET()
+void Executor::exec_NEY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1173,7 +1134,7 @@ void Executor::exec_NET()
     stack.push(Cell(a != b));
 }
 
-void Executor::exec_LTT()
+void Executor::exec_LTY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1181,7 +1142,7 @@ void Executor::exec_LTT()
     stack.push(Cell(a < b));
 }
 
-void Executor::exec_GTT()
+void Executor::exec_GTY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1189,7 +1150,7 @@ void Executor::exec_GTT()
     stack.push(Cell(a > b));
 }
 
-void Executor::exec_LET()
+void Executor::exec_LEY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1197,7 +1158,7 @@ void Executor::exec_LET()
     stack.push(Cell(a <= b));
 }
 
-void Executor::exec_GET()
+void Executor::exec_GEY()
 {
     ip++;
     std::vector<unsigned char> b = stack.top().bytes(); stack.pop();
@@ -1453,44 +1414,36 @@ void Executor::exec_CALLF()
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
-    callstack.push_back(std::make_pair(module, ip));
-    ip = val;
+    invoke(module, val);
 }
 
 void Executor::exec_CALLMF()
 {
     ip++;
     uint32_t mod = Bytecode::get_vint(module->object.code, ip);
-    uint32_t func  = Bytecode::get_vint(module->object.code, ip);
+    uint32_t func = Bytecode::get_vint(module->object.code, ip);
     if (callstack.size() >= param_recursion_limit) {
         raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
         return;
     }
-    callstack.push_back(std::make_pair(module, ip));
     auto f = module->module_functions.find(std::make_pair(module->object.strtable[mod], module->object.strtable[func]));
     if (f != module->module_functions.end()) {
-        module = f->second.first;
-        ip = f->second.second;
+        invoke(f->second.first, f->second.second);
     } else {
         auto m = modules.find(module->object.strtable[mod]);
         if (m == modules.end()) {
             fprintf(stderr, "fatal: module not found: %s\n", module->object.strtable[mod].c_str());
             exit(1);
         }
-        bool found = false;
         for (auto ef: m->second->object.export_functions) {
             if (m->second->object.strtable[ef.name] + "," + m->second->object.strtable[ef.descriptor] == module->object.strtable[func]) {
-                ip = ef.entry;
-                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ip);
-                found = true;
-                break;
+                module->module_functions[std::make_pair(module->object.strtable[mod], module->object.strtable[func])] = std::make_pair(m->second, ef.index);
+                invoke(m->second, ef.index);
+                return;
             }
         }
-        if (not found) {
-            fprintf(stderr, "fatal: module function not found: %s\n", module->object.strtable[func].c_str());
-            exit(1);
-        }
-        module = m->second;
+        fprintf(stderr, "fatal: module function not found: %s\n", module->object.strtable[func].c_str());
+        exit(1);
     }
 }
 
@@ -1503,15 +1456,13 @@ void Executor::exec_CALLI()
     }
     std::vector<Cell> a = stack.top().array(); stack.pop();
     Module *mod = reinterpret_cast<Module *>(a[0].address());
-    Number addr = a[1].number();
-    if (number_is_zero(addr) || not number_is_integer(addr)) {
+    Number nindex = a[1].number();
+    if (number_is_zero(nindex) || not number_is_integer(nindex)) {
         raise(rtl::global::Exception_InvalidFunctionException, ExceptionInfo(utf8string("")));
         return;
     }
-    uint32_t addri = number_to_uint32(addr);
-    callstack.push_back(std::make_pair(module, ip));
-    module = mod;
-    ip = addri;
+    uint32_t index = number_to_uint32(nindex);
+    invoke(mod, index);
 }
 
 void Executor::exec_JUMP()
@@ -1577,6 +1528,7 @@ void Executor::exec_DROP()
 
 void Executor::exec_RET()
 {
+    frames.pop_back();
     module = callstack.back().first;
     ip = callstack.back().second;
     callstack.pop_back();
@@ -1777,7 +1729,7 @@ void Executor::exec_JUMPTBL()
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
     Number n = stack.top().number(); stack.pop();
-    if (number_is_integer(n)) {
+    if (number_is_integer(n) && not number_is_negative(n)) {
         uint32_t i = number_to_uint32(n);
         if (i < val) {
             ip += 6 * i;
@@ -1876,15 +1828,17 @@ void Executor::exec_CALLV()
 {
     ip++;
     uint32_t val = Bytecode::get_vint(module->object.code, ip);
+    if (callstack.size() >= param_recursion_limit) {
+        raise(rtl::global::Exception_StackOverflowException, ExceptionInfo(utf8string("")));
+        return;
+    }
     std::vector<Cell> &pi = stack.top().array_for_write();
     Cell *instance = pi[0].address();
     size_t interface_index = number_to_uint32(pi[1].number());
     Module *m = reinterpret_cast<Module *>(instance->array_for_write()[0].array_for_write()[0].address());
     Bytecode::ClassInfo *classinfo = reinterpret_cast<Bytecode::ClassInfo *>(instance->array_for_write()[0].array_for_write()[1].address());
     stack.pop();
-    callstack.push_back(std::make_pair(module, ip));
-    module = m;
-    ip = classinfo->interfaces[interface_index][val];
+    invoke(m, classinfo->interfaces[interface_index][val]);
 }
 
 void Executor::exec_PUSHCI()
@@ -1923,74 +1877,29 @@ void Executor::exec_PUSHCI()
     exit(1);
 }
 
-void Executor::exec_MAPA()
+void Executor::invoke(Module *m, uint32_t index)
 {
-    ip++;
-    uint32_t target = Bytecode::get_vint(module->object.code, ip);
-    const auto start = ip;
-    map_depth++;
-    const std::vector<Cell> a = stack.top().array(); stack.pop();
-    std::vector<Cell> r;
-    for (auto x: a) {
-        stack.push(x);
-        callstack.push_back(std::make_pair(module, start));
-        try {
-            int r = exec_loop(callstack.size() - 1);
-            if (r != 0) {
-                exit(r);
-            }
-        } catch (InternalException *x) {
-            callstack.pop_back();
-            map_depth--;
-            raise_literal(x->name, x->info);
-            delete x;
-            return;
+    callstack.push_back(std::make_pair(module, ip));
+    ActivationFrame *outer = nullptr;
+    unsigned int nest = m->object.functions[index].nest;
+    unsigned int params = m->object.functions[index].params;
+    unsigned int locals = m->object.functions[index].locals;
+    if (frames.size() > 0) {
+        assert(nest <= frames.back().nesting_depth+1);
+        outer = &frames.back();
+        while (outer != nullptr && nest <= outer->nesting_depth) {
+            assert(outer->outer == nullptr || outer->nesting_depth == outer->outer->nesting_depth+1);
+            outer = outer->outer;
         }
-        r.push_back(stack.top()); stack.pop();
     }
-    stack.push(Cell(r));
-    map_depth--;
-    ip = target;
-}
-
-void Executor::exec_MAPD()
-{
-    ip++;
-    uint32_t target = Bytecode::get_vint(module->object.code, ip);
-    const auto start = ip;
-    map_depth++;
-    const std::map<utf8string, Cell> d = stack.top().dictionary(); stack.pop();
-    std::map<utf8string, Cell> r;
-    for (auto x: d) {
-        stack.push(x.second);
-        callstack.push_back(std::make_pair(module, start));
-        try {
-            int r = exec_loop(callstack.size() - 1);
-            if (r != 0) {
-                exit(r);
-            }
-        } catch (InternalException *x) {
-            callstack.pop_back();
-            map_depth--;
-            raise_literal(x->name, x->info);
-            delete x;
-            return;
-        }
-        r[x.first] = stack.top(); stack.pop();
-    }
-    stack.push(Cell(r));
-    map_depth--;
-    ip = target;
+    frames.emplace_back(nest, outer, locals, stack.depth() - params);
+    dump_frames(this);
+    module = m;
+    ip = m->object.functions[index].entry;
 }
 
 void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &info)
 {
-    if (map_depth > 0) {
-        // Allocating and throwing a pointer here avoids a compiler bug:
-        // https://stackoverflow.com/questions/30885997/clang-runtime-fault-when-throwing-aligned-type-compiler-bug
-        throw new InternalException(exception, info);
-    }
-
     // The fields here must match the declaration of
     // ExceptionType in ast.cpp.
     Cell exceptionvar;
@@ -2010,6 +1919,9 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
                  || (exception.length() > handler.length() && exception.substr(0, handler.length()) == handler && exception.at(handler.length()) == '.')) {
                     module = tmodule;
                     ip = e->handler;
+                    while (stack.depth() > (frames.empty() ? 0 : frames.back().opstack_depth) + e->stack_depth) {
+                        stack.pop();
+                    }
                     callstack.resize(sp);
                     stack.push(exceptionvar);
                     return;
@@ -2020,6 +1932,9 @@ void Executor::raise_literal(const utf8string &exception, const ExceptionInfo &i
             break;
         }
         sp -= 1;
+        if (not frames.empty()) {
+            frames.pop_back();
+        }
         tmodule = callstack[sp].first;
         tip = callstack[sp].second;
     }
@@ -2176,20 +2091,20 @@ void Executor::set_recursion_limit(size_t depth)
 
 int Executor::exec()
 {
-    callstack.push_back(std::make_pair(module, module->object.code.size()));
+    ip = module->object.code.size();
+    invoke(module, 0);
 
     // This sets up the call stack in such a way as to initialize
     // each module in the order determined in init_order, followed
     // by running the code in the main module.
-    callstack.push_back(std::make_pair(module, 0));
     for (auto x = init_order.rbegin(); x != init_order.rend(); ++x) {
-        callstack.push_back(std::make_pair(modules[*x], 0));
+        invoke(modules[*x], 0);
     }
-    // Set up ip for first module (or main module if no imports).
-    exec_RET();
 
     int r = exec_loop(0);
-    assert(stack.empty());
+    if (r == 0) {
+        assert(stack.empty());
+    }
     return r;
 }
 
@@ -2198,7 +2113,17 @@ int Executor::exec_loop(size_t min_callstack_depth)
     while (callstack.size() > min_callstack_depth && ip < module->object.code.size() && exit_code == 0) {
         if (options->enable_trace) {
             auto i = ip;
-            std::cerr << "mod " << module->name << " ip " << ip << " " << disassemble_instruction(module->object, i) << " | st " << stack.depth() << "\n";
+            std::cerr << "mod " << module->name << " ip " << ip << " (" << stack.depth() << ") " << disassemble_instruction(module->object, i) << "\n";
+            if (module->debug != nullptr) {
+                auto sd = module->debug->stack_depth.find(ip);
+                if (sd != module->debug->stack_depth.end()) {
+                    int expected_depth = static_cast<int>(frames.empty() ? 0 : frames.back().opstack_depth) + sd->second;
+                    if (expected_depth != static_cast<int>(stack.depth())) {
+                        std::cerr << "stack depth mismatch: expected=" << expected_depth << " actual=" << stack.depth() << "\n";
+                        abort();
+                    }
+                }
+            }
         }
         if (debug_server != nullptr) {
             switch (debugger_state) {
@@ -2229,12 +2154,10 @@ int Executor::exec_loop(size_t min_callstack_depth)
             }
         }
         switch (static_cast<Opcode>(module->object.code[ip])) {
-            case ENTER:   exec_ENTER(); break;
-            case LEAVE:   exec_LEAVE(); break;
             case PUSHB:   exec_PUSHB(); break;
             case PUSHN:   exec_PUSHN(); break;
             case PUSHS:   exec_PUSHS(); break;
-            case PUSHT:   exec_PUSHT(); break;
+            case PUSHY:   exec_PUSHY(); break;
             case PUSHPG:  exec_PUSHPG(); break;
             case PUSHPPG: exec_PUSHPPG(); break;
             case PUSHPMG: exec_PUSHPMG(); break;
@@ -2244,7 +2167,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case LOADB:   exec_LOADB(); break;
             case LOADN:   exec_LOADN(); break;
             case LOADS:   exec_LOADS(); break;
-            case LOADT:   exec_LOADT(); break;
+            case LOADY:   exec_LOADY(); break;
             case LOADA:   exec_LOADA(); break;
             case LOADD:   exec_LOADD(); break;
             case LOADP:   exec_LOADP(); break;
@@ -2252,7 +2175,7 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case STOREB:  exec_STOREB(); break;
             case STOREN:  exec_STOREN(); break;
             case STORES:  exec_STORES(); break;
-            case STORET:  exec_STORET(); break;
+            case STOREY:  exec_STOREY(); break;
             case STOREA:  exec_STOREA(); break;
             case STORED:  exec_STORED(); break;
             case STOREP:  exec_STOREP(); break;
@@ -2278,12 +2201,12 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case GTS:     exec_GTS(); break;
             case LES:     exec_LES(); break;
             case GES:     exec_GES(); break;
-            case EQT:     exec_EQT(); break;
-            case NET:     exec_NET(); break;
-            case LTT:     exec_LTT(); break;
-            case GTT:     exec_GTT(); break;
-            case LET_:    exec_LET(); break;
-            case GET:     exec_GET(); break;
+            case EQY:     exec_EQY(); break;
+            case NEY:     exec_NEY(); break;
+            case LTY:     exec_LTY(); break;
+            case GTY:     exec_GTY(); break;
+            case LEY:     exec_LEY(); break;
+            case GEY:     exec_GEY(); break;
             case EQA:     exec_EQA(); break;
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
@@ -2330,8 +2253,6 @@ int Executor::exec_loop(size_t min_callstack_depth)
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;
             case PUSHCI:  exec_PUSHCI(); break;
-            case MAPA:    exec_MAPA(); break;
-            case MAPD:    exec_MAPD(); break;
             default:
                 fprintf(stderr, "exec: Unexpected opcode: %d\n", module->object.code[ip]);
                 abort();
@@ -2536,6 +2457,11 @@ void executor_breakpoint()
 void executor_log(const std::string &message)
 {
     g_executor->log(message);
+}
+
+bool executor_assertions_enabled()
+{
+    return g_executor->options->enable_assert;
 }
 
 void executor_garbage_collect()

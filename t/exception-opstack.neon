@@ -1,9 +1,7 @@
-% TODO SKIP (assertion failure)
-
-EXCEPTION PrinterOnFire
+EXCEPTION PrinterOnFireException
 
 FUNCTION quux(): Number
-    RAISE PrinterOnFire
+    RAISE PrinterOnFireException
     RETURN 0
 END FUNCTION
 
@@ -15,7 +13,7 @@ FUNCTION bar(): Number
     VAR x: Number
     TRY
         x := foo(5, quux())
-    TRAP PrinterOnFire DO
+    TRAP PrinterOnFireException DO
     END TRY
     RETURN 3
 END FUNCTION

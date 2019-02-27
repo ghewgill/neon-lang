@@ -1,18 +1,9 @@
-#ifdef __MS_HEAP_DBG
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#endif
-
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
-#ifndef __MS_HEAP_DBG
-#include <stdlib.h>
-#endif
 #include <string.h>
 
 #include "array.h"
@@ -28,6 +19,7 @@
 #include "nstring.h"
 #include "util.h"
 
+void invoke(TExecutor *self, int index);
 
 typedef struct tagTCommandLineOptions {
     BOOL ExecutorDebugStats;
@@ -88,8 +80,9 @@ BOOL ParseOptions(int argc, char* argv[])
                 return FALSE;
             }
         } else {
-            Retval = TRUE;
+            // Once we assign the name of the application we're going to execute, stop looking for switches.
             gOptions.pszFilename = argv[nIndex];
+            return TRUE;
         }
     }
     if (gOptions.pszFilename == NULL) {
@@ -116,12 +109,8 @@ char *getApplicationName(char *arg)
 int main(int argc, char* argv[])
 {
     gOptions.pszExecutableName = getApplicationName(argv[0]);
-#ifdef __MS_HEAP_DBG
-    /* ToDo: Remove this!  This is only for debugging. */
-    /* gOptions.ExecutorDebugStats = TRUE; */
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    _CrtSetBreakAlloc(218);
-#endif
+    global_init();
+
     if (!ParseOptions(argc, argv)) {
         return 3;
     }
@@ -180,8 +169,8 @@ int main(int argc, char* argv[])
 
 int exec_run(TExecutor *self, BOOL enable_assert)
 {
-    self->callstack[++self->callstacktop] = (uint32_t)self->object->codelen;
-    self->diagnostics.callstack_max_height = self->callstacktop;
+    self->ip = (uint32_t)self->object->codelen;
+    invoke(self, 0);
     self->enable_assert = enable_assert;
 
     exec_loop(self);
@@ -234,6 +223,17 @@ typedef struct tagTExceptionInfo {
     Number code;
 } ExceptionInfo;
 
+void dump_frames(TExecutor *exec)
+{
+    if (0) {
+        printf("Frames:\n");
+        for (int i = 0; i < exec->framestack->top; i++) {
+            TFrame *f = exec->framestack->data[i];
+            printf("  %d { locals=%d }\n", i, f->frame_size);
+        }
+    }
+}
+
 void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number code)
 {
     Cell *exceptionvar = cell_createArrayCell(4);
@@ -250,6 +250,9 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
                 TString *handler = self->object->strings[self->object->exceptions[i].exid];
                 if ((string_compareString(name, handler) == 0) || (name->length > handler->length && string_startsWith(name, handler) && name->data[handler->length] == '.')) {
                     self->ip = self->object->exceptions[i].handler;
+                    while (self->stack->top > (((framestack_isEmpty(self->framestack) ? -1 : framestack_topFrame(self->framestack)->stack_depth) + (int32_t)self->object->exceptions[i].stack_depth))) {
+                        pop(self->stack);
+                    }
                     self->callstacktop = sp;
                     push(self->stack, exceptionvar);
                     return;
@@ -259,8 +262,10 @@ void exec_raiseLiteral(TExecutor *self, TString *name, TString *info, Number cod
         if (sp == 0) {
             break;
         }
+        if (!framestack_isEmpty(self->framestack)) {
+            framestack_popFrame(self->framestack);
+        }
         tip = self->callstack[sp--];
-        framestack_popFrame(self->framestack);
     }
     fprintf(stderr, "Unhandled exception %s (%s) (code %d)\n", TCSTR(name), TCSTR(info), number_to_sint32(code));
     exit(1);
@@ -280,27 +285,6 @@ void exec_rtl_raiseException(TExecutor *self, const char *name, const char *info
 static unsigned int exec_getOperand(TExecutor *self)
 {
     return get_vint(self->object->code, self->object->codelen, &self->ip);
-}
-
-void exec_ENTER(TExecutor *self)
-{
-    self->ip++;
-    // ToDo: Fix function nesting
-    //unsigned int nest = exec_getOperand(self);
-    exec_getOperand(self); // Keep the operand stack aligned properly.
-    unsigned int val = exec_getOperand(self);
-
-    framestack_pushFrame(self->framestack, frame_createFrame(val));
-    /* ToDo: Implement Activiation frame support */
-    //add(frame_newFrame(val));
-    //nested_frames.resize(nest-1);
-    //nested_frames.push_back(&frames.back());
-}
-
-void exec_LEAVE(TExecutor *self)
-{
-    framestack_popFrame(self->framestack);
-    self->ip++;
 }
 
 void exec_PUSHB(TExecutor *self)
@@ -324,7 +308,7 @@ void exec_PUSHS(TExecutor *self)
     push(self->stack, cell_fromStringLength(self->object->strings[val]->data, self->object->strings[val]->length));
 }
 
-void exec_PUSHT(TExecutor *self)
+void exec_PUSHY(TExecutor *self)
 {
     self->ip++;
     unsigned int val = exec_getOperand(self);
@@ -395,7 +379,7 @@ void exec_LOADS(TExecutor *self)
     push(self->stack, cell_fromCell(addr));
 }
 
-void exec_LOADT(TExecutor *self)
+void exec_LOADY(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -444,7 +428,7 @@ void exec_STORES(TExecutor *self)
     cell_copyCell(addr, top(self->stack)); pop(self->stack);
 }
 
-void exec_STORET(TExecutor *self)
+void exec_STOREY(TExecutor *self)
 {
     self->ip++;
     Cell *addr = top(self->stack)->address; pop(self->stack);
@@ -651,7 +635,7 @@ void exec_GES(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_EQT(TExecutor*self)
+void exec_EQY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -662,7 +646,7 @@ void exec_EQT(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_NET(TExecutor*self)
+void exec_NEY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -673,7 +657,7 @@ void exec_NET(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LTT(TExecutor*self)
+void exec_LTY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -684,7 +668,7 @@ void exec_LTT(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GTT(TExecutor*self)
+void exec_GTY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -695,7 +679,7 @@ void exec_GTT(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_LET(TExecutor*self)
+void exec_LEY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -706,7 +690,7 @@ void exec_LET(TExecutor*self)
     push(self->stack, r);
 }
 
-void exec_GET(TExecutor*self)
+void exec_GEY(TExecutor*self)
 {
     self->ip++;
     Cell *b = cell_fromCell(top(self->stack)); pop(self->stack);
@@ -944,9 +928,7 @@ void exec_CALLF(TExecutor *self)
         self->rtl_raise(self, "StackOverflowException", "", BID_ZERO);
         return;
     }
-    self->callstack[++self->callstacktop] = self->ip;
-    self->diagnostics.callstack_max_height = self->callstacktop;
-    self->ip = val;
+    invoke(self, val);
 }
 
 void exec_CALLMF(void)
@@ -1024,6 +1006,7 @@ void exec_DROP(TExecutor *self)
 
 void exec_RET(TExecutor *self)
 {
+    framestack_popFrame(self->framestack);
     self->ip = self->callstack[self->callstacktop--];
 }
 
@@ -1124,9 +1107,13 @@ void exec_CALLX(void)
     fatal_error("exec_CALLX not implemented");
 }
 
-void exec_SWAP(void)
+void exec_SWAP(TExecutor *self)
 {
-    fatal_error("exec_SWAP not implemented");
+    self->ip++;
+    int top = self->stack->top;
+    Cell *t = self->stack->data[top];
+    self->stack->data[top] = self->stack->data[top-1];
+    self->stack->data[top-1] = t;
 }
 
 void exec_DROPN(void)
@@ -1149,6 +1136,22 @@ void exec_PUSHCI(void)
     fatal_error("exec_PUSHCI not implemented");
 }
 
+void invoke(TExecutor *self, int index)
+{
+    self->callstack[++self->callstacktop] = self->ip;
+    self->diagnostics.callstack_max_height = self->callstacktop;
+
+    // ToDo: Fix function nesting
+    framestack_pushFrame(self->framestack, frame_createFrame(self->object->functions[index].locals, self->stack->top - self->object->functions[index].params));
+    dump_frames(self);
+    /* ToDo: Implement Activiation frame support */
+    //add(frame_newFrame(val));
+    //nested_frames.resize(nest-1);
+    //nested_frames.push_back(&frames.back());
+
+    self->ip = self->object->functions[index].entry;
+}
+
 void exec_loop(TExecutor *self)
 {
     while (self->ip < self->object->codelen) {
@@ -1156,12 +1159,10 @@ void exec_loop(TExecutor *self)
             fprintf(stderr, "mod:%s\tip: %d\top: %s\tst: %d\n", self->module->name, self->ip, sOpcode[self->object->code[self->ip]], self->stack->top); 
         }
         switch (self->object->code[self->ip]) {
-            case ENTER:   exec_ENTER(self); break;
-            case LEAVE:   exec_LEAVE(self); break;
             case PUSHB:   exec_PUSHB(self); break;
             case PUSHN:   exec_PUSHN(self); break;
             case PUSHS:   exec_PUSHS(self); break;
-            case PUSHT:   exec_PUSHT(self); break;
+            case PUSHY:   exec_PUSHY(self); break;
             case PUSHPG:  exec_PUSHPG(self); break;
             case PUSHPPG: exec_PUSHPPG(self); break;
             case PUSHPMG: exec_PUSHPMG(); break;
@@ -1171,14 +1172,14 @@ void exec_loop(TExecutor *self)
             case LOADB:   exec_LOADB(self); break;
             case LOADN:   exec_LOADN(self); break;
             case LOADS:   exec_LOADS(self); break;
-            case LOADT:   exec_LOADT(self); break;
+            case LOADY:   exec_LOADY(self); break;
             case LOADA:   exec_LOADA(self); break;
             case LOADD:   exec_LOADD(self); break;
             case LOADP:   exec_LOADP(self); break;
             case STOREB:  exec_STOREB(self); break;
             case STOREN:  exec_STOREN(self); break;
             case STORES:  exec_STORES(self); break;
-            case STORET:  exec_STORET(self); break;
+            case STOREY:  exec_STOREY(self); break;
             case STOREA:  exec_STOREA(self); break;
             case STORED:  exec_STORED(self); break;
             case STOREP:  exec_STOREP(self); break;
@@ -1203,12 +1204,12 @@ void exec_loop(TExecutor *self)
             case GTS:     exec_GTS(self); break;
             case LES:     exec_LES(self); break;
             case GES:     exec_GES(self); break;
-            case EQT:     exec_EQT(self); break;
-            case NET:     exec_NET(self); break;
-            case LTT:     exec_LTT(self); break;
-            case GTT:     exec_GTT(self); break;
-            case LET:     exec_LET(self); break;
-            case GET:     exec_GET(self); break;
+            case EQY:     exec_EQY(self); break;
+            case NEY:     exec_NEY(self); break;
+            case LTY:     exec_LTY(self); break;
+            case GTY:     exec_GTY(self); break;
+            case LEY:     exec_LEY(self); break;
+            case GEY:     exec_GEY(self); break;
             case EQA:     exec_EQA(); break;
             case NEA:     exec_NEA(); break;
             case EQD:     exec_EQD(); break;
@@ -1250,7 +1251,7 @@ void exec_loop(TExecutor *self)
             case PUSHPEG: exec_PUSHPEG(); break;
             case JUMPTBL: exec_JUMPTBL(); break;
             case CALLX:   exec_CALLX(); break;
-            case SWAP:    exec_SWAP(); break;
+            case SWAP:    exec_SWAP(self); break;
             case DROPN:   exec_DROPN(); break;
             case PUSHM:   exec_PUSHM(); break;
             case CALLV:   exec_CALLV(); break;

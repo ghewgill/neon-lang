@@ -6,7 +6,7 @@ import zipfile
 
 (archive, destination) = sys.argv[1:]
 
-if archive.endswith(".tar.gz"):
+if archive.endswith((".tar.gz", ".tar.bz2")):
     tarfile.open(archive).extractall(destination)
 elif archive.endswith(".zip"):
     zipfile.ZipFile(archive).extractall(destination)

@@ -25,14 +25,11 @@ def get_vint(b, i):
 def quoted(s):
     return '"' + s.replace('"', r'\"') + '"'
 
-class InternalException:
-    def __init__(self, name, info):
-        self.name = name
-        self.info = info
-
 class Bytes:
     def __init__(self, s):
         self.s = s
+    def literal(self):
+        return "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(ord(x)) for x in self.s))
 
 class Type:
     def __init__(self):
@@ -45,10 +42,18 @@ class Constant:
         self.type = 0
         self.value = 0
 
-class Function:
+class ExportFunction:
     def __init__(self):
         self.name = 0
         self.descriptor = 0
+        self.index = 0
+
+class Function:
+    def __init__(self):
+        self.name = 0
+        self.nest = 0
+        self.params = 0
+        self.locals = 0
         self.entry = 0
 
 class Import:
@@ -101,10 +106,10 @@ class Bytecode:
         functionsize, i = get_vint(bytecode, i)
         self.export_functions = []
         while functionsize > 0:
-            f = Function()
+            f = ExportFunction()
             f.name, i = get_vint(bytecode, i)
             f.descriptor, i = get_vint(bytecode, i)
-            f.entry, i = get_vint(bytecode, i)
+            f.index, i = get_vint(bytecode, i)
             self.export_functions.append(f)
             functionsize -= 1
 
@@ -135,6 +140,9 @@ class Bytecode:
         while functionsize > 0:
             f = Function()
             f.name, i = get_vint(bytecode, i)
+            f.nest, i = get_vint(bytecode, i)
+            f.params, i = get_vint(bytecode, i)
+            f.locals, i = get_vint(bytecode, i)
             f.entry, i = get_vint(bytecode, i)
             self.functions.append(f)
             functionsize -= 1
@@ -147,6 +155,7 @@ class Bytecode:
             e.end, i = get_vint(bytecode, i)
             e.excid, i = get_vint(bytecode, i)
             e.handler, i = get_vint(bytecode, i)
+            e.stack_depth, i = get_vint(bytecode, i)
             self.exceptions.append(e)
             exceptionsize -= 1
 
@@ -200,26 +209,13 @@ class Executor:
         self.globals = [None] * self.object.global_size
         for i in range(len(self.globals)):
             self.globals[i] = Value(None)
-        self.map_depth = 0
 
     def run(self):
-        self.callstack.append((None, len(self.object.code)))
+        self.ip = len(self.object.code)
+        self.invoke(None, 0)
         while self.ip < len(self.object.code):
             #print("ip={}".format(self.ip)); print(repr(self.stack))
             Dispatch[ord(self.object.code[self.ip])](self)
-
-    def ENTER(self):
-        self.ip += 1
-        nest, self.ip = get_vint(self.object.code, self.ip)
-        val, self.ip = get_vint(self.object.code, self.ip)
-        f = [None] * val
-        for i in range(val):
-            f[i] = Value(None)
-        self.frames.append(f)
-
-    def LEAVE(self):
-        self.ip += 1
-        self.frames.pop()
 
     def PUSHB(self):
         self.ip += 1
@@ -237,7 +233,7 @@ class Executor:
         val, self.ip = get_vint(self.object.code, self.ip)
         self.stack.append(Value(self.object.strtable[val]))
 
-    def PUSHT(self):
+    def PUSHY(self):
         self.ip += 1
         val, self.ip = get_vint(self.object.code, self.ip)
         self.stack.append(Value(Bytes(self.object.strtable[val])))
@@ -289,7 +285,7 @@ class Executor:
             addr.value = ""
         self.stack.append(addr.copy())
 
-    def LOADT(self):
+    def LOADY(self):
         self.ip += 1
         addr = self.stack.pop()
         if addr.value is None:
@@ -338,7 +334,7 @@ class Executor:
         value = self.stack.pop()
         addr.value = value.value
 
-    def STORET(self):
+    def STOREY(self):
         self.ip += 1
         addr = self.stack.pop()
         value = self.stack.pop()
@@ -497,25 +493,25 @@ class Executor:
     def GES(self):
         assert False
 
-    def EQT(self):
+    def EQY(self):
         self.ip += 1
         b = self.stack.pop().value
         a = self.stack.pop().value
         self.stack.append(Value(a.s == b.s))
 
-    def NET(self):
+    def NEY(self):
         assert False
 
-    def LTT(self):
+    def LTY(self):
         assert False
 
-    def GTT(self):
+    def GTY(self):
         assert False
 
-    def LET(self):
+    def LEY(self):
         assert False
 
-    def GET(self):
+    def GEY(self):
         assert False
 
     def EQA(self):
@@ -644,8 +640,7 @@ class Executor:
     def CALLF(self):
         self.ip += 1
         target, self.ip = get_vint(self.object.code, self.ip)
-        self.callstack.append((None, self.ip))
-        self.ip = target
+        self.invoke(None, target)
 
     def CALLMF(self):
         assert False
@@ -698,6 +693,7 @@ class Executor:
         self.stack.pop()
 
     def RET(self):
+        self.frames.pop()
         (_module, self.ip) = self.callstack.pop()
 
     def CALLE(self):
@@ -769,7 +765,8 @@ class Executor:
         assert False
 
     def SWAP(self):
-        assert False
+        self.ip += 1
+        self.stack = self.stack[:-2] + [self.stack[-1], self.stack[-2]]
 
     def DROPN(self):
         assert False
@@ -783,58 +780,15 @@ class Executor:
     def PUSHCI(self):
         assert False
 
-    def MAPA(self):
-        self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
-        start = self.ip
-        self.map_depth += 1
-        a = self.stack.pop().value
-        r = []
-        for x in a:
-            self.stack.append(x)
-            callbreak = len(self.callstack)
-            self.callstack.append((None, start))
-            try:
-                while len(self.callstack) > callbreak:
-                    Dispatch[ord(self.object.code[self.ip])](self)
-            except InternalException as x:
-                self.callstack.pop()
-                self.map_depth -= 1
-                self.raise_literal(x.name, x.info)
-                return
-            r.append(self.stack.pop())
-        self.stack.append(Value(r))
-        self.map_depth -= 1
-        self.ip = target
-
-    def MAPD(self):
-        self.ip += 1
-        target, self.ip = get_vint(self.object.code, self.ip)
-        start = self.ip
-        self.map_depth += 1
-        d = self.stack.pop().value
-        r = {}
-        for k, v in d.items():
-            self.stack.append(v)
-            callbreak = len(self.callstack)
-            self.callstack.append((None, start))
-            try:
-                while len(self.callstack) > callbreak:
-                    Dispatch[ord(self.object.code[self.ip])](self)
-            except InternalException as x:
-                self.callstack.pop()
-                self.map_depth -= 1
-                self.raise_literal(x.name, x.info)
-                return
-            r[k] = self.stack.pop()
-        self.stack.append(Value(r))
-        self.map_depth -= 1
-        self.ip = target
+    def invoke(self, module, index):
+        self.callstack.append((None, self.ip))
+        f = [None] * self.object.functions[index].locals
+        for i in range(len(f)):
+            f[i] = Value(None)
+        self.frames.append(f)
+        self.ip = self.object.functions[index].entry
 
     def raise_literal(self, name, info):
-        if self.map_depth > 0:
-            raise InternalException(name, info)
-
         exceptionvar = [
             Value(name),
             Value(info[0]),
@@ -862,12 +816,10 @@ class Executor:
         sys.exit(1)
 
 Dispatch = [
-    Executor.ENTER,
-    Executor.LEAVE,
     Executor.PUSHB,
     Executor.PUSHN,
     Executor.PUSHS,
-    Executor.PUSHT,
+    Executor.PUSHY,
     Executor.PUSHPG,
     Executor.PUSHPPG,
     Executor.PUSHPMG,
@@ -877,7 +829,7 @@ Dispatch = [
     Executor.LOADB,
     Executor.LOADN,
     Executor.LOADS,
-    Executor.LOADT,
+    Executor.LOADY,
     Executor.LOADA,
     Executor.LOADD,
     Executor.LOADP,
@@ -885,7 +837,7 @@ Dispatch = [
     Executor.STOREB,
     Executor.STOREN,
     Executor.STORES,
-    Executor.STORET,
+    Executor.STOREY,
     Executor.STOREA,
     Executor.STORED,
     Executor.STOREP,
@@ -911,12 +863,12 @@ Dispatch = [
     Executor.GTS,
     Executor.LES,
     Executor.GES,
-    Executor.EQT,
-    Executor.NET,
-    Executor.LTT,
-    Executor.GTT,
-    Executor.LET,
-    Executor.GET,
+    Executor.EQY,
+    Executor.NEY,
+    Executor.LTY,
+    Executor.GTY,
+    Executor.LEY,
+    Executor.GEY,
     Executor.EQA,
     Executor.NEA,
     Executor.EQD,
@@ -963,8 +915,6 @@ Dispatch = [
     Executor.PUSHM,
     Executor.CALLV,
     Executor.PUSHCI,
-    Executor.MAPA,
-    Executor.MAPD,
 ]
 
 def neon_array__append(self):
@@ -1106,6 +1056,12 @@ def neon_bytes__toString(self):
 
 def neon_chr(self):
     n = self.stack.pop().value
+    if n != int(n):
+        self.raise_literal("ValueRangeException", ("chr() argument not an integer", 0))
+        return
+    if not (0 <= n <= 0x10ffff):
+        self.raise_literal("ValueRangeException", ("chr() argument out of range 0-0x10ffff", 0))
+        return
     self.stack.append(Value(unichr(int(n))))
 
 def neon_concat(self):
@@ -1222,6 +1178,9 @@ def neon_object__subscript(self):
     if isinstance(v, list):
         self.stack.append(v[int(i)])
     elif isinstance(v, dict):
+        if not i in v:
+            self.raise_literal("ObjectSubscriptException", (i, 0))
+            return
         self.stack.append(v[i])
     else:
         assert False, v
@@ -1235,6 +1194,13 @@ def neon_object__toString(self):
     else:
         self.stack.append(Value(v.literal()))
 
+def neon_odd(self):
+    v = self.stack.pop().value
+    if v != int(v):
+        self.raise_literal("ValueRangeException", ("odd() requires integer", 0))
+        return
+    self.stack.append(Value((v % 2) != 0))
+
 def neon_ord(self):
     s = self.stack.pop().value
     if len(s) != 1:
@@ -1246,16 +1212,20 @@ def neon_print(self):
     s = self.stack.pop().value
     print(s)
 
+def neon_round(self):
+    value = self.stack.pop().value
+    places = self.stack.pop().value
+    if places == 0:
+        self.stack.append(Value(decimal.Decimal(int(value))))
+    else:
+        self.stack.append(Value(value.quantize(decimal.Decimal("1."+("0"*int(places)))).normalize()))
+
 def neon_str(self):
     v = self.stack.pop().value
     if isinstance(v, decimal.Decimal):
         # Remove trailing zeros and decimal point if possible.
         v = re.sub("\\.0*(?![\\d])", "", str(v))
     self.stack.append(Value(str(v)))
-
-def neon_strb(self):
-    v = self.stack.pop().value
-    self.stack.append(Value("TRUE" if v else "FALSE"))
 
 def neon_string__append(self):
     b = self.stack.pop().value

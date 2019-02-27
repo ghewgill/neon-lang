@@ -9,11 +9,12 @@
 
 #include "ast.h"
 #include "bytecode.h"
-#include "format.h"
 #include "pt.h"
 #include "rtl_compile.h"
 #include "support.h"
 #include "util.h"
+
+static const ast::Expression *identity_conversion(Analyzer *, const ast::Expression *e) { return e; }
 
 class Analyzer {
 public:
@@ -135,9 +136,12 @@ private:
     ast::Module *import_module(const Token &token, const std::string &name);
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor, std::string::size_type &i);
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor);
+    const ast::Expression *convert(const ast::Type *target, const ast::Expression *e);
+    bool convert2(const ast::Type *target, const ast::Expression *&left, const ast::Expression *&right);
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
+    ast::ComparisonExpression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right);
 private:
     Analyzer(const Analyzer &);
     Analyzer &operator=(const Analyzer &);
@@ -549,6 +553,489 @@ static std::string path_stripext(const std::string &name)
         return name;
     }
     return name.substr(0, i);
+}
+
+static const ast::Expression *make_array_conversion(Analyzer *analyzer, const ast::TypeArray *from_type, const ast::Expression *from, const ast::TypeArray *to_type)
+{
+    if (from_type->elementtype == nullptr) {
+        const ast::TypeArrayLiteral *tal = dynamic_cast<const ast::TypeArrayLiteral *>(from_type);
+        if (tal == nullptr) {
+            internal_error("TypeArrayLiteral expected");
+        }
+        if (not tal->elements.empty()) {
+            internal_error("empty TypeArrayLiteral expected");
+        }
+        return from;
+    }
+    auto element_converter = to_type->elementtype->make_converter(from_type->elementtype);
+    if (element_converter == nullptr) {
+        internal_error("make_array_conversion: cannot convert " + from_type->elementtype->text() + " to " + to_type->elementtype->text());
+    }
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(to_type);
+    ast::Variable *array_copy = analyzer->scope.top()->makeTemporary(from_type);
+    ast::Variable *index = analyzer->scope.top()->makeTemporary(ast::TYPE_NUMBER);
+    ast::Variable *bound = analyzer->scope.top()->makeTemporary(ast::TYPE_NUMBER);
+    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(from));
+    return new ast::StatementExpression(
+        new ast::BaseLoopStatement(
+            0,
+            loop_id,
+            // prologue
+            {
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(result) }, new ast::ArrayLiteralExpression(nullptr, {}, {})),
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(array_copy) }, from),
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(ast::TYPE_ARRAY_STRING->methods.at("size")), { new ast::VariableExpression(array_copy) })),
+            },
+            // statements
+            {
+                new ast::IfStatement(
+                    0,
+                    {
+                        std::make_pair(
+                            new ast::NumericComparisonExpression(
+                                new ast::VariableExpression(index),
+                                new ast::VariableExpression(bound),
+                                ast::ComparisonExpression::Comparison::GE
+                            ),
+                            std::vector<const ast::Statement *> { new ast::ExitStatement(0, loop_id) }
+                        )
+                    },
+                    {}
+                ),
+                new ast::ExpressionStatement(
+                    0,
+                    new ast::FunctionCall(
+                        new ast::VariableExpression(result->type->methods.at("append")),
+                        {
+                            new ast::VariableExpression(result),
+                            element_converter(
+                                analyzer,
+                                new ast::ArrayValueIndexExpression(
+                                    from_type->elementtype,
+                                    new ast::VariableExpression(array_copy),
+                                    new ast::VariableExpression(index),
+                                    false
+                                )
+                            )
+                        }
+                    )
+                )
+            },
+            // tail
+            {
+                new ast::IncrementStatement(0, new ast::VariableExpression(index), 1)
+            },
+            false
+        ),
+        new ast::VariableExpression(result)
+    );
+}
+
+static const ast::Expression *make_dictionary_conversion(Analyzer *analyzer, const ast::TypeDictionary *from_type, const ast::Expression *from, const ast::TypeDictionary *to_type)
+{
+    if (from_type->elementtype == nullptr) {
+        const ast::TypeDictionaryLiteral *tal = dynamic_cast<const ast::TypeDictionaryLiteral *>(from_type);
+        if (tal == nullptr) {
+            internal_error("TypeDictionaryLiteral expected");
+        }
+        if (not tal->elements.empty()) {
+            internal_error("empty TypeDictionaryLiteral expected");
+        }
+        return from;
+    }
+    auto element_converter = to_type->elementtype->make_converter(from_type->elementtype);
+    if (element_converter == nullptr) {
+        internal_error("make_dictionary_conversion: cannot convert " + from_type->elementtype->text() + " to " + to_type->elementtype->text());
+    }
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(to_type);
+    ast::Variable *keys = analyzer->scope.top()->makeTemporary(ast::TYPE_ARRAY_STRING);
+    ast::Variable *index = analyzer->scope.top()->makeTemporary(ast::TYPE_NUMBER);
+    ast::Variable *bound = analyzer->scope.top()->makeTemporary(ast::TYPE_NUMBER);
+    unsigned int loop_id = static_cast<unsigned int>(reinterpret_cast<intptr_t>(from));
+    return new ast::StatementExpression(
+        new ast::BaseLoopStatement(
+            0,
+            loop_id,
+            // prologue
+            {
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(result) }, new ast::DictionaryLiteralExpression(nullptr, {}, {})),
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(index) }, new ast::ConstantNumberExpression(number_from_uint32(0))),
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(keys) }, new ast::FunctionCall(new ast::VariableExpression(from->type->methods.at("keys")), { from })),
+                new ast::AssignmentStatement(0, { new ast::VariableExpression(bound) }, new ast::FunctionCall(new ast::VariableExpression(ast::TYPE_ARRAY_STRING->methods.at("size")), { new ast::VariableExpression(keys) })),
+            },
+            // statements
+            {
+                new ast::IfStatement(
+                    0,
+                    {
+                        std::make_pair(
+                            new ast::NumericComparisonExpression(
+                                new ast::VariableExpression(index),
+                                new ast::VariableExpression(bound),
+                                ast::ComparisonExpression::Comparison::GE
+                            ),
+                            std::vector<const ast::Statement *> { new ast::ExitStatement(0, loop_id) }
+                        )
+                    },
+                    {}
+                ),
+                new ast::AssignmentStatement(
+                    0,
+                    {new ast::DictionaryReferenceIndexExpression(
+                        to_type->elementtype,
+                        new ast::VariableExpression(result),
+                        new ast::ArrayValueIndexExpression(
+                            ast::TYPE_STRING,
+                            new ast::VariableExpression(keys),
+                            new ast::VariableExpression(index),
+                            false
+                        )
+                    )},
+                    element_converter(
+                        analyzer,
+                        new ast::DictionaryValueIndexExpression(
+                            from_type->elementtype,
+                            from,
+                            new ast::ArrayValueIndexExpression(
+                                ast::TYPE_STRING,
+                                new ast::VariableExpression(keys),
+                                new ast::VariableExpression(index),
+                                false
+                            )
+                        )
+                    )
+                )
+            },
+            // tail
+            {
+                new ast::IncrementStatement(0, new ast::VariableExpression(index), 1)
+            },
+            false
+        ),
+        new ast::VariableExpression(result)
+    );
+}
+
+static const ast::Expression *make_object_conversion_from_record(Analyzer *analyzer, const ast::TypeRecord *rtype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(ast::TYPE_DICTIONARY_OBJECT);
+    std::vector<const ast::Statement *> field_statements;
+    for (auto &f: rtype->fields) {
+        auto converter = ast::TYPE_OBJECT->make_converter(f.type);
+        field_statements.push_back(
+            new ast::AssignmentStatement(
+                0,
+                {new ast::DictionaryReferenceIndexExpression(
+                    ast::TYPE_OBJECT,
+                    new ast::VariableExpression(result),
+                    new ast::ConstantStringExpression(utf8string(f.name.text))
+                )},
+                converter(
+                    analyzer,
+                    new ast::RecordValueFieldExpression(
+                        f.type,
+                        e,
+                        f.name.text,
+                        false
+                    )
+                )
+            )
+        );
+    }
+    return new ast::StatementExpression(
+        new ast::CompoundStatement(0, field_statements),
+        new ast::FunctionCall(
+            new ast::VariableExpression(dynamic_cast<const ast::Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+            {new ast::VariableExpression(result)}
+        )
+    );
+}
+
+static const ast::Expression *make_record_conversion_from_object(Analyzer *analyzer, const ast::TypeRecord *rtype, const ast::Expression *e)
+{
+    ast::Variable *result = analyzer->scope.top()->makeTemporary(rtype);
+    std::vector<const ast::Statement *> field_statements;
+    for (auto &f: rtype->fields) {
+        auto converter = f.type->make_converter(ast::TYPE_OBJECT);
+        field_statements.push_back(
+            new ast::TryStatement(
+                0,
+                {new ast::AssignmentStatement(
+                    0,
+                    {new ast::RecordReferenceFieldExpression(
+                        f.type,
+                        new ast::VariableExpression(result),
+                        f.name.text,
+                        true
+                    )},
+                    converter(
+                        analyzer,
+                        new ast::ObjectSubscriptExpression(
+                            e,
+                            ast::TYPE_OBJECT->make_converter(ast::TYPE_STRING)(analyzer, new ast::ConstantStringExpression(utf8string(f.name.text)))
+                        )
+                    )
+                )},
+                {
+                    ast::TryTrap(
+                        {dynamic_cast<const ast::Exception *>(analyzer->global_scope->lookupName("ObjectSubscriptException"))},
+                        nullptr,
+                        new ast::ExceptionHandlerStatement(0, {new ast::NullStatement(0)})
+                    )
+                }
+            )
+        );
+    }
+    return new ast::StatementExpression(
+        new ast::CompoundStatement(0, field_statements),
+        new ast::VariableExpression(result)
+    );
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeBoolean::make_converter(const Type *from) const
+{
+    if (from == TYPE_BOOLEAN) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getBoolean"))),
+                {e}
+            );
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeNumber::make_converter(const Type *from) const
+{
+    if (from == TYPE_NUMBER) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getNumber"))),
+                {e}
+            );
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeString::make_converter(const Type *from) const
+{
+    if (from == TYPE_STRING) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getString"))),
+                {e}
+            );
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeBytes::make_converter(const Type *from) const
+{
+    if (from == TYPE_BYTES) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getBytes"))),
+                {e}
+            );
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeObject::make_converter(const Type *from) const
+{
+    if (dynamic_cast<const TypePointerNil *>(from) != nullptr) {
+        return [](Analyzer *analyzer, const Expression *) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeNull"))),
+                    {}
+            );
+        };
+    }
+    if (from == TYPE_BOOLEAN) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeBoolean"))),
+                    {e}
+            );
+        };
+    }
+    if (from == TYPE_NUMBER) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeNumber"))),
+                    {e}
+            );
+        };
+    }
+    if (from == TYPE_STRING) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeString"))),
+                    {e}
+            );
+        };
+    }
+    if (from == TYPE_BYTES) {
+        return [](Analyzer *analyzer, const Expression *e) {
+            return new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeBytes"))),
+                    {e}
+            );
+        };
+    }
+    if (from == TYPE_OBJECT) {
+        return identity_conversion;
+    }
+    const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
+    if (atype != nullptr) {
+        if (atype->elementtype != TYPE_OBJECT) {
+            return [atype](Analyzer *analyzer, const Expression *e) {
+                return new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    // TODO: what happens if this conversion can't be done?
+                    {make_array_conversion(analyzer, atype, e, TYPE_ARRAY_OBJECT)}
+                );
+            };
+        } else {
+            return [](Analyzer *analyzer, const Expression *e) {
+                return new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeArray"))),
+                    {e}
+                );
+            };
+        }
+    }
+    const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
+    if (dtype != nullptr) {
+        if (dtype->elementtype != TYPE_OBJECT) {
+            return [dtype](Analyzer *analyzer, const Expression *e) {
+                return new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+                    {make_dictionary_conversion(analyzer, dtype, e, TYPE_DICTIONARY_OBJECT)}
+                );
+            };
+        } else {
+            return [](Analyzer *analyzer, const Expression *e) {
+                return new FunctionCall(
+                    new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__makeDictionary"))),
+                    {e}
+                );
+            };
+        }
+    }
+    const TypeRecord *rtype = dynamic_cast<const TypeRecord *>(from);
+    if (rtype != nullptr) {
+        // TODO: Check convertability of all fields to Object.
+        return [rtype](Analyzer *analyzer, const Expression *e) {
+            return make_object_conversion_from_record(analyzer, rtype, e);
+        };
+    }
+    return nullptr;
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeArray::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (is_structure_compatible(from)) {
+        return identity_conversion;
+    }
+    const TypeArrayLiteral *tal = dynamic_cast<const TypeArrayLiteral *>(from);
+    if (tal != nullptr && elementtype != nullptr) {
+        if (tal->elements.empty()) {
+            return identity_conversion;
+        }
+        int i = 0;
+        for (auto e: tal->elements) {
+            if (elementtype->make_converter(e->type) == nullptr) {
+                return nullptr; // error(3079, tal->elementtokens[i], "type mismatch");
+            }
+            i++;
+        }
+    }
+    if (from == TYPE_OBJECT) {
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_array_conversion(analyzer, TYPE_ARRAY_OBJECT, new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getArray"))),
+                {e}
+            ), this);
+        };
+    }
+    const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
+    if (atype == nullptr) {
+        return nullptr;
+    }
+    return [this, atype](Analyzer *analyzer, const Expression *e) {
+        return make_array_conversion(analyzer, atype, e, this);
+    };
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *e)> ast::TypeDictionary::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (is_structure_compatible(from)) {
+        return identity_conversion;
+    }
+    const TypeDictionaryLiteral *tdl = dynamic_cast<const TypeDictionaryLiteral *>(from);
+    if (tdl != nullptr && elementtype != nullptr) {
+        if (tdl->elements.empty()) {
+            return identity_conversion;
+        }
+        int i = 0;
+        for (auto &e: tdl->elements) {
+            if (elementtype->make_converter(e.second->type) == nullptr) {
+                return nullptr; // error(3072, tdl->elementtokens[i], "type mismatch");
+            }
+            i++;
+        }
+    }
+    if (from == TYPE_OBJECT) {
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_dictionary_conversion(analyzer, TYPE_DICTIONARY_OBJECT, new FunctionCall(
+                new VariableExpression(dynamic_cast<const Variable *>(analyzer->global_scope->lookupName("object__getDictionary"))),
+                {e}
+            ), this);
+        };
+    }
+    const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
+    if (dtype == nullptr) {
+        return nullptr;
+    }
+    return [this, dtype](Analyzer *analyzer, const Expression *e) {
+        return make_dictionary_conversion(analyzer, dtype, e, this);
+    };
+}
+
+std::function<const ast::Expression *(Analyzer *analyzer, const ast::Expression *from)> ast::TypeRecord::make_converter(const Type *from) const
+{
+    if (from == this) {
+        return identity_conversion;
+    }
+    if (from == TYPE_OBJECT) {
+        return [this](Analyzer *analyzer, const Expression *e) {
+            return make_record_conversion_from_object(analyzer, this, e);
+        };
+    }
+    return nullptr;
 }
 
 class GlobalScope: public ast::Scope {
@@ -1176,9 +1663,13 @@ const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
         const ast::Expression *element = analyze(x.get());
         if (elementtype == nullptr) {
             elementtype = element->type;
-        } else if (not element->type->is_assignment_compatible(elementtype)) {
+        } else if (elementtype->make_converter(element->type) == nullptr) {
             elementtype = ast::TYPE_OBJECT;
+            for (auto &y: elements) {
+                y = convert(elementtype, y);
+            }
         }
+        element = convert(elementtype, element);
         elements.push_back(element);
         elementtokens.push_back(x->token);
     }
@@ -1188,15 +1679,18 @@ const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::ArrayLiteralRangeExpression *expr)
 {
     const ast::Expression *first = analyze(expr->first.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(first->type)) {
+    first = convert(ast::TYPE_NUMBER, first);
+    if (first == nullptr) {
         error(2100, expr->first->token, "numeric expression expected");
     }
     const ast::Expression *last = analyze(expr->last.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(last->type)) {
+    last = convert(ast::TYPE_NUMBER, last);
+    if (last == nullptr) {
         error(2101, expr->last->token, "numeric expression expected");
     }
     const ast::Expression *step = analyze(expr->step.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(step->type)) {
+    step = convert(ast::TYPE_NUMBER, step);
+    if (step == nullptr) {
         error(2102, expr->step->token, "numeric expression expected");
     }
     const ast::VariableExpression *range = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("array__range")));
@@ -1215,6 +1709,9 @@ const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *
     const ast::Type *elementtype = nullptr;
     for (auto &x: expr->elements) {
         const ast::Expression *k = analyze(x.first.get());
+        if (k->type != ast::TYPE_STRING) {
+            error(3266, x.first->token, "key value must be string");
+        }
         if (not k->is_constant) {
             error(3212, x.first->token, "key value must be constant");
         }
@@ -1227,9 +1724,13 @@ const ast::Expression *Analyzer::analyze(const pt::DictionaryLiteralExpression *
         const ast::Expression *element = analyze(x.second.get());
         if (elementtype == nullptr) {
             elementtype = element->type;
-        } else if (not element->type->is_assignment_compatible(elementtype)) {
+        } else if (elementtype->make_converter(element->type) == nullptr) {
             elementtype = ast::TYPE_OBJECT;
+            for (auto &y: elements) {
+                y.second = convert(elementtype, y.second);
+            }
         }
+        element = convert(elementtype, element);
         elements.push_back(std::make_pair(key, element));
         elementtokens.push_back(x.second->token);
     }
@@ -1312,7 +1813,7 @@ const ast::Expression *Analyzer::analyze(const pt::DotExpression *expr)
     }
     const ast::Expression *base = analyze(expr->base.get());
     if (base->type == ast::TYPE_OBJECT) {
-        return new ast::ObjectSubscriptExpression(base, new ast::ConstantStringExpression(utf8string(expr->name.text)));
+        return new ast::ObjectSubscriptExpression(base, convert(ast::TYPE_OBJECT, new ast::ConstantStringExpression(utf8string(expr->name.text))));
     }
     const ast::TypeRecord *recordtype = dynamic_cast<const ast::TypeRecord *>(base->type);
     if (recordtype == nullptr) {
@@ -1374,7 +1875,8 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
     const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(type);
     const ast::TypeDictionary *dicttype = dynamic_cast<const ast::TypeDictionary *>(type);
     if (arraytype != nullptr) {
-        if (not ast::TYPE_NUMBER->is_assignment_compatible(index->type)) {
+        index = convert(ast::TYPE_NUMBER, index);
+        if (index == nullptr) {
             error2(3041, expr->index->token, "index must be a number", arraytype->declaration, "array declared here");
         }
         type = arraytype->elementtype;
@@ -1425,7 +1927,8 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
             }
         }
     } else if (dicttype != nullptr) {
-        if (not ast::TYPE_STRING->is_assignment_compatible(index->type)) {
+        index = convert(ast::TYPE_STRING, index);
+        if (index == nullptr) {
             error2(3042, expr->index->token, "index must be a string", dicttype->declaration, "dictionary declared here");
         }
         type = dicttype->elementtype;
@@ -1436,7 +1939,8 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
             return new ast::DictionaryValueIndexExpression(type, base, index);
         }
     } else if (type == ast::TYPE_STRING) {
-        if (not ast::TYPE_NUMBER->is_assignment_compatible(index->type)) {
+        index = convert(ast::TYPE_NUMBER, index);
+        if (index == nullptr) {
             error(3043, expr->index->token, "index must be a number");
         }
         const ast::ReferenceExpression *ref = dynamic_cast<const ast::ReferenceExpression *>(base);
@@ -1446,7 +1950,8 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
             return new ast::StringValueIndexExpression(base, index, expr->from_last, index, expr->from_last, this);
         }
     } else if (type == ast::TYPE_OBJECT) {
-        if (not ast::TYPE_OBJECT->is_assignment_compatible(index->type)) {
+        index = convert(ast::TYPE_OBJECT, index);
+        if (index == nullptr) {
             error(3262, expr->index->token, "index must be an object");
         }
         return new ast::ObjectSubscriptExpression(base, index);
@@ -1458,20 +1963,21 @@ const ast::Expression *Analyzer::analyze(const pt::SubscriptExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::InterpolatedStringExpression *expr)
 {
     const ast::VariableExpression *concat = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat")));
-    const ast::VariableExpression *format = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("format")));
+    const ast::Module *string = dynamic_cast<const ast::Module *>(scope.top()->lookupName("string"));
+    if (string == nullptr) {
+        ast::Module *module = import_module(Token(), "string");
+        rtl_import("string", module);
+        global_scope->addName(Token(IDENTIFIER, "string"), "string", module, true);
+        string = module;
+    }
+    const ast::VariableExpression *format = new ast::VariableExpression(dynamic_cast<const ast::Variable *>(string->scope->lookupName("format")));
     const ast::Expression *r = nullptr;
     for (auto &x: expr->parts) {
         const ast::Expression *e = analyze(x.first.get());
         std::string fmt = x.second.text;
-        if (not fmt.empty()) {
-            format::Spec spec;
-            if (not format::parse(fmt, spec)) {
-                error(3133, x.second, "invalid format specification");
-            }
-        }
-        const ast::Expression *str;
-        if (ast::TYPE_STRING->is_assignment_compatible(e->type) && e->type != ast::TYPE_OBJECT) {
-            str = e;
+        const ast::Expression *str = convert(ast::TYPE_STRING, e);
+        if (str != nullptr && e->type != ast::TYPE_OBJECT) {
+            // No action required.
         } else {
             auto toString = e->type->methods.find("toString");
             if (toString == e->type->methods.end()) {
@@ -1569,7 +2075,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (i >= iptype->interface->methods.size()) {
                 error(3250, arrowmethod->name, "interface method not found");
             }
-            self = base;
+            self = new ast::InterfacePointerDeconstructor(base);
             func = new ast::InterfaceMethodExpression(iptype->interface->methods[i].second, i);
             dispatch = base;
             ftype = iptype->interface->methods[i].second;
@@ -1597,7 +2103,8 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             }
             auto p = std::distance(recordtype->fields.begin(), f);
             const ast::Expression *element = analyze(x->expr.get());
-            if (not f->type->is_assignment_compatible(element->type)) {
+            element = convert(f->type, element);
+            if (element == nullptr) {
                 error2(3131, x->expr->token, "type mismatch", f->name, "field declared here");
             }
             if (elements[p] != nullptr) {
@@ -1671,7 +2178,8 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (ftype->params[p]->type != nullptr) {
                 // TODO: Above check works around problem in sdl.RenderDrawLines.
                 // Something about a compound type in a predefined function parameter list.
-                if (not ftype->params[p]->type->is_assignment_compatible(e->type)) {
+                e = convert(ftype->params[p]->type, e);
+                if (e == nullptr) {
                     error2(3019, a->expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
                 }
             }
@@ -1683,7 +2191,7 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (ref->is_readonly) {
                 error(3106, a->expr->token, "readonly parameter to OUT");
             }
-            if (not e->type->is_assignment_compatible(ftype->params[p]->type)) {
+            if (e->type != ast::TYPE_DUMMY && not ftype->params[p]->type->is_structure_compatible(e->type)) {
                 error2(3194, a->expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
             }
             if (ftype->params[p]->mode == ast::ParameterType::Mode::INOUT && not ref->can_generate_address()) {
@@ -1717,7 +2225,8 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
 {
     const ast::Expression *atom = analyze(expr->expr.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(atom->type)) {
+    atom = convert(ast::TYPE_NUMBER, atom);
+    if (atom == nullptr) {
         error(3144, expr->expr->token, "number required");
     }
     return atom;
@@ -1726,7 +2235,8 @@ const ast::Expression *Analyzer::analyze(const pt::UnaryPlusExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
 {
     const ast::Expression *atom = analyze(expr->expr.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(atom->type)) {
+    atom = convert(ast::TYPE_NUMBER, atom);
+    if (atom == nullptr) {
         error(3021, expr->expr->token, "number required for negation");
     }
     return new ast::UnaryMinusExpression(atom);
@@ -1735,7 +2245,8 @@ const ast::Expression *Analyzer::analyze(const pt::UnaryMinusExpression *expr)
 const ast::Expression *Analyzer::analyze(const pt::LogicalNotExpression *expr)
 {
     const ast::Expression *atom = analyze(expr->expr.get());
-    if (not ast::TYPE_BOOLEAN->is_assignment_compatible(atom->type)) {
+    atom = convert(ast::TYPE_BOOLEAN, atom);
+    if (atom == nullptr) {
         error(3022, expr->expr->token, "boolean required for logical not");
     }
     return new ast::LogicalNotExpression(atom);
@@ -1745,7 +2256,7 @@ const ast::Expression *Analyzer::analyze(const pt::ExponentiationExpression *exp
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
         return new ast::ExponentiationExpression(left, right);
     } else {
         error(3024, expr->token, "type mismatch");
@@ -1756,7 +2267,7 @@ const ast::Expression *Analyzer::analyze(const pt::MultiplicationExpression *exp
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
         return new ast::MultiplicationExpression(left, right);
     } else {
         error(3025, expr->token, "type mismatch");
@@ -1767,7 +2278,7 @@ const ast::Expression *Analyzer::analyze(const pt::DivisionExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
         return new ast::DivisionExpression(left, right);
     } else {
         error(3026, expr->token, "type mismatch");
@@ -1778,7 +2289,7 @@ const ast::Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *ex
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
         return new ast::FunctionCall(new ast::VariableExpression(new ast::PredefinedFunction(
             "math$intdiv",
             new ast::TypeFunction(
@@ -1800,7 +2311,7 @@ const ast::Expression *Analyzer::analyze(const pt::ModuloExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
         return new ast::ModuloExpression(left, right);
     } else {
         error(3027, expr->token, "type mismatch");
@@ -1811,10 +2322,11 @@ const ast::Expression *Analyzer::analyze(const pt::AdditionExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
-        return new ast::AdditionExpression(left, right);
-    } else if (ast::TYPE_STRING->is_assignment_compatible(left->type) && ast::TYPE_STRING->is_assignment_compatible(right->type)) {
+    if (left->type == ast::TYPE_STRING && right->type == ast::TYPE_STRING) {
         error(3124, expr->token, "type mismatch (use & to concatenate strings)");
+    }
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
+        return new ast::AdditionExpression(left, right);
     } else {
         error(3028, expr->token, "type mismatch");
     }
@@ -1824,7 +2336,7 @@ const ast::Expression *Analyzer::analyze(const pt::SubtractionExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
         return new ast::SubtractionExpression(left, right);
     } else {
         error(3029, expr->token, "type mismatch");
@@ -1835,12 +2347,14 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_STRING->is_assignment_compatible(left->type) && ast::TYPE_STRING->is_assignment_compatible(right->type)) {
+    // TODO: Handle ambiguous operands (such as concatenting two Object values).
+    if (convert2(ast::TYPE_STRING, left, right)) {
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
         return new ast::FunctionCall(new ast::VariableExpression(dynamic_cast<const ast::Variable *>(scope.top()->lookupName("concat"))), args);
-    } else if (ast::TYPE_BYTES->is_assignment_compatible(left->type) && ast::TYPE_BYTES->is_assignment_compatible(right->type)) {
+    }
+    if (convert2(ast::TYPE_BYTES, left, right)) {
         std::vector<const ast::Expression *> args;
         args.push_back(left);
         args.push_back(right);
@@ -1862,55 +2376,60 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
     }
 }
 
-static ast::ComparisonExpression *analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right)
+ast::ComparisonExpression *Analyzer::analyze_comparison(const Token &token, const ast::Expression *left, ast::ComparisonExpression::Comparison comp, const ast::Expression *right)
 {
-    if (not left->type->is_assignment_compatible(right->type)) {
-        error(3030, token, "type mismatch");
-    }
     if (left->type == ast::TYPE_OBJECT && right->type == ast::TYPE_OBJECT) {
         error(3261, token, "cannot compare two values of type Object");
     }
-    if (ast::TYPE_BOOLEAN->is_assignment_compatible(left->type) && ast::TYPE_BOOLEAN->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_BOOLEAN, left, right)) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3031, token, "comparison not available for Boolean");
         }
         return new ast::BooleanComparisonExpression(left, right, comp);
-    } else if (ast::TYPE_NUMBER->is_assignment_compatible(left->type) && ast::TYPE_NUMBER->is_assignment_compatible(right->type)) {
+    }
+    if (convert2(ast::TYPE_NUMBER, left, right)) {
         return new ast::NumericComparisonExpression(left, right, comp);
-    } else if (ast::TYPE_STRING->is_assignment_compatible(left->type) && ast::TYPE_STRING->is_assignment_compatible(right->type)) {
+    }
+    if (convert2(ast::TYPE_STRING, left, right)) {
         return new ast::StringComparisonExpression(left, right, comp);
-    } else if (ast::TYPE_BYTES->is_assignment_compatible(left->type) && ast::TYPE_BYTES->is_assignment_compatible(right->type)) {
+    }
+    if (convert2(ast::TYPE_BYTES, left, right)) {
         return new ast::BytesComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr) {
+    }
+    if (dynamic_cast<const ast::TypeArray *>(left->type) != nullptr && dynamic_cast<const ast::TypeArray *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3032, token, "comparison not available for Array");
         }
         return new ast::ArrayComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr && dynamic_cast<const ast::TypeDictionary *>(right->type) != nullptr) {
+    }
+    if (dynamic_cast<const ast::TypeDictionary *>(left->type) != nullptr && dynamic_cast<const ast::TypeDictionary *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3033, token, "comparison not available for Dictionary");
         }
         return new ast::DictionaryComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr && dynamic_cast<const ast::TypeRecord *>(right->type) != nullptr) {
+    }
+    if (dynamic_cast<const ast::TypeRecord *>(left->type) != nullptr && dynamic_cast<const ast::TypeRecord *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3034, token, "comparison not available for RECORD");
         }
         return new ast::RecordComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr && dynamic_cast<const ast::TypeEnum *>(right->type) != nullptr) {
+    }
+    if (dynamic_cast<const ast::TypeEnum *>(left->type) != nullptr && dynamic_cast<const ast::TypeEnum *>(right->type) != nullptr) {
         return new ast::EnumComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr && dynamic_cast<const ast::TypePointer *>(right->type) != nullptr) {
+    }
+    if (dynamic_cast<const ast::TypePointer *>(left->type) != nullptr && dynamic_cast<const ast::TypePointer *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3100, token, "comparison not available for POINTER");
         }
         return new ast::PointerComparisonExpression(left, right, comp);
-    } else if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr && dynamic_cast<const ast::TypeFunctionPointer *>(right->type) != nullptr) {
+    }
+    if (dynamic_cast<const ast::TypeFunctionPointer *>(left->type) != nullptr && dynamic_cast<const ast::TypeFunctionPointer *>(right->type) != nullptr) {
         if (comp != ast::ComparisonExpression::Comparison::EQ && comp != ast::ComparisonExpression::Comparison::NE) {
             error(3180, token, "comparison not available for FUNCTION");
         }
         return new ast::FunctionPointerComparisonExpression(left, right, comp);
-    } else {
-        internal_error("unknown type in parseComparison");
     }
+    error(3030, token, "type mismatch");
 }
 
 const ast::Expression *Analyzer::analyze(const pt::ComparisonExpression *expr)
@@ -1939,17 +2458,18 @@ const ast::Expression *Analyzer::analyze(const pt::TypeTestExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Type *target = analyze(expr->target.get());
-    if (not target->is_assignment_compatible_no_error(left->type)) {
+    auto conv = target->make_converter(left->type);
+    if (conv == nullptr) {
         return new ast::ConstantBooleanExpression(false);
     }
     if (left->type != ast::TYPE_OBJECT) {
         // TODO: Many kinds of type tests can be statically determined here.
         // However, this requires a bit more than just the simple test commented out here.
         //return new ast::ConstantBooleanExpression(target->is_assignment_compatible(left->type));
-        // So for now, do it dynamically at runtime.
-        left = new ast::TypeConversionExpression(ast::TYPE_OBJECT, left);
+        // So for now, do it dynamically at runtime by going to Object and back.
+        left = convert(ast::TYPE_OBJECT, left);
     }
-    return new ast::TypeTestExpression(left, target);
+    return new ast::TypeTestExpression(left, convert(target, left));
 }
 
 const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
@@ -1959,12 +2479,14 @@ const ast::Expression *Analyzer::analyze(const pt::MembershipExpression *expr)
     const ast::TypeArray *arraytype = dynamic_cast<const ast::TypeArray *>(right->type);
     const ast::TypeDictionary *dicttype = dynamic_cast<const ast::TypeDictionary *>(right->type);
     if (arraytype != nullptr) {
-        if (not arraytype->elementtype->is_assignment_compatible(left->type)) {
+        // TODO: Allow more relaxed type checking.
+        if (left->type != arraytype->elementtype) {
             error(3082, expr->left->token, "type mismatch");
         }
         return new ast::ArrayInExpression(left, right);
     } else if (dicttype != nullptr) {
-        if (not ast::TYPE_STRING->is_assignment_compatible(left->type)) {
+        left = convert(ast::TYPE_STRING, left);
+        if (left == nullptr) {
             error(3083, expr->left->token, "type mismatch");
         }
         return new ast::DictionaryInExpression(left, right);
@@ -1977,7 +2499,7 @@ const ast::Expression *Analyzer::analyze(const pt::ConjunctionExpression *expr)
 {
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_BOOLEAN->is_assignment_compatible(left->type) && ast::TYPE_BOOLEAN->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_BOOLEAN, left, right)) {
         return new ast::ConjunctionExpression(left, right);
     } else {
         error(3035, expr->token, "type mismatch");
@@ -2016,7 +2538,7 @@ const ast::Expression *Analyzer::analyze(const pt::DisjunctionExpression *expr)
 
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (ast::TYPE_BOOLEAN->is_assignment_compatible(left->type) && ast::TYPE_BOOLEAN->is_assignment_compatible(right->type)) {
+    if (convert2(ast::TYPE_BOOLEAN, left, right)) {
         return new ast::DisjunctionExpression(left, right);
     } else {
         error(3036, expr->token, "type mismatch");
@@ -2028,7 +2550,15 @@ const ast::Expression *Analyzer::analyze(const pt::ConditionalExpression *expr)
     const ast::Expression *cond = analyze(expr->cond.get());
     const ast::Expression *left = analyze(expr->left.get());
     const ast::Expression *right = analyze(expr->right.get());
-    if (not left->type->is_assignment_compatible(right->type)) {
+    cond = convert(ast::TYPE_BOOLEAN, cond);
+    if (cond == nullptr) {
+        error(3265, expr->cond->token, "boolean expected");
+    }
+    if (left->type == ast::TYPE_NOTHING || right->type == ast::TYPE_NOTHING) {
+        error(3267, left->type == ast::TYPE_NOTHING ? expr->left->token : expr->right->token, "branch of conditional must return value");
+    }
+    // TODO: Relax exact type check.
+    if (left->type != right->type) {
         error(3037, expr->left->token, "type of THEN and ELSE must match");
     }
     return new ast::ConditionalExpression(cond, left, right);
@@ -2095,10 +2625,12 @@ const ast::Expression *Analyzer::analyze(const pt::RangeSubscriptExpression *exp
     const ast::Expression *base = analyze(expr->base.get());
     const ast::Expression *first = analyze(expr->range->first.get());
     const ast::Expression *last = analyze(expr->range->last.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(first->type)) {
+    first = convert(ast::TYPE_NUMBER, first);
+    if (first == nullptr) {
         error(3141, expr->range->first.get()->token, "range index must be a number");
     }
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(last->type)) {
+    last = convert(ast::TYPE_NUMBER, last);
+    if (last == nullptr) {
         error(3142, expr->range->last.get()->token, "range index must be a number");
     }
     const ast::Type *type = base->type;
@@ -2375,6 +2907,30 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
     return r;
 }
 
+const ast::Expression *Analyzer::convert(const ast::Type *target, const ast::Expression *from)
+{
+    auto conv = target->make_converter(from->type);
+    if (conv == nullptr) {
+        return nullptr;
+    }
+    return conv(this, from);
+}
+
+bool Analyzer::convert2(const ast::Type *target, const ast::Expression *&left, const ast::Expression *&right)
+{
+    auto conv_left = target->make_converter(left->type);
+    if (conv_left == nullptr) {
+        return false;
+    }
+    auto conv_right = target->make_converter(right->type);
+    if (conv_right == nullptr) {
+        return false;
+    }
+    left = conv_left(this, left);
+    right = conv_right(this, right);
+    return true;
+}
+
 const ast::Statement *Analyzer::analyze(const pt::ImportDeclaration *declaration)
 {
     if (declaration->alias.type == NONE && declaration->name.type == NONE) {
@@ -2463,7 +3019,8 @@ const ast::Statement *Analyzer::analyze_body(const pt::ConstantDeclaration *decl
         error(3229, declaration->type->token, "class type not permitted as constant type");
     }
     const ast::Expression *value = analyze(declaration->value.get());
-    if (not type->is_assignment_compatible(value->type)) {
+    value = convert(type, value);
+    if (value == nullptr) {
         error(3015, declaration->value->token, "type mismatch");
     }
     if (not value->is_constant) {
@@ -2580,7 +3137,8 @@ const ast::Statement *Analyzer::analyze_body(const pt::VariableDeclaration *decl
     const ast::Expression *expr = nullptr;
     if (declaration->value != nullptr) {
         expr = analyze(declaration->value.get());
-        if (not type->is_assignment_compatible(expr->type)) {
+        expr = convert(type, expr);
+        if (expr == nullptr) {
             error(3113, declaration->value->token, "type mismatch");
         }
     }
@@ -2631,7 +3189,8 @@ const ast::Statement *Analyzer::analyze_body(const pt::LetDeclaration *declarati
         error(3231, declaration->type->token, "class type not permitted as variable type (use POINTER TO)");
     }
     const ast::Expression *expr = analyze(declaration->value.get());
-    if (not type->is_assignment_compatible(expr->type)) {
+    expr = convert(type, expr);
+    if (expr == nullptr) {
         error(3140, declaration->value->token, "type mismatch");
     }
     const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(type);
@@ -2686,11 +3245,11 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
             const ast::TypeClass *ctype = dynamic_cast<const ast::TypeClass *>(type);
             if (ctype != nullptr) {
                 const ast::TypeValidPointer *vptype = dynamic_cast<const ast::TypeValidPointer *>(ptype);
-                if (vptype == nullptr || not vptype->reftype->is_assignment_compatible(type)) {
+                if (vptype == nullptr || (vptype != nullptr && vptype->reftype != type)) {
                     error(3224, x->type->token, "valid pointer type expected");
                 }
             } else {
-                if (not ptype->is_assignment_compatible(type)) {
+                if (ptype != type) {
                     error(3128, x->type->token, "expected self parameter");
                 }
             }
@@ -2870,7 +3429,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaratio
     }
     for (auto elem: dict->dict) {
         auto *d = dynamic_cast<const ast::DictionaryLiteralExpression *>(elem.second);
-        if (not d->dict.empty() && not ast::TYPE_STRING->is_assignment_compatible(d->elementtype)) {
+        if (not d->dict.empty() && d->elementtype != ast::TYPE_STRING) {
             error(3074, declaration->dict->token, "sub level dictionary must have string elements");
         }
     }
@@ -3164,7 +3723,8 @@ const ast::Statement *Analyzer::analyze(const pt::AssertStatement *statement)
 {
     const pt::Expression *e = statement->exprs[0].get();
     const ast::Expression *expr = analyze(e);
-    if (not ast::TYPE_BOOLEAN->is_assignment_compatible(expr->type)) {
+    expr = convert(ast::TYPE_BOOLEAN, expr);
+    if (expr == nullptr) {
         error(3173, statement->exprs[0]->token, "boolean value expected");
     }
     std::vector<const pt::Expression *> parts;
@@ -3280,7 +3840,8 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
         error(3105, statement->variables[0]->token, "assignment to readonly expression");
     }
     const ast::Expression *rhs = analyze(statement->expr.get());
-    if (not expr->type->is_assignment_compatible(rhs->type)) {
+    rhs = convert(expr->type, rhs);
+    if (rhs == nullptr) {
         error(3057, statement->expr->token, "type mismatch");
     }
     std::vector<const ast::ReferenceExpression *> vars;
@@ -3291,7 +3852,7 @@ const ast::Statement *Analyzer::analyze(const pt::AssignmentStatement *statement
 const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
 {
     const ast::Expression *expr = analyze(statement->expr.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(expr->type) && not ast::TYPE_STRING->is_assignment_compatible(expr->type) && dynamic_cast<const ast::TypeEnum *>(expr->type) == nullptr) {
+    if (expr->type != ast::TYPE_NUMBER && expr->type != ast::TYPE_STRING && dynamic_cast<const ast::TypeEnum *>(expr->type) == nullptr && expr->type != ast::TYPE_OBJECT) {
         error(3050, statement->expr->token, "CASE expression must be Number, String, or ENUM");
     }
     std::vector<std::pair<std::vector<const ast::CaseStatement::WhenCondition *>, std::vector<const ast::Statement *>>> clauses;
@@ -3303,7 +3864,7 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
             const pt::CaseStatement::TypeTestWhenCondition *twc = dynamic_cast<const pt::CaseStatement::TypeTestWhenCondition *>(c.get());
             if (cwc != nullptr) {
                 const ast::Expression *when = analyze(cwc->expr.get());
-                if (not when->type->is_assignment_compatible(expr->type)) {
+                if (when->type != expr->type) {
                     error(3051, cwc->expr->token, "type mismatch");
                 }
                 if (not when->is_constant) {
@@ -3326,24 +3887,24 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                 conditions.push_back(cond);
             } else if (rwc != nullptr) {
                 const ast::Expression *when = analyze(rwc->low_expr.get());
-                if (not when->type->is_assignment_compatible(expr->type)) {
+                if (when->type != expr->type) {
                     error(3053, rwc->low_expr->token, "type mismatch");
                 }
                 if (not when->is_constant) {
                     error(3054, rwc->low_expr->token, "WHEN condition must be constant");
                 }
                 const ast::Expression *when2 = analyze(rwc->high_expr.get());
-                if (not when2->type->is_assignment_compatible(expr->type)) {
+                if (when2->type != expr->type) {
                     error(3055, rwc->high_expr->token, "type mismatch");
                 }
                 if (not when2->is_constant) {
                     error(3056, rwc->high_expr->token, "WHEN condition must be constant");
                 }
-                if (when->type->is_assignment_compatible(ast::TYPE_NUMBER) || dynamic_cast<const ast::TypeEnum *>(when->type) != nullptr) {
+                if (when->type == ast::TYPE_NUMBER || dynamic_cast<const ast::TypeEnum *>(when->type) != nullptr) {
                     if (number_is_greater(when->eval_number(rwc->low_expr->token), when2->eval_number(rwc->high_expr->token))) {
                         error(3109, rwc->high_expr->token, "WHEN numeric range condition must be low..high");
                     }
-                } else if (when->type->is_assignment_compatible(ast::TYPE_STRING)) {
+                } else if (when->type == ast::TYPE_STRING) {
                     if (when->eval_string(rwc->low_expr->token) > when2->eval_string(rwc->high_expr->token)) {
                         error(3110, rwc->high_expr->token, "WHEN string range condition must be low..high");
                     }
@@ -3369,7 +3930,7 @@ const ast::Statement *Analyzer::analyze(const pt::CaseStatement *statement)
                     error2(3263, statement->expr->token, "WHEN ISA requires Object type", twc->token, "used here");
                 }
                 const ast::Type *target = analyze(twc->target.get());
-                const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, expr->type, target);
+                const ast::CaseStatement::WhenCondition *cond = new ast::CaseStatement::TypeTestWhenCondition(twc->target->token, convert(target, expr), target);
                 conditions.push_back(cond);
             } else {
                 internal_error("unknown case when condition");
@@ -3480,17 +4041,17 @@ bool ast::CaseStatement::ComparisonWhenCondition::overlaps(const WhenCondition *
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (ast::TYPE_NUMBER->is_assignment_compatible(expr->type) || dynamic_cast<const ast::TypeEnum *>(expr->type) != nullptr) {
+        if (expr->type == ast::TYPE_NUMBER || dynamic_cast<const ast::TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(cond->token), cwhen->comp, cwhen->expr->eval_number(cond->token));
-        } else if (ast::TYPE_STRING->is_assignment_compatible(expr->type)) {
+        } else if (expr->type == ast::TYPE_STRING) {
             return overlap::check(comp, expr->eval_string(cond->token), cwhen->comp, cwhen->expr->eval_string(cond->token));
         } else {
             internal_error("ComparisonWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (ast::TYPE_NUMBER->is_assignment_compatible(expr->type) || dynamic_cast<const ast::TypeEnum *>(expr->type) != nullptr) {
+        if (expr->type == ast::TYPE_NUMBER || dynamic_cast<const ast::TypeEnum *>(expr->type) != nullptr) {
             return overlap::check(comp, expr->eval_number(cond->token), rwhen->low_expr->eval_number(cond->token), rwhen->high_expr->eval_number(cond->token));
-        } else if (ast::TYPE_STRING->is_assignment_compatible(expr->type)) {
+        } else if (expr->type == ast::TYPE_STRING) {
             return overlap::check(comp, expr->eval_string(cond->token), rwhen->low_expr->eval_string(cond->token), rwhen->high_expr->eval_string(cond->token));
         } else {
             internal_error("ComparisonWhenCondition");
@@ -3505,17 +4066,17 @@ bool ast::CaseStatement::RangeWhenCondition::overlaps(const WhenCondition *cond)
     const ComparisonWhenCondition *cwhen = dynamic_cast<const ComparisonWhenCondition *>(cond);
     const RangeWhenCondition *rwhen = dynamic_cast<const RangeWhenCondition *>(cond);
     if (cwhen != nullptr) {
-        if (ast::TYPE_NUMBER->is_assignment_compatible(low_expr->type) || dynamic_cast<const ast::TypeEnum *>(low_expr->type) != nullptr) {
+        if (low_expr->type == ast::TYPE_NUMBER || dynamic_cast<const ast::TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_number(cwhen->token), low_expr->eval_number(cwhen->token), high_expr->eval_number(cwhen->token));
-        } else if (ast::TYPE_STRING->is_assignment_compatible(low_expr->type)) {
+        } else if (low_expr->type == ast::TYPE_STRING) {
             return overlap::check(cwhen->comp, cwhen->expr->eval_string(cwhen->token), low_expr->eval_string(cwhen->token), high_expr->eval_string(cwhen->token));
         } else {
             internal_error("RangeWhenCondition");
         }
     } else if (rwhen != nullptr) {
-        if (ast::TYPE_NUMBER->is_assignment_compatible(low_expr->type) || dynamic_cast<const ast::TypeEnum *>(low_expr->type) != nullptr) {
+        if (low_expr->type == ast::TYPE_NUMBER || dynamic_cast<const ast::TypeEnum *>(low_expr->type) != nullptr) {
             return overlap::check(low_expr->eval_number(rwhen->token), high_expr->eval_number(rwhen->token), rwhen->low_expr->eval_number(rwhen->token), rwhen->high_expr->eval_number(rwhen->token));
-        } else if (ast::TYPE_STRING->is_assignment_compatible(low_expr->type)) {
+        } else if (low_expr->type == ast::TYPE_STRING) {
             return overlap::check(low_expr->eval_string(rwhen->token), high_expr->eval_string(rwhen->token), rwhen->low_expr->eval_string(rwhen->token), rwhen->high_expr->eval_string(rwhen->token));
         } else {
             internal_error("RangeWhenCondition");
@@ -3540,7 +4101,8 @@ const ast::Statement *Analyzer::analyze(const pt::CheckStatement *statement)
     scope.push(new ast::Scope(scope.top(), frame.top()));
     std::vector<std::pair<const ast::Expression *, std::vector<const ast::Statement *>>> condition_statements;
     const ast::Expression *cond = analyze(statement->cond.get());
-    if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
+    cond = convert(ast::TYPE_BOOLEAN, cond);
+    if (cond == nullptr) {
         error(3199, statement->cond->token, "boolean value expected");
     }
     condition_statements.push_back(std::make_pair(cond, std::vector<const ast::Statement *>()));
@@ -4025,11 +4587,13 @@ const ast::Statement *Analyzer::analyze(const pt::ForStatement *statement)
     var->is_readonly = true;
     ast::Variable *bound = scope.top()->makeTemporary(ast::TYPE_NUMBER);
     const ast::Expression *start = analyze(statement->start.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(start->type)) {
+    start = convert(ast::TYPE_NUMBER, start);
+    if (start == nullptr) {
         error(3067, statement->start->token, "numeric expression expected");
     }
     const ast::Expression *end = analyze(statement->end.get());
-    if (not ast::TYPE_NUMBER->is_assignment_compatible(end->type)) {
+    end = convert(ast::TYPE_NUMBER, end);
+    if (end == nullptr) {
         error(3068, statement->end->token, "numeric expression expected");
     }
     const ast::Expression *step = nullptr;
@@ -4216,7 +4780,8 @@ const ast::Statement *Analyzer::analyze(const pt::IfStatement *statement)
             }
         } else {
             cond = analyze(c.first.get());
-            if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
+            cond = convert(ast::TYPE_BOOLEAN, cond);
+            if (cond == nullptr) {
                 error(3048, c.first->token, "boolean value expected");
             }
         }
@@ -4328,7 +4893,8 @@ const ast::Statement *Analyzer::analyze(const pt::RepeatStatement *statement)
     loops.top().push_back(std::make_pair(statement->label.text, loop_id));
     std::vector<const ast::Statement *> statements = analyze(statement->body);
     const ast::Expression *cond = analyze(statement->cond.get());
-    if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
+    cond = convert(ast::TYPE_BOOLEAN, cond);
+    if (cond == nullptr) {
         error(3086, statement->cond->token, "boolean value expected");
     }
     statements.push_back(
@@ -4358,7 +4924,8 @@ const ast::Statement *Analyzer::analyze(const pt::ReturnStatement *statement)
     if (returntype == ast::TYPE_NOTHING) {
         error(3094, statement->token, "function does not return a value");
     }
-    if (not returntype->is_assignment_compatible(expr->type)) {
+    expr = convert(returntype, expr);
+    if (expr == nullptr) {
         error(3095, statement->expr->token, "type mismatch in RETURN");
     }
     if (returntype != expr->type) {
@@ -4485,7 +5052,8 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
         }
     } else {
         cond = analyze(statement->cond.get());
-        if (not ast::TYPE_BOOLEAN->is_assignment_compatible(cond->type)) {
+        cond = convert(ast::TYPE_BOOLEAN, cond);
+        if (cond == nullptr) {
             error(3049, statement->cond->token, "boolean value expected");
         }
     }

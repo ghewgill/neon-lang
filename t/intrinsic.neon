@@ -1,69 +1,10 @@
-% These are all written as WHEN clauses so that the compiler
-% checks that the expression (the intrinsic) is a constant
-% expression.
-
-CASE "a"
-    WHEN chr(97) DO
-        print("a")
-END CASE
-%= a
-
-CASE "ab"
-    WHEN concat("a", "b") DO
-        print("ab")
-END CASE
-%= ab
-
-CASE 1
-    WHEN int(1.5) DO
-        print("1")
-END CASE
-%= 1
-
-CASE " foo"
-    WHEN format("foo", ">4") DO
-        print("foo")
-END CASE
-%= foo
-
-CASE 2
-    WHEN max(1, 2) DO
-        print("2")
-END CASE
-%= 2
-
-CASE 3
-    WHEN min(3, 4) DO
-        print("3")
-END CASE
-%= 3
-
-CASE 4
-    WHEN num("4") DO
-        print("4")
-END CASE
-%= 4
-
-CASE 98
-    WHEN ord("b") DO
-        print("b")
-END CASE
-%= b
-
-CASE "5"
-    WHEN str(5) DO
-        print("5")
-END CASE
-%= 5
-
-CASE "FALSE"
-    WHEN strb(FALSE) DO
-        print("FALSE")
-END CASE
-%= FALSE
-
-CASE "oo"
-    WHEN substring("foobar", 1, 2) DO
-        print("oo")
-END CASE
-%= oo
+CONSTANT fchr: String := chr(97)
+CONSTANT fconcat: String := concat("a", "b")
+CONSTANT fint: Number := int(1.5)
+CONSTANT fmax: Number := max(1, 2)
+CONSTANT fmin: Number := min(3, 4)
+CONSTANT fnum: Number := num("4")
+CONSTANT fodd: Boolean := odd(5)
+CONSTANT ford: Number := ord("b")
+CONSTANT fround: Number := round(2, 1.234)
+CONSTANT fstr: String := str(5)

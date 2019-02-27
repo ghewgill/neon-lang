@@ -56,14 +56,19 @@ class Executor {
         predefined.put("object__makeString", this::object__makeString);
         predefined.put("object__subscript", this::object__subscript);
         predefined.put("object__toString", this::object__toString);
+        predefined.put("odd", this::odd);
         predefined.put("ord", this::ord);
         predefined.put("print", this::print);
         predefined.put("str", this::number__toString);
-        predefined.put("strb", this::boolean__toString);
         predefined.put("string__append", this::string__append);
         predefined.put("string__length", this::string__length);
         predefined.put("string__substring", this::string__substring);
         predefined.put("string__toBytes", this::string__toBytes);
+        predefined.put("math$abs", this::math$abs);
+        predefined.put("math$ceil", this::math$ceil);
+        predefined.put("math$floor", this::math$floor);
+        predefined.put("math$sign", this::math$sign);
+        predefined.put("math$trunc", this::math$trunc);
 
         object = new Bytecode(in);
         ip = 0;
@@ -78,7 +83,8 @@ class Executor {
 
     void run()
     {
-        callstack.addFirst(object.code.size());
+        ip = object.code.size();
+        invoke(0);
         execLoop(0);
     }
 
@@ -88,12 +94,10 @@ class Executor {
             //System.err.println("ip=" + ip + " op=" + opcodes[object.code.get(ip)]);
             //for (Cell c: stack) { System.err.println("  " + c); }
             switch (opcodes[object.code.get(ip)]) {
-                case ENTER: doENTER(); break;
-                case LEAVE: doLEAVE(); break;
                 case PUSHB: doPUSHB(); break;
                 case PUSHN: doPUSHN(); break;
                 case PUSHS: doPUSHS(); break;
-                case PUSHT: doPUSHT(); break;
+                case PUSHY: doPUSHY(); break;
                 case PUSHPG: doPUSHPG(); break;
                 //case PUSHPPG
                 //case PUSHPMG
@@ -103,7 +107,7 @@ class Executor {
                 case LOADB: doLOADB(); break;
                 case LOADN: doLOADN(); break;
                 case LOADS: doLOADS(); break;
-                case LOADT: doLOADT(); break;
+                case LOADY: doLOADY(); break;
                 case LOADA: doLOADA(); break;
                 case LOADD: doLOADD(); break;
                 case LOADP: doLOADP(); break;
@@ -111,7 +115,7 @@ class Executor {
                 case STOREB: doSTOREB(); break;
                 case STOREN: doSTOREN(); break;
                 case STORES: doSTORES(); break;
-                case STORET: doSTORET(); break;
+                case STOREY: doSTOREY(); break;
                 case STOREA: doSTOREA(); break;
                 case STORED: doSTORED(); break;
                 case STOREP: doSTOREP(); break;
@@ -137,12 +141,12 @@ class Executor {
                 case GTS: doGTS(); break;
                 //case LES
                 //case GES
-                //case EQT
-                //case NET
-                //case LTT
-                //case GTT
-                //case LET
-                //case GES
+                //case EQY
+                //case NEY
+                //case LTY
+                //case GTY
+                //case LEY
+                //case GEY
                 //case EQA
                 //case NEA
                 //case EQD
@@ -184,13 +188,11 @@ class Executor {
                 //case PUSHPEG
                 case JUMPTBL: doJUMPTBL(); break;
                 //case CALLX
-                //case SWAP
+                case SWAP: doSWAP(); break;
                 //case DROPN
                 //case PUSHM
                 //case CALLV
                 case PUSHCI: doPUSHCI(); break;
-                case MAPA: doMAPA(); break;
-                case MAPD: doMAPD(); break;
                 default:
                     System.err.println("Unknown opcode: " + opcodes[object.code.get(ip)]);
                     System.exit(1);
@@ -226,24 +228,6 @@ class Executor {
         return r;
     }
 
-    private void doENTER()
-    {
-        ip++;
-        int nest = getVint();
-        int val = getVint();
-        Cell[] frame = new Cell[val];
-        for (int i = 0; i < frame.length; i++) {
-            frame[i] = new Cell();
-        }
-        frames.addFirst(frame);
-    }
-
-    private void doLEAVE()
-    {
-        ip++;
-        frames.removeFirst();
-    }
-
     private void doPUSHB()
     {
         ip++;
@@ -265,7 +249,7 @@ class Executor {
         stack.addFirst(new Cell(object.strtable[val]));
     }
 
-    private void doPUSHT()
+    private void doPUSHY()
     {
         ip++;
         int val = getVint();
@@ -319,7 +303,7 @@ class Executor {
         stack.addFirst(new Cell(addr.getString()));
     }
 
-    private void doLOADT()
+    private void doLOADY()
     {
         ip++;
         Cell addr = stack.removeFirst().getAddress();
@@ -378,7 +362,7 @@ class Executor {
         addr.set(val);
     }
 
-    private void doSTORET()
+    private void doSTOREY()
     {
         ip++;
         Cell addr = stack.removeFirst().getAddress();
@@ -733,8 +717,7 @@ class Executor {
     {
         ip++;
         int target = getVint();
-        callstack.addFirst(ip);
-        ip = target;
+        invoke(target);
     }
 
     private void doJUMP()
@@ -800,6 +783,7 @@ class Executor {
 
     private void doRET()
     {
+        frames.removeFirst();
         ip = callstack.removeFirst();
     }
 
@@ -892,6 +876,15 @@ class Executor {
         }
     }
 
+    private void doSWAP()
+    {
+        ip++;
+        Cell a = stack.removeFirst();
+        Cell b = stack.removeFirst();
+        stack.addFirst(a);
+        stack.addFirst(b);
+    }
+
     private void doPUSHCI()
     {
         ip++;
@@ -912,56 +905,15 @@ class Executor {
         System.exit(1);
     }
 
-    private void doMAPA()
+    private void invoke(int index)
     {
-        ip++;
-        int target = getVint();
-        final int start = ip;
-        mapDepth++;
-        List<Cell> a = stack.removeFirst().getArray();
-        List<Cell> r = new ArrayList<Cell>();
-        for (Cell x: a) {
-            stack.addFirst(x);
-            callstack.addFirst(start);
-            try {
-                execLoop(callstack.size() - 1);
-            } catch (InternalException ix) {
-                callstack.removeFirst();
-                mapDepth--;
-                raiseLiteral(ix.name, ix.info);
-                return;
-            }
-            r.add(stack.removeFirst());
+        callstack.addFirst(ip);
+        Cell[] frame = new Cell[object.functions[index].locals];
+        for (int i = 0; i < frame.length; i++) {
+            frame[i] = new Cell();
         }
-        stack.addFirst(new Cell(r));
-        mapDepth--;
-        ip = target;
-    }
-
-    private void doMAPD()
-    {
-        ip++;
-        int target = getVint();
-        final int start = ip;
-        mapDepth++;
-        Map<String, Cell> d = stack.removeFirst().getDictionary();
-        Map<String, Cell> r = new TreeMap<String, Cell>();
-        for (Map.Entry<String, Cell> x: d.entrySet()) {
-            stack.addFirst(x.getValue());
-            callstack.addFirst(start);
-            try {
-                execLoop(callstack.size() - 1);
-            } catch (InternalException ix) {
-                callstack.removeFirst();
-                mapDepth--;
-                raiseLiteral(ix.name, ix.info);
-                return;
-            }
-            r.put(x.getKey(), stack.removeFirst());
-        }
-        stack.addFirst(new Cell(r));
-        mapDepth--;
-        ip = target;
+        frames.addFirst(frame);
+        ip = object.functions[index].entry;
     }
 
     private void raiseLiteral(String name)
@@ -978,10 +930,6 @@ class Executor {
 
     private void raiseLiteral(String name, ExceptionInfo info)
     {
-        if (mapDepth > 0) {
-            throw new InternalException(name, info);
-        }
-
         Cell exceptionvar = new Cell(new ArrayList<Cell>(Arrays.asList(
             new Cell(name),
             new Cell(info.info),
@@ -1024,22 +972,11 @@ class Executor {
         BigDecimal code = BigDecimal.valueOf(0);
     }
 
-    private class InternalException extends RuntimeException {
-        InternalException(String name, ExceptionInfo info) {
-            this.name = name;
-            this.info = info;
-        }
-        String name;
-        ExceptionInfo info;
-    }
-
     public enum Opcode {
-        ENTER,
-        LEAVE,
         PUSHB,
         PUSHN,
         PUSHS,
-        PUSHT,
+        PUSHY,
         PUSHPG,
         PUSHPPG,
         PUSHPMG,
@@ -1049,7 +986,7 @@ class Executor {
         LOADB,
         LOADN,
         LOADS,
-        LOADT,
+        LOADY,
         LOADA,
         LOADD,
         LOADP,
@@ -1057,7 +994,7 @@ class Executor {
         STOREB,
         STOREN,
         STORES,
-        STORET,
+        STOREY,
         STOREA,
         STORED,
         STOREP,
@@ -1083,12 +1020,12 @@ class Executor {
         GTS,
         LES,
         GES,
-        EQT,
-        NET,
-        LTT,
-        GTT,
-        LET,
-        GET,
+        EQY,
+        NEY,
+        LTY,
+        GTY,
+        LEY,
+        GEY,
         EQA,
         NEA,
         EQD,
@@ -1135,8 +1072,6 @@ class Executor {
         PUSHM,
         CALLV,
         PUSHCI,
-        MAPA,
-        MAPD,
     }
 
     private interface GenericFunction {
@@ -1152,7 +1087,6 @@ class Executor {
     private ArrayDeque<Cell> stack;
     private Cell[] globals;
     private ArrayDeque<Cell[]> frames;
-    private int mapDepth;
 
     private void array__append()
     {
@@ -1562,6 +1496,12 @@ class Executor {
         stack.addFirst(new Cell(o.toString()));
     }
 
+    private void odd()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(!x.remainder(new BigDecimal(2)).equals(BigDecimal.ZERO)));
+    }
+
     private void ord()
     {
         String s = stack.removeFirst().getString();
@@ -1606,5 +1546,35 @@ class Executor {
     {
         String s = stack.removeFirst().getString();
         stack.addFirst(new Cell(s.getBytes()));
+    }
+
+    private void math$abs()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.abs()));
+    }
+
+    private void math$ceil()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_CEILING)));
+    }
+
+    private void math$floor()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_FLOOR)));
+    }
+
+    private void math$sign()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(new BigDecimal(x.signum())));
+    }
+
+    private void math$trunc()
+    {
+        BigDecimal x = stack.removeFirst().getNumber();
+        stack.addFirst(new Cell(x.divide(BigDecimal.ONE, BigDecimal.ROUND_DOWN)));
     }
 }

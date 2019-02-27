@@ -30,6 +30,7 @@ libhash = hashenv.Library("hash-library/hash-library", [
     "hash-library/sha3.cpp",
 ])
 
-env.Append(CPPPATH=["external/hash-library"])
+env.Append(CPPPATH=[Dir("hash-library")])
+env.Append(LIBS=libhash)
 
 Return(["libhash"])

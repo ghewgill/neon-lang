@@ -252,8 +252,7 @@ END FUNCTION
  |  Return an ISO 8601 formatted representation of a <DateTime>.
  |%
 FUNCTION DateTime.toString(self: DateTime): String
-    % TODO: add formatting codes for leading zeros when implemented
-    RETURN "\(self.year)-\(self.month)-\(self.day)T\(self.hour):\(self.minute):\(self.second)Z"
+    RETURN "\(self.year:04d)-\(self.month:02d)-\(self.day:02d)T\(self.hour:02d):\(self.minute:02d):\(self.second:02d)Z"
 END FUNCTION
 
 %|

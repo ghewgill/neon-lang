@@ -1,20 +1,3 @@
-# Depends on scons build of libffi currently.
-#if (NOT EXISTS libffi-3.2.1)
-#    execute_process(
-#        COMMAND python ../scripts/extract.py libffi-3.2.1.tar.gz .
-#        RESULT_VARIABLE retcode
-#    )
-#    if (NOT "${retcode}" STREQUAL "0")
-#        message(FATAL_ERROR "Fatal error extracting archive")
-#    endif ()
-#    #execute_process(
-#    #    COMMAND python libffi.py
-#    #    RESULT_VARIABLE retcode
-#    #)
-#    #if (NOT "${retcode}" STREQUAL "0")
-#    #    message(FATAL_ERROR "Fatal error running libffi.py")
-#    #endif ()
-#endif ()
 #if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 #    enable_language(ASM)
 #    set(ffi_platform
@@ -64,4 +47,25 @@ find_library(
 )
 if (NOT ffi)
     #message(FATAL_ERROR "Could not find ffi library, run 'scons external/lib' first")
+    #if (NOT EXISTS libffi-3.2.1)
+    #    execute_process(
+    #        COMMAND python ../scripts/extract.py libffi-3.2.1.tar.gz .
+    #        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    #        RESULT_VARIABLE retcode
+    #    )
+    #    if (NOT "${retcode}" STREQUAL "0")
+    #        message(FATAL_ERROR "Fatal error extracting archive")
+    #    endif ()
+    #endif ()
+    #if (WIN32)
+    #else (WIN32)
+    #    add_custom_command(
+    #        OUTPUT lib/libffi.a
+    #        COMMAND cd libffi-3.2.1 && ./configure --prefix=`pwd`/.. && make && make install
+    #    )
+    #    add_custom_target(libffi DEPENDS lib/libffi.a)
+    #    add_library(ffi STATIC IMPORTED GLOBAL)
+    #    add_dependencies(ffi libffi)
+    #    set_target_properties(ffi PROPERTIES IMPORTED_LOCATION external/lib/libffi.a)
+    #endif (WIN32)
 endif ()

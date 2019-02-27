@@ -1,5 +1,9 @@
 IMPORT string
 
+FUNCTION bstr(z: Boolean): String
+    RETURN (IF z THEN "TRUE" ELSE "FALSE")
+END FUNCTION
+
 print(str(string.find("hello world", "world")))
 %= 6
 
@@ -42,15 +46,20 @@ print(string.trimCharacters(" ", " ", " "))
 print(string.upper("Hello World"))
 %= HELLO WORLD
 
-print(strb(string.hasPrefix("Hello World", "He")))
-print(strb(string.hasPrefix("Hello World", "he")))
+print(bstr(string.hasPrefix("Hello World", "He")))
+print(bstr(string.hasPrefix("Hello World", "he")))
 %= TRUE
 %= FALSE
 
-print(strb(string.hasSuffix("Hello World", "orld")))
-print(strb(string.hasSuffix("Hello World", "old")))
+print(bstr(string.hasSuffix("Hello World", "orld")))
+print(bstr(string.hasSuffix("Hello World", "old")))
 %= TRUE
 %= FALSE
 
 ASSERT string.repeat("*", 5) = "*****"
 ASSERT string.repeat("XY", 2) = "XYXY"
+
+ASSERT string.replaceOne("hello world", "l", "xxx") = "hexxxlo world"
+ASSERT string.replaceAll("hello world", "l", "xxx") = "hexxxxxxo worxxxd"
+ASSERT string.replaceAll("hello world", "l", "") = "heo word"
+ASSERT string.replaceAll("hello world", "l", "ell") = "heellello worelld"

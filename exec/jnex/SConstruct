@@ -1,0 +1,10 @@
+import os
+
+env = Environment()
+
+# Find where javac.exe is and add it to our PATH.
+env["ENV"]["PATH"] = env["ENV"]["PATH"] + os.pathsep + os.pathsep.join(x for x in os.getenv("PATH").split(os.pathsep) if os.path.exists(os.path.join(x, "javac.exe")))
+
+jnex = env.Java("src", "src")
+
+Return(["jnex"])

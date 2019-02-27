@@ -4,7 +4,7 @@ IMPORT sys
 
 VAR a: Array<String>
 a := sys.args
-print(substring(a[0], 2, 12))
+print(a[0][LAST-11 TO LAST])
 print(a[1])
 print(a[2])
 

@@ -45,3 +45,32 @@ b := s.pack({"field2": "hi"})
 a := b.toArray()
 print("\(a.size())")
 %= 24
+
+LET range: struct.Struct := struct.make([
+    struct.field("FE", struct.Type.uint8, 1),
+    struct.field("FFFE", struct.Type.uint16BE, 2),
+    struct.field("FEFF", struct.Type.uint16LE, 2),
+    struct.field("FFFFFFFE", struct.Type.uint32BE, 4),
+    struct.field("FEFFFFFF", struct.Type.uint32LE, 4),
+    struct.field("FFFFFFFFFFFFFFFE", struct.Type.uint64BE, 8),
+    struct.field("FEFFFFFFFFFFFFFF", struct.Type.uint64LE, 8),
+])
+
+LET buf: Bytes := range.pack({
+    "FE": 254,
+    "FFFE": 65534,
+    "FEFF": 65534,
+    "FFFFFFFE": 4294967294,
+    "FEFFFFFF": 4294967294,
+    "FFFFFFFFFFFFFFFE": 18446744073709551614,
+    "FEFFFFFFFFFFFFFF": 18446744073709551614,
+})
+ASSERT buf = HEXBYTES "FE FF FE FE FF FF FF FF FE FE FF FF FF FF FF FF FF FF FF FF FE FE FF FF FF FF FF FF FF"
+LET d: Dictionary<Object> := range.unpack(buf)
+ASSERT d["FE"] = 254
+ASSERT d["FFFE"] = 65534
+ASSERT d["FEFF"] = 65534
+ASSERT d["FFFFFFFE"] = 4294967294
+ASSERT d["FEFFFFFF"] = 4294967294
+ASSERT d["FFFFFFFFFFFFFFFE"] = 18446744073709551614
+ASSERT d["FEFFFFFFFFFFFFFF"] = 18446744073709551614

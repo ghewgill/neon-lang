@@ -12,10 +12,77 @@ enable_testing()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY bin)
 
+find_program(JAVAC javac)
+if (JAVAC)
+    execute_process(
+        COMMAND javac -version
+        OUTPUT_VARIABLE JAVAC_VERSION_OUT
+        ERROR_VARIABLE JAVAC_VERSION_ERR
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_STRIP_TRAILING_WHITESPACE
+    )
+    if ("${JAVAC_VERSION_OUT}" MATCHES "javac ([0-9]+\\.[0-9]+)"
+     OR "${JAVAC_VERSION_ERR}" MATCHES "javac ([0-9]+\\.[0-9]+)")
+        if (NOT "${CMAKE_MATCH_1}" VERSION_LESS "1.8")
+            message("javac found: ${JAVAC}")
+        else ()
+            message("javac found, but version ${CMAKE_MATCH_1} is < 1.8")
+            set(JAVAC "JAVAC-NOTFOUND")
+        endif ()
+    else ()
+        message("javac not found")
+        set(JAVAC "JAVAC-NOTFOUND")
+    endif ()
+endif (JAVAC)
+
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")
+    find_program(CSC csc)
+    if (CSC)
+        message("csc found: ${CSC}")
+    else (CSC)
+        message("csc not found")
+    endif (CSC)
+else ()
+    find_program(MONO mono)
+    if (MONO)
+        message("mono found: ${MONO}")
+    else (MONO)
+        message("mono not found")
+    endif (MONO)
+    find_program(CSC mcs)
+    if (CSC)
+        message("mcs found: ${CSC}")
+    else (CSC)
+        message("mcs not found")
+        set(MONO "MONO-NOTFOUND")
+    endif (CSC)
+endif ()
+
+find_program(NODEJS NAMES nodejs node)
+if (NODEJS)
+    message("nodejs found: ${NODEJS}")
+else (NODEJS)
+    message("nodejs not found")
+endif (NODEJS)
+
+find_program(RUSTC rustc)
+if (RUSTC)
+    message("rustc found: ${RUSTC}")
+else (RUSTC)
+    message("rustc not found")
+endif (RUSTC)
+
+find_program(GO go)
+if (GO)
+    message("go found: ${GO}")
+else (GO)
+    message("go not found")
+endif (GO)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -g")
 endif ()
 
 add_subdirectory(external)
@@ -56,7 +123,6 @@ add_custom_command(
 )
 set_source_files_properties(
     src/ast.cpp
-    src/format.cpp
     PROPERTIES OBJECT_DEPENDS src/exceptions.inc
 )
 
@@ -72,83 +138,64 @@ set_source_files_properties(
     PROPERTIES OBJECT_DEPENDS src/unicodedata.inc
 )
 
-set(NEON_JVM
-    jvm/neon/Binary.java
-    jvm/neon/Datetime.java
-    jvm/neon/File.java
-    jvm/neon/Global.java
-    jvm/neon/Hash.java
-    jvm/neon/Io.java
-    jvm/neon/Math.java
-    jvm/neon/Os.java
-    jvm/neon/Sys.java
-    jvm/neon/Time.java
-    jvm/neon/type/Array.java
-    jvm/neon/type/NeonException.java
-    jvm/neon/type/Number.java
-)
-string(REPLACE ".java" ".class" NEON_JVM_CLASSES "${NEON_JVM}")
-foreach (java ${NEON_JVM})
-    string(REPLACE ".java" ".class" class ${java})
-    add_custom_command(
-        OUTPUT ${class}
-        COMMAND javac -cp jvm ${java}
-        DEPENDS ${java}
+if (JAVAC)
+    set(NEON_JVM
+        rtl/jvm/neon/Binary.java
+        rtl/jvm/neon/Datetime.java
+        rtl/jvm/neon/File.java
+        rtl/jvm/neon/Global.java
+        rtl/jvm/neon/Hash.java
+        rtl/jvm/neon/Io.java
+        rtl/jvm/neon/Math.java
+        rtl/jvm/neon/Os.java
+        rtl/jvm/neon/Sys.java
+        rtl/jvm/neon/Time.java
+        rtl/jvm/neon/type/Array.java
+        rtl/jvm/neon/type/NeonException.java
+        rtl/jvm/neon/type/Number.java
     )
-endforeach ()
-add_custom_target(neon_jvm ALL
-    DEPENDS ${NEON_JVM_CLASSES}
-)
-
-set(JNEX
-    exec/jnex/src/org/nevec/rjm/BigIntegerMath.java
-    exec/jnex/src/org/nevec/rjm/BigComplex.java
-    exec/jnex/src/org/nevec/rjm/Ifactor.java
-    exec/jnex/src/org/nevec/rjm/Rational.java
-    exec/jnex/src/org/nevec/rjm/Factorial.java
-    exec/jnex/src/org/nevec/rjm/Prime.java
-    exec/jnex/src/org/nevec/rjm/Bernoulli.java
-    exec/jnex/src/org/nevec/rjm/BigDecimalMath.java
-    exec/jnex/src/org/neon_lang/jnex/Bytecode.java
-    exec/jnex/src/org/neon_lang/jnex/Cell.java
-    exec/jnex/src/org/neon_lang/jnex/Executor.java
-)
-string(REPLACE ".java" ".class" JNEX_CLASSES "${JNEX}")
-foreach (java ${JNEX})
-    string(REPLACE ".java" ".class" class ${java})
-    add_custom_command(
-        OUTPUT ${class}
-        COMMAND javac -cp exec/jnex/src ${java}
-        DEPENDS ${java}
+    string(REPLACE ".java" ".class" NEON_JVM_CLASSES "${NEON_JVM}")
+    foreach (java ${NEON_JVM})
+        string(REPLACE ".java" ".class" class ${java})
+        add_custom_command(
+            OUTPUT ${class}
+            COMMAND javac -cp rtl/jvm ${java}
+            DEPENDS ${java}
+        )
+    endforeach ()
+    add_custom_target(neon_jvm ALL
+        DEPENDS ${NEON_JVM_CLASSES}
     )
-endforeach ()
-add_custom_target(jnex ALL
-    DEPENDS ${JNEX_CLASSES}
-)
+endif (JAVAC)
 
-add_executable(cnex
-    exec/cnex/array.c
-    exec/cnex/bytecode.c
-    exec/cnex/cell.c
-    exec/cnex/cnex.c
-    exec/cnex/dictionary.c
-    exec/cnex/framestack.c
-    exec/cnex/global.c
-    exec/cnex/nstring.c
-    exec/cnex/number.c
-    exec/cnex/stack.c
-    exec/cnex/util.c
-)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
-endif ()
-target_link_libraries(cnex
-    bid
-)
+if (CSC)
+    set(NEON_CLI
+        rtl/cli/Global.cs
+    )
+    # TODO: Use cmake C# support (3.8.2+)
+    add_custom_command(
+        OUTPUT t/Neon.dll
+        COMMAND ${CSC} /out:t/Neon.dll /target:library ${NEON_CLI}
+        DEPENDS ${NEON_CLI}
+    )
+    add_custom_target(neon_cli ALL
+        DEPENDS t/Neon.dll
+    )
+endif (CSC)
+
+if (JAVAC)
+    add_subdirectory("exec/jnex")
+endif (JAVAC)
+add_subdirectory("exec/cnex")
+if (RUSTC)
+    add_subdirectory("exec/rsnex")
+endif (RUSTC)
+if (GO)
+    add_subdirectory("exec/gonex")
+endif (GO)
 
 add_library(common OBJECT
     src/bytecode.cpp
-    src/format.cpp
     src/intrinsic.cpp
     src/number.cpp
     src/support.cpp
@@ -156,6 +203,11 @@ add_library(common OBJECT
 target_include_directories(common
     PUBLIC external/IntelRDFPMathLib20U1/LIBRARY/src
     PRIVATE external/utfcpp-master/source
+    PRIVATE external/gmp-6.1.2
+)
+add_dependencies(common
+    bid
+    gmp
 )
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -182,6 +234,7 @@ add_library(compiler OBJECT
     src/analyzer.cpp
     src/ast.cpp
     src/compiler.cpp
+    src/compiler_cli.cpp
     src/compiler_cpp.cpp
     src/compiler_js.cpp
     src/compiler_jvm.cpp
@@ -205,6 +258,12 @@ target_include_directories(compiler
     PRIVATE external/hash-library
     PRIVATE external/minijson_writer-master
     PRIVATE external/utfcpp-master/source
+    PRIVATE external/gmp-6.1.2
+)
+add_dependencies(compiler
+    bid
+    gmp
+    hash-library
 )
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
@@ -298,6 +357,13 @@ target_include_directories(executor
     PRIVATE external/minijson_writer-master
     PRIVATE external/sqlite-amalgamation-3080803
     PRIVATE external/utfcpp-master/source
+    PRIVATE external/gmp-6.1.2
+)
+add_dependencies(executor
+    bid
+    gmp
+    hash-library
+    sqlite3
 )
 
 add_executable(neonc
@@ -309,10 +375,14 @@ target_include_directories(neonc
     PRIVATE external/minijson_writer-master
     PRIVATE external/utfcpp-master/source
 )
-target_link_libraries(neonc bid hash-library)
+target_link_libraries(neonc
+    bid
+    gmp
+    hash-library
+)
 
 add_executable(neon
-    src/main.cpp
+    src/neon.cpp
     src/repl.cpp
     $<TARGET_OBJECTS:common>
     $<TARGET_OBJECTS:compiler>
@@ -334,6 +404,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD")
 endif ()
 target_link_libraries(neon
     bid
+    gmp
     #${ffi}
     hash-library
     sqlite3
@@ -353,6 +424,7 @@ target_include_directories(neonx PRIVATE
 )
 target_link_libraries(neonx
     bid
+    gmp
     #${ffi}
     hash-library
     minizip
@@ -382,6 +454,7 @@ target_include_directories(neonstub PRIVATE
 )
 target_link_libraries(neonstub
     bid
+    gmp
     #${ffi}
     hash-library
     minizip
@@ -412,6 +485,7 @@ target_include_directories(neondis PRIVATE
 )
 target_link_libraries(neondis
     bid
+    gmp
     hash-library
 )
 
@@ -440,6 +514,7 @@ target_include_directories(test_lexer PRIVATE
 )
 target_link_libraries(test_lexer
     bid
+    gmp
     hash-library
 )
 add_test(
@@ -462,26 +537,12 @@ target_include_directories(test_parser PRIVATE
 )
 target_link_libraries(test_parser
     bid
+    gmp
     hash-library
 )
 add_test(
     NAME test_parser
     COMMAND test_parser tests/parser_coverage.neon
-)
-
-add_executable(test_format
-    tests/test_format.cpp
-    src/format.cpp
-    src/number.cpp
-)
-target_include_directories(test_format PRIVATE
-    src
-    external/utfcpp-master/source
-)
-target_link_libraries(test_format bid)
-add_test(
-    NAME test_format
-    COMMAND test_format
 )
 
 add_executable(test_number_to_string
@@ -491,7 +552,10 @@ add_executable(test_number_to_string
 target_include_directories(test_number_to_string PRIVATE
     src
 )
-target_link_libraries(test_number_to_string bid)
+target_link_libraries(test_number_to_string
+    bid
+    gmp
+)
 add_test(
     NAME test_number_to_string
     COMMAND test_number_to_string
@@ -509,7 +573,7 @@ endif (WIN32)
 
 add_custom_command(
     OUTPUT src/errors.txt
-    COMMAND python scripts/extract_errors.py
+    COMMAND python tools/helium.py scripts/extract_errors.neon
     DEPENDS src/*.cpp
 )
 add_custom_target(errors_txt ALL
@@ -527,42 +591,57 @@ add_custom_target(w3c_ebnf ALL
     DEPENDS contrib/grammar/neon.w3c.ebnf
 )
 
+function(add_tests TESTS TAG RUNNER EXCLUDEFILE)
+    set(EXCLUDE "")
+    if (EXCLUDEFILE)
+        file(STRINGS "${EXCLUDEFILE}" EXCLUDE_WITH_COMMENTS)
+        foreach (EXCL ${EXCLUDE_WITH_COMMENTS})
+            string(REGEX REPLACE "[ ]*#.*" "" E "${EXCL}")
+            list(APPEND EXCLUDE ${E})
+        endforeach()
+    endif (EXCLUDEFILE)
+    foreach (TEST ${TESTS})
+        get_filename_component(T "${TEST}" NAME)
+        if (TAG)
+            if (NOT ";${EXCLUDE};" MATCHES ";${T};")
+                add_test(
+                    NAME "${TAG}:${T}"
+                    COMMAND python scripts/run_test.py --runner "python ${RUNNER}" ${TEST}
+                )
+            endif()
+        else()
+            add_test(
+                NAME "${T}"
+                COMMAND python scripts/run_test.py ${TEST}
+            )
+        endif()
+    endforeach()
+endfunction(add_tests)
+
 file(GLOB TESTS t/*.neon)
-foreach (TEST ${TESTS})
-    get_filename_component(T "${TEST}" NAME)
-    add_test(
-        NAME "${T}"
-        COMMAND python scripts/run_test.py t/${T}
-    )
-    add_test(
-        NAME "helium:${T}"
-        COMMAND python scripts/run_test.py --runner "python tools/helium.py" t/${T}
-    )
-    add_test(
-        NAME "cpp:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_cpp.py" t/${T}
-    )
-    add_test(
-        NAME "js:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_js.py" t/${T}
-    )
-    add_test(
-        NAME "jvm:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_jvm.py" t/${T}
-    )
-    add_test(
-        NAME "pynex:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_pynex.py" t/${T}
-    )
-    add_test(
-        NAME "jnex:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_jnex.py" t/${T}
-    )
-    add_test(
-        NAME "cnex:${T}"
-        COMMAND python scripts/run_test.py --runner "python scripts/run_cnex.py" t/${T}
-    )
-endforeach ()
+add_tests("${TESTS}" "" "" "")
+add_tests("${TESTS}" "helium" "tools/helium.py" "tools/helium-exclude.txt")
+add_tests("${TESTS}" "cpp" "scripts/run_cpp.py" "scripts/cpp-exclude.txt")
+if (NODEJS)
+    add_tests("${TESTS}" "js" "scripts/run_js.py" "scripts/js-exclude.txt")
+endif (NODEJS)
+if (JAVAC)
+    add_tests("${TESTS}" "jvm" "scripts/run_jvm.py" "scripts/jvm-exclude.txt")
+endif (JAVAC)
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows" OR MONO)
+    add_tests("${TESTS}" "cli" "scripts/run_cli.py" "scripts/cli-exclude.txt")
+endif ()
+add_tests("${TESTS}" "pynex" "exec/pynex/run_test.py" "exec/pynex/exclude.txt")
+if (JAVAC)
+    add_tests("${TESTS}" "jnex" "exec/jnex/run_test.py" "exec/jnex/exclude.txt")
+endif (JAVAC)
+add_tests("${TESTS}" "cnex" "exec/cnex/run_test.py" "exec/cnex/exclude.txt")
+if (RUSTC)
+    add_tests("${TESTS}" "rsnex" "exec/rsnex/run_test.py" "exec/rsnex/exclude.txt")
+endif (RUSTC)
+if (GO)
+    add_tests("${TESTS}" "gonex" "exec/gonex/run_test.py" "exec/gonex/exclude.txt")
+endif (GO)
 
 add_test(
     NAME "errors"

@@ -1,0 +1,3 @@
+gonex = Command("gonex", ["gonex.go"], "cd exec/gonex && go build")
+
+Return(["gonex"])

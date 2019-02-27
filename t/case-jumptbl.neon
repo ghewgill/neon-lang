@@ -1,0 +1,7 @@
+VAR n: Number := 0
+CASE n
+    WHEN 1 DO print("one")
+    WHEN 2 DO print("two")
+    WHEN OTHERS DO print ("other")
+END CASE
+%= other

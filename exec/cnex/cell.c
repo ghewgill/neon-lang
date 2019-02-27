@@ -72,6 +72,14 @@ Cell *cell_fromStringLength(const char *s, int64_t length)
     return x;
 }
 
+Cell* cell_fromString(TString *s)
+{
+    Cell *x = cell_newCell();
+    x->type = cString;
+    x->string = string_fromString(s);
+    return x;
+}
+
 Cell *cell_fromCString(const char *s)
 {
     Cell *x = cell_newCell();
@@ -239,6 +247,58 @@ BOOL cell_arrayElementExists(const Cell *a, const Cell *e)
     return FALSE;
 }
 
+TString *cell_toString(Cell *c)
+{
+    assert(c->type != cNothing);
+    TString *r = string_newString();
+
+    switch (c->type) {
+        case cAddress:
+            r = cell_toString(c->address);
+            break;
+        case cArray:
+        {
+            size_t x;
+            r = string_appendCString(r, "[");
+            for (x = 0; x < c->array->size; x++) {
+                if (r->length > 1) {
+                    r = string_appendCString(r, ", ");
+                }
+                if (c->array->data[x].type == cString) {
+                    r = string_appendCString(r, "\"");
+                    TString *v = cell_toString(&c->array->data[x]);
+                    r = string_appendString(r, v);
+                    r = string_appendCString(r, "\"");
+                    string_freeString(v);
+                } else {
+                    TString *v = cell_toString(&c->array->data[x]);
+                    r = string_appendString(r, v);
+                    string_freeString(v);
+                }
+            }
+            r = string_appendCString(r, "]");
+            break;
+        }
+        case cBoolean:
+            r = string_appendCString(r, (c->boolean ? "TRUE" : "FALSE"));
+            break;
+        case cDictionary:
+            break;
+        case cNumber:
+            r = string_appendCString(r, number_to_string(c->number));
+            break;
+        case cPointer:
+            break;
+        case cString:
+            r = string_fromString(c->string);
+            break;
+        default:
+            fatal_error("Unhandled cell type: %d", c->type);
+            break;
+    }
+    return r;
+}
+
 Cell *cell_arrayIndexForRead(Cell *c, size_t i)
 {
     if (c->type == cNothing) {
@@ -288,6 +348,8 @@ Cell *cell_dictionaryIndexForWrite(Cell *c, struct tagTString *key)
     int64_t idx = dictionary_findIndex(c->dictionary, key);
     if (idx == -1) {
         idx = dictionary_addDictionaryEntry(c->dictionary, key, cell_newCell());
+    } else {
+        string_freeString(key); // Since we aren't using the provided key, we need to destroy it.
     }
     return c->dictionary->data[idx].value;
 }

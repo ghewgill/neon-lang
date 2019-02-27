@@ -2,23 +2,23 @@ IMPORT datetime
 
 LET dt: datetime.DateTime := datetime.makeFromInstant(1234567890)
 print(dt.toString())
-%= 2009-2-13T23:31:30Z
+%= 2009-02-13T23:31:30Z
 
 print("\(dt.minusDuration(90))")
-%= 2009-2-13T23:30:0Z
+%= 2009-02-13T23:30:00Z
 
 %print("\(dt.minusPeriod(datetime.Period(month AS 1)))")
-%%= 2009-1-13T23:31:30Z
+%%= 2009-01-13T23:31:30Z
 
 print("\(dt.plusDuration(90))")
-%= 2009-2-13T23:33:0Z
+%= 2009-02-13T23:33:00Z
 
 % FIXME: Needs module record constructor and named args for constructor
 %print("\(dt.plusPeriod(datetime.Period(month AS 1)))")
-%%= 2009-3-13T23:31:30Z
+%%= 2009-03-13T23:31:30Z
 
 print("\(dt.withTime(1, 2, 3))")
-%= 2009-2-13T1:2:3Z
+%= 2009-02-13T01:02:03Z
 
 print(str(dt.weekday))
 %= 5

@@ -2051,6 +2051,8 @@ public:
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
     virtual void visit(const ast::InterfaceMethodExpression *) {}
+    virtual void visit(const ast::InterfacePointerConstructor *) {}
+    virtual void visit(const ast::InterfacePointerDeconstructor *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
@@ -2174,6 +2176,8 @@ public:
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
     virtual void visit(const ast::InterfaceMethodExpression *) {}
+    virtual void visit(const ast::InterfacePointerConstructor *) {}
+    virtual void visit(const ast::InterfacePointerDeconstructor *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
@@ -2297,6 +2301,8 @@ public:
     virtual void visit(const ast::ConstantExpression *node) { r = transform(node->constant->value); }
     virtual void visit(const ast::VariableExpression *node) { r = new VariableExpression(node); }
     virtual void visit(const ast::InterfaceMethodExpression *) { internal_error("InterfaceMethodExpression"); }
+    virtual void visit(const ast::InterfacePointerConstructor *) { internal_error("InterfacePointerConstructor"); }
+    virtual void visit(const ast::InterfacePointerDeconstructor *) { internal_error("InterfacePointerDeconstructor"); }
     virtual void visit(const ast::FunctionCall *node) { r = new FunctionCall(node); }
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *) {}
@@ -2420,6 +2426,8 @@ public:
     virtual void visit(const ast::ConstantExpression *) {}
     virtual void visit(const ast::VariableExpression *) {}
     virtual void visit(const ast::InterfaceMethodExpression *) {}
+    virtual void visit(const ast::InterfacePointerConstructor *) {}
+    virtual void visit(const ast::InterfacePointerDeconstructor *) {}
     virtual void visit(const ast::FunctionCall *) {}
     virtual void visit(const ast::StatementExpression *) {}
     virtual void visit(const ast::NullStatement *node) { r = new NullStatement(node); }

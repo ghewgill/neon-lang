@@ -17,11 +17,14 @@ public:
     class Label {
         friend class Emitter;
     public:
-        Label(): fixups(), target(UINT_MAX) {}
+        Label(): reachable(false), fixups(), target(UINT_MAX), target_stack_depth(-1) {}
     private:
+        bool reachable;
         std::vector<unsigned int> fixups;
         unsigned int target;
+        int target_stack_depth;
     public:
+        bool is_reachable() { return reachable; }
         unsigned int get_target() {
             if (target == UINT_MAX) {
                 internal_error("Label::get_target");
@@ -36,14 +39,24 @@ public:
         Label *exit;
         Label *next;
     };
+    class FunctionInfo {
+    public:
+        FunctionInfo(const std::string &name, const Label &label): name(name), nest(0), params(0), locals(0), entry_label(label) {}
+        std::string name;
+        int nest;
+        int params;
+        int locals;
+        Label entry_label;
+    };
 public:
-    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions(), function_exit(), current_function_depth(), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
-    void emit(unsigned char b);
+    Emitter(const std::string &source_hash, DebugInfo *debug): classes(), source_hash(source_hash), object(), globals(), functions({FunctionInfo("", Label())}), function_exit(), current_function_depth(), stack_depth(0), in_jumptbl(false), loop_labels(), exported_types(), debug_info(debug), predefined_name_index() {}
+    void emit_byte(unsigned char b);
+    void emit(Opcode b);
     void emit_uint32(uint32_t value);
-    void emit(unsigned char b, uint32_t value);
-    void emit(unsigned char b, uint32_t value, uint32_t value2);
-    void emit(unsigned char b, uint32_t value, uint32_t value2, uint32_t value3);
-    void emit(unsigned char b, const Number &value);
+    void emit(Opcode b, uint32_t value);
+    void emit(Opcode b, uint32_t value, uint32_t value2);
+    void emit(Opcode b, uint32_t value, uint32_t value2, uint32_t value3);
+    void emit(Opcode b, const Number &value);
     void emit(const std::vector<unsigned char> &instr);
     std::vector<unsigned char> getObject();
     unsigned int global(const std::string &name);
@@ -52,9 +65,9 @@ public:
     unsigned int str(const utf8string &s) { return str(s.str()); }
     unsigned int current_ip();
     unsigned int next_function(const std::string &name);
-    Label &function_label(int index);
+    FunctionInfo &function_info(int index);
     Label create_label();
-    void emit_jump(unsigned char b, Label &label);
+    void emit_jump(Opcode b, Label &label);
     void jump_target(Label &label);
     void add_loop_labels(unsigned int loop_id, Label &exit, Label &next);
     void remove_loop_labels(unsigned int loop_id);
@@ -71,19 +84,24 @@ public:
     void add_export_type(const std::string &name, const std::string &descriptor);
     void add_export_constant(const std::string &name, const std::string &type, const std::string &value);
     void add_export_variable(const std::string &name, const std::string &type, int index);
-    void add_export_function(const std::string &name, const std::string &type, int entry);
+    void add_export_function(const std::string &name, const std::string &type, int index);
     void add_export_exception(const std::string &name);
     void add_export_interface(const std::string &name, const std::vector<std::pair<std::string, std::string>> &method_descriptors);
     void add_import(const std::string &name);
     std::string get_type_reference(const ast::Type *type);
-    std::vector<std::pair<const ast::TypeClass *, std::vector<std::vector<Label *>>>> classes;
+    int get_stack_depth() { return stack_depth; }
+    void set_stack_depth(int depth) { stack_depth = depth; }
+    void adjust_stack_depth(int delta) { stack_depth += delta; }
+    std::vector<std::pair<const ast::TypeClass *, std::vector<std::vector<int>>>> classes;
 private:
     const std::string source_hash;
     Bytecode object;
     std::vector<std::string> globals;
-    std::vector<std::pair<std::string, Label>> functions;
+    std::vector<FunctionInfo> functions;
     std::stack<Label *> function_exit;
     size_t current_function_depth;
+    int stack_depth;
+    bool in_jumptbl;
     std::map<size_t, LoopLabels> loop_labels;
     std::set<const ast::Type *> exported_types;
     DebugInfo *debug_info;
@@ -94,9 +112,123 @@ private:
     Emitter &operator=(const Emitter &);
 };
 
-void Emitter::emit(unsigned char b)
+void Emitter::emit_byte(unsigned char b)
 {
     object.code.push_back(b);
+}
+
+void Emitter::emit(Opcode b)
+{
+    if (debug_info != nullptr) {
+        debug_info->stack_depth[object.code.size()] = stack_depth;
+    }
+    emit_byte(static_cast<unsigned char>(b));
+    if (stack_depth >= 0) {
+        if (in_jumptbl) {
+            in_jumptbl = (b == JUMP);
+        }
+        switch (b) {
+            case PUSHB:     stack_depth += 1; break;
+            case PUSHN:     stack_depth += 1; break;
+            case PUSHS:     stack_depth += 1; break;
+            case PUSHY:     stack_depth += 1; break;
+            case PUSHPG:    stack_depth += 1; break;
+            case PUSHPPG:   stack_depth += 1; break;
+            case PUSHPMG:   stack_depth += 1; break;
+            case PUSHPL:    stack_depth += 1; break;
+            case PUSHPOL:   stack_depth += 1; break;
+            case PUSHI:     stack_depth += 1; break;
+            case LOADB:     break;
+            case LOADN:     break;
+            case LOADS:     break;
+            case LOADY:     break;
+            case LOADA:     break;
+            case LOADD:     break;
+            case LOADP:     break;
+            case LOADJ:     break;
+            case STOREB:    stack_depth -= 2; break;
+            case STOREN:    stack_depth -= 2; break;
+            case STORES:    stack_depth -= 2; break;
+            case STOREY:    stack_depth -= 2; break;
+            case STOREA:    stack_depth -= 2; break;
+            case STORED:    stack_depth -= 2; break;
+            case STOREP:    stack_depth -= 2; break;
+            case STOREJ:    stack_depth -= 2; break;
+            case NEGN:      break;
+            case ADDN:      stack_depth -= 1; break;
+            case SUBN:      stack_depth -= 1; break;
+            case MULN:      stack_depth -= 1; break;
+            case DIVN:      stack_depth -= 1; break;
+            case MODN:      stack_depth -= 1; break;
+            case EXPN:      stack_depth -= 1; break;
+            case EQB:       stack_depth -= 1; break;
+            case NEB:       stack_depth -= 1; break;
+            case EQN:       stack_depth -= 1; break;
+            case NEN:       stack_depth -= 1; break;
+            case LTN:       stack_depth -= 1; break;
+            case GTN:       stack_depth -= 1; break;
+            case LEN:       stack_depth -= 1; break;
+            case GEN:       stack_depth -= 1; break;
+            case EQS:       stack_depth -= 1; break;
+            case NES:       stack_depth -= 1; break;
+            case LTS:       stack_depth -= 1; break;
+            case GTS:       stack_depth -= 1; break;
+            case LES:       stack_depth -= 1; break;
+            case GES:       stack_depth -= 1; break;
+            case EQY:       stack_depth -= 1; break;
+            case NEY:       stack_depth -= 1; break;
+            case LTY:       stack_depth -= 1; break;
+            case GTY:       stack_depth -= 1; break;
+            case LEY:       stack_depth -= 1; break;
+            case GEY:       stack_depth -= 1; break;
+            case EQA:       stack_depth -= 1; break;
+            case NEA:       stack_depth -= 1; break;
+            case EQD:       stack_depth -= 1; break;
+            case NED:       stack_depth -= 1; break;
+            case EQP:       stack_depth -= 1; break;
+            case NEP:       stack_depth -= 1; break;
+            case ANDB:      stack_depth -= 1; break;
+            case ORB:       stack_depth -= 1; break;
+            case NOTB:      break;
+            case INDEXAR:   stack_depth -= 1; break;
+            case INDEXAW:   stack_depth -= 1; break;
+            case INDEXAV:   stack_depth -= 1; break;
+            case INDEXAN:   stack_depth -= 1; break;
+            case INDEXDR:   stack_depth -= 1; break;
+            case INDEXDW:   stack_depth -= 1; break;
+            case INDEXDV:   stack_depth -= 1; break;
+            case INA:       stack_depth -= 1; break;
+            case IND:       stack_depth -= 1; break;
+            case CALLP:     break;
+            case CALLF:     break;
+            case CALLMF:    break;
+            case CALLI:     break;
+            case JUMP:      break;
+            case JF:        stack_depth -= 1; break;
+            case JT:        stack_depth -= 1; break;
+            case JFCHAIN:   stack_depth -= 1; break;
+            case DUP:       stack_depth += 1; break;
+            case DUPX1:     stack_depth += 1; break;
+            case DROP:      stack_depth -= 1; break;
+            case RET:       break;
+            case CALLE:     break;
+            case CONSA:     break;
+            case CONSD:     break;
+            case EXCEPT:    stack_depth = -1; break;
+            case ALLOC:     stack_depth += 1; break;
+            case PUSHNIL:   stack_depth += 1; break;
+            case JNASSERT:  break;
+            case RESETC:    stack_depth -= 1; break;
+            case PUSHPEG:   stack_depth += 1; break;
+            case JUMPTBL:   stack_depth -= 1; in_jumptbl = true; break;
+            case CALLX:     break;
+            case SWAP:      break;
+            case DROPN:     break;
+            case PUSHM:     stack_depth += 1; break;
+            case CALLV:     break;
+            case PUSHCI:    stack_depth += 1; break;
+        }
+    }
 }
 
 void Emitter::emit_uint32(uint32_t value)
@@ -104,20 +236,26 @@ void Emitter::emit_uint32(uint32_t value)
     Bytecode::put_vint(object.code, value);
 }
 
-void Emitter::emit(unsigned char b, uint32_t value)
+void Emitter::emit(Opcode b, uint32_t value)
 {
     emit(b);
     emit_uint32(value);
+    switch (b) {
+        case CONSA:     stack_depth -= value - 1; break;
+        case CONSD:     stack_depth -= 2*value - 1; break;
+        case DROPN:     stack_depth -= value - 1; break;
+        default:        break;
+    }
 }
 
-void Emitter::emit(unsigned char b, uint32_t value, uint32_t value2)
+void Emitter::emit(Opcode b, uint32_t value, uint32_t value2)
 {
     emit(b);
     emit_uint32(value);
     emit_uint32(value2);
 }
 
-void Emitter::emit(unsigned char b, uint32_t value, uint32_t value2, uint32_t value3)
+void Emitter::emit(Opcode b, uint32_t value, uint32_t value2, uint32_t value3)
 {
     emit(b);
     emit_uint32(value);
@@ -125,7 +263,7 @@ void Emitter::emit(unsigned char b, uint32_t value, uint32_t value2, uint32_t va
     emit_uint32(value3);
 }
 
-void Emitter::emit(unsigned char b, const Number &value)
+void Emitter::emit(Opcode b, const Number &value)
 {
     emit(b, str(number_to_string(value)));
 }
@@ -140,7 +278,7 @@ std::vector<unsigned char> Emitter::getObject()
     object.source_hash = source_hash;
     object.global_size = globals.size();
     for (auto f: functions) {
-        object.functions.push_back(Bytecode::FunctionInfo(str(f.first), f.second.get_target()));
+        object.functions.push_back(Bytecode::FunctionInfo(str(f.name), f.nest, f.params, f.locals, f.entry_label.get_target()));
     }
     for (auto c: classes) {
         Bytecode::ClassInfo ci;
@@ -148,7 +286,7 @@ std::vector<unsigned char> Emitter::getObject()
         for (auto i: c.second) {
             std::vector<unsigned int> a;
             for (auto m: i) {
-                a.push_back(m->get_target());
+                a.push_back(m);
             }
             ci.interfaces.push_back(a);
         }
@@ -185,13 +323,13 @@ unsigned int Emitter::current_ip()
 unsigned int Emitter::next_function(const std::string &name)
 {
     auto i = functions.size();
-    functions.push_back(std::make_pair(name, create_label()));
+    functions.push_back(FunctionInfo(name, create_label()));
     return static_cast<unsigned int>(i);
 }
 
-Emitter::Label &Emitter::function_label(int index)
+Emitter::FunctionInfo &Emitter::function_info(int index)
 {
-    return functions[index].second;
+    return functions[index];
 }
 
 Emitter::Label Emitter::create_label()
@@ -199,19 +337,34 @@ Emitter::Label Emitter::create_label()
     return Label();
 }
 
-void Emitter::emit_jump(unsigned char b, Label &label)
+void Emitter::emit_jump(Opcode b, Label &label)
 {
     emit(b);
+    label.reachable = true;
     if (label.target != UINT_MAX) {
         emit_uint32(label.target);
     } else {
         label.fixups.push_back(static_cast<unsigned int>(object.code.size()));
         // Leave room enough for 32 bit values.
-        emit(0);
-        emit(0);
-        emit(0);
-        emit(0);
-        emit(0);
+        emit_byte(0);
+        emit_byte(0);
+        emit_byte(0);
+        emit_byte(0);
+        emit_byte(0);
+    }
+    // Do not attempt to adjust the stack depth when calling an in-module function.
+    if (b != CALLF && b != PUSHI) {
+        if (stack_depth >= 0) {
+            if (label.target_stack_depth < 0) {
+                label.target_stack_depth = stack_depth;
+            }
+            if (label.target_stack_depth != stack_depth) {
+                internal_error("emit_jump: target_stack_depth mismatch, ip=" + std::to_string(object.code.size()) + ", expected=" + std::to_string(label.target_stack_depth) + ", current=" + std::to_string(stack_depth));
+            }
+        }
+    }
+    if ((b == JUMP && not in_jumptbl) || b == RET || b == EXCEPT) {
+        stack_depth = -1;
     }
 }
 
@@ -224,6 +377,14 @@ void Emitter::jump_target(Label &label)
         Bytecode::put_vint(target, label.target, 5);
         assert(target.size() == 5); // Matches the amount reserved in emit_jump.
         std::copy(target.begin(), target.end(), object.code.begin() + offset);
+    }
+    if (label.target_stack_depth < 0) {
+        label.target_stack_depth = stack_depth;
+    } else {
+        stack_depth = label.target_stack_depth;
+    }
+    if (label.target_stack_depth != stack_depth) {
+        internal_error("jump_target: target_stack_depth mismatch, ip=" + std::to_string(object.code.size()) + ", expected=" + std::to_string(label.target_stack_depth) + ", current=" + std::to_string(stack_depth));
     }
 }
 
@@ -327,12 +488,12 @@ void Emitter::add_export_variable(const std::string &name, const std::string &ty
     object.export_variables.push_back(variable);
 }
 
-void Emitter::add_export_function(const std::string &name, const std::string &type, int entry)
+void Emitter::add_export_function(const std::string &name, const std::string &type, int index)
 {
     Bytecode::Function function;
     function.name = str(name);
     function.descriptor = str(type);
-    function.entry = entry;
+    function.index = index;
     object.export_functions.push_back(function);
 }
 
@@ -410,7 +571,7 @@ void ast::Type::generate_export(Emitter &emitter, const std::string &export_name
         if (f == nullptr) {
             internal_error("method should be function: " + this->name + "." + m.second->name + " " + m.second->text());
         }
-        emitter.add_export_function(export_name + "." + m.first, f->type->get_type_descriptor(emitter), emitter.function_label(f->entry_label).get_target());
+        emitter.add_export_function(export_name + "." + m.first, f->type->get_type_descriptor(emitter), f->function_index);
     }
 }
 
@@ -429,13 +590,6 @@ void ast::TypeBoolean::generate_call(Emitter &) const
     internal_error("TypeBoolean");
 }
 
-void ast::TypeBoolean::generate_convert(Emitter &emitter, const Type *from) const
-{
-    if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__getBoolean"));
-    }
-}
-
 void ast::TypeNumber::generate_load(Emitter &emitter) const
 {
     emitter.emit(LOADN);
@@ -449,13 +603,6 @@ void ast::TypeNumber::generate_store(Emitter &emitter) const
 void ast::TypeNumber::generate_call(Emitter &) const
 {
     internal_error("TypeNumber");
-}
-
-void ast::TypeNumber::generate_convert(Emitter &emitter, const Type *from) const
-{
-    if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__getNumber"));
-    }
 }
 
 void ast::TypeString::generate_load(Emitter &emitter) const
@@ -473,33 +620,19 @@ void ast::TypeString::generate_call(Emitter &) const
     internal_error("TypeString");
 }
 
-void ast::TypeString::generate_convert(Emitter &emitter, const Type *from) const
-{
-    if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__getString"));
-    }
-}
-
 void ast::TypeBytes::generate_load(Emitter &emitter) const
 {
-    emitter.emit(LOADT);
+    emitter.emit(LOADY);
 }
 
 void ast::TypeBytes::generate_store(Emitter &emitter) const
 {
-    emitter.emit(STORET);
+    emitter.emit(STOREY);
 }
 
 void ast::TypeBytes::generate_call(Emitter &) const
 {
     internal_error("TypeBytes");
-}
-
-void ast::TypeBytes::generate_convert(Emitter &emitter, const Type *from) const
-{
-    if (from == TYPE_OBJECT) {
-        emitter.emit(CALLP, emitter.str("object__getBytes"));
-    }
 }
 
 void ast::TypeObject::generate_load(Emitter &emitter) const
@@ -515,36 +648,6 @@ void ast::TypeObject::generate_store(Emitter &emitter) const
 void ast::TypeObject::generate_call(Emitter &) const
 {
     internal_error("TypeObject");
-}
-
-void ast::TypeObject::generate_convert(Emitter &emitter, const Type *from) const
-{
-    if (from == TYPE_OBJECT || from == nullptr) {
-        return;
-    } else if (from == TYPE_BOOLEAN) {
-        emitter.emit(CALLP, emitter.str("object__makeBoolean"));
-    } else if (from == TYPE_NUMBER) {
-        emitter.emit(CALLP, emitter.str("object__makeNumber"));
-    } else if (from == TYPE_STRING) {
-        emitter.emit(CALLP, emitter.str("object__makeString"));
-    } else if (from == TYPE_BYTES) {
-        emitter.emit(CALLP, emitter.str("object__makeBytes"));
-    } else if (dynamic_cast<const TypePointerNil *>(from) != nullptr) {
-        emitter.emit(DROP);
-        emitter.emit(CALLP, emitter.str("object__makeNull"));
-    } else {
-        const TypeArray *atype = dynamic_cast<const TypeArray *>(from);
-        const TypeDictionary *dtype = dynamic_cast<const TypeDictionary *>(from);
-        if (atype != nullptr) {
-            TYPE_ARRAY_OBJECT->generate_convert(emitter, from);
-            emitter.emit(CALLP, emitter.str("object__makeArray"));
-        } else if (dtype != nullptr) {
-            TYPE_DICTIONARY_OBJECT->generate_convert(emitter, from);
-            emitter.emit(CALLP, emitter.str("object__makeDictionary"));
-        } else {
-            internal_error("Unknown type conversion s to Object");
-        }
-    }
 }
 
 void ast::TypeFunction::predeclare(Emitter &emitter) const
@@ -613,35 +716,6 @@ void ast::TypeArray::generate_call(Emitter &) const
     internal_error("TypeArray");
 }
 
-void ast::TypeArray::generate_convert(Emitter &emitter, const Type *from) const
-{
-    const TypeArray *a = dynamic_cast<const TypeArray *>(from);
-    if (from == TYPE_OBJECT || (a != nullptr && a->elementtype == TYPE_OBJECT)) {
-        if (from == TYPE_OBJECT) {
-            emitter.emit(CALLP, emitter.str("object__getArray"));
-        }
-        if (elementtype != TYPE_OBJECT) {
-            auto iter_label = emitter.create_label();
-            emitter.emit_jump(MAPA, iter_label);
-            elementtype->generate_convert(emitter, TYPE_OBJECT);
-            emitter.emit(RET);
-            emitter.jump_target(iter_label);
-        }
-        return;
-    }
-    if (elementtype == ast::TYPE_OBJECT && a->elementtype != TYPE_OBJECT) {
-        auto iter_label = emitter.create_label();
-        emitter.emit_jump(MAPA, iter_label);
-        elementtype->generate_convert(emitter, a->elementtype);
-        emitter.emit(RET);
-        emitter.jump_target(iter_label);
-        return;
-    }
-    if (a->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
-        internal_error("TODO: conversion of array type from " + from->text() + " to " + text());
-    }
-}
-
 std::string ast::TypeArray::get_type_descriptor(Emitter &emitter) const
 {
     return "A<" + emitter.get_type_reference(elementtype) + ">";
@@ -675,34 +749,6 @@ void ast::TypeDictionary::generate_store(Emitter &emitter) const
 void ast::TypeDictionary::generate_call(Emitter &) const
 {
     internal_error("TypeDictionary");
-}
-
-void ast::TypeDictionary::generate_convert(Emitter &emitter, const Type *from) const
-{
-    const TypeDictionary *d = dynamic_cast<const TypeDictionary *>(from);
-    if (from == TYPE_OBJECT || (d != nullptr && d->elementtype == TYPE_OBJECT)) {
-        if (from == TYPE_OBJECT) {
-            emitter.emit(CALLP, emitter.str("object__getDictionary"));
-        }
-        if (elementtype != TYPE_OBJECT) {
-            auto iter_label = emitter.create_label();
-            emitter.emit_jump(MAPD, iter_label);
-            elementtype->generate_convert(emitter, TYPE_OBJECT);
-            emitter.emit(RET);
-            emitter.jump_target(iter_label);
-        }
-        return;
-    }
-    if (elementtype == ast::TYPE_OBJECT && d->elementtype != TYPE_OBJECT) {
-        auto iter_label = emitter.create_label();
-        emitter.emit_jump(MAPD, iter_label);
-        elementtype->generate_convert(emitter, d->elementtype);
-        emitter.emit(RET);
-        emitter.jump_target(iter_label);
-    }
-    if (d->elementtype == ast::TYPE_OBJECT && elementtype != ast::TYPE_OBJECT) {
-        internal_error("TODO: conversion of dictionary type from " + from->text() + " to " + text());
-    }
 }
 
 std::string ast::TypeDictionary::get_type_descriptor(Emitter &emitter) const
@@ -815,14 +861,6 @@ void ast::TypePointer::generate_call(Emitter &) const
     internal_error("TypePointer");
 }
 
-void ast::TypePointer::generate_convert(Emitter &emitter, const Type *from) const
-{
-    if (dynamic_cast<const ast::TypeInterfacePointer *>(from) != nullptr) {
-        emitter.emit(PUSHI, 0);
-        emitter.emit(INDEXAV);
-    }
-}
-
 std::string ast::TypePointer::get_type_descriptor(Emitter &emitter) const
 {
     return "P<" + (reftype != nullptr ? emitter.get_type_reference(reftype) : "") + ">";
@@ -848,25 +886,6 @@ void ast::TypeInterfacePointer::generate_store(Emitter &emitter) const
 void ast::TypeInterfacePointer::generate_call(Emitter &) const
 {
     internal_error("TypeInterfacePointer");
-}
-
-void ast::TypeInterfacePointer::generate_convert(Emitter &emitter, const Type *from) const
-{
-    const ast::TypePointer *ptype = dynamic_cast<const ast::TypePointer *>(from);
-    if (ptype != nullptr) {
-        const ast::TypeClass *ctype = ptype->reftype;
-        size_t i = 0;
-        while (i < ctype->interfaces.size()) {
-            if (interface == ctype->interfaces[i]) {
-                break;
-            }
-            i++;
-        }
-        assert(i < ctype->interfaces.size());
-        emitter.emit(PUSHI, static_cast<uint32_t>(i));
-        emitter.emit(SWAP);
-        emitter.emit(CONSA, 2);
-    }
 }
 
 std::string ast::TypeInterfacePointer::get_type_descriptor(Emitter &) const
@@ -895,6 +914,7 @@ void ast::TypeFunctionPointer::generate_store(Emitter &emitter) const
 void ast::TypeFunctionPointer::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLI);
+    emitter.adjust_stack_depth(functype->get_stack_delta() - 1);
 }
 
 std::string ast::TypeFunctionPointer::get_type_descriptor(Emitter &emitter) const
@@ -906,14 +926,6 @@ void ast::TypeFunctionPointer::get_type_references(std::set<const Type *> &refer
 {
     if (references.insert(functype).second) {
         functype->get_type_references(references);
-    }
-}
-
-void ast::TypeInterface::generate_convert(Emitter &emitter, const Type *from) const
-{
-    if (dynamic_cast<const ast::TypeInterfacePointer *>(from) != nullptr) {
-        emitter.emit(PUSHI, 0);
-        emitter.emit(INDEXAV);
     }
 }
 
@@ -1058,17 +1070,42 @@ void ast::Function::predeclare(Emitter &emitter) const
     // TODO: This hack ensures that we only allocate the
     // entry label once, even if predeclare() is called
     // more than once.
-    if (entry_label == UINT_MAX) {
-        entry_label = emitter.next_function(name);
+    if (function_index == UINT_MAX) {
+        function_index = emitter.next_function(name);
     }
+}
+
+static int count_in_parameters(const std::vector<ast::FunctionParameter *> &params)
+{
+    int r = 0;
+    for (auto p: params) {
+        if (p->mode == ast::ParameterType::Mode::IN || p->mode == ast::ParameterType::Mode::INOUT) {
+            r++;
+        }
+    }
+    return r;
+}
+
+static int count_out_parameters(const std::vector<ast::FunctionParameter *> &params)
+{
+    int r = 0;
+    for (auto p: params) {
+        if (p->mode == ast::ParameterType::Mode::OUT) {
+            r++;
+        }
+    }
+    return r;
 }
 
 void ast::Function::postdeclare(Emitter &emitter) const
 {
     emitter.debug_line(declaration.line);
-    emitter.jump_target(emitter.function_label(entry_label));
+    emitter.jump_target(emitter.function_info(function_index).entry_label);
     emitter.set_current_function_depth(nesting_depth);
-    emitter.emit(ENTER, static_cast<uint32_t>(nesting_depth), static_cast<uint32_t>(frame->getCount()));
+    emitter.set_stack_depth(count_in_parameters(params));
+    emitter.function_info(function_index).nest = static_cast<int>(nesting_depth);
+    emitter.function_info(function_index).params = count_in_parameters(params);
+    emitter.function_info(function_index).locals = static_cast<int>(frame->getCount());
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
             case ParameterType::Mode::IN:
@@ -1101,8 +1138,16 @@ void ast::Function::postdeclare(Emitter &emitter) const
                 break;
         }
     }
-    emitter.emit(LEAVE);
     emitter.emit(RET);
+    if (exit.is_reachable() && emitter.get_stack_depth() >= 0) {
+        if (dynamic_cast<const TypeFunction *>(type)->returntype != TYPE_NOTHING) {
+            emitter.adjust_stack_depth(-1);
+        }
+        emitter.adjust_stack_depth(-count_out_parameters(params));
+        if (emitter.get_stack_depth() != 0) {
+            internal_error("ip=" + std::to_string(emitter.current_ip()) + " function end stack_depth " + std::to_string(emitter.get_stack_depth()));
+        }
+    }
     frame->postdeclare(emitter);
 
     auto dot = name.find('.');
@@ -1114,7 +1159,7 @@ void ast::Function::postdeclare(Emitter &emitter) const
                 for (size_t i = 0; i < c.first->interfaces.size(); i++) {
                     for (size_t m = 0; m < c.first->interfaces[i]->methods.size(); m++) {
                         if (c.first->interfaces[i]->methods[m].first.text == methodname) {
-                            c.second[i][m] = &emitter.function_label(entry_label);
+                            c.second[i][m] = function_index;
                         }
                     }
                 }
@@ -1127,19 +1172,20 @@ void ast::Function::postdeclare(Emitter &emitter) const
 void ast::Function::generate_load(Emitter &emitter) const
 {
     // Get the address of a function for function pointer support.
-    emitter.emit_jump(PUSHI, emitter.function_label(entry_label));
+    emitter.emit(PUSHI, function_index);
     emitter.emit(PUSHM);
     emitter.emit(CONSA, 2);
 }
 
 void ast::Function::generate_call(Emitter &emitter) const
 {
-    emitter.emit_jump(CALLF, emitter.function_label(entry_label));
+    emitter.emit(CALLF, function_index);
+    emitter.adjust_stack_depth(get_stack_delta());
 }
 
 void ast::Function::generate_export(Emitter &emitter, const std::string &export_name) const
 {
-    emitter.add_export_function(export_name, type->get_type_descriptor(emitter), emitter.function_label(entry_label).get_target());
+    emitter.add_export_function(export_name, type->get_type_descriptor(emitter), function_index);
 }
 
 void ast::PredefinedFunction::predeclare(Emitter &emitter) const
@@ -1159,11 +1205,13 @@ void ast::PredefinedFunction::generate_call(Emitter &emitter) const
         i = emitter.predefined_name_index.find(this);
     }
     emitter.emit(CALLP, i->second);
+    emitter.adjust_stack_depth(get_stack_delta());
 }
 
 void ast::ExtensionFunction::postdeclare(Emitter &emitter) const
 {
-    emitter.jump_target(emitter.function_label(entry_label));
+    emitter.jump_target(emitter.function_info(function_index).entry_label);
+    emitter.set_stack_depth(count_in_parameters(params));
     generate_call(emitter);
     emitter.emit(RET);
     frame->postdeclare(emitter);
@@ -1171,8 +1219,8 @@ void ast::ExtensionFunction::postdeclare(Emitter &emitter) const
 
 void ast::ExtensionFunction::generate_call(Emitter &emitter) const
 {
-    uint32_t in_param_count = 0;
-    uint32_t out_param_count = 0;
+    int in_param_count = 0;
+    int out_param_count = 0;
     for (auto p: params) {
         switch (p->mode) {
             case ParameterType::Mode::IN:
@@ -1189,6 +1237,7 @@ void ast::ExtensionFunction::generate_call(Emitter &emitter) const
     }
     emitter.emit(CONSA, static_cast<uint32_t>(in_param_count));
     emitter.emit(CALLX, emitter.str(module), emitter.str(name), out_param_count);
+    emitter.adjust_stack_depth(out_param_count);
     if (dynamic_cast<const TypeFunction *>(type)->returntype == TYPE_NOTHING) {
         emitter.emit(DROPN, out_param_count);
     }
@@ -1202,6 +1251,7 @@ void ast::ModuleFunction::predeclare(Emitter &emitter) const
 void ast::ModuleFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLMF, emitter.str(module), emitter.str(name + "," + descriptor));
+    emitter.adjust_stack_depth(get_stack_delta());
 }
 
 void ast::ForeignFunction::predeclare(Emitter &emitter) const
@@ -1230,7 +1280,7 @@ void ast::ForeignFunction::predeclare(Emitter &emitter) const
 
 void ast::ForeignFunction::postdeclare(Emitter &emitter) const
 {
-    emitter.jump_target(emitter.function_label(entry_label));
+    emitter.jump_target(emitter.function_info(function_index).entry_label);
     generate_call(emitter);
     emitter.emit(RET);
     frame->postdeclare(emitter);
@@ -1239,6 +1289,7 @@ void ast::ForeignFunction::postdeclare(Emitter &emitter) const
 void ast::ForeignFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLE, foreign_index);
+    emitter.adjust_stack_depth(get_stack_delta());
 }
 
 void ast::Exception::generate_export(Emitter &emitter, const std::string &export_name) const
@@ -1263,21 +1314,18 @@ void ast::Constant::generate_export(Emitter &emitter, const std::string &export_
     emitter.add_export_constant(export_name, emitter.get_type_reference(type), type->serialize(value));
 }
 
-void ast::Expression::generate(Emitter &emitter, const Type *target_type) const
+void ast::Expression::generate(Emitter &emitter) const
 {
     if (type != nullptr) {
         type->predeclare(emitter);
     }
     generate_expr(emitter);
-    if (target_type != nullptr) {
-        target_type->generate_convert(emitter, type);
-    }
 }
 
 void ast::ConstantBooleanExpression::generate_expr(Emitter &emitter) const
 {
     emitter.emit(PUSHB);
-    emitter.emit(value ? 1 : 0);
+    emitter.emit_byte(value ? 1 : 0);
 }
 
 void ast::ConstantNumberExpression::generate_expr(Emitter &emitter) const
@@ -1294,7 +1342,7 @@ void ast::ConstantStringExpression::generate_expr(Emitter &emitter) const
 void ast::ConstantBytesExpression::generate_expr(Emitter &emitter) const
 {
     unsigned int index = emitter.str(contents);
-    emitter.emit(PUSHT, index);
+    emitter.emit(PUSHY, index);
 }
 
 void ast::ConstantEnumExpression::generate_expr(Emitter &emitter) const
@@ -1316,13 +1364,13 @@ void ast::ConstantNowhereExpression::generate_expr(Emitter &emitter) const
 
 void ast::TypeConversionExpression::generate_expr(Emitter &emitter) const
 {
-    expr->generate(emitter, type);
+    expr->generate(emitter);
 }
 
 void ast::ArrayLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto e = elements.rbegin(); e != elements.rend(); ++e) {
-        (*e)->generate(emitter, elementtype);
+        (*e)->generate(emitter);
     }
     emitter.emit(CONSA, static_cast<uint32_t>(elements.size()));
 }
@@ -1331,7 +1379,7 @@ void ast::DictionaryLiteralExpression::generate_expr(Emitter &emitter) const
 {
     for (auto d = dict.rbegin(); d != dict.rend(); ++d) {
         emitter.emit(PUSHS, emitter.str(d->first));
-        d->second->generate(emitter, elementtype);
+        d->second->generate(emitter);
     }
     emitter.emit(CONSD, static_cast<uint32_t>(dict.size()));
 }
@@ -1341,7 +1389,7 @@ void ast::RecordLiteralExpression::generate_expr(Emitter &emitter) const
     auto f = dynamic_cast<const ast::TypeRecord *>(type)->fields.rbegin();
     for (auto v = values.rbegin(); v != values.rend(); ++v) {
         assert(f != dynamic_cast<const ast::TypeRecord *>(type)->fields.rend());
-        (*v)->generate(emitter, f->type);
+        (*v)->generate(emitter);
         f++;
     }
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
@@ -1349,9 +1397,8 @@ void ast::RecordLiteralExpression::generate_expr(Emitter &emitter) const
 
 void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
 {
-    auto t = dynamic_cast<const ast::TypeClass *>(type);
     for (size_t i = values.size()-1; i > 0; i--) {
-        values[i]->generate(emitter, t->fields[i].type);
+        values[i]->generate(emitter);
     }
     emitter.emit(PUSHCI, emitter.str(type->name));
     emitter.emit(CONSA, static_cast<uint32_t>(values.size()));
@@ -1360,7 +1407,7 @@ void ast::ClassLiteralExpression::generate_expr(Emitter &emitter) const
 void ast::NewClassExpression::generate_expr(Emitter &emitter) const
 {
     if (value != nullptr) {
-        value->generate(emitter, value->type);
+        value->generate(emitter);
     }
     emitter.emit(ALLOC, static_cast<uint32_t>(reftype->fields.size()));
     if (value != nullptr) {
@@ -1371,41 +1418,45 @@ void ast::NewClassExpression::generate_expr(Emitter &emitter) const
 
 void ast::UnaryMinusExpression::generate_expr(Emitter &emitter) const
 {
-    value->generate(emitter, TYPE_NUMBER);
+    value->generate(emitter);
     emitter.emit(NEGN);
 }
 
 void ast::LogicalNotExpression::generate_expr(Emitter &emitter) const
 {
-    value->generate(emitter, TYPE_BOOLEAN);
+    value->generate(emitter);
     emitter.emit(NOTB);
 }
 
 void ast::ConditionalExpression::generate_expr(Emitter &emitter) const
 {
-    condition->generate(emitter, TYPE_BOOLEAN);
+    condition->generate(emitter);
     auto else_label = emitter.create_label();
     emitter.emit_jump(JF, else_label);
-    left->generate(emitter, nullptr);
+    left->generate(emitter);
     auto end_label = emitter.create_label();
     emitter.emit_jump(JUMP, end_label);
     emitter.jump_target(else_label);
-    right->generate(emitter, nullptr);
+    right->generate(emitter);
     emitter.jump_target(end_label);
 }
 
 void ast::TryExpression::generate_expr(Emitter &emitter) const
 {
+    int start_stack_depth = emitter.get_stack_depth();
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();
-    expr->generate(emitter, nullptr);
+    expr->generate(emitter);
     auto skip = emitter.create_label();
     emitter.emit_jump(JUMP, skip);
     ei.end = emitter.current_ip();
     for (auto &c: catches) {
+        // Exception handling pushes the exception info onto the stack here.
+        emitter.set_stack_depth(start_stack_depth + 1);
         for (auto e: c.exceptions) {
             ei.excid = emitter.str(e->name);
             ei.handler = emitter.current_ip();
+            ei.stack_depth = start_stack_depth;
             emitter.add_exception(ei);
         }
         if (c.name != nullptr) {
@@ -1421,7 +1472,7 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
                 stmt->generate(emitter);
             }
         } else if (e != nullptr) {
-            e->generate(emitter, nullptr);
+            e->generate(emitter);
         } else {
             internal_error("unexpected catch type");
         }
@@ -1432,33 +1483,33 @@ void ast::TryExpression::generate_expr(Emitter &emitter) const
 
 void ast::DisjunctionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_BOOLEAN);
+    left->generate(emitter);
     emitter.emit(DUP);
     auto true_label = emitter.create_label();
     emitter.emit_jump(JT, true_label);
     emitter.emit(DROP);
-    right->generate(emitter, TYPE_BOOLEAN);
+    right->generate(emitter);
     emitter.jump_target(true_label);
 }
 
 void ast::ConjunctionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_BOOLEAN);
+    left->generate(emitter);
     emitter.emit(DUP);
     auto false_label = emitter.create_label();
     emitter.emit_jump(JF, false_label);
     emitter.emit(DROP);
-    right->generate(emitter, TYPE_BOOLEAN);
+    right->generate(emitter);
     emitter.jump_target(false_label);
 }
 
 void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
 {
-    assert(left->type == TYPE_OBJECT);
-    left->generate(emitter, TYPE_OBJECT);
+    assert(expr_before_conversion->type == TYPE_OBJECT);
+    int start_stack_depth = emitter.get_stack_depth();
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();
-    target->generate_convert(emitter, left->type);
+    expr_after_conversion->generate(emitter);
     emitter.emit(DROP);
     emitter.emit(PUSHB, 1);
     auto skip = emitter.create_label();
@@ -1466,7 +1517,9 @@ void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
     ei.end = emitter.current_ip();
     ei.excid = emitter.str("DynamicConversionException");
     ei.handler = emitter.current_ip();
+    ei.stack_depth = start_stack_depth;
     emitter.add_exception(ei);
+    emitter.set_stack_depth(start_stack_depth + 1);
     emitter.emit(DROP);
     emitter.emit(PUSHB, 0);
     emitter.jump_target(skip);
@@ -1474,33 +1527,33 @@ void ast::TypeTestExpression::generate_expr(Emitter &emitter) const
 
 void ast::ArrayInExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_NUMBER);
-    right->generate(emitter, right->type);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(INA);
 }
 
 void ast::DictionaryInExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_STRING);
-    right->generate(emitter, right->type);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(IND);
 }
 
 void ast::ComparisonExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, operand_type);
-    right->generate(emitter, operand_type);
+    left->generate(emitter);
+    right->generate(emitter);
     generate_comparison_opcode(emitter);
 }
 
 void ast::ChainedComparisonExpression::generate_expr(Emitter &emitter) const
 {
-    comps[0]->left->generate(emitter, nullptr);
+    comps[0]->left->generate(emitter);
     auto skip_label = emitter.create_label();
     size_t i = 0;
     for (auto c: comps) {
         bool last = i == comps.size() - 1;
-        c->right->generate(emitter, nullptr);
+        c->right->generate(emitter);
         if (not last) {
             emitter.emit(DUPX1);
         }
@@ -1562,12 +1615,12 @@ void ast::StringComparisonExpression::generate_comparison_opcode(Emitter &emitte
 void ast::BytesComparisonExpression::generate_comparison_opcode(Emitter &emitter) const
 {
     switch (comp) {
-        case Comparison::EQ: emitter.emit(EQT); break;
-        case Comparison::NE: emitter.emit(NET); break;
-        case Comparison::LT: emitter.emit(LTT); break;
-        case Comparison::GT: emitter.emit(GTT); break;
-        case Comparison::LE: emitter.emit(LET); break;
-        case Comparison::GE: emitter.emit(GET); break;
+        case Comparison::EQ: emitter.emit(EQY); break;
+        case Comparison::NE: emitter.emit(NEY); break;
+        case Comparison::LT: emitter.emit(LTY); break;
+        case Comparison::GT: emitter.emit(GTY); break;
+        case Comparison::LE: emitter.emit(LEY); break;
+        case Comparison::GE: emitter.emit(GEY); break;
     }
 }
 
@@ -1623,53 +1676,53 @@ void ast::FunctionPointerComparisonExpression::generate_comparison_opcode(Emitte
 
 void ast::ValidPointerExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, nullptr);
+    left->generate(emitter);
     emitter.emit(DUP);
     var->generate_address(emitter);
     var->generate_store(emitter);
-    right->generate(emitter, nullptr);
+    right->generate(emitter);
     emitter.emit(NEP);
 }
 
 void ast::AdditionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_NUMBER);
-    right->generate(emitter, TYPE_NUMBER);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(ADDN);
 }
 
 void ast::SubtractionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_NUMBER);
-    right->generate(emitter, TYPE_NUMBER);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(SUBN);
 }
 
 void ast::MultiplicationExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_NUMBER);
-    right->generate(emitter, TYPE_NUMBER);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(MULN);
 }
 
 void ast::DivisionExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_NUMBER);
-    right->generate(emitter, TYPE_NUMBER);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(DIVN);
 }
 
 void ast::ModuloExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_NUMBER);
-    right->generate(emitter, TYPE_NUMBER);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(MODN);
 }
 
 void ast::ExponentiationExpression::generate_expr(Emitter &emitter) const
 {
-    left->generate(emitter, TYPE_NUMBER);
-    right->generate(emitter, TYPE_NUMBER);
+    left->generate(emitter);
+    right->generate(emitter);
     emitter.emit(EXPN);
 }
 
@@ -1693,7 +1746,7 @@ void ast::DummyExpression::generate_store(Emitter &emitter) const
 void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
     array->generate_address_read(emitter);
-    index->generate(emitter, TYPE_NUMBER);
+    index->generate(emitter);
     if (always_create) {
         emitter.emit(INDEXAW);
     } else {
@@ -1704,14 +1757,14 @@ void ast::ArrayReferenceIndexExpression::generate_address_read(Emitter &emitter)
 void ast::ArrayReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
     array->generate_address_write(emitter);
-    index->generate(emitter, TYPE_NUMBER);
+    index->generate(emitter);
     emitter.emit(INDEXAW);
 }
 
 void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    array->generate(emitter, nullptr);
-    index->generate(emitter, TYPE_NUMBER);
+    array->generate(emitter);
+    index->generate(emitter);
     if (always_create) {
         emitter.emit(INDEXAN);
     } else {
@@ -1722,61 +1775,62 @@ void ast::ArrayValueIndexExpression::generate_expr(Emitter &emitter) const
 void ast::DictionaryReferenceIndexExpression::generate_address_read(Emitter &emitter) const
 {
     dictionary->generate_address_read(emitter);
-    index->generate(emitter, TYPE_STRING);
+    index->generate(emitter);
     emitter.emit(INDEXDR);
 }
 
 void ast::DictionaryReferenceIndexExpression::generate_address_write(Emitter &emitter) const
 {
     dictionary->generate_address_write(emitter);
-    index->generate(emitter, TYPE_STRING);
+    index->generate(emitter);
     emitter.emit(INDEXDW);
 }
 
 void ast::DictionaryValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    dictionary->generate(emitter, nullptr);
-    index->generate(emitter, TYPE_STRING);
+    dictionary->generate(emitter);
+    index->generate(emitter);
     emitter.emit(INDEXDV);
 }
 
 void ast::StringReferenceIndexExpression::generate_load(Emitter &emitter) const
 {
-    load->generate(emitter, nullptr);
+    load->generate(emitter);
 }
 
 void ast::StringReferenceIndexExpression::generate_store(Emitter &emitter) const
 {
-    store->generate(emitter, nullptr);
+    store->generate(emitter);
     ref->generate_store(emitter);
 }
 
 void ast::StringValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    load->generate(emitter, nullptr);
+    load->generate(emitter);
 }
 
 void ast::BytesReferenceIndexExpression::generate_load(Emitter &emitter) const
 {
-    load->generate(emitter, nullptr);
+    load->generate(emitter);
 }
 
 void ast::BytesReferenceIndexExpression::generate_store(Emitter &emitter) const
 {
-    store->generate(emitter, nullptr);
+    store->generate(emitter);
     ref->generate_store(emitter);
 }
 
 void ast::BytesValueIndexExpression::generate_expr(Emitter &emitter) const
 {
-    load->generate(emitter, nullptr);
+    load->generate(emitter);
 }
 
 void ast::ObjectSubscriptExpression::generate_expr(Emitter &emitter) const
 {
-    obj->generate(emitter, TYPE_OBJECT);
-    index->generate(emitter, TYPE_OBJECT);
+    obj->generate(emitter);
+    index->generate(emitter);
     emitter.emit(CALLP, emitter.str("object__subscript"));
+    emitter.adjust_stack_depth(-1);
 }
 
 void ast::RecordReferenceFieldExpression::generate_address_read(Emitter &emitter) const
@@ -1815,7 +1869,7 @@ void ast::RecordReferenceFieldExpression::generate_address_write(Emitter &emitte
 
 void ast::RecordValueFieldExpression::generate_expr(Emitter &emitter) const
 {
-    rec->generate(emitter, nullptr);
+    rec->generate(emitter);
     const ast::TypeRecord *rectype = dynamic_cast<const ast::TypeRecord *>(rec->type);
     if (rectype == nullptr) {
         internal_error("RecordValueFieldExpression");
@@ -1834,28 +1888,28 @@ void ast::RecordValueFieldExpression::generate_expr(Emitter &emitter) const
 
 void ast::ArrayReferenceRangeExpression::generate_load(Emitter &emitter) const
 {
-    load->generate(emitter, nullptr);
+    load->generate(emitter);
 }
 
 void ast::ArrayReferenceRangeExpression::generate_store(Emitter &emitter) const
 {
-    store->generate(emitter, nullptr);
+    store->generate(emitter);
     ref->generate_store(emitter);
 }
 
 void ast::ArrayValueRangeExpression::generate_expr(Emitter &emitter) const
 {
-    load->generate(emitter, nullptr);
+    load->generate(emitter);
 }
 
 void ast::PointerDereferenceExpression::generate_address_read(Emitter &emitter) const
 {
-    ptr->generate(emitter, type);
+    ptr->generate(emitter);
 }
 
 void ast::PointerDereferenceExpression::generate_address_write(Emitter &emitter) const
 {
-    ptr->generate(emitter, type);
+    ptr->generate(emitter);
 }
 
 void ast::VariableExpression::generate_expr(Emitter &emitter) const
@@ -1867,6 +1921,22 @@ void ast::VariableExpression::generate_expr(Emitter &emitter) const
 void ast::InterfaceMethodExpression::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLV, static_cast<uint32_t>(index));
+    emitter.adjust_stack_depth(functype->get_stack_delta() - 1);
+}
+
+void ast::InterfacePointerConstructor::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    emitter.emit(PUSHI, static_cast<uint32_t>(index));
+    emitter.emit(SWAP);
+    emitter.emit(CONSA, 2);
+}
+
+void ast::InterfacePointerDeconstructor::generate_expr(Emitter &emitter) const
+{
+    expr->generate(emitter);
+    emitter.emit(PUSHI, 0);
+    emitter.emit(INDEXAV);
 }
 
 void ast::FunctionCall::generate_parameters(Emitter &emitter) const
@@ -1898,7 +1968,7 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
         auto arg = args[i];
         switch (param->mode) {
             case ParameterType::Mode::IN:
-                arg->generate(emitter, param->type);
+                arg->generate(emitter);
                 break;
             case ParameterType::Mode::INOUT:
                 dynamic_cast<const ReferenceExpression *>(arg)->generate_address_read(emitter);
@@ -1965,6 +2035,9 @@ bool ast::FunctionCall::all_in_parameters() const
 void ast::StatementExpression::generate_expr(Emitter &emitter) const
 {
     stmt->generate(emitter);
+    if (expr != nullptr) {
+        expr->generate(emitter);
+    }
 }
 
 void ast::Statement::generate(Emitter &emitter) const
@@ -1978,9 +2051,9 @@ void ast::TypeDeclarationStatement::generate_code(Emitter &emitter) const
     // This might better be a virtual function call on Type.
     const ast::TypeClass *type_class = dynamic_cast<const ast::TypeClass *>(type);
     if (type_class != nullptr) {
-        std::vector<std::vector<Emitter::Label *>> ifs;
+        std::vector<std::vector<int>> ifs;
         for (auto i: type_class->interfaces) {
-            ifs.push_back(std::vector<Emitter::Label *>(i->methods.size()));
+            ifs.push_back(std::vector<int>(i->methods.size()));
         }
         emitter.classes.push_back(std::make_pair(type_class, ifs));
     }
@@ -1997,7 +2070,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
 {
     auto skip_label = emitter.create_label();
     emitter.emit_jump(JNASSERT, skip_label);
-    expr->generate(emitter, TYPE_BOOLEAN);
+    expr->generate(emitter);
     emitter.emit_jump(JT, skip_label);
     for (auto stmt: statements) {
         stmt->generate(emitter);
@@ -2011,7 +2084,7 @@ void ast::AssertStatement::generate_code(Emitter &emitter) const
 void ast::AssignmentStatement::generate_code(Emitter &emitter) const
 {
     assert(variables.size() > 0);
-    expr->generate(emitter, variables[0]->type);
+    expr->generate(emitter);
     for (size_t i = 0; i < variables.size() - 1; i++) {
         emitter.emit(DUP);
     }
@@ -2022,17 +2095,17 @@ void ast::AssignmentStatement::generate_code(Emitter &emitter) const
 
 void ast::ExpressionStatement::generate_code(Emitter &emitter) const
 {
-    expr->generate(emitter, nullptr);
+    expr->generate(emitter);
 }
 
 void ast::IncrementStatement::generate_code(Emitter &emitter) const
 {
-    // TODO: This can be improved considerably.
-    ref->generate_address_read(emitter);
+    ref->generate_address_write(emitter);
+    emitter.emit(DUP);
     emitter.emit(LOADN);
     emitter.emit(PUSHN, number_from_sint32(delta));
     emitter.emit(ADDN);
-    ref->generate_address_write(emitter);
+    emitter.emit(SWAP);
     emitter.emit(STOREN);
 }
 
@@ -2042,7 +2115,7 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
     for (auto cs: condition_statements) {
         const Expression *condition = cs.first;
         const std::vector<const Statement *> &statements = cs.second;
-        condition->generate(emitter, TYPE_BOOLEAN);
+        condition->generate(emitter);
         auto else_label = emitter.create_label();
         emitter.emit_jump(JF, else_label);
         for (auto stmt: statements) {
@@ -2059,6 +2132,7 @@ void ast::IfStatement::generate_code(Emitter &emitter) const
 
 void ast::ReturnStatement::generate_code(Emitter &emitter) const
 {
+#if 0 // It doesn't look like tail calls will be possible without separate ENTER/LEAVE opcodes.
     // Check for a possible tail call. We can only do this if all
     // of the following conditions hold:
     //  - The RETURN statement returns only a call to another function
@@ -2071,6 +2145,10 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
     // If possible, then generate the parameters for the next function,
     // emit a LEAVE instruction to discard our frame, and then jump to
     // the entry point for the next function.
+    //
+#if 0
+    // TODO: This currently messes up the stack_depth tracking and is
+    // therefore disabled. The tail-call.neon test file is also skipped.
     const FunctionCall *call = dynamic_cast<const FunctionCall *>(expr);
     if (call != nullptr) {
         if (call->all_in_parameters()) {
@@ -2081,23 +2159,25 @@ void ast::ReturnStatement::generate_code(Emitter &emitter) const
                     if (func->nesting_depth <= emitter.get_function_depth()) {
                         call->generate_parameters(emitter);
                         emitter.emit(LEAVE);
-                        emitter.emit_jump(JUMP, emitter.function_label(func->entry_label));
+                        emitter.emit_jump(JUMP, emitter.function_info(func->function_index).entry_label);
                         return;
                     }
                 }
             }
         }
     }
+#endif
+#endif
 
     if (expr != nullptr) {
-        expr->generate(emitter, nullptr);
+        expr->generate(emitter);
     }
     emitter.emit_jump(JUMP, emitter.get_function_exit());
 }
 
 void ast::CaseStatement::generate_code(Emitter &emitter) const
 {
-    expr->generate(emitter, expr->type);
+    expr->generate(emitter);
     auto end_label = emitter.create_label();
 
     if (dynamic_cast<const TypeNumber *>(expr->type) != nullptr) {
@@ -2192,9 +2272,9 @@ void ast::CaseStatement::generate_code(Emitter &emitter) const
 
 void ast::CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) const
 {
-    static const unsigned char opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
-    static const unsigned char ops[] = {EQS, NES, LTS, GTS, LES, GES};
-    const unsigned char *op;
+    static const Opcode opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    static const Opcode ops[] = {EQS, NES, LTS, GTS, LES, GES};
+    const Opcode *op;
     if (expr->type == TYPE_NUMBER || dynamic_cast<const TypeEnum *>(expr->type) != nullptr) {
         op = opn;
     } else if (expr->type == TYPE_STRING) {
@@ -2204,15 +2284,15 @@ void ast::CaseStatement::ComparisonWhenCondition::generate(Emitter &emitter) con
     }
 
     emitter.emit(DUP);
-    expr->generate(emitter, expr->type);
+    expr->generate(emitter);
     emitter.emit(op[static_cast<int>(comp)]); // Casting enum to int for index.
 }
 
 void ast::CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
 {
-    static const unsigned char opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
-    static const unsigned char ops[] = {EQS, NES, LTS, GTS, LES, GES};
-    const unsigned char *op;
+    static const Opcode opn[] = {EQN, NEN, LTN, GTN, LEN, GEN};
+    static const Opcode ops[] = {EQS, NES, LTS, GTS, LES, GES};
+    const Opcode *op;
     if (low_expr->type == TYPE_NUMBER || dynamic_cast<const TypeEnum *>(low_expr->type) != nullptr) {
         op = opn;
     } else if (low_expr->type == TYPE_STRING) {
@@ -2223,23 +2303,23 @@ void ast::CaseStatement::RangeWhenCondition::generate(Emitter &emitter) const
 
     emitter.emit(DUP);
     auto result_label = emitter.create_label();
-    low_expr->generate(emitter, low_expr->type);
+    low_expr->generate(emitter);
     emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::GE)]);
     emitter.emit(DUP);
     emitter.emit_jump(JF, result_label);
     emitter.emit(DROP);
     emitter.emit(DUP);
-    high_expr->generate(emitter, high_expr->type);
+    high_expr->generate(emitter);
     emitter.emit(op[static_cast<int>(ComparisonExpression::Comparison::LE)]);
     emitter.jump_target(result_label);
 }
 
 void ast::CaseStatement::TypeTestWhenCondition::generate(Emitter &emitter) const
 {
-    emitter.emit(DUP);
+    int start_stack_depth = emitter.get_stack_depth();
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();
-    target->generate_convert(emitter, exprtype);
+    expr->generate(emitter);
     emitter.emit(DROP);
     emitter.emit(PUSHB, 1);
     auto skip = emitter.create_label();
@@ -2247,7 +2327,9 @@ void ast::CaseStatement::TypeTestWhenCondition::generate(Emitter &emitter) const
     ei.end = emitter.current_ip();
     ei.excid = emitter.str("DynamicConversionException");
     ei.handler = emitter.current_ip();
+    ei.stack_depth = start_stack_depth;
     emitter.add_exception(ei);
+    emitter.set_stack_depth(start_stack_depth + 1);
     emitter.emit(DROP);
     emitter.emit(PUSHB, 0);
     emitter.jump_target(skip);
@@ -2287,6 +2369,7 @@ void ast::NextStatement::generate_code(Emitter &emitter) const
 
 void ast::TryStatement::generate_code(Emitter &emitter) const
 {
+    int start_stack_depth = emitter.get_stack_depth();
     Bytecode::ExceptionInfo ei;
     ei.start = emitter.current_ip();
     for (auto stmt: statements) {
@@ -2296,9 +2379,12 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
     emitter.emit_jump(JUMP, skip);
     ei.end = emitter.current_ip();
     for (auto &c: catches) {
+        // Exception handling pushes the exception info onto the stack here.
+        emitter.set_stack_depth(start_stack_depth + 1);
         for (auto e: c.exceptions) {
             ei.excid = emitter.str(e->name);
             ei.handler = emitter.current_ip();
+            ei.stack_depth = start_stack_depth;
             emitter.add_exception(ei);
         }
         if (c.name != nullptr) {
@@ -2322,7 +2408,7 @@ void ast::TryStatement::generate_code(Emitter &emitter) const
 
 void ast::RaiseStatement::generate_code(Emitter &emitter) const
 {
-    info->generate(emitter, info->type);
+    info->generate(emitter);
     unsigned int index = emitter.str(exception->name);
     emitter.emit(EXCEPT, index);
 }
@@ -2425,6 +2511,7 @@ void ast::Program::generate(Emitter &emitter) const
     TYPE_BOOLEAN->predeclare(emitter);
     TYPE_NUMBER->predeclare(emitter);
 
+    emitter.jump_target(emitter.function_info(0).entry_label);
     frame->predeclare(emitter);
     for (auto stmt: statements) {
         stmt->generate(emitter);
@@ -2432,9 +2519,11 @@ void ast::Program::generate(Emitter &emitter) const
     const Function *main = dynamic_cast<const Function *>(scope->lookupName("MAIN"));
     if (main != nullptr) {
         emitter.emit(CALLP, emitter.str("runtime$moduleIsMain"));
+        emitter.adjust_stack_depth(1);
         auto skip = emitter.create_label();
         emitter.emit_jump(JF, skip);
-        emitter.emit_jump(CALLF, emitter.function_label(main->entry_label));
+        emitter.emit(CALLF, main->function_index);
+        emitter.adjust_stack_depth(0);
         emitter.jump_target(skip);
     }
     emitter.emit(RET);
@@ -2616,7 +2705,7 @@ void ast::TypeInterface::debuginfo(Emitter &, minijson::object_writer &out) cons
 
 void ast::Function::debuginfo(Emitter &emitter, minijson::object_writer &out) const
 {
-    out.write("entry", emitter.function_label(entry_label).get_target());
+    out.write("entry", emitter.function_info(function_index).entry_label.get_target());
     auto locals = out.nested_array("locals");
     for (size_t i = 0; i < frame->getCount(); i++) {
         auto slot = frame->getSlot(i);

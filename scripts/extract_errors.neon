@@ -1,0 +1,41 @@
+IMPORT file
+IMPORT io
+IMPORT regex
+IMPORT string
+IMPORT sys
+
+VAR errors: Dictionary<String> := {}
+LET sources: Array<String> := file.files("src")
+FOREACH fn IN sources DO
+    CHECK string.hasSuffix(fn, ".cpp") ELSE
+        NEXT FOREACH
+    END CHECK
+    VAR lines: Array<String> := file.readLines("src/" & fn)
+    VAR enable: Boolean := TRUE
+    FOREACH s IN lines DO
+        IF string.hasPrefix(s, "#if 0") THEN
+            enable := FALSE
+        ELSIF string.hasPrefix(s, "#endif") THEN
+            enable := TRUE
+        ELSIF enable AND (string.find(s, " error(") >= 0 OR string.find(s, " error_a(") >= 0 OR string.find(s, " error2(") >= 0) THEN
+            VAR m: regex.Match
+            IF NOT regex.search("\\berror\\w*\\((\\d+),.*?\"(.*?)\"", s, OUT m) THEN
+                sys.exit(1)
+            END IF
+            LET number: String := m[1].group
+            ASSERT number.length() = 4
+            LET message: String := m[2].group
+            IF number IN errors THEN
+                print("Duplicate error number: \(number)")
+                sys.exit(1)
+            END IF
+            errors[number] := message
+        END IF
+    END FOREACH
+END FOREACH
+
+VAR out: io.File := io.open("src/errors.txt", io.Mode.write)
+FOREACH error IN errors.keys() DO
+    io.fprint(out, "N\(error) \(errors[error])")
+END FOREACH
+io.close(INOUT out)

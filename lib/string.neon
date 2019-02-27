@@ -5,12 +5,15 @@
  |%
 
 EXPORT find
+EXPORT format
 EXPORT hasPrefix
 EXPORT hasSuffix
 EXPORT isBlank
 EXPORT join
 EXPORT lower
 EXPORT repeat
+EXPORT replaceAll
+EXPORT replaceOne
 EXPORT split
 EXPORT splitLines
 EXPORT trim
@@ -25,18 +28,131 @@ EXPORT upper
 DECLARE NATIVE FUNCTION find(s: String, t: String): Number
 
 %|
+ |  Function: format
+ |
+ |  Format a string based on the formatting mini-language.
+ |
+ |  TODO
+ |%
+FUNCTION format(s: String, fmt: String): String
+    VAR fill: String := " "
+    VAR align: String := ""
+    VAR sign: String := ""
+    VAR width: Number := -1
+    VAR thousands: Boolean := FALSE
+    VAR precision: Number := -1
+    VAR type: String := ""
+
+    VAR i: Number := 0
+    IF i < fmt.length() AND fmt[i] IN ["<", ">", "=", "^"] THEN
+        align := fmt[i]
+        INC i
+    END IF
+    IF i < fmt.length() AND fmt[i] IN ["+", "-", " "] THEN
+        sign := fmt[i]
+        INC i
+    END IF
+    IF i < fmt.length() AND fmt[i] = "0" THEN
+        fill := fmt[i]
+        INC i
+        IF align = "" THEN
+            align := "="
+        END IF
+    END IF
+    LET start: Number := i
+    WHILE i < fmt.length() AND "0" <= fmt[i] <= "9" DO
+        INC i
+    END WHILE
+    IF i > start THEN
+        width := num(fmt[start TO i-1])
+    END IF
+    IF i < fmt.length() AND fmt[i] = "," THEN
+        thousands := TRUE
+        INC i
+    END IF
+    IF i < fmt.length() AND fmt[i] = "." THEN
+        INC i
+        LET pstart: Number := i
+        WHILE i < fmt.length() AND "0" <= fmt[i] <= "9" DO
+            INC i
+        END WHILE
+        IF i > pstart THEN
+            precision := num(fmt[pstart TO i-1])
+        END IF
+    END IF
+    IF i < fmt.length() THEN
+        type := fmt[i]
+    END IF
+    CASE type
+        WHEN "", "s" DO
+            IF sign <> "" OR align = "=" THEN
+                RAISE FormatException
+            END IF
+        WHEN "d", "x" DO
+            % pass
+        WHEN OTHERS DO
+            RAISE FormatException
+    END CASE
+
+    VAR r: String := s
+    CASE type
+        WHEN "d" DO
+            _ := num(s)
+        WHEN "x" DO
+            VAR x: Number := num(s)
+            r := ""
+            IF x = 0 THEN
+                r := "0"
+            ELSE
+                WHILE x <> 0 DO
+                    CONSTANT hexdigit: String := "0123456789abcdef"
+                    r := hexdigit[x MOD 16] & r
+                    x := x INTDIV 16
+                END WHILE
+            END IF
+    END CASE
+    IF precision >= 0 AND r.length() > precision THEN
+        r := r[FIRST TO precision-1]
+    END IF
+    IF width >= 0 THEN
+        IF r.length() < width THEN
+            LET space: Number := width - r.length()
+            IF align = "" THEN
+                IF type IN ["d", "x"] THEN
+                    align := ">"
+                ELSE
+                    align := "<"
+                END IF
+            END IF
+            IF align = "<" THEN
+                r.append(repeat(fill, space))
+            ELSIF align IN [">", "="] THEN
+                r := repeat(fill, space) & r
+            ELSIF align = "^" THEN
+                r := repeat(fill, space INTDIV 2) & r & repeat(fill, space - space INTDIV 2)
+            END IF
+        END IF
+    END IF
+    RETURN r
+END FUNCTION
+
+%|
  |  Function: hasPrefix
  |
  |  Return TRUE if a string has a specific prefix.
  |%
-DECLARE NATIVE FUNCTION hasPrefix(s: String, prefix: String): Boolean
+FUNCTION hasPrefix(s: String, prefix: String): Boolean
+    RETURN prefix.length() <= s.length() AND s[FIRST TO prefix.length()-1] = prefix
+END FUNCTION
 
 %|
  |  Function: hasSuffix
  |
  |  Return TRUE if a string has a specific suffix.
  |%
-DECLARE NATIVE FUNCTION hasSuffix(s: String, suffix: String): Boolean
+FUNCTION hasSuffix(s: String, suffix: String): Boolean
+    RETURN suffix.length() <= s.length() AND s[LAST-(suffix.length()-1) TO LAST] = suffix
+END FUNCTION
 
 %|
  |  Function: isBlank
@@ -57,7 +173,16 @@ END FUNCTION
  |
  |  Join an array of strings together using the given delimiter.
  |%
-DECLARE NATIVE FUNCTION join(a: Array<String>, d: String): String
+FUNCTION join(a: Array<String>, d: String): String
+    VAR r: String := ""
+    FOREACH s IN a DO
+        IF r.length() > 0 THEN
+            r.append(d)
+        END IF
+        r.append(s)
+    END FOREACH
+    RETURN r
+END FUNCTION
 
 %|
  |  Function: lower
@@ -86,6 +211,41 @@ FUNCTION repeat(s: String, n: Number): String
         b := b INTDIV 2
     END WHILE
     RETURN r
+END FUNCTION
+
+%|
+ |  Function: replaceAll
+ |
+ |  Return a string with all instances of a given string replaced by another string.
+ |%
+FUNCTION replaceAll(s: String, target: String, replacement: String): String
+    % TODO: This can be improved with a findFrom function, which will allow
+    % us to search for the next instance of target more efficiently than
+    % extracting a substring at each position.
+    VAR t: String := s
+    VAR i: Number := 0
+    WHILE i < t.length() DO
+        IF t[i TO i+target.length()-1] = target THEN
+            t := t[FIRST TO i-1] & replacement & t[i+target.length() TO LAST]
+            i := i + replacement.length()
+        ELSE
+            INC i
+        END IF
+    END WHILE
+    RETURN t
+END FUNCTION
+
+%|
+ |  Function: replaceOne
+ |
+ |  Return a string the first instacne of a given string replaced by another string.
+ |%
+FUNCTION replaceOne(s: String, target: String, replacement: String): String
+    LET i: Number := find(s, target)
+    CHECK i >= 0 ELSE
+        RETURN s
+    END CHECK
+    RETURN s[FIRST TO i-1] & replacement & s[i+target.length() TO LAST]
 END FUNCTION
 
 %|

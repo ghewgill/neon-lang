@@ -1,0 +1,167 @@
+base.neon              # Won't need different base literals
+binary-test.neon       # Module not required
+bytes-embed.neon       # Feature not required
+cal-test.neon          # Sample not required
+cformat-test.neon      # Module not required
+comments.neon          # Nested comments not required
+complex-test.neon      # Module not required
+concat-bytes.neon      # Feature not required
+datetime-test.neon     # Module not required
+debug-example.neon     # Feature not required
+debug-server.neon      # Feature not required
+decimal.neon           # Module not required
+encoding-base64.neon   # Module not required
+exception-as.neon      # Exception offset not supported
+export-inline.neon     # Native mul not required
+ffi.neon               # FFI not required
+file-symlink.neon      # Feature not required
+fork.neon              # fork not required
+forth-test.neon        # Sample not required
+function-namedargs.neon# Named arguments not required
+gc1.neon               # Garbage collector not required
+gc2.neon               # Garbage collector not required
+gc3.neon               # Garbage collector not required
+gc-array.neon          # Garbage collector not required
+gc-long-chain.neon     # Garbage collector not required
+import-string.neon     # Feature not required
+inc-reference.neon     # increment
+interface-parameter-import.neon # Feature not required (import alias)
+interface-parameter-import2.neon # Feature not required (import alias)
+json-test.neon         # Module not required
+lexer-raw.neon         # Feature not required
+lexer-unicode.neon     # Unicode source not required
+lisp-test.neon         # Sample not required
+math-test.neon         # Module not required
+mkdir.neon             # Feature not required
+mmap-test.neon         # Module not required
+module-alias.neon      # Feature not required
+module-alias2.neon     # Feature not required
+module-import-name-alias.neon # Feature not required
+module-import-name-alias2.neon # Feature not required
+module-import-name.neon # Feature not required
+module-import-name2.neon # Feature not required
+module-import-name3.neon # Feature not required
+multiarray-test.neon   # Module not required
+net-test.neon          # Module not required
+net-test-udp.neon      # Module not required
+number-ceil.neon       # Feature not required
+number-underscore.neon # Feature not required
+object-record.neon     # Feature not required
+os-test.neon           # Module not required
+outer.neon             # Feature not required
+outer2.neon            # Feature not required
+outer-issue192.neon    # Feature not required
+outer-parameter.neon   # Feature not required
+outer-tail.neon        # Feature not required
+parameter-out-array.neon # Feature not required
+parameter-out-string.neon # Feature not required
+process-test.neon      # Module not required
+recursion-limit.neon   # Feature not required
+repl_import.neon       # Module not required
+return-case.neon       # Feature not required
+sdl-test.neon          # Module not required
+shebang.neon           # Feature not required
+sql-connect.neon       # Feature not required
+sql-cursor.neon        # Feature not required
+sql-embed.neon         # Feature not required
+sql-execute.neon       # Feature not required
+sql-query.neon         # Feature not required
+sql-whenever.neon      # Feature not required
+sqlite-test.neon       # Module not required
+string-multiline.neon  # Feature not required
+sudoku-test.neon       # Sample not required
+tail-call.neon         # Feature not required
+time-stopwatch.neon    # Module not required
+time-test.neon         # Module not required
+win32-test.neon        # Module not required
+compress-test.neon        # Module not required
+extsample-test.neon      # Extension functions not required
+http-test.neon                # Module not required
+regex-test.neon              # Module not required
+sodium-test.neon            # Module not required
+zeromq-test.neon            # Module not required
+
+array-fraction.neon
+array-negative.neon
+assert-fail2.neon
+assert-fail.neon
+assign2.neon
+assign-nothing.neon
+base-decimal.neon
+base-invalidchar.neon
+base-invalid-digit.neon
+base-invalid.neon
+bytes-index.neon
+case2.neon
+case4.neon
+comments-block2.neon
+comments-block3.neon
+comments-block4.neon
+comments-block6.neon
+comments-block.neon
+const-assign.neon
+const-notconst.neon
+duplicate.neon
+exception-trace.neon
+foreach-bytes.neon
+for-nested.neon
+for-readonly.neon
+global-shadow.neon
+let-assign.neon
+LexerBufferTest1.neon
+LexerBufferTest2.neon
+LexerBufferTest3.neon
+LexerBufferTest4.neon
+LexerBufferTest5.neon
+literal-dup.neon
+loop-return-foreach.neon
+loop-return-for.neon
+loop-return-repeat.neon
+loop-return-while.neon
+methods-self.neon
+mismatch.neon
+module-assign-let.neon
+module-assign-var.neon
+module-scope.neon
+pointer6.neon
+pointer-mismatch.neon
+return.neon
+shadow2.neon
+shadow.neon
+stack-overflow.neon
+string-index.neon
+type_mismatch.neon
+uninitialised-case-noelse.neon
+uninitialised-if-exit.neon
+uninitialised-if-noelse.neon
+uninitialised-nested.neon
+uninitialised-out-param-exit.neon
+uninitialised-out-param-return.neon
+uninitialised-out-param.neon
+uninitialised-simple.neon
+unused.neon
+unused-return.neon
+unused-scope.neon
+utf8-invalid.neon
+var-declaration2.neon
+
+array2d.neon           # Not implemented in helium yet
+assert-empty-array.neon # TODO only for C++ implementation
+bytes-slice.neon       # FIXME
+dictionary-keys-tostring.neon # Does not fail here
+file-test.neon         # Code in module doesn't work yet
+file-writebytes.neon   # FIXME
+function-pointer.neon  # Function pointer not required yet
+import.neon            # Module import not required yet
+module2.neon           # Feature not required yet
+new-init-module.neon   # Feature not required yet (dotted type)
+parameter-inout-array.neon # Does not fail here
+parameter-inout-string.neon # Does not fail here
+record-private.neon    # Feature not required yet
+strings.neon           # Feature not required yet
+string-slice.neon      # String slice assignment not supported here yet
+struct-test.neon       # Module not required yet
+unicode-length.neon    # Currently works here, but still TODO in cpp
+uninitialised-if-exit.neon # FIXME
+value-copy.neon        # Feature not required yet
+hash-test.neon                # Module not required yet

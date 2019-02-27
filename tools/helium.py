@@ -4,6 +4,7 @@ import codecs
 import copy
 import math
 import os
+import random
 import re
 import shutil
 import sys
@@ -143,15 +144,17 @@ INTDIV = Keyword("INTDIV")
 LABEL = Keyword("LABEL")
 CLASS = Keyword("CLASS")
 TRAP = Keyword("TRAP")
+EXTENSION = Keyword("EXTENSION")
 INTERFACE = Keyword("INTERFACE")
 IMPLEMENTS = Keyword("IMPLEMENTS")
 UNUSED = Keyword("UNUSED")
 ISA = Keyword("ISA")
 
-# TODO: Nothing really uses this yet.
-# But it's a subclass because we need to tell the difference for toString().
-class bytes(str):
-    pass
+class bytes:
+    def __init__(self, a):
+        self.a = a
+    def __getitem__(self, key):
+        return bytes(self.a.__getitem__(key))
 
 def identifier_start(c):
     return c.isalpha() or c == "_"
@@ -163,7 +166,7 @@ def number_start(c):
     return c.isdigit()
 
 def number_body(c):
-    return c.isdigit() or c == "."
+    return c.isdigit() or c == "." or c == "x"
 
 def space(c):
     return c.isspace()
@@ -233,7 +236,10 @@ def tokenize_fragment(source):
             while i < len(source) and number_body(source[i]):
                 i += 1
             t = source[start:i]
-            num = int(t) if t.isdigit() else float(t)
+            try:
+                num = int(t, base=0)
+            except ValueError:
+                num = float(t)
             r.append(Number(num))
         elif source[i] == '"':
             i += 1
@@ -323,6 +329,12 @@ class TypeParameterised:
     def resolve(self, env):
         if self.kind is ARRAY: return ClassArray(self.elementtype)
         if self.kind is DICTIONARY: return ClassDictionary(self.elementtype)
+
+class TypeCompound:
+    def __init__(self, name):
+        self.name = name
+    def resolve(self, env):
+        return g_Modules[self.name[0]].env.get_value(self.name[1])
 
 class Field:
     def __init__(self, name, type):
@@ -508,8 +520,9 @@ class InterpolatedStringExpression:
         for e, f in self.parts:
             x = e.eval(env)
             s = (x if isinstance(x, (str, unicode))
-                  else neon_strb(env, x) if isinstance(x, bool)
+                  else ("TRUE" if x else "FALSE") if isinstance(x, bool)
                   else neon_str(env, x) if isinstance(x, (int, float))
+                  else "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(b) for b in x.a)) if isinstance(x, bytes)
                   else "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in x)) if isinstance(x, list)
                   else "{{{}}}".format(", ".join(('"{}": {}'.format(k, ('"{}"'.format(v) if isinstance(v, (str, unicode)) else str(v))) for k, v in x.items()))) if isinstance(x, dict)
                   else x.toString(env, x))
@@ -607,24 +620,29 @@ class DotExpression:
         self.field = field
     def eval(self, env):
         obj = self.expr.eval(env)
+        return self.eval_obj(env, obj)
+    def eval_obj(self, env, obj):
         if isinstance(obj, bool):
-            if self.field == "toString": return lambda env, self: neon_strb(env, obj)
+            if self.field == "toString": return lambda env, self: "TRUE" if obj else "FALSE"
         elif isinstance(obj, int):
             if self.field == "toString": return lambda env, self: str(obj)
-        elif isinstance(obj, bytes):
-            if self.field == "decodeToString": return lambda env, self: obj.decode("utf-8")
-            if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj))
         elif isinstance(obj, (str, unicode)):
             if self.field == "append": return neon_string_append
             if self.field == "length": return lambda env, self: len(self)
             if self.field == "toArray": return lambda env, self: [ord(x) for x in obj]
-            if self.field == "toBytes": return lambda env, self: "".join(x for x in obj.encode("utf-8"))
+            if self.field == "toBytes": return lambda env, self: bytes([ord(x) for x in obj.encode("utf-8")])
             if self.field == "toString": return lambda env, self: obj
+        elif isinstance(obj, bytes):
+            if self.field == "decodeToString": return lambda env, self: "".join(map(chr, obj.a)).decode("utf-8")
+            if self.field == "size": return lambda env, self: len(obj.a)
+            if self.field == "toArray": return lambda env, self: obj.a
+            if self.field == "toString": return lambda env, self: "HEXBYTES \"{}\"".format(" ".join("{:02x}".format(x) for x in obj.a))
         elif isinstance(obj, list):
             if self.field == "append": return lambda env, self, x: obj.append(x)
             if self.field == "extend": return lambda env, self, x: obj.extend(x)
             if self.field == "resize": return lambda env, self, n: neon_array_resize(obj, n)
             if self.field == "size": return lambda env, self: len(obj)
+            if self.field == "toBytes": return lambda env, self: bytes(obj)
             if self.field == "toString": return lambda env, self: "[{}]".format(", ".join(('"{}"'.format(e) if isinstance(e, (str, unicode)) else str(e)) for e in obj))
         elif isinstance(obj, dict):
             if self.field == "keys": return lambda env, self: sorted(obj.keys())
@@ -645,6 +663,8 @@ class ArrowExpression:
         self.field = field
     def eval(self, env):
         obj = self.expr.eval(env)
+        return self.eval_obj(env, obj)
+    def eval_obj(self, env, obj):
         return getattr(obj, self.field)
     def set(self, env, value):
         obj = self.expr.eval(env)
@@ -690,7 +710,17 @@ class ExponentiationExpression:
         self.left = left
         self.right = right
     def eval(self, env):
-        return math.pow(self.left.eval(env), self.right.eval(env))
+        x = self.left.eval(env)
+        y = self.right.eval(env)
+        if x == int(x) and y == int(y) and y >= 0:
+            x = int(x)
+            y = int(y)
+            r = 1
+            for _ in range(y):
+                r *= x
+            return r
+        else:
+            return math.pow(x, y)
 
 class MultiplicationExpression:
     def __init__(self, left, right):
@@ -705,7 +735,17 @@ class DivisionExpression:
         self.right = right
     def eval(self, env):
         try:
-            return self.left.eval(env) / self.right.eval(env)
+            x = self.left.eval(env)
+            y = self.right.eval(env)
+            if x == int(x) and y == int(y):
+                x = int(x)
+                y = int(y)
+                if x % y == 0:
+                    return x // y
+                else:
+                    return x / y
+            else:
+                return x / y
         except ZeroDivisionError:
             raise NeonException("DivideByZeroException")
 
@@ -784,7 +824,7 @@ class TypeTestExpression:
             if self.target.name == "Number":
                 return isinstance(v, (int, float)) and not isinstance(v, bool)
             if self.target.name == "String":
-                return isinstance(v, (str, unicode)) and not isinstance(v, bytes)
+                return isinstance(v, (str, unicode))
             if self.target.name == "Bytes":
                 return isinstance(v, bytes)
             if self.target.name == "Object":
@@ -840,7 +880,11 @@ class NativeFunction:
         self.returntype = returntype
         self.args = args
     def declare(self, env):
-        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), globals()["neon_{}_{}".format(env.module(), self.name)])
+        f = globals()["neon_{}_{}".format(env.module(), self.name)]
+        outs = [x.mode is not IN for x in self.args]
+        if any(outs):
+            f._outs = outs
+        env.declare(self.name, ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args), f)
     def run(self, env):
         pass
 
@@ -851,6 +895,12 @@ class NativeVariable:
     def declare(self, env):
         if self.name == "args":
             env.declare(self.name, self.type.resolve(env), sys.argv[1:])
+        elif self.name == "stdin":
+            env.declare(self.name, self.type.resolve(env), sys.stdin)
+        elif self.name == "stdout":
+            env.declare(self.name, self.type.resolve(env), sys.stdout)
+        elif self.name == "stderr":
+            env.declare(self.name, self.type.resolve(env), sys.stderr)
         else:
             assert False, self.name
     def run(self, env):
@@ -872,19 +922,20 @@ class FunctionDeclaration:
         self.statements = statements
     def declare(self, env):
         type = ClassFunction(self.returntype.resolve(env) if self.returntype else None, self.args)
-        def func(env, *a):
+        def func(env2, *a):
+            e = Environment(env)
             for i, arg in enumerate(self.args):
-                env.declare(arg.name, None, self.args[i].type.resolve(env).default(env) if self.args[i].mode is OUT else a[i] if i < len(a) else arg.default.eval(env))
+                e.declare(arg.name, None, self.args[i].type.resolve(e).default(e) if self.args[i].mode is OUT else a[i] if i < len(a) else arg.default.eval(e))
             for s in self.statements:
-                s.declare(env)
+                s.declare(e)
             r = None
             try:
                 for s in self.statements:
-                    s.run(env)
+                    s.run(e)
             except ReturnException as x:
                 r = x.expr
             if hasattr(func, "_outs"):
-                return [r] + [env.get_value(arg.name) for i, arg in enumerate(self.args) if func._outs[i]]
+                return [r] + [e.get_value(arg.name) for i, arg in enumerate(self.args) if func._outs[i]]
             else:
                 return r
         outs = [x.mode is not IN for x in self.args]
@@ -903,16 +954,22 @@ class FunctionCallExpression:
         self.args = args
     def eval(self, env):
         args = [a[1].eval(env) for a in self.args]
-        f = self.func.eval(env)
+        obj = None
+        if isinstance(self.func, (DotExpression, ArrowExpression)):
+            # Evaluate and save obj once so we don't evaluate it twice for one call.
+            obj = self.func.expr.eval(env)
+            f = self.func.eval_obj(env, obj)
+        else:
+            f = self.func.eval(env)
         if callable(f):
             e = env
             while e.parent is not None:
                 e = e.parent
             funcenv = Environment(e)
             if isinstance(self.func, DotExpression) and not (isinstance(self.func.expr, IdentifierExpression) and isinstance(env.get_type(self.func.expr.name), ClassModule)):
-                args = [self.func.expr.eval(env)] + args
+                args = [obj] + args
             elif isinstance(self.func, ArrowExpression):
-                args = [self.func.expr.eval(env)] + args
+                args = [obj] + args
             r = f(funcenv, *args)
             if hasattr(f, "_outs"):
                 j = 1
@@ -951,7 +1008,10 @@ class AssignmentStatement:
     def declare(self, env):
         pass
     def run(self, env):
-        self.var.set(env, copy.deepcopy(self.rhs.eval(env)))
+        x = self.rhs.eval(env)
+        if not isinstance(x, file):
+            x = copy.deepcopy(x)
+        self.var.set(env, x)
     def eval(self, env):
         # This is used in the rewrite of a.append(b) to a := a & b.
         r = copy.deepcopy(self.rhs.eval(env))
@@ -1327,6 +1387,8 @@ class Parser:
 
     def parse_pointer_type(self):
         self.expect(POINTER)
+        if self.tokens[self.i] is not TO:
+            return TypePointer(None)
         self.expect(TO)
         type = self.parse_type()
         return TypePointer(type)
@@ -1359,7 +1421,12 @@ class Parser:
         if self.tokens[self.i] is FUNCTION:
             return self.parse_function_type()
         name = self.identifier()
-        return TypeSimple(name)
+        if self.tokens[self.i] is not DOT:
+            return TypeSimple(name)
+        self.i += 1
+        module = name
+        name = self.identifier()
+        return TypeCompound((module, name))
 
     def parse_import(self):
         self.expect(IMPORT)
@@ -1551,9 +1618,9 @@ class Parser:
         elif t is HEXBYTES:
             self.i += 1
             assert isinstance(self.tokens[self.i], String)
-            assert self.tokens[self.i].value == ""
+            b = bytes([int(x, 16) for x in re.findall(r"[0-9a-z]{1,2}", self.tokens[self.i].value)])
             self.i += 1
-            return StringLiteralExpression(bytes("")) # FIXME: hack to just return something
+            return StringLiteralExpression(b)
         elif t is PLUS:
             self.i += 1
             atom = self.parse_atom()
@@ -1890,7 +1957,7 @@ class Parser:
 
     def parse_declaration(self):
         self.expect(DECLARE)
-        if self.tokens[self.i] == NATIVE:
+        if self.tokens[self.i] in [NATIVE, EXTENSION]:
             self.i += 1
             if self.tokens[self.i] == CONSTANT:
                 self.i += 1
@@ -2261,7 +2328,7 @@ class Parser:
             else:
                 return ExpressionStatement(expr)
         else:
-            assert False, self.tokens[self.i]
+            assert False, self.tokens[self.i:self.i+10]
 
     def parse(self):
         statements = []
@@ -2452,10 +2519,61 @@ class ReturnException:
 
 g_Modules = {}
 
+def import_regex():
+    return parse(tokenize("""
+%|
+ |  File: regex
+ |
+ |  Functions for using regular expressions for text searching.
+ |%
+
+EXPORT Group
+EXPORT Match
+
+EXPORT search
+
+EXPORT EXCEPTION SyntaxException
+
+%|
+ |  Type: Group
+ |
+ |  Represents a matching group as part of a <Match> array.
+ |
+ |  Fields:
+ |      start - starting index of group
+ |      end - ending index of group
+ |      group - text of group
+ |%
+TYPE Group IS RECORD
+    matched: Boolean
+    start: Number
+    end: Number
+    group: String
+END RECORD
+
+%|
+ |  Type: Match
+ |
+ |  Represents the result of a successful regex match.
+ |%
+TYPE Match IS Array<Group>
+
+%|
+ |  Function: search
+ |
+ |  Search a string for a given subject regex.
+ |%
+DECLARE EXTENSION FUNCTION search(pattern: String, subject: String, OUT match: Match): Boolean
+    """))
+
 def import_module(name):
     m = g_Modules.get(name)
     if m is None:
-        m = parse(tokenize(codecs.open("lib/{}.neon".format(name), encoding="utf-8").read()))
+        importer = globals().get("import_"+name)
+        if importer is not None:
+            m = importer()
+        else:
+            m = parse(tokenize(codecs.open("lib/{}.neon".format(name), encoding="utf-8").read()))
         g_Modules[name] = m
         m.env.module_name = name
         run(m)
@@ -2478,8 +2596,8 @@ def run(program):
     program.env.declare("odd", None, neon_odd)
     program.env.declare("ord", None, neon_ord)
     program.env.declare("print", None, neon_print)
+    program.env.declare("round", None, neon_round)
     program.env.declare("str", None, neon_str)
-    program.env.declare("strb", None, neon_strb)
     program.env.declare("substring", None, neon_substring)
     program.run(program.env)
 
@@ -2501,6 +2619,10 @@ def neon_array_resize(a, n):
         a.extend([0] * (n - len(a)))
 
 def neon_chr(env, x):
+    if x != int(x):
+        raise NeonException("ValueRangeException", "chr() argument not an integer")
+    if not (0 <= x <= 0x10ffff):
+        raise NeonException("ValueRangeException", "chr() argument out of range 0-0x10ffff")
     return unichr(x)
 
 def neon_concat(env, x, y):
@@ -2525,10 +2647,12 @@ def neon_min(env, x, y):
     return min(x, y)
 
 def neon_num(env, x):
-    return float(x)
+    return int(x) if x.isdigit() else float(x)
 
 def neon_odd(env, x):
-    return x & 1
+    if x != int(x):
+        raise NeonException("ValueRangeException", "odd() requires integer")
+    return (x & 1) != 0
 
 def neon_ord(env, x):
     if len(x) != 1:
@@ -2538,6 +2662,9 @@ def neon_ord(env, x):
 def neon_print(env, x):
     print(x)
 
+def neon_round(env, places, value):
+    return round(value, places)
+
 def neon_str(env, x):
     r = str(x)
     if isinstance(x, float):
@@ -2546,9 +2673,6 @@ def neon_str(env, x):
         else:
             r = re.sub(r"\.0+$", "", r)
     return r
-
-def neon_strb(env, x):
-    return "TRUE" if x else "FALSE"
 
 def neon_substring(env, s, start, length):
     return s[start:start+length]
@@ -2601,7 +2725,7 @@ def neon_file_readBytes(env, fn):
 
 def neon_file_readLines(env, fn):
     with codecs.open(fn, "r", encoding="utf-8") as f:
-        return list(map(lambda x: x.rstrip(), f.readlines()))
+        return list(map(lambda x: x.rstrip("\r\n"), f.readlines()))
 
 def neon_file_removeEmptyDirectory(env, path):
     try:
@@ -2624,6 +2748,161 @@ def neon_file_writeBytes(env, fn, bytes):
 def neon_file_writeLines(env, fn, lines):
     with open(fn, "wb") as f:
         f.writelines(x.encode()+"\n" for x in lines)
+
+def neon_io_close(env, f):
+    f.close()
+    return (None, None)
+
+def neon_io_fprint(env, f, s):
+    print(s, file=f)
+
+def neon_io_open(env, fn, mode):
+    return open(fn, "wb" if mode.name == "write" else "rb")
+
+def neon_io_readBytes(env, f, count):
+    r = ClassBytes().default(env)
+    r.fromArray(env, [ord(x) for x in f.read(count)])
+    return r
+
+def neon_io_readLine(env, f, r):
+    r = f.readline()
+    return r is not None, r.rstrip("\r\n")
+
+def neon_io_seek(env, f, offset, whence):
+    f.seek(offset, {"absolute": os.SEEK_SET, "relative": os.SEEK_CUR, "fromEnd": os.SEEK_END}[whence.name])
+
+def neon_io_tell(env, f):
+    return f.tell()
+
+def neon_io_truncate(env, f):
+    f.truncate()
+
+def neon_io_write(env, f, s):
+    f.write(s)
+
+def neon_io_writeBytes(env, f, buf):
+    f.write(buf)
+
+def neon_math_abs(env, x):
+    return abs(x)
+
+def neon_math_acos(env, x):
+    return math.acos(x)
+
+def neon_math_acosh(env, x):
+    return math.acosh(x)
+
+def neon_math_asin(env, x):
+    return math.asin(x)
+
+def neon_math_asinh(env, x):
+    return math.asinh(x)
+
+def neon_math_atan(env, x):
+    return math.atan(x)
+
+def neon_math_atanh(env, x):
+    return math.atanh(x)
+
+def neon_math_atan2(env, y, x):
+    return math.atan2(y, x)
+
+def neon_math_cbrt(env, x):
+    return math.cbrt(x)
+
+def neon_math_ceil(env, x):
+    return math.ceil(x)
+
+def neon_math_cos(env, x):
+    return math.cos(x)
+
+def neon_math_cosh(env, x):
+    return math.cosh(x)
+
+def neon_math_erf(env, x):
+    return math.erf(x)
+
+def neon_math_erfc(env, x):
+    return math.erfc(x)
+
+def neon_math_exp(env, x):
+    return math.exp(x)
+
+def neon_math_exp2(env, x):
+    return math.exp2(x)
+
+def neon_math_expm1(env, x):
+    return math.expm1(x)
+
+def neon_math_floor(env, x):
+    return math.floor(x)
+
+def neon_math_frexp(env, x):
+    return math.frexp(x)
+
+def neon_math_hypot(env, x):
+    return math.hypot(x)
+
+def neon_math_intdiv(env, x, y):
+    return math.intdiv(x, y)
+
+def neon_math_ldexp(env, x):
+    return math.ldexp(x)
+
+def neon_math_lgamma(env, x):
+    return math.lgamma(x)
+
+def neon_math_log(env, x):
+    return math.log(x)
+
+def neon_math_log10(env, x):
+    return math.log10(x)
+
+def neon_math_log1p(env, x):
+    return math.log1p(x)
+
+def neon_math_log2(env, x):
+    return math.log2(x)
+
+def neon_math_nearbyint(env, x):
+    return math.nearbyint(x)
+
+def neon_math_sign(env, x):
+    return math.copysign(1, x)
+
+def neon_math_sin(env, x):
+    return math.sin(x)
+
+def neon_math_sinh(env, x):
+    return math.sinh(x)
+
+def neon_math_sqrt(env, x):
+    return math.sqrt(x)
+
+def neon_math_tan(env, x):
+    return math.tan(x)
+
+def neon_math_tanh(env, x):
+    return math.tanh(x)
+
+def neon_math_tgamma(env, x):
+    return math.tgamma(x)
+
+def neon_math_trunc(env, x):
+    return math.trunc(x)
+
+def neon_random_uint32(env):
+    return random.randint(0, 0xffffffff)
+
+def neon_regex_search(env, r, s, match):
+    m = re.search(r, s)
+    if m is None:
+        return None
+    for g in range(1 + len(m.groups())):
+        tm = g_Modules["regex"].env.get_value("Group")
+        r = tm.make(env, ["matched", "start", "end", "group"], [m.group(g) is not None, m.start(g), m.end(g), m.group(g)])
+        match.append(r)
+    return (True, match)
 
 def neon_string_find(env, s, t):
     return s.find(t)
@@ -2660,119 +2939,6 @@ def neon_sys_exit(env, n):
     if n != int(n) or n < 0 or n > 255:
         raise NeonException("InvalidValueException", "sys.exit invalid parameter: {}".format(n))
     sys.exit(n)
-
-ExcludeTests = [
-    "t/base.neon",              # Won't need different base literals
-    "t/bigint-test.neon",       # Module not required
-    "t/binary-test.neon",       # Module not required
-    "t/bytes-embed.neon",       # Feature not required
-    "t/bytes-literal.neon",     # Feature not required
-    "t/bytes-tostring.neon",    # HEXBYTES not implemented yet
-    "t/bytes-value-index.neon", # HEXBYTES not implemented yet
-    "t/cal-test.neon",          # Sample not required
-    "t/cformat-test.neon",      # Module not required
-    "t/comments.neon",          # Nested comments not required
-    "t/complex-test.neon",      # Module not required
-    "t/concat-bytes.neon",      # Feature not required
-    "t/datetime-test.neon",     # Module not required
-    "t/debug-example.neon",     # Feature not required
-    "t/debug-server.neon",      # Feature not required
-    "t/decimal.neon",           # Module not required
-    "t/encoding-base64.neon",   # HEXBYTES not implemented yet
-    "t/exception-as.neon",      # Exception offset not supported
-    "t/export-inline.neon",     # Native mul not required
-    "t/ffi.neon",               # FFI not required
-    "t/file-symlink.neon",      # Feature not required
-    "t/fork.neon",              # fork not required
-    "t/forth-test.neon",        # Sample not required
-    "t/function-namedargs.neon",# Named arguments not required
-    "t/gc1.neon",               # Garbage collector not required
-    "t/gc2.neon",               # Garbage collector not required
-    "t/gc3.neon",               # Garbage collector not required
-    "t/gc-array.neon",          # Garbage collector not required
-    "t/gc-long-chain.neon",     # Garbage collector not required
-    "t/import-string.neon",     # Feature not required
-    "t/interface-parameter-import.neon", # Feature not required (import alias)
-    "t/interface-parameter-import2.neon", # Feature not required (import alias)
-    "t/json-test.neon",         # Module not required
-    "t/lexer-raw.neon",         # Feature not required
-    "t/lexer-unicode.neon",     # Unicode source not required
-    "t/lisp-test.neon",         # Sample not required
-    "t/math-test.neon",         # Module not required
-    "t/mkdir.neon",             # Feature not required
-    "t/mmap-test.neon",         # Module not required
-    "t/module-alias.neon",      # Feature not required
-    "t/module-alias2.neon",     # Feature not required
-    "t/module-import-name-alias.neon", # Feature not required
-    "t/module-import-name-alias2.neon", # Feature not required
-    "t/module-import-name.neon", # Feature not required
-    "t/module-import-name2.neon", # Feature not required
-    "t/module-import-name3.neon", # Feature not required
-    "t/multiarray-test.neon",   # Module not required
-    "t/net-test.neon",          # Module not required
-    "t/number-ceil.neon",       # Feature not required
-    "t/number-underscore.neon", # Feature not required
-    "t/os-test.neon",           # Module not required
-    "t/outer.neon",             # Feature not required
-    "t/outer2.neon",            # Feature not required
-    "t/outer-issue192.neon",    # Feature not required
-    "t/outer-parameter.neon",   # Feature not required
-    "t/outer-tail.neon",        # Feature not required
-    "t/parameter-out-array.neon", # Feature not required
-    "t/parameter-out-string.neon", # Feature not required
-    "t/process-test.neon",      # Module not required
-    "t/recursion-limit.neon",   # Feature not required
-    "t/repl_import.neon",       # Module not required
-    "t/return-case.neon",       # Feature not required
-    "t/sdl-test.neon",          # Module not required
-    "t/shebang.neon",           # Feature not required
-    "t/sql-connect.neon",       # Feature not required
-    "t/sql-cursor.neon",        # Feature not required
-    "t/sql-embed.neon",         # Feature not required
-    "t/sql-execute.neon",       # Feature not required
-    "t/sql-query.neon",         # Feature not required
-    "t/sql-whenever.neon",      # Feature not required
-    "t/sqlite-test.neon",       # Module not required
-    "t/string-multiline.neon",  # Feature not required
-    "t/sudoku-test.neon",       # Sample not required
-    "t/tail-call.neon",         # Feature not required
-    "t/time-stopwatch.neon",    # Module not required
-    "t/time-test.neon",         # Module not required
-    "t/win32-test.neon",        # Module not required
-    "lib/compress/t/compress-test.neon",        # Module not required
-    "lib/extsample/t/extsample-test.neon",      # Extension functions not required
-    "lib/http/t/http-test.neon",                # Module not required
-    "lib/regex/t/regex-test.neon",              # Module not required
-    "lib/sodium/t/sodium-test.neon",            # Module not required
-    "lib/zeromq/t/zeromq-test.neon",            # Module not required
-
-    "t/array2d.neon",           # Not implemented in helium yet
-    "t/assert-empty-array.neon", # TODO only for C++ implementation
-    "t/bytes.neon",             # FIXME
-    "t/bytes-slice.neon",       # FIXME
-    "t/dictionary-keys-tostring.neon", # Does not fail here
-    "t/file-test.neon",         # Code in module doesn't work yet
-    "t/file-writebytes.neon",   # FIXME
-    "t/function-pointer.neon",  # Function pointer not required yet
-    "t/import.neon",            # Module import not required yet
-    "t/io-test.neon",           # Module not required yet
-    "t/module2.neon",           # Feature not required yet
-    "t/new-init-module.neon",   # Feature not required yet (dotted type)
-    "t/parameter-inout-array.neon", # Does not fail here
-    "t/parameter-inout-string.neon", # Does not fail here
-    "t/record-private.neon",    # Feature not required yet
-    "t/string-bytes.neon",      # toBytes needs to fill in ClassBytes instance
-    "t/strings.neon",           # Feature not required yet
-    "t/string-slice.neon",      # String slice assignment not supported here yet
-    "t/struct-test.neon",       # Module not required yet
-    "t/unicode-length.neon",    # Currently works here, but still TODO in cpp
-    "t/uninitialised-if-exit.neon", # FIXME
-    "t/value-copy.neon",        # Feature not required yet
-    "lib/hash/t/hash-test.neon",                # Module not required yet
-]
-
-if sys.argv[1].replace("\\", "/") in ExcludeTests:
-    sys.exit(99)
 
 try:
     source = codecs.open(sys.argv[1], encoding="utf-8").read()
