@@ -123,6 +123,7 @@ add_custom_command(
 )
 set_source_files_properties(
     src/ast.cpp
+    src/intrinsic.cpp
     PROPERTIES OBJECT_DEPENDS src/exceptions.inc
 )
 
