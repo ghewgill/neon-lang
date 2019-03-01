@@ -129,6 +129,7 @@ int main(int argc, char* argv[])
         fatal_error("Could not allocate memory for neon bytecode.");
     }
     unsigned int bytes_read = (unsigned int)fread(bytecode, 1, nSize, fp);
+    fclose(fp);
 
     bytecode_loadBytecode(pModule, bytecode, bytes_read);
 
