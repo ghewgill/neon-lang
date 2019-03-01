@@ -45,7 +45,9 @@ void number_toString(Number x, char *buf, size_t len)
 
     // If we didn't find an exponent marker, then just return the buffer that it is.
     if (*s != 'E') {
-        buf = val;
+        // Number is possibly +Nan, or +Inf.
+        strncpy(buf, val, len);
+        buf[len-1] = '\0';
         return;
     }
 
@@ -111,19 +113,25 @@ void number_toString(Number x, char *buf, size_t len)
             r[count+slen] = '\0';
         } else {
             // Our exponent is positive, therefore we need to add the decimal point on the right of the number.
+            int expstart = 0;
             exponent += last_significant_digit - 1;
-            if (last_significant_digit >= 3) {
-                // Our mantissa is at least 3 digits long, so copy the first digit to [r]esult
+            if (last_significant_digit > 1) {
+                // Our mantissa is at least 2 digits long, so copy the first digit to [r]esult
                 r[0] = mantissa[0];
                 // add the decimal point
                 r[1] = '.';
                 // copy the remainder of the mantissa to [r]esult
                 memcpy(&r[2], &mantissa[1], last_significant_digit-1);
+                expstart = last_significant_digit+1;
+            } else {
+                // The mantissa is only one significant digit, so copy that to the output, then apply the exponent value.
+                memcpy(r, mantissa, last_significant_digit);
+                expstart = last_significant_digit;
             }
             // Now, create the actual exponent value.
             char exp[36];
             int explen = sprintf(exp, "e%d", exponent);
-            memcpy(&r[last_significant_digit+1], exp, explen+1); // Include the terminating NULL char given to us by sprintf()
+            memcpy(&r[expstart], exp, explen+1); // Include the terminating NULL char given to us by sprintf()
         }
     } else {
         // Exponent is zero, or just copy the mantissa, up to the last significant digit.
@@ -317,5 +325,11 @@ void main()
     assert(strcasecmp(number_to_string(number_from_string("-12345678000000000000000000000000E3")), "-1.2345678e34") == 0);
     assert(strcasecmp(number_to_string(number_from_string("+12345678000000000000000000000000E2")), "1234567800000000000000000000000000") == 0);
     assert(strcasecmp(number_to_string(number_from_string("+12345678000000000000000000000000E3")), "1.2345678e34") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+1000000000000000000000000000000000E+167")), "1e200") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+1100000000000000000000000000000000E+167")), "1.1e200") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("1000000000000000000000000000000000")), "1000000000000000000000000000000000") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+1E+34")), "1e34") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+11E+34")), "1.1e35") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+1E+9999")), "+Inf") == 0);
 }
 #endif
