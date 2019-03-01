@@ -19,7 +19,7 @@ public:
 
 class PathSupport: public ICompilerSupport {
 public:
-    PathSupport(const std::string &source_path);
+    explicit PathSupport(const std::string &source_path);
     std::pair<std::string, std::string> findModule(const std::string &name);
 private:
     std::vector<std::string> paths;
@@ -36,7 +36,7 @@ private:
 
 class RuntimeSupport: public PathSupport {
 public:
-    RuntimeSupport(const std::string &source_path): PathSupport(source_path) {}
+    explicit RuntimeSupport(const std::string &source_path): PathSupport(source_path) {}
     virtual bool loadBytecode(const std::string &name, Bytecode &object) override;
     virtual void writeOutput(const std::string &, const std::vector<unsigned char> &) override {}
 };

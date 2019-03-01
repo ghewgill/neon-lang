@@ -26,7 +26,7 @@ public:
 class SourceErrorToken {
 public:
     SourceErrorToken(): token(), file(), source_line(), line(0), column(0), type(NONE) {}
-    SourceErrorToken(const Token &token): token(token), file(token.file()), source_line(token.source_line()), line(token.line), column(token.column), type(token.type) {}
+    explicit SourceErrorToken(const Token &token): token(token), file(token.file()), source_line(token.source_line()), line(token.line), column(token.column), type(token.type) {}
     Token token;
     std::string file;
     std::string source_line;

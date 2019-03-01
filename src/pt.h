@@ -201,7 +201,7 @@ class FunctionParameterGroup;
 
 class ParseTreeNode {
 public:
-    ParseTreeNode(const Token &token): token(token) {}
+    explicit ParseTreeNode(const Token &token): token(token) {}
     virtual ~ParseTreeNode() {}
     virtual void accept(IParseTreeVisitor *visitor) const = 0;
     const Token token;
@@ -212,7 +212,7 @@ private:
 
 class Type: public ParseTreeNode {
 public:
-    Type(const Token &token): ParseTreeNode(token) {}
+    explicit Type(const Token &token): ParseTreeNode(token) {}
 };
 
 class TypeSimple: public Type {
@@ -232,39 +232,39 @@ public:
 class TypeRecord: public Type {
 public:
     struct Field {
-        Field(const Token &name, std::unique_ptr<Type> &&type, bool is_private): name(name), type(std::move(type)), is_private(is_private) {}
+        explicit Field(const Token &name, std::unique_ptr<Type> &&type, bool is_private): name(name), type(std::move(type)), is_private(is_private) {}
         Token name;
         std::unique_ptr<Type> type;
         bool is_private;
     };
-    TypeRecord(const Token &token, std::vector<std::unique_ptr<Field>> &&fields): Type(token), fields(std::move(fields)) {}
+    explicit TypeRecord(const Token &token, std::vector<std::unique_ptr<Field>> &&fields): Type(token), fields(std::move(fields)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::unique_ptr<Field>> fields;
 };
 
 class TypeClass: public TypeRecord {
 public:
-    TypeClass(const Token &token, std::vector<std::unique_ptr<Field>> &&fields, const std::vector<std::pair<Token, Token>> &interfaces): TypeRecord(token, std::move(fields)), interfaces(interfaces) {}
+    explicit TypeClass(const Token &token, std::vector<std::unique_ptr<Field>> &&fields, const std::vector<std::pair<Token, Token>> &interfaces): TypeRecord(token, std::move(fields)), interfaces(interfaces) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::vector<std::pair<Token, Token>> interfaces;
 };
 
 class TypePointer: public Type {
 public:
-    TypePointer(const Token &token, std::unique_ptr<Type> &&reftype): Type(token), reftype(std::move(reftype)) {}
+    explicit TypePointer(const Token &token, std::unique_ptr<Type> &&reftype): Type(token), reftype(std::move(reftype)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Type> reftype;
 };
 
 class TypeValidPointer: public TypePointer {
 public:
-    TypeValidPointer(const Token &token, std::unique_ptr<Type> &&reftype): TypePointer(token, std::move(reftype)) {}
+    explicit TypeValidPointer(const Token &token, std::unique_ptr<Type> &&reftype): TypePointer(token, std::move(reftype)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class TypeFunctionPointer: public Type {
 public:
-    TypeFunctionPointer(const Token &token, std::unique_ptr<Type> &&returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &&args): Type(token), returntype(std::move(returntype)), args(std::move(args)) {}
+    explicit TypeFunctionPointer(const Token &token, std::unique_ptr<Type> &&returntype, std::vector<std::unique_ptr<FunctionParameterGroup>> &&args): Type(token), returntype(std::move(returntype)), args(std::move(args)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Type> returntype;
     std::vector<std::unique_ptr<FunctionParameterGroup>> args;
@@ -272,7 +272,7 @@ public:
 
 class TypeParameterised: public Type {
 public:
-    TypeParameterised(const Token &name, std::unique_ptr<Type> &&elementtype): Type(name), name(token), elementtype(std::move(elementtype)) {}
+    explicit TypeParameterised(const Token &name, std::unique_ptr<Type> &&elementtype): Type(name), name(token), elementtype(std::move(elementtype)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Token name;
     std::unique_ptr<Type> elementtype;
@@ -369,13 +369,13 @@ public:
 
 class NilLiteralExpression: public Expression {
 public:
-    NilLiteralExpression(const Token &token): Expression(token, token.column, token.column+token.text.length()) {}
+    explicit NilLiteralExpression(const Token &token): Expression(token, token.column, token.column+token.text.length()) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class NowhereLiteralExpression: public Expression {
 public:
-    NowhereLiteralExpression(const Token &token): Expression(token, token.column, token.column+token.text.length()) {}
+    explicit NowhereLiteralExpression(const Token &token): Expression(token, token.column, token.column+token.text.length()) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
@@ -388,7 +388,7 @@ public:
 
 class DotExpression: public Expression {
 public:
-    DotExpression(const Token &token, std::unique_ptr<Expression> &&base, const Token &name): Expression(token, base->get_start_column(), name.column+name.text.length()), base(std::move(base)), name(name) {}
+    explicit DotExpression(const Token &token, std::unique_ptr<Expression> &&base, const Token &name): Expression(token, base->get_start_column(), name.column+name.text.length()), base(std::move(base)), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> base;
     const Token name;
@@ -396,7 +396,7 @@ public:
 
 class ArrowExpression: public Expression {
 public:
-    ArrowExpression(const Token &token, std::unique_ptr<Expression> &&base, const Token &name): Expression(token, base->get_start_column(), name.column+name.text.length()), base(std::move(base)), name(name) {}
+    explicit ArrowExpression(const Token &token, std::unique_ptr<Expression> &&base, const Token &name): Expression(token, base->get_start_column(), name.column+name.text.length()), base(std::move(base)), name(name) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> base;
     const Token name;
@@ -413,7 +413,7 @@ public:
 
 class InterpolatedStringExpression: public Expression {
 public:
-    InterpolatedStringExpression(const Token &token, std::vector<std::pair<std::unique_ptr<Expression>, Token>> &&parts): Expression(token, parts.front().first->get_start_column(), parts.back().first->get_end_column()), parts(std::move(parts)) {}
+    explicit InterpolatedStringExpression(const Token &token, std::vector<std::pair<std::unique_ptr<Expression>, Token>> &&parts): Expression(token, parts.front().first->get_start_column(), parts.back().first->get_end_column()), parts(std::move(parts)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::pair<std::unique_ptr<Expression>, Token>> parts;
 };
@@ -427,7 +427,7 @@ public:
         Token name;
         std::unique_ptr<Expression> expr;
     };
-    FunctionCallExpression(const Token &token, std::unique_ptr<Expression> &&base, std::vector<std::unique_ptr<Argument>> &&args, const Token &rparen): Expression(token, base->get_start_column(), rparen.column+1), base(std::move(base)), args(std::move(args)), rparen(rparen) {}
+    explicit FunctionCallExpression(const Token &token, std::unique_ptr<Expression> &&base, std::vector<std::unique_ptr<Argument>> &&args, const Token &rparen): Expression(token, base->get_start_column(), rparen.column+1), base(std::move(base)), args(std::move(args)), rparen(rparen) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> base;
     std::vector<std::unique_ptr<Argument>> args;
@@ -436,80 +436,80 @@ public:
 
 class UnaryExpression: public Expression {
 public:
-    UnaryExpression(const Token &token, std::unique_ptr<Expression> &&expr): Expression(token, token.column, expr->get_end_column()), expr(std::move(expr)) {}
+    explicit UnaryExpression(const Token &token, std::unique_ptr<Expression> &&expr): Expression(token, token.column, expr->get_end_column()), expr(std::move(expr)) {}
     std::unique_ptr<Expression> expr;
 };
 
 class UnaryPlusExpression: public UnaryExpression {
 public:
-    UnaryPlusExpression(const Token &token, std::unique_ptr<Expression> &&expr): UnaryExpression(token, std::move(expr)) {}
+    explicit UnaryPlusExpression(const Token &token, std::unique_ptr<Expression> &&expr): UnaryExpression(token, std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class UnaryMinusExpression: public UnaryExpression {
 public:
-    UnaryMinusExpression(const Token &token, std::unique_ptr<Expression> &&expr): UnaryExpression(token, std::move(expr)) {}
+    explicit UnaryMinusExpression(const Token &token, std::unique_ptr<Expression> &&expr): UnaryExpression(token, std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class LogicalNotExpression: public UnaryExpression {
 public:
-    LogicalNotExpression(const Token &token, std::unique_ptr<Expression> &&expr): UnaryExpression(token, std::move(expr)) {}
+    explicit LogicalNotExpression(const Token &token, std::unique_ptr<Expression> &&expr): UnaryExpression(token, std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class BinaryExpression: public Expression {
 public:
-    BinaryExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): Expression(token, left->get_start_column(), right->get_end_column()), left(std::move(left)), right(std::move(right)) {}
+    explicit BinaryExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): Expression(token, left->get_start_column(), right->get_end_column()), left(std::move(left)), right(std::move(right)) {}
     std::unique_ptr<Expression> left;
     std::unique_ptr<Expression> right;
 };
 
 class ExponentiationExpression: public BinaryExpression {
 public:
-    ExponentiationExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit ExponentiationExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class MultiplicationExpression: public BinaryExpression {
 public:
-    MultiplicationExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit MultiplicationExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class DivisionExpression: public BinaryExpression {
 public:
-    DivisionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit DivisionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class IntegerDivisionExpression: public BinaryExpression {
 public:
-    IntegerDivisionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit IntegerDivisionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ModuloExpression: public BinaryExpression {
 public:
-    ModuloExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit ModuloExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class AdditionExpression: public BinaryExpression {
 public:
-    AdditionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit AdditionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class SubtractionExpression: public BinaryExpression {
 public:
-    SubtractionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit SubtractionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ConcatenationExpression: public BinaryExpression {
 public:
-    ConcatenationExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit ConcatenationExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
@@ -529,7 +529,7 @@ public:
         }
         return "(undefined)";
     }
-    ComparisonExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right, Comparison comp): BinaryExpression(token, std::move(left), std::move(right)), comp(comp) {}
+    explicit ComparisonExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right, Comparison comp): BinaryExpression(token, std::move(left), std::move(right)), comp(comp) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const Comparison comp;
 };
@@ -538,7 +538,7 @@ class ChainedComparisonExpression: public Expression {
 public:
     class Part {
     public:
-        Part(ComparisonExpression::Comparison comp, std::unique_ptr<Expression> &&right): comp(comp), right(std::move(right)) {}
+        explicit Part(ComparisonExpression::Comparison comp, std::unique_ptr<Expression> &&right): comp(comp), right(std::move(right)) {}
         ComparisonExpression::Comparison comp;
         std::unique_ptr<Expression> right;
     };
@@ -550,7 +550,7 @@ public:
 
 class TypeTestExpression: public Expression {
 public:
-    TypeTestExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Type> &&target): Expression(token, left->get_start_column(), token.column + token.text.length()/* TODO */), left(std::move(left)), target(std::move(target)) {}
+    explicit TypeTestExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Type> &&target): Expression(token, left->get_start_column(), token.column + token.text.length()/* TODO */), left(std::move(left)), target(std::move(target)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> left;
     std::unique_ptr<Type> target;
@@ -558,25 +558,25 @@ public:
 
 class MembershipExpression: public BinaryExpression {
 public:
-    MembershipExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit MembershipExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ConjunctionExpression: public BinaryExpression {
 public:
-    ConjunctionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit ConjunctionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class DisjunctionExpression: public BinaryExpression {
 public:
-    DisjunctionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
+    explicit DisjunctionExpression(const Token &token, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): BinaryExpression(token, std::move(left), std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
 class ConditionalExpression: public Expression {
 public:
-    ConditionalExpression(const Token &token, std::unique_ptr<Expression> &&cond, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): Expression(token, token.column, right->get_end_column()), cond(std::move(cond)), left(std::move(left)), right(std::move(right)) {}
+    explicit ConditionalExpression(const Token &token, std::unique_ptr<Expression> &&cond, std::unique_ptr<Expression> &&left, std::unique_ptr<Expression> &&right): Expression(token, token.column, right->get_end_column()), cond(std::move(cond)), left(std::move(left)), right(std::move(right)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> cond;
     std::unique_ptr<Expression> left;
@@ -594,7 +594,7 @@ public:
 
 class TryExpression: public Expression {
 public:
-    TryExpression(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::unique_ptr<TryTrap>> &&catches): Expression(token, token.column, token.column), expr(std::move(expr)), catches(std::move(catches)) {}
+    explicit TryExpression(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::unique_ptr<TryTrap>> &&catches): Expression(token, token.column, token.column), expr(std::move(expr)), catches(std::move(catches)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
     std::vector<std::unique_ptr<TryTrap>> catches;
@@ -615,14 +615,14 @@ public:
         Token name;
         bool shorthand;
     };
-    ValidPointerExpression(const Token &token, std::vector<std::unique_ptr<Clause>> &&tests): Expression(token, tests.front()->expr->get_start_column(), tests.back()->expr->get_end_column()), tests(std::move(tests)) {}
+    explicit ValidPointerExpression(const Token &token, std::vector<std::unique_ptr<Clause>> &&tests): Expression(token, tests.front()->expr->get_start_column(), tests.back()->expr->get_end_column()), tests(std::move(tests)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::unique_ptr<Clause>> tests;
 };
 
 class ArrayRange {
 public:
-    ArrayRange(const Token &token, std::unique_ptr<Expression> &&first, bool first_from_end, std::unique_ptr<Expression> &&last, bool last_from_end): token(token), first(std::move(first)), first_from_end(first_from_end), last(std::move(last)), last_from_end(last_from_end) {}
+    explicit ArrayRange(const Token &token, std::unique_ptr<Expression> &&first, bool first_from_end, std::unique_ptr<Expression> &&last, bool last_from_end): token(token), first(std::move(first)), first_from_end(first_from_end), last(std::move(last)), last_from_end(last_from_end) {}
     const Token token;
     std::unique_ptr<Expression> first;
     const bool first_from_end;
@@ -663,7 +663,7 @@ public:
 
 class Statement: public ParseTreeNode {
 public:
-    Statement(const Token &token): ParseTreeNode(token) {}
+    explicit Statement(const Token &token): ParseTreeNode(token) {}
 };
 
 class Declaration: public Statement {
@@ -683,7 +683,7 @@ public:
 
 class TypeDeclaration: public Declaration {
 public:
-    TypeDeclaration(const Token &token, std::unique_ptr<Type> &&type): Declaration(token, {}), type(std::move(type)) {}
+    explicit TypeDeclaration(const Token &token, std::unique_ptr<Type> &&type): Declaration(token, {}), type(std::move(type)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Type> type;
 };
@@ -798,7 +798,7 @@ public:
 
 class BlockStatement: public Statement {
 public:
-    BlockStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body): Statement(token), body(std::move(body)) {}
+    explicit BlockStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body): Statement(token), body(std::move(body)) {}
     std::vector<std::unique_ptr<Statement>> body;
 };
 
@@ -810,7 +810,7 @@ public:
 
 class AssertStatement: public Statement {
 public:
-    AssertStatement(const Token &token, std::vector<std::unique_ptr<Expression>> &&exprs, const std::string &source): Statement(token), exprs(std::move(exprs)), source(source) {}
+    explicit AssertStatement(const Token &token, std::vector<std::unique_ptr<Expression>> &&exprs, const std::string &source): Statement(token), exprs(std::move(exprs)), source(source) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::unique_ptr<Expression>> exprs;
     const std::string source;
@@ -818,7 +818,7 @@ public:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(const Token &token, std::vector<std::unique_ptr<Expression>> &&variables, std::unique_ptr<Expression> &&expr): Statement(token), variables(std::move(variables)), expr(std::move(expr)) {}
+    explicit AssignmentStatement(const Token &token, std::vector<std::unique_ptr<Expression>> &&variables, std::unique_ptr<Expression> &&expr): Statement(token), variables(std::move(variables)), expr(std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::unique_ptr<Expression>> variables;
     std::unique_ptr<Expression> expr;
@@ -828,7 +828,7 @@ class CaseStatement: public Statement {
 public:
     class WhenCondition {
     public:
-        WhenCondition(const Token &token): token(token) {}
+        explicit WhenCondition(const Token &token): token(token) {}
         virtual ~WhenCondition() {}
         const Token token;
     private:
@@ -843,16 +843,16 @@ public:
     };
     class RangeWhenCondition: public WhenCondition {
     public:
-        RangeWhenCondition(const Token &token, std::unique_ptr<Expression> &&low_expr, std::unique_ptr<Expression> &&high_expr): WhenCondition(token), low_expr(std::move(low_expr)), high_expr(std::move(high_expr)) {}
+        explicit RangeWhenCondition(const Token &token, std::unique_ptr<Expression> &&low_expr, std::unique_ptr<Expression> &&high_expr): WhenCondition(token), low_expr(std::move(low_expr)), high_expr(std::move(high_expr)) {}
         std::unique_ptr<Expression> low_expr;
         std::unique_ptr<Expression> high_expr;
     };
     class TypeTestWhenCondition: public WhenCondition {
     public:
-        TypeTestWhenCondition(const Token &token, std::unique_ptr<Type> &&target): WhenCondition(token), target(std::move(target)) {}
+        explicit TypeTestWhenCondition(const Token &token, std::unique_ptr<Type> &&target): WhenCondition(token), target(std::move(target)) {}
         std::unique_ptr<Type> target;
     };
-    CaseStatement(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::pair<std::vector<std::unique_ptr<WhenCondition>>, std::vector<std::unique_ptr<Statement>>>> &&clauses): Statement(token), expr(std::move(expr)), clauses(std::move(clauses)) {}
+    explicit CaseStatement(const Token &token, std::unique_ptr<Expression> &&expr, std::vector<std::pair<std::vector<std::unique_ptr<WhenCondition>>, std::vector<std::unique_ptr<Statement>>>> &&clauses): Statement(token), expr(std::move(expr)), clauses(std::move(clauses)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
     const std::vector<std::pair<std::vector<std::unique_ptr<WhenCondition>>, std::vector<std::unique_ptr<Statement>>>> clauses;
@@ -860,7 +860,7 @@ public:
 
 class CheckStatement: public BlockStatement {
 public:
-    CheckStatement(const Token &token, std::unique_ptr<Expression> &&cond, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), cond(std::move(cond)) {}
+    explicit CheckStatement(const Token &token, std::unique_ptr<Expression> &&cond, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)), cond(std::move(cond)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> cond;
 };
@@ -882,7 +882,7 @@ public:
 
 class ExpressionStatement: public Statement {
 public:
-    ExpressionStatement(const Token &token, std::unique_ptr<Expression> &&expr): Statement(token), expr(std::move(expr)) {}
+    explicit ExpressionStatement(const Token &token, std::unique_ptr<Expression> &&expr): Statement(token), expr(std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
 };
@@ -908,7 +908,7 @@ public:
 
 class IfStatement: public Statement {
 public:
-    IfStatement(const Token &token, std::vector<std::pair<std::unique_ptr<Expression>, std::vector<std::unique_ptr<Statement>>>> &&condition_statements, std::vector<std::unique_ptr<Statement>> &&else_statements): Statement(token), condition_statements(std::move(condition_statements)), else_statements(std::move(else_statements)) {}
+    explicit IfStatement(const Token &token, std::vector<std::pair<std::unique_ptr<Expression>, std::vector<std::unique_ptr<Statement>>>> &&condition_statements, std::vector<std::unique_ptr<Statement>> &&else_statements): Statement(token), condition_statements(std::move(condition_statements)), else_statements(std::move(else_statements)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::pair<std::unique_ptr<Expression>, std::vector<std::unique_ptr<Statement>>>> condition_statements;
     std::vector<std::unique_ptr<Statement>> else_statements;
@@ -916,7 +916,7 @@ public:
 
 class IncrementStatement: public Statement {
 public:
-    IncrementStatement(const Token &token, std::unique_ptr<Expression> &&expr, int delta): Statement(token), expr(std::move(expr)), delta(delta) {}
+    explicit IncrementStatement(const Token &token, std::unique_ptr<Expression> &&expr, int delta): Statement(token), expr(std::move(expr)), delta(delta) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
     const int delta;
@@ -952,21 +952,21 @@ public:
 
 class ReturnStatement: public Statement {
 public:
-    ReturnStatement(const Token &token, std::unique_ptr<Expression> &&expr): Statement(token), expr(std::move(expr)) {}
+    explicit ReturnStatement(const Token &token, std::unique_ptr<Expression> &&expr): Statement(token), expr(std::move(expr)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> expr;
 };
 
 class TryStatement: public BlockStatement {
 public:
-    TryStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, std::vector<std::unique_ptr<TryTrap>> &&catches): BlockStatement(token, std::move(body)), catches(std::move(catches)) {}
+    explicit TryStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, std::vector<std::unique_ptr<TryTrap>> &&catches): BlockStatement(token, std::move(body)), catches(std::move(catches)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::vector<std::unique_ptr<TryTrap>> catches;
 };
 
 class TryHandlerStatement: public BlockStatement {
 public:
-    TryHandlerStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)) {}
+    explicit TryHandlerStatement(const Token &token, std::vector<std::unique_ptr<Statement>> &&body): BlockStatement(token, std::move(body)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
 };
 
@@ -979,14 +979,14 @@ public:
 
 class WhileStatement: public BaseLoopStatement {
 public:
-    WhileStatement(const Token &token, std::unique_ptr<Expression> &&cond, const Token &label, std::vector<std::unique_ptr<Statement>> &&body): BaseLoopStatement(token, label, std::move(body)), cond(std::move(cond)) {}
+    explicit WhileStatement(const Token &token, std::unique_ptr<Expression> &&cond, const Token &label, std::vector<std::unique_ptr<Statement>> &&body): BaseLoopStatement(token, label, std::move(body)), cond(std::move(cond)) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     std::unique_ptr<Expression> cond;
 };
 
 class Program: public BlockStatement {
 public:
-    Program(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, const std::string &source_path, const std::string &source_hash): BlockStatement(token, std::move(body)), source_path(source_path), source_hash(source_hash) {}
+    explicit Program(const Token &token, std::vector<std::unique_ptr<Statement>> &&body, const std::string &source_path, const std::string &source_hash): BlockStatement(token, std::move(body)), source_path(source_path), source_hash(source_hash) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }
     const std::string source_path;
     const std::string source_hash;

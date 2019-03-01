@@ -169,7 +169,7 @@ class Statement;
 
 class Frame {
 public:
-    Frame(Frame *outer): outer(outer), predeclared(false), slots() {}
+    explicit Frame(Frame *outer): outer(outer), predeclared(false), slots() {}
     virtual ~Frame() {}
 
     virtual void predeclare(Emitter &emitter);
@@ -244,13 +244,13 @@ private:
 
 class GlobalFrame: public Frame {
 public:
-    GlobalFrame(Frame *outer): Frame(outer) {}
+    explicit GlobalFrame(Frame *outer): Frame(outer) {}
     virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) override;
 };
 
 class LocalFrame: public Frame {
 public:
-    LocalFrame(Frame *outer): Frame(outer), nesting_depth(outer->get_depth()+1) {}
+    explicit LocalFrame(Frame *outer): Frame(outer), nesting_depth(outer->get_depth()+1) {}
     virtual size_t get_depth() override { return nesting_depth; }
     virtual Variable *createVariable(const Token &token, const std::string &name, const Type *type, bool is_readonly) override;
     size_t nesting_depth;
@@ -392,7 +392,7 @@ extern TypeBoolean *TYPE_BOOLEAN;
 
 class TypeNumber: public Type {
 public:
-    TypeNumber(const Token &declaration): Type(declaration, "Number") {}
+    explicit TypeNumber(const Token &declaration): Type(declaration, "Number") {}
     TypeNumber(const Token &declaration, const std::string &name): Type(declaration, name) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
     virtual const Expression *make_default_value() const override;
@@ -649,7 +649,7 @@ public:
 
 class TypeForwardClass: public TypeClass {
 public:
-    TypeForwardClass(const Token &declaration): TypeClass(declaration, "module", "forward", std::vector<Field>(), std::vector<const Interface *>()) {}
+    explicit TypeForwardClass(const Token &declaration): TypeClass(declaration, "module", "forward", std::vector<Field>(), std::vector<const Interface *>()) {}
 };
 
 class TypePointer: public Type {
@@ -829,7 +829,7 @@ extern TypeInterface *TYPE_INTERFACE;
 
 class LoopLabel: public Name {
 public:
-    LoopLabel(const Token &declaration): Name(declaration, declaration.text, nullptr) {}
+    explicit LoopLabel(const Token &declaration): Name(declaration, declaration.text, nullptr) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void generate_export(Emitter &, const std::string &) const override { internal_error("LoopLabel"); }
@@ -1021,7 +1021,7 @@ private:
 
 class ConstantBooleanExpression: public Expression {
 public:
-    ConstantBooleanExpression(bool value): Expression(TYPE_BOOLEAN, true), value(value) {}
+    explicit ConstantBooleanExpression(bool value): Expression(TYPE_BOOLEAN, true), value(value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const bool value;
@@ -1036,7 +1036,7 @@ public:
 
 class ConstantNumberExpression: public Expression {
 public:
-    ConstantNumberExpression(Number value): Expression(TYPE_NUMBER, true), value(value) {}
+    explicit ConstantNumberExpression(Number value): Expression(TYPE_NUMBER, true), value(value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Number value;
@@ -1051,7 +1051,7 @@ public:
 
 class ConstantStringExpression: public Expression {
 public:
-    ConstantStringExpression(const utf8string &value): Expression(TYPE_STRING, true), value(value) {}
+    explicit ConstantStringExpression(const utf8string &value): Expression(TYPE_STRING, true), value(value) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const utf8string value;
@@ -1238,7 +1238,7 @@ private:
 
 class UnaryMinusExpression: public Expression {
 public:
-    UnaryMinusExpression(const Expression *value): Expression(TYPE_NUMBER, value->is_constant), value(value) {
+    explicit UnaryMinusExpression(const Expression *value): Expression(TYPE_NUMBER, value->is_constant), value(value) {
         if (type != TYPE_NUMBER) {
             internal_error("UnaryMinusExpression");
         }
@@ -1262,7 +1262,7 @@ private:
 
 class LogicalNotExpression: public Expression {
 public:
-    LogicalNotExpression(const Expression *value): Expression(TYPE_BOOLEAN, value->is_constant), value(value) {
+    explicit LogicalNotExpression(const Expression *value): Expression(TYPE_BOOLEAN, value->is_constant), value(value) {
         if (type != TYPE_BOOLEAN) {
             internal_error("LogicalNotExpression");
         }
@@ -1492,7 +1492,7 @@ private:
 
 class ChainedComparisonExpression: public Expression {
 public:
-    ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(TYPE_BOOLEAN, false), comps(comps) {}
+    explicit ChainedComparisonExpression(const std::vector<const ComparisonExpression *> &comps): Expression(TYPE_BOOLEAN, false), comps(comps) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::vector<const ComparisonExpression *> comps;
@@ -2177,7 +2177,7 @@ private:
 
 class ConstantExpression: public Expression {
 public:
-    ConstantExpression(const Constant *constant): Expression(constant->type, true, true), constant(constant) {}
+    explicit ConstantExpression(const Constant *constant): Expression(constant->type, true, true), constant(constant) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Constant *constant;
@@ -2195,7 +2195,7 @@ private:
 
 class VariableExpression: public ReferenceExpression {
 public:
-    VariableExpression(const Variable *var): ReferenceExpression(var->type, var->is_readonly), var(var) {}
+    explicit VariableExpression(const Variable *var): ReferenceExpression(var->type, var->is_readonly), var(var) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Variable *var;
@@ -2258,7 +2258,7 @@ private:
 
 class InterfacePointerDeconstructor: public Expression {
 public:
-    InterfacePointerDeconstructor(const Expression *expr): Expression(new TypePointer(Token(), nullptr), false), expr(expr) {}
+    explicit InterfacePointerDeconstructor(const Expression *expr): Expression(new TypePointer(Token(), nullptr), false), expr(expr) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Expression *const expr;
@@ -2336,7 +2336,7 @@ private:
 
 class Statement: public AstNode {
 public:
-    Statement(int line): line(line) {}
+    explicit Statement(int line): line(line) {}
     const int line;
 
     virtual bool always_returns() const { return false; }
@@ -2361,7 +2361,7 @@ public:
 
 class NullStatement: public Statement {
 public:
-    NullStatement(int line): Statement(line) {}
+    explicit NullStatement(int line): Statement(line) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void generate_code(Emitter &) const override {}
@@ -2552,7 +2552,7 @@ class CaseStatement: public Statement {
 public:
     class WhenCondition {
     public:
-        WhenCondition(const Token &token): token(token) {}
+        explicit WhenCondition(const Token &token): token(token) {}
         virtual ~WhenCondition() {}
         const Token token;
         virtual bool overlaps(const WhenCondition *cond) const = 0;

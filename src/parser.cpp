@@ -13,7 +13,7 @@ using namespace pt;
 
 class Parser {
 public:
-    Parser(const TokenizedSource &tokens);
+    explicit Parser(const TokenizedSource &tokens);
 
     TokenizedSource source;
     const std::vector<Token> tokens;

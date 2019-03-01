@@ -172,7 +172,7 @@ private:
 
 class SqlQueryStatement: public SqlStatement {
 public:
-    SqlQueryStatement(const std::string &query): query(query) {}
+    explicit SqlQueryStatement(const std::string &query): query(query) {}
     const std::string query;
 private:
     SqlQueryStatement(const SqlQueryStatement &);

@@ -37,7 +37,7 @@ std::string quoted(const std::string &s)
 
 class Context {
 public:
-    Context(std::ostream &out): out(out) {}
+    explicit Context(std::ostream &out): out(out) {}
     std::ostream &out;
 private:
     Context(const Context &);
@@ -56,7 +56,7 @@ static std::map<const ast::Statement *, Statement *> g_statement_cache;
 
 class Type {
 public:
-    Type(const ast::Type *t) {
+    explicit Type(const ast::Type *t) {
         g_type_cache[t] = this;
     }
     virtual ~Type() {}
@@ -70,7 +70,7 @@ Type *transform(const ast::Type *t);
 
 class Variable {
 public:
-    Variable(const ast::Variable *v): type(transform(v->type)) {
+    explicit Variable(const ast::Variable *v): type(transform(v->type)) {
         g_variable_cache[v] = this;
     }
     virtual ~Variable() {}
@@ -86,7 +86,7 @@ Variable *transform(const ast::Variable *v);
 
 class Expression {
 public:
-    Expression(const ast::Expression *node): type(transform(node->type)) {
+    explicit Expression(const ast::Expression *node): type(transform(node->type)) {
         g_expression_cache[node] = this;
     }
     virtual ~Expression() {}
@@ -101,7 +101,7 @@ Expression *transform(const ast::Expression *e);
 
 class Statement {
 public:
-    Statement(const ast::Statement *s) {
+    explicit Statement(const ast::Statement *s) {
         g_statement_cache[s] = this;
     }
     virtual ~Statement() {}
@@ -112,7 +112,7 @@ Statement *transform(const ast::Statement *s);
 
 class TypeNothing: public Type {
 public:
-    TypeNothing(const ast::TypeNothing *tn): Type(tn), tn(tn) {}
+    explicit TypeNothing(const ast::TypeNothing *tn): Type(tn), tn(tn) {}
     const ast::TypeNothing *tn;
     virtual void generate_default(Context &) const override { internal_error("TypeNothing"); }
 private:
@@ -122,7 +122,7 @@ private:
 
 class TypeDummy: public Type {
 public:
-    TypeDummy(const ast::TypeDummy *td): Type(td), td(td) {}
+    explicit TypeDummy(const ast::TypeDummy *td): Type(td), td(td) {}
     const ast::TypeDummy *td;
     virtual void generate_default(Context &) const override { internal_error("TypeDummy"); }
 private:
@@ -132,7 +132,7 @@ private:
 
 class TypeBoolean: public Type {
 public:
-    TypeBoolean(const ast::TypeBoolean *tb): Type(tb), tb(tb) {}
+    explicit TypeBoolean(const ast::TypeBoolean *tb): Type(tb), tb(tb) {}
     const ast::TypeBoolean *tb;
     virtual void generate_default(Context &context) const override {
         context.out << "false";
@@ -144,7 +144,7 @@ private:
 
 class TypeNumber: public Type {
 public:
-    TypeNumber(const ast::TypeNumber *tn): Type(tn), tn(tn) {}
+    explicit TypeNumber(const ast::TypeNumber *tn): Type(tn), tn(tn) {}
     const ast::TypeNumber *tn;
     virtual void generate_default(Context &context) const override {
         context.out << "0";
@@ -156,7 +156,7 @@ private:
 
 class TypeString: public Type {
 public:
-    TypeString(const ast::TypeString *ts): Type(ts), ts(ts) {}
+    explicit TypeString(const ast::TypeString *ts): Type(ts), ts(ts) {}
     const ast::TypeString *ts;
     virtual void generate_default(Context &context) const override {
         context.out << "\"\"";
@@ -168,7 +168,7 @@ private:
 
 class TypeBytes: public Type {
 public:
-    TypeBytes(const ast::TypeBytes *tb): Type(tb), tb(tb) {}
+    explicit TypeBytes(const ast::TypeBytes *tb): Type(tb), tb(tb) {}
     const ast::TypeBytes *tb;
     virtual void generate_default(Context &context) const override {
         context.out << "\"\"";
@@ -180,7 +180,7 @@ private:
 
 class TypeObject: public Type {
 public:
-    TypeObject(const ast::TypeObject *to): Type(to), to(to) {}
+    explicit TypeObject(const ast::TypeObject *to): Type(to), to(to) {}
     const ast::TypeObject *to;
     virtual void generate_default(Context &context) const override {
         context.out << "nullptr";
@@ -192,7 +192,7 @@ private:
 
 class TypeFunction: public Type {
 public:
-    TypeFunction(const ast::TypeFunction *tf): Type(tf), tf(tf), returntype(transform(tf->returntype)), paramtypes() {
+    explicit TypeFunction(const ast::TypeFunction *tf): Type(tf), tf(tf), returntype(transform(tf->returntype)), paramtypes() {
         for (auto p: tf->params) {
             paramtypes.push_back(std::make_pair(p->mode, transform(p->type)));
         }
@@ -208,7 +208,7 @@ private:
 
 class TypeArray: public Type {
 public:
-    TypeArray(const ast::TypeArray *ta): Type(ta), ta(ta), elementtype(transform(ta->elementtype)) {}
+    explicit TypeArray(const ast::TypeArray *ta): Type(ta), ta(ta), elementtype(transform(ta->elementtype)) {}
     const ast::TypeArray *ta;
     const Type *elementtype;
     virtual void generate_default(Context &context) const override {
@@ -221,7 +221,7 @@ private:
 
 class TypeDictionary: public Type {
 public:
-    TypeDictionary(const ast::TypeDictionary *td): Type(td), td(td), elementtype(transform(td->elementtype)) {}
+    explicit TypeDictionary(const ast::TypeDictionary *td): Type(td), td(td), elementtype(transform(td->elementtype)) {}
     const ast::TypeDictionary *td;
     const Type *elementtype;
     virtual void generate_default(Context &context) const override {
@@ -234,7 +234,7 @@ private:
 
 class TypeRecord: public Type {
 public:
-    TypeRecord(const ast::TypeRecord *tr): Type(tr), tr(tr), field_types() {
+    explicit TypeRecord(const ast::TypeRecord *tr): Type(tr), tr(tr), field_types() {
         for (auto f: tr->fields) {
             field_types.push_back(transform(f.type));
         }
@@ -263,7 +263,7 @@ private:
 
 class TypePointer: public Type {
 public:
-    TypePointer(const ast::TypePointer *tp): Type(tp), tp(tp) {}
+    explicit TypePointer(const ast::TypePointer *tp): Type(tp), tp(tp) {}
     const ast::TypePointer *tp;
     virtual void generate_default(Context &context) const override {
         context.out << "null";
@@ -275,7 +275,7 @@ private:
 
 class TypeInterfacePointer: public Type {
 public:
-    TypeInterfacePointer(const ast::TypeInterfacePointer *tip): Type(tip), tip(tip) {}
+    explicit TypeInterfacePointer(const ast::TypeInterfacePointer *tip): Type(tip), tip(tip) {}
     const ast::TypeInterfacePointer *tip;
     virtual void generate_default(Context &context) const override {
         context.out << "null";
@@ -287,7 +287,7 @@ private:
 
 class TypeFunctionPointer: public Type {
 public:
-    TypeFunctionPointer(const ast::TypeFunctionPointer *fp): Type(fp), fp(fp), functype(dynamic_cast<const TypeFunction *>(transform(fp->functype))) {}
+    explicit TypeFunctionPointer(const ast::TypeFunctionPointer *fp): Type(fp), fp(fp), functype(dynamic_cast<const TypeFunction *>(transform(fp->functype))) {}
     const ast::TypeFunctionPointer *fp;
     const TypeFunction *functype;
     virtual void generate_default(Context &context) const override {
@@ -300,7 +300,7 @@ private:
 
 class TypeEnum: public Type {
 public:
-    TypeEnum(const ast::TypeEnum *te): Type(te), te(te) {}
+    explicit TypeEnum(const ast::TypeEnum *te): Type(te), te(te) {}
     const ast::TypeEnum *te;
 
     virtual void generate_default(Context &context) const override {
@@ -313,7 +313,7 @@ private:
 
 class PredefinedVariable: public Variable {
 public:
-    PredefinedVariable(const ast::PredefinedVariable *pv): Variable(pv), pv(pv) {}
+    explicit PredefinedVariable(const ast::PredefinedVariable *pv): Variable(pv), pv(pv) {}
     const ast::PredefinedVariable *pv;
 
     virtual void generate_decl(Context &) const override { internal_error("PredefinedVariable"); }
@@ -333,7 +333,7 @@ private:
 
 class ModuleVariable: public Variable {
 public:
-    ModuleVariable(const ast::ModuleVariable *mv): Variable(mv), mv(mv) {}
+    explicit ModuleVariable(const ast::ModuleVariable *mv): Variable(mv), mv(mv) {}
     const ast::ModuleVariable *mv;
 
     virtual void generate_decl(Context &) const override { internal_error("ModuleVariable"); }
@@ -347,7 +347,7 @@ private:
 
 class GlobalVariable: public Variable {
 public:
-    GlobalVariable(const ast::GlobalVariable *gv): Variable(gv), gv(gv) {}
+    explicit GlobalVariable(const ast::GlobalVariable *gv): Variable(gv), gv(gv) {}
     const ast::GlobalVariable *gv;
 
     virtual void generate_decl(Context &context) const override {
@@ -363,7 +363,7 @@ private:
 
 class LocalVariable: public Variable {
 public:
-    LocalVariable(const ast::LocalVariable *lv): Variable(lv), lv(lv) {}
+    explicit LocalVariable(const ast::LocalVariable *lv): Variable(lv), lv(lv) {}
     const ast::LocalVariable *lv;
 
     virtual void generate_decl(Context &context) const override {
@@ -379,7 +379,7 @@ private:
 
 class FunctionParameter: public Variable {
 public:
-    FunctionParameter(const ast::FunctionParameter *fp, int index): Variable(fp), fp(fp), index(index) {}
+    explicit FunctionParameter(const ast::FunctionParameter *fp, int index): Variable(fp), fp(fp), index(index) {}
     const ast::FunctionParameter *fp;
     const int index;
 
@@ -394,7 +394,7 @@ private:
 
 class ConstantBooleanExpression: public Expression {
 public:
-    ConstantBooleanExpression(const ast::ConstantBooleanExpression *cbe): Expression(cbe), cbe(cbe) {}
+    explicit ConstantBooleanExpression(const ast::ConstantBooleanExpression *cbe): Expression(cbe), cbe(cbe) {}
     const ast::ConstantBooleanExpression *cbe;
 
     virtual void generate(Context &context) const override {
@@ -407,7 +407,7 @@ private:
 
 class ConstantNumberExpression: public Expression {
 public:
-    ConstantNumberExpression(const ast::ConstantNumberExpression *cne): Expression(cne), cne(cne) {}
+    explicit ConstantNumberExpression(const ast::ConstantNumberExpression *cne): Expression(cne), cne(cne) {}
     const ast::ConstantNumberExpression *cne;
 
     virtual void generate(Context &context) const override {
@@ -420,7 +420,7 @@ private:
 
 class ConstantStringExpression: public Expression {
 public:
-    ConstantStringExpression(const ast::ConstantStringExpression *cse): Expression(cse), cse(cse) {}
+    explicit ConstantStringExpression(const ast::ConstantStringExpression *cse): Expression(cse), cse(cse) {}
     const ast::ConstantStringExpression *cse;
 
     virtual void generate(Context &context) const override {
@@ -433,7 +433,7 @@ private:
 
 class ConstantBytesExpression: public Expression {
 public:
-    ConstantBytesExpression(const ast::ConstantBytesExpression *cbe): Expression(cbe), cbe(cbe) {}
+    explicit ConstantBytesExpression(const ast::ConstantBytesExpression *cbe): Expression(cbe), cbe(cbe) {}
     const ast::ConstantBytesExpression *cbe;
 
     virtual void generate(Context &context) const override {
@@ -446,7 +446,7 @@ private:
 
 class ConstantEnumExpression: public Expression {
 public:
-    ConstantEnumExpression(const ast::ConstantEnumExpression *cee): Expression(cee), cee(cee), type(dynamic_cast<const TypeEnum *>(transform(cee->type))) {}
+    explicit ConstantEnumExpression(const ast::ConstantEnumExpression *cee): Expression(cee), cee(cee), type(dynamic_cast<const TypeEnum *>(transform(cee->type))) {}
     const ast::ConstantEnumExpression *cee;
     const TypeEnum *type;
 
@@ -460,7 +460,7 @@ private:
 
 class ConstantNilExpression: public Expression {
 public:
-    ConstantNilExpression(const ast::ConstantNilExpression *cne): Expression(cne), cne(cne) {}
+    explicit ConstantNilExpression(const ast::ConstantNilExpression *cne): Expression(cne), cne(cne) {}
     const ast::ConstantNilExpression *cne;
 
     virtual void generate(Context &context) const override {
@@ -473,7 +473,7 @@ private:
 
 class ConstantNowhereExpression: public Expression {
 public:
-    ConstantNowhereExpression(const ast::ConstantNowhereExpression *cne): Expression(cne), cne(cne) {}
+    explicit ConstantNowhereExpression(const ast::ConstantNowhereExpression *cne): Expression(cne), cne(cne) {}
     const ast::ConstantNowhereExpression *cne;
 
     virtual void generate(Context &context) const override {
@@ -486,7 +486,7 @@ private:
 
 class TypeConversionExpression: public Expression {
 public:
-    TypeConversionExpression(const ast::TypeConversionExpression *tce): Expression(tce), tce(tce), expr(transform(tce->expr)) {}
+    explicit TypeConversionExpression(const ast::TypeConversionExpression *tce): Expression(tce), tce(tce), expr(transform(tce->expr)) {}
     const ast::TypeConversionExpression *tce;
     const Expression *expr;
 
@@ -500,7 +500,7 @@ private:
 
 class ArrayLiteralExpression: public Expression {
 public:
-    ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): Expression(ale), ale(ale), elements() {
+    explicit ArrayLiteralExpression(const ast::ArrayLiteralExpression *ale): Expression(ale), ale(ale), elements() {
         for (auto e: ale->elements) {
             elements.push_back(transform(e));
         }
@@ -523,7 +523,7 @@ private:
 
 class DictionaryLiteralExpression: public Expression {
 public:
-    DictionaryLiteralExpression(const ast::DictionaryLiteralExpression *dle): Expression(dle), dle(dle), dict() {
+    explicit DictionaryLiteralExpression(const ast::DictionaryLiteralExpression *dle): Expression(dle), dle(dle), dict() {
         for (auto d: dle->dict) {
             dict[d.first.str()] = transform(d.second); // TODO: utf8
         }
@@ -553,7 +553,7 @@ private:
 
 class RecordLiteralExpression: public Expression {
 public:
-    RecordLiteralExpression(const ast::RecordLiteralExpression *rle): Expression(rle), rle(rle), type(dynamic_cast<TypeRecord *>(transform(rle->type))), values() {
+    explicit RecordLiteralExpression(const ast::RecordLiteralExpression *rle): Expression(rle), rle(rle), type(dynamic_cast<TypeRecord *>(transform(rle->type))), values() {
         for (auto v: rle->values) {
             values.push_back(transform(v));
         }
@@ -586,7 +586,7 @@ private:
 
 class ClassLiteralExpression: public RecordLiteralExpression {
 public:
-    ClassLiteralExpression(const ast::ClassLiteralExpression *cle): RecordLiteralExpression(cle), cle(cle) {}
+    explicit ClassLiteralExpression(const ast::ClassLiteralExpression *cle): RecordLiteralExpression(cle), cle(cle) {}
     const ast::ClassLiteralExpression *cle;
 private:
     ClassLiteralExpression(const ClassLiteralExpression &);
@@ -595,7 +595,7 @@ private:
 
 class NewClassExpression: public Expression {
 public:
-    NewClassExpression(const ast::NewClassExpression *nce): Expression(nce), nce(nce), value(transform(nce->value)), type(dynamic_cast<const TypeRecord *>(transform(dynamic_cast<const ast::TypeValidPointer *>(nce->type)->reftype))) {}
+    explicit NewClassExpression(const ast::NewClassExpression *nce): Expression(nce), nce(nce), value(transform(nce->value)), type(dynamic_cast<const TypeRecord *>(transform(dynamic_cast<const ast::TypeValidPointer *>(nce->type)->reftype))) {}
     const ast::NewClassExpression *nce;
     const Expression *value;
     const TypeRecord *type;
@@ -614,7 +614,7 @@ private:
 
 class UnaryMinusExpression: public Expression {
 public:
-    UnaryMinusExpression(const ast::UnaryMinusExpression *ume): Expression(ume), ume(ume), value(transform(ume->value)) {}
+    explicit UnaryMinusExpression(const ast::UnaryMinusExpression *ume): Expression(ume), ume(ume), value(transform(ume->value)) {}
     const ast::UnaryMinusExpression *ume;
     const Expression *value;
 
@@ -630,7 +630,7 @@ private:
 
 class LogicalNotExpression: public Expression {
 public:
-    LogicalNotExpression(const ast::LogicalNotExpression *lne): Expression(lne), lne(lne), value(transform(lne->value)) {}
+    explicit LogicalNotExpression(const ast::LogicalNotExpression *lne): Expression(lne), lne(lne), value(transform(lne->value)) {}
     const ast::LogicalNotExpression *lne;
     const Expression *value;
 
@@ -646,7 +646,7 @@ private:
 
 class ConditionalExpression: public Expression {
 public:
-    ConditionalExpression(const ast::ConditionalExpression *ce): Expression(ce), ce(ce), condition(transform(ce->condition)), left(transform(ce->left)), right(transform(ce->right)) {}
+    explicit ConditionalExpression(const ast::ConditionalExpression *ce): Expression(ce), ce(ce), condition(transform(ce->condition)), left(transform(ce->left)), right(transform(ce->right)) {}
     const ast::ConditionalExpression *ce;
     const Expression *condition;
     const Expression *left;
@@ -668,7 +668,7 @@ private:
 
 class TryExpressionTrap {
 public:
-    TryExpressionTrap(const ast::TryTrap *tt): tt(tt), name(transform(tt->name)), handler(), gives(transform(dynamic_cast<const ast::Expression *>(tt->handler))) {
+    explicit TryExpressionTrap(const ast::TryTrap *tt): tt(tt), name(transform(tt->name)), handler(), gives(transform(dynamic_cast<const ast::Expression *>(tt->handler))) {
         const ast::ExceptionHandlerStatement *h = dynamic_cast<const ast::ExceptionHandlerStatement *>(tt->handler);
         if (h != nullptr) {
             for (auto s: h->statements) {
@@ -687,7 +687,7 @@ private:
 
 class TryExpression: public Expression {
 public:
-    TryExpression(const ast::TryExpression *te): Expression(te), te(te), expr(transform(te->expr)), catches() {
+    explicit TryExpression(const ast::TryExpression *te): Expression(te), te(te), expr(transform(te->expr)), catches() {
         for (auto &t: te->catches) {
             catches.push_back(new TryExpressionTrap(&t));
         }
@@ -706,7 +706,7 @@ private:
 
 class DisjunctionExpression: public Expression {
 public:
-    DisjunctionExpression(const ast::DisjunctionExpression *de): Expression(de), de(de), left(transform(de->left)), right(transform(de->right)) {}
+    explicit DisjunctionExpression(const ast::DisjunctionExpression *de): Expression(de), de(de), left(transform(de->left)), right(transform(de->right)) {}
     const ast::DisjunctionExpression *de;
     const Expression *left;
     const Expression *right;
@@ -725,7 +725,7 @@ private:
 
 class ConjunctionExpression: public Expression {
 public:
-    ConjunctionExpression(const ast::ConjunctionExpression *ce): Expression(ce), ce(ce), left(transform(ce->left)), right(transform(ce->right)) {}
+    explicit ConjunctionExpression(const ast::ConjunctionExpression *ce): Expression(ce), ce(ce), left(transform(ce->left)), right(transform(ce->right)) {}
     const ast::ConjunctionExpression *ce;
     const Expression *left;
     const Expression *right;
@@ -744,7 +744,7 @@ private:
 
 class ArrayInExpression: public Expression {
 public:
-    ArrayInExpression(const ast::ArrayInExpression *aie): Expression(aie), aie(aie), left(transform(aie->left)), right(transform(aie->right)) {}
+    explicit ArrayInExpression(const ast::ArrayInExpression *aie): Expression(aie), aie(aie), left(transform(aie->left)), right(transform(aie->right)) {}
     const ast::ArrayInExpression *aie;
     const Expression *left;
     const Expression *right;
@@ -759,7 +759,7 @@ private:
 
 class DictionaryInExpression: public Expression {
 public:
-    DictionaryInExpression(const ast::DictionaryInExpression *die): Expression(die), die(die), left(transform(die->left)), right(transform(die->right)) {}
+    explicit DictionaryInExpression(const ast::DictionaryInExpression *die): Expression(die), die(die), left(transform(die->left)), right(transform(die->right)) {}
     const ast::DictionaryInExpression *die;
     const Expression *left;
     const Expression *right;
@@ -774,7 +774,7 @@ private:
 
 class ComparisonExpression: public Expression {
 public:
-    ComparisonExpression(const ast::ComparisonExpression *ce): Expression(ce), ce(ce), left(transform(ce->left)), right(transform(ce->right)) {}
+    explicit ComparisonExpression(const ast::ComparisonExpression *ce): Expression(ce), ce(ce), left(transform(ce->left)), right(transform(ce->right)) {}
     const ast::ComparisonExpression *ce;
     const Expression *left;
     const Expression *right;
@@ -794,7 +794,7 @@ private:
 
 class ChainedComparisonExpression: public Expression {
 public:
-    ChainedComparisonExpression(const ast::ChainedComparisonExpression *cce): Expression(cce), cce(cce), comps() {
+    explicit ChainedComparisonExpression(const ast::ChainedComparisonExpression *cce): Expression(cce), cce(cce), comps() {
         for (auto c: cce->comps) {
             const ComparisonExpression *ce = dynamic_cast<const ComparisonExpression *>(transform(c));
             if (ce == nullptr) {
@@ -824,7 +824,7 @@ private:
 
 class BooleanComparisonExpression: public ComparisonExpression {
 public:
-    BooleanComparisonExpression(const ast::BooleanComparisonExpression *bce): ComparisonExpression(bce), bce(bce) {}
+    explicit BooleanComparisonExpression(const ast::BooleanComparisonExpression *bce): ComparisonExpression(bce), bce(bce) {}
     const ast::BooleanComparisonExpression *bce;
 
     virtual void generate_comparison(Context &context) const override {
@@ -842,7 +842,7 @@ private:
 
 class NumericComparisonExpression: public ComparisonExpression {
 public:
-    NumericComparisonExpression(const ast::NumericComparisonExpression *nce): ComparisonExpression(nce), nce(nce) {}
+    explicit NumericComparisonExpression(const ast::NumericComparisonExpression *nce): ComparisonExpression(nce), nce(nce) {}
     const ast::NumericComparisonExpression *nce;
 
     virtual void generate_comparison(Context &context) const override {
@@ -862,7 +862,7 @@ private:
 
 class EnumComparisonExpression: public ComparisonExpression {
 public:
-    EnumComparisonExpression(const ast::EnumComparisonExpression *ece): ComparisonExpression(ece), ece(ece) {}
+    explicit EnumComparisonExpression(const ast::EnumComparisonExpression *ece): ComparisonExpression(ece), ece(ece) {}
     const ast::EnumComparisonExpression *ece;
 
     virtual void generate_comparison(Context &context) const override {
@@ -880,7 +880,7 @@ private:
 
 class StringComparisonExpression: public ComparisonExpression {
 public:
-    StringComparisonExpression(const ast::StringComparisonExpression *sce): ComparisonExpression(sce), sce(sce) {}
+    explicit StringComparisonExpression(const ast::StringComparisonExpression *sce): ComparisonExpression(sce), sce(sce) {}
     const ast::StringComparisonExpression *sce;
 
     virtual void generate_comparison(Context &context) const override {
@@ -900,7 +900,7 @@ private:
 
 class BytesComparisonExpression: public ComparisonExpression {
 public:
-    BytesComparisonExpression(const ast::BytesComparisonExpression *bce): ComparisonExpression(bce), bce(bce) {}
+    explicit BytesComparisonExpression(const ast::BytesComparisonExpression *bce): ComparisonExpression(bce), bce(bce) {}
     const ast::BytesComparisonExpression *bce;
 
     virtual void generate_comparison(Context &context) const override {
@@ -920,7 +920,7 @@ private:
 
 class ArrayComparisonExpression: public ComparisonExpression {
 public:
-    ArrayComparisonExpression(const ast::ArrayComparisonExpression *ace): ComparisonExpression(ace), ace(ace) {}
+    explicit ArrayComparisonExpression(const ast::ArrayComparisonExpression *ace): ComparisonExpression(ace), ace(ace) {}
     const ast::ArrayComparisonExpression *ace;
 
     virtual void generate_comparison(Context &context) const override {
@@ -933,7 +933,7 @@ private:
 
 class DictionaryComparisonExpression: public ComparisonExpression {
 public:
-    DictionaryComparisonExpression(const ast::DictionaryComparisonExpression *dce): ComparisonExpression(dce), dce(dce) {}
+    explicit DictionaryComparisonExpression(const ast::DictionaryComparisonExpression *dce): ComparisonExpression(dce), dce(dce) {}
     const ast::DictionaryComparisonExpression *dce;
 
     virtual void generate_comparison(Context &) const override {
@@ -946,7 +946,7 @@ private:
 
 class RecordComparisonExpression: public ComparisonExpression {
 public:
-    RecordComparisonExpression(const ast::RecordComparisonExpression *rce): ComparisonExpression(rce), rce(rce) {}
+    explicit RecordComparisonExpression(const ast::RecordComparisonExpression *rce): ComparisonExpression(rce), rce(rce) {}
     const ast::RecordComparisonExpression *rce;
 
     virtual void generate_comparison(Context &) const override {
@@ -959,7 +959,7 @@ private:
 
 class PointerComparisonExpression: public ComparisonExpression {
 public:
-    PointerComparisonExpression(const ast::PointerComparisonExpression *pce): ComparisonExpression(pce), pce(pce) {}
+    explicit PointerComparisonExpression(const ast::PointerComparisonExpression *pce): ComparisonExpression(pce), pce(pce) {}
     const ast::PointerComparisonExpression *pce;
 
     virtual void generate_comparison(Context &context) const override {
@@ -972,7 +972,7 @@ private:
 
 class ValidPointerExpression: public PointerComparisonExpression {
 public:
-    ValidPointerExpression(const ast::ValidPointerExpression *vpe): PointerComparisonExpression(vpe), vpe(vpe), var(transform(vpe->var)) {}
+    explicit ValidPointerExpression(const ast::ValidPointerExpression *vpe): PointerComparisonExpression(vpe), vpe(vpe), var(transform(vpe->var)) {}
     const ast::ValidPointerExpression *vpe;
     const Variable *var;
 
@@ -992,7 +992,7 @@ private:
 
 class FunctionPointerComparisonExpression: public ComparisonExpression {
 public:
-    FunctionPointerComparisonExpression(const ast::FunctionPointerComparisonExpression *fpce): ComparisonExpression(fpce), fpce(fpce) {}
+    explicit FunctionPointerComparisonExpression(const ast::FunctionPointerComparisonExpression *fpce): ComparisonExpression(fpce), fpce(fpce) {}
     const ast::FunctionPointerComparisonExpression *fpce;
 
     virtual void generate_comparison(Context &context) const override {
@@ -1010,7 +1010,7 @@ private:
 
 class AdditionExpression: public Expression {
 public:
-    AdditionExpression(const ast::AdditionExpression *ae): Expression(ae), ae(ae), left(transform(ae->left)), right(transform(ae->right)) {}
+    explicit AdditionExpression(const ast::AdditionExpression *ae): Expression(ae), ae(ae), left(transform(ae->left)), right(transform(ae->right)) {}
     const ast::AdditionExpression *ae;
     const Expression *left;
     const Expression *right;
@@ -1029,7 +1029,7 @@ private:
 
 class SubtractionExpression: public Expression {
 public:
-    SubtractionExpression(const ast::SubtractionExpression *se): Expression(se), se(se), left(transform(se->left)), right(transform(se->right)) {}
+    explicit SubtractionExpression(const ast::SubtractionExpression *se): Expression(se), se(se), left(transform(se->left)), right(transform(se->right)) {}
     const ast::SubtractionExpression *se;
     const Expression *left;
     const Expression *right;
@@ -1048,7 +1048,7 @@ private:
 
 class MultiplicationExpression: public Expression {
 public:
-    MultiplicationExpression(const ast::MultiplicationExpression *me): Expression(me), me(me), left(transform(me->left)), right(transform(me->right)) {}
+    explicit MultiplicationExpression(const ast::MultiplicationExpression *me): Expression(me), me(me), left(transform(me->left)), right(transform(me->right)) {}
     const ast::MultiplicationExpression *me;
     const Expression *left;
     const Expression *right;
@@ -1067,7 +1067,7 @@ private:
 
 class DivisionExpression: public Expression {
 public:
-    DivisionExpression(const ast::DivisionExpression *de): Expression(de), de(de), left(transform(de->left)), right(transform(de->right)) {}
+    explicit DivisionExpression(const ast::DivisionExpression *de): Expression(de), de(de), left(transform(de->left)), right(transform(de->right)) {}
     const ast::DivisionExpression *de;
     const Expression *left;
     const Expression *right;
@@ -1086,7 +1086,7 @@ private:
 
 class ModuloExpression: public Expression {
 public:
-    ModuloExpression(const ast::ModuloExpression *me): Expression(me), me(me), left(transform(me->left)), right(transform(me->right)) {}
+    explicit ModuloExpression(const ast::ModuloExpression *me): Expression(me), me(me), left(transform(me->left)), right(transform(me->right)) {}
     const ast::ModuloExpression *me;
     const Expression *left;
     const Expression *right;
@@ -1105,7 +1105,7 @@ private:
 
 class ExponentiationExpression: public Expression {
 public:
-    ExponentiationExpression(const ast::ExponentiationExpression *ee): Expression(ee), ee(ee), left(transform(ee->left)), right(transform(ee->right)) {}
+    explicit ExponentiationExpression(const ast::ExponentiationExpression *ee): Expression(ee), ee(ee), left(transform(ee->left)), right(transform(ee->right)) {}
     const ast::ExponentiationExpression *ee;
     const Expression *left;
     const Expression *right;
@@ -1124,7 +1124,7 @@ private:
 
 class DummyExpression: public Expression {
 public:
-    DummyExpression(const ast::DummyExpression *de): Expression(de), de(de) {}
+    explicit DummyExpression(const ast::DummyExpression *de): Expression(de), de(de) {}
     const ast::DummyExpression *de;
 
     virtual void generate(Context &) const override { internal_error("DummyExpression"); }
@@ -1135,7 +1135,7 @@ private:
 
 class ArrayReferenceIndexExpression: public Expression {
 public:
-    ArrayReferenceIndexExpression(const ast::ArrayReferenceIndexExpression *arie): Expression(arie), arie(arie), array(transform(arie->array)), index(transform(arie->index)) {}
+    explicit ArrayReferenceIndexExpression(const ast::ArrayReferenceIndexExpression *arie): Expression(arie), arie(arie), array(transform(arie->array)), index(transform(arie->index)) {}
     const ast::ArrayReferenceIndexExpression *arie;
     const Expression *array;
     const Expression *index;
@@ -1153,7 +1153,7 @@ private:
 
 class ArrayValueIndexExpression: public Expression {
 public:
-    ArrayValueIndexExpression(const ast::ArrayValueIndexExpression *avie): Expression(avie), avie(avie), array(transform(avie->array)), index(transform(avie->index)) {}
+    explicit ArrayValueIndexExpression(const ast::ArrayValueIndexExpression *avie): Expression(avie), avie(avie), array(transform(avie->array)), index(transform(avie->index)) {}
     const ast::ArrayValueIndexExpression *avie;
     const Expression *array;
     const Expression *index;
@@ -1171,7 +1171,7 @@ private:
 
 class DictionaryReferenceIndexExpression: public Expression {
 public:
-    DictionaryReferenceIndexExpression(const ast::DictionaryReferenceIndexExpression *drie): Expression(drie), drie(drie), dictionary(transform(drie->dictionary)), index(transform(drie->index)) {}
+    explicit DictionaryReferenceIndexExpression(const ast::DictionaryReferenceIndexExpression *drie): Expression(drie), drie(drie), dictionary(transform(drie->dictionary)), index(transform(drie->index)) {}
     const ast::DictionaryReferenceIndexExpression *drie;
     const Expression *dictionary;
     const Expression *index;
@@ -1189,7 +1189,7 @@ private:
 
 class DictionaryValueIndexExpression: public Expression {
 public:
-    DictionaryValueIndexExpression(const ast::DictionaryValueIndexExpression *dvie): Expression(dvie), dvie(dvie), dictionary(transform(dvie->dictionary)), index(transform(dvie->index)) {}
+    explicit DictionaryValueIndexExpression(const ast::DictionaryValueIndexExpression *dvie): Expression(dvie), dvie(dvie), dictionary(transform(dvie->dictionary)), index(transform(dvie->index)) {}
     const ast::DictionaryValueIndexExpression *dvie;
     const Expression *dictionary;
     const Expression *index;
@@ -1204,7 +1204,7 @@ private:
 
 class StringReferenceIndexExpression: public Expression {
 public:
-    StringReferenceIndexExpression(const ast::StringReferenceIndexExpression *srie): Expression(srie), srie(srie), ref(transform(srie->ref)), first(transform(srie->first)), last(transform(srie->last)) {}
+    explicit StringReferenceIndexExpression(const ast::StringReferenceIndexExpression *srie): Expression(srie), srie(srie), ref(transform(srie->ref)), first(transform(srie->first)), last(transform(srie->last)) {}
     const ast::StringReferenceIndexExpression *srie;
     const Expression *ref;
     const Expression *first;
@@ -1220,7 +1220,7 @@ private:
 
 class StringValueIndexExpression: public Expression {
 public:
-    StringValueIndexExpression(const ast::StringValueIndexExpression *svie): Expression(svie), svie(svie), str(transform(svie->str)), first(transform(svie->first)), last(transform(svie->last)) {}
+    explicit StringValueIndexExpression(const ast::StringValueIndexExpression *svie): Expression(svie), svie(svie), str(transform(svie->str)), first(transform(svie->first)), last(transform(svie->last)) {}
     const ast::StringValueIndexExpression *svie;
     const Expression *str;
     const Expression *first;
@@ -1236,7 +1236,7 @@ private:
 
 class BytesReferenceIndexExpression: public Expression {
 public:
-    BytesReferenceIndexExpression(const ast::BytesReferenceIndexExpression *brie): Expression(brie), brie(brie), ref(transform(brie->ref)), first(transform(brie->first)), last(transform(brie->last)) {}
+    explicit BytesReferenceIndexExpression(const ast::BytesReferenceIndexExpression *brie): Expression(brie), brie(brie), ref(transform(brie->ref)), first(transform(brie->first)), last(transform(brie->last)) {}
     const ast::BytesReferenceIndexExpression *brie;
     const Expression *ref;
     const Expression *first;
@@ -1252,7 +1252,7 @@ private:
 
 class BytesValueIndexExpression: public Expression {
 public:
-    BytesValueIndexExpression(const ast::BytesValueIndexExpression *bvie): Expression(bvie), bvie(bvie), data(transform(bvie->str)), first(transform(bvie->first)), last(transform(bvie->last)) {}
+    explicit BytesValueIndexExpression(const ast::BytesValueIndexExpression *bvie): Expression(bvie), bvie(bvie), data(transform(bvie->str)), first(transform(bvie->first)), last(transform(bvie->last)) {}
     const ast::BytesValueIndexExpression *bvie;
     const Expression *data;
     const Expression *first;
@@ -1268,7 +1268,7 @@ private:
 
 class RecordReferenceFieldExpression: public Expression {
 public:
-    RecordReferenceFieldExpression(const ast::RecordReferenceFieldExpression *rrfe): Expression(rrfe), rrfe(rrfe), ref(transform(rrfe->ref)), rectype(dynamic_cast<const TypeRecord *>(transform(rrfe->ref->type))), fieldtype(transform(rrfe->type)) {}
+    explicit RecordReferenceFieldExpression(const ast::RecordReferenceFieldExpression *rrfe): Expression(rrfe), rrfe(rrfe), ref(transform(rrfe->ref)), rectype(dynamic_cast<const TypeRecord *>(transform(rrfe->ref->type))), fieldtype(transform(rrfe->type)) {}
     const ast::RecordReferenceFieldExpression *rrfe;
     const Expression *ref;
     const TypeRecord *rectype;
@@ -1285,7 +1285,7 @@ private:
 
 class RecordValueFieldExpression: public Expression {
 public:
-    RecordValueFieldExpression(const ast::RecordValueFieldExpression *rvfe): Expression(rvfe), rvfe(rvfe), rec(transform(rvfe->rec)), rectype(dynamic_cast<const TypeRecord *>(transform(rvfe->rec->type))), fieldtype(transform(rvfe->type)) {}
+    explicit RecordValueFieldExpression(const ast::RecordValueFieldExpression *rvfe): Expression(rvfe), rvfe(rvfe), rec(transform(rvfe->rec)), rectype(dynamic_cast<const TypeRecord *>(transform(rvfe->rec->type))), fieldtype(transform(rvfe->type)) {}
     const ast::RecordValueFieldExpression *rvfe;
     const Expression *rec;
     const TypeRecord *rectype;
@@ -1302,7 +1302,7 @@ private:
 
 class ArrayReferenceRangeExpression: public Expression {
 public:
-    ArrayReferenceRangeExpression(const ast::ArrayReferenceRangeExpression *arre): Expression(arre), arre(arre), ref(transform(arre->ref)), first(transform(arre->first)), last(transform(arre->last)) {}
+    explicit ArrayReferenceRangeExpression(const ast::ArrayReferenceRangeExpression *arre): Expression(arre), arre(arre), ref(transform(arre->ref)), first(transform(arre->first)), last(transform(arre->last)) {}
     const ast::ArrayReferenceRangeExpression *arre;
     const Expression *ref;
     const Expression *first;
@@ -1318,7 +1318,7 @@ private:
 
 class ArrayValueRangeExpression: public Expression {
 public:
-    ArrayValueRangeExpression(const ast::ArrayValueRangeExpression *avre): Expression(avre), avre(avre), array(transform(avre->array)), first(transform(avre->first)), last(transform(avre->last)) {}
+    explicit ArrayValueRangeExpression(const ast::ArrayValueRangeExpression *avre): Expression(avre), avre(avre), array(transform(avre->array)), first(transform(avre->first)), last(transform(avre->last)) {}
     const ast::ArrayValueRangeExpression *avre;
     const Expression *array;
     const Expression *first;
@@ -1334,7 +1334,7 @@ private:
 
 class PointerDereferenceExpression: public Expression {
 public:
-    PointerDereferenceExpression(const ast::PointerDereferenceExpression *pde): Expression(pde), pde(pde), ptr(transform(pde->ptr)) {}
+    explicit PointerDereferenceExpression(const ast::PointerDereferenceExpression *pde): Expression(pde), pde(pde), ptr(transform(pde->ptr)) {}
     const ast::PointerDereferenceExpression *pde;
     const Expression *ptr;
 
@@ -1348,7 +1348,7 @@ private:
 
 class VariableExpression: public Expression {
 public:
-    VariableExpression(const ast::VariableExpression *ve): Expression(ve), ve(ve), var(transform(ve->var)) {}
+    explicit VariableExpression(const ast::VariableExpression *ve): Expression(ve), ve(ve), var(transform(ve->var)) {}
     const ast::VariableExpression *ve;
     const Variable *var;
 
@@ -1362,7 +1362,7 @@ private:
 
 class InterfaceMethodExpression: public Expression {
 public:
-    InterfaceMethodExpression(const ast::InterfaceMethodExpression *ime): Expression(ime), ime(ime) {}
+    explicit InterfaceMethodExpression(const ast::InterfaceMethodExpression *ime): Expression(ime), ime(ime) {}
     const ast::InterfaceMethodExpression *ime;
 
     virtual void generate(Context &) const override {
@@ -1375,7 +1375,7 @@ private:
 
 class FunctionCall: public Expression {
 public:
-    FunctionCall(const ast::FunctionCall *fc): Expression(fc), fc(fc), func(transform(fc->func)), args() {
+    explicit FunctionCall(const ast::FunctionCall *fc): Expression(fc), fc(fc), func(transform(fc->func)), args() {
         for (auto a: fc->args) {
             args.push_back(transform(a));
         }
@@ -1405,7 +1405,7 @@ private:
 
 class NullStatement: public Statement {
 public:
-    NullStatement(const ast::NullStatement *ns): Statement(ns), ns(ns) {}
+    explicit NullStatement(const ast::NullStatement *ns): Statement(ns), ns(ns) {}
     const ast::NullStatement *ns;
 
     virtual void generate(Context &) const override {}
@@ -1416,7 +1416,7 @@ private:
 
 class TypeDeclarationStatement: public Statement {
 public:
-    TypeDeclarationStatement(const ast::TypeDeclarationStatement *tds): Statement(tds), tds(tds) {}
+    explicit TypeDeclarationStatement(const ast::TypeDeclarationStatement *tds): Statement(tds), tds(tds) {}
     const ast::TypeDeclarationStatement *tds;
 
     virtual void generate(Context &) const override {}
@@ -1427,7 +1427,7 @@ private:
 
 class DeclarationStatement: public Statement {
 public:
-    DeclarationStatement(const ast::DeclarationStatement *ds): Statement(ds), ds(ds), decl(transform(ds->decl)) {}
+    explicit DeclarationStatement(const ast::DeclarationStatement *ds): Statement(ds), ds(ds), decl(transform(ds->decl)) {}
     const ast::DeclarationStatement *ds;
     const Variable *decl;
 
@@ -1441,7 +1441,7 @@ private:
 
 class AssertStatement: public Statement {
 public:
-    AssertStatement(const ast::AssertStatement *as): Statement(as), as(as), statements(), expr(transform(as->expr)) {
+    explicit AssertStatement(const ast::AssertStatement *as): Statement(as), as(as), statements(), expr(transform(as->expr)) {
         for (auto s: as->statements) {
             statements.push_back(transform(s));
         }
@@ -1467,7 +1467,7 @@ private:
 
 class AssignmentStatement: public Statement {
 public:
-    AssignmentStatement(const ast::AssignmentStatement *as): Statement(as), as(as), variables(), expr(transform(as->expr)) {
+    explicit AssignmentStatement(const ast::AssignmentStatement *as): Statement(as), as(as), variables(), expr(transform(as->expr)) {
         for (auto v: as->variables) {
             variables.push_back(transform(v));
         }
@@ -1493,7 +1493,7 @@ private:
 
 class ExpressionStatement: public Statement {
 public:
-    ExpressionStatement(const ast::ExpressionStatement *es): Statement(es), es(es), expr(transform(es->expr)) {}
+    explicit ExpressionStatement(const ast::ExpressionStatement *es): Statement(es), es(es), expr(transform(es->expr)) {}
     const ast::ExpressionStatement *es;
     const Expression *expr;
 
@@ -1508,7 +1508,7 @@ private:
 
 class CompoundStatement: public Statement {
 public:
-    CompoundStatement(const ast::CompoundStatement *cs): Statement(cs), cs(cs), statements() {
+    explicit CompoundStatement(const ast::CompoundStatement *cs): Statement(cs), cs(cs), statements() {
         for (auto s: cs->statements) {
             statements.push_back(transform(s));
         }
@@ -1528,7 +1528,7 @@ private:
 
 class BaseLoopStatement: public CompoundStatement {
 public:
-    BaseLoopStatement(const ast::BaseLoopStatement *bls): CompoundStatement(bls), bls(bls), prologue(), tail() {
+    explicit BaseLoopStatement(const ast::BaseLoopStatement *bls): CompoundStatement(bls), bls(bls), prologue(), tail() {
         for (auto s: bls->prologue) {
             prologue.push_back(transform(s));
         }
@@ -1609,7 +1609,7 @@ public:
     };
     class TypeTestWhenCondition: public WhenCondition {
     public:
-        TypeTestWhenCondition(Type *target): target(target) {}
+        explicit TypeTestWhenCondition(Type *target): target(target) {}
         const Type *target;
         virtual void generate(Context &context, const Expression *value) const override {
             value->generate(context);
@@ -1619,7 +1619,7 @@ public:
         TypeTestWhenCondition(const TypeTestWhenCondition &);
         TypeTestWhenCondition &operator=(const TypeTestWhenCondition &);
     };
-    CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
+    explicit CaseStatement(const ast::CaseStatement *cs): Statement(cs), cs(cs), expr(transform(cs->expr)), clauses() {
         for (auto &c: cs->clauses) {
             std::vector<const WhenCondition *> whens;
             for (auto w: c.first) {
@@ -1682,7 +1682,7 @@ private:
 
 class ExitStatement: public Statement {
 public:
-    ExitStatement(const ast::ExitStatement *es): Statement(es), es(es) {}
+    explicit ExitStatement(const ast::ExitStatement *es): Statement(es), es(es) {}
     const ast::ExitStatement *es;
 
     void generate(Context &context) const override {
@@ -1695,7 +1695,7 @@ private:
 
 class NextStatement: public Statement {
 public:
-    NextStatement(const ast::NextStatement *ns): Statement(ns), ns(ns) {}
+    explicit NextStatement(const ast::NextStatement *ns): Statement(ns), ns(ns) {}
     const ast::NextStatement *ns;
 
     virtual void generate(Context &context) const override {
@@ -1708,7 +1708,7 @@ private:
 
 class TryStatementTrap {
 public:
-    TryStatementTrap(const ast::TryTrap *tt): tt(tt), name(transform(tt->name)), handler() {
+    explicit TryStatementTrap(const ast::TryTrap *tt): tt(tt), name(transform(tt->name)), handler() {
         for (auto s: dynamic_cast<const ast::ExceptionHandlerStatement *>(tt->handler)->statements) {
             handler.push_back(transform(s));
         }
@@ -1723,7 +1723,7 @@ private:
 
 class TryStatement: public Statement {
 public:
-    TryStatement(const ast::TryStatement *ts): Statement(ts), ts(ts), statements(), catches() {
+    explicit TryStatement(const ast::TryStatement *ts): Statement(ts), ts(ts), statements(), catches() {
         for (auto s: ts->statements) {
             statements.push_back(transform(s));
         }
@@ -1762,7 +1762,7 @@ private:
 
 class ReturnStatement: public Statement {
 public:
-    ReturnStatement(const ast::ReturnStatement *rs): Statement(rs), rs(rs), expr(transform(rs->expr)) {}
+    explicit ReturnStatement(const ast::ReturnStatement *rs): Statement(rs), rs(rs), expr(transform(rs->expr)) {}
     const ast::ReturnStatement *rs;
     const Expression *expr;
 
@@ -1781,7 +1781,7 @@ private:
 
 class IncrementStatement: public Statement {
 public:
-    IncrementStatement(const ast::IncrementStatement *is): Statement(is), is(is), ref(transform(is->ref)) {}
+    explicit IncrementStatement(const ast::IncrementStatement *is): Statement(is), is(is), ref(transform(is->ref)) {}
     const ast::IncrementStatement *is;
     const Expression *ref;
 
@@ -1796,7 +1796,7 @@ private:
 
 class IfStatement: public Statement {
 public:
-    IfStatement(const ast::IfStatement *is): Statement(is), is(is), condition_statements(), else_statements() {
+    explicit IfStatement(const ast::IfStatement *is): Statement(is), is(is), condition_statements(), else_statements() {
         for (auto cs: is->condition_statements) {
             std::vector<const Statement *> statements;
             for (auto s: cs.second) {
@@ -1843,7 +1843,7 @@ private:
 
 class RaiseStatement: public Statement {
 public:
-    RaiseStatement(const ast::RaiseStatement *rs): Statement(rs), rs(rs), info(transform(rs->info)) {}
+    explicit RaiseStatement(const ast::RaiseStatement *rs): Statement(rs), rs(rs), info(transform(rs->info)) {}
     const ast::RaiseStatement *rs;
     const Expression *info;
 
@@ -1859,7 +1859,7 @@ private:
 
 class ResetStatement: public Statement {
 public:
-    ResetStatement(const ast::ResetStatement *rs): Statement(rs), rs(rs) {}
+    explicit ResetStatement(const ast::ResetStatement *rs): Statement(rs), rs(rs) {}
     const ast::ResetStatement *rs;
 
     virtual void generate(Context &) const override {}
@@ -1870,7 +1870,7 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const ast::Function *f): Variable(f), f(f), statements(), params(), out_count(0) {
+    explicit Function(const ast::Function *f): Variable(f), f(f), statements(), params(), out_count(0) {
         // Need to transform the function parameters before transforming
         // the code that might use them (statements).
         int i = 0;
@@ -1919,7 +1919,7 @@ private:
 
 class PredefinedFunction: public Variable {
 public:
-    PredefinedFunction(const ast::PredefinedFunction *pf): Variable(pf), pf(pf), out_count(0) {
+    explicit PredefinedFunction(const ast::PredefinedFunction *pf): Variable(pf), pf(pf), out_count(0) {
         const ast::TypeFunction *tf = dynamic_cast<const ast::TypeFunction *>(pf->type);
         for (auto p: tf->params) {
             if (p->mode == ast::ParameterType::Mode::INOUT || p->mode == ast::ParameterType::Mode::OUT) {
@@ -1946,7 +1946,7 @@ private:
 
 class ModuleFunction: public Variable {
 public:
-    ModuleFunction(const ast::ModuleFunction *mf): Variable(mf), mf(mf), out_count(0) {
+    explicit ModuleFunction(const ast::ModuleFunction *mf): Variable(mf), mf(mf), out_count(0) {
         const TypeFunction *functype = dynamic_cast<const TypeFunction *>(transform(mf->type));
         int i = 0;
         for (auto p: functype->paramtypes) {

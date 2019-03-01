@@ -70,7 +70,7 @@ public:
     Cell &dictionary_index_for_write(const utf8string &index);
 
     struct GC {
-        GC(bool alloced = false): alloced(alloced), marked(false) {}
+        explicit GC(bool alloced = false): alloced(alloced), marked(false) {}
         const bool alloced;
         bool marked;
     private:

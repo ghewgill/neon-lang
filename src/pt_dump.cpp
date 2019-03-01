@@ -9,7 +9,7 @@ using namespace pt;
 
 class Dumper: public IParseTreeVisitor {
 public:
-    Dumper(std::ostream &out): out(out), depth(0) {}
+    explicit Dumper(std::ostream &out): out(out), depth(0) {}
 
     virtual void visit(const TypeSimple *node) override {
         write("TypeSimple(" + node->name + ")");

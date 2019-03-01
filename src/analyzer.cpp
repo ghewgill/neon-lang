@@ -246,7 +246,7 @@ private:
 
 class ExpressionAnalyzer: public pt::IParseTreeVisitor {
 public:
-    ExpressionAnalyzer(Analyzer *a): expr(nullptr), a(a) {}
+    explicit ExpressionAnalyzer(Analyzer *a): expr(nullptr), a(a) {}
     virtual void visit(const pt::TypeSimple *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeEnum *) override { internal_error("pt::Type"); }
     virtual void visit(const pt::TypeRecord *) override { internal_error("pt::Type"); }
@@ -5098,7 +5098,7 @@ const ast::Statement *Analyzer::analyze(const pt::WhileStatement *statement)
 
 class ExportedTypeChecker {
 public:
-    ExportedTypeChecker(const std::set<const ast::Name *> &exported): exported(exported), seen() {}
+    explicit ExportedTypeChecker(const std::set<const ast::Name *> &exported): exported(exported), seen() {}
     void check(const ast::Type *type) {
         if (seen.find(type) != seen.end()) {
             return;
@@ -5559,7 +5559,7 @@ public:
 private:
     struct VariableInfo {
         VariableInfo(): token(), usage(Usage::UNUSED) {}
-        VariableInfo(const Token &token): token(token), usage(Usage::UNUSED) {}
+        explicit VariableInfo(const Token &token): token(token), usage(Usage::UNUSED) {}
         Token token;
         enum class Usage {
             UNUSED,

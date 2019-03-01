@@ -406,7 +406,7 @@ std::shared_ptr<Object> object__makeNull()
 
 class ObjectBoolean: public Object {
 public:
-    ObjectBoolean(bool b): b(b) {}
+    explicit ObjectBoolean(bool b): b(b) {}
     virtual bool getBoolean(bool &r) const override { r = b; return true; }
     virtual utf8string toString() const override { return utf8string(b ? "TRUE" : "FALSE"); }
 private:
@@ -423,7 +423,7 @@ std::shared_ptr<Object> object__makeBoolean(bool b)
 
 class ObjectNumber: public Object {
 public:
-    ObjectNumber(Number n): n(n) {}
+    explicit ObjectNumber(Number n): n(n) {}
     virtual bool getNumber(Number &r) const override { r = n; return true; }
     virtual utf8string toString() const override { return utf8string(number_to_string(n)); }
 private:
@@ -440,7 +440,7 @@ std::shared_ptr<Object> object__makeNumber(Number n)
 
 class ObjectString: public Object {
 public:
-    ObjectString(const utf8string &s): s(s) {}
+    explicit ObjectString(const utf8string &s): s(s) {}
     virtual bool getString(utf8string &r) const override { r = s; return true; }
     virtual utf8string toString() const override { return "\"" + s + "\""; }
 private:
@@ -457,7 +457,7 @@ std::shared_ptr<Object> object__makeString(const utf8string &s)
 
 class ObjectBytes: public Object {
 public:
-    ObjectBytes(const std::vector<unsigned char> &b): b(b) {}
+    explicit ObjectBytes(const std::vector<unsigned char> &b): b(b) {}
     virtual bool getBytes(std::vector<unsigned char> &r) const override { r = b; return true; }
     virtual utf8string toString() const override {
         utf8string r {"HEXBYTES \""};
@@ -489,7 +489,7 @@ std::shared_ptr<Object> object__makeBytes(const std::vector<unsigned char> &b)
 
 class ObjectArray: public Object {
 public:
-    ObjectArray(std::vector<std::shared_ptr<Object>> a): a(a) {}
+    explicit ObjectArray(std::vector<std::shared_ptr<Object>> a): a(a) {}
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &r) const override { r = a; return true; }
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
         Number i;
@@ -531,7 +531,7 @@ std::shared_ptr<Object> object__makeArray(std::vector<std::shared_ptr<Object>> a
 
 class ObjectDictionary: public Object {
 public:
-    ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
+    explicit ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
         utf8string i;

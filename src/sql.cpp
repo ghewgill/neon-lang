@@ -254,7 +254,7 @@ private:
 
 class Parser {
 public:
-    Parser(Lexer &lexer): lexer(lexer), assignments(), parameters() {}
+    explicit Parser(Lexer &lexer): lexer(lexer), assignments(), parameters() {}
     Lexer &lexer;
     std::vector<::Token> assignments;
     std::vector<::Token> parameters;
