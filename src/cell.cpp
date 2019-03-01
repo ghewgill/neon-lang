@@ -115,7 +115,7 @@ Cell::Cell(const std::vector<unsigned char> &value)
 {
 }
 
-Cell::Cell(std::shared_ptr<Object> value)
+Cell::Cell(const std::shared_ptr<Object> &value)
   : gc(),
     type(Type::Object),
     address_value(nullptr),

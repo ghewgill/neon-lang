@@ -1141,7 +1141,7 @@ private:
 
 class ArrayLiteralExpression: public Expression {
 public:
-    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements, const std::vector<Token> elementtokens): Expression(new TypeArrayLiteral(Token(), elementtype, elements, elementtokens), all_constant(elements)), elementtype(elementtype), elements(elements) {}
+    ArrayLiteralExpression(const Type *elementtype, const std::vector<const Expression *> &elements, const std::vector<Token> &elementtokens): Expression(new TypeArrayLiteral(Token(), elementtype, elements, elementtokens), all_constant(elements)), elementtype(elementtype), elements(elements) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const Type *elementtype;

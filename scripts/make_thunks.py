@@ -104,7 +104,7 @@ CppFromAstArg = {
     ("TYPE_BYTES", VALUE): "const std::vector<unsigned char> &",
     ("TYPE_BYTES", REF): "std::vector<unsigned char> *",
     ("TYPE_BYTES", OUT): "std::vector<unsigned char> *",
-    ("TYPE_OBJECT", VALUE): "std::shared_ptr<Object>",
+    ("TYPE_OBJECT", VALUE): "const std::shared_ptr<Object> &",
     ("TYPE_ARRAY", VALUE): "Cell &",
     ("TYPE_ARRAY", REF): "Cell *",
     ("TYPE_ARRAY_NUMBER", VALUE): "const std::vector<Number> &",

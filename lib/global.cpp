@@ -489,7 +489,7 @@ std::shared_ptr<Object> object__makeBytes(const std::vector<unsigned char> &b)
 
 class ObjectArray: public Object {
 public:
-    explicit ObjectArray(std::vector<std::shared_ptr<Object>> a): a(a) {}
+    explicit ObjectArray(const std::vector<std::shared_ptr<Object>> &a): a(a) {}
     virtual bool getArray(std::vector<std::shared_ptr<Object>> &r) const override { r = a; return true; }
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
         Number i;
@@ -531,7 +531,7 @@ std::shared_ptr<Object> object__makeArray(std::vector<std::shared_ptr<Object>> a
 
 class ObjectDictionary: public Object {
 public:
-    explicit ObjectDictionary(std::map<utf8string, std::shared_ptr<Object>> d): d(d) {}
+    explicit ObjectDictionary(const std::map<utf8string, std::shared_ptr<Object>> &d): d(d) {}
     virtual bool getDictionary(std::map<utf8string, std::shared_ptr<Object>> &r) const override { r = d; return true; }
     virtual bool subscript(std::shared_ptr<Object> index, std::shared_ptr<Object> &r) const override {
         utf8string i;
@@ -574,7 +574,7 @@ std::shared_ptr<Object> object__makeDictionary(std::map<utf8string, std::shared_
     return std::shared_ptr<Object>(new ObjectDictionary(d));
 }
 
-bool object__getBoolean(std::shared_ptr<Object> obj)
+bool object__getBoolean(const std::shared_ptr<Object> &obj)
 {
     bool r;
     if (obj == nullptr || not obj->getBoolean(r)) {
@@ -583,7 +583,7 @@ bool object__getBoolean(std::shared_ptr<Object> obj)
     return r;
 }
 
-Number object__getNumber(std::shared_ptr<Object> obj)
+Number object__getNumber(const std::shared_ptr<Object> &obj)
 {
     Number r;
     if (obj == nullptr || not obj->getNumber(r)) {
@@ -592,7 +592,7 @@ Number object__getNumber(std::shared_ptr<Object> obj)
     return r;
 }
 
-utf8string object__getString(std::shared_ptr<Object> obj)
+utf8string object__getString(const std::shared_ptr<Object> &obj)
 {
     utf8string r;
     if (obj == nullptr || not obj->getString(r)) {
@@ -601,7 +601,7 @@ utf8string object__getString(std::shared_ptr<Object> obj)
     return r;
 }
 
-std::vector<unsigned char> object__getBytes(std::shared_ptr<Object> obj)
+std::vector<unsigned char> object__getBytes(const std::shared_ptr<Object> &obj)
 {
     std::vector<unsigned char> r;
     if (obj == nullptr || not obj->getBytes(r)) {
@@ -610,7 +610,7 @@ std::vector<unsigned char> object__getBytes(std::shared_ptr<Object> obj)
     return r;
 }
 
-std::vector<std::shared_ptr<Object>> object__getArray(std::shared_ptr<Object> obj)
+std::vector<std::shared_ptr<Object>> object__getArray(const std::shared_ptr<Object> &obj)
 {
     std::vector<std::shared_ptr<Object>> r;
     if (obj == nullptr || not obj->getArray(r)) {
@@ -619,7 +619,7 @@ std::vector<std::shared_ptr<Object>> object__getArray(std::shared_ptr<Object> ob
     return r;
 }
 
-std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_ptr<Object> obj)
+std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(const std::shared_ptr<Object> &obj)
 {
     std::map<utf8string, std::shared_ptr<Object>> r;
     if (obj == nullptr || not obj->getDictionary(r)) {
@@ -628,12 +628,12 @@ std::map<utf8string, std::shared_ptr<Object>> object__getDictionary(std::shared_
     return r;
 }
 
-bool object__isNull(std::shared_ptr<Object> obj)
+bool object__isNull(const std::shared_ptr<Object> &obj)
 {
     return obj == nullptr;
 }
 
-utf8string object__toString(std::shared_ptr<Object> obj)
+utf8string object__toString(const std::shared_ptr<Object> &obj)
 {
     if (obj == nullptr) {
         return utf8string("null");
@@ -641,7 +641,7 @@ utf8string object__toString(std::shared_ptr<Object> obj)
     return obj->toString();
 }
 
-std::shared_ptr<Object> object__subscript(std::shared_ptr<Object> obj, std::shared_ptr<Object> index)
+std::shared_ptr<Object> object__subscript(const std::shared_ptr<Object> &obj, const std::shared_ptr<Object> &index)
 {
     if (obj == nullptr) {
         throw RtlException(Exception_DynamicConversionException, utf8string("object is null"));

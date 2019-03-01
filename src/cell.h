@@ -33,7 +33,7 @@ public:
     explicit Cell(const utf8string &value);
     explicit Cell(const char *value);
     explicit Cell(const std::vector<unsigned char> &value);
-    explicit Cell(std::shared_ptr<Object> value);
+    explicit Cell(const std::shared_ptr<Object> &value);
     explicit Cell(const std::vector<Cell> &value, bool alloced = false);
     explicit Cell(const std::map<utf8string, Cell> &value);
     Cell &operator=(const Cell &rhs);
