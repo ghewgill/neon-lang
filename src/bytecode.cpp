@@ -95,9 +95,9 @@ bool Bytecode::load(const std::string &a_source_path, const std::vector<unsigned
     source_path = a_source_path;
     obj = bytes;
 
-    size_t i = 0;
-
     try {
+        size_t i = 0;
+
         if (obj.size() < 32) {
             throw BytecodeException();
         }

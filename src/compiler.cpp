@@ -79,7 +79,7 @@ public:
     void pop_function_exit();
     Label &get_function_exit();
     void set_current_function_depth(size_t function_depth);
-    size_t get_function_depth();
+    size_t get_function_depth() const;
     void declare_export_type(const ast::Type *type);
     void add_export_type(const std::string &name, const std::string &descriptor);
     void add_export_constant(const std::string &name, const std::string &type, const std::string &value);
@@ -452,7 +452,7 @@ void Emitter::set_current_function_depth(size_t function_depth)
     current_function_depth = function_depth;
 }
 
-size_t Emitter::get_function_depth()
+size_t Emitter::get_function_depth() const
 {
     return current_function_depth;
 }
@@ -2764,7 +2764,6 @@ std::vector<unsigned char> compile(const ast::Program *p, DebugInfo *debug)
         writer.write("source_path", p->source_path);
         writer.write("source_hash", hex_from_binary(p->source_hash));
         writer.write_array("source", debug->source_lines.begin(), debug->source_lines.end());
-        std::vector<std::pair<size_t, int>> lines;
         auto lw = writer.nested_array("line_numbers");
         for (auto &n: debug->line_numbers) {
             auto a = lw.nested_array();
