@@ -112,14 +112,14 @@ Cell *cell_fromCell(const Cell *c)
                 cell_copyCell(&x->array->data[i], &c->array->data[i]);
             }
             x->boolean = FALSE;
-            x->number = bid128_from_uint32(0);
+            x->number = number_from_uint32(0);
             x->string = NULL;
             x->address = NULL;
             x->dictionary = NULL;
             break;
         case cBoolean:
             x->boolean = c->boolean;
-            x->number = bid128_from_uint32(0);
+            x->number = number_from_uint32(0);
             x->string = NULL;
             x->address = NULL;
             x->array = NULL;
@@ -128,14 +128,14 @@ Cell *cell_fromCell(const Cell *c)
         case cDictionary:
             x->dictionary = dictionary_copyDictionary(c->dictionary);
             x->boolean = c->boolean;
-            x->number = bid128_from_uint32(0);
+            x->number = number_from_uint32(0);
             x->string = NULL;
             x->address = NULL;
             x->array = NULL;
             break;
         case cPointer:
             x->address = (void*)c;
-            x->number = bid128_from_uint32(0);;
+            x->number = number_from_uint32(0);;
             x->string = NULL;
             x->boolean = FALSE;
             x->array = NULL;
@@ -152,7 +152,7 @@ Cell *cell_fromCell(const Cell *c)
         case cString:
             x->string = string_copyString(c->string);
             x->address = NULL;
-            x->number = bid128_from_uint32(0);
+            x->number = number_from_uint32(0);
             x->boolean = FALSE;
             x->array = NULL;
             x->dictionary = NULL;
@@ -161,7 +161,7 @@ Cell *cell_fromCell(const Cell *c)
             assert(c->type == cNothing);
             break;
         default:
-            x->number = bid128_from_uint32(0);
+            x->number = number_from_uint32(0);
             x->string = NULL;
             x->address = NULL;
             x->boolean = FALSE;
@@ -441,7 +441,7 @@ Cell *cell_newCell(void)
         fatal_error("Could not allocate new cell object.");
     }
 
-    c->number = bid128_from_uint32(0);
+    c->number = number_from_uint32(0);
     c->string = NULL;
     c->address = NULL;
     c->boolean = FALSE;
@@ -461,7 +461,7 @@ Cell *cell_newCellType(CellType t)
 
 void cell_resetCell(Cell *c)
 {
-    c->number = bid128_from_uint32(0);
+    c->number = number_from_uint32(0);
     c->string = NULL;
     c->array = NULL;
     c->address = NULL;

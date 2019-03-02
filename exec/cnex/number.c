@@ -156,6 +156,16 @@ Number number_from_string(char *s)
  * Number math functions
  */
 
+Number number_add(Number x, Number y)
+{
+    return bid128_add(x, y);
+}
+
+Number number_subtract(Number x, Number y)
+{
+    return bid128_sub(x, y);
+}
+
 Number number_divide(Number x, Number y)
 {
     return bid128_div(x, y);
@@ -180,9 +190,26 @@ Number number_multiply(Number x, Number y)
     return bid128_mul(x, y);
 }
 
-BOOL number_is_greater(Number x, Number y)
+Number number_negate(Number x)
 {
-    return bid128_quiet_greater(x, y) != 0;
+    return bid128_negate(x);
+}
+
+Number number_pow(Number x, Number y)
+{
+    if (number_is_integer(y) && !number_is_negative(y)) {
+        uint32_t iy = number_to_uint32(y);
+        Number r = number_from_uint32(1);
+        while (iy != 0) {
+            if (iy & 1) {
+                r = number_multiply(r, x);
+            }
+            x = number_multiply(x, x);
+            iy >>= 1;
+        }
+        return r;
+    }
+    return bid128_pow(x, y);
 }
 
 BOOL number_is_integer(Number x)
@@ -275,9 +302,29 @@ BOOL number_is_equal(Number x, Number y)
     return bid128_quiet_equal(x, y);
 }
 
+BOOL number_is_not_equal(Number x, Number y)
+{
+    return bid128_quiet_not_equal(x, y) != 0;
+}
+
 BOOL number_is_less(Number x, Number y)
 {
     return bid128_quiet_less(x, y);
+}
+
+BOOL number_is_greater(Number x, Number y)
+{
+    return bid128_quiet_greater(x, y) != 0;
+}
+
+BOOL number_is_less_equal(Number x, Number y)
+{
+    return bid128_quiet_less_equal(x, y) != 0;
+}
+
+BOOL number_is_greater_equal(Number x, Number y)
+{
+    return bid128_quiet_greater_equal(x, y) != 0;
 }
 
 BOOL number_is_odd(Number x)

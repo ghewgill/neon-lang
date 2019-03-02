@@ -283,7 +283,7 @@ void neon_ord(TExecutor *exec)
         exec->rtl_raise(exec, "ArrayIndexException", "ord() requires string of length 1", BID_ZERO);
         return;
     }
-    Number r = bid128_from_uint32((uint32_t)s->string->data[0]);
+    Number r = number_from_uint32((uint32_t)s->string->data[0]);
 
     pop(exec->stack);
     push(exec->stack, cell_fromNumber(r));
@@ -397,7 +397,7 @@ void array__resize(TExecutor *exec)
 void array__size(TExecutor *exec)
 {
     size_t n = top(exec->stack)->array->size; pop(exec->stack);
-    push(exec->stack, cell_fromNumber(bid128_from_int64(n)));
+    push(exec->stack, cell_fromNumber(number_from_sint64(n)));
 }
 
 void array__slice(TExecutor *exec)
@@ -496,7 +496,7 @@ void array__toBytes__number(TExecutor *exec)
     r->string = string_createString(a->array->size);
 
     for (x = 0, i = 0; x < a->array->size; x++) {
-        uint32_t b = bid128_to_uint32_int(a->array->data[x].number);
+        uint32_t b = number_to_uint32(a->array->data[x].number);
         if (b >= 256) {
             exec->rtl_raise(exec, "ByteOutOfRangeException", TO_STRING(b), BID_ZERO);
         }
@@ -578,7 +578,7 @@ void bytes__size(TExecutor *exec)
     /* ToDo: Do not perform unnecessary cell copy here. */
     Cell *self = cell_fromCell(top(exec->stack)); pop(exec->stack);
 
-    push(exec->stack, cell_fromNumber(bid128_from_uint64(self->string->length)));
+    push(exec->stack, cell_fromNumber(number_from_uint64(self->string->length)));
     cell_freeCell(self);
 }
 
@@ -621,7 +621,7 @@ void bytes__toArray(TExecutor *exec)
     Cell *a = cell_createArrayCell(s->string->length);
 
     for (i = 0, e = 0; i < s->string->length; i++) {
-        Cell *n = cell_fromNumber(bid128_from_uint32((uint8_t)s->string->data[i]));
+        Cell *n = cell_fromNumber(number_from_uint32((uint8_t)s->string->data[i]));
         cell_copyCell(&a->array->data[e++], n);
         free(n);
     }
@@ -708,7 +708,7 @@ void string__toBytes(TExecutor *exec)
 void string__length(TExecutor *exec)
 {
     size_t n = top(exec->stack)->string->length; pop(exec->stack);
-    push(exec->stack, cell_fromNumber(bid128_from_uint64(n)));
+    push(exec->stack, cell_fromNumber(number_from_uint64(n)));
 }
 
 void string__splice(TExecutor *exec)
