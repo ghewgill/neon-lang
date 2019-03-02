@@ -462,7 +462,7 @@ void exec_NEGN(TExecutor *self)
 {
     self->ip++;
     Number x = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromNumber(bid128_negate(x)));
+    push(self->stack, cell_fromNumber(number_negate(x)));
 }
 
 void exec_ADDN(TExecutor *self)
@@ -470,7 +470,7 @@ void exec_ADDN(TExecutor *self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromNumber(bid128_add(a, b)));
+    push(self->stack, cell_fromNumber(number_add(a, b)));
 }
 
 void exec_SUBN(TExecutor *self)
@@ -478,7 +478,7 @@ void exec_SUBN(TExecutor *self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromNumber(bid128_sub(a, b)));
+    push(self->stack, cell_fromNumber(number_subtract(a, b)));
 }
 
 void exec_MULN(TExecutor *self)
@@ -486,7 +486,7 @@ void exec_MULN(TExecutor *self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromNumber(bid128_mul(a, b)));
+    push(self->stack, cell_fromNumber(number_multiply(a, b)));
 }
 
 void exec_DIVN(TExecutor *self)
@@ -494,7 +494,7 @@ void exec_DIVN(TExecutor *self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromNumber(bid128_div(a, b)));
+    push(self->stack, cell_fromNumber(number_divide(a, b)));
 }
 
 void exec_MODN(TExecutor *self)
@@ -510,7 +510,7 @@ void exec_EXPN(TExecutor *self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromNumber(bid128_pow(a, b)));
+    push(self->stack, cell_fromNumber(number_pow(a, b)));
 }
 
 void exec_EQB(void)
@@ -528,7 +528,7 @@ void exec_EQN(TExecutor*self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromBoolean(bid128_quiet_equal(a, b)));
+    push(self->stack, cell_fromBoolean(number_is_equal(a, b)));
 }
 
 void exec_NEN(TExecutor*self)
@@ -536,7 +536,7 @@ void exec_NEN(TExecutor*self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromBoolean(bid128_quiet_not_equal(a, b)));
+    push(self->stack, cell_fromBoolean(number_is_not_equal(a, b)));
 }
 
 void exec_LTN(TExecutor*self)
@@ -544,7 +544,7 @@ void exec_LTN(TExecutor*self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromBoolean(bid128_quiet_less(a, b)));
+    push(self->stack, cell_fromBoolean(number_is_less(a, b)));
 }
 
 void exec_GTN(TExecutor*self)
@@ -552,7 +552,7 @@ void exec_GTN(TExecutor*self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromBoolean(bid128_quiet_greater(a, b)));
+    push(self->stack, cell_fromBoolean(number_is_greater(a, b)));
 }
 
 void exec_LEN(TExecutor*self)
@@ -560,7 +560,7 @@ void exec_LEN(TExecutor*self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromBoolean(bid128_quiet_less_equal(a, b)));
+    push(self->stack, cell_fromBoolean(number_is_less_equal(a, b)));
 }
 
 void exec_GEN(TExecutor*self)
@@ -568,7 +568,7 @@ void exec_GEN(TExecutor*self)
     self->ip++;
     Number b = top(self->stack)->number; pop(self->stack);
     Number a = top(self->stack)->number; pop(self->stack);
-    push(self->stack, cell_fromBoolean(bid128_quiet_greater_equal(a, b)));
+    push(self->stack, cell_fromBoolean(number_is_greater_equal(a, b)));
 }
 
 void exec_EQS(TExecutor*self)
