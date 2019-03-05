@@ -2,14 +2,11 @@ array2d.neon               # copy semantics
 array-resize.neon          # array__resize
 bigint.neon                # bigint
 binary-test.neon           # bigint
-bytes-index.neon           # slice bounds out of range
-bytes-slice.neon           # bytes__splice
-cal-test.neon              # os$system
 cmdline.neon               # pushppg
 complex-test.neon          # precision
 datetime-test.neon         # gmtime
 debug-example.neon         # debugger
-debug-server.neon          # os$spawn
+debug-server.neon          # net$tcpSocket
 decimal.neon               # decimal
 ffi.neon                   # calle
 file-filecopied2.neon      # copy
@@ -31,9 +28,8 @@ net-test.neon              # net$tcpSocket
 net-test-udp.neon          # net$udpSocket
 number-ceil.neon           # number formatting
 object-record.neon         # assignment to entry in nil map
-os-test.neon               # os$system
+os-test.neon               # precision
 process-test.neon          # process$call
-repl_import.neon           # random
 sql-connect.neon           # sqlite
 sql-cursor.neon            # sqlite
 sql-embed.neon             # sqlite
@@ -43,10 +39,9 @@ sql-query.neon             # sqlite
 sql-whenever.neon          # sqlite
 string-bytes.neon          # utf8
 string-escape.neon         # utf8
-string-index.neon          # slice bounds out of range
 struct-test.neon           # bigint
 time-stopwatch.neon        # time$tick
-time-test.neon             # time$now
+time-test.neon             # precision
 unicode-char.neon          # utf8
 unicode-length.neon        # pushppg
 value-copy.neon            # copy semantics

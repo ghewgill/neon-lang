@@ -7,12 +7,16 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
+	"math/rand"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -449,6 +453,7 @@ const (
 	CELL_DICTIONARY = iota
 	CELL_MODULE     = iota
 	CELL_CLASSINFO  = iota
+	CELL_OTHER      = iota
 )
 
 type moduleclassinfo struct {
@@ -468,6 +473,7 @@ type cell struct {
 	dict      map[string]cell
 	module    *module
 	classinfo moduleclassinfo
+	other     interface{}
 }
 
 func make_cell_none() cell {
@@ -550,6 +556,13 @@ func make_cell_classinfo(m *module, ci *classinfo) cell {
 	return cell{
 		ctype:     CELL_CLASSINFO,
 		classinfo: moduleclassinfo{m, ci},
+	}
+}
+
+func make_cell_other(p interface{}) cell {
+	return cell{
+		ctype: CELL_OTHER,
+		other: p,
 	}
 }
 
@@ -1903,10 +1916,39 @@ func (self *executor) op_callp() {
 		if last_from_end {
 			last += len(b) - 1
 		}
-		self.push(make_cell_bytes(b[first : last+1]))
+		if first < 0 {
+			self.raise_literal("BytesIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+		} else if first >= len(b) {
+			self.raise_literal("BytesIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+		} else if last >= len(b) {
+			self.raise_literal("BytesIndexException", exceptioninfo{fmt.Sprintf("%v", last), 0})
+		} else {
+			if last < 0 {
+				last = -1
+			}
+			if last < first {
+				self.push(make_cell_bytes([]byte{}))
+			} else {
+				self.push(make_cell_bytes(b[first : last+1]))
+			}
+		}
 	case "bytes__size":
 		b := self.pop().bytes
 		self.push(make_cell_num(float64(len(b))))
+	case "bytes__splice":
+		last_from_end := self.pop().bool
+		last := int(self.pop().num)
+		first_from_end := self.pop().bool
+		first := int(self.pop().num)
+		b := self.pop().bytes
+		t := self.pop().bytes
+		if first_from_end {
+			first += len(b) - 1
+		}
+		if last_from_end {
+			last += len(b) - 1
+		}
+		self.push(make_cell_bytes(append(b[:first], append(t, b[last+1:]...)...)))
 	case "bytes__toArray":
 		b := self.pop().bytes
 		a := make([]cell, len(b))
@@ -2260,9 +2302,44 @@ func (self *executor) op_callp() {
 		} else {
 			self.push(make_cell_num(float64(s[0])))
 		}
+	case "os$platform":
+		self.push(make_cell_str(runtime.GOOS))
+	case "os$spawn":
+		cmdline := self.pop().str
+		cmd := exec.Command("/bin/sh", "-c", cmdline)
+		err := cmd.Start()
+		if err != nil {
+			self.raise_literal("OsException.Spawn", exceptioninfo{"", 0})
+		} else {
+			self.push(make_cell_other(cmd))
+		}
+	case "os$system":
+		cmdline := self.pop().str
+		cmd := exec.Command("/bin/sh", "-c", cmdline)
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		err := cmd.Run()
+		if err != nil {
+			// TODO: ExitCode() is only available in Go >=1.12
+			self.push(make_cell_num(1 /*cmd.ProcessState.ExitCode()*/))
+		} else {
+			self.push(make_cell_num(0))
+		}
+	case "os$wait":
+		cmd := self.pop().ref.load().other.(*exec.Cmd)
+		err := cmd.Wait()
+		if err != nil {
+			// TODO: ExitCode() is only available in Go >=1.12
+			self.push(make_cell_num(1 /*cmd.ProcessState.ExitCode()*/))
+		} else {
+			self.push(make_cell_num(0))
+		}
 	case "print":
 		str := self.pop()
 		fmt.Println(str.str)
+	case "random$uint32":
+		self.push(make_cell_num(float64(rand.Uint32())))
 	case "round":
 		x := self.pop().num
 		n := int(self.pop().num)
@@ -2361,7 +2438,22 @@ func (self *executor) op_callp() {
 		if last_from_end {
 			last += len(s) - 1
 		}
-		self.push(make_cell_str(s[first : last+1]))
+		if first < 0 {
+			self.raise_literal("StringIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+		} else if first >= len(s) {
+			self.raise_literal("StringIndexException", exceptioninfo{fmt.Sprintf("%v", first), 0})
+		} else if last >= len(s) {
+			self.raise_literal("StringIndexException", exceptioninfo{fmt.Sprintf("%v", last), 0})
+		} else {
+			if last < 0 {
+				last = -1
+			}
+			if last < first {
+				self.push(make_cell_bytes([]byte{}))
+			} else {
+				self.push(make_cell_str(s[first : last+1]))
+			}
+		}
 	case "string__toBytes":
 		s := self.pop().str
 		self.push(make_cell_bytes([]byte(s)))
@@ -2374,6 +2466,12 @@ func (self *executor) op_callp() {
 		} else {
 			os.Exit(int(n))
 		}
+	case "time$now":
+		t := time.Now().UnixNano()
+		self.push(make_cell_num(float64(t / 1.0e9)))
+	case "time$sleep":
+		t := self.pop().num
+		time.Sleep(time.Duration(t * 1e9))
 	default:
 		assert(false, fmt.Sprintf("unimplemented function: %s", name))
 	}
