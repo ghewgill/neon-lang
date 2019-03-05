@@ -2,6 +2,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY .)
 
 set(CNEX_RTL
     lib/binary.c
+    lib/io.c
     lib/random.c
     lib/sys.c
 )
@@ -26,7 +27,7 @@ target_include_directories(cnex
 )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror")
+    set_target_properties(cnex PROPERTIES COMPILE_FLAGS "-std=c99 -Wall -Werror -D_POSIX_C_SOURCE=200112L")
 endif ()
 
 target_link_libraries(cnex

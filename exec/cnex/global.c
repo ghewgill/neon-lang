@@ -17,6 +17,7 @@
 #include "util.h"
 
 #include "lib/binary.h"
+#include "lib/io.h"
 #include "lib/random.h"
 #include "lib/sys.h"
 
@@ -66,13 +67,28 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("binary$orBytes",            binary_orBytes),
     PDFUNC("binary$xorBytes",           binary_xorBytes),
 
+    // io - InputOutput module
     PDFUNC("io$fprint",                 io_fprint),
+    PDFUNC("io$close",                  io_close),
+    PDFUNC("io$open",                   io_open),
+    PDFUNC("io$readBytes",              io_readBytes),
+    PDFUNC("io$readLine",               io_readLine),
+    PDFUNC("io$seek",                   io_seek),
+    PDFUNC("io$tell",                   io_tell),
+    PDFUNC("io$truncate",               io_truncate),
+    PDFUNC("io$write",                  io_write),
+    PDFUNC("io$_writeBytes",            io_writeBytes),
 
+    // random - Random Number module
     PDFUNC("random$uint32",             random_uint32),
 
     // System - System level calls
     PDFUNC("sys$exit",                  sys_exit),
 
+
+
+    // Global Functions::
+    // Array functions
     PDFUNC("array__append",             array__append),
     PDFUNC("array__concat",             array__concat),
     PDFUNC("array__extend",             array__extend),
@@ -107,29 +123,35 @@ TDispatch gfuncDispatch[] = {
 };
 
 static Cell VAR_args;
+static Cell VAR_stderr;
+static Cell VAR_stdin;
+static Cell VAR_stdout;
 
 struct tagTVariables {
     const char *name;
     struct tagTCell *value;
 } BuiltinVariables[] = {
+    { "io$stderr",                      &VAR_stderr },
+    { "io$stdin",                       &VAR_stdin  },
+    { "io$stdout",                      &VAR_stdout },
     { "sys$args",                       &VAR_args   },
     { 0 },
 };
 
-static FILE *check_file(TExecutor *exec, void *pf)
-{
-    FILE *f = (FILE *)(pf);
-    if (f == NULL) {
-        assert(f == NULL);
-        exec->rtl_raise(exec, "IoException_InvalidFile", "", BID_ZERO);
-    }
-    return f;
-}
-
 void global_init(int argc, char *argv[], int iArgStart)
 {
+    // Init io module
+    VAR_stderr.address = cell_createAddressCell((void*)stderr);
+    VAR_stderr.type = cAddress;
+    VAR_stdin.address = cell_createAddressCell((void*)stdin);
+    VAR_stdin.type = cAddress;
+    VAR_stdout.address = cell_createAddressCell((void*)stdout);
+    VAR_stdout.type = cAddress;
+
+    // Init Random Module
     random_initModule();
 
+    // Init Sys module
     VAR_args.address = cell_createArrayCell(0);
     VAR_args.type = cAddress;
     sys_initModule(argc, argv, iArgStart, VAR_args.address);
@@ -137,7 +159,13 @@ void global_init(int argc, char *argv[], int iArgStart)
 
 void global_shutdown()
 {
-    cell_freeCell(VAR_args.address);
+    uint32_t i;
+
+    i = 0;
+    while (BuiltinVariables[i].name) {
+        cell_freeCell(BuiltinVariables[i].value->address);
+        i++;
+    }
 }
 
 Cell *global_getVariable(const char *pszVar)
@@ -315,22 +343,6 @@ void neon_str(TExecutor *exec)
     push(exec->stack, cell_fromCString(number_to_string(v)));
 }
 
-
-
-
-
-void io_fprint(TExecutor *exec)
-{
-    Cell *s = peek(exec->stack, 0);
-    Cell *pf = peek(exec->stack, 1);
-
-    FILE *f = check_file(exec, pf);
-    fwrite(s->string->data, 1, s->string->length, f);
-    fputs("\n", f);
-
-    pop(exec->stack);
-    pop(exec->stack);
-}
 
 
 
