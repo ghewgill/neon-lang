@@ -653,11 +653,12 @@ public:
         }
         return "(undefined)";
     }
-    FunctionParameterGroup(const Token &token, const std::vector<Token> &names, std::unique_ptr<Type> &&type, Mode mode, std::unique_ptr<Expression> &&default_value): token(token), names(names), type(std::move(type)), mode(mode), default_value(std::move(default_value)) {}
+    FunctionParameterGroup(const Token &token, const std::vector<Token> &names, std::unique_ptr<Type> &&type, Mode mode, bool varargs, std::unique_ptr<Expression> &&default_value): token(token), names(names), type(std::move(type)), mode(mode), varargs(varargs), default_value(std::move(default_value)) {}
     const Token token;
     const std::vector<Token> names;
     std::unique_ptr<Type> type;
     const Mode mode;
+    bool varargs;
     std::unique_ptr<Expression> default_value;
 };
 

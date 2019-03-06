@@ -1027,6 +1027,11 @@ void Parser::parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vec
             }
             auto &tok_param = tokens[i];
             VariableInfo vars = parseVariableDeclaration();
+            bool varargs = false;
+            if (tokens[i].type == ELLIPSIS) {
+                ++i;
+                varargs = true;
+            }
             std::unique_ptr<Expression> default_value { nullptr };
             if (tokens[i].type == DEFAULT) {
                 ++i;
@@ -1037,7 +1042,7 @@ void Parser::parseFunctionParameters(std::unique_ptr<Type> &returntype, std::vec
                     default_value = parseExpression();
                 }
             }
-            std::unique_ptr<FunctionParameterGroup> fp { new FunctionParameterGroup(tok_param, vars.first, std::move(vars.second), mode, std::move(default_value)) };
+            std::unique_ptr<FunctionParameterGroup> fp { new FunctionParameterGroup(tok_param, vars.first, std::move(vars.second), mode, varargs, std::move(default_value)) };
             args.push_back(std::move(fp));
             if (tokens[i].type != COMMA) {
                 break;
