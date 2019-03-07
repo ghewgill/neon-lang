@@ -483,6 +483,8 @@ public:
     const Mode mode;
     const Type *type;
     const Expression *default_value;
+
+    std::string text() const { return std::string("ParameterType(mode=") + (mode == Mode::IN ? "IN" : mode == Mode::INOUT ? "OUT" : mode == Mode::OUT ? "OUT" : "unknown") + ",type=" + (type != nullptr ? type->text() : "none") + ")"; }
 private:
     ParameterType(const ParameterType &);
     ParameterType &operator=(const ParameterType &);
@@ -509,7 +511,19 @@ public:
     const Type *returntype;
     const std::vector<const ParameterType *> params;
 
-    virtual std::string text() const override { return "TypeFunction(...)"; }
+    virtual std::string text() const override {
+        std::string r = "TypeFunction(returntype=" + (returntype != nullptr ? returntype->text() : "none") + ", params=";
+        bool first = true;
+        for (auto p: params) {
+            if (first) {
+                first = false;
+            } else {
+                r += ",";
+            }
+            r += p->text();
+        }
+        return r + ")";
+    }
 private:
     TypeFunction(const TypeFunction &);
     TypeFunction &operator=(const TypeFunction &);
