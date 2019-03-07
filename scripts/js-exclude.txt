@@ -131,6 +131,7 @@ uninitialised-out.neon     # out parameter
 uninitialised-try.neon     # js syntax error
 value-copy.neon            # value copy
 value-index.neon           # DictionaryValueIndexExpression
+varargs.neon               # varargs
 while-valid.neon           # unknown
 win32-test.neon            # module win32
 

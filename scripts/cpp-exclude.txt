@@ -354,6 +354,7 @@ var-declaration2.neon
 var-declaration.neon
 var.neon
 var-reset.neon
+varargs.neon
 while.neon
 while-valid.neon
 win32-test.neon

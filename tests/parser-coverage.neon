@@ -85,6 +85,7 @@ FUNCTION name(IN x: type) END FUNCTION
 FUNCTION name(OUT x: type) END FUNCTION
 FUNCTION name(INOUT x: type) END FUNCTION
 FUNCTION name(x: type DEFAULT expr) END FUNCTION
+FUNCTION name(x: type...) END FUNCTION
 
 % ExceptionDeclaration
 EXCEPTION name

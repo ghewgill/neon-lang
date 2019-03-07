@@ -97,7 +97,7 @@ FunctionHeader = Identifier, ['.', Identifier], FunctionParameterList;
 
 FunctionParameterList = '(', [FunctionParameter, {',', FunctionParameter}], ')', [':', Type];
 
-FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':', Type, ['DEFAULT', (Expression | '_')];
+FunctionParameter = ['IN' | 'OUT' | 'INOUT'], Identifier, {',', Identifier}, ':', Type, ['...'], ['DEFAULT', (Expression | '_')];
 
 ExceptionDeclaration = 'EXCEPTION', Identifier, {'.', Identifier};
 
