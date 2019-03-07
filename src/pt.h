@@ -422,10 +422,11 @@ class FunctionCallExpression: public Expression {
 public:
     class Argument {
     public:
-        Argument(const Token &mode, const Token &name, std::unique_ptr<Expression> &&expr): mode(mode), name(name), expr(std::move(expr)) {}
+        Argument(const Token &mode, const Token &name, std::unique_ptr<Expression> &&expr, bool spread): mode(mode), name(name), expr(std::move(expr)), spread(spread) {}
         Token mode;
         Token name;
         std::unique_ptr<Expression> expr;
+        bool spread;
     };
     explicit FunctionCallExpression(const Token &token, std::unique_ptr<Expression> &&base, std::vector<std::unique_ptr<Argument>> &&args, const Token &rparen): Expression(token, base->get_start_column(), rparen.column+1), base(std::move(base)), args(std::move(args)), rparen(rparen) {}
     virtual void accept(IParseTreeVisitor *visitor) const override { visitor->visit(this); }

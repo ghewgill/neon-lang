@@ -2187,6 +2187,10 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 // TODO: Above check works around problem in sdl.RenderDrawLines.
                 // Something about a compound type in a predefined function parameter list.
                 const ast::Type *ptype = ftype->params[p]->type;
+                if (a->spread && in_varargs) {
+                    in_varargs = false;
+                    param_index++;
+                }
                 if (in_varargs) {
                     ptype = varargs_type;
                 }

@@ -407,7 +407,13 @@ std::unique_ptr<FunctionCallExpression> Parser::parseFunctionCall(std::unique_pt
             } else {
                 e = parseExpression();
             }
-            args.emplace_back(new FunctionCallExpression::Argument(mode, name, std::move(e)));
+            bool spread = false;
+            if (tokens[i].type == ELLIPSIS) {
+                // TODO: only one of these
+                spread = true;
+                ++i;
+            }
+            args.emplace_back(new FunctionCallExpression::Argument(mode, name, std::move(e), spread));
             if (tokens[i].type != COMMA) {
                 break;
             }
