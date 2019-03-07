@@ -2137,8 +2137,8 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
     }
     std::vector<const ast::Expression *> varargs_array;
-    const ast::Type *varargs_type = nullptr;
-    bool in_varargs = false;
+    bool in_varargs = ftype->variadic && ftype->params.size() == 1;
+    const ast::Type *varargs_type = in_varargs ? dynamic_cast<const ast::TypeArray *>(ftype->params[0]->type)->elementtype : nullptr;
     int param_index = 0;
     std::vector<const ast::Expression *> args(ftype->params.size());
     if (self != nullptr) {
@@ -2152,14 +2152,8 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         int p;
         if (param_index >= 0 && a->name.text.empty()) {
-            if (ftype->variadic && param_index+1 == static_cast<int>(ftype->params.size())) {
+            if (in_varargs) {
                 p = param_index;
-                const ast::TypeArray *atype = dynamic_cast<const ast::TypeArray *>(ftype->params[param_index]->type);
-                if (atype == nullptr) {
-                    internal_error("varargs atype not null");
-                }
-                varargs_type = atype->elementtype;
-                in_varargs = true;
             } else {
                 p = param_index;
                 param_index++;
@@ -2228,6 +2222,14 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             varargs_array.push_back(e);
         } else {
             args[p] = e;
+            if (ftype->variadic && param_index+1 == static_cast<int>(ftype->params.size())) {
+                const ast::TypeArray *atype = dynamic_cast<const ast::TypeArray *>(ftype->params[param_index]->type);
+                if (atype == nullptr) {
+                    internal_error("varargs atype not null");
+                }
+                varargs_type = atype->elementtype;
+                in_varargs = true;
+            }
         }
     }
     if (in_varargs) {
