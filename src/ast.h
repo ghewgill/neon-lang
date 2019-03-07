@@ -484,7 +484,7 @@ public:
     const Type *type;
     const Expression *default_value;
 
-    std::string text() const { return std::string("ParameterType(mode=") + (mode == Mode::IN ? "IN" : mode == Mode::INOUT ? "OUT" : mode == Mode::OUT ? "OUT" : "unknown") + ",type=" + type->text() + ")"; }
+    std::string text() const { return std::string("ParameterType(mode=") + (mode == Mode::IN ? "IN" : mode == Mode::INOUT ? "OUT" : mode == Mode::OUT ? "OUT" : "unknown") + ",type=" + (type != nullptr ? type->text() : "none") + ")"; }
 private:
     ParameterType(const ParameterType &);
     ParameterType &operator=(const ParameterType &);
@@ -513,7 +513,7 @@ public:
     const bool variadic;
 
     virtual std::string text() const override {
-        std::string r = "TypeFunction(returntype=" + returntype->text() + ", params=";
+        std::string r = "TypeFunction(returntype=" + (returntype != nullptr ? returntype->text() : "none") + ", params=";
         bool first = true;
         for (auto p: params) {
             if (first) {

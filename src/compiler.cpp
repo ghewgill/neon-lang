@@ -1958,9 +1958,19 @@ void ast::FunctionCall::generate_parameters(Emitter &emitter) const
     // TODO: This is a ridiculous hack because the way we compile
     // StringIndexExpression::store is not really legal. This assertion
     // holds true for any other function call.
-    if (func->text() != "VariableExpression(PredefinedFunction(string__splice, TypeFunction(...)))"
-     && func->text() != "VariableExpression(PredefinedFunction(bytes__splice, TypeFunction(...)))"
-     && func->text() != "VariableExpression(PredefinedFunction(array__splice, TypeFunction(...)))") {
+    bool check = true;
+    const VariableExpression *ve = dynamic_cast<const VariableExpression *>(func);
+    if (ve != nullptr) {
+        const PredefinedFunction *pf = dynamic_cast<const PredefinedFunction *>(ve->var);
+        if (pf != nullptr) {
+            if (pf->name == "string__splice"
+             || pf->name == "bytes__splice"
+             || pf->name == "array__splice") {
+                check = false;
+            }
+        }
+    }
+    if (check) {
         assert(args.size() == ftype->params.size());
     }
     for (size_t i = 0; i < args.size(); i++) {
