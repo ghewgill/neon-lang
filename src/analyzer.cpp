@@ -1518,6 +1518,7 @@ const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const st
 {
     const ast::Type *returntype = type->returntype != nullptr ? analyze(type->returntype.get()) : ast::TYPE_NOTHING;
     std::vector<const ast::ParameterType *> params;
+    bool variadic = false;
     bool in_default = false;
     for (auto &x: type->args) {
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
@@ -1527,6 +1528,11 @@ const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const st
             case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
         const ast::Type *ptype = analyze(x->type.get());
+        if (x->varargs) {
+            // TODO: checks
+            ptype = new ast::TypeArray(Token(), ptype);
+            variadic = true;
+        }
         const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
             in_default = true;
@@ -1542,8 +1548,7 @@ const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const st
             params.push_back(pt);
         }
     }
-    // TODO: varargs
-    return new ast::TypeFunctionPointer(type->token, new ast::TypeFunction(returntype, params, false));
+    return new ast::TypeFunctionPointer(type->token, new ast::TypeFunction(returntype, params, variadic));
 }
 
 const ast::Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
