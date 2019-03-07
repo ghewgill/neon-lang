@@ -483,6 +483,8 @@ public:
     const Mode mode;
     const Type *type;
     const Expression *default_value;
+
+    std::string text() const { return std::string("ParameterType(mode=") + (mode == Mode::IN ? "IN" : mode == Mode::INOUT ? "OUT" : mode == Mode::OUT ? "OUT" : "unknown") + ",type=" + type->text() + ")"; }
 private:
     ParameterType(const ParameterType &);
     ParameterType &operator=(const ParameterType &);
@@ -490,7 +492,7 @@ private:
 
 class TypeFunction: public Type {
 public:
-    TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
+    TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params, bool variadic): Type(Token(), "function"), returntype(returntype), params(params), variadic(variadic) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual const Expression *make_default_value() const override { internal_error("TypeFunction"); }
@@ -508,8 +510,21 @@ public:
 
     const Type *returntype;
     const std::vector<const ParameterType *> params;
+    const bool variadic;
 
-    virtual std::string text() const override { return "TypeFunction(...)"; }
+    virtual std::string text() const override {
+        std::string r = "TypeFunction(returntype=" + returntype->text() + ", params=";
+        bool first = true;
+        for (auto p: params) {
+            if (first) {
+                first = false;
+            } else {
+                r += ",";
+            }
+            r += p->text();
+        }
+        return r + ")";
+    }
 private:
     TypeFunction(const TypeFunction &);
     TypeFunction &operator=(const TypeFunction &);
@@ -2707,7 +2722,7 @@ private:
 
 class Function: public Variable {
 public:
-    Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, size_t nesting_depth);
+    Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic, size_t nesting_depth);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Frame *frame;
@@ -2718,7 +2733,7 @@ public:
 
     std::vector<const Statement *> statements;
 
-    static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
+    static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic);
     int get_stack_delta() const;
 
     virtual void reset() override { function_index = UINT_MAX; }
@@ -2758,7 +2773,7 @@ public:
 
 class ExtensionFunction: public Function {
 public:
-    ExtensionFunction(const Token &declaration, const std::string &module, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, 1), module(module) {}
+    ExtensionFunction(const Token &declaration, const std::string &module, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic): Function(declaration, name, returntype, outer, parent, params, variadic, 1), module(module) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string module;
@@ -2792,7 +2807,7 @@ public:
 
 class ForeignFunction: public Function {
 public:
-    ForeignFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, 1), library_name(), param_types(), foreign_index(-1) {}
+    ForeignFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, false, 1), library_name(), param_types(), foreign_index(-1) {}
 
     utf8string library_name;
     std::map<utf8string, utf8string> param_types;

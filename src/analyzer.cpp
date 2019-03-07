@@ -1067,7 +1067,7 @@ ast::TypeEnum::TypeEnum(const Token &declaration, const std::string &module, con
         std::vector<FunctionParameter *> params;
         FunctionParameter *fp = new FunctionParameter(Token(IDENTIFIER, "self"), "self", this, 1, ParameterType::Mode::IN, nullptr);
         params.push_back(fp);
-        Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, 1);
+        Function *f = new Function(Token(), "enum.toString", TYPE_STRING, analyzer->global_scope->frame, analyzer->global_scope, params, false, 1);
         std::vector<const Expression *> values;
         for (auto n: names) {
             if (n.second < 0) {
@@ -1542,7 +1542,8 @@ const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const st
             params.push_back(pt);
         }
     }
-    return new ast::TypeFunctionPointer(type->token, new ast::TypeFunction(returntype, params));
+    // TODO: varargs
+    return new ast::TypeFunctionPointer(type->token, new ast::TypeFunction(returntype, params, false));
 }
 
 const ast::Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
@@ -2135,6 +2136,9 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             dispatch = func;
         }
     }
+    std::vector<const ast::Expression *> varargs_array;
+    const ast::Type *varargs_type = nullptr;
+    bool in_varargs = false;
     int param_index = 0;
     std::vector<const ast::Expression *> args(ftype->params.size());
     if (self != nullptr) {
@@ -2148,8 +2152,18 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
         }
         int p;
         if (param_index >= 0 && a->name.text.empty()) {
-            p = param_index;
-            param_index++;
+            if (ftype->variadic && param_index+1 == static_cast<int>(ftype->params.size())) {
+                p = param_index;
+                const ast::TypeArray *atype = dynamic_cast<const ast::TypeArray *>(ftype->params[param_index]->type);
+                if (atype == nullptr) {
+                    internal_error("varargs atype not null");
+                }
+                varargs_type = atype->elementtype;
+                in_varargs = true;
+            } else {
+                p = param_index;
+                param_index++;
+            }
         } else {
             // Now in named argument mode.
             param_index = -1;
@@ -2178,7 +2192,11 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
             if (ftype->params[p]->type != nullptr) {
                 // TODO: Above check works around problem in sdl.RenderDrawLines.
                 // Something about a compound type in a predefined function parameter list.
-                e = convert(ftype->params[p]->type, e);
+                const ast::Type *ptype = ftype->params[p]->type;
+                if (in_varargs) {
+                    ptype = varargs_type;
+                }
+                e = convert(ptype, e);
                 if (e == nullptr) {
                     error2(3019, a->expr->token, "type mismatch", ftype->params[p]->declaration, "function argument here");
                 }
@@ -2206,7 +2224,14 @@ const ast::Expression *Analyzer::analyze(const pt::FunctionCallExpression *expr)
                 || (a->mode.type == INOUT && ftype->params[p]->mode != ast::ParameterType::Mode::INOUT)) {
             error(3186, a->mode, "parameter mode must match if specified");
         }
-        args[p] = e;
+        if (in_varargs) {
+            varargs_array.push_back(e);
+        } else {
+            args[p] = e;
+        }
+    }
+    if (in_varargs) {
+        args[ftype->params.size()-1] = new ast::ArrayLiteralExpression(varargs_type, varargs_array, {});
     }
     int p = 0;
     for (auto a: args) {
@@ -2296,7 +2321,8 @@ const ast::Expression *Analyzer::analyze(const pt::IntegerDivisionExpression *ex
                 ast::TYPE_NUMBER, {
                     new ast::ParameterType(Token(), ast::ParameterType::Mode::IN, ast::TYPE_NUMBER, nullptr),
                     new ast::ParameterType(Token(), ast::ParameterType::Mode::IN, ast::TYPE_NUMBER, nullptr)
-                }
+                },
+                false
             )
         )), {
             left,
@@ -2369,7 +2395,7 @@ const ast::Expression *Analyzer::analyze(const pt::ConcatenationExpression *expr
         // Since the array__concat function cannot be declared with its proper result type,
         // we have to create a new appropriate function type based on the desired result type
         // and the existing argument types.
-        ve->type = new ast::TypeFunction(left->type, dynamic_cast<const ast::TypeFunction *>(ve->type)->params);
+        ve->type = new ast::TypeFunction(left->type, dynamic_cast<const ast::TypeFunction *>(ve->type)->params, false);
         return new ast::FunctionCall(ve, args);
     } else {
         error(3116, expr->token, "type mismatch");
@@ -2843,7 +2869,8 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
             }
             i++;
             const ast::Type *returntype = deserialize_type(s, descriptor, i);
-            return new ast::TypeFunction(returntype, params);
+            // TODO: varargs
+            return new ast::TypeFunction(returntype, params, false);
         }
         case 'P': {
             i++;
@@ -3065,7 +3092,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::NativeConstantDeclaration
             new ast::VariableExpression(
                 new ast::PredefinedFunction(
                     module_name + "$_CONSTANT_" + name,
-                    new ast::TypeFunction(type, {})
+                    new ast::TypeFunction(type, {}, false)
                 )
             ),
             {}
@@ -3104,7 +3131,8 @@ const ast::Statement *Analyzer::analyze_body(const pt::ExtensionConstantDeclarat
                     type,
                     frame.top(),
                     scope.top(),
-                    {}
+                    {},
+                    false
                 )
             ),
             {}
@@ -3229,6 +3257,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
     }
     const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
     std::vector<ast::FunctionParameter *> args;
+    bool variadic = false;
     bool in_default = false;
     for (auto &x: declaration->args) {
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
@@ -3253,6 +3282,11 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
                     error(3128, x->type->token, "expected self parameter");
                 }
             }
+        }
+        if (x->varargs) {
+            // TODO: check all this is valid
+            ptype = new ast::TypeArray(Token(), ptype);
+            variadic = true;
         }
         const ast::Expression *def = nullptr;
         if (x->default_value != nullptr) {
@@ -3316,14 +3350,14 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
         if (f != type->methods.end()) {
             function = dynamic_cast<ast::Function *>(f->second);
         } else {
-            function = new ast::Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
+            function = new ast::Function(declaration->name, type->name + "." + name, returntype, frame.top(), scope.top(), args, variadic, frame.top()->get_depth()+1);
             type->methods[name] = function;
         }
     } else {
         ast::Name *ident = scope.top()->lookupName(name);
         function = dynamic_cast<ast::Function *>(ident);
         if (function == nullptr) {
-            function = new ast::Function(declaration->name, name, returntype, frame.top(), scope.top(), args, frame.top()->get_depth()+1);
+            function = new ast::Function(declaration->name, name, returntype, frame.top(), scope.top(), args, variadic, frame.top()->get_depth()+1);
             scope.top()->addName(declaration->name, name, function);
         }
     }
@@ -3501,7 +3535,8 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
             params.push_back(pt);
         }
     }
-    ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new ast::TypeFunction(returntype, params));
+    // TODO: varargs
+    ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new ast::TypeFunction(returntype, params, false));
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -3539,7 +3574,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
             params.push_back(fp);
         }
     }
-    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, returntype, frame.top(), scope.top(), params);
+    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, returntype, frame.top(), scope.top(), params, false);
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
