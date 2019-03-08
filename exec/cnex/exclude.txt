@@ -3,8 +3,6 @@ assignment.neon            # dictionary / classes
 bigint.neon                # assert
 bytes-index.neon           # PUSHPPG
 cal-test.neon              # os.system
-case-jumptbl.neon          # JUMPTBL
-case-overlap.neon          # JUMPTBL
 cformat-test.neon          # module
 class-empty.neon           # class
 cmdline.neon               # module
@@ -45,9 +43,7 @@ interface-parameter-export2.neon # export
 interface-parameter-import.neon # class
 interface-parameter-import2.neon # class
 interface.neon             # class
-intrinsic.neon             # JUMPTBL
 json-test.neon             # module
-lexical-scope.neon         # JUMPTBL
 literal-array.neon         # assert / array__range
 math-test.neon             # precision
 mkdir.neon                 # module
@@ -113,7 +109,6 @@ time-stopwatch.neon        # module
 time-test.neon             # module
 unicode-char.neon          # utf8
 unicode-length.neon        # io$fprint / module
-uninitialised-case.neon    # JUMPTBL
 valid-pointer.neon         # class
 value-index.neon           # dictionary
 while-valid.neon           # class

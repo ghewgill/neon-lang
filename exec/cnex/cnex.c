@@ -1099,9 +1099,21 @@ void exec_PUSHPEG(void)
     fatal_error("exec_PUSHPEG not implemented");
 }
 
-void exec_JUMPTBL(void)
+void exec_JUMPTBL(TExecutor *self)
 {
-    fatal_error("exec_JUMPTBL not implemented");
+    self->ip++;
+    uint32_t val = exec_getOperand(self);
+    Number n = top(self->stack)->number; pop(self->stack);
+    if (number_is_integer(n) && !number_is_negative(n)) {
+        uint32_t i = number_to_uint32(n);
+        if (i < val) {
+            self->ip += 6 * i;
+        } else {
+            self->ip += 6 * val;
+        }
+    } else {
+        self->ip += 6 * val;
+    }
 }
 
 void exec_CALLX(void)
@@ -1251,7 +1263,7 @@ void exec_loop(TExecutor *self)
             case JNASSERT:exec_JNASSERT(self); break;
             case RESETC:  exec_RESETC(self); break;
             case PUSHPEG: exec_PUSHPEG(); break;
-            case JUMPTBL: exec_JUMPTBL(); break;
+            case JUMPTBL: exec_JUMPTBL(self); break;
             case CALLX:   exec_CALLX(); break;
             case SWAP:    exec_SWAP(self); break;
             case DROPN:   exec_DROPN(); break;
