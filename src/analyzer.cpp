@@ -1310,6 +1310,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
     }
     for (auto f: object.export_functions) {
+        const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[f.descriptor]));
         const std::string function_name = object.strtable[f.name];
         auto i = function_name.find('.');
         if (i != std::string::npos) {
@@ -1317,9 +1318,9 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const std::string method = function_name.substr(i+1);
             ast::Name *n = module->scope->lookupName(typestr);
             ast::Type *type = dynamic_cast<ast::Type *>(n);
-            type->methods[method] = new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), object.strtable[f.descriptor]);
+            type->methods[method] = new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]);
         } else {
-            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), object.strtable[f.descriptor]));
+            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]));
         }
     }
     for (auto e: object.export_exceptions) {
@@ -3101,10 +3102,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ExtensionConstantDeclarat
                     Token(),
                     path_stripext(path_basename(program->source_path)),
                     declaration->name.text,
-                    type,
-                    frame.top(),
-                    scope.top(),
-                    {}
+                    new ast::TypeFunction(type, {})
                 )
             ),
             {}
@@ -3385,7 +3383,7 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaratio
         error2(3092, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
     const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    std::vector<ast::FunctionParameter *> args;
+    std::vector<const ast::ParameterType *> args;
     bool in_default = false;
     for (auto &x: declaration->args) {
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
@@ -3406,11 +3404,11 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaratio
             error(3151, x->token, "default value must be specified for this parameter");
         }
         for (auto parametername: x->names) {
-            ast::FunctionParameter *fp = new ast::FunctionParameter(parametername, parametername.text, ptype, frame.size()-1, mode, def);
-            args.push_back(fp);
+            ast::ParameterType *pt = new ast::ParameterType(parametername, mode, ptype, def);
+            args.push_back(pt);
         }
     }
-    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
+    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, new ast::TypeFunction(returntype, args));
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -3454,12 +3452,13 @@ const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaratio
     for (auto paramtype: types_dict) {
         param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
     }
-    for (auto p: function->params) {
+    for (auto p: function->ftype->params) {
+        std::string name = p->declaration.text;
         if (p->mode == ast::ParameterType::Mode::OUT) {
-            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + p->name);
+            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + name);
         }
-        if (param_types.find(utf8string(p->name)) == param_types.end()) {
-            error(3097, declaration->dict->token, "parameter type missing: " + p->name);
+        if (param_types.find(utf8string(name)) == param_types.end()) {
+            error(3097, declaration->dict->token, "parameter type missing: " + name);
         }
     }
 
@@ -3513,7 +3512,7 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
         error2(3242, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
     const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    std::vector<ast::FunctionParameter *> params;
+    std::vector<const ast::ParameterType *> params;
     bool in_default = false;
     for (auto &x: declaration->args) {
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
@@ -3535,11 +3534,11 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
             error(3244, x->token, "default value must be specified for this parameter");
         }
         for (auto parametername: x->names) {
-            ast::FunctionParameter *fp = new ast::FunctionParameter(parametername, parametername.text, ptype, frame.size()-1, mode, def);
-            params.push_back(fp);
+            ast::ParameterType *pt = new ast::ParameterType(parametername, mode, ptype, def);
+            params.push_back(pt);
         }
     }
-    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, returntype, frame.top(), scope.top(), params);
+    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, new ast::TypeFunction(returntype, params));
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -5197,9 +5196,7 @@ const ast::Program *Analyzer::analyze()
          && dynamic_cast<const ast::Interface *>(name) == nullptr
          && dynamic_cast<const ast::GlobalVariable *>(name) == nullptr
          && dynamic_cast<const ast::Constant *>(name) == nullptr
-         && dynamic_cast<const ast::Function *>(name) == nullptr
-         && dynamic_cast<const ast::PredefinedFunction *>(name) == nullptr
-         && dynamic_cast<const ast::ExtensionFunction *>(name) == nullptr) {
+         && dynamic_cast<const ast::BaseFunction *>(name) == nullptr) {
             internal_error("Attempt to export something that can't be exported: " + nt.first);
         }
         r->exports[nt.first] = name;
