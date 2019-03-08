@@ -3437,12 +3437,12 @@ const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaratio
         param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
     }
     for (auto p: function->ftype->params) {
-        std::string name = p->declaration.text;
+        std::string pname = p->declaration.text;
         if (p->mode == ast::ParameterType::Mode::OUT) {
-            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + name);
+            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + pname);
         }
-        if (param_types.find(utf8string(name)) == param_types.end()) {
-            error(3097, declaration->dict->token, "parameter type missing: " + name);
+        if (param_types.find(utf8string(pname)) == param_types.end()) {
+            error(3097, declaration->dict->token, "parameter type missing: " + pname);
         }
     }
 
