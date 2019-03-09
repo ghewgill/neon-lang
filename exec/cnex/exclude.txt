@@ -116,7 +116,7 @@ unicode-length.neon        # io$fprint / module
 uninitialised-case.neon    # JUMPTBL
 valid-pointer.neon         # class
 value-index.neon           # dictionary
-varargs.neon               # PUSHI
+varargs-functionpointer.neon # PUSHI
 while-valid.neon           # class
 win32-test.neon            # module
 

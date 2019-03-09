@@ -100,6 +100,7 @@ time-stopwatch.neon        # module
 unicode-char.neon          # utf8
 unicode-length.neon        # utf8
 valid-pointer.neon         # class
+varargs-functionpointer.neon # functionpointer
 while-valid.neon           # class
 win32-test.neon            # module
 

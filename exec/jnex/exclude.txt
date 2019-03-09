@@ -119,7 +119,7 @@ time-test.neon             # import
 unicode-char.neon          # UTF-8
 unicode-length.neon        # UTF-8
 value-copy.neon            # copy
-varargs.neon               # PUSHM
+varargs-functionpointer.neon # PUSHM
 win32-test.neon            # CALLMF
 
 compress-test.neon

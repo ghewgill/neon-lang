@@ -138,7 +138,7 @@ private:
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor);
     const ast::Expression *convert(const ast::Type *target, const ast::Expression *e);
     bool convert2(const ast::Type *target, const ast::Expression *&left, const ast::Expression *&right);
-    std::vector<const ast::ParameterType *> analyze_parameters(const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args, bool &variadic);
+    const ast::TypeFunction *analyze_function_type(const std::unique_ptr<pt::Type> &returntype, const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args);
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
@@ -1516,10 +1516,11 @@ const ast::Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::
     }
 }
 
-std::vector<const ast::ParameterType *> Analyzer::analyze_parameters(const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args, bool &variadic)
+const ast::TypeFunction *Analyzer::analyze_function_type(const std::unique_ptr<pt::Type> &returntype, const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args)
 {
+    const ast::Type *rtype = returntype != nullptr ? analyze(returntype.get()) : ast::TYPE_NOTHING;
     std::vector<const ast::ParameterType *> params;
-    variadic = false;
+    bool variadic = false;
     bool in_default = false;
     for (auto &a: args) {
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
@@ -1550,15 +1551,13 @@ std::vector<const ast::ParameterType *> Analyzer::analyze_parameters(const std::
             params.push_back(pt);
         }
     }
-    return params;
+    return new ast::TypeFunction(rtype, params, variadic);
 }
 
 const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::string &)
 {
-    const ast::Type *returntype = type->returntype != nullptr ? analyze(type->returntype.get()) : ast::TYPE_NOTHING;
-    bool variadic;
-    std::vector<const ast::ParameterType *> params = analyze_parameters(type->args, variadic);
-    return new ast::TypeFunctionPointer(type->token, new ast::TypeFunction(returntype, params, variadic));
+    const ast::TypeFunction *ftype = analyze_function_type(type->returntype, type->args);
+    return new ast::TypeFunctionPointer(type->token, ftype);
 }
 
 const ast::Type *Analyzer::analyze(const pt::TypeParameterised *type, const std::string &)
@@ -3435,10 +3434,8 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaratio
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3092, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
-    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    bool variadic;
-    std::vector<const ast::ParameterType *> params = analyze_parameters(declaration->args, variadic);
-    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, new ast::TypeFunction(returntype, params, variadic));
+    const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
+    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, ftype);
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -3503,10 +3500,8 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3166, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
-    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    bool variadic;
-    std::vector<const ast::ParameterType *> params = analyze_parameters(declaration->args, variadic);
-    ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new ast::TypeFunction(returntype, params, variadic));
+    const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
+    ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, ftype);
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -3517,10 +3512,8 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
     if (not scope.top()->allocateName(declaration->name, name)) {
         error2(3242, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
-    const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    bool variadic;
-    std::vector<const ast::ParameterType *> params = analyze_parameters(declaration->args, variadic);
-    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, new ast::TypeFunction(returntype, params, variadic));
+    const ast::TypeFunction *ftype = analyze_function_type(declaration->returntype, declaration->args);
+    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, ftype);
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
