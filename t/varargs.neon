@@ -12,6 +12,6 @@ ASSERT f() = 0
 LET values: Array<Number> := [1, 2, 3, 4]
 ASSERT f(values...) = 10
 
-VAR fp: FUNCTION(a: Number...): Number
-fp := f
-ASSERT fp(4, 5) = 9
+%VAR fp: FUNCTION(a: Number...): Number
+%fp := f
+%ASSERT fp(4, 5) = 9

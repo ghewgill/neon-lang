@@ -1,2 +1,0 @@
-TYPE f IS FUNCTION(a: Number DEFAULT 1, b: Number)
-                                        %<

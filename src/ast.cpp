@@ -256,21 +256,6 @@ int TypeFunction::get_stack_delta() const
     return output_params - input_params;
 }
 
-int Function::get_stack_delta() const
-{
-    return dynamic_cast<const TypeFunction *>(type)->get_stack_delta();
-}
-
-int PredefinedFunction::get_stack_delta() const
-{
-    return dynamic_cast<const TypeFunction *>(type)->get_stack_delta();
-}
-
-int ModuleFunction::get_stack_delta() const
-{
-    return dynamic_cast<const TypeFunction *>(type)->get_stack_delta();
-}
-
 bool TypeArray::is_structure_compatible(const Type *rhs) const
 {
     const TypeArray *a = dynamic_cast<const TypeArray *>(rhs);
@@ -1133,12 +1118,11 @@ ExternalGlobalScope::ExternalGlobalScope(Scope *parent, Frame *frame, std::map<s
 }
 
 Function::Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic, size_t nesting_depth)
-  : Variable(declaration, name, makeFunctionType(returntype, params, variadic), true),
+  : BaseFunction(declaration, name, makeFunctionType(returntype, params, variadic)),
     frame(new LocalFrame(outer)),
     scope(new Scope(parent, frame)),
     params(params),
     nesting_depth(nesting_depth),
-    function_index(UINT_MAX),
     statements()
 {
     for (auto p: params) {
@@ -1146,7 +1130,7 @@ Function::Function(const Token &declaration, const std::string &name, const Type
     }
 }
 
-const Type *Function::makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic)
+const TypeFunction *Function::makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic)
 {
     std::vector<const ParameterType *> paramtypes;
     for (auto p: params) {

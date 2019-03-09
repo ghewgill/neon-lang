@@ -140,6 +140,7 @@ public:
     virtual void visit(const class PredefinedFunction *node) = 0;
     virtual void visit(const class ExtensionFunction *node) = 0;
     virtual void visit(const class ModuleFunction *node) = 0;
+    virtual void visit(const class ForeignFunction *node) = 0;
     virtual void visit(const class Module *node) = 0;
     virtual void visit(const class Program *node) = 0;
 };
@@ -2720,7 +2721,21 @@ private:
     ResetStatement &operator=(const ResetStatement &);
 };
 
-class Function: public Variable {
+class BaseFunction: public Variable {
+public:
+    BaseFunction(const Token &declaration, const std::string &name, const TypeFunction *ftype): Variable(declaration, name, ftype, true), ftype(ftype), function_index(UINT_MAX) {}
+    const TypeFunction *ftype;
+    mutable unsigned int function_index;
+
+    virtual void reset() override { function_index = UINT_MAX; }
+    virtual void predeclare(Emitter &emitter) const override;
+    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
+private:
+    BaseFunction(const BaseFunction &);
+    BaseFunction &operator=(const BaseFunction &);
+};
+
+class Function: public BaseFunction {
 public:
     Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic, size_t nesting_depth);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
@@ -2729,21 +2744,18 @@ public:
     Scope *scope;
     const std::vector<FunctionParameter *> params;
     size_t nesting_depth;
-    mutable unsigned int function_index;
 
     std::vector<const Statement *> statements;
 
-    static const Type *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic);
+    static const TypeFunction *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic);
     int get_stack_delta() const;
 
-    virtual void reset() override { function_index = UINT_MAX; }
     virtual void predeclare(Emitter &emitter) const override;
     virtual void postdeclare(Emitter &emitter) const override;
     virtual void generate_address(Emitter &) const override {}
     virtual void generate_load(Emitter &) const override;
     virtual void generate_store(Emitter &) const override { internal_error("Function"); }
     virtual void generate_call(Emitter &emitter) const override;
-    virtual void generate_export(Emitter &emitter, const std::string &name) const override;
 
     virtual void debuginfo(Emitter &emitter, minijson::object_writer &out) const;
 
@@ -2753,9 +2765,9 @@ private:
     Function &operator=(const Function &);
 };
 
-class PredefinedFunction: public Variable {
+class PredefinedFunction: public BaseFunction {
 public:
-    PredefinedFunction(const std::string &name, const Type *type): Variable(Token(), name, type, true) {}
+    PredefinedFunction(const std::string &name, const TypeFunction *ftype): BaseFunction(Token(), name, ftype) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual void reset() override {}
@@ -2771,23 +2783,26 @@ public:
     virtual std::string text() const override { return "PredefinedFunction(" + name + ", " + type->text() + ")"; }
 };
 
-class ExtensionFunction: public Function {
+class ExtensionFunction: public BaseFunction {
 public:
-    ExtensionFunction(const Token &declaration, const std::string &module, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic): Function(declaration, name, returntype, outer, parent, params, variadic, 1), module(module) {}
+    ExtensionFunction(const Token &declaration, const std::string &module, const std::string &name, const TypeFunction *ftype): BaseFunction(declaration, name, ftype), module(module) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string module;
 
     virtual void reset() override {}
     virtual void postdeclare(Emitter &) const override;
+    virtual void generate_address(Emitter &) const override { internal_error("ExtensionFunction"); }
+    virtual void generate_load(Emitter &) const override { internal_error("ExtensionFunction"); }
+    virtual void generate_store(Emitter &) const override { internal_error("ExtensionFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
 
     virtual std::string text() const override { return "ExtensionFunction(" + module + ", " + name + ", " + type->text() + ")"; }
 };
 
-class ModuleFunction: public Variable {
+class ModuleFunction: public BaseFunction {
 public:
-    ModuleFunction(const std::string &module, const std::string &name, const Type *type, const std::string &descriptor): Variable(Token(), name, type, true), module(module), name(name), descriptor(descriptor) {}
+    ModuleFunction(const std::string &module, const std::string &name, const TypeFunction *ftype, const std::string &descriptor): BaseFunction(Token(), name, ftype), module(module), name(name), descriptor(descriptor) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     const std::string module;
@@ -2805,9 +2820,10 @@ public:
     virtual std::string text() const override { return "ModuleFunction(" + module + "." + name + ", " + type->text() + ")"; }
 };
 
-class ForeignFunction: public Function {
+class ForeignFunction: public BaseFunction {
 public:
-    ForeignFunction(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params): Function(declaration, name, returntype, outer, parent, params, false, 1), library_name(), param_types(), foreign_index(-1) {}
+    ForeignFunction(const Token &declaration, const std::string &name, const TypeFunction *ftype): BaseFunction(declaration, name, ftype), library_name(), param_types(), foreign_index(-1) {}
+    virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     utf8string library_name;
     std::map<utf8string, utf8string> param_types;
@@ -2816,6 +2832,7 @@ public:
     virtual void reset() override { foreign_index = -1; }
     virtual void predeclare(Emitter &) const override;
     virtual void postdeclare(Emitter &) const override;
+    virtual void generate_address(Emitter &) const override { internal_error("ForeignFunction"); }
     virtual void generate_call(Emitter &emitter) const override;
 
 private:

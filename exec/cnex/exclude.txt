@@ -46,7 +46,6 @@ interface-parameter-import.neon # class
 interface-parameter-import2.neon # class
 interface.neon             # class
 intrinsic.neon             # JUMPTBL
-io-test.neon               # module
 json-test.neon             # module
 lexical-scope.neon         # JUMPTBL
 literal-array.neon         # assert / array__range
@@ -117,6 +116,7 @@ unicode-length.neon        # io$fprint / module
 uninitialised-case.neon    # JUMPTBL
 valid-pointer.neon         # class
 value-index.neon           # dictionary
+varargs.neon               # PUSHI
 while-valid.neon           # class
 win32-test.neon            # module
 

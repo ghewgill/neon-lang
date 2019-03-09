@@ -1,5 +1,0 @@
-FUNCTION bar(): Number
-    RETURN 5
-END FUNCTION
-TYPE f IS FUNCTION(a: Number DEFAULT bar())
-                                     %<

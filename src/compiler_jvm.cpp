@@ -3387,6 +3387,7 @@ public:
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}
     virtual void visit(const ast::ModuleFunction *) {}
+    virtual void visit(const ast::ForeignFunction *) {}
     virtual void visit(const ast::Module *) {}
     virtual void visit(const ast::Program *) {}
 private:
@@ -3512,6 +3513,7 @@ public:
     virtual void visit(const ast::PredefinedFunction *node) { r = new PredefinedFunction(node); }
     virtual void visit(const ast::ExtensionFunction *) { internal_error("unimplemented"); /*r = new PredefinedFunction(node);*/ }
     virtual void visit(const ast::ModuleFunction *node) { r = new ModuleFunction(node); }
+    virtual void visit(const ast::ForeignFunction *) { internal_error("unimplemented"); }
     virtual void visit(const ast::Module *) {}
     virtual void visit(const ast::Program *) {}
 private:
@@ -3637,6 +3639,7 @@ public:
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}
     virtual void visit(const ast::ModuleFunction *) {}
+    virtual void visit(const ast::ForeignFunction *) {}
     virtual void visit(const ast::Module *) {}
     virtual void visit(const ast::Program *) {}
 private:
@@ -3762,6 +3765,7 @@ public:
     virtual void visit(const ast::PredefinedFunction *) {}
     virtual void visit(const ast::ExtensionFunction *) {}
     virtual void visit(const ast::ModuleFunction *) {}
+    virtual void visit(const ast::ForeignFunction *) {}
     virtual void visit(const ast::Module *) {}
     virtual void visit(const ast::Program *) {}
 private:

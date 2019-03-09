@@ -1063,10 +1063,9 @@ void ast::FunctionParameter::generate_address(Emitter &emitter) const
     }
 }
 
-void ast::Function::predeclare(Emitter &emitter) const
+void ast::BaseFunction::predeclare(Emitter &emitter) const
 {
     type->predeclare(emitter);
-    frame->predeclare(emitter);
     // TODO: This hack ensures that we only allocate the
     // entry label once, even if predeclare() is called
     // more than once.
@@ -1075,7 +1074,18 @@ void ast::Function::predeclare(Emitter &emitter) const
     }
 }
 
-static int count_in_parameters(const std::vector<ast::FunctionParameter *> &params)
+void ast::BaseFunction::generate_export(Emitter &emitter, const std::string &export_name) const
+{
+    emitter.add_export_function(export_name, type->get_type_descriptor(emitter), function_index);
+}
+
+void ast::Function::predeclare(Emitter &emitter) const
+{
+    BaseFunction::predeclare(emitter);
+    frame->predeclare(emitter);
+}
+
+static int count_in_parameters(const std::vector<const ast::ParameterType *> &params)
 {
     int r = 0;
     for (auto p: params) {
@@ -1086,7 +1096,7 @@ static int count_in_parameters(const std::vector<ast::FunctionParameter *> &para
     return r;
 }
 
-static int count_out_parameters(const std::vector<ast::FunctionParameter *> &params)
+static int count_out_parameters(const std::vector<const ast::ParameterType *> &params)
 {
     int r = 0;
     for (auto p: params) {
@@ -1102,9 +1112,9 @@ void ast::Function::postdeclare(Emitter &emitter) const
     emitter.debug_line(declaration.line);
     emitter.jump_target(emitter.function_info(function_index).entry_label);
     emitter.set_current_function_depth(nesting_depth);
-    emitter.set_stack_depth(count_in_parameters(params));
+    emitter.set_stack_depth(count_in_parameters(ftype->params));
     emitter.function_info(function_index).nest = static_cast<int>(nesting_depth);
-    emitter.function_info(function_index).params = count_in_parameters(params);
+    emitter.function_info(function_index).params = count_in_parameters(ftype->params);
     emitter.function_info(function_index).locals = static_cast<int>(frame->getCount());
     for (auto p = params.rbegin(); p != params.rend(); ++p) {
         switch ((*p)->mode) {
@@ -1143,7 +1153,7 @@ void ast::Function::postdeclare(Emitter &emitter) const
         if (dynamic_cast<const TypeFunction *>(type)->returntype != TYPE_NOTHING) {
             emitter.adjust_stack_depth(-1);
         }
-        emitter.adjust_stack_depth(-count_out_parameters(params));
+        emitter.adjust_stack_depth(-count_out_parameters(ftype->params));
         if (emitter.get_stack_depth() != 0) {
             internal_error("ip=" + std::to_string(emitter.current_ip()) + " function end stack_depth " + std::to_string(emitter.get_stack_depth()));
         }
@@ -1180,12 +1190,7 @@ void ast::Function::generate_load(Emitter &emitter) const
 void ast::Function::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLF, function_index);
-    emitter.adjust_stack_depth(get_stack_delta());
-}
-
-void ast::Function::generate_export(Emitter &emitter, const std::string &export_name) const
-{
-    emitter.add_export_function(export_name, type->get_type_descriptor(emitter), function_index);
+    emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
 void ast::PredefinedFunction::predeclare(Emitter &emitter) const
@@ -1205,23 +1210,22 @@ void ast::PredefinedFunction::generate_call(Emitter &emitter) const
         i = emitter.predefined_name_index.find(this);
     }
     emitter.emit(CALLP, i->second);
-    emitter.adjust_stack_depth(get_stack_delta());
+    emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
 void ast::ExtensionFunction::postdeclare(Emitter &emitter) const
 {
     emitter.jump_target(emitter.function_info(function_index).entry_label);
-    emitter.set_stack_depth(count_in_parameters(params));
+    emitter.set_stack_depth(count_in_parameters(ftype->params));
     generate_call(emitter);
     emitter.emit(RET);
-    frame->postdeclare(emitter);
 }
 
 void ast::ExtensionFunction::generate_call(Emitter &emitter) const
 {
     int in_param_count = 0;
     int out_param_count = 0;
-    for (auto p: params) {
+    for (auto p: ftype->params) {
         switch (p->mode) {
             case ParameterType::Mode::IN:
                 in_param_count++;
@@ -1251,12 +1255,12 @@ void ast::ModuleFunction::predeclare(Emitter &emitter) const
 void ast::ModuleFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLMF, emitter.str(module), emitter.str(name + "," + descriptor));
-    emitter.adjust_stack_depth(get_stack_delta());
+    emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
 void ast::ForeignFunction::predeclare(Emitter &emitter) const
 {
-    Function::predeclare(emitter);
+    BaseFunction::predeclare(emitter);
     std::stringstream ss;
     ss << library_name.str() << ":" << name << ":";
     auto r = param_types.find(utf8string("return"));
@@ -1265,7 +1269,7 @@ void ast::ForeignFunction::predeclare(Emitter &emitter) const
     }
     ss << ":";
     bool first = true;
-    for (auto param: params) {
+    for (auto param: ftype->params) {
         if (not first) {
             ss << ",";
         }
@@ -1273,7 +1277,7 @@ void ast::ForeignFunction::predeclare(Emitter &emitter) const
         if (param->mode == ParameterType::Mode::INOUT) {
             ss << '*';
         }
-        ss << param_types.at(utf8string(param->name)).str();
+        ss << param_types.at(utf8string(param->declaration.text)).str();
     }
     foreign_index = emitter.str(ss.str());
 }
@@ -1283,13 +1287,12 @@ void ast::ForeignFunction::postdeclare(Emitter &emitter) const
     emitter.jump_target(emitter.function_info(function_index).entry_label);
     generate_call(emitter);
     emitter.emit(RET);
-    frame->postdeclare(emitter);
 }
 
 void ast::ForeignFunction::generate_call(Emitter &emitter) const
 {
     emitter.emit(CALLE, foreign_index);
-    emitter.adjust_stack_depth(get_stack_delta());
+    emitter.adjust_stack_depth(ftype->get_stack_delta());
 }
 
 void ast::Exception::generate_export(Emitter &emitter, const std::string &export_name) const

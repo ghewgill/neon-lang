@@ -138,6 +138,7 @@ private:
     ast::Type *deserialize_type(ast::Scope *s, const std::string &descriptor);
     const ast::Expression *convert(const ast::Type *target, const ast::Expression *e);
     bool convert2(const ast::Type *target, const ast::Expression *&left, const ast::Expression *&right);
+    std::vector<const ast::ParameterType *> analyze_parameters(const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args, bool &variadic);
     std::vector<ast::TryTrap> analyze_catches(const std::vector<std::unique_ptr<pt::TryTrap>> &catches);
     void process_into_results(const pt::ExecStatement *statement, const std::string &sql, const ast::Variable *function, std::vector<const ast::Expression *> args, std::vector<const ast::Statement *> &statements);
     std::vector<ast::TypeRecord::Field> analyze_fields(const pt::TypeRecord *type, bool for_class);
@@ -1310,6 +1311,7 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
         module->scope->addName(Token(IDENTIFIER, ""), object.strtable[v.name], new ast::ModuleVariable(name, object.strtable[v.name], deserialize_type(module->scope, object.strtable[v.type]), v.index));
     }
     for (auto f: object.export_functions) {
+        const ast::TypeFunction *ftype = dynamic_cast<const ast::TypeFunction *>(deserialize_type(module->scope, object.strtable[f.descriptor]));
         const std::string function_name = object.strtable[f.name];
         auto i = function_name.find('.');
         if (i != std::string::npos) {
@@ -1317,9 +1319,9 @@ ast::Module *Analyzer::import_module(const Token &token, const std::string &name
             const std::string method = function_name.substr(i+1);
             ast::Name *n = module->scope->lookupName(typestr);
             ast::Type *type = dynamic_cast<ast::Type *>(n);
-            type->methods[method] = new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), object.strtable[f.descriptor]);
+            type->methods[method] = new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]);
         } else {
-            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, deserialize_type(module->scope, object.strtable[f.descriptor]), object.strtable[f.descriptor]));
+            module->scope->addName(Token(IDENTIFIER, ""), function_name, new ast::ModuleFunction(name, function_name, ftype, object.strtable[f.descriptor]));
         }
     }
     for (auto e: object.export_exceptions) {
@@ -1514,40 +1516,48 @@ const ast::Type *Analyzer::analyze(const pt::TypeValidPointer *type, const std::
     }
 }
 
-const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::string &)
+std::vector<const ast::ParameterType *> Analyzer::analyze_parameters(const std::vector<std::unique_ptr<pt::FunctionParameterGroup>> &args, bool &variadic)
 {
-    const ast::Type *returntype = type->returntype != nullptr ? analyze(type->returntype.get()) : ast::TYPE_NOTHING;
     std::vector<const ast::ParameterType *> params;
-    bool variadic = false;
+    variadic = false;
     bool in_default = false;
-    for (auto &x: type->args) {
+    for (auto &a: args) {
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
-        switch (x->mode) {
+        switch (a->mode) {
             case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
             case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
             case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
         }
-        const ast::Type *ptype = analyze(x->type.get());
-        if (x->varargs) {
+        const ast::Type *ptype = analyze(a->type.get());
+        if (a->varargs) {
             // TODO: checks
             ptype = new ast::TypeArray(Token(), ptype);
             variadic = true;
         }
         const ast::Expression *def = nullptr;
-        if (x->default_value != nullptr) {
+        if (a->default_value != nullptr) {
+            const bool is_dummy = dynamic_cast<pt::DummyExpression *>(a->default_value.get()) != nullptr;
             in_default = true;
-            def = analyze(x->default_value.get());
-            if (not def->is_constant) {
-                error(3177, x->default_value->token, "default value not constant");
+            def = analyze(a->default_value.get());
+            if (not is_dummy && not def->is_constant) {
+                error(3149, a->default_value->token, "default value not constant");
             }
         } else if (in_default) {
-            error(3178, x->token, "default value must be specified for this parameter");
+            error(3151, a->token, "default value must be specified for this parameter");
         }
-        for (auto name: x->names) {
+        for (auto name: a->names) {
             ast::ParameterType *pt = new ast::ParameterType(name, mode, ptype, def);
             params.push_back(pt);
         }
     }
+    return params;
+}
+
+const ast::Type *Analyzer::analyze(const pt::TypeFunctionPointer *type, const std::string &)
+{
+    const ast::Type *returntype = type->returntype != nullptr ? analyze(type->returntype.get()) : ast::TYPE_NOTHING;
+    bool variadic;
+    std::vector<const ast::ParameterType *> params = analyze_parameters(type->args, variadic);
     return new ast::TypeFunctionPointer(type->token, new ast::TypeFunction(returntype, params, variadic));
 }
 
@@ -3139,11 +3149,7 @@ const ast::Statement *Analyzer::analyze_body(const pt::ExtensionConstantDeclarat
                     Token(),
                     path_stripext(path_basename(program->source_path)),
                     declaration->name.text,
-                    type,
-                    frame.top(),
-                    scope.top(),
-                    {},
-                    false
+                    new ast::TypeFunction(type, {}, false)
                 )
             ),
             {}
@@ -3430,32 +3436,9 @@ const ast::Statement *Analyzer::analyze_decl(const pt::ForeignFunctionDeclaratio
         error2(3092, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
     const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    std::vector<ast::FunctionParameter *> args;
-    bool in_default = false;
-    for (auto &x: declaration->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
-        switch (x->mode) {
-            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
-            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
-            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
-        }
-        const ast::Type *ptype = analyze(x->type.get());
-        const ast::Expression *def = nullptr;
-        if (x->default_value != nullptr) {
-            in_default = true;
-            def = analyze(x->default_value.get());
-            if (not def->is_constant) {
-                error(3149, x->default_value->token, "default value not constant");
-            }
-        } else if (in_default) {
-            error(3151, x->token, "default value must be specified for this parameter");
-        }
-        for (auto parametername: x->names) {
-            ast::FunctionParameter *fp = new ast::FunctionParameter(parametername, parametername.text, ptype, frame.size()-1, mode, def);
-            args.push_back(fp);
-        }
-    }
-    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, returntype, frame.top(), scope.top(), args);
+    bool variadic;
+    std::vector<const ast::ParameterType *> params = analyze_parameters(declaration->args, variadic);
+    ast::ForeignFunction *function = new ast::ForeignFunction(declaration->name, name, new ast::TypeFunction(returntype, params, variadic));
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -3499,12 +3482,13 @@ const ast::Statement *Analyzer::analyze_body(const pt::ForeignFunctionDeclaratio
     for (auto paramtype: types_dict) {
         param_types[paramtype.first] = paramtype.second->eval_string(declaration->dict->token);
     }
-    for (auto p: function->params) {
+    for (auto p: function->ftype->params) {
+        std::string pname = p->declaration.text;
         if (p->mode == ast::ParameterType::Mode::OUT) {
-            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + p->name);
+            error(3164, p->declaration, "OUT parameter mode not supported (use INOUT): " + pname);
         }
-        if (param_types.find(utf8string(p->name)) == param_types.end()) {
-            error(3097, declaration->dict->token, "parameter type missing: " + p->name);
+        if (param_types.find(utf8string(pname)) == param_types.end()) {
+            error(3097, declaration->dict->token, "parameter type missing: " + pname);
         }
     }
 
@@ -3520,34 +3504,9 @@ const ast::Statement *Analyzer::analyze(const pt::NativeFunctionDeclaration *dec
         error2(3166, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
     const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    std::vector<const ast::ParameterType *> params;
-    bool in_default = false;
-    for (auto &x: declaration->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
-        switch (x->mode) {
-            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
-            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
-            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
-        }
-        const ast::Type *ptype = analyze(x->type.get());
-        const ast::Expression *def = nullptr;
-        if (x->default_value != nullptr) {
-            const bool is_dummy = dynamic_cast<pt::DummyExpression *>(x->default_value.get()) != nullptr;
-            in_default = true;
-            def = analyze(x->default_value.get());
-            if (not is_dummy && not def->is_constant) {
-                error(3167, x->default_value->token, "default value not constant");
-            }
-        } else if (in_default) {
-            error(3168, x->token, "default value must be specified for this parameter");
-        }
-        for (auto parametername: x->names) {
-            ast::ParameterType *pt = new ast::ParameterType(parametername, mode, ptype, def);
-            params.push_back(pt);
-        }
-    }
-    // TODO: varargs
-    ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new ast::TypeFunction(returntype, params, false));
+    bool variadic;
+    std::vector<const ast::ParameterType *> params = analyze_parameters(declaration->args, variadic);
+    ast::PredefinedFunction *function = new ast::PredefinedFunction(path_stripext(path_basename(program->source_path))+"$"+name, new ast::TypeFunction(returntype, params, variadic));
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -3559,33 +3518,9 @@ const ast::Statement *Analyzer::analyze(const pt::ExtensionFunctionDeclaration *
         error2(3242, declaration->name, "duplicate identifier", scope.top()->getDeclaration(name), "first declaration here");
     }
     const ast::Type *returntype = declaration->returntype != nullptr ? analyze(declaration->returntype.get()) : ast::TYPE_NOTHING;
-    std::vector<ast::FunctionParameter *> params;
-    bool in_default = false;
-    for (auto &x: declaration->args) {
-        ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
-        switch (x->mode) {
-            case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
-            case pt::FunctionParameterGroup::Mode::INOUT: mode = ast::ParameterType::Mode::INOUT;    break;
-            case pt::FunctionParameterGroup::Mode::OUT:   mode = ast::ParameterType::Mode::OUT;      break;
-        }
-        const ast::Type *ptype = analyze(x->type.get());
-        const ast::Expression *def = nullptr;
-        if (x->default_value != nullptr) {
-            const bool is_dummy = dynamic_cast<pt::DummyExpression *>(x->default_value.get()) != nullptr;
-            in_default = true;
-            def = analyze(x->default_value.get());
-            if (not is_dummy && not def->is_constant) {
-                error(3243, x->default_value->token, "default value not constant");
-            }
-        } else if (in_default) {
-            error(3244, x->token, "default value must be specified for this parameter");
-        }
-        for (auto parametername: x->names) {
-            ast::FunctionParameter *fp = new ast::FunctionParameter(parametername, parametername.text, ptype, frame.size()-1, mode, def);
-            params.push_back(fp);
-        }
-    }
-    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, returntype, frame.top(), scope.top(), params, false);
+    bool variadic;
+    std::vector<const ast::ParameterType *> params = analyze_parameters(declaration->args, variadic);
+    ast::ExtensionFunction *function = new ast::ExtensionFunction(declaration->name, path_stripext(path_basename(program->source_path)), name, new ast::TypeFunction(returntype, params, variadic));
     scope.top()->addName(declaration->name, name, function);
     return new ast::NullStatement(declaration->token.line);
 }
@@ -5243,9 +5178,7 @@ const ast::Program *Analyzer::analyze()
          && dynamic_cast<const ast::Interface *>(name) == nullptr
          && dynamic_cast<const ast::GlobalVariable *>(name) == nullptr
          && dynamic_cast<const ast::Constant *>(name) == nullptr
-         && dynamic_cast<const ast::Function *>(name) == nullptr
-         && dynamic_cast<const ast::PredefinedFunction *>(name) == nullptr
-         && dynamic_cast<const ast::ExtensionFunction *>(name) == nullptr) {
+         && dynamic_cast<const ast::BaseFunction *>(name) == nullptr) {
             internal_error("Attempt to export something that can't be exported: " + nt.first);
         }
         r->exports[nt.first] = name;
