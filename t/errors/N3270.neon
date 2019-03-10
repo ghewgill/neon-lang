@@ -1,0 +1,2 @@
+TYPE Func IS FUNCTION(a: Object..., b: Object)
+                                    %<

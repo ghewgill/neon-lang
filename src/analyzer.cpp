@@ -1523,6 +1523,9 @@ const ast::TypeFunction *Analyzer::analyze_function_type(const std::unique_ptr<p
     bool variadic = false;
     bool in_default = false;
     for (auto &a: args) {
+        if (variadic) {
+            error(3270, a->token, "varargs function parameter must be last");
+        }
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
         switch (a->mode) {
             case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
@@ -1531,7 +1534,9 @@ const ast::TypeFunction *Analyzer::analyze_function_type(const std::unique_ptr<p
         }
         const ast::Type *ptype = analyze(a->type.get());
         if (a->varargs) {
-            // TODO: checks
+            if (a->names.size() > 1) {
+                error(3271, a->names[1], "varargs must be single parameter name");
+            }
             ptype = new ast::TypeArray(Token(), ptype);
             variadic = true;
         }
@@ -3276,6 +3281,9 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
     bool variadic = false;
     bool in_default = false;
     for (auto &x: declaration->args) {
+        if (variadic) {
+            error(3268, x->token, "varargs function parameter must be last");
+        }
         ast::ParameterType::Mode mode = ast::ParameterType::Mode::IN;
         switch (x->mode) {
             case pt::FunctionParameterGroup::Mode::IN:    mode = ast::ParameterType::Mode::IN;       break;
@@ -3300,7 +3308,9 @@ const ast::Statement *Analyzer::analyze_decl(const pt::FunctionDeclaration *decl
             }
         }
         if (x->varargs) {
-            // TODO: check all this is valid
+            if (x->names.size() > 1) {
+                error(3269, x->names[1], "varargs must be single parameter name");
+            }
             ptype = new ast::TypeArray(Token(), ptype);
             variadic = true;
         }
