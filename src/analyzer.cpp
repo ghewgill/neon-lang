@@ -2889,13 +2889,18 @@ ast::Type *Analyzer::deserialize_type(ast::Scope *s, const std::string &descript
                 }
             }
             i++;
+            bool variadic = false;
+            if (descriptor.at(i) == 'V') {
+                variadic = true;
+                i++;
+            }
             if (descriptor.at(i) != ':') {
                 internal_error("deserialize_type");
             }
             i++;
             const ast::Type *returntype = deserialize_type(s, descriptor, i);
             // TODO: varargs
-            return new ast::TypeFunction(returntype, params, false);
+            return new ast::TypeFunction(returntype, params, variadic);
         }
         case 'P': {
             i++;

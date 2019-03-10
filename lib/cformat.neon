@@ -15,7 +15,7 @@ EXPORT sprintf
  |
  |  Parameters:
  |      fmt - the format string
- |      value - the array of <Object> values to format
+ |      value - the values to format
  |
  |  Description:
  |      The available formatting codes are
@@ -29,7 +29,7 @@ EXPORT sprintf
  |  See Also:
  |      <printf>
  |%
-FUNCTION sprintf(fmt: String, value: Array<Object>): String
+FUNCTION sprintf(fmt: String, value: Object...): String
     % TODO: This needs a lot more functionality, it is intended
     % as a functional equivalent to the C sprintf function.
     VAR r: String := ""
@@ -62,7 +62,7 @@ END FUNCTION
  |
  |  Parameters:
  |      fmt - the format string
- |      value - the array of <Object> values to format
+ |      value - the values to format
  |
  |  Exceptions:
  |      - <TypeMismatch> - if the wrong type is supplied for a parameter
@@ -70,6 +70,6 @@ END FUNCTION
  |  See Also:
  |      <sprintf>
  |%
-FUNCTION printf(fmt: String, value: Array<Object>)
-    print(sprintf(fmt, value))
+FUNCTION printf(fmt: String, value: Object...)
+    print(sprintf(fmt, value...))
 END FUNCTION
