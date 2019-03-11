@@ -855,6 +855,9 @@ FUNCTION Parser.parseFunctionParameters(INOUT self: Parser, OUT returntype: POIN
             END CASE
             LET tokParam: lexer.Token := self.token
             LET vars: VariableInfo := self.parseVariableDeclaration()
+            IF self.token.type = TokenType.ellipsis THEN
+                self.nextToken()
+            END IF
             VAR defaultValue: POINTER TO ParseTreeNode := NIL
             IF self.token.type = TokenType.default THEN
                 self.nextToken()

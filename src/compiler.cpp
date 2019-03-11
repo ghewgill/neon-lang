@@ -689,7 +689,11 @@ std::string ast::TypeFunction::get_type_descriptor(Emitter &emitter) const
         // TODO: default value
         r += m + p->declaration.text + ":" + emitter.get_type_reference(p->type);
     }
-    r += "]:" + emitter.get_type_reference(returntype);
+    r += "]";
+    if (variadic) {
+        r += "V";
+    }
+    r += ":" + emitter.get_type_reference(returntype);
     return r;
 }
 

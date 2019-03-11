@@ -74,7 +74,8 @@ void Repl::handle(const std::string &s)
                             )},
                             {},
                             Token()
-                        )}
+                        )},
+                        false
                     )}
                 );
                 std::vector<std::unique_ptr<pt::Statement>> statements;

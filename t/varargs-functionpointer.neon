@@ -1,0 +1,11 @@
+FUNCTION f(a: Number...): Number
+    VAR r: Number := 0
+    FOREACH x IN a DO
+        r := r + x
+    END FOREACH
+    RETURN r
+END FUNCTION
+
+VAR fp: FUNCTION(a: Number...): Number
+fp := f
+ASSERT fp(4, 5) = 9

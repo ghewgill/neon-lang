@@ -1,0 +1,6 @@
+FUNCTION f(x: Number...)
+END FUNCTION
+
+LET a: Array<Number> := []
+f(5, a...)
+     %<
