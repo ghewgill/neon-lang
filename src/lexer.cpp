@@ -141,6 +141,7 @@ std::string Token::tostring() const
         case IMPLEMENTS:  s << "IMPLEMENTS"; break;
         case UNUSED:      s << "UNUSED"; break;
         case ISA:         s << "ISA"; break;
+        case ELLIPSIS:    s << "ELLIPSIS"; break;
         case UNKNOWN:     s << "UNKNOWN"; break;
         case MAX_TOKEN:   s << "MAX_TOKEN"; break;
     }
@@ -246,7 +247,6 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
         else if (c == '&') { t.type = CONCAT; utf8::advance(i, 1, source.end()); }
         else if (c == '=') { t.type = EQUAL; utf8::advance(i, 1, source.end()); }
         else if (c == ',') { t.type = COMMA; utf8::advance(i, 1, source.end()); }
-        else if (c == '.') { t.type = DOT; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2212 /*'−'*/) { t.type = MINUS; utf8::advance(i, 1, source.end()); }
         else if (c == 0x00D7 /*'×'*/) { t.type = TIMES; utf8::advance(i, 1, source.end()); }
         else if (c == 0x2215 /*'∕'*/) { t.type = DIVIDE; utf8::advance(i, 1, source.end()); }
@@ -292,6 +292,14 @@ static std::vector<Token> tokenize_fragment(TokenizedSource *tsource, const std:
                 utf8::advance(i, 2, source.end());
             } else {
                 t.type = COLON;
+                utf8::advance(i, 1, source.end());
+            }
+        } else if (c == '.') {
+            if (i+1 != source.end() && *(i+1) == '.' && i+2 != source.end() && *(i+2) == '.') {
+                t.type = ELLIPSIS;
+                utf8::advance(i, 3, source.end());
+            } else {
+                t.type = DOT;
                 utf8::advance(i, 1, source.end());
             }
         } else if (identifier_start(c)) {

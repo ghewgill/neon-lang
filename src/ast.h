@@ -493,7 +493,7 @@ private:
 
 class TypeFunction: public Type {
 public:
-    TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params): Type(Token(), "function"), returntype(returntype), params(params) {}
+    TypeFunction(const Type *returntype, const std::vector<const ParameterType *> &params, bool variadic): Type(Token(), "function"), returntype(returntype), params(params), variadic(variadic) {}
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     virtual const Expression *make_default_value() const override { internal_error("TypeFunction"); }
@@ -511,6 +511,7 @@ public:
 
     const Type *returntype;
     const std::vector<const ParameterType *> params;
+    const bool variadic;
 
     virtual std::string text() const override {
         std::string r = "TypeFunction(returntype=" + (returntype != nullptr ? returntype->text() : "none") + ", params=";
@@ -2736,7 +2737,7 @@ private:
 
 class Function: public BaseFunction {
 public:
-    Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, size_t nesting_depth);
+    Function(const Token &declaration, const std::string &name, const Type *returntype, Frame *outer, Scope *parent, const std::vector<FunctionParameter *> &params, bool variadic, size_t nesting_depth);
     virtual void accept(IAstVisitor *visitor) const override { visitor->visit(this); }
 
     Frame *frame;
@@ -2746,7 +2747,7 @@ public:
 
     std::vector<const Statement *> statements;
 
-    static const TypeFunction *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params);
+    static const TypeFunction *makeFunctionType(const Type *returntype, const std::vector<FunctionParameter *> &params, bool variadic);
     int get_stack_delta() const;
 
     virtual void predeclare(Emitter &emitter) const override;

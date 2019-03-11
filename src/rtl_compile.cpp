@@ -23,7 +23,7 @@ void rtl_compile_init(ast::Scope *scope)
             auto &p = f.params[i];
             params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, nullptr), nullptr));
         }
-        scope->addName(Token(IDENTIFIER, f.name), f.name, new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, nullptr), params)));
+        scope->addName(Token(IDENTIFIER, f.name), f.name, new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, nullptr), params, f.variadic)));
     }
 }
 
@@ -40,7 +40,7 @@ bool rtl_import(const std::string &module, ast::Module *mod)
                 auto &p = f.params[i];
                 params.push_back(new ast::ParameterType(Token(p.name), p.mode, resolve_type(p.ptype, mod->scope), nullptr));
             }
-            mod->scope->addName(Token(IDENTIFIER, f.name), qualified_name.substr(prefix.length()), new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, mod->scope), params)));
+            mod->scope->addName(Token(IDENTIFIER, f.name), qualified_name.substr(prefix.length()), new ast::PredefinedFunction(f.name, new ast::TypeFunction(resolve_type(f.returntype, mod->scope), params, f.variadic)));
             any = true;
         }
     }

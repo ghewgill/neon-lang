@@ -129,6 +129,10 @@ Program
     nullptr
     IN x
       TypeSimple(type)
+  FunctionDeclaration(name)
+    nullptr
+    IN x
+      TypeSimple(type)
   ExceptionDeclaration(name)
   InterfaceDeclaration()
   InterfaceDeclaration(func)
