@@ -293,8 +293,12 @@ public class Global {
         return new neon.type.Number(s.charAt(0));
     }
 
-    public static void print(String s) {
-        System.out.println(s);
+    public static void print(neon.type.Array s) {
+        StringBuilder b = new StringBuilder();
+        for (Object x: s) {
+            b.append(x.toString());
+        }
+        System.out.println(b.toString());
     }
 
     public static String str(neon.type.Number x) {

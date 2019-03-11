@@ -1510,7 +1510,12 @@ class Executor {
 
     private void print()
     {
-        System.out.println(stack.removeFirst().getString());
+        List<Cell> a = stack.removeFirst().getArray();
+        StringBuilder b = new StringBuilder();
+        for (Cell x: a) {
+            b.append(x.getString());
+        }
+        System.out.println(b.toString());
     }
 
     private void string__append()

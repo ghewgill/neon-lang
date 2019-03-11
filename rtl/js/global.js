@@ -102,7 +102,7 @@ neon = {
         },
 
         print: function(s) {
-            console.log(s);
+            console.log(s.join());
         },
 
         round: function(places, value) {

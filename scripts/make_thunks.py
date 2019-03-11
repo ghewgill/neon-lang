@@ -177,7 +177,7 @@ ArrayElementField = {
 def parse_params(paramstr):
     r = []
     if not paramstr:
-        return r
+        return r, False
     def next_token(s, i):
         m = re.match(r"\s*([\w<>]+|.)", s[i:])
         if m is None:
@@ -208,7 +208,15 @@ def parse_params(paramstr):
         t, i = next_token(paramstr, i)
         if t != ",":
             break
-    return r
+    variadic = False
+    if t == "." and paramstr[i:i+2] == "..":
+        variadic = True
+        r[-1] = ("Array<" + r[-1][0] + ">", r[-1][1])
+        t, i = next_token(paramstr, i)
+        t, i = next_token(paramstr, i)
+        t, i = next_token(paramstr, i)
+    assert t in ["", "DEFAULT"], (paramstr, i, t)
+    return r, variadic
 
 enums = dict()
 variables = dict()
@@ -248,7 +256,7 @@ for fn in sys.argv[1:]:
                     name = prefix + m.group(1)
                     paramstr = m.group(2)
                     rtype = m.group(4)
-                    params = parse_params(paramstr)
+                    params, variadic = parse_params(paramstr)
                     functions[name] = [
                         name,
                         AstFromNeon[rtype],
@@ -256,7 +264,8 @@ for fn in sys.argv[1:]:
                         name in exported,
                         [AstFromNeon[x[0]] for x in params],
                         [x[0].split()[-1] for x in params],
-                        [x[1] for x in params]
+                        [x[1] for x in params],
+                        variadic
                     ]
                 elif a[:3] == ["DECLARE", "NATIVE", "CONSTANT"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
@@ -275,7 +284,8 @@ for fn in sys.argv[1:]:
                         name in exported,
                         [],
                         [],
-                        []
+                        [],
+                        False
                     ]
                 elif a[:3] == ["DECLARE", "NATIVE", "VAR"]:
                     m = re.search(r"(\w+)\s*:\s*(\S+)", s)
@@ -303,7 +313,7 @@ for fn in sys.argv[1:]:
 
 thunks = set()
 
-for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
+for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
     thunks.add((rtype, tuple(params)))
 
 with open("src/thunks.inc", "w") as inc:
@@ -417,18 +427,20 @@ with open("src/functions_compile.inc", "w") as inc:
     print >>inc, "    bool exported;"
     print >>inc, "    int count;"
     print >>inc, "    struct {ast::ParameterType::Mode mode; const char *name; PredefinedType ptype; } params[10];"
+    print >>inc, "    bool variadic;"
     print >>inc, "}} BuiltinFunctions[{}];".format(len(functions))
     print >>inc, "void init_builtin_functions() {"
     bfi = 0
-    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
-        print >>inc, "    BuiltinFunctions[{}] = {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}}};".format(
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
+        print >>inc, "    BuiltinFunctions[{}] = {{\"{}\", {{{}, {}}}, {}, {}, {{{}}}, {}}};".format(
             bfi,
             name.replace("global$", ""),
             "ast::"+rtype[0] if rtype[0] not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr",
             "\"{}\"".format(rtypename) or "nullptr",
             "true" if exported else "false",
             len(params),
-            ",".join("{{ast::ParameterType::Mode::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames))
+            ",".join("{{ast::ParameterType::Mode::{},\"{}\",{{{},{}}}}}".format("IN" if m == VALUE else "INOUT" if m == REF else "OUT", n, "ast::"+p if p not in ["TYPE_GENERIC","TYPE_POINTER","TYPE_ARRAY","TYPE_DICTIONARY"] else "nullptr", "\"{}\"".format(t) or "nullptr") for (p, m), t, n in zip(params, paramtypes, paramnames)),
+            "true" if variadic else "false"
         )
         bfi += 1
     print >>inc, "}";
@@ -440,7 +452,7 @@ with open("src/functions_compile_jvm.inc", "w") as inc:
     print >>inc, "    const char *function;"
     print >>inc, "    const char *signature;"
     print >>inc, "} FunctionSignatures[] = {"
-    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
         module, function = name.split("$")
         if function in [
             "int",
@@ -457,7 +469,7 @@ with open("src/functions_compile_jvm.inc", "w") as inc:
 with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "namespace rtl {"
     cpp_name = {}
-    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
         assert "." not in name
         a = name.split("$")
         if a[1] in [
@@ -473,7 +485,7 @@ with open("src/functions_exec.inc", "w") as inc:
     print >>inc, "    Thunk thunk;"
     print >>inc, "    void *func;"
     print >>inc, "} BuiltinFunctions[] = {"
-    for name, rtype, rtypename, exported, params, paramtypes, paramnames in functions.values():
+    for name, rtype, rtypename, exported, params, paramtypes, paramnames, variadic in functions.values():
         print >>inc, "    {{\"{}\", {}, reinterpret_cast<void *>(rtl::{})}},".format(name.replace("global$", ""), "thunk_{}_{}".format(rtype[0], "_".join("{}_{}".format(p, m) for p, m in params)), cpp_name[name])
     print >>inc, "};";
 

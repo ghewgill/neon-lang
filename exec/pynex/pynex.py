@@ -1210,7 +1210,7 @@ def neon_ord(self):
 
 def neon_print(self):
     s = self.stack.pop().value
-    print(s)
+    print("".join(x.value for x in s))
 
 def neon_round(self):
     value = self.stack.pop().value

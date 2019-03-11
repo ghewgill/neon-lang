@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+        "bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -2336,8 +2337,12 @@ func (self *executor) op_callp() {
 			self.push(make_cell_num(0))
 		}
 	case "print":
-		str := self.pop()
-		fmt.Println(str.str)
+                a := self.pop().array
+                var buf bytes.Buffer
+                for _, x := range a {
+                    buf.WriteString(x.str)
+                }
+		fmt.Println(buf.String())
 	case "random$uint32":
 		self.push(make_cell_num(float64(rand.Uint32())))
 	case "round":

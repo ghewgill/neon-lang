@@ -319,8 +319,11 @@ void neon_ord(TExecutor *exec)
 
 void neon_print(TExecutor *exec)
 {
-    const Cell *s = top(exec->stack);
-    fwrite(s->string->data, 1, s->string->length, stdout);
+    const Cell *a = top(exec->stack);
+    for (size_t i = 0; i < a->array->size; i++) {
+        Cell *s = &a->array->data[i];
+        fwrite(s->string->data, 1, s->string->length, stdout);
+    }
     puts("");
     pop(exec->stack);
 }

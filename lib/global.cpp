@@ -394,9 +394,12 @@ utf8string input(const utf8string &prompt)
     return utf8string(r);
 }
 
-void print(const utf8string &s)
+void print(const std::vector<utf8string> &s)
 {
-    std::cout << s.str() << "\n";
+    for (auto &x: s) {
+        std::cout << x.str();
+    }
+    std::cout << "\n";
 }
 
 std::shared_ptr<Object> object__makeNull()
