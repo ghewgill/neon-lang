@@ -5,7 +5,13 @@ fullname = sys.argv[1]
 path, name = os.path.split(fullname)
 
 if os.name == "posix":
-    node = "node"
+    if os.system("nodejs -e ''") == 0:
+        node = "nodejs"
+    elif os.system("node -e ''") == 0:
+        node = "node"
+    else:
+        print("nodejs or node not found")
+        sys.exit(1)
 elif os.path.exists("c:\\program files\\nodejs\\node.exe"):
     node = "\"c:\\program files\\nodejs\\node\""
 else:

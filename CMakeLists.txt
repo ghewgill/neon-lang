@@ -33,6 +33,8 @@ if (JAVAC)
         message("javac not found")
         set(JAVAC "JAVAC-NOTFOUND")
     endif ()
+else (JAVAC)
+    message("javac not found")
 endif (JAVAC)
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Windows")

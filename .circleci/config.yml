@@ -1,0 +1,22 @@
+version: 2
+jobs:
+    build:
+        docker:
+            - image: debian:stretch
+        steps:
+            - run:
+                name: update packages
+                command: apt update
+            - run:
+                name: install packages
+                command: apt install -y scons cmake make g++ m4 openjdk-8-jdk-headless mono-mcs nodejs rustc golang
+            - checkout
+            - run:
+                name: Build external
+                command: scons external/lib
+            - run:
+                name: Build
+                command: cmake . && make
+            - run:
+                name: Test
+                command: ctest --output-on-failure
