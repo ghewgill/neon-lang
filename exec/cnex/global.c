@@ -18,6 +18,7 @@
 
 #include "lib/binary.h"
 #include "lib/io.h"
+#include "lib/math.h"
 #include "lib/random.h"
 #include "lib/sys.h"
 
@@ -78,6 +79,44 @@ TDispatch gfuncDispatch[] = {
     PDFUNC("io$truncate",               io_truncate),
     PDFUNC("io$write",                  io_write),
     PDFUNC("io$_writeBytes",            io_writeBytes),
+
+    // math - Arithmatic library module
+    PDFUNC("math$abs",                  math_abs),
+    PDFUNC("math$acos",                 math_acos),
+    PDFUNC("math$acosh",                math_acosh),
+    PDFUNC("math$asin",                 math_asin),
+    PDFUNC("math$asinh",                math_asinh),
+    PDFUNC("math$atan",                 math_atan),
+    PDFUNC("math$atanh",                math_atanh),
+    PDFUNC("math$atan2",                math_atan2),
+    PDFUNC("math$cbrt",                 math_cbrt),
+    PDFUNC("math$ceil",                 math_ceil),
+    PDFUNC("math$cos",                  math_cos),
+    PDFUNC("math$cosh",                 math_cosh),
+    PDFUNC("math$erf",                  math_erf),
+    PDFUNC("math$erfc",                 math_erfc),
+    PDFUNC("math$exp",                  math_exp),
+    PDFUNC("math$exp2",                 math_exp2),
+    PDFUNC("math$expm1",                math_expm1),
+    PDFUNC("math$floor",                math_floor),
+    PDFUNC("math$frexp",                math_frexp),
+    PDFUNC("math$hypot",                math_hypot),
+    PDFUNC("math$intdiv",               math_intdiv),
+    PDFUNC("math$ldexp",                math_ldexp),
+    PDFUNC("math$lgamma",               math_lgamma),
+    PDFUNC("math$log",                  math_log),
+    PDFUNC("math$log10",                math_log10),
+    PDFUNC("math$log1p",                math_log1p),
+    PDFUNC("math$log2",                 math_log2),
+    PDFUNC("math$nearbyint",            math_nearbyint),
+    PDFUNC("math$sign",                 math_sign),
+    PDFUNC("math$sin",                  math_sin),
+    PDFUNC("math$sinh",                 math_sinh),
+    PDFUNC("math$sqrt",                 math_sqrt),
+    PDFUNC("math$tan",                  math_tan),
+    PDFUNC("math$tanh",                 math_tanh),
+    PDFUNC("math$tgamma",               math_tgamma),
+    PDFUNC("math$trunc",                math_trunc),
 
     // random - Random Number module
     PDFUNC("random$uint32",             random_uint32),
