@@ -67,6 +67,12 @@ void number_toString(Number x, char *buf, size_t len)
     // Once found, we can note the position of it in the string.  Since we know that v is a pointer to the start of the string, and p is the last digit found.
     const int last_significant_digit = (int)(p - v) + 1;
 
+    if (last_significant_digit == 0) {
+        buf[0] = '0';
+        buf[1] = '\0';
+        return;
+    }
+
     // Once we know the last siginificant digit, we can calculate how many trailing zero existed.
     const int trailing_zeros = (int)slen - last_significant_digit;
     exponent += trailing_zeros;
@@ -97,7 +103,7 @@ void number_toString(Number x, char *buf, size_t len)
             // the number with "0.", and then add the rest of the mantissa on the right side of the decimal.
             memcpy(r, "0.", 2);
             memcpy(&r[2], mantissa, slen);
-        } else if (exponent < 0 && slen - exponent <= PRECISION) {
+        } else if (exponent < 0 && slen - exponent <= PRECISION + 1) {
             // Our exponent is negative, and the mantissa length, minus the exponent less or equal to our max PRECISION
             // then we need to insert zero's to the right of the decimal.
             int count = 2;
@@ -378,5 +384,12 @@ void main()
     assert(strcasecmp(number_to_string(number_from_string("+1E+34")), "1e34") == 0);
     assert(strcasecmp(number_to_string(number_from_string("+11E+34")), "1.1e35") == 0);
     assert(strcasecmp(number_to_string(number_from_string("+1E+9999")), "+Inf") == 0);
+
+    assert(strcasecmp(number_to_string(number_from_string("99999999999999999999999999999999994.0")), "9.999999999999999999999999999999999e34") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+1E-34")), "0.0000000000000000000000000000000001") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("-1E-34")), "-0.0000000000000000000000000000000001") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+1E-35")), "1e-35") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("-1E-35")), "-1e-35") == 0);
+    assert(strcasecmp(number_to_string(number_from_string("+0E-6176")), "0") == 0);
 }
 #endif
