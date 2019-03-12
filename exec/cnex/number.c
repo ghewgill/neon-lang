@@ -218,6 +218,186 @@ Number number_pow(Number x, Number y)
     return bid128_pow(x, y);
 }
 
+Number number_abs(Number x)
+{
+    return bid128_abs(x);
+}
+
+Number number_sign(Number x)
+{
+    return bid128_copySign(bid128_from_uint32(1), x);
+}
+
+Number number_ceil(Number x)
+{
+    return bid128_round_integral_positive(x);
+}
+
+Number number_floor(Number x)
+{
+    return bid128_round_integral_negative(x);
+}
+
+Number number_trunc(Number x)
+{
+    return bid128_round_integral_zero(x);
+}
+
+Number number_exp(Number x)
+{
+    return bid128_exp(x);
+}
+
+Number number_log(Number x)
+{
+    return bid128_log(x);
+}
+
+Number number_sqrt(Number x)
+{
+    return bid128_sqrt(x);
+}
+
+Number number_acos(Number x)
+{
+    return bid128_acos(x);
+}
+
+Number number_asin(Number x)
+{
+    return bid128_asin(x);
+}
+
+Number number_atan(Number x)
+{
+    return bid128_atan(x);
+}
+
+Number number_cos(Number x)
+{
+    return bid128_cos(x);
+}
+
+Number number_sin(Number x)
+{
+    return bid128_sin(x);
+}
+
+Number number_tan(Number x)
+{
+    return bid128_tan(x);
+}
+
+Number number_acosh(Number x)
+{
+    return bid128_acosh(x);
+}
+
+Number number_asinh(Number x)
+{
+    return bid128_asinh(x);
+}
+
+Number number_atanh(Number x)
+{
+    return bid128_atanh(x);
+}
+
+Number number_atan2(Number y, Number x)
+{
+    return bid128_atan2(y, x);
+}
+
+Number number_cbrt(Number x)
+{
+    return bid128_cbrt(x);
+}
+
+Number number_cosh(Number x)
+{
+    return bid128_cosh(x);
+}
+
+Number number_erf(Number x)
+{
+    return bid128_erf(x);
+}
+
+Number number_erfc(Number x)
+{
+    return bid128_erfc(x);
+}
+
+Number number_exp2(Number x)
+{
+    return bid128_exp2(x);
+}
+
+Number number_expm1(Number x)
+{
+    return bid128_expm1(x);
+}
+
+Number number_frexp(Number x, int *exp)
+{
+    return bid128_frexp(x, exp);
+}
+
+Number number_hypot(Number x, Number y)
+{
+    return bid128_hypot(x, y);
+}
+
+Number number_ldexp(Number x, int exp)
+{
+    return bid128_ldexp(x, exp);
+}
+
+Number number_lgamma(Number x)
+{
+    return bid128_lgamma(x);
+}
+
+Number number_log10(Number x)
+{
+    return bid128_log10(x);
+}
+
+Number number_log1p(Number x)
+{
+    return bid128_log1p(x);
+}
+
+Number number_log2(Number x)
+{
+    return bid128_log2(x);
+}
+
+Number number_nearbyint(Number x)
+{
+    return bid128_nearbyint(x);
+}
+
+Number number_sinh(Number x)
+{
+    return bid128_sinh(x);
+}
+
+Number number_tanh(Number x)
+{
+    return bid128_tanh(x);
+}
+
+Number number_tgamma(Number x)
+{
+    return bid128_tgamma(x);
+}
+
+
+/*
+ * Number Test functions
+ */
+
 BOOL number_is_integer(Number x)
 {
     Number i = bid128_round_integral_zero(x);
@@ -232,16 +412,6 @@ BOOL number_is_nan(Number x)
 BOOL number_is_negative(Number x)
 {
     return bid128_isSigned(x) != 0;
-}
-
-Number number_nearbyint(Number x)
-{
-    return bid128_nearbyint(x);
-}
-
-Number number_trunc(Number x)
-{
-    return bid128_round_integral_zero(x);
 }
 
 BOOL number_is_zero(Number x)

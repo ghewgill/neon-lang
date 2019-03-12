@@ -10,7 +10,6 @@ complex-test.neon          # module
 datetime-test.neon         # module
 debug-example.neon         # module
 debug-server.neon          # module
-decimal.neon               # arithmetic
 divide-by-zero.neon        # exception
 encoding-base64.neon       # module
 equality.neon              # class
@@ -37,7 +36,6 @@ gc1.neon                   # class
 gc2.neon                   # class
 gc3.neon                   # class
 import.neon                # class
-intdiv.neon                # assert / math$intdiv
 interface-parameter-export.neon # export
 interface-parameter-export2.neon # export
 interface-parameter-import.neon # class
@@ -45,7 +43,6 @@ interface-parameter-import2.neon # class
 interface.neon             # class
 json-test.neon             # module
 literal-array.neon         # assert / array__range
-math-test.neon             # precision
 mkdir.neon                 # module
 mmap-test.neon             # mmap
 module-alias.neon          # module
@@ -61,7 +58,6 @@ net-test.neon              # net
 net-test-udp.neon          # net
 new-init-module.neon       # class
 new-init.neon              # class
-number-ceil.neon           # precision
 object.neon                # object
 object-isa.neon            # object
 object-isa-case.neon       # object

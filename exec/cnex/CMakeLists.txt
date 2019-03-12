@@ -3,6 +3,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY .)
 set(CNEX_RTL
     lib/binary.c
     lib/io.c
+    lib/math.c
     lib/random.c
     lib/sys.c
 )
@@ -33,3 +34,9 @@ endif ()
 target_link_libraries(cnex
     bid
 )
+
+if (WIN32)
+else (WIN32)
+    target_link_libraries(cnex m)
+endif (WIN32)
+
