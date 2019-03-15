@@ -513,14 +513,20 @@ void exec_EXPN(TExecutor *self)
     push(self->stack, cell_fromNumber(number_pow(a, b)));
 }
 
-void exec_EQB(void)
+void exec_EQB(TExecutor *self)
 {
-    fatal_error("exec_EQB not implemented");
+    self->ip++;
+    BOOL b = top(self->stack)->boolean; pop(self->stack);
+    BOOL a = top(self->stack)->boolean; pop(self->stack);
+    push(self->stack, cell_fromBoolean(a == b));
 }
 
-void exec_NEB(void)
+void exec_NEB(TExecutor *self)
 {
-    fatal_error("exec_NEB not implemented");
+    self->ip++;
+    BOOL b = top(self->stack)->boolean; pop(self->stack);
+    BOOL a = top(self->stack)->boolean; pop(self->stack);
+    push(self->stack, cell_fromBoolean(a != b));
 }
 
 void exec_EQN(TExecutor*self)
@@ -1204,8 +1210,8 @@ void exec_loop(TExecutor *self)
             case DIVN:    exec_DIVN(self); break;
             case MODN:    exec_MODN(self); break;
             case EXPN:    exec_EXPN(self); break;
-            case EQB:     exec_EQB(); break;
-            case NEB:     exec_NEB(); break;
+            case EQB:     exec_EQB(self); break;
+            case NEB:     exec_NEB(self); break;
             case EQN:     exec_EQN(self); break;
             case NEN:     exec_NEN(self); break;
             case LTN:     exec_LTN(self); break;
